@@ -1,118 +1,86 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 068/118] mm, thp: fix defrag setting if newline is
- not used
-Date: Thu, 30 Jan 2020 22:14:48 -0800
-Message-ID: <20200131061448.X-yKx71ZM%akpm@linux-foundation.org>
+Subject: [patch 069/118] mm/mmap.c: get rid of odd jump labels in
+ find_mergeable_anon_vma()
+Date: Thu, 30 Jan 2020 22:14:51 -0800
+Message-ID: <20200131061451.xSfMSpwca%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34646 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGOu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:14:50 -0500
+        id S1725907AbgAaGOw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:14:52 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux-mm@kvack.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org, rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, david@redhat.com, jhubbard@nvidia.com, linmiaohe@huawei.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com, rientjes@google.com, torvalds@linux-foundation.org
 
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: fix defrag setting if newline is not used
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/mmap.c: get rid of odd jump labels in find_mergeable_anon_vma()
 
-If thp defrag setting "defer" is used and a newline is *not* used when
-writing to the sysfs file, this is interpreted as the "defer+madvise"
-option.
+The jump labels try_prev and none are not really needed in
+find_mergeable_anon_vma(), eliminate them to improve readability.
 
-This is because we do prefix matching and if five characters are written
-without a newline, the current code ends up comparing to the first five
-bytes of the "defer+madvise" option and using that instead.
-
-Use the more appropriate sysfs_streq() that handles the trailing newline
-for us.  Since this doubles as a nice cleanup, do it in enabled_store() as
-well.
-
-
-The current implementation relies on prefix matching: the number of
-bytes compared is either the number of bytes written or the length of
-the option being compared.  With a newline, "defer\n" does not match
-"defer+"madvise"; without a newline, however, "defer" is considered to
-match "defer+madvise" (prefix matching is only comparing the first five
-bytes).  End result is that writing "defer" is broken unless it has an
-additional trailing character.
-
-This means that writing "madv" in the past would match and set
-"madvise".  With strict checking, that no longer is the case but it is
-unlikely anybody is currently doing this.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.21.2001171411020.56385@chino.kir.corp.google.com
-Fixes: 21440d7eb904 ("mm, thp: add new defer+madvise defrag option")
-Signed-off-by: David Rientjes <rientjes@google.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/1574079844-17493-1-git-send-email-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Wei Yang <richardw.yang@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   24 ++++++++----------------
- 1 file changed, 8 insertions(+), 16 deletions(-)
+ mm/mmap.c |   30 +++++++++++++-----------------
+ 1 file changed, 13 insertions(+), 17 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-fix-defrag-setting-if-newline-is-not-used
-+++ a/mm/huge_memory.c
-@@ -177,16 +177,13 @@ static ssize_t enabled_store(struct kobj
+--- a/mm/mmap.c~mm-get-rid-of-odd-jump-labels-in-find_mergeable_anon_vma
++++ a/mm/mmap.c
+@@ -1270,26 +1270,22 @@ static struct anon_vma *reusable_anon_vm
+  */
+ struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *vma)
  {
- 	ssize_t ret = count;
+-	struct anon_vma *anon_vma;
+-	struct vm_area_struct *near;
++	struct anon_vma *anon_vma = NULL;
  
--	if (!memcmp("always", buf,
--		    min(sizeof("always")-1, count))) {
-+	if (sysfs_streq(buf, "always")) {
- 		clear_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
- 		set_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
--	} else if (!memcmp("madvise", buf,
--			   min(sizeof("madvise")-1, count))) {
-+	} else if (sysfs_streq(buf, "madvise")) {
- 		clear_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
- 		set_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
--	} else if (!memcmp("never", buf,
--			   min(sizeof("never")-1, count))) {
-+	} else if (sysfs_streq(buf, "never")) {
- 		clear_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
- 	} else
-@@ -250,32 +247,27 @@ static ssize_t defrag_store(struct kobje
- 			    struct kobj_attribute *attr,
- 			    const char *buf, size_t count)
- {
--	if (!memcmp("always", buf,
--		    min(sizeof("always")-1, count))) {
-+	if (sysfs_streq(buf, "always")) {
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
- 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
--	} else if (!memcmp("defer+madvise", buf,
--		    min(sizeof("defer+madvise")-1, count))) {
-+	} else if (sysfs_streq(buf, "defer+madvise")) {
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
- 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
--	} else if (!memcmp("defer", buf,
--		    min(sizeof("defer")-1, count))) {
-+	} else if (sysfs_streq(buf, "defer")) {
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
- 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
--	} else if (!memcmp("madvise", buf,
--			   min(sizeof("madvise")-1, count))) {
-+	} else if (sysfs_streq(buf, "madvise")) {
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
- 		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
--	} else if (!memcmp("never", buf,
--			   min(sizeof("never")-1, count))) {
-+	} else if (sysfs_streq(buf, "never")) {
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
- 		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-	near = vma->vm_next;
+-	if (!near)
+-		goto try_prev;
++	/* Try next first. */
++	if (vma->vm_next) {
++		anon_vma = reusable_anon_vma(vma->vm_next, vma, vma->vm_next);
++		if (anon_vma)
++			return anon_vma;
++	}
+ 
+-	anon_vma = reusable_anon_vma(near, vma, near);
+-	if (anon_vma)
+-		return anon_vma;
+-try_prev:
+-	near = vma->vm_prev;
+-	if (!near)
+-		goto none;
++	/* Try prev next. */
++	if (vma->vm_prev)
++		anon_vma = reusable_anon_vma(vma->vm_prev, vma->vm_prev, vma);
+ 
+-	anon_vma = reusable_anon_vma(near, near, vma);
+-	if (anon_vma)
+-		return anon_vma;
+-none:
+ 	/*
++	 * We might reach here with anon_vma == NULL if we can't find
++	 * any reusable anon_vma.
+ 	 * There's no absolute need to look only at touching neighbours:
+ 	 * we could search further afield for "compatible" anon_vmas.
+ 	 * But it would probably just be a waste of time searching,
+@@ -1297,7 +1293,7 @@ none:
+ 	 * We're trying to allow mprotect remerging later on,
+ 	 * not trying to minimize memory used for anon_vmas.
+ 	 */
+-	return NULL;
++	return anon_vma;
+ }
+ 
+ /*
 _
