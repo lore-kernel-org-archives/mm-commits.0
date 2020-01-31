@@ -1,59 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-test_kasanc-fix-memory-leak-in-kmalloc_oob_krealloc_more.patch removed
+ mm-early_remap-use-%pa-to-print-resource_size_t-variables.patch removed
  from -mm tree
-Date: Fri, 31 Jan 2020 15:18:23 -0800
-Message-ID: <20200131231823.oEAlTU_hV%akpm@linux-foundation.org>
+Date: Fri, 31 Jan 2020 15:18:25 -0800
+Message-ID: <20200131231825.VC7kFBTcN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50502 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726347AbgAaXSY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:18:24 -0500
+        id S1726347AbgAaXS0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:18:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, gustavo@embeddedor.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, david@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_kasan.c: fix memory leak in kmalloc_oob_krealloc_more()
+     Subject: mm/early_ioremap.c: use %pa to print resource_size_t variables
 has been removed from the -mm tree.  Its filename was
-     lib-test_kasanc-fix-memory-leak-in-kmalloc_oob_krealloc_more.patch
+     mm-early_remap-use-%pa-to-print-resource_size_t-variables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: lib/test_kasan.c: fix memory leak in kmalloc_oob_krealloc_more()
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: mm/early_ioremap.c: use %pa to print resource_size_t variables
 
-In case memory resources for _ptr2_ were allocated, release them before
-return.
+%pa takes into consideration the special types such as resource_size_t. 
+Use this specifier %instead of explicit casting.
 
-Notice that in case _ptr1_ happens to be NULL, krealloc() behaves exactly
-like kmalloc().
-
-Addresses-Coverity-ID: 1490594 ("Resource leak")
-Link: http://lkml.kernel.org/r/20200123160115.GA4202@embeddedor
-Fixes: 3f15801cdc23 ("lib: add kasan test module")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20191209165413.56263-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/early_ioremap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/lib/test_kasan.c~lib-test_kasanc-fix-memory-leak-in-kmalloc_oob_krealloc_more
-+++ a/lib/test_kasan.c
-@@ -158,6 +158,7 @@ static noinline void __init kmalloc_oob_
- 	if (!ptr1 || !ptr2) {
- 		pr_err("Allocation failed\n");
- 		kfree(ptr1);
-+		kfree(ptr2);
- 		return;
+--- a/mm/early_ioremap.c~mm-early_remap-use-%pa-to-print-resource_size_t-variables
++++ a/mm/early_ioremap.c
+@@ -121,8 +121,8 @@ __early_ioremap(resource_size_t phys_add
+ 		}
  	}
  
+-	if (WARN(slot < 0, "%s(%08llx, %08lx) not found slot\n",
+-		 __func__, (u64)phys_addr, size))
++	if (WARN(slot < 0, "%s(%pa, %08lx) not found slot\n",
++		 __func__, &phys_addr, size))
+ 		return NULL;
+ 
+ 	/* Don't allow wraparound or zero size */
+@@ -158,8 +158,8 @@ __early_ioremap(resource_size_t phys_add
+ 		--idx;
+ 		--nrpages;
+ 	}
+-	WARN(early_ioremap_debug, "%s(%08llx, %08lx) [%d] => %08lx + %08lx\n",
+-	     __func__, (u64)phys_addr, size, slot, offset, slot_virt[slot]);
++	WARN(early_ioremap_debug, "%s(%pa, %08lx) [%d] => %08lx + %08lx\n",
++	     __func__, &phys_addr, size, slot, offset, slot_virt[slot]);
+ 
+ 	prev_map[slot] = (void __iomem *)(offset + slot_virt[slot]);
+ 	return prev_map[slot];
 _
 
-Patches currently in -mm which might be from gustavo@embeddedor.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+lib-add-test-for-bitmap_parse-fix-2.patch
