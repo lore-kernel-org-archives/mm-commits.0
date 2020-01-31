@@ -1,214 +1,92 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-devmap-refactor-1-based-refcounting-for-zone_device-pages.patch removed
- from -mm tree
-Date: Fri, 31 Jan 2020 15:17:35 -0800
-Message-ID: <20200131231735.dzJ3wR0dd%akpm@linux-foundation.org>
+ ib-umem-use-get_user_pages_fast-to-pin-dma-pages.patch removed from -mm
+ tree
+Date: Fri, 31 Jan 2020 15:17:45 -0800
+Message-ID: <20200131231745._8Y4PRMDM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49470 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49728 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726561AbgAaXRg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:17:36 -0500
+        id S1726347AbgAaXRr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:17:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alex.williamson@redhat.com, aneesh.kumar@linux.ibm.com, axboe@kernel.dk, bjorn.topel@intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, hch@lst.de, hverkuil-cisco@xs4all.nl, ira.weiny@intel.com, jack@suse.cz, jgg@mellanox.com, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill@shutemov.name, leonro@mellanox.com, mchehab@kernel.org, mm-commits@vger.kernel.org, rppt@linux.ibm.com
 
 
 The patch titled
-     Subject: mm: devmap: refactor 1-based refcounting for ZONE_DEVICE pages
+     Subject: IB/umem: use get_user_pages_fast() to pin DMA pages
 has been removed from the -mm tree.  Its filename was
-     mm-devmap-refactor-1-based-refcounting-for-zone_device-pages.patch
+     ib-umem-use-get_user_pages_fast-to-pin-dma-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm: devmap: refactor 1-based refcounting for ZONE_DEVICE pages
+Subject: IB/umem: use get_user_pages_fast() to pin DMA pages
 
-An upcoming patch changes and complicates the refcounting and especially
-the "put page" aspects of it.  In order to keep everything clean, refactor
-the devmap page release routines:
+And get rid of the mmap_sem calls, as part of that.  Note that
+get_user_pages_fast() will, if necessary, fall back to
+__gup_longterm_unlocked(), which takes the mmap_sem as needed.
 
-* Rename put_devmap_managed_page() to page_is_devmap_managed(), and
-  limit the functionality to "read only": return a bool, with no side
-  effects.
-
-* Add a new routine, put_devmap_managed_page(), to handle decrementing
-  the refcount for ZONE_DEVICE pages.
-
-* Change callers (just release_pages() and put_page()) to check
-  page_is_devmap_managed() before calling the new
-  put_devmap_managed_page() routine.  This is a performance point:
-  put_page() is a hot path, so we need to avoid non- inline function calls
-  where possible.
-
-* Rename __put_devmap_managed_page() to free_devmap_managed_page(), and
-  limit the functionality to unconditionally freeing a devmap page.
-
-This is originally based on a separate patch by Ira Weiny, which applied
-to an early version of the put_user_page() experiments.  Since then,
-J=C3=A9r=C3=B4me Glisse suggested the refactoring described above.
-
-Link: http://lkml.kernel.org/r/20200107224558.2362728-5-jhubbard@nvidia.com
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Link: http://lkml.kernel.org/r/20200107224558.2362728-10-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Suggested-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Bj=C3=B6rn T=C3=B6pel <bjorn.topel@intel.com>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Leon Romanovsky <leonro@mellanox.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   18 +++++++++++++-----
- mm/memremap.c      |   15 +--------------
- mm/swap.c          |   27 ++++++++++++++++++++++++++-
- 3 files changed, 40 insertions(+), 20 deletions(-)
+ drivers/infiniband/core/umem.c |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
---- a/include/linux/mm.h~mm-devmap-refactor-1-based-refcounting-for-zone_de=
-vice-pages
-+++ a/include/linux/mm.h
-@@ -947,9 +947,10 @@ static inline bool is_zone_device_page(c
- #endif
+--- a/drivers/infiniband/core/umem.c~ib-umem-use-get_user_pages_fast-to-pin=
+-dma-pages
++++ a/drivers/infiniband/core/umem.c
+@@ -257,16 +257,13 @@ struct ib_umem *ib_umem_get(struct ib_de
+ 	sg =3D umem->sg_head.sgl;
 =20
- #ifdef CONFIG_DEV_PAGEMAP_OPS
--void __put_devmap_managed_page(struct page *page);
-+void free_devmap_managed_page(struct page *page);
- DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
--static inline bool put_devmap_managed_page(struct page *page)
-+
-+static inline bool page_is_devmap_managed(struct page *page)
- {
- 	if (!static_branch_unlikely(&devmap_managed_key))
- 		return false;
-@@ -958,7 +959,6 @@ static inline bool put_devmap_managed_pa
- 	switch (page->pgmap->type) {
- 	case MEMORY_DEVICE_PRIVATE:
- 	case MEMORY_DEVICE_FS_DAX:
--		__put_devmap_managed_page(page);
- 		return true;
- 	default:
- 		break;
-@@ -966,11 +966,17 @@ static inline bool put_devmap_managed_pa
- 	return false;
- }
+ 	while (npages) {
+-		down_read(&mm->mmap_sem);
+-		ret =3D get_user_pages(cur_base,
+-				     min_t(unsigned long, npages,
+-					   PAGE_SIZE / sizeof (struct page *)),
+-				     gup_flags | FOLL_LONGTERM,
+-				     page_list, NULL);
+-		if (ret < 0) {
+-			up_read(&mm->mmap_sem);
++		ret =3D get_user_pages_fast(cur_base,
++					  min_t(unsigned long, npages,
++						PAGE_SIZE /
++						sizeof(struct page *)),
++					  gup_flags | FOLL_LONGTERM, page_list);
++		if (ret < 0)
+ 			goto umem_release;
+-		}
 =20
-+void put_devmap_managed_page(struct page *page);
-+
- #else /* CONFIG_DEV_PAGEMAP_OPS */
--static inline bool put_devmap_managed_page(struct page *page)
-+static inline bool page_is_devmap_managed(struct page *page)
- {
- 	return false;
- }
-+
-+static inline void put_devmap_managed_page(struct page *page)
-+{
-+}
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
-=20
- static inline bool is_device_private_page(const struct page *page)
-@@ -1023,8 +1029,10 @@ static inline void put_page(struct page
- 	 * need to inform the device driver through callback. See
- 	 * include/linux/memremap.h and HMM for details.
- 	 */
--	if (put_devmap_managed_page(page))
-+	if (page_is_devmap_managed(page)) {
-+		put_devmap_managed_page(page);
- 		return;
-+	}
-=20
- 	if (put_page_testzero(page))
- 		__put_page(page);
---- a/mm/memremap.c~mm-devmap-refactor-1-based-refcounting-for-zone_device-=
-pages
-+++ a/mm/memremap.c
-@@ -411,20 +411,8 @@ struct dev_pagemap *get_dev_pagemap(unsi
- EXPORT_SYMBOL_GPL(get_dev_pagemap);
-=20
- #ifdef CONFIG_DEV_PAGEMAP_OPS
--void __put_devmap_managed_page(struct page *page)
-+void free_devmap_managed_page(struct page *page)
- {
--	int count =3D page_ref_dec_return(page);
--
--	/* still busy */
--	if (count > 1)
--		return;
--
--	/* only triggered by the dev_pagemap shutdown path */
--	if (count =3D=3D 0) {
--		__put_page(page);
--		return;
--	}
--
- 	/* notify page idle for dax */
- 	if (!is_device_private_page(page)) {
- 		wake_up_var(&page->_refcount);
-@@ -461,5 +449,4 @@ void __put_devmap_managed_page(struct pa
- 	page->mapping =3D NULL;
- 	page->pgmap->ops->page_free(page);
- }
--EXPORT_SYMBOL(__put_devmap_managed_page);
- #endif /* CONFIG_DEV_PAGEMAP_OPS */
---- a/mm/swap.c~mm-devmap-refactor-1-based-refcounting-for-zone_device-pages
-+++ a/mm/swap.c
-@@ -813,8 +813,10 @@ void release_pages(struct page **pages,
- 			 * processing, and instead, expect a call to
- 			 * put_page_testzero().
- 			 */
--			if (put_devmap_managed_page(page))
-+			if (page_is_devmap_managed(page)) {
-+				put_devmap_managed_page(page);
- 				continue;
-+			}
- 		}
-=20
- 		page =3D compound_head(page);
-@@ -1102,3 +1104,26 @@ void __init swap_setup(void)
- 	 * _really_ don't want to cluster much more
- 	 */
- }
-+
-+#ifdef CONFIG_DEV_PAGEMAP_OPS
-+void put_devmap_managed_page(struct page *page)
-+{
-+	int count;
-+
-+	if (WARN_ON_ONCE(!page_is_devmap_managed(page)))
-+		return;
-+
-+	count =3D page_ref_dec_return(page);
-+
-+	/*
-+	 * devmap page refcounts are 1-based, rather than 0-based: if
-+	 * refcount is 1, then the page is free and the refcount is
-+	 * stable because nobody holds a reference on the page.
-+	 */
-+	if (count =3D=3D 1)
-+		free_devmap_managed_page(page);
-+	else if (!count)
-+		__put_page(page);
-+}
-+EXPORT_SYMBOL(put_devmap_managed_page);
-+#endif
-_
-
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+ 		cur_base +=3D ret * PAGE_SIZE;
+ 		npages   -=3D ret;
+@@ -274,8 +271,6 @@ struct ib_umem *ib_umem_get(struct ib_de
+ 		sg =3D ib_umem_add_sg_table(sg, page_list, ret,
+ 			dma_get_max_seg_size(device->dma_device),
+ 			&umem->sg_nents);
