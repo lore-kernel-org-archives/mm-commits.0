@@ -1,50 +1,55 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 056/118] mm/vmscan: remove prefetch_prev_lru_page
-Date: Thu, 30 Jan 2020 22:14:10 -0800
-Message-ID: <20200131061410.BD4iJ_kKY%akpm@linux-foundation.org>
+Subject: [patch 057/118] mm/vmscan: remove unused
+ RECLAIM_OFF/RECLAIM_ZONE
+Date: Thu, 30 Jan 2020 22:14:14 -0800
+Message-ID: <20200131061414.EuUjkznlO%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33894 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGOM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:14:12 -0500
+        id S1725907AbgAaGOQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:14:16 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, cai@lca.pw, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, cl@linux.com, dwagner@suse.de, linux-mm@kvack.org, mm-commits@vger.kernel.org, tobin@kernel.org, torvalds@linux-foundation.org
 
 From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/vmscan: remove prefetch_prev_lru_page
+Subject: mm/vmscan: remove unused RECLAIM_OFF/RECLAIM_ZONE
 
-This macro was never used in git history. So better to remove.
+commit 1b2ffb7896ad ("[PATCH] Zone reclaim: Allow modification of zone
+reclaim behavior")' defined RECLAIM_OFF/RECLAIM_ZONE, but never use them,
+so better to remove them.
 
-Link: http://lkml.kernel.org/r/1579006500-127143-1-git-send-email-alex.shi@linux.alibaba.com
+[dwagner@suse.de: fix sanity checks enabling]
+  Link: http://lkml.kernel.org/r/20200116131642.642-1-dwagner@suse.de
+[akpm@linux-foundation.org: renumber the bits for neatness]
+Link: http://lkml.kernel.org/r/1579005573-58923-1-git-send-email-alex.shi@linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Signed-off-by: Daniel Wagner <dwagner@suse.de>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Qian Cai <cai@lca.pw>
+Cc: "Tobin C. Harding" <tobin@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ mm/vmscan.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-prefetch_prev_lru_page
+--- a/mm/vmscan.c~mm-vmscan-remove-unused-reclaim_off-reclaim_zone
 +++ a/mm/vmscan.c
-@@ -146,20 +146,6 @@ struct scan_control {
- 	struct reclaim_state reclaim_state;
- };
+@@ -4110,10 +4110,8 @@ module_init(kswapd_init)
+  */
+ int node_reclaim_mode __read_mostly;
  
--#ifdef ARCH_HAS_PREFETCH
--#define prefetch_prev_lru_page(_page, _base, _field)			\
--	do {								\
--		if ((_page)->lru.prev != _base) {			\
--			struct page *prev;				\
--									\
--			prev = lru_to_page(&(_page->lru));		\
--			prefetch(&prev->_field);			\
--		}							\
--	} while (0)
--#else
--#define prefetch_prev_lru_page(_page, _base, _field) do { } while (0)
--#endif
+-#define RECLAIM_OFF 0
+-#define RECLAIM_ZONE (1<<0)	/* Run shrink_inactive_list on the zone */
+-#define RECLAIM_WRITE (1<<1)	/* Writeout pages during reclaim */
+-#define RECLAIM_UNMAP (1<<2)	/* Unmap pages during reclaim */
++#define RECLAIM_WRITE (1<<0)	/* Writeout pages during reclaim */
++#define RECLAIM_UNMAP (1<<1)	/* Unmap pages during reclaim */
+ 
+ /*
+  * Priority for NODE_RECLAIM. This determines the fraction of pages
+_
