@@ -1,50 +1,93 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 115/118] reiserfs: prevent NULL pointer
- dereference in reiserfs_insert_item()
-Date: Thu, 30 Jan 2020 22:17:26 -0800
-Message-ID: <20200131061726.T8srbyKpw%akpm@linux-foundation.org>
+Subject: [patch 116/118] execve: warn if process starts with
+ executable stack
+Date: Thu, 30 Jan 2020 22:17:29 -0800
+Message-ID: <20200131061729.W90ZrwXqp%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38628 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38686 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725832AbgAaGR1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:17:27 -0500
+        id S1725832AbgAaGRa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:17:30 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hushiyuan@huawei.com, jack@suse.cz, linfeilong@huawei.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yeyunfeng@huawei.com, zhengbin13@huawei.com
+To: adobriyan@gmail.com, akpm@linux-foundation.org, dan.carpenter@oracle.com, ebiederm@xmission.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, will@kernel.org
 
-From: Yunfeng Ye <yeyunfeng@huawei.com>
-Subject: reiserfs: prevent NULL pointer dereference in reiserfs_insert_item()
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: execve: warn if process starts with executable stack
 
-The variable inode may be NULL in reiserfs_insert_item(), but there is
-no check before accessing the member of inode.
+There were few episodes of silent downgrade to an executable stack over
+years:
 
-Fix this by adding NULL pointer check before calling reiserfs_debug().
+1) linking innocent looking assembly file will silently add executable
+   stack if proper linker options is not given as well:
 
-Link: http://lkml.kernel.org/r/79c5135d-ff25-1cc9-4e99-9f572b88cc00@huawei.com
-Signed-off-by: Yunfeng Ye <yeyunfeng@huawei.com>
-Cc: zhengbin <zhengbin13@huawei.com>
-Cc: Hu Shiyuan <hushiyuan@huawei.com>
-Cc: Feilong Lin <linfeilong@huawei.com>
-Cc: Jan Kara <jack@suse.cz>
+	$ cat f.S
+	.intel_syntax noprefix
+	.text
+	.globl f
+	f:
+	        ret
+
+	$ cat main.c
+	void f(void);
+	int main(void)
+	{
+	        f();
+	        return 0;
+	}
+
+	$ gcc main.c f.S
+	$ readelf -l ./a.out
+	  GNU_STACK      0x0000000000000000 0x0000000000000000 0x0000000000000000
+                         0x0000000000000000 0x0000000000000000  RWE    0x10
+			 					 ^^^
+
+2) converting C99 nested function into a closure
+https://nullprogram.com/blog/2019/11/15/
+
+	void intsort2(int *base, size_t nmemb, _Bool invert)
+	{
+	    int cmp(const void *a, const void *b)
+	    {
+	        int r = *(int *)a - *(int *)b;
+	        return invert ? -r : r;
+	    }
+	    qsort(base, nmemb, sizeof(*base), cmp);
+	}
+
+will silently require stack trampolines while non-closure version will not.
+
+Without doubt this behaviour is documented somewhere, add a warning so
+that developers and users can at least notice.  After so many years of
+x86_64 having proper executable stack support it should not cause too many
+problems.
+
+Link: http://lkml.kernel.org/r/20191208171918.GC19716@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/stree.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/exec.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/fs/reiserfs/stree.c~reiserfs-prevent-null-pointer-dereference-in-reiserfs_insert_item
-+++ a/fs/reiserfs/stree.c
-@@ -2246,7 +2246,8 @@ error_out:
- 	/* also releases the path */
- 	unfix_nodes(&s_ins_balance);
- #ifdef REISERQUOTA_DEBUG
--	reiserfs_debug(th->t_super, REISERFS_DEBUG_CODE,
-+	if (inode)
-+		reiserfs_debug(th->t_super, REISERFS_DEBUG_CODE,
- 		       "reiserquota insert_item(): freeing %u id=%u type=%c",
- 		       quota_bytes, inode->i_uid, head2type(ih));
- #endif
+--- a/fs/exec.c~execve-warn-if-process-starts-with-executable-stack
++++ a/fs/exec.c
+@@ -761,6 +761,11 @@ int setup_arg_pages(struct linux_binprm
+ 		goto out_unlock;
+ 	BUG_ON(prev != vma);
+ 
++	if (unlikely(vm_flags & VM_EXEC)) {
++		pr_warn_once("process '%pD4' started with executable stack\n",
++			     bprm->file);
++	}
++
+ 	/* Move stack pages down in memory. */
+ 	if (stack_shift) {
+ 		ret = shift_arg_pages(vma, stack_shift);
 _
