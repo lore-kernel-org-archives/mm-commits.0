@@ -1,58 +1,97 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 051/118] mm/early_ioremap.c: use %pa to print
- resource_size_t variables
-Date: Thu, 30 Jan 2020 22:13:54 -0800
-Message-ID: <20200131061354.U0FKFGfMC%akpm@linux-foundation.org>
+Subject: [patch 052/118] mm/page_alloc: skip non present sections
+ on zone initialization
+Date: Thu, 30 Jan 2020 22:13:57 -0800
+Message-ID: <20200131061357.6KI75t6mY%akpm@linux-foundation.org>
 References: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33566 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33626 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgAaGN4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 01:13:56 -0500
+        id S1725907AbgAaGN7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 01:13:59 -0500
 In-Reply-To: <20200130221021.5f0211c56346d5485af07923@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, david@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bhe@redhat.com, dan.j.williams@intel.com, david@redhat.com, kirill.shutemov@linux.intel.com, kirill@shutemov.name, linux-mm@kvack.org, mgorman@suse.de, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pasha.tatashin@oracle.com, torvalds@linux-foundation.org, vbabka@suse.cz, zhi.jin@intel.com
 
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: mm/early_ioremap.c: use %pa to print resource_size_t variables
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: mm/page_alloc: skip non present sections on zone initialization
 
-%pa takes into consideration the special types such as resource_size_t. 
-Use this specifier %instead of explicit casting.
+memmap_init_zone() can be called on the ranges with holes during the boot.
+It will skip any non-valid PFNs one-by-one.  It works fine as long as
+holes are not too big.
 
-Link: http://lkml.kernel.org/r/20191209165413.56263-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+But huge holes in the memory map causes a problem.  It takes over 20
+seconds to walk 32TiB hole.  x86-64 with 5-level paging allows for much
+larger holes in the memory map which would practically hang the system.
+
+Deferred struct page init doesn't help here.  It only works on the present
+ranges.
+
+Skipping non-present sections would fix the issue.
+
+Link: http://lkml.kernel.org/r/20191230093828.24613-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Jin, Zhi" <zhi.jin@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/early_ioremap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
---- a/mm/early_ioremap.c~mm-early_remap-use-%pa-to-print-resource_size_t-variables
-+++ a/mm/early_ioremap.c
-@@ -121,8 +121,8 @@ __early_ioremap(resource_size_t phys_add
- 		}
- 	}
+--- a/mm/page_alloc.c~mm-page_alloc-skip-non-present-sections-on-zone-initialization
++++ a/mm/page_alloc.c
+@@ -5848,6 +5848,30 @@ overlap_memmap_init(unsigned long zone,
+ 	return false;
+ }
  
--	if (WARN(slot < 0, "%s(%08llx, %08lx) not found slot\n",
--		 __func__, (u64)phys_addr, size))
-+	if (WARN(slot < 0, "%s(%pa, %08lx) not found slot\n",
-+		 __func__, &phys_addr, size))
- 		return NULL;
- 
- 	/* Don't allow wraparound or zero size */
-@@ -158,8 +158,8 @@ __early_ioremap(resource_size_t phys_add
- 		--idx;
- 		--nrpages;
- 	}
--	WARN(early_ioremap_debug, "%s(%08llx, %08lx) [%d] => %08lx + %08lx\n",
--	     __func__, (u64)phys_addr, size, slot, offset, slot_virt[slot]);
-+	WARN(early_ioremap_debug, "%s(%pa, %08lx) [%d] => %08lx + %08lx\n",
-+	     __func__, &phys_addr, size, slot, offset, slot_virt[slot]);
- 
- 	prev_map[slot] = (void __iomem *)(offset + slot_virt[slot]);
- 	return prev_map[slot];
++#ifdef CONFIG_SPARSEMEM
++/* Skip PFNs that belong to non-present sections */
++static inline __meminit unsigned long next_pfn(unsigned long pfn)
++{
++	unsigned long section_nr;
++
++	section_nr = pfn_to_section_nr(++pfn);
++	if (present_section_nr(section_nr))
++		return pfn;
++
++	while (++section_nr <= __highest_present_section_nr) {
++		if (present_section_nr(section_nr))
++			return section_nr_to_pfn(section_nr);
++	}
++
++	return -1;
++}
++#else
++static inline __meminit unsigned long next_pfn(unsigned long pfn)
++{
++	return pfn++;
++}
++#endif
++
+ /*
+  * Initially all pages are reserved - free ones are freed
+  * up by memblock_free_all() once the early boot process is
+@@ -5887,8 +5911,10 @@ void __meminit memmap_init_zone(unsigned
+ 		 * function.  They do not exist on hotplugged memory.
+ 		 */
+ 		if (context == MEMMAP_EARLY) {
+-			if (!early_pfn_valid(pfn))
++			if (!early_pfn_valid(pfn)) {
++				pfn = next_pfn(pfn) - 1;
+ 				continue;
++			}
+ 			if (!early_pfn_in_nid(pfn, nid))
+ 				continue;
+ 			if (overlap_memmap_init(zone, &pfn))
 _
