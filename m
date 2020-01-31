@@ -1,59 +1,53 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- zswap-potential-null-dereference-on-error-in-init_zswap.patch removed from
- -mm tree
-Date: Fri, 31 Jan 2020 15:19:24 -0800
-Message-ID: <20200131231924.SZHl6oPXV%akpm@linux-foundation.org>
+ mm-clean-up-obsolete-check-on-space-in-page-flags.patch removed from -mm
+ tree
+Date: Fri, 31 Jan 2020 15:19:27 -0800
+Message-ID: <20200131231927.fmHAJoQQP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51208 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51230 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726469AbgAaXTZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jan 2020 18:19:25 -0500
+        id S1726347AbgAaXT2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jan 2020 18:19:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, mm-commits@vger.kernel.org, vitaly.wool@konsulko.com
+To: arnd@arndb.de, david@redhat.com, mm-commits@vger.kernel.org, yuzhao@google.com
 
 
 The patch titled
-     Subject: zswap: potential NULL dereference on error in init_zswap()
+     Subject: include/linux/mm.h: clean up obsolete check on space in page->flags
 has been removed from the -mm tree.  Its filename was
-     zswap-potential-null-dereference-on-error-in-init_zswap.patch
+     mm-clean-up-obsolete-check-on-space-in-page-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: zswap: potential NULL dereference on error in init_zswap()
+From: Yu Zhao <yuzhao@google.com>
+Subject: include/linux/mm.h: clean up obsolete check on space in page->flags
 
-The "pool" pointer can be NULL at the end of the init_zswap().  (We would
-allocate a new pool later in that situation.) So in the error handling
-then we need to make sure pool is a valid pointer before calling
-"zswap_pool_destroy(pool);" because that function dereferences the
-argument.
+The check was intended to make sure we don't overrun page flags.  But it's
+obsolete because it doesn't include LAST_CPUPID_WIDTH nor KASAN_TAG_WIDTH.
 
-Link: http://lkml.kernel.org/r/20200114050902.og32fkllkod5ycf5@kili.mountain
-Fixes: 93d4dfa9fbd0 ("mm/zswap.c: add allocation hysteresis if pool limit is hit")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Just remove check since we already have it covered in
+linux/page-flags-layout.h (near the end of the file).
+
+Link: http://lkml.kernel.org/r/20191208183508.89177-1-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/zswap.c~zswap-potential-null-dereference-on-error-in-init_zswap
-+++ a/mm/zswap.c
-@@ -1359,7 +1359,8 @@ static int __init init_zswap(void)
- 	return 0;
+--- a/include/linux/mm.h~mm-clean-up-obsolete-check-on-space-in-page-flags
++++ a/include/linux/mm.h
+@@ -916,10 +916,6 @@ vm_fault_t finish_mkwrite_fault(struct v
  
- fallback_fail:
--	zswap_pool_destroy(pool);
-+	if (pool)
-+		zswap_pool_destroy(pool);
- hp_fail:
- 	cpuhp_remove_state(CPUHP_MM_ZSWP_MEM_PREPARE);
- dstmem_fail:
-_
-
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+ #define ZONEID_PGSHIFT		(ZONEID_PGOFF * (ZONEID_SHIFT != 0))
+ 
+-#if SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > BITS_PER_LONG - NR_PAGEFLAGS
+-#error SECTIONS_WIDTH+NODES_WIDTH+ZONES_WIDTH > BITS_PER_LONG - NR_PAGEFLAGS
+-#endif
