@@ -1,34 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-generic-ptdump.patch removed from -mm
- tree
-Date: Tue, 04 Feb 2020 10:41:42 -0800
-Message-ID: <20200204184142.uhhH2hsuQ%akpm@linux-foundation.org>
+Subject: [merged]
+ x86-mm-convert-ptdump_walk_pgd_level_debugfs-to-take-an-mm_struct.patch
+ removed from -mm tree
+Date: Tue, 04 Feb 2020 10:41:39 -0800
+Message-ID: <20200204184139.4c0Tlmirl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58008 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727480AbgBDSlp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:41:45 -0500
+        id S1727480AbgBDSlm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 Feb 2020 13:41:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: mm: add generic ptdump
+     Subject: x86: mm: convert ptdump_walk_pgd_level_debugfs() to take an mm_struct
 has been removed from the -mm tree.  Its filename was
-     mm-add-generic-ptdump.patch
+     x86-mm-convert-ptdump_walk_pgd_level_debugfs-to-take-an-mm_struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Steven Price <steven.price@arm.com>
-Subject: mm: add generic ptdump
+Subject: x86: mm: convert ptdump_walk_pgd_level_debugfs() to take an mm_struct
 
-Add a generic version of page table dumping that architectures can opt-in
-to.
+To enable x86 to use the generic walk_page_range() function, the callers
+of ptdump_walk_pgd_level_debugfs() need to pass in the mm_struct.
 
-Link: http://lkml.kernel.org/r/20191218162402.45610-20-steven.price@arm.com
+This means that ptdump_walk_pgd_level_core() is now always passed a valid
+pgd, so drop the support for pgd==NULL.
+
+Link: http://lkml.kernel.org/r/20191218162402.45610-19-steven.price@arm.com
 Signed-off-by: Steven Price <steven.price@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -64,212 +68,103 @@ Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptdump.h |   21 +++++
- mm/Kconfig.debug       |   21 +++++
- mm/Makefile            |    1 
- mm/ptdump.c            |  139 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 182 insertions(+)
+ arch/x86/include/asm/pgtable.h |    3 ++-
+ arch/x86/mm/debug_pagetables.c |    8 ++++----
+ arch/x86/mm/dump_pagetables.c  |   14 ++++++--------
+ 3 files changed, 12 insertions(+), 13 deletions(-)
 
---- /dev/null
-+++ a/include/linux/ptdump.h
-@@ -0,0 +1,21 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef _LINUX_PTDUMP_H
-+#define _LINUX_PTDUMP_H
-+
-+#include <linux/mm_types.h>
-+
-+struct ptdump_range {
-+	unsigned long start;
-+	unsigned long end;
-+};
-+
-+struct ptdump_state {
-+	void (*note_page)(struct ptdump_state *st, unsigned long addr,
-+			  int level, unsigned long val);
-+	const struct ptdump_range *range;
-+};
-+
-+void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm);
-+
-+#endif /* _LINUX_PTDUMP_H */
---- a/mm/Kconfig.debug~mm-add-generic-ptdump
-+++ a/mm/Kconfig.debug
-@@ -117,3 +117,24 @@ config DEBUG_RODATA_TEST
-     depends on STRICT_KERNEL_RWX
-     ---help---
-       This option enables a testcase for the setting rodata read-only.
-+
-+config GENERIC_PTDUMP
-+	bool
-+
-+config PTDUMP_CORE
-+	bool
-+
-+config PTDUMP_DEBUGFS
-+	bool "Export kernel pagetable layout to userspace via debugfs"
-+	depends on DEBUG_KERNEL
-+	depends on DEBUG_FS
-+	depends on GENERIC_PTDUMP
-+	select PTDUMP_CORE
-+	help
-+	  Say Y here if you want to show the kernel pagetable layout in a
-+	  debugfs file. This information is only useful for kernel developers
-+	  who are working in architecture specific areas of the kernel.
-+	  It is probably not a good idea to enable this feature in a production
-+	  kernel.
-+
-+	  If in doubt, say N.
---- a/mm/Makefile~mm-add-generic-ptdump
-+++ a/mm/Makefile
-@@ -109,3 +109,4 @@ obj-$(CONFIG_ZONE_DEVICE) += memremap.o
- obj-$(CONFIG_HMM_MIRROR) += hmm.o
- obj-$(CONFIG_MEMFD_CREATE) += memfd.o
- obj-$(CONFIG_MAPPING_DIRTY_HELPERS) += mapping_dirty_helpers.o
-+obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
---- /dev/null
-+++ a/mm/ptdump.c
-@@ -0,0 +1,139 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/pagewalk.h>
-+#include <linux/ptdump.h>
-+#include <linux/kasan.h>
-+
-+#ifdef CONFIG_KASAN
-+/*
-+ * This is an optimization for KASAN=y case. Since all kasan page tables
-+ * eventually point to the kasan_early_shadow_page we could call note_page()
-+ * right away without walking through lower level page tables. This saves
-+ * us dozens of seconds (minutes for 5-level config) while checking for
-+ * W+X mapping or reading kernel_page_tables debugfs file.
-+ */
-+static inline int note_kasan_page_table(struct mm_walk *walk,
-+					unsigned long addr)
-+{
-+	struct ptdump_state *st = walk->private;
-+
-+	st->note_page(st, addr, 5, pte_val(kasan_early_shadow_pte[0]));
-+
-+	walk->action = ACTION_CONTINUE;
-+
-+	return 0;
-+}
-+#endif
-+
-+static int ptdump_pgd_entry(pgd_t *pgd, unsigned long addr,
-+			    unsigned long next, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+	pgd_t val = READ_ONCE(*pgd);
-+
-+#if CONFIG_PGTABLE_LEVELS > 4 && defined(CONFIG_KASAN)
-+	if (pgd_page(val) == virt_to_page(lm_alias(kasan_early_shadow_p4d)))
-+		return note_kasan_page_table(walk, addr);
-+#endif
-+
-+	if (pgd_leaf(val))
-+		st->note_page(st, addr, 1, pgd_val(val));
-+
-+	return 0;
-+}
-+
-+static int ptdump_p4d_entry(p4d_t *p4d, unsigned long addr,
-+			    unsigned long next, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+	p4d_t val = READ_ONCE(*p4d);
-+
-+#if CONFIG_PGTABLE_LEVELS > 3 && defined(CONFIG_KASAN)
-+	if (p4d_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pud)))
-+		return note_kasan_page_table(walk, addr);
-+#endif
-+
-+	if (p4d_leaf(val))
-+		st->note_page(st, addr, 2, p4d_val(val));
-+
-+	return 0;
-+}
-+
-+static int ptdump_pud_entry(pud_t *pud, unsigned long addr,
-+			    unsigned long next, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+	pud_t val = READ_ONCE(*pud);
-+
-+#if CONFIG_PGTABLE_LEVELS > 2 && defined(CONFIG_KASAN)
-+	if (pud_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pmd)))
-+		return note_kasan_page_table(walk, addr);
-+#endif
-+
-+	if (pud_leaf(val))
-+		st->note_page(st, addr, 3, pud_val(val));
-+
-+	return 0;
-+}
-+
-+static int ptdump_pmd_entry(pmd_t *pmd, unsigned long addr,
-+			    unsigned long next, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+	pmd_t val = READ_ONCE(*pmd);
-+
-+#if defined(CONFIG_KASAN)
-+	if (pmd_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pte)))
-+		return note_kasan_page_table(walk, addr);
-+#endif
-+
-+	if (pmd_leaf(val))
-+		st->note_page(st, addr, 4, pmd_val(val));
-+
-+	return 0;
-+}
-+
-+static int ptdump_pte_entry(pte_t *pte, unsigned long addr,
-+			    unsigned long next, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+
-+	st->note_page(st, addr, 5, pte_val(READ_ONCE(*pte)));
-+
-+	return 0;
-+}
-+
-+static int ptdump_hole(unsigned long addr, unsigned long next,
-+		       int depth, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+
-+	st->note_page(st, addr, depth + 1, 0);
-+
-+	return 0;
-+}
-+
-+static const struct mm_walk_ops ptdump_ops = {
-+	.pgd_entry	= ptdump_pgd_entry,
-+	.p4d_entry	= ptdump_p4d_entry,
-+	.pud_entry	= ptdump_pud_entry,
-+	.pmd_entry	= ptdump_pmd_entry,
-+	.pte_entry	= ptdump_pte_entry,
-+	.pte_hole	= ptdump_hole,
-+};
-+
-+void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm)
-+{
-+	const struct ptdump_range *range = st->range;
-+
-+	down_read(&mm->mmap_sem);
-+	while (range->start != range->end) {
-+		walk_page_range_novma(mm, range->start, range->end,
-+				      &ptdump_ops, st);
-+		range++;
-+	}
-+	up_read(&mm->mmap_sem);
-+
-+	/* Flush out the last page */
-+	st->note_page(st, 0, 0, 0);
-+}
+--- a/arch/x86/include/asm/pgtable.h~x86-mm-convert-ptdump_walk_pgd_level_debugfs-to-take-an-mm_struct
++++ a/arch/x86/include/asm/pgtable.h
+@@ -30,7 +30,8 @@ extern pgd_t early_top_pgt[PTRS_PER_PGD]
+ int __init __early_make_pgtable(unsigned long address, pmdval_t pmd);
+ 
+ void ptdump_walk_pgd_level(struct seq_file *m, struct mm_struct *mm);
+-void ptdump_walk_pgd_level_debugfs(struct seq_file *m, pgd_t *pgd, bool user);
++void ptdump_walk_pgd_level_debugfs(struct seq_file *m, struct mm_struct *mm,
++				   bool user);
+ void ptdump_walk_pgd_level_checkwx(void);
+ void ptdump_walk_user_pgd_level_checkwx(void);
+ 
+--- a/arch/x86/mm/debug_pagetables.c~x86-mm-convert-ptdump_walk_pgd_level_debugfs-to-take-an-mm_struct
++++ a/arch/x86/mm/debug_pagetables.c
+@@ -7,7 +7,7 @@
+ 
+ static int ptdump_show(struct seq_file *m, void *v)
+ {
+-	ptdump_walk_pgd_level_debugfs(m, NULL, false);
++	ptdump_walk_pgd_level_debugfs(m, &init_mm, false);
+ 	return 0;
+ }
+ 
+@@ -17,7 +17,7 @@ static int ptdump_curknl_show(struct seq
+ {
+ 	if (current->mm->pgd) {
+ 		down_read(&current->mm->mmap_sem);
+-		ptdump_walk_pgd_level_debugfs(m, current->mm->pgd, false);
++		ptdump_walk_pgd_level_debugfs(m, current->mm, false);
+ 		up_read(&current->mm->mmap_sem);
+ 	}
+ 	return 0;
+@@ -30,7 +30,7 @@ static int ptdump_curusr_show(struct seq
+ {
+ 	if (current->mm->pgd) {
+ 		down_read(&current->mm->mmap_sem);
+-		ptdump_walk_pgd_level_debugfs(m, current->mm->pgd, true);
++		ptdump_walk_pgd_level_debugfs(m, current->mm, true);
+ 		up_read(&current->mm->mmap_sem);
+ 	}
+ 	return 0;
+@@ -43,7 +43,7 @@ DEFINE_SHOW_ATTRIBUTE(ptdump_curusr);
+ static int ptdump_efi_show(struct seq_file *m, void *v)
+ {
+ 	if (efi_mm.pgd)
+-		ptdump_walk_pgd_level_debugfs(m, efi_mm.pgd, false);
++		ptdump_walk_pgd_level_debugfs(m, &efi_mm, false);
+ 	return 0;
+ }
+ 
+--- a/arch/x86/mm/dump_pagetables.c~x86-mm-convert-ptdump_walk_pgd_level_debugfs-to-take-an-mm_struct
++++ a/arch/x86/mm/dump_pagetables.c
+@@ -518,16 +518,12 @@ static inline bool is_hypervisor_range(i
+ static void ptdump_walk_pgd_level_core(struct seq_file *m, pgd_t *pgd,
+ 				       bool checkwx, bool dmesg)
+ {
+-	pgd_t *start = INIT_PGD;
++	pgd_t *start = pgd;
+ 	pgprotval_t prot, eff;
+ 	int i;
+ 	struct pg_state st = {};
+ 
+-	if (pgd) {
+-		start = pgd;
+-		st.to_dmesg = dmesg;
+-	}
+-
++	st.to_dmesg = dmesg;
+ 	st.check_wx = checkwx;
+ 	st.seq = m;
+ 	if (checkwx)
+@@ -572,8 +568,10 @@ void ptdump_walk_pgd_level(struct seq_fi
+ 	ptdump_walk_pgd_level_core(m, mm->pgd, false, true);
+ }
+ 
+-void ptdump_walk_pgd_level_debugfs(struct seq_file *m, pgd_t *pgd, bool user)
++void ptdump_walk_pgd_level_debugfs(struct seq_file *m, struct mm_struct *mm,
++				   bool user)
+ {
++	pgd_t *pgd = mm->pgd;
+ #ifdef CONFIG_PAGE_TABLE_ISOLATION
+ 	if (user && boot_cpu_has(X86_FEATURE_PTI))
+ 		pgd = kernel_to_user_pgdp(pgd);
+@@ -599,7 +597,7 @@ void ptdump_walk_user_pgd_level_checkwx(
+ 
+ void ptdump_walk_pgd_level_checkwx(void)
+ {
+-	ptdump_walk_pgd_level_core(NULL, NULL, true, false);
++	ptdump_walk_pgd_level_core(NULL, INIT_PGD, true, false);
+ }
+ 
+ static int __init pt_dump_init(void)
 _
 
 Patches currently in -mm which might be from steven.price@arm.com are
