@@ -1,42 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-pagewalk-allow-walking-without-vma.patch
- removed from -mm tree
-Date: Tue, 04 Feb 2020 10:41:21 -0800
-Message-ID: <20200204184121.stl8dapKm%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-pagewalk-fix-termination-condition-in-walk_pte_range.patch removed from
+ -mm tree
+Date: Tue, 04 Feb 2020 10:41:26 -0800
+Message-ID: <20200204184126.oFRpuBHSl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57428 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57588 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727480AbgBDSlX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:41:23 -0500
+        id S1727480AbgBDSla (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 Feb 2020 13:41:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: mm: pagewalk: allow walking without vma
+     Subject: mm: pagewalk: fix termination condition in walk_pte_range()
 has been removed from the -mm tree.  Its filename was
-     mm-pagewalk-allow-walking-without-vma.patch
+     mm-pagewalk-fix-termination-condition-in-walk_pte_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Steven Price <steven.price@arm.com>
-Subject: mm: pagewalk: allow walking without vma
+Subject: mm: pagewalk: fix termination condition in walk_pte_range()
 
-Since 48684a65b4e3: "mm: pagewalk: fix misbehavior of walk_page_range for
-vma(VM_PFNMAP)", page_table_walk() will report any kernel area as a hole,
-because it lacks a vma.
+If walk_pte_range() is called with a 'end' argument that is beyond the
+last page of memory (e.g.  ~0UL) then the comparison between 'addr' and
+'end' will always fail and the loop will be infinite.  Instead change the
+comparison to >= while accounting for overflow.
 
-This means each arch has re-implemented page table walking when needed,
-for example in the per-arch ptdump walker.
-
-Remove the requirement to have a vma in the generic code and add a new
-function walk_page_range_novma() which ignores the VMAs and simply walks
-the page tables.
-
-Link: http://lkml.kernel.org/r/20191218162402.45610-13-steven.price@arm.com
+Link: http://lkml.kernel.org/r/20191218162402.45610-15-steven.price@arm.com
 Signed-off-by: Steven Price <steven.price@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -72,120 +67,23 @@ Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagewalk.h |    5 ++++
- mm/pagewalk.c            |   40 +++++++++++++++++++++++++++++--------
- 2 files changed, 37 insertions(+), 8 deletions(-)
+ mm/pagewalk.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/pagewalk.h~mm-pagewalk-allow-walking-without-vma
-+++ a/include/linux/pagewalk.h
-@@ -73,6 +73,7 @@ enum page_walk_action {
-  * @mm:		mm_struct representing the target process of page table walk
-  * @vma:	vma currently walked (NULL if walking outside vmas)
-  * @action:	next action to perform (see enum page_walk_action)
-+ * @no_vma:	walk ignoring vmas (vma will always be NULL)
-  * @private:	private data for callbacks' usage
-  *
-  * (see the comment on walk_page_range() for more details)
-@@ -82,12 +83,16 @@ struct mm_walk {
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
- 	enum page_walk_action action;
-+	bool no_vma;
- 	void *private;
- };
- 
- int walk_page_range(struct mm_struct *mm, unsigned long start,
- 		unsigned long end, const struct mm_walk_ops *ops,
- 		void *private);
-+int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
-+			  unsigned long end, const struct mm_walk_ops *ops,
-+			  void *private);
- int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
- 		void *private);
- int walk_page_mapping(struct address_space *mapping, pgoff_t first_index,
---- a/mm/pagewalk.c~mm-pagewalk-allow-walking-without-vma
+--- a/mm/pagewalk.c~mm-pagewalk-fix-termination-condition-in-walk_pte_range
 +++ a/mm/pagewalk.c
-@@ -39,7 +39,7 @@ static int walk_pmd_range(pud_t *pud, un
- 	do {
- again:
- 		next = pmd_addr_end(addr, end);
--		if (pmd_none(*pmd) || !walk->vma) {
-+		if (pmd_none(*pmd) || (!walk->vma && !walk->no_vma)) {
- 			if (ops->pte_hole)
- 				err = ops->pte_hole(addr, next, walk);
- 			if (err)
-@@ -65,13 +65,16 @@ again:
- 		 * Check this here so we only break down trans_huge
- 		 * pages when we _need_ to
- 		 */
--		if (walk->action == ACTION_CONTINUE ||
-+		if ((!walk->vma && (pmd_leaf(*pmd) || !pmd_present(*pmd))) ||
-+		    walk->action == ACTION_CONTINUE ||
- 		    !(ops->pte_entry))
- 			continue;
- 
--		split_huge_pmd(walk->vma, pmd, addr);
--		if (pmd_trans_unstable(pmd))
--			goto again;
-+		if (walk->vma) {
-+			split_huge_pmd(walk->vma, pmd, addr);
-+			if (pmd_trans_unstable(pmd))
-+				goto again;
-+		}
- 
- 		err = walk_pte_range(pmd, addr, next, walk);
+@@ -14,9 +14,9 @@ static int walk_pte_range_inner(pte_t *p
+ 		err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
  		if (err)
-@@ -93,7 +96,7 @@ static int walk_pud_range(p4d_t *p4d, un
- 	do {
-  again:
- 		next = pud_addr_end(addr, end);
--		if (pud_none(*pud) || !walk->vma) {
-+		if (pud_none(*pud) || (!walk->vma && !walk->no_vma)) {
- 			if (ops->pte_hole)
- 				err = ops->pte_hole(addr, next, walk);
- 			if (err)
-@@ -111,11 +114,13 @@ static int walk_pud_range(p4d_t *p4d, un
- 		if (walk->action == ACTION_AGAIN)
- 			goto again;
- 
--		if (walk->action == ACTION_CONTINUE ||
-+		if ((!walk->vma && (pud_leaf(*pud) || !pud_present(*pud))) ||
-+		    walk->action == ACTION_CONTINUE ||
- 		    !(ops->pmd_entry || ops->pte_entry))
- 			continue;
- 
--		split_huge_pud(walk->vma, pud, addr);
-+		if (walk->vma)
-+			split_huge_pud(walk->vma, pud, addr);
- 		if (pud_none(*pud))
- 			goto again;
- 
-@@ -389,6 +394,25 @@ int walk_page_range(struct mm_struct *mm
+ 		       break;
+-		addr += PAGE_SIZE;
+-		if (addr == end)
++		if (addr >= end - PAGE_SIZE)
+ 			break;
++		addr += PAGE_SIZE;
+ 		pte++;
+ 	}
  	return err;
- }
- 
-+int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
-+			  unsigned long end, const struct mm_walk_ops *ops,
-+			  void *private)
-+{
-+	struct mm_walk walk = {
-+		.ops		= ops,
-+		.mm		= mm,
-+		.private	= private,
-+		.no_vma		= true
-+	};
-+
-+	if (start >= end || !walk.mm)
-+		return -EINVAL;
-+
-+	lockdep_assert_held(&walk.mm->mmap_sem);
-+
-+	return __walk_page_range(start, end, &walk);
-+}
-+
- int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
- 		void *private)
- {
 _
 
 Patches currently in -mm which might be from steven.price@arm.com are
