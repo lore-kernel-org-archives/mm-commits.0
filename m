@@ -1,145 +1,146 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 02/67] mm/page_alloc.c: fix uninitialized memmaps
- on a partially populated last section
-Date: Mon, 03 Feb 2020 17:33:48 -0800
-Message-ID: <20200204013348.GxUmZtFO4%akpm@linux-foundation.org>
+Subject: [patch 03/67] fs/proc/page.c: allow inspection of last
+ section and fix end detection
+Date: Mon, 03 Feb 2020 17:33:52 -0800
+Message-ID: <20200204013352.Y3nhsMQOb%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58560 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgBDBdu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:33:50 -0500
+        id S1726369AbgBDBdy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:33:54 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, bob.picco@oracle.com, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, david@redhat.com, linux-mm@kvack.org, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, osalvador@suse.de, pasha.tatashin@oracle.com, sfr@canb.auug.org.au, stable@vger.kernel.org, steven.sistare@oracle.com, torvalds@linux-foundation.org
+To: adobriyan@gmail.com, akpm@linux-foundation.org, bob.picco@oracle.com, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, david@redhat.com, linux-mm@kvack.org, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, osalvador@suse.de, pasha.tatashin@oracle.com, sfr@canb.auug.org.au, steven.sistare@oracle.com, torvalds@linux-foundation.org
 
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc.c: fix uninitialized memmaps on a partially populated last section
+Subject: fs/proc/page.c: allow inspection of last section and fix end detection
 
-Patch series "mm: fix max_pfn not falling on section boundary", v2.
+If max_pfn does not fall onto a section boundary, it is possible to
+inspect PFNs up to max_pfn, and PFNs above max_pfn, however, max_pfn
+itself can't be inspected.  We can have a valid (and online) memmap at and
+above max_pfn if max_pfn is not aligned to a section boundary.  The whole
+early section has a memmap and is marked online.  Being able to inspect
+the state of these PFNs is valuable for debugging, especially because
+max_pfn can change on memory hotplug and expose these memmaps.
 
-Playing with different memory sizes for a x86-64 guest, I discovered that
-some memmaps (highest section if max_mem does not fall on the section
-boundary) are marked as being valid and online, but contain garbage.  We
-have to properly initialize these memmaps.
+Also, querying page flags via "./page-types -r -a 0x144001,"
+(tools/vm/page-types.c) inside a x86-64 guest with 4160MB under QEMU
+results in an (almost) endless loop in user space, because the end is not
+detected properly when starting after max_pfn.
 
-Looking at /proc/kpageflags and friends, I found some more issues,
-partially related to this.
+Instead, let's allow to inspect all pages in the highest section and
+return 0 directly if we try to access pages above that section.
 
+While at it, check the count before adjusting it, to avoid masking user
+errors.
 
-This patch (of 3):
-
-If max_pfn is not aligned to a section boundary, we can easily run into
-BUGs.  This can e.g., be triggered on x86-64 under QEMU by specifying a
-memory size that is not a multiple of 128MB (e.g., 4097MB, but also
-4160MB).  I was told that on real HW, we can easily have this scenario
-(esp., one of the main reasons sub-section hotadd of devmem was added).
-
-The issue is, that we have a valid memmap (pfn_valid()) for the whole
-section, and the whole section will be marked "online". 
-pfn_to_online_page() will succeed, but the memmap contains garbage.
-
-E.g., doing a "./page-types -r -a 0x144001" when QEMU was started with "-m
-4160M" - (see tools/vm/page-types.c):
-
-[  200.476376] BUG: unable to handle page fault for address: fffffffffffffffe
-[  200.477500] #PF: supervisor read access in kernel mode
-[  200.478334] #PF: error_code(0x0000) - not-present page
-[  200.479076] PGD 59614067 P4D 59614067 PUD 59616067 PMD 0
-[  200.479557] Oops: 0000 [#4] SMP NOPTI
-[  200.479875] CPU: 0 PID: 603 Comm: page-types Tainted: G      D W         5.5.0-rc1-next-20191209 #93
-[  200.480646] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu4
-[  200.481648] RIP: 0010:stable_page_flags+0x4d/0x410
-[  200.482061] Code: f3 ff 41 89 c0 48 b8 00 00 00 00 01 00 00 00 45 84 c0 0f 85 cd 02 00 00 48 8b 53 08 48 8b 2b 48f
-[  200.483644] RSP: 0018:ffffb139401cbe60 EFLAGS: 00010202
-[  200.484091] RAX: fffffffffffffffe RBX: fffffbeec5100040 RCX: 0000000000000000
-[  200.484697] RDX: 0000000000000001 RSI: ffffffff9535c7cd RDI: 0000000000000246
-[  200.485313] RBP: ffffffffffffffff R08: 0000000000000000 R09: 0000000000000000
-[  200.485917] R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000144001
-[  200.486523] R13: 00007ffd6ba55f48 R14: 00007ffd6ba55f40 R15: ffffb139401cbf08
-[  200.487130] FS:  00007f68df717580(0000) GS:ffff9ec77fa00000(0000) knlGS:0000000000000000
-[  200.487804] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  200.488295] CR2: fffffffffffffffe CR3: 0000000135d48000 CR4: 00000000000006f0
-[  200.488897] Call Trace:
-[  200.489115]  kpageflags_read+0xe9/0x140
-[  200.489447]  proc_reg_read+0x3c/0x60
-[  200.489755]  vfs_read+0xc2/0x170
-[  200.490037]  ksys_pread64+0x65/0xa0
-[  200.490352]  do_syscall_64+0x5c/0xa0
-[  200.490665]  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
-But it can be triggered much easier via "cat /proc/kpageflags > /dev/null"
-after cold/hot plugging a DIMM to such a system:
-
-[root@localhost ~]# cat /proc/kpageflags > /dev/null
-[  111.517275] BUG: unable to handle page fault for address: fffffffffffffffe
-[  111.517907] #PF: supervisor read access in kernel mode
-[  111.518333] #PF: error_code(0x0000) - not-present page
-[  111.518771] PGD a240e067 P4D a240e067 PUD a2410067 PMD 0
-
-This patch fixes that by at least zero-ing out that memmap (so e.g.,
-page_to_pfn() will not crash).  Commit 907ec5fca3dc ("mm: zero remaining
-unavailable struct pages") tried to fix a similar issue, but forgot to
-consider this special case.
-
-After this patch, there are still problems to solve.  E.g., not all of
-these pages falling into a memory hole will actually get initialized later
-and set PageReserved - they are only zeroed out - but at least the
-immediate crashes are gone.  A follow-up patch will take care of this.
-
-Link: http://lkml.kernel.org/r/20191211163201.17179-2-david@redhat.com
-Fixes: f7f99100d8d9 ("mm: stop zeroing memory during allocation in vmemmap")
+Link: http://lkml.kernel.org/r/20191211163201.17179-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Tested-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Bob Picco <bob.picco@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: <stable@vger.kernel.org>	[4.15+]
+Cc: Bob Picco <bob.picco@oracle.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+Cc: Steven Sistare <steven.sistare@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ fs/proc/page.c |   30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-fix-uninitialized-memmaps-on-a-partially-populated-last-section
-+++ a/mm/page_alloc.c
-@@ -6947,7 +6947,8 @@ static u64 zero_pfn_range(unsigned long
-  * This function also addresses a similar issue where struct pages are left
-  * uninitialized because the physical address range is not covered by
-  * memblock.memory or memblock.reserved. That could happen when memblock
-- * layout is manually configured via memmap=.
-+ * layout is manually configured via memmap=, or when the highest physical
-+ * address (max_pfn) does not end on a section boundary.
-  */
- void __init zero_resv_unavail(void)
- {
-@@ -6965,7 +6966,16 @@ void __init zero_resv_unavail(void)
- 			pgcnt += zero_pfn_range(PFN_DOWN(next), PFN_UP(start));
- 		next = end;
- 	}
--	pgcnt += zero_pfn_range(PFN_DOWN(next), max_pfn);
-+
-+	/*
-+	 * Early sections always have a fully populated memmap for the whole
-+	 * section - see pfn_valid(). If the last section has holes at the
-+	 * end and that section is marked "online", the memmap will be
-+	 * considered initialized. Make sure that memmap has a well defined
-+	 * state.
-+	 */
-+	pgcnt += zero_pfn_range(PFN_DOWN(next),
-+				round_up(max_pfn, PAGES_PER_SECTION));
+--- a/fs/proc/page.c~fs-proc-pagec-allow-inspection-of-last-section-and-fix-end-detection
++++ a/fs/proc/page.c
+@@ -21,6 +21,21 @@
+ #define KPMMASK (KPMSIZE - 1)
+ #define KPMBITS (KPMSIZE * BITS_PER_BYTE)
  
- 	/*
- 	 * Struct pages that do not have backing memory. This could be because
++static inline unsigned long get_max_dump_pfn(void)
++{
++#ifdef CONFIG_SPARSEMEM
++	/*
++	 * The memmap of early sections is completely populated and marked
++	 * online even if max_pfn does not fall on a section boundary -
++	 * pfn_to_online_page() will succeed on all pages. Allow inspecting
++	 * these memmaps.
++	 */
++	return round_up(max_pfn, PAGES_PER_SECTION);
++#else
++	return max_pfn;
++#endif
++}
++
+ /* /proc/kpagecount - an array exposing page counts
+  *
+  * Each entry is a u64 representing the corresponding
+@@ -29,6 +44,7 @@
+ static ssize_t kpagecount_read(struct file *file, char __user *buf,
+ 			     size_t count, loff_t *ppos)
+ {
++	const unsigned long max_dump_pfn = get_max_dump_pfn();
+ 	u64 __user *out = (u64 __user *)buf;
+ 	struct page *ppage;
+ 	unsigned long src = *ppos;
+@@ -37,9 +53,11 @@ static ssize_t kpagecount_read(struct fi
+ 	u64 pcount;
+ 
+ 	pfn = src / KPMSIZE;
+-	count = min_t(size_t, count, (max_pfn * KPMSIZE) - src);
+ 	if (src & KPMMASK || count & KPMMASK)
+ 		return -EINVAL;
++	if (src >= max_dump_pfn * KPMSIZE)
++		return 0;
++	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+ 
+ 	while (count > 0) {
+ 		/*
+@@ -206,6 +224,7 @@ u64 stable_page_flags(struct page *page)
+ static ssize_t kpageflags_read(struct file *file, char __user *buf,
+ 			     size_t count, loff_t *ppos)
+ {
++	const unsigned long max_dump_pfn = get_max_dump_pfn();
+ 	u64 __user *out = (u64 __user *)buf;
+ 	struct page *ppage;
+ 	unsigned long src = *ppos;
+@@ -213,9 +232,11 @@ static ssize_t kpageflags_read(struct fi
+ 	ssize_t ret = 0;
+ 
+ 	pfn = src / KPMSIZE;
+-	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
+ 	if (src & KPMMASK || count & KPMMASK)
+ 		return -EINVAL;
++	if (src >= max_dump_pfn * KPMSIZE)
++		return 0;
++	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+ 
+ 	while (count > 0) {
+ 		/*
+@@ -251,6 +272,7 @@ static const struct file_operations proc
+ static ssize_t kpagecgroup_read(struct file *file, char __user *buf,
+ 				size_t count, loff_t *ppos)
+ {
++	const unsigned long max_dump_pfn = get_max_dump_pfn();
+ 	u64 __user *out = (u64 __user *)buf;
+ 	struct page *ppage;
+ 	unsigned long src = *ppos;
+@@ -259,9 +281,11 @@ static ssize_t kpagecgroup_read(struct f
+ 	u64 ino;
+ 
+ 	pfn = src / KPMSIZE;
+-	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
+ 	if (src & KPMMASK || count & KPMMASK)
+ 		return -EINVAL;
++	if (src >= max_dump_pfn * KPMSIZE)
++		return 0;
++	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+ 
+ 	while (count > 0) {
+ 		/*
 _
