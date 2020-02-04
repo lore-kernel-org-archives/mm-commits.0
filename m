@@ -1,272 +1,193 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 47/67] x86: mm: avoid allocating struct mm_struct
- on the stack
-Date: Mon, 03 Feb 2020 17:36:42 -0800
-Message-ID: <20200204013642.91mpRPzlx%akpm@linux-foundation.org>
+Subject: [patch 49/67] mm/mmu_gather: invalidate TLB correctly on
+ batch allocation failure and flush
+Date: Mon, 03 Feb 2020 17:36:49 -0800
+Message-ID: <20200204013649.Nwx3yVd8_%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37692 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37996 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726992AbgBDBgp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:36:45 -0500
+        id S1726992AbgBDBgv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:36:51 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, sfr@canb.auug.org.au, steven.price@arm.com, tglx@linutronix.de, torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org, zong.li@
+To: akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, peterz@infradead.org, stable@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Steven Price <steven.price@arm.com>
-Subject: x86: mm: avoid allocating struct mm_struct on the stack
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: mm/mmu_gather: invalidate TLB correctly on batch allocation failure and flush
 
-struct mm_struct is quite large (~1664 bytes) and so allocating on the
-stack may cause problems as the kernel stack size is small.
+Architectures for which we have hardware walkers of Linux page table
+should flush TLB on mmu gather batch allocation failures and batch flush. 
+Some architectures like POWER supports multiple translation modes (hash
+and radix) and in the case of POWER only radix translation mode needs the
+above TLBI.  This is because for hash translation mode kernel wants to
+avoid this extra flush since there are no hardware walkers of linux page
+table.  With radix translation, the hardware also walks linux page table
+and with that, kernel needs to make sure to TLB invalidate page walk cache
+before page table pages are freed.
 
-Since ptdump_walk_pgd_level_core() was only allocating the structure so
-that it could modify the pgd argument we can instead introduce a pgd
-override in struct mm_walk and pass this down the call stack to where it
-is needed.
+More details in commit d86564a2f085 ("mm/tlb, x86/mm: Support invalidating
+TLB caches for RCU_TABLE_FREE")
 
-Since the correct mm_struct is now being passed down, it is now also
-unnecessary to take the mmap_sem semaphore because ptdump_walk_pgd() will
-now take the semaphore on the real mm.
+The changes to sparc are to make sure we keep the old behavior since we
+are now removing HAVE_RCU_TABLE_NO_INVALIDATE.  The default value for
+tlb_needs_table_invalidate is to always force an invalidate and sparc can
+avoid the table invalidate.  Hence we define tlb_needs_table_invalidate to
+false for sparc architecture.
 
-[steven.price@arm.com: restore missed arm64 changes]
-  Link: http://lkml.kernel.org/r/20200108145710.34314-1-steven.price@arm.com
-Link: http://lkml.kernel.org/r/20200108145710.34314-1-steven.price@arm.com
-Signed-off-by: Steven Price <steven.price@arm.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Hogan <jhogan@kernel.org>
-Cc: James Morse <james.morse@arm.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: "Liang, Kan" <kan.liang@linux.intel.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Burton <paul.burton@mips.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zong Li <zong.li@sifive.com>
+Link: http://lkml.kernel.org/r/20200116064531.483522-3-aneesh.kumar@linux.ibm.com
+Fixes: a46cc7a90fd8 ("powerpc/mm/radix: Improve TLB/PWC flushes")
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>	[powerpc]
+Cc: <stable@vger.kernel.org>	[4.14+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/dump.c           |    4 ++--
- arch/x86/mm/debug_pagetables.c |   10 ++--------
- arch/x86/mm/dump_pagetables.c  |   18 +++++++-----------
- include/linux/pagewalk.h       |    3 +++
- include/linux/ptdump.h         |    2 +-
- mm/pagewalk.c                  |    7 ++++++-
- mm/ptdump.c                    |    4 ++--
- 7 files changed, 23 insertions(+), 25 deletions(-)
+ arch/Kconfig                    |    3 ---
+ arch/powerpc/Kconfig            |    1 -
+ arch/powerpc/include/asm/tlb.h  |   11 +++++++++++
+ arch/sparc/Kconfig              |    1 -
+ arch/sparc/include/asm/tlb_64.h |    9 +++++++++
+ include/asm-generic/tlb.h       |   22 +++++++++++++++-------
+ mm/mmu_gather.c                 |   16 ++++++++--------
+ 7 files changed, 43 insertions(+), 20 deletions(-)
 
---- a/arch/arm64/mm/dump.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/arch/arm64/mm/dump.c
-@@ -323,7 +323,7 @@ void ptdump_walk(struct seq_file *s, str
- 		}
- 	};
+--- a/arch/Kconfig~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
++++ a/arch/Kconfig
+@@ -396,9 +396,6 @@ config HAVE_ARCH_JUMP_LABEL_RELATIVE
+ config HAVE_RCU_TABLE_FREE
+ 	bool
  
--	ptdump_walk_pgd(&st.ptdump, info->mm);
-+	ptdump_walk_pgd(&st.ptdump, info->mm, NULL);
- }
- 
- static void ptdump_initialize(void)
-@@ -361,7 +361,7 @@ void ptdump_check_wx(void)
- 		}
- 	};
- 
--	ptdump_walk_pgd(&st.ptdump, &init_mm);
-+	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
- 
- 	if (st.wx_pages || st.uxn_pages)
- 		pr_warn("Checked W+X mappings: FAILED, %lu W+X pages found, %lu non-UXN pages found\n",
---- a/arch/x86/mm/debug_pagetables.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/arch/x86/mm/debug_pagetables.c
-@@ -15,11 +15,8 @@ DEFINE_SHOW_ATTRIBUTE(ptdump);
- 
- static int ptdump_curknl_show(struct seq_file *m, void *v)
- {
--	if (current->mm->pgd) {
--		down_read(&current->mm->mmap_sem);
-+	if (current->mm->pgd)
- 		ptdump_walk_pgd_level_debugfs(m, current->mm, false);
--		up_read(&current->mm->mmap_sem);
--	}
- 	return 0;
- }
- 
-@@ -28,11 +25,8 @@ DEFINE_SHOW_ATTRIBUTE(ptdump_curknl);
- #ifdef CONFIG_PAGE_TABLE_ISOLATION
- static int ptdump_curusr_show(struct seq_file *m, void *v)
- {
--	if (current->mm->pgd) {
--		down_read(&current->mm->mmap_sem);
-+	if (current->mm->pgd)
- 		ptdump_walk_pgd_level_debugfs(m, current->mm, true);
--		up_read(&current->mm->mmap_sem);
--	}
- 	return 0;
- }
- 
---- a/arch/x86/mm/dump_pagetables.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/arch/x86/mm/dump_pagetables.c
-@@ -357,7 +357,8 @@ static void note_page(struct ptdump_stat
- 	}
- }
- 
--static void ptdump_walk_pgd_level_core(struct seq_file *m, pgd_t *pgd,
-+static void ptdump_walk_pgd_level_core(struct seq_file *m,
-+				       struct mm_struct *mm, pgd_t *pgd,
- 				       bool checkwx, bool dmesg)
- {
- 	const struct ptdump_range ptdump_ranges[] = {
-@@ -386,12 +387,7 @@ static void ptdump_walk_pgd_level_core(s
- 		.seq		= m
- 	};
- 
--	struct mm_struct fake_mm = {
--		.pgd = pgd
--	};
--	init_rwsem(&fake_mm.mmap_sem);
+-config HAVE_RCU_TABLE_NO_INVALIDATE
+-	bool
 -
--	ptdump_walk_pgd(&st.ptdump, &fake_mm);
-+	ptdump_walk_pgd(&st.ptdump, mm, pgd);
+ config HAVE_MMU_GATHER_PAGE_SIZE
+ 	bool
  
- 	if (!checkwx)
- 		return;
-@@ -404,7 +400,7 @@ static void ptdump_walk_pgd_level_core(s
+--- a/arch/powerpc/include/asm/tlb.h~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
++++ a/arch/powerpc/include/asm/tlb.h
+@@ -26,6 +26,17 @@
  
- void ptdump_walk_pgd_level(struct seq_file *m, struct mm_struct *mm)
- {
--	ptdump_walk_pgd_level_core(m, mm->pgd, false, true);
-+	ptdump_walk_pgd_level_core(m, mm, mm->pgd, false, true);
- }
+ #define tlb_flush tlb_flush
+ extern void tlb_flush(struct mmu_gather *tlb);
++/*
++ * book3s:
++ * Hash does not use the linux page-tables, so we can avoid
++ * the TLB invalidate for page-table freeing, Radix otoh does use the
++ * page-tables and needs the TLBI.
++ *
++ * nohash:
++ * We still do TLB invalidate in the __pte_free_tlb routine before we
++ * add the page table pages to mmu gather table batch.
++ */
++#define tlb_needs_table_invalidate()	radix_enabled()
  
- void ptdump_walk_pgd_level_debugfs(struct seq_file *m, struct mm_struct *mm,
-@@ -415,7 +411,7 @@ void ptdump_walk_pgd_level_debugfs(struc
- 	if (user && boot_cpu_has(X86_FEATURE_PTI))
- 		pgd = kernel_to_user_pgdp(pgd);
+ /* Get the generic bits... */
+ #include <asm-generic/tlb.h>
+--- a/arch/powerpc/Kconfig~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
++++ a/arch/powerpc/Kconfig
+@@ -223,7 +223,6 @@ config PPC
+ 	select HAVE_PERF_REGS
+ 	select HAVE_PERF_USER_STACK_DUMP
+ 	select HAVE_RCU_TABLE_FREE
+-	select HAVE_RCU_TABLE_NO_INVALIDATE	if HAVE_RCU_TABLE_FREE
+ 	select HAVE_MMU_GATHER_PAGE_SIZE
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select HAVE_RELIABLE_STACKTRACE		if PPC_BOOK3S_64 && CPU_LITTLE_ENDIAN
+--- a/arch/sparc/include/asm/tlb_64.h~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
++++ a/arch/sparc/include/asm/tlb_64.h
+@@ -28,6 +28,15 @@ void flush_tlb_pending(void);
+ #define __tlb_remove_tlb_entry(tlb, ptep, address) do { } while (0)
+ #define tlb_flush(tlb)	flush_tlb_pending()
+ 
++/*
++ * SPARC64's hardware TLB fill does not use the Linux page-tables
++ * and therefore we don't need a TLBI when freeing page-table pages.
++ */
++
++#ifdef CONFIG_HAVE_RCU_TABLE_FREE
++#define tlb_needs_table_invalidate()	(false)
++#endif
++
+ #include <asm-generic/tlb.h>
+ 
+ #endif /* _SPARC64_TLB_H */
+--- a/arch/sparc/Kconfig~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
++++ a/arch/sparc/Kconfig
+@@ -65,7 +65,6 @@ config SPARC64
+ 	select HAVE_KRETPROBES
+ 	select HAVE_KPROBES
+ 	select HAVE_RCU_TABLE_FREE if SMP
+-	select HAVE_RCU_TABLE_NO_INVALIDATE if HAVE_RCU_TABLE_FREE
+ 	select HAVE_MEMBLOCK_NODE_MAP
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+ 	select HAVE_DYNAMIC_FTRACE
+--- a/include/asm-generic/tlb.h~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
++++ a/include/asm-generic/tlb.h
+@@ -137,13 +137,6 @@
+  *  When used, an architecture is expected to provide __tlb_remove_table()
+  *  which does the actual freeing of these pages.
+  *
+- *  HAVE_RCU_TABLE_NO_INVALIDATE
+- *
+- *  This makes HAVE_RCU_TABLE_FREE avoid calling tlb_flush_mmu_tlbonly() before
+- *  freeing the page-table pages. This can be avoided if you use
+- *  HAVE_RCU_TABLE_FREE and your architecture does _NOT_ use the Linux
+- *  page-tables natively.
+- *
+  *  MMU_GATHER_NO_RANGE
+  *
+  *  Use this if your architecture lacks an efficient flush_tlb_range().
+@@ -189,8 +182,23 @@ struct mmu_table_batch {
+ 
+ extern void tlb_remove_table(struct mmu_gather *tlb, void *table);
+ 
++/*
++ * This allows an architecture that does not use the linux page-tables for
++ * hardware to skip the TLBI when freeing page tables.
++ */
++#ifndef tlb_needs_table_invalidate
++#define tlb_needs_table_invalidate() (true)
  #endif
--	ptdump_walk_pgd_level_core(m, pgd, false, false);
-+	ptdump_walk_pgd_level_core(m, mm, pgd, false, false);
- }
- EXPORT_SYMBOL_GPL(ptdump_walk_pgd_level_debugfs);
  
-@@ -430,13 +426,13 @@ void ptdump_walk_user_pgd_level_checkwx(
- 
- 	pr_info("x86/mm: Checking user space page tables\n");
- 	pgd = kernel_to_user_pgdp(pgd);
--	ptdump_walk_pgd_level_core(NULL, pgd, true, false);
-+	ptdump_walk_pgd_level_core(NULL, &init_mm, pgd, true, false);
- #endif
- }
- 
- void ptdump_walk_pgd_level_checkwx(void)
- {
--	ptdump_walk_pgd_level_core(NULL, INIT_PGD, true, false);
-+	ptdump_walk_pgd_level_core(NULL, &init_mm, INIT_PGD, true, false);
- }
- 
- static int __init pt_dump_init(void)
---- a/include/linux/pagewalk.h~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/include/linux/pagewalk.h
-@@ -74,6 +74,7 @@ enum page_walk_action {
-  * mm_walk - walk_page_range data
-  * @ops:	operation to call during the walk
-  * @mm:		mm_struct representing the target process of page table walk
-+ * @pgd:	pointer to PGD; only valid with no_vma (otherwise set to NULL)
-  * @vma:	vma currently walked (NULL if walking outside vmas)
-  * @action:	next action to perform (see enum page_walk_action)
-  * @no_vma:	walk ignoring vmas (vma will always be NULL)
-@@ -84,6 +85,7 @@ enum page_walk_action {
- struct mm_walk {
- 	const struct mm_walk_ops *ops;
- 	struct mm_struct *mm;
-+	pgd_t *pgd;
- 	struct vm_area_struct *vma;
- 	enum page_walk_action action;
- 	bool no_vma;
-@@ -95,6 +97,7 @@ int walk_page_range(struct mm_struct *mm
- 		void *private);
- int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
-+			  pgd_t *pgd,
- 			  void *private);
- int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
- 		void *private);
---- a/include/linux/ptdump.h~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/include/linux/ptdump.h
-@@ -17,6 +17,6 @@ struct ptdump_state {
- 	const struct ptdump_range *range;
- };
- 
--void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm);
-+void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd);
- 
- #endif /* _LINUX_PTDUMP_H */
---- a/mm/pagewalk.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/mm/pagewalk.c
-@@ -206,7 +206,10 @@ static int walk_pgd_range(unsigned long
- 	const struct mm_walk_ops *ops = walk->ops;
- 	int err = 0;
- 
--	pgd = pgd_offset(walk->mm, addr);
-+	if (walk->pgd)
-+		pgd = walk->pgd + pgd_index(addr);
-+	else
-+		pgd = pgd_offset(walk->mm, addr);
- 	do {
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd)) {
-@@ -436,11 +439,13 @@ int walk_page_range(struct mm_struct *mm
++#else
++
++#ifdef tlb_needs_table_invalidate
++#error tlb_needs_table_invalidate() requires HAVE_RCU_TABLE_FREE
++#endif
++
++#endif /* CONFIG_HAVE_RCU_TABLE_FREE */
++
++
+ #ifndef CONFIG_HAVE_MMU_GATHER_NO_GATHER
+ /*
+  * If we can't allocate a page to make a big batch of page pointers
+--- a/mm/mmu_gather.c~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
++++ a/mm/mmu_gather.c
+@@ -102,14 +102,14 @@ bool __tlb_remove_page_size(struct mmu_g
   */
- int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
-+			  pgd_t *pgd,
- 			  void *private)
+ static inline void tlb_table_invalidate(struct mmu_gather *tlb)
  {
- 	struct mm_walk walk = {
- 		.ops		= ops,
- 		.mm		= mm,
-+		.pgd		= pgd,
- 		.private	= private,
- 		.no_vma		= true
- 	};
---- a/mm/ptdump.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
-+++ a/mm/ptdump.c
-@@ -122,14 +122,14 @@ static const struct mm_walk_ops ptdump_o
- 	.pte_hole	= ptdump_hole,
- };
+-#ifndef CONFIG_HAVE_RCU_TABLE_NO_INVALIDATE
+-	/*
+-	 * Invalidate page-table caches used by hardware walkers. Then we still
+-	 * need to RCU-sched wait while freeing the pages because software
+-	 * walkers can still be in-flight.
+-	 */
+-	tlb_flush_mmu_tlbonly(tlb);
+-#endif
++	if (tlb_needs_table_invalidate()) {
++		/*
++		 * Invalidate page-table caches used by hardware walkers. Then
++		 * we still need to RCU-sched wait while freeing the pages
++		 * because software walkers can still be in-flight.
++		 */
++		tlb_flush_mmu_tlbonly(tlb);
++	}
+ }
  
--void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm)
-+void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd)
- {
- 	const struct ptdump_range *range = st->range;
- 
- 	down_read(&mm->mmap_sem);
- 	while (range->start != range->end) {
- 		walk_page_range_novma(mm, range->start, range->end,
--				      &ptdump_ops, st);
-+				      &ptdump_ops, pgd, st);
- 		range++;
- 	}
- 	up_read(&mm->mmap_sem);
+ static void tlb_remove_table_smp_sync(void *arg)
 _
