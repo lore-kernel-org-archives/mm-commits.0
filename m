@@ -1,26 +1,33 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 42/67] mm: add generic ptdump
-Date: Mon, 03 Feb 2020 17:36:20 -0800
-Message-ID: <20200204013620.zbQjeC8MW%akpm@linux-foundation.org>
+Subject: [patch 43/67] x86: mm: convert dump_pagetables to use
+ walk_page_range
+Date: Mon, 03 Feb 2020 17:36:24 -0800
+Message-ID: <20200204013624.PZtATgjqn%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36822 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727015AbgBDBgY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:36:24 -0500
+        id S1727084AbgBDBg2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:36:28 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 From: Steven Price <steven.price@arm.com>
-Subject: mm: add generic ptdump
+Subject: x86: mm: convert dump_pagetables to use walk_page_range
 
-Add a generic version of page table dumping that architectures can opt-in
-to.
+Make use of the new functionality in walk_page_range to remove the arch
+page walking code and use the generic code to walk the page tables.
 
-Link: http://lkml.kernel.org/r/20191218162402.45610-20-steven.price@arm.com
+The effective permissions are passed down the chain using new fields in
+struct pg_state.
+
+The KASAN optimisation is implemented by setting action=CONTINUE in the
+callbacks to skip an entire tree of entries.
+
+Link: http://lkml.kernel.org/r/20191218162402.45610-21-steven.price@arm.com
 Signed-off-by: Steven Price <steven.price@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -56,210 +63,479 @@ Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptdump.h |   21 +++++
- mm/Kconfig.debug       |   21 +++++
- mm/Makefile            |    1 
- mm/ptdump.c            |  139 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 182 insertions(+)
+ arch/x86/Kconfig              |    1 
+ arch/x86/Kconfig.debug        |   20 --
+ arch/x86/mm/Makefile          |    4 
+ arch/x86/mm/dump_pagetables.c |  294 +++++++-------------------------
+ 4 files changed, 71 insertions(+), 248 deletions(-)
 
---- /dev/null
-+++ a/include/linux/ptdump.h
-@@ -0,0 +1,21 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef _LINUX_PTDUMP_H
-+#define _LINUX_PTDUMP_H
-+
-+#include <linux/mm_types.h>
-+
-+struct ptdump_range {
-+	unsigned long start;
-+	unsigned long end;
-+};
-+
-+struct ptdump_state {
-+	void (*note_page)(struct ptdump_state *st, unsigned long addr,
-+			  int level, unsigned long val);
-+	const struct ptdump_range *range;
-+};
-+
-+void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm);
-+
-+#endif /* _LINUX_PTDUMP_H */
---- a/mm/Kconfig.debug~mm-add-generic-ptdump
-+++ a/mm/Kconfig.debug
-@@ -117,3 +117,24 @@ config DEBUG_RODATA_TEST
-     depends on STRICT_KERNEL_RWX
-     ---help---
-       This option enables a testcase for the setting rodata read-only.
-+
-+config GENERIC_PTDUMP
-+	bool
-+
-+config PTDUMP_CORE
-+	bool
-+
-+config PTDUMP_DEBUGFS
-+	bool "Export kernel pagetable layout to userspace via debugfs"
-+	depends on DEBUG_KERNEL
-+	depends on DEBUG_FS
-+	depends on GENERIC_PTDUMP
+--- a/arch/x86/Kconfig~x86-mm-convert-dump_pagetables-to-use-walk_page_range
++++ a/arch/x86/Kconfig
+@@ -120,6 +120,7 @@ config X86
+ 	select GENERIC_IRQ_RESERVATION_MODE
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_PENDING_IRQ		if SMP
++	select GENERIC_PTDUMP
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_STRNCPY_FROM_USER
+ 	select GENERIC_STRNLEN_USER
+--- a/arch/x86/Kconfig.debug~x86-mm-convert-dump_pagetables-to-use-walk_page_range
++++ a/arch/x86/Kconfig.debug
+@@ -62,26 +62,10 @@ config EARLY_PRINTK_USB_XDBC
+ config MCSAFE_TEST
+ 	def_bool n
+ 
+-config X86_PTDUMP_CORE
+-	def_bool n
+-
+-config X86_PTDUMP
+-	tristate "Export kernel pagetable layout to userspace via debugfs"
+-	depends on DEBUG_KERNEL
+-	select DEBUG_FS
+-	select X86_PTDUMP_CORE
+-	---help---
+-	  Say Y here if you want to show the kernel pagetable layout in a
+-	  debugfs file. This information is only useful for kernel developers
+-	  who are working in architecture specific areas of the kernel.
+-	  It is probably not a good idea to enable this feature in a production
+-	  kernel.
+-	  If in doubt, say "N"
+-
+ config EFI_PGT_DUMP
+ 	bool "Dump the EFI pagetable"
+ 	depends on EFI
+-	select X86_PTDUMP_CORE
 +	select PTDUMP_CORE
-+	help
-+	  Say Y here if you want to show the kernel pagetable layout in a
-+	  debugfs file. This information is only useful for kernel developers
-+	  who are working in architecture specific areas of the kernel.
-+	  It is probably not a good idea to enable this feature in a production
-+	  kernel.
-+
-+	  If in doubt, say N.
---- a/mm/Makefile~mm-add-generic-ptdump
-+++ a/mm/Makefile
-@@ -109,3 +109,4 @@ obj-$(CONFIG_ZONE_DEVICE) += memremap.o
- obj-$(CONFIG_HMM_MIRROR) += hmm.o
- obj-$(CONFIG_MEMFD_CREATE) += memfd.o
- obj-$(CONFIG_MAPPING_DIRTY_HELPERS) += mapping_dirty_helpers.o
-+obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
---- /dev/null
-+++ a/mm/ptdump.c
-@@ -0,0 +1,139 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/pagewalk.h>
+ 	---help---
+ 	  Enable this if you want to dump the EFI page table before
+ 	  enabling virtual mode. This can be used to debug miscellaneous
+@@ -90,7 +74,7 @@ config EFI_PGT_DUMP
+ 
+ config DEBUG_WX
+ 	bool "Warn on W+X mappings at boot"
+-	select X86_PTDUMP_CORE
++	select PTDUMP_CORE
+ 	---help---
+ 	  Generate a warning if any W+X mappings are found at boot.
+ 
+--- a/arch/x86/mm/dump_pagetables.c~x86-mm-convert-dump_pagetables-to-use-walk_page_range
++++ a/arch/x86/mm/dump_pagetables.c
+@@ -16,6 +16,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/highmem.h>
+ #include <linux/pci.h>
 +#include <linux/ptdump.h>
-+#include <linux/kasan.h>
-+
-+#ifdef CONFIG_KASAN
-+/*
-+ * This is an optimization for KASAN=y case. Since all kasan page tables
-+ * eventually point to the kasan_early_shadow_page we could call note_page()
-+ * right away without walking through lower level page tables. This saves
-+ * us dozens of seconds (minutes for 5-level config) while checking for
-+ * W+X mapping or reading kernel_page_tables debugfs file.
-+ */
-+static inline int note_kasan_page_table(struct mm_walk *walk,
-+					unsigned long addr)
+ 
+ #include <asm/e820/types.h>
+ #include <asm/pgtable.h>
+@@ -26,11 +27,12 @@
+  * when a "break" in the continuity is found.
+  */
+ struct pg_state {
++	struct ptdump_state ptdump;
+ 	int level;
+-	pgprot_t current_prot;
++	pgprotval_t current_prot;
+ 	pgprotval_t effective_prot;
++	pgprotval_t prot_levels[5];
+ 	unsigned long start_address;
+-	unsigned long current_address;
+ 	const struct addr_marker *marker;
+ 	unsigned long lines;
+ 	bool to_dmesg;
+@@ -175,9 +177,8 @@ static struct addr_marker address_marker
+ /*
+  * Print a readable form of a pgprot_t to the seq_file
+  */
+-static void printk_prot(struct seq_file *m, pgprot_t prot, int level, bool dmsg)
++static void printk_prot(struct seq_file *m, pgprotval_t pr, int level, bool dmsg)
+ {
+-	pgprotval_t pr = pgprot_val(prot);
+ 	static const char * const level_name[] =
+ 		{ "cr3", "pgd", "p4d", "pud", "pmd", "pte" };
+ 
+@@ -224,24 +225,11 @@ static void printk_prot(struct seq_file
+ 	pt_dump_cont_printf(m, dmsg, "%s\n", level_name[level]);
+ }
+ 
+-/*
+- * On 64 bits, sign-extend the 48 bit address to 64 bit
+- */
+-static unsigned long normalize_addr(unsigned long u)
+-{
+-	int shift;
+-	if (!IS_ENABLED(CONFIG_X86_64))
+-		return u;
+-
+-	shift = 64 - (__VIRTUAL_MASK_SHIFT + 1);
+-	return (signed long)(u << shift) >> shift;
+-}
+-
+-static void note_wx(struct pg_state *st)
++static void note_wx(struct pg_state *st, unsigned long addr)
+ {
+ 	unsigned long npages;
+ 
+-	npages = (st->current_address - st->start_address) / PAGE_SIZE;
++	npages = (addr - st->start_address) / PAGE_SIZE;
+ 
+ #ifdef CONFIG_PCI_BIOS
+ 	/*
+@@ -249,7 +237,7 @@ static void note_wx(struct pg_state *st)
+ 	 * Inform about it, but avoid the warning.
+ 	 */
+ 	if (pcibios_enabled && st->start_address >= PAGE_OFFSET + BIOS_BEGIN &&
+-	    st->current_address <= PAGE_OFFSET + BIOS_END) {
++	    addr <= PAGE_OFFSET + BIOS_END) {
+ 		pr_warn_once("x86/mm: PCI BIOS W+X mapping %lu pages\n", npages);
+ 		return;
+ 	}
+@@ -261,25 +249,44 @@ static void note_wx(struct pg_state *st)
+ 		  (void *)st->start_address);
+ }
+ 
++static inline pgprotval_t effective_prot(pgprotval_t prot1, pgprotval_t prot2)
 +{
-+	struct ptdump_state *st = walk->private;
-+
-+	st->note_page(st, addr, 5, pte_val(kasan_early_shadow_pte[0]));
-+
-+	walk->action = ACTION_CONTINUE;
-+
-+	return 0;
-+}
-+#endif
-+
-+static int ptdump_pgd_entry(pgd_t *pgd, unsigned long addr,
-+			    unsigned long next, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+	pgd_t val = READ_ONCE(*pgd);
-+
-+#if CONFIG_PGTABLE_LEVELS > 4 && defined(CONFIG_KASAN)
-+	if (pgd_page(val) == virt_to_page(lm_alias(kasan_early_shadow_p4d)))
-+		return note_kasan_page_table(walk, addr);
-+#endif
-+
-+	if (pgd_leaf(val))
-+		st->note_page(st, addr, 1, pgd_val(val));
-+
-+	return 0;
-+}
-+
-+static int ptdump_p4d_entry(p4d_t *p4d, unsigned long addr,
-+			    unsigned long next, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+	p4d_t val = READ_ONCE(*p4d);
-+
-+#if CONFIG_PGTABLE_LEVELS > 3 && defined(CONFIG_KASAN)
-+	if (p4d_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pud)))
-+		return note_kasan_page_table(walk, addr);
-+#endif
-+
-+	if (p4d_leaf(val))
-+		st->note_page(st, addr, 2, p4d_val(val));
-+
-+	return 0;
-+}
-+
-+static int ptdump_pud_entry(pud_t *pud, unsigned long addr,
-+			    unsigned long next, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+	pud_t val = READ_ONCE(*pud);
-+
-+#if CONFIG_PGTABLE_LEVELS > 2 && defined(CONFIG_KASAN)
-+	if (pud_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pmd)))
-+		return note_kasan_page_table(walk, addr);
-+#endif
-+
-+	if (pud_leaf(val))
-+		st->note_page(st, addr, 3, pud_val(val));
-+
-+	return 0;
-+}
-+
-+static int ptdump_pmd_entry(pmd_t *pmd, unsigned long addr,
-+			    unsigned long next, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+	pmd_t val = READ_ONCE(*pmd);
-+
-+#if defined(CONFIG_KASAN)
-+	if (pmd_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pte)))
-+		return note_kasan_page_table(walk, addr);
-+#endif
-+
-+	if (pmd_leaf(val))
-+		st->note_page(st, addr, 4, pmd_val(val));
-+
-+	return 0;
++	return (prot1 & prot2 & (_PAGE_USER | _PAGE_RW)) |
++	       ((prot1 | prot2) & _PAGE_NX);
 +}
 +
-+static int ptdump_pte_entry(pte_t *pte, unsigned long addr,
-+			    unsigned long next, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
+ /*
+  * This function gets called on a break in a continuous series
+  * of PTE entries; the next one is different so we need to
+  * print what we collected so far.
+  */
+-static void note_page(struct pg_state *st, pgprot_t new_prot,
+-		      pgprotval_t new_eff, int level)
++static void note_page(struct ptdump_state *pt_st, unsigned long addr, int level,
++		      unsigned long val)
+ {
+-	pgprotval_t prot, cur, eff;
++	struct pg_state *st = container_of(pt_st, struct pg_state, ptdump);
++	pgprotval_t new_prot, new_eff;
++	pgprotval_t cur, eff;
+ 	static const char units[] = "BKMGTPE";
+ 	struct seq_file *m = st->seq;
+ 
++	new_prot = val & PTE_FLAGS_MASK;
 +
-+	st->note_page(st, addr, 5, pte_val(READ_ONCE(*pte)));
-+
-+	return 0;
-+}
-+
-+static int ptdump_hole(unsigned long addr, unsigned long next,
-+		       int depth, struct mm_walk *walk)
-+{
-+	struct ptdump_state *st = walk->private;
-+
-+	st->note_page(st, addr, depth + 1, 0);
-+
-+	return 0;
-+}
-+
-+static const struct mm_walk_ops ptdump_ops = {
-+	.pgd_entry	= ptdump_pgd_entry,
-+	.p4d_entry	= ptdump_p4d_entry,
-+	.pud_entry	= ptdump_pud_entry,
-+	.pmd_entry	= ptdump_pmd_entry,
-+	.pte_entry	= ptdump_pte_entry,
-+	.pte_hole	= ptdump_hole,
-+};
-+
-+void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm)
-+{
-+	const struct ptdump_range *range = st->range;
-+
-+	down_read(&mm->mmap_sem);
-+	while (range->start != range->end) {
-+		walk_page_range_novma(mm, range->start, range->end,
-+				      &ptdump_ops, st);
-+		range++;
++	if (level > 1) {
++		new_eff = effective_prot(st->prot_levels[level - 2],
++					 new_prot);
++	} else {
++		new_eff = new_prot;
 +	}
-+	up_read(&mm->mmap_sem);
 +
-+	/* Flush out the last page */
-+	st->note_page(st, 0, 0, 0);
-+}
++	if (level > 0)
++		st->prot_levels[level - 1] = new_eff;
++
+ 	/*
+ 	 * If we have a "break" in the series, we need to flush the state that
+ 	 * we have now. "break" is either changing perms, levels or
+ 	 * address space marker.
+ 	 */
+-	prot = pgprot_val(new_prot);
+-	cur = pgprot_val(st->current_prot);
++	cur = st->current_prot;
+ 	eff = st->effective_prot;
+ 
+ 	if (!st->level) {
+@@ -291,14 +298,14 @@ static void note_page(struct pg_state *s
+ 		st->lines = 0;
+ 		pt_dump_seq_printf(m, st->to_dmesg, "---[ %s ]---\n",
+ 				   st->marker->name);
+-	} else if (prot != cur || new_eff != eff || level != st->level ||
+-		   st->current_address >= st->marker[1].start_address) {
++	} else if (new_prot != cur || new_eff != eff || level != st->level ||
++		   addr >= st->marker[1].start_address) {
+ 		const char *unit = units;
+ 		unsigned long delta;
+ 		int width = sizeof(unsigned long) * 2;
+ 
+ 		if (st->check_wx && (eff & _PAGE_RW) && !(eff & _PAGE_NX))
+-			note_wx(st);
++			note_wx(st, addr);
+ 
+ 		/*
+ 		 * Now print the actual finished series
+@@ -308,9 +315,9 @@ static void note_page(struct pg_state *s
+ 			pt_dump_seq_printf(m, st->to_dmesg,
+ 					   "0x%0*lx-0x%0*lx   ",
+ 					   width, st->start_address,
+-					   width, st->current_address);
++					   width, addr);
+ 
+-			delta = st->current_address - st->start_address;
++			delta = addr - st->start_address;
+ 			while (!(delta & 1023) && unit[1]) {
+ 				delta >>= 10;
+ 				unit++;
+@@ -327,7 +334,7 @@ static void note_page(struct pg_state *s
+ 		 * such as the start of vmalloc space etc.
+ 		 * This helps in the interpretation.
+ 		 */
+-		if (st->current_address >= st->marker[1].start_address) {
++		if (addr >= st->marker[1].start_address) {
+ 			if (st->marker->max_lines &&
+ 			    st->lines > st->marker->max_lines) {
+ 				unsigned long nskip =
+@@ -343,217 +350,48 @@ static void note_page(struct pg_state *s
+ 					   st->marker->name);
+ 		}
+ 
+-		st->start_address = st->current_address;
++		st->start_address = addr;
+ 		st->current_prot = new_prot;
+ 		st->effective_prot = new_eff;
+ 		st->level = level;
+ 	}
+ }
+ 
+-static inline pgprotval_t effective_prot(pgprotval_t prot1, pgprotval_t prot2)
+-{
+-	return (prot1 & prot2 & (_PAGE_USER | _PAGE_RW)) |
+-	       ((prot1 | prot2) & _PAGE_NX);
+-}
+-
+-static void walk_pte_level(struct pg_state *st, pmd_t addr, pgprotval_t eff_in,
+-			   unsigned long P)
+-{
+-	int i;
+-	pte_t *pte;
+-	pgprotval_t prot, eff;
+-
+-	for (i = 0; i < PTRS_PER_PTE; i++) {
+-		st->current_address = normalize_addr(P + i * PTE_LEVEL_MULT);
+-		pte = pte_offset_map(&addr, st->current_address);
+-		prot = pte_flags(*pte);
+-		eff = effective_prot(eff_in, prot);
+-		note_page(st, __pgprot(prot), eff, 5);
+-		pte_unmap(pte);
+-	}
+-}
+-#ifdef CONFIG_KASAN
+-
+-/*
+- * This is an optimization for KASAN=y case. Since all kasan page tables
+- * eventually point to the kasan_early_shadow_page we could call note_page()
+- * right away without walking through lower level page tables. This saves
+- * us dozens of seconds (minutes for 5-level config) while checking for
+- * W+X mapping or reading kernel_page_tables debugfs file.
+- */
+-static inline bool kasan_page_table(struct pg_state *st, void *pt)
+-{
+-	if (__pa(pt) == __pa(kasan_early_shadow_pmd) ||
+-	    (pgtable_l5_enabled() &&
+-			__pa(pt) == __pa(kasan_early_shadow_p4d)) ||
+-	    __pa(pt) == __pa(kasan_early_shadow_pud)) {
+-		pgprotval_t prot = pte_flags(kasan_early_shadow_pte[0]);
+-		note_page(st, __pgprot(prot), 0, 5);
+-		return true;
+-	}
+-	return false;
+-}
+-#else
+-static inline bool kasan_page_table(struct pg_state *st, void *pt)
+-{
+-	return false;
+-}
+-#endif
+-
+-#if PTRS_PER_PMD > 1
+-
+-static void walk_pmd_level(struct pg_state *st, pud_t addr,
+-			   pgprotval_t eff_in, unsigned long P)
+-{
+-	int i;
+-	pmd_t *start, *pmd_start;
+-	pgprotval_t prot, eff;
+-
+-	pmd_start = start = (pmd_t *)pud_page_vaddr(addr);
+-	for (i = 0; i < PTRS_PER_PMD; i++) {
+-		st->current_address = normalize_addr(P + i * PMD_LEVEL_MULT);
+-		if (!pmd_none(*start)) {
+-			prot = pmd_flags(*start);
+-			eff = effective_prot(eff_in, prot);
+-			if (pmd_large(*start) || !pmd_present(*start)) {
+-				note_page(st, __pgprot(prot), eff, 4);
+-			} else if (!kasan_page_table(st, pmd_start)) {
+-				walk_pte_level(st, *start, eff,
+-					       P + i * PMD_LEVEL_MULT);
+-			}
+-		} else
+-			note_page(st, __pgprot(0), 0, 4);
+-		start++;
+-	}
+-}
+-
+-#else
+-#define walk_pmd_level(s,a,e,p) walk_pte_level(s,__pmd(pud_val(a)),e,p)
+-#define pud_large(a) pmd_large(__pmd(pud_val(a)))
+-#define pud_none(a)  pmd_none(__pmd(pud_val(a)))
+-#endif
+-
+-#if PTRS_PER_PUD > 1
+-
+-static void walk_pud_level(struct pg_state *st, p4d_t addr, pgprotval_t eff_in,
+-			   unsigned long P)
+-{
+-	int i;
+-	pud_t *start, *pud_start;
+-	pgprotval_t prot, eff;
+-
+-	pud_start = start = (pud_t *)p4d_page_vaddr(addr);
+-
+-	for (i = 0; i < PTRS_PER_PUD; i++) {
+-		st->current_address = normalize_addr(P + i * PUD_LEVEL_MULT);
+-		if (!pud_none(*start)) {
+-			prot = pud_flags(*start);
+-			eff = effective_prot(eff_in, prot);
+-			if (pud_large(*start) || !pud_present(*start)) {
+-				note_page(st, __pgprot(prot), eff, 3);
+-			} else if (!kasan_page_table(st, pud_start)) {
+-				walk_pmd_level(st, *start, eff,
+-					       P + i * PUD_LEVEL_MULT);
+-			}
+-		} else
+-			note_page(st, __pgprot(0), 0, 3);
+-
+-		start++;
+-	}
+-}
+-
+-#else
+-#define walk_pud_level(s,a,e,p) walk_pmd_level(s,__pud(p4d_val(a)),e,p)
+-#define p4d_large(a) pud_large(__pud(p4d_val(a)))
+-#define p4d_none(a)  pud_none(__pud(p4d_val(a)))
+-#endif
+-
+-static void walk_p4d_level(struct pg_state *st, pgd_t addr, pgprotval_t eff_in,
+-			   unsigned long P)
++static void ptdump_walk_pgd_level_core(struct seq_file *m, pgd_t *pgd,
++				       bool checkwx, bool dmesg)
+ {
+-	int i;
+-	p4d_t *start, *p4d_start;
+-	pgprotval_t prot, eff;
+-
+-	if (PTRS_PER_P4D == 1)
+-		return walk_pud_level(st, __p4d(pgd_val(addr)), eff_in, P);
+-
+-	p4d_start = start = (p4d_t *)pgd_page_vaddr(addr);
+-
+-	for (i = 0; i < PTRS_PER_P4D; i++) {
+-		st->current_address = normalize_addr(P + i * P4D_LEVEL_MULT);
+-		if (!p4d_none(*start)) {
+-			prot = p4d_flags(*start);
+-			eff = effective_prot(eff_in, prot);
+-			if (p4d_large(*start) || !p4d_present(*start)) {
+-				note_page(st, __pgprot(prot), eff, 2);
+-			} else if (!kasan_page_table(st, p4d_start)) {
+-				walk_pud_level(st, *start, eff,
+-					       P + i * P4D_LEVEL_MULT);
+-			}
+-		} else
+-			note_page(st, __pgprot(0), 0, 2);
+-
+-		start++;
+-	}
+-}
++	const struct ptdump_range ptdump_ranges[] = {
++#ifdef CONFIG_X86_64
+ 
+-#define pgd_large(a) (pgtable_l5_enabled() ? pgd_large(a) : p4d_large(__p4d(pgd_val(a))))
+-#define pgd_none(a)  (pgtable_l5_enabled() ? pgd_none(a) : p4d_none(__p4d(pgd_val(a))))
++#define normalize_addr_shift (64 - (__VIRTUAL_MASK_SHIFT + 1))
++#define normalize_addr(u) ((signed long)((u) << normalize_addr_shift) >> \
++			   normalize_addr_shift)
+ 
+-static inline bool is_hypervisor_range(int idx)
+-{
+-#ifdef CONFIG_X86_64
+-	/*
+-	 * A hole in the beginning of kernel address space reserved
+-	 * for a hypervisor.
+-	 */
+-	return	(idx >= pgd_index(GUARD_HOLE_BASE_ADDR)) &&
+-		(idx <  pgd_index(GUARD_HOLE_END_ADDR));
++	{0, PTRS_PER_PGD * PGD_LEVEL_MULT / 2},
++	{normalize_addr(PTRS_PER_PGD * PGD_LEVEL_MULT / 2), ~0UL},
+ #else
+-	return false;
++	{0, ~0UL},
+ #endif
+-}
++	{0, 0}
++};
+ 
+-static void ptdump_walk_pgd_level_core(struct seq_file *m, pgd_t *pgd,
+-				       bool checkwx, bool dmesg)
+-{
+-	pgd_t *start = pgd;
+-	pgprotval_t prot, eff;
+-	int i;
+-	struct pg_state st = {};
+-
+-	st.to_dmesg = dmesg;
+-	st.check_wx = checkwx;
+-	st.seq = m;
+-	if (checkwx)
+-		st.wx_pages = 0;
+-
+-	for (i = 0; i < PTRS_PER_PGD; i++) {
+-		st.current_address = normalize_addr(i * PGD_LEVEL_MULT);
+-		if (!pgd_none(*start) && !is_hypervisor_range(i)) {
+-			prot = pgd_flags(*start);
+-#ifdef CONFIG_X86_PAE
+-			eff = _PAGE_USER | _PAGE_RW;
+-#else
+-			eff = prot;
+-#endif
+-			if (pgd_large(*start) || !pgd_present(*start)) {
+-				note_page(&st, __pgprot(prot), eff, 1);
+-			} else {
+-				walk_p4d_level(&st, *start, eff,
+-					       i * PGD_LEVEL_MULT);
+-			}
+-		} else
+-			note_page(&st, __pgprot(0), 0, 1);
++	struct pg_state st = {
++		.ptdump = {
++			.note_page	= note_page,
++			.range		= ptdump_ranges
++		},
++		.to_dmesg	= dmesg,
++		.check_wx	= checkwx,
++		.seq		= m
++	};
++
++	struct mm_struct fake_mm = {
++		.pgd = pgd
++	};
++	init_rwsem(&fake_mm.mmap_sem);
+ 
+-		cond_resched();
+-		start++;
+-	}
++	ptdump_walk_pgd(&st.ptdump, &fake_mm);
+ 
+-	/* Flush out the last page */
+-	st.current_address = normalize_addr(PTRS_PER_PGD*PGD_LEVEL_MULT);
+-	note_page(&st, __pgprot(0), 0, 0);
+ 	if (!checkwx)
+ 		return;
+ 	if (st.wx_pages)
+--- a/arch/x86/mm/Makefile~x86-mm-convert-dump_pagetables-to-use-walk_page_range
++++ a/arch/x86/mm/Makefile
+@@ -28,8 +28,8 @@ CFLAGS_fault.o := -I $(srctree)/$(src)/.
+ obj-$(CONFIG_X86_32)		+= pgtable_32.o iomap_32.o
+ 
+ obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
+-obj-$(CONFIG_X86_PTDUMP_CORE)	+= dump_pagetables.o
+-obj-$(CONFIG_X86_PTDUMP)	+= debug_pagetables.o
++obj-$(CONFIG_PTDUMP_CORE)	+= dump_pagetables.o
++obj-$(CONFIG_PTDUMP_DEBUGFS)	+= debug_pagetables.o
+ 
+ obj-$(CONFIG_HIGHMEM)		+= highmem_32.o
+ 
 _
