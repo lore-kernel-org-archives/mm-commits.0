@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- drivers-block-null_blk_mainc-fix-layout.patch removed from -mm tree
-Date: Mon, 03 Feb 2020 17:06:51 -0800
-Message-ID: <20200204010651.T-BsjtHOy%akpm@linux-foundation.org>
+Subject: + drivers-block-null_blk_mainc-fix-layout.patch added to
+ -mm tree
+Date: Mon, 03 Feb 2020 17:09:43 -0800
+Message-ID: <20200204010943.mwW1CAd8t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34728 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36906 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726984AbgBDBGx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:06:53 -0500
+        id S1726369AbgBDBJq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:09:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, axboe@kernel.dk, mm-commits@vger.kernel.org, shli@fb.com
@@ -16,10 +16,24 @@ To: akpm@linux-foundation.org, axboe@kernel.dk, mm-commits@vger.kernel.org, shli
 
 The patch titled
      Subject: drivers/block/null_blk_main.c: fix layout
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      drivers-block-null_blk_mainc-fix-layout.patch
 
-This patch was dropped because it was folded into ipc-consolidate-all-xxxctl_down-functions.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-block-null_blk_mainc-fix-layout.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-block-null_blk_mainc-fix-layout.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -106,4 +120,5 @@ _
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 ipc-consolidate-all-xxxctl_down-functions.patch
+drivers-block-null_blk_mainc-fix-layout.patch
 drivers-block-null_blk_mainc-fix-uninitialized-var-warnings.patch
