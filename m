@@ -1,32 +1,35 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 45/67] arm64: mm: display non-present entries in
- ptdump
-Date: Mon, 03 Feb 2020 17:36:34 -0800
-Message-ID: <20200204013634.nY5WMP_LG%akpm@linux-foundation.org>
+Subject: [patch 46/67] mm: ptdump: reduce level numbers by 1 in
+ note_page()
+Date: Mon, 03 Feb 2020 17:36:38 -0800
+Message-ID: <20200204013638.Zs2G-ZbS8%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37338 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37508 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726992AbgBDBgi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:36:38 -0500
+        id S1726992AbgBDBgm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:36:42 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 From: Steven Price <steven.price@arm.com>
-Subject: arm64: mm: display non-present entries in ptdump
+Subject: mm: ptdump: reduce level numbers by 1 in note_page()
 
-Previously the /sys/kernel/debug/kernel_page_tables file would only show
-lines for entries present in the page tables.  However it is useful to
-also show non-present entries as this makes the size and level of the
-holes more visible.  This aligns the behaviour with x86 which also shows
-holes.
+Rather than having to increment the 'depth' number by 1 in ptdump_hole(),
+let's change the meaning of 'level' in note_page() since that makes the
+code simplier.
 
-Link: http://lkml.kernel.org/r/20191218162402.45610-23-steven.price@arm.com
+Note that for x86, the level numbers were previously increased by 1 in
+commit 45dcd2091363 ("x86/mm/dump_pagetables: Fix printout of p4d level")
+and the comment "Bit 7 has a different meaning" was not updated, so this
+change also makes the code match the comment again.
+
+Link: http://lkml.kernel.org/r/20191218162402.45610-24-steven.price@arm.com
 Signed-off-by: Steven Price <steven.price@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -60,44 +63,185 @@ Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/dump.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ arch/arm64/mm/dump.c          |    6 +++---
+ arch/x86/mm/dump_pagetables.c |   19 ++++++++++---------
+ include/linux/ptdump.h        |    1 +
+ mm/ptdump.c                   |   16 ++++++++--------
+ 4 files changed, 22 insertions(+), 20 deletions(-)
 
---- a/arch/arm64/mm/dump.c~arm64-mm-display-non-present-entries-in-ptdump
+--- a/arch/arm64/mm/dump.c~mm-ptdump-reduce-level-numbers-by-1-in-note_page
 +++ a/arch/arm64/mm/dump.c
-@@ -270,21 +270,22 @@ static void note_page(struct ptdump_stat
- 		if (st->current_prot) {
- 			note_prot_uxn(st, addr);
- 			note_prot_wx(st, addr);
--			pt_dump_seq_printf(st->seq, "0x%016lx-0x%016lx   ",
-+		}
-+
-+		pt_dump_seq_printf(st->seq, "0x%016lx-0x%016lx   ",
- 				   st->start_address, addr);
+@@ -176,8 +176,7 @@ struct pg_level {
+ };
  
--			delta = (addr - st->start_address) >> 10;
--			while (!(delta & 1023) && unit[1]) {
--				delta >>= 10;
--				unit++;
--			}
--			pt_dump_seq_printf(st->seq, "%9lu%c %s", delta, *unit,
--				   pg_level[st->level].name);
--			if (pg_level[st->level].bits)
--				dump_prot(st, pg_level[st->level].bits,
--					  pg_level[st->level].num);
--			pt_dump_seq_puts(st->seq, "\n");
-+		delta = (addr - st->start_address) >> 10;
-+		while (!(delta & 1023) && unit[1]) {
-+			delta >>= 10;
-+			unit++;
- 		}
-+		pt_dump_seq_printf(st->seq, "%9lu%c %s", delta, *unit,
-+				   pg_level[st->level].name);
-+		if (st->current_prot && pg_level[st->level].bits)
-+			dump_prot(st, pg_level[st->level].bits,
-+				  pg_level[st->level].num);
-+		pt_dump_seq_puts(st->seq, "\n");
+ static struct pg_level pg_level[] = {
+-	{
+-	}, { /* pgd */
++	{ /* pgd */
+ 		.name	= "PGD",
+ 		.bits	= pte_bits,
+ 		.num	= ARRAY_SIZE(pte_bits),
+@@ -257,7 +256,7 @@ static void note_page(struct ptdump_stat
+ 	if (level >= 0)
+ 		prot = val & pg_level[level].mask;
  
- 		if (addr >= st->marker[1].start_address) {
- 			st->marker++;
+-	if (!st->level) {
++	if (st->level == -1) {
+ 		st->level = level;
+ 		st->current_prot = prot;
+ 		st->start_address = addr;
+@@ -351,6 +350,7 @@ void ptdump_check_wx(void)
+ 			{ 0, NULL},
+ 			{ -1, NULL},
+ 		},
++		.level = -1,
+ 		.check_wx = true,
+ 		.ptdump = {
+ 			.note_page = note_page,
+--- a/arch/x86/mm/dump_pagetables.c~mm-ptdump-reduce-level-numbers-by-1-in-note_page
++++ a/arch/x86/mm/dump_pagetables.c
+@@ -180,7 +180,7 @@ static struct addr_marker address_marker
+ static void printk_prot(struct seq_file *m, pgprotval_t pr, int level, bool dmsg)
+ {
+ 	static const char * const level_name[] =
+-		{ "cr3", "pgd", "p4d", "pud", "pmd", "pte" };
++		{ "pgd", "p4d", "pud", "pmd", "pte" };
+ 
+ 	if (!(pr & _PAGE_PRESENT)) {
+ 		/* Not present */
+@@ -204,12 +204,12 @@ static void printk_prot(struct seq_file
+ 			pt_dump_cont_printf(m, dmsg, "    ");
+ 
+ 		/* Bit 7 has a different meaning on level 3 vs 4 */
+-		if (level <= 4 && pr & _PAGE_PSE)
++		if (level <= 3 && pr & _PAGE_PSE)
+ 			pt_dump_cont_printf(m, dmsg, "PSE ");
+ 		else
+ 			pt_dump_cont_printf(m, dmsg, "    ");
+-		if ((level == 5 && pr & _PAGE_PAT) ||
+-		    ((level == 4 || level == 3) && pr & _PAGE_PAT_LARGE))
++		if ((level == 4 && pr & _PAGE_PAT) ||
++		    ((level == 3 || level == 2) && pr & _PAGE_PAT_LARGE))
+ 			pt_dump_cont_printf(m, dmsg, "PAT ");
+ 		else
+ 			pt_dump_cont_printf(m, dmsg, "    ");
+@@ -271,15 +271,15 @@ static void note_page(struct ptdump_stat
+ 
+ 	new_prot = val & PTE_FLAGS_MASK;
+ 
+-	if (level > 1) {
+-		new_eff = effective_prot(st->prot_levels[level - 2],
++	if (level > 0) {
++		new_eff = effective_prot(st->prot_levels[level - 1],
+ 					 new_prot);
+ 	} else {
+ 		new_eff = new_prot;
+ 	}
+ 
+-	if (level > 0)
+-		st->prot_levels[level - 1] = new_eff;
++	if (level >= 0)
++		st->prot_levels[level] = new_eff;
+ 
+ 	/*
+ 	 * If we have a "break" in the series, we need to flush the state that
+@@ -289,7 +289,7 @@ static void note_page(struct ptdump_stat
+ 	cur = st->current_prot;
+ 	eff = st->effective_prot;
+ 
+-	if (!st->level) {
++	if (st->level == -1) {
+ 		/* First entry */
+ 		st->current_prot = new_prot;
+ 		st->effective_prot = new_eff;
+@@ -380,6 +380,7 @@ static void ptdump_walk_pgd_level_core(s
+ 			.note_page	= note_page,
+ 			.range		= ptdump_ranges
+ 		},
++		.level = -1,
+ 		.to_dmesg	= dmesg,
+ 		.check_wx	= checkwx,
+ 		.seq		= m
+--- a/include/linux/ptdump.h~mm-ptdump-reduce-level-numbers-by-1-in-note_page
++++ a/include/linux/ptdump.h
+@@ -11,6 +11,7 @@ struct ptdump_range {
+ };
+ 
+ struct ptdump_state {
++	/* level is 0:PGD to 4:PTE, or -1 if unknown */
+ 	void (*note_page)(struct ptdump_state *st, unsigned long addr,
+ 			  int level, unsigned long val);
+ 	const struct ptdump_range *range;
+--- a/mm/ptdump.c~mm-ptdump-reduce-level-numbers-by-1-in-note_page
++++ a/mm/ptdump.c
+@@ -17,7 +17,7 @@ static inline int note_kasan_page_table(
+ {
+ 	struct ptdump_state *st = walk->private;
+ 
+-	st->note_page(st, addr, 5, pte_val(kasan_early_shadow_pte[0]));
++	st->note_page(st, addr, 4, pte_val(kasan_early_shadow_pte[0]));
+ 
+ 	walk->action = ACTION_CONTINUE;
+ 
+@@ -37,7 +37,7 @@ static int ptdump_pgd_entry(pgd_t *pgd,
+ #endif
+ 
+ 	if (pgd_leaf(val))
+-		st->note_page(st, addr, 1, pgd_val(val));
++		st->note_page(st, addr, 0, pgd_val(val));
+ 
+ 	return 0;
+ }
+@@ -54,7 +54,7 @@ static int ptdump_p4d_entry(p4d_t *p4d,
+ #endif
+ 
+ 	if (p4d_leaf(val))
+-		st->note_page(st, addr, 2, p4d_val(val));
++		st->note_page(st, addr, 1, p4d_val(val));
+ 
+ 	return 0;
+ }
+@@ -71,7 +71,7 @@ static int ptdump_pud_entry(pud_t *pud,
+ #endif
+ 
+ 	if (pud_leaf(val))
+-		st->note_page(st, addr, 3, pud_val(val));
++		st->note_page(st, addr, 2, pud_val(val));
+ 
+ 	return 0;
+ }
+@@ -88,7 +88,7 @@ static int ptdump_pmd_entry(pmd_t *pmd,
+ #endif
+ 
+ 	if (pmd_leaf(val))
+-		st->note_page(st, addr, 4, pmd_val(val));
++		st->note_page(st, addr, 3, pmd_val(val));
+ 
+ 	return 0;
+ }
+@@ -98,7 +98,7 @@ static int ptdump_pte_entry(pte_t *pte,
+ {
+ 	struct ptdump_state *st = walk->private;
+ 
+-	st->note_page(st, addr, 5, pte_val(READ_ONCE(*pte)));
++	st->note_page(st, addr, 4, pte_val(READ_ONCE(*pte)));
+ 
+ 	return 0;
+ }
+@@ -108,7 +108,7 @@ static int ptdump_hole(unsigned long add
+ {
+ 	struct ptdump_state *st = walk->private;
+ 
+-	st->note_page(st, addr, depth + 1, 0);
++	st->note_page(st, addr, depth, 0);
+ 
+ 	return 0;
+ }
+@@ -135,5 +135,5 @@ void ptdump_walk_pgd(struct ptdump_state
+ 	up_read(&mm->mmap_sem);
+ 
+ 	/* Flush out the last page */
+-	st->note_page(st, 0, 0, 0);
++	st->note_page(st, 0, -1, 0);
+ }
 _
