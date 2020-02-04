@@ -1,195 +1,143 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 16/67] ipc/mqueue.c: update/document memory
+Subject: [patch 17/67] ipc/msg.c: update and document memory
  barriers
-Date: Mon, 03 Feb 2020 17:34:36 -0800
-Message-ID: <20200204013436.V8KUTPHdg%akpm@linux-foundation.org>
+Date: Mon, 03 Feb 2020 17:34:39 -0800
+Message-ID: <20200204013439.2wM1mnJcM%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60744 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60892 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgBDBeh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:34:37 -0500
+        id S1726369AbgBDBek (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:34:40 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 1vier1@web.de, akpm@linux-foundation.org, dbueso@suse.de, linux-mm@kvack.org, longman@redhat.com, manfred@colorfullife.com, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org, will.deacon@arm.com
+To: 1vier1@web.de, akpm@linux-foundation.org, dave@stgolabs.net, linux-mm@kvack.org, longman@redhat.com, manfred@colorfullife.com, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org, will.deacon@arm.com
 
 From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/mqueue.c: update/document memory barriers
+Subject: ipc/msg.c: update and document memory barriers
 
-Update and document memory barriers for mqueue.c:
+Transfer findings from ipc/mqueue.c:
 
-- ewp->state is read without any locks, thus READ_ONCE is required.
+- A control barrier was missing for the lockless receive case So in
+  theory, not yet initialized data may have been copied to user space -
+  obviously only for architectures where control barriers are not NOP.
 
-- add smp_aquire__after_ctrl_dep() after the READ_ONCE, we need
-  acquire semantics if the value is STATE_READY.
+- use smp_store_release().  In theory, the refount may have been
+  decreased to 0 already when wake_q_add() tries to get a reference.
 
-- use wake_q_add_safe()
-
-- document why __set_current_state() may be used:
-  Reading task->state cannot happen before the wake_q_add() call,
-  which happens while holding info->lock. Thus the spin_unlock()
-  is the RELEASE, and the spin_lock() is the ACQUIRE.
-
-For completeness: there is also a 3 CPU scenario, if the to be woken
-up task is already on another wake_q.
-Then:
-- CPU1: spin_unlock() of the task that goes to sleep is the RELEASE
-- CPU2: the spin_lock() of the waker is the ACQUIRE
-- CPU2: smp_mb__before_atomic inside wake_q_add() is the RELEASE
-- CPU3: smp_mb__after_spinlock() inside try_to_wake_up() is the ACQUIRE
-
-Link: http://lkml.kernel.org/r/20191020123305.14715-4-manfred@colorfullife.com
+Link: http://lkml.kernel.org/r/20191020123305.14715-5-manfred@colorfullife.com
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
 Cc: Waiman Long <longman@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: <1vier1@web.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |   92 +++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 78 insertions(+), 14 deletions(-)
+ ipc/msg.c |   43 ++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 36 insertions(+), 7 deletions(-)
 
---- a/ipc/mqueue.c~ipc-mqueuec-update-document-memory-barriers
-+++ a/ipc/mqueue.c
-@@ -63,6 +63,66 @@ struct posix_msg_tree_node {
- 	int			priority;
- };
+--- a/ipc/msg.c~ipc-msgc-update-and-document-memory-barriers
++++ a/ipc/msg.c
+@@ -61,6 +61,16 @@ struct msg_queue {
+ 	struct list_head q_senders;
+ } __randomize_layout;
  
 +/*
-+ * Locking:
++ * MSG_BARRIER Locking:
 + *
-+ * Accesses to a message queue are synchronized by acquiring info->lock.
-+ *
-+ * There are two notable exceptions:
-+ * - The actual wakeup of a sleeping task is performed using the wake_q
-+ *   framework. info->lock is already released when wake_up_q is called.
-+ * - The exit codepaths after sleeping check ext_wait_queue->state without
-+ *   any locks. If it is STATE_READY, then the syscall is completed without
-+ *   acquiring info->lock.
-+ *
-+ * MQ_BARRIER:
-+ * To achieve proper release/acquire memory barrier pairing, the state is set to
-+ * STATE_READY with smp_store_release(), and it is read with READ_ONCE followed
-+ * by smp_acquire__after_ctrl_dep(). In addition, wake_q_add_safe() is used.
-+ *
-+ * This prevents the following races:
-+ *
-+ * 1) With the simple wake_q_add(), the task could be gone already before
-+ *    the increase of the reference happens
-+ * Thread A
-+ *				Thread B
-+ * WRITE_ONCE(wait.state, STATE_NONE);
-+ * schedule_hrtimeout()
-+ *				wake_q_add(A)
-+ *				if (cmpxchg()) // success
-+ *				   ->state = STATE_READY (reordered)
-+ * <timeout returns>
-+ * if (wait.state == STATE_READY) return;
-+ * sysret to user space
-+ * sys_exit()
-+ *				get_task_struct() // UaF
-+ *
-+ * Solution: Use wake_q_add_safe() and perform the get_task_struct() before
-+ * the smp_store_release() that does ->state = STATE_READY.
-+ *
-+ * 2) Without proper _release/_acquire barriers, the woken up task
-+ *    could read stale data
-+ *
-+ * Thread A
-+ *				Thread B
-+ * do_mq_timedreceive
-+ * WRITE_ONCE(wait.state, STATE_NONE);
-+ * schedule_hrtimeout()
-+ *				state = STATE_READY;
-+ * <timeout returns>
-+ * if (wait.state == STATE_READY) return;
-+ * msg_ptr = wait.msg;		// Access to stale data!
-+ *				receiver->msg = message; (reordered)
-+ *
-+ * Solution: use _release and _acquire barriers.
-+ *
-+ * 3) There is intentionally no barrier when setting current->state
-+ *    to TASK_INTERRUPTIBLE: spin_unlock(&info->lock) provides the
-+ *    release memory barrier, and the wakeup is triggered when holding
-+ *    info->lock, i.e. spin_lock(&info->lock) provided a pairing
-+ *    acquire memory barrier.
++ * Similar to the optimization used in ipc/mqueue.c, one syscall return path
++ * does not acquire any locks when it sees that a message exists in
++ * msg_receiver.r_msg. Therefore r_msg is set using smp_store_release()
++ * and accessed using READ_ONCE()+smp_acquire__after_ctrl_dep(). In addition,
++ * wake_q_add_safe() is used. See ipc/mqueue.c for more details
 + */
 +
- struct ext_wait_queue {		/* queue of sleeping tasks */
- 	struct task_struct *task;
- 	struct list_head list;
-@@ -646,18 +706,23 @@ static int wq_sleep(struct mqueue_inode_
- 	wq_add(info, sr, ewp);
- 
- 	for (;;) {
-+		/* memory barrier not required, we hold info->lock */
- 		__set_current_state(TASK_INTERRUPTIBLE);
- 
- 		spin_unlock(&info->lock);
- 		time = schedule_hrtimeout_range_clock(timeout, 0,
- 			HRTIMER_MODE_ABS, CLOCK_REALTIME);
- 
--		if (ewp->state == STATE_READY) {
-+		if (READ_ONCE(ewp->state) == STATE_READY) {
-+			/* see MQ_BARRIER for purpose/pairing */
-+			smp_acquire__after_ctrl_dep();
- 			retval = 0;
- 			goto out;
- 		}
- 		spin_lock(&info->lock);
--		if (ewp->state == STATE_READY) {
-+
-+		/* we hold info->lock, so no memory barrier required */
-+		if (READ_ONCE(ewp->state) == STATE_READY) {
- 			retval = 0;
- 			goto out_unlock;
- 		}
-@@ -923,16 +988,11 @@ static inline void __pipelined_op(struct
- 				  struct ext_wait_queue *this)
+ /* one msg_receiver structure for each sleeping receiver */
+ struct msg_receiver {
+ 	struct list_head	r_list;
+@@ -184,6 +194,10 @@ static inline void ss_add(struct msg_que
  {
- 	list_del(&this->list);
--	wake_q_add(wake_q, this->task);
--	/*
--	 * Rely on the implicit cmpxchg barrier from wake_q_add such
--	 * that we can ensure that updating receiver->state is the last
--	 * write operation: As once set, the receiver can continue,
--	 * and if we don't have the reference count from the wake_q,
--	 * yet, at that point we can later have a use-after-free
--	 * condition and bogus wakeup.
--	 */
--	this->state = STATE_READY;
-+	get_task_struct(this->task);
+ 	mss->tsk = current;
+ 	mss->msgsz = msgsz;
++	/*
++	 * No memory barrier required: we did ipc_lock_object(),
++	 * and the waker obtains that lock before calling wake_q_add().
++	 */
+ 	__set_current_state(TASK_INTERRUPTIBLE);
+ 	list_add_tail(&mss->list, &msq->q_senders);
+ }
+@@ -237,8 +251,11 @@ static void expunge_all(struct msg_queue
+ 	struct msg_receiver *msr, *t;
+ 
+ 	list_for_each_entry_safe(msr, t, &msq->q_receivers, r_list) {
+-		wake_q_add(wake_q, msr->r_tsk);
+-		WRITE_ONCE(msr->r_msg, ERR_PTR(res));
++		get_task_struct(msr->r_tsk);
 +
-+	/* see MQ_BARRIER for purpose/pairing */
-+	smp_store_release(&this->state, STATE_READY);
-+	wake_q_add_safe(wake_q, this->task);
++		/* see MSG_BARRIER for purpose/pairing */
++		smp_store_release(&msr->r_msg, ERR_PTR(res));
++		wake_q_add_safe(wake_q, msr->r_tsk);
+ 	}
  }
  
- /* pipelined_send() - send a message directly to the task waiting in
-@@ -1049,7 +1109,9 @@ static int do_mq_timedsend(mqd_t mqdes,
- 		} else {
- 			wait.task = current;
- 			wait.msg = (void *) msg_ptr;
--			wait.state = STATE_NONE;
+@@ -798,13 +815,17 @@ static inline int pipelined_send(struct
+ 			list_del(&msr->r_list);
+ 			if (msr->r_maxsize < msg->m_ts) {
+ 				wake_q_add(wake_q, msr->r_tsk);
+-				WRITE_ONCE(msr->r_msg, ERR_PTR(-E2BIG));
 +
-+			/* memory barrier not required, we hold info->lock */
-+			WRITE_ONCE(wait.state, STATE_NONE);
- 			ret = wq_sleep(info, SEND, timeout, &wait);
- 			/*
- 			 * wq_sleep must be called with info->lock held, and
-@@ -1152,7 +1214,9 @@ static int do_mq_timedreceive(mqd_t mqde
- 			ret = -EAGAIN;
- 		} else {
- 			wait.task = current;
--			wait.state = STATE_NONE;
++				/* See expunge_all regarding memory barrier */
++				smp_store_release(&msr->r_msg, ERR_PTR(-E2BIG));
+ 			} else {
+ 				ipc_update_pid(&msq->q_lrpid, task_pid(msr->r_tsk));
+ 				msq->q_rtime = ktime_get_real_seconds();
+ 
+ 				wake_q_add(wake_q, msr->r_tsk);
+-				WRITE_ONCE(msr->r_msg, msg);
 +
-+			/* memory barrier not required, we hold info->lock */
-+			WRITE_ONCE(wait.state, STATE_NONE);
- 			ret = wq_sleep(info, RECV, timeout, &wait);
- 			msg_ptr = wait.msg;
++				/* See expunge_all regarding memory barrier */
++				smp_store_release(&msr->r_msg, msg);
+ 				return 1;
+ 			}
  		}
+@@ -1154,7 +1175,11 @@ static long do_msgrcv(int msqid, void __
+ 			msr_d.r_maxsize = INT_MAX;
+ 		else
+ 			msr_d.r_maxsize = bufsz;
+-		msr_d.r_msg = ERR_PTR(-EAGAIN);
++
++		/* memory barrier not require due to ipc_lock_object() */
++		WRITE_ONCE(msr_d.r_msg, ERR_PTR(-EAGAIN));
++
++		/* memory barrier not required, we own ipc_lock_object() */
+ 		__set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 		ipc_unlock_object(&msq->q_perm);
+@@ -1183,8 +1208,12 @@ static long do_msgrcv(int msqid, void __
+ 		 * signal) it will either see the message and continue ...
+ 		 */
+ 		msg = READ_ONCE(msr_d.r_msg);
+-		if (msg != ERR_PTR(-EAGAIN))
++		if (msg != ERR_PTR(-EAGAIN)) {
++			/* see MSG_BARRIER for purpose/pairing */
++			smp_acquire__after_ctrl_dep();
++
+ 			goto out_unlock1;
++		}
+ 
+ 		 /*
+ 		  * ... or see -EAGAIN, acquire the lock to check the message
+@@ -1192,7 +1221,7 @@ static long do_msgrcv(int msqid, void __
+ 		  */
+ 		ipc_lock_object(&msq->q_perm);
+ 
+-		msg = msr_d.r_msg;
++		msg = READ_ONCE(msr_d.r_msg);
+ 		if (msg != ERR_PTR(-EAGAIN))
+ 			goto out_unlock0;
+ 
 _
