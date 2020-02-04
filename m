@@ -1,28 +1,26 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 08/67] mm/memory_hotplug: poison memmap in
- remove_pfn_range_from_zone()
-Date: Mon, 03 Feb 2020 17:34:09 -0800
-Message-ID: <20200204013409.sNZYG6x_7%akpm@linux-foundation.org>
+Subject: [patch 09/67] mm/memory_hotplug: we always have a zone in
+ find_(smallest|biggest)_section_pfn
+Date: Mon, 03 Feb 2020 17:34:12 -0800
+Message-ID: <20200204013412.xsMbePbBR%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59542 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59696 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgBDBeL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:34:11 -0500
+        id S1726369AbgBDBeO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:34:14 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com, david@redhat.com, gregkh@linuxfoundation.org, linux-mm@kvack.org, logang@deltatee.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pagupta@redhat.com, pasha.tatashin@soleen.com, torvalds@linux-foundation.org, willy@infradead.org
 
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: poison memmap in remove_pfn_range_from_zone()
+Subject: mm/memory_hotplug: we always have a zone in find_(smallest|biggest)_section_pfn
 
-Let's poison the pages similar to when adding new memory in
-sparse_add_section().  Also call remove_pfn_range_from_zone() from
-memunmap_pages(), so we can poison the memmap from there as well.
+With shrink_pgdat_span() out of the way, we now always have a valid zone.
 
-Link: http://lkml.kernel.org/r/20191006085646.5768-7-david@redhat.com
+Link: http://lkml.kernel.org/r/20191006085646.5768-8-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
@@ -36,31 +34,27 @@ Cc: Pankaj Gupta <pagupta@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 +++
- mm/memremap.c       |    2 ++
- 2 files changed, 5 insertions(+)
+ mm/memory_hotplug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-poison-memmap-in-remove_pfn_range_from_zone
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-we-always-have-a-zone-in-find_smallestbiggest_section_pfn
 +++ a/mm/memory_hotplug.c
-@@ -490,6 +490,9 @@ void __ref remove_pfn_range_from_zone(st
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	unsigned long flags;
+@@ -355,7 +355,7 @@ static unsigned long find_smallest_secti
+ 		if (unlikely(pfn_to_nid(start_pfn) != nid))
+ 			continue;
  
-+	/* Poison struct pages because they are now uninitialized again. */
-+	page_init_poison(pfn_to_page(start_pfn), sizeof(struct page) * nr_pages);
-+
- #ifdef CONFIG_ZONE_DEVICE
- 	/*
- 	 * Zone shrinking code cannot properly deal with ZONE_DEVICE. So
---- a/mm/memremap.c~mm-memory_hotplug-poison-memmap-in-remove_pfn_range_from_zone
-+++ a/mm/memremap.c
-@@ -120,6 +120,8 @@ void memunmap_pages(struct dev_pagemap *
- 	nid = page_to_nid(first_page);
+-		if (zone && zone != page_zone(pfn_to_page(start_pfn)))
++		if (zone != page_zone(pfn_to_page(start_pfn)))
+ 			continue;
  
- 	mem_hotplug_begin();
-+	remove_pfn_range_from_zone(page_zone(first_page), PHYS_PFN(res->start),
-+				   PHYS_PFN(resource_size(res)));
- 	if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
- 		__remove_pages(PHYS_PFN(res->start),
- 			       PHYS_PFN(resource_size(res)), NULL);
+ 		return start_pfn;
+@@ -380,7 +380,7 @@ static unsigned long find_biggest_sectio
+ 		if (unlikely(pfn_to_nid(pfn) != nid))
+ 			continue;
+ 
+-		if (zone && zone != page_zone(pfn_to_page(pfn)))
++		if (zone != page_zone(pfn_to_page(pfn)))
+ 			continue;
+ 
+ 		return pfn;
 _
