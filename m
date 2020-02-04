@@ -1,33 +1,37 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 17/67] ipc/msg.c: update and document memory
+Subject: [patch 18/67] ipc/sem.c: document and update memory
  barriers
-Date: Mon, 03 Feb 2020 17:34:39 -0800
-Message-ID: <20200204013439.2wM1mnJcM%akpm@linux-foundation.org>
+Date: Mon, 03 Feb 2020 17:34:42 -0800
+Message-ID: <20200204013442.tPVtkj_dX%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60892 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32806 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgBDBek (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:34:40 -0500
+        id S1726369AbgBDBeo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:34:44 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: 1vier1@web.de, akpm@linux-foundation.org, dave@stgolabs.net, linux-mm@kvack.org, longman@redhat.com, manfred@colorfullife.com, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org, will.deacon@arm.com
 
 From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/msg.c: update and document memory barriers
+Subject: ipc/sem.c: document and update memory barriers
 
-Transfer findings from ipc/mqueue.c:
+Document and update the memory barriers in ipc/sem.c:
 
-- A control barrier was missing for the lockless receive case So in
-  theory, not yet initialized data may have been copied to user space -
-  obviously only for architectures where control barriers are not NOP.
+- Add smp_store_release() to wake_up_sem_queue_prepare() and
+  document why it is needed.
 
-- use smp_store_release().  In theory, the refount may have been
-  decreased to 0 already when wake_q_add() tries to get a reference.
+- Read q->status using READ_ONCE+smp_acquire__after_ctrl_dep().
+  as the pair for the barrier inside wake_up_sem_queue_prepare().
 
-Link: http://lkml.kernel.org/r/20191020123305.14715-5-manfred@colorfullife.com
+- Add comments to all barriers, and mention the rules in the block
+  regarding locking.
+
+- Switch to using wake_q_add_safe().
+
+Link: http://lkml.kernel.org/r/20191020123305.14715-6-manfred@colorfullife.com
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Cc: Waiman Long <longman@redhat.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
@@ -37,107 +41,134 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   43 ++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 36 insertions(+), 7 deletions(-)
+ ipc/sem.c |   66 ++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 41 insertions(+), 25 deletions(-)
 
---- a/ipc/msg.c~ipc-msgc-update-and-document-memory-barriers
-+++ a/ipc/msg.c
-@@ -61,6 +61,16 @@ struct msg_queue {
- 	struct list_head q_senders;
- } __randomize_layout;
- 
-+/*
-+ * MSG_BARRIER Locking:
+--- a/ipc/sem.c~ipc-semc-document-and-update-memory-barriers
++++ a/ipc/sem.c
+@@ -205,15 +205,38 @@ static int sysvipc_sem_proc_show(struct
+  *
+  * Memory ordering:
+  * Most ordering is enforced by using spin_lock() and spin_unlock().
+- * The special case is use_global_lock:
 + *
-+ * Similar to the optimization used in ipc/mqueue.c, one syscall return path
-+ * does not acquire any locks when it sees that a message exists in
-+ * msg_receiver.r_msg. Therefore r_msg is set using smp_store_release()
-+ * and accessed using READ_ONCE()+smp_acquire__after_ctrl_dep(). In addition,
-+ * wake_q_add_safe() is used. See ipc/mqueue.c for more details
-+ */
-+
- /* one msg_receiver structure for each sleeping receiver */
- struct msg_receiver {
- 	struct list_head	r_list;
-@@ -184,6 +194,10 @@ static inline void ss_add(struct msg_que
- {
- 	mss->tsk = current;
- 	mss->msgsz = msgsz;
-+	/*
-+	 * No memory barrier required: we did ipc_lock_object(),
-+	 * and the waker obtains that lock before calling wake_q_add().
-+	 */
- 	__set_current_state(TASK_INTERRUPTIBLE);
- 	list_add_tail(&mss->list, &msq->q_senders);
- }
-@@ -237,8 +251,11 @@ static void expunge_all(struct msg_queue
- 	struct msg_receiver *msr, *t;
++ * Exceptions:
++ * 1) use_global_lock: (SEM_BARRIER_1)
+  * Setting it from non-zero to 0 is a RELEASE, this is ensured by
+- * using smp_store_release().
++ * using smp_store_release(): Immediately after setting it to 0,
++ * a simple op can start.
+  * Testing if it is non-zero is an ACQUIRE, this is ensured by using
+  * smp_load_acquire().
+  * Setting it from 0 to non-zero must be ordered with regards to
+  * this smp_load_acquire(), this is guaranteed because the smp_load_acquire()
+  * is inside a spin_lock() and after a write from 0 to non-zero a
+  * spin_lock()+spin_unlock() is done.
++ *
++ * 2) queue.status: (SEM_BARRIER_2)
++ * Initialization is done while holding sem_lock(), so no further barrier is
++ * required.
++ * Setting it to a result code is a RELEASE, this is ensured by both a
++ * smp_store_release() (for case a) and while holding sem_lock()
++ * (for case b).
++ * The AQUIRE when reading the result code without holding sem_lock() is
++ * achieved by using READ_ONCE() + smp_acquire__after_ctrl_dep().
++ * (case a above).
++ * Reading the result code while holding sem_lock() needs no further barriers,
++ * the locks inside sem_lock() enforce ordering (case b above)
++ *
++ * 3) current->state:
++ * current->state is set to TASK_INTERRUPTIBLE while holding sem_lock().
++ * The wakeup is handled using the wake_q infrastructure. wake_q wakeups may
++ * happen immediately after calling wake_q_add. As wake_q_add_safe() is called
++ * when holding sem_lock(), no further barriers are required.
++ *
++ * See also ipc/mqueue.c for more details on the covered races.
+  */
  
- 	list_for_each_entry_safe(msr, t, &msq->q_receivers, r_list) {
--		wake_q_add(wake_q, msr->r_tsk);
--		WRITE_ONCE(msr->r_msg, ERR_PTR(res));
-+		get_task_struct(msr->r_tsk);
-+
-+		/* see MSG_BARRIER for purpose/pairing */
-+		smp_store_release(&msr->r_msg, ERR_PTR(res));
-+		wake_q_add_safe(wake_q, msr->r_tsk);
+ #define sc_semmsl	sem_ctls[0]
+@@ -344,12 +367,8 @@ static void complexmode_tryleave(struct
+ 		return;
  	}
+ 	if (sma->use_global_lock == 1) {
+-		/*
+-		 * Immediately after setting use_global_lock to 0,
+-		 * a simple op can start. Thus: all memory writes
+-		 * performed by the current operation must be visible
+-		 * before we set use_global_lock to 0.
+-		 */
++
++		/* See SEM_BARRIER_1 for purpose/pairing */
+ 		smp_store_release(&sma->use_global_lock, 0);
+ 	} else {
+ 		sma->use_global_lock--;
+@@ -400,7 +419,7 @@ static inline int sem_lock(struct sem_ar
+ 		 */
+ 		spin_lock(&sem->lock);
+ 
+-		/* pairs with smp_store_release() */
++		/* see SEM_BARRIER_1 for purpose/pairing */
+ 		if (!smp_load_acquire(&sma->use_global_lock)) {
+ 			/* fast path successful! */
+ 			return sops->sem_num;
+@@ -766,15 +785,12 @@ would_block:
+ static inline void wake_up_sem_queue_prepare(struct sem_queue *q, int error,
+ 					     struct wake_q_head *wake_q)
+ {
+-	wake_q_add(wake_q, q->sleeper);
+-	/*
+-	 * Rely on the above implicit barrier, such that we can
+-	 * ensure that we hold reference to the task before setting
+-	 * q->status. Otherwise we could race with do_exit if the
+-	 * task is awoken by an external event before calling
+-	 * wake_up_process().
+-	 */
+-	WRITE_ONCE(q->status, error);
++	get_task_struct(q->sleeper);
++
++	/* see SEM_BARRIER_2 for purpuse/pairing */
++	smp_store_release(&q->status, error);
++
++	wake_q_add_safe(wake_q, q->sleeper);
  }
  
-@@ -798,13 +815,17 @@ static inline int pipelined_send(struct
- 			list_del(&msr->r_list);
- 			if (msr->r_maxsize < msg->m_ts) {
- 				wake_q_add(wake_q, msr->r_tsk);
--				WRITE_ONCE(msr->r_msg, ERR_PTR(-E2BIG));
-+
-+				/* See expunge_all regarding memory barrier */
-+				smp_store_release(&msr->r_msg, ERR_PTR(-E2BIG));
- 			} else {
- 				ipc_update_pid(&msq->q_lrpid, task_pid(msr->r_tsk));
- 				msq->q_rtime = ktime_get_real_seconds();
+ static void unlink_queue(struct sem_array *sma, struct sem_queue *q)
+@@ -2148,9 +2164,11 @@ static long do_semtimedop(int semid, str
+ 	}
  
- 				wake_q_add(wake_q, msr->r_tsk);
--				WRITE_ONCE(msr->r_msg, msg);
-+
-+				/* See expunge_all regarding memory barrier */
-+				smp_store_release(&msr->r_msg, msg);
- 				return 1;
- 			}
- 		}
-@@ -1154,7 +1175,11 @@ static long do_msgrcv(int msqid, void __
- 			msr_d.r_maxsize = INT_MAX;
- 		else
- 			msr_d.r_maxsize = bufsz;
--		msr_d.r_msg = ERR_PTR(-EAGAIN);
-+
-+		/* memory barrier not require due to ipc_lock_object() */
-+		WRITE_ONCE(msr_d.r_msg, ERR_PTR(-EAGAIN));
-+
-+		/* memory barrier not required, we own ipc_lock_object() */
+ 	do {
++		/* memory ordering ensured by the lock in sem_lock() */
+ 		WRITE_ONCE(queue.status, -EINTR);
+ 		queue.sleeper = current;
+ 
++		/* memory ordering is ensured by the lock in sem_lock() */
  		__set_current_state(TASK_INTERRUPTIBLE);
- 
- 		ipc_unlock_object(&msq->q_perm);
-@@ -1183,8 +1208,12 @@ static long do_msgrcv(int msqid, void __
- 		 * signal) it will either see the message and continue ...
+ 		sem_unlock(sma, locknum);
+ 		rcu_read_unlock();
+@@ -2173,13 +2191,8 @@ static long do_semtimedop(int semid, str
  		 */
- 		msg = READ_ONCE(msr_d.r_msg);
--		if (msg != ERR_PTR(-EAGAIN))
-+		if (msg != ERR_PTR(-EAGAIN)) {
-+			/* see MSG_BARRIER for purpose/pairing */
+ 		error = READ_ONCE(queue.status);
+ 		if (error != -EINTR) {
+-			/*
+-			 * User space could assume that semop() is a memory
+-			 * barrier: Without the mb(), the cpu could
+-			 * speculatively read in userspace stale data that was
+-			 * overwritten by the previous owner of the semaphore.
+-			 */
+-			smp_mb();
++			/* see SEM_BARRIER_2 for purpose/pairing */
 +			smp_acquire__after_ctrl_dep();
-+
- 			goto out_unlock1;
-+		}
+ 			goto out_free;
+ 		}
  
- 		 /*
- 		  * ... or see -EAGAIN, acquire the lock to check the message
-@@ -1192,7 +1221,7 @@ static long do_msgrcv(int msqid, void __
- 		  */
- 		ipc_lock_object(&msq->q_perm);
+@@ -2189,6 +2202,9 @@ static long do_semtimedop(int semid, str
+ 		if (!ipc_valid_object(&sma->sem_perm))
+ 			goto out_unlock_free;
  
--		msg = msr_d.r_msg;
-+		msg = READ_ONCE(msr_d.r_msg);
- 		if (msg != ERR_PTR(-EAGAIN))
- 			goto out_unlock0;
++		/*
++		 * No necessity for any barrier: We are protect by sem_lock()
++		 */
+ 		error = READ_ONCE(queue.status);
  
+ 		/*
 _
