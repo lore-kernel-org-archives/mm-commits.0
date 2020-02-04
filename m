@@ -1,78 +1,137 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 23/67] mm: remove __krealloc
-Date: Mon, 03 Feb 2020 17:34:58 -0800
-Message-ID: <20200204013458.4VHrt9Zmi%akpm@linux-foundation.org>
+Subject: [patch 24/67] mm: add generic p?d_leaf() macros
+Date: Mon, 03 Feb 2020 17:35:01 -0800
+Message-ID: <20200204013501.ASy8aLxPD%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33480 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33628 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgBDBe7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:34:59 -0500
+        id S1726992AbgBDBfE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:35:04 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, david@redhat.com, fw@strlen.de, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
-From: Florian Westphal <fw@strlen.de>
-Subject: mm: remove __krealloc
+From: Steven Price <steven.price@arm.com>
+Subject: mm: add generic p?d_leaf() macros
 
-Since 5.5-rc1 the last user of this function is gone, so remove the
-functionality.
+Patch series "Generic page walk and ptdump", v17.
 
-See commit
-2ad9d7747c10 ("netfilter: conntrack: free extension area immediately")
-for details.
+Many architectures current have a debugfs file for dumping the kernel page
+tables.  Currently each architecture has to implement custom functions for
+this because the details of walking the page tables used by the kernel are
+different between architectures.
 
-Link: http://lkml.kernel.org/r/20191212223442.22141-1-fw@strlen.de
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+This series extends the capabilities of walk_page_range() so that it can
+deal with the page tables of the kernel (which have no VMAs and can
+contain larger huge pages than exist for user space).  A generic PTDUMP
+implementation is the implemented making use of the new functionality of
+walk_page_range() and finally arm64 and x86 are switch to using it,
+removing the custom table walkers.
+
+To enable a generic page table walker to walk the unusual mappings of the
+kernel we need to implement a set of functions which let us know when the
+walker has reached the leaf entry.  After a suggestion from Will Deacon
+I've chosen the name p?d_leaf() as this (hopefully) describes the purpose
+(and is a new name so has no historic baggage).  Some architectures have
+p?d_large macros but this is easily confused with "large pages".
+
+This series ends with a generic PTDUMP implemention for arm64 and x86.
+
+Mostly this is a clean up and there should be very little functional
+change.  The exceptions are:
+
+* arm64 PTDUMP debugfs now displays pages which aren't present (patch 22).
+
+* arm64 has the ability to efficiently process KASAN pages (which
+  previously only x86 implemented).  This means that the combination of
+  KASAN and DEBUG_WX is now useable.
+
+
+This patch (of 23):
+
+Exposing the pud/pgd levels of the page tables to walk_page_range() means
+we may come across the exotic large mappings that come with large areas of
+contiguous memory (such as the kernel's linear map).
+
+For architectures that don't provide all p?d_leaf() macros, provide
+generic do nothing default that are suitable where there cannot be leaf
+pages at that level.  Futher patches will add implementations for
+individual architectures.
+
+The name p?d_leaf() is chosen to minimize the confusion with existing uses
+of "large" pages and "huge" pages which do not necessary mean that the
+entry is a leaf (for example it may be a set of contiguous entries that
+only take 1 TLB slot).  For the purpose of walking the page tables we
+don't need to know how it will be represented in the TLB, but we do need
+to know for sure if it is a leaf of the tree.
+
+Link: http://lkml.kernel.org/r/20191218162402.45610-2-steven.price@arm.com
+Signed-off-by: Steven Price <steven.price@arm.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Liang, Kan" <kan.liang@linux.intel.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: James Hogan <jhogan@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h                    |    1 -
- mm/slab_common.c                        |   22 ----------------------
- scripts/coccinelle/free/devm_free.cocci |    4 ----
- 3 files changed, 27 deletions(-)
+ include/asm-generic/pgtable.h |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/include/linux/slab.h~mm-remove-__krealloc
-+++ a/include/linux/slab.h
-@@ -184,7 +184,6 @@ void memcg_deactivate_kmem_caches(struct
- /*
-  * Common kmalloc functions provided by all allocators
-  */
--void * __must_check __krealloc(const void *, size_t, gfp_t);
- void * __must_check krealloc(const void *, size_t, gfp_t);
- void kfree(const void *);
- void kzfree(const void *);
---- a/mm/slab_common.c~mm-remove-__krealloc
-+++ a/mm/slab_common.c
-@@ -1677,28 +1677,6 @@ static __always_inline void *__do_kreall
- }
+--- a/include/asm-generic/pgtable.h~mm-add-generic-pd_leaf-macros
++++ a/include/asm-generic/pgtable.h
+@@ -1238,4 +1238,24 @@ static inline bool arch_has_pfn_modify_c
+ #define mm_pmd_folded(mm)	__is_defined(__PAGETABLE_PMD_FOLDED)
+ #endif
  
- /**
-- * __krealloc - like krealloc() but don't free @p.
-- * @p: object to reallocate memory for.
-- * @new_size: how many bytes of memory are required.
-- * @flags: the type of memory to allocate.
-- *
-- * This function is like krealloc() except it never frees the originally
-- * allocated buffer. Use this if you don't want to free the buffer immediately
-- * like, for example, with RCU.
-- *
-- * Return: pointer to the allocated memory or %NULL in case of error
-- */
--void *__krealloc(const void *p, size_t new_size, gfp_t flags)
--{
--	if (unlikely(!new_size))
--		return ZERO_SIZE_PTR;
--
--	return __do_krealloc(p, new_size, flags);
--
--}
--EXPORT_SYMBOL(__krealloc);
++/*
++ * p?d_leaf() - true if this entry is a final mapping to a physical address.
++ * This differs from p?d_huge() by the fact that they are always available (if
++ * the architecture supports large pages at the appropriate level) even
++ * if CONFIG_HUGETLB_PAGE is not defined.
++ * Only meaningful when called on a valid entry.
++ */
++#ifndef pgd_leaf
++#define pgd_leaf(x)	0
++#endif
++#ifndef p4d_leaf
++#define p4d_leaf(x)	0
++#endif
++#ifndef pud_leaf
++#define pud_leaf(x)	0
++#endif
++#ifndef pmd_leaf
++#define pmd_leaf(x)	0
++#endif
++
+ #endif /* _ASM_GENERIC_PGTABLE_H */
+_
