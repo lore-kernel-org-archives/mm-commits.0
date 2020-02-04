@@ -1,43 +1,37 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 27/67] arm64: mm: add p?d_leaf() definitions
-Date: Mon, 03 Feb 2020 17:35:14 -0800
-Message-ID: <20200204013514.dEla2lpvP%akpm@linux-foundation.org>
+Subject: [patch 28/67] mips: mm: add p?d_leaf() definitions
+Date: Mon, 03 Feb 2020 17:35:19 -0800
+Message-ID: <20200204013519.tJe6ZSUNG%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34200 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34404 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726992AbgBDBfR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:35:17 -0500
+        id S1727072AbgBDBfW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:35:22 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 From: Steven Price <steven.price@arm.com>
-Subject: arm64: mm: add p?d_leaf() definitions
+Subject: mips: mm: add p?d_leaf() definitions
 
 walk_page_range() is going to be allowed to walk page tables other than
 those of user space.  For this it needs to know when it has reached a
-'leaf' entry in the page tables.  This information will be provided by the
+'leaf' entry in the page tables.  This information is provided by the
 p?d_leaf() functions/macros.
 
-For arm64, we already have p?d_sect() macros which we can reuse for
-p?d_leaf().
+If _PAGE_HUGE is defined we can simply look for it.  When not defined we
+can be confident that there are no leaf pages in existence and fall back
+on the generic implementation (added in a later patch) which returns 0.
 
-pud_sect() is defined as a dummy function when CONFIG_PGTABLE_LEVELS < 3
-or CONFIG_ARM64_64K_PAGES is defined.  However when the kernel is
-configured this way then architecturally it isn't allowed to have a large
-page at this level, and any code using these page walking macros is
-implicitly relying on the page size/number of levels being the same as the
-kernel.  So it is safe to reuse this for p?d_leaf() as it is an
-architectural restriction.
-
-Link: http://lkml.kernel.org/r/20191218162402.45610-5-steven.price@arm.com
+Link: http://lkml.kernel.org/r/20191218162402.45610-6-steven.price@arm.com
 Signed-off-by: Steven Price <steven.price@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Acked-by: Paul Burton <paul.burton@mips.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: James Hogan <jhogan@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -45,50 +39,45 @@ Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Hogan <jhogan@kernel.org>
 Cc: James Morse <james.morse@arm.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: "Liang, Kan" <kan.liang@linux.intel.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Burton <paul.burton@mips.com>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will@kernel.org>
 Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/mips/include/asm/pgtable.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-add-pd_leaf-definitions
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -441,6 +441,7 @@ extern pgprot_t phys_mem_access_prot(str
- 				 PMD_TYPE_TABLE)
- #define pmd_sect(pmd)		((pmd_val(pmd) & PMD_TYPE_MASK) == \
- 				 PMD_TYPE_SECT)
-+#define pmd_leaf(pmd)		pmd_sect(pmd)
+--- a/arch/mips/include/asm/pgtable.h~mips-mm-add-pd_leaf-definitions
++++ a/arch/mips/include/asm/pgtable.h
+@@ -639,6 +639,11 @@ static inline pmd_t pmdp_huge_get_and_cl
  
- #if defined(CONFIG_ARM64_64K_PAGES) || CONFIG_PGTABLE_LEVELS < 3
- static inline bool pud_sect(pud_t pud) { return false; }
-@@ -525,6 +526,7 @@ static inline void pte_unmap(pte_t *pte)
- #define pud_none(pud)		(!pud_val(pud))
- #define pud_bad(pud)		(!(pud_val(pud) & PUD_TABLE_BIT))
- #define pud_present(pud)	pte_present(pud_pte(pud))
-+#define pud_leaf(pud)		pud_sect(pud)
- #define pud_valid(pud)		pte_valid(pud_pte(pud))
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- static inline void set_pud(pud_t *pudp, pud_t pud)
++#ifdef _PAGE_HUGE
++#define pmd_leaf(pmd)	((pmd_val(pmd) & _PAGE_HUGE) != 0)
++#define pud_leaf(pud)	((pud_val(pud) & _PAGE_HUGE) != 0)
++#endif
++
+ #define gup_fast_permitted(start, end)	(!cpu_has_dc_aliases)
+ 
+ #include <asm-generic/pgtable.h>
 _
