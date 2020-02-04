@@ -1,205 +1,257 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-mmu=5Fgather-invalidate-tlb-correctly-on-batch-allocation?=
- =?US-ASCII?Q?-failure-and-flush.patch?= removed from -mm tree
-Date: Tue, 04 Feb 2020 10:42:03 -0800
-Message-ID: <20200204184203.KQ7gmu9BJ%akpm@linux-foundation.org>
+ mm-ptdump-reduce-level-numbers-by-1-in-note_page.patch removed from -mm
+ tree
+Date: Tue, 04 Feb 2020 10:41:54 -0800
+Message-ID: <20200204184154.V9U7cbjh8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58568 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58366 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727451AbgBDSmE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:42:04 -0500
+        id S1727542AbgBDSl5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 Feb 2020 13:41:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, peterz@infradead.org, stable@vger.kernel.org
+To: alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: mm/mmu_gather: invalidate TLB correctly on batch allocation failure and flush
+     Subject: mm: ptdump: reduce level numbers by 1 in note_page()
 has been removed from the -mm tree.  Its filename was
-     mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush.patch
+     mm-ptdump-reduce-level-numbers-by-1-in-note_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: mm/mmu_gather: invalidate TLB correctly on batch allocation failure and flush
+From: Steven Price <steven.price@arm.com>
+Subject: mm: ptdump: reduce level numbers by 1 in note_page()
 
-Architectures for which we have hardware walkers of Linux page table
-should flush TLB on mmu gather batch allocation failures and batch flush. 
-Some architectures like POWER supports multiple translation modes (hash
-and radix) and in the case of POWER only radix translation mode needs the
-above TLBI.  This is because for hash translation mode kernel wants to
-avoid this extra flush since there are no hardware walkers of linux page
-table.  With radix translation, the hardware also walks linux page table
-and with that, kernel needs to make sure to TLB invalidate page walk cache
-before page table pages are freed.
+Rather than having to increment the 'depth' number by 1 in ptdump_hole(),
+let's change the meaning of 'level' in note_page() since that makes the
+code simplier.
 
-More details in commit d86564a2f085 ("mm/tlb, x86/mm: Support invalidating
-TLB caches for RCU_TABLE_FREE")
+Note that for x86, the level numbers were previously increased by 1 in
+commit 45dcd2091363 ("x86/mm/dump_pagetables: Fix printout of p4d level")
+and the comment "Bit 7 has a different meaning" was not updated, so this
+change also makes the code match the comment again.
 
-The changes to sparc are to make sure we keep the old behavior since we
-are now removing HAVE_RCU_TABLE_NO_INVALIDATE.  The default value for
-tlb_needs_table_invalidate is to always force an invalidate and sparc can
-avoid the table invalidate.  Hence we define tlb_needs_table_invalidate to
-false for sparc architecture.
-
-Link: http://lkml.kernel.org/r/20200116064531.483522-3-aneesh.kumar@linux.ibm.com
-Fixes: a46cc7a90fd8 ("powerpc/mm/radix: Improve TLB/PWC flushes")
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>	[powerpc]
-Cc: <stable@vger.kernel.org>	[4.14+]
+Link: http://lkml.kernel.org/r/20191218162402.45610-24-steven.price@arm.com
+Signed-off-by: Steven Price <steven.price@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Hogan <jhogan@kernel.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: "Liang, Kan" <kan.liang@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                    |    3 ---
- arch/powerpc/Kconfig            |    1 -
- arch/powerpc/include/asm/tlb.h  |   11 +++++++++++
- arch/sparc/Kconfig              |    1 -
- arch/sparc/include/asm/tlb_64.h |    9 +++++++++
- include/asm-generic/tlb.h       |   22 +++++++++++++++-------
- mm/mmu_gather.c                 |   16 ++++++++--------
- 7 files changed, 43 insertions(+), 20 deletions(-)
+ arch/arm64/mm/dump.c          |    6 +++---
+ arch/x86/mm/dump_pagetables.c |   19 ++++++++++---------
+ include/linux/ptdump.h        |    1 +
+ mm/ptdump.c                   |   16 ++++++++--------
+ 4 files changed, 22 insertions(+), 20 deletions(-)
 
---- a/arch/Kconfig~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
-+++ a/arch/Kconfig
-@@ -396,9 +396,6 @@ config HAVE_ARCH_JUMP_LABEL_RELATIVE
- config HAVE_RCU_TABLE_FREE
- 	bool
+--- a/arch/arm64/mm/dump.c~mm-ptdump-reduce-level-numbers-by-1-in-note_page
++++ a/arch/arm64/mm/dump.c
+@@ -176,8 +176,7 @@ struct pg_level {
+ };
  
--config HAVE_RCU_TABLE_NO_INVALIDATE
--	bool
--
- config HAVE_MMU_GATHER_PAGE_SIZE
- 	bool
+ static struct pg_level pg_level[] = {
+-	{
+-	}, { /* pgd */
++	{ /* pgd */
+ 		.name	= "PGD",
+ 		.bits	= pte_bits,
+ 		.num	= ARRAY_SIZE(pte_bits),
+@@ -257,7 +256,7 @@ static void note_page(struct ptdump_stat
+ 	if (level >= 0)
+ 		prot = val & pg_level[level].mask;
  
---- a/arch/powerpc/include/asm/tlb.h~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
-+++ a/arch/powerpc/include/asm/tlb.h
-@@ -26,6 +26,17 @@
+-	if (!st->level) {
++	if (st->level == -1) {
+ 		st->level = level;
+ 		st->current_prot = prot;
+ 		st->start_address = addr;
+@@ -351,6 +350,7 @@ void ptdump_check_wx(void)
+ 			{ 0, NULL},
+ 			{ -1, NULL},
+ 		},
++		.level = -1,
+ 		.check_wx = true,
+ 		.ptdump = {
+ 			.note_page = note_page,
+--- a/arch/x86/mm/dump_pagetables.c~mm-ptdump-reduce-level-numbers-by-1-in-note_page
++++ a/arch/x86/mm/dump_pagetables.c
+@@ -180,7 +180,7 @@ static struct addr_marker address_marker
+ static void printk_prot(struct seq_file *m, pgprotval_t pr, int level, bool dmsg)
+ {
+ 	static const char * const level_name[] =
+-		{ "cr3", "pgd", "p4d", "pud", "pmd", "pte" };
++		{ "pgd", "p4d", "pud", "pmd", "pte" };
  
- #define tlb_flush tlb_flush
- extern void tlb_flush(struct mmu_gather *tlb);
-+/*
-+ * book3s:
-+ * Hash does not use the linux page-tables, so we can avoid
-+ * the TLB invalidate for page-table freeing, Radix otoh does use the
-+ * page-tables and needs the TLBI.
-+ *
-+ * nohash:
-+ * We still do TLB invalidate in the __pte_free_tlb routine before we
-+ * add the page table pages to mmu gather table batch.
-+ */
-+#define tlb_needs_table_invalidate()	radix_enabled()
+ 	if (!(pr & _PAGE_PRESENT)) {
+ 		/* Not present */
+@@ -204,12 +204,12 @@ static void printk_prot(struct seq_file
+ 			pt_dump_cont_printf(m, dmsg, "    ");
  
- /* Get the generic bits... */
- #include <asm-generic/tlb.h>
---- a/arch/powerpc/Kconfig~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
-+++ a/arch/powerpc/Kconfig
-@@ -223,7 +223,6 @@ config PPC
- 	select HAVE_PERF_REGS
- 	select HAVE_PERF_USER_STACK_DUMP
- 	select HAVE_RCU_TABLE_FREE
--	select HAVE_RCU_TABLE_NO_INVALIDATE	if HAVE_RCU_TABLE_FREE
- 	select HAVE_MMU_GATHER_PAGE_SIZE
- 	select HAVE_REGS_AND_STACK_ACCESS_API
- 	select HAVE_RELIABLE_STACKTRACE		if PPC_BOOK3S_64 && CPU_LITTLE_ENDIAN
---- a/arch/sparc/include/asm/tlb_64.h~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
-+++ a/arch/sparc/include/asm/tlb_64.h
-@@ -28,6 +28,15 @@ void flush_tlb_pending(void);
- #define __tlb_remove_tlb_entry(tlb, ptep, address) do { } while (0)
- #define tlb_flush(tlb)	flush_tlb_pending()
+ 		/* Bit 7 has a different meaning on level 3 vs 4 */
+-		if (level <= 4 && pr & _PAGE_PSE)
++		if (level <= 3 && pr & _PAGE_PSE)
+ 			pt_dump_cont_printf(m, dmsg, "PSE ");
+ 		else
+ 			pt_dump_cont_printf(m, dmsg, "    ");
+-		if ((level == 5 && pr & _PAGE_PAT) ||
+-		    ((level == 4 || level == 3) && pr & _PAGE_PAT_LARGE))
++		if ((level == 4 && pr & _PAGE_PAT) ||
++		    ((level == 3 || level == 2) && pr & _PAGE_PAT_LARGE))
+ 			pt_dump_cont_printf(m, dmsg, "PAT ");
+ 		else
+ 			pt_dump_cont_printf(m, dmsg, "    ");
+@@ -271,15 +271,15 @@ static void note_page(struct ptdump_stat
  
-+/*
-+ * SPARC64's hardware TLB fill does not use the Linux page-tables
-+ * and therefore we don't need a TLBI when freeing page-table pages.
-+ */
-+
-+#ifdef CONFIG_HAVE_RCU_TABLE_FREE
-+#define tlb_needs_table_invalidate()	(false)
-+#endif
-+
- #include <asm-generic/tlb.h>
+ 	new_prot = val & PTE_FLAGS_MASK;
  
- #endif /* _SPARC64_TLB_H */
---- a/arch/sparc/Kconfig~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
-+++ a/arch/sparc/Kconfig
-@@ -65,7 +65,6 @@ config SPARC64
- 	select HAVE_KRETPROBES
- 	select HAVE_KPROBES
- 	select HAVE_RCU_TABLE_FREE if SMP
--	select HAVE_RCU_TABLE_NO_INVALIDATE if HAVE_RCU_TABLE_FREE
- 	select HAVE_MEMBLOCK_NODE_MAP
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
- 	select HAVE_DYNAMIC_FTRACE
---- a/include/asm-generic/tlb.h~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
-+++ a/include/asm-generic/tlb.h
-@@ -137,13 +137,6 @@
-  *  When used, an architecture is expected to provide __tlb_remove_table()
-  *  which does the actual freeing of these pages.
-  *
-- *  HAVE_RCU_TABLE_NO_INVALIDATE
-- *
-- *  This makes HAVE_RCU_TABLE_FREE avoid calling tlb_flush_mmu_tlbonly() before
-- *  freeing the page-table pages. This can be avoided if you use
-- *  HAVE_RCU_TABLE_FREE and your architecture does _NOT_ use the Linux
-- *  page-tables natively.
-- *
-  *  MMU_GATHER_NO_RANGE
-  *
-  *  Use this if your architecture lacks an efficient flush_tlb_range().
-@@ -189,8 +182,23 @@ struct mmu_table_batch {
+-	if (level > 1) {
+-		new_eff = effective_prot(st->prot_levels[level - 2],
++	if (level > 0) {
++		new_eff = effective_prot(st->prot_levels[level - 1],
+ 					 new_prot);
+ 	} else {
+ 		new_eff = new_prot;
+ 	}
  
- extern void tlb_remove_table(struct mmu_gather *tlb, void *table);
+-	if (level > 0)
+-		st->prot_levels[level - 1] = new_eff;
++	if (level >= 0)
++		st->prot_levels[level] = new_eff;
  
-+/*
-+ * This allows an architecture that does not use the linux page-tables for
-+ * hardware to skip the TLBI when freeing page tables.
-+ */
-+#ifndef tlb_needs_table_invalidate
-+#define tlb_needs_table_invalidate() (true)
+ 	/*
+ 	 * If we have a "break" in the series, we need to flush the state that
+@@ -289,7 +289,7 @@ static void note_page(struct ptdump_stat
+ 	cur = st->current_prot;
+ 	eff = st->effective_prot;
+ 
+-	if (!st->level) {
++	if (st->level == -1) {
+ 		/* First entry */
+ 		st->current_prot = new_prot;
+ 		st->effective_prot = new_eff;
+@@ -380,6 +380,7 @@ static void ptdump_walk_pgd_level_core(s
+ 			.note_page	= note_page,
+ 			.range		= ptdump_ranges
+ 		},
++		.level = -1,
+ 		.to_dmesg	= dmesg,
+ 		.check_wx	= checkwx,
+ 		.seq		= m
+--- a/include/linux/ptdump.h~mm-ptdump-reduce-level-numbers-by-1-in-note_page
++++ a/include/linux/ptdump.h
+@@ -11,6 +11,7 @@ struct ptdump_range {
+ };
+ 
+ struct ptdump_state {
++	/* level is 0:PGD to 4:PTE, or -1 if unknown */
+ 	void (*note_page)(struct ptdump_state *st, unsigned long addr,
+ 			  int level, unsigned long val);
+ 	const struct ptdump_range *range;
+--- a/mm/ptdump.c~mm-ptdump-reduce-level-numbers-by-1-in-note_page
++++ a/mm/ptdump.c
+@@ -17,7 +17,7 @@ static inline int note_kasan_page_table(
+ {
+ 	struct ptdump_state *st = walk->private;
+ 
+-	st->note_page(st, addr, 5, pte_val(kasan_early_shadow_pte[0]));
++	st->note_page(st, addr, 4, pte_val(kasan_early_shadow_pte[0]));
+ 
+ 	walk->action = ACTION_CONTINUE;
+ 
+@@ -37,7 +37,7 @@ static int ptdump_pgd_entry(pgd_t *pgd,
  #endif
  
-+#else
-+
-+#ifdef tlb_needs_table_invalidate
-+#error tlb_needs_table_invalidate() requires HAVE_RCU_TABLE_FREE
-+#endif
-+
-+#endif /* CONFIG_HAVE_RCU_TABLE_FREE */
-+
-+
- #ifndef CONFIG_HAVE_MMU_GATHER_NO_GATHER
- /*
-  * If we can't allocate a page to make a big batch of page pointers
---- a/mm/mmu_gather.c~mm-mmu_gather-invalidate-tlb-correctly-on-batch-allocation-failure-and-flush
-+++ a/mm/mmu_gather.c
-@@ -102,14 +102,14 @@ bool __tlb_remove_page_size(struct mmu_g
-  */
- static inline void tlb_table_invalidate(struct mmu_gather *tlb)
- {
--#ifndef CONFIG_HAVE_RCU_TABLE_NO_INVALIDATE
--	/*
--	 * Invalidate page-table caches used by hardware walkers. Then we still
--	 * need to RCU-sched wait while freeing the pages because software
--	 * walkers can still be in-flight.
--	 */
--	tlb_flush_mmu_tlbonly(tlb);
--#endif
-+	if (tlb_needs_table_invalidate()) {
-+		/*
-+		 * Invalidate page-table caches used by hardware walkers. Then
-+		 * we still need to RCU-sched wait while freeing the pages
-+		 * because software walkers can still be in-flight.
-+		 */
-+		tlb_flush_mmu_tlbonly(tlb);
-+	}
- }
+ 	if (pgd_leaf(val))
+-		st->note_page(st, addr, 1, pgd_val(val));
++		st->note_page(st, addr, 0, pgd_val(val));
  
- static void tlb_remove_table_smp_sync(void *arg)
+ 	return 0;
+ }
+@@ -54,7 +54,7 @@ static int ptdump_p4d_entry(p4d_t *p4d,
+ #endif
+ 
+ 	if (p4d_leaf(val))
+-		st->note_page(st, addr, 2, p4d_val(val));
++		st->note_page(st, addr, 1, p4d_val(val));
+ 
+ 	return 0;
+ }
+@@ -71,7 +71,7 @@ static int ptdump_pud_entry(pud_t *pud,
+ #endif
+ 
+ 	if (pud_leaf(val))
+-		st->note_page(st, addr, 3, pud_val(val));
++		st->note_page(st, addr, 2, pud_val(val));
+ 
+ 	return 0;
+ }
+@@ -88,7 +88,7 @@ static int ptdump_pmd_entry(pmd_t *pmd,
+ #endif
+ 
+ 	if (pmd_leaf(val))
+-		st->note_page(st, addr, 4, pmd_val(val));
++		st->note_page(st, addr, 3, pmd_val(val));
+ 
+ 	return 0;
+ }
+@@ -98,7 +98,7 @@ static int ptdump_pte_entry(pte_t *pte,
+ {
+ 	struct ptdump_state *st = walk->private;
+ 
+-	st->note_page(st, addr, 5, pte_val(READ_ONCE(*pte)));
++	st->note_page(st, addr, 4, pte_val(READ_ONCE(*pte)));
+ 
+ 	return 0;
+ }
+@@ -108,7 +108,7 @@ static int ptdump_hole(unsigned long add
+ {
+ 	struct ptdump_state *st = walk->private;
+ 
+-	st->note_page(st, addr, depth + 1, 0);
++	st->note_page(st, addr, depth, 0);
+ 
+ 	return 0;
+ }
+@@ -135,5 +135,5 @@ void ptdump_walk_pgd(struct ptdump_state
+ 	up_read(&mm->mmap_sem);
+ 
+ 	/* Flush out the last page */
+-	st->note_page(st, 0, 0, 0);
++	st->note_page(st, 0, -1, 0);
+ }
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from steven.price@arm.com are
