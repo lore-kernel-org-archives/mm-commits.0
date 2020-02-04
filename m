@@ -1,40 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-pagewalk-dont-lock-ptes-for-walk_page_range_novma.patch removed from -mm
- tree
-Date: Tue, 04 Feb 2020 10:41:23 -0800
-Message-ID: <20200204184123.dugRRPQVy%akpm@linux-foundation.org>
+ x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct.patch removed
+ from -mm tree
+Date: Tue, 04 Feb 2020 10:41:36 -0800
+Message-ID: <20200204184136.ckEyXbmeW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57510 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57852 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727480AbgBDSlZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:41:25 -0500
+        id S1727480AbgBDSlj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 Feb 2020 13:41:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: mm: pagewalk: don't lock PTEs for walk_page_range_novma()
+     Subject: x86: mm+efi: convert ptdump_walk_pgd_level() to take a mm_struct
 has been removed from the -mm tree.  Its filename was
-     mm-pagewalk-dont-lock-ptes-for-walk_page_range_novma.patch
+     x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Steven Price <steven.price@arm.com>
-Subject: mm: pagewalk: don't lock PTEs for walk_page_range_novma()
+Subject: x86: mm+efi: convert ptdump_walk_pgd_level() to take a mm_struct
 
-walk_page_range_novma() can be used to walk page tables or the kernel or
-for firmware.  These page tables may contain entries that are not backed
-by a struct page and so it isn't (in general) possible to take the PTE
-lock for the pte_entry() callback.  So update walk_pte_range() to only
-take the lock when no_vma==false by splitting out the inner loop to a
-separate function and add a comment explaining the difference to
-walk_page_range_novma().
+To enable x86 to use the generic walk_page_range() function, the callers
+of ptdump_walk_pgd_level() need to pass an mm_struct rather than the raw
+pgd_t pointer.  Luckily since commit 7e904a91bf60 ("efi: Use efi_mm in x86
+as well as ARM") we now have an mm_struct for EFI on x86.
 
-Link: http://lkml.kernel.org/r/20191218162402.45610-14-steven.price@arm.com
+Link: http://lkml.kernel.org/r/20191218162402.45610-18-steven.price@arm.com
 Signed-off-by: Steven Price <steven.price@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -70,71 +67,62 @@ Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |   35 ++++++++++++++++++++++++++++-------
- 1 file changed, 28 insertions(+), 7 deletions(-)
+ arch/x86/include/asm/pgtable.h |    2 +-
+ arch/x86/mm/dump_pagetables.c  |    4 ++--
+ arch/x86/platform/efi/efi_32.c |    2 +-
+ arch/x86/platform/efi/efi_64.c |    4 ++--
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/pagewalk.c~mm-pagewalk-dont-lock-ptes-for-walk_page_range_novma
-+++ a/mm/pagewalk.c
-@@ -4,15 +4,12 @@
- #include <linux/sched.h>
- #include <linux/hugetlb.h>
+--- a/arch/x86/include/asm/pgtable.h~x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct
++++ a/arch/x86/include/asm/pgtable.h
+@@ -29,7 +29,7 @@
+ extern pgd_t early_top_pgt[PTRS_PER_PGD];
+ int __init __early_make_pgtable(unsigned long address, pmdval_t pmd);
  
--static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
--			  struct mm_walk *walk)
-+static int walk_pte_range_inner(pte_t *pte, unsigned long addr,
-+				unsigned long end, struct mm_walk *walk)
+-void ptdump_walk_pgd_level(struct seq_file *m, pgd_t *pgd);
++void ptdump_walk_pgd_level(struct seq_file *m, struct mm_struct *mm);
+ void ptdump_walk_pgd_level_debugfs(struct seq_file *m, pgd_t *pgd, bool user);
+ void ptdump_walk_pgd_level_checkwx(void);
+ void ptdump_walk_user_pgd_level_checkwx(void);
+--- a/arch/x86/mm/dump_pagetables.c~x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct
++++ a/arch/x86/mm/dump_pagetables.c
+@@ -567,9 +567,9 @@ static void ptdump_walk_pgd_level_core(s
+ 		pr_info("x86/mm: Checked W+X mappings: passed, no W+X pages found.\n");
+ }
+ 
+-void ptdump_walk_pgd_level(struct seq_file *m, pgd_t *pgd)
++void ptdump_walk_pgd_level(struct seq_file *m, struct mm_struct *mm)
  {
--	pte_t *pte;
--	int err = 0;
- 	const struct mm_walk_ops *ops = walk->ops;
--	spinlock_t *ptl;
-+	int err = 0;
- 
--	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
- 	for (;;) {
- 		err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
- 		if (err)
-@@ -22,8 +19,26 @@ static int walk_pte_range(pmd_t *pmd, un
- 			break;
- 		pte++;
- 	}
-+	return err;
-+}
-+
-+static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
-+			  struct mm_walk *walk)
-+{
-+	pte_t *pte;
-+	int err = 0;
-+	spinlock_t *ptl;
-+
-+	if (walk->no_vma) {
-+		pte = pte_offset_map(pmd, addr);
-+		err = walk_pte_range_inner(pte, addr, end, walk);
-+		pte_unmap(pte);
-+	} else {
-+		pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+		err = walk_pte_range_inner(pte, addr, end, walk);
-+		pte_unmap_unlock(pte, ptl);
-+	}
- 
--	pte_unmap_unlock(pte, ptl);
- 	return err;
+-	ptdump_walk_pgd_level_core(m, pgd, false, true);
++	ptdump_walk_pgd_level_core(m, mm->pgd, false, true);
  }
  
-@@ -394,6 +409,12 @@ int walk_page_range(struct mm_struct *mm
- 	return err;
+ void ptdump_walk_pgd_level_debugfs(struct seq_file *m, pgd_t *pgd, bool user)
+--- a/arch/x86/platform/efi/efi_32.c~x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct
++++ a/arch/x86/platform/efi/efi_32.c
+@@ -49,7 +49,7 @@ void efi_sync_low_kernel_mappings(void)
+ void __init efi_dump_pagetable(void)
+ {
+ #ifdef CONFIG_EFI_PGT_DUMP
+-	ptdump_walk_pgd_level(NULL, swapper_pg_dir);
++	ptdump_walk_pgd_level(NULL, &init_mm);
+ #endif
  }
  
-+/*
-+ * Similar to walk_page_range() but can walk any page tables even if they are
-+ * not backed by VMAs. Because 'unusual' entries may be walked this function
-+ * will also not lock the PTEs for the pte_entry() callback. This is useful for
-+ * walking the kernel pages tables or page tables for firmware.
-+ */
- int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
- 			  unsigned long end, const struct mm_walk_ops *ops,
- 			  void *private)
+--- a/arch/x86/platform/efi/efi_64.c~x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct
++++ a/arch/x86/platform/efi/efi_64.c
+@@ -471,9 +471,9 @@ void __init efi_dump_pagetable(void)
+ {
+ #ifdef CONFIG_EFI_PGT_DUMP
+ 	if (efi_have_uv1_memmap())
+-		ptdump_walk_pgd_level(NULL, swapper_pg_dir);
++		ptdump_walk_pgd_level(NULL, &init_mm);
+ 	else
+-		ptdump_walk_pgd_level(NULL, efi_mm.pgd);
++		ptdump_walk_pgd_level(NULL, &efi_mm);
+ #endif
+ }
+ 
 _
 
 Patches currently in -mm which might be from steven.price@arm.com are
