@@ -1,39 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mm-add-pd_leaf-definitions.patch removed
- from -mm tree
-Date: Tue, 04 Feb 2020 10:41:16 -0800
-Message-ID: <20200204184116.UZ1ohYEE7%akpm@linux-foundation.org>
+Subject: [merged] mm-pagewalk-allow-walking-without-vma.patch
+ removed from -mm tree
+Date: Tue, 04 Feb 2020 10:41:21 -0800
+Message-ID: <20200204184121.stl8dapKm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57288 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57428 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727480AbgBDSlS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:41:18 -0500
+        id S1727480AbgBDSlX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 Feb 2020 13:41:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: x86: mm: add p?d_leaf() definitions
+     Subject: mm: pagewalk: allow walking without vma
 has been removed from the -mm tree.  Its filename was
-     x86-mm-add-pd_leaf-definitions.patch
+     mm-pagewalk-allow-walking-without-vma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Steven Price <steven.price@arm.com>
-Subject: x86: mm: add p?d_leaf() definitions
+Subject: mm: pagewalk: allow walking without vma
 
-walk_page_range() is going to be allowed to walk page tables other than
-those of user space.  For this it needs to know when it has reached a
-'leaf' entry in the page tables.  This information is provided by the
-p?d_leaf() functions/macros.
+Since 48684a65b4e3: "mm: pagewalk: fix misbehavior of walk_page_range for
+vma(VM_PFNMAP)", page_table_walk() will report any kernel area as a hole,
+because it lacks a vma.
 
-For x86 we already have p?d_large() functions, so simply add macros to
-provide the generic p?d_leaf() names for the generic code.
+This means each arch has re-implemented page table walking when needed,
+for example in the per-arch ptdump walker.
 
-Link: http://lkml.kernel.org/r/20191218162402.45610-11-steven.price@arm.com
+Remove the requirement to have a vma in the generic code and add a new
+function walk_page_range_novma() which ignores the VMAs and simply walks
+the page tables.
+
+Link: http://lkml.kernel.org/r/20191218162402.45610-13-steven.price@arm.com
 Signed-off-by: Steven Price <steven.price@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -69,51 +72,120 @@ Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/pagewalk.h |    5 ++++
+ mm/pagewalk.c            |   40 +++++++++++++++++++++++++++++--------
+ 2 files changed, 37 insertions(+), 8 deletions(-)
 
---- a/arch/x86/include/asm/pgtable.h~x86-mm-add-pd_leaf-definitions
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -239,6 +239,7 @@ static inline unsigned long pgd_pfn(pgd_
- 	return (pgd_val(pgd) & PTE_PFN_MASK) >> PAGE_SHIFT;
+--- a/include/linux/pagewalk.h~mm-pagewalk-allow-walking-without-vma
++++ a/include/linux/pagewalk.h
+@@ -73,6 +73,7 @@ enum page_walk_action {
+  * @mm:		mm_struct representing the target process of page table walk
+  * @vma:	vma currently walked (NULL if walking outside vmas)
+  * @action:	next action to perform (see enum page_walk_action)
++ * @no_vma:	walk ignoring vmas (vma will always be NULL)
+  * @private:	private data for callbacks' usage
+  *
+  * (see the comment on walk_page_range() for more details)
+@@ -82,12 +83,16 @@ struct mm_walk {
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+ 	enum page_walk_action action;
++	bool no_vma;
+ 	void *private;
+ };
+ 
+ int walk_page_range(struct mm_struct *mm, unsigned long start,
+ 		unsigned long end, const struct mm_walk_ops *ops,
+ 		void *private);
++int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
++			  unsigned long end, const struct mm_walk_ops *ops,
++			  void *private);
+ int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
+ 		void *private);
+ int walk_page_mapping(struct address_space *mapping, pgoff_t first_index,
+--- a/mm/pagewalk.c~mm-pagewalk-allow-walking-without-vma
++++ a/mm/pagewalk.c
+@@ -39,7 +39,7 @@ static int walk_pmd_range(pud_t *pud, un
+ 	do {
+ again:
+ 		next = pmd_addr_end(addr, end);
+-		if (pmd_none(*pmd) || !walk->vma) {
++		if (pmd_none(*pmd) || (!walk->vma && !walk->no_vma)) {
+ 			if (ops->pte_hole)
+ 				err = ops->pte_hole(addr, next, walk);
+ 			if (err)
+@@ -65,13 +65,16 @@ again:
+ 		 * Check this here so we only break down trans_huge
+ 		 * pages when we _need_ to
+ 		 */
+-		if (walk->action == ACTION_CONTINUE ||
++		if ((!walk->vma && (pmd_leaf(*pmd) || !pmd_present(*pmd))) ||
++		    walk->action == ACTION_CONTINUE ||
+ 		    !(ops->pte_entry))
+ 			continue;
+ 
+-		split_huge_pmd(walk->vma, pmd, addr);
+-		if (pmd_trans_unstable(pmd))
+-			goto again;
++		if (walk->vma) {
++			split_huge_pmd(walk->vma, pmd, addr);
++			if (pmd_trans_unstable(pmd))
++				goto again;
++		}
+ 
+ 		err = walk_pte_range(pmd, addr, next, walk);
+ 		if (err)
+@@ -93,7 +96,7 @@ static int walk_pud_range(p4d_t *p4d, un
+ 	do {
+  again:
+ 		next = pud_addr_end(addr, end);
+-		if (pud_none(*pud) || !walk->vma) {
++		if (pud_none(*pud) || (!walk->vma && !walk->no_vma)) {
+ 			if (ops->pte_hole)
+ 				err = ops->pte_hole(addr, next, walk);
+ 			if (err)
+@@ -111,11 +114,13 @@ static int walk_pud_range(p4d_t *p4d, un
+ 		if (walk->action == ACTION_AGAIN)
+ 			goto again;
+ 
+-		if (walk->action == ACTION_CONTINUE ||
++		if ((!walk->vma && (pud_leaf(*pud) || !pud_present(*pud))) ||
++		    walk->action == ACTION_CONTINUE ||
+ 		    !(ops->pmd_entry || ops->pte_entry))
+ 			continue;
+ 
+-		split_huge_pud(walk->vma, pud, addr);
++		if (walk->vma)
++			split_huge_pud(walk->vma, pud, addr);
+ 		if (pud_none(*pud))
+ 			goto again;
+ 
+@@ -389,6 +394,25 @@ int walk_page_range(struct mm_struct *mm
+ 	return err;
  }
  
-+#define p4d_leaf	p4d_large
- static inline int p4d_large(p4d_t p4d)
++int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
++			  unsigned long end, const struct mm_walk_ops *ops,
++			  void *private)
++{
++	struct mm_walk walk = {
++		.ops		= ops,
++		.mm		= mm,
++		.private	= private,
++		.no_vma		= true
++	};
++
++	if (start >= end || !walk.mm)
++		return -EINVAL;
++
++	lockdep_assert_held(&walk.mm->mmap_sem);
++
++	return __walk_page_range(start, end, &walk);
++}
++
+ int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
+ 		void *private)
  {
- 	/* No 512 GiB pages yet */
-@@ -247,6 +248,7 @@ static inline int p4d_large(p4d_t p4d)
- 
- #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
- 
-+#define pmd_leaf	pmd_large
- static inline int pmd_large(pmd_t pte)
- {
- 	return pmd_flags(pte) & _PAGE_PSE;
-@@ -874,6 +876,7 @@ static inline pmd_t *pmd_offset(pud_t *p
- 	return (pmd_t *)pud_page_vaddr(*pud) + pmd_index(address);
- }
- 
-+#define pud_leaf	pud_large
- static inline int pud_large(pud_t pud)
- {
- 	return (pud_val(pud) & (_PAGE_PSE | _PAGE_PRESENT)) ==
-@@ -885,6 +888,7 @@ static inline int pud_bad(pud_t pud)
- 	return (pud_flags(pud) & ~(_KERNPG_TABLE | _PAGE_USER)) != 0;
- }
- #else
-+#define pud_leaf	pud_large
- static inline int pud_large(pud_t pud)
- {
- 	return 0;
-@@ -1233,6 +1237,7 @@ static inline bool pgdp_maps_userspace(v
- 	return (((ptr & ~PAGE_MASK) / sizeof(pgd_t)) < PGD_KERNEL_START);
- }
- 
-+#define pgd_leaf	pgd_large
- static inline int pgd_large(pgd_t pgd) { return 0; }
- 
- #ifdef CONFIG_PAGE_TABLE_ISOLATION
 _
 
 Patches currently in -mm which might be from steven.price@arm.com are
