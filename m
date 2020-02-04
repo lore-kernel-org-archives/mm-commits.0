@@ -1,112 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-factor-out-next_present_section_nr.patch
- removed from -mm tree
-Date: Tue, 04 Feb 2020 10:40:06 -0800
-Message-ID: <20200204184006.ZHD6sG19x%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memmap_init-update-variable-name-in-memmap_init_zone.patch removed from
+ -mm tree
+Date: Tue, 04 Feb 2020 10:40:09 -0800
+Message-ID: <20200204184009.qOPgkvjgU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56012 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56050 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727308AbgBDSkH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:40:07 -0500
+        id S1727308AbgBDSkL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 Feb 2020 13:40:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, dan.j.williams@intel.com, david@redhat.com, kirill.shutemov@linux.intel.com, kirill@shutemov.name, mgorman@suse.de, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pasha.tatashin@oracle.com, vbabka@suse.cz, zhi.jin@intel.com
+To: aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com, david@redhat.com, gregkh@linuxfoundation.org, logang@deltatee.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pagupta@redhat.com, pasha.tatashin@soleen.com, willy@infradead.org
 
 
 The patch titled
-     Subject: mm: factor out next_present_section_nr()
+     Subject: mm/memmap_init: update variable name in memmap_init_zone
 has been removed from the -mm tree.  Its filename was
-     mm-factor-out-next_present_section_nr.patch
+     mm-memmap_init-update-variable-name-in-memmap_init_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: factor out next_present_section_nr()
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/memmap_init: update variable name in memmap_init_zone
 
-Let's move it to the header and use the shorter variant from
-mm/page_alloc.c (the original one will also check
-"__highest_present_section_nr + 1", which is not necessary).  While at it,
-make the section_nr in next_pfn() const.
+Patch series "mm/memory_hotplug: Shrink zones before removing memory", v6.
 
-In next_pfn(), we now return section_nr_to_pfn(-1) instead of -1 once we
-exceed __highest_present_section_nr, which doesn't make a difference i= n
-the caller as it is big enough (>= all sane end_pfn).
 
-Link: http://lkml.kernel.org/r/20200113144035.10848-3-david@redhat.com
+This series fixes the access of uninitialized memmaps when shrinking
+zones/nodes and when removing memory.  Also, it contains all fixes for
+crashes that can be triggered when removing certain namespace using
+memunmap_pages() - ZONE_DEVICE, reported by Aneesh.
+
+We stop trying to shrink ZONE_DEVICE, as it's buggy, fixing it would be
+more involved (we don't have SECTION_IS_ONLINE as an indicator), and
+shrinking is only of limited use (set_zone_contiguous() cannot detect the
+ZONE_DEVICE as contiguous).
+
+We continue shrinking !ZONE_DEVICE zones, however, I reduced the amount of
+code to a minimum.  Shrinking is especially necessary to keep
+zone->contiguous set where possible, especially, on memory unplug of DIMMs
+at zone boundaries.
+
+--------------------------------------------------------------------------
+
+Zones are now properly shrunk when offlining memory blocks or when
+onlining failed.  This allows to properly shrink zones on memory unplug
+even if the separate memory blocks of a DIMM were onlined to different
+zones or re-onlined to a different zone after offlining.
+
+Example:
+
+:/# cat /proc/zoneinfo
+Node 1, zone  Movable
+        spanned  0
+        present  0
+        managed  0
+:/# echo "online_movable" > /sys/devices/system/memory/memory41/state
+:/# echo "online_movable" > /sys/devices/system/memory/memory43/state
+:/# cat /proc/zoneinfo
+Node 1, zone  Movable
+        spanned  98304
+        present  65536
+        managed  65536
+:/# echo 0 > /sys/devices/system/memory/memory43/online
+:/# cat /proc/zoneinfo
+Node 1, zone  Movable
+        spanned  32768
+        present  32768
+        managed  32768
+:/# echo 0 > /sys/devices/system/memory/memory41/online
+:/# cat /proc/zoneinfo
+Node 1, zone  Movable
+        spanned  0
+        present  0
+        managed  0
+
+
+This patch (of 6):
+
+The third argument is actually number of pages.  Change the variable name
+from size to nr_pages to indicate this better.
+
+No functional change in this patch.
+
+Link: http://lkml.kernel.org/r/20191006085646.5768-3-david@redhat.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Jin, Zhi" <zhi.jin@intel.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
+Reviewed-by: Pankaj Gupta <pagupta@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   10 ++++++++++
- mm/page_alloc.c        |   11 ++---------
- mm/sparse.c            |   10 ----------
- 3 files changed, 12 insertions(+), 19 deletions(-)
+ mm/page_alloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/mmzone.h~mm-factor-out-next_present_section_nr
-+++ a/include/linux/mmzone.h
-@@ -1379,6 +1379,16 @@ static inline int pfn_present(unsigned l
- 	return present_section(__nr_to_section(pfn_to_section_nr(pfn)));
- }
- 
-+static inline unsigned long next_present_section_nr(unsigned long section_nr)
-+{
-+	while (++section_nr <= __highest_present_section_nr) {
-+		if (present_section_nr(section_nr))
-+			return section_nr;
-+	}
-+
-+	return -1;
-+}
-+
- /*
-  * These are _only_ used during initialisation, therefore they
-  * can use __initdata ...  They could have names to indicate
---- a/mm/page_alloc.c~mm-factor-out-next_present_section_nr
+--- a/mm/page_alloc.c~mm-memmap_init-update-variable-name-in-memmap_init_zone
 +++ a/mm/page_alloc.c
-@@ -5852,18 +5852,11 @@ overlap_memmap_init(unsigned long zone,
- /* Skip PFNs that belong to non-present sections */
- static inline __meminit unsigned long next_pfn(unsigned long pfn)
+@@ -5946,10 +5946,10 @@ void __meminit memmap_init_zone(unsigned
+ #ifdef CONFIG_ZONE_DEVICE
+ void __ref memmap_init_zone_device(struct zone *zone,
+ 				   unsigned long start_pfn,
+-				   unsigned long size,
++				   unsigned long nr_pages,
+ 				   struct dev_pagemap *pgmap)
  {
--	unsigned long section_nr;
-+	const unsigned long section_nr = pfn_to_section_nr(++pfn);
+-	unsigned long pfn, end_pfn = start_pfn + size;
++	unsigned long pfn, end_pfn = start_pfn + nr_pages;
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+ 	struct vmem_altmap *altmap = pgmap_altmap(pgmap);
+ 	unsigned long zone_idx = zone_idx(zone);
+@@ -5966,7 +5966,7 @@ void __ref memmap_init_zone_device(struc
+ 	 */
+ 	if (altmap) {
+ 		start_pfn = altmap->base_pfn + vmem_altmap_offset(altmap);
+-		size = end_pfn - start_pfn;
++		nr_pages = end_pfn - start_pfn;
+ 	}
  
--	section_nr = pfn_to_section_nr(++pfn);
- 	if (present_section_nr(section_nr))
- 		return pfn;
--
--	while (++section_nr <= __highest_present_section_nr) {
--		if (present_section_nr(section_nr))
--			return section_nr_to_pfn(section_nr);
--	}
--
--	return -1;
-+	return section_nr_to_pfn(next_present_section_nr(section_nr));
- }
- #else
- static inline __meminit unsigned long next_pfn(unsigned long pfn)
---- a/mm/sparse.c~mm-factor-out-next_present_section_nr
-+++ a/mm/sparse.c
-@@ -198,16 +198,6 @@ static void section_mark_present(struct
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+@@ -6013,7 +6013,7 @@ void __ref memmap_init_zone_device(struc
+ 	}
+ 
+ 	pr_info("%s initialised %lu pages in %ums\n", __func__,
+-		size, jiffies_to_msecs(jiffies - start));
++		nr_pages, jiffies_to_msecs(jiffies - start));
  }
  
--static inline unsigned long next_present_section_nr(unsigned long section_nr)
--{
--	do {
--		section_nr++;
--		if (present_section_nr(section_nr))
--			return section_nr;
--	} while ((section_nr <= __highest_present_section_nr));
+ #endif
+_
+
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
