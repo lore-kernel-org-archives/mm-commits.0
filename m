@@ -1,175 +1,272 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 48/67] powerpc/mmu_gather: enable RCU_TABLE_FREE
- even for !SMP case
-Date: Mon, 03 Feb 2020 17:36:46 -0800
-Message-ID: <20200204013646.D1Pw031MM%akpm@linux-foundation.org>
+Subject: [patch 47/67] x86: mm: avoid allocating struct mm_struct
+ on the stack
+Date: Mon, 03 Feb 2020 17:36:42 -0800
+Message-ID: <20200204013642.91mpRPzlx%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37862 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37692 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726992AbgBDBgs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:36:48 -0500
+        id S1726992AbgBDBgp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:36:45 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, peterz@infradead.org, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, sfr@canb.auug.org.au, steven.price@arm.com, tglx@linutronix.de, torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org, zong.li@
 
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: powerpc/mmu_gather: enable RCU_TABLE_FREE even for !SMP case
+From: Steven Price <steven.price@arm.com>
+Subject: x86: mm: avoid allocating struct mm_struct on the stack
 
-Patch series "Fixup page directory freeing", v4.
+struct mm_struct is quite large (~1664 bytes) and so allocating on the
+stack may cause problems as the kernel stack size is small.
 
-This is a repost of patch series from Peter with the arch specific changes
-except ppc64 dropped.  ppc64 changes are added here because we are redoing
-the patch series on top of ppc64 changes.  This makes it easy to backport
-these changes.  Only the first 2 patches need to be backported to stable. 
+Since ptdump_walk_pgd_level_core() was only allocating the structure so
+that it could modify the pgd argument we can instead introduce a pgd
+override in struct mm_walk and pass this down the call stack to where it
+is needed.
 
+Since the correct mm_struct is now being passed down, it is now also
+unnecessary to take the mmap_sem semaphore because ptdump_walk_pgd() will
+now take the semaphore on the real mm.
 
-The thing is, on anything SMP, freeing page directories should observe the
-exact same order as normal page freeing:
-
- 1) unhook page/directory
- 2) TLB invalidate
- 3) free page/directory
-
-Without this, any concurrent page-table walk could end up with a
-Use-after-Free.  This is esp.  trivial for anything that has software
-page-table walkers (HAVE_FAST_GUP / software TLB fill) or the hardware
-caches partial page-walks (ie.  caches page directories).
-
-Even on UP this might give issues since mmu_gather is preemptible these
-days.  An interrupt or preempted task accessing user pages might stumble
-into the free page if the hardware caches page directories.
-
-This patch series fixes ppc64 and add generic MMU_GATHER changes to
-support the conversion of other architectures.  I haven't added patches
-w.r.t other architecture because they are yet to be acked.
-
-
-This patch (of 9):
-
-A followup patch is going to make sure we correctly invalidate page walk
-cache before we free page table pages.  In order to keep things simple
-enable RCU_TABLE_FREE even for !SMP so that we don't have to fixup the
-!SMP case differently in the followup patch
-
-!SMP case is right now broken for radix translation w.r.t page walk
-cache flush.  We can get interrupted in between page table free and
-that would imply we have page walk cache entries pointing to tables
-which got freed already.  Michael said "both our platforms that run on
-Power9 force SMP on in Kconfig, so the !SMP case is unlikely to be a
-problem for anyone in practice, unless they've hacked their kernel to
-build it !SMP."
-
-Link: http://lkml.kernel.org/r/20200116064531.483522-2-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
-Cc: <stable@vger.kernel.org>
-
+[steven.price@arm.com: restore missed arm64 changes]
+  Link: http://lkml.kernel.org/r/20200108145710.34314-1-steven.price@arm.com
+Link: http://lkml.kernel.org/r/20200108145710.34314-1-steven.price@arm.com
+Signed-off-by: Steven Price <steven.price@arm.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Hogan <jhogan@kernel.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: "Liang, Kan" <kan.liang@linux.intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig                         |    2 +-
- arch/powerpc/include/asm/book3s/32/pgalloc.h |    8 --------
- arch/powerpc/include/asm/book3s/64/pgalloc.h |    2 --
- arch/powerpc/include/asm/nohash/pgalloc.h    |    8 --------
- arch/powerpc/mm/book3s64/pgtable.c           |    7 -------
- 5 files changed, 1 insertion(+), 26 deletions(-)
+ arch/arm64/mm/dump.c           |    4 ++--
+ arch/x86/mm/debug_pagetables.c |   10 ++--------
+ arch/x86/mm/dump_pagetables.c  |   18 +++++++-----------
+ include/linux/pagewalk.h       |    3 +++
+ include/linux/ptdump.h         |    2 +-
+ mm/pagewalk.c                  |    7 ++++++-
+ mm/ptdump.c                    |    4 ++--
+ 7 files changed, 23 insertions(+), 25 deletions(-)
 
---- a/arch/powerpc/include/asm/book3s/32/pgalloc.h~powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case
-+++ a/arch/powerpc/include/asm/book3s/32/pgalloc.h
-@@ -49,7 +49,6 @@ static inline void pgtable_free(void *ta
+--- a/arch/arm64/mm/dump.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/arch/arm64/mm/dump.c
+@@ -323,7 +323,7 @@ void ptdump_walk(struct seq_file *s, str
+ 		}
+ 	};
  
- #define get_hugepd_cache_index(x)  (x)
- 
--#ifdef CONFIG_SMP
- static inline void pgtable_free_tlb(struct mmu_gather *tlb,
- 				    void *table, int shift)
- {
-@@ -66,13 +65,6 @@ static inline void __tlb_remove_table(vo
- 
- 	pgtable_free(table, shift);
- }
--#else
--static inline void pgtable_free_tlb(struct mmu_gather *tlb,
--				    void *table, int shift)
--{
--	pgtable_free(table, shift);
--}
--#endif
- 
- static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t table,
- 				  unsigned long address)
---- a/arch/powerpc/include/asm/book3s/64/pgalloc.h~powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case
-+++ a/arch/powerpc/include/asm/book3s/64/pgalloc.h
-@@ -19,9 +19,7 @@ extern struct vmemmap_backing *vmemmap_l
- extern pmd_t *pmd_fragment_alloc(struct mm_struct *, unsigned long);
- extern void pmd_fragment_free(unsigned long *);
- extern void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int shift);
--#ifdef CONFIG_SMP
- extern void __tlb_remove_table(void *_table);
--#endif
- void pte_frag_destroy(void *pte_frag);
- 
- static inline pgd_t *radix__pgd_alloc(struct mm_struct *mm)
---- a/arch/powerpc/include/asm/nohash/pgalloc.h~powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case
-+++ a/arch/powerpc/include/asm/nohash/pgalloc.h
-@@ -46,7 +46,6 @@ static inline void pgtable_free(void *ta
- 
- #define get_hugepd_cache_index(x)	(x)
- 
--#ifdef CONFIG_SMP
- static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int shift)
- {
- 	unsigned long pgf = (unsigned long)table;
-@@ -64,13 +63,6 @@ static inline void __tlb_remove_table(vo
- 	pgtable_free(table, shift);
+-	ptdump_walk_pgd(&st.ptdump, info->mm);
++	ptdump_walk_pgd(&st.ptdump, info->mm, NULL);
  }
  
--#else
--static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int shift)
--{
--	pgtable_free(table, shift);
--}
--#endif
--
- static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t table,
- 				  unsigned long address)
+ static void ptdump_initialize(void)
+@@ -361,7 +361,7 @@ void ptdump_check_wx(void)
+ 		}
+ 	};
+ 
+-	ptdump_walk_pgd(&st.ptdump, &init_mm);
++	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
+ 
+ 	if (st.wx_pages || st.uxn_pages)
+ 		pr_warn("Checked W+X mappings: FAILED, %lu W+X pages found, %lu non-UXN pages found\n",
+--- a/arch/x86/mm/debug_pagetables.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/arch/x86/mm/debug_pagetables.c
+@@ -15,11 +15,8 @@ DEFINE_SHOW_ATTRIBUTE(ptdump);
+ 
+ static int ptdump_curknl_show(struct seq_file *m, void *v)
  {
---- a/arch/powerpc/Kconfig~powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case
-+++ a/arch/powerpc/Kconfig
-@@ -222,7 +222,7 @@ config PPC
- 	select HAVE_HARDLOCKUP_DETECTOR_PERF	if PERF_EVENTS && HAVE_PERF_EVENTS_NMI && !HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	select HAVE_PERF_REGS
- 	select HAVE_PERF_USER_STACK_DUMP
--	select HAVE_RCU_TABLE_FREE		if SMP
-+	select HAVE_RCU_TABLE_FREE
- 	select HAVE_RCU_TABLE_NO_INVALIDATE	if HAVE_RCU_TABLE_FREE
- 	select HAVE_MMU_GATHER_PAGE_SIZE
- 	select HAVE_REGS_AND_STACK_ACCESS_API
---- a/arch/powerpc/mm/book3s64/pgtable.c~powerpc-mmu_gather-enable-rcu_table_free-even-for-smp-case
-+++ a/arch/powerpc/mm/book3s64/pgtable.c
-@@ -378,7 +378,6 @@ static inline void pgtable_free(void *ta
+-	if (current->mm->pgd) {
+-		down_read(&current->mm->mmap_sem);
++	if (current->mm->pgd)
+ 		ptdump_walk_pgd_level_debugfs(m, current->mm, false);
+-		up_read(&current->mm->mmap_sem);
+-	}
+ 	return 0;
+ }
+ 
+@@ -28,11 +25,8 @@ DEFINE_SHOW_ATTRIBUTE(ptdump_curknl);
+ #ifdef CONFIG_PAGE_TABLE_ISOLATION
+ static int ptdump_curusr_show(struct seq_file *m, void *v)
+ {
+-	if (current->mm->pgd) {
+-		down_read(&current->mm->mmap_sem);
++	if (current->mm->pgd)
+ 		ptdump_walk_pgd_level_debugfs(m, current->mm, true);
+-		up_read(&current->mm->mmap_sem);
+-	}
+ 	return 0;
+ }
+ 
+--- a/arch/x86/mm/dump_pagetables.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/arch/x86/mm/dump_pagetables.c
+@@ -357,7 +357,8 @@ static void note_page(struct ptdump_stat
  	}
  }
  
--#ifdef CONFIG_SMP
- void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int index)
+-static void ptdump_walk_pgd_level_core(struct seq_file *m, pgd_t *pgd,
++static void ptdump_walk_pgd_level_core(struct seq_file *m,
++				       struct mm_struct *mm, pgd_t *pgd,
+ 				       bool checkwx, bool dmesg)
  {
- 	unsigned long pgf = (unsigned long)table;
-@@ -395,12 +394,6 @@ void __tlb_remove_table(void *_table)
+ 	const struct ptdump_range ptdump_ranges[] = {
+@@ -386,12 +387,7 @@ static void ptdump_walk_pgd_level_core(s
+ 		.seq		= m
+ 	};
  
- 	return pgtable_free(table, index);
+-	struct mm_struct fake_mm = {
+-		.pgd = pgd
+-	};
+-	init_rwsem(&fake_mm.mmap_sem);
+-
+-	ptdump_walk_pgd(&st.ptdump, &fake_mm);
++	ptdump_walk_pgd(&st.ptdump, mm, pgd);
+ 
+ 	if (!checkwx)
+ 		return;
+@@ -404,7 +400,7 @@ static void ptdump_walk_pgd_level_core(s
+ 
+ void ptdump_walk_pgd_level(struct seq_file *m, struct mm_struct *mm)
+ {
+-	ptdump_walk_pgd_level_core(m, mm->pgd, false, true);
++	ptdump_walk_pgd_level_core(m, mm, mm->pgd, false, true);
  }
--#else
--void pgtable_free_tlb(struct mmu_gather *tlb, void *table, int index)
--{
--	return pgtable_free(table, index);
--}
--#endif
  
- #ifdef CONFIG_PROC_FS
- atomic_long_t direct_pages_count[MMU_PAGE_COUNT];
+ void ptdump_walk_pgd_level_debugfs(struct seq_file *m, struct mm_struct *mm,
+@@ -415,7 +411,7 @@ void ptdump_walk_pgd_level_debugfs(struc
+ 	if (user && boot_cpu_has(X86_FEATURE_PTI))
+ 		pgd = kernel_to_user_pgdp(pgd);
+ #endif
+-	ptdump_walk_pgd_level_core(m, pgd, false, false);
++	ptdump_walk_pgd_level_core(m, mm, pgd, false, false);
+ }
+ EXPORT_SYMBOL_GPL(ptdump_walk_pgd_level_debugfs);
+ 
+@@ -430,13 +426,13 @@ void ptdump_walk_user_pgd_level_checkwx(
+ 
+ 	pr_info("x86/mm: Checking user space page tables\n");
+ 	pgd = kernel_to_user_pgdp(pgd);
+-	ptdump_walk_pgd_level_core(NULL, pgd, true, false);
++	ptdump_walk_pgd_level_core(NULL, &init_mm, pgd, true, false);
+ #endif
+ }
+ 
+ void ptdump_walk_pgd_level_checkwx(void)
+ {
+-	ptdump_walk_pgd_level_core(NULL, INIT_PGD, true, false);
++	ptdump_walk_pgd_level_core(NULL, &init_mm, INIT_PGD, true, false);
+ }
+ 
+ static int __init pt_dump_init(void)
+--- a/include/linux/pagewalk.h~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/include/linux/pagewalk.h
+@@ -74,6 +74,7 @@ enum page_walk_action {
+  * mm_walk - walk_page_range data
+  * @ops:	operation to call during the walk
+  * @mm:		mm_struct representing the target process of page table walk
++ * @pgd:	pointer to PGD; only valid with no_vma (otherwise set to NULL)
+  * @vma:	vma currently walked (NULL if walking outside vmas)
+  * @action:	next action to perform (see enum page_walk_action)
+  * @no_vma:	walk ignoring vmas (vma will always be NULL)
+@@ -84,6 +85,7 @@ enum page_walk_action {
+ struct mm_walk {
+ 	const struct mm_walk_ops *ops;
+ 	struct mm_struct *mm;
++	pgd_t *pgd;
+ 	struct vm_area_struct *vma;
+ 	enum page_walk_action action;
+ 	bool no_vma;
+@@ -95,6 +97,7 @@ int walk_page_range(struct mm_struct *mm
+ 		void *private);
+ int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long end, const struct mm_walk_ops *ops,
++			  pgd_t *pgd,
+ 			  void *private);
+ int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
+ 		void *private);
+--- a/include/linux/ptdump.h~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/include/linux/ptdump.h
+@@ -17,6 +17,6 @@ struct ptdump_state {
+ 	const struct ptdump_range *range;
+ };
+ 
+-void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm);
++void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd);
+ 
+ #endif /* _LINUX_PTDUMP_H */
+--- a/mm/pagewalk.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/mm/pagewalk.c
+@@ -206,7 +206,10 @@ static int walk_pgd_range(unsigned long
+ 	const struct mm_walk_ops *ops = walk->ops;
+ 	int err = 0;
+ 
+-	pgd = pgd_offset(walk->mm, addr);
++	if (walk->pgd)
++		pgd = walk->pgd + pgd_index(addr);
++	else
++		pgd = pgd_offset(walk->mm, addr);
+ 	do {
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none_or_clear_bad(pgd)) {
+@@ -436,11 +439,13 @@ int walk_page_range(struct mm_struct *mm
+  */
+ int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long end, const struct mm_walk_ops *ops,
++			  pgd_t *pgd,
+ 			  void *private)
+ {
+ 	struct mm_walk walk = {
+ 		.ops		= ops,
+ 		.mm		= mm,
++		.pgd		= pgd,
+ 		.private	= private,
+ 		.no_vma		= true
+ 	};
+--- a/mm/ptdump.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack
++++ a/mm/ptdump.c
+@@ -122,14 +122,14 @@ static const struct mm_walk_ops ptdump_o
+ 	.pte_hole	= ptdump_hole,
+ };
+ 
+-void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm)
++void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd)
+ {
+ 	const struct ptdump_range *range = st->range;
+ 
+ 	down_read(&mm->mmap_sem);
+ 	while (range->start != range->end) {
+ 		walk_page_range_novma(mm, range->start, range->end,
+-				      &ptdump_ops, st);
++				      &ptdump_ops, pgd, st);
+ 		range++;
+ 	}
+ 	up_read(&mm->mmap_sem);
 _
