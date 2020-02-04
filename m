@@ -1,34 +1,47 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: incoming
-Date: Mon, 3 Feb 2020 18:46:42 -0800
-Message-ID: <20200203184642.7419fbdfd869543e9ee71da2@linux-foundation.org>
+Subject: Re: [patch 06/67] mm: factor out next_present_section_nr()
+Date: Mon, 3 Feb 2020 20:29:00 -0800
+Message-ID: <20200203202900.bda79c8f28ddaa63ddd8c740@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
-        <CAHk-=whog86e4fRY_sxHqAos6spwAi_4aFF49S7h5C4XAZM2qw@mail.gmail.com>
+        <20200204013402.UfNC2Pqe3%akpm@linux-foundation.org>
+        <CAHk-=widODg0oV6uNrpTvA3tFVN706o-nrWC5XBL9RZ4y3RFcg@mail.gmail.com>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47216 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60414 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726561AbgBDCqo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 21:46:44 -0500
-In-Reply-To: <CAHk-=whog86e4fRY_sxHqAos6spwAi_4aFF49S7h5C4XAZM2qw@mail.gmail.com>
+        id S1726994AbgBDE3D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 23:29:03 -0500
+In-Reply-To: <CAHk-=widODg0oV6uNrpTvA3tFVN706o-nrWC5XBL9RZ4y3RFcg@mail.gmail.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, Linux-MM <linux-mm@kvack.org>
+Cc: Baoquan He <bhe@redhat.com>, Dan Williams <dan.j.williams@intel.com>, David Hildenbrand <david@redhat.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, "Kirill A . Shutemov" <kirill@shutemov.name>, Linux-MM <linux-mm@kvack.org>, Mel Gorman <mgorman@suse.de>, Michal Hocko <mhocko@kernel.org>, Michal Hocko <mhocko@suse.com>, mm-commits@vger.kernel.org, osalvador@suse.de, Pavel Tatashin <pasha.tatashin@oracle.com>, Vlastimil Babka <vbabka@suse.cz>, zhi.jin@intel.com
 
-On Tue, 4 Feb 2020 02:27:48 +0000 Linus Torvalds <torvalds@linux-foundation.org> wrote:
+On Tue, 4 Feb 2020 03:04:40 +0000 Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> On Tue, Feb 4, 2020 at 1:33 AM Andrew Morton <akpm@linux-foundation.org> wrote:
+> On Tue, Feb 4, 2020 at 1:34 AM Andrew Morton <akpm@linux-foundation.org> wrote:
 > >
-> > The rest of MM and the rest of everything else.
+> > From: David Hildenbrand <david@redhat.com>
+> > Subject: mm: factor out next_present_section_nr()
+> >
+> > Let's move it to the header and use the shorter variant from
+> > mm/page_alloc.c (the original one will also check
+> > "__highest_present_section_nr + 1", which is not necessary).  While at it,
+> > make the section_nr in next_pfn() const.
+> >
+> > In next_pfn(), we now return section_nr_to_pfn(-1) instead of -1 once we
+> > exceed __highest_present_section_nr, which doesn't make a difference i= n
+> > the caller as it is big enough (>=3D all sane end_pfn).
 > 
-> What's the base? You've changed your scripts or something, and that
-> information is no longer in your cover letter..
-> 
+> Here, look at that "i= n". It looks like it was a MIME line-break (so
+> "in" was MIME-encoded and turned into "i=\nn") followed by you or
+> David re-flowing the text without MIME-decoding it.
 
-Crap, sorry, geriatric.
+Yes, my MUA is not good about converting all input.  I have tools to fix
+up the patches post-facto but changelogs have been a challenge.
 
-d4e9056daedca3891414fe3c91de3449a5dad0f2
+I have updated my nightly check-patches-for-crap-and-email-it-to-andrew
+script to check for this.
