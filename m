@@ -1,88 +1,59 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix.patch removed
- from -mm tree
-Date: Mon, 03 Feb 2020 17:11:34 -0800
-Message-ID: <20200204011134.IfbTDYEB9%akpm@linux-foundation.org>
+ asm-generic-tlb-rename-have_rcu_table_free-fix.patch removed from -mm tree
+Date: Mon, 03 Feb 2020 17:12:05 -0800
+Message-ID: <20200204011205.9ujgwz_jR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37738 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37896 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726872AbgBDBLh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:11:37 -0500
+        id S1726834AbgBDBMG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:12:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anders.roxell@linaro.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, steven.price@arm.com
+To: akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com, lkp@intel.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, peterz@infradead.org
 
 
 The patch titled
-     Subject: x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix
+     Subject: asm-generic-tlb-rename-have_rcu_table_free-fix
 has been removed from the -mm tree.  Its filename was
-     x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix.patch
+     asm-generic-tlb-rename-have_rcu_table_free-fix.patch
 
-This patch was dropped because it was folded into x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
+This patch was dropped because it was folded into asm-generic-tlb-rename-have_rcu_table_free.patch
 
 ------------------------------------------------------
-From: Steven Price <steven.price@arm.com>
-Subject: x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: asm-generic-tlb-rename-have_rcu_table_free-fix
 
-restore missed arm64 changes
+fix sparc64 Kconfig
 
-Link: http://lkml.kernel.org/r/20200108145710.34314-1-steven.price@arm.com
-Signed-off-by: Steven Price <steven.price@arm.com>
-Cc: Anders Roxell <anders.roxell@linaro.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/dump.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/mm/dump.c~x86-mm-avoid-allocating-struct-mm_struct-on-the-stack-fix
-+++ a/arch/arm64/mm/dump.c
-@@ -323,7 +323,7 @@ void ptdump_walk(struct seq_file *s, str
- 		}
- 	};
- 
--	ptdump_walk_pgd(&st.ptdump, info->mm);
-+	ptdump_walk_pgd(&st.ptdump, info->mm, NULL);
- }
- 
- static void ptdump_initialize(void)
-@@ -361,7 +361,7 @@ void ptdump_check_wx(void)
- 		}
- 	};
- 
--	ptdump_walk_pgd(&st.ptdump, &init_mm);
-+	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
- 
- 	if (st.wx_pages || st.uxn_pages)
- 		pr_warn("Checked W+X mappings: FAILED, %lu W+X pages found, %lu non-UXN pages found\n",
+--- a/arch/sparc/Kconfig~asm-generic-tlb-rename-have_rcu_table_free-fix
++++ a/arch/sparc/Kconfig
+@@ -64,7 +64,7 @@ config SPARC64
+ 	select HAVE_FUNCTION_GRAPH_TRACER
+ 	select HAVE_KRETPROBES
+ 	select HAVE_KPROBES
+-	select MMU_GATHER_RCU_TABLE_FREE
++	select MMU_GATHER_RCU_TABLE_FREE if SMP
+ 	select HAVE_MEMBLOCK_NODE_MAP
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+ 	select HAVE_DYNAMIC_FTRACE
 _
 
-Patches currently in -mm which might be from steven.price@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-add-generic-pd_leaf-macros.patch
-arc-mm-add-pd_leaf-definitions.patch
-arm-mm-add-pd_leaf-definitions.patch
-arm64-mm-add-pd_leaf-definitions.patch
-mips-mm-add-pd_leaf-definitions.patch
-powerpc-mm-add-pd_leaf-definitions.patch
-riscv-mm-add-pd_leaf-definitions.patch
-s390-mm-add-pd_leaf-definitions.patch
-sparc-mm-add-pd_leaf-definitions.patch
-x86-mm-add-pd_leaf-definitions.patch
-mm-pagewalk-add-p4d_entry-and-pgd_entry.patch
-mm-pagewalk-allow-walking-without-vma.patch
-mm-pagewalk-dont-lock-ptes-for-walk_page_range_novma.patch
-mm-pagewalk-fix-termination-condition-in-walk_pte_range.patch
-mm-pagewalk-add-depth-parameter-to-pte_hole.patch
-x86-mm-point-to-struct-seq_file-from-struct-pg_state.patch
-x86-mmefi-convert-ptdump_walk_pgd_level-to-take-a-mm_struct.patch
-x86-mm-convert-ptdump_walk_pgd_level_debugfs-to-take-an-mm_struct.patch
-mm-add-generic-ptdump.patch
-x86-mm-convert-dump_pagetables-to-use-walk_page_range.patch
-arm64-mm-convert-mm-dumpc-to-use-walk_page_range.patch
-arm64-mm-display-non-present-entries-in-ptdump.patch
-mm-ptdump-reduce-level-numbers-by-1-in-note_page.patch
-x86-mm-avoid-allocating-struct-mm_struct-on-the-stack.patch
+ipc-consolidate-all-xxxctl_down-functions.patch
+drivers-block-null_blk_mainc-fix-layout.patch
+drivers-block-null_blk_mainc-fix-uninitialized-var-warnings.patch
+asm-generic-tlb-rename-have_rcu_table_free.patch
+proc-convert-everything-to-struct-proc_ops-fix.patch
