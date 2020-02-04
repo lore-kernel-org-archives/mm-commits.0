@@ -1,146 +1,195 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 03/67] fs/proc/page.c: allow inspection of last
- section and fix end detection
-Date: Mon, 03 Feb 2020 17:33:52 -0800
-Message-ID: <20200204013352.Y3nhsMQOb%akpm@linux-foundation.org>
+Subject: [patch 04/67] mm/page_alloc.c: initialize memmap of
+ unavailable memory directly
+Date: Mon, 03 Feb 2020 17:33:55 -0800
+Message-ID: <20200204013355.rsHMDC06h%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58730 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58900 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgBDBdy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:33:54 -0500
+        id S1726369AbgBDBd6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:33:58 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, akpm@linux-foundation.org, bob.picco@oracle.com, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, david@redhat.com, linux-mm@kvack.org, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, osalvador@suse.de, pasha.tatashin@oracle.com, sfr@canb.auug.org.au, steven.sistare@oracle.com, torvalds@linux-foundation.org
 
 From: David Hildenbrand <david@redhat.com>
-Subject: fs/proc/page.c: allow inspection of last section and fix end detection
+Subject: mm/page_alloc.c: initialize memmap of unavailable memory directly
 
-If max_pfn does not fall onto a section boundary, it is possible to
-inspect PFNs up to max_pfn, and PFNs above max_pfn, however, max_pfn
-itself can't be inspected.  We can have a valid (and online) memmap at and
-above max_pfn if max_pfn is not aligned to a section boundary.  The whole
-early section has a memmap and is marked online.  Being able to inspect
-the state of these PFNs is valuable for debugging, especially because
-max_pfn can change on memory hotplug and expose these memmaps.
+Let's make sure that all memory holes are actually marked PageReserved(),
+that page_to_pfn() produces reliable results, and that these pages are not
+detected as "mmap" pages due to the mapcount.
 
-Also, querying page flags via "./page-types -r -a 0x144001,"
-(tools/vm/page-types.c) inside a x86-64 guest with 4160MB under QEMU
-results in an (almost) endless loop in user space, because the end is not
-detected properly when starting after max_pfn.
+E.g., booting a x86-64 QEMU guest with 4160 MB:
 
-Instead, let's allow to inspect all pages in the highest section and
-return 0 directly if we try to access pages above that section.
+[    0.010585] Early memory node ranges
+[    0.010586]   node   0: [mem 0x0000000000001000-0x000000000009efff]
+[    0.010588]   node   0: [mem 0x0000000000100000-0x00000000bffdefff]
+[    0.010589]   node   0: [mem 0x0000000100000000-0x0000000143ffffff]
 
-While at it, check the count before adjusting it, to avoid masking user
-errors.
+max_pfn is 0x144000.
 
-Link: http://lkml.kernel.org/r/20191211163201.17179-3-david@redhat.com
+Before this change:
+
+[root@localhost ~]# ./page-types -r -a 0x144000,
+             flags      page-count       MB  symbolic-flags                     long-symbolic-flags
+0x0000000000000800           16384       64  ___________M_______________________________        mmap
+             total           16384       64
+
+After this change:
+
+[root@localhost ~]# ./page-types -r -a 0x144000,
+             flags      page-count       MB  symbolic-flags                     long-symbolic-flags
+0x0000000100000000           16384       64  ___________________________r_______________        reserved
+             total           16384       64
+
+IOW, especially the unavailable physical memory ("memory hole") in the
+last section would not get properly marked PageReserved() and is indicated
+to be "mmap" memory.
+
+Drop the trace of that function from include/linux/mm.h - nobody else
+needs it, and rename it accordingly.
+
+Note: The fake zone/node might not be covered by the zone/node span.  This
+is not an urgent issue (for now, we had the same node/zone due to the
+zeroing).  We'll need a clean way to mark memory holes (e.g., using a page
+type PageHole() if possible or a fake ZONE_INVALID) and eventually stop
+marking these memory holes PageReserved().
+
+Link: http://lkml.kernel.org/r/20191211163201.17179-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Bob Picco <bob.picco@oracle.com>
 Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Steven Sistare <steven.sistare@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c |   30 +++++++++++++++++++++++++++---
- 1 file changed, 27 insertions(+), 3 deletions(-)
+ include/linux/mm.h |    6 ------
+ mm/page_alloc.c    |   33 ++++++++++++++++++++++-----------
+ 2 files changed, 22 insertions(+), 17 deletions(-)
 
---- a/fs/proc/page.c~fs-proc-pagec-allow-inspection-of-last-section-and-fix-end-detection
-+++ a/fs/proc/page.c
-@@ -21,6 +21,21 @@
- #define KPMMASK (KPMSIZE - 1)
- #define KPMBITS (KPMSIZE * BITS_PER_BYTE)
+--- a/include/linux/mm.h~mm-initialize-memmap-of-unavailable-memory-directly
++++ a/include/linux/mm.h
+@@ -2182,12 +2182,6 @@ extern int __meminit __early_pfn_to_nid(
+ 					struct mminit_pfnnid_cache *state);
+ #endif
  
-+static inline unsigned long get_max_dump_pfn(void)
-+{
-+#ifdef CONFIG_SPARSEMEM
-+	/*
-+	 * The memmap of early sections is completely populated and marked
-+	 * online even if max_pfn does not fall on a section boundary -
-+	 * pfn_to_online_page() will succeed on all pages. Allow inspecting
-+	 * these memmaps.
-+	 */
-+	return round_up(max_pfn, PAGES_PER_SECTION);
-+#else
-+	return max_pfn;
-+#endif
-+}
-+
- /* /proc/kpagecount - an array exposing page counts
+-#if !defined(CONFIG_FLAT_NODE_MEM_MAP)
+-void zero_resv_unavail(void);
+-#else
+-static inline void zero_resv_unavail(void) {}
+-#endif
+-
+ extern void set_dma_reserve(unsigned long new_dma_reserve);
+ extern void memmap_init_zone(unsigned long, int, unsigned long, unsigned long,
+ 		enum memmap_context, struct vmem_altmap *);
+--- a/mm/page_alloc.c~mm-initialize-memmap-of-unavailable-memory-directly
++++ a/mm/page_alloc.c
+@@ -6916,10 +6916,10 @@ void __init free_area_init_node(int nid,
+ 
+ #if !defined(CONFIG_FLAT_NODE_MEM_MAP)
+ /*
+- * Zero all valid struct pages in range [spfn, epfn), return number of struct
+- * pages zeroed
++ * Initialize all valid struct pages in the range [spfn, epfn) and mark them
++ * PageReserved(). Return the number of struct pages that were initialized.
+  */
+-static u64 zero_pfn_range(unsigned long spfn, unsigned long epfn)
++static u64 __init init_unavailable_range(unsigned long spfn, unsigned long epfn)
+ {
+ 	unsigned long pfn;
+ 	u64 pgcnt = 0;
+@@ -6930,7 +6930,13 @@ static u64 zero_pfn_range(unsigned long
+ 				+ pageblock_nr_pages - 1;
+ 			continue;
+ 		}
+-		mm_zero_struct_page(pfn_to_page(pfn));
++		/*
++		 * Use a fake node/zone (0) for now. Some of these pages
++		 * (in memblock.reserved but not in memblock.memory) will
++		 * get re-initialized via reserve_bootmem_region() later.
++		 */
++		__init_single_page(pfn_to_page(pfn), pfn, 0, 0);
++		__SetPageReserved(pfn_to_page(pfn));
+ 		pgcnt++;
+ 	}
+ 
+@@ -6942,7 +6948,7 @@ static u64 zero_pfn_range(unsigned long
+  * initialized by going through __init_single_page(). But, there are some
+  * struct pages which are reserved in memblock allocator and their fields
+  * may be accessed (for example page_to_pfn() on some configuration accesses
+- * flags). We must explicitly zero those struct pages.
++ * flags). We must explicitly initialize those struct pages.
   *
-  * Each entry is a u64 representing the corresponding
-@@ -29,6 +44,7 @@
- static ssize_t kpagecount_read(struct file *file, char __user *buf,
- 			     size_t count, loff_t *ppos)
+  * This function also addresses a similar issue where struct pages are left
+  * uninitialized because the physical address range is not covered by
+@@ -6950,7 +6956,7 @@ static u64 zero_pfn_range(unsigned long
+  * layout is manually configured via memmap=, or when the highest physical
+  * address (max_pfn) does not end on a section boundary.
+  */
+-void __init zero_resv_unavail(void)
++static void __init init_unavailable_mem(void)
  {
-+	const unsigned long max_dump_pfn = get_max_dump_pfn();
- 	u64 __user *out = (u64 __user *)buf;
- 	struct page *ppage;
- 	unsigned long src = *ppos;
-@@ -37,9 +53,11 @@ static ssize_t kpagecount_read(struct fi
- 	u64 pcount;
+ 	phys_addr_t start, end;
+ 	u64 i, pgcnt;
+@@ -6963,7 +6969,8 @@ void __init zero_resv_unavail(void)
+ 	for_each_mem_range(i, &memblock.memory, NULL,
+ 			NUMA_NO_NODE, MEMBLOCK_NONE, &start, &end, NULL) {
+ 		if (next < start)
+-			pgcnt += zero_pfn_range(PFN_DOWN(next), PFN_UP(start));
++			pgcnt += init_unavailable_range(PFN_DOWN(next),
++							PFN_UP(start));
+ 		next = end;
+ 	}
  
- 	pfn = src / KPMSIZE;
--	count = min_t(size_t, count, (max_pfn * KPMSIZE) - src);
- 	if (src & KPMMASK || count & KPMMASK)
- 		return -EINVAL;
-+	if (src >= max_dump_pfn * KPMSIZE)
-+		return 0;
-+	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
+@@ -6974,8 +6981,8 @@ void __init zero_resv_unavail(void)
+ 	 * considered initialized. Make sure that memmap has a well defined
+ 	 * state.
+ 	 */
+-	pgcnt += zero_pfn_range(PFN_DOWN(next),
+-				round_up(max_pfn, PAGES_PER_SECTION));
++	pgcnt += init_unavailable_range(PFN_DOWN(next),
++					round_up(max_pfn, PAGES_PER_SECTION));
  
- 	while (count > 0) {
- 		/*
-@@ -206,6 +224,7 @@ u64 stable_page_flags(struct page *page)
- static ssize_t kpageflags_read(struct file *file, char __user *buf,
- 			     size_t count, loff_t *ppos)
+ 	/*
+ 	 * Struct pages that do not have backing memory. This could be because
+@@ -6984,6 +6991,10 @@ void __init zero_resv_unavail(void)
+ 	if (pgcnt)
+ 		pr_info("Zeroed struct page in unavailable ranges: %lld pages", pgcnt);
+ }
++#else
++static inline void __init init_unavailable_mem(void)
++{
++}
+ #endif /* !CONFIG_FLAT_NODE_MEM_MAP */
+ 
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+@@ -7413,7 +7424,7 @@ void __init free_area_init_nodes(unsigne
+ 	/* Initialise every node */
+ 	mminit_verify_pageflags_layout();
+ 	setup_nr_node_ids();
+-	zero_resv_unavail();
++	init_unavailable_mem();
+ 	for_each_online_node(nid) {
+ 		pg_data_t *pgdat = NODE_DATA(nid);
+ 		free_area_init_node(nid, NULL,
+@@ -7608,7 +7619,7 @@ void __init set_dma_reserve(unsigned lon
+ 
+ void __init free_area_init(unsigned long *zones_size)
  {
-+	const unsigned long max_dump_pfn = get_max_dump_pfn();
- 	u64 __user *out = (u64 __user *)buf;
- 	struct page *ppage;
- 	unsigned long src = *ppos;
-@@ -213,9 +232,11 @@ static ssize_t kpageflags_read(struct fi
- 	ssize_t ret = 0;
- 
- 	pfn = src / KPMSIZE;
--	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
- 	if (src & KPMMASK || count & KPMMASK)
- 		return -EINVAL;
-+	if (src >= max_dump_pfn * KPMSIZE)
-+		return 0;
-+	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
- 
- 	while (count > 0) {
- 		/*
-@@ -251,6 +272,7 @@ static const struct file_operations proc
- static ssize_t kpagecgroup_read(struct file *file, char __user *buf,
- 				size_t count, loff_t *ppos)
- {
-+	const unsigned long max_dump_pfn = get_max_dump_pfn();
- 	u64 __user *out = (u64 __user *)buf;
- 	struct page *ppage;
- 	unsigned long src = *ppos;
-@@ -259,9 +281,11 @@ static ssize_t kpagecgroup_read(struct f
- 	u64 ino;
- 
- 	pfn = src / KPMSIZE;
--	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
- 	if (src & KPMMASK || count & KPMMASK)
- 		return -EINVAL;
-+	if (src >= max_dump_pfn * KPMSIZE)
-+		return 0;
-+	count = min_t(unsigned long, count, (max_dump_pfn * KPMSIZE) - src);
- 
- 	while (count > 0) {
- 		/*
+-	zero_resv_unavail();
++	init_unavailable_mem();
+ 	free_area_init_node(0, zones_size,
+ 			__pa(PAGE_OFFSET) >> PAGE_SHIFT, NULL);
+ }
 _
