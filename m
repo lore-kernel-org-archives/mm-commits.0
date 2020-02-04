@@ -1,89 +1,61 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 11/67] mm/memory_hotplug: drop local variables in
- shrink_zone_span()
-Date: Mon, 03 Feb 2020 17:34:19 -0800
-Message-ID: <20200204013419.kPMy7SAqj%akpm@linux-foundation.org>
+Subject: [patch 12/67] mm/memory_hotplug: cleanup __remove_pages()
+Date: Mon, 03 Feb 2020 17:34:23 -0800
+Message-ID: <20200204013423.aFPO78Un-%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59986 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgBDBeU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:34:20 -0500
+        id S1726369AbgBDBe0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:34:26 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com, david@redhat.com, gregkh@linuxfoundation.org, linux-mm@kvack.org, logang@deltatee.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pagupta@redhat.com, pasha.tatashin@soleen.com, torvalds@linux-foundation.org, willy@infradead.org
 
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: drop local variables in shrink_zone_span()
+Subject: mm/memory_hotplug: cleanup __remove_pages()
 
-Get rid of the unnecessary local variables.
+Let's drop the basically unused section stuff and simplify.
 
-Link: http://lkml.kernel.org/r/20191006085646.5768-10-david@redhat.com
+Also, let's use a shorter variant to calculate the number of pages to
+the next section boundary.
+
+Link: http://lkml.kernel.org/r/20191006085646.5768-11-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pankaj Gupta <pagupta@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Pankaj Gupta <pagupta@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/memory_hotplug.c |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-local-variables-in-shrink_zone_span
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-cleanup-__remove_pages
 +++ a/mm/memory_hotplug.c
-@@ -392,14 +392,11 @@ static unsigned long find_biggest_sectio
- static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
- 			     unsigned long end_pfn)
+@@ -516,25 +516,20 @@ static void __remove_section(unsigned lo
+ void __remove_pages(unsigned long pfn, unsigned long nr_pages,
+ 		    struct vmem_altmap *altmap)
  {
--	unsigned long zone_start_pfn = zone->zone_start_pfn;
--	unsigned long z = zone_end_pfn(zone); /* zone_end_pfn namespace clash */
--	unsigned long zone_end_pfn = z;
- 	unsigned long pfn;
- 	int nid = zone_to_nid(zone);
++	const unsigned long end_pfn = pfn + nr_pages;
++	unsigned long cur_nr_pages;
+ 	unsigned long map_offset = 0;
+-	unsigned long nr, start_sec, end_sec;
  
- 	zone_span_writelock(zone);
--	if (zone_start_pfn == start_pfn) {
-+	if (zone->zone_start_pfn == start_pfn) {
- 		/*
- 		 * If the section is smallest section in the zone, it need
- 		 * shrink zone->zone_start_pfn and zone->zone_spanned_pages.
-@@ -407,25 +404,25 @@ static void shrink_zone_span(struct zone
- 		 * for shrinking zone.
- 		 */
- 		pfn = find_smallest_section_pfn(nid, zone, end_pfn,
--						zone_end_pfn);
-+						zone_end_pfn(zone));
- 		if (pfn) {
-+			zone->spanned_pages = zone_end_pfn(zone) - pfn;
- 			zone->zone_start_pfn = pfn;
--			zone->spanned_pages = zone_end_pfn - pfn;
- 		} else {
- 			zone->zone_start_pfn = 0;
- 			zone->spanned_pages = 0;
- 		}
--	} else if (zone_end_pfn == end_pfn) {
-+	} else if (zone_end_pfn(zone) == end_pfn) {
- 		/*
- 		 * If the section is biggest section in the zone, it need
- 		 * shrink zone->spanned_pages.
- 		 * In this case, we find second biggest valid mem_section for
- 		 * shrinking zone.
- 		 */
--		pfn = find_biggest_section_pfn(nid, zone, zone_start_pfn,
-+		pfn = find_biggest_section_pfn(nid, zone, zone->zone_start_pfn,
- 					       start_pfn);
- 		if (pfn)
--			zone->spanned_pages = pfn - zone_start_pfn + 1;
-+			zone->spanned_pages = pfn - zone->zone_start_pfn + 1;
- 		else {
- 			zone->zone_start_pfn = 0;
- 			zone->spanned_pages = 0;
-_
+ 	map_offset = vmem_altmap_offset(altmap);
+ 
+ 	if (check_pfn_span(pfn, nr_pages, "remove"))
+ 		return;
+ 
+-	start_sec = pfn_to_section_nr(pfn);
+-	end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
+-	for (nr = start_sec; nr <= end_sec; nr++) {
+-		unsigned long pfns;
