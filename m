@@ -1,34 +1,43 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 62/67] lib: make bitmap_parse_user a wrapper on
- bitmap_parse
-Date: Mon, 03 Feb 2020 17:37:31 -0800
-Message-ID: <20200204013731.tpGyxFNVj%akpm@linux-foundation.org>
+Subject: [patch 63/67] lib: rework bitmap_parse()
+Date: Mon, 03 Feb 2020 17:37:34 -0800
+Message-ID: <20200204013734.9nTVAo9Fi%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39600 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39746 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgBDBhc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:37:32 -0500
+        id S1726369AbgBDBhg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:37:36 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: acme@redhat.com, akpm@linux-foundation.org, amritha.nambiar@intel.com, andriy.shevchenko@linux.intel.com, chris@chris-wilson.co.uk, keescook@chromium.org, linux-mm@kvack.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, mszeredi@redhat.com, steffen.klassert@secunet.com, tobin@kernel.org, torvalds@linux-foundation.org, vineet.gupta1@synopsys.com, will.deacon@arm.com, willemb@google.com, willy@infradead.org, yury.norov@gmail.com
 
 From: Yury Norov <yury.norov@gmail.com>
-Subject: lib: make bitmap_parse_user a wrapper on bitmap_parse
+Subject: lib: rework bitmap_parse()
 
-Currently we parse user data byte after byte which leads to
-overcomplicating of parsing algorithm.  There are no performance critical
-users of bitmap_parse_user(), and so we can duplicate user data to kernel
-buffer and simply call bitmap_parselist().  This rework lets us unify and
-simplify bitmap_parse() and bitmap_parse_user(), which is done in the
-following patch.
+bitmap_parse() is ineffective and full of opaque variables and opencoded
+parts.  It leads to hard understanding and usage of it.  This rework
+includes:
 
-Link: http://lkml.kernel.org/r/20200102043031.30357-5-yury.norov@gmail.com
+- remove bitmap_shift_left() call from the cycle.  Now it makes the
+  complexity of the algorithm as O(nbits^2).  In the suggested approach
+  the input string is parsed in reverse direction, so no shifts needed;
+
+- relax requirement on a single comma and no white spaces between
+  chunks.  It is considered useful in scripting, and it aligns with
+  bitmap_parselist();
+
+- split bitmap_parse() to small readable helpers;
+
+- make an explicit calculation of the end of input line at the
+  beginning, so users of the bitmap_parse() won't bother doing this.
+
+Link: http://lkml.kernel.org/r/20200102043031.30357-6-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Amritha Nambiar <amritha.nambiar@intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
 Cc: Chris Wilson <chris@chris-wilson.co.uk>
 Cc: Kees Cook <keescook@chromium.org>
@@ -43,42 +52,237 @@ Cc: Willem de Bruijn <willemb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ include/linux/bitmap.h |    8 -
+ lib/bitmap.c           |  175 ++++++++++++++++++---------------------
+ 2 files changed, 84 insertions(+), 99 deletions(-)
 
---- a/lib/bitmap.c~lib-make-bitmap_parse_user-a-wrapper-on-bitmap_parse
-+++ a/lib/bitmap.c
-@@ -530,22 +530,22 @@ EXPORT_SYMBOL(__bitmap_parse);
-  *    then it must be terminated with a \0.
-  * @maskp: pointer to bitmap array that will contain result.
-  * @nmaskbits: size of bitmap, in bits.
-- *
-- * Wrapper for __bitmap_parse(), providing it with user buffer.
-- *
-- * We cannot have this as an inline function in bitmap.h because it needs
-- * linux/uaccess.h to get the access_ok() declaration and this causes
-- * cyclic dependencies.
-  */
- int bitmap_parse_user(const char __user *ubuf,
- 			unsigned int ulen, unsigned long *maskp,
- 			int nmaskbits)
- {
--	if (!access_ok(ubuf, ulen))
--		return -EFAULT;
--	return __bitmap_parse((const char __force *)ubuf,
--				ulen, 1, maskp, nmaskbits);
-+	char *buf;
-+	int ret;
- 
-+	buf = memdup_user_nul(ubuf, ulen);
-+	if (IS_ERR(buf))
-+		return PTR_ERR(buf);
-+
-+	ret = bitmap_parse(buf, ulen, maskp, nmaskbits);
-+
-+	kfree(buf);
-+	return ret;
+--- a/include/linux/bitmap.h~lib-rework-bitmap_parse
++++ a/include/linux/bitmap.h
+@@ -186,7 +186,7 @@ bitmap_find_next_zero_area(unsigned long
+ 					      align_mask, 0);
  }
- EXPORT_SYMBOL(bitmap_parse_user);
  
+-extern int __bitmap_parse(const char *buf, unsigned int buflen, int is_user,
++extern int bitmap_parse(const char *buf, unsigned int buflen,
+ 			unsigned long *dst, int nbits);
+ extern int bitmap_parse_user(const char __user *ubuf, unsigned int ulen,
+ 			unsigned long *dst, int nbits);
+@@ -454,12 +454,6 @@ static inline void bitmap_replace(unsign
+ 		__bitmap_replace(dst, old, new, mask, nbits);
+ }
+ 
+-static inline int bitmap_parse(const char *buf, unsigned int buflen,
+-			unsigned long *maskp, int nmaskbits)
+-{
+-	return __bitmap_parse(buf, buflen, 0, maskp, nmaskbits);
+-}
+-
+ static inline void bitmap_next_clear_region(unsigned long *bitmap,
+ 					    unsigned int *rs, unsigned int *re,
+ 					    unsigned int end)
+--- a/lib/bitmap.c~lib-rework-bitmap_parse
++++ a/lib/bitmap.c
+@@ -431,97 +431,6 @@ EXPORT_SYMBOL(bitmap_find_next_zero_area
+  * second version by Paul Jackson, third by Joe Korty.
+  */
+ 
+-#define CHUNKSZ				32
+-#define nbits_to_hold_value(val)	fls(val)
+-#define BASEDEC 10		/* fancier cpuset lists input in decimal */
+-
+-/**
+- * __bitmap_parse - convert an ASCII hex string into a bitmap.
+- * @buf: pointer to buffer containing string.
+- * @buflen: buffer size in bytes.  If string is smaller than this
+- *    then it must be terminated with a \0.
+- * @is_user: location of buffer, 0 indicates kernel space
+- * @maskp: pointer to bitmap array that will contain result.
+- * @nmaskbits: size of bitmap, in bits.
+- *
+- * Commas group hex digits into chunks.  Each chunk defines exactly 32
+- * bits of the resultant bitmask.  No chunk may specify a value larger
+- * than 32 bits (%-EOVERFLOW), and if a chunk specifies a smaller value
+- * then leading 0-bits are prepended.  %-EINVAL is returned for illegal
+- * characters and for grouping errors such as "1,,5", ",44", "," and "".
+- * Leading and trailing whitespace accepted, but not embedded whitespace.
+- */
+-int __bitmap_parse(const char *buf, unsigned int buflen,
+-		int is_user, unsigned long *maskp,
+-		int nmaskbits)
+-{
+-	int c, old_c, totaldigits, ndigits, nchunks, nbits;
+-	u32 chunk;
+-	const char __user __force *ubuf = (const char __user __force *)buf;
+-
+-	bitmap_zero(maskp, nmaskbits);
+-
+-	nchunks = nbits = totaldigits = c = 0;
+-	do {
+-		chunk = 0;
+-		ndigits = totaldigits;
+-
+-		/* Get the next chunk of the bitmap */
+-		while (buflen) {
+-			old_c = c;
+-			if (is_user) {
+-				if (__get_user(c, ubuf++))
+-					return -EFAULT;
+-			}
+-			else
+-				c = *buf++;
+-			buflen--;
+-			if (isspace(c))
+-				continue;
+-
+-			/*
+-			 * If the last character was a space and the current
+-			 * character isn't '\0', we've got embedded whitespace.
+-			 * This is a no-no, so throw an error.
+-			 */
+-			if (totaldigits && c && isspace(old_c))
+-				return -EINVAL;
+-
+-			/* A '\0' or a ',' signal the end of the chunk */
+-			if (c == '\0' || c == ',')
+-				break;
+-
+-			if (!isxdigit(c))
+-				return -EINVAL;
+-
+-			/*
+-			 * Make sure there are at least 4 free bits in 'chunk'.
+-			 * If not, this hexdigit will overflow 'chunk', so
+-			 * throw an error.
+-			 */
+-			if (chunk & ~((1UL << (CHUNKSZ - 4)) - 1))
+-				return -EOVERFLOW;
+-
+-			chunk = (chunk << 4) | hex_to_bin(c);
+-			totaldigits++;
+-		}
+-		if (ndigits == totaldigits)
+-			return -EINVAL;
+-		if (nchunks == 0 && chunk == 0)
+-			continue;
+-
+-		__bitmap_shift_left(maskp, maskp, CHUNKSZ, nmaskbits);
+-		*maskp |= chunk;
+-		nchunks++;
+-		nbits += (nchunks == 1) ? nbits_to_hold_value(chunk) : CHUNKSZ;
+-		if (nbits > nmaskbits)
+-			return -EOVERFLOW;
+-	} while (buflen && c == ',');
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(__bitmap_parse);
+-
+ /**
+  * bitmap_parse_user - convert an ASCII hex string in a user buffer into a bitmap
+  *
+@@ -542,7 +451,7 @@ int bitmap_parse_user(const char __user
+ 	if (IS_ERR(buf))
+ 		return PTR_ERR(buf);
+ 
+-	ret = bitmap_parse(buf, ulen, maskp, nmaskbits);
++	ret = bitmap_parse(buf, UINT_MAX, maskp, nmaskbits);
+ 
+ 	kfree(buf);
+ 	return ret;
+@@ -653,6 +562,14 @@ static const char *bitmap_find_region(co
+ 	return end_of_str(*str) ? NULL : str;
+ }
+ 
++static const char *bitmap_find_region_reverse(const char *start, const char *end)
++{
++	while (start <= end && __end_of_region(*end))
++		end--;
++
++	return end;
++}
++
+ static const char *bitmap_parse_region(const char *str, struct region *r)
+ {
+ 	str = bitmap_getnum(str, &r->start);
+@@ -776,6 +693,80 @@ int bitmap_parselist_user(const char __u
+ }
+ EXPORT_SYMBOL(bitmap_parselist_user);
+ 
++static const char *bitmap_get_x32_reverse(const char *start,
++					const char *end, u32 *num)
++{
++	u32 ret = 0;
++	int c, i;
++
++	for (i = 0; i < 32; i += 4) {
++		c = hex_to_bin(*end--);
++		if (c < 0)
++			return ERR_PTR(-EINVAL);
++
++		ret |= c << i;
++
++		if (start > end || __end_of_region(*end))
++			goto out;
++	}
++
++	if (hex_to_bin(*end--) >= 0)
++		return ERR_PTR(-EOVERFLOW);
++out:
++	*num = ret;
++	return end;
++}
++
++/**
++ * bitmap_parse - convert an ASCII hex string into a bitmap.
++ * @start: pointer to buffer containing string.
++ * @buflen: buffer size in bytes.  If string is smaller than this
++ *    then it must be terminated with a \0 or \n. In that case,
++ *    UINT_MAX may be provided instead of string length.
++ * @maskp: pointer to bitmap array that will contain result.
++ * @nmaskbits: size of bitmap, in bits.
++ *
++ * Commas group hex digits into chunks.  Each chunk defines exactly 32
++ * bits of the resultant bitmask.  No chunk may specify a value larger
++ * than 32 bits (%-EOVERFLOW), and if a chunk specifies a smaller value
++ * then leading 0-bits are prepended.  %-EINVAL is returned for illegal
++ * characters. Grouping such as "1,,5", ",44", "," or "" is allowed.
++ * Leading, embedded and trailing whitespace accepted.
++ */
++int bitmap_parse(const char *start, unsigned int buflen,
++		unsigned long *maskp, int nmaskbits)
++{
++	const char *end = strnchrnul(start, buflen, '\n') - 1;
++	int chunks = BITS_TO_U32(nmaskbits);
++	u32 *bitmap = (u32 *)maskp;
++	int unset_bit;
++
++	while (1) {
++		end = bitmap_find_region_reverse(start, end);
++		if (start > end)
++			break;
++
++		if (!chunks--)
++			return -EOVERFLOW;
++
++		end = bitmap_get_x32_reverse(start, end, bitmap++);
++		if (IS_ERR(end))
++			return PTR_ERR(end);
++	}
++
++	unset_bit = (BITS_TO_U32(nmaskbits) - chunks) * 32;
++	if (unset_bit < nmaskbits) {
++		bitmap_clear(maskp, unset_bit, nmaskbits - unset_bit);
++		return 0;
++	}
++
++	if (find_next_bit(maskp, unset_bit, nmaskbits) != unset_bit)
++		return -EOVERFLOW;
++
++	return 0;
++}
++EXPORT_SYMBOL(bitmap_parse);
++
+ 
+ #ifdef CONFIG_NUMA
+ /**
 _
