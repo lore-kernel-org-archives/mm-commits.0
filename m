@@ -1,55 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-pagewalk-add-p4d_entry-and-pgd_entry.patch
- removed from -mm tree
-Date: Tue, 04 Feb 2020 10:41:18 -0800
-Message-ID: <20200204184118.HoT2Miu6x%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-pagewalk-add-depth-parameter-to-pte_hole.patch removed from -mm tree
+Date: Tue, 04 Feb 2020 10:41:30 -0800
+Message-ID: <20200204184130.cRJX2tC77%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57358 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57672 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727526AbgBDSlX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:41:23 -0500
+        id S1727480AbgBDSlc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 Feb 2020 13:41:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: mm: pagewalk: add p4d_entry() and pgd_entry()
+     Subject: mm: pagewalk: add 'depth' parameter to pte_hole
 has been removed from the -mm tree.  Its filename was
-     mm-pagewalk-add-p4d_entry-and-pgd_entry.patch
+     mm-pagewalk-add-depth-parameter-to-pte_hole.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Steven Price <steven.price@arm.com>
-Subject: mm: pagewalk: add p4d_entry() and pgd_entry()
+Subject: mm: pagewalk: add 'depth' parameter to pte_hole
 
-pgd_entry() and pud_entry() were removed by commit 0b1fbfe50006c410
-("mm/pagewalk: remove pgd_entry() and pud_entry()") because there were no
-users.  We're about to add users so reintroduce them, along with
-p4d_entry() as we now have 5 levels of tables.
+The pte_hole() callback is called at multiple levels of the page tables. 
+Code dumping the kernel page tables needs to know what at what depth the
+missing entry is.  Add this is an extra parameter to pte_hole().  When the
+depth isn't know (e.g.  processing a vma) then -1 is passed.
 
-Note that commit a00cc7d9dd93d66a ("mm, x86: add support for PUD-sized
-transparent hugepages") already re-added pud_entry() but with different
-semantics to the other callbacks.  This commit reverts the semantics back
-to match the other callbacks.
+The depth that is reported is the actual level where the entry is missing
+(ignoring any folding that is in place), i.e.  any levels where
+PTRS_PER_P?D is set to 1 are ignored.
 
-To support hmm.c which now uses the new semantics of pud_entry() a new
-member ('action') of struct mm_walk is added which allows the callbacks to
-either descend (ACTION_SUBTREE, the default), skip (ACTION_CONTINUE) or
-repeat the callback (ACTION_AGAIN).  hmm.c is then updated to call
-pud_trans_huge_lock() itself and make use of the splitting/retry logic of
-the core code.
+Note that depth starts at 0 for a PGD so that PUD/PMD/PTE retain their
+natural numbers as levels 2/3/4.
 
-After this change pud_entry() is called for all entries, not just
-transparent huge pages.
-
-[arnd@arndb.de: fix unused variable warning]
- Link: http://lkml.kernel.org/r/20200107204607.1533842-1-arnd@arndb.de
-Link: http://lkml.kernel.org/r/20191218162402.45610-12-steven.price@arm.com
+Link: http://lkml.kernel.org/r/20191218162402.45610-16-steven.price@arm.com
 Signed-off-by: Steven Price <steven.price@arm.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Tested-by: Zong Li <zong.li@sifive.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -80,289 +70,238 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@synopsys.com>
 Cc: Will Deacon <will@kernel.org>
-Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagewalk.h |   34 +++++++++++++++++----
- mm/hmm.c                 |   58 ++++++++++++++++++++-----------------
- mm/pagewalk.c            |   50 ++++++++++++++++++++++---------
- 3 files changed, 95 insertions(+), 47 deletions(-)
+ fs/proc/task_mmu.c       |    4 ++--
+ include/linux/pagewalk.h |    7 +++++--
+ mm/hmm.c                 |    8 ++++----
+ mm/migrate.c             |    5 +++--
+ mm/mincore.c             |    1 +
+ mm/pagewalk.c            |   31 +++++++++++++++++++++++++------
+ 6 files changed, 40 insertions(+), 16 deletions(-)
 
---- a/include/linux/pagewalk.h~mm-pagewalk-add-p4d_entry-and-pgd_entry
-+++ a/include/linux/pagewalk.h
-@@ -8,15 +8,15 @@ struct mm_walk;
+--- a/fs/proc/task_mmu.c~mm-pagewalk-add-depth-parameter-to-pte_hole
++++ a/fs/proc/task_mmu.c
+@@ -505,7 +505,7 @@ static void smaps_account(struct mem_siz
  
- /**
-  * mm_walk_ops - callbacks for walk_page_range
-- * @pud_entry:		if set, called for each non-empty PUD (2nd-level) entry
-- *			this handler should only handle pud_trans_huge() puds.
-- *			the pmd_entry or pte_entry callbacks will be used for
-- *			regular PUDs.
-- * @pmd_entry:		if set, called for each non-empty PMD (3rd-level) entry
-+ * @pgd_entry:		if set, called for each non-empty PGD (top-level) entry
-+ * @p4d_entry:		if set, called for each non-empty P4D entry
-+ * @pud_entry:		if set, called for each non-empty PUD entry
-+ * @pmd_entry:		if set, called for each non-empty PMD entry
-  *			this handler is required to be able to handle
-  *			pmd_trans_huge() pmds.  They may simply choose to
+ #ifdef CONFIG_SHMEM
+ static int smaps_pte_hole(unsigned long addr, unsigned long end,
+-		struct mm_walk *walk)
++			  __always_unused int depth, struct mm_walk *walk)
+ {
+ 	struct mem_size_stats *mss = walk->private;
+ 
+@@ -1282,7 +1282,7 @@ static int add_to_pagemap(unsigned long
+ }
+ 
+ static int pagemap_pte_hole(unsigned long start, unsigned long end,
+-				struct mm_walk *walk)
++			    __always_unused int depth, struct mm_walk *walk)
+ {
+ 	struct pagemapread *pm = walk->private;
+ 	unsigned long addr = start;
+--- a/include/linux/pagewalk.h~mm-pagewalk-add-depth-parameter-to-pte_hole
++++ a/include/linux/pagewalk.h
+@@ -17,7 +17,10 @@ struct mm_walk;
   *			split_huge_page() instead of handling it explicitly.
-- * @pte_entry:		if set, called for each non-empty PTE (4th-level) entry
-+ * @pte_entry:		if set, called for each non-empty PTE (lowest-level)
-+ *			entry
-  * @pte_hole:		if set, called for each hole at all levels
+  * @pte_entry:		if set, called for each non-empty PTE (lowest-level)
+  *			entry
+- * @pte_hole:		if set, called for each hole at all levels
++ * @pte_hole:		if set, called for each hole at all levels,
++ *			depth is -1 if not known, 0:PGD, 1:P4D, 2:PUD, 3:PMD
++ *			4:PTE. Any folded depths (where PTRS_PER_P?D is equal
++ *			to 1) are skipped.
   * @hugetlb_entry:	if set, called for each hugetlb entry
   * @test_walk:		caller specific callback function to determine whether
-@@ -27,8 +27,15 @@ struct mm_walk;
-  * @pre_vma:            if set, called before starting walk on a non-null vma.
-  * @post_vma:           if set, called after a walk on a non-null vma, provided
-  *                      that @pre_vma and the vma walk succeeded.
-+ *
-+ * p?d_entry callbacks are called even if those levels are folded on a
-+ * particular architecture/configuration.
-  */
- struct mm_walk_ops {
-+	int (*pgd_entry)(pgd_t *pgd, unsigned long addr,
-+			 unsigned long next, struct mm_walk *walk);
-+	int (*p4d_entry)(p4d_t *p4d, unsigned long addr,
-+			 unsigned long next, struct mm_walk *walk);
- 	int (*pud_entry)(pud_t *pud, unsigned long addr,
+  *			we walk over the current vma or not. Returning 0 means
+@@ -43,7 +46,7 @@ struct mm_walk_ops {
+ 	int (*pte_entry)(pte_t *pte, unsigned long addr,
  			 unsigned long next, struct mm_walk *walk);
- 	int (*pmd_entry)(pmd_t *pmd, unsigned long addr,
-@@ -47,11 +54,25 @@ struct mm_walk_ops {
- 	void (*post_vma)(struct mm_walk *walk);
- };
- 
-+/*
-+ * Action for pud_entry / pmd_entry callbacks.
-+ * ACTION_SUBTREE is the default
-+ */
-+enum page_walk_action {
-+	/* Descend to next level, splitting huge pages if needed and possible */
-+	ACTION_SUBTREE = 0,
-+	/* Continue to next entry at this level (ignoring any subtree) */
-+	ACTION_CONTINUE = 1,
-+	/* Call again for this entry */
-+	ACTION_AGAIN = 2
-+};
-+
- /**
-  * mm_walk - walk_page_range data
-  * @ops:	operation to call during the walk
-  * @mm:		mm_struct representing the target process of page table walk
-  * @vma:	vma currently walked (NULL if walking outside vmas)
-+ * @action:	next action to perform (see enum page_walk_action)
-  * @private:	private data for callbacks' usage
-  *
-  * (see the comment on walk_page_range() for more details)
-@@ -60,6 +81,7 @@ struct mm_walk {
- 	const struct mm_walk_ops *ops;
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
-+	enum page_walk_action action;
- 	void *private;
- };
- 
---- a/mm/hmm.c~mm-pagewalk-add-p4d_entry-and-pgd_entry
+ 	int (*pte_hole)(unsigned long addr, unsigned long next,
+-			struct mm_walk *walk);
++			int depth, struct mm_walk *walk);
+ 	int (*hugetlb_entry)(pte_t *pte, unsigned long hmask,
+ 			     unsigned long addr, unsigned long next,
+ 			     struct mm_walk *walk);
+--- a/mm/hmm.c~mm-pagewalk-add-depth-parameter-to-pte_hole
 +++ a/mm/hmm.c
-@@ -474,23 +474,32 @@ static int hmm_vma_walk_pud(pud_t *pudp,
+@@ -186,7 +186,7 @@ static void hmm_range_need_fault(const s
+ }
+ 
+ static int hmm_vma_walk_hole(unsigned long addr, unsigned long end,
+-			     struct mm_walk *walk)
++			     __always_unused int depth, struct mm_walk *walk)
  {
  	struct hmm_vma_walk *hmm_vma_walk = walk->private;
  	struct hmm_range *range = hmm_vma_walk->range;
--	unsigned long addr = start, next;
--	pmd_t *pmdp;
-+	unsigned long addr = start;
- 	pud_t pud;
--	int ret;
-+	int ret = 0;
-+	spinlock_t *ptl = pud_trans_huge_lock(pudp, walk->vma);
-+
-+	if (!ptl)
-+		return 0;
-+
-+	/* Normally we don't want to split the huge page */
-+	walk->action = ACTION_CONTINUE;
- 
--again:
- 	pud = READ_ONCE(*pudp);
--	if (pud_none(pud))
+@@ -380,7 +380,7 @@ static int hmm_vma_walk_pmd(pmd_t *pmdp,
+ again:
+ 	pmd = READ_ONCE(*pmdp);
+ 	if (pmd_none(pmd))
 -		return hmm_vma_walk_hole(start, end, walk);
-+	if (pud_none(pud)) {
-+		ret = hmm_vma_walk_hole(start, end, walk);
-+		goto out_unlock;
-+	}
++		return hmm_vma_walk_hole(start, end, -1, walk);
  
- 	if (pud_huge(pud) && pud_devmap(pud)) {
- 		unsigned long i, npages, pfn;
- 		uint64_t *pfns, cpu_flags;
+ 	if (thp_migration_supported() && is_pmd_migration_entry(pmd)) {
  		bool fault, write_fault;
+@@ -487,7 +487,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
  
--		if (!pud_present(pud))
--			return hmm_vma_walk_hole(start, end, walk);
-+		if (!pud_present(pud)) {
-+			ret = hmm_vma_walk_hole(start, end, walk);
-+			goto out_unlock;
-+		}
- 
- 		i = (addr - range->start) >> PAGE_SHIFT;
- 		npages = (end - addr) >> PAGE_SHIFT;
-@@ -499,16 +508,20 @@ again:
- 		cpu_flags = pud_to_hmm_pfn_flags(range, pud);
- 		hmm_range_need_fault(hmm_vma_walk, pfns, npages,
- 				     cpu_flags, &fault, &write_fault);
--		if (fault || write_fault)
--			return hmm_vma_walk_hole_(addr, end, fault,
--						write_fault, walk);
-+		if (fault || write_fault) {
-+			ret = hmm_vma_walk_hole_(addr, end, fault,
-+						 write_fault, walk);
-+			goto out_unlock;
-+		}
- 
- 		pfn = pud_pfn(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
- 		for (i = 0; i < npages; ++i, ++pfn) {
- 			hmm_vma_walk->pgmap = get_dev_pagemap(pfn,
- 					      hmm_vma_walk->pgmap);
--			if (unlikely(!hmm_vma_walk->pgmap))
--				return -EBUSY;
-+			if (unlikely(!hmm_vma_walk->pgmap)) {
-+				ret = -EBUSY;
-+				goto out_unlock;
-+			}
- 			pfns[i] = hmm_device_entry_from_pfn(range, pfn) |
- 				  cpu_flags;
- 		}
-@@ -517,22 +530,15 @@ again:
- 			hmm_vma_walk->pgmap = NULL;
- 		}
- 		hmm_vma_walk->last = end;
--		return 0;
-+		goto out_unlock;
+ 	pud = READ_ONCE(*pudp);
+ 	if (pud_none(pud)) {
+-		ret = hmm_vma_walk_hole(start, end, walk);
++		ret = hmm_vma_walk_hole(start, end, -1, walk);
+ 		goto out_unlock;
  	}
  
--	split_huge_pud(walk->vma, pudp, addr);
--	if (pud_none(*pudp))
--		goto again;
--
--	pmdp = pmd_offset(pudp, addr);
--	do {
--		next = pmd_addr_end(addr, end);
--		ret = hmm_vma_walk_pmd(pmdp, addr, next, walk);
--		if (ret)
--			return ret;
--	} while (pmdp++, addr = next, addr != end);
-+	/* Ask for the PUD to be split */
-+	walk->action = ACTION_SUBTREE;
+@@ -497,7 +497,7 @@ static int hmm_vma_walk_pud(pud_t *pudp,
+ 		bool fault, write_fault;
  
--	return 0;
-+out_unlock:
-+	spin_unlock(ptl);
-+	return ret;
+ 		if (!pud_present(pud)) {
+-			ret = hmm_vma_walk_hole(start, end, walk);
++			ret = hmm_vma_walk_hole(start, end, -1, walk);
+ 			goto out_unlock;
+ 		}
+ 
+--- a/mm/migrate.c~mm-pagewalk-add-depth-parameter-to-pte_hole
++++ a/mm/migrate.c
+@@ -2151,6 +2151,7 @@ out_unlock:
+ #ifdef CONFIG_DEVICE_PRIVATE
+ static int migrate_vma_collect_hole(unsigned long start,
+ 				    unsigned long end,
++				    __always_unused int depth,
+ 				    struct mm_walk *walk)
+ {
+ 	struct migrate_vma *migrate = walk->private;
+@@ -2195,7 +2196,7 @@ static int migrate_vma_collect_pmd(pmd_t
+ 
+ again:
+ 	if (pmd_none(*pmdp))
+-		return migrate_vma_collect_hole(start, end, walk);
++		return migrate_vma_collect_hole(start, end, -1, walk);
+ 
+ 	if (pmd_trans_huge(*pmdp)) {
+ 		struct page *page;
+@@ -2228,7 +2229,7 @@ again:
+ 				return migrate_vma_collect_skip(start, end,
+ 								walk);
+ 			if (pmd_none(*pmdp))
+-				return migrate_vma_collect_hole(start, end,
++				return migrate_vma_collect_hole(start, end, -1,
+ 								walk);
+ 		}
+ 	}
+--- a/mm/mincore.c~mm-pagewalk-add-depth-parameter-to-pte_hole
++++ a/mm/mincore.c
+@@ -112,6 +112,7 @@ static int __mincore_unmapped_range(unsi
  }
- #else
- #define hmm_vma_walk_pud	NULL
---- a/mm/pagewalk.c~mm-pagewalk-add-p4d_entry-and-pgd_entry
+ 
+ static int mincore_unmapped_range(unsigned long addr, unsigned long end,
++				   __always_unused int depth,
+ 				   struct mm_walk *walk)
+ {
+ 	walk->private += __mincore_unmapped_range(addr, end,
+--- a/mm/pagewalk.c~mm-pagewalk-add-depth-parameter-to-pte_hole
 +++ a/mm/pagewalk.c
-@@ -46,6 +46,9 @@ again:
+@@ -4,6 +4,22 @@
+ #include <linux/sched.h>
+ #include <linux/hugetlb.h>
+ 
++/*
++ * We want to know the real level where a entry is located ignoring any
++ * folding of levels which may be happening. For example if p4d is folded then
++ * a missing entry found at level 1 (p4d) is actually at level 0 (pgd).
++ */
++static int real_depth(int depth)
++{
++	if (depth == 3 && PTRS_PER_PMD == 1)
++		depth = 2;
++	if (depth == 2 && PTRS_PER_PUD == 1)
++		depth = 1;
++	if (depth == 1 && PTRS_PER_P4D == 1)
++		depth = 0;
++	return depth;
++}
++
+ static int walk_pte_range_inner(pte_t *pte, unsigned long addr,
+ 				unsigned long end, struct mm_walk *walk)
+ {
+@@ -49,6 +65,7 @@ static int walk_pmd_range(pud_t *pud, un
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
+ 	int err = 0;
++	int depth = real_depth(3);
+ 
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+@@ -56,7 +73,7 @@ again:
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_none(*pmd) || (!walk->vma && !walk->no_vma)) {
+ 			if (ops->pte_hole)
+-				err = ops->pte_hole(addr, next, walk);
++				err = ops->pte_hole(addr, next, depth, walk);
+ 			if (err)
  				break;
  			continue;
- 		}
-+
-+		walk->action = ACTION_SUBTREE;
-+
- 		/*
- 		 * This implies that each ->pmd_entry() handler
- 		 * needs to know about pmd_trans_huge() pmds
-@@ -55,16 +58,21 @@ again:
- 		if (err)
- 			break;
+@@ -106,6 +123,7 @@ static int walk_pud_range(p4d_t *p4d, un
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
+ 	int err = 0;
++	int depth = real_depth(2);
  
-+		if (walk->action == ACTION_AGAIN)
-+			goto again;
-+
- 		/*
- 		 * Check this here so we only break down trans_huge
- 		 * pages when we _need_ to
- 		 */
--		if (!ops->pte_entry)
-+		if (walk->action == ACTION_CONTINUE ||
-+		    !(ops->pte_entry))
- 			continue;
- 
- 		split_huge_pmd(walk->vma, pmd, addr);
- 		if (pmd_trans_unstable(pmd))
- 			goto again;
-+
- 		err = walk_pte_range(pmd, addr, next, walk);
- 		if (err)
- 			break;
-@@ -93,24 +101,25 @@ static int walk_pud_range(p4d_t *p4d, un
- 			continue;
- 		}
- 
--		if (ops->pud_entry) {
--			spinlock_t *ptl = pud_trans_huge_lock(pud, walk->vma);
-+		walk->action = ACTION_SUBTREE;
- 
--			if (ptl) {
--				err = ops->pud_entry(pud, addr, next, walk);
--				spin_unlock(ptl);
--				if (err)
--					break;
--				continue;
--			}
--		}
-+		if (ops->pud_entry)
-+			err = ops->pud_entry(pud, addr, next, walk);
-+		if (err)
-+			break;
-+
-+		if (walk->action == ACTION_AGAIN)
-+			goto again;
-+
-+		if (walk->action == ACTION_CONTINUE ||
-+		    !(ops->pmd_entry || ops->pte_entry))
-+			continue;
- 
- 		split_huge_pud(walk->vma, pud, addr);
- 		if (pud_none(*pud))
- 			goto again;
- 
--		if (ops->pmd_entry || ops->pte_entry)
--			err = walk_pmd_range(pud, addr, next, walk);
-+		err = walk_pmd_range(pud, addr, next, walk);
- 		if (err)
- 			break;
- 	} while (pud++, addr = next, addr != end);
-@@ -136,7 +145,12 @@ static int walk_p4d_range(pgd_t *pgd, un
+ 	pud = pud_offset(p4d, addr);
+ 	do {
+@@ -113,7 +131,7 @@ static int walk_pud_range(p4d_t *p4d, un
+ 		next = pud_addr_end(addr, end);
+ 		if (pud_none(*pud) || (!walk->vma && !walk->no_vma)) {
+ 			if (ops->pte_hole)
+-				err = ops->pte_hole(addr, next, walk);
++				err = ops->pte_hole(addr, next, depth, walk);
+ 			if (err)
  				break;
  			continue;
- 		}
--		if (ops->pmd_entry || ops->pte_entry)
-+		if (ops->p4d_entry) {
-+			err = ops->p4d_entry(p4d, addr, next, walk);
-+			if (err)
-+				break;
-+		}
-+		if (ops->pud_entry || ops->pmd_entry || ops->pte_entry)
- 			err = walk_pud_range(p4d, addr, next, walk);
- 		if (err)
- 			break;
-@@ -163,7 +177,13 @@ static int walk_pgd_range(unsigned long
+@@ -154,13 +172,14 @@ static int walk_p4d_range(pgd_t *pgd, un
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
+ 	int err = 0;
++	int depth = real_depth(1);
+ 
+ 	p4d = p4d_offset(pgd, addr);
+ 	do {
+ 		next = p4d_addr_end(addr, end);
+ 		if (p4d_none_or_clear_bad(p4d)) {
+ 			if (ops->pte_hole)
+-				err = ops->pte_hole(addr, next, walk);
++				err = ops->pte_hole(addr, next, depth, walk);
+ 			if (err)
  				break;
  			continue;
- 		}
--		if (ops->pmd_entry || ops->pte_entry)
-+		if (ops->pgd_entry) {
-+			err = ops->pgd_entry(pgd, addr, next, walk);
-+			if (err)
-+				break;
-+		}
-+		if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry ||
-+		    ops->pte_entry)
- 			err = walk_p4d_range(pgd, addr, next, walk);
+@@ -192,7 +211,7 @@ static int walk_pgd_range(unsigned long
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none_or_clear_bad(pgd)) {
+ 			if (ops->pte_hole)
+-				err = ops->pte_hole(addr, next, walk);
++				err = ops->pte_hole(addr, next, 0, walk);
+ 			if (err)
+ 				break;
+ 			continue;
+@@ -239,7 +258,7 @@ static int walk_hugetlb_range(unsigned l
+ 		if (pte)
+ 			err = ops->hugetlb_entry(pte, hmask, addr, next, walk);
+ 		else if (ops->pte_hole)
+-			err = ops->pte_hole(addr, next, walk);
++			err = ops->pte_hole(addr, next, -1, walk);
+ 
  		if (err)
  			break;
+@@ -283,7 +302,7 @@ static int walk_page_test(unsigned long
+ 	if (vma->vm_flags & VM_PFNMAP) {
+ 		int err = 1;
+ 		if (ops->pte_hole)
+-			err = ops->pte_hole(start, end, walk);
++			err = ops->pte_hole(start, end, -1, walk);
+ 		return err ? err : 1;
+ 	}
+ 	return 0;
 _
 
 Patches currently in -mm which might be from steven.price@arm.com are
