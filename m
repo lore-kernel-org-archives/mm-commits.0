@@ -1,33 +1,32 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 32/67] sparc: mm: add p?d_leaf() definitions
-Date: Mon, 03 Feb 2020 17:35:36 -0800
-Message-ID: <20200204013536.m3GotR5Ad%akpm@linux-foundation.org>
+Subject: [patch 33/67] x86: mm: add p?d_leaf() definitions
+Date: Mon, 03 Feb 2020 17:35:41 -0800
+Message-ID: <20200204013541.eDVT3EfF1%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35112 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35298 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727044AbgBDBfk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:35:40 -0500
+        id S1727129AbgBDBfo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:35:44 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 From: Steven Price <steven.price@arm.com>
-Subject: sparc: mm: add p?d_leaf() definitions
+Subject: x86: mm: add p?d_leaf() definitions
 
 walk_page_range() is going to be allowed to walk page tables other than
 those of user space.  For this it needs to know when it has reached a
 'leaf' entry in the page tables.  This information is provided by the
 p?d_leaf() functions/macros.
 
-For sparc 64 bit, pmd_large() and pud_large() are already provided, so add
-macros to provide the p?d_leaf names required by the generic code.
+For x86 we already have p?d_large() functions, so simply add macros to
+provide the generic p?d_leaf() names for the generic code.
 
-Link: http://lkml.kernel.org/r/20191218162402.45610-10-steven.price@arm.com
+Link: http://lkml.kernel.org/r/20191218162402.45610-11-steven.price@arm.com
 Signed-off-by: Steven Price <steven.price@arm.com>
-Acked-by: David S. Miller <davem@davemloft.net>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -38,6 +37,7 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David S. Miller <davem@davemloft.net>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -61,25 +61,49 @@ Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_64.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/include/asm/pgtable.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/arch/sparc/include/asm/pgtable_64.h~sparc-mm-add-pd_leaf-definitions
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -683,6 +683,7 @@ static inline unsigned long pte_special(
- 	return pte_val(pte) & _PAGE_SPECIAL;
+--- a/arch/x86/include/asm/pgtable.h~x86-mm-add-pd_leaf-definitions
++++ a/arch/x86/include/asm/pgtable.h
+@@ -239,6 +239,7 @@ static inline unsigned long pgd_pfn(pgd_
+ 	return (pgd_val(pgd) & PTE_PFN_MASK) >> PAGE_SHIFT;
  }
  
-+#define pmd_leaf	pmd_large
- static inline unsigned long pmd_large(pmd_t pmd)
++#define p4d_leaf	p4d_large
+ static inline int p4d_large(p4d_t p4d)
  {
- 	pte_t pte = __pte(pmd_val(pmd));
-@@ -867,6 +868,7 @@ static inline unsigned long pud_page_vad
- /* only used by the stubbed out hugetlb gup code, should never be called */
- #define p4d_page(p4d)			NULL
+ 	/* No 512 GiB pages yet */
+@@ -247,6 +248,7 @@ static inline int p4d_large(p4d_t p4d)
+ 
+ #define pte_page(pte)	pfn_to_page(pte_pfn(pte))
+ 
++#define pmd_leaf	pmd_large
+ static inline int pmd_large(pmd_t pte)
+ {
+ 	return pmd_flags(pte) & _PAGE_PSE;
+@@ -874,6 +876,7 @@ static inline pmd_t *pmd_offset(pud_t *p
+ 	return (pmd_t *)pud_page_vaddr(*pud) + pmd_index(address);
+ }
  
 +#define pud_leaf	pud_large
- static inline unsigned long pud_large(pud_t pud)
+ static inline int pud_large(pud_t pud)
  {
- 	pte_t pte = __pte(pud_val(pud));
+ 	return (pud_val(pud) & (_PAGE_PSE | _PAGE_PRESENT)) ==
+@@ -885,6 +888,7 @@ static inline int pud_bad(pud_t pud)
+ 	return (pud_flags(pud) & ~(_KERNPG_TABLE | _PAGE_USER)) != 0;
+ }
+ #else
++#define pud_leaf	pud_large
+ static inline int pud_large(pud_t pud)
+ {
+ 	return 0;
+@@ -1233,6 +1237,7 @@ static inline bool pgdp_maps_userspace(v
+ 	return (((ptr & ~PAGE_MASK) / sizeof(pgd_t)) < PGD_KERNEL_START);
+ }
+ 
++#define pgd_leaf	pgd_large
+ static inline int pgd_large(pgd_t pgd) { return 0; }
+ 
+ #ifdef CONFIG_PAGE_TABLE_ISOLATION
 _
