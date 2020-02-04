@@ -1,69 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memory_hotplug-cleanup-__remove_pages.patch
- removed from -mm tree
-Date: Tue, 04 Feb 2020 10:40:23 -0800
-Message-ID: <20200204184023.m4OeCPFU8%akpm@linux-foundation.org>
+Subject: [merged]
+ smp_mb__beforeafter_atomic-update-documentation.patch removed from -mm tree
+Date: Tue, 04 Feb 2020 10:40:28 -0800
+Message-ID: <20200204184028.-wkdHhDUO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56230 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56290 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727385AbgBDSkY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:40:24 -0500
+        id S1727456AbgBDSk3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 Feb 2020 13:40:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com, david@redhat.com, gregkh@linuxfoundation.org, logang@deltatee.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pagupta@redhat.com, pasha.tatashin@soleen.com, willy@infradead.org
+To: 1vier1@web.de, dave@stgolabs.net, longman@redhat.com, manfred@colorfullife.com, mm-commits@vger.kernel.org, peterz@infradead.org, will.deacon@arm.com
 
 
 The patch titled
-     Subject: mm/memory_hotplug: cleanup __remove_pages()
+     Subject: smp_mb__{before,after}_atomic(): update Documentation
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-cleanup-__remove_pages.patch
+     smp_mb__beforeafter_atomic-update-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: cleanup __remove_pages()
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: smp_mb__{before,after}_atomic(): update Documentation
 
-Let's drop the basically unused section stuff and simplify.
+When adding the _{acquire|release|relaxed}() variants of some atomic
+operations, it was forgotten to update Documentation/memory_barrier.txt:
 
-Also, let's use a shorter variant to calculate the number of pages to
-the next section boundary.
+smp_mb__{before,after}_atomic() is now intended for all RMW operations
+that do not imply a memory barrier.
 
-Link: http://lkml.kernel.org/r/20191006085646.5768-11-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Pankaj Gupta <pagupta@redhat.com>
+1)
+	smp_mb__before_atomic();
+	atomic_add();
+
+2)
+	smp_mb__before_atomic();
+	atomic_xchg_relaxed();
+
+3)
+	smp_mb__before_atomic();
+	atomic_fetch_add_relaxed();
+
+Invalid would be:
+	smp_mb__before_atomic();
+	atomic_set();
+
+In addition, the patch splits the long sentence into multiple shorter
+sentences.
+
+Link: http://lkml.kernel.org/r/20191020123305.14715-2-manfred@colorfullife.com
+Fixes: 654672d4ba1a ("locking/atomics: Add _{acquire|release|relaxed}() variants of some atomic operations")
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Waiman Long <longman@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: <1vier1@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ Documentation/memory-barriers.txt |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-cleanup-__remove_pages
-+++ a/mm/memory_hotplug.c
-@@ -516,25 +516,20 @@ static void __remove_section(unsigned lo
- void __remove_pages(unsigned long pfn, unsigned long nr_pages,
- 		    struct vmem_altmap *altmap)
- {
-+	const unsigned long end_pfn = pfn + nr_pages;
-+	unsigned long cur_nr_pages;
- 	unsigned long map_offset = 0;
--	unsigned long nr, start_sec, end_sec;
+--- a/Documentation/memory-barriers.txt~smp_mb__beforeafter_atomic-update-documentation
++++ a/Documentation/memory-barriers.txt
+@@ -1868,12 +1868,16 @@ There are some more advanced barrier fun
+  (*) smp_mb__before_atomic();
+  (*) smp_mb__after_atomic();
  
- 	map_offset = vmem_altmap_offset(altmap);
+-     These are for use with atomic (such as add, subtract, increment and
+-     decrement) functions that don't return a value, especially when used for
+-     reference counting.  These functions do not imply memory barriers.
++     These are for use with atomic RMW functions that do not imply memory
++     barriers, but where the code needs a memory barrier. Examples for atomic
++     RMW functions that do not imply are memory barrier are e.g. add,
++     subtract, (failed) conditional operations, _relaxed functions,
++     but not atomic_read or atomic_set. A common example where a memory
++     barrier may be required is when atomic ops are used for reference
++     counting.
  
- 	if (check_pfn_span(pfn, nr_pages, "remove"))
- 		return;
+-     These are also used for atomic bitop functions that do not return a
+-     value (such as set_bit and clear_bit).
++     These are also used for atomic RMW bitop functions that do not imply a
++     memory barrier (such as set_bit and clear_bit).
  
--	start_sec = pfn_to_section_nr(pfn);
--	end_sec = pfn_to_section_nr(pfn + nr_pages - 1);
--	for (nr = start_sec; nr <= end_sec; nr++) {
--		unsigned long pfns;
+      As an example, consider a piece of code that marks an object as being dead
+      and then decrements the object's reference count:
+_
+
+Patches currently in -mm which might be from manfred@colorfullife.com are
