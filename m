@@ -1,58 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pinctrl-fix-pxa2xxc-build-warnings.patch removed
- from -mm tree
-Date: Tue, 04 Feb 2020 10:40:47 -0800
-Message-ID: <20200204184047.Lr1Ovu39g%akpm@linux-foundation.org>
+Subject: [merged] mm-add-generic-pd_leaf-macros.patch removed from
+ -mm tree
+Date: Tue, 04 Feb 2020 10:40:52 -0800
+Message-ID: <20200204184052.Gimgs88xO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56528 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56632 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727471AbgBDSks (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:40:48 -0500
+        id S1727480AbgBDSk4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 Feb 2020 13:40:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rdunlap@infradead.org, robert.jarzmik@free.fr
+To: alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: pinctrl: fix pxa2xx.c build warnings
+     Subject: mm: add generic p?d_leaf() macros
 has been removed from the -mm tree.  Its filename was
-     pinctrl-fix-pxa2xxc-build-warnings.patch
+     mm-add-generic-pd_leaf-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: pinctrl: fix pxa2xx.c build warnings
+From: Steven Price <steven.price@arm.com>
+Subject: mm: add generic p?d_leaf() macros
 
-Add #include of <linux/pinctrl/machine.h> to fix build
-warnings in pinctrl-pxa2xx.c.  Fixes these warnings:
+Patch series "Generic page walk and ptdump", v17.
 
-In file included from ../drivers/pinctrl/pxa/pinctrl-pxa2xx.c:24:0:
-../drivers/pinctrl/pxa/../pinctrl-utils.h:36:8: warning: `enum pinctrl_map_type' declared inside parameter list [enabled by default]
-   enum pinctrl_map_type type);
-        ^
-../drivers/pinctrl/pxa/../pinctrl-utils.h:36:8: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
+Many architectures current have a debugfs file for dumping the kernel page
+tables.  Currently each architecture has to implement custom functions for
+this because the details of walking the page tables used by the kernel are
+different between architectures.
 
-Link: http://lkml.kernel.org/r/0024542e-cba9-8f13-6c18-32d0050a6007@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+This series extends the capabilities of walk_page_range() so that it can
+deal with the page tables of the kernel (which have no VMAs and can
+contain larger huge pages than exist for user space).  A generic PTDUMP
+implementation is the implemented making use of the new functionality of
+walk_page_range() and finally arm64 and x86 are switch to using it,
+removing the custom table walkers.
+
+To enable a generic page table walker to walk the unusual mappings of the
+kernel we need to implement a set of functions which let us know when the
+walker has reached the leaf entry.  After a suggestion from Will Deacon
+I've chosen the name p?d_leaf() as this (hopefully) describes the purpose
+(and is a new name so has no historic baggage).  Some architectures have
+p?d_large macros but this is easily confused with "large pages".
+
+This series ends with a generic PTDUMP implemention for arm64 and x86.
+
+Mostly this is a clean up and there should be very little functional
+change.  The exceptions are:
+
+* arm64 PTDUMP debugfs now displays pages which aren't present (patch 22).
+
+* arm64 has the ability to efficiently process KASAN pages (which
+  previously only x86 implemented).  This means that the combination of
+  KASAN and DEBUG_WX is now useable.
+
+
+This patch (of 23):
+
+Exposing the pud/pgd levels of the page tables to walk_page_range() means
+we may come across the exotic large mappings that come with large areas of
+contiguous memory (such as the kernel's linear map).
+
+For architectures that don't provide all p?d_leaf() macros, provide
+generic do nothing default that are suitable where there cannot be leaf
+pages at that level.  Futher patches will add implementations for
+individual architectures.
+
+The name p?d_leaf() is chosen to minimize the confusion with existing uses
+of "large" pages and "huge" pages which do not necessary mean that the
+entry is a leaf (for example it may be a set of contiguous entries that
+only take 1 TLB slot).  For the purpose of walking the page tables we
+don't need to know how it will be represented in the TLB, but we do need
+to know for sure if it is a leaf of the tree.
+
+Link: http://lkml.kernel.org/r/20191218162402.45610-2-steven.price@arm.com
+Signed-off-by: Steven Price <steven.price@arm.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Liang, Kan" <kan.liang@linux.intel.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: James Hogan <jhogan@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pinctrl/pxa/pinctrl-pxa2xx.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-generic/pgtable.h |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/drivers/pinctrl/pxa/pinctrl-pxa2xx.c~pinctrl-fix-pxa2xxc-build-warnings
-+++ a/drivers/pinctrl/pxa/pinctrl-pxa2xx.c
-@@ -10,6 +10,7 @@
- #include <linux/of.h>
- #include <linux/of_address.h>
- #include <linux/module.h>
-+#include <linux/pinctrl/machine.h>
- #include <linux/pinctrl/pinconf.h>
- #include <linux/pinctrl/pinconf-generic.h>
- #include <linux/pinctrl/pinmux.h>
+--- a/include/asm-generic/pgtable.h~mm-add-generic-pd_leaf-macros
++++ a/include/asm-generic/pgtable.h
+@@ -1238,4 +1238,24 @@ static inline bool arch_has_pfn_modify_c
+ #define mm_pmd_folded(mm)	__is_defined(__PAGETABLE_PMD_FOLDED)
+ #endif
+ 
++/*
++ * p?d_leaf() - true if this entry is a final mapping to a physical address.
++ * This differs from p?d_huge() by the fact that they are always available (if
++ * the architecture supports large pages at the appropriate level) even
++ * if CONFIG_HUGETLB_PAGE is not defined.
++ * Only meaningful when called on a valid entry.
++ */
++#ifndef pgd_leaf
++#define pgd_leaf(x)	0
++#endif
++#ifndef p4d_leaf
++#define p4d_leaf(x)	0
++#endif
++#ifndef pud_leaf
++#define pud_leaf(x)	0
++#endif
++#ifndef pmd_leaf
++#define pmd_leaf(x)	0
++#endif
++
+ #endif /* _ASM_GENERIC_PGTABLE_H */
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from steven.price@arm.com are
