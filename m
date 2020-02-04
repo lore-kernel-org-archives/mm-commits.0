@@ -1,32 +1,33 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 25/67] arc: mm: add p?d_leaf() definitions
-Date: Mon, 03 Feb 2020 17:35:06 -0800
-Message-ID: <20200204013506.Vu71UJ63q%akpm@linux-foundation.org>
+Subject: [patch 26/67] arm: mm: add p?d_leaf() definitions
+Date: Mon, 03 Feb 2020 17:35:10 -0800
+Message-ID: <20200204013510.eingKBsZ-%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33826 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726369AbgBDBfI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:35:08 -0500
+        id S1727129AbgBDBfN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:35:13 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alex@ghiti.fr, aou@eecs.berkeley.edu, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, james.morse@arm.com, jglisse@redhat.com, jhogan@kernel.org, kan.liang@linux.intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, steven.price@arm.com, tglx@linutronix.de, torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org, zong.li@sifive.com
 
 From: Steven Price <steven.price@arm.com>
-Subject: arc: mm: add p?d_leaf() definitions
+Subject: arm: mm: add p?d_leaf() definitions
 
 walk_page_range() is going to be allowed to walk page tables other than
 those of user space.  For this it needs to know when it has reached a
-'leaf' entry in the page tables.  This information will be provided by the
+'leaf' entry in the page tables.  This information is provided by the
 p?d_leaf() functions/macros.
 
-For arc, we only have two levels, so only pmd_leaf() is needed.
+For arm pmd_large() already exists and does what we want.  So simply
+provide the generic pmd_leaf() name.
 
-Link: http://lkml.kernel.org/r/20191218162402.45610-3-steven.price@arm.com
+Link: http://lkml.kernel.org/r/20191218162402.45610-4-steven.price@arm.com
 Signed-off-by: Steven Price <steven.price@arm.com>
-Acked-by: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@armlinux.org.uk>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -52,25 +53,36 @@ Cc: Paul Mackerras <paulus@samba.org>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <linux@armlinux.org.uk>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/pgtable.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/include/asm/pgtable-2level.h |    1 +
+ arch/arm/include/asm/pgtable-3level.h |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/arch/arc/include/asm/pgtable.h~arc-mm-add-pd_leaf-definitions
-+++ a/arch/arc/include/asm/pgtable.h
-@@ -273,6 +273,7 @@ static inline void pmd_set(pmd_t *pmdp,
- #define pmd_none(x)			(!pmd_val(x))
- #define	pmd_bad(x)			((pmd_val(x) & ~PAGE_MASK))
- #define pmd_present(x)			(pmd_val(x))
-+#define pmd_leaf(x)			(pmd_val(x) & _PAGE_HW_SZ)
- #define pmd_clear(xp)			do { pmd_val(*(xp)) = 0; } while (0)
+--- a/arch/arm/include/asm/pgtable-2level.h~arm-mm-add-pd_leaf-definitions
++++ a/arch/arm/include/asm/pgtable-2level.h
+@@ -189,6 +189,7 @@ static inline pmd_t *pmd_offset(pud_t *p
+ }
  
- #define pte_page(pte)		pfn_to_page(pte_pfn(pte))
+ #define pmd_large(pmd)		(pmd_val(pmd) & 2)
++#define pmd_leaf(pmd)		(pmd_val(pmd) & 2)
+ #define pmd_bad(pmd)		(pmd_val(pmd) & 2)
+ #define pmd_present(pmd)	(pmd_val(pmd))
+ 
+--- a/arch/arm/include/asm/pgtable-3level.h~arm-mm-add-pd_leaf-definitions
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -134,6 +134,7 @@
+ #define pmd_sect(pmd)		((pmd_val(pmd) & PMD_TYPE_MASK) == \
+ 						 PMD_TYPE_SECT)
+ #define pmd_large(pmd)		pmd_sect(pmd)
++#define pmd_leaf(pmd)		pmd_sect(pmd)
+ 
+ #define pud_clear(pudp)			\
+ 	do {				\
 _
