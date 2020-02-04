@@ -1,112 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-string-add-strnchrnul.patch removed from -mm
- tree
-Date: Tue, 04 Feb 2020 10:42:23 -0800
-Message-ID: <20200204184223.NLcOK_Qlr%akpm@linux-foundation.org>
+Subject: [merged] bitops-more-bits_to_-macros.patch removed from
+ -mm tree
+Date: Tue, 04 Feb 2020 10:42:25 -0800
+Message-ID: <20200204184225.qw1KyESRY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59208 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59258 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727548AbgBDSmY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:42:24 -0500
+        id S1727563AbgBDSm0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 4 Feb 2020 13:42:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: acme@redhat.com, amritha.nambiar@intel.com, andriy.shevchenko@linux.intel.com, chris@chris-wilson.co.uk, keescook@chromium.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, mszeredi@redhat.com, steffen.klassert@secunet.com, tobin@kernel.org, vineet.gupta1@synopsys.com, will.deacon@arm.com, willemb@google.com, willy@infradead.org, yury.norov@gmail.com
 
 
 The patch titled
-     Subject: lib/string: add strnchrnul()
+     Subject: bitops: more BITS_TO_* macros
 has been removed from the -mm tree.  Its filename was
-     lib-string-add-strnchrnul.patch
+     bitops-more-bits_to_-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: lib/string: add strnchrnul()
+Subject: bitops: more BITS_TO_* macros
 
-Patch series "lib: rework bitmap_parse", v5.
+Introduce BITS_TO_U64, BITS_TO_U32 and BITS_TO_BYTES as they are handy in
+the following patches (BITS_TO_U32 specifically).  Reimplement tools/
+version of the macros according to the kernel implementation.
 
-Similarl to the recently revisited bitmap_parselist(), bitmap_parse() is
-ineffective and overcomplicated.  This series reworks it, aligns its
-interface with bitmap_parselist() and makes it simpler to use.
+Also fix indentation for BITS_PER_TYPE definition.
 
-The series also adds a test for the function and fixes usage of it in
-cpumask_parse() according to the new design - drops the calculating of
-length of an input string.
-
-bitmap_parse() takes the array of numbers to be put into the map in the BE
-order which is reversed to the natural LE order for bitmaps.  For example,
-to construct bitmap containing a bit on the position 42, we have to put a
-line '400,0'.  Current implementation reads chunk one by one from the
-beginning ('400' before '0') and makes bitmap shift after each successful
-parse.  It makes the complexity of the whole process as O(n^2).  We can do
-it in reverse direction ('0' before '400') and avoid shifting, but it
-requires reverse parsing helpers.
-
-
-This patch (of 7):
-
-New function works like strchrnul() with a length limited string.
-
-Link: http://lkml.kernel.org/r/20200102043031.30357-2-yury.norov@gmail.com
+Link: http://lkml.kernel.org/r/20200102043031.30357-3-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Amritha Nambiar <amritha.nambiar@intel.com>
-Cc: Willem de Bruijn <willemb@google.com>
+Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: "Tobin C . Harding" <tobin@kernel.org>
-Cc: Will Deacon <will.deacon@arm.com>
 Cc: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Vineet Gupta <vineet.gupta1@synopsys.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: "Tobin C . Harding" <tobin@kernel.org>
+Cc: Vineet Gupta <vineet.gupta1@synopsys.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Willem de Bruijn <willemb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |    1 +
- lib/string.c           |   17 +++++++++++++++++
- 2 files changed, 18 insertions(+)
+ include/linux/bitops.h       |    4 +++-
+ tools/include/linux/bitops.h |    9 +++++----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
---- a/include/linux/string.h~lib-string-add-strnchrnul
-+++ a/include/linux/string.h
-@@ -62,6 +62,7 @@ extern char * strchr(const char *,int);
- #ifndef __HAVE_ARCH_STRCHRNUL
- extern char * strchrnul(const char *,int);
- #endif
-+extern char * strnchrnul(const char *, size_t, int);
- #ifndef __HAVE_ARCH_STRNCHR
- extern char * strnchr(const char *, size_t, int);
- #endif
---- a/lib/string.c~lib-string-add-strnchrnul
-+++ a/lib/string.c
-@@ -434,6 +434,23 @@ char *strchrnul(const char *s, int c)
- EXPORT_SYMBOL(strchrnul);
+--- a/include/linux/bitops.h~bitops-more-bits_to_-macros
++++ a/include/linux/bitops.h
+@@ -11,8 +11,10 @@
+ #  define aligned_byte_mask(n) (~0xffUL << (BITS_PER_LONG - 8 - 8*(n)))
  #endif
  
-+/**
-+ * strnchrnul - Find and return a character in a length limited string,
-+ * or end of string
-+ * @s: The string to be searched
-+ * @count: The number of characters to be searched
-+ * @c: The character to search for
-+ *
-+ * Returns pointer to the first occurrence of 'c' in s. If c is not found,
-+ * then return a pointer to the last character of the string.
-+ */
-+char *strnchrnul(const char *s, size_t count, int c)
-+{
-+	while (count-- && *s && *s != (char)c)
-+		s++;
-+	return (char *)s;
-+}
-+
- #ifndef __HAVE_ARCH_STRRCHR
- /**
-  * strrchr - Find the last occurrence of a character in a string
+-#define BITS_PER_TYPE(type) (sizeof(type) * BITS_PER_BYTE)
++#define BITS_PER_TYPE(type)	(sizeof(type) * BITS_PER_BYTE)
+ #define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_TYPE(long))
++#define BITS_TO_U64(nr)		DIV_ROUND_UP(nr, BITS_PER_TYPE(u64))
++#define BITS_TO_U32(nr)		DIV_ROUND_UP(nr, BITS_PER_TYPE(u32))
+ #define BITS_TO_BYTES(nr)	DIV_ROUND_UP(nr, BITS_PER_TYPE(char))
+ 
+ extern unsigned int __sw_hweight8(unsigned int w);
+--- a/tools/include/linux/bitops.h~bitops-more-bits_to_-macros
++++ a/tools/include/linux/bitops.h
+@@ -14,10 +14,11 @@
+ #include <linux/bits.h>
+ #include <linux/compiler.h>
+ 
+-#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
+-#define BITS_TO_U64(nr)		DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(u64))
+-#define BITS_TO_U32(nr)		DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(u32))
+-#define BITS_TO_BYTES(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE)
++#define BITS_PER_TYPE(type)	(sizeof(type) * BITS_PER_BYTE)
++#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_TYPE(long))
++#define BITS_TO_U64(nr)		DIV_ROUND_UP(nr, BITS_PER_TYPE(u64))
++#define BITS_TO_U32(nr)		DIV_ROUND_UP(nr, BITS_PER_TYPE(u32))
++#define BITS_TO_BYTES(nr)	DIV_ROUND_UP(nr, BITS_PER_TYPE(char))
+ 
+ extern unsigned int __sw_hweight8(unsigned int w);
+ extern unsigned int __sw_hweight16(unsigned int w);
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
