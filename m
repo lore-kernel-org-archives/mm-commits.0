@@ -1,133 +1,121 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged]
- kdb-get-rid-of-confusing-diag-msg-from-rd-if-current-task-has-no-regs.patch
- removed from -mm tree
-Date: Mon, 03 Feb 2020 17:48:45 -0800
-Message-ID: <20200204014845.oZoLstrLM%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Mon, 03 Feb 2020 17:49:22 -0800
+Message-ID: <20200204014922.5PqGwiZ-k%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52074 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52700 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726872AbgBDBss (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Feb 2020 20:48:48 -0500
+        id S1726872AbgBDBtY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Feb 2020 20:49:24 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bigeasy@linutronix.de, daniel.thompson@linaro.org, dianders@chromium.org, ebiederm@xmission.com, f4bug@amsat.org, fancer.lancer@gmail.com, jason.wessel@windriver.com, jhogan@kernel.org, mm-commits@vger.kernel.org, paul.burton@mips.com, qiaochong@loongson.cn, ralf@linux-mips.org, rppt@linux.ibm.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdb: get rid of confusing diag msg from "rd" if current task has no regs
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     kdb-get-rid-of-confusing-diag-msg-from-rd-if-current-task-has-no-regs.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Douglas Anderson <dianders@chromium.org>
-Subject: kdb: get rid of confusing diag msg from "rd" if current task has no regs
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-If you switch to a sleeping task with the "pid" command and then type
-"rd", kdb tells you this:
-
-  No current kdb registers.  You may need to select another task
-  diag: -17: Invalid register name
-
-The first message makes sense, but not the second.  Fix it by just
-returning 0 after commands accessing the current registers finish if we've
-already printed the "No current kdb registers" error.
-
-While fixing kdb_rd(), change the function to use "if" rather than
-"ifdef".  It cleans the function up a bit and any modern compiler will
-have no trouble handling still producing good code.
-
-Link: http://lkml.kernel.org/r/20191109111624.5.I121f4c6f0c19266200bf6ef003de78841e5bfc3d@changeid
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Cc: Paul Burton <paul.burton@mips.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Chong Qiao <qiaochong@loongson.cn>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: James Hogan <jhogan@kernel.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Philippe Mathieu-Daud <f4bug@amsat.org>
-Cc: Serge Semin <fancer.lancer@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/debug/kdb/kdb_main.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ fs/f2fs/data.c                  |   13 -------------
+ fs/jbd2/journal.c               |    3 ---
+ fs/xfs/libxfs/xfs_attr_remote.c |   15 ---------------
+ init/main.c                     |   10 ----------
+ 4 files changed, 41 deletions(-)
 
---- a/kernel/debug/kdb/kdb_main.c~kdb-get-rid-of-confusing-diag-msg-from-rd-if-current-task-has-no-regs
-+++ a/kernel/debug/kdb/kdb_main.c
-@@ -543,9 +543,8 @@ int kdbgetaddrarg(int argc, const char *
- 		if (diag)
- 			return diag;
- 	} else if (symname[0] == '%') {
--		diag = kdb_check_regs();
--		if (diag)
--			return diag;
-+		if (kdb_check_regs())
-+			return 0;
- 		/* Implement register values with % at a later time as it is
- 		 * arch optional.
- 		 */
-@@ -1836,8 +1835,7 @@ static int kdb_go(int argc, const char *
-  */
- static int kdb_rd(int argc, const char **argv)
- {
--	int len = kdb_check_regs();
--#if DBG_MAX_REG_NUM > 0
-+	int len = 0;
- 	int i;
- 	char *rname;
- 	int rsize;
-@@ -1846,8 +1844,14 @@ static int kdb_rd(int argc, const char *
- 	u16 reg16;
- 	u8 reg8;
+--- a/fs/f2fs/data.c~linux-next-git-rejects
++++ a/fs/f2fs/data.c
+@@ -2815,7 +2815,6 @@ readd:
+ 					done = 1;
+ 					break;
+ 				}
+-<<<<<<< HEAD
  
--	if (len)
--		return len;
-+	if (kdb_check_regs())
-+		return 0;
-+
-+	/* Fallback to Linux showregs() if we don't have DBG_MAX_REG_NUM */
-+	if (DBG_MAX_REG_NUM <= 0) {
-+		kdb_dumpregs(kdb_current_regs);
-+		return 0;
-+	}
+ 				if (!f2fs_cluster_can_merge_page(&cc,
+ 								page->index)) {
+@@ -2826,18 +2825,6 @@ readd:
+ 					goto result;
+ 				}
  
- 	for (i = 0; i < DBG_MAX_REG_NUM; i++) {
- 		rsize = dbg_reg_def[i].size * 2;
-@@ -1889,12 +1893,7 @@ static int kdb_rd(int argc, const char *
+-=======
+-
+-				if (!f2fs_cluster_can_merge_page(&cc,
+-								page->index)) {
+-					ret = f2fs_write_multi_pages(&cc,
+-						&submitted, wbc, io_type);
+-					if (!ret)
+-						need_readd = true;
+-					goto result;
+-				}
+-
+->>>>>>> linux-next/akpm-base
+ 				if (unlikely(f2fs_cp_error(sbi)))
+ 					goto lock_page;
+ 
+--- a/fs/jbd2/journal.c~linux-next-git-rejects
++++ a/fs/jbd2/journal.c
+@@ -806,12 +806,9 @@ int jbd2_journal_bmap(journal_t *journal
+ 			       __func__, blocknr, journal->j_devname);
+ 			err = -EIO;
+ 			jbd2_journal_abort(journal, err);
+-<<<<<<< HEAD
+-=======
+ 
+ 		} else {
+ 			*retp = block;
+->>>>>>> linux-next/akpm-base
  		}
- 	}
- 	kdb_printf("\n");
--#else
--	if (len)
--		return len;
  
--	kdb_dumpregs(kdb_current_regs);
--#endif
- 	return 0;
- }
+ 	} else {
+--- a/fs/xfs/libxfs/xfs_attr_remote.c~linux-next-git-rejects
++++ a/fs/xfs/libxfs/xfs_attr_remote.c
+@@ -418,24 +418,9 @@ xfs_attr_rmtval_get(
+ 			       (map[i].br_startblock != HOLESTARTBLOCK));
+ 			dblkno = XFS_FSB_TO_DADDR(mp, map[i].br_startblock);
+ 			dblkcnt = XFS_FSB_TO_BB(mp, map[i].br_blockcount);
+-<<<<<<< HEAD
+-			bp = xfs_buf_read(mp->m_ddev_targp, dblkno, dblkcnt, 0,
+-					&xfs_attr3_rmt_buf_ops);
+-			if (!bp)
+-				return -ENOMEM;
+-			error = bp->b_error;
+-			if (error) {
+-				xfs_buf_ioerror_alert(bp, __func__);
+-				xfs_buf_relse(bp);
+-
+-				/* bad CRC means corrupted metadata */
+-				if (error == -EFSBADCRC)
+-					error = -EFSCORRUPTED;
+-=======
+ 			error = xfs_buf_read(mp->m_ddev_targp, dblkno, dblkcnt,
+ 					0, &bp, &xfs_attr3_rmt_buf_ops);
+ 			if (error)
+->>>>>>> linux-next/akpm-base
+ 				return error;
+ 			}
  
-@@ -1928,9 +1927,8 @@ static int kdb_rm(int argc, const char *
- 	if (diag)
- 		return diag;
+--- a/init/main.c~linux-next-git-rejects
++++ a/init/main.c
+@@ -1161,17 +1161,7 @@ static const char *initcall_level_names[
+ 	"late",
+ };
  
--	diag = kdb_check_regs();
--	if (diag)
--		return diag;
-+	if (kdb_check_regs())
-+		return 0;
- 
- 	diag = KDB_BADREG;
- 	for (i = 0; i < DBG_MAX_REG_NUM; i++) {
-_
-
-Patches currently in -mm which might be from dianders@chromium.org are
+-<<<<<<< HEAD
+-static int __init ignore_unknown_bootoption(char *param, char *val,
+-			       const char *unused, void *arg)
+-{
+-	return 0;
+-}
