@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- get_maintainer-remove-uses-of-p-for-maintainer-name.patch added to -mm tree
-Date: Sun, 09 Feb 2020 20:29:49 -0800
-Message-ID: <20200210042949.iKYjF6LK8%akpm@linux-foundation.org>
+ scripts-get_maintainerpl-deprioritize-old-fixes-addresses.patch added to
+ -mm tree
+Date: Sun, 09 Feb 2020 20:37:40 -0800
+Message-ID: <20200210043740.RN2WpXaLa%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45364 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45872 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726950AbgBJE3w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Feb 2020 23:29:52 -0500
+        id S1726950AbgBJEhm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Feb 2020 23:37:42 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, dan.j.william@intel.com, joe@perches.com, mm-commits@vger.kernel.org
+To: agross@kernel.org, bjorn.andersson@linaro.org, dan.carpenter@oracle.com, dianders@chromium.org, gregkh@linuxfoundation.org, joe@perches.com, keescook@chromium.org, mm-commits@vger.kernel.org, sboyd@kernel.org
 
 
 The patch titled
-     Subject: get_maintainer: Remove uses of P: for maintainer name
+     Subject: scripts/get_maintainer.pl: deprioritize old Fixes: addresses
 has been added to the -mm tree.  Its filename is
-     get_maintainer-remove-uses-of-p-for-maintainer-name.patch
+     scripts-get_maintainerpl-deprioritize-old-fixes-addresses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/get_maintainer-remove-uses-of-p-for-maintainer-name.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-get_maintainerpl-deprioritize-old-fixes-addresses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/get_maintainer-remove-uses-of-p-for-maintainer-name.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-get_maintainerpl-deprioritize-old-fixes-addresses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,66 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: get_maintainer: Remove uses of P: for maintainer name
+From: Douglas Anderson <dianders@chromium.org>
+Subject: scripts/get_maintainer.pl: deprioritize old Fixes: addresses
 
-commit 1ca84ed6425f ("MAINTAINERS: Reclaim the P: tag for Maintainer Entry
-Profile") changed the use of the "P:" tag from "Person" to "Profile (ie:
-special subsystem coding styles and characteristics)"
+Recently, I found that get_maintainer was causing me to send emails to the
+old addresses for maintainers.  Since I usually just trust the output of
+get_maintainer to know the right email address, I didn't even look
+carefully and fired off two patch series that went to the wrong place. 
+Oops.
 
-Change how get_maintainer.pl parses the "P:" tag to match.
+The problem was introduced recently when trying to add signatures from
+Fixes.  The problem was that these email addresses were added too early in
+the process of compiling our list of places to send.  Things added to the
+list earlier are considered more canonical and when we later added
+maintainer entries we ended up deduplicating to the old address.
 
-Link: http://lkml.kernel.org/r/ca53823fc5d25c0be32ad937d0207a0589c08643.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Dan Williams <dan.j.william@intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Here are two examples using mainline commits (to make it easier to
+replicate) for the two maintainers that I messed up recently:
+
+$ git format-patch d8549bcd0529~..d8549bcd0529
+$ ./scripts/get_maintainer.pl 0001-clk-Add-clk_hw*.patch | grep Boyd
+Stephen Boyd <sboyd@codeaurora.org>...
+
+$ git format-patch 6d1238aa3395~..6d1238aa3395
+$ ./scripts/get_maintainer.pl 0001-arm64-dts-qcom-qcs404*.patch | grep Andy
+Andy Gross <andy.gross@linaro.org>
+
+Let's move the adding of addresses from Fixes: to the end since the
+email addresses from these are much more likely to be older.
+
+After this patch the above examples get the right addresses for the
+two examples.
+
+Link: http://lkml.kernel.org/r/20200127095001.1.I41fba9f33590bfd92cd01960161d8384268c6569@changeid
+Fixes: 2f5bd343694e ("scripts/get_maintainer.pl: add signatures from Fixes: <badcommit> lines in commit message")
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Stephen Boyd <sboyd@kernel.org>
+Cc: Bjorn Andersson <bjorn.andersson@linaro.org>
+Cc: Andy Gross <agross@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ scripts/get_maintainer.pl |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/scripts/get_maintainer.pl~get_maintainer-remove-uses-of-p-for-maintainer-name
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-deprioritize-old-fixes-addresses
 +++ a/scripts/get_maintainer.pl
-@@ -1341,35 +1341,11 @@ sub add_categories {
- 		    }
- 		}
- 	    } elsif ($ptype eq "M") {
--		my ($name, $address) = parse_email($pvalue);
--		if ($name eq "") {
--		    if ($i > 0) {
--			my $tv = $typevalue[$i - 1];
--			if ($tv =~ m/^([A-Z]):\s*(.*)/) {
--			    if ($1 eq "P") {
--				$name = $2;
--				$pvalue = format_email($name, $address, $email_usename);
--			    }
--			}
--		    }
--		}
- 		if ($email_maintainer) {
- 		    my $role = get_maintainer_role($i);
- 		    push_email_addresses($pvalue, $role);
- 		}
- 	    } elsif ($ptype eq "R") {
--		my ($name, $address) = parse_email($pvalue);
--		if ($name eq "") {
--		    if ($i > 0) {
--			my $tv = $typevalue[$i - 1];
--			if ($tv =~ m/^([A-Z]):\s*(.*)/) {
--			    if ($1 eq "P") {
--				$name = $2;
--				$pvalue = format_email($name, $address, $email_usename);
--			    }
--			}
--		    }
--		}
- 		if ($email_reviewer) {
- 		    my $subsystem = get_subsystem_name($i);
- 		    push_email_addresses($pvalue, "reviewer:$subsystem");
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-get_maintainer-remove-uses-of-p-for-maintainer-name.patch
-string-add-stracpy-and-stracpy_pad-mechanisms.patch
+@@ -932,10 +932,6 @@ sub get_maintainers {
+ 	}
+     }
+ 
+-    foreach my $fix (@fixes) {
+-	vcs_add_commit_signers($fix, "blamed_fixes");
+-    }
