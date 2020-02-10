@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-fix-a-data-race-in-scan-count.patch added
- to -mm tree
-Date: Sun, 09 Feb 2020 20:23:12 -0800
-Message-ID: <20200210042312.c77OgxMdQ%akpm@linux-foundation.org>
+Subject: +
+ get_maintainer-remove-uses-of-p-for-maintainer-name.patch added to -mm tree
+Date: Sun, 09 Feb 2020 20:29:49 -0800
+Message-ID: <20200210042949.iKYjF6LK8%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44510 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45364 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726950AbgBJEXO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Feb 2020 23:23:14 -0500
+        id S1726950AbgBJE3w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Feb 2020 23:29:52 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+To: corbet@lwn.net, dan.j.william@intel.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: fix a data race in scan count
+     Subject: get_maintainer: Remove uses of P: for maintainer name
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-fix-a-data-race-in-scan-count.patch
+     get_maintainer-remove-uses-of-p-for-maintainer-name.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-a-data-race-in-scan-count.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/get_maintainer-remove-uses-of-p-for-maintainer-name.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-a-data-race-in-scan-count.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/get_maintainer-remove-uses-of-p-for-maintainer-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,95 +38,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: mm/memcontrol: fix a data race in scan count
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer: Remove uses of P: for maintainer name
 
-struct mem_cgroup_per_node mz.lru_zone_size[zone_idx][lru] could be
-accessed concurrently as noticed by KCSAN,
+commit 1ca84ed6425f ("MAINTAINERS: Reclaim the P: tag for Maintainer Entry
+Profile") changed the use of the "P:" tag from "Person" to "Profile (ie:
+special subsystem coding styles and characteristics)"
 
- BUG: KCSAN: data-race in lruvec_lru_size / mem_cgroup_update_lru_size
+Change how get_maintainer.pl parses the "P:" tag to match.
 
- write to 0xffff9c804ca285f8 of 8 bytes by task 50951 on cpu 12:
-  mem_cgroup_update_lru_size+0x11c/0x1d0
-  mem_cgroup_update_lru_size at mm/memcontrol.c:1266
-  isolate_lru_pages+0x6a9/0xf30
-  shrink_active_list+0x123/0xcc0
-  shrink_lruvec+0x8fd/0x1380
-  shrink_node+0x317/0xd80
-  do_try_to_free_pages+0x1f7/0xa10
-  try_to_free_pages+0x26c/0x5e0
-  __alloc_pages_slowpath+0x458/0x1290
-  __alloc_pages_nodemask+0x3bb/0x450
-  alloc_pages_vma+0x8a/0x2c0
-  do_anonymous_page+0x170/0x700
-  __handle_mm_fault+0xc9f/0xd00
-  handle_mm_fault+0xfc/0x2f0
-  do_page_fault+0x263/0x6f9
-  page_fault+0x34/0x40
-
- read to 0xffff9c804ca285f8 of 8 bytes by task 50964 on cpu 95:
-  lruvec_lru_size+0xbb/0x270
-  mem_cgroup_get_zone_lru_size at include/linux/memcontrol.h:536
-  (inlined by) lruvec_lru_size at mm/vmscan.c:326
-  shrink_lruvec+0x1d0/0x1380
-  shrink_node+0x317/0xd80
-  do_try_to_free_pages+0x1f7/0xa10
-  try_to_free_pages+0x26c/0x5e0
-  __alloc_pages_slowpath+0x458/0x1290
-  __alloc_pages_nodemask+0x3bb/0x450
-  alloc_pages_current+0xa6/0x120
-  alloc_slab_page+0x3b1/0x540
-  allocate_slab+0x70/0x660
-  new_slab+0x46/0x70
-  ___slab_alloc+0x4ad/0x7d0
-  __slab_alloc+0x43/0x70
-  kmem_cache_alloc+0x2c3/0x420
-  getname_flags+0x4c/0x230
-  getname+0x22/0x30
-  do_sys_openat2+0x205/0x3b0
-  do_sys_open+0x9a/0xf0
-  __x64_sys_openat+0x62/0x80
-  do_syscall_64+0x91/0xb47
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
- Reported by Kernel Concurrency Sanitizer on:
- CPU: 95 PID: 50964 Comm: cc1 Tainted: G        W  O L    5.5.0-next-20200204+ #6
- Hardware name: HPE ProLiant DL385 Gen10/ProLiant DL385 Gen10, BIOS A40 07/10/2019
-
-The write is under lru_lock, but the read is done as lockless.  The scan
-count is used to determine how aggressively the anon and file LRU lists
-should be scanned.  Load tearing could generate an inefficient heuristic,
-so fix it by adding READ_ONCE() for the read.
-
-Link: http://lkml.kernel.org/r/20200206034945.2481-1-cai@lca.pw
-Signed-off-by: Qian Cai <cai@lca.pw>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/ca53823fc5d25c0be32ad937d0207a0589c08643.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Dan Williams <dan.j.william@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/get_maintainer.pl |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-fix-a-data-race-in-scan-count
-+++ a/include/linux/memcontrol.h
-@@ -533,7 +533,7 @@ unsigned long mem_cgroup_get_zone_lru_si
- 	struct mem_cgroup_per_node *mz;
- 
- 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
--	return mz->lru_zone_size[zone_idx][lru];
-+	return READ_ONCE(mz->lru_zone_size[zone_idx][lru]);
- }
- 
- void mem_cgroup_handle_over_high(void);
+--- a/scripts/get_maintainer.pl~get_maintainer-remove-uses-of-p-for-maintainer-name
++++ a/scripts/get_maintainer.pl
+@@ -1341,35 +1341,11 @@ sub add_categories {
+ 		    }
+ 		}
+ 	    } elsif ($ptype eq "M") {
+-		my ($name, $address) = parse_email($pvalue);
+-		if ($name eq "") {
+-		    if ($i > 0) {
+-			my $tv = $typevalue[$i - 1];
+-			if ($tv =~ m/^([A-Z]):\s*(.*)/) {
+-			    if ($1 eq "P") {
+-				$name = $2;
+-				$pvalue = format_email($name, $address, $email_usename);
+-			    }
+-			}
+-		    }
+-		}
+ 		if ($email_maintainer) {
+ 		    my $role = get_maintainer_role($i);
+ 		    push_email_addresses($pvalue, $role);
+ 		}
+ 	    } elsif ($ptype eq "R") {
+-		my ($name, $address) = parse_email($pvalue);
+-		if ($name eq "") {
+-		    if ($i > 0) {
+-			my $tv = $typevalue[$i - 1];
+-			if ($tv =~ m/^([A-Z]):\s*(.*)/) {
+-			    if ($1 eq "P") {
+-				$name = $2;
+-				$pvalue = format_email($name, $address, $email_usename);
+-			    }
+-			}
+-		    }
+-		}
+ 		if ($email_reviewer) {
+ 		    my $subsystem = get_subsystem_name($i);
+ 		    push_email_addresses($pvalue, "reviewer:$subsystem");
 _
 
-Patches currently in -mm which might be from cai@lca.pw are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-swapfile-fix-and-annotate-various-data-races.patch
-mm-memcontrol-fix-a-data-race-in-scan-count.patch
-mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-mm-frontswap-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races.patch
-mm-swap_state-mark-various-intentional-data-races.patch
+get_maintainer-remove-uses-of-p-for-maintainer-name.patch
+string-add-stracpy-and-stracpy_pad-mechanisms.patch
