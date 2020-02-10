@@ -1,31 +1,27 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- scripts-get_maintainerpl-deprioritize-old-fixes-addresses.patch added to
- -mm tree
-Date: Sun, 09 Feb 2020 20:37:40 -0800
-Message-ID: <20200210043740.RN2WpXaLa%akpm@linux-foundation.org>
-References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Mon, 10 Feb 2020 13:58:38 -0800
+Message-ID: <20200210215838.9lAjuyf-h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45872 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53346 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726950AbgBJEhm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Feb 2020 23:37:42 -0500
-In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
+        id S1727331AbgBJV6l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 10 Feb 2020 16:58:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agross@kernel.org, bjorn.andersson@linaro.org, dan.carpenter@oracle.com, dianders@chromium.org, gregkh@linuxfoundation.org, joe@perches.com, keescook@chromium.org, mm-commits@vger.kernel.org, sboyd@kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/get_maintainer.pl: deprioritize old Fixes: addresses
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-deprioritize-old-fixes-addresses.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-get_maintainerpl-deprioritize-old-fixes-addresses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-get_maintainerpl-deprioritize-old-fixes-addresses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +35,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Douglas Anderson <dianders@chromium.org>
-Subject: scripts/get_maintainer.pl: deprioritize old Fixes: addresses
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Recently, I found that get_maintainer was causing me to send emails to the
-old addresses for maintainers.  Since I usually just trust the output of
-get_maintainer to know the right email address, I didn't even look
-carefully and fired off two patch series that went to the wrong place. 
-Oops.
-
-The problem was introduced recently when trying to add signatures from
-Fixes.  The problem was that these email addresses were added too early in
-the process of compiling our list of places to send.  Things added to the
-list earlier are considered more canonical and when we later added
-maintainer entries we ended up deduplicating to the old address.
-
-Here are two examples using mainline commits (to make it easier to
-replicate) for the two maintainers that I messed up recently:
-
-$ git format-patch d8549bcd0529~..d8549bcd0529
-$ ./scripts/get_maintainer.pl 0001-clk-Add-clk_hw*.patch | grep Boyd
-Stephen Boyd <sboyd@codeaurora.org>...
-
-$ git format-patch 6d1238aa3395~..6d1238aa3395
-$ ./scripts/get_maintainer.pl 0001-arm64-dts-qcom-qcs404*.patch | grep Andy
-Andy Gross <andy.gross@linaro.org>
-
-Let's move the adding of addresses from Fixes: to the end since the
-email addresses from these are much more likely to be older.
-
-After this patch the above examples get the right addresses for the
-two examples.
-
-Link: http://lkml.kernel.org/r/20200127095001.1.I41fba9f33590bfd92cd01960161d8384268c6569@changeid
-Fixes: 2f5bd343694e ("scripts/get_maintainer.pl: add signatures from Fixes: <badcommit> lines in commit message")
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Stephen Boyd <sboyd@kernel.org>
-Cc: Bjorn Andersson <bjorn.andersson@linaro.org>
-Cc: Andy Gross <agross@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/irqchip/irq-gic-v3-its.c |   69 -----------------------------
+ 1 file changed, 69 deletions(-)
 
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-deprioritize-old-fixes-addresses
-+++ a/scripts/get_maintainer.pl
-@@ -932,10 +932,6 @@ sub get_maintainers {
- 	}
-     }
+--- a/drivers/irqchip/irq-gic-v3-its.c~linux-next-git-rejects
++++ a/drivers/irqchip/irq-gic-v3-its.c
+@@ -2443,75 +2443,6 @@ static u64 inherit_vpe_l1_table_from_rd(
+ 	return 0;
+ }
  
--    foreach my $fix (@fixes) {
--	vcs_add_commit_signers($fix, "blamed_fixes");
--    }
+-<<<<<<< HEAD
+-static bool allocate_vpe_l2_table(int cpu, u32 id)
+-{
+-	void __iomem *base = gic_data_rdist_cpu(cpu)->rd_base;
+-	unsigned int psz, esz, idx, npg, gpsz;
+-	u64 val;
+-	struct page *page;
+-	__le64 *table;
+-
+-	if (!gic_rdists->has_rvpeid)
+-		return true;
+-
+-	val  = gicr_read_vpropbaser(base + SZ_128K + GICR_VPROPBASER);
+-
+-	esz  = FIELD_GET(GICR_VPROPBASER_4_1_ENTRY_SIZE, val) + 1;
+-	gpsz = FIELD_GET(GICR_VPROPBASER_4_1_PAGE_SIZE, val);
+-	npg  = FIELD_GET(GICR_VPROPBASER_4_1_SIZE, val) + 1;
+-
+-	switch (gpsz) {
+-	default:
+-		WARN_ON(1);
+-		/* fall through */
+-	case GIC_PAGE_SIZE_4K:
+-		psz = SZ_4K;
+-		break;
+-	case GIC_PAGE_SIZE_16K:
+-		psz = SZ_16K;
+-		break;
+-	case GIC_PAGE_SIZE_64K:
+-		psz = SZ_64K;
+-		break;
+-	}
+-
+-	/* Don't allow vpe_id that exceeds single, flat table limit */
+-	if (!(val & GICR_VPROPBASER_4_1_INDIRECT))
+-		return (id < (npg * psz / (esz * SZ_8)));
+-
+-	/* Compute 1st level table index & check if that exceeds table limit */
+-	idx = id >> ilog2(psz / (esz * SZ_8));
+-	if (idx >= (npg * psz / GITS_LVL1_ENTRY_SIZE))
+-		return false;
+-
+-	table = gic_data_rdist_cpu(cpu)->vpe_l1_base;
+-
+-	/* Allocate memory for 2nd level table */
+-	if (!table[idx]) {
+-		page = alloc_pages(GFP_KERNEL | __GFP_ZERO, get_order(psz));
+-		if (!page)
+-			return false;
+-
+-		/* Flush Lvl2 table to PoC if hw doesn't support coherency */
+-		if (!(val & GICR_VPROPBASER_SHAREABILITY_MASK))
+-			gic_flush_dcache_to_poc(page_address(page), psz);
+-
+-		table[idx] = cpu_to_le64(page_to_phys(page) | GITS_BASER_VALID);
+-
+-		/* Flush Lvl1 entry to PoC if hw doesn't support coherency */
+-		if (!(val & GICR_VPROPBASER_SHAREABILITY_MASK))
+-			gic_flush_dcache_to_poc(table + idx, GITS_LVL1_ENTRY_SIZE);
+-
+-		/* Ensure updated table contents are visible to RD hardware */
+-		dsb(sy);
+-	}
+-
+-	return true;
+-}
