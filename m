@@ -1,92 +1,105 @@
-From: akpm@linux-foundation.org
-Subject: [merged]
- arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch removed
- from -mm tree
-Date: Tue, 04 Feb 2020 10:42:40 -0800
-Message-ID: <20200204184240.f6qTQJrAI%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-dont-prepare-anon_vma-if-vma-has-vm_wipeonfork.patch
+ added to -mm tree
+Date: Sun, 09 Feb 2020 16:55:31 -0800
+Message-ID: <20200210005531.c4Hj2dl6a%akpm@linux-foundation.org>
+References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59576 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58064 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727444AbgBDSml (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 4 Feb 2020 13:42:41 -0500
+        id S1725868AbgBJAze (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Feb 2020 19:55:34 -0500
+In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, linux@armlinux.org.uk, mm-commits@vger.kernel.org, robin.murphy@arm.com, stable@vger.kernel.org, wens@csie.org
+To: hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, lixinhai.lxh@gmail.com, mm-commits@vger.kernel.org, riel@redhat.com, willy@infradead.org
 
 
 The patch titled
-     Subject: ARM: dma-api: fix max_pfn off-by-one error in __dma_supported()
-has been removed from the -mm tree.  Its filename was
-     arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported.patch
+     Subject: mm: don't prepare anon_vma if vma has VM_WIPEONFORK
+has been added to the -mm tree.  Its filename is
+     mm-dont-prepare-anon_vma-if-vma-has-vm_wipeonfork.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-prepare-anon_vma-if-vma-has-vm_wipeonfork.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-prepare-anon_vma-if-vma-has-vm_wipeonfork.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen-Yu Tsai <wens@csie.org>
-Subject: ARM: dma-api: fix max_pfn off-by-one error in __dma_supported()
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm: don't prepare anon_vma if vma has VM_WIPEONFORK
 
-max_pfn, as set in arch/arm/mm/init.c:
+Patch series "mm: Fix misuse of parent anon_vma in dup_mmap path".
 
-    static void __init find_limits(unsigned long *min,
-				   unsigned long *max_low,
-				   unsigned long *max_high)
-    {
-	    *max_low = PFN_DOWN(memblock_get_current_limit());
-	    *min = PFN_UP(memblock_start_of_DRAM());
-	    *max_high = PFN_DOWN(memblock_end_of_DRAM());
-    }
+This patchset fixes the misuse of parenet anon_vma, which mainly caused by
+child vma's vm_next and vm_prev are left same as its parent after
+duplicate vma.  Finally, code reached parent vma's neighbor by referring
+pointer of child vma and executed wrong logic.
 
-with memblock_end_of_DRAM() pointing to the next byte after DRAM.  As
-such, max_pfn points to the PFN after the end of DRAM.
+The first two patches fix relevant issues, and the third patch sets
+vm_next and vm_prev to NULL when duplicate vma to prevent potential misuse
+in future.  
 
-Thus when using max_pfn to check DMA masks, we should subtract one when
-checking DMA ranges against it.
 
-Commit 8bf1268f48ad ("ARM: dma-api: fix off-by-one error in
-__dma_supported()") fixed the same issue, but missed this spot.
+This patch (of 3):
 
-This issue was found while working on the sun4i-csi v4l2 driver on the
-Allwinner R40 SoC.  On Allwinner SoCs, DRAM is offset at 0x40000000, and
-we are starting to use of_dma_configure() with the "dma-ranges" property
-in the device tree to have the DMA API handle the offset.
+In dup_mmap(), anon_vma_prepare() is called for vma has VM_WIPEONFORK, and
+parameter 'tmp' (i.e., the new vma of child) has same ->vm_next and
+->vm_prev as its parent vma.  That allows anon_vma used by parent been
+mistakenly shared by child (find_mergeable_anon_vma() will do this reuse
+work).
 
-In this particular instance, dma-ranges was set to the same range as the
-actual available (2 GiB) DRAM.  The following error appeared when the
-driver attempted to allocate a buffer:
+Besides this issue, call anon_vma_prepare() should be avoided because we
+don't copy page for this vma.  Preparing anon_vma will be handled during
+fault.
 
-    sun4i-csi 1c09000.csi: Coherent DMA mask 0x7fffffff (pfn 0x40000-0xc0000)
-    covers a smaller range of system memory than the DMA zone pfn 0x0-0xc0001
-    sun4i-csi 1c09000.csi: dma_alloc_coherent of size 307200 failed
-
-Fixing the off-by-one error makes things work.
-
-Link: http://lkml.kernel.org/r/20191224030239.5656-1-wens@kernel.org
-Fixes: 11a5aa32562e ("ARM: dma-mapping: check DMA mask against available memory")
-Fixes: 9f28cde0bc64 ("ARM: another fix for the DMA mapping checks")
-Fixes: ab746573c405 ("ARM: dma-mapping: allow larger DMA mask than supported")
-Signed-off-by: Chen-Yu Tsai <wens@csie.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1581150928-3214-2-git-send-email-lixinhai.lxh@gmail.com
+Fixes: d2cd9ede6e19 ("mm,fork: introduce MADV_WIPEONFORK")
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/dma-mapping.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/fork.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/arch/arm/mm/dma-mapping.c~arm-dma-api-fix-max_pfn-off-by-one-error-in-__dma_supported
-+++ a/arch/arm/mm/dma-mapping.c
-@@ -221,7 +221,7 @@ EXPORT_SYMBOL(arm_coherent_dma_ops);
- 
- static int __dma_supported(struct device *dev, u64 mask, bool warn)
- {
--	unsigned long max_dma_pfn = min(max_pfn, arm_dma_pfn_limit);
-+	unsigned long max_dma_pfn = min(max_pfn - 1, arm_dma_pfn_limit);
- 
- 	/*
- 	 * Translate the device's DMA mask to a PFN limit.  This
+--- a/kernel/fork.c~mm-dont-prepare-anon_vma-if-vma-has-vm_wipeonfork
++++ a/kernel/fork.c
+@@ -552,10 +552,12 @@ static __latent_entropy int dup_mmap(str
+ 		if (retval)
+ 			goto fail_nomem_anon_vma_fork;
+ 		if (tmp->vm_flags & VM_WIPEONFORK) {
+-			/* VM_WIPEONFORK gets a clean slate in the child. */
++			/*
++			 * VM_WIPEONFORK gets a clean slate in the child.
++			 * Don't prepare anon_vma until fault since we don't
++			 * copy page for current vma.
++			 */
+ 			tmp->anon_vma = NULL;
+-			if (anon_vma_prepare(tmp))
+-				goto fail_nomem_anon_vma_fork;
+ 		} else if (anon_vma_fork(tmp, mpnt))
+ 			goto fail_nomem_anon_vma_fork;
+ 		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
 _
 
-Patches currently in -mm which might be from wens@csie.org are
+Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
+
+mm-dont-prepare-anon_vma-if-vma-has-vm_wipeonfork.patch
+revert-mm-rmapc-reuse-mergeable-anon_vma-as-parent-when-fork.patch
+mm-set-vm_next-and-vm_prev-to-null-in-vm_area_dup.patch
