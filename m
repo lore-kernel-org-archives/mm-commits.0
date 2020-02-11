@@ -1,30 +1,36 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-fix-a-data-race-in-filemap_fault.patch added
- to -mm tree
-Date: Mon, 10 Feb 2020 21:39:07 -0800
-Message-ID: <20200211053907.yLfIipi8t%akpm@linux-foundation.org>
+Subject: +
+ mm-gup-split-get_user_pages_remote-into-two-routines.patch added to -mm
+ tree
+Date: Mon, 10 Feb 2020 21:50:25 -0800
+Message-ID: <20200211055025.iYOffZCgF%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47256 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59496 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727842AbgBKFjJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Feb 2020 00:39:09 -0500
+        id S1726942AbgBKFu2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Feb 2020 00:50:28 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, elver@google.com, kirill@shutemov.name, mm-commits@vger.kernel.org, willy@infradead.org
+To: corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, ira.weiny@intel.com, jack@suse.cz, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, shuah@kernel.org, vbabka@suse.cz, viro@zeniv.linux.org.uk, willy@infradead.org
 
 
 The patch titled
-     Subject: mm/filemap.c: fix a data race in filemap_fault()
+     Subject: mm/gup: split get_user_pages_remote() into two routines
 has been added to the -mm tree.  Its filename is
-     mm-filemap-fix-a-data-race-in-filemap_fault.patch
+     mm-gup-split-get_user_pages_remote-into-two-routines.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-fix-a-data-race-in-filemap_fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-split-get_user_pages_re=
+mote-into-two-routines.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-fix-a-data-race-in-filemap_fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-split-get_user_pages_re=
+mote-into-two-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,141 +38,194 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kirill A. Shutemov <kirill@shutemov.name>
-Subject: mm/filemap.c: fix a data race in filemap_fault()
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: split get_user_pages_remote() into two routines
 
-struct file_ra_state ra.mmap_miss could be accessed concurrently during
-page faults as noticed by KCSAN,
+Patch series "mm/gup: track FOLL_PIN pages", v6.
 
- BUG: KCSAN: data-race in filemap_fault / filemap_map_pages
+This activates tracking of FOLL_PIN pages.  This is in support of fixing
+the get_user_pages()+DMA problem described in [1]-[4].
 
- write to 0xffff9b1700a2c1b4 of 4 bytes by task 3292 on cpu 30:
-  filemap_fault+0x920/0xfc0
-  do_sync_mmap_readahead at mm/filemap.c:2384
-  (inlined by) filemap_fault at mm/filemap.c:2486
-  __xfs_filemap_fault+0x112/0x3e0 [xfs]
-  xfs_filemap_fault+0x74/0x90 [xfs]
-  __do_fault+0x9e/0x220
-  do_fault+0x4a0/0x920
-  __handle_mm_fault+0xc69/0xd00
-  handle_mm_fault+0xfc/0x2f0
-  do_page_fault+0x263/0x6f9
-  page_fault+0x34/0x40
+FOLL_PIN support is now in the main linux tree.  However, the patch to use
+FOLL_PIN to track pages was *not* submitted, because Leon saw an RDMA test
+suite failure that involved (I think) page refcount overflows when huge
+pages were used.
 
- read to 0xffff9b1700a2c1b4 of 4 bytes by task 3313 on cpu 32:
-  filemap_map_pages+0xc2e/0xd80
-  filemap_map_pages at mm/filemap.c:2625
-  do_fault+0x3da/0x920
-  __handle_mm_fault+0xc69/0xd00
-  handle_mm_fault+0xfc/0x2f0
-  do_page_fault+0x263/0x6f9
-  page_fault+0x34/0x40
+This patch definitively solves that kind of overflow problem, by adding an
+exact pincount, for compound pages (of order > 1), in the 3rd struct page
+of a compound page.  If available, that form of pincounting is used,
+instead of the GUP_PIN_COUNTING_BIAS approach.  Thanks again to Jan Kara
+for that idea.
 
- Reported by Kernel Concurrency Sanitizer on:
- CPU: 32 PID: 3313 Comm: systemd-udevd Tainted: G        W    L 5.5.0-next-20200210+ #1
- Hardware name: HPE ProLiant DL385 Gen10/ProLiant DL385 Gen10, BIOS A40 07/10/2019
+Other interesting changes:
 
-ra.mmap_miss is used to contribute the readahead decisions, a data race
-could be undesirable.  Both the read and write is only under non-exclusive
-mmap_sem, two concurrent writers could even underflow the counter.  Fix
-the underflow by writing to a local variable before committing a final
-store to ra.mmap_miss given a small inaccuracy of the counter should be
-acceptable.
+* dump_page(): added one, or two new things to report for compound
+  pages: head refcount (for all compound pages), and map_pincount (for
+  compound pages of order > 1).
 
-Link: http://lkml.kernel.org/r/20200211030134.1847-1-cai@lca.pw
-Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
-Signed-off-by: Qian Cai <cai@lca.pw>
-Tested-by: Qian Cai <cai@lca.pw>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Marco Elver <elver@google.com>
+* Documentation/core-api/pin_user_pages.rst: removed the "TODO" for the
+  huge page refcount upper limit problems, and added notes about how it
+  works now.  Also added a note about the dump_page() enhancements.
+
+* Added some comments in gup.c and mm.h, to explain that there are two
+  ways to count pinned pages: exact (for compound pages of order > 1) and
+  fuzzy (GUP_PIN_COUNTING_BIAS: for all other pages).
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+General notes about the tracking patch:
+
+This is a prerequisite to solving the problem of proper interactions
+between file-backed pages, and [R]DMA activities, as discussed in [1],
+[2], [3], [4] and in a remarkable number of email threads since about
+2017.  :)
+
+In contrast to earlier approaches, the page tracking can be incrementally
+applied to the kernel call sites that, until now, have been simply calling
+get_user_pages() ("gup").  In other words, opt-in by changing from this:
+
+    get_user_pages() (sets FOLL_GET)
+    put_page()
+
+to this:
+    pin_user_pages() (sets FOLL_PIN)
+    unpin_user_page()
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Future steps:
+
+* Convert more subsystems from get_user_pages() to pin_user_pages().
+  The first probably needs to be bio/biovecs, because any filesystem
+  testing is too difficult without those in place.
+
+* Change VFS and filesystems to respond appropriately when encountering
+  dma-pinned pages.
+
+* Work with Ira and others to connect this all up with file system
+  leases.
+
+[1] Some slow progress on get_user_pages() (Apr 2, 2019):
+    https://lwn.net/Articles/784574/
+
+[2] DMA and get_user_pages() (LPC: Dec 12, 2018):
+    https://lwn.net/Articles/774411/
+
+[3] The trouble with get_user_pages() (Apr 30, 2018):
+    https://lwn.net/Articles/753027/
+
+[4] LWN kernel index: get_user_pages()
+    https://lwn.net/Kernel/Index/#Memory_management-get_user_pages
+
+
+This patch (of 12):
+
+An upcoming patch requires reusing the implementation of
+get_user_pages_remote().  Split up get_user_pages_remote() into an outer
+routine that checks flags, and an implementation routine that will be
+reused.  This makes subsequent changes much easier to understand.
+
+There should be no change in behavior due to this patch.
+
+Link: http://lkml.kernel.org/r/20200211001536.1027652-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ mm/gup.c |   56 +++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 33 insertions(+), 23 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fix-a-data-race-in-filemap_fault
-+++ a/mm/filemap.c
-@@ -2365,6 +2365,7 @@ static struct file *do_sync_mmap_readahe
- 	struct address_space *mapping = file->f_mapping;
- 	struct file *fpin = NULL;
- 	pgoff_t offset = vmf->pgoff;
-+	unsigned int mmap_miss;
- 
- 	/* If we don't want any read-ahead, don't bother */
- 	if (vmf->vma->vm_flags & VM_RAND_READ)
-@@ -2380,14 +2381,15 @@ static struct file *do_sync_mmap_readahe
- 	}
- 
- 	/* Avoid banging the cache line if not needed */
--	if (ra->mmap_miss < MMAP_LOTSAMISS * 10)
--		ra->mmap_miss++;
-+	mmap_miss = READ_ONCE(ra->mmap_miss);
-+	if (mmap_miss < MMAP_LOTSAMISS * 10)
-+		WRITE_ONCE(ra->mmap_miss, ++mmap_miss);
- 
- 	/*
- 	 * Do we miss much more than hit in this file? If so,
- 	 * stop bothering with read-ahead. It will only hurt.
- 	 */
--	if (ra->mmap_miss > MMAP_LOTSAMISS)
-+	if (mmap_miss > MMAP_LOTSAMISS)
- 		return fpin;
- 
- 	/*
-@@ -2413,13 +2415,15 @@ static struct file *do_async_mmap_readah
- 	struct file_ra_state *ra = &file->f_ra;
- 	struct address_space *mapping = file->f_mapping;
- 	struct file *fpin = NULL;
-+	unsigned int mmap_miss;
- 	pgoff_t offset = vmf->pgoff;
- 
- 	/* If we don't want any read-ahead, don't bother */
- 	if (vmf->vma->vm_flags & VM_RAND_READ)
- 		return fpin;
--	if (ra->mmap_miss > 0)
--		ra->mmap_miss--;
-+	mmap_miss = READ_ONCE(ra->mmap_miss);
-+	if (mmap_miss)
-+		WRITE_ONCE(ra->mmap_miss, --mmap_miss);
- 	if (PageReadahead(page)) {
- 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
- 		page_cache_async_readahead(mapping, ra, file,
-@@ -2586,6 +2590,7 @@ void filemap_map_pages(struct vm_fault *
- 	unsigned long max_idx;
- 	XA_STATE(xas, &mapping->i_pages, start_pgoff);
- 	struct page *page;
-+	unsigned int mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
- 
- 	rcu_read_lock();
- 	xas_for_each(&xas, page, end_pgoff) {
-@@ -2622,8 +2627,8 @@ void filemap_map_pages(struct vm_fault *
- 		if (page->index >= max_idx)
- 			goto unlock;
- 
--		if (file->f_ra.mmap_miss > 0)
--			file->f_ra.mmap_miss--;
-+		if (mmap_miss > 0)
-+			mmap_miss--;
- 
- 		vmf->address += (xas.xa_index - last_pgoff) << PAGE_SHIFT;
- 		if (vmf->pte)
-@@ -2643,6 +2648,7 @@ next:
- 			break;
- 	}
- 	rcu_read_unlock();
-+	WRITE_ONCE(file->f_ra.mmap_miss, mmap_miss);
+--- a/mm/gup.c~mm-gup-split-get_user_pages_remote-into-two-routines
++++ a/mm/gup.c
+@@ -1557,6 +1557,37 @@ static __always_inline long __gup_longte
  }
- EXPORT_SYMBOL(filemap_map_pages);
- 
-_
-
-Patches currently in -mm which might be from kirill@shutemov.name are
-
-mm-filemap-fix-a-data-race-in-filemap_fault.patch
+ #endif /* CONFIG_FS_DAX || CONFIG_CMA */
+=20
++#ifdef CONFIG_MMU
++static long __get_user_pages_remote(struct task_struct *tsk,
++				    struct mm_struct *mm,
++				    unsigned long start, unsigned long nr_pages,
++				    unsigned int gup_flags, struct page **pages,
++				    struct vm_area_struct **vmas, int *locked)
++{
++	/*
++	 * Parts of FOLL_LONGTERM behavior are incompatible with
++	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
++	 * vmas. However, this only comes up if locked is set, and there are
++	 * callers that do request FOLL_LONGTERM, but do not set locked. So,
++	 * allow what we can.
++	 */
++	if (gup_flags & FOLL_LONGTERM) {
++		if (WARN_ON_ONCE(locked))
++			return -EINVAL;
++		/*
++		 * This will check the vmas (even if our vmas arg is NULL)
++		 * and return -ENOTSUPP if DAX isn't allowed in this case:
++		 */
++		return __gup_longterm_locked(tsk, mm, start, nr_pages, pages,
++					     vmas, gup_flags | FOLL_TOUCH |
++					     FOLL_REMOTE);
++	}
++
++	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
++				       locked,
++				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
++}
++
+ /*
+  * get_user_pages_remote() - pin user pages in memory
+  * @tsk:	the task_struct to use for page fault accounting, or
+@@ -1619,7 +1650,6 @@ static __always_inline long __gup_longte
+  * should use get_user_pages because it cannot pass
+  * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
+  */
+-#ifdef CONFIG_MMU
+ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+ 		unsigned long start, unsigned long nr_pages,
+ 		unsigned int gup_flags, struct page **pages,
+@@ -1632,28 +1662,8 @@ long get_user_pages_remote(struct task_s
+ 	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
+ 		return -EINVAL;
+=20
+-	/*
+-	 * Parts of FOLL_LONGTERM behavior are incompatible with
+-	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
+-	 * vmas. However, this only comes up if locked is set, and there are
+-	 * callers that do request FOLL_LONGTERM, but do not set locked. So,
+-	 * allow what we can.
+-	 */
+-	if (gup_flags & FOLL_LONGTERM) {
+-		if (WARN_ON_ONCE(locked))
+-			return -EINVAL;
+-		/*
+-		 * This will check the vmas (even if our vmas arg is NULL)
+-		 * and return -ENOTSUPP if DAX isn't allowed in this case:
+-		 */
+-		return __gup_longterm_locked(tsk, mm, start, nr_pages, pages,
+-					     vmas, gup_flags | FOLL_TOUCH |
+-					     FOLL_REMOTE);
+-	}
