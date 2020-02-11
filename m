@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- hugetlb_cgroup-add-hugetlb_cgroup-reservation-docs.patch added to -mm tree
-Date: Tue, 11 Feb 2020 15:19:34 -0800
-Message-ID: <20200211231934.L7v-s73t_%akpm@linux-foundation.org>
+ lib-bch-replace-zero-length-array-with-flexible-array-member.patch added to
+ -mm tree
+Date: Tue, 11 Feb 2020 15:21:51 -0800
+Message-ID: <20200211232151.XvcAGAABd%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45308 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47582 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727905AbgBKXTh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Feb 2020 18:19:37 -0500
+        id S1727597AbgBKXVw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Feb 2020 18:21:52 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: almasrymina@google.com, gthelen@google.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rientjes@google.com, sandipan@linux.ibm.com, shakeelb@google.com, shuah@kernel.org
+To: gustavo@embeddedor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb_cgroup: add hugetlb_cgroup reservation docs
+     Subject: lib/bch.c: replace zero-length array with flexible-array member
 has been added to the -mm tree.  Its filename is
-     hugetlb_cgroup-add-hugetlb_cgroup-reservation-docs.patch
+     lib-bch-replace-zero-length-array-with-flexible-array-member.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb_cgroup-add-hugetlb_cgroup-reservation-docs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bch-replace-zero-length-array-with-flexible-array-member.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb_cgroup-add-hugetlb_cgroup-reservation-docs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bch-replace-zero-length-array-with-flexible-array-member.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,166 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mina Almasry <almasrymina@google.com>
-Subject: hugetlb_cgroup: add hugetlb_cgroup reservation docs
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: lib/bch.c: replace zero-length array with flexible-array member
 
-Add docs for how to use hugetlb_cgroup reservations, and their behavior.
+The current codebase makes use of the zero-length array language extension
+to the C90 standard, but the preferred mechanism to declare
+variable-length types such as these ones is a flexible array member[1][2],
+introduced in C99:
 
-Link: http://lkml.kernel.org/r/20200211213128.73302-9-almasrymina@google.com
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Sandipan Das <sandipan@linux.ibm.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+struct foo {
+        int stuff;
+        struct boo array[];
+};
+
+By making use of the mechanism above, we will get a compiler warning in
+case the flexible array does not occur last in the structure, which will
+help us prevent some kind of undefined behavior bugs from being
+inadvertenly introduced[3] to the codebase from now on.
+
+This issue was found with the help of Coccinelle.
+
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] https://github.com/KSPP/linux/issues/21
+[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+Link: http://lkml.kernel.org/r/20200211205119.GA21234@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/hugetlb.rst |  103 ++++++++++++--
- 1 file changed, 92 insertions(+), 11 deletions(-)
+ lib/bch.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v1/hugetlb.rst~hugetlb_cgroup-add-hugetlb_cgroup-reservation-docs
-+++ a/Documentation/admin-guide/cgroup-v1/hugetlb.rst
-@@ -2,13 +2,6 @@
- HugeTLB Controller
- ==================
+--- a/lib/bch.c~lib-bch-replace-zero-length-array-with-flexible-array-member
++++ a/lib/bch.c
+@@ -102,7 +102,7 @@
+  */
+ struct gf_poly {
+ 	unsigned int deg;    /* polynomial degree */
+-	unsigned int c[0];   /* polynomial terms */
++	unsigned int c[];   /* polynomial terms */
+ };
  
--The HugeTLB controller allows to limit the HugeTLB usage per control group and
--enforces the controller limit during page fault. Since HugeTLB doesn't
--support page reclaim, enforcing the limit at page fault time implies that,
--the application will get SIGBUS signal if it tries to access HugeTLB pages
--beyond its limit. This requires the application to know beforehand how much
--HugeTLB pages it would require for its use.
--
- HugeTLB controller can be created by first mounting the cgroup filesystem.
- 
- # mount -t cgroup -o hugetlb none /sys/fs/cgroup
-@@ -28,10 +21,14 @@ process (bash) into it.
- 
- Brief summary of control files::
- 
-- hugetlb.<hugepagesize>.limit_in_bytes     # set/show limit of "hugepagesize" hugetlb usage
-- hugetlb.<hugepagesize>.max_usage_in_bytes # show max "hugepagesize" hugetlb  usage recorded
-- hugetlb.<hugepagesize>.usage_in_bytes     # show current usage for "hugepagesize" hugetlb
-- hugetlb.<hugepagesize>.failcnt		   # show the number of allocation failure due to HugeTLB limit
-+ hugetlb.<hugepagesize>.rsvd.limit_in_bytes            # set/show limit of "hugepagesize" hugetlb reservations
-+ hugetlb.<hugepagesize>.rsvd.max_usage_in_bytes        # show max "hugepagesize" hugetlb reservations and no-reserve faults
-+ hugetlb.<hugepagesize>.rsvd.usage_in_bytes            # show current reservations and no-reserve faults for "hugepagesize" hugetlb
-+ hugetlb.<hugepagesize>.rsvd.failcnt                   # show the number of allocation failure due to HugeTLB reservation limit
-+ hugetlb.<hugepagesize>.limit_in_bytes                 # set/show limit of "hugepagesize" hugetlb faults
-+ hugetlb.<hugepagesize>.max_usage_in_bytes             # show max "hugepagesize" hugetlb  usage recorded
-+ hugetlb.<hugepagesize>.usage_in_bytes                 # show current usage for "hugepagesize" hugetlb
-+ hugetlb.<hugepagesize>.failcnt                        # show the number of allocation failure due to HugeTLB usage limit
- 
- For a system supporting three hugepage sizes (64k, 32M and 1G), the control
- files include::
-@@ -40,11 +37,95 @@ files include::
-   hugetlb.1GB.max_usage_in_bytes
-   hugetlb.1GB.usage_in_bytes
-   hugetlb.1GB.failcnt
-+  hugetlb.1GB.rsvd.limit_in_bytes
-+  hugetlb.1GB.rsvd.max_usage_in_bytes
-+  hugetlb.1GB.rsvd.usage_in_bytes
-+  hugetlb.1GB.rsvd.failcnt
-   hugetlb.64KB.limit_in_bytes
-   hugetlb.64KB.max_usage_in_bytes
-   hugetlb.64KB.usage_in_bytes
-   hugetlb.64KB.failcnt
-+  hugetlb.64KB.rsvd.limit_in_bytes
-+  hugetlb.64KB.rsvd.max_usage_in_bytes
-+  hugetlb.64KB.rsvd.usage_in_bytes
-+  hugetlb.64KB.rsvd.failcnt
-   hugetlb.32MB.limit_in_bytes
-   hugetlb.32MB.max_usage_in_bytes
-   hugetlb.32MB.usage_in_bytes
-   hugetlb.32MB.failcnt
-+  hugetlb.32MB.rsvd.limit_in_bytes
-+  hugetlb.32MB.rsvd.max_usage_in_bytes
-+  hugetlb.32MB.rsvd.usage_in_bytes
-+  hugetlb.32MB.rsvd.failcnt
-+
-+
-+1. Page fault accounting
-+
-+hugetlb.<hugepagesize>.limit_in_bytes
-+hugetlb.<hugepagesize>.max_usage_in_bytes
-+hugetlb.<hugepagesize>.usage_in_bytes
-+hugetlb.<hugepagesize>.failcnt
-+
-+The HugeTLB controller allows users to limit the HugeTLB usage (page fault) per
-+control group and enforces the limit during page fault. Since HugeTLB
-+doesn't support page reclaim, enforcing the limit at page fault time implies
-+that, the application will get SIGBUS signal if it tries to fault in HugeTLB
-+pages beyond its limit. Therefore the application needs to know exactly how many
-+HugeTLB pages it uses before hand, and the sysadmin needs to make sure that
-+there are enough available on the machine for all the users to avoid processes
-+getting SIGBUS.
-+
-+
-+2. Reservation accounting
-+
-+hugetlb.<hugepagesize>.rsvd.limit_in_bytes
-+hugetlb.<hugepagesize>.rsvd.max_usage_in_bytes
-+hugetlb.<hugepagesize>.rsvd.usage_in_bytes
-+hugetlb.<hugepagesize>.rsvd.failcnt
-+
-+The HugeTLB controller allows to limit the HugeTLB reservations per control
-+group and enforces the controller limit at reservation time and at the fault of
-+HugeTLB memory for which no reservation exists. Since reservation limits are
-+enforced at reservation time (on mmap or shget), reservation limits never causes
-+the application to get SIGBUS signal if the memory was reserved before hand. For
-+MAP_NORESERVE allocations, the reservation limit behaves the same as the fault
-+limit, enforcing memory usage at fault time and causing the application to
-+receive a SIGBUS if it's crossing its limit.
-+
-+Reservation limits are superior to page fault limits described above, since
-+reservation limits are enforced at reservation time (on mmap or shget), and
-+never causes the application to get SIGBUS signal if the memory was reserved
-+before hand. This allows for easier fallback to alternatives such as
-+non-HugeTLB memory for example. In the case of page fault accounting, it's very
-+hard to avoid processes getting SIGBUS since the sysadmin needs precisely know
-+the HugeTLB usage of all the tasks in the system and make sure there is enough
-+pages to satisfy all requests. Avoiding tasks getting SIGBUS on overcommited
-+systems is practically impossible with page fault accounting.
-+
-+
-+3. Caveats with shared memory
-+
-+For shared HugeTLB memory, both HugeTLB reservation and page faults are charged
-+to the first task that causes the memory to be reserved or faulted, and all
-+subsequent uses of this reserved or faulted memory is done without charging.
-+
-+Shared HugeTLB memory is only uncharged when it is unreserved or deallocated.
-+This is usually when the HugeTLB file is deleted, and not when the task that
-+caused the reservation or fault has exited.
-+
-+
-+4. Caveats with HugeTLB cgroup offline.
-+
-+When a HugeTLB cgroup goes offline with some reservations or faults still
-+charged to it, the behavior is as follows:
-+
-+- The fault charges are charged to the parent HugeTLB cgroup (reparented),
-+- the reservation charges remain on the offline HugeTLB cgroup.
-+
-+This means that if a HugeTLB cgroup gets offlined while there is still HugeTLB
-+reservations charged to it, that cgroup persists as a zombie until all HugeTLB
-+reservations are uncharged. HugeTLB reservations behave in this manner to match
-+the memory controller whose cgroups also persist as zombie until all charged
-+memory is uncharged. Also, the tracking of HugeTLB reservations is a bit more
-+complex compared to the tracking of HugeTLB faults, so it is significantly
-+harder to reparent reservations at offline time.
+ /* given its degree, compute a polynomial size in bytes */
 _
 
-Patches currently in -mm which might be from almasrymina@google.com are
+Patches currently in -mm which might be from gustavo@embeddedor.com are
 
-hugetlb_cgroup-add-hugetlb_cgroup-reservation-counter.patch
-hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings.patch
-hugetlb-disable-region_add-file_region-coalescing.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings.patch
-hugetlb_cgroup-support-noreserve-mappings.patch
-hugetlb-support-file_region-coalescing-again.patch
-hugetlb_cgroup-add-hugetlb_cgroup-reservation-tests.patch
-hugetlb_cgroup-add-hugetlb_cgroup-reservation-docs.patch
+lib-bch-replace-zero-length-array-with-flexible-array-member.patch
+lib-objagg-replace-zero-length-arrays-with-flexible-array-member.patch
+lib-ts_bm-replace-zero-length-array-with-flexible-array-member.patch
+lib-ts_fsm-replace-zero-length-array-with-flexible-array-member.patch
+lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch
