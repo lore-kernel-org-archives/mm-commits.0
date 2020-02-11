@@ -1,18 +1,19 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-improve-dump_page-for-compound-pages.patch added to
+Subject: +
+ mm-dump_page-additional-diagnostics-for-huge-pinned-pages.patch added to
  -mm tree
-Date: Mon, 10 Feb 2020 21:50:59 -0800
-Message-ID: <20200211055059.en_H8_As3%akpm@linux-foundation.org>
+Date: Mon, 10 Feb 2020 21:51:02 -0800
+Message-ID: <20200211055102.haL8nihuk%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60786 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60874 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726942AbgBKFvB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Feb 2020 00:51:01 -0500
+        id S1726942AbgBKFvE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Feb 2020 00:51:04 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -20,16 +21,16 @@ To: corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead
 
 
 The patch titled
-     Subject: mm: improve dump_page() for compound pages
+     Subject: mm: dump_page(): additional diagnostics for huge pinned pages
 has been added to the -mm tree.  Its filename is
-     mm-improve-dump_page-for-compound-pages.patch
+     mm-dump_page-additional-diagnostics-for-huge-pinned-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-improve-dump_page-for-compo=
-und-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dump_page-additional-diagno=
+stics-for-huge-pinned-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-improve-dump_page-for-compo=
-und-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dump_page-additional-diagno=
+stics-for-huge-pinned-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,32 +45,23 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: improve dump_page() for compound pages
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: mm: dump_page(): additional diagnostics for huge pinned pages
 
-There was no protection against a corrupted struct page having an
-implausible compound_head().  Sanity check that a compound page has a head
-within reach of the maximum allocatable page (this will need to be
-adjusted if one of the plans to allocate 1GB pages comes to fruition).  In
-addition,
+As part of pin_user_pages() and related API calls, pages are "dma-pinned".
+For the case of compound pages of order > 1, the per-page accounting of
+dma pins is accomplished via the 3rd struct page in the compound page.  In
+order to support debugging of any pin_user_pages()- related problems,
+enhance dump_page() so as to report the pin count in that case.
 
- - Print the mapping pointer using %p insted of %px.  The actual value of
-   the pointer can be read out of the raw page dump and using %p gives a
-   chance to correlate it with an earlier printk of the mapping pointer
- - Print the mapping pointer from the head page, not the tail page
-   (the tail ->mapping pointer may be in use for other purposes, eg part
-   of a list_head)
- - Print the order of the page for compound pages
- - Dump the raw head page as well as the raw page
- - Print the refcount from the head page, not the tail page
+Documentation/core-api/pin_user_pages.rst is also updated accordingly.
 
-Link: http://lkml.kernel.org/r/20200211001536.1027652-12-jhubbard@nvidia.com
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: http://lkml.kernel.org/r/20200211001536.1027652-13-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Co-developed-by: John Hubbard <jhubbard@nvidia.com>
-Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -84,78 +76,73 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |   33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
+ Documentation/core-api/pin_user_pages.rst |    7 ++++++
+ mm/debug.c                                |   21 +++++++++++++++-----
+ 2 files changed, 23 insertions(+), 5 deletions(-)
 
---- a/mm/debug.c~mm-improve-dump_page-for-compound-pages
+--- a/Documentation/core-api/pin_user_pages.rst~mm-dump_page-additional-dia=
+gnostics-for-huge-pinned-pages
++++ a/Documentation/core-api/pin_user_pages.rst
+@@ -238,6 +238,13 @@ long-term [R]DMA pins in place, or durin
+ (...unless it was already out of balance due to a long-term RDMA pin being=
+ in
+ place.)
+=20
++Other diagnostics
++=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
++
++dump_page() has been enhanced slightly, to handle these new counting field=
+s, and
++to better report on compound pages in general. Specifically, for compound =
+pages
++with order > 1, the exact (hpage_pinned_refcount) pincount is reported.
++
+ References
+ =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=20
+--- a/mm/debug.c~mm-dump_page-additional-diagnostics-for-huge-pinned-pages
 +++ a/mm/debug.c
-@@ -44,8 +44,10 @@ const struct trace_print_flags vmaflag_n
+@@ -85,11 +85,22 @@ void __dump_page(struct page *page, cons
+ 	mapcount =3D PageSlab(head) ? 0 : page_mapcount(page);
 =20
- void __dump_page(struct page *page, const char *reason)
- {
-+	struct page *head =3D compound_head(page);
- 	struct address_space *mapping;
- 	bool page_poisoned =3D PagePoisoned(page);
-+	bool compound =3D PageCompound(page);
- 	/*
- 	 * Accessing the pageblock without the zone lock. It could change to
- 	 * "isolate" again in the meantime, but since we are just dumping the
-@@ -66,25 +68,32 @@ void __dump_page(struct page *page, cons
- 		goto hex_only;
- 	}
-=20
--	mapping =3D page_mapping(page);
-+	if (page < head || (page >=3D head + MAX_ORDER_NR_PAGES)) {
-+		/* Corrupt page, cannot call page_mapping */
-+		mapping =3D page->mapping;
-+		head =3D page;
-+		compound =3D false;
-+	} else {
-+		mapping =3D page_mapping(page);
-+	}
-=20
- 	/*
- 	 * Avoid VM_BUG_ON() in page_mapcount().
- 	 * page->_mapcount space in struct page is used by sl[aou]b pages to
- 	 * encode own info.
- 	 */
--	mapcount =3D PageSlab(page) ? 0 : page_mapcount(page);
-+	mapcount =3D PageSlab(head) ? 0 : page_mapcount(page);
-=20
--	if (PageCompound(page))
--		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px "
--			"index:%#lx compound_mapcount: %d\n",
--			page, page_ref_count(page), mapcount,
--			page->mapping, page_to_pgoff(page),
--			compound_mapcount(page));
-+	if (compound)
-+		pr_warn("page:%px refcount:%d mapcount:%d mapping:%p "
-+			"index:%#lx head:%px order:%u compound_mapcount:%d\n",
-+			page, page_ref_count(head), mapcount,
-+			mapping, page_to_pgoff(page), head,
-+			compound_order(head), compound_mapcount(page));
+ 	if (compound)
+-		pr_warn("page:%px refcount:%d mapcount:%d mapping:%p "
+-			"index:%#lx head:%px order:%u compound_mapcount:%d\n",
+-			page, page_ref_count(head), mapcount,
+-			mapping, page_to_pgoff(page), head,
+-			compound_order(head), compound_mapcount(page));
++		if (hpage_pincount_available(page)) {
++			pr_warn("page:%px refcount:%d mapcount:%d mapping:%p "
++				"index:%#lx head:%px order:%u "
++				"compound_mapcount:%d compound_pincount:%d\n",
++				page, page_ref_count(head), mapcount,
++				mapping, page_to_pgoff(page), head,
++				compound_order(head), compound_mapcount(page),
++				compound_pincount(page));
++		} else {
++			pr_warn("page:%px refcount:%d mapcount:%d mapping:%p "
++				"index:%#lx head:%px order:%u "
++				"compound_mapcount:%d\n",
++				page, page_ref_count(head), mapcount,
++				mapping, page_to_pgoff(page), head,
++				compound_order(head), compound_mapcount(page));
++		}
  	else
--		pr_warn("page:%px refcount:%d mapcount:%d mapping:%px index:%#lx\n",
-+		pr_warn("page:%px refcount:%d mapcount:%d mapping:%p index:%#lx\n",
+ 		pr_warn("page:%px refcount:%d mapcount:%d mapping:%p index:%#lx\n",
  			page, page_ref_count(page), mapcount,
--			page->mapping, page_to_pgoff(page));
-+			mapping, page_to_pgoff(page));
- 	if (PageKsm(page))
- 		type =3D "ksm ";
- 	else if (PageAnon(page))
-@@ -106,6 +115,10 @@ hex_only:
- 	print_hex_dump(KERN_WARNING, "raw: ", DUMP_PREFIX_NONE, 32,
- 			sizeof(unsigned long), page,
- 			sizeof(struct page), false);
-+	if (head !=3D page)
-+		print_hex_dump(KERN_WARNING, "head: ", DUMP_PREFIX_NONE, 32,
-+			sizeof(unsigned long), head,
-+			sizeof(struct page), false);
-=20
- 	if (reason)
- 		pr_warn("page dumped because: %s\n", reason);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-improve-dump_page-for-compound-pages.patch
+mm-gup-split-get_user_pages_remote-into-two-routines.patch
+mm-gup-pass-a-flags-arg-to-__gup_device_-functions.patch
+mm-introduce-page_ref_sub_return.patch
+mm-gup-pass-gup-flags-to-two-more-routines.patch
+mm-gup-require-foll_get-for-get_user_pages_fast.patch
+mm-gup-track-foll_pin-pages.patch
+mm-gup-page-hpage_pinned_refcount-exact-pin-counts-for-huge-pages.patch
+mm-gup-proc-vmstat-pin_user_pages-foll_pin-reporting.patch
+mm-gup_benchmark-support-pin_user_pages-and-related-calls.patch
+selftests-vm-run_vmtests-invoke-gup_benchmark-with-basic-foll_pin-coverage.=
+patch
+mm-dump_page-additional-diagnostics-for-huge-pinned-pages.patch
