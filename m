@@ -1,18 +1,18 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-page_ref_sub_return.patch added to -mm
- tree
-Date: Mon, 10 Feb 2020 21:50:32 -0800
-Message-ID: <20200211055032.rTnmxdYSx%akpm@linux-foundation.org>
+Subject: + mm-gup-pass-gup-flags-to-two-more-routines.patch added
+ to -mm tree
+Date: Mon, 10 Feb 2020 21:50:35 -0800
+Message-ID: <20200211055035.3qbiyRtw8%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59766 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59890 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726942AbgBKFue (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Feb 2020 00:50:34 -0500
+        id S1726942AbgBKFuh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Feb 2020 00:50:37 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -20,16 +20,16 @@ To: corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead
 
 
 The patch titled
-     Subject: mm: introduce page_ref_sub_return()
+     Subject: mm/gup: pass gup flags to two more routines
 has been added to the -mm tree.  Its filename is
-     mm-introduce-page_ref_sub_return.patch
+     mm-gup-pass-gup-flags-to-two-more-routines.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-page_ref_sub_retu=
-rn.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-pass-gup-flags-to-two-m=
+ore-routines.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-page_ref_sub_retu=
-rn.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-pass-gup-flags-to-two-m=
+ore-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,22 +45,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm: introduce page_ref_sub_return()
+Subject: mm/gup: pass gup flags to two more routines
 
-An upcoming patch requires subtracting a large chunk of refcounts from a
-page, and checking what the resulting refcount is.  This is a little
-different than the usual "check for zero refcount" that many of the page
-ref functions already do.  However, it is similar to a few other routines
-that (like this one) are generally useful for things such as 1-based
-refcounting.
+In preparation for an upcoming patch, send gup flags args to two more
+routines: put_compound_head(), and undo_dev_pagemap().
 
-Add page_ref_sub_return(), that subtracts a chunk of refcounts atomically,
-and returns an atomic snapshot of the result.
-
-Link: http://lkml.kernel.org/r/20200211001536.1027652-4-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200211001536.1027652-5-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
@@ -77,27 +70,101 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ref.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/gup.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/include/linux/page_ref.h~mm-introduce-page_ref_sub_return
-+++ a/include/linux/page_ref.h
-@@ -102,6 +102,15 @@ static inline void page_ref_sub(struct p
- 		__page_ref_mod(page, -nr);
+--- a/mm/gup.c~mm-gup-pass-gup-flags-to-two-more-routines
++++ a/mm/gup.c
+@@ -1870,6 +1870,7 @@ static inline pte_t gup_get_pte(pte_t *p
+ #endif /* CONFIG_GUP_GET_PTE_LOW_HIGH */
+=20
+ static void __maybe_unused undo_dev_pagemap(int *nr, int nr_start,
++					    unsigned int flags,
+ 					    struct page **pages)
+ {
+ 	while ((*nr) - nr_start) {
+@@ -1909,7 +1910,7 @@ static int gup_pte_range(pmd_t pmd, unsi
+=20
+ 			pgmap =3D get_dev_pagemap(pte_pfn(pte), pgmap);
+ 			if (unlikely(!pgmap)) {
+-				undo_dev_pagemap(nr, nr_start, pages);
++				undo_dev_pagemap(nr, nr_start, flags, pages);
+ 				goto pte_unmap;
+ 			}
+ 		} else if (pte_special(pte))
+@@ -1974,7 +1975,7 @@ static int __gup_device_huge(unsigned lo
+=20
+ 		pgmap =3D get_dev_pagemap(pfn, pgmap);
+ 		if (unlikely(!pgmap)) {
+-			undo_dev_pagemap(nr, nr_start, pages);
++			undo_dev_pagemap(nr, nr_start, flags, pages);
+ 			return 0;
+ 		}
+ 		SetPageReferenced(page);
+@@ -2001,7 +2002,7 @@ static int __gup_device_huge_pmd(pmd_t o
+ 		return 0;
+=20
+ 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
+-		undo_dev_pagemap(nr, nr_start, pages);
++		undo_dev_pagemap(nr, nr_start, flags, pages);
+ 		return 0;
+ 	}
+ 	return 1;
+@@ -2019,7 +2020,7 @@ static int __gup_device_huge_pud(pud_t o
+ 		return 0;
+=20
+ 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
+-		undo_dev_pagemap(nr, nr_start, pages);
++		undo_dev_pagemap(nr, nr_start, flags, pages);
+ 		return 0;
+ 	}
+ 	return 1;
+@@ -2053,7 +2054,7 @@ static int record_subpages(struct page *
+ 	return nr;
  }
 =20
-+static inline int page_ref_sub_return(struct page *page, int nr)
-+{
-+	int ret =3D atomic_sub_return(nr, &page->_refcount);
-+
-+	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod_and_return))
-+		__page_ref_mod_and_return(page, -nr, ret);
-+	return ret;
-+}
-+
- static inline void page_ref_inc(struct page *page)
+-static void put_compound_head(struct page *page, int refs)
++static void put_compound_head(struct page *page, int refs, unsigned int fl=
+ags)
  {
- 	atomic_inc(&page->_refcount);
+ 	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
+ 	/*
+@@ -2103,7 +2104,7 @@ static int gup_hugepte(pte_t *ptep, unsi
+ 		return 0;
+=20
+ 	if (unlikely(pte_val(pte) !=3D pte_val(*ptep))) {
+-		put_compound_head(head, refs);
++		put_compound_head(head, refs, flags);
+ 		return 0;
+ 	}
+=20
+@@ -2163,7 +2164,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 		return 0;
+=20
+ 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
+-		put_compound_head(head, refs);
++		put_compound_head(head, refs, flags);
+ 		return 0;
+ 	}
+=20
+@@ -2197,7 +2198,7 @@ static int gup_huge_pud(pud_t orig, pud_
+ 		return 0;
+=20
+ 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
+-		put_compound_head(head, refs);
++		put_compound_head(head, refs, flags);
+ 		return 0;
+ 	}
+=20
+@@ -2226,7 +2227,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_
+ 		return 0;
+=20
+ 	if (unlikely(pgd_val(orig) !=3D pgd_val(*pgdp))) {
+-		put_compound_head(head, refs);
++		put_compound_head(head, refs, flags);
+ 		return 0;
+ 	}
+=20
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
