@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch added
- to -mm tree
-Date: Tue, 11 Feb 2020 15:21:59 -0800
-Message-ID: <20200211232159.6gnWuKr7N%akpm@linux-foundation.org>
+Subject: + mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+ added to -mm tree
+Date: Tue, 11 Feb 2020 15:23:07 -0800
+Message-ID: <20200211232307.QO5-eT8SN%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47810 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48740 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727972AbgBKXWA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Feb 2020 18:22:00 -0500
+        id S1727786AbgBKXXI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Feb 2020 18:23:08 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gustavo@embeddedor.com, mm-commits@vger.kernel.org
+To: cai@lca.pw, elver@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/ts_kmp.c: replace zero-length array with flexible-array member
+     Subject: mm/rmap: annotate a data race at tlb_flush_batched
 has been added to the -mm tree.  Its filename is
-     lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch
+     mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,55 +38,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: lib/ts_kmp.c: replace zero-length array with flexible-array member
+From: Qian Cai <cai@lca.pw>
+Subject: mm/rmap: annotate a data race at tlb_flush_batched
 
-The current codebase makes use of the zero-length array language extension
-to the C90 standard, but the preferred mechanism to declare
-variable-length types such as these ones is a flexible array member[1][2],
-introduced in C99:
+mm->tlb_flush_batched could be accessed concurrently as noticed by
+KCSAN,
 
-struct foo {
-        int stuff;
-        struct boo array[];
-};
+ BUG: KCSAN: data-race in flush_tlb_batched_pending / try_to_unmap_one
 
-By making use of the mechanism above, we will get a compiler warning in
-case the flexible array does not occur last in the structure, which will
-help us prevent some kind of undefined behavior bugs from being
-inadvertenly introduced[3] to the codebase from now on.
+ write to 0xffff93f754880bd0 of 1 bytes by task 822 on cpu 6:
+  try_to_unmap_one+0x59a/0x1ab0
+  set_tlb_ubc_flush_pending at mm/rmap.c:635
+  (inlined by) try_to_unmap_one at mm/rmap.c:1538
+  rmap_walk_anon+0x296/0x650
+  rmap_walk+0xdf/0x100
+  try_to_unmap+0x18a/0x2f0
+  shrink_page_list+0xef6/0x2870
+  shrink_inactive_list+0x316/0x880
+  shrink_lruvec+0x8dc/0x1380
+  shrink_node+0x317/0xd80
+  balance_pgdat+0x652/0xd90
+  kswapd+0x396/0x8d0
+  kthread+0x1e0/0x200
+  ret_from_fork+0x27/0x50
 
-This issue was found with the help of Coccinelle.
+ read to 0xffff93f754880bd0 of 1 bytes by task 6364 on cpu 4:
+  flush_tlb_batched_pending+0x29/0x90
+  flush_tlb_batched_pending at mm/rmap.c:682
+  change_p4d_range+0x5dd/0x1030
+  change_pte_range at mm/mprotect.c:44
+  (inlined by) change_pmd_range at mm/mprotect.c:212
+  (inlined by) change_pud_range at mm/mprotect.c:240
+  (inlined by) change_p4d_range at mm/mprotect.c:260
+  change_protection+0x222/0x310
+  change_prot_numa+0x3e/0x60
+  task_numa_work+0x219/0x350
+  task_work_run+0xed/0x140
+  prepare_exit_to_usermode+0x2cc/0x2e0
+  ret_from_intr+0x32/0x42
 
-[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-[2] https://github.com/KSPP/linux/issues/21
-[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+ Reported by Kernel Concurrency Sanitizer on:
+ CPU: 4 PID: 6364 Comm: mtest01 Tainted: G        W    L 5.5.0-next-20200210+ #5
+ Hardware name: HPE ProLiant DL385 Gen10/ProLiant DL385 Gen10, BIOS A40 07/10/2019
 
-Link: http://lkml.kernel.org/r/20200211205948.GA26459@embeddedor
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+flush_tlb_batched_pending() is under PTL but the write is not, but
+mm->tlb_flush_batched is only a bool type, so the value is unlikely to be
+shattered.  Thus, mark it as an intentional data race by using the data
+race macro.
+
+Link: http://lkml.kernel.org/r/1581450783-8262-1-git-send-email-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ts_kmp.c |    2 +-
+ mm/rmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/ts_kmp.c~lib-ts_kmp-replace-zero-length-array-with-flexible-array-member
-+++ a/lib/ts_kmp.c
-@@ -36,7 +36,7 @@ struct ts_kmp
+--- a/mm/rmap.c~mm-rmap-annotate-a-data-race-at-tlb_flush_batched
++++ a/mm/rmap.c
+@@ -666,7 +666,7 @@ static bool should_defer_flush(struct mm
+  */
+ void flush_tlb_batched_pending(struct mm_struct *mm)
  {
- 	u8 *		pattern;
- 	unsigned int	pattern_len;
--	unsigned int 	prefix_tbl[0];
-+	unsigned int	prefix_tbl[];
- };
+-	if (mm->tlb_flush_batched) {
++	if (data_race(mm->tlb_flush_batched)) {
+ 		flush_tlb_mm(mm);
  
- static unsigned int kmp_find(struct ts_config *conf, struct ts_state *state)
+ 		/*
 _
 
-Patches currently in -mm which might be from gustavo@embeddedor.com are
+Patches currently in -mm which might be from cai@lca.pw are
 
-lib-bch-replace-zero-length-array-with-flexible-array-member.patch
-lib-objagg-replace-zero-length-arrays-with-flexible-array-member.patch
-lib-ts_bm-replace-zero-length-array-with-flexible-array-member.patch
-lib-ts_fsm-replace-zero-length-array-with-flexible-array-member.patch
-lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-swap_state-mark-various-intentional-data-races.patch
