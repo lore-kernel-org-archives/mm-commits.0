@@ -1,36 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-dump_page-additional-diagnostics-for-huge-pinned-pages.patch added to
- -mm tree
-Date: Mon, 10 Feb 2020 21:51:02 -0800
-Message-ID: <20200211055102.haL8nihuk%akpm@linux-foundation.org>
+ mm-mapping_dirty_helpers-update-huge-page-table-entry-callbacks.patch added
+ to -mm tree
+Date: Mon, 10 Feb 2020 22:05:39 -0800
+Message-ID: <20200211060539.RMKTp7n2m%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60874 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45262 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726942AbgBKFvE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Feb 2020 00:51:04 -0500
+        id S1727575AbgBKGFm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Feb 2020 01:05:42 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, ira.weiny@intel.com, jack@suse.cz, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, shuah@kernel.org, vbabka@suse.cz, viro@zeniv.linux.org.uk, willy@infradead.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, steven.price@arm.com, thellstrom@vmware.com
 
 
 The patch titled
-     Subject: mm: dump_page(): additional diagnostics for huge pinned pages
+     Subject: mm/mapping_dirty_helpers: Update huge page-table entry callbacks
 has been added to the -mm tree.  Its filename is
-     mm-dump_page-additional-diagnostics-for-huge-pinned-pages.patch
+     mm-mapping_dirty_helpers-update-huge-page-table-entry-callbacks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dump_page-additional-diagno=
-stics-for-huge-pinned-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mapping_dirty_helpers-update-huge-page-table-entry-callbacks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dump_page-additional-diagno=
-stics-for-huge-pinned-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mapping_dirty_helpers-update-huge-page-table-entry-callbacks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,111 +33,99 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm: dump_page(): additional diagnostics for huge pinned pages
+From: Thomas Hellstrom <thellstrom@vmware.com>
+Subject: mm/mapping_dirty_helpers: Update huge page-table entry callbacks
 
-As part of pin_user_pages() and related API calls, pages are "dma-pinned".
-For the case of compound pages of order > 1, the per-page accounting of
-dma pins is accomplished via the 3rd struct page in the compound page.  In
-order to support debugging of any pin_user_pages()- related problems,
-enhance dump_page() so as to report the pin count in that case.
+Following the update of pagewalk code commit a07984d48146 ("mm: pagewalk:
+add p4d_entry() and pgd_entry()") we can modify the mapping_dirty_helpers'
+huge page-table entry callbacks to avoid splitting when a huge pud or -pmd
+is encountered.
 
-Documentation/core-api/pin_user_pages.rst is also updated accordingly.
-
-Link: http://lkml.kernel.org/r/20200211001536.1027652-13-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/20200203154305.15045-1-thomas_os@shipmail.org
+Signed-off-by: Thomas Hellstrom <thellstrom@vmware.com>
+Reviewed-by: Steven Price <steven.price@arm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |    7 ++++++
- mm/debug.c                                |   21 +++++++++++++++-----
- 2 files changed, 23 insertions(+), 5 deletions(-)
+ mm/mapping_dirty_helpers.c |   42 +++++++++++++++++++++++++++++++----
+ 1 file changed, 38 insertions(+), 4 deletions(-)
 
---- a/Documentation/core-api/pin_user_pages.rst~mm-dump_page-additional-dia=
-gnostics-for-huge-pinned-pages
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -238,6 +238,13 @@ long-term [R]DMA pins in place, or durin
- (...unless it was already out of balance due to a long-term RDMA pin being=
- in
- place.)
-=20
-+Other diagnostics
-+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- a/mm/mapping_dirty_helpers.c~mm-mapping_dirty_helpers-update-huge-page-table-entry-callbacks
++++ a/mm/mapping_dirty_helpers.c
+@@ -111,26 +111,60 @@ static int clean_record_pte(pte_t *pte,
+ 	return 0;
+ }
+ 
+-/* wp_clean_pmd_entry - The pagewalk pmd callback. */
++/*
++ * wp_clean_pmd_entry - The pagewalk pmd callback.
++ *
++ * Dirty-tracking should take place on the PTE level, so
++ * WARN() if encountering a dirty huge pmd.
++ * Furthermore, never split huge pmds, since that currently
++ * causes dirty info loss. The pagefault handler should do
++ * that if needed.
++ */
+ static int wp_clean_pmd_entry(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			      struct mm_walk *walk)
+ {
+-	/* Dirty-tracking should be handled on the pte level */
+ 	pmd_t pmdval = pmd_read_atomic(pmd);
+ 
++	if (!pmd_trans_unstable(&pmdval))
++		return 0;
 +
-+dump_page() has been enhanced slightly, to handle these new counting field=
-s, and
-+to better report on compound pages in general. Specifically, for compound =
-pages
-+with order > 1, the exact (hpage_pinned_refcount) pincount is reported.
++	if (pmd_none(pmdval)) {
++		walk->action = ACTION_AGAIN;
++		return 0;
++	}
 +
- References
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=20
---- a/mm/debug.c~mm-dump_page-additional-diagnostics-for-huge-pinned-pages
-+++ a/mm/debug.c
-@@ -85,11 +85,22 @@ void __dump_page(struct page *page, cons
- 	mapcount =3D PageSlab(head) ? 0 : page_mapcount(page);
-=20
- 	if (compound)
--		pr_warn("page:%px refcount:%d mapcount:%d mapping:%p "
--			"index:%#lx head:%px order:%u compound_mapcount:%d\n",
--			page, page_ref_count(head), mapcount,
--			mapping, page_to_pgoff(page), head,
--			compound_order(head), compound_mapcount(page));
-+		if (hpage_pincount_available(page)) {
-+			pr_warn("page:%px refcount:%d mapcount:%d mapping:%p "
-+				"index:%#lx head:%px order:%u "
-+				"compound_mapcount:%d compound_pincount:%d\n",
-+				page, page_ref_count(head), mapcount,
-+				mapping, page_to_pgoff(page), head,
-+				compound_order(head), compound_mapcount(page),
-+				compound_pincount(page));
-+		} else {
-+			pr_warn("page:%px refcount:%d mapcount:%d mapping:%p "
-+				"index:%#lx head:%px order:%u "
-+				"compound_mapcount:%d\n",
-+				page, page_ref_count(head), mapcount,
-+				mapping, page_to_pgoff(page), head,
-+				compound_order(head), compound_mapcount(page));
-+		}
- 	else
- 		pr_warn("page:%px refcount:%d mapcount:%d mapping:%p index:%#lx\n",
- 			page, page_ref_count(page), mapcount,
++	/* Huge pmd, present or migrated */
++	walk->action = ACTION_CONTINUE;
+ 	if (pmd_trans_huge(pmdval) || pmd_devmap(pmdval))
+ 		WARN_ON(pmd_write(pmdval) || pmd_dirty(pmdval));
+ 
+ 	return 0;
+ }
+ 
+-/* wp_clean_pud_entry - The pagewalk pud callback. */
++/*
++ * wp_clean_pud_entry - The pagewalk pud callback.
++ *
++ * Dirty-tracking should take place on the PTE level, so
++ * WARN() if encountering a dirty huge puds.
++ * Furthermore, never split huge puds, since that currently
++ * causes dirty info loss. The pagefault handler should do
++ * that if needed.
++ */
+ static int wp_clean_pud_entry(pud_t *pud, unsigned long addr, unsigned long end,
+ 			      struct mm_walk *walk)
+ {
+-	/* Dirty-tracking should be handled on the pte level */
+ 	pud_t pudval = READ_ONCE(*pud);
+ 
++	if (!pud_trans_unstable(&pudval))
++		return 0;
++
++	if (pud_none(pudval)) {
++		walk->action = ACTION_AGAIN;
++		return 0;
++	}
++
++	/* Huge pud */
++	walk->action = ACTION_CONTINUE;
+ 	if (pud_trans_huge(pudval) || pud_devmap(pudval))
+ 		WARN_ON(pud_write(pudval) || pud_dirty(pudval));
+ 
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from thellstrom@vmware.com are
 
-mm-gup-split-get_user_pages_remote-into-two-routines.patch
-mm-gup-pass-a-flags-arg-to-__gup_device_-functions.patch
-mm-introduce-page_ref_sub_return.patch
-mm-gup-pass-gup-flags-to-two-more-routines.patch
-mm-gup-require-foll_get-for-get_user_pages_fast.patch
-mm-gup-track-foll_pin-pages.patch
-mm-gup-page-hpage_pinned_refcount-exact-pin-counts-for-huge-pages.patch
-mm-gup-proc-vmstat-pin_user_pages-foll_pin-reporting.patch
-mm-gup_benchmark-support-pin_user_pages-and-related-calls.patch
-selftests-vm-run_vmtests-invoke-gup_benchmark-with-basic-foll_pin-coverage.=
-patch
-mm-dump_page-additional-diagnostics-for-huge-pinned-pages.patch
+mm-mapping_dirty_helpers-update-huge-page-table-entry-callbacks.patch
