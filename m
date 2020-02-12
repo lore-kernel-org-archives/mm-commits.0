@@ -1,80 +1,150 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-lost-css_put-in-memcg_expand_shrinker_maps.patch
- added to -mm tree
-Date: Tue, 11 Feb 2020 16:33:24 -0800
-Message-ID: <20200212003324.Q8v63ZuPP%akpm@linux-foundation.org>
-References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [merged] maintainers-remove-unnecessary-characters.patch
+ removed from -mm tree
+Date: Wed, 12 Feb 2020 10:43:25 -0800
+Message-ID: <20200212184325.yjucGN3xH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38128 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60384 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728057AbgBLAdZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Feb 2020 19:33:25 -0500
-In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
+        id S1727054AbgBLSn0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Feb 2020 13:43:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, hannes@cmpxchg.org, ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vdavydov.dev@gmail.com, vvs@virtuozzo.com
+To: bgolaszewski@baylibre.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol.c: lost css_put in memcg_expand_shrinker_maps()
-has been added to the -mm tree.  Its filename is
-     memcg-lost-css_put-in-memcg_expand_shrinker_maps.patch
+     Subject: MAINTAINERS: remove unnecessary ':' characters
+has been removed from the -mm tree.  Its filename was
+     maintainers-remove-unnecessary-characters.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-lost-css_put-in-memcg_expand_shrinker_maps.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-lost-css_put-in-memcg_expand_shrinker_maps.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: mm/memcontrol.c: lost css_put in memcg_expand_shrinker_maps()
+From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Subject: MAINTAINERS: remove unnecessary ':' characters
 
-for_each_mem_cgroup() increases css reference counter for memory cgroup
-and requires to use mem_cgroup_iter_break() if the walk is cancelled.
+Commit e567cb3fef30 ("MAINTAINERS: add an entry for kfifo") added a new
+entry to MAINTAINERS. Following the example of the previous entry on the
+list I added a trailing ':' character at the end of the title line.
 
-Link: http://lkml.kernel.org/r/c98414fb-7e1f-da0f-867a-9340ec4bd30b@virtuozzo.com
-Fixes: 0a4465d34028 ("mm, memcg: assign memcg-aware shrinkers bitmap to memcg")
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Acked-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: <stable@vger.kernel.org>
+This however results in rather strange looking output from
+scripts/get_maintainer.pl:
+
+$ ./scripts/get_maintainer.pl ./0001-kfifo.patch
+Stefani Seibold <stefani@seibold.net> (maintainer:KFIFO:)
+linux-kernel@vger.kernel.org (open list)
+
+It turns out there are more entries like this. Fix the entire file by
+removing all trailing colons.
+
+Link: http://lkml.kernel.org/r/20200130135515.30359-1-brgl@bgdev.pl
+Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ MAINTAINERS |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/mm/memcontrol.c~memcg-lost-css_put-in-memcg_expand_shrinker_maps
-+++ a/mm/memcontrol.c
-@@ -409,8 +409,10 @@ int memcg_expand_shrinker_maps(int new_i
- 		if (mem_cgroup_is_root(memcg))
- 			continue;
- 		ret = memcg_expand_one_shrinker_map(memcg, size, old_size);
--		if (ret)
-+		if (ret) {
-+			mem_cgroup_iter_break(NULL, memcg);
- 			goto unlock;
-+		}
- 	}
- unlock:
- 	if (!ret)
+--- a/MAINTAINERS~maintainers-remove-unnecessary-characters
++++ a/MAINTAINERS
+@@ -3909,7 +3909,7 @@ S:	Supported
+ F:	Documentation/filesystems/ceph.txt
+ F:	fs/ceph/
+ 
+-CERTIFICATE HANDLING:
++CERTIFICATE HANDLING
+ M:	David Howells <dhowells@redhat.com>
+ M:	David Woodhouse <dwmw2@infradead.org>
+ L:	keyrings@vger.kernel.org
+@@ -3919,7 +3919,7 @@ F:	certs/
+ F:	scripts/sign-file.c
+ F:	scripts/extract-cert.c
+ 
+-CERTIFIED WIRELESS USB (WUSB) SUBSYSTEM:
++CERTIFIED WIRELESS USB (WUSB) SUBSYSTEM
+ L:	devel@driverdev.osuosl.org
+ S:	Obsolete
+ F:	drivers/staging/wusbcore/
+@@ -7047,7 +7047,7 @@ L:	kvm@vger.kernel.org
+ S:	Supported
+ F:	drivers/uio/uio_pci_generic.c
+ 
+-GENERIC VDSO LIBRARY:
++GENERIC VDSO LIBRARY
+ M:	Andy Lutomirski <luto@kernel.org>
+ M:	Thomas Gleixner <tglx@linutronix.de>
+ M:	Vincenzo Frascino <vincenzo.frascino@arm.com>
+@@ -9278,7 +9278,7 @@ F:	include/keys/trusted-type.h
+ F:	security/keys/trusted.c
+ F:	include/keys/trusted.h
+ 
+-KEYS/KEYRINGS:
++KEYS/KEYRINGS
+ M:	David Howells <dhowells@redhat.com>
+ M:	Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+ L:	keyrings@vger.kernel.org
+@@ -9291,7 +9291,7 @@ F:	include/uapi/linux/keyctl.h
+ F:	include/keys/
+ F:	security/keys/
+ 
+-KFIFO:
++KFIFO
+ M:	Stefani Seibold <stefani@seibold.net>
+ S:	Maintained
+ F:	lib/kfifo.c
+@@ -11491,7 +11491,7 @@ F:	drivers/scsi/mac_scsi.*
+ F:	drivers/scsi/sun3_scsi.*
+ F:	drivers/scsi/sun3_scsi_vme.c
+ 
+-NCSI LIBRARY:
++NCSI LIBRARY
+ M:	Samuel Mendoza-Jonas <sam@mendozajonas.com>
+ S:	Maintained
+ F:	net/ncsi/
+@@ -13519,7 +13519,7 @@ L:	linuxppc-dev@lists.ozlabs.org
+ S:	Maintained
+ F:	drivers/block/ps3vram.c
+ 
+-PSAMPLE PACKET SAMPLING SUPPORT:
++PSAMPLE PACKET SAMPLING SUPPORT
+ M:	Yotam Gigi <yotam.gi@gmail.com>
+ S:	Maintained
+ F:	net/psample
+@@ -17087,7 +17087,7 @@ S:	Maintained
+ F:	Documentation/admin-guide/ufs.rst
+ F:	fs/ufs/
+ 
+-UHID USERSPACE HID IO DRIVER:
++UHID USERSPACE HID IO DRIVER
+ M:	David Herrmann <dh.herrmann@googlemail.com>
+ L:	linux-input@vger.kernel.org
+ S:	Maintained
+@@ -17101,18 +17101,18 @@ S:	Maintained
+ F:	drivers/usb/common/ulpi.c
+ F:	include/linux/ulpi/
+ 
+-ULTRA-WIDEBAND (UWB) SUBSYSTEM:
++ULTRA-WIDEBAND (UWB) SUBSYSTEM
+ L:	devel@driverdev.osuosl.org
+ S:	Obsolete
+ F:	drivers/staging/uwb/
+ 
+-UNICODE SUBSYSTEM:
++UNICODE SUBSYSTEM
+ M:	Gabriel Krisman Bertazi <krisman@collabora.com>
+ L:	linux-fsdevel@vger.kernel.org
+ S:	Supported
+ F:	fs/unicode/
+ 
+-UNICORE32 ARCHITECTURE:
++UNICORE32 ARCHITECTURE
+ M:	Guan Xuetao <gxt@pku.edu.cn>
+ W:	http://mprc.pku.edu.cn/~guanxuetao/linux
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from bgolaszewski@baylibre.com are
 
-memcg-lost-css_put-in-memcg_expand_shrinker_maps.patch
+maintainers-add-an-entry-for-kfifo.patch
