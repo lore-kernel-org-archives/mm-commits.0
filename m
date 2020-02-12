@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfilec-fix-comments-for-swapcache_prepare.patch
+Subject: + mm-util-annotate-an-data-race-at-vm_committed_as.patch
  added to -mm tree
-Date: Wed, 12 Feb 2020 13:18:58 -0800
-Message-ID: <20200212211858.uGZP4Gsgm%akpm@linux-foundation.org>
+Date: Wed, 12 Feb 2020 13:22:24 -0800
+Message-ID: <20200212212224.uaX79b81X%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52790 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54938 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727548AbgBLVTA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Feb 2020 16:19:00 -0500
+        id S1727791AbgBLVWZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Feb 2020 16:22:25 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chenwandun@huawei.com, mm-commits@vger.kernel.org
+To: cai@lca.pw, cl@linux.com, dennis@kernel.org, elver@google.com, mm-commits@vger.kernel.org, tj@kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile.c: fix comments for swapcache_prepare
+     Subject: mm/util.c: annotate an data race at vm_committed_as
 has been added to the -mm tree.  Its filename is
-     mm-swapfilec-fix-comments-for-swapcache_prepare.patch
+     mm-util-annotate-an-data-race-at-vm_committed_as.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-fix-comments-for-swapcache_prepare.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-util-annotate-an-data-race-at-vm_committed_as.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-fix-comments-for-swapcache_prepare.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-util-annotate-an-data-race-at-vm_committed_as.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,34 +38,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Wandun <chenwandun@huawei.com>
-Subject: mm/swapfile.c: fix comments for swapcache_prepare
+From: Qian Cai <cai@lca.pw>
+Subject: mm/util.c: annotate an data race at vm_committed_as
 
-The -EEXIST returned by __swap_duplicate means there is a swap cache
-instead -EBUSY
+"vm_committed_as.count" could be accessed concurrently as reported by
+KCSAN,
 
-Link: http://lkml.kernel.org/r/20200212145754.27123-1-chenwandun@huawei.com
-Signed-off-by: Chen Wandun <chenwandun@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+ read to 0xffffffff923164f8 of 8 bytes by task 1268 on cpu 38:
+  __vm_enough_memory+0x43/0x280 mm/util.c:801
+  mmap_region+0x1b2/0xb90 mm/mmap.c:1726
+  do_mmap+0x45c/0x700
+  vm_mmap_pgoff+0xc0/0x130
+  vm_mmap+0x71/0x90
+  elf_map+0xa1/0x1b0
+  load_elf_binary+0x9de/0x2180
+  search_binary_handler+0xd8/0x2b0
+  __do_execve_file+0xb61/0x1080
+  __x64_sys_execve+0x5f/0x70
+  do_syscall_64+0x91/0xb47
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+ write to 0xffffffff923164f8 of 8 bytes by task 1265 on cpu 41:
+  percpu_counter_add_batch+0x83/0xd0 lib/percpu_counter.c:91
+  exit_mmap+0x178/0x220 include/linux/mman.h:68
+  mmput+0x10e/0x270
+  flush_old_exec+0x572/0xfe0
+  load_elf_binary+0x467/0x2180
+  search_binary_handler+0xd8/0x2b0
+  __do_execve_file+0xb61/0x1080
+  __x64_sys_execve+0x5f/0x70
+  do_syscall_64+0x91/0xb47
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The warning is almost impossible to trigger according to the commit
+82f71ae4a2b8 ("mm: catch memory commitment underflow") but leave it for
+now to catch any possible unbalanced vm_unacct_memory() in the future. 
+Since only the read is operating as lockless, mark it as an intentional
+data race using the data_race() macro to avoid modifying
+percpu_counter_read() and still catch unintended races elsewhere.
+
+Link: http://lkml.kernel.org/r/1581518109-21180-1-git-send-email-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/util.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfilec-fix-comments-for-swapcache_prepare
-+++ a/mm/swapfile.c
-@@ -3480,7 +3480,7 @@ int swap_duplicate(swp_entry_t entry)
-  *
-  * Called when allocating swap cache for existing swap entry,
-  * This can return error codes. Returns 0 at success.
-- * -EBUSY means there is a swap cache.
-+ * -EEXIST means there is a swap cache.
-  * Note: return code is different from swap_duplicate().
-  */
- int swapcache_prepare(swp_entry_t entry)
+--- a/mm/util.c~mm-util-annotate-an-data-race-at-vm_committed_as
++++ a/mm/util.c
+@@ -798,8 +798,12 @@ int __vm_enough_memory(struct mm_struct
+ {
+ 	long allowed;
+ 
+-	VM_WARN_ONCE(percpu_counter_read(&vm_committed_as) <
+-			-(s64)vm_committed_as_batch * num_online_cpus(),
++	/*
++	 * A transient decrease in the value is unlikely, so no need
++	 * READ_ONCE() for vm_committed_as.count.
++	 */
++	VM_WARN_ONCE(data_race(percpu_counter_read(&vm_committed_as) <
++			-(s64)vm_committed_as_batch * num_online_cpus()),
+ 			"memory commitment underflow");
+ 
+ 	vm_acct_memory(pages);
 _
 
-Patches currently in -mm which might be from chenwandun@huawei.com are
+Patches currently in -mm which might be from cai@lca.pw are
 
-mm-swapfilec-fix-comments-for-swapcache_prepare.patch
+mm-kmemleak-annotate-a-data-race-in-checksum.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-page_counter-fix-various-data-races-at-memsw.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-util-annotate-an-data-race-at-vm_committed_as.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-swap_state-mark-various-intentional-data-races.patch
