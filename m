@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-page_reporting-add-free-page-reporting-documentation.patch added to -mm
- tree
-Date: Tue, 11 Feb 2020 16:20:07 -0800
-Message-ID: <20200212002007.V-24SmzdG%akpm@linux-foundation.org>
+Subject: + mm-page_counter-fix-various-data-races.patch added to
+ -mm tree
+Date: Tue, 11 Feb 2020 16:30:29 -0800
+Message-ID: <20200212003029._vHO_x2zz%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35742 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37124 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728025AbgBLAUK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Feb 2020 19:20:10 -0500
+        id S1728060AbgBLAaa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Feb 2020 19:30:30 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, alexander.h.duyck@linux.intel.com, dan.j.williams@intel.com, dave.hansen@intel.com, david@redhat.com, konrad.wilk@oracle.com, lcapitulino@redhat.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com, nitesh@redhat.com, osalvador@suse.de, pagupta@redhat.com, pbonzini@redhat.com, riel@surriel.com, vbabka@suse.cz, wei.w.wang@intel.com, willy@infradead.org, yang.zhang.wz@gmail.com
+To: cai@lca.pw, david@redhat.com, dvyukov@google.com, elver@google.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp
 
 
 The patch titled
-     Subject: mm/page_reporting: add free page reporting documentation
+     Subject: mm/page_counter.c: fix various data races
 has been added to the -mm tree.  Its filename is
-     mm-page_reporting-add-free-page-reporting-documentation.patch
+     mm-page_counter-fix-various-data-races.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_reporting-add-free-page-reporting-documentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_counter-fix-various-data-races.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_reporting-add-free-page-reporting-documentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_counter-fix-various-data-races.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,94 +38,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Subject: mm/page_reporting: add free page reporting documentation
+From: Qian Cai <cai@lca.pw>
+Subject: mm/page_counter.c: fix various data races
 
-Add documentation for free page reporting.  Currently the only consumer is
-virtio-balloon, however it is possible that other drivers might make use
-of this so it is best to add a bit of documetation explaining at a high
-level how to use the API.
+The commit 3e32cb2e0a12 ("mm: memcontrol: lockless page counters") could
+had memcg->memsw->watermark been accessed concurrently as reported by
+KCSAN,
 
-Link: http://lkml.kernel.org/r/20200211224730.29318.43815.stgit@localhost.localdomain
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+ Reported by Kernel Concurrency Sanitizer on:
+ BUG: KCSAN: data-race in page_counter_try_charge / page_counter_try_char=
+ge
+
+ read to 0xffff8fb18c4cd190 of 8 bytes by task 1081 on cpu 59:
+  page_counter_try_charge+0x4d/0x150 mm/page_counter.c:138
+  try_charge+0x131/0xd50 mm/memcontrol.c:2405
+  __memcg_kmem_charge_memcg+0x58/0x140
+  __memcg_kmem_charge+0xcc/0x280
+  __alloc_pages_nodemask+0x1e1/0x450
+  alloc_pages_current+0xa6/0x120
+  pte_alloc_one+0x17/0xd0
+  __pte_alloc+0x3a/0x1f0
+  copy_p4d_range+0xc36/0x1990
+  copy_page_range+0x21d/0x360
+  dup_mmap+0x5f5/0x7a0
+  dup_mm+0xa2/0x240
+  copy_process+0x1b3f/0x3460
+  _do_fork+0xaa/0xa20
+  __x64_sys_clone+0x13b/0x170
+  do_syscall_64+0x91/0xb47
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+ write to 0xffff8fb18c4cd190 of 8 bytes by task 1153 on cpu 120:
+  page_counter_try_charge+0x5b/0x150 mm/page_counter.c:139
+  try_charge+0x131/0xd50 mm/memcontrol.c:2405
+  mem_cgroup_try_charge+0x159/0x460
+  mem_cgroup_try_charge_delay+0x3d/0xa0
+  wp_page_copy+0x14d/0x930
+  do_wp_page+0x107/0x7b0
+  __handle_mm_fault+0xce6/0xd40
+  handle_mm_fault+0xfc/0x2f0
+  do_page_fault+0x263/0x6f9
+  page_fault+0x34/0x40
+
+Since watermark could be compared or set to garbage due to load or store
+tearing which would change the code logic, fix it by adding a pair of
+READ_ONCE() and WRITE_ONCE() in those places.
+
+Link: http://lkml.kernel.org/r/20200129105224.4016-1-cai@lca.pw
+Fixes: 3e32cb2e0a12 ("mm: memcontrol: lockless page counters")
+Signed-off-by: Qian Cai <cai@lca.pw>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nitesh Narayan Lal <nitesh@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pankaj Gupta <pagupta@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Wang <wei.w.wang@intel.com>
-Cc: Yang Zhang <yang.zhang.wz@gmail.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/free_page_reporting.rst |   41 +++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ mm/page_counter.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- /dev/null
-+++ a/Documentation/vm/free_page_reporting.rst
-@@ -0,0 +1,41 @@
-+.. _free_page_reporting:
-+
-+=====================
-+Free Page Reporting
-+=====================
-+
-+Free page reporting is an API by which a device can register to receive
-+lists of pages that are currently unused by the system. This is useful in
-+the case of virtualization where a guest is then able to use this data to
-+notify the hypervisor that it is no longer using certain pages in memory.
-+
-+For the driver, typically a balloon driver, to use of this functionality
-+it will allocate and initialize a page_reporting_dev_info structure. The
-+field within the structure it will populate is the "report" function
-+pointer used to process the scatterlist. It must also guarantee that it can
-+handle at least PAGE_REPORTING_CAPACITY worth of scatterlist entries per
-+call to the function. A call to page_reporting_register will register the
-+page reporting interface with the reporting framework assuming no other
-+page reporting devices are already registered.
-+
-+Once registered the page reporting API will begin reporting batches of
-+pages to the driver. The API will start reporting pages 2 seconds after
-+the interface is registered and will continue to do so 2 seconds after any
-+page of a sufficiently high order is freed.
-+
-+Pages reported will be stored in the scatterlist passed to the reporting
-+function with the final entry having the end bit set in entry nent - 1.
-+While pages are being processed by the report function they will not be
-+accessible to the allocator. Once the report function has been completed
-+the pages will be returned to the free area from which they were obtained.
-+
-+Prior to removing a driver that is making use of free page reporting it
-+is necessary to call page_reporting_unregister to have the
-+page_reporting_dev_info structure that is currently in use by free page
-+reporting removed. Doing this will prevent further reports from being
-+issued via the interface. If another driver or the same driver is
-+registered it is possible for it to resume where the previous driver had
-+left off in terms of reporting free pages.
-+
-+Alexander Duyck, Dec 04, 2019
-+
+--- a/mm/page_counter.c~mm-page_counter-fix-various-data-races
++++ a/mm/page_counter.c
+@@ -82,8 +82,8 @@ void page_counter_charge(struct page_cou
+ 		 * This is indeed racy, but we can live with some
+ 		 * inaccuracy in the watermark.
+ 		 */
+-		if (new > c->watermark)
+-			c->watermark = new;
++		if (new > READ_ONCE(c->watermark))
++			WRITE_ONCE(c->watermark, new);
+ 	}
+ }
+ 
+@@ -135,8 +135,8 @@ bool page_counter_try_charge(struct page
+ 		 * Just like with failcnt, we can live with some
+ 		 * inaccuracy in the watermark.
+ 		 */
+-		if (new > c->watermark)
+-			c->watermark = new;
++		if (new > READ_ONCE(c->watermark))
++			WRITE_ONCE(c->watermark, new);
+ 	}
+ 	return true;
+ 
 _
 
-Patches currently in -mm which might be from alexander.h.duyck@linux.intel.com are
+Patches currently in -mm which might be from cai@lca.pw are
 
-mm-adjust-shuffle-code-to-allow-for-future-coalescing.patch
-mm-use-zone-and-order-instead-of-free-area-in-free_list-manipulators.patch
-mm-add-function-__putback_isolated_page.patch
-mm-introduce-reported-pages.patch
-virtio-balloon-pull-page-poisoning-config-out-of-free-page-hinting.patch
-virtio-balloon-add-support-for-providing-free-page-reports-to-host.patch
-mm-page_reporting-rotate-reported-pages-to-the-tail-of-the-list.patch
-mm-page_reporting-add-budget-limit-on-how-many-pages-can-be-reported-per-pass.patch
-mm-page_reporting-add-free-page-reporting-documentation.patch
+mm-kmemleak-annotate-a-data-race-in-checksum.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-page_counter-fix-various-data-races.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-swap_state-mark-various-intentional-data-races.patch
