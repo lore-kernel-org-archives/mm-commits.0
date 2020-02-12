@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-util-annotate-an-data-race-at-vm_committed_as.patch
+Subject: + asm-generic-fix-unistd_32h-generation-format.patch
  added to -mm tree
-Date: Wed, 12 Feb 2020 13:22:24 -0800
-Message-ID: <20200212212224.uaX79b81X%akpm@linux-foundation.org>
+Date: Wed, 12 Feb 2020 14:08:25 -0800
+Message-ID: <20200212220825.H9Ijn-_0x%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54938 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727791AbgBLVWZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Feb 2020 16:22:25 -0500
+        id S1727791AbgBLWI1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Feb 2020 17:08:27 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, cl@linux.com, dennis@kernel.org, elver@google.com, mm-commits@vger.kernel.org, tj@kernel.org
+To: arnd@arndb.de, benh@kernel.crashing.org, chris@zankel.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, fenghua.yu@intel.com, ink@jurassic.park.msu.ru, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, mattst88@gmail.com, michal.simek@xilinx.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulburton@kernel.org, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, stefan.asserhall@xilinx.com, tony.luck@intel.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm/util.c: annotate an data race at vm_committed_as
+     Subject: asm-generic: fix unistd_32.h generation format
 has been added to the -mm tree.  Its filename is
-     mm-util-annotate-an-data-race-at-vm_committed_as.patch
+     asm-generic-fix-unistd_32h-generation-format.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-util-annotate-an-data-race-at-vm_committed_as.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/asm-generic-fix-unistd_32h-generation-format.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-util-annotate-an-data-race-at-vm_committed_as.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/asm-generic-fix-unistd_32h-generation-format.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,86 +38,139 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: mm/util.c: annotate an data race at vm_committed_as
+From: Michal Simek <michal.simek@xilinx.com>
+Subject: asm-generic: fix unistd_32.h generation format
 
-"vm_committed_as.count" could be accessed concurrently as reported by
-KCSAN,
+Generated files are also checked by sparse that's why add newline to
+remove sparse (C=1) warning.
 
- read to 0xffffffff923164f8 of 8 bytes by task 1268 on cpu 38:
-  __vm_enough_memory+0x43/0x280 mm/util.c:801
-  mmap_region+0x1b2/0xb90 mm/mmap.c:1726
-  do_mmap+0x45c/0x700
-  vm_mmap_pgoff+0xc0/0x130
-  vm_mmap+0x71/0x90
-  elf_map+0xa1/0x1b0
-  load_elf_binary+0x9de/0x2180
-  search_binary_handler+0xd8/0x2b0
-  __do_execve_file+0xb61/0x1080
-  __x64_sys_execve+0x5f/0x70
-  do_syscall_64+0x91/0xb47
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+The issue was found on Microblaze and reported like this:
+./arch/microblaze/include/generated/uapi/asm/unistd_32.h:438:45: warning:
+no newline at end of file
 
- write to 0xffffffff923164f8 of 8 bytes by task 1265 on cpu 41:
-  percpu_counter_add_batch+0x83/0xd0 lib/percpu_counter.c:91
-  exit_mmap+0x178/0x220 include/linux/mman.h:68
-  mmput+0x10e/0x270
-  flush_old_exec+0x572/0xfe0
-  load_elf_binary+0x467/0x2180
-  search_binary_handler+0xd8/0x2b0
-  __do_execve_file+0xb61/0x1080
-  __x64_sys_execve+0x5f/0x70
-  do_syscall_64+0x91/0xb47
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+Mips and PowerPC have it already but let's align with style used by m68k.
 
-The warning is almost impossible to trigger according to the commit
-82f71ae4a2b8 ("mm: catch memory commitment underflow") but leave it for
-now to catch any possible unbalanced vm_unacct_memory() in the future. 
-Since only the read is operating as lockless, mark it as an intentional
-data race using the data_race() macro to avoid modifying
-percpu_counter_read() and still catch unintended races elsewhere.
-
-Link: http://lkml.kernel.org/r/1581518109-21180-1-git-send-email-cai@lca.pw
-Signed-off-by: Qian Cai <cai@lca.pw>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Marco Elver <elver@google.com>
+Link: http://lkml.kernel.org/r/4d32ab4e1fb2edb691d2e1687e8fb303c09fd023.1581504803.git.michal.simek@xilinx.com
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Reviewed-by: Stefan Asserhall <stefan.asserhall@xilinx.com>
+Acked-by: Max Filippov <jcmvbkbc@gmail.com> (xtensa)
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/alpha/kernel/syscalls/syscallhdr.sh      |    2 +-
+ arch/ia64/kernel/syscalls/syscallhdr.sh       |    2 +-
+ arch/microblaze/kernel/syscalls/syscallhdr.sh |    2 +-
+ arch/mips/kernel/syscalls/syscallhdr.sh       |    3 +--
+ arch/parisc/kernel/syscalls/syscallhdr.sh     |    2 +-
+ arch/powerpc/kernel/syscalls/syscallhdr.sh    |    3 +--
+ arch/sh/kernel/syscalls/syscallhdr.sh         |    2 +-
+ arch/sparc/kernel/syscalls/syscallhdr.sh      |    2 +-
+ arch/xtensa/kernel/syscalls/syscallhdr.sh     |    2 +-
+ 9 files changed, 9 insertions(+), 11 deletions(-)
 
---- a/mm/util.c~mm-util-annotate-an-data-race-at-vm_committed_as
-+++ a/mm/util.c
-@@ -798,8 +798,12 @@ int __vm_enough_memory(struct mm_struct
- {
- 	long allowed;
- 
--	VM_WARN_ONCE(percpu_counter_read(&vm_committed_as) <
--			-(s64)vm_committed_as_batch * num_online_cpus(),
-+	/*
-+	 * A transient decrease in the value is unlikely, so no need
-+	 * READ_ONCE() for vm_committed_as.count.
-+	 */
-+	VM_WARN_ONCE(data_race(percpu_counter_read(&vm_committed_as) <
-+			-(s64)vm_committed_as_batch * num_online_cpus()),
- 			"memory commitment underflow");
- 
- 	vm_acct_memory(pages);
+--- a/arch/alpha/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/alpha/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/ia64/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/ia64/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/microblaze/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/microblaze/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/mips/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/mips/kernel/syscalls/syscallhdr.sh
+@@ -32,6 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
+-	printf "\n"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/parisc/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/parisc/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/powerpc/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/powerpc/kernel/syscalls/syscallhdr.sh
+@@ -32,6 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
+-	printf "\n"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/sh/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/sh/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/sparc/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/sparc/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/xtensa/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/xtensa/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
 _
 
-Patches currently in -mm which might be from cai@lca.pw are
+Patches currently in -mm which might be from michal.simek@xilinx.com are
 
-mm-kmemleak-annotate-a-data-race-in-checksum.patch
-mm-swapfile-fix-and-annotate-various-data-races.patch
-mm-page_counter-fix-various-data-races-at-memsw.patch
-mm-memcontrol-fix-a-data-race-in-scan-count.patch
-mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-mm-mempool-fix-a-data-race-in-mempool_free.patch
-mm-util-annotate-an-data-race-at-vm_committed_as.patch
-mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
-mm-frontswap-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races.patch
-mm-swap_state-mark-various-intentional-data-races.patch
+asm-generic-fix-unistd_32h-generation-format.patch
