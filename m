@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-allocate-shrinker_map-on-appropriate-numa-node.patch
- added to -mm tree
-Date: Wed, 12 Feb 2020 14:59:51 -0800
-Message-ID: <20200212225951.pgx60nMDF%akpm@linux-foundation.org>
+Subject: +
+ init-cleanup-anon_inodes-and-old-io-schedulers-options.patch added to -mm
+ tree
+Date: Wed, 12 Feb 2020 15:05:24 -0800
+Message-ID: <20200212230524.WsEOdRNcd%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43742 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48120 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728185AbgBLW7w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Feb 2020 17:59:52 -0500
+        id S1728674AbgBLXF0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Feb 2020 18:05:26 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@redhat.com, guro@fb.com, hannes@cmpxchg.org, ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com
+To: gregkh@linuxfoundation.org, krzk@kernel.org, mm-commits@vger.kernel.org, tglx@linutronix.de, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: mm/memcontrol.c: allocate shrinker_map on appropriate NUMA node
+     Subject: init/Kconfig: clean up ANON_INODES and old IO schedulers options
 has been added to the -mm tree.  Its filename is
-     mm-allocate-shrinker_map-on-appropriate-numa-node.patch
+     init-cleanup-anon_inodes-and-old-io-schedulers-options.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-allocate-shrinker_map-on-appropriate-numa-node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/init-cleanup-anon_inodes-and-old-io-schedulers-options.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-allocate-shrinker_map-on-appropriate-numa-node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/init-cleanup-anon_inodes-and-old-io-schedulers-options.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,51 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Subject: mm/memcontrol.c: allocate shrinker_map on appropriate NUMA node
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: init/Kconfig: clean up ANON_INODES and old IO schedulers options
 
-The shrinker_map may be touched from any cpu (e.g., a bit there may be set
-by a task running everywhere) but kswapd is always bound to specific node.
-So allocate shrinker_map from the related NUMA node to respect its NUMA
-locality.  Also, this follows generic way we use for allocation of memcg's
-per-node data.
+CONFIG_ANON_INODES is gone since commit 5dd50aaeb185 ("Make anon_inodes
+unconditional").
 
-Link: http://lkml.kernel.org/r/fff0e636-4c36-ed10-281c-8cdb0687c839@virtuozzo.com
-Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+CONFIG_CFQ_GROUP_IOSCHED was replaced with CONFIG_BFQ_GROUP_IOSCHED in
+commit f382fb0bcef4 ("block: remove legacy IO schedulers").
+
+Link: http://lkml.kernel.org/r/20200130192419.3026-1-krzk@kernel.org
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ init/Kconfig |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-allocate-shrinker_map-on-appropriate-numa-node
-+++ a/mm/memcontrol.c
-@@ -334,7 +334,7 @@ static int memcg_expand_one_shrinker_map
- 		if (!old)
- 			return 0;
+--- a/init/Kconfig~init-cleanup-anon_inodes-and-old-io-schedulers-options
++++ a/init/Kconfig
+@@ -870,7 +870,7 @@ config BLK_CGROUP
+ 	This option only enables generic Block IO controller infrastructure.
+ 	One needs to also enable actual IO controlling logic/policy. For
+ 	enabling proportional weight division of disk bandwidth in CFQ, set
+-	CONFIG_CFQ_GROUP_IOSCHED=y; for enabling throttling policy, set
++	CONFIG_BFQ_GROUP_IOSCHED=y; for enabling throttling policy, set
+ 	CONFIG_BLK_DEV_THROTTLING=y.
  
--		new = kvmalloc(sizeof(*new) + size, GFP_KERNEL);
-+		new = kvmalloc_node(sizeof(*new) + size, GFP_KERNEL, nid);
- 		if (!new)
- 			return -ENOMEM;
+ 	See Documentation/admin-guide/cgroup-v1/blkio-controller.rst for more information.
+@@ -1536,7 +1536,6 @@ config AIO
  
-@@ -378,7 +378,7 @@ static int memcg_alloc_shrinker_maps(str
- 	mutex_lock(&memcg_shrinker_map_mutex);
- 	size = memcg_shrinker_map_size;
- 	for_each_node(nid) {
--		map = kvzalloc(sizeof(*map) + size, GFP_KERNEL);
-+		map = kvzalloc_node(sizeof(*map) + size, GFP_KERNEL, nid);
- 		if (!map) {
- 			memcg_free_shrinker_maps(memcg);
- 			ret = -ENOMEM;
+ config IO_URING
+ 	bool "Enable IO uring support" if EXPERT
+-	select ANON_INODES
+ 	select IO_WQ
+ 	default y
+ 	help
 _
 
-Patches currently in -mm which might be from ktkhai@virtuozzo.com are
+Patches currently in -mm which might be from krzk@kernel.org are
 
-mm-allocate-shrinker_map-on-appropriate-numa-node.patch
+init-cleanup-anon_inodes-and-old-io-schedulers-options.patch
