@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- lib-string-update-match_string-doc-strings-with-correct-behavior.patch
+Subject: + mm-vmscan-replace-open-codings-to-numa_no_node.patch
  added to -mm tree
-Date: Thu, 13 Feb 2020 21:15:57 -0800
-Message-ID: <20200214051557.9AVDkpMdm%akpm@linux-foundation.org>
+Date: Thu, 13 Feb 2020 21:16:48 -0800
+Message-ID: <20200214051648.aFv7bnp3S%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47274 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726179AbgBNFP6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 Feb 2020 00:15:58 -0500
+        id S1726004AbgBNFQt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 Feb 2020 00:16:49 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandru.ardelean@analog.com, andriy.shevchenko@linux.intel.com, keescook@chromium.org, mm-commits@vger.kernel.org, tobin@kernel.org
+To: anshuman.khandual@arm.com, minchan@kernel.org, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: lib/string.c: update match_string() doc-strings with correct behavior
+     Subject: mm: vmscan: replace open codings to NUMA_NO_NODE
 has been added to the -mm tree.  Its filename is
-     lib-string-update-match_string-doc-strings-with-correct-behavior.patch
+     mm-vmscan-replace-open-codings-to-numa_no_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-string-update-match_string-doc-strings-with-correct-behavior.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-replace-open-codings-to-numa_no_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string-update-match_string-doc-strings-with-correct-behavior.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-replace-open-codings-to-numa_no_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +38,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandru Ardelean <alexandru.ardelean@analog.com>
-Subject: lib/string.c: update match_string() doc-strings with correct behavior
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm: vmscan: replace open codings to NUMA_NO_NODE
 
-There were a few attempts at changing behavior of the match_string()
-helpers (i.e.  'match_string()' & 'sysfs_match_string()'), to change &
-extend the behavior according to the doc-string.
+The commit 98fa15f34cb3 ("mm: replace all open encodings for
+NUMA_NO_NODE") did the replacement across the kernel tree, but we got
+some more in vmscan.c since then.
 
-But the simplest approach is to just fix the doc-strings.  The current
-behavior is fine as-is, and some bugs were introduced trying to fix it.
-
-As for extending the behavior, new helpers can always be introduced if
-needed.
-
-The match_string() helpers behave more like 'strncmp()' in the sense that
-they go up to n elements or until the first NULL element in the array of
-strings.
-
-This change updates the doc-strings with this info.
-
-Link: http://lkml.kernel.org/r/20200213072722.8249-1-alexandru.ardelean@analog.com
-Signed-off-by: Alexandru Ardelean <alexandru.ardelean@analog.com>
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Tobin C . Harding" <tobin@kernel.org>
+Link: http://lkml.kernel.org/r/1581568298-45317-1-git-send-email-yang.shi@linux.alibaba.com
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/lib/string.c~lib-string-update-match_string-doc-strings-with-correct-behavior
-+++ a/lib/string.c
-@@ -699,6 +699,14 @@ EXPORT_SYMBOL(sysfs_streq);
-  * @n:		number of strings in the array or -1 for NULL terminated arrays
-  * @string:	string to match with
-  *
-+ * This routine will look for a string in an array of strings up to the
-+ * n-th element in the array or until the first NULL element.
-+ *
-+ * Historically the value of -1 for @n, was used to search in arrays that
-+ * are NULL terminated. However, the function does not make a distinction
-+ * when finishing the search: either @n elements have been compared OR
-+ * the first NULL element was found.
-+ *
-  * Return:
-  * index of a @string in the @array if matches, or %-EINVAL otherwise.
-  */
-@@ -727,6 +735,14 @@ EXPORT_SYMBOL(match_string);
-  *
-  * Returns index of @str in the @array or -EINVAL, just like match_string().
-  * Uses sysfs_streq instead of strcmp for matching.
-+ *
-+ * This routine will look for a string in an array of strings up to the
-+ * n-th element in the array or until the first NULL element.
-+ *
-+ * Historically the value of -1 for @n, was used to search in arrays that
-+ * are NULL terminated. However, the function does not make a distinction
-+ * when finishing the search: either @n elements have been compared OR
-+ * the first NULL element was found.
-  */
- int __sysfs_match_string(const char * const *array, size_t n, const char *str)
+--- a/mm/vmscan.c~mm-vmscan-replace-open-codings-to-numa_no_node
++++ a/mm/vmscan.c
+@@ -2096,7 +2096,7 @@ static void shrink_active_list(unsigned
+ 
+ unsigned long reclaim_pages(struct list_head *page_list)
  {
+-	int nid = -1;
++	int nid = NUMA_NO_NODE;
+ 	unsigned long nr_reclaimed = 0;
+ 	LIST_HEAD(node_page_list);
+ 	struct reclaim_stat dummy_stat;
+@@ -2111,7 +2111,7 @@ unsigned long reclaim_pages(struct list_
+ 
+ 	while (!list_empty(page_list)) {
+ 		page = lru_to_page(page_list);
+-		if (nid == -1) {
++		if (nid == NUMA_NO_NODE) {
+ 			nid = page_to_nid(page);
+ 			INIT_LIST_HEAD(&node_page_list);
+ 		}
+@@ -2132,7 +2132,7 @@ unsigned long reclaim_pages(struct list_
+ 			putback_lru_page(page);
+ 		}
+ 
+-		nid = -1;
++		nid = NUMA_NO_NODE;
+ 	}
+ 
+ 	if (!list_empty(&node_page_list)) {
 _
 
-Patches currently in -mm which might be from alexandru.ardelean@analog.com are
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
 
-lib-string-update-match_string-doc-strings-with-correct-behavior.patch
+mm-vmpressure-dont-need-call-kfree-if-kstrndup-fails.patch
+mm-vmpressure-use-mem_cgroup_is_root-api.patch
+mm-vmscan-replace-open-codings-to-numa_no_node.patch
+mm-migratec-migrate-pg_readahead-flag.patch
