@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-mempolicy-support-mpol_mf_strict-for-huge-page-mapping.patch added to
+ mm-vmscan-dont-round-up-scan-size-for-online-memory-cgroup.patch added to
  -mm tree
-Date: Thu, 13 Feb 2020 21:19:18 -0800
-Message-ID: <20200214051918.3B4_7ee6w%akpm@linux-foundation.org>
+Date: Thu, 13 Feb 2020 21:22:28 -0800
+Message-ID: <20200214052228.qry-CKsYL%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47976 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725777AbgBNFTV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 14 Feb 2020 00:19:21 -0500
+        id S1725775AbgBNFWb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 14 Feb 2020 00:22:31 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux-man@vger.kernel.org, lixinhai.lxh@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, naoya.horiguchi@nec.com
+To: gshan@redhat.com, guro@fb.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: support MPOL_MF_STRICT for huge page mapping
+     Subject: mm/vmscan.c: don't round up scan size for online memory cgroup
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-support-mpol_mf_strict-for-huge-page-mapping.patch
+     mm-vmscan-dont-round-up-scan-size-for-online-memory-cgroup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-support-mpol_mf_strict-for-huge-page-mapping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-dont-round-up-scan-size-for-online-memory-cgroup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-support-mpol_mf_strict-for-huge-page-mapping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-dont-round-up-scan-size-for-online-memory-cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,137 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Li Xinhai <lixinhai.lxh@gmail.com>
-Subject: mm/mempolicy: support MPOL_MF_STRICT for huge page mapping
+From: Gavin Shan <gshan@redhat.com>
+Subject: mm/vmscan.c: don't round up scan size for online memory cgroup
 
-MPOL_MF_STRICT is used in mbind() for purposes:
+commit 68600f623d69 ("mm: don't miss the last page because of round-off
+error") makes the scan size round up to @denominator regardless of the
+memory cgroup's state, online or offline.  This affects the overall
+reclaiming behavior: The corresponding LRU list is eligible for reclaiming
+only when its size logically right shifted by @sc->priority is bigger than
+zero in the former formula.  For example, the inactive anonymous LRU list
+should have at least 0x4000 pages to be eligible for reclaiming when we
+have 60/12 for swappiness/priority and without taking scan/rotation ratio
+into account.  After the roundup is applied, the inactive anonymous LRU
+list becomes eligible for reclaiming when its size is bigger than or equal
+to 0x1000 in the same condition.
 
-(1) MPOL_MF_STRICT is set alone without MPOL_MF_MOVE or
-    MPOL_MF_MOVE_ALL, to check if there is misplaced page and return -EIO;
+    (0x4000 >> 12) * 60 / (60 + 140 + 1) = 1
+    ((0x1000 >> 12) * 60) + 200) / (60 + 140 + 1) = 1
 
-(2) MPOL_MF_STRICT is set with MPOL_MF_MOVE or MPOL_MF_MOVE_ALL, to
-    check if there is misplaced page which is failed to isolate, or page
-    is success on isolate but failed to move, and return -EIO.
+aarch64 has 512MB huge page size when the base page size is 64KB.  The
+memory cgroup that has a huge page is always eligible for reclaiming in
+that case.  The reclaiming is likely to stop after the huge page is
+reclaimed, meaing the further iteration on @sc->priority and the silbing
+and child memory cgroups will be skipped.  The overall behaviour has been
+changed.  This fixes the issue by applying the roundup to offlined memory
+cgroups only, to give more preference to reclaim memory from offlined
+memory cgroup.  It sounds reasonable as those memory is unlikedly to be
+used by anyone.
 
-For non hugepage mapping, (1) and (2) are implemented as expectation.  For
-hugepage mapping, (1) is not implemented.  And in (2), the part about
-failed to isolate and report -EIO is not implemented.
+The issue was found by starting up 8 VMs on a Ampere Mustang machine,
+which has 8 CPUs and 16 GB memory.  Each VM is given with 2 vCPUs and 2GB
+memory.  It took 264 seconds for all VMs to be completely up and 784MB
+swap is consumed after that.  With this patch applied, it took 236 seconds
+and 60MB swap to do same thing.  So there is 10% performance improvement
+for my case.  Note that KSM is disable while THP is enabled in the
+testing.
 
-This patch implements the missed parts for hugepage mapping.  Benefits
-with it applied:
+         total     used    free   shared  buff/cache   available
+   Mem:  16196    10065    2049       16        4081        3749
+   Swap:  8175      784    7391
+         total     used    free   shared  buff/cache   available
+   Mem:  16196    11324    3656       24        1215        2936
+   Swap:  8175       60    8115
 
-- User space can apply same code logic to handle mbind() on hugepage and
-  non hugepage mapping;
-
-- Reliably using MPOL_MF_STRICT alone to check whether there is
-  misplaced page or not when bind policy on address range, especially for
-  address range which contains both hugepage and non hugepage mapping.
-
-Analysis of potential impact to existing users:
-
-- If MPOL_MF_STRICT alone was previously used, hugetlb pages not
-  following the memory policy would not cause an EIO error.  After this
-  change, hugetlb pages are treated like all other pages.  If
-  MPOL_MF_STRICT alone is used and hugetlb pages do not follow memory
-  policy an EIO error will be returned.
-
-- For users who using MPOL_MF_STRICT with MPOL_MF_MOVE or
-  MPOL_MF_MOVE_ALL, the semantic about some pages could not be moved will
-  not be changed by this patch, because failed to isolate and failed to
-  move have same effects to users, so their existing code will not be
-  impacted.
-
-In mbind man page, the note about 'MPOL_MF_STRICT is ignored on huge page
-mappings' can be removed after this patch is applied.
-
-Mike:
-
-: The current behavior with MPOL_MF_STRICT and hugetlb pages is inconsistent
-: and does not match documentation (as described above).  The special
-: behavior for hugetlb pages ideally should have been removed when hugetlb
-: page migration was introduced.  It is unlikely that anyone relies on
-: today's inconsistent behavior, and removing one more case of special
-: handling for hugetlb pages is a good thing.
-
-Link: http://lkml.kernel.org/r/1581559627-6206-1-git-send-email-lixinhai.lxh@gmail.com
-Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: linux-man <linux-man@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200211024514.8730-1-gshan@redhat.com
+Fixes: 68600f623d69 ("mm: don't miss the last page because of round-off error")
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: <stable@vger.kernel.org>	[4.20+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   37 +++++++++++++++++++++++++++++++++----
- 1 file changed, 33 insertions(+), 4 deletions(-)
+ mm/vmscan.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-support-mpol_mf_strict-for-huge-page-mapping
-+++ a/mm/mempolicy.c
-@@ -557,9 +557,10 @@ static int queue_pages_hugetlb(pte_t *pt
- 			       unsigned long addr, unsigned long end,
- 			       struct mm_walk *walk)
- {
-+	int ret = 0;
- #ifdef CONFIG_HUGETLB_PAGE
- 	struct queue_pages *qp = walk->private;
--	unsigned long flags = qp->flags;
-+	unsigned long flags = (qp->flags & MPOL_MF_VALID);
- 	struct page *page;
- 	spinlock_t *ptl;
- 	pte_t entry;
-@@ -571,16 +572,44 @@ static int queue_pages_hugetlb(pte_t *pt
- 	page = pte_page(entry);
- 	if (!queue_pages_required(page, qp))
- 		goto unlock;
-+
-+	if (flags == MPOL_MF_STRICT) {
-+		/*
-+		 * STRICT alone means only detecting misplaced page and no
-+		 * need to further check other vma.
-+		 */
-+		ret = -EIO;
-+		goto unlock;
-+	}
-+
-+	if (!vma_migratable(walk->vma)) {
-+		/*
-+		 * Must be STRICT with MOVE*, otherwise .test_walk() have
-+		 * stopped walking current vma.
-+		 * Detecting misplaced page but allow migrating pages which
-+		 * have been queued.
-+		 */
-+		ret = 1;
-+		goto unlock;
-+	}
-+
- 	/* With MPOL_MF_MOVE, we migrate only unshared hugepage. */
- 	if (flags & (MPOL_MF_MOVE_ALL) ||
--	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1))
--		isolate_huge_page(page, qp->pagelist);
-+	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1)) {
-+		if (!isolate_huge_page(page, qp->pagelist) &&
-+			(flags & MPOL_MF_STRICT))
-+			/*
-+			 * Failed to isolate page but allow migrating pages
-+			 * which have been queued.
-+			 */
-+			ret = 1;
-+	}
- unlock:
- 	spin_unlock(ptl);
- #else
- 	BUG();
- #endif
--	return 0;
-+	return ret;
- }
- 
- #ifdef CONFIG_NUMA_BALANCING
+--- a/mm/vmscan.c~mm-vmscan-dont-round-up-scan-size-for-online-memory-cgroup
++++ a/mm/vmscan.c
+@@ -2415,10 +2415,13 @@ out:
+ 			/*
+ 			 * Scan types proportional to swappiness and
+ 			 * their relative recent reclaim efficiency.
+-			 * Make sure we don't miss the last page
+-			 * because of a round-off error.
++			 * Make sure we don't miss the last page on
++			 * the offlined memory cgroups because of a
++			 * round-off error.
+ 			 */
+-			scan = DIV64_U64_ROUND_UP(scan * fraction[file],
++			scan = mem_cgroup_online(memcg) ?
++			       div64_u64(scan * fraction[file], denominator) :
++			       DIV64_U64_ROUND_UP(scan * fraction[file],
+ 						  denominator);
+ 			break;
+ 		case SCAN_FILE:
 _
 
-Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
+Patches currently in -mm which might be from gshan@redhat.com are
 
-mm-dont-prepare-anon_vma-if-vma-has-vm_wipeonfork.patch
-revert-mm-rmapc-reuse-mergeable-anon_vma-as-parent-when-fork.patch
-mm-set-vm_next-and-vm_prev-to-null-in-vm_area_dup.patch
-mm-mempolicy-support-mpol_mf_strict-for-huge-page-mapping.patch
+mm-vmscan-dont-round-up-scan-size-for-online-memory-cgroup.patch
