@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- kthread-mark-timer-used-by-delayed-kthread-works-as-irq-safe.patch added to
- -mm tree
-Date: Mon, 17 Feb 2020 14:01:18 -0800
-Message-ID: <20200217220118.O_QeD%akpm@linux-foundation.org>
+ hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+ added to -mm tree
+Date: Mon, 17 Feb 2020 14:27:29 -0800
+Message-ID: <20200217222729.S6WqZnKzn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43892 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47496 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725873AbgBQWBT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 17 Feb 2020 17:01:19 -0500
+        id S1725829AbgBQW1c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 17 Feb 2020 17:27:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, grygorii.strashko@ti.com, pmladek@suse.com
+To: akpm@linux-foundation.org, almasrymina@google.com, gthelen@google.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rientjes@google.com, sandipan@linux.ibm.com, sfr@canb.auug.org.au, shakeelb@google.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: kthread: mark timer used by delayed kthread works as IRQ safe
+     Subject: hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix
 has been added to the -mm tree.  Its filename is
-     kthread-mark-timer-used-by-delayed-kthread-works-as-irq-safe.patch
+     hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kthread-mark-timer-used-by-delayed-kthread-works-as-irq-safe.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kthread-mark-timer-used-by-delayed-kthread-works-as-irq-safe.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,47 +37,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: kthread: mark timer used by delayed kthread works as IRQ safe
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix
 
-The timer used by delayed kthread works are IRQ safe because the used
-kthread_delayed_work_timer_fn() is IRQ safe.
+forward declare struct resv_map
 
-It is properly marked when initialized by KTHREAD_DELAYED_WORK_INIT(). 
-But TIMER_IRQSAFE flag is missing when initialized by
-kthread_init_delayed_work().
-
-The missing flag might trigger invalid warning from del_timer_sync() when
-kthread_mod_delayed_work() is called with interrupts disabled.
-
-This patch is result of a discussion about using the API, see
-https://lkml.kernel.org/r/cfa886ad-e3b7-c0d2-3ff8-58d94170eab5@ti.com
-
-Link: http://lkml.kernel.org/r/20200217120709.1974-1-pmladek@suse.com
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Tested-by: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Sandipan Das <sandipan@linux.ibm.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kthread.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/hugetlb_cgroup.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/kthread.h~kthread-mark-timer-used-by-delayed-kthread-works-as-irq-safe
-+++ a/include/linux/kthread.h
-@@ -165,7 +165,8 @@ extern void __kthread_init_worker(struct
- 	do {								\
- 		kthread_init_work(&(dwork)->work, (fn));		\
- 		timer_setup(&(dwork)->timer,				\
--			     kthread_delayed_work_timer_fn, 0);		\
-+			     kthread_delayed_work_timer_fn,		\
-+			     TIMER_IRQSAFE);				\
- 	} while (0)
+--- a/include/linux/hugetlb_cgroup.h~hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix
++++ a/include/linux/hugetlb_cgroup.h
+@@ -18,6 +18,8 @@
+ #include <linux/mmdebug.h>
  
- int kthread_worker_fn(void *worker_ptr);
+ struct hugetlb_cgroup;
++struct resv_map;
++
+ /*
+  * Minimum page order trackable by hugetlb cgroup.
+  * At least 4 pages are necessary for all the tracking information.
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kthread-mark-timer-used-by-delayed-kthread-works-as-irq-safe.patch
+mm.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
