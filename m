@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscanc-remove-cpu-online-notification-for-now.patch
- added to -mm tree
-Date: Wed, 19 Feb 2020 12:09:10 -0800
-Message-ID: <20200219200910.Frf8y%akpm@linux-foundation.org>
+Subject: +
+ hugetlb-disable-region_add-file_region-coalescing-fix.patch added to -mm tree
+Date: Wed, 19 Feb 2020 12:16:56 -0800
+Message-ID: <20200219201656.biYjI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47008 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726645AbgBSUJL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 15:09:11 -0500
+        id S1726634AbgBSUQ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 15:16:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, mhocko@suse.org, mhocko@suse.com, richardw.yang@linux.intel.com
+To: mm-commits@vger.kernel.org, shuah@kernel.org, shakeelb@google.com, sandipan@linux.ibm.com, rientjes@google.com, mike.kravetz@oracle.com, miguel.ojeda.sandonis@gmail.com, gthelen@google.com, cai@lca.pw, almasrymina@google.com
 
 
 The patch titled
-     Subject: mm/vmscan.c: remove cpu online notification for now
+     Subject: mm/hugetlb: Fix file_region entry allocations
 has been added to the -mm tree.  Its filename is
-     mm-vmscanc-remove-cpu-online-notification-for-now.patch
+     hugetlb-disable-region_add-file_region-coalescing-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscanc-remove-cpu-online-notification-for-now.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-disable-region_add-file_region-coalescing-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscanc-remove-cpu-online-notification-for-now.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-disable-region_add-file_region-coalescing-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,87 +36,237 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: mm/vmscan.c: remove cpu online notification for now
+From: Mina Almasry <almasrymina@google.com>
+Subject: mm/hugetlb: Fix file_region entry allocations
 
-kswapd kernel thread starts either with a CPU affinity set to the full cpu
-mask of its target node or without any affinity at all if the node is
-CPUless.  There is a cpu hotplug callback (kswapd_cpu_online) that
-implements an elaborate way to update this mask when a cpu is onlined.
+Commit a9e443086489e ("hugetlb: disable region_add file_region
+coalescing") introduced a bug with adding file_region entries
+that is fixed here:
 
-It is not really clear whether there is any actual benefit from this
-scheme. Completely CPU-less NUMA nodes rarely gain a new CPU during
-runtime. Drop the code for that reason. If there is a real usecase then
-we can resurrect and simplify the code.
+1. Refactor file_region entry allocation logic into 1 function called
+   from region_add and region_chg since the code is now identical.
+2. region_chg only modifies resv->adds_in_progress after the regions
+   have been allocated. In the past it used to increment
+   adds_in_progress and then drop the lock, which would confuse racing
+   region_add calls into thinking they need to allocate entries when
+   they are not allowed.
+3. In region_add, only try to allocate regions when
+   actual_regions_needed > in_regions_needed. This is not causing a bug
+   but is better for cleanliness and reasoning about the code.
 
-[mhocko@suse.com rewrite changelog]
+Tested using ltp hugemmap0* tests, and libhugetlbfs tests.
 
-Link: http://lkml.kernel.org/r/20200218224422.3407-1-richardw.yang@linux.intel.com
-Suggested-by: Michal Hocko <mhocko@suse.org>
-Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20200219012736.20363-1-almasrymina@google.com
+Fixes: Commit a9e443086489e ("hugetlb: disable region_add file_region coalescing")
+Reported-by: Qian Cai <cai@lca.pw>
+Signed-off-by: Mina Almasry <almasrymina@google.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Sandipan Das <sandipan@linux.ibm.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   27 +--------------------------
- 1 file changed, 1 insertion(+), 26 deletions(-)
+ mm/hugetlb.c |  150 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 75 insertions(+), 75 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscanc-remove-cpu-online-notification-for-now
-+++ a/mm/vmscan.c
-@@ -4031,27 +4031,6 @@ unsigned long shrink_all_memory(unsigned
+--- a/mm/hugetlb.c~hugetlb-disable-region_add-file_region-coalescing-fix
++++ a/mm/hugetlb.c
+@@ -337,6 +337,67 @@ static long add_reservation_in_range(str
+ 	return add;
  }
- #endif /* CONFIG_HIBERNATION */
  
--/* It's optimal to keep kswapds on the same CPUs as their memory, but
--   not required for correctness.  So if the last cpu in a node goes
--   away, we get changed to run anywhere: as the first one comes back,
--   restore their cpu bindings. */
--static int kswapd_cpu_online(unsigned int cpu)
--{
--	int nid;
--
--	for_each_node_state(nid, N_MEMORY) {
--		pg_data_t *pgdat = NODE_DATA(nid);
--		const struct cpumask *mask;
--
--		mask = cpumask_of_node(pgdat->node_id);
--
--		if (cpumask_any_and(cpu_online_mask, mask) < nr_cpu_ids)
--			/* One of our CPUs online: restore mask */
--			set_cpus_allowed_ptr(pgdat->kswapd, mask);
--	}
--	return 0;
--}
--
++/* Must be called with resv->lock acquired. Will drop lock to allocate entries.
++ */
++static int allocate_file_region_entries(struct resv_map *resv,
++					int regions_needed)
++	__must_hold(&resv->lock)
++{
++	struct list_head allocated_regions;
++	int to_allocate = 0, i = 0;
++	struct file_region *trg = NULL, *rg = NULL;
++
++	VM_BUG_ON(regions_needed < 0);
++
++	INIT_LIST_HEAD(&allocated_regions);
++
++	/*
++	 * Check for sufficient descriptors in the cache to accommodate
++	 * the number of in progress add operations plus regions_needed.
++	 *
++	 * This is a while loop because when we drop the lock, some other call
++	 * to region_add or region_del may have consumed some region_entries,
++	 * so we keep looping here until we finally have enough entries for
++	 * (adds_in_progress + regions_needed).
++	 */
++	while (resv->region_cache_count <
++	       (resv->adds_in_progress + regions_needed)) {
++		to_allocate = resv->adds_in_progress + regions_needed -
++			      resv->region_cache_count;
++
++		/* At this point, we should have enough entries in the cache
++		 * for all the existings adds_in_progress. We should only be
++		 * needing to allocate for regions_needed.
++		 */
++		VM_BUG_ON(resv->region_cache_count < resv->adds_in_progress);
++
++		spin_unlock(&resv->lock);
++		for (i = 0; i < to_allocate; i++) {
++			trg = kmalloc(sizeof(*trg), GFP_KERNEL);
++			if (!trg)
++				goto out_of_memory;
++			list_add(&trg->link, &allocated_regions);
++		}
++
++		spin_lock(&resv->lock);
++
++		list_for_each_entry_safe(rg, trg, &allocated_regions, link) {
++			list_del(&rg->link);
++			list_add(&rg->link, &resv->region_cache);
++			resv->region_cache_count++;
++		}
++	}
++
++	return 0;
++
++out_of_memory:
++	list_for_each_entry_safe(rg, trg, &allocated_regions, link) {
++		list_del(&rg->link);
++		kfree(rg);
++	}
++	return -ENOMEM;
++}
++
  /*
-  * This kswapd start function will be called by init and node-hot-add.
-  * On node-hot-add, kswapd will moved to proper cpus if cpus are hot-added.
-@@ -4091,15 +4070,11 @@ void kswapd_stop(int nid)
- 
- static int __init kswapd_init(void)
+  * Add the huge page range represented by [f, t) to the reserve
+  * map.  Regions will be taken from the cache to fill in this range.
+@@ -357,11 +418,7 @@ static long add_reservation_in_range(str
+ static long region_add(struct resv_map *resv, long f, long t,
+ 		       long in_regions_needed)
  {
--	int nid, ret;
-+	int nid;
+-	long add = 0, actual_regions_needed = 0, i = 0;
+-	struct file_region *trg = NULL, *rg = NULL;
+-	struct list_head allocated_regions;
+-
+-	INIT_LIST_HEAD(&allocated_regions);
++	long add = 0, actual_regions_needed = 0;
  
- 	swap_setup();
- 	for_each_node_state(nid, N_MEMORY)
-  		kswapd_run(nid);
--	ret = cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN,
--					"mm/vmscan:online", kswapd_cpu_online,
--					NULL);
--	WARN_ON(ret < 0);
- 	return 0;
+ 	spin_lock(&resv->lock);
+ retry:
+@@ -372,34 +429,24 @@ retry:
+ 	/*
+ 	 * Check for sufficient descriptors in the cache to accommodate
+ 	 * this add operation. Note that actual_regions_needed may be greater
+-	 * than in_regions_needed. In this case, we need to make sure that we
++	 * than in_regions_needed, as the resv_map may have been modified since
++	 * the region_chg call. In this case, we need to make sure that we
+ 	 * allocate extra entries, such that we have enough for all the
+ 	 * existing adds_in_progress, plus the excess needed for this
+ 	 * operation.
+ 	 */
+-	if (resv->region_cache_count <
+-	    resv->adds_in_progress +
+-		    (actual_regions_needed - in_regions_needed)) {
++	if (actual_regions_needed > in_regions_needed &&
++	    resv->region_cache_count <
++		    resv->adds_in_progress +
++			    (actual_regions_needed - in_regions_needed)) {
+ 		/* region_add operation of range 1 should never need to
+ 		 * allocate file_region entries.
+ 		 */
+ 		VM_BUG_ON(t - f <= 1);
+ 
+-		/* Must drop lock to allocate a new descriptor. */
+-		spin_unlock(&resv->lock);
+-		for (i = 0; i < (actual_regions_needed - in_regions_needed);
+-		     i++) {
+-			trg = kmalloc(sizeof(*trg), GFP_KERNEL);
+-			if (!trg)
+-				goto out_of_memory;
+-			list_add(&trg->link, &allocated_regions);
+-		}
+-		spin_lock(&resv->lock);
+-
+-		list_for_each_entry_safe(rg, trg, &allocated_regions, link) {
+-			list_del(&rg->link);
+-			list_add(&rg->link, &resv->region_cache);
+-			resv->region_cache_count++;
++		if (allocate_file_region_entries(
++			    resv, actual_regions_needed - in_regions_needed)) {
++			return -ENOMEM;
+ 		}
+ 
+ 		goto retry;
+@@ -412,13 +459,6 @@ retry:
+ 	spin_unlock(&resv->lock);
+ 	VM_BUG_ON(add < 0);
+ 	return add;
+-
+-out_of_memory:
+-	list_for_each_entry_safe(rg, trg, &allocated_regions, link) {
+-		list_del(&rg->link);
+-		kfree(rg);
+-	}
+-	return -ENOMEM;
  }
  
-_
-
-Patches currently in -mm which might be from richardw.yang@linux.intel.com are
-
-mm-sparsemem-pfn_to_page-is-not-valid-yet-on-sparsemem.patch
-mm-sparsemem-get-address-to-page-struct-instead-of-address-to-pfn.patch
-mm-vmscanc-remove-cpu-online-notification-for-now.patch
-mm-migratec-no-need-to-check-for-i-start-in-do_pages_move.patch
-mm-migratec-wrap-do_move_pages_to_node-and-store_status.patch
-mm-migratec-check-pagelist-in-move_pages_and_store_status.patch
-mm-migratec-unify-not-queued-for-migration-handling-in-do_pages_move.patch
+ /*
+@@ -444,11 +484,7 @@ out_of_memory:
+ static long region_chg(struct resv_map *resv, long f, long t,
+ 		       long *out_regions_needed)
+ {
+-	struct file_region *trg = NULL, *rg = NULL;
+-	long chg = 0, i = 0, to_allocate = 0;
+-	struct list_head allocated_regions;
+-
+-	INIT_LIST_HEAD(&allocated_regions);
++	long chg = 0;
+ 
+ 	spin_lock(&resv->lock);
+ 
+@@ -458,49 +494,13 @@ static long region_chg(struct resv_map *
+ 	if (*out_regions_needed == 0)
+ 		*out_regions_needed = 1;
+ 
+-	resv->adds_in_progress += *out_regions_needed;
+-
+-	/*
+-	 * Check for sufficient descriptors in the cache to accommodate
+-	 * the number of in progress add operations.
+-	 */
+-	while (resv->region_cache_count < resv->adds_in_progress) {
+-		to_allocate = resv->adds_in_progress - resv->region_cache_count;
+-
+-		/* Must drop lock to allocate a new descriptor. Note that even
+-		 * though we drop the lock here, we do not make another call to
+-		 * add_reservation_in_range after re-acquiring the lock.
+-		 * Essentially this branch makes sure that we have enough
+-		 * descriptors in the cache as suggested by the first call to
+-		 * add_reservation_in_range. If more regions turn out to be
+-		 * required, region_add will deal with it.
+-		 */
+-		spin_unlock(&resv->lock);
+-		for (i = 0; i < to_allocate; i++) {
+-			trg = kmalloc(sizeof(*trg), GFP_KERNEL);
+-			if (!trg)
+-				goto out_of_memory;
+-			list_add(&trg->link, &allocated_regions);
+-		}
+-
+-		spin_lock(&resv->lock);
++	if (allocate_file_region_entries(resv, *out_regions_needed))
++		return -ENOMEM;
+ 
+-		list_for_each_entry_safe(rg, trg, &allocated_regions, link) {
+-			list_del(&rg->link);
+-			list_add(&rg->link, &resv->region_cache);
+-			resv->region_cache_count++;
+-		}
+-	}
++	resv->adds_in_progress += *out_regions_needed;
+ 
+ 	spin_unlock(&resv->lock);
+ 	return chg;
