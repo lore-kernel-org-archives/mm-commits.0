@@ -1,28 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
- added to -mm tree
-Date: Wed, 19 Feb 2020 12:27:56 -0800
-Message-ID: <20200219202756.7yZjM%akpm@linux-foundation.org>
+Subject: + mm-add-mremap_dontunmap-to-mremap-v6.patch added to -mm
+ tree
+Date: Wed, 19 Feb 2020 12:33:58 -0800
+Message-ID: <20200219203358.9KEda%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51414 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53442 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726645AbgBSU15 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 15:27:57 -0500
+        id S1726645AbgBSUeA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 15:34:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, shuah@kernel.org, shakeelb@google.com, sandipan@linux.ibm.com, rientjes@google.com, mike.kravetz@oracle.com, gthelen@google.com, cai@lca.pw, almasrymina@google.com
+To: mm-commits@vger.kernel.org, yuzhao@google.com, will@kernel.org, sonnyrao@google.com, natechancellor@gmail.com, mst@redhat.com, minchan@kernel.org, luto@amacapital.net, kirill@shutemov.name, jsbarnes@google.com, joel@joelfernandes.org, fweimer@redhat.com, arnd@arndb.de, aarcange@redhat.com, bgeffon@google.com
 
 
 The patch titled
-     Subject: mm/hugetlb_cgroup: fix hugetlb_cgroup migration
+     Subject: mm-add-mremap_dontunmap-to-mremap-v6
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
+     mm-add-mremap_dontunmap-to-mremap-v6.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-mremap_dontunmap-to-mre=
+map-v6.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-mremap_dontunmap-to-mre=
+map-v6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,76 +35,72 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mina Almasry <almasrymina@google.com>
-Subject: mm/hugetlb_cgroup: fix hugetlb_cgroup migration
+From: Brian Geffon <bgeffon@google.com>
+Subject: mm-add-mremap_dontunmap-to-mremap-v6
 
-commit c32300516047 ("hugetlb_cgroup: add interface for charge/uncharge
-hugetlb reservations") mistakingly doesn't handle the migration of *both*
-the reservation hugetlb_cgroup and the fault hugetlb_cgroup correctly.
-
-What should happen is that both cgroups shuold be queried from the old
-page, then both set to NULL on the old page, then both inserted into the
-new page.
-
-The mistake also creates the following warning:
-
-mm/hugetlb_cgroup.c: In function 'hugetlb_cgroup_migrate':
-mm/hugetlb_cgroup.c:777:25: warning: variable 'h_cg' set but not used
-[-Wunused-but-set-variable]
-  struct hugetlb_cgroup *h_cg;
-                         ^~~~
-
-Solution is to add the missing steps, namly setting the reservation
-hugetlb_cgroup to NULL on the old page, and setting the fault
-hugetlb_cgroup on the new page.
-
-Link: http://lkml.kernel.org/r/20200218194727.46995-1-almasrymina@google.com
-Fixes: c32300516047 ("hugetlb_cgroup: add interface for charge/uncharge hugetlb reservations")
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Reported-by: Qian Cai <cai@lca.pw>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Sandipan Das <sandipan@linux.ibm.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+- Code cleanup suggested by Kirill.
+- Correct commit message to more accurately reflect the behavior.
+- Clear VM_LOCKED and VM_LOCKEDONFAULT on the old vma.
+        =C2=A0 =C2=A0
+Link: http://lkml.kernel.org/r/20200218173221.237674-1-bgeffon@google.com
+Signed-off-by: Brian Geffon <bgeffon@google.com>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Will Deacon <will@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Jesse Barnes <jsbarnes@google.com>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/mremap.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration
-+++ a/mm/hugetlb_cgroup.c
-@@ -796,8 +796,10 @@ void hugetlb_cgroup_migrate(struct page
- 	spin_lock(&hugetlb_lock);
- 	h_cg_rsvd = hugetlb_cgroup_from_page_rsvd(oldhpage);
- 	set_hugetlb_cgroup(oldhpage, NULL);
-+	set_hugetlb_cgroup_rsvd(oldhpage, NULL);
- 
- 	/* move the h_cg details to new cgroup */
-+	set_hugetlb_cgroup(newhpage, h_cg);
- 	set_hugetlb_cgroup_rsvd(newhpage, h_cg_rsvd);
- 	list_move(&newhpage->lru, &h->hugepage_activelist);
- 	spin_unlock(&hugetlb_lock);
+--- a/mm/mremap.c~mm-add-mremap_dontunmap-to-mremap-v6
++++ a/mm/mremap.c
+@@ -426,8 +426,13 @@ static unsigned long move_vma(struct vm_
+ 		 * for old_len, but we're now adding new_len - old_len locked
+ 		 * bytes to the new mapping.
+ 		 */
+-		if (new_len > old_len)
++		if (vm_flags & VM_LOCKED && new_len > old_len) {
+ 			mm->locked_vm +=3D (new_len - old_len) >> PAGE_SHIFT;
++			*locked =3D true;
++		}
++
++		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
++		vma->vm_flags &=3D VM_LOCKED_CLEAR_MASK;
+=20
+ 		goto out;
+ 	}
+@@ -687,7 +692,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	if (down_write_killable(&current->mm->mmap_sem))
+ 		return -EINTR;
+=20
+-	if (flags & MREMAP_FIXED || flags & MREMAP_DONTUNMAP) {
++	if (flags & (MREMAP_FIXED | MREMAP_DONTUNMAP)) {
+ 		ret =3D mremap_to(addr, old_len, new_addr, new_len,
+ 				&locked, flags, &uf, &uf_unmap_early,
+ 				&uf_unmap);
 _
 
-Patches currently in -mm which might be from almasrymina@google.com are
+Patches currently in -mm which might be from bgeffon@google.com are
 
-hugetlb_cgroup-add-hugetlb_cgroup-reservation-counter.patch
-hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations.patch
-mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings.patch
-hugetlb-disable-region_add-file_region-coalescing.patch
-hugetlb-disable-region_add-file_region-coalescing-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings.patch
-hugetlb_cgroup-support-noreserve-mappings.patch
-hugetlb-support-file_region-coalescing-again.patch
-hugetlb_cgroup-add-hugetlb_cgroup-reservation-tests.patch
-hugetlb_cgroup-add-hugetlb_cgroup-reservation-docs.patch
+mm-add-mremap_dontunmap-to-mremap.patch
+mm-add-mremap_dontunmap-to-mremap-v6.patch
+selftest-add-mremap_dontunmap-selftest.patch
