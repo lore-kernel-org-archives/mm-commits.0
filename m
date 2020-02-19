@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page-writebackc-write_cache_pages-deduplicate-identical-checks.patch added
- to -mm tree
-Date: Wed, 19 Feb 2020 12:18:48 -0800
-Message-ID: <20200219201848.pUGx7%akpm@linux-foundation.org>
+Subject: + mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
+ added to -mm tree
+Date: Wed, 19 Feb 2020 12:27:56 -0800
+Message-ID: <20200219202756.7yZjM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49150 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51414 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726645AbgBSUSt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 15:18:49 -0500
+        id S1726645AbgBSU15 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 15:27:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, jack@suse.cz, ira.weiny@intel.com, akpm@linux-foundation.org, mfo@canonical.com
+To: mm-commits@vger.kernel.org, shuah@kernel.org, shakeelb@google.com, sandipan@linux.ibm.com, rientjes@google.com, mike.kravetz@oracle.com, gthelen@google.com, cai@lca.pw, almasrymina@google.com
 
 
 The patch titled
-     Subject: mm/page-writeback.c: write_cache_pages(): deduplicate identical checks
+     Subject: mm/hugetlb_cgroup: fix hugetlb_cgroup migration
 has been added to the -mm tree.  Its filename is
-     mm-page-writebackc-write_cache_pages-deduplicate-identical-checks.patch
+     mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-writebackc-write_cache_pages-deduplicate-identical-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writebackc-write_cache_pages-deduplicate-identical-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,56 +36,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mauricio Faria de Oliveira <mfo@canonical.com>
-Subject: mm/page-writeback.c: write_cache_pages(): deduplicate identical checks
+From: Mina Almasry <almasrymina@google.com>
+Subject: mm/hugetlb_cgroup: fix hugetlb_cgroup migration
 
-There used to be a 'retry' label in between the two (identical) checks
-when first introduced in commit f446daaea9d4 ("mm: implement writeback
-livelock avoidance using page tagging"), and later modified/updated in
-commit 6e6938b6d313 ("writeback: introduce .tagged_writepages for the
-WB_SYNC_NONE sync stage").
+commit c32300516047 ("hugetlb_cgroup: add interface for charge/uncharge
+hugetlb reservations") mistakingly doesn't handle the migration of *both*
+the reservation hugetlb_cgroup and the fault hugetlb_cgroup correctly.
 
-The label has been removed in commit 64081362e8ff ("mm/page-writeback.c:
-fix range_cyclic writeback vs writepages deadlock"), and the (identical)
-checks are now present / performed immediately one after another.
+What should happen is that both cgroups shuold be queried from the old
+page, then both set to NULL on the old page, then both inserted into the
+new page.
 
-So, remove/deduplicate the latter check, moving tag_pages_for_writeback()
-into the former check before the 'tag' variable assignment, so it's clear
-that it's not used in this (similarly-named) function call but only later
-in pagevec_lookup_range_tag().
+The mistake also creates the following warning:
 
-Link: http://lkml.kernel.org/r/20200218221716.1648-1-mfo@canonical.com
-Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jan Kara <jack@suse.cz>
+mm/hugetlb_cgroup.c: In function 'hugetlb_cgroup_migrate':
+mm/hugetlb_cgroup.c:777:25: warning: variable 'h_cg' set but not used
+[-Wunused-but-set-variable]
+  struct hugetlb_cgroup *h_cg;
+                         ^~~~
+
+Solution is to add the missing steps, namly setting the reservation
+hugetlb_cgroup to NULL on the old page, and setting the fault
+hugetlb_cgroup on the new page.
+
+Link: http://lkml.kernel.org/r/20200218194727.46995-1-almasrymina@google.com
+Fixes: c32300516047 ("hugetlb_cgroup: add interface for charge/uncharge hugetlb reservations")
+Signed-off-by: Mina Almasry <almasrymina@google.com>
+Reported-by: Qian Cai <cai@lca.pw>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Sandipan Das <sandipan@linux.ibm.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb_cgroup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/page-writeback.c~mm-page-writebackc-write_cache_pages-deduplicate-identical-checks
-+++ a/mm/page-writeback.c
-@@ -2182,12 +2182,12 @@ int write_cache_pages(struct address_spa
- 		if (wbc->range_start == 0 && wbc->range_end == LLONG_MAX)
- 			range_whole = 1;
- 	}
--	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_writepages)
-+	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_writepages) {
-+		tag_pages_for_writeback(mapping, index, end);
- 		tag = PAGECACHE_TAG_TOWRITE;
--	else
-+	} else {
- 		tag = PAGECACHE_TAG_DIRTY;
--	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_writepages)
--		tag_pages_for_writeback(mapping, index, end);
-+	}
- 	done_index = index;
- 	while (!done && (index <= end)) {
- 		int i;
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration
++++ a/mm/hugetlb_cgroup.c
+@@ -796,8 +796,10 @@ void hugetlb_cgroup_migrate(struct page
+ 	spin_lock(&hugetlb_lock);
+ 	h_cg_rsvd = hugetlb_cgroup_from_page_rsvd(oldhpage);
+ 	set_hugetlb_cgroup(oldhpage, NULL);
++	set_hugetlb_cgroup_rsvd(oldhpage, NULL);
+ 
+ 	/* move the h_cg details to new cgroup */
++	set_hugetlb_cgroup(newhpage, h_cg);
+ 	set_hugetlb_cgroup_rsvd(newhpage, h_cg_rsvd);
+ 	list_move(&newhpage->lru, &h->hugepage_activelist);
+ 	spin_unlock(&hugetlb_lock);
 _
 
-Patches currently in -mm which might be from mfo@canonical.com are
+Patches currently in -mm which might be from almasrymina@google.com are
 
-mm-page-writebackc-write_cache_pages-deduplicate-identical-checks.patch
+hugetlb_cgroup-add-hugetlb_cgroup-reservation-counter.patch
+hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations.patch
+mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings.patch
+hugetlb-disable-region_add-file_region-coalescing.patch
+hugetlb-disable-region_add-file_region-coalescing-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings.patch
+hugetlb_cgroup-support-noreserve-mappings.patch
+hugetlb-support-file_region-coalescing-again.patch
+hugetlb_cgroup-add-hugetlb_cgroup-reservation-tests.patch
+hugetlb_cgroup-add-hugetlb_cgroup-reservation-docs.patch
