@@ -1,33 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-spellingtxt-add-syfs-sysfs-pattern.patch added to
- -mm tree
-Date: Wed, 19 Feb 2020 13:25:05 -0800
-Message-ID: <20200219212505.MFDoy%akpm@linux-foundation.org>
+Subject: +
+ lib-stackdepot-fix-global-out-of-bounds-in-stack_slabs.patch added to -mm
+ tree
+Date: Wed, 19 Feb 2020 13:38:00 -0800
+Message-ID: <20200219213800.8Rga_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42674 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45232 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726703AbgBSVZG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 16:25:06 -0500
+        id S1727326AbgBSViC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 16:38:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, xndchn@gmail.com, sboyd@kernel.org, paul.walmsley@sifive.com, luca@lucaceresoli.net, colin.king@canonical.com, chris.paterson2@renesas.com, j.neuschaefer@gmx.net
+To: mm-commits@vger.kernel.org, walter-zh.wu@mediatek.com, tglx@linutronix.de, stable@vger.kernel.org, matthias.bgg@gmail.com, kstewart@linuxfoundation.org, jpoimboe@redhat.com, gregkh@linuxfoundation.org, dvyukov@google.com, glider@google.com
 
 
 The patch titled
-     Subject: scripts/spelling.txt: Add syfs/sysfs pattern
+     Subject: lib/stackdepot.c: fix global out-of-bounds in stack_slabs
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-syfs-sysfs-pattern.patch
+     lib-stackdepot-fix-global-out-of-bounds-in-stack_slabs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-syfs-s=
-ysfs-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-fix-global-out-of-bounds-in-stack_slabs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-syfs-s=
-ysfs-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-fix-global-out-of-bounds-in-stack_slabs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,44 +31,64 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jonathan Neusch=C3=A4fer <j.neuschaefer@gmx.net>
-Subject: scripts/spelling.txt: Add syfs/sysfs pattern
+From: Alexander Potapenko <glider@google.com>
+Subject: lib/stackdepot.c: fix global out-of-bounds in stack_slabs
 
-There are a few cases in the tree where "sysfs" is misspelled as "syfs".
+Walter Wu has reported a potential case in which init_stack_slab() is
+called after stack_slabs[STACK_ALLOC_MAX_SLABS - 1] has already been
+initialized.  In that case init_stack_slab() will overwrite
+stack_slabs[STACK_ALLOC_MAX_SLABS], which may result in a memory
+corruption.
 
-Link: http://lkml.kernel.org/r/20200218152010.27349-1-j.neuschaefer@gmx.net
-Signed-off-by: Jonathan Neusch=C3=A4fer <j.neuschaefer@gmx.net
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Xiong <xndchn@gmail.com>
-Cc: Stephen Boyd <sboyd@kernel.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Chris Paterson <chris.paterson2@renesas.com>
-Cc: Luca Ceresoli <luca@lucaceresoli.net>
+Link: http://lkml.kernel.org/r/20200218102950.260263-1-glider@google.com
+Fixes: cd11016e5f521 ("mm, kasan: stackdepot implementation. Enable stackdepot for SLAB")
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reported-by: Walter Wu <walter-zh.wu@mediatek.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    1 +
- 1 file changed, 1 insertion(+)
+ lib/stackdepot.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-syfs-sysfs-pattern
-+++ a/scripts/spelling.txt
-@@ -1328,6 +1328,7 @@ swithcing||switching
- swithed||switched
- swithing||switching
- swtich||switch
-+syfs||sysfs
- symetric||symmetric
- synax||syntax
- synchonized||synchronized
+--- a/lib/stackdepot.c~lib-stackdepot-fix-global-out-of-bounds-in-stack_slabs
++++ a/lib/stackdepot.c
+@@ -83,15 +83,19 @@ static bool init_stack_slab(void **preal
+ 		return true;
+ 	if (stack_slabs[depot_index] == NULL) {
+ 		stack_slabs[depot_index] = *prealloc;
++		*prealloc = NULL;
+ 	} else {
+-		stack_slabs[depot_index + 1] = *prealloc;
++		/* If this is the last depot slab, do not touch the next one. */
++		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS) {
++			stack_slabs[depot_index + 1] = *prealloc;
++			*prealloc = NULL;
++		}
+ 		/*
+ 		 * This smp_store_release pairs with smp_load_acquire() from
+ 		 * |next_slab_inited| above and in stack_depot_save().
+ 		 */
+ 		smp_store_release(&next_slab_inited, 1);
+ 	}
+-	*prealloc = NULL;
+ 	return true;
+ }
+ 
 _
 
-Patches currently in -mm which might be from j.neuschaefer@gmx.net are
+Patches currently in -mm which might be from glider@google.com are
 
-scripts-spellingtxt-add-syfs-sysfs-pattern.patch
+lib-stackdepot-fix-global-out-of-bounds-in-stack_slabs.patch
