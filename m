@@ -1,86 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-objagg-replace-zero-length-arrays-with-flexible-array-member.patch
- removed from -mm tree
-Date: Wed, 19 Feb 2020 11:16:28 -0800
-Message-ID: <20200219191628.b7JvC5Ne7%akpm@linux-foundation.org>
+Subject: + elf-allocate-less-for-static-executable.patch added to
+ -mm tree
+Date: Wed, 19 Feb 2020 11:18:49 -0800
+Message-ID: <20200219191849.uCp1l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44538 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45260 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726638AbgBSTQa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 14:16:30 -0500
+        id S1726647AbgBSTSv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 14:18:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gustavo@embeddedor.com, jiri@mellanox.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, adobriyan@gmail.com
 
 
 The patch titled
-     Subject: lib/objagg.c: replace zero-length arrays with flexible-array member
-has been removed from the -mm tree.  Its filename was
-     lib-objagg-replace-zero-length-arrays-with-flexible-array-member.patch
+     Subject: fs/binfmt_elf.c: allocate less for static executable
+has been added to the -mm tree.  Its filename is
+     elf-allocate-less-for-static-executable.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/elf-allocate-less-for-static-executable.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/elf-allocate-less-for-static-executable.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: lib/objagg.c: replace zero-length arrays with flexible-array member
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fs/binfmt_elf.c: allocate less for static executable
 
-The current codebase makes use of the zero-length array language extension
-to the C90 standard, but the preferred mechanism to declare
-variable-length types such as these ones is a flexible array member[1][2],
-introduced in C99:
+PT_INTERP ELF header can be spared if executable is static.
 
-struct foo {
-        int stuff;
-        struct boo array[];
-};
-
-By making use of the mechanism above, we will get a compiler warning in
-case the flexible array does not occur last in the structure, which will
-help us prevent some kind of undefined behavior bugs from being
-inadvertenly introduced[3] to the codebase from now on.
-
-This issue was found with the help of Coccinelle.
-
-[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-[2] https://github.com/KSPP/linux/issues/21
-[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
-
-Link: http://lkml.kernel.org/r/20200211205356.GA23101@embeddedor
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-Acked-by: Jiri Pirko <jiri@mellanox.com>
+Link: http://lkml.kernel.org/r/20200219185012.GB4871@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/objagg.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/lib/objagg.c~lib-objagg-replace-zero-length-arrays-with-flexible-array-member
-+++ a/lib/objagg.c
-@@ -28,7 +28,7 @@ struct objagg_hints_node {
- 	struct objagg_hints_node *parent;
- 	unsigned int root_id;
- 	struct objagg_obj_stats_info stats_info;
--	unsigned long obj[0];
-+	unsigned long obj[];
- };
+--- a/fs/binfmt_elf.c~elf-allocate-less-for-static-executable
++++ a/fs/binfmt_elf.c
+@@ -698,17 +698,11 @@ static int load_elf_binary(struct linux_
+ 	unsigned long reloc_func_desc __maybe_unused = 0;
+ 	int executable_stack = EXSTACK_DEFAULT;
+ 	struct elfhdr *elf_ex = (struct elfhdr *)bprm->buf;
+-	struct elfhdr *interp_elf_ex;
++	struct elfhdr *interp_elf_ex = NULL;
+ 	struct arch_elf_state arch_state = INIT_ARCH_ELF_STATE;
+ 	struct mm_struct *mm;
+ 	struct pt_regs *regs;
  
- static struct objagg_hints_node *
-@@ -66,7 +66,7 @@ struct objagg_obj {
- 				* including nested objects
- 				*/
- 	struct objagg_obj_stats stats;
--	unsigned long obj[0];
-+	unsigned long obj[];
- };
+-	interp_elf_ex = kmalloc(sizeof(*interp_elf_ex), GFP_KERNEL);
+-	if (!interp_elf_ex) {
+-		retval = -ENOMEM;
+-		goto out_ret;
+-	}
+-
+ 	retval = -ENOEXEC;
+ 	/* First of all, some simple consistency checks */
+ 	if (memcmp(elf_ex->e_ident, ELFMAG, SELFMAG) != 0)
+@@ -768,6 +762,12 @@ static int load_elf_binary(struct linux_
+ 		 */
+ 		would_dump(bprm, interpreter);
  
- static unsigned int objagg_obj_ref_inc(struct objagg_obj *objagg_obj)
++		interp_elf_ex = kmalloc(sizeof(*interp_elf_ex), GFP_KERNEL);
++		if (!interp_elf_ex) {
++			retval = -ENOMEM;
++			goto out_free_ph;
++		}
++
+ 		/* Get the exec headers */
+ 		retval = elf_read(interpreter, interp_elf_ex,
+ 				  sizeof(*interp_elf_ex), 0);
+@@ -1073,6 +1073,8 @@ out_free_interp:
+ 
+ 		allow_write_access(interpreter);
+ 		fput(interpreter);
++
++		kfree(interp_elf_ex);
+ 	} else {
+ 		elf_entry = e_entry;
+ 		if (BAD_ADDR(elf_entry)) {
+@@ -1151,12 +1153,11 @@ out_free_interp:
+ 	start_thread(regs, elf_entry, bprm->p);
+ 	retval = 0;
+ out:
+-	kfree(interp_elf_ex);
+-out_ret:
+ 	return retval;
+ 
+ 	/* error cleanup */
+ out_free_dentry:
++	kfree(interp_elf_ex);
+ 	kfree(interp_elf_phdata);
+ 	allow_write_access(interpreter);
+ 	if (interpreter)
 _
 
-Patches currently in -mm which might be from gustavo@embeddedor.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-lib-bch-replace-zero-length-array-with-flexible-array-member.patch
-lib-ts_bm-replace-zero-length-array-with-flexible-array-member.patch
-lib-ts_fsm-replace-zero-length-array-with-flexible-array-member.patch
-lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch
+ramfs-support-o_tmpfile.patch
+elf-delete-loc-variable.patch
+elf-allocate-less-for-static-executable.patch
+elf-dont-free-interpreters-elf-pheaders-on-common-path.patch
