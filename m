@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + init-mainc-mark-boot_config_checksum-static.patch added
- to -mm tree
-Date: Wed, 19 Feb 2020 14:56:30 -0800
-Message-ID: <20200219225630.HI0kQ%akpm@linux-foundation.org>
+Subject: + maintainers-use-tabs-for-safesetid.patch added to -mm
+ tree
+Date: Wed, 19 Feb 2020 14:57:47 -0800
+Message-ID: <20200219225747.fRh7v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36120 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36676 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727855AbgBSW4c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 17:56:32 -0500
+        id S1727636AbgBSW5s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 17:57:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mhiramat@kernel.org, hqjagain@gmail.com
+To: mm-commits@vger.kernel.org, serge@hallyn.com, mortonm@chromium.org, jmorris@namei.org, rdunlap@infradead.org
 
 
 The patch titled
-     Subject: init/main.c: mark boot_config_checksum static
+     Subject: MAINTAINERS: use tabs for SAFESETID
 has been added to the -mm tree.  Its filename is
-     init-mainc-mark-boot_config_checksum-static.patch
+     maintainers-use-tabs-for-safesetid.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-mainc-mark-boot_config_checksum-static.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-use-tabs-for-safesetid.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-mark-boot_config_checksum-static.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-use-tabs-for-safesetid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,33 +36,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qiujun Huang <hqjagain@gmail.com>
-Subject: init/main.c: mark boot_config_checksum static
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: MAINTAINERS: use tabs for SAFESETID
 
-In fact, this function is only used in this file, so mark it with 'static'.
+Use tabs for indentation instead of spaces for SAFESETID.  All (!) other
+entries in MAINTAINERS use tabs (according to my simple grepping).
 
-Link: http://lkml.kernel.org/r/1581852511-14163-1-git-send-email-hqjagain@gmail.com
-Signed-off-by: Qiujun Huang <hqjagain@gmail.com>
-Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
+Link: http://lkml.kernel.org/r/2bb2e52a-2694-816d-57b4-6cabfadd6c1a@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Micah Morton <mortonm@chromium.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/init/main.c~init-mainc-mark-boot_config_checksum-static
-+++ a/init/main.c
-@@ -335,7 +335,7 @@ static char * __init xbc_make_cmdline(co
- 	return new_cmdline;
- }
+--- a/MAINTAINERS~maintainers-use-tabs-for-safesetid
++++ a/MAINTAINERS
+@@ -14582,10 +14582,10 @@ F:	drivers/media/pci/saa7146/
+ F:	include/media/drv-intf/saa7146*
  
--u32 boot_config_checksum(unsigned char *p, u32 size)
-+static u32 boot_config_checksum(unsigned char *p, u32 size)
- {
- 	u32 ret = 0;
+ SAFESETID SECURITY MODULE
+-M:     Micah Morton <mortonm@chromium.org>
+-S:     Supported
+-F:     security/safesetid/
+-F:     Documentation/admin-guide/LSM/SafeSetID.rst
++M:	Micah Morton <mortonm@chromium.org>
++S:	Supported
++F:	security/safesetid/
++F:	Documentation/admin-guide/LSM/SafeSetID.rst
  
+ SAMSUNG AUDIO (ASoC) DRIVERS
+ M:	Krzysztof Kozlowski <krzk@kernel.org>
 _
 
-Patches currently in -mm which might be from hqjagain@gmail.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-init-mainc-mark-boot_config_checksum-static.patch
+maintainers-use-tabs-for-safesetid.patch
