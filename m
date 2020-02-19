@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + kselftest-introduce-new-epoll-test-case.patch added to
- -mm tree
-Date: Wed, 19 Feb 2020 15:31:15 -0800
-Message-ID: <20200219233115.Q7o7I%akpm@linux-foundation.org>
+Subject: + hugetlb-support-file_region-coalescing-again-fix.patch
+ added to -mm tree
+Date: Wed, 19 Feb 2020 15:37:29 -0800
+Message-ID: <20200219233729.CqDk3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44458 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46322 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726691AbgBSXbQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 18:31:16 -0500
+        id S1726613AbgBSXha (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 18:37:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, max@arangodb.com, kuba@kernel.org, jbaron@akamai.com, dbueso@suse.de, chris.kohlhoff@clearpool.io, rpenyaev@suse.de
+To: mm-commits@vger.kernel.org, shakeelb@google.com, rientjes@google.com, rdunlap@infradead.org, mike.kravetz@oracle.com, gthelen@google.com, almasrymina@google.com
 
 
 The patch titled
-     Subject: kselftest: introduce new epoll test case
+     Subject: hugetlb: fix CONFIG_CGROUP_HUGETLB ifdefs
 has been added to the -mm tree.  Its filename is
-     kselftest-introduce-new-epoll-test-case.patch
+     hugetlb-support-file_region-coalescing-again-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kselftest-introduce-new-epoll-test-case.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-support-file_region-coalescing-again-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kselftest-introduce-new-epoll-test-case.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-support-file_region-coalescing-again-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,121 +36,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Penyaev <rpenyaev@suse.de>
-Subject: kselftest: introduce new epoll test case
+From: Mina Almasry <almasrymina@google.com>
+Subject: hugetlb: fix CONFIG_CGROUP_HUGETLB ifdefs
 
-This testcase repeats epollbug.c from the bug:
+Fixes an #ifdef bug in the patch referred to below that was causing a
+build error when CONFIG_DEBUG_VM && !CONFIG_CCGROUP_HUGETLB.
 
-  https://bugzilla.kernel.org/show_bug.cgi?id=205933
-
-What it tests?  It tests the race between epoll_ctl() and epoll_wait(). 
-New event mask passed to epoll_ctl() triggers wake up, which can be missed
-because of the bug described in the link.  Reproduction is 100%, so easy
-to fix.  Kudos, Max, for wonderful test case.
-
-Link: http://lkml.kernel.org/r/20200214170211.561524-2-rpenyaev@suse.de
-Signed-off-by: Roman Penyaev <rpenyaev@suse.de>
-Cc: Max Neunhoeffer <max@arangodb.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Christopher Kohlhoff <chris.kohlhoff@clearpool.io>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Jason Baron <jbaron@akamai.com>
+Link: http://lkml.kernel.org/r/20200214204544.231482-1-almasrymina@google.com
+Fixes: b5f16a533ce8a ("hugetlb: support file_region coalescing again")
+Signed-off-by: Mina Almasry <almasrymina@google.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c |   67 +++++++++-
- 1 file changed, 66 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c~kselftest-introduce-new-epoll-test-case
-+++ a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c
-@@ -7,13 +7,14 @@
- #include <pthread.h>
- #include <sys/epoll.h>
- #include <sys/socket.h>
-+#include <sys/eventfd.h>
- #include "../../kselftest_harness.h"
- 
- struct epoll_mtcontext
- {
- 	int efd[3];
- 	int sfd[4];
--	int count;
-+	volatile int count;
- 
- 	pthread_t main;
- 	pthread_t waiter;
-@@ -3071,4 +3072,68 @@ TEST(epoll58)
- 	close(ctx.sfd[3]);
+--- a/mm/hugetlb.c~hugetlb-support-file_region-coalescing-again-fix
++++ a/mm/hugetlb.c
+@@ -289,7 +289,7 @@ static bool has_same_uncharge_info(struc
+ #endif
  }
  
-+static void *epoll59_thread(void *ctx_)
+-#ifdef CONFIG_DEBUG_VM
++#if defined(CONFIG_DEBUG_VM) && defined(CONFIG_CGROUP_HUGETLB)
+ static void dump_resv_map(struct resv_map *resv)
+ {
+ 	struct list_head *head = &resv->regions;
+@@ -325,6 +325,10 @@ static void check_coalesce_bug(struct re
+ 		}
+ 	}
+ }
++#else
++static void check_coalesce_bug(struct resv_map *resv)
 +{
-+	struct epoll_mtcontext *ctx = ctx_;
-+	struct epoll_event e;
-+	int i;
-+
-+	for (i = 0; i < 100000; i++) {
-+		while (ctx->count == 0)
-+			;
-+
-+		e.events = EPOLLIN | EPOLLERR | EPOLLET;
-+		epoll_ctl(ctx->efd[0], EPOLL_CTL_MOD, ctx->sfd[0], &e);
-+		ctx->count = 0;
-+	}
-+
-+	return NULL;
 +}
-+
-+/*
-+ *        t0
-+ *      (p) \
-+ *           e0
-+ *     (et) /
-+ *        e0
-+ *
-+ * Based on https://bugzilla.kernel.org/show_bug.cgi?id=205933
-+ */
-+TEST(epoll59)
-+{
-+	pthread_t emitter;
-+	struct pollfd pfd;
-+	struct epoll_event e;
-+	struct epoll_mtcontext ctx = { 0 };
-+	int i, ret;
-+
-+	signal(SIGUSR1, signal_handler);
-+
-+	ctx.efd[0] = epoll_create1(0);
-+	ASSERT_GE(ctx.efd[0], 0);
-+
-+	ctx.sfd[0] = eventfd(1, 0);
-+	ASSERT_GE(ctx.sfd[0], 0);
-+
-+	e.events = EPOLLIN | EPOLLERR | EPOLLET;
-+	ASSERT_EQ(epoll_ctl(ctx.efd[0], EPOLL_CTL_ADD, ctx.sfd[0], &e), 0);
-+
-+	ASSERT_EQ(pthread_create(&emitter, NULL, epoll59_thread, &ctx), 0);
-+
-+	for (i = 0; i < 100000; i++) {
-+		ret = epoll_wait(ctx.efd[0], &e, 1, 1000);
-+		ASSERT_GT(ret, 0);
-+
-+		while (ctx.count != 0)
-+			;
-+		ctx.count = 1;
-+	}
-+	if (pthread_tryjoin_np(emitter, NULL) < 0) {
-+		pthread_kill(emitter, SIGUSR1);
-+		pthread_join(emitter, NULL);
-+	}
-+	close(ctx.efd[0]);
-+	close(ctx.sfd[0]);
-+}
-+
- TEST_HARNESS_MAIN
+ #endif
+ 
+ static void coalesce_file_region(struct resv_map *resv, struct file_region *rg)
+@@ -431,9 +435,7 @@ static long add_reservation_in_range(str
+ 	}
+ 
+ 	VM_BUG_ON(add < 0);
+-#ifdef CONFIG_DEBUG_VM
+ 	check_coalesce_bug(resv);
+-#endif
+ 	return add;
+ }
+ 
 _
 
-Patches currently in -mm which might be from rpenyaev@suse.de are
+Patches currently in -mm which might be from almasrymina@google.com are
 
-epoll-fix-possible-lost-wakeup-on-epoll_ctl-path.patch
-kselftest-introduce-new-epoll-test-case.patch
+hugetlb_cgroup-add-hugetlb_cgroup-reservation-counter.patch
+hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations.patch
+mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings.patch
+hugetlb-disable-region_add-file_region-coalescing.patch
+hugetlb-disable-region_add-file_region-coalescing-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings.patch
+hugetlb_cgroup-support-noreserve-mappings.patch
+hugetlb-support-file_region-coalescing-again.patch
+hugetlb-support-file_region-coalescing-again-fix.patch
+hugetlb_cgroup-add-hugetlb_cgroup-reservation-tests.patch
+hugetlb_cgroup-add-hugetlb_cgroup-reservation-docs.patch
