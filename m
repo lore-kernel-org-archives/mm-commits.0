@@ -1,92 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 19 Feb 2020 11:16:04 -0800
-Message-ID: <20200219191604.u_0a3iW2C%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-objagg-replace-zero-length-arrays-with-flexible-array-member.patch
+ removed from -mm tree
+Date: Wed, 19 Feb 2020 11:16:28 -0800
+Message-ID: <20200219191628.b7JvC5Ne7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44432 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726638AbgBSTQG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 14:16:06 -0500
+        id S1726638AbgBSTQa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 14:16:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: gustavo@embeddedor.com, jiri@mellanox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: lib/objagg.c: replace zero-length arrays with flexible-array member
+has been removed from the -mm tree.  Its filename was
+     lib-objagg-replace-zero-length-arrays-with-flexible-array-member.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: lib/objagg.c: replace zero-length arrays with flexible-array member
 
+The current codebase makes use of the zero-length array language extension
+to the C90 standard, but the preferred mechanism to declare
+variable-length types such as these ones is a flexible array member[1][2],
+introduced in C99:
+
+struct foo {
+        int stuff;
+        struct boo array[];
+};
+
+By making use of the mechanism above, we will get a compiler warning in
+case the flexible array does not occur last in the structure, which will
+help us prevent some kind of undefined behavior bugs from being
+inadvertenly introduced[3] to the codebase from now on.
+
+This issue was found with the help of Coccinelle.
+
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] https://github.com/KSPP/linux/issues/21
+[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+Link: http://lkml.kernel.org/r/20200211205356.GA23101@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Acked-by: Jiri Pirko <jiri@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c                     |    6 ------
- sound/soc/sof/intel/hda-dsp.c |   13 -------------
- 2 files changed, 19 deletions(-)
+ lib/objagg.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/pipe.c~linux-next-git-rejects
-+++ a/fs/pipe.c
-@@ -1315,11 +1315,6 @@ int pipe_resize_ring(struct pipe_inode_i
- 		pipe->max_usage = nr_slots;
- 	pipe->tail = tail;
- 	pipe->head = head;
--<<<<<<< HEAD
--
--	/* This might have made more room for writers */
--	wake_up_interruptible(&pipe->wr_wait);
--=======
- 	wake_up_interruptible_all(&pipe->rd_wait);
- 	wake_up_interruptible_all(&pipe->wr_wait);
- 	return 0;
-@@ -1373,7 +1368,6 @@ static long pipe_set_size(struct pipe_in
+--- a/lib/objagg.c~lib-objagg-replace-zero-length-arrays-with-flexible-array-member
++++ a/lib/objagg.c
+@@ -28,7 +28,7 @@ struct objagg_hints_node {
+ 	struct objagg_hints_node *parent;
+ 	unsigned int root_id;
+ 	struct objagg_obj_stats_info stats_info;
+-	unsigned long obj[0];
++	unsigned long obj[];
+ };
  
- 	pipe->max_usage = nr_slots;
- 	pipe->nr_accounted = nr_slots;
-->>>>>>> linux-next/akpm-base
- 	return pipe->max_usage * PAGE_SIZE;
+ static struct objagg_hints_node *
+@@ -66,7 +66,7 @@ struct objagg_obj {
+ 				* including nested objects
+ 				*/
+ 	struct objagg_obj_stats stats;
+-	unsigned long obj[0];
++	unsigned long obj[];
+ };
  
- out_revert_acct:
---- a/sound/soc/sof/intel/hda-dsp.c~linux-next-git-rejects
-+++ a/sound/soc/sof/intel/hda-dsp.c
-@@ -669,12 +669,6 @@ int hda_dsp_resume(struct snd_sof_dev *s
- 			return ret;
- 		}
- 
--<<<<<<< HEAD
--	if (sdev->s0_suspend) {
--		hda_codec_i915_display_power(sdev, true);
--
--=======
-->>>>>>> linux-next/akpm-base
- 		/* restore L1SEN bit */
- 		if (hda->l1_support_changed)
- 			snd_sof_dsp_update_bits(sdev, HDA_DSP_HDA_BAR,
-@@ -751,12 +745,6 @@ int hda_dsp_suspend(struct snd_sof_dev *
- 	};
- 	int ret;
- 
--<<<<<<< HEAD
--	if (sdev->s0_suspend) {
--		/* we can't keep a wakeref to display driver at suspend */
--		hda_codec_i915_display_power(sdev, false);
+ static unsigned int objagg_obj_ref_inc(struct objagg_obj *objagg_obj)
+_
+
+Patches currently in -mm which might be from gustavo@embeddedor.com are
+
+lib-bch-replace-zero-length-array-with-flexible-array-member.patch
+lib-ts_bm-replace-zero-length-array-with-flexible-array-member.patch
+lib-ts_fsm-replace-zero-length-array-with-flexible-array-member.patch
+lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch
