@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + fork-annotate-a-data-race-in-vm_area_dup.patch added to
- -mm tree
-Date: Wed, 19 Feb 2020 11:39:36 -0800
-Message-ID: <20200219193936.o2cwU%akpm@linux-foundation.org>
+Subject: +
+ mm-sparsemem-pfn_to_page-is-not-valid-yet-on-sparsemem.patch added to -mm
+ tree
+Date: Wed, 19 Feb 2020 11:50:49 -0800
+Message-ID: <20200219195049.K7dGY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48262 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55030 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726648AbgBSTjj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 14:39:39 -0500
+        id S1726645AbgBSTuu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 14:50:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peterz@infradead.org, paulmck@kernel.org, kirill@shutemov.name, elver@google.com, cai@lca.pw
+To: mm-commits@vger.kernel.org, stable@vger.kernel.org, rppt@linux.ibm.com, osalvador@suse.de, mhocko@suse.com, david@redhat.com, dan.j.williams@intel.com, bhe@redhat.com, richardw.yang@linux.intel.com
 
 
 The patch titled
-     Subject: fork: annotate a data race in vm_area_dup()
+     Subject: mm/sparsemem: pfn_to_page is not valid yet on SPARSEMEM
 has been added to the -mm tree.  Its filename is
-     fork-annotate-a-data-race-in-vm_area_dup.patch
+     mm-sparsemem-pfn_to_page-is-not-valid-yet-on-sparsemem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fork-annotate-a-data-race-in-vm_area_dup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparsemem-pfn_to_page-is-not-valid-yet-on-sparsemem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fork-annotate-a-data-race-in-vm_area_dup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparsemem-pfn_to_page-is-not-valid-yet-on-sparsemem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,91 +37,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: fork: annotate a data race in vm_area_dup()
+From: Wei Yang <richardw.yang@linux.intel.com>
+Subject: mm/sparsemem: pfn_to_page is not valid yet on SPARSEMEM
 
-struct vm_area_struct could be accessed concurrently as noticed by
-KCSAN,
+When we use SPARSEMEM instead of SPARSEMEM_VMEMMAP, pfn_to_page()
+doesn't work before sparse_init_one_section() is called. This leads to a
+crash when hotplug memory:
 
- write to 0xffff9cf8bba08ad8 of 8 bytes by task 14263 on cpu 35:
-  vma_interval_tree_insert+0x101/0x150:
-  rb_insert_augmented_cached at include/linux/rbtree_augmented.h:58
-  (inlined by) vma_interval_tree_insert at mm/interval_tree.c:23
-  __vma_link_file+0x6e/0xe0
-  __vma_link_file at mm/mmap.c:629
-  vma_link+0xa2/0x120
-  mmap_region+0x753/0xb90
-  do_mmap+0x45c/0x710
-  vm_mmap_pgoff+0xc0/0x130
-  ksys_mmap_pgoff+0x1d1/0x300
-  __x64_sys_mmap+0x33/0x40
-  do_syscall_64+0x91/0xc44
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+[   41.839170] BUG: unable to handle page fault for address: 0000000006400000
+[   41.840663] #PF: supervisor write access in kernel mode
+[   41.841822] #PF: error_code(0x0002) - not-present page
+[   41.842970] PGD 0 P4D 0
+[   41.843538] Oops: 0002 [#1] SMP PTI
+[   41.844125] CPU: 3 PID: 221 Comm: kworker/u16:1 Tainted: G        W         5.5.0-next-20200205+ #343
+[   41.845659] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
+[   41.846977] Workqueue: kacpi_hotplug acpi_hotplug_work_fn
+[   41.847904] RIP: 0010:__memset+0x24/0x30
+[   41.848660] Code: cc cc cc cc cc cc 0f 1f 44 00 00 49 89 f9 48 89 d1 83 e2 07 48 c1 e9 03 40 0f b6 f6 48 b8 01 01 01 01 01 01 01 01 48 0f af c6 <f3> 48 ab 89 d1 f3 aa 4c 89 c8 c3 90 49 89 f9 40 88 f0 48 89 d1 f3
+[   41.851836] RSP: 0018:ffffb43ac0373c80 EFLAGS: 00010a87
+[   41.852686] RAX: ffffffffffffffff RBX: ffff8a1518800000 RCX: 0000000000050000
+[   41.853824] RDX: 0000000000000000 RSI: 00000000000000ff RDI: 0000000006400000
+[   41.854967] RBP: 0000000000140000 R08: 0000000000100000 R09: 0000000006400000
+[   41.856107] R10: 0000000000000000 R11: 0000000000000002 R12: 0000000000000000
+[   41.857255] R13: 0000000000000028 R14: 0000000000000000 R15: ffff8a153ffd9280
+[   41.858414] FS:  0000000000000000(0000) GS:ffff8a153ab00000(0000) knlGS:0000000000000000
+[   41.859703] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   41.860627] CR2: 0000000006400000 CR3: 0000000136fca000 CR4: 00000000000006e0
+[   41.861716] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[   41.862680] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[   41.863628] Call Trace:
+[   41.863983]  sparse_add_section+0x1c9/0x26a
+[   41.864570]  __add_pages+0xbf/0x150
+[   41.865057]  add_pages+0x12/0x60
+[   41.865489]  add_memory_resource+0xc8/0x210
+[   41.866017]  ? wake_up_q+0xa0/0xa0
+[   41.866416]  __add_memory+0x62/0xb0
+[   41.866825]  acpi_memory_device_add+0x13f/0x300
+[   41.867410]  acpi_bus_attach+0xf6/0x200
+[   41.867890]  acpi_bus_scan+0x43/0x90
+[   41.868448]  acpi_device_hotplug+0x275/0x3d0
+[   41.868972]  acpi_hotplug_work_fn+0x1a/0x30
+[   41.869473]  process_one_work+0x1a7/0x370
+[   41.869953]  worker_thread+0x30/0x380
+[   41.870396]  ? flush_rcu_work+0x30/0x30
+[   41.870846]  kthread+0x112/0x130
+[   41.871236]  ? kthread_create_on_node+0x60/0x60
+[   41.871770]  ret_from_fork+0x35/0x40
 
- read to 0xffff9cf8bba08a80 of 200 bytes by task 14262 on cpu 122:
-  vm_area_dup+0x6a/0xe0
-  vm_area_dup at kernel/fork.c:362
-  __split_vma+0x72/0x2a0
-  __split_vma at mm/mmap.c:2661
-  split_vma+0x5a/0x80
-  mprotect_fixup+0x368/0x3f0
-  do_mprotect_pkey+0x263/0x420
-  __x64_sys_mprotect+0x51/0x70
-  do_syscall_64+0x91/0xc44
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+We should use memmap as it did.
 
-vm_area_dup() blindly copies all fields of original VMA to the new one. 
-This includes coping vm_area_struct::shared.rb which is normally protected
-by i_mmap_lock.  But this is fine because the read value will be
-overwritten on the following __vma_link_file() under proper protection. 
-Thus, mark it as an intentional data race and insert a few assertions for
-the fields that should not be modified concurrently.
+On x86 the impact is limited to x86_32 builds, or x86_64 configurations
+that override the default setting for SPARSEMEM_VMEMMAP.
 
-Link: http://lkml.kernel.org/r/1582122495-12885-1-git-send-email-cai@lca.pw
-Signed-off-by: Qian Cai <cai@lca.pw>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+[dan.j.williams@intel.com: changelog update]
+Link: http://lkml.kernel.org/r/20200219030454.4844-1-bhe@redhat.com
+Fixes: ba72b4c8cf60 ("mm/sparsemem: support sub-section hotplug")
+Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/sparse.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/fork.c~fork-annotate-a-data-race-in-vm_area_dup
-+++ a/kernel/fork.c
-@@ -359,7 +359,13 @@ struct vm_area_struct *vm_area_dup(struc
- 	struct vm_area_struct *new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+--- a/mm/sparse.c~mm-sparsemem-pfn_to_page-is-not-valid-yet-on-sparsemem
++++ a/mm/sparse.c
+@@ -876,7 +876,7 @@ int __meminit sparse_add_section(int nid
+ 	 * Poison uninitialized struct pages in order to catch invalid flags
+ 	 * combinations.
+ 	 */
+-	page_init_poison(pfn_to_page(start_pfn), sizeof(struct page) * nr_pages);
++	page_init_poison(memmap, sizeof(struct page) * nr_pages);
  
- 	if (new) {
--		*new = *orig;
-+		ASSERT_EXCLUSIVE_WRITER(orig->vm_flags);
-+		ASSERT_EXCLUSIVE_WRITER(orig->vm_file);
-+		/*
-+		 * orig->shared.rb may be modified concurrently, but the clone
-+		 * will be reinitialized.
-+		 */
-+		*new = data_race(*orig);
- 		INIT_LIST_HEAD(&new->anon_vma_chain);
- 		new->vm_next = new->vm_prev = NULL;
- 	}
+ 	ms = __nr_to_section(section_nr);
+ 	set_section_nid(section_nr, nid);
 _
 
-Patches currently in -mm which might be from cai@lca.pw are
+Patches currently in -mm which might be from richardw.yang@linux.intel.com are
 
-hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations-fix.patch
-mm-frontswap-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races-v2.patch
-mm-swap_state-mark-various-intentional-data-races.patch
-mm-kmemleak-annotate-various-data-races-obj-ptr.patch
-mm-swapfile-fix-and-annotate-various-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races-v2.patch
-mm-page_counter-fix-various-data-races-at-memsw.patch
-mm-memcontrol-fix-a-data-race-in-scan-count.patch
-mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-mm-mempool-fix-a-data-race-in-mempool_free.patch
-mm-util-annotate-an-data-race-at-vm_committed_as.patch
-mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
-fork-annotate-a-data-race-in-vm_area_dup.patch
+mm-sparsemem-pfn_to_page-is-not-valid-yet-on-sparsemem.patch
+mm-sparsemem-get-address-to-page-struct-instead-of-address-to-pfn.patch
+mm-migratec-no-need-to-check-for-i-start-in-do_pages_move.patch
+mm-migratec-wrap-do_move_pages_to_node-and-store_status.patch
+mm-migratec-check-pagelist-in-move_pages_and_store_status.patch
+mm-migratec-unify-not-queued-for-migration-handling-in-do_pages_move.patch
