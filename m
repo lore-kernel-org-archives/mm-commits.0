@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-stop-kswapd-early-when-nothings-waiting-for-it-to-free-pages.patch added
- to -mm tree
-Date: Wed, 19 Feb 2020 11:26:59 -0800
-Message-ID: <20200219192659.xuyWm%akpm@linux-foundation.org>
+Subject: + fork-annotate-a-data-race-in-vm_area_dup.patch added to
+ -mm tree
+Date: Wed, 19 Feb 2020 11:39:36 -0800
+Message-ID: <20200219193936.o2cwU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46610 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48262 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726703AbgBST1A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 14:27:00 -0500
+        id S1726648AbgBSTjj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 14:39:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com, vbabka@suse.cz, mhocko@suse.com, mgorman@techsingularity.net, hannes@cmpxchg.org, sultan@kerneltoast.com
+To: mm-commits@vger.kernel.org, peterz@infradead.org, paulmck@kernel.org, kirill@shutemov.name, elver@google.com, cai@lca.pw
 
 
 The patch titled
-     Subject: mm/vmscan: stop kswapd early when nothing's waiting for it to free pages
+     Subject: fork: annotate a data race in vm_area_dup()
 has been added to the -mm tree.  Its filename is
-     mm-stop-kswapd-early-when-nothings-waiting-for-it-to-free-pages.patch
+     fork-annotate-a-data-race-in-vm_area_dup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-stop-kswapd-early-when-nothings-waiting-for-it-to-free-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fork-annotate-a-data-race-in-vm_area_dup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-stop-kswapd-early-when-nothings-waiting-for-it-to-free-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fork-annotate-a-data-race-in-vm_area_dup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,111 +36,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sultan Alsawaf <sultan@kerneltoast.com>
-Subject: mm/vmscan: stop kswapd early when nothing's waiting for it to free pages
+From: Qian Cai <cai@lca.pw>
+Subject: fork: annotate a data race in vm_area_dup()
 
-Keeping kswapd running when all the failed allocations that invoked it are
-satisfied incurs a high overhead due to unnecessary page eviction and
-writeback, as well as spurious VM pressure events to various registered
-shrinkers.  When kswapd doesn't need to work to make an allocation succeed
-anymore, stop it prematurely to save resources.
+struct vm_area_struct could be accessed concurrently as noticed by
+KCSAN,
 
-Link: http://lkml.kernel.org/r/20200219182522.1960-1-sultan@kerneltoast.com
-Signed-off-by: Sultan Alsawaf <sultan@kerneltoast.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+ write to 0xffff9cf8bba08ad8 of 8 bytes by task 14263 on cpu 35:
+  vma_interval_tree_insert+0x101/0x150:
+  rb_insert_augmented_cached at include/linux/rbtree_augmented.h:58
+  (inlined by) vma_interval_tree_insert at mm/interval_tree.c:23
+  __vma_link_file+0x6e/0xe0
+  __vma_link_file at mm/mmap.c:629
+  vma_link+0xa2/0x120
+  mmap_region+0x753/0xb90
+  do_mmap+0x45c/0x710
+  vm_mmap_pgoff+0xc0/0x130
+  ksys_mmap_pgoff+0x1d1/0x300
+  __x64_sys_mmap+0x33/0x40
+  do_syscall_64+0x91/0xc44
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+ read to 0xffff9cf8bba08a80 of 200 bytes by task 14262 on cpu 122:
+  vm_area_dup+0x6a/0xe0
+  vm_area_dup at kernel/fork.c:362
+  __split_vma+0x72/0x2a0
+  __split_vma at mm/mmap.c:2661
+  split_vma+0x5a/0x80
+  mprotect_fixup+0x368/0x3f0
+  do_mprotect_pkey+0x263/0x420
+  __x64_sys_mprotect+0x51/0x70
+  do_syscall_64+0x91/0xc44
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+vm_area_dup() blindly copies all fields of original VMA to the new one. 
+This includes coping vm_area_struct::shared.rb which is normally protected
+by i_mmap_lock.  But this is fine because the read value will be
+overwritten on the following __vma_link_file() under proper protection. 
+Thus, mark it as an intentional data race and insert a few assertions for
+the fields that should not be modified concurrently.
+
+Link: http://lkml.kernel.org/r/1582122495-12885-1-git-send-email-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Marco Elver <elver@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 ++
- mm/page_alloc.c        |   17 ++++++++++++++---
- mm/vmscan.c            |    3 ++-
- 3 files changed, 18 insertions(+), 4 deletions(-)
+ kernel/fork.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-stop-kswapd-early-when-nothings-waiting-for-it-to-free-pages
-+++ a/include/linux/mmzone.h
-@@ -20,6 +20,7 @@
- #include <linux/atomic.h>
- #include <linux/mm_types.h>
- #include <linux/page-flags.h>
-+#include <linux/refcount.h>
- #include <asm/page.h>
+--- a/kernel/fork.c~fork-annotate-a-data-race-in-vm_area_dup
++++ a/kernel/fork.c
+@@ -359,7 +359,13 @@ struct vm_area_struct *vm_area_dup(struc
+ 	struct vm_area_struct *new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
  
- /* Free memory management - zoned buddy allocator.  */
-@@ -737,6 +738,7 @@ typedef struct pglist_data {
- 	unsigned long node_spanned_pages; /* total size of physical page
- 					     range, including holes */
- 	int node_id;
-+	refcount_t kswapd_waiters;
- 	wait_queue_head_t kswapd_wait;
- 	wait_queue_head_t pfmemalloc_wait;
- 	struct task_struct *kswapd;	/* Protected by
---- a/mm/page_alloc.c~mm-stop-kswapd-early-when-nothings-waiting-for-it-to-free-pages
-+++ a/mm/page_alloc.c
-@@ -4403,6 +4403,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	int no_progress_loops;
- 	unsigned int cpuset_mems_cookie;
- 	int reserve_flags;
-+	pg_data_t *pgdat = ac->preferred_zoneref->zone->zone_pgdat;
-+	bool woke_kswapd = false;
- 
- 	/*
- 	 * We also sanity check to catch abuse of atomic reserves being used by
-@@ -4436,8 +4438,13 @@ retry_cpuset:
- 	if (!ac->preferred_zoneref->zone)
- 		goto nopage;
- 
--	if (alloc_flags & ALLOC_KSWAPD)
-+	if (alloc_flags & ALLOC_KSWAPD) {
-+		if (!woke_kswapd) {
-+			refcount_inc(&pgdat->kswapd_waiters);
-+			woke_kswapd = true;
-+		}
- 		wake_all_kswapds(order, gfp_mask, ac);
-+	}
- 
- 	/*
- 	 * The adjusted alloc_flags might result in immediate success, so try
-@@ -4642,9 +4649,12 @@ nopage:
- 		goto retry;
+ 	if (new) {
+-		*new = *orig;
++		ASSERT_EXCLUSIVE_WRITER(orig->vm_flags);
++		ASSERT_EXCLUSIVE_WRITER(orig->vm_file);
++		/*
++		 * orig->shared.rb may be modified concurrently, but the clone
++		 * will be reinitialized.
++		 */
++		*new = data_race(*orig);
+ 		INIT_LIST_HEAD(&new->anon_vma_chain);
+ 		new->vm_next = new->vm_prev = NULL;
  	}
- fail:
--	warn_alloc(gfp_mask, ac->nodemask,
--			"page allocation failure: order:%u", order);
- got_pg:
-+	if (woke_kswapd)
-+		refcount_dec(&pgdat->kswapd_waiters);
-+	if (!page)
-+		warn_alloc(gfp_mask, ac->nodemask,
-+				"page allocation failure: order:%u", order);
- 	return page;
- }
- 
-@@ -6713,6 +6723,7 @@ static void __meminit pgdat_init_interna
- 	pgdat_page_ext_init(pgdat);
- 	spin_lock_init(&pgdat->lru_lock);
- 	lruvec_init(&pgdat->__lruvec);
-+	pgdat->kswapd_waiters = (refcount_t)REFCOUNT_INIT(0);
- }
- 
- static void __meminit zone_init_internals(struct zone *zone, enum zone_type idx, int nid,
---- a/mm/vmscan.c~mm-stop-kswapd-early-when-nothings-waiting-for-it-to-free-pages
-+++ a/mm/vmscan.c
-@@ -3697,7 +3697,8 @@ restart:
- 		__fs_reclaim_release();
- 		ret = try_to_freeze();
- 		__fs_reclaim_acquire();
--		if (ret || kthread_should_stop())
-+		if (ret || kthread_should_stop() ||
-+		    !refcount_read(&pgdat->kswapd_waiters))
- 			break;
- 
- 		/*
 _
 
-Patches currently in -mm which might be from sultan@kerneltoast.com are
+Patches currently in -mm which might be from cai@lca.pw are
 
-mm-stop-kswapd-early-when-nothings-waiting-for-it-to-free-pages.patch
+hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations-fix.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races-v2.patch
+mm-swap_state-mark-various-intentional-data-races.patch
+mm-kmemleak-annotate-various-data-races-obj-ptr.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+mm-page_counter-fix-various-data-races-at-memsw.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-util-annotate-an-data-race-at-vm_committed_as.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+fork-annotate-a-data-race-in-vm_area_dup.patch
