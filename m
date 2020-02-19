@@ -1,13 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + elf-allocate-less-for-static-executable.patch added to
- -mm tree
-Date: Wed, 19 Feb 2020 11:18:49 -0800
-Message-ID: <20200219191849.uCp1l%akpm@linux-foundation.org>
+Subject: + elf-delete-loc-variable.patch added to -mm tree
+Date: Wed, 19 Feb 2020 11:18:46 -0800
+Message-ID: <20200219191846.K7cD4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45260 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45242 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726647AbgBSTSv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726645AbgBSTSv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 19 Feb 2020 14:18:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,14 +14,14 @@ To: mm-commits@vger.kernel.org, adobriyan@gmail.com
 
 
 The patch titled
-     Subject: fs/binfmt_elf.c: allocate less for static executable
+     Subject: fs/binfmt_elf.c: delete "loc" variable
 has been added to the -mm tree.  Its filename is
-     elf-allocate-less-for-static-executable.patch
+     elf-delete-loc-variable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/elf-allocate-less-for-static-executable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/elf-delete-loc-variable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/elf-allocate-less-for-static-executable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/elf-delete-loc-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,75 +36,119 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: fs/binfmt_elf.c: allocate less for static executable
+Subject: fs/binfmt_elf.c: delete "loc" variable
 
-PT_INTERP ELF header can be spared if executable is static.
+"loc" variable became just a wrapper for PT_INTERP ELF header after main
+ELF header was moved to "bprm->buf".  Delete it.
 
-Link: http://lkml.kernel.org/r/20200219185012.GB4871@avx2
+Link: http://lkml.kernel.org/r/20200219184847.GA4871@avx2
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ fs/binfmt_elf.c |   32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
---- a/fs/binfmt_elf.c~elf-allocate-less-for-static-executable
+--- a/fs/binfmt_elf.c~elf-delete-loc-variable
 +++ a/fs/binfmt_elf.c
-@@ -698,17 +698,11 @@ static int load_elf_binary(struct linux_
+@@ -698,15 +698,13 @@ static int load_elf_binary(struct linux_
  	unsigned long reloc_func_desc __maybe_unused = 0;
  	int executable_stack = EXSTACK_DEFAULT;
  	struct elfhdr *elf_ex = (struct elfhdr *)bprm->buf;
--	struct elfhdr *interp_elf_ex;
-+	struct elfhdr *interp_elf_ex = NULL;
+-	struct {
+-		struct elfhdr interp_elf_ex;
+-	} *loc;
++	struct elfhdr *interp_elf_ex;
  	struct arch_elf_state arch_state = INIT_ARCH_ELF_STATE;
  	struct mm_struct *mm;
  	struct pt_regs *regs;
  
--	interp_elf_ex = kmalloc(sizeof(*interp_elf_ex), GFP_KERNEL);
--	if (!interp_elf_ex) {
--		retval = -ENOMEM;
--		goto out_ret;
--	}
--
- 	retval = -ENOEXEC;
- 	/* First of all, some simple consistency checks */
- 	if (memcmp(elf_ex->e_ident, ELFMAG, SELFMAG) != 0)
-@@ -768,6 +762,12 @@ static int load_elf_binary(struct linux_
- 		 */
+-	loc = kmalloc(sizeof(*loc), GFP_KERNEL);
+-	if (!loc) {
++	interp_elf_ex = kmalloc(sizeof(*interp_elf_ex), GFP_KERNEL);
++	if (!interp_elf_ex) {
+ 		retval = -ENOMEM;
+ 		goto out_ret;
+ 	}
+@@ -771,8 +769,8 @@ static int load_elf_binary(struct linux_
  		would_dump(bprm, interpreter);
  
-+		interp_elf_ex = kmalloc(sizeof(*interp_elf_ex), GFP_KERNEL);
-+		if (!interp_elf_ex) {
-+			retval = -ENOMEM;
-+			goto out_free_ph;
-+		}
-+
  		/* Get the exec headers */
- 		retval = elf_read(interpreter, interp_elf_ex,
- 				  sizeof(*interp_elf_ex), 0);
-@@ -1073,6 +1073,8 @@ out_free_interp:
+-		retval = elf_read(interpreter, &loc->interp_elf_ex,
+-				  sizeof(loc->interp_elf_ex), 0);
++		retval = elf_read(interpreter, interp_elf_ex,
++				  sizeof(*interp_elf_ex), 0);
+ 		if (retval < 0)
+ 			goto out_free_dentry;
  
- 		allow_write_access(interpreter);
- 		fput(interpreter);
-+
-+		kfree(interp_elf_ex);
- 	} else {
- 		elf_entry = e_entry;
+@@ -806,25 +804,25 @@ out_free_interp:
+ 	if (interpreter) {
+ 		retval = -ELIBBAD;
+ 		/* Not an ELF interpreter */
+-		if (memcmp(loc->interp_elf_ex.e_ident, ELFMAG, SELFMAG) != 0)
++		if (memcmp(interp_elf_ex->e_ident, ELFMAG, SELFMAG) != 0)
+ 			goto out_free_dentry;
+ 		/* Verify the interpreter has a valid arch */
+-		if (!elf_check_arch(&loc->interp_elf_ex) ||
+-		    elf_check_fdpic(&loc->interp_elf_ex))
++		if (!elf_check_arch(interp_elf_ex) ||
++		    elf_check_fdpic(interp_elf_ex))
+ 			goto out_free_dentry;
+ 
+ 		/* Load the interpreter program headers */
+-		interp_elf_phdata = load_elf_phdrs(&loc->interp_elf_ex,
++		interp_elf_phdata = load_elf_phdrs(interp_elf_ex,
+ 						   interpreter);
+ 		if (!interp_elf_phdata)
+ 			goto out_free_dentry;
+ 
+ 		/* Pass PT_LOPROC..PT_HIPROC headers to arch code */
+ 		elf_ppnt = interp_elf_phdata;
+-		for (i = 0; i < loc->interp_elf_ex.e_phnum; i++, elf_ppnt++)
++		for (i = 0; i < interp_elf_ex->e_phnum; i++, elf_ppnt++)
+ 			switch (elf_ppnt->p_type) {
+ 			case PT_LOPROC ... PT_HIPROC:
+-				retval = arch_elf_pt_proc(&loc->interp_elf_ex,
++				retval = arch_elf_pt_proc(interp_elf_ex,
+ 							  elf_ppnt, interpreter,
+ 							  true, &arch_state);
+ 				if (retval)
+@@ -839,7 +837,7 @@ out_free_interp:
+ 	 * the exec syscall.
+ 	 */
+ 	retval = arch_check_elf(elf_ex,
+-				!!interpreter, &loc->interp_elf_ex,
++				!!interpreter, interp_elf_ex,
+ 				&arch_state);
+ 	if (retval)
+ 		goto out_free_dentry;
+@@ -1055,7 +1053,7 @@ out_free_interp:
+ 	}
+ 
+ 	if (interpreter) {
+-		elf_entry = load_elf_interp(&loc->interp_elf_ex,
++		elf_entry = load_elf_interp(interp_elf_ex,
+ 					    interpreter,
+ 					    load_bias, interp_elf_phdata);
+ 		if (!IS_ERR((void *)elf_entry)) {
+@@ -1064,7 +1062,7 @@ out_free_interp:
+ 			 * adjustment
+ 			 */
+ 			interp_load_addr = elf_entry;
+-			elf_entry += loc->interp_elf_ex.e_entry;
++			elf_entry += interp_elf_ex->e_entry;
+ 		}
  		if (BAD_ADDR(elf_entry)) {
-@@ -1151,12 +1153,11 @@ out_free_interp:
+ 			retval = IS_ERR((void *)elf_entry) ?
+@@ -1153,7 +1151,7 @@ out_free_interp:
  	start_thread(regs, elf_entry, bprm->p);
  	retval = 0;
  out:
--	kfree(interp_elf_ex);
--out_ret:
+-	kfree(loc);
++	kfree(interp_elf_ex);
+ out_ret:
  	return retval;
  
- 	/* error cleanup */
- out_free_dentry:
-+	kfree(interp_elf_ex);
- 	kfree(interp_elf_phdata);
- 	allow_write_access(interpreter);
- 	if (interpreter)
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
