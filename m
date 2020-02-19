@@ -1,32 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- =?us-ascii?Q?mm-numa-fix-bad-pmd-by-atomically-check-for-pmd=5Ftrans=5Fh?=
- =?us-ascii?Q?uge-when-marking-page-tables-prot=5Fnuma.patch?= added to -mm
- tree
-Date: Wed, 19 Feb 2020 13:57:35 -0800
-Message-ID: <20200219215735.D5dq8%akpm@linux-foundation.org>
+Subject: + mm-annotate-a-data-race-in-page_zonenum.patch added to
+ -mm tree
+Date: Wed, 19 Feb 2020 14:51:22 -0800
+Message-ID: <20200219225122.OU6sc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50350 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727291AbgBSV5i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 16:57:38 -0500
+        id S1727883AbgBSWvX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 17:51:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org, mhocko@suse.com, kirill.shutemov@linux.intel.com, aquini@redhat.com, mgorman@techsingularity.net
+To: mm-commits@vger.kernel.org, paulmck@kernel.org, jhubbard@nvidia.com, jack@suse.cz, ira.weiny@intel.com, elver@google.com, david@redhat.com, dan.j.williams@intel.com, cai@lca.pw
 
 
 The patch titled
-     Subject: mm, numa: fix bad pmd by atomically check for pmd_trans_huge when marking page tables prot_numa
+     Subject: mm: annotate a data race in page_zonenum()
 has been added to the -mm tree.  Its filename is
-     mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa.patch
+     mm-annotate-a-data-race-in-page_zonenum.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-annotate-a-data-race-in-page_zonenum.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-annotate-a-data-race-in-page_zonenum.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,132 +36,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, numa: fix bad pmd by atomically check for pmd_trans_huge when marking page tables prot_numa
+From: Qian Cai <cai@lca.pw>
+Subject: mm: annotate a data race in page_zonenum()
 
-: A user reported a bug against a distribution kernel while running a
-: proprietary workload described as "memory intensive that is not swapping"
-: that is expected to apply to mainline kernels.  The workload is
-: read/write/modifying ranges of memory and checking the contents.  They
-: reported that within a few hours that a bad PMD would be reported followed
-: by a memory corruption where expected data was all zeros.  A partial
-: report of the bad PMD looked like
-: 
-:   [ 5195.338482] ../mm/pgtable-generic.c:33: bad pmd ffff8888157ba008(000002e0396009e2)
-:   [ 5195.341184] ------------[ cut here ]------------
-:   [ 5195.356880] kernel BUG at ../mm/pgtable-generic.c:35!
-:   ....
-:   [ 5195.410033] Call Trace:
-:   [ 5195.410471]  [<ffffffff811bc75d>] change_protection_range+0x7dd/0x930
-:   [ 5195.410716]  [<ffffffff811d4be8>] change_prot_numa+0x18/0x30
-:   [ 5195.410918]  [<ffffffff810adefe>] task_numa_work+0x1fe/0x310
-:   [ 5195.411200]  [<ffffffff81098322>] task_work_run+0x72/0x90
-:   [ 5195.411246]  [<ffffffff81077139>] exit_to_usermode_loop+0x91/0xc2
-:   [ 5195.411494]  [<ffffffff81003a51>] prepare_exit_to_usermode+0x31/0x40
-:   [ 5195.411739]  [<ffffffff815e56af>] retint_user+0x8/0x10
-: 
-: Decoding revealed that the PMD was a valid prot_numa PMD and the bad PMD
-: was a false detection.  The bug does not trigger if automatic NUMA
-: balancing or transparent huge pages is disabled.
-: 
-: The bug is due a race in change_pmd_range between a pmd_trans_huge and
-: pmd_nond_or_clear_bad check without any locks held.  During the
-: pmd_trans_huge check, a parallel protection update under lock can have
-: cleared the PMD and filled it with a prot_numa entry between the transhuge
-: check and the pmd_none_or_clear_bad check.
-: 
-: While this could be fixed with heavy locking, it's only necessary to make
-: a copy of the PMD on the stack during change_pmd_range and avoid races.  A
-: new helper is created for this as the check if quite subtle and the
-: existing similar helpful is not suitable.  This passed 154 hours of
-: testing (usually triggers between 20 minutes and 24 hours) without
-: detecting bad PMDs or corruption.  A basic test of an autonuma-intensive
-: workload showed no significant change in behaviour.
+ BUG: KCSAN: data-race in page_cpupid_xchg_last / put_page
 
-Although Mel withdrew the patch on the face of LKML comment
-https://lkml.org/lkml/2017/4/10/922 the race window aforementioned is
-still open, and we have reports of Linpack test reporting bad residuals
-after the bad PMD warning is observed.  In addition to that, bad
-rss-counter and non-zero pgtables assertions are triggered on mm teardown
-for the task hitting the bad PMD.
+ write (marked) to 0xfffffc0d48ec1a00 of 8 bytes by task 91442 on cpu 3:
+  page_cpupid_xchg_last+0x51/0x80
+  page_cpupid_xchg_last at mm/mmzone.c:109 (discriminator 11)
+  wp_page_reuse+0x3e/0xc0
+  wp_page_reuse at mm/memory.c:2453
+  do_wp_page+0x472/0x7b0
+  do_wp_page at mm/memory.c:2798
+  __handle_mm_fault+0xcb0/0xd00
+  handle_pte_fault at mm/memory.c:4049
+  (inlined by) __handle_mm_fault at mm/memory.c:4163
+  handle_mm_fault+0xfc/0x2f0
+  handle_mm_fault at mm/memory.c:4200
+  do_page_fault+0x263/0x6f9
+  do_user_addr_fault at arch/x86/mm/fault.c:1465
+  (inlined by) do_page_fault at arch/x86/mm/fault.c:1539
+  page_fault+0x34/0x40
 
- host kernel: mm/pgtable-generic.c:40: bad pmd 00000000b3152f68(8000000d2d2008e7)
- ....
- host kernel: BUG: Bad rss-counter state mm:00000000b583043d idx:1 val:512
- host kernel: BUG: non-zero pgtables_bytes on freeing mm: 4096
+ read to 0xfffffc0d48ec1a00 of 8 bytes by task 94817 on cpu 69:
+  put_page+0x15a/0x1f0
+  page_zonenum at include/linux/mm.h:923
+  (inlined by) is_zone_device_page at include/linux/mm.h:929
+  (inlined by) page_is_devmap_managed at include/linux/mm.h:948
+  (inlined by) put_page at include/linux/mm.h:1023
+  wp_page_copy+0x571/0x930
+  wp_page_copy at mm/memory.c:2615
+  do_wp_page+0x107/0x7b0
+  __handle_mm_fault+0xcb0/0xd00
+  handle_mm_fault+0xfc/0x2f0
+  do_page_fault+0x263/0x6f9
+  page_fault+0x34/0x40
 
-The issue is observed on a v4.18-based distribution kernel, but the race
-window is expected to be applicable to mainline kernels, as well.
+ Reported by Kernel Concurrency Sanitizer on:
+ CPU: 69 PID: 94817 Comm: systemd-udevd Tainted: G        W  O L 5.5.0-next-20200204+ #6
+ Hardware name: HPE ProLiant DL385 Gen10/ProLiant DL385 Gen10, BIOS A40 07/10/2019
 
-Link: http://lkml.kernel.org/r/20200216191800.22423-1-aquini@redhat.com
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+A page never changes its zone number. The zone number happens to be
+stored in the same word as other bits which are modified, but the zone
+number bits will never be modified by any other write, so it can accept
+a reload of the zone bits after an intervening write and it don't need
+to use READ_ONCE(). Thus, annotate this data race using
+ASSERT_EXCLUSIVE_BITS() to also assert that there are no concurrent
+writes to it.
+
+Link: http://lkml.kernel.org/r/1581619089-14472-1-git-send-email-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Suggested-by: Marco Elver <elver@google.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   38 ++++++++++++++++++++++++++++++++++++--
- 1 file changed, 36 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/mprotect.c~mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa
-+++ a/mm/mprotect.c
-@@ -161,6 +161,31 @@ static unsigned long change_pte_range(st
- 	return pages;
+--- a/include/linux/mm.h~mm-annotate-a-data-race-in-page_zonenum
++++ a/include/linux/mm.h
+@@ -938,6 +938,7 @@ vm_fault_t finish_mkwrite_fault(struct v
+ 
+ static inline enum zone_type page_zonenum(const struct page *page)
+ {
++	ASSERT_EXCLUSIVE_BITS(page->flags, ZONES_MASK << ZONES_PGSHIFT);
+ 	return (page->flags >> ZONES_PGSHIFT) & ZONES_MASK;
  }
  
-+/*
-+ * Used when setting automatic NUMA hinting protection where it is
-+ * critical that a numa hinting PMD is not confused with a bad PMD.
-+ */
-+static inline int pmd_none_or_clear_bad_unless_trans_huge(pmd_t *pmd)
-+{
-+	pmd_t pmdval = pmd_read_atomic(pmd);
-+
-+	/* See pmd_none_or_trans_huge_or_clear_bad for info on barrier */
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	barrier();
-+#endif
-+
-+	if (pmd_none(pmdval))
-+		return 1;
-+	if (pmd_trans_huge(pmdval))
-+		return 0;
-+	if (unlikely(pmd_bad(pmdval))) {
-+		pmd_clear_bad(pmd);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
- static inline unsigned long change_pmd_range(struct vm_area_struct *vma,
- 		pud_t *pud, unsigned long addr, unsigned long end,
- 		pgprot_t newprot, int dirty_accountable, int prot_numa)
-@@ -178,8 +203,17 @@ static inline unsigned long change_pmd_r
- 		unsigned long this_pages;
- 
- 		next = pmd_addr_end(addr, end);
--		if (!is_swap_pmd(*pmd) && !pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)
--				&& pmd_none_or_clear_bad(pmd))
-+
-+		/*
-+		 * Automatic NUMA balancing walks the tables with mmap_sem
-+		 * held for read. It's possible a parallel update to occur
-+		 * between pmd_trans_huge() and a pmd_none_or_clear_bad()
-+		 * check leading to a false positive and clearing.
-+		 * Hence, it's ecessary to atomically read the PMD value
-+		 * for all the checks.
-+		 */
-+		if (!is_swap_pmd(*pmd) && !pmd_devmap(*pmd) &&
-+		     pmd_none_or_clear_bad_unless_trans_huge(pmd))
- 			goto next;
- 
- 		/* invoke the mmu notifier if the pmd is populated */
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from cai@lca.pw are
 
-mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa.patch
+hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations-fix.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races-v2.patch
+mm-swap_state-mark-various-intentional-data-races.patch
+mm-kmemleak-annotate-various-data-races-obj-ptr.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+mm-page_counter-fix-various-data-races-at-memsw.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-util-annotate-an-data-race-at-vm_committed_as.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+fork-annotate-a-data-race-in-vm_area_dup.patch
+mm-annotate-a-data-race-in-page_zonenum.patch
