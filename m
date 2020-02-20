@@ -1,76 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swapc-not-necessary-to-export-__pagevec_lru_add.patch
- added to -mm tree
-Date: Wed, 19 Feb 2020 16:08:56 -0800
-Message-ID: <20200220000856.csvQR%akpm@linux-foundation.org>
+Subject: [failures]
+ =?us-ascii?Q?hugetlb=5Fcgroup-add-interface-for-charge-uncharge-hugetl?=
+ =?us-ascii?Q?b-reservations-fix.patch?= removed from -mm tree
+Date: Wed, 19 Feb 2020 17:20:41 -0800
+Message-ID: <20200220012041.Dw2Ft%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55144 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726613AbgBTAI5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 19 Feb 2020 19:08:57 -0500
+        id S1726962AbgBTBUo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 19 Feb 2020 20:20:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org, richardw.yang@linux.intel.com
+To: mm-commits@vger.kernel.org, rientjes@google.com, almasrymina@google.com, cai@lca.pw
 
 
 The patch titled
-     Subject: mm/swap.c: not necessary to export __pagevec_lru_add()
-has been added to the -mm tree.  Its filename is
-     mm-swapc-not-necessary-to-export-__pagevec_lru_add.patch
+     Subject: mm/hugetlb_cgroup: fix a -Wunused-but-set-variable
+has been removed from the -mm tree.  Its filename was
+     hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapc-not-necessary-to-export-__pagevec_lru_add.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapc-not-necessary-to-export-__pagevec_lru_add.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: mm/swap.c: not necessary to export __pagevec_lru_add()
+From: Qian Cai <cai@lca.pw>
+Subject: mm/hugetlb_cgroup: fix a -Wunused-but-set-variable
 
-__pagevec_lru_add() is only used in mm directory now.
+The commit c32300516047 ("hugetlb_cgroup: add interface for
+charge/uncharge hugetlb reservations") forgot to remove an unused
+variable,
 
-Remove the export symbol.
+mm/hugetlb_cgroup.c: In function 'hugetlb_cgroup_migrate':
+mm/hugetlb_cgroup.c:777:25: warning: variable 'h_cg' set but not used
+[-Wunused-but-set-variable]
+  struct hugetlb_cgroup *h_cg;
+                         ^~~~
 
-Link: http://lkml.kernel.org/r/20200126011436.22979-1-richardw.yang@linux.intel.com
-Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/1581953454-10671-1-git-send-email-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/hugetlb_cgroup.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/swap.c~mm-swapc-not-necessary-to-export-__pagevec_lru_add
-+++ a/mm/swap.c
-@@ -986,7 +986,6 @@ void __pagevec_lru_add(struct pagevec *p
+--- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations-fix
++++ a/mm/hugetlb_cgroup.c
+@@ -786,7 +786,6 @@ void __init hugetlb_cgroup_file_init(voi
+  */
+ void hugetlb_cgroup_migrate(struct page *oldhpage, struct page *newhpage)
  {
- 	pagevec_lru_move_fn(pvec, __pagevec_lru_add_fn, NULL);
- }
--EXPORT_SYMBOL(__pagevec_lru_add);
+-	struct hugetlb_cgroup *h_cg;
+ 	struct hugetlb_cgroup *h_cg_rsvd;
+ 	struct hstate *h = page_hstate(oldhpage);
  
- /**
-  * pagevec_lookup_entries - gang pagecache lookup
+@@ -795,7 +794,6 @@ void hugetlb_cgroup_migrate(struct page
+ 
+ 	VM_BUG_ON_PAGE(!PageHuge(oldhpage), oldhpage);
+ 	spin_lock(&hugetlb_lock);
+-	h_cg = hugetlb_cgroup_from_page(oldhpage);
+ 	h_cg_rsvd = hugetlb_cgroup_from_page_rsvd(oldhpage);
+ 	set_hugetlb_cgroup(oldhpage, NULL);
+ 
 _
 
-Patches currently in -mm which might be from richardw.yang@linux.intel.com are
+Patches currently in -mm which might be from cai@lca.pw are
 
-mm-sparsemem-pfn_to_page-is-not-valid-yet-on-sparsemem.patch
-mm-swapc-not-necessary-to-export-__pagevec_lru_add.patch
-mm-sparsemem-get-address-to-page-struct-instead-of-address-to-pfn.patch
-mm-vmscanc-remove-cpu-online-notification-for-now.patch
-mm-migratec-no-need-to-check-for-i-start-in-do_pages_move.patch
-mm-migratec-wrap-do_move_pages_to_node-and-store_status.patch
-mm-migratec-check-pagelist-in-move_pages_and_store_status.patch
-mm-migratec-unify-not-queued-for-migration-handling-in-do_pages_move.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races-v2.patch
+mm-swap_state-mark-various-intentional-data-races.patch
+mm-kmemleak-annotate-various-data-races-obj-ptr.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+mm-page_counter-fix-various-data-races-at-memsw.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-util-annotate-an-data-race-at-vm_committed_as.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+fork-annotate-a-data-race-in-vm_area_dup.patch
+mm-annotate-a-data-race-in-page_zonenum.patch
