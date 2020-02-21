@@ -1,77 +1,90 @@
-From: akpm@linux-foundation.org
-Subject: +
- mm-kmemleak-use-address-of-operator-on-section-symbols.patch added to -mm
- tree
-Date: Thu, 20 Feb 2020 17:35:24 -0800
-Message-ID: <20200221013524.DBWq_%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Thu, 20 Feb 2020 20:00:30 -0800
+Message-ID: <20200220200030.9eb0c74410ac165503ef2577@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35716 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729045AbgBUBf0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 Feb 2020 20:35:26 -0500
+        id S1729027AbgBUEAb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 Feb 2020 23:00:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ndesaulniers@google.com, catalin.marinas@arm.com, natechancellor@gmail.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm/kmemleak.c: use address-of operator on section symbols
-has been added to the -mm tree.  Its filename is
-     mm-kmemleak-use-address-of-operator-on-section-symbols.patch
+- A few y2038 fixes which missed the merge window whiole dependencies
+  in NFS were being sorted out.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-use-address-of-operator-on-section-symbols.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-use-address-of-operator-on-section-symbols.patch
+- A bunch of fixes.  Some minor, some not.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+Subsystems affected by this patch series:
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
 
-------------------------------------------------------
-From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: mm/kmemleak.c: use address-of operator on section symbols
+    Arnd Bergmann <arnd@arndb.de>:
+      y2038: remove ktime to/from timespec/timeval conversion
+      y2038: remove unused time32 interfaces
+      y2038: hide timeval/timespec/itimerval/itimerspec types
 
-Clang warns:
+    Ioanna Alifieraki <ioanna-maria.alifieraki@canonical.com>:
+      Revert "ipc,sem: remove uneeded sem_undo_list lock usage in exit_sem()"
 
-These are not true arrays, they are linker defined symbols, which are just
-addresses.  Using the address of operator silences the warning and does
-not change the resulting assembly with either clang/ld.lld or gcc/ld
-(tested with diff + objdump -Dr).
+    Christian Borntraeger <borntraeger@de.ibm.com>:
+      include/uapi/linux/swab.h: fix userspace breakage, use __BITS_PER_LONG for swap
 
-Link: https://github.com/ClangBuiltLinux/linux/issues/895
-Link: http://lkml.kernel.org/r/20200220051551.44000-1-natechancellor@gmail.com
-Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+    SeongJae Park <sjpark@amazon.de>:
+      selftests/vm: add missed tests in run_vmtests
 
- mm/kmemleak.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+    Joe Perches <joe@perches.com>:
+      get_maintainer: remove uses of P: for maintainer name
 
---- a/mm/kmemleak.c~mm-kmemleak-use-address-of-operator-on-section-symbols
-+++ a/mm/kmemleak.c
-@@ -1947,7 +1947,7 @@ void __init kmemleak_init(void)
- 	create_object((unsigned long)__bss_start, __bss_stop - __bss_start,
- 		      KMEMLEAK_GREY, GFP_ATOMIC);
- 	/* only register .data..ro_after_init if not within .data */
--	if (__start_ro_after_init < _sdata || __end_ro_after_init > _edata)
-+	if (&__start_ro_after_init < &_sdata || &__end_ro_after_init > &_edata)
- 		create_object((unsigned long)__start_ro_after_init,
- 			      __end_ro_after_init - __start_ro_after_init,
- 			      KMEMLEAK_GREY, GFP_ATOMIC);
-_
+    Douglas Anderson <dianders@chromium.org>:
+      scripts/get_maintainer.pl: deprioritize old Fixes: addresses
 
-Patches currently in -mm which might be from natechancellor@gmail.com are
+    Christoph Hellwig <hch@lst.de>:
+      mm/swapfile.c: fix a comment in sys_swapon()
 
-mm-kmemleak-use-address-of-operator-on-section-symbols.patch
-kernel-extable-use-address-of-operator-on-section-symbols.patch
+    Vasily Averin <vvs@virtuozzo.com>:
+      mm/memcontrol.c: lost css_put in memcg_expand_shrinker_maps()
+
+    Alexandru Ardelean <alexandru.ardelean@analog.com>:
+      lib/string.c: update match_string() doc-strings with correct behavior
+
+    Gavin Shan <gshan@redhat.com>:
+      mm/vmscan.c: don't round up scan size for online memory cgroup
+
+    Wei Yang <richardw.yang@linux.intel.com>:
+      mm/sparsemem: pfn_to_page is not valid yet on SPARSEMEM
+
+    Alexander Potapenko <glider@google.com>:
+      lib/stackdepot.c: fix global out-of-bounds in stack_slabs
+
+    Randy Dunlap <rdunlap@infradead.org>:
+      MAINTAINERS: use tabs for SAFESETID
+
+ MAINTAINERS                            |    8 -
+ include/linux/compat.h                 |   29 ------
+ include/linux/ktime.h                  |   37 -------
+ include/linux/time32.h                 |  154 ---------------------------------
+ include/linux/timekeeping32.h          |   32 ------
+ include/linux/types.h                  |    5 -
+ include/uapi/asm-generic/posix_types.h |    2 
+ include/uapi/linux/swab.h              |    4 
+ include/uapi/linux/time.h              |   22 ++--
+ ipc/sem.c                              |    6 -
+ kernel/compat.c                        |   64 -------------
+ kernel/time/time.c                     |   43 ---------
+ lib/stackdepot.c                       |    8 +
+ lib/string.c                           |   16 +++
+ mm/memcontrol.c                        |    4 
+ mm/sparse.c                            |    2 
+ mm/swapfile.c                          |    2 
+ mm/vmscan.c                            |    9 +
+ scripts/get_maintainer.pl              |   32 ------
+ tools/testing/selftests/vm/run_vmtests |   33 +++++++
+ 20 files changed, 93 insertions(+), 419 deletions(-)
