@@ -1,73 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [patch 07/15] get_maintainer: remove uses of P: for
- maintainer name
-Date: Thu, 20 Feb 2020 20:04:09 -0800
-Message-ID: <20200221040409.-9SXE%akpm@linux-foundation.org>
+Subject: [patch 08/15] scripts/get_maintainer.pl: deprioritize old
+ Fixes: addresses
+Date: Thu, 20 Feb 2020 20:04:12 -0800
+Message-ID: <20200221040412.ikaL9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34992 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35058 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729371AbgBUEEM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 Feb 2020 23:04:12 -0500
+        id S1729371AbgBUEEO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 Feb 2020 23:04:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.william@intel.com, corbet@lwn.net, joe@perches.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org, linux-mm@kvack.org, torvalds@linux-foundation.org
+To: sboyd@kernel.org, keescook@chromium.org, joe@perches.com, gregkh@linuxfoundation.org, dan.carpenter@oracle.com, bjorn.andersson@linaro.org, agross@kernel.org, dianders@chromium.org, akpm@linux-foundation.org, mm-commits@vger.kernel.org, linux-mm@kvack.org, torvalds@linux-foundation.org
 
-From: Joe Perches <joe@perches.com>
-Subject: get_maintainer: remove uses of P: for maintainer name
+From: Douglas Anderson <dianders@chromium.org>
+Subject: scripts/get_maintainer.pl: deprioritize old Fixes: addresses
 
-commit 1ca84ed6425f ("MAINTAINERS: Reclaim the P: tag for Maintainer Entry
-Profile") changed the use of the "P:" tag from "Person" to "Profile (ie:
-special subsystem coding styles and characteristics)"
+Recently, I found that get_maintainer was causing me to send emails to the
+old addresses for maintainers.  Since I usually just trust the output of
+get_maintainer to know the right email address, I didn't even look
+carefully and fired off two patch series that went to the wrong place. 
+Oops.
 
-Change how get_maintainer.pl parses the "P:" tag to match.
+The problem was introduced recently when trying to add signatures from
+Fixes.  The problem was that these email addresses were added too early in
+the process of compiling our list of places to send.  Things added to the
+list earlier are considered more canonical and when we later added
+maintainer entries we ended up deduplicating to the old address.
 
-Link: http://lkml.kernel.org/r/ca53823fc5d25c0be32ad937d0207a0589c08643.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Dan Williams <dan.j.william@intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Here are two examples using mainline commits (to make it easier to
+replicate) for the two maintainers that I messed up recently:
+
+$ git format-patch d8549bcd0529~..d8549bcd0529
+$ ./scripts/get_maintainer.pl 0001-clk-Add-clk_hw*.patch | grep Boyd
+Stephen Boyd <sboyd@codeaurora.org>...
+
+$ git format-patch 6d1238aa3395~..6d1238aa3395
+$ ./scripts/get_maintainer.pl 0001-arm64-dts-qcom-qcs404*.patch | grep Andy
+Andy Gross <andy.gross@linaro.org>
+
+Let's move the adding of addresses from Fixes: to the end since the
+email addresses from these are much more likely to be older.
+
+After this patch the above examples get the right addresses for the
+two examples.
+
+Link: http://lkml.kernel.org/r/20200127095001.1.I41fba9f33590bfd92cd01960161d8384268c6569@changeid
+Fixes: 2f5bd343694e ("scripts/get_maintainer.pl: add signatures from Fixes: <badcommit> lines in commit message")
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Stephen Boyd <sboyd@kernel.org>
+Cc: Bjorn Andersson <bjorn.andersson@linaro.org>
+Cc: Andy Gross <agross@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ scripts/get_maintainer.pl |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/scripts/get_maintainer.pl~get_maintainer-remove-uses-of-p-for-maintainer-name
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-deprioritize-old-fixes-addresses
 +++ a/scripts/get_maintainer.pl
-@@ -1341,35 +1341,11 @@ sub add_categories {
- 		    }
- 		}
- 	    } elsif ($ptype eq "M") {
--		my ($name, $address) = parse_email($pvalue);
--		if ($name eq "") {
--		    if ($i > 0) {
--			my $tv = $typevalue[$i - 1];
--			if ($tv =~ m/^([A-Z]):\s*(.*)/) {
--			    if ($1 eq "P") {
--				$name = $2;
--				$pvalue = format_email($name, $address, $email_usename);
--			    }
--			}
--		    }
--		}
- 		if ($email_maintainer) {
- 		    my $role = get_maintainer_role($i);
- 		    push_email_addresses($pvalue, $role);
- 		}
- 	    } elsif ($ptype eq "R") {
--		my ($name, $address) = parse_email($pvalue);
--		if ($name eq "") {
--		    if ($i > 0) {
--			my $tv = $typevalue[$i - 1];
--			if ($tv =~ m/^([A-Z]):\s*(.*)/) {
--			    if ($1 eq "P") {
--				$name = $2;
--				$pvalue = format_email($name, $address, $email_usename);
--			    }
--			}
--		    }
--		}
- 		if ($email_reviewer) {
- 		    my $subsystem = get_subsystem_name($i);
- 		    push_email_addresses($pvalue, "reviewer:$subsystem");
-_
+@@ -932,10 +932,6 @@ sub get_maintainers {
+ 	}
+     }
+ 
+-    foreach my $fix (@fixes) {
+-	vcs_add_commit_signers($fix, "blamed_fixes");
+-    }
