@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch added to
- -mm tree
-Date: Thu, 20 Feb 2020 17:29:51 -0800
-Message-ID: <20200221012951.BOGb-%akpm@linux-foundation.org>
+ shmem-distribute-switch-variables-for-initialization.patch added to -mm tree
+Date: Thu, 20 Feb 2020 17:33:33 -0800
+Message-ID: <20200221013333.tCPRz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59292 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34004 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729517AbgBUB3w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 Feb 2020 20:29:52 -0500
+        id S1729535AbgBUBdf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 Feb 2020 20:33:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ziy@nvidia.com, william.kucharski@oracle.com, vbabka@suse.cz, stable@vger.kernel.org, mhocko@kernel.org, kirill.shutemov@linux.intel.com, aarcange@redhat.com, ying.huang@intel.com
+To: mm-commits@vger.kernel.org, hughd@google.com, glider@google.com, akpm@linux-foundation.org, keescook@chromium.org
 
 
 The patch titled
-     Subject: mm: fix possible PMD dirty bit lost in set_pmd_migration_entry()
+     Subject: mm/shmem.c: distribute switch variables for initialization
 has been added to the -mm tree.  Its filename is
-     mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch
+     shmem-distribute-switch-variables-for-initialization.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/shmem-distribute-switch-variables-for-initialization.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-distribute-switch-variables-for-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,56 +36,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm: fix possible PMD dirty bit lost in set_pmd_migration_entry()
+From: Kees Cook <keescook@chromium.org>
+Subject: mm/shmem.c: distribute switch variables for initialization
 
-In set_pmd_migration_entry(), pmdp_invalidate() is used to change PMD
-atomically.  But the PMD is read before that with an ordinary memory
-reading.  If the THP (transparent huge page) is written between the PMD
-reading and pmdp_invalidate(), the PMD dirty bit may be lost, and cause
-data corruption.  The race window is quite small, but still possible in
-theory, so need to be fixed.
+Variables declared in a switch statement before any case statements cannot
+be automatically initialized with compiler instrumentation (as they are
+not part of any execution flow).  With GCC's proposed automatic stack
+variable initialization feature, this triggers a warning (and they don't
+get initialized).  Clang's automatic stack variable initialization (via
+CONFIG_INIT_STACK_ALL=y) doesn't throw a warning, but it also doesn't
+initialize such variables[1].  Note that these warnings (or silent
+skipping) happen before the dead-store elimination optimization phase, so
+even when the automatic initializations are later elided in favor of
+direct initializations, the warnings remain.
 
-The race is fixed via using the return value of pmdp_invalidate() to get
-the original content of PMD, which is a read/modify/write atomic
-operation.  So no THP writing can occur in between.
+To avoid these problems, move such variables into the "case" where they're
+used or lift them up into the main function body.
 
-The race has been introduced when the THP migration support is added in
-the commit 616b8371539a ("mm: thp: enable thp migration in generic path").
-But this fix depends on the commit d52605d7cb30 ("mm: do not lose dirty
-and accessed bits in pmdp_invalidate()").  So it's easy to be backported
-after v4.16.  But the race window is really small, so it may be fine not
-to backport the fix at all.
+mm/shmem.c: In function `shmem_getpage_gfp':
+mm/shmem.c:1816:10: warning: statement will never be executed [-Wswitch-unreachable]
+ 1816 |   loff_t i_size;
+      |          ^~~~~~
 
-Link: http://lkml.kernel.org/r/20200220075220.2327056-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+[1] https://bugs.llvm.org/show_bug.cgi?id=44916
+
+Link: http://lkml.kernel.org/r/20200220062312.69165-1-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/shmem.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry
-+++ a/mm/huge_memory.c
-@@ -3043,8 +3043,7 @@ void set_pmd_migration_entry(struct page
- 		return;
- 
- 	flush_cache_range(vma, address, address + HPAGE_PMD_SIZE);
--	pmdval = *pvmw->pmd;
--	pmdp_invalidate(vma, address, pvmw->pmd);
-+	pmdval = pmdp_invalidate(vma, address, pvmw->pmd);
- 	if (pmd_dirty(pmdval))
- 		set_page_dirty(page);
- 	entry = make_migration_entry(page, pmd_write(pmdval));
+--- a/mm/shmem.c~shmem-distribute-switch-variables-for-initialization
++++ a/mm/shmem.c
+@@ -1813,17 +1813,20 @@ repeat:
+ 	if (shmem_huge == SHMEM_HUGE_FORCE)
+ 		goto alloc_huge;
+ 	switch (sbinfo->huge) {
+-		loff_t i_size;
+-		pgoff_t off;
+ 	case SHMEM_HUGE_NEVER:
+ 		goto alloc_nohuge;
+-	case SHMEM_HUGE_WITHIN_SIZE:
++	case SHMEM_HUGE_WITHIN_SIZE: {
++		loff_t i_size;
++		pgoff_t off;
++
+ 		off = round_up(index, HPAGE_PMD_NR);
+ 		i_size = round_up(i_size_read(inode), PAGE_SIZE);
+ 		if (i_size >= HPAGE_PMD_SIZE &&
+ 		    i_size >> PAGE_SHIFT >= off)
+ 			goto alloc_huge;
+-		/* fallthrough */
++
++		fallthrough;
++	}
+ 	case SHMEM_HUGE_ADVISE:
+ 		if (sgp_huge == SGP_HUGE)
+ 			goto alloc_huge;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch
+shmem-distribute-switch-variables-for-initialization.patch
+lib-test_stackinitc-xfail-switch-variable-init-tests.patch
