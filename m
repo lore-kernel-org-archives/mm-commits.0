@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- shmem-distribute-switch-variables-for-initialization.patch added to -mm tree
-Date: Thu, 20 Feb 2020 17:33:33 -0800
-Message-ID: <20200221013333.tCPRz%akpm@linux-foundation.org>
+ mm-kmemleak-use-address-of-operator-on-section-symbols.patch added to -mm
+ tree
+Date: Thu, 20 Feb 2020 17:35:24 -0800
+Message-ID: <20200221013524.DBWq_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34004 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35716 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729535AbgBUBdf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 Feb 2020 20:33:35 -0500
+        id S1729045AbgBUBf0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 Feb 2020 20:35:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, hughd@google.com, glider@google.com, akpm@linux-foundation.org, keescook@chromium.org
+To: mm-commits@vger.kernel.org, ndesaulniers@google.com, catalin.marinas@arm.com, natechancellor@gmail.com
 
 
 The patch titled
-     Subject: mm/shmem.c: distribute switch variables for initialization
+     Subject: mm/kmemleak.c: use address-of operator on section symbols
 has been added to the -mm tree.  Its filename is
-     shmem-distribute-switch-variables-for-initialization.patch
+     mm-kmemleak-use-address-of-operator-on-section-symbols.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shmem-distribute-switch-variables-for-initialization.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-use-address-of-operator-on-section-symbols.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-distribute-switch-variables-for-initialization.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-use-address-of-operator-on-section-symbols.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,71 +37,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm/shmem.c: distribute switch variables for initialization
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: mm/kmemleak.c: use address-of operator on section symbols
 
-Variables declared in a switch statement before any case statements cannot
-be automatically initialized with compiler instrumentation (as they are
-not part of any execution flow).  With GCC's proposed automatic stack
-variable initialization feature, this triggers a warning (and they don't
-get initialized).  Clang's automatic stack variable initialization (via
-CONFIG_INIT_STACK_ALL=y) doesn't throw a warning, but it also doesn't
-initialize such variables[1].  Note that these warnings (or silent
-skipping) happen before the dead-store elimination optimization phase, so
-even when the automatic initializations are later elided in favor of
-direct initializations, the warnings remain.
+Clang warns:
 
-To avoid these problems, move such variables into the "case" where they're
-used or lift them up into the main function body.
+These are not true arrays, they are linker defined symbols, which are just
+addresses.  Using the address of operator silences the warning and does
+not change the resulting assembly with either clang/ld.lld or gcc/ld
+(tested with diff + objdump -Dr).
 
-mm/shmem.c: In function `shmem_getpage_gfp':
-mm/shmem.c:1816:10: warning: statement will never be executed [-Wswitch-unreachable]
- 1816 |   loff_t i_size;
-      |          ^~~~~~
-
-[1] https://bugs.llvm.org/show_bug.cgi?id=44916
-
-Link: http://lkml.kernel.org/r/20200220062312.69165-1-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: https://github.com/ClangBuiltLinux/linux/issues/895
+Link: http://lkml.kernel.org/r/20200220051551.44000-1-natechancellor@gmail.com
+Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/kmemleak.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/shmem.c~shmem-distribute-switch-variables-for-initialization
-+++ a/mm/shmem.c
-@@ -1813,17 +1813,20 @@ repeat:
- 	if (shmem_huge == SHMEM_HUGE_FORCE)
- 		goto alloc_huge;
- 	switch (sbinfo->huge) {
--		loff_t i_size;
--		pgoff_t off;
- 	case SHMEM_HUGE_NEVER:
- 		goto alloc_nohuge;
--	case SHMEM_HUGE_WITHIN_SIZE:
-+	case SHMEM_HUGE_WITHIN_SIZE: {
-+		loff_t i_size;
-+		pgoff_t off;
-+
- 		off = round_up(index, HPAGE_PMD_NR);
- 		i_size = round_up(i_size_read(inode), PAGE_SIZE);
- 		if (i_size >= HPAGE_PMD_SIZE &&
- 		    i_size >> PAGE_SHIFT >= off)
- 			goto alloc_huge;
--		/* fallthrough */
-+
-+		fallthrough;
-+	}
- 	case SHMEM_HUGE_ADVISE:
- 		if (sgp_huge == SGP_HUGE)
- 			goto alloc_huge;
+--- a/mm/kmemleak.c~mm-kmemleak-use-address-of-operator-on-section-symbols
++++ a/mm/kmemleak.c
+@@ -1947,7 +1947,7 @@ void __init kmemleak_init(void)
+ 	create_object((unsigned long)__bss_start, __bss_stop - __bss_start,
+ 		      KMEMLEAK_GREY, GFP_ATOMIC);
+ 	/* only register .data..ro_after_init if not within .data */
+-	if (__start_ro_after_init < _sdata || __end_ro_after_init > _edata)
++	if (&__start_ro_after_init < &_sdata || &__end_ro_after_init > &_edata)
+ 		create_object((unsigned long)__start_ro_after_init,
+ 			      __end_ro_after_init - __start_ro_after_init,
+ 			      KMEMLEAK_GREY, GFP_ATOMIC);
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from natechancellor@gmail.com are
 
-shmem-distribute-switch-variables-for-initialization.patch
-lib-test_stackinitc-xfail-switch-variable-init-tests.patch
+mm-kmemleak-use-address-of-operator-on-section-symbols.patch
+kernel-extable-use-address-of-operator-on-section-symbols.patch
