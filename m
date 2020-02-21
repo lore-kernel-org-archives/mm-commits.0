@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc.patch added to -mm
- tree
-Date: Thu, 20 Feb 2020 16:44:11 -0800
-Message-ID: <20200221004411.z_lVo%akpm@linux-foundation.org>
+ mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch added to
+ -mm tree
+Date: Thu, 20 Feb 2020 17:29:51 -0800
+Message-ID: <20200221012951.BOGb-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47644 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729419AbgBUAoN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 20 Feb 2020 19:44:13 -0500
+        id S1729517AbgBUB3w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 20 Feb 2020 20:29:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vegard.nossum@oracle.com, sergey.senozhatsky@gmail.com, elver@google.com, dvyukov@google.com, aryabinin@virtuozzo.com, arnd@arndb.de, andreyknvl@google.com, glider@google.com
+To: mm-commits@vger.kernel.org, ziy@nvidia.com, william.kucharski@oracle.com, vbabka@suse.cz, stable@vger.kernel.org, mhocko@kernel.org, kirill.shutemov@linux.intel.com, aarcange@redhat.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: kasan: stackdepot: move filter_irq_stacks() to stackdepot.c
+     Subject: mm: fix possible PMD dirty bit lost in set_pmd_migration_entry()
 has been added to the -mm tree.  Its filename is
-     kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc.patch
+     mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,111 +37,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: kasan: stackdepot: move filter_irq_stacks() to stackdepot.c
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm: fix possible PMD dirty bit lost in set_pmd_migration_entry()
 
-filter_irq_stacks() can be used by other tools (e.g.  KMSAN), so it needs
-to be moved to a common location.  lib/stackdepot.c seems a good place, as
-filter_irq_stacks() is usually applied to the output of
-stack_trace_save().
+In set_pmd_migration_entry(), pmdp_invalidate() is used to change PMD
+atomically.  But the PMD is read before that with an ordinary memory
+reading.  If the THP (transparent huge page) is written between the PMD
+reading and pmdp_invalidate(), the PMD dirty bit may be lost, and cause
+data corruption.  The race window is quite small, but still possible in
+theory, so need to be fixed.
 
-This patch has been previously mailed as part of KMSAN RFC patch series.
+The race is fixed via using the return value of pmdp_invalidate() to get
+the original content of PMD, which is a read/modify/write atomic
+operation.  So no THP writing can occur in between.
 
-Link: http://lkml.kernel.org/r/20200220141916.55455-3-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+The race has been introduced when the THP migration support is added in
+the commit 616b8371539a ("mm: thp: enable thp migration in generic path").
+But this fix depends on the commit d52605d7cb30 ("mm: do not lose dirty
+and accessed bits in pmdp_invalidate()").  So it's easy to be backported
+after v4.16.  But the race window is really small, so it may be fine not
+to backport the fix at all.
+
+Link: http://lkml.kernel.org/r/20200220075220.2327056-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackdepot.h |    2 ++
- lib/stackdepot.c           |   24 ++++++++++++++++++++++++
- mm/kasan/common.c          |   23 -----------------------
- 3 files changed, 26 insertions(+), 23 deletions(-)
+ mm/huge_memory.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/stackdepot.h~kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc
-+++ a/include/linux/stackdepot.h
-@@ -19,4 +19,6 @@ depot_stack_handle_t stack_depot_save(un
- unsigned int stack_depot_fetch(depot_stack_handle_t handle,
- 			       unsigned long **entries);
+--- a/mm/huge_memory.c~mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry
++++ a/mm/huge_memory.c
+@@ -3043,8 +3043,7 @@ void set_pmd_migration_entry(struct page
+ 		return;
  
-+unsigned int filter_irq_stacks(unsigned long *entries, unsigned int nr_entries);
-+
- #endif
---- a/lib/stackdepot.c~kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc
-+++ a/lib/stackdepot.c
-@@ -20,6 +20,7 @@
-  */
- 
- #include <linux/gfp.h>
-+#include <linux/interrupt.h>
- #include <linux/jhash.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
-@@ -318,3 +319,26 @@ fast_exit:
- 	return retval;
- }
- EXPORT_SYMBOL_GPL(stack_depot_save);
-+
-+static inline int in_irqentry_text(unsigned long ptr)
-+{
-+	return (ptr >= (unsigned long)&__irqentry_text_start &&
-+		ptr < (unsigned long)&__irqentry_text_end) ||
-+		(ptr >= (unsigned long)&__softirqentry_text_start &&
-+		 ptr < (unsigned long)&__softirqentry_text_end);
-+}
-+
-+unsigned int filter_irq_stacks(unsigned long *entries,
-+					     unsigned int nr_entries)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < nr_entries; i++) {
-+		if (in_irqentry_text(entries[i])) {
-+			/* Include the irqentry function into the stack. */
-+			return i + 1;
-+		}
-+	}
-+	return nr_entries;
-+}
-+EXPORT_SYMBOL_GPL(filter_irq_stacks);
---- a/mm/kasan/common.c~kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc
-+++ a/mm/kasan/common.c
-@@ -15,7 +15,6 @@
-  */
- 
- #include <linux/export.h>
--#include <linux/interrupt.h>
- #include <linux/init.h>
- #include <linux/kasan.h>
- #include <linux/kernel.h>
-@@ -42,28 +41,6 @@
- #include "kasan.h"
- #include "../slab.h"
- 
--static inline int in_irqentry_text(unsigned long ptr)
--{
--	return (ptr >= (unsigned long)&__irqentry_text_start &&
--		ptr < (unsigned long)&__irqentry_text_end) ||
--		(ptr >= (unsigned long)&__softirqentry_text_start &&
--		 ptr < (unsigned long)&__softirqentry_text_end);
--}
--
--static inline unsigned int filter_irq_stacks(unsigned long *entries,
--					     unsigned int nr_entries)
--{
--	unsigned int i;
--
--	for (i = 0; i < nr_entries; i++) {
--		if (in_irqentry_text(entries[i])) {
--			/* Include the irqentry function into the stack. */
--			return i + 1;
--		}
--	}
--	return nr_entries;
--}
+ 	flush_cache_range(vma, address, address + HPAGE_PMD_SIZE);
+-	pmdval = *pvmw->pmd;
+-	pmdp_invalidate(vma, address, pvmw->pmd);
++	pmdval = pmdp_invalidate(vma, address, pvmw->pmd);
+ 	if (pmd_dirty(pmdval))
+ 		set_page_dirty(page);
+ 	entry = make_migration_entry(page, pmd_write(pmdval));
+_
+
+Patches currently in -mm which might be from ying.huang@intel.com are
+
+mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch
