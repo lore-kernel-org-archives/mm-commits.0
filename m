@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + psi-move-pf_memstall-into-psi-specific-psi_flags.patch
- added to -mm tree
-Date: Sun, 23 Feb 2020 19:25:22 -0800
-Message-ID: <20200224032522.3vZBSB4nI%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-fix-a-addressing-exception-caused-by-huge_pte_offset.patch added
+ to -mm tree
+Date: Sun, 23 Feb 2020 19:29:42 -0800
+Message-ID: <20200224032942.j9ECUiVyu%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43248 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45020 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727156AbgBXDZZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 23 Feb 2020 22:25:25 -0500
+        id S1727158AbgBXD3o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 23 Feb 2020 22:29:44 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bsegall@google.com, dietmar.eggemann@arm.com, hannes@cmpxchg.org, juri.lelli@redhat.com, laoar.shao@gmail.com, mgorman@suse.de, mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org, rostedt@goodmis.org, vincent.guittot@linaro.org
+To: longpeng2@huawei.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, sean.j.christopherson@intel.com, stable@vger.kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: psi: move PF_MEMSTALL into psi specific psi_flags
+     Subject: mm/hugetlb.c: fix a addressing exception caused by huge_pte_offset()
 has been added to the -mm tree.  Its filename is
-     psi-move-pf_memstall-into-psi-specific-psi_flags.patch
+     mm-hugetlb-fix-a-addressing-exception-caused-by-huge_pte_offset.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/psi-move-pf_memstall-into-psi-specific-psi_flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-a-addressing-exception-caused-by-huge_pte_offset.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/psi-move-pf_memstall-into-psi-specific-psi_flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-a-addressing-exception-caused-by-huge_pte_offset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,189 +39,141 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: psi: move PF_MEMSTALL into psi specific psi_flags
+From: Longpeng <longpeng2@huawei.com>
+Subject: mm/hugetlb.c: fix a addressing exception caused by huge_pte_offset()
 
-The task->flags is a 32-bits flag, in which 31 bits have already been
-consumed.  So it is hard to introduce other new per process flags.  As
-there's a psi specific flag psi_flags, move the psi specific per process
-flag PF_MEMSTALL into it.
+Our machine encountered a panic(addressing exception) after running for a
+long time.  The calltrace is:
 
-Link: http://lkml.kernel.org/r/20200222144647.10120-1-laoar.shao@gmail.com
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
+RIP: 0010:[<ffffffff9dff0587>]  [<ffffffff9dff0587>] hugetlb_fault+0x307/0xbe0
+RSP: 0018:ffff9567fc27f808  EFLAGS: 00010286
+RAX: e800c03ff1258d48 RBX: ffffd3bb003b69c0 RCX: e800c03ff1258d48
+RDX: 17ff3fc00eda72b7 RSI: 00003ffffffff000 RDI: e800c03ff1258d48
+RBP: ffff9567fc27f8c8 R08: e800c03ff1258d48 R09: 0000000000000080
+R10: ffffaba0704c22a8 R11: 0000000000000001 R12: ffff95c87b4b60d8
+R13: 00005fff00000000 R14: 0000000000000000 R15: ffff9567face8074
+FS:  00007fe2d9ffb700(0000) GS:ffff956900e40000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffd3bb003b69c0 CR3: 000000be67374000 CR4: 00000000003627e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ [<ffffffff9df9b71b>] ? unlock_page+0x2b/0x30
+ [<ffffffff9dff04a2>] ? hugetlb_fault+0x222/0xbe0
+ [<ffffffff9dff1405>] follow_hugetlb_page+0x175/0x540
+ [<ffffffff9e15b825>] ? cpumask_next_and+0x35/0x50
+ [<ffffffff9dfc7230>] __get_user_pages+0x2a0/0x7e0
+ [<ffffffff9dfc648d>] __get_user_pages_unlocked+0x15d/0x210
+ [<ffffffffc068cfc5>] __gfn_to_pfn_memslot+0x3c5/0x460 [kvm]
+ [<ffffffffc06b28be>] try_async_pf+0x6e/0x2a0 [kvm]
+ [<ffffffffc06b4b41>] tdp_page_fault+0x151/0x2d0 [kvm]
+ [<ffffffffc075731c>] ? vmx_vcpu_run+0x2ec/0xc80 [kvm_intel]
+ [<ffffffffc0757328>] ? vmx_vcpu_run+0x2f8/0xc80 [kvm_intel]
+ [<ffffffffc06abc11>] kvm_mmu_page_fault+0x31/0x140 [kvm]
+ [<ffffffffc074d1ae>] handle_ept_violation+0x9e/0x170 [kvm_intel]
+ [<ffffffffc075579c>] vmx_handle_exit+0x2bc/0xc70 [kvm_intel]
+ [<ffffffffc074f1a0>] ? __vmx_complete_interrupts.part.73+0x80/0xd0 [kvm_intel]
+ [<ffffffffc07574c0>] ? vmx_vcpu_run+0x490/0xc80 [kvm_intel]
+ [<ffffffffc069f3be>] vcpu_enter_guest+0x7be/0x13a0 [kvm]
+ [<ffffffffc06cf53e>] ? kvm_check_async_pf_completion+0x8e/0xb0 [kvm]
+ [<ffffffffc06a6f90>] kvm_arch_vcpu_ioctl_run+0x330/0x490 [kvm]
+ [<ffffffffc068d919>] kvm_vcpu_ioctl+0x309/0x6d0 [kvm]
+ [<ffffffff9deaa8c2>] ? dequeue_signal+0x32/0x180
+ [<ffffffff9deae34d>] ? do_sigtimedwait+0xcd/0x230
+ [<ffffffff9e03aed0>] do_vfs_ioctl+0x3f0/0x540
+ [<ffffffff9e03b0c1>] SyS_ioctl+0xa1/0xc0
+ [<ffffffff9e53879b>] system_call_fastpath+0x22/0x27
+
+The kernel we used is older, but we think the latest kernel also has this
+bug after digging into this problem.
+
+For 1G hugepages, huge_pte_offset() wants to return NULL or pudp, but it
+may return a wrong 'pmdp' if there is a race.  Please look at the
+following code snippet:
+
+    ...
+    pud = pud_offset(p4d, addr);
+    if (sz != PUD_SIZE && pud_none(*pud))
+        return NULL;
+    /* hugepage or swap? */
+    if (pud_huge(*pud) || !pud_present(*pud))
+        return (pte_t *)pud;
+
+    pmd = pmd_offset(pud, addr);
+    if (sz != PMD_SIZE && pmd_none(*pmd))
+        return NULL;
+    /* hugepage or swap? */
+    if (pmd_huge(*pmd) || !pmd_present(*pmd))
+        return (pte_t *)pmd;
+    ...
+
+The following sequence would trigger this bug:
+1. CPU0: sz = PUD_SIZE and *pud = 0 , continue
+1. CPU0: "pud_huge(*pud)" is false
+2. CPU1: calling hugetlb_no_page and set *pud to xxxx8e7(PRESENT)
+3. CPU0: "!pud_present(*pud)" is false, continue
+4. CPU0: pmd = pmd_offset(pud, addr) and maybe return a wrong pmdp
+However, we want CPU0 to return NULL or pudp.
+
+We can avoid this race by reading the pud only once.  What's more, we also
+use READ_ONCE to access the entries for safety (i.e. avoid the compilier
+mischief)
+
+Link: http://lkml.kernel.org/r/1582342427-230392-1-git-send-email-longpeng2@huawei.com
+Signed-off-by: Longpeng <longpeng2@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Sean Christopherson <sean.j.christopherson@intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/psi_types.h |   12 +++++++++++-
- include/linux/sched.h     |    7 +++++--
- kernel/sched/psi.c        |   15 ++++++++-------
- kernel/sched/stats.h      |   10 +++++-----
- 4 files changed, 29 insertions(+), 15 deletions(-)
+ mm/hugetlb.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
---- a/include/linux/psi_types.h~psi-move-pf_memstall-into-psi-specific-psi_flags
-+++ a/include/linux/psi_types.h
-@@ -17,11 +17,21 @@ enum psi_task_count {
- 	NR_PSI_TASK_COUNTS = 3,
- };
+--- a/mm/hugetlb.c~mm-hugetlb-fix-a-addressing-exception-caused-by-huge_pte_offset
++++ a/mm/hugetlb.c
+@@ -4910,28 +4910,30 @@ pte_t *huge_pte_offset(struct mm_struct
+ {
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+-	pud_t *pud;
+-	pmd_t *pmd;
++	pud_t *pud, pud_entry;
++	pmd_t *pmd, pmd_entry;
  
--/* Task state bitmasks */
-+/*
-+ * Task state bitmasks:
-+ * These flags are stored in the lower PSI_TSK_BITS bits of
-+ * task->psi_flags, and the higher bits are set with per process flag which
-+ * persists across sleeps.
-+ */
-+#define PSI_TSK_STATE_BITS 16
-+#define PSI_TSK_STATE_MASK ((1 << PSI_TSK_STATE_BITS) - 1)
- #define TSK_IOWAIT	(1 << NR_IOWAIT)
- #define TSK_MEMSTALL	(1 << NR_MEMSTALL)
- #define TSK_RUNNING	(1 << NR_RUNNING)
+ 	pgd = pgd_offset(mm, addr);
+-	if (!pgd_present(*pgd))
++	if (!pgd_present(READ_ONCE(*pgd)))
+ 		return NULL;
+ 	p4d = p4d_offset(pgd, addr);
+-	if (!p4d_present(*p4d))
++	if (!p4d_present(READ_ONCE(*p4d)))
+ 		return NULL;
  
-+/* Stalled due to lack of memory, that's per process flag. */
-+#define PSI_PF_MEMSTALL (1 << PSI_TSK_STATE_BITS)
-+
- /* Resources that workloads could be stalled on */
- enum psi_res {
- 	PSI_IO,
---- a/include/linux/sched.h~psi-move-pf_memstall-into-psi-specific-psi_flags
-+++ a/include/linux/sched.h
-@@ -1023,7 +1023,11 @@ struct task_struct {
+ 	pud = pud_offset(p4d, addr);
+-	if (sz != PUD_SIZE && pud_none(*pud))
++	pud_entry = READ_ONCE(*pud);
++	if (sz != PUD_SIZE && pud_none(pud_entry))
+ 		return NULL;
+ 	/* hugepage or swap? */
+-	if (pud_huge(*pud) || !pud_present(*pud))
++	if (pud_huge(pud_entry) || !pud_present(pud_entry))
+ 		return (pte_t *)pud;
  
- 	struct task_io_accounting	ioac;
- #ifdef CONFIG_PSI
--	/* Pressure stall state */
-+	/*
-+	 * Pressure stall state:
-+	 * Bits 0 ~ PSI_TSK_STATE_BITS-1: PSI task states
-+	 * Bits PSI_TSK_STATE_BITS ~ 31: Per process flags
-+	 */
- 	unsigned int			psi_flags;
- #endif
- #ifdef CONFIG_TASK_XACCT
-@@ -1477,7 +1481,6 @@ extern struct pid *cad_pid;
- #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
- #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
- #define PF_SWAPWRITE		0x00800000	/* Allowed to write to swap */
--#define PF_MEMSTALL		0x01000000	/* Stalled due to lack of memory */
- #define PF_UMH			0x02000000	/* I'm an Usermodehelper process */
- #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
- #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
---- a/kernel/sched/psi.c~psi-move-pf_memstall-into-psi-specific-psi_flags
-+++ a/kernel/sched/psi.c
-@@ -759,7 +759,8 @@ void psi_task_change(struct task_struct
- 	    !psi_bug) {
- 		printk_deferred(KERN_ERR "psi: inconsistent task state! task=%d:%s cpu=%d psi_flags=%x clear=%x set=%x\n",
- 				task->pid, task->comm, cpu,
--				task->psi_flags, clear, set);
-+				task->psi_flags & PSI_TSK_STATE_MASK,
-+				clear, set);
- 		psi_bug = 1;
- 	}
+ 	pmd = pmd_offset(pud, addr);
+-	if (sz != PMD_SIZE && pmd_none(*pmd))
++	pmd_entry = READ_ONCE(*pmd);
++	if (sz != PMD_SIZE && pmd_none(pmd_entry))
+ 		return NULL;
+ 	/* hugepage or swap? */
+-	if (pmd_huge(*pmd) || !pmd_present(*pmd))
++	if (pmd_huge(pmd_entry) || !pmd_present(pmd_entry))
+ 		return (pte_t *)pmd;
  
-@@ -818,17 +819,17 @@ void psi_memstall_enter(unsigned long *f
- 	if (static_branch_likely(&psi_disabled))
- 		return;
- 
--	*flags = current->flags & PF_MEMSTALL;
-+	*flags = current->psi_flags & PSI_PF_MEMSTALL;
- 	if (*flags)
- 		return;
- 	/*
--	 * PF_MEMSTALL setting & accounting needs to be atomic wrt
-+	 * PSI_PF_MEMSTALL setting & accounting needs to be atomic wrt
- 	 * changes to the task's scheduling state, otherwise we can
- 	 * race with CPU migration.
- 	 */
- 	rq = this_rq_lock_irq(&rf);
- 
--	current->flags |= PF_MEMSTALL;
-+	current->psi_flags |= PSI_PF_MEMSTALL;
- 	psi_task_change(current, 0, TSK_MEMSTALL);
- 
- 	rq_unlock_irq(rq, &rf);
-@@ -851,13 +852,13 @@ void psi_memstall_leave(unsigned long *f
- 	if (*flags)
- 		return;
- 	/*
--	 * PF_MEMSTALL clearing & accounting needs to be atomic wrt
-+	 * PSI_PF_MEMSTALL clearing & accounting needs to be atomic wrt
- 	 * changes to the task's scheduling state, otherwise we could
- 	 * race with CPU migration.
- 	 */
- 	rq = this_rq_lock_irq(&rf);
- 
--	current->flags &= ~PF_MEMSTALL;
-+	current->psi_flags &= ~PSI_PF_MEMSTALL;
- 	psi_task_change(current, TSK_MEMSTALL, 0);
- 
- 	rq_unlock_irq(rq, &rf);
-@@ -921,7 +922,7 @@ void cgroup_move_task(struct task_struct
- 	else if (task->in_iowait)
- 		task_flags = TSK_IOWAIT;
- 
--	if (task->flags & PF_MEMSTALL)
-+	if (task->psi_flags & PSI_PF_MEMSTALL)
- 		task_flags |= TSK_MEMSTALL;
- 
- 	if (task_flags)
---- a/kernel/sched/stats.h~psi-move-pf_memstall-into-psi-specific-psi_flags
-+++ a/kernel/sched/stats.h
-@@ -70,7 +70,7 @@ static inline void psi_enqueue(struct ta
- 		return;
- 
- 	if (!wakeup || p->sched_psi_wake_requeue) {
--		if (p->flags & PF_MEMSTALL)
-+		if (p->psi_flags & PSI_PF_MEMSTALL)
- 			set |= TSK_MEMSTALL;
- 		if (p->sched_psi_wake_requeue)
- 			p->sched_psi_wake_requeue = 0;
-@@ -90,7 +90,7 @@ static inline void psi_dequeue(struct ta
- 		return;
- 
- 	if (!sleep) {
--		if (p->flags & PF_MEMSTALL)
-+		if (p->psi_flags & PSI_PF_MEMSTALL)
- 			clear |= TSK_MEMSTALL;
- 	} else {
- 		if (p->in_iowait)
-@@ -109,14 +109,14 @@ static inline void psi_ttwu_dequeue(stru
- 	 * deregister its sleep-persistent psi states from the old
- 	 * queue, and let psi_enqueue() know it has to requeue.
- 	 */
--	if (unlikely(p->in_iowait || (p->flags & PF_MEMSTALL))) {
-+	if (unlikely(p->in_iowait || (p->psi_flags & PSI_PF_MEMSTALL))) {
- 		struct rq_flags rf;
- 		struct rq *rq;
- 		int clear = 0;
- 
- 		if (p->in_iowait)
- 			clear |= TSK_IOWAIT;
--		if (p->flags & PF_MEMSTALL)
-+		if (p->psi_flags & PSI_PF_MEMSTALL)
- 			clear |= TSK_MEMSTALL;
- 
- 		rq = __task_rq_lock(p, &rf);
-@@ -131,7 +131,7 @@ static inline void psi_task_tick(struct
- 	if (static_branch_likely(&psi_disabled))
- 		return;
- 
--	if (unlikely(rq->curr->flags & PF_MEMSTALL))
-+	if (unlikely(rq->curr->psi_flags & PSI_PF_MEMSTALL))
- 		psi_memstall_tick(rq->curr, cpu_of(rq));
- }
- #else /* CONFIG_PSI */
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from longpeng2@huawei.com are
 
-mm-memcg-fix-build-error-around-the-usage-of-kmem_caches.patch
-psi-move-pf_memstall-into-psi-specific-psi_flags.patch
+mm-hugetlb-fix-a-addressing-exception-caused-by-huge_pte_offset.patch
