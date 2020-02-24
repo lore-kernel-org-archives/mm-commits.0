@@ -1,90 +1,101 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-string-update-match_string-doc-strings-with-correct-behavior.patch
- removed from -mm tree
-Date: Sun, 23 Feb 2020 16:44:54 -0800
-Message-ID: <20200224004454.d6Thkcyqn%akpm@linux-foundation.org>
+ mm-vmscan-dont-round-up-scan-size-for-online-memory-cgroup.patch removed
+ from -mm tree
+Date: Sun, 23 Feb 2020 16:44:56 -0800
+Message-ID: <20200224004456.22rPmLEjv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40088 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40112 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727188AbgBXAoz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 23 Feb 2020 19:44:55 -0500
+        id S1727188AbgBXAo5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 23 Feb 2020 19:44:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandru.ardelean@analog.com, andriy.shevchenko@linux.intel.com, keescook@chromium.org, mm-commits@vger.kernel.org, tobin@kernel.org
+To: gshan@redhat.com, guro@fb.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string.c: update match_string() doc-strings with correct behavior
+     Subject: mm/vmscan.c: don't round up scan size for online memory cgroup
 has been removed from the -mm tree.  Its filename was
-     lib-string-update-match_string-doc-strings-with-correct-behavior.patch
+     mm-vmscan-dont-round-up-scan-size-for-online-memory-cgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandru Ardelean <alexandru.ardelean@analog.com>
-Subject: lib/string.c: update match_string() doc-strings with correct behavior
+From: Gavin Shan <gshan@redhat.com>
+Subject: mm/vmscan.c: don't round up scan size for online memory cgroup
 
-There were a few attempts at changing behavior of the match_string()
-helpers (i.e.  'match_string()' & 'sysfs_match_string()'), to change &
-extend the behavior according to the doc-string.
+commit 68600f623d69 ("mm: don't miss the last page because of round-off
+error") makes the scan size round up to @denominator regardless of the
+memory cgroup's state, online or offline.  This affects the overall
+reclaiming behavior: The corresponding LRU list is eligible for reclaiming
+only when its size logically right shifted by @sc->priority is bigger than
+zero in the former formula.  For example, the inactive anonymous LRU list
+should have at least 0x4000 pages to be eligible for reclaiming when we
+have 60/12 for swappiness/priority and without taking scan/rotation ratio
+into account.  After the roundup is applied, the inactive anonymous LRU
+list becomes eligible for reclaiming when its size is bigger than or equal
+to 0x1000 in the same condition.
 
-But the simplest approach is to just fix the doc-strings.  The current
-behavior is fine as-is, and some bugs were introduced trying to fix it.
+    (0x4000 >> 12) * 60 / (60 + 140 + 1) = 1
+    ((0x1000 >> 12) * 60) + 200) / (60 + 140 + 1) = 1
 
-As for extending the behavior, new helpers can always be introduced if
-needed.
+aarch64 has 512MB huge page size when the base page size is 64KB.  The
+memory cgroup that has a huge page is always eligible for reclaiming in
+that case.  The reclaiming is likely to stop after the huge page is
+reclaimed, meaing the further iteration on @sc->priority and the silbing
+and child memory cgroups will be skipped.  The overall behaviour has been
+changed.  This fixes the issue by applying the roundup to offlined memory
+cgroups only, to give more preference to reclaim memory from offlined
+memory cgroup.  It sounds reasonable as those memory is unlikedly to be
+used by anyone.
 
-The match_string() helpers behave more like 'strncmp()' in the sense that
-they go up to n elements or until the first NULL element in the array of
-strings.
+The issue was found by starting up 8 VMs on a Ampere Mustang machine,
+which has 8 CPUs and 16 GB memory.  Each VM is given with 2 vCPUs and 2GB
+memory.  It took 264 seconds for all VMs to be completely up and 784MB
+swap is consumed after that.  With this patch applied, it took 236 seconds
+and 60MB swap to do same thing.  So there is 10% performance improvement
+for my case.  Note that KSM is disable while THP is enabled in the
+testing.
 
-This change updates the doc-strings with this info.
+         total     used    free   shared  buff/cache   available
+   Mem:  16196    10065    2049       16        4081        3749
+   Swap:  8175      784    7391
+         total     used    free   shared  buff/cache   available
+   Mem:  16196    11324    3656       24        1215        2936
+   Swap:  8175       60    8115
 
-Link: http://lkml.kernel.org/r/20200213072722.8249-1-alexandru.ardelean@analog.com
-Signed-off-by: Alexandru Ardelean <alexandru.ardelean@analog.com>
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Tobin C . Harding" <tobin@kernel.org>
+Link: http://lkml.kernel.org/r/20200211024514.8730-1-gshan@redhat.com
+Fixes: 68600f623d69 ("mm: don't miss the last page because of round-off error")
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: <stable@vger.kernel.org>	[4.20+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ mm/vmscan.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/lib/string.c~lib-string-update-match_string-doc-strings-with-correct-behavior
-+++ a/lib/string.c
-@@ -699,6 +699,14 @@ EXPORT_SYMBOL(sysfs_streq);
-  * @n:		number of strings in the array or -1 for NULL terminated arrays
-  * @string:	string to match with
-  *
-+ * This routine will look for a string in an array of strings up to the
-+ * n-th element in the array or until the first NULL element.
-+ *
-+ * Historically the value of -1 for @n, was used to search in arrays that
-+ * are NULL terminated. However, the function does not make a distinction
-+ * when finishing the search: either @n elements have been compared OR
-+ * the first NULL element was found.
-+ *
-  * Return:
-  * index of a @string in the @array if matches, or %-EINVAL otherwise.
-  */
-@@ -727,6 +735,14 @@ EXPORT_SYMBOL(match_string);
-  *
-  * Returns index of @str in the @array or -EINVAL, just like match_string().
-  * Uses sysfs_streq instead of strcmp for matching.
-+ *
-+ * This routine will look for a string in an array of strings up to the
-+ * n-th element in the array or until the first NULL element.
-+ *
-+ * Historically the value of -1 for @n, was used to search in arrays that
-+ * are NULL terminated. However, the function does not make a distinction
-+ * when finishing the search: either @n elements have been compared OR
-+ * the first NULL element was found.
-  */
- int __sysfs_match_string(const char * const *array, size_t n, const char *str)
- {
+--- a/mm/vmscan.c~mm-vmscan-dont-round-up-scan-size-for-online-memory-cgroup
++++ a/mm/vmscan.c
+@@ -2415,10 +2415,13 @@ out:
+ 			/*
+ 			 * Scan types proportional to swappiness and
+ 			 * their relative recent reclaim efficiency.
+-			 * Make sure we don't miss the last page
+-			 * because of a round-off error.
++			 * Make sure we don't miss the last page on
++			 * the offlined memory cgroups because of a
++			 * round-off error.
+ 			 */
+-			scan = DIV64_U64_ROUND_UP(scan * fraction[file],
++			scan = mem_cgroup_online(memcg) ?
++			       div64_u64(scan * fraction[file], denominator) :
++			       DIV64_U64_ROUND_UP(scan * fraction[file],
+ 						  denominator);
+ 			break;
+ 		case SCAN_FILE:
 _
 
-Patches currently in -mm which might be from alexandru.ardelean@analog.com are
+Patches currently in -mm which might be from gshan@redhat.com are
