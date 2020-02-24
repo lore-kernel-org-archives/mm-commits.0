@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-vma-make-vma_is_accessible-available-for-general-use.patch added to -mm
- tree
-Date: Mon, 24 Feb 2020 14:13:35 -0800
-Message-ID: <20200224221335.mMOeor9rh%akpm@linux-foundation.org>
+ mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page.patch
+ added to -mm tree
+Date: Mon, 24 Feb 2020 14:13:40 -0800
+Message-ID: <20200224221340.0Eq62FuC5%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50436 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50584 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726651AbgBXWNi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 24 Feb 2020 17:13:38 -0500
+        id S1726651AbgBXWNn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 24 Feb 2020 17:13:43 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: acme@kernel.org, aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com, arnd
 
 
 The patch titled
-     Subject: mm/vma: make vma_is_accessible() available for general use
+     Subject: mm/vma: replace all remaining open encodings with is_vm_hugetlb_page()
 has been added to the -mm tree.  Its filename is
-     mm-vma-make-vma_is_accessible-available-for-general-use.patch
+     mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vma-make-vma_is_accessible-available-for-general-use.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vma-make-vma_is_accessible-available-for-general-use.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,205 +40,112 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/vma: make vma_is_accessible() available for general use
+Subject: mm/vma: replace all remaining open encodings with is_vm_hugetlb_page()
 
-Lets move vma_is_accessible() helper to include/linux/mm.h which makes it
-available for general use.  While here, this replaces all remaining open
-encodings for VMA access check with vma_is_accessible().
+This replaces all remaining open encodings with is_vm_hugetlb_page().
 
-Link: http://lkml.kernel.org/r/1582520593-30704-3-git-send-email-anshuman.khandual@arm.com
+Link: http://lkml.kernel.org/r/1582520593-30704-4-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Guo Ren <guoren@kernel.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Paul Burton <paulburton@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Nick Piggin <npiggin@gmail.com>
 Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Will Deacon <will@kernel.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Nick Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/mm/fault.c    |    2 +-
- arch/m68k/mm/fault.c    |    2 +-
- arch/mips/mm/fault.c    |    2 +-
- arch/powerpc/mm/fault.c |    2 +-
- arch/sh/mm/fault.c      |    2 +-
- arch/x86/mm/fault.c     |    2 +-
- include/linux/mm.h      |    5 +++++
- kernel/sched/fair.c     |    2 +-
- mm/gup.c                |    2 +-
- mm/memory.c             |    5 -----
- mm/mempolicy.c          |    3 +--
- mm/mmap.c               |    5 ++---
- 12 files changed, 16 insertions(+), 18 deletions(-)
+ arch/powerpc/kvm/e500_mmu_host.c |    2 +-
+ fs/binfmt_elf.c                  |    3 ++-
+ include/asm-generic/tlb.h        |    3 ++-
+ kernel/events/core.c             |    3 ++-
+ 4 files changed, 7 insertions(+), 4 deletions(-)
 
---- a/arch/csky/mm/fault.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/arch/csky/mm/fault.c
-@@ -137,7 +137,7 @@ good_area:
- 		if (!(vma->vm_flags & VM_WRITE))
- 			goto bad_area;
- 	} else {
--		if (!(vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)))
-+		if (!vma_is_accessible(vma))
- 			goto bad_area;
- 	}
- 
---- a/arch/m68k/mm/fault.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/arch/m68k/mm/fault.c
-@@ -125,7 +125,7 @@ good_area:
- 		case 1:		/* read, present */
- 			goto acc_err;
- 		case 0:		/* read, not present */
--			if (!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)))
-+			if (!vma_is_accessible(vma))
- 				goto acc_err;
- 	}
- 
---- a/arch/mips/mm/fault.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/arch/mips/mm/fault.c
-@@ -142,7 +142,7 @@ good_area:
- 				goto bad_area;
+--- a/arch/powerpc/kvm/e500_mmu_host.c~mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page
++++ a/arch/powerpc/kvm/e500_mmu_host.c
+@@ -422,7 +422,7 @@ static inline int kvmppc_e500_shadow_map
+ 				break;
  			}
- 		} else {
--			if (!(vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)))
-+			if (!vma_is_accessible(vma))
- 				goto bad_area;
- 		}
+ 		} else if (vma && hva >= vma->vm_start &&
+-			   (vma->vm_flags & VM_HUGETLB)) {
++			   is_vm_hugetlb_page(vma)) {
+ 			unsigned long psize = vma_kernel_pagesize(vma);
+ 
+ 			tsize = (gtlbe->mas1 & MAS1_TSIZE_MASK) >>
+--- a/fs/binfmt_elf.c~mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page
++++ a/fs/binfmt_elf.c
+@@ -27,6 +27,7 @@
+ #include <linux/highuid.h>
+ #include <linux/compiler.h>
+ #include <linux/highmem.h>
++#include <linux/hugetlb.h>
+ #include <linux/pagemap.h>
+ #include <linux/vmalloc.h>
+ #include <linux/security.h>
+@@ -1317,7 +1318,7 @@ static unsigned long vma_dump_size(struc
  	}
---- a/arch/powerpc/mm/fault.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/arch/powerpc/mm/fault.c
-@@ -314,7 +314,7 @@ static bool access_error(bool is_write,
- 		return false;
- 	}
  
--	if (unlikely(!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))))
-+	if (unlikely(!vma_is_accessible(vma)))
- 		return true;
- 	/*
- 	 * We should ideally do the vma pkey access check here. But in the
---- a/arch/sh/mm/fault.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/arch/sh/mm/fault.c
-@@ -355,7 +355,7 @@ static inline int access_error(int error
- 		return 1;
+ 	/* Hugetlb memory check */
+-	if (vma->vm_flags & VM_HUGETLB) {
++	if (is_vm_hugetlb_page(vma)) {
+ 		if ((vma->vm_flags & VM_SHARED) && FILTER(HUGETLB_SHARED))
+ 			goto whole;
+ 		if (!(vma->vm_flags & VM_SHARED) && FILTER(HUGETLB_PRIVATE))
+--- a/include/asm-generic/tlb.h~mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page
++++ a/include/asm-generic/tlb.h
+@@ -13,6 +13,7 @@
  
- 	/* read, not present: */
--	if (unlikely(!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))))
-+	if (unlikely(!vma_is_accessible(vma)))
- 		return 1;
- 
- 	return 0;
---- a/arch/x86/mm/fault.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/arch/x86/mm/fault.c
-@@ -1222,7 +1222,7 @@ access_error(unsigned long error_code, s
- 		return 1;
- 
- 	/* read, not present: */
--	if (unlikely(!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))))
-+	if (unlikely(!vma_is_accessible(vma)))
- 		return 1;
- 
- 	return 0;
---- a/include/linux/mm.h~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/include/linux/mm.h
-@@ -541,6 +541,11 @@ static inline bool vma_is_anonymous(stru
- 	return !vma->vm_ops;
- }
- 
-+static inline bool vma_is_accessible(struct vm_area_struct *vma)
-+{
-+	return vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC);
-+}
-+
- #ifdef CONFIG_SHMEM
- /*
-  * The vma_is_shmem is not inline because it is used only by slow
---- a/kernel/sched/fair.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/kernel/sched/fair.c
-@@ -2573,7 +2573,7 @@ static void task_numa_work(struct callba
- 		 * Skip inaccessible VMAs to avoid any confusion between
- 		 * PROT_NONE and NUMA hinting ptes
- 		 */
--		if (!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)))
-+		if (!vma_is_accessible(vma))
- 			continue;
- 
- 		do {
---- a/mm/gup.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/mm/gup.c
-@@ -1368,7 +1368,7 @@ long populate_vma_page_range(struct vm_a
- 	 * We want mlock to succeed for regions that have any permissions
- 	 * other than PROT_NONE.
+ #include <linux/mmu_notifier.h>
+ #include <linux/swap.h>
++#include <linux/hugetlb_inline.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
+ #include <asm/cacheflush.h>
+@@ -398,7 +399,7 @@ tlb_update_vma_flags(struct mmu_gather *
+ 	 * We rely on tlb_end_vma() to issue a flush, such that when we reset
+ 	 * these values the batch is empty.
  	 */
--	if (vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC))
-+	if (vma_is_accessible(vma))
- 		gup_flags |= FOLL_FORCE;
- 
- 	/*
---- a/mm/memory.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/mm/memory.c
-@@ -3961,11 +3961,6 @@ static inline vm_fault_t wp_huge_pmd(str
- 	return VM_FAULT_FALLBACK;
+-	tlb->vma_huge = !!(vma->vm_flags & VM_HUGETLB);
++	tlb->vma_huge = is_vm_hugetlb_page(vma);
+ 	tlb->vma_exec = !!(vma->vm_flags & VM_EXEC);
  }
  
--static inline bool vma_is_accessible(struct vm_area_struct *vma)
--{
--	return vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE);
--}
--
- static vm_fault_t create_huge_pud(struct vm_fault *vmf)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
---- a/mm/mempolicy.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/mm/mempolicy.c
-@@ -649,8 +649,7 @@ static int queue_pages_test_walk(unsigne
+--- a/kernel/events/core.c~mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page
++++ a/kernel/events/core.c
+@@ -28,6 +28,7 @@
+ #include <linux/export.h>
+ #include <linux/vmalloc.h>
+ #include <linux/hardirq.h>
++#include <linux/hugetlb.h>
+ #include <linux/rculist.h>
+ #include <linux/uaccess.h>
+ #include <linux/syscalls.h>
+@@ -7693,7 +7694,7 @@ static void perf_event_mmap_event(struct
+ 		flags |= MAP_EXECUTABLE;
+ 	if (vma->vm_flags & VM_LOCKED)
+ 		flags |= MAP_LOCKED;
+-	if (vma->vm_flags & VM_HUGETLB)
++	if (is_vm_hugetlb_page(vma))
+ 		flags |= MAP_HUGETLB;
  
- 	if (flags & MPOL_MF_LAZY) {
- 		/* Similar to task_numa_work, skip inaccessible VMAs */
--		if (!is_vm_hugetlb_page(vma) &&
--			(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)) &&
-+		if (!is_vm_hugetlb_page(vma) && vma_is_accessible(vma) &&
- 			!(vma->vm_flags & VM_MIXEDMAP))
- 			change_prot_numa(vma, start, endvma);
- 		return 1;
---- a/mm/mmap.c~mm-vma-make-vma_is_accessible-available-for-general-use
-+++ a/mm/mmap.c
-@@ -2334,8 +2334,7 @@ int expand_upwards(struct vm_area_struct
- 		gap_addr = TASK_SIZE;
- 
- 	next = vma->vm_next;
--	if (next && next->vm_start < gap_addr &&
--			(next->vm_flags & (VM_WRITE|VM_READ|VM_EXEC))) {
-+	if (next && next->vm_start < gap_addr && vma_is_accessible(next)) {
- 		if (!(next->vm_flags & VM_GROWSUP))
- 			return -ENOMEM;
- 		/* Check that both stack segments have the same anon_vma? */
-@@ -2416,7 +2415,7 @@ int expand_downwards(struct vm_area_stru
- 	prev = vma->vm_prev;
- 	/* Check that both stack segments have the same anon_vma? */
- 	if (prev && !(prev->vm_flags & VM_GROWSDOWN) &&
--			(prev->vm_flags & (VM_WRITE|VM_READ|VM_EXEC))) {
-+			vma_is_accessible(prev)) {
- 		if (address - prev->vm_end < stack_guard_gap)
- 			return -ENOMEM;
- 	}
+ 	if (file) {
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
