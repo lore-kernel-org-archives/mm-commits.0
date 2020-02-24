@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-debug-add-tests-validating-architecture-page-table-helpers.patch added
- to -mm tree
-Date: Sun, 23 Feb 2020 18:45:35 -0800
-Message-ID: <20200224024535.fnHjV877d%akpm@linux-foundation.org>
+Subject: + proc-faster-open-read-close-with-permanent-files.patch
+ added to -mm tree
+Date: Sun, 23 Feb 2020 19:20:12 -0800
+Message-ID: <20200224032012.vPDzd5E7J%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:32974 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41740 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727168AbgBXCpj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 23 Feb 2020 21:45:39 -0500
+        id S1727156AbgBXDUQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 23 Feb 2020 22:20:16 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, christophe.leroy@c-s.fr, gerald.schaefer@de.ibm.com, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, kirill@shutemov.name, mingo@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, palmer@dabbelt.com, paul.walmsley@sifive.com, paulus@samba.org, rppt@linux.ibm.com, tglx@linutronix.de, vgupta@synopsys.com, will@kernel.org
+To: adobriyan@gmail.com, dan.carpenter@oracle.com, joe@perches.com, lkp@intel.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm/debug: add tests validating architecture page table helpers
+     Subject: proc: faster open/read/close with "permanent" files
 has been added to the -mm tree.  Its filename is
-     mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+     proc-faster-open-read-close-with-permanent-files.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-faster-open-read-close-with-permanent-files.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-faster-open-read-close-with-permanent-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,660 +38,661 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/debug: add tests validating architecture page table helpers
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: faster open/read/close with "permanent" files
 
-This adds tests which will validate architecture page table helpers and
-other accessors in their compliance with expected generic MM semantics. 
-This will help various architectures in validating changes to existing
-page table helpers or addition of new ones.
+Now that "struct proc_ops" exist we can start putting there stuff which
+could not fly with VFS "struct file_operations"...
 
-This test covers basic page table entry transformations including but not
-limited to old, young, dirty, clean, write, write protect etc at various
-level along with populating intermediate entries with next page table page
-and validating them.
+Most of fs/proc/inode.c file is dedicated to make open/read/.../close
+reliable in the event of disappearing /proc entries which usually happens
+if module is getting removed.  Files like /proc/cpuinfo which never
+disappear simply do not need such protection.
 
-Test page table pages are allocated from system memory with required size
-and alignments.  The mapped pfns at page table levels are derived from a
-real pfn representing a valid kernel text symbol.  This test gets called
-inside kernel_init() right after async_synchronize_full().
+Save 2 atomic ops, 1 allocation, 1 free per open/read/close sequence for such
+"permanent" files.
 
-This test gets built and run when CONFIG_DEBUG_VM_PGTABLE is selected. 
-Any architecture, which is willing to subscribe this test will need to
-select ARCH_HAS_DEBUG_VM_PGTABLE.  For now this is limited to arc, arm64,
-x86, s390 and ppc32 platforms where the test is known to build and run
-successfully.  Going forward, other architectures too can subscribe the
-test after fixing any build or runtime problems with their page table
-helpers.  Meanwhile for better platform coverage, the test can also be
-enabled with CONFIG_EXPERT even without ARCH_HAS_DEBUG_VM_PGTABLE.
+Enable "permanent" flag for
 
-Folks interested in making sure that a given platform's page table helpers
-conform to expected generic MM semantics should enable the above config
-which will just trigger this test during boot.  Any non conformity here
-will be reported as an warning which would need to be fixed.  This test
-will help catch any changes to the agreed upon semantics expected from
-generic MM and enable platforms to accommodate it thereafter.
+	/proc/cpuinfo
+	/proc/kmsg
+	/proc/modules
+	/proc/slabinfo
+	/proc/stat
+	/proc/sysvipc/*
+	/proc/swaps
 
-Link: http://lkml.kernel.org/r/1581909460-19148-1-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Ingo Molnar <mingo@kernel.org>
-Tested-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>	# s390
-Tested-by: Christophe Leroy <christophe.leroy@c-s.fr>	# ppc32
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+More will come once I figure out foolproof way to prevent out module
+authors from marking their stuff "permanent" for performance reasons
+when it is not.
+
+This should help with scalability: benchmark is "read /proc/cpuinfo R times
+by N threads scattered over the system".
+
+	N	R	t, s (before)	t, s (after)
+	-----------------------------------------------------
+	64	4096	1.582458	1.530502	-3.2%
+	256	4096	6.371926	6.125168	-3.9%
+	1024	4096	25.64888	24.47528	-4.6%
+
+Benchmark source:
+
+#include <chrono>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+const int NR_CPUS = sysconf(_SC_NPROCESSORS_ONLN);
+int N;
+const char *filename;
+int R;
+
+int xxx = 0;
+
+int glue(int n)
+{
+	cpu_set_t m;
+	CPU_ZERO(&m);
+	CPU_SET(n, &m);
+	return sched_setaffinity(0, sizeof(cpu_set_t), &m);
+}
+
+void f(int n)
+{
+	glue(n % NR_CPUS);
+
+	while (*(volatile int *)&xxx == 0) {
+	}
+
+	for (int i = 0; i < R; i++) {
+		int fd = open(filename, O_RDONLY);
+		char buf[4096];
+		ssize_t rv = read(fd, buf, sizeof(buf));
+		asm volatile ("" :: "g" (rv));
+		close(fd);
+	}
+}
+
+int main(int argc, char *argv[])
+{
+	if (argc < 4) {
+		std::cerr << "usage: " << argv[0] << ' ' << "N /proc/filename R
+";
+		return 1;
+	}
+
+	N = atoi(argv[1]);
+	filename = argv[2];
+	R = atoi(argv[3]);
+
+	for (int i = 0; i < NR_CPUS; i++) {
+		if (glue(i) == 0)
+			break;
+	}
+
+	std::vector<std::thread> T;
+	T.reserve(N);
+	for (int i = 0; i < N; i++) {
+		T.emplace_back(f, i);
+	}
+
+	auto t0 = std::chrono::system_clock::now();
+	{
+		*(volatile int *)&xxx = 1;
+		for (auto& t: T) {
+			t.join();
+		}
+	}
+	auto t1 = std::chrono::system_clock::now();
+	std::chrono::duration<double> dt = t1 - t0;
+	std::cout << dt.count() << '
+';
+
+	return 0;
+}
+
+P.S.:
+Explicit randomization marker is added because adding non-function pointer
+will silently disable structure layout randomization.
+
+Link: http://lkml.kernel.org/r/20200222201539.GA22576@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Reported-by: kbuild test robot <lkp@intel.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/features/debug/debug-vm-pgtable/arch-support.txt |   35 
- arch/arc/Kconfig                                               |    1 
- arch/arm64/Kconfig                                             |    1 
- arch/powerpc/Kconfig                                           |    1 
- arch/s390/Kconfig                                              |    1 
- arch/x86/Kconfig                                               |    1 
- arch/x86/include/asm/pgtable_64.h                              |    6 
- include/linux/mmdebug.h                                        |    5 
- init/main.c                                                    |    2 
- lib/Kconfig.debug                                              |   26 
- mm/Makefile                                                    |    1 
- mm/debug_vm_pgtable.c                                          |  389 ++++++++++
- 12 files changed, 469 insertions(+)
+ fs/proc/cpuinfo.c       |    1 
+ fs/proc/generic.c       |   33 ++++++
+ fs/proc/inode.c         |  187 +++++++++++++++++++++++++++-----------
+ fs/proc/internal.h      |    6 +
+ fs/proc/kmsg.c          |    1 
+ fs/proc/stat.c          |    1 
+ include/linux/proc_fs.h |   17 +++
+ ipc/util.c              |    1 
+ kernel/module.c         |    1 
+ mm/slab_common.c        |    1 
+ mm/swapfile.c           |    1 
+ 11 files changed, 196 insertions(+), 54 deletions(-)
 
---- a/arch/arc/Kconfig~mm-debug-add-tests-validating-architecture-page-table-helpers
-+++ a/arch/arc/Kconfig
-@@ -6,6 +6,7 @@
- config ARC
- 	def_bool y
- 	select ARC_TIMERS
-+	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DMA_PREP_COHERENT
- 	select ARCH_HAS_PTE_SPECIAL
- 	select ARCH_HAS_SETUP_DMA_OPS
---- a/arch/arm64/Kconfig~mm-debug-add-tests-validating-architecture-page-table-helpers
-+++ a/arch/arm64/Kconfig
-@@ -11,6 +11,7 @@ config ARM64
- 	select ACPI_PPTT if ACPI
- 	select ARCH_CLOCKSOURCE_DATA
- 	select ARCH_HAS_DEBUG_VIRTUAL
-+	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_DMA_PREP_COHERENT
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
---- a/arch/powerpc/Kconfig~mm-debug-add-tests-validating-architecture-page-table-helpers
-+++ a/arch/powerpc/Kconfig
-@@ -116,6 +116,7 @@ config PPC
- 	#
- 	select ARCH_32BIT_OFF_T if PPC32
- 	select ARCH_HAS_DEBUG_VIRTUAL
-+	select ARCH_HAS_DEBUG_VM_PGTABLE if PPC32
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_FORTIFY_SOURCE
---- a/arch/s390/Kconfig~mm-debug-add-tests-validating-architecture-page-table-helpers
-+++ a/arch/s390/Kconfig
-@@ -59,6 +59,7 @@ config KASAN_SHADOW_OFFSET
- config S390
- 	def_bool y
- 	select ARCH_BINFMT_ELF_STATE
-+	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_FORTIFY_SOURCE
---- a/arch/x86/include/asm/pgtable_64.h~mm-debug-add-tests-validating-architecture-page-table-helpers
-+++ a/arch/x86/include/asm/pgtable_64.h
-@@ -53,6 +53,12 @@ static inline void sync_initial_page_tab
+--- a/fs/proc/cpuinfo.c~proc-faster-open-read-close-with-permanent-files
++++ a/fs/proc/cpuinfo.c
+@@ -17,6 +17,7 @@ static int cpuinfo_open(struct inode *in
+ }
  
- struct mm_struct;
+ static const struct proc_ops cpuinfo_proc_ops = {
++	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_open	= cpuinfo_open,
+ 	.proc_read	= seq_read,
+ 	.proc_lseek	= seq_lseek,
+--- a/fs/proc/generic.c~proc-faster-open-read-close-with-permanent-files
++++ a/fs/proc/generic.c
+@@ -531,6 +531,13 @@ struct proc_dir_entry *proc_create_reg(c
+ 	return p;
+ }
  
-+#define mm_p4d_folded mm_p4d_folded
-+static inline bool mm_p4d_folded(struct mm_struct *mm)
++static inline void pde_set_flags(struct proc_dir_entry *pde)
 +{
-+	return !pgtable_l5_enabled();
++	if (pde->proc_ops->proc_flags & PROC_ENTRY_PERMANENT) {
++		pde->flags |= PROC_ENTRY_PERMANENT;
++	}
 +}
 +
- void set_pte_vaddr_p4d(p4d_t *p4d_page, unsigned long vaddr, pte_t new_pte);
- void set_pte_vaddr_pud(pud_t *pud_page, unsigned long vaddr, pte_t new_pte);
+ struct proc_dir_entry *proc_create_data(const char *name, umode_t mode,
+ 		struct proc_dir_entry *parent,
+ 		const struct proc_ops *proc_ops, void *data)
+@@ -541,6 +548,7 @@ struct proc_dir_entry *proc_create_data(
+ 	if (!p)
+ 		return NULL;
+ 	p->proc_ops = proc_ops;
++	pde_set_flags(p);
+ 	return proc_register(parent, p);
+ }
+ EXPORT_SYMBOL(proc_create_data);
+@@ -572,6 +580,7 @@ static int proc_seq_release(struct inode
+ }
  
---- a/arch/x86/Kconfig~mm-debug-add-tests-validating-architecture-page-table-helpers
-+++ a/arch/x86/Kconfig
-@@ -61,6 +61,7 @@ config X86
- 	select ARCH_CLOCKSOURCE_INIT
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
- 	select ARCH_HAS_DEBUG_VIRTUAL
-+	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_FAST_MULTIPLIER
---- /dev/null
-+++ a/Documentation/features/debug/debug-vm-pgtable/arch-support.txt
-@@ -0,0 +1,35 @@
-+#
-+# Feature name:          debug-vm-pgtable
-+#         Kconfig:       ARCH_HAS_DEBUG_VM_PGTABLE
-+#         description:   arch supports pgtable tests for semantics compliance
-+#
-+    -----------------------
-+    |         arch |status|
-+    -----------------------
-+    |       alpha: | TODO |
-+    |         arc: |  ok  |
-+    |         arm: | TODO |
-+    |       arm64: |  ok  |
-+    |         c6x: | TODO |
-+    |        csky: | TODO |
-+    |       h8300: | TODO |
-+    |     hexagon: | TODO |
-+    |        ia64: | TODO |
-+    |        m68k: | TODO |
-+    |  microblaze: | TODO |
-+    |        mips: | TODO |
-+    |       nds32: | TODO |
-+    |       nios2: | TODO |
-+    |    openrisc: | TODO |
-+    |      parisc: | TODO |
-+    |  powerpc/32: |  ok  |
-+    |  powerpc/64: | TODO |
-+    |       riscv: | TODO |
-+    |        s390: |  ok  |
-+    |          sh: | TODO |
-+    |       sparc: | TODO |
-+    |          um: | TODO |
-+    |   unicore32: | TODO |
-+    |         x86: |  ok  |
-+    |      xtensa: | TODO |
-+    -----------------------
---- a/include/linux/mmdebug.h~mm-debug-add-tests-validating-architecture-page-table-helpers
-+++ a/include/linux/mmdebug.h
-@@ -64,4 +64,9 @@ void dump_mm(const struct mm_struct *mm)
- #define VM_BUG_ON_PGFLAGS(cond, page) BUILD_BUG_ON_INVALID(cond)
+ static const struct proc_ops proc_seq_ops = {
++	/* not permanent -- can call into arbitrary seq_operations */
+ 	.proc_open	= proc_seq_open,
+ 	.proc_read	= seq_read,
+ 	.proc_lseek	= seq_lseek,
+@@ -602,6 +611,7 @@ static int proc_single_open(struct inode
+ }
+ 
+ static const struct proc_ops proc_single_ops = {
++	/* not permanent -- can call into arbitrary ->single_show */
+ 	.proc_open	= proc_single_open,
+ 	.proc_read	= seq_read,
+ 	.proc_lseek	= seq_lseek,
+@@ -662,9 +672,14 @@ void remove_proc_entry(const char *name,
+ 
+ 	de = pde_subdir_find(parent, fn, len);
+ 	if (de) {
+-		rb_erase(&de->subdir_node, &parent->subdir);
+-		if (S_ISDIR(de->mode)) {
+-			parent->nlink--;
++		if (unlikely(pde_is_permanent(de))) {
++			WARN(1, "removing permanent /proc entry '%s'", de->name);
++			de = NULL;
++		} else {
++			rb_erase(&de->subdir_node, &parent->subdir);
++			if (S_ISDIR(de->mode)) {
++				parent->nlink--;
++			}
+ 		}
+ 	}
+ 	write_unlock(&proc_subdir_lock);
+@@ -700,12 +715,24 @@ int remove_proc_subtree(const char *name
+ 		write_unlock(&proc_subdir_lock);
+ 		return -ENOENT;
+ 	}
++	if (unlikely(pde_is_permanent(root))) {
++		write_unlock(&proc_subdir_lock);
++		WARN(1, "removing permanent /proc entry '%s/%s'",
++			root->parent->name, root->name);
++		return -EINVAL;
++	}
+ 	rb_erase(&root->subdir_node, &parent->subdir);
+ 
+ 	de = root;
+ 	while (1) {
+ 		next = pde_subdir_first(de);
+ 		if (next) {
++			if (unlikely(pde_is_permanent(root))) {
++				write_unlock(&proc_subdir_lock);
++				WARN(1, "removing permanent /proc entry '%s/%s'",
++					next->parent->name, next->name);
++				return -EINVAL;
++			}
+ 			rb_erase(&next->subdir_node, &de->subdir);
+ 			de = next;
+ 			continue;
+--- a/fs/proc/inode.c~proc-faster-open-read-close-with-permanent-files
++++ a/fs/proc/inode.c
+@@ -195,135 +195,204 @@ void proc_entry_rundown(struct proc_dir_
+ 	spin_unlock(&de->pde_unload_lock);
+ }
+ 
++static loff_t pde_lseek(struct proc_dir_entry *pde, struct file *file, loff_t offset, int whence)
++{
++	typeof_member(struct proc_ops, proc_lseek) lseek;
++
++	lseek = pde->proc_ops->proc_lseek;
++	if (!lseek)
++		lseek = default_llseek;
++	return lseek(file, offset, whence);
++}
++
+ static loff_t proc_reg_llseek(struct file *file, loff_t offset, int whence)
+ {
+ 	struct proc_dir_entry *pde = PDE(file_inode(file));
+ 	loff_t rv = -EINVAL;
+-	if (use_pde(pde)) {
+-		typeof_member(struct proc_ops, proc_lseek) lseek;
+ 
+-		lseek = pde->proc_ops->proc_lseek;
+-		if (!lseek)
+-			lseek = default_llseek;
+-		rv = lseek(file, offset, whence);
++	if (pde_is_permanent(pde)) {
++		return pde_lseek(pde, file, offset, whence);
++	} else if (use_pde(pde)) {
++		rv = pde_lseek(pde, file, offset, whence);
+ 		unuse_pde(pde);
+ 	}
+ 	return rv;
+ }
+ 
++static ssize_t pde_read(struct proc_dir_entry *pde, struct file *file, char __user *buf, size_t count, loff_t *ppos)
++{
++	typeof_member(struct proc_ops, proc_read) read;
++
++	read = pde->proc_ops->proc_read;
++	if (read)
++		return read(file, buf, count, ppos);
++	return -EIO;
++}
++
+ static ssize_t proc_reg_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+ {
+ 	struct proc_dir_entry *pde = PDE(file_inode(file));
+ 	ssize_t rv = -EIO;
+-	if (use_pde(pde)) {
+-		typeof_member(struct proc_ops, proc_read) read;
+ 
+-		read = pde->proc_ops->proc_read;
+-		if (read)
+-			rv = read(file, buf, count, ppos);
++	if (pde_is_permanent(pde)) {
++		return pde_read(pde, file, buf, count, ppos);
++	} else if (use_pde(pde)) {
++		rv = pde_read(pde, file, buf, count, ppos);
+ 		unuse_pde(pde);
+ 	}
+ 	return rv;
+ }
+ 
++static ssize_t pde_write(struct proc_dir_entry *pde, struct file *file, const char __user *buf, size_t count, loff_t *ppos)
++{
++	typeof_member(struct proc_ops, proc_write) write;
++
++	write = pde->proc_ops->proc_write;
++	if (write)
++		return write(file, buf, count, ppos);
++	return -EIO;
++}
++
+ static ssize_t proc_reg_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
+ {
+ 	struct proc_dir_entry *pde = PDE(file_inode(file));
+ 	ssize_t rv = -EIO;
+-	if (use_pde(pde)) {
+-		typeof_member(struct proc_ops, proc_write) write;
+ 
+-		write = pde->proc_ops->proc_write;
+-		if (write)
+-			rv = write(file, buf, count, ppos);
++	if (pde_is_permanent(pde)) {
++		return pde_write(pde, file, buf, count, ppos);
++	} else if (use_pde(pde)) {
++		rv = pde_write(pde, file, buf, count, ppos);
+ 		unuse_pde(pde);
+ 	}
+ 	return rv;
+ }
+ 
++static __poll_t pde_poll(struct proc_dir_entry *pde, struct file *file, struct poll_table_struct *pts)
++{
++	typeof_member(struct proc_ops, proc_poll) poll;
++
++	poll = pde->proc_ops->proc_poll;
++	if (poll)
++		return poll(file, pts);
++	return DEFAULT_POLLMASK;
++}
++
+ static __poll_t proc_reg_poll(struct file *file, struct poll_table_struct *pts)
+ {
+ 	struct proc_dir_entry *pde = PDE(file_inode(file));
+ 	__poll_t rv = DEFAULT_POLLMASK;
+-	if (use_pde(pde)) {
+-		typeof_member(struct proc_ops, proc_poll) poll;
+ 
+-		poll = pde->proc_ops->proc_poll;
+-		if (poll)
+-			rv = poll(file, pts);
++	if (pde_is_permanent(pde)) {
++		return pde_poll(pde, file, pts);
++	} else if (use_pde(pde)) {
++		rv = pde_poll(pde, file, pts);
+ 		unuse_pde(pde);
+ 	}
+ 	return rv;
+ }
+ 
++static long pde_ioctl(struct proc_dir_entry *pde, struct file *file, unsigned int cmd, unsigned long arg)
++{
++	typeof_member(struct proc_ops, proc_ioctl) ioctl;
++
++	ioctl = pde->proc_ops->proc_ioctl;
++	if (ioctl)
++		return ioctl(file, cmd, arg);
++	return -ENOTTY;
++}
++
+ static long proc_reg_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	struct proc_dir_entry *pde = PDE(file_inode(file));
+ 	long rv = -ENOTTY;
+-	if (use_pde(pde)) {
+-		typeof_member(struct proc_ops, proc_ioctl) ioctl;
+ 
+-		ioctl = pde->proc_ops->proc_ioctl;
+-		if (ioctl)
+-			rv = ioctl(file, cmd, arg);
++	if (pde_is_permanent(pde)) {
++		return pde_ioctl(pde, file, cmd, arg);
++	} else if (use_pde(pde)) {
++		rv = pde_ioctl(pde, file, cmd, arg);
+ 		unuse_pde(pde);
+ 	}
+ 	return rv;
+ }
+ 
+ #ifdef CONFIG_COMPAT
++static long pde_compat_ioctl(struct proc_dir_entry *pde, struct file *file, unsigned int cmd, unsigned long arg)
++{
++	typeof_member(struct proc_ops, proc_compat_ioctl) compat_ioctl;
++
++	compat_ioctl = pde->proc_ops->proc_compat_ioctl;
++	if (compat_ioctl)
++		return compat_ioctl(file, cmd, arg);
++	return -ENOTTY;
++}
++
+ static long proc_reg_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	struct proc_dir_entry *pde = PDE(file_inode(file));
+ 	long rv = -ENOTTY;
+-	if (use_pde(pde)) {
+-		typeof_member(struct proc_ops, proc_compat_ioctl) compat_ioctl;
+-
+-		compat_ioctl = pde->proc_ops->proc_compat_ioctl;
+-		if (compat_ioctl)
+-			rv = compat_ioctl(file, cmd, arg);
++	if (pde_is_permanent(pde)) {
++		return pde_compat_ioctl(pde, file, cmd, arg);
++	} else if (use_pde(pde)) {
++		rv = pde_compat_ioctl(pde, file, cmd, arg);
+ 		unuse_pde(pde);
+ 	}
+ 	return rv;
+ }
  #endif
  
-+#ifdef CONFIG_DEBUG_VM_PGTABLE
-+void debug_vm_pgtable(void);
-+#else
-+static inline void debug_vm_pgtable(void) { }
-+#endif
++static int pde_mmap(struct proc_dir_entry *pde, struct file *file, struct vm_area_struct *vma)
++{
++	typeof_member(struct proc_ops, proc_mmap) mmap;
++
++	mmap = pde->proc_ops->proc_mmap;
++	if (mmap)
++		return mmap(file, vma);
++	return -EIO;
++}
++
+ static int proc_reg_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct proc_dir_entry *pde = PDE(file_inode(file));
+ 	int rv = -EIO;
+-	if (use_pde(pde)) {
+-		typeof_member(struct proc_ops, proc_mmap) mmap;
+ 
+-		mmap = pde->proc_ops->proc_mmap;
+-		if (mmap)
+-			rv = mmap(file, vma);
++	if (pde_is_permanent(pde)) {
++		return pde_mmap(pde, file, vma);
++	} else if (use_pde(pde)) {
++		rv = pde_mmap(pde, file, vma);
+ 		unuse_pde(pde);
+ 	}
+ 	return rv;
+ }
+ 
+ static unsigned long
+-proc_reg_get_unmapped_area(struct file *file, unsigned long orig_addr,
++pde_get_unmapped_area(struct proc_dir_entry *pde, struct file *file, unsigned long orig_addr,
+ 			   unsigned long len, unsigned long pgoff,
+ 			   unsigned long flags)
+ {
+-	struct proc_dir_entry *pde = PDE(file_inode(file));
+-	unsigned long rv = -EIO;
+-
+-	if (use_pde(pde)) {
+-		typeof_member(struct proc_ops, proc_get_unmapped_area) get_area;
++	typeof_member(struct proc_ops, proc_get_unmapped_area) get_area;
+ 
+-		get_area = pde->proc_ops->proc_get_unmapped_area;
++	get_area = pde->proc_ops->proc_get_unmapped_area;
+ #ifdef CONFIG_MMU
+-		if (!get_area)
+-			get_area = current->mm->get_unmapped_area;
++	if (!get_area)
++		get_area = current->mm->get_unmapped_area;
  #endif
---- a/init/main.c~mm-debug-add-tests-validating-architecture-page-table-helpers
-+++ a/init/main.c
-@@ -94,6 +94,7 @@
- #include <linux/rodata_test.h>
- #include <linux/jump_label.h>
- #include <linux/mem_encrypt.h>
-+#include <linux/mmdebug.h>
++	if (get_area)
++		return get_area(file, orig_addr, len, pgoff, flags);
++	return orig_addr;
++}
++
++static unsigned long
++proc_reg_get_unmapped_area(struct file *file, unsigned long orig_addr,
++			   unsigned long len, unsigned long pgoff,
++			   unsigned long flags)
++{
++	struct proc_dir_entry *pde = PDE(file_inode(file));
++	unsigned long rv = -EIO;
  
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -1346,6 +1347,7 @@ static int __ref kernel_init(void *unuse
- 	kernel_init_freeable();
- 	/* need to finish all async __init code before freeing the memory */
- 	async_synchronize_full();
-+	debug_vm_pgtable();
- 	ftrace_free_init_mem();
- 	free_initmem();
- 	mark_readonly();
---- a/lib/Kconfig.debug~mm-debug-add-tests-validating-architecture-page-table-helpers
-+++ a/lib/Kconfig.debug
-@@ -653,6 +653,12 @@ config SCHED_STACK_END_CHECK
- 	  data corruption or a sporadic crash at a later stage once the region
- 	  is examined. The runtime overhead introduced is minimal.
+-		if (get_area)
+-			rv = get_area(file, orig_addr, len, pgoff, flags);
+-		else
+-			rv = orig_addr;
++	if (pde_is_permanent(pde)) {
++		return pde_get_unmapped_area(pde, file, orig_addr, len, pgoff, flags);
++	} else if (use_pde(pde)) {
++		rv = pde_get_unmapped_area(pde, file, orig_addr, len, pgoff, flags);
+ 		unuse_pde(pde);
+ 	}
+ 	return rv;
+@@ -337,6 +406,13 @@ static int proc_reg_open(struct inode *i
+ 	typeof_member(struct proc_ops, proc_release) release;
+ 	struct pde_opener *pdeo;
  
-+config ARCH_HAS_DEBUG_VM_PGTABLE
-+	bool
-+	help
-+	  An architecture should select this when it can successfully
-+	  build and run DEBUG_VM_PGTABLE.
-+
- config DEBUG_VM
- 	bool "Debug VM"
- 	depends on DEBUG_KERNEL
-@@ -688,6 +694,26 @@ config DEBUG_VM_PGFLAGS
- 
- 	  If unsure, say N.
- 
-+config DEBUG_VM_PGTABLE
-+	bool "Debug arch page table for semantics compliance"
-+	depends on MMU
-+	depends on !IA64 && !ARM
-+	depends on ARCH_HAS_DEBUG_VM_PGTABLE || EXPERT
-+	default n if !ARCH_HAS_DEBUG_VM_PGTABLE
-+	default y if DEBUG_VM
-+	help
-+	  This option provides a debug method which can be used to test
-+	  architecture page table helper functions on various platforms in
-+	  verifying if they comply with expected generic MM semantics. This
-+	  will help architecture code in making sure that any changes or
-+	  new additions of these helpers still conform to expected
-+	  semantics of the generic MM. Platforms will have to opt in for
-+	  this through ARCH_HAS_DEBUG_VM_PGTABLE. Although it can also be
-+	  enabled through EXPERT without requiring code change. This test
-+	  is disabled on IA64 and ARM platforms where it fails to build.
-+
-+	  If unsure, say N.
-+
- config ARCH_HAS_DEBUG_VIRTUAL
- 	bool
- 
---- /dev/null
-+++ a/mm/debug_vm_pgtable.c
-@@ -0,0 +1,389 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * This kernel test validates architecture page table helpers and
-+ * accessors and helps in verifying their continued compliance with
-+ * expected generic MM semantics.
-+ *
-+ * Copyright (C) 2019 ARM Ltd.
-+ *
-+ * Author: Anshuman Khandual <anshuman.khandual@arm.com>
-+ */
-+#define pr_fmt(fmt) "debug_vm_pgtable: %s: " fmt, __func__
-+
-+#include <linux/gfp.h>
-+#include <linux/highmem.h>
-+#include <linux/hugetlb.h>
-+#include <linux/kernel.h>
-+#include <linux/kconfig.h>
-+#include <linux/mm.h>
-+#include <linux/mman.h>
-+#include <linux/mm_types.h>
-+#include <linux/module.h>
-+#include <linux/pfn_t.h>
-+#include <linux/printk.h>
-+#include <linux/random.h>
-+#include <linux/spinlock.h>
-+#include <linux/swap.h>
-+#include <linux/swapops.h>
-+#include <linux/start_kernel.h>
-+#include <linux/sched/mm.h>
-+#include <asm/pgalloc.h>
-+#include <asm/pgtable.h>
-+
-+/*
-+ * Basic operations
-+ *
-+ * mkold(entry)			= An old and not a young entry
-+ * mkyoung(entry)		= A young and not an old entry
-+ * mkdirty(entry)		= A dirty and not a clean entry
-+ * mkclean(entry)		= A clean and not a dirty entry
-+ * mkwrite(entry)		= A write and not a write protected entry
-+ * wrprotect(entry)		= A write protected and not a write entry
-+ * pxx_bad(entry)		= A mapped and non-table entry
-+ * pxx_same(entry1, entry2)	= Both entries hold the exact same value
-+ */
-+#define VMFLAGS	(VM_READ|VM_WRITE|VM_EXEC)
-+
-+/*
-+ * On s390 platform, the lower 4 bits are used to identify given page table
-+ * entry type. But these bits might affect the ability to clear entries with
-+ * pxx_clear() because of how dynamic page table folding works on s390. So
-+ * while loading up the entries do not change the lower 4 bits. It does not
-+ * have affect any other platform.
-+ */
-+#define S390_MASK_BITS	4
-+#define RANDOM_ORVALUE	GENMASK(BITS_PER_LONG - 1, S390_MASK_BITS)
-+#define RANDOM_NZVALUE	GENMASK(7, 0)
-+
-+static void __init pte_basic_tests(unsigned long pfn, pgprot_t prot)
-+{
-+	pte_t pte = pfn_pte(pfn, prot);
-+
-+	WARN_ON(!pte_same(pte, pte));
-+	WARN_ON(!pte_young(pte_mkyoung(pte_mkold(pte))));
-+	WARN_ON(!pte_dirty(pte_mkdirty(pte_mkclean(pte))));
-+	WARN_ON(!pte_write(pte_mkwrite(pte_wrprotect(pte))));
-+	WARN_ON(pte_young(pte_mkold(pte_mkyoung(pte))));
-+	WARN_ON(pte_dirty(pte_mkclean(pte_mkdirty(pte))));
-+	WARN_ON(pte_write(pte_wrprotect(pte_mkwrite(pte))));
-+}
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+static void __init pmd_basic_tests(unsigned long pfn, pgprot_t prot)
-+{
-+	pmd_t pmd = pfn_pmd(pfn, prot);
-+
-+	WARN_ON(!pmd_same(pmd, pmd));
-+	WARN_ON(!pmd_young(pmd_mkyoung(pmd_mkold(pmd))));
-+	WARN_ON(!pmd_dirty(pmd_mkdirty(pmd_mkclean(pmd))));
-+	WARN_ON(!pmd_write(pmd_mkwrite(pmd_wrprotect(pmd))));
-+	WARN_ON(pmd_young(pmd_mkold(pmd_mkyoung(pmd))));
-+	WARN_ON(pmd_dirty(pmd_mkclean(pmd_mkdirty(pmd))));
-+	WARN_ON(pmd_write(pmd_wrprotect(pmd_mkwrite(pmd))));
-+	/*
-+	 * A huge page does not point to next level page table
-+	 * entry. Hence this must qualify as pmd_bad().
-+	 */
-+	WARN_ON(!pmd_bad(pmd_mkhuge(pmd)));
-+}
-+
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+static void __init pud_basic_tests(unsigned long pfn, pgprot_t prot)
-+{
-+	pud_t pud = pfn_pud(pfn, prot);
-+
-+	WARN_ON(!pud_same(pud, pud));
-+	WARN_ON(!pud_young(pud_mkyoung(pud_mkold(pud))));
-+	WARN_ON(!pud_write(pud_mkwrite(pud_wrprotect(pud))));
-+	WARN_ON(pud_write(pud_wrprotect(pud_mkwrite(pud))));
-+	WARN_ON(pud_young(pud_mkold(pud_mkyoung(pud))));
-+
-+	if (mm_pmd_folded(mm))
-+		return;
-+
-+	/*
-+	 * A huge page does not point to next level page table
-+	 * entry. Hence this must qualify as pud_bad().
-+	 */
-+	WARN_ON(!pud_bad(pud_mkhuge(pud)));
-+}
-+#else
-+static void __init pud_basic_tests(unsigned long pfn, pgprot_t prot) { }
-+#endif
-+#else
-+static void __init pmd_basic_tests(unsigned long pfn, pgprot_t prot) { }
-+static void __init pud_basic_tests(unsigned long pfn, pgprot_t prot) { }
-+#endif
-+
-+static void __init p4d_basic_tests(unsigned long pfn, pgprot_t prot)
-+{
-+	p4d_t p4d;
-+
-+	memset(&p4d, RANDOM_NZVALUE, sizeof(p4d_t));
-+	WARN_ON(!p4d_same(p4d, p4d));
-+}
-+
-+static void __init pgd_basic_tests(unsigned long pfn, pgprot_t prot)
-+{
-+	pgd_t pgd;
-+
-+	memset(&pgd, RANDOM_NZVALUE, sizeof(pgd_t));
-+	WARN_ON(!pgd_same(pgd, pgd));
-+}
-+
-+#ifndef __PAGETABLE_PUD_FOLDED
-+static void __init pud_clear_tests(struct mm_struct *mm, pud_t *pudp)
-+{
-+	pud_t pud = READ_ONCE(*pudp);
-+
-+	if (mm_pmd_folded(mm))
-+		return;
-+
-+	pud = __pud(pud_val(pud) | RANDOM_ORVALUE);
-+	WRITE_ONCE(*pudp, pud);
-+	pud_clear(pudp);
-+	pud = READ_ONCE(*pudp);
-+	WARN_ON(!pud_none(pud));
-+}
-+
-+static void __init pud_populate_tests(struct mm_struct *mm, pud_t *pudp,
-+				      pmd_t *pmdp)
-+{
-+	pud_t pud;
-+
-+	if (mm_pmd_folded(mm))
-+		return;
-+	/*
-+	 * This entry points to next level page table page.
-+	 * Hence this must not qualify as pud_bad().
-+	 */
-+	pmd_clear(pmdp);
-+	pud_clear(pudp);
-+	pud_populate(mm, pudp, pmdp);
-+	pud = READ_ONCE(*pudp);
-+	WARN_ON(pud_bad(pud));
-+}
-+#else
-+static void __init pud_clear_tests(struct mm_struct *mm, pud_t *pudp) { }
-+static void __init pud_populate_tests(struct mm_struct *mm, pud_t *pudp,
-+				      pmd_t *pmdp)
-+{
-+}
-+#endif
-+
-+#ifndef __PAGETABLE_P4D_FOLDED
-+static void __init p4d_clear_tests(struct mm_struct *mm, p4d_t *p4dp)
-+{
-+	p4d_t p4d = READ_ONCE(*p4dp);
-+
-+	if (mm_pud_folded(mm))
-+		return;
-+
-+	p4d = __p4d(p4d_val(p4d) | RANDOM_ORVALUE);
-+	WRITE_ONCE(*p4dp, p4d);
-+	p4d_clear(p4dp);
-+	p4d = READ_ONCE(*p4dp);
-+	WARN_ON(!p4d_none(p4d));
-+}
-+
-+static void __init p4d_populate_tests(struct mm_struct *mm, p4d_t *p4dp,
-+				      pud_t *pudp)
-+{
-+	p4d_t p4d;
-+
-+	if (mm_pud_folded(mm))
-+		return;
-+
-+	/*
-+	 * This entry points to next level page table page.
-+	 * Hence this must not qualify as p4d_bad().
-+	 */
-+	pud_clear(pudp);
-+	p4d_clear(p4dp);
-+	p4d_populate(mm, p4dp, pudp);
-+	p4d = READ_ONCE(*p4dp);
-+	WARN_ON(p4d_bad(p4d));
-+}
-+
-+static void __init pgd_clear_tests(struct mm_struct *mm, pgd_t *pgdp)
-+{
-+	pgd_t pgd = READ_ONCE(*pgdp);
-+
-+	if (mm_p4d_folded(mm))
-+		return;
-+
-+	pgd = __pgd(pgd_val(pgd) | RANDOM_ORVALUE);
-+	WRITE_ONCE(*pgdp, pgd);
-+	pgd_clear(pgdp);
-+	pgd = READ_ONCE(*pgdp);
-+	WARN_ON(!pgd_none(pgd));
-+}
-+
-+static void __init pgd_populate_tests(struct mm_struct *mm, pgd_t *pgdp,
-+				      p4d_t *p4dp)
-+{
-+	pgd_t pgd;
-+
-+	if (mm_p4d_folded(mm))
-+		return;
-+
-+	/*
-+	 * This entry points to next level page table page.
-+	 * Hence this must not qualify as pgd_bad().
-+	 */
-+	p4d_clear(p4dp);
-+	pgd_clear(pgdp);
-+	pgd_populate(mm, pgdp, p4dp);
-+	pgd = READ_ONCE(*pgdp);
-+	WARN_ON(pgd_bad(pgd));
-+}
-+#else
-+static void __init p4d_clear_tests(struct mm_struct *mm, p4d_t *p4dp) { }
-+static void __init pgd_clear_tests(struct mm_struct *mm, pgd_t *pgdp) { }
-+static void __init p4d_populate_tests(struct mm_struct *mm, p4d_t *p4dp,
-+				      pud_t *pudp)
-+{
-+}
-+static void __init pgd_populate_tests(struct mm_struct *mm, pgd_t *pgdp,
-+				      p4d_t *p4dp)
-+{
-+}
-+#endif
-+
-+static void __init pte_clear_tests(struct mm_struct *mm, pte_t *ptep)
-+{
-+	pte_t pte = READ_ONCE(*ptep);
-+
-+	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
-+	WRITE_ONCE(*ptep, pte);
-+	pte_clear(mm, 0, ptep);
-+	pte = READ_ONCE(*ptep);
-+	WARN_ON(!pte_none(pte));
-+}
-+
-+static void __init pmd_clear_tests(struct mm_struct *mm, pmd_t *pmdp)
-+{
-+	pmd_t pmd = READ_ONCE(*pmdp);
-+
-+	pmd = __pmd(pmd_val(pmd) | RANDOM_ORVALUE);
-+	WRITE_ONCE(*pmdp, pmd);
-+	pmd_clear(pmdp);
-+	pmd = READ_ONCE(*pmdp);
-+	WARN_ON(!pmd_none(pmd));
-+}
-+
-+static void __init pmd_populate_tests(struct mm_struct *mm, pmd_t *pmdp,
-+				      pgtable_t pgtable)
-+{
-+	pmd_t pmd;
-+
-+	/*
-+	 * This entry points to next level page table page.
-+	 * Hence this must not qualify as pmd_bad().
-+	 */
-+	pmd_clear(pmdp);
-+	pmd_populate(mm, pmdp, pgtable);
-+	pmd = READ_ONCE(*pmdp);
-+	WARN_ON(pmd_bad(pmd));
-+}
-+
-+static unsigned long __init get_random_vaddr(void)
-+{
-+	unsigned long random_vaddr, random_pages, total_user_pages;
-+
-+	total_user_pages = (TASK_SIZE - FIRST_USER_ADDRESS) / PAGE_SIZE;
-+
-+	random_pages = get_random_long() % total_user_pages;
-+	random_vaddr = FIRST_USER_ADDRESS + random_pages * PAGE_SIZE;
-+
-+	return random_vaddr;
-+}
-+
-+void __init debug_vm_pgtable(void)
-+{
-+	struct mm_struct *mm;
-+	pgd_t *pgdp;
-+	p4d_t *p4dp, *saved_p4dp;
-+	pud_t *pudp, *saved_pudp;
-+	pmd_t *pmdp, *saved_pmdp, pmd;
-+	pte_t *ptep;
-+	pgtable_t saved_ptep;
-+	pgprot_t prot;
-+	phys_addr_t paddr;
-+	unsigned long vaddr, pte_aligned, pmd_aligned;
-+	unsigned long pud_aligned, p4d_aligned, pgd_aligned;
-+
-+	pr_info("Validating architecture page table helpers\n");
-+	prot = vm_get_page_prot(VMFLAGS);
-+	vaddr = get_random_vaddr();
-+	mm = mm_alloc();
-+	if (!mm) {
-+		pr_err("mm_struct allocation failed\n");
-+		return;
++	if (pde_is_permanent(pde)) {
++		open = pde->proc_ops->proc_open;
++		if (open)
++			rv = open(inode, file);
++		return rv;
 +	}
 +
-+	/*
-+	 * PFN for mapping at PTE level is determined from a standard kernel
-+	 * text symbol. But pfns for higher page table levels are derived by
-+	 * masking lower bits of this real pfn. These derived pfns might not
-+	 * exist on the platform but that does not really matter as pfn_pxx()
-+	 * helpers will still create appropriate entries for the test. This
-+	 * helps avoid large memory block allocations to be used for mapping
-+	 * at higher page table levels.
-+	 */
-+	paddr = __pa(&start_kernel);
+ 	/*
+ 	 * Ensure that
+ 	 * 1) PDE's ->release hook will be called no matter what
+@@ -386,6 +462,17 @@ static int proc_reg_release(struct inode
+ {
+ 	struct proc_dir_entry *pde = PDE(inode);
+ 	struct pde_opener *pdeo;
 +
-+	pte_aligned = (paddr & PAGE_MASK) >> PAGE_SHIFT;
-+	pmd_aligned = (paddr & PMD_MASK) >> PAGE_SHIFT;
-+	pud_aligned = (paddr & PUD_MASK) >> PAGE_SHIFT;
-+	p4d_aligned = (paddr & P4D_MASK) >> PAGE_SHIFT;
-+	pgd_aligned = (paddr & PGDIR_MASK) >> PAGE_SHIFT;
-+	WARN_ON(!pfn_valid(pte_aligned));
++	if (pde_is_permanent(pde)) {
++		typeof_member(struct proc_ops, proc_release) release;
 +
-+	pgdp = pgd_offset(mm, vaddr);
-+	p4dp = p4d_alloc(mm, pgdp, vaddr);
-+	pudp = pud_alloc(mm, p4dp, vaddr);
-+	pmdp = pmd_alloc(mm, pudp, vaddr);
-+	ptep = pte_alloc_map(mm, pmdp, vaddr);
++		release = pde->proc_ops->proc_release;
++		if (release) {
++			return release(inode, file);
++		}
++		return 0;
++	}
 +
-+	/*
-+	 * Save all the page table page addresses as the page table
-+	 * entries will be used for testing with random or garbage
-+	 * values. These saved addresses will be used for freeing
-+	 * page table pages.
-+	 */
-+	pmd = READ_ONCE(*pmdp);
-+	saved_p4dp = p4d_offset(pgdp, 0UL);
-+	saved_pudp = pud_offset(p4dp, 0UL);
-+	saved_pmdp = pmd_offset(pudp, 0UL);
-+	saved_ptep = pmd_pgtable(pmd);
-+
-+	pte_basic_tests(pte_aligned, prot);
-+	pmd_basic_tests(pmd_aligned, prot);
-+	pud_basic_tests(pud_aligned, prot);
-+	p4d_basic_tests(p4d_aligned, prot);
-+	pgd_basic_tests(pgd_aligned, prot);
-+
-+	pte_clear_tests(mm, ptep);
-+	pmd_clear_tests(mm, pmdp);
-+	pud_clear_tests(mm, pudp);
-+	p4d_clear_tests(mm, p4dp);
-+	pgd_clear_tests(mm, pgdp);
-+
-+	pte_unmap(ptep);
-+
-+	pmd_populate_tests(mm, pmdp, saved_ptep);
-+	pud_populate_tests(mm, pudp, saved_pmdp);
-+	p4d_populate_tests(mm, p4dp, saved_pudp);
-+	pgd_populate_tests(mm, pgdp, saved_p4dp);
-+
-+	p4d_free(mm, saved_p4dp);
-+	pud_free(mm, saved_pudp);
-+	pmd_free(mm, saved_pmdp);
-+	pte_free(mm, saved_ptep);
-+
-+	mm_dec_nr_puds(mm);
-+	mm_dec_nr_pmds(mm);
-+	mm_dec_nr_ptes(mm);
-+	mmdrop(mm);
+ 	spin_lock(&pde->pde_unload_lock);
+ 	list_for_each_entry(pdeo, &pde->pde_openers, lh) {
+ 		if (pdeo->file == file) {
+--- a/fs/proc/internal.h~proc-faster-open-read-close-with-permanent-files
++++ a/fs/proc/internal.h
+@@ -61,6 +61,7 @@ struct proc_dir_entry {
+ 	struct rb_node subdir_node;
+ 	char *name;
+ 	umode_t mode;
++	u8 flags;
+ 	u8 namelen;
+ 	char inline_name[];
+ } __randomize_layout;
+@@ -73,6 +74,11 @@ struct proc_dir_entry {
+ 	0)
+ #define SIZEOF_PDE_INLINE_NAME (SIZEOF_PDE - sizeof(struct proc_dir_entry))
+ 
++static inline bool pde_is_permanent(const struct proc_dir_entry *pde)
++{
++	return pde->flags & PROC_ENTRY_PERMANENT;
 +}
---- a/mm/Makefile~mm-debug-add-tests-validating-architecture-page-table-helpers
-+++ a/mm/Makefile
-@@ -87,6 +87,7 @@ obj-$(CONFIG_HWPOISON_INJECT) += hwpoiso
- obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
- obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
- obj-$(CONFIG_DEBUG_RODATA_TEST) += rodata_test.o
-+obj-$(CONFIG_DEBUG_VM_PGTABLE) += debug_vm_pgtable.o
- obj-$(CONFIG_PAGE_OWNER) += page_owner.o
- obj-$(CONFIG_CLEANCACHE) += cleancache.o
- obj-$(CONFIG_MEMORY_ISOLATION) += page_isolation.o
++
+ extern struct kmem_cache *proc_dir_entry_cache;
+ void pde_free(struct proc_dir_entry *pde);
+ 
+--- a/fs/proc/kmsg.c~proc-faster-open-read-close-with-permanent-files
++++ a/fs/proc/kmsg.c
+@@ -50,6 +50,7 @@ static __poll_t kmsg_poll(struct file *f
+ 
+ 
+ static const struct proc_ops kmsg_proc_ops = {
++	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_read	= kmsg_read,
+ 	.proc_poll	= kmsg_poll,
+ 	.proc_open	= kmsg_open,
+--- a/fs/proc/stat.c~proc-faster-open-read-close-with-permanent-files
++++ a/fs/proc/stat.c
+@@ -224,6 +224,7 @@ static int stat_open(struct inode *inode
+ }
+ 
+ static const struct proc_ops stat_proc_ops = {
++	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_open	= stat_open,
+ 	.proc_read	= seq_read,
+ 	.proc_lseek	= seq_lseek,
+--- a/include/linux/proc_fs.h~proc-faster-open-read-close-with-permanent-files
++++ a/include/linux/proc_fs.h
+@@ -5,6 +5,7 @@
+ #ifndef _LINUX_PROC_FS_H
+ #define _LINUX_PROC_FS_H
+ 
++#include <linux/compiler.h>
+ #include <linux/types.h>
+ #include <linux/fs.h>
+ 
+@@ -12,7 +13,21 @@ struct proc_dir_entry;
+ struct seq_file;
+ struct seq_operations;
+ 
++enum {
++	/*
++	 * All /proc entries using this ->proc_ops instance are never removed.
++	 *
++	 * If in doubt, ignore this flag.
++	 */
++#ifdef MODULE
++	PROC_ENTRY_PERMANENT = 0U,
++#else
++	PROC_ENTRY_PERMANENT = 1U << 0,
++#endif
++};
++
+ struct proc_ops {
++	unsigned int proc_flags;
+ 	int	(*proc_open)(struct inode *, struct file *);
+ 	ssize_t	(*proc_read)(struct file *, char __user *, size_t, loff_t *);
+ 	ssize_t	(*proc_write)(struct file *, const char __user *, size_t, loff_t *);
+@@ -25,7 +40,7 @@ struct proc_ops {
+ #endif
+ 	int	(*proc_mmap)(struct file *, struct vm_area_struct *);
+ 	unsigned long (*proc_get_unmapped_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
+-};
++} __randomize_layout;
+ 
+ #ifdef CONFIG_PROC_FS
+ 
+--- a/ipc/util.c~proc-faster-open-read-close-with-permanent-files
++++ a/ipc/util.c
+@@ -885,6 +885,7 @@ static int sysvipc_proc_release(struct i
+ }
+ 
+ static const struct proc_ops sysvipc_proc_ops = {
++	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_open	= sysvipc_proc_open,
+ 	.proc_read	= seq_read,
+ 	.proc_lseek	= seq_lseek,
+--- a/kernel/module.c~proc-faster-open-read-close-with-permanent-files
++++ a/kernel/module.c
+@@ -4355,6 +4355,7 @@ static int modules_open(struct inode *in
+ }
+ 
+ static const struct proc_ops modules_proc_ops = {
++	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_open	= modules_open,
+ 	.proc_read	= seq_read,
+ 	.proc_lseek	= seq_lseek,
+--- a/mm/slab_common.c~proc-faster-open-read-close-with-permanent-files
++++ a/mm/slab_common.c
+@@ -1581,6 +1581,7 @@ static int slabinfo_open(struct inode *i
+ }
+ 
+ static const struct proc_ops slabinfo_proc_ops = {
++	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_open	= slabinfo_open,
+ 	.proc_read	= seq_read,
+ 	.proc_write	= slabinfo_write,
+--- a/mm/swapfile.c~proc-faster-open-read-close-with-permanent-files
++++ a/mm/swapfile.c
+@@ -2797,6 +2797,7 @@ static int swaps_open(struct inode *inod
+ }
+ 
+ static const struct proc_ops swaps_proc_ops = {
++	.proc_flags	= PROC_ENTRY_PERMANENT,
+ 	.proc_open	= swaps_open,
+ 	.proc_read	= seq_read,
+ 	.proc_lseek	= seq_lseek,
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+ramfs-support-o_tmpfile.patch
+proc-faster-open-read-close-with-permanent-files.patch
+elf-delete-loc-variable.patch
+elf-allocate-less-for-static-executable.patch
+elf-dont-free-interpreters-elf-pheaders-on-common-path.patch
