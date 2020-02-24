@@ -1,144 +1,110 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- revert-ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch
- removed from -mm tree
-Date: Sun, 23 Feb 2020 16:44:36 -0800
-Message-ID: <20200224004436.p9bu0Gm7V%akpm__32621.852115129$1582505085$gmane$org@linux-foundation.org>
+ selftests-vm-add-missed-tests-in-run_vmtests.patch removed from -mm tree
+Date: Sun, 23 Feb 2020 16:44:42 -0800
+Message-ID: <20200224004442.O32f1WarJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39868 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39952 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727151AbgBXAoi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 23 Feb 2020 19:44:38 -0500
+        id S1727151AbgBXAon (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 23 Feb 2020 19:44:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, catalin.marinas@arm.com, dave@stgolabs.net, herton@redhat.com, ioanna-maria.alifieraki@canonical.com, jay.vosburgh@canonical.com, joel@joelfernandes.org, malat@debian.org, manfred@colorfullife.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: mhiramat@kernel.org, mm-commits@vger.kernel.org, shuah@kernel.org, sjpark@amazon.de, urezki@gmail.com
 
 
 The patch titled
-     Subject: Revert "ipc,sem: remove uneeded sem_undo_list lock usage in exit_sem()"
+     Subject: selftests/vm: add missed tests in run_vmtests
 has been removed from the -mm tree.  Its filename was
-     revert-ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch
+     selftests-vm-add-missed-tests-in-run_vmtests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ioanna Alifieraki <ioanna-maria.alifieraki@canonical.com>
-Subject: Revert "ipc,sem: remove uneeded sem_undo_list lock usage in exit_sem()"
+From: SeongJae Park <sjpark@amazon.de>
+Subject: selftests/vm: add missed tests in run_vmtests
 
-This reverts commit a97955844807e327df11aa33869009d14d6b7de0.
+The commits introducing 'mlock-random-test'[1], 'map_fiex_noreplace'[2],
+and 'thuge-gen'[3] have not added those in the 'run_vmtests' script and
+thus the 'run_tests' command of kselftests doesn't run those.  This commit
+adds those in the script.
 
-Commit a97955844807 ("ipc,sem: remove uneeded sem_undo_list lock usage in
-exit_sem()") removes a lock that is needed.  This leads to a process
-looping infinitely in exit_sem() and can also lead to a crash.  There is a
-reproducer available in [1] and with the commit reverted the issue does
-not reproduce anymore.
+'gup_benchmark' and 'transhuge-stress' are also not included in the
+'run_vmtests', but this commit does not add those because those are for
+performance measurement rather than pass/fail tests.
 
-Using the reproducer found in [1] is fairly easy to reach a point where
-one of the child processes is looping infinitely in exit_sem between
-for(;;) and if (semid == -1) block, while it's trying to free its last
-sem_undo structure which has already been freed by freeary().
+[1] commit 26b4224d9961 ("selftests: expanding more mlock selftest")
+[2] commit 91cbacc34512 ("tools/testing/selftests/vm/map_fixed_noreplace.c: add test for MAP_FIXED_NOREPLACE")
+[3] commit fcc1f2d5dd34 ("selftests: add a test program for variable huge page sizes in mmap/shmget")
 
-Each sem_undo struct is on two lists: one per semaphore set (list_id) and
-one per process (list_proc).  The list_id list tracks undos by semaphore
-set, and the list_proc by process.
-
-Undo structures are removed either by freeary() or by exit_sem().  The
-freeary function is invoked when the user invokes a syscall to remove a
-semaphore set.  During this operation freeary() traverses the list_id
-associated with the semaphore set and removes the undo structures from
-both the list_id and list_proc lists.
-
-For this case, exit_sem() is called at process exit.  Each process
-contains a struct sem_undo_list (referred to as "ulp") which contains the
-head for the list_proc list.  When the process exits, exit_sem() traverses
-this list to remove each sem_undo struct.  As in freeary(), whenever a
-sem_undo struct is removed from list_proc, it is also removed from the
-list_id list.
-
-Removing elements from list_id is safe for both exit_sem() and freeary()
-due to sem_lock().  Removing elements from list_proc is not safe;
-freeary() locks &un->ulp->lock when it performs
-list_del_rcu(&un->list_proc) but exit_sem() does not (locking was removed
-by commit a97955844807 ("ipc,sem: remove uneeded sem_undo_list lock usage
-in exit_sem()").
-
-This can result in the following situation while executing the reproducer
-[1] : Consider a child process in exit_sem() and the parent in freeary()
-(because of semctl(sid[i], NSEM, IPC_RMID)).  The list_proc for the child
-contains the last two undo structs A and B (the rest have been removed
-either by exit_sem() or freeary()).  The semid for A is 1 and semid for B
-is 2.  exit_sem() removes A and at the same time freeary() removes B. 
-Since A and B have different semid sem_lock() will acquire different locks
-for each process and both can proceed.  The bug is that they remove A and
-B from the same list_proc at the same time because only freeary() acquires
-the ulp lock.  When exit_sem() removes A it makes ulp->list_proc.next to
-point at B and at the same time freeary() removes B setting B->semid=-1. 
-At the next iteration of for(;;) loop exit_sem() will try to remove B. 
-The only way to break from for(;;) is for (&un->list_proc ==
-&ulp->list_proc) to be true which is not.  Then exit_sem() will check if
-B->semid=-1 which is and will continue looping in for(;;) until the memory
-for B is reallocated and the value at B->semid is changed.  At that point,
-exit_sem() will crash attempting to unlink B from the lists (this can be
-easily triggered by running the reproducer [1] a second time).
-
-To prove this scenario instrumentation was added to keep information about
-each sem_undo (un) struct that is removed per process and per semaphore
-set (sma).
-
-        CPU0                                CPU1
-[caller holds sem_lock(sma for A)]      ...
-freeary()                               exit_sem()
-...                                     ...
-...                                     sem_lock(sma for B)
-spin_lock(A->ulp->lock)                 ...
-list_del_rcu(un_A->list_proc)           list_del_rcu(un_B->list_proc)
-
-Undo structures A and B have different semid and sem_lock() operations
-proceed.  However they belong to the same list_proc list and they are
-removed at the same time.  This results into ulp->list_proc.next pointing
-to the address of B which is already removed.
-
-After reverting commit a97955844807 ("ipc,sem: remove uneeded
-sem_undo_list lock usage in exit_sem()") the issue was no longer
-reproducible.
-
-[1] https://bugzilla.redhat.com/show_bug.cgi?id=1694779
-
-Link: http://lkml.kernel.org/r/20191211191318.11860-1-ioanna-maria.alifieraki@canonical.com
-Fixes: a97955844807 ("ipc,sem: remove uneeded sem_undo_list lock usage in exit_sem()")
-Signed-off-by: Ioanna Alifieraki <ioanna-maria.alifieraki@canonical.com>
-Acked-by: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: Herton R. Krzesinski <herton@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: <malat@debian.org>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Jay Vosburgh <jay.vosburgh@canonical.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200206085144.29126-1-sj38.park@gmail.com
+Signed-off-by: SeongJae Park <sjpark@amazon.de>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ tools/testing/selftests/vm/run_vmtests |   33 +++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
---- a/ipc/sem.c~revert-ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem
-+++ a/ipc/sem.c
-@@ -2384,11 +2384,9 @@ void exit_sem(struct task_struct *tsk)
- 		ipc_assert_locked_object(&sma->sem_perm);
- 		list_del(&un->list_id);
+--- a/tools/testing/selftests/vm/run_vmtests~selftests-vm-add-missed-tests-in-run_vmtests
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -112,6 +112,17 @@ echo "NOTE: The above hugetlb tests prov
+ echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
+ echo "      hugetlb regression testing."
  
--		/* we are the last process using this ulp, acquiring ulp->lock
--		 * isn't required. Besides that, we are also protected against
--		 * IPC_RMID as we hold sma->sem_perm lock now
--		 */
-+		spin_lock(&ulp->lock);
- 		list_del_rcu(&un->list_proc);
-+		spin_unlock(&ulp->lock);
++echo "---------------------------"
++echo "running map_fixed_noreplace"
++echo "---------------------------"
++./map_fixed_noreplace
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
+ echo "-------------------"
+ echo "running userfaultfd"
+ echo "-------------------"
+@@ -186,6 +197,17 @@ else
+ 	echo "[PASS]"
+ fi
  
- 		/* perform adjustments registered in un */
- 		for (i = 0; i < sma->sem_nsems; i++) {
++echo "-------------------------"
++echo "running mlock-random-test"
++echo "-------------------------"
++./mlock-random-test
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
+ echo "--------------------"
+ echo "running mlock2-tests"
+ echo "--------------------"
+@@ -193,6 +215,17 @@ echo "--------------------"
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
++else
++	echo "[PASS]"
++fi
++
++echo "-----------------"
++echo "running thuge-gen"
++echo "-----------------"
++./thuge-gen
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
+ else
+ 	echo "[PASS]"
+ fi
 _
 
-Patches currently in -mm which might be from ioanna-maria.alifieraki@canonical.com are
+Patches currently in -mm which might be from sjpark@amazon.de are
