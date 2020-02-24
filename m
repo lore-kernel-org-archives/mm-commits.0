@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- hugetlb-support-file_region-coalescing-again-fix-2.patch added to -mm tree
-Date: Sun, 23 Feb 2020 19:46:09 -0800
-Message-ID: <20200224034609.qlQcEJ0q9%akpm@linux-foundation.org>
+ fat-fix-uninit-memory-access-for-partial-initialized-inode.patch added to
+ -mm tree
+Date: Sun, 23 Feb 2020 19:53:13 -0800
+Message-ID: <20200224035313.g57L75EAv%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50912 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52340 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727267AbgBXDqL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 23 Feb 2020 22:46:11 -0500
+        id S1727166AbgBXDxQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 23 Feb 2020 22:53:16 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: almasrymina@google.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rientjes@google.com, shakeelb@google.com
+To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: remove check_coalesce_bug debug code
+     Subject: fat: fix uninit-memory access for partial initialized inode
 has been added to the -mm tree.  Its filename is
-     hugetlb-support-file_region-coalescing-again-fix-2.patch
+     fat-fix-uninit-memory-access-for-partial-initialized-inode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-support-file_region-coalescing-again-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fat-fix-uninit-memory-access-for-partial-initialized-inode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-support-file_region-coalescing-again-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fat-fix-uninit-memory-access-for-partial-initialized-inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,104 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mina Almasry <almasrymina@google.com>
-Subject: hugetlb: remove check_coalesce_bug debug code
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: fix uninit-memory access for partial initialized inode
 
-Commit b5f16a533ce8a ("hugetlb: support file_region coalescing again")
-made changes to the resv_map code which are hard to test, it so added
-debug code guarded by CONFIG_DEBUG_VM which conducts an expensive
-operation that loops over the resv_map and checks it for errors.
+When get an error in the middle of reading an inode, some fields in the
+inode might be still not initialized.  And then the evict_inode path may
+access those fields via iput().
 
-Unfortunately, some distros have CONFIG_DEBUG_VM on in their default
-kernels, and we don't want this debug code behind CONFIG_DEBUG_VM and
-called each time a file region is added.  This patch removes this debug
-code.  I may look into making it a test or leave it for my local testing.
+To fix, this makes sure that inode fields are initialized.
 
-Link: http://lkml.kernel.org/r/20200219233610.13808-1-almasrymina@google.com
-Fixes: b5f16a533ce8a ("hugetlb: support file_region coalescing again")
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: http://lkml.kernel.org/r/871rqnreqx.fsf@mail.parknet.co.jp
+Reported-by: syzbot+9d82b8de2992579da5d0@syzkaller.appspotmail.com
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   43 -------------------------------------------
- 1 file changed, 43 deletions(-)
+ fs/fat/inode.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-support-file_region-coalescing-again-fix-2
-+++ a/mm/hugetlb.c
-@@ -289,48 +289,6 @@ static bool has_same_uncharge_info(struc
- #endif
+--- a/fs/fat/inode.c~fat-fix-uninit-memory-access-for-partial-initialized-inode
++++ a/fs/fat/inode.c
+@@ -750,6 +750,13 @@ static struct inode *fat_alloc_inode(str
+ 		return NULL;
+ 
+ 	init_rwsem(&ei->truncate_lock);
++	/* Zeroing to allow iput() even if partial initialized inode. */
++	ei->mmu_private = 0;
++	ei->i_start = 0;
++	ei->i_logstart = 0;
++	ei->i_attrs = 0;
++	ei->i_pos = 0;
++
+ 	return &ei->vfs_inode;
  }
  
--#if defined(CONFIG_DEBUG_VM) && defined(CONFIG_CGROUP_HUGETLB)
--static void dump_resv_map(struct resv_map *resv)
--{
--	struct list_head *head = &resv->regions;
--	struct file_region *rg = NULL;
--
--	pr_err("--------- start print resv_map ---------\n");
--	list_for_each_entry(rg, head, link) {
--		pr_err("rg->from=%ld, rg->to=%ld, rg->reservation_counter=%px, rg->css=%px\n",
--		       rg->from, rg->to, rg->reservation_counter, rg->css);
--	}
--	pr_err("--------- end print resv_map ---------\n");
--}
--
--/* Debug function to loop over the resv_map and make sure that coalescing is
-- * working.
-- */
--static void check_coalesce_bug(struct resv_map *resv)
--{
--	struct list_head *head = &resv->regions;
--	struct file_region *rg = NULL, *nrg = NULL;
--
--	list_for_each_entry(rg, head, link) {
--		nrg = list_next_entry(rg, link);
--
--		if (&nrg->link == head)
--			break;
--
--		if (nrg->reservation_counter && nrg->from == rg->to &&
--		    nrg->reservation_counter == rg->reservation_counter &&
--		    nrg->css == rg->css) {
--			dump_resv_map(resv);
--			VM_BUG_ON(true);
--		}
--	}
--}
--#else
--static void check_coalesce_bug(struct resv_map *resv)
--{
--}
--#endif
--
- static void coalesce_file_region(struct resv_map *resv, struct file_region *rg)
- {
- 	struct file_region *nrg = NULL, *prg = NULL;
-@@ -435,7 +393,6 @@ static long add_reservation_in_range(str
- 	}
- 
- 	VM_BUG_ON(add < 0);
--	check_coalesce_bug(resv);
- 	return add;
+@@ -1374,16 +1381,6 @@ out:
+ 	return 0;
  }
  
-_
-
-Patches currently in -mm which might be from almasrymina@google.com are
-
-hugetlb_cgroup-add-hugetlb_cgroup-reservation-counter.patch
-hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations.patch
-mm-hugetlb_cgroup-fix-hugetlb_cgroup-migration.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings.patch
-hugetlb-disable-region_add-file_region-coalescing.patch
-hugetlb-disable-region_add-file_region-coalescing-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings.patch
-hugetlb_cgroup-support-noreserve-mappings.patch
-hugetlb-support-file_region-coalescing-again.patch
-hugetlb-support-file_region-coalescing-again-fix.patch
-hugetlb-support-file_region-coalescing-again-fix-2.patch
-hugetlb_cgroup-add-hugetlb_cgroup-reservation-tests.patch
-hugetlb_cgroup-add-hugetlb_cgroup-reservation-docs.patch
+-static void fat_dummy_inode_init(struct inode *inode)
+-{
+-	/* Initialize this dummy inode to work as no-op. */
+-	MSDOS_I(inode)->mmu_private = 0;
+-	MSDOS_I(inode)->i_start = 0;
+-	MSDOS_I(inode)->i_logstart = 0;
+-	MSDOS_I(inode)->i_attrs = 0;
+-	MSDOS_I(inode)->i_pos = 0;
+-}
