@@ -1,110 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- selftests-vm-add-missed-tests-in-run_vmtests.patch removed from -mm tree
-Date: Sun, 23 Feb 2020 16:44:42 -0800
-Message-ID: <20200224004442.O32f1WarJ%akpm@linux-foundation.org>
+ get_maintainer-remove-uses-of-p-for-maintainer-name.patch removed from -mm
+ tree
+Date: Sun, 23 Feb 2020 16:44:44 -0800
+Message-ID: <20200224004444.uew9jOwSI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39952 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727151AbgBXAon (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 23 Feb 2020 19:44:43 -0500
+        id S1727151AbgBXAoq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 23 Feb 2020 19:44:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhiramat@kernel.org, mm-commits@vger.kernel.org, shuah@kernel.org, sjpark@amazon.de, urezki@gmail.com
+To: corbet@lwn.net, dan.j.william@intel.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: add missed tests in run_vmtests
+     Subject: get_maintainer: remove uses of P: for maintainer name
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-add-missed-tests-in-run_vmtests.patch
+     get_maintainer-remove-uses-of-p-for-maintainer-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: SeongJae Park <sjpark@amazon.de>
-Subject: selftests/vm: add missed tests in run_vmtests
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer: remove uses of P: for maintainer name
 
-The commits introducing 'mlock-random-test'[1], 'map_fiex_noreplace'[2],
-and 'thuge-gen'[3] have not added those in the 'run_vmtests' script and
-thus the 'run_tests' command of kselftests doesn't run those.  This commit
-adds those in the script.
+commit 1ca84ed6425f ("MAINTAINERS: Reclaim the P: tag for Maintainer Entry
+Profile") changed the use of the "P:" tag from "Person" to "Profile (ie:
+special subsystem coding styles and characteristics)"
 
-'gup_benchmark' and 'transhuge-stress' are also not included in the
-'run_vmtests', but this commit does not add those because those are for
-performance measurement rather than pass/fail tests.
+Change how get_maintainer.pl parses the "P:" tag to match.
 
-[1] commit 26b4224d9961 ("selftests: expanding more mlock selftest")
-[2] commit 91cbacc34512 ("tools/testing/selftests/vm/map_fixed_noreplace.c: add test for MAP_FIXED_NOREPLACE")
-[3] commit fcc1f2d5dd34 ("selftests: add a test program for variable huge page sizes in mmap/shmget")
-
-Link: http://lkml.kernel.org/r/20200206085144.29126-1-sj38.park@gmail.com
-Signed-off-by: SeongJae Park <sjpark@amazon.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: http://lkml.kernel.org/r/ca53823fc5d25c0be32ad937d0207a0589c08643.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Dan Williams <dan.j.william@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/run_vmtests |   33 +++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ scripts/get_maintainer.pl |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
---- a/tools/testing/selftests/vm/run_vmtests~selftests-vm-add-missed-tests-in-run_vmtests
-+++ a/tools/testing/selftests/vm/run_vmtests
-@@ -112,6 +112,17 @@ echo "NOTE: The above hugetlb tests prov
- echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
- echo "      hugetlb regression testing."
- 
-+echo "---------------------------"
-+echo "running map_fixed_noreplace"
-+echo "---------------------------"
-+./map_fixed_noreplace
-+if [ $? -ne 0 ]; then
-+	echo "[FAIL]"
-+	exitcode=1
-+else
-+	echo "[PASS]"
-+fi
-+
- echo "-------------------"
- echo "running userfaultfd"
- echo "-------------------"
-@@ -186,6 +197,17 @@ else
- 	echo "[PASS]"
- fi
- 
-+echo "-------------------------"
-+echo "running mlock-random-test"
-+echo "-------------------------"
-+./mlock-random-test
-+if [ $? -ne 0 ]; then
-+	echo "[FAIL]"
-+	exitcode=1
-+else
-+	echo "[PASS]"
-+fi
-+
- echo "--------------------"
- echo "running mlock2-tests"
- echo "--------------------"
-@@ -193,6 +215,17 @@ echo "--------------------"
- if [ $? -ne 0 ]; then
- 	echo "[FAIL]"
- 	exitcode=1
-+else
-+	echo "[PASS]"
-+fi
-+
-+echo "-----------------"
-+echo "running thuge-gen"
-+echo "-----------------"
-+./thuge-gen
-+if [ $? -ne 0 ]; then
-+	echo "[FAIL]"
-+	exitcode=1
- else
- 	echo "[PASS]"
- fi
+--- a/scripts/get_maintainer.pl~get_maintainer-remove-uses-of-p-for-maintainer-name
++++ a/scripts/get_maintainer.pl
+@@ -1341,35 +1341,11 @@ sub add_categories {
+ 		    }
+ 		}
+ 	    } elsif ($ptype eq "M") {
+-		my ($name, $address) = parse_email($pvalue);
+-		if ($name eq "") {
+-		    if ($i > 0) {
+-			my $tv = $typevalue[$i - 1];
+-			if ($tv =~ m/^([A-Z]):\s*(.*)/) {
+-			    if ($1 eq "P") {
+-				$name = $2;
+-				$pvalue = format_email($name, $address, $email_usename);
+-			    }
+-			}
+-		    }
+-		}
+ 		if ($email_maintainer) {
+ 		    my $role = get_maintainer_role($i);
+ 		    push_email_addresses($pvalue, $role);
+ 		}
+ 	    } elsif ($ptype eq "R") {
+-		my ($name, $address) = parse_email($pvalue);
+-		if ($name eq "") {
+-		    if ($i > 0) {
+-			my $tv = $typevalue[$i - 1];
+-			if ($tv =~ m/^([A-Z]):\s*(.*)/) {
+-			    if ($1 eq "P") {
+-				$name = $2;
+-				$pvalue = format_email($name, $address, $email_usename);
+-			    }
+-			}
+-		    }
+-		}
+ 		if ($email_reviewer) {
+ 		    my $subsystem = get_subsystem_name($i);
+ 		    push_email_addresses($pvalue, "reviewer:$subsystem");
 _
 
-Patches currently in -mm which might be from sjpark@amazon.de are
+Patches currently in -mm which might be from joe@perches.com are
+
+string-add-stracpy-and-stracpy_pad-mechanisms.patch
+checkpatch-remove-email-address-comment-from-email-address-comparisons.patch
+checkpatch-prefer-fallthrough-over-fallthrough-comments.patch
