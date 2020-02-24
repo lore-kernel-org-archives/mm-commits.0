@@ -1,98 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- y2038-hide-timeval-timespec-itimerval-itimerspec-types.patch removed from
+ uapi-fix-userspace-breakage-use-__bits_per_long-for-swap.patch removed from
  -mm tree
-Date: Sun, 23 Feb 2020 16:44:34 -0800
-Message-ID: <20200224004434.tC4GEafPn%akpm@linux-foundation.org>
+Date: Sun, 23 Feb 2020 16:44:39 -0800
+Message-ID: <20200224004439.bHVP4r5U5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39842 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39916 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727151AbgBXAof (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 23 Feb 2020 19:44:35 -0500
+        id S1727151AbgBXAok (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 23 Feb 2020 19:44:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, deepa.kernel@gmail.com, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: allison@lohutok.net, borntraeger@de.ibm.com, joe@perches.com, mm-commits@vger.kernel.org, tglx@linutronix.de, torsten.hilbrich@secunet.com, vilhelm.gray@gmail.com, yury.norov@gmail.com
 
 
 The patch titled
-     Subject: y2038: hide timeval/timespec/itimerval/itimerspec types
+     Subject: include/uapi/linux/swab.h: fix userspace breakage, use __BITS_PER_LONG for swap
 has been removed from the -mm tree.  Its filename was
-     y2038-hide-timeval-timespec-itimerval-itimerspec-types.patch
+     uapi-fix-userspace-breakage-use-__bits_per_long-for-swap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: y2038: hide timeval/timespec/itimerval/itimerspec types
+From: Christian Borntraeger <borntraeger@de.ibm.com>
+Subject: include/uapi/linux/swab.h: fix userspace breakage, use __BITS_PER_LONG for swap
 
-There are no in-kernel users remaining, but there may still be users that
-include linux/time.h instead of sys/time.h from user space, so leave the
-types available to user space while hiding them from kernel space.
+QEMU has a funny new build error message when I use the upstream kernel
+headers:
 
-Only the __kernel_old_* versions of these types remain now.
+  CC      block/file-posix.o
+In file included from /home/cborntra/REPOS/qemu/include/qemu/timer.h:4,
+                 from /home/cborntra/REPOS/qemu/include/qemu/timed-average.h:29,
+                 from /home/cborntra/REPOS/qemu/include/block/accounting.h:28,
+                 from /home/cborntra/REPOS/qemu/include/block/block_int.h:27,
+                 from /home/cborntra/REPOS/qemu/block/file-posix.c:30:
+/usr/include/linux/swab.h: In function `__swab':
+/home/cborntra/REPOS/qemu/include/qemu/bitops.h:20:34: error: "sizeof" is not defined, evaluates to 0 [-Werror=undef]
+   20 | #define BITS_PER_LONG           (sizeof (unsigned long) * BITS_PER_BYTE)
+      |                                  ^~~~~~
+/home/cborntra/REPOS/qemu/include/qemu/bitops.h:20:41: error: missing binary operator before token "("
+   20 | #define BITS_PER_LONG           (sizeof (unsigned long) * BITS_PER_BYTE)
+      |                                         ^
+cc1: all warnings being treated as errors
+make: *** [/home/cborntra/REPOS/qemu/rules.mak:69: block/file-posix.o] Error 1
+rm tests/qemu-iotests/socket_scm_helper.o
 
-Link: http://lkml.kernel.org/r/20200110154232.4104492-4-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Deepa Dinamani <deepa.kernel@gmail.com>
+This was triggered by commit d5767057c9a ("uapi: rename ext2_swab() to swab() and share globally in swab.h")
+This patch is doing
++#include <asm/bitsperlong.h>
+but it uses BITS_PER_LONG.
+
+The kernel file asm/bitsperlong.h provide only __BITS_PER_LONG.
+
+Let us use the __ variant in swap.h
+
+Link: http://lkml.kernel.org/r/20200213142147.17604-1-borntraeger@de.ibm.com
+Fixes: d5767057c9a ("uapi: rename ext2_swab() to swab() and share globally in swab.h")
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Yury Norov <yury.norov@gmail.com>
+Cc: Allison Randal <allison@lohutok.net>
+Cc: Joe Perches <joe@perches.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: William Breathitt Gray <vilhelm.gray@gmail.com>
+Cc: Torsten Hilbrich <torsten.hilbrich@secunet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/asm-generic/posix_types.h |    2 ++
- include/uapi/linux/time.h              |   22 ++++++++++++----------
- 2 files changed, 14 insertions(+), 10 deletions(-)
+ include/uapi/linux/swab.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/uapi/asm-generic/posix_types.h~y2038-hide-timeval-timespec-itimerval-itimerspec-types
-+++ a/include/uapi/asm-generic/posix_types.h
-@@ -87,7 +87,9 @@ typedef struct {
- typedef __kernel_long_t	__kernel_off_t;
- typedef long long	__kernel_loff_t;
- typedef __kernel_long_t	__kernel_old_time_t;
-+#ifndef __KERNEL__
- typedef __kernel_long_t	__kernel_time_t;
-+#endif
- typedef long long __kernel_time64_t;
- typedef __kernel_long_t	__kernel_clock_t;
- typedef int		__kernel_timer_t;
---- a/include/uapi/linux/time.h~y2038-hide-timeval-timespec-itimerval-itimerspec-types
-+++ a/include/uapi/linux/time.h
-@@ -5,6 +5,7 @@
- #include <linux/types.h>
- #include <linux/time_types.h>
+--- a/include/uapi/linux/swab.h~uapi-fix-userspace-breakage-use-__bits_per_long-for-swap
++++ a/include/uapi/linux/swab.h
+@@ -135,9 +135,9 @@ static inline __attribute_const__ __u32
  
-+#ifndef __KERNEL__
- #ifndef _STRUCT_TIMESPEC
- #define _STRUCT_TIMESPEC
- struct timespec {
-@@ -18,6 +19,17 @@ struct timeval {
- 	__kernel_suseconds_t	tv_usec;	/* microseconds */
- };
- 
-+struct itimerspec {
-+	struct timespec it_interval;/* timer period */
-+	struct timespec it_value;	/* timer expiration */
-+};
-+
-+struct itimerval {
-+	struct timeval it_interval;/* timer interval */
-+	struct timeval it_value;	/* current value */
-+};
-+#endif
-+
- struct timezone {
- 	int	tz_minuteswest;	/* minutes west of Greenwich */
- 	int	tz_dsttime;	/* type of dst correction */
-@@ -31,16 +43,6 @@ struct timezone {
- #define	ITIMER_VIRTUAL		1
- #define	ITIMER_PROF		2
- 
--struct itimerspec {
--	struct timespec it_interval;	/* timer period */
--	struct timespec it_value;	/* timer expiration */
--};
--
--struct itimerval {
--	struct timeval it_interval;	/* timer interval */
--	struct timeval it_value;	/* current value */
--};
+ static __always_inline unsigned long __swab(const unsigned long y)
+ {
+-#if BITS_PER_LONG == 64
++#if __BITS_PER_LONG == 64
+ 	return __swab64(y);
+-#else /* BITS_PER_LONG == 32 */
++#else /* __BITS_PER_LONG == 32 */
+ 	return __swab32(y);
+ #endif
+ }
+_
+
+Patches currently in -mm which might be from borntraeger@de.ibm.com are
