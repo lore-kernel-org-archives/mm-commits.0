@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + seq_read-info-message-about-buggy-next-functions.patch
- added to -mm tree
-Date: Tue, 25 Feb 2020 19:56:21 -0800
-Message-ID: <20200226035621.4NlNn738T%akpm@linux-foundation.org>
+Subject: +
+ pstore_ftrace_seq_next-should-increase-position-index.patch added to -mm
+ tree
+Date: Tue, 25 Feb 2020 19:56:24 -0800
+Message-ID: <20200226035624.7OWMYBNf-%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41028 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41080 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725788AbgBZD4Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 25 Feb 2020 22:56:24 -0500
+        id S1725788AbgBZD41 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 25 Feb 2020 22:56:27 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +18,14 @@ To: dave@stgolabs.net, longman@redhat.com, manfred@colorfullife.com, mingo@redha
 
 
 The patch titled
-     Subject: fs/seq_file.c: seq_read(): add info message about buggy .next functions
+     Subject: fs/pstore: pstore_ftrace_seq_next() should increase position index
 has been added to the -mm tree.  Its filename is
-     seq_read-info-message-about-buggy-next-functions.patch
+     pstore_ftrace_seq_next-should-increase-position-index.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/seq_read-info-message-about-buggy-next-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pstore_ftrace_seq_next-should-increase-position-index.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/seq_read-info-message-about-buggy-next-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pstore_ftrace_seq_next-should-increase-position-index.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,89 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: fs/seq_file.c: seq_read(): add info message about buggy .next functions
+Subject: fs/pstore: pstore_ftrace_seq_next() should increase position index
 
-Patch series "seq_file .next functions should increase position index".
-
-In Aug 2018 NeilBrown noticed commit 1f4aace60b0e ("fs/seq_file.c:
-simplify seq_file iteration code and interface")
-
-"Some ->next functions do not increment *pos when they return NULL... 
-Note that such ->next functions are buggy and should be fixed.  A simple
-demonstration is dd if=/proc/swaps bs=1000 skip=1 Choose any block size
-larger than the size of /proc/swaps.  This will always show the whole last
-line of /proc/swaps"
-
-Described problem is still actual.  If you make lseek into middle of last
-output line following read will output end of last line and whole last
-line once again.
-
-$ dd if=/proc/swaps bs=1  # usual output
-Filename				Type		Size	Used	Priority
-/dev/dm-0                               partition	4194812	97536	-2
-104+0 records in
-104+0 records out
-104 bytes copied
-
-$ dd if=/proc/swaps bs=40 skip=1    # last line was generated twice
-dd: /proc/swaps: cannot skip to specified offset
-v/dm-0                               partition	4194812	97536	-2
-/dev/dm-0                               partition	4194812	97536	-2 
-3+1 records in
-3+1 records out
-131 bytes copied
-
-There are lot of other affected files, I've found 30+ including
-/proc/net/ip_tables_matches and /proc/sysvipc/*
-
-I've sent patches into maillists of affected subsystems already, this
-patch-set fixes the problem in files related to pstore, tracing, gcov,
-sysvipc and other subsystems processed via linux-kernel@ mailing list
-directly
+If seq_file .next fuction does not change position index, read after some
+lseek can generate unexpected output.
 
 https://bugzilla.kernel.org/show_bug.cgi?id=206283
-
-
-This patch (of 4):
-
-Add debug code to seq_read() to detect missed or out-of-tree incorrect
-.next seq_file functions.
-
-https://bugzilla.kernel.org/show_bug.cgi?id=206283
-Link: http://lkml.kernel.org/r/244674e5-760c-86bd-d08a-047042881748@virtuozzo.com
-Link: http://lkml.kernel.org/r/7c24087c-e280-e580-5b0c-0cdaeb14cd18@virtuozzo.com
+Link: http://lkml.kernel.org/r/51376af5-e0f2-0ff2-d664-e932153b0665@virtuozzo.com
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Cc: NeilBrown <neilb@suse.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
 Cc: Waiman Long <longman@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: NeilBrown <neilb@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/pstore/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/seq_file.c~seq_read-info-message-about-buggy-next-functions
-+++ a/fs/seq_file.c
-@@ -256,9 +256,12 @@ Fill:
- 		loff_t pos = m->index;
+--- a/fs/pstore/inode.c~pstore_ftrace_seq_next-should-increase-position-index
++++ a/fs/pstore/inode.c
+@@ -87,11 +87,11 @@ static void *pstore_ftrace_seq_next(stru
+ 	struct pstore_private *ps = s->private;
+ 	struct pstore_ftrace_seq_data *data = v;
  
- 		p = m->op->next(m, p, &m->index);
--		if (pos == m->index)
--			/* Buggy ->next function */
-+		if (pos == m->index) {
-+			pr_info("buggy seq_file .next function %ps "
-+				"did not updated position index\n",
-+				m->op->next);
- 			m->index++;
-+		}
- 		if (!p || IS_ERR(p)) {
- 			err = PTR_ERR(p);
- 			break;
++	(*pos)++;
+ 	data->off += REC_SIZE;
+ 	if (data->off + REC_SIZE > ps->total_size)
+ 		return NULL;
+ 
+-	(*pos)++;
+ 	return data;
+ }
+ 
 _
 
 Patches currently in -mm which might be from vvs@virtuozzo.com are
