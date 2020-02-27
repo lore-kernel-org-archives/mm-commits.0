@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-add-missing-annotation-for-lock_page_lru.patch added to -mm
- tree
-Date: Thu, 27 Feb 2020 15:03:49 -0800
-Message-ID: <20200227230349.6xWWU8lsj%akpm@linux-foundation.org>
+ mm-compaction-add-missing-annotation-for-compact_lock_irqsave.patch added
+ to -mm tree
+Date: Thu, 27 Feb 2020 15:03:51 -0800
+Message-ID: <20200227230351.2YDFVW4gc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55494 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55512 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726845AbgB0XDu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 27 Feb 2020 18:03:50 -0500
+        id S1729738AbgB0XDw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 27 Feb 2020 18:03:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jbi.octave@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: add missing annotation for lock_page_lru()
+     Subject: mm/compaction: add missing annotation for compact_lock_irqsave
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-add-missing-annotation-for-lock_page_lru.patch
+     mm-compaction-add-missing-annotation-for-compact_lock_irqsave.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-add-missing-annotation-for-lock_page_lru.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-add-missing-annotation-for-compact_lock_irqsave.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-add-missing-annotation-for-lock_page_lru.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-add-missing-annotation-for-compact_lock_irqsave.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,33 +38,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jules Irenge <jbi.octave@gmail.com>
-Subject: mm/memcontrol: add missing annotation for lock_page_lru()
+Subject: mm/compaction: add missing annotation for compact_lock_irqsave
 
-Sparse reports warning at lock_page_lry()
+Sparse reports a warning at compact_lock_irqsave()
 
-warning: context imbalance in lock_page_lru() - wrong count at exit
+warning: context imbalance in compact_lock_irqsave() - wrong count at exit
 
-The root cause is the missing annotation at lock_page_lru()
-Add the missing __acquires(&pgdat->lru_lock)
+The root cause is the missing annotation at compact_lock_irqsave()
+Add the missing __acquires(lock) annotation.
 
-Link: http://lkml.kernel.org/r/20200214204741.94112-5-jbi.octave@gmail.com
-Signed-off-by: Jules Irenxxge <jbi.octave@gmail.com>
+Link: http://lkml.kernel.org/r/20200214204741.94112-6-jbi.octave@gmail.com
+Signed-off-by: Jules Irenge <jbi.octave@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
+ mm/compaction.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/mm/memcontrol.c~mm-memcontrol-add-missing-annotation-for-lock_page_lru
-+++ a/mm/memcontrol.c
-@@ -2572,6 +2572,7 @@ static void cancel_charge(struct mem_cgr
- }
- 
- static void lock_page_lru(struct page *page, int *isolated)
-+	__acquires(&pgdat->lru_lock)
+--- a/mm/compaction.c~mm-compaction-add-missing-annotation-for-compact_lock_irqsave
++++ a/mm/compaction.c
+@@ -481,6 +481,7 @@ static bool test_and_set_skip(struct com
+  */
+ static bool compact_lock_irqsave(spinlock_t *lock, unsigned long *flags,
+ 						struct compact_control *cc)
++	__acquires(lock)
  {
- 	pg_data_t *pgdat = page_pgdat(page);
- 
+ 	/* Track if the lock is contended in async mode */
+ 	if (cc->mode == MIGRATE_ASYNC && !cc->contended) {
 _
 
 Patches currently in -mm which might be from jbi.octave@gmail.com are
