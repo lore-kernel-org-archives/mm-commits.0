@@ -1,101 +1,53 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member.patch
- added to -mm tree
-Date: Wed, 26 Feb 2020 20:11:03 -0800
-Message-ID: <20200227041103.b3028mJYR%akpm@linux-foundation.org>
+Subject: Re: + dma-buf-free-dmabuf-name-in-dma_buf_release.patch added to
+ -mm tree
+Date: Wed, 26 Feb 2020 20:20:33 -0800
+Message-ID: <20200226202033.c3fccbaca353e110b1a3bf00@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
+        <20200226015504.7GW9ptoIA%akpm@linux-foundation.org>
+        <CAO_48GFr9-aY4=kRqWB=UkEzPj5fQDip+G1tNZMsT0XoQpBC7Q@mail.gmail.com>
+        <CAKMK7uGvixQ2xoQMt3pvt0OpNXDjDGTvSWsaAppsKrmO_EP3Kg@mail.gmail.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60752 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36174 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727735AbgB0ELF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 Feb 2020 23:11:05 -0500
-In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
+        id S1727735AbgB0EUg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 Feb 2020 23:20:36 -0500
+In-Reply-To: <CAKMK7uGvixQ2xoQMt3pvt0OpNXDjDGTvSWsaAppsKrmO_EP3Kg@mail.gmail.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gustavo@embeddedor.com, mm-commits@vger.kernel.org, oberpar@linux.ibm.com
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>, mm-commits@vger.kernel.org, Chenbo Feng <fengc@google.com>, DRI mailing list <dri-devel@lists.freedesktop.org>, Greg Hackmann <ghackmann@google.com>, WANG Cong <xiyou.wangcong@gmail.com>, "open list:DMA BUFFER SHARING FRAMEWORK" <linux-media@vger.kernel.org>
 
+On Wed, 26 Feb 2020 10:36:26 +0100 Daniel Vetter <daniel@ffwll.ch> wrote:
 
-The patch titled
-     Subject: gcov: gcc_4_7: replace zero-length array with flexible-array member
-has been added to the -mm tree.  Its filename is
-     gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member.patch
+> On Wed, Feb 26, 2020 at 5:29 AM Sumit Semwal <sumit.semwal@linaro.org> wrote:
+> >
+> > Hello Andrew,
+> >
+> >
+> > On Wed, 26 Feb 2020 at 07:25, Andrew Morton <akpm@linux-foundation.org> wrote:
+> > >
+> > >
+> > > The patch titled
+> > >      Subject: dma-buf: free dmabuf->name in dma_buf_release()
+> > > has been added to the -mm tree.  Its filename is
+> > >      dma-buf-free-dmabuf-name-in-dma_buf_release.patch
+> >
+> > Thanks for taking this patch via -mm during my absence (I'm just
+> > returning from a bit of an illness). If there are other dma-buf
+> > patches on your radar that you'd like to take via the mm tree, please
+> > let me know and I can provide the necessary Acks.
+> > Else I will take them in via drm-misc as usual.
+> 
+> I thought at least that for cases like these -mm is the last resort
+> tree, so proper thing to do here is apply this fix to drm-misc-fixes
+> and get it out there. -mm rebases, so will fall out again.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member.patch
+Yup, go ahead.  If a patch pops up in linux-next I'll autodrop by copy.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: gcov: gcc_4_7: replace zero-length array with flexible-array member
-
-The current codebase makes use of the zero-length array language extension
-to the C90 standard, but the preferred mechanism to declare
-variable-length types such as these ones is a flexible array member[1][2],
-introduced in C99:
-
-struct foo {
-        int stuff;
-        struct boo array[];
-};
-
-By making use of the mechanism above, we will get a compiler warning in
-case the flexible array does not occur last in the structure, which will
-help us prevent some kind of undefined behavior bugs from being
-inadvertently introduced[3] to the codebase from now on.
-
-Also, notice that, dynamic memory allocations won't be affected by this
-change:
-
-"Flexible array members have incomplete type, and so the sizeof operator
-may not be applied.  As a quirk of the original implementation of
-zero-length arrays, sizeof evaluates to zero."[1]
-
-This issue was found with the help of Coccinelle.
-
-[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-[2] https://github.com/KSPP/linux/issues/21
-[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
-
-Link: http://lkml.kernel.org/r/20200213152241.GA877@embeddedor
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-Acked-by: Peter Oberparleiter <oberpar@linux.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- kernel/gcov/gcc_4_7.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/kernel/gcov/gcc_4_7.c~gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member
-+++ a/kernel/gcov/gcc_4_7.c
-@@ -68,7 +68,7 @@ struct gcov_fn_info {
- 	unsigned int ident;
- 	unsigned int lineno_checksum;
- 	unsigned int cfg_checksum;
--	struct gcov_ctr_info ctrs[0];
-+	struct gcov_ctr_info ctrs[];
- };
- 
- /**
-_
-
-Patches currently in -mm which might be from gustavo@embeddedor.com are
-
-lib-bch-replace-zero-length-array-with-flexible-array-member.patch
-lib-ts_bm-replace-zero-length-array-with-flexible-array-member.patch
-lib-ts_fsm-replace-zero-length-array-with-flexible-array-member.patch
-lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch
-gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member.patch
+And please do give some thought to whether this should be cc:stable. 
+If it's an unprivileged operation then hellyeah.
