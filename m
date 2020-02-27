@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-fix-data-races-at-kswapd_classzone_idx.patch
- added to -mm tree
-Date: Wed, 26 Feb 2020 17:37:20 -0800
-Message-ID: <20200227013720.M0vahmnzX%akpm@linux-foundation.org>
+Subject: +
+ fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch added to -mm tree
+Date: Wed, 26 Feb 2020 17:49:33 -0800
+Message-ID: <20200227014933.dBegnr6Ld%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56874 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59182 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728091AbgB0BhV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 Feb 2020 20:37:21 -0500
+        id S1728091AbgB0Bte (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 Feb 2020 20:49:34 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, elver@google.com, mm-commits@vger.kernel.org, willy@infradead.org
+To: dbueso@suse.de, jbaron@akamai.com, mm-commits@vger.kernel.org, normalperson@yhbt.net, rpenyaev@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm/vmscan.c: fix data races using kswapd_classzone_idx
+     Subject: fs/epoll: make nesting accounting safe for -rt kernel
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-fix-data-races-at-kswapd_classzone_idx.patch
+     fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-data-races-at-kswapd_classzone_idx.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-data-races-at-kswapd_classzone_idx.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,214 +38,161 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: mm/vmscan.c: fix data races using kswapd_classzone_idx
+From: Jason Baron <jbaron@akamai.com>
+Subject: fs/epoll: make nesting accounting safe for -rt kernel
 
-pgdat->kswapd_classzone_idx could be accessed concurrently in
-wakeup_kswapd().  Plain writes and reads without any lock protection
-result in data races.  Fix them by adding a pair of READ|WRITE_ONCE() as
-well as saving a branch (compilers might well optimize the original code
-in an unintentional way anyway).  While at it, also take care of
-pgdat->kswapd_order and non-kswapd threads in allow_direct_reclaim().  The
-data races were reported by KCSAN,
+Davidlohr Bueso pointed out that when CONFIG_DEBUG_LOCK_ALLOC is set
+ep_poll_safewake() can take several non-raw spinlocks after disabling
+interrupts.  Since a spinlock can block in the -rt kernel, we can't take a
+spinlock after disabling interrupts.  So let's re-work how we determine
+the nesting level such that it plays nicely with the -rt kernel.
 
- BUG: KCSAN: data-race in wakeup_kswapd / wakeup_kswapd
+Let's introduce a 'nests' field in struct eventpoll that records the
+current nesting level during ep_poll_callback().  Then, if we nest again
+we can find the previous struct eventpoll that we were called from and
+increase our count by 1.  The 'nests' field is protected by
+ep->poll_wait.lock.
 
- write to 0xffff9f427ffff2dc of 4 bytes by task 7454 on cpu 13:
-  wakeup_kswapd+0xf1/0x400
-  wakeup_kswapd at mm/vmscan.c:3967
-  wake_all_kswapds+0x59/0xc0
-  wake_all_kswapds at mm/page_alloc.c:4241
-  __alloc_pages_slowpath+0xdcc/0x1290
-  __alloc_pages_slowpath at mm/page_alloc.c:4512
-  __alloc_pages_nodemask+0x3bb/0x450
-  alloc_pages_vma+0x8a/0x2c0
-  do_anonymous_page+0x16e/0x6f0
-  __handle_mm_fault+0xcd5/0xd40
-  handle_mm_fault+0xfc/0x2f0
-  do_page_fault+0x263/0x6f9
-  page_fault+0x34/0x40
+I've also moved the visited field to reduce the size of struct eventpoll
+from 184 bytes to 176 bytes on x86_64 for !CONFIG_DEBUG_LOCK_ALLOC, which
+is typical for a production config.
 
- 1 lock held by mtest01/7454:
-  #0: ffff9f425afe8808 (&mm->mmap_sem#2){++++}, at:
- do_page_fault+0x143/0x6f9
- do_user_addr_fault at arch/x86/mm/fault.c:1405
- (inlined by) do_page_fault at arch/x86/mm/fault.c:1539
- irq event stamp: 6944085
- count_memcg_event_mm+0x1a6/0x270
- count_memcg_event_mm+0x119/0x270
- __do_softirq+0x34c/0x57c
- irq_exit+0xa2/0xc0
-
- read to 0xffff9f427ffff2dc of 4 bytes by task 7472 on cpu 38:
-  wakeup_kswapd+0xc8/0x400
-  wake_all_kswapds+0x59/0xc0
-  __alloc_pages_slowpath+0xdcc/0x1290
-  __alloc_pages_nodemask+0x3bb/0x450
-  alloc_pages_vma+0x8a/0x2c0
-  do_anonymous_page+0x16e/0x6f0
-  __handle_mm_fault+0xcd5/0xd40
-  handle_mm_fault+0xfc/0x2f0
-  do_page_fault+0x263/0x6f9
-  page_fault+0x34/0x40
-
- 1 lock held by mtest01/7472:
-  #0: ffff9f425a9ac148 (&mm->mmap_sem#2){++++}, at:
- do_page_fault+0x143/0x6f9
- irq event stamp: 6793561
- count_memcg_event_mm+0x1a6/0x270
- count_memcg_event_mm+0x119/0x270
- __do_softirq+0x34c/0x57c
- irq_exit+0xa2/0xc0
-
- BUG: KCSAN: data-race in kswapd / wakeup_kswapd
-
- write to 0xffff90973ffff2dc of 4 bytes by task 820 on cpu 6:
-  kswapd+0x27c/0x8d0
-  kthread+0x1e0/0x200
-  ret_from_fork+0x27/0x50
-
- read to 0xffff90973ffff2dc of 4 bytes by task 6299 on cpu 0:
-  wakeup_kswapd+0xf3/0x450
-  wake_all_kswapds+0x59/0xc0
-  __alloc_pages_slowpath+0xdcc/0x1290
-  __alloc_pages_nodemask+0x3bb/0x450
-  alloc_pages_vma+0x8a/0x2c0
-  do_anonymous_page+0x170/0x700
-  __handle_mm_fault+0xc9f/0xd00
-  handle_mm_fault+0xfc/0x2f0
-  do_page_fault+0x263/0x6f9
-  page_fault+0x34/0x40
-
-Link: http://lkml.kernel.org/r/1582749472-5171-1-git-send-email-cai@lca.pw
-Signed-off-by: Qian Cai <cai@lca.pw>
-Cc: Marco Elver <elver@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: http://lkml.kernel.org/r/1582739816-13167-1-git-send-email-jbaron@akamai.com
+Reported-by: Davidlohr Bueso <dbueso@suse.de>
+Signed-off-by: Jason Baron <jbaron@akamai.com>
+Cc: Roman Penyaev <rpenyaev@suse.de>
+Cc: Eric Wong <normalperson@yhbt.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   45 ++++++++++++++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 19 deletions(-)
+ fs/eventpoll.c |   64 +++++++++++++++++++++++++++++++----------------
+ 1 file changed, 43 insertions(+), 21 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-data-races-at-kswapd_classzone_idx
-+++ a/mm/vmscan.c
-@@ -3136,8 +3136,9 @@ static bool allow_direct_reclaim(pg_data
+--- a/fs/eventpoll.c~fs-epoll-make-nesting-accounting-safe-for-rt-kernel
++++ a/fs/eventpoll.c
+@@ -218,13 +218,18 @@ struct eventpoll {
+ 	struct file *file;
  
- 	/* kswapd must be awake if processes are being throttled */
- 	if (!wmark_ok && waitqueue_active(&pgdat->kswapd_wait)) {
--		pgdat->kswapd_classzone_idx = min(pgdat->kswapd_classzone_idx,
--						(enum zone_type)ZONE_NORMAL);
-+		if (READ_ONCE(pgdat->kswapd_classzone_idx) > ZONE_NORMAL)
-+			WRITE_ONCE(pgdat->kswapd_classzone_idx, ZONE_NORMAL);
+ 	/* used to optimize loop detection check */
+-	int visited;
+ 	struct list_head visited_list_link;
++	int visited;
+ 
+ #ifdef CONFIG_NET_RX_BUSY_POLL
+ 	/* used to track busy poll napi_id */
+ 	unsigned int napi_id;
+ #endif
 +
- 		wake_up_interruptible(&pgdat->kswapd_wait);
- 	}
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	/* tracks wakeup nests for lockdep validation */
++	u8 nests;
++#endif
+ };
  
-@@ -3769,9 +3770,9 @@ out:
- static enum zone_type kswapd_classzone_idx(pg_data_t *pgdat,
- 					   enum zone_type prev_classzone_idx)
+ /* Wait structure used by the poll hooks */
+@@ -545,30 +550,47 @@ out_unlock:
+  */
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ 
+-static DEFINE_PER_CPU(int, wakeup_nest);
+-
+-static void ep_poll_safewake(wait_queue_head_t *wq)
++static void ep_poll_safewake(struct eventpoll *ep, struct epitem *epi)
  {
--	if (pgdat->kswapd_classzone_idx == MAX_NR_ZONES)
--		return prev_classzone_idx;
--	return pgdat->kswapd_classzone_idx;
-+	enum zone_type curr_idx = READ_ONCE(pgdat->kswapd_classzone_idx);
-+
-+	return curr_idx == MAX_NR_ZONES ? prev_classzone_idx : curr_idx;
++	struct eventpoll *ep_src;
+ 	unsigned long flags;
+-	int subclass;
++	u8 nests = 0;
+ 
+-	local_irq_save(flags);
+-	preempt_disable();
+-	subclass = __this_cpu_read(wakeup_nest);
+-	spin_lock_nested(&wq->lock, subclass + 1);
+-	__this_cpu_inc(wakeup_nest);
+-	wake_up_locked_poll(wq, POLLIN);
+-	__this_cpu_dec(wakeup_nest);
+-	spin_unlock(&wq->lock);
+-	local_irq_restore(flags);
+-	preempt_enable();
++	/*
++	 * To set the subclass or nesting level for spin_lock_irqsave_nested()
++	 * it might be natural to create a per-cpu nest count. However, since
++	 * we can recurse on ep->poll_wait.lock, and a non-raw spinlock can
++	 * schedule() in the -rt kernel, the per-cpu variable are no longer
++	 * protected. Thus, we are introducing a per eventpoll nest field.
++	 * If we are not being call from ep_poll_callback(), epi is NULL and
++	 * we are at the first level of nesting, 0. Otherwise, we are being
++	 * called from ep_poll_callback() and if a previous wakeup source is
++	 * not an epoll file itself, we are at depth 1 since the wakeup source
++	 * is depth 0. If the wakeup source is a previous epoll file in the
++	 * wakeup chain then we use its nests value and record ours as
++	 * nests + 1. The previous epoll file nests value is stable since its
++	 * already holding its own poll_wait.lock.
++	 */
++	if (epi) {
++		if ((is_file_epoll(epi->ffd.file))) {
++			ep_src = epi->ffd.file->private_data;
++			nests = ep_src->nests;
++		} else {
++			nests = 1;
++		}
++	}
++	spin_lock_irqsave_nested(&ep->poll_wait.lock, flags, nests);
++	ep->nests = nests + 1;
++	wake_up_locked_poll(&ep->poll_wait, EPOLLIN);
++	ep->nests = 0;
++	spin_unlock_irqrestore(&ep->poll_wait.lock, flags);
  }
  
- static void kswapd_try_to_sleep(pg_data_t *pgdat, int alloc_order, int reclaim_order,
-@@ -3815,8 +3816,11 @@ static void kswapd_try_to_sleep(pg_data_
- 		 * the previous request that slept prematurely.
- 		 */
- 		if (remaining) {
--			pgdat->kswapd_classzone_idx = kswapd_classzone_idx(pgdat, classzone_idx);
--			pgdat->kswapd_order = max(pgdat->kswapd_order, reclaim_order);
-+			WRITE_ONCE(pgdat->kswapd_classzone_idx,
-+				   kswapd_classzone_idx(pgdat, classzone_idx));
-+
-+			if (READ_ONCE(pgdat->kswapd_order) < reclaim_order)
-+				WRITE_ONCE(pgdat->kswapd_order, reclaim_order);
- 		}
+ #else
  
- 		finish_wait(&pgdat->kswapd_wait, &wait);
-@@ -3893,12 +3897,12 @@ static int kswapd(void *p)
- 	tsk->flags |= PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
- 	set_freezable();
- 
--	pgdat->kswapd_order = 0;
--	pgdat->kswapd_classzone_idx = MAX_NR_ZONES;
-+	WRITE_ONCE(pgdat->kswapd_order, 0);
-+	WRITE_ONCE(pgdat->kswapd_classzone_idx, MAX_NR_ZONES);
- 	for ( ; ; ) {
- 		bool ret;
- 
--		alloc_order = reclaim_order = pgdat->kswapd_order;
-+		alloc_order = reclaim_order = READ_ONCE(pgdat->kswapd_order);
- 		classzone_idx = kswapd_classzone_idx(pgdat, classzone_idx);
- 
- kswapd_try_sleep:
-@@ -3906,10 +3910,10 @@ kswapd_try_sleep:
- 					classzone_idx);
- 
- 		/* Read the new order and classzone_idx */
--		alloc_order = reclaim_order = pgdat->kswapd_order;
-+		alloc_order = reclaim_order = READ_ONCE(pgdat->kswapd_order);
- 		classzone_idx = kswapd_classzone_idx(pgdat, classzone_idx);
--		pgdat->kswapd_order = 0;
--		pgdat->kswapd_classzone_idx = MAX_NR_ZONES;
-+		WRITE_ONCE(pgdat->kswapd_order, 0);
-+		WRITE_ONCE(pgdat->kswapd_classzone_idx, MAX_NR_ZONES);
- 
- 		ret = try_to_freeze();
- 		if (kthread_should_stop())
-@@ -3953,20 +3957,23 @@ void wakeup_kswapd(struct zone *zone, gf
- 		   enum zone_type classzone_idx)
+-static void ep_poll_safewake(wait_queue_head_t *wq)
++static void ep_poll_safewake(struct eventpoll *ep, struct epitem *epi)
  {
- 	pg_data_t *pgdat;
-+	enum zone_type curr_idx;
+-	wake_up_poll(wq, EPOLLIN);
++	wake_up_poll(&ep->poll_wait, EPOLLIN);
+ }
  
- 	if (!managed_zone(zone))
- 		return;
+ #endif
+@@ -789,7 +811,7 @@ static void ep_free(struct eventpoll *ep
  
- 	if (!cpuset_zone_allowed(zone, gfp_flags))
- 		return;
-+
- 	pgdat = zone->zone_pgdat;
-+	curr_idx = READ_ONCE(pgdat->kswapd_classzone_idx);
-+
-+	if (curr_idx == MAX_NR_ZONES || curr_idx < classzone_idx)
-+		WRITE_ONCE(pgdat->kswapd_classzone_idx, classzone_idx);
-+
-+	if (READ_ONCE(pgdat->kswapd_order) < order)
-+		WRITE_ONCE(pgdat->kswapd_order, order);
+ 	/* We need to release all tasks waiting for these file */
+ 	if (waitqueue_active(&ep->poll_wait))
+-		ep_poll_safewake(&ep->poll_wait);
++		ep_poll_safewake(ep, NULL);
  
--	if (pgdat->kswapd_classzone_idx == MAX_NR_ZONES)
--		pgdat->kswapd_classzone_idx = classzone_idx;
--	else
--		pgdat->kswapd_classzone_idx = max(pgdat->kswapd_classzone_idx,
--						  classzone_idx);
--	pgdat->kswapd_order = max(pgdat->kswapd_order, order);
- 	if (!waitqueue_active(&pgdat->kswapd_wait))
- 		return;
+ 	/*
+ 	 * We need to lock this because we could be hit by
+@@ -1258,7 +1280,7 @@ out_unlock:
  
+ 	/* We have to call this outside the lock */
+ 	if (pwake)
+-		ep_poll_safewake(&ep->poll_wait);
++		ep_poll_safewake(ep, epi);
+ 
+ 	if (!(epi->event.events & EPOLLEXCLUSIVE))
+ 		ewake = 1;
+@@ -1562,7 +1584,7 @@ static int ep_insert(struct eventpoll *e
+ 
+ 	/* We have to call this outside the lock */
+ 	if (pwake)
+-		ep_poll_safewake(&ep->poll_wait);
++		ep_poll_safewake(ep, NULL);
+ 
+ 	return 0;
+ 
+@@ -1666,7 +1688,7 @@ static int ep_modify(struct eventpoll *e
+ 
+ 	/* We have to call this outside the lock */
+ 	if (pwake)
+-		ep_poll_safewake(&ep->poll_wait);
++		ep_poll_safewake(ep, NULL);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from cai@lca.pw are
+Patches currently in -mm which might be from jbaron@akamai.com are
 
-mm-swapfile-fix-data-races-in-try_to_unuse.patch
-mm-vmscan-fix-data-races-at-kswapd_classzone_idx.patch
-percpu_counter-fix-a-data-race-at-vm_committed_as.patch
-mm-frontswap-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races-v2.patch
-mm-swap_state-mark-various-intentional-data-races.patch
-mm-kmemleak-annotate-various-data-races-obj-ptr.patch
-mm-swapfile-fix-and-annotate-various-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races-v2.patch
-mm-page_counter-fix-various-data-races-at-memsw.patch
-mm-memcontrol-fix-a-data-race-in-scan-count.patch
-mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-mm-mempool-fix-a-data-race-in-mempool_free.patch
-mm-util-annotate-an-data-race-at-vm_committed_as.patch
-mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
-mm-annotate-a-data-race-in-page_zonenum.patch
+fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch
