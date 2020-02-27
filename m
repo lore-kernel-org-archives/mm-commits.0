@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch added to -mm tree
-Date: Wed, 26 Feb 2020 17:49:33 -0800
-Message-ID: <20200227014933.dBegnr6Ld%akpm@linux-foundation.org>
+Subject: + lib-optimize-cpumask_local_spread.patch added to -mm
+ tree
+Date: Wed, 26 Feb 2020 19:50:46 -0800
+Message-ID: <20200227035046.QC-oYV8zN%akpm@linux-foundation.org>
 References: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59182 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53278 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728091AbgB0Bte (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 26 Feb 2020 20:49:34 -0500
+        id S1728221AbgB0Dus (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 26 Feb 2020 22:50:48 -0500
 In-Reply-To: <20200203173311.6269a8be06a05e5a4aa08a93@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbueso@suse.de, jbaron@akamai.com, mm-commits@vger.kernel.org, normalperson@yhbt.net, rpenyaev@suse.de, viro@zeniv.linux.org.uk
+To: anshuman.khandual@arm.com, jgross@suse.com, jinyuqi@huawei.com, mgorman@techsingularity.net, mhocko@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paul.burton@mips.com, peterz@infradead.org, rppt@linux.ibm.com, rusty@rustcorp.com.au, zhangshaokun@hisilicon.com
 
 
 The patch titled
-     Subject: fs/epoll: make nesting accounting safe for -rt kernel
+     Subject: lib: optimize cpumask_local_spread()
 has been added to the -mm tree.  Its filename is
-     fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch
+     lib-optimize-cpumask_local_spread.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-optimize-cpumask_local_spread.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-optimize-cpumask_local_spread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,161 +38,225 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@akamai.com>
-Subject: fs/epoll: make nesting accounting safe for -rt kernel
+From: yuqi jin <jinyuqi@huawei.com>
+Subject: lib: optimize cpumask_local_spread()
 
-Davidlohr Bueso pointed out that when CONFIG_DEBUG_LOCK_ALLOC is set
-ep_poll_safewake() can take several non-raw spinlocks after disabling
-interrupts.  Since a spinlock can block in the -rt kernel, we can't take a
-spinlock after disabling interrupts.  So let's re-work how we determine
-the nesting level such that it plays nicely with the -rt kernel.
+In multi-processor and NUMA system, I/O driver will find cpu cores that
+which shall be bound IRQ.  When cpu cores in the local numa have been
+used, it is better to find the node closest to the local numa node for
+performance, instead of choosing any online cpu immediately.
 
-Let's introduce a 'nests' field in struct eventpoll that records the
-current nesting level during ep_poll_callback().  Then, if we nest again
-we can find the previous struct eventpoll that we were called from and
-increase our count by 1.  The 'nests' field is protected by
-ep->poll_wait.lock.
+On Huawei Kunpeng 920 server, there are 4 NUMA node(0 - 3) in the 2-cpu
+system(0 - 1). The topology of this server is followed:
+available: 4 nodes (0-3)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+node 0 size: 63379 MB
+node 0 free: 61899 MB
+node 1 cpus: 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47
+node 1 size: 64509 MB
+node 1 free: 63942 MB
+node 2 cpus: 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71
+node 2 size: 64509 MB
+node 2 free: 63056 MB
+node 3 cpus: 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95
+node 3 size: 63997 MB
+node 3 free: 63420 MB
+node distances:
+node   0   1   2   3
+  0:  10  16  32  33
+  1:  16  10  25  32
+  2:  32  25  10  16
+  3:  33  32  16  10
 
-I've also moved the visited field to reduce the size of struct eventpoll
-from 184 bytes to 176 bytes on x86_64 for !CONFIG_DEBUG_LOCK_ALLOC, which
-is typical for a production config.
+We perform PS (parameter server) business test, the behavior of the
+service is that the client initiates a request through the network card,
+the server responds to the request after calculation.  When two PS
+processes run on node2 and node3 separately and the network card is
+located on 'node2' which is in cpu1, the performance of node2 (26W QPS)
+and node3 (22W QPS) is different.
 
-Link: http://lkml.kernel.org/r/1582739816-13167-1-git-send-email-jbaron@akamai.com
-Reported-by: Davidlohr Bueso <dbueso@suse.de>
-Signed-off-by: Jason Baron <jbaron@akamai.com>
-Cc: Roman Penyaev <rpenyaev@suse.de>
-Cc: Eric Wong <normalperson@yhbt.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+It is better that the NIC queues are bound to the cpu1 cores in turn, then
+XPS will also be properly initialized, while cpumask_local_spread only
+considers the local node.  When the number of NIC queues exceeds the
+number of cores in the local node, it returns to the online core directly.
+So when PS runs on node3 sending a calculated request, the performance is
+not as good as the node2.
+
+The IRQ from 369-392 will be bound from NUMA node0 to NUMA node3 with this
+patch, before the patch:
+
+Euler:/sys/bus/pci # cat /proc/irq/369/smp_affinity_list
+0
+Euler:/sys/bus/pci # cat /proc/irq/370/smp_affinity_list
+1
+...
+Euler:/sys/bus/pci # cat /proc/irq/391/smp_affinity_list
+22
+Euler:/sys/bus/pci # cat /proc/irq/392/smp_affinity_list
+23
+After the patch:
+Euler:/sys/bus/pci # cat /proc/irq/369/smp_affinity_list
+72
+Euler:/sys/bus/pci # cat /proc/irq/370/smp_affinity_list
+73
+...
+Euler:/sys/bus/pci # cat /proc/irq/391/smp_affinity_list
+94
+Euler:/sys/bus/pci # cat /proc/irq/392/smp_affinity_list
+95
+
+So the performance of the node3 is the same as node2 that is 26W QPS when
+the network card is still in 'node2' with the patch.
+
+It is considered that the NIC and other I/O devices shall initialize the
+interrupt binding, if the cores of the local node are used up, it is
+reasonable to return the node closest to it.  Let's optimize it and find
+the nearest node through NUMA distance for the non-local NUMA nodes.
+
+Link: http://lkml.kernel.org/r/1582768688-2314-1-git-send-email-zhangshaokun@hisilicon.com
+Signed-off-by: yuqi jin <jinyuqi@huawei.com>
+Signed-off-by: Shaokun Zhang <zhangshaokun@hisilicon.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   64 +++++++++++++++++++++++++++++++----------------
- 1 file changed, 43 insertions(+), 21 deletions(-)
+ lib/cpumask.c |  102 ++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 90 insertions(+), 12 deletions(-)
 
---- a/fs/eventpoll.c~fs-epoll-make-nesting-accounting-safe-for-rt-kernel
-+++ a/fs/eventpoll.c
-@@ -218,13 +218,18 @@ struct eventpoll {
- 	struct file *file;
+--- a/lib/cpumask.c~lib-optimize-cpumask_local_spread
++++ a/lib/cpumask.c
+@@ -6,6 +6,7 @@
+ #include <linux/export.h>
+ #include <linux/memblock.h>
+ #include <linux/numa.h>
++#include <linux/spinlock.h>
  
- 	/* used to optimize loop detection check */
--	int visited;
- 	struct list_head visited_list_link;
-+	int visited;
- 
- #ifdef CONFIG_NET_RX_BUSY_POLL
- 	/* used to track busy poll napi_id */
- 	unsigned int napi_id;
+ /**
+  * cpumask_next - get the next cpu in a cpumask
+@@ -192,18 +193,39 @@ void __init free_bootmem_cpumask_var(cpu
+ }
  #endif
+ 
+-/**
+- * cpumask_local_spread - select the i'th cpu with local numa cpu's first
+- * @i: index number
+- * @node: local numa_node
+- *
+- * This function selects an online CPU according to a numa aware policy;
+- * local cpus are returned first, followed by non-local ones, then it
+- * wraps around.
+- *
+- * It's not very efficient, but useful for setup.
+- */
+-unsigned int cpumask_local_spread(unsigned int i, int node)
++static void calc_node_distance(int *node_dist, int node)
++{
++	int i;
 +
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	/* tracks wakeup nests for lockdep validation */
-+	u8 nests;
-+#endif
- };
- 
- /* Wait structure used by the poll hooks */
-@@ -545,30 +550,47 @@ out_unlock:
-  */
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- 
--static DEFINE_PER_CPU(int, wakeup_nest);
--
--static void ep_poll_safewake(wait_queue_head_t *wq)
-+static void ep_poll_safewake(struct eventpoll *ep, struct epitem *epi)
- {
-+	struct eventpoll *ep_src;
- 	unsigned long flags;
--	int subclass;
-+	u8 nests = 0;
- 
--	local_irq_save(flags);
--	preempt_disable();
--	subclass = __this_cpu_read(wakeup_nest);
--	spin_lock_nested(&wq->lock, subclass + 1);
--	__this_cpu_inc(wakeup_nest);
--	wake_up_locked_poll(wq, POLLIN);
--	__this_cpu_dec(wakeup_nest);
--	spin_unlock(&wq->lock);
--	local_irq_restore(flags);
--	preempt_enable();
-+	/*
-+	 * To set the subclass or nesting level for spin_lock_irqsave_nested()
-+	 * it might be natural to create a per-cpu nest count. However, since
-+	 * we can recurse on ep->poll_wait.lock, and a non-raw spinlock can
-+	 * schedule() in the -rt kernel, the per-cpu variable are no longer
-+	 * protected. Thus, we are introducing a per eventpoll nest field.
-+	 * If we are not being call from ep_poll_callback(), epi is NULL and
-+	 * we are at the first level of nesting, 0. Otherwise, we are being
-+	 * called from ep_poll_callback() and if a previous wakeup source is
-+	 * not an epoll file itself, we are at depth 1 since the wakeup source
-+	 * is depth 0. If the wakeup source is a previous epoll file in the
-+	 * wakeup chain then we use its nests value and record ours as
-+	 * nests + 1. The previous epoll file nests value is stable since its
-+	 * already holding its own poll_wait.lock.
-+	 */
-+	if (epi) {
-+		if ((is_file_epoll(epi->ffd.file))) {
-+			ep_src = epi->ffd.file->private_data;
-+			nests = ep_src->nests;
-+		} else {
-+			nests = 1;
++	for (i = 0; i < nr_node_ids; i++)
++		node_dist[i] = node_distance(node, i);
++}
++
++static int find_nearest_node(int *node_dist, bool *used)
++{
++	int i, min_dist = node_dist[0], node_id = -1;
++
++	/* Choose the first unused node to compare */
++	for (i = 0; i < nr_node_ids; i++) {
++		if (used[i] == 0) {
++			min_dist = node_dist[i];
++			node_id = i;
++			break;
 +		}
 +	}
-+	spin_lock_irqsave_nested(&ep->poll_wait.lock, flags, nests);
-+	ep->nests = nests + 1;
-+	wake_up_locked_poll(&ep->poll_wait, EPOLLIN);
-+	ep->nests = 0;
-+	spin_unlock_irqrestore(&ep->poll_wait.lock, flags);
- }
- 
- #else
- 
--static void ep_poll_safewake(wait_queue_head_t *wq)
-+static void ep_poll_safewake(struct eventpoll *ep, struct epitem *epi)
++
++	/* Compare and return the nearest node */
++	for (i = 0; i < nr_node_ids; i++) {
++		if (node_dist[i] < min_dist && used[i] == 0) {
++			min_dist = node_dist[i];
++			node_id = i;
++		}
++	}
++
++	return node_id;
++}
++
++static unsigned int __cpumask_local_spread(unsigned int i, int node)
  {
--	wake_up_poll(wq, EPOLLIN);
-+	wake_up_poll(&ep->poll_wait, EPOLLIN);
+ 	int cpu;
+ 
+@@ -231,4 +253,60 @@ unsigned int cpumask_local_spread(unsign
+ 	}
+ 	BUG();
  }
- 
- #endif
-@@ -789,7 +811,7 @@ static void ep_free(struct eventpoll *ep
- 
- 	/* We need to release all tasks waiting for these file */
- 	if (waitqueue_active(&ep->poll_wait))
--		ep_poll_safewake(&ep->poll_wait);
-+		ep_poll_safewake(ep, NULL);
- 
- 	/*
- 	 * We need to lock this because we could be hit by
-@@ -1258,7 +1280,7 @@ out_unlock:
- 
- 	/* We have to call this outside the lock */
- 	if (pwake)
--		ep_poll_safewake(&ep->poll_wait);
-+		ep_poll_safewake(ep, epi);
- 
- 	if (!(epi->event.events & EPOLLEXCLUSIVE))
- 		ewake = 1;
-@@ -1562,7 +1584,7 @@ static int ep_insert(struct eventpoll *e
- 
- 	/* We have to call this outside the lock */
- 	if (pwake)
--		ep_poll_safewake(&ep->poll_wait);
-+		ep_poll_safewake(ep, NULL);
- 
- 	return 0;
- 
-@@ -1666,7 +1688,7 @@ static int ep_modify(struct eventpoll *e
- 
- 	/* We have to call this outside the lock */
- 	if (pwake)
--		ep_poll_safewake(&ep->poll_wait);
-+		ep_poll_safewake(ep, NULL);
- 
- 	return 0;
- }
++
++/**
++ * cpumask_local_spread - select the i'th cpu with local numa cpu's first
++ * @i: index number
++ * @node: local numa_node
++ *
++ * This function selects an online CPU according to a numa aware policy;
++ * local cpus are returned first, followed by the nearest non-local ones,
++ * then it wraps around.
++ *
++ * It's not very efficient, but useful for setup.
++ */
++unsigned int cpumask_local_spread(unsigned int i, int node)
++{
++	static DEFINE_SPINLOCK(spread_lock);
++	static int node_dist[MAX_NUMNODES];
++	static bool used[MAX_NUMNODES];
++	unsigned long flags;
++	int cpu, j, id;
++
++	/* Wrap: we always want a cpu. */
++	i %= num_online_cpus();
++
++	if (node == NUMA_NO_NODE) {
++		for_each_cpu(cpu, cpu_online_mask)
++			if (i-- == 0)
++				return cpu;
++	} else {
++		if (nr_node_ids > MAX_NUMNODES)
++			return __cpumask_local_spread(i, node);
++
++		spin_lock_irqsave(&spread_lock, flags);
++		memset(used, 0, nr_node_ids * sizeof(bool));
++		calc_node_distance(node_dist, node);
++		for (j = 0; j < nr_node_ids; j++) {
++			id = find_nearest_node(node_dist, used);
++			if (id < 0)
++				break;
++
++			for_each_cpu_and(cpu, cpumask_of_node(id),
++					 cpu_online_mask)
++				if (i-- == 0) {
++					spin_unlock_irqrestore(&spread_lock,
++							       flags);
++					return cpu;
++				}
++			used[id] = 1;
++		}
++		spin_unlock_irqrestore(&spread_lock, flags);
++
++		for_each_cpu(cpu, cpu_online_mask)
++			if (i-- == 0)
++				return cpu;
++	}
++	BUG();
++}
+ EXPORT_SYMBOL(cpumask_local_spread);
 _
 
-Patches currently in -mm which might be from jbaron@akamai.com are
+Patches currently in -mm which might be from jinyuqi@huawei.com are
 
-fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch
+lib-optimize-cpumask_local_spread.patch
