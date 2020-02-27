@@ -1,27 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + ubsan-check-panic_on_warn.patch added to -mm tree
-Date: Thu, 27 Feb 2020 15:30:38 -0800
-Message-ID: <20200227233038.VN1M9WsAh%akpm@linux-foundation.org>
+Subject: + kasan-unset-panic_on_warn-before-calling-panic.patch
+ added to -mm tree
+Date: Thu, 27 Feb 2020 15:30:41 -0800
+Message-ID: <20200227233041.fmQoxji73%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41046 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729838AbgB0Xaj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 27 Feb 2020 18:30:39 -0500
+        id S1729838AbgB0Xan (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 27 Feb 2020 18:30:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andreyknvl@google.com, ard.biesheuvel@linaro.org, arnd@arndb.de, aryabinin@virtuozzo.com, dan.carpenter@oracle.com, dvyukov@google.com, glider@google.com, gustavo@embeddedor.com, keescook@chromium.org, lenaptr@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ubsan: check panic_on_warn
+     Subject: kasan: unset panic_on_warn before calling panic()
 has been added to the -mm tree.  Its filename is
-     ubsan-check-panic_on_warn.patch
+     kasan-unset-panic_on_warn-before-calling-panic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ubsan-check-panic_on_warn.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-unset-panic_on_warn-before-calling-panic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ubsan-check-panic_on_warn.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-unset-panic_on_warn-before-calling-panic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,37 +37,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: check panic_on_warn
+Subject: kasan: unset panic_on_warn before calling panic()
 
-Syzkaller expects kernel warnings to panic when the panic_on_warn sysctl
-is set.  More work is needed here to have UBSan reuse the WARN
-infrastructure, but for now, just check the flag manually.
+As done in the full WARN() handler, panic_on_warn needs to be cleared
+before calling panic() to avoid recursive panics.
 
-Link: https://lore.kernel.org/lkml/CACT4Y+bsLJ-wFx_TaXqax3JByUOWB3uk787LsyMVcfW6JzzGvg@mail.gmail.com
-Link: http://lkml.kernel.org/r/20200227193516.32566-5-keescook@chromium.org
+Link: http://lkml.kernel.org/r/20200227193516.32566-6-keescook@chromium.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Dmitry Vyukov <dvyukov@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Elena Petrova <lenaptr@google.com>
 Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ubsan.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/kasan/report.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/lib/ubsan.c~ubsan-check-panic_on_warn
-+++ a/lib/ubsan.c
-@@ -156,6 +156,17 @@ static void ubsan_epilogue(void)
- 		"========================================\n");
- 
- 	current->in_ubsan--;
-+
+--- a/mm/kasan/report.c~kasan-unset-panic_on_warn-before-calling-panic
++++ a/mm/kasan/report.c
+@@ -92,8 +92,16 @@ static void end_report(unsigned long *fl
+ 	pr_err("==================================================================\n");
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+ 	spin_unlock_irqrestore(&report_lock, *flags);
+-	if (panic_on_warn)
 +	if (panic_on_warn) {
 +		/*
 +		 * This thread may hit another WARN() in the panic path.
@@ -75,11 +74,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		 * panic_mutex in panic().
 +		 */
 +		panic_on_warn = 0;
-+		panic("panic_on_warn set ...\n");
+ 		panic("panic_on_warn set ...\n");
 +	}
+ 	kasan_enable_current();
  }
  
- static void handle_overflow(struct overflow_data *data, void *lhs,
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
