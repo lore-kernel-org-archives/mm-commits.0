@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zsmalloc-add-missing-annotation-for-unpin_tag.patch
- added to -mm tree
-Date: Thu, 27 Feb 2020 15:04:07 -0800
-Message-ID: <20200227230407.rPcfUaBqs%akpm@linux-foundation.org>
+Subject: +
+ mmcompactioncma-add-alloc_contig-flag-to-compact_control.patch added to -mm
+ tree
+Date: Thu, 27 Feb 2020 15:06:47 -0800
+Message-ID: <20200227230647.gyIpz6bu4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56400 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729891AbgB0XEI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 27 Feb 2020 18:04:08 -0500
+        id S1729704AbgB0XGu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 27 Feb 2020 18:06:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbi.octave@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, rientjes@google.com, vbabka@suse.cz, ziy@nvidia.com
 
 
 The patch titled
-     Subject: mm/zsmalloc: add missing annotation for unpin_tag()
+     Subject: mm,compaction,cma: add alloc_contig flag to compact_control
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-add-missing-annotation-for-unpin_tag.patch
+     mmcompactioncma-add-alloc_contig-flag-to-compact_control.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-add-missing-annotation-for-unpin_tag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmcompactioncma-add-alloc_contig-flag-to-compact_control.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-add-missing-annotation-for-unpin_tag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmcompactioncma-add-alloc_contig-flag-to-compact_control.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,49 +37,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jules Irenge <jbi.octave@gmail.com>
-Subject: mm/zsmalloc: add missing annotation for unpin_tag()
+From: Rik van Riel <riel@surriel.com>
+Subject: mm,compaction,cma: add alloc_contig flag to compact_control
 
-Sparse reports a warning at unpin_tag()()
+Patch series "fix THP migration for CMA allocations", v2.
 
-warning: context imbalance in unpin_tag() - unexpected unlock
+Transparent huge pages are allocated with __GFP_MOVABLE, and can end up in
+CMA memory blocks.  Transparent huge pages also have most of the
+infrastructure in place to allow migration.
 
-The root cause is the missing annotation at unpin_tag()
-Add the missing __releases(bitlock) annotation
+However, a few pieces were missing, causing THP migration to fail when
+attempting to use CMA to allocate 1GB hugepages.
 
-Link: http://lkml.kernel.org/r/20200214204741.94112-14-jbi.octave@gmail.com
-Signed-off-by: Jules Irenge <jbi.octave@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+With these patches in place, THP migration from CMA blocks seems to work,
+both for anonymous THPs and for tmpfs/shmem THPs.
+
+
+This patch (of 2):
+
+Add information to struct compact_control to indicate that the allocator
+would really like to clear out this specific part of memory, used by for
+example CMA.
+
+Link: http://lkml.kernel.org/r/20200227213238.1298752-1-riel@surriel.com
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/internal.h   |    1 +
+ mm/page_alloc.c |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-add-missing-annotation-for-unpin_tag
-+++ a/mm/zsmalloc.c
-@@ -896,7 +896,7 @@ static void pin_tag(unsigned long handle
- 	bit_spin_lock(HANDLE_PIN_BIT, (unsigned long *)handle);
- }
+--- a/mm/internal.h~mmcompactioncma-add-alloc_contig-flag-to-compact_control
++++ a/mm/internal.h
+@@ -206,6 +206,7 @@ struct compact_control {
+ 	bool whole_zone;		/* Whole zone should/has been scanned */
+ 	bool contended;			/* Signal lock or sched contention */
+ 	bool rescan;			/* Rescanning the same pageblock */
++	bool alloc_contig;		/* alloc_contig_range allocation */
+ };
  
--static void unpin_tag(unsigned long handle)
-+static void unpin_tag(unsigned long handle) __releases(bitlock)
- {
- 	bit_spin_unlock(HANDLE_PIN_BIT, (unsigned long *)handle);
- }
+ /*
+--- a/mm/page_alloc.c~mmcompactioncma-add-alloc_contig-flag-to-compact_control
++++ a/mm/page_alloc.c
+@@ -8404,6 +8404,7 @@ int alloc_contig_range(unsigned long sta
+ 		.ignore_skip_hint = true,
+ 		.no_set_skip_hint = true,
+ 		.gfp_mask = current_gfp_context(gfp_mask),
++		.alloc_contig = true,
+ 	};
+ 	INIT_LIST_HEAD(&cc.migratepages);
+ 
 _
 
-Patches currently in -mm which might be from jbi.octave@gmail.com are
+Patches currently in -mm which might be from riel@surriel.com are
 
-ocfs2-add-missing-annotations-for-ocfs2_refcount_cache_lock-and-ocfs2_refcount_cache_unlock.patch
-mm-memcontrol-add-missing-annotation-for-unlock_page_lru.patch
-mm-memcontrol-add-missing-annotation-for-lock_page_lru.patch
-mm-compaction-add-missing-annotation-for-compact_lock_irqsave.patch
-mm-hugetlb-add-missing-annotation-for-gather_surplus_pages.patch
-mm-mempolicy-add-missing-annotation-for-queue_pages_pmd.patch
-mm-slub-add-missing-annotation-for-get_map.patch
-mm-slub-add-missing-annotation-for-put_map.patch
-mm-zsmalloc-add-missing-annotation-for-migrate_read_lock.patch
-mm-zsmalloc-add-missing-annotation-for-migrate_read_unlock.patch
-mm-zsmalloc-add-missing-annotation-for-pin_tag.patch
-mm-zsmalloc-add-missing-annotation-for-unpin_tag.patch
+mmcompactioncma-add-alloc_contig-flag-to-compact_control.patch
+mmthpcompactioncma-allow-thp-migration-for-cma-allocations.patch
