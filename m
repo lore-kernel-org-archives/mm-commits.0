@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mmthpcompactioncma-allow-thp-migration-for-cma-allocations.patch added to
- -mm tree
-Date: Thu, 27 Feb 2020 15:06:50 -0800
-Message-ID: <20200227230650._sWljRx-t%akpm@linux-foundation.org>
+Subject: + mm-elide-a-warning-when-casting-void-enum.patch added
+ to -mm tree
+Date: Thu, 27 Feb 2020 15:08:30 -0800
+Message-ID: <20200227230830.87frJdf7U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59170 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729704AbgB0XGx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 27 Feb 2020 18:06:53 -0500
+        id S1729656AbgB0XIb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 27 Feb 2020 18:08:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, rientjes@google.com, vbabka@suse.cz, ziy@nvidia.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, palmerdabbelt@google.com
 
 
 The patch titled
-     Subject: mm,thp,compaction,cma: allow THP migration for CMA allocations
+     Subject: mm: prevent a warning when casting void* -> enum
 has been added to the -mm tree.  Its filename is
-     mmthpcompactioncma-allow-thp-migration-for-cma-allocations.patch
+     mm-elide-a-warning-when-casting-void-enum.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmthpcompactioncma-allow-thp-migration-for-cma-allocations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-elide-a-warning-when-casting-void-enum.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmthpcompactioncma-allow-thp-migration-for-cma-allocations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-elide-a-warning-when-casting-void-enum.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,109 +36,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mm,thp,compaction,cma: allow THP migration for CMA allocations
+From: Palmer Dabbelt <palmerdabbelt@google.com>
+Subject: mm: prevent a warning when casting void* -> enum
 
-The code to implement THP migrations already exists, and the code for CMA
-to clear out a region of memory already exists.
+I recently build the RISC-V port with LLVM trunk, which has introduced a
+new warning when casting from a pointer to an enum of a smaller size. 
+This patch simply casts to a long in the middle to stop the warning.  I'd
+be surprised this is the only one in the kernel, but it's the only one I
+saw.
 
-Only a few small tweaks are needed to allow CMA to move THP memory when
-attempting an allocation from alloc_contig_range.
-
-With these changes, migrating THPs from a CMA area works when allocating a
-1GB hugepage from CMA memory.
-
-Link: http://lkml.kernel.org/r/20200227213238.1298752-2-riel@surriel.com
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Link: http://lkml.kernel.org/r/20200227211741.83165-1-palmer@dabbelt.com
+Signed-off-by: Palmer Dabbelt <palmerdabbelt@google.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   22 +++++++++++++---------
- mm/page_alloc.c |    9 +++++++--
- 2 files changed, 20 insertions(+), 11 deletions(-)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mmthpcompactioncma-allow-thp-migration-for-cma-allocations
-+++ a/mm/compaction.c
-@@ -894,12 +894,13 @@ isolate_migratepages_block(struct compac
+--- a/mm/rmap.c~mm-elide-a-warning-when-casting-void-enum
++++ a/mm/rmap.c
+@@ -1366,7 +1366,7 @@ static bool try_to_unmap_one(struct page
+ 	struct page *subpage;
+ 	bool ret = true;
+ 	struct mmu_notifier_range range;
+-	enum ttu_flags flags = (enum ttu_flags)arg;
++	enum ttu_flags flags = (enum ttu_flags)(long)arg;
  
- 		/*
- 		 * Regardless of being on LRU, compound pages such as THP and
--		 * hugetlbfs are not to be compacted. We can potentially save
--		 * a lot of iterations if we skip them at once. The check is
--		 * racy, but we can consider only valid values and the only
--		 * danger is skipping too much.
-+		 * hugetlbfs are not to be compacted unless we are attempting
-+		 * an allocation much larger than the huge page size (eg CMA).
-+		 * We can potentially save a lot of iterations if we skip them
-+		 * at once. The check is racy, but we can consider only valid
-+		 * values and the only danger is skipping too much.
- 		 */
--		if (PageCompound(page)) {
-+		if (PageCompound(page) && !cc->alloc_contig) {
- 			const unsigned int order = compound_order(page);
- 
- 			if (likely(order < MAX_ORDER))
-@@ -969,7 +970,7 @@ isolate_migratepages_block(struct compac
- 			 * and it's on LRU. It can only be a THP so the order
- 			 * is safe to read and it's 0 for tail pages.
- 			 */
--			if (unlikely(PageCompound(page))) {
-+			if (unlikely(PageCompound(page) && !cc->alloc_contig)) {
- 				low_pfn += compound_nr(page) - 1;
- 				goto isolate_fail;
- 			}
-@@ -981,12 +982,15 @@ isolate_migratepages_block(struct compac
- 		if (__isolate_lru_page(page, isolate_mode) != 0)
- 			goto isolate_fail;
- 
--		VM_BUG_ON_PAGE(PageCompound(page), page);
-+		/* The whole page is taken off the LRU; skip the tail pages. */
-+		if (PageCompound(page))
-+			low_pfn += compound_nr(page) - 1;
- 
- 		/* Successfully isolated */
- 		del_page_from_lru_list(page, lruvec, page_lru(page));
--		inc_node_page_state(page,
--				NR_ISOLATED_ANON + page_is_file_cache(page));
-+		mod_node_page_state(page_pgdat(page),
-+				NR_ISOLATED_ANON + page_is_file_cache(page),
-+				hpage_nr_pages(page));
- 
- isolate_success:
- 		list_add(&page->lru, &cc->migratepages);
---- a/mm/page_alloc.c~mmthpcompactioncma-allow-thp-migration-for-cma-allocations
-+++ a/mm/page_alloc.c
-@@ -8255,14 +8255,19 @@ struct page *has_unmovable_pages(struct
- 
- 		/*
- 		 * Hugepages are not in LRU lists, but they're movable.
-+		 * THPs are on the LRU, but need to be counted as #small pages.
- 		 * We need not scan over tail pages because we don't
- 		 * handle each tail page individually in migration.
- 		 */
--		if (PageHuge(page)) {
-+		if (PageHuge(page) || PageTransCompound(page)) {
- 			struct page *head = compound_head(page);
- 			unsigned int skip_pages;
- 
--			if (!hugepage_migration_supported(page_hstate(head)))
-+			if (PageHuge(page) &&
-+			    !hugepage_migration_supported(page_hstate(head)))
-+				return page;
-+
-+			if (!PageLRU(head) && !__PageMovable(head))
- 				return page;
- 
- 			skip_pages = compound_nr(head) - (page - head);
+ 	/* munlock has nothing to gain from examining un-locked vmas */
+ 	if ((flags & TTU_MUNLOCK) && !(vma->vm_flags & VM_LOCKED))
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from palmerdabbelt@google.com are
 
-mmcompactioncma-add-alloc_contig-flag-to-compact_control.patch
-mmthpcompactioncma-allow-thp-migration-for-cma-allocations.patch
+mm-elide-a-warning-when-casting-void-enum.patch
