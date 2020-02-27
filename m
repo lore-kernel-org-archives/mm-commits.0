@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mempolicy-add-missing-annotation-for-queue_pages_pmd.patch added to -mm
- tree
-Date: Thu, 27 Feb 2020 15:03:55 -0800
-Message-ID: <20200227230355.4tbZKUwja%akpm@linux-foundation.org>
+Subject: + mm-slub-add-missing-annotation-for-put_map.patch added
+ to -mm tree
+Date: Thu, 27 Feb 2020 15:03:59 -0800
+Message-ID: <20200227230359.BTpoJD6y_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55734 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729738AbgB0XD4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 27 Feb 2020 18:03:56 -0500
+        id S1729891AbgB0XEA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 27 Feb 2020 18:04:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jbi.octave@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: add missing annotation for queue_pages_pmd()
+     Subject: mm/slub: add missing annotation for put_map()
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-add-missing-annotation-for-queue_pages_pmd.patch
+     mm-slub-add-missing-annotation-for-put_map.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-add-missing-annotation-for-queue_pages_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-add-missing-annotation-for-put_map.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-add-missing-annotation-for-queue_pages_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-add-missing-annotation-for-put_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,33 +37,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jules Irenge <jbi.octave@gmail.com>
-Subject: mm/mempolicy: add missing annotation for queue_pages_pmd()
+Subject: mm/slub: add missing annotation for put_map()
 
-Sparse reports a warning at queue_pages_pmd()
+Sparse reports a warning at put_map()()
 
-context imbalance in queue_pages_pmd() - unexpected unlock
+ warning: context imbalance in put_map() - unexpected unlock
 
-The root cause is the missing annotation at queue_pages_pmd()
-Add the missing __releases(ptl)
+The root cause is the missing annotation at put_map()
+Add the missing __releases(&object_map_lock) annotation
 
-Link: http://lkml.kernel.org/r/20200214204741.94112-8-jbi.octave@gmail.com
+Link: http://lkml.kernel.org/r/20200214204741.94112-10-jbi.octave@gmail.com
 Signed-off-by: Jules Irenge <jbi.octave@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-add-missing-annotation-for-queue_pages_pmd
-+++ a/mm/mempolicy.c
-@@ -442,6 +442,7 @@ static inline bool queue_pages_required(
-  */
- static int queue_pages_pmd(pmd_t *pmd, spinlock_t *ptl, unsigned long addr,
- 				unsigned long end, struct mm_walk *walk)
-+	__releases(ptl)
+--- a/mm/slub.c~mm-slub-add-missing-annotation-for-put_map
++++ a/mm/slub.c
+@@ -466,7 +466,7 @@ static unsigned long *get_map(struct kme
+ 	return object_map;
+ }
+ 
+-static void put_map(unsigned long *map)
++static void put_map(unsigned long *map) __releases(&object_map_lock)
  {
- 	int ret = 0;
- 	struct page *page;
+ 	VM_BUG_ON(map != object_map);
+ 	lockdep_assert_held(&object_map_lock);
 _
 
 Patches currently in -mm which might be from jbi.octave@gmail.com are
