@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slub-add-missing-annotation-for-put_map.patch added
- to -mm tree
-Date: Thu, 27 Feb 2020 15:03:59 -0800
-Message-ID: <20200227230359.BTpoJD6y_%akpm@linux-foundation.org>
+Subject: +
+ mm-zsmalloc-add-missing-annotation-for-migrate_read_lock.patch added to -mm
+ tree
+Date: Thu, 27 Feb 2020 15:04:01 -0800
+Message-ID: <20200227230401.OtvragbDY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56092 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56204 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729891AbgB0XEA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 27 Feb 2020 18:04:00 -0500
+        id S1729891AbgB0XEC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 27 Feb 2020 18:04:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbi.octave@gmail.com, mm-commits@vger.kernel.org
+To: jbi.octave@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: add missing annotation for put_map()
+     Subject: mm/zsmalloc: add missing annotation for migrate_read_lock()
 has been added to the -mm tree.  Its filename is
-     mm-slub-add-missing-annotation-for-put_map.patch
+     mm-zsmalloc-add-missing-annotation-for-migrate_read_lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-add-missing-annotation-for-put_map.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-add-missing-annotation-for-migrate_read_lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-add-missing-annotation-for-put_map.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-add-missing-annotation-for-migrate_read_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,34 +38,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jules Irenge <jbi.octave@gmail.com>
-Subject: mm/slub: add missing annotation for put_map()
+Subject: mm/zsmalloc: add missing annotation for migrate_read_lock()
 
-Sparse reports a warning at put_map()()
+Sparse reports a warning at migrate_read_lock()()
 
- warning: context imbalance in put_map() - unexpected unlock
+ warning: context imbalance in migrate_read_lock() - wrong count at exit
 
-The root cause is the missing annotation at put_map()
-Add the missing __releases(&object_map_lock) annotation
+The root cause is the missing annotation at migrate_read_lock()
+Add the missing __acquires(&zspage->lock) annotation
 
-Link: http://lkml.kernel.org/r/20200214204741.94112-10-jbi.octave@gmail.com
+Link: http://lkml.kernel.org/r/20200214204741.94112-11-jbi.octave@gmail.com
 Signed-off-by: Jules Irenge <jbi.octave@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
+ mm/zsmalloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slub-add-missing-annotation-for-put_map
-+++ a/mm/slub.c
-@@ -466,7 +466,7 @@ static unsigned long *get_map(struct kme
- 	return object_map;
+--- a/mm/zsmalloc.c~mm-zsmalloc-add-missing-annotation-for-migrate_read_lock
++++ a/mm/zsmalloc.c
+@@ -1833,7 +1833,7 @@ static void migrate_lock_init(struct zsp
+ 	rwlock_init(&zspage->lock);
  }
  
--static void put_map(unsigned long *map)
-+static void put_map(unsigned long *map) __releases(&object_map_lock)
+-static void migrate_read_lock(struct zspage *zspage)
++static void migrate_read_lock(struct zspage *zspage) __acquires(&zspage->lock)
  {
- 	VM_BUG_ON(map != object_map);
- 	lockdep_assert_held(&object_map_lock);
+ 	read_lock(&zspage->lock);
+ }
 _
 
 Patches currently in -mm which might be from jbi.octave@gmail.com are
