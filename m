@@ -1,29 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memblock-remove-redundant-assignment-to-variable-max_addr.patch added to
- -mm tree
-Date: Sat, 29 Feb 2020 18:07:32 -0800
-Message-ID: <20200301020732.-bKRyvtte%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-mm=5Finitc-clean-code-use-build=5Fbug=5Fon-when-comparing?=
+ =?US-ASCII?Q?-compile-time-constant.patch?= added to -mm tree
+Date: Sat, 29 Feb 2020 18:08:31 -0800
+Message-ID: <20200301020831.z_JleSR9S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35056 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35244 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727268AbgCACHd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 29 Feb 2020 21:07:33 -0500
+        id S1727255AbgCACIc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 29 Feb 2020 21:08:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com
+To: akpm@linux-foundation.org, mateusznosek0@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: remove redundant assignment to variable max_addr
+     Subject: mm/mm_init.c: clean code. Use BUILD_BUG_ON when comparing compile time constant
 has been added to the -mm tree.  Its filename is
-     mm-memblock-remove-redundant-assignment-to-variable-max_addr.patch
+     mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-remove-redundant-assignment-to-variable-max_addr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-remove-redundant-assignment-to-variable-max_addr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,37 +39,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: mm/memblock.c: remove redundant assignment to variable max_addr
+From: Mateusz Nosek <mateusznosek0@gmail.com>
+Subject: mm/mm_init.c: clean code. Use BUILD_BUG_ON when comparing compile time constant
 
-The variable max_addr is being initialized with a value that is never read
-and it is being updated later with a new value.  The initialization is
-redundant and can be removed.
+MAX_ZONELISTS is a compile time constant, so it should be compared using
+BUILD_BUG_ON not BUG_ON.
 
-Addresses-Coverity: ("Unused value")
-Link: http://lkml.kernel.org/r/20200228235003.112718-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Link: http://lkml.kernel.org/r/20200228224617.11343-1-mateusznosek0@gmail.com
+Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    2 +-
+ mm/mm_init.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memblock.c~mm-memblock-remove-redundant-assignment-to-variable-max_addr
-+++ a/mm/memblock.c
-@@ -1698,7 +1698,7 @@ static phys_addr_t __init_memblock __fin
+--- a/mm/mm_init.c~mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant
++++ a/mm/mm_init.c
+@@ -37,7 +37,7 @@ void __init mminit_verify_zonelist(void)
+ 		struct zonelist *zonelist;
+ 		int i, listid, zoneid;
  
- void __init memblock_enforce_memory_limit(phys_addr_t limit)
- {
--	phys_addr_t max_addr = PHYS_ADDR_MAX;
-+	phys_addr_t max_addr;
+-		BUG_ON(MAX_ZONELISTS > 2);
++		BUILD_BUG_ON(MAX_ZONELISTS > 2);
+ 		for (i = 0; i < MAX_ZONELISTS * MAX_NR_ZONES; i++) {
  
- 	if (!limit)
- 		return;
+ 			/* Identify the zone and nodelist */
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from mateusznosek0@gmail.com are
 
-mm-memblock-remove-redundant-assignment-to-variable-max_addr.patch
-lib-test_lockup-fix-spelling-mistake-iteraions-iterations.patch
+mm-vmscanc-clean-code-by-removing-unnecessary-assignment.patch
+mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant.patch
