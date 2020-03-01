@@ -1,31 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- =?US-ASCII?Q?mm-mm=5Finitc-clean-code-use-build=5Fbug=5Fon-when-comparing?=
- =?US-ASCII?Q?-compile-time-constant.patch?= added to -mm tree
-Date: Sat, 29 Feb 2020 18:08:31 -0800
-Message-ID: <20200301020831.z_JleSR9S%akpm@linux-foundation.org>
+Subject: + loop-use-worker-per-cgroup-instead-of-kworker-fix.patch
+ added to -mm tree
+Date: Sat, 29 Feb 2020 18:10:41 -0800
+Message-ID: <20200301021041.zPbwWaL0U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35244 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35714 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727255AbgCACIc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 29 Feb 2020 21:08:32 -0500
+        id S1727228AbgCACKo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 29 Feb 2020 21:10:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mateusznosek0@gmail.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, mm-commits@vger.kernel.org, schatzberg.dan@gmail.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm/mm_init.c: clean code. Use BUILD_BUG_ON when comparing compile time constant
+     Subject: loop: fix IS_ERR() vs NULL bugs in loop_prepare_queue()
 has been added to the -mm tree.  Its filename is
-     mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant.patch
+     loop-use-worker-per-cgroup-instead-of-kworker-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/loop-use-worker-per-cgroup-instead-of-kworker-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/loop-use-worker-per-cgroup-instead-of-kworker-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,35 +36,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mateusz Nosek <mateusznosek0@gmail.com>
-Subject: mm/mm_init.c: clean code. Use BUILD_BUG_ON when comparing compile time constant
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: loop: fix IS_ERR() vs NULL bugs in loop_prepare_queue()
 
-MAX_ZONELISTS is a compile time constant, so it should be compared using
-BUILD_BUG_ON not BUG_ON.
+The alloc_workqueue() function returns NULL on error, it never returns
+error pointers.
 
-Link: http://lkml.kernel.org/r/20200228224617.11343-1-mateusznosek0@gmail.com
-Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20200228172136.h5dvwvrg5yfywxss@kili.mountain
+Fixes: 29dab2122492 ("loop: use worker per cgroup instead of kworker")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Dan Schatzberg <schatzberg.dan@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    2 +-
+ drivers/block/loop.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mm_init.c~mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant
-+++ a/mm/mm_init.c
-@@ -37,7 +37,7 @@ void __init mminit_verify_zonelist(void)
- 		struct zonelist *zonelist;
- 		int i, listid, zoneid;
+--- a/drivers/block/loop.c~loop-use-worker-per-cgroup-instead-of-kworker-fix
++++ a/drivers/block/loop.c
+@@ -901,7 +901,7 @@ static int loop_prepare_queue(struct loo
+ 					WQ_UNBOUND | WQ_FREEZABLE |
+ 					WQ_MEM_RECLAIM,
+ 					lo->lo_number);
+-	if (IS_ERR(lo->workqueue))
++	if (!lo->workqueue)
+ 		return -ENOMEM;
  
--		BUG_ON(MAX_ZONELISTS > 2);
-+		BUILD_BUG_ON(MAX_ZONELISTS > 2);
- 		for (i = 0; i < MAX_ZONELISTS * MAX_NR_ZONES; i++) {
- 
- 			/* Identify the zone and nodelist */
+ 	return 0;
 _
 
-Patches currently in -mm which might be from mateusznosek0@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-vmscanc-clean-code-by-removing-unnecessary-assignment.patch
-mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant.patch
+loop-use-worker-per-cgroup-instead-of-kworker-fix.patch
