@@ -1,29 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vma-make-is_vma_temporary_stack-available-for-general-use.patch added to
- -mm tree
-Date: Sat, 29 Feb 2020 20:51:51 -0800
-Message-ID: <20200301045151.y031NjJQr%akpm@linux-foundation.org>
+Subject: + linux-next-fix-2.patch added to -mm tree
+Date: Sat, 29 Feb 2020 21:35:40 -0800
+Message-ID: <20200301053540.5_QVMv0QH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54076 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726151AbgCAEvx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 29 Feb 2020 23:51:53 -0500
+        id S1725843AbgCAFfl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 1 Mar 2020 00:35:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, tglx@linutronix.de, vbabka@suse.cz
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vma: make is_vma_temporary_stack() available for general use
+     Subject: linux-next-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-vma-make-is_vma_temporary_stack-available-for-general-use.patch
+     linux-next-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vma-make-is_vma_temporary_stack-available-for-general-use.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vma-make-is_vma_temporary_stack-available-for-general-use.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,114 +35,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/vma: make is_vma_temporary_stack() available for general use
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-fix-2
 
-Currently the declaration and definition for is_vma_temporary_stack() are
-scattered.  Lets make is_vma_temporary_stack() helper available for
-general use and also drop the declaration from (include/linux/huge_mm.h)
-which is no longer required.  While at this, rename this as
-vma_is_temporary_stack() in line with existing helpers.  This should not
-cause any functional change.
-
-Link: http://lkml.kernel.org/r/1582782965-3274-4-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    4 +---
- include/linux/mm.h      |   14 ++++++++++++++
- mm/khugepaged.c         |    2 +-
- mm/mremap.c             |    2 +-
- mm/rmap.c               |   16 +---------------
- 5 files changed, 18 insertions(+), 20 deletions(-)
+ drivers/pinctrl/pinctrl-da9062.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/huge_mm.h~mm-vma-make-is_vma_temporary_stack-available-for-general-use
-+++ a/include/linux/huge_mm.h
-@@ -87,8 +87,6 @@ extern struct kobj_attribute shmem_enabl
- #define HPAGE_PUD_SIZE	((1UL) << HPAGE_PUD_SHIFT)
- #define HPAGE_PUD_MASK	(~(HPAGE_PUD_SIZE - 1))
+--- a/drivers/pinctrl/pinctrl-da9062.c~linux-next-fix-2
++++ a/drivers/pinctrl/pinctrl-da9062.c
+@@ -25,7 +25,7 @@
+  * We need this get the gpio_desc from a <gpio_chip,offset> tuple to decide if
+  * the gpio is active low without a vendor specific dt-binding.
+  */
+-#include <../gpio/gpiolib.h>
++#include "../gpio/gpiolib.h"
  
--extern bool is_vma_temporary_stack(struct vm_area_struct *vma);
--
- extern unsigned long transparent_hugepage_flags;
- 
- /*
-@@ -100,7 +98,7 @@ static inline bool __transparent_hugepag
- 	if (vma->vm_flags & VM_NOHUGEPAGE)
- 		return false;
- 
--	if (is_vma_temporary_stack(vma))
-+	if (vma_is_temporary_stack(vma))
- 		return false;
- 
- 	if (test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
---- a/include/linux/mm.h~mm-vma-make-is_vma_temporary_stack-available-for-general-use
-+++ a/include/linux/mm.h
-@@ -549,6 +549,20 @@ static inline bool vma_is_accessible(str
- 	return vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC);
- }
- 
-+static inline bool vma_is_temporary_stack(struct vm_area_struct *vma)
-+{
-+	int maybe_stack = vma->vm_flags & (VM_GROWSDOWN | VM_GROWSUP);
-+
-+	if (!maybe_stack)
-+		return false;
-+
-+	if ((vma->vm_flags & VM_STACK_INCOMPLETE_SETUP) ==
-+						VM_STACK_INCOMPLETE_SETUP)
-+		return true;
-+
-+	return false;
-+}
-+
- static inline bool vma_is_foreign(struct vm_area_struct *vma)
- {
- 	if (!current->mm)
---- a/mm/khugepaged.c~mm-vma-make-is_vma_temporary_stack-available-for-general-use
-+++ a/mm/khugepaged.c
-@@ -421,7 +421,7 @@ static bool hugepage_vma_check(struct vm
- 	}
- 	if (!vma->anon_vma || vma->vm_ops)
- 		return false;
--	if (is_vma_temporary_stack(vma))
-+	if (vma_is_temporary_stack(vma))
- 		return false;
- 	return !(vm_flags & VM_NO_KHUGEPAGED);
- }
---- a/mm/mremap.c~mm-vma-make-is_vma_temporary_stack-available-for-general-use
-+++ a/mm/mremap.c
-@@ -133,7 +133,7 @@ static void move_ptes(struct vm_area_str
- 	 * such races:
- 	 *
- 	 * - During exec() shift_arg_pages(), we use a specially tagged vma
--	 *   which rmap call sites look for using is_vma_temporary_stack().
-+	 *   which rmap call sites look for using vma_is_temporary_stack().
- 	 *
- 	 * - During mremap(), new_vma is often known to be placed after vma
- 	 *   in rmap traversal order. This ensures rmap will always observe
---- a/mm/rmap.c~mm-vma-make-is_vma_temporary_stack-available-for-general-use
-+++ a/mm/rmap.c
-@@ -1686,23 +1686,9 @@ discard:
- 	return ret;
- }
- 
--bool is_vma_temporary_stack(struct vm_area_struct *vma)
--{
--	int maybe_stack = vma->vm_flags & (VM_GROWSDOWN | VM_GROWSUP);
--
--	if (!maybe_stack)
--		return false;
--
--	if ((vma->vm_flags & VM_STACK_INCOMPLETE_SETUP) ==
--						VM_STACK_INCOMPLETE_SETUP)
--		return true;
--
--	return false;
--}
+ #define DA9062_TYPE(offset)		(4 * (offset % 2))
+ #define DA9062_PIN_SHIFT(offset)	(4 * (offset % 2))
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa-fix.patch
+mm.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+linux-next-fix-2.patch
+linux-next-git-rejects.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
