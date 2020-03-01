@@ -1,28 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + openrisc-add-support-for-folded-p4d-page-tables.patch
- added to -mm tree
-Date: Sat, 29 Feb 2020 20:38:05 -0800
-Message-ID: <20200301043805.mgSsK-Bn5%akpm@linux-foundation.org>
+Subject: + powerpc-32-drop-get_pteptr.patch added to -mm tree
+Date: Sat, 29 Feb 2020 20:38:08 -0800
+Message-ID: <20200301043808.Uxzjvb-gq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44298 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44372 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726151AbgCAEiI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 29 Feb 2020 23:38:08 -0500
+        id S1726151AbgCAEiK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 29 Feb 2020 23:38:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, bcain@codeaurora.org, benh@kernel.crashing.org, catalin.marinas@arm.com, christophe.leroy@c-s.fr, dalias@libc.org, fenghua.yu@intel.com, geert+renesas@glider.be, gxt@pku.edu.cn, james.morse@arm.com, jonas@southpole.se, julien.thierry.kdev@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, maz@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, rppt@linux.ibm.com, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, suzuki.poulose@arm.com, tony.luck@intel.com, will@kernel.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: openrisc: add support for folded p4d page tables
+     Subject: powerpc/32: drop get_pteptr()
 has been added to the -mm tree.  Its filename is
-     openrisc-add-support-for-folded-p4d-page-tables.patch
+     powerpc-32-drop-get_pteptr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/openrisc-add-support-for-folded-p4d-page-tables.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-32-drop-get_pteptr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/openrisc-add-support-for-folded-p4d-page-tables.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-32-drop-get_pteptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,19 +35,26 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: openrisc: add support for folded p4d page tables
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Subject: powerpc/32: drop get_pteptr()
 
-Implement primitives necessary for the 4th level folding, add walks of p4d
-level where appropriate and remove usage of __ARCH_USE_5LEVEL_HACK.
+Commit 8d30c14cab30 ("powerpc/mm: Rework I$/D$ coherency (v3)") and commit
+90ac19a8b21b ("[POWERPC] Abolish iopa(), mm_ptov(), io_block_mapping()
+from arch/powerpc") removed the use of get_pteptr() outside of
+mm/pgtable_32.c
 
-Link: http://lkml.kernel.org/r/20200227084608.18223-7-rppt@kernel.org
+In mm/pgtable_32.c, the only user of get_pteptr() is __change_page_attr()
+which operates on kernel context and on lowmem pages only.
+
+Move page table traversal to __change_page_attr() and drop get_pteptr().
+
+Link: http://lkml.kernel.org/r/20200227084608.18223-8-rppt@kernel.org
+Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Brian Cain <bcain@codeaurora.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
 Cc: Fenghua Yu <fenghua.yu@intel.com>
 Cc: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: Guan Xuetao <gxt@pku.edu.cn>
@@ -70,80 +76,74 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/include/asm/pgtable.h |    1 -
- arch/openrisc/mm/fault.c            |   10 ++++++++--
- arch/openrisc/mm/init.c             |    4 +++-
- 3 files changed, 11 insertions(+), 4 deletions(-)
+ arch/powerpc/mm/pgtable_32.c |   43 +++++----------------------------
+ 1 file changed, 7 insertions(+), 36 deletions(-)
 
---- a/arch/openrisc/include/asm/pgtable.h~openrisc-add-support-for-folded-p4d-page-tables
-+++ a/arch/openrisc/include/asm/pgtable.h
-@@ -21,7 +21,6 @@
- #ifndef __ASM_OPENRISC_PGTABLE_H
- #define __ASM_OPENRISC_PGTABLE_H
+--- a/arch/powerpc/mm/pgtable_32.c~powerpc-32-drop-get_pteptr
++++ a/arch/powerpc/mm/pgtable_32.c
+@@ -121,53 +121,24 @@ void __init mapin_ram(void)
+ 	}
+ }
  
--#define __ARCH_USE_5LEVEL_HACK
- #include <asm-generic/pgtable-nopmd.h>
+-/* Scan the real Linux page tables and return a PTE pointer for
+- * a virtual address in a context.
+- * Returns true (1) if PTE was found, zero otherwise.  The pointer to
+- * the PTE pointer is unmodified if PTE is not found.
+- */
+-static int
+-get_pteptr(struct mm_struct *mm, unsigned long addr, pte_t **ptep, pmd_t **pmdp)
+-{
+-        pgd_t	*pgd;
+-	pud_t	*pud;
+-        pmd_t	*pmd;
+-        pte_t	*pte;
+-        int     retval = 0;
+-
+-        pgd = pgd_offset(mm, addr & PAGE_MASK);
+-        if (pgd) {
+-		pud = pud_offset(pgd, addr & PAGE_MASK);
+-		if (pud && pud_present(*pud)) {
+-			pmd = pmd_offset(pud, addr & PAGE_MASK);
+-			if (pmd_present(*pmd)) {
+-				pte = pte_offset_map(pmd, addr & PAGE_MASK);
+-				if (pte) {
+-					retval = 1;
+-					*ptep = pte;
+-					if (pmdp)
+-						*pmdp = pmd;
+-					/* XXX caller needs to do pte_unmap, yuck */
+-				}
+-			}
+-		}
+-        }
+-        return(retval);
+-}
+-
+ static int __change_page_attr_noflush(struct page *page, pgprot_t prot)
+ {
+ 	pte_t *kpte;
+ 	pmd_t *kpmd;
+-	unsigned long address;
++	unsigned long address, va;
  
- #ifndef __ASSEMBLY__
---- a/arch/openrisc/mm/fault.c~openrisc-add-support-for-folded-p4d-page-tables
-+++ a/arch/openrisc/mm/fault.c
-@@ -296,6 +296,7 @@ vmalloc_fault:
+ 	BUG_ON(PageHighMem(page));
+ 	address = (unsigned long)page_address(page);
++	va = address & PAGE_MASK;
  
- 		int offset = pgd_index(address);
- 		pgd_t *pgd, *pgd_k;
-+		p4d_t *p4d, *p4d_k;
- 		pud_t *pud, *pud_k;
- 		pmd_t *pmd, *pmd_k;
- 		pte_t *pte_k;
-@@ -322,8 +323,13 @@ vmalloc_fault:
- 		 * it exists.
- 		 */
- 
--		pud = pud_offset(pgd, address);
--		pud_k = pud_offset(pgd_k, address);
-+		p4d = p4d_offset(pgd, address);
-+		p4d_k = p4d_offset(pgd_k, address);
-+		if (!p4d_present(*p4d_k))
-+			goto no_context;
+ 	if (v_block_mapped(address))
+ 		return 0;
+-	if (!get_pteptr(&init_mm, address, &kpte, &kpmd))
 +
-+		pud = pud_offset(p4d, address);
-+		pud_k = pud_offset(p4d_k, address);
- 		if (!pud_present(*pud_k))
- 			goto no_context;
++	kpmd = pmd_offset(pud_offset(pgd_offset_k(va), va), va);
++	if (!pmd_present(*kpmd))
+ 		return -EINVAL;
++
++	kpte = pte_offset_map(kpmd, va);
+ 	__set_pte_at(&init_mm, address, kpte, mk_pte(page, prot), 0);
+ 	pte_unmap(kpte);
  
---- a/arch/openrisc/mm/init.c~openrisc-add-support-for-folded-p4d-page-tables
-+++ a/arch/openrisc/mm/init.c
-@@ -71,6 +71,7 @@ static void __init map_ram(void)
- 	unsigned long v, p, e;
- 	pgprot_t prot;
- 	pgd_t *pge;
-+	p4d_t *p4e;
- 	pud_t *pue;
- 	pmd_t *pme;
- 	pte_t *pte;
-@@ -90,7 +91,8 @@ static void __init map_ram(void)
- 
- 		while (p < e) {
- 			int j;
--			pue = pud_offset(pge, v);
-+			p4e = p4d_offset(pge, v);
-+			pue = pud_offset(p4e, v);
- 			pme = pmd_offset(pue, v);
- 
- 			if ((u32) pue != (u32) pge || (u32) pme != (u32) pge) {
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from christophe.leroy@c-s.fr are
 
-arm-arm64-add-support-for-folded-p4d-page-tables.patch
-h8300-remove-usage-of-__arch_use_5level_hack.patch
-hexagon-remove-__arch_use_5level_hack.patch
-ia64-add-support-for-folded-p4d-page-tables.patch
-nios2-add-support-for-folded-p4d-page-tables.patch
-openrisc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables.patch
-sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
-sh-add-support-for-folded-p4d-page-tables.patch
-unicore32-remove-__arch_use_5level_hack.patch
-asm-generic-remove-pgtable-nop4d-hackh.patch
-mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
+powerpc-32-drop-get_pteptr.patch
