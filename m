@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-remove-usage-of-__arch_use_5level_hack.patch
- added to -mm tree
-Date: Sat, 29 Feb 2020 20:37:49 -0800
-Message-ID: <20200301043749.H8LqlsHHE%akpm@linux-foundation.org>
+Subject: + hexagon-remove-__arch_use_5level_hack.patch added to
+ -mm tree
+Date: Sat, 29 Feb 2020 20:37:53 -0800
+Message-ID: <20200301043753.c7tcitDil%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43996 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726151AbgCAEhy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 29 Feb 2020 23:37:54 -0500
+        id S1726151AbgCAEhz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 29 Feb 2020 23:37:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, bcain@codeaurora.org, benh@kernel.crashing.org, catalin.marinas@arm.com, christophe.leroy@c-s.fr, dalias@libc.org, fenghua.yu@intel.com, geert+renesas@glider.be, gxt@pku.edu.cn, james.morse@arm.com, jonas@southpole.se, julien.thierry.kdev@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, maz@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, rppt@linux.ibm.com, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, suzuki.poulose@arm.com, tony.luck@intel.com, will@kernel.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: h8300: remove usage of __ARCH_USE_5LEVEL_HACK
+     Subject: hexagon: remove __ARCH_USE_5LEVEL_HACK
 has been added to the -mm tree.  Its filename is
-     h8300-remove-usage-of-__arch_use_5level_hack.patch
+     hexagon-remove-__arch_use_5level_hack.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/h8300-remove-usage-of-__arch_use_5level_hack.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hexagon-remove-__arch_use_5level_hack.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/h8300-remove-usage-of-__arch_use_5level_hack.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hexagon-remove-__arch_use_5level_hack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,16 +37,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: h8300: remove usage of __ARCH_USE_5LEVEL_HACK
+Subject: hexagon: remove __ARCH_USE_5LEVEL_HACK
 
-h8300 is a nommu architecture and does not require fixup for upper layers
-of the page tables because it is already handled by the generic nommu
-implementation.
+The hexagon architecture has 2 level page tables and as such most of the
+page table folding is already implemented in asm-generic/pgtable-nopmd.h.
 
-Remove definition of __ARCH_USE_5LEVEL_HACK in
-arch/h8300/include/asm/pgtable.h
+Fixup the only place in arch/hexagon to unfold the p4d level and remove
+__ARCH_USE_5LEVEL_HACK.
 
-Link: http://lkml.kernel.org/r/20200227084608.18223-3-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200227084608.18223-4-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -74,19 +73,32 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/include/asm/pgtable.h |    1 -
- 1 file changed, 1 deletion(-)
+ arch/hexagon/include/asm/fixmap.h  |    4 ++--
+ arch/hexagon/include/asm/pgtable.h |    1 -
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
---- a/arch/h8300/include/asm/pgtable.h~h8300-remove-usage-of-__arch_use_5level_hack
-+++ a/arch/h8300/include/asm/pgtable.h
-@@ -1,7 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef _H8300_PGTABLE_H
- #define _H8300_PGTABLE_H
+--- a/arch/hexagon/include/asm/fixmap.h~hexagon-remove-__arch_use_5level_hack
++++ a/arch/hexagon/include/asm/fixmap.h
+@@ -16,7 +16,7 @@
+ #include <asm-generic/fixmap.h>
+ 
+ #define kmap_get_fixmap_pte(vaddr) \
+-	pte_offset_kernel(pmd_offset(pud_offset(pgd_offset_k(vaddr), \
+-				(vaddr)), (vaddr)), (vaddr))
++	pte_offset_kernel(pmd_offset(pud_offset(p4d_offset(pgd_offset_k(vaddr), \
++				(vaddr)), (vaddr)), (vaddr)), (vaddr))
+ 
+ #endif
+--- a/arch/hexagon/include/asm/pgtable.h~hexagon-remove-__arch_use_5level_hack
++++ a/arch/hexagon/include/asm/pgtable.h
+@@ -12,7 +12,6 @@
+  * Page table definitions for Qualcomm Hexagon processor.
+  */
+ #include <asm/page.h>
 -#define __ARCH_USE_5LEVEL_HACK
- #include <asm-generic/pgtable-nopud.h>
- #include <asm-generic/pgtable.h>
- extern void paging_init(void);
+ #include <asm-generic/pgtable-nopmd.h>
+ 
+ /* A handy thing to have if one has the RAM. Declared in head.S */
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
