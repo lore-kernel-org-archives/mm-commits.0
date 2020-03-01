@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix.patch added
- to -mm tree
-Date: Sat, 29 Feb 2020 20:22:57 -0800
-Message-ID: <20200301042257.VyNwfqIqa%akpm@linux-foundation.org>
+Subject: + mm-define-pte_index-as-macro-for-x86.patch added to -mm
+ tree
+Date: Sat, 29 Feb 2020 20:27:57 -0800
+Message-ID: <20200301042757.FZfiOeLFA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35320 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38948 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726400AbgCAEW6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 29 Feb 2020 23:22:58 -0500
+        id S1726063AbgCAE16 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 29 Feb 2020 23:27:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mgorman@techsingularity.net, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, riel@surriel.com, rientjes@google.com, vbabka@suse.cz, ziy@nvidia.com
+To: arjunroy@google.com, davem@davemloft.net, edumazet@google.com, jgg@ziepe.ca, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, soheil@google.com, willy@infradead.org
 
 
 The patch titled
-     Subject: mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix
+     Subject: mm: define pte_index as macro for x86
 has been added to the -mm tree.  Its filename is
-     mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix.patch
+     mm-define-pte_index-as-macro-for-x86.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-define-pte_index-as-macro-for-x86.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-define-pte_index-as-macro-for-x86.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,40 +36,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
+From: Arjun Roy <arjunroy@google.com>
+Subject: mm: define pte_index as macro for x86
 
-Author: Rik van Riel <riel@surriel.com>
-Subject: mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix
+pte_index() is either defined as a macro (e.g.  sparc64) or as an inlined
+function (e.g.  x86).  vm_insert_pages() depends on pte_index but it is
+not defined on all platforms (e.g.  m68k).
 
-Mike Kravetz pointed out that the second if condition could do the
-wrong thing for hugetlbfs pages, and that check really only needs
-to run on THPs.
+To fix compilation of vm_insert_pages() on architectures not providing
+pte_index(), we perform the following fix:
 
-Cleanup suggested by Vlastimil.
+0. For platforms where it is meaningful, and defined as a macro, no
+    change is needed.
+1. For platforms where it is meaningful and defined as an inlined
+    function, and we want to use it with vm_insert_pages(), we define
+    a degenerate macro of the form:  #define pte_index pte_index
+2. vm_insert_pages() checks for the existence of a pte_index macro
+   definition. If found, it implements a batched insert. If not found,
+   it devolves to calling vm_insert_page() in a loop.
 
-Thank you both!
+This patch implements step 1 for x86.
 
-Link: http://lkml.kernel.org/r/20200228104700.0af2f18d@imladris.surriel.com
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+v3 of this patch fixes a compilation warning for an unused method.
+v2 of this patch moved a macro definition to a more readable location.
+
+Link: http://lkml.kernel.org/r/20200228054714.204424-1-arjunroy.kdev@gmail.com
+Signed-off-by: Arjun Roy <arjunroy@google.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Soheil Hassas Yeganeh <soheil@google.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/x86/include/asm/pgtable.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/page_alloc.c~mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix
-+++ a/mm/page_alloc.c
-@@ -8263,12 +8263,12 @@ struct page *has_unmovable_pages(struct
- 			struct page *head = compound_head(page);
- 			unsigned int skip_pages;
- 
--			if (PageHuge(page) &&
--			    !hugepage_migration_supported(page_hstate(head)))
--				return page;
+--- a/arch/x86/include/asm/pgtable.h~mm-define-pte_index-as-macro-for-x86
++++ a/arch/x86/include/asm/pgtable.h
+@@ -828,7 +828,10 @@ static inline unsigned long pmd_index(un
+  *
+  * this function returns the index of the entry in the pte page which would
+  * control the given virtual address
++ *
++ * Also define macro so we can test if pte_index is defined for arch.
+  */
++#define pte_index pte_index
+ static inline unsigned long pte_index(unsigned long address)
+ {
+ 	return (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
+_
+
+Patches currently in -mm which might be from arjunroy@google.com are
+
+mm-refactor-insert_page-to-prepare-for-batched-lock-insert.patch
+mm-bring-sparc-pte_index-semantics-inline-with-other-platforms.patch
+mm-define-pte_index-as-macro-for-x86.patch
+mm-add-vm_insert_pages.patch
+mm-add-vm_insert_pages-2.patch
+mm-add-vm_insert_pages-2-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy.patch
