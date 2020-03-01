@@ -1,31 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- =?US-ASCII?Q?mm-memory=5Fhotplug-simplify-calculation-of-number-of-pages?=
- =?US-ASCII?Q?-in-=5F=5Fremove=5Fpages.patch?= added to -mm tree
-Date: Sat, 29 Feb 2020 20:19:09 -0800
-Message-ID: <20200301041909.2oTdlddQi%akpm@linux-foundation.org>
+Subject: + lib-test_kmod-remove-a-null-test.patch added to -mm
+ tree
+Date: Sat, 29 Feb 2020 20:20:23 -0800
+Message-ID: <20200301042023.TEF935SnS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33548 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34294 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726490AbgCAETK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 29 Feb 2020 23:19:10 -0500
+        id S1726151AbgCAEUY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 29 Feb 2020 23:20:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, dan.j.williams@intel.com, david@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org, osalvador@suse.de, richard.weiyang@gmail.com, segher@kernel.crashing.org
+To: dan.carpenter@oracle.com, mcgrof@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: simplify calculation of number of pages in __remove_pages()
+     Subject: lib/test_kmod.c: remove a NULL test
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-simplify-calculation-of-number-of-pages-in-__remove_pages.patch
+     lib-test_kmod-remove-a-null-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-simplify-calculation-of-number-of-pages-in-__remove_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_kmod-remove-a-null-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-simplify-calculation-of-number-of-pages-in-__remove_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_kmod-remove-a-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +36,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug.c: simplify calculation of number of pages in __remove_pages()
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: lib/test_kmod.c: remove a NULL test
 
-In commit 52fb87c81f11 ("mm/memory_hotplug: cleanup __remove_pages()"), we
-cleaned up __remove_pages(), and introduced a shorter variant to calculate
-the number of pages to the next section boundary.
+The "info" pointer has already been dereferenced so checking here is too
+late.  Fortunately, we never pass NULL pointers to the
+test_kmod_put_module() function so the test can simply be removed.
 
-Turns out we can make this calculation easier to read.  We always want to
-have the number of pages (> 0) to the next section boundary, starting fro=
-m the current pfn.
-
-We'll clean up __remove_pages() in a follow-up patch and directly make use
-of this computation.
-
-Link: http://lkml.kernel.org/r/20200228095819.10750-2-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Suggested-by: Segher Boessenkool <segher@kernel.crashing.org>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: http://lkml.kernel.org/r/20200228092452.vwkhthsn77nrxdy6@kili.mountain
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/test_kmod.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-simplify-calculation-of-number-of-pages-in-__remove_pages
-+++ a/mm/memory_hotplug.c
-@@ -534,7 +534,8 @@ void __remove_pages(unsigned long pfn, u
- 	for (; pfn < end_pfn; pfn += cur_nr_pages) {
- 		cond_resched();
- 		/* Select all remaining pages up to the next section boundary */
--		cur_nr_pages = min(end_pfn - pfn, -(pfn | PAGE_SECTION_MASK));
-+		cur_nr_pages = min(end_pfn - pfn,
-+				   SECTION_ALIGN_UP(pfn + 1) - pfn);
- 		__remove_section(pfn, cur_nr_pages, map_offset, altmap);
- 		map_offset = 0;
- 	}
+--- a/lib/test_kmod.c~lib-test_kmod-remove-a-null-test
++++ a/lib/test_kmod.c
+@@ -204,7 +204,7 @@ static void test_kmod_put_module(struct
+ 	case TEST_KMOD_DRIVER:
+ 		break;
+ 	case TEST_KMOD_FS_TYPE:
+-		if (info && info->fs_sync && info->fs_sync->owner)
++		if (info->fs_sync && info->fs_sync->owner)
+ 			module_put(info->fs_sync->owner);
+ 		break;
+ 	default:
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
-drivers-base-memoryc-indicate-all-memory-blocks-as-removable.patch
-drivers-base-memoryc-drop-section_count.patch
-drivers-base-memoryc-drop-pages_correctly_probed.patch
-mm-page_extc-drop-pfn_present-check-when-onlining.patch
-mm-memory_hotplug-simplify-calculation-of-number-of-pages-in-__remove_pages.patch
-mm-memory_hotplug-cleanup-__add_pages.patch
+lib-test_kmod-remove-a-null-test.patch
+loop-use-worker-per-cgroup-instead-of-kworker-fix.patch
