@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-fully-assume-capture-is-not-null-in-compact_zone_order.patch
+Subject: + mm-vma-move-vm_no_khugepaged-into-generic-header.patch
  added to -mm tree
-Date: Sat, 29 Feb 2020 20:42:26 -0800
-Message-ID: <20200301044226.4SpLX7fJO%akpm@linux-foundation.org>
+Date: Sat, 29 Feb 2020 20:51:45 -0800
+Message-ID: <20200301045145.pi8s4nL7g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48848 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726063AbgCAEm1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 29 Feb 2020 23:42:27 -0500
+        id S1726151AbgCAEvr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 29 Feb 2020 23:51:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.carpenter@oracle.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, vbabka@suse.cz
+To: anshuman.khandual@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, tglx@linutronix.de, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, compaction: fully assume capture is not NULL in compact_zone_order()
+     Subject: mm/vma: move VM_NO_KHUGEPAGED into generic header
 has been added to the -mm tree.  Its filename is
-     mm-compaction-fully-assume-capture-is-not-null-in-compact_zone_order.patch
+     mm-vma-move-vm_no_khugepaged-into-generic-header.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-fully-assume-capture-is-not-null-in-compact_zone_order.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vma-move-vm_no_khugepaged-into-generic-header.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-fully-assume-capture-is-not-null-in-compact_zone_order.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vma-move-vm_no_khugepaged-into-generic-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,88 +36,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: fully assume capture is not NULL in compact_zone_order()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/vma: move VM_NO_KHUGEPAGED into generic header
 
-Dan reports:
+Patch series "mm/vma: some more minor changes", v2.
 
-The patch 5e1f0f098b46: "mm, compaction: capture a page under direct
-compaction" from Mar 5, 2019, leads to the following Smatch complaint:
+The motivation here is to consolidate VMA flags and helpers in generic
+memory header and reduce code duplication when ever applicable.  If there
+are other possible similar instances which might be missing here, please
+do let me me know.  I will be happy to incorporate them.
 
-    mm/compaction.c:2321 compact_zone_order()
-     error: we previously assumed 'capture' could be null (see line 2313)
 
-mm/compaction.c
-  2288  static enum compact_result compact_zone_order(struct zone *zone, int order,
-  2289                  gfp_t gfp_mask, enum compact_priority prio,
-  2290                  unsigned int alloc_flags, int classzone_idx,
-  2291                  struct page **capture)
-                                      ^^^^^^^
+This patch (of 3):
 
-  2313		if (capture)
-                    ^^^^^^^
-Check for NULL
+Move VM_NO_KHUGEPAGED into generic header (include/linux/mm.h).  This just
+makes sure that no VMA flag is scattered in individual function files any
+longer.  While at this, fix an old comment which is no longer valid.  This
+should not cause any functional change.
 
-  2314			current->capture_control = &capc;
-  2315
-  2316		ret = compact_zone(&cc, &capc);
-  2317
-  2318		VM_BUG_ON(!list_empty(&cc.freepages));
-  2319		VM_BUG_ON(!list_empty(&cc.migratepages));
-  2320
-  2321		*capture = capc.page;
-                ^^^^^^^^
-Unchecked dereference.
-
-  2322		current->capture_control = NULL;
-  2323
-
-In practice this is not an issue, as the only caller path passes non-NULL
-capture:
-
-__alloc_pages_direct_compact()
-  struct page *page = NULL;
-  try_to_compact_pages(capture = &page);
-    compact_zone_order(capture = capture);
-
-So let's remove the unnecessary check, which should also make Smatch happy.
-
-Link: http://lkml.kernel.org/r/18b0df3c-0589-d96c-23fa-040798fee187@suse.cz
-Fixes: 5e1f0f098b46 ("mm, compaction: capture a page under direct compaction")
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/1582782965-3274-2-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    4 +++-
+ mm/khugepaged.c    |    2 --
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-fully-assume-capture-is-not-null-in-compact_zone_order
-+++ a/mm/compaction.c
-@@ -2314,8 +2314,7 @@ static enum compact_result compact_zone_
- 		.page = NULL,
- 	};
+--- a/include/linux/mm.h~mm-vma-move-vm_no_khugepaged-into-generic-header
++++ a/include/linux/mm.h
+@@ -356,10 +356,12 @@ extern unsigned int kobjsize(const void
  
--	if (capture)
--		current->capture_control = &capc;
-+	current->capture_control = &capc;
- 
- 	ret = compact_zone(&cc, &capc);
- 
-@@ -2337,6 +2336,7 @@ int sysctl_extfrag_threshold = 500;
-  * @alloc_flags: The allocation flags of the current allocation
-  * @ac: The context of current allocation
-  * @prio: Determines how hard direct compaction should try to succeed
-+ * @capture: Pointer to free page created by compaction will be stored here
-  *
-  * This is the main entry point for direct page compaction.
+ /*
+  * Special vmas that are non-mergable, non-mlock()able.
+- * Note: mm/huge_memory.c VM_NO_THP depends on this definition.
   */
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-mm-hotplug-fix-page-online-with-debug_pagealloc-compiled-but-not-enabled.patch
-mm-compaction-fully-assume-capture-is-not-null-in-compact_zone_order.patch
+ #define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
+ 
++/* This mask prevents VMA from being scanned with khugepaged */
++#define VM_NO_KHUGEPAGED (VM_SPECIAL | VM_HUGETLB)
++
+ /* This mask defines which mm->def_flags a process can inherit its parent */
+ #define VM_INIT_DEF_MASK	VM_NOHUGEPAGE
+ 
+--- a/mm/khugepaged.c~mm-vma-move-vm_no_khugepaged-into-generic-header
++++ a/mm/khugepaged.c
+@@ -308,8 +308,6 @@ struct attribute_group khugepaged_attr_g
+ };
+ #endif /* CONFIG_SYSFS */
+ 
+-#define VM_NO_KHUGEPAGED (VM_SPECIAL | VM_HUGETLB)
