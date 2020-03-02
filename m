@@ -1,85 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-disable-compact_unevictable_allowed-on-rt.patch added to -mm
- tree
-Date: Mon, 02 Mar 2020 13:25:51 -0800
-Message-ID: <20200302212551.oe12E_Lfr%akpm@linux-foundation.org>
+Subject: + mm-vmscan-remove-unnecessary-lruvec-adding.patch added
+ to -mm tree
+Date: Mon, 02 Mar 2020 14:12:14 -0800
+Message-ID: <20200302221214.NlR5xEhfT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: application/octet-stream; charset=binary
-Content-Transfer-Encoding: base64
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54524 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35360 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725911AbgCBVZy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 2 Mar 2020 16:25:54 -0500
+        id S1725781AbgCBWMQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 2 Mar 2020 17:12:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bigeasy@linutronix.de, keescook@chromium.org, mcgrof@kernel.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org, tglx@linutronix.de, yzaikin@google.com
+To: aarcange@redhat.com, alex.shi@linux.alibaba.com, daniel.m.jordan@oracle.com, hannes@cmpxchg.org, hughd@google.com, khlebnikov@yandex-team.ru, kirill@shutemov.name, kravetz@us.ibm.com, mhocko@kernel.org, mm-commits@vger.kernel.org, tj@kernel.org, vdavydov.dev@gmail.com, willy@infradead.org, yang.shi@linux.alibaba.com
 
-ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBtbS9jb21wYWN0aW9uOiBkaXNhYmxlIGNv
-bXBhY3RfdW5ldmljdGFibGVfYWxsb3dlZCBvbiBSVApoYXMgYmVlbiBhZGRlZCB0byB0aGUgLW1t
-IHRyZWUuICBJdHMgZmlsZW5hbWUgaXMKICAgICBtbS1jb21wYWN0aW9uLWRpc2FibGUtY29tcGFj
-dF91bmV2aWN0YWJsZV9hbGxvd2VkLW9uLXJ0LnBhdGNoCgpUaGlzIHBhdGNoIHNob3VsZCBzb29u
-IGFwcGVhciBhdAogICAgaHR0cDovL296bGFicy5vcmcvfmFrcG0vbW1vdHMvYnJva2VuLW91dC9t
-bS1jb21wYWN0aW9uLWRpc2FibGUtY29tcGFjdF91bmV2aWN0YWJsZV9hbGxvd2VkLW9uLXJ0LnBh
-dGNoCmFuZCBsYXRlciBhdAogICAgaHR0cDovL296bGFicy5vcmcvfmFrcG0vbW1vdG0vYnJva2Vu
-LW91dC9tbS1jb21wYWN0aW9uLWRpc2FibGUtY29tcGFjdF91bmV2aWN0YWJsZV9hbGxvd2VkLW9u
-LXJ0LnBhdGNoCgpCZWZvcmUgeW91IGp1c3QgZ28gYW5kIGhpdCAicmVwbHkiLCBwbGVhc2U6CiAg
-IGEpIENvbnNpZGVyIHdobyBlbHNlIHNob3VsZCBiZSBjYydlZAogICBiKSBQcmVmZXIgdG8gY2Mg
-YSBzdWl0YWJsZSBtYWlsaW5nIGxpc3QgYXMgd2VsbAogICBjKSBJZGVhbGx5OiBmaW5kIHRoZSBv
-cmlnaW5hbCBwYXRjaCBvbiB0aGUgbWFpbGluZyBsaXN0IGFuZCBkbyBhCiAgICAgIHJlcGx5LXRv
-LWFsbCB0byB0aGF0LCBhZGRpbmcgc3VpdGFibGUgYWRkaXRpb25hbCBjYydzCgoqKiogUmVtZW1i
-ZXIgdG8gdXNlIERvY3VtZW50YXRpb24vcHJvY2Vzcy9zdWJtaXQtY2hlY2tsaXN0LnJzdCB3aGVu
-IHRlc3RpbmcgeW91ciBjb2RlICoqKgoKVGhlIC1tbSB0cmVlIGlzIGluY2x1ZGVkIGludG8gbGlu
-dXgtbmV4dCBhbmQgaXMgdXBkYXRlZAp0aGVyZSBldmVyeSAzLTQgd29ya2luZyBkYXlzCgotLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRnJvbTog
-U2ViYXN0aWFuIEFuZHJ6ZWogU2lld2lvciA8YmlnZWFzeUBsaW51dHJvbml4LmRlPgpTdWJqZWN0
-OiBtbS9jb21wYWN0aW9uOiBkaXNhYmxlIGNvbXBhY3RfdW5ldmljdGFibGVfYWxsb3dlZCBvbiBS
-VAoKU2luY2UgY29tbWl0IDViYmUzNTQ3YWEzYmEgKCJtbTogYWxsb3cgY29tcGFjdGlvbiBvZiB1
-bmV2aWN0YWJsZSBwYWdlcyIpChBpdCBpcyBhbGxvd2VkIHRvIGV4YW1pbmUgbWxvY2tlZCBwYWdl
-cyBhbmQgY29tcGFjdCB0aGVtIGJ5IGRlZmF1bHQuICBPbgotUlQgZXZlbiBtaW5vciBwYWdlZmF1
-bHRzIGFyZSBwcm9ibGVtYXRpYyBiZWNhdXNlIGl0IG1heSB0YWtlIGEgZmV3IDEwMHVzCnRvIHJl
-c29sdmUgdGhlbSBhbmQgdW50aWwgdGhlbiB0aGUgdGFzayBpcyBibG9ja2VkLgoKTWFrZSBjb21w
-YWN0X3VuZXZpY3RhYmxlX2FsbG93ZWQgPSAwIGRlZmF1bHQgYW5kIFJPIG9uIFJULgoKTGluazog
-aHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvbGludXgtbW0vMjAxOTA3MTAxNDQxMzgucXluNHR1dHRk
-cTZoN2txeEBsaW51dHJvbml4LmRlLwpMaW5rOiBodHRwOi8vbGttbC5rZXJuZWwub3JnL3IvMjAy
-MDAzMDIxNzM1MTYuaXlzdWVqaWxhdmEzN3Bza0BsaW51dHJvbml4LmRlClNpZ25lZC1vZmYtYnk6
-IFNlYmFzdGlhbiBBbmRyemVqIFNpZXdpb3IgPGJpZ2Vhc3lAbGludXRyb25peC5kZT4KQ2M6IFRo
-b21hcyBHbGVpeG5lciA8dGdseEBsaW51dHJvbml4LmRlPgpDYzogTHVpcyBDaGFtYmVybGFpbiA8
-bWNncm9mQGtlcm5lbC5vcmc+CkNjOiBLZWVzIENvb2sgPGtlZXNjb29rQGNocm9taXVtLm9yZz4K
-Q2M6IEl1cmlpIFphaWtpbiA8eXphaWtpbkBnb29nbGUuY29tPgpDYzogTWVsIEdvcm1hbiA8bWdv
-cm1hbkB0ZWNoc2luZ3VsYXJpdHkubmV0PgpTaWduZWQtb2ZmLWJ5OiBBbmRyZXcgTW9ydG9uIDxh
-a3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgotLS0KCiBEb2N1bWVudGF0aW9uL2FkbWluLWd1aWRl
-L3N5c2N0bC92bS5yc3QgfCAgICAxICsKIGtlcm5lbC9zeXNjdGwuYyAgICAgICAgICAgICAgICAg
-ICAgICAgICB8ICAgIDQgKysrKwogbW0vY29tcGFjdGlvbi5jICAgICAgICAgICAgICAgICAgICAg
-ICAgIHwgICAgNCArKysrCiAzIGZpbGVzIGNoYW5nZWQsIDkgaW5zZXJ0aW9ucygrKQoKLS0tIGEv
-RG9jdW1lbnRhdGlvbi9hZG1pbi1ndWlkZS9zeXNjdGwvdm0ucnN0fm1tLWNvbXBhY3Rpb24tZGlz
-YWJsZS1jb21wYWN0X3VuZXZpY3RhYmxlX2FsbG93ZWQtb24tcnQKKysrIGEvRG9jdW1lbnRhdGlv
-bi9hZG1pbi1ndWlkZS9zeXNjdGwvdm0ucnN0CkBAIC0xMjgsNiArMTI4LDcgQEAgYWxsb3dlZCB0
-byBleGFtaW5lIHRoZSB1bmV2aWN0YWJsZSBscnUgKAogVGhpcyBzaG91bGQgYmUgdXNlZCBvbiBz
-eXN0ZW1zIHdoZXJlIHN0YWxscyBmb3IgbWlub3IgcGFnZSBmYXVsdHMgYXJlIGFuCiBhY2NlcHRh
-YmxlIHRyYWRlIGZvciBsYXJnZSBjb250aWd1b3VzIGZyZWUgbWVtb3J5LiAgU2V0IHRvIDAgdG8g
-cHJldmVudAogY29tcGFjdGlvbiBmcm9tIG1vdmluZyBwYWdlcyB0aGF0IGFyZSB1bmV2aWN0YWJs
-ZS4gIERlZmF1bHQgdmFsdWUgaXMgMS4KK09uIENPTkZJR19QUkVFTVBUX1JUIHRoZSBkZWZhdWx0
-IHZhbHVlIGlzIDAuCiAKIAogZGlydHlfYmFja2dyb3VuZF9ieXRlcwotLS0gYS9rZXJuZWwvc3lz
-Y3RsLmN+bW0tY29tcGFjdGlvbi1kaXNhYmxlLWNvbXBhY3RfdW5ldmljdGFibGVfYWxsb3dlZC1v
-bi1ydAorKysgYS9rZXJuZWwvc3lzY3RsLmMKQEAgLTE0ODMsNyArMTQ4MywxMSBAQCBzdGF0aWMg
-c3RydWN0IGN0bF90YWJsZSB2bV90YWJsZVtdID0gewogCQkucHJvY25hbWUJPSAiY29tcGFjdF91
-bmV2aWN0YWJsZV9hbGxvd2VkIiwKIAkJLmRhdGEJCT0gJnN5c2N0bF9jb21wYWN0X3VuZXZpY3Rh
-YmxlX2FsbG93ZWQsCiAJCS5tYXhsZW4JCT0gc2l6ZW9mKGludCksCisjaWZkZWYgQ09ORklHX1BS
-RUVNUFRfUlQKKwkJLm1vZGUJCT0gMDQ0NCwKKyNlbHNlCiAJCS5tb2RlCQk9IDA2NDQsCisjZW5k
-aWYKIAkJLnByb2NfaGFuZGxlcgk9IHByb2NfZG9pbnR2ZWMsCiAJCS5leHRyYTEJCT0gU1lTQ1RM
-X1pFUk8sCiAJCS5leHRyYTIJCT0gU1lTQ1RMX09ORSwKLS0tIGEvbW0vY29tcGFjdGlvbi5jfm1t
-LWNvbXBhY3Rpb24tZGlzYWJsZS1jb21wYWN0X3VuZXZpY3RhYmxlX2FsbG93ZWQtb24tcnQKKysr
-IGEvbW0vY29tcGFjdGlvbi5jCkBAIC0xNTk0LDcgKzE1OTQsMTEgQEAgdHlwZWRlZiBlbnVtIHsK
-ICAqIEFsbG93IHVzZXJzcGFjZSB0byBjb250cm9sIHBvbGljeSBvbiBzY2FubmluZyB0aGUgdW5l
-dmljdGFibGUgTFJVIGZvcgogICogY29tcGFjdGFibGUgcGFnZXMuCiAgKi8KKyNpZmRlZiBDT05G
-SUdfUFJFRU1QVF9SVAoraW50IHN5c2N0bF9jb21wYWN0X3VuZXZpY3RhYmxlX2FsbG93ZWQgX19y
-ZWFkX21vc3RseSA9IDA7CisjZWxzZQogaW50IHN5c2N0bF9jb21wYWN0X3VuZXZpY3RhYmxlX2Fs
-bG93ZWQgX19yZWFkX21vc3RseSA9IDE7CisjZW5kaWYKIAogc3RhdGljIGlubGluZSB2b2lkCiB1
-cGRhdGVfZmFzdF9zdGFydF9wZm4oc3RydWN0IGNvbXBhY3RfY29udHJvbCAqY2MsIHVuc2lnbmVk
-IGxvbmcgcGZuKQpfCgpQYXRjaGVzIGN1cnJlbnRseSBpbiAtbW0gd2hpY2ggbWlnaHQgYmUgZnJv
-bSBiaWdlYXN5QGxpbnV0cm9uaXguZGUgYXJlCgptbS16M2ZvbGQtZG8tbm90LWluY2x1ZGUtcnds
-b2NraC1kaXJlY3RseS5wYXRjaAptbS1jb21wYWN0aW9uLWRpc2FibGUtY29tcGFjdF91bmV2aWN0
-YWJsZV9hbGxvd2VkLW9uLXJ0LnBhdGNoCgo=
+
+The patch titled
+     Subject: mm/vmscan: remove unnecessary lruvec adding
+has been added to the -mm tree.  Its filename is
+     mm-vmscan-remove-unnecessary-lruvec-adding.patch
+
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-unnecessary-lruvec-adding.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-unnecessary-lruvec-adding.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/vmscan: remove unnecessary lruvec adding
+
+Patch series "per lruvec lru_lock for memcg", v9.
+
+A partial merge.  The first 6 patches from a 20 patch series.  Some code
+cleanups and minimal optimizations.
+
+
+This patch (of 6):
+
+We don't have to add a freeable page into lru and then remove from it. 
+This change saves a couple of actions and makes the moving more clear.
+
+The SetPageLRU needs to be kept here for list intergrity.
+Otherwise:
+ #0 mave_pages_to_lru              #1 release_pages
+                                   if (put_page_testzero())
+ if !put_page_testzero
+                                     !PageLRU //skip lru_lock
+                                       list_add(&page->lru,)
+   list_add(&page->lru,) //corrupt
+
+Link: http://lkml.kernel.org/r/1583146830-169516-2-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Kravetz <kravetz@us.ibm.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/vmscan.c |   32 +++++++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
+
+--- a/mm/vmscan.c~mm-vmscan-remove-unnecessary-lruvec-adding
++++ a/mm/vmscan.c
+@@ -1838,26 +1838,29 @@ static unsigned noinline_for_stack move_
+ 	while (!list_empty(list)) {
+ 		page = lru_to_page(list);
+ 		VM_BUG_ON_PAGE(PageLRU(page), page);
++		list_del(&page->lru);
+ 		if (unlikely(!page_evictable(page))) {
+-			list_del(&page->lru);
+ 			spin_unlock_irq(&pgdat->lru_lock);
+ 			putback_lru_page(page);
+ 			spin_lock_irq(&pgdat->lru_lock);
+ 			continue;
+ 		}
+-		lruvec = mem_cgroup_page_lruvec(page, pgdat);
+ 
++		/*
++		 * The SetPageLRU needs to be kept here for list intergrity.
++		 * Otherwise:
++		 *   #0 mave_pages_to_lru              #1 release_pages
++		 *				       if (put_page_testzero())
++		 *   if !put_page_testzero
++		 *				         !PageLRU //skip lru_lock
++		 *                                         list_add(&page->lru,)
++		 *     list_add(&page->lru,) //corrupt
++		 */
+ 		SetPageLRU(page);
+-		lru = page_lru(page);
+-
+-		nr_pages = hpage_nr_pages(page);
+-		update_lru_size(lruvec, lru, page_zonenum(page), nr_pages);
+-		list_move(&page->lru, &lruvec->lists[lru]);
+ 
+-		if (put_page_testzero(page)) {
++		if (unlikely(put_page_testzero(page))) {
+ 			__ClearPageLRU(page);
+ 			__ClearPageActive(page);
+-			del_page_from_lru_list(page, lruvec, lru);
+ 
+ 			if (unlikely(PageCompound(page))) {
+ 				spin_unlock_irq(&pgdat->lru_lock);
+@@ -1865,9 +1868,16 @@ static unsigned noinline_for_stack move_
+ 				spin_lock_irq(&pgdat->lru_lock);
+ 			} else
+ 				list_add(&page->lru, &pages_to_free);
+-		} else {
+-			nr_moved += nr_pages;
++			continue;
+ 		}
++
++		lruvec = mem_cgroup_page_lruvec(page, pgdat);
++		lru = page_lru(page);
++		nr_pages = hpage_nr_pages(page);
++
++		update_lru_size(lruvec, lru, page_zonenum(page), nr_pages);
++		list_add(&page->lru, &lruvec->lists[lru]);
++		nr_moved += nr_pages;
+ 	}
+ 
+ 	/*
+_
+
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+
+ocfs2-remove-fs_ocfs2_nm.patch
+ocfs2-remove-unused-macros.patch
+ocfs2-use-ocfs2_sec_bits-in-macro.patch
+ocfs2-remove-dlm_lock_is_remote.patch
+ocfs2-remove-useless-err.patch
+mm-vmscan-remove-unnecessary-lruvec-adding.patch
+mm-memcg-fold-lock_page_lru-into-commit_charge.patch
+mm-page_idle-no-unlikely-double-check-for-idle-page-counting.patch
+mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+mm-thp-clean-up-lru_add_page_tail.patch
+mm-thp-narrow-lru-locking.patch
