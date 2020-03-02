@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-pass-task-and-mm-to-do_madvise.patch added to -mm
- tree
-Date: Mon, 02 Mar 2020 13:16:26 -0800
-Message-ID: <20200302211626.tkkNTHVFC%akpm@linux-foundation.org>
+Subject: + mm-check-fatal-signal-pending-of-target-process.patch
+ added to -mm tree
+Date: Mon, 02 Mar 2020 13:16:37 -0800
+Message-ID: <20200302211637.gmaRgMkwd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52370 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52488 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726536AbgCBVQ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 2 Mar 2020 16:16:29 -0500
+        id S1726536AbgCBVQj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 2 Mar 2020 16:16:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexander.h.duyck@linux.intel.com, axboe@kernel.dk, bgeffon@google.com, christian@brauner.io, dancol@google.com, hannes@cmpxchg.org, jannh@google.com, joaodias@google.com, joel@joelfernandes.org, ktkhai@virtuozzo.com, linux-man@vger.kernel.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, oleksandr@redhat.com, shakeelb@google.com, sj38.park@gmail.com, sjpark@amazon.de, sonnyrao@google.com, sspatil@google.com, surenb@google.com, timmurray@google.com
 
 
 The patch titled
-     Subject: mm/madvise: pass task and mm to do_madvise
+     Subject: mm/madvise: check fatal signal pending of target process
 has been added to the -mm tree.  Its filename is
-     mm-pass-task-and-mm-to-do_madvise.patch
+     mm-check-fatal-signal-pending-of-target-process.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-pass-task-and-mm-to-do_madvise.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-check-fatal-signal-pending-of-target-process.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pass-task-and-mm-to-do_madvise.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-check-fatal-signal-pending-of-target-process.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,236 +37,159 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm/madvise: pass task and mm to do_madvise
+Subject: mm/madvise: check fatal signal pending of target process
 
-Patch series "introduce memory hinting API for external process", v7.
+Bail out to prevent unnecessary CPU overhead if target process has pending
+fatal signal during (MADV_COLD|MADV_PAGEOUT) operation.
 
-Now, we have MADV_PAGEOUT and MADV_COLD as madvise hinting API.  With
-that, application could give hints to kernel what memory range are
-preferred to be reclaimed.  However, in some platform(e.g., Android), the
-information required to make the hinting decision is not known to the app.
-Instead, it is known to a centralized userspace daemon(e.g.,
-ActivityManagerService), and that daemon must be able to initiate reclaim
-on its own without any app involvement.
-
-To solve the concern, this patch introduces new syscall -
-process_madvise(2).  Bascially, it's same with madvise(2) syscall but it
-has some differences.
-
-1. It needs pidfd of target process to provide the hint
-
-2.  It supports only MADV_{COLD|PAGEOUT|MERGEABLE|UNMEREABLE} at this
-   moment.  Other hints in madvise will be opened when there are explicit
-   requests from community to prevent unexpected bugs we couldn't support.
-
-3.  Only privileged processes can do something for other process's
-   address space.
-
-For more detail of the new API, please see "mm: introduce external memory
-hinting API" description in this patchset.
-
-
-This patch (of 7):
-
-In upcoming patches, do_madvise will be called from external process
-context so we shouldn't asssume "current" is always hinted process's
-task_struct.  Furthermore, we couldn't access mm_struct via task->mm once
-it's verified by access_mm which will be introduced in next patch[1].  And
-let's pass *current* and current->mm as arguments of do_madvise so it
-shouldn't change existing behavior but prepare next patch to make review
-easy.
-
-Note: io_madvise pass NULL as target_task argument of do_madvise because
-it couldn't know who is target.
-
-[1] http://lore.kernel.org/r/CAG48ez27=pwm5m_N_988xT1huO7g7h6arTQL44zev6TD-h-7Tg@mail.gmail.com
-
-Link: http://lkml.kernel.org/r/20200302193630.68771-2-minchan@kernel.org
+Link: http://lkml.kernel.org/r/20200302193630.68771-4-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jann Horn <jannh@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Cc: Daniel Colascione <dancol@google.com>
-Cc: Sandeep Patil <sspatil@google.com>
-Cc: Sonny Rao <sonnyrao@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: John Dias <joaodias@google.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
 Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: SeongJae Park <sj38.park@gmail.com>
+Cc: Brian Geffon <bgeffon@google.com>
 Cc: Christian Brauner <christian@brauner.io>
+Cc: Daniel Colascione <dancol@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Dias <joaodias@google.com>
 Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Oleksandr Natalenko <oleksandr@redhat.com>
+Cc: Sandeep Patil <sspatil@google.com>
+Cc: SeongJae Park <sj38.park@gmail.com>
 Cc: SeongJae Park <sjpark@amazon.de>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Tim Murray <timmurray@google.com>
 Cc: <linux-man@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/io_uring.c      |    2 +-
- include/linux/mm.h |    3 ++-
- mm/madvise.c       |   34 +++++++++++++++++++---------------
- 3 files changed, 22 insertions(+), 17 deletions(-)
+ mm/madvise.c |   29 +++++++++++++++++++++--------
+ 1 file changed, 21 insertions(+), 8 deletions(-)
 
---- a/fs/io_uring.c~mm-pass-task-and-mm-to-do_madvise
-+++ a/fs/io_uring.c
-@@ -2735,7 +2735,7 @@ static int io_madvise(struct io_kiocb *r
- 	if (force_nonblock)
- 		return -EAGAIN;
- 
--	ret = do_madvise(ma->addr, ma->len, ma->advice);
-+	ret = do_madvise(NULL, req->work.mm, ma->addr, ma->len, ma->advice);
- 	if (ret < 0)
- 		req_set_fail_links(req);
- 	io_cqring_add_event(req, ret);
---- a/include/linux/mm.h~mm-pass-task-and-mm-to-do_madvise
-+++ a/include/linux/mm.h
-@@ -2433,7 +2433,8 @@ extern int __do_munmap(struct mm_struct
- 		       struct list_head *uf, bool downgrade);
- extern int do_munmap(struct mm_struct *, unsigned long, size_t,
- 		     struct list_head *uf);
--extern int do_madvise(unsigned long start, size_t len_in, int behavior);
-+extern int do_madvise(struct task_struct *target_task, struct mm_struct *mm,
-+		unsigned long start, size_t len_in, int behavior);
- 
- static inline unsigned long
- do_mmap_pgoff(struct file *file, unsigned long addr,
---- a/mm/madvise.c~mm-pass-task-and-mm-to-do_madvise
+--- a/mm/madvise.c~mm-check-fatal-signal-pending-of-target-process
 +++ a/mm/madvise.c
-@@ -254,6 +254,7 @@ static long madvise_willneed(struct vm_a
- 			     struct vm_area_struct **prev,
- 			     unsigned long start, unsigned long end)
- {
-+	struct mm_struct *mm = vma->vm_mm;
- 	struct file *file = vma->vm_file;
- 	loff_t offset;
+@@ -36,6 +36,7 @@
+ struct madvise_walk_private {
+ 	struct mmu_gather *tlb;
+ 	bool pageout;
++	struct task_struct *target_task;
+ };
  
-@@ -288,12 +289,12 @@ static long madvise_willneed(struct vm_a
- 	 */
- 	*prev = NULL;	/* tell sys_madvise we drop mmap_sem */
- 	get_file(file);
--	up_read(&current->mm->mmap_sem);
-+	up_read(&mm->mmap_sem);
- 	offset = (loff_t)(start - vma->vm_start)
- 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
- 	vfs_fadvise(file, offset, end - start, POSIX_FADV_WILLNEED);
- 	fput(file);
--	down_read(&current->mm->mmap_sem);
-+	down_read(&mm->mmap_sem);
+ /*
+@@ -316,6 +317,10 @@ static int madvise_cold_or_pageout_pte_r
+ 	if (fatal_signal_pending(current))
+ 		return -EINTR;
+ 
++	if (private->target_task &&
++			fatal_signal_pending(private->target_task))
++		return -EINTR;
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	if (pmd_trans_huge(*pmd)) {
+ 		pmd_t orig_pmd;
+@@ -471,12 +476,14 @@ static const struct mm_walk_ops cold_wal
+ };
+ 
+ static void madvise_cold_page_range(struct mmu_gather *tlb,
++			     struct task_struct *task,
+ 			     struct vm_area_struct *vma,
+ 			     unsigned long addr, unsigned long end)
+ {
+ 	struct madvise_walk_private walk_private = {
+ 		.pageout = false,
+ 		.tlb = tlb,
++		.target_task = task,
+ 	};
+ 
+ 	tlb_start_vma(tlb, vma);
+@@ -484,7 +491,8 @@ static void madvise_cold_page_range(stru
+ 	tlb_end_vma(tlb, vma);
+ }
+ 
+-static long madvise_cold(struct vm_area_struct *vma,
++static long madvise_cold(struct task_struct *task,
++			struct vm_area_struct *vma,
+ 			struct vm_area_struct **prev,
+ 			unsigned long start_addr, unsigned long end_addr)
+ {
+@@ -497,19 +505,21 @@ static long madvise_cold(struct vm_area_
+ 
+ 	lru_add_drain();
+ 	tlb_gather_mmu(&tlb, mm, start_addr, end_addr);
+-	madvise_cold_page_range(&tlb, vma, start_addr, end_addr);
++	madvise_cold_page_range(&tlb, task, vma, start_addr, end_addr);
+ 	tlb_finish_mmu(&tlb, start_addr, end_addr);
+ 
  	return 0;
  }
  
-@@ -676,7 +677,6 @@ out:
- 	if (nr_swap) {
- 		if (current->mm == mm)
- 			sync_mm_rss(mm);
--
- 		add_mm_counter(mm, MM_SWAPENTS, nr_swap);
- 	}
- 	arch_leave_lazy_mmu_mode();
-@@ -756,6 +756,8 @@ static long madvise_dontneed_free(struct
- 				  unsigned long start, unsigned long end,
- 				  int behavior)
+ static void madvise_pageout_page_range(struct mmu_gather *tlb,
++			     struct task_struct *task,
+ 			     struct vm_area_struct *vma,
+ 			     unsigned long addr, unsigned long end)
  {
-+	struct mm_struct *mm = vma->vm_mm;
-+
- 	*prev = vma;
- 	if (!can_madv_lru_vma(vma))
- 		return -EINVAL;
-@@ -763,8 +765,8 @@ static long madvise_dontneed_free(struct
- 	if (!userfaultfd_remove(vma, start, end)) {
- 		*prev = NULL; /* mmap_sem has been dropped, prev is stale */
+ 	struct madvise_walk_private walk_private = {
+ 		.pageout = true,
+ 		.tlb = tlb,
++		.target_task = task,
+ 	};
  
--		down_read(&current->mm->mmap_sem);
--		vma = find_vma(current->mm, start);
-+		down_read(&mm->mmap_sem);
-+		vma = find_vma(mm, start);
- 		if (!vma)
- 			return -ENOMEM;
- 		if (start < vma->vm_start) {
-@@ -818,6 +820,7 @@ static long madvise_remove(struct vm_are
- 	loff_t offset;
- 	int error;
- 	struct file *f;
-+	struct mm_struct *mm = vma->vm_mm;
- 
- 	*prev = NULL;	/* tell sys_madvise we drop mmap_sem */
- 
-@@ -845,13 +848,13 @@ static long madvise_remove(struct vm_are
- 	get_file(f);
- 	if (userfaultfd_remove(vma, start, end)) {
- 		/* mmap_sem was not released by userfaultfd_remove() */
--		up_read(&current->mm->mmap_sem);
-+		up_read(&mm->mmap_sem);
- 	}
- 	error = vfs_fallocate(f,
- 				FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
- 				offset, end - start);
- 	fput(f);
--	down_read(&current->mm->mmap_sem);
-+	down_read(&mm->mmap_sem);
- 	return error;
+ 	tlb_start_vma(tlb, vma);
+@@ -533,7 +543,8 @@ static inline bool can_do_pageout(struct
+ 		inode_permission(file_inode(vma->vm_file), MAY_WRITE) == 0;
  }
  
-@@ -1044,7 +1047,8 @@ madvise_behavior_valid(int behavior)
-  *  -EBADF  - map exists, but area maps something that isn't a file.
-  *  -EAGAIN - a kernel resource was temporarily unavailable.
-  */
--int do_madvise(unsigned long start, size_t len_in, int behavior)
-+int do_madvise(struct task_struct *target_task, struct mm_struct *mm,
-+		unsigned long start, size_t len_in, int behavior)
+-static long madvise_pageout(struct vm_area_struct *vma,
++static long madvise_pageout(struct task_struct *task,
++			struct vm_area_struct *vma,
+ 			struct vm_area_struct **prev,
+ 			unsigned long start_addr, unsigned long end_addr)
  {
- 	unsigned long end, tmp;
- 	struct vm_area_struct *vma, *prev;
-@@ -1082,10 +1086,10 @@ int do_madvise(unsigned long start, size
+@@ -549,7 +560,7 @@ static long madvise_pageout(struct vm_ar
  
- 	write = madvise_need_mmap_write(behavior);
- 	if (write) {
--		if (down_write_killable(&current->mm->mmap_sem))
-+		if (down_write_killable(&mm->mmap_sem))
- 			return -EINTR;
- 	} else {
--		down_read(&current->mm->mmap_sem);
-+		down_read(&mm->mmap_sem);
- 	}
+ 	lru_add_drain();
+ 	tlb_gather_mmu(&tlb, mm, start_addr, end_addr);
+-	madvise_pageout_page_range(&tlb, vma, start_addr, end_addr);
++	madvise_pageout_page_range(&tlb, task, vma, start_addr, end_addr);
+ 	tlb_finish_mmu(&tlb, start_addr, end_addr);
  
- 	/*
-@@ -1093,7 +1097,7 @@ int do_madvise(unsigned long start, size
- 	 * ranges, just ignore them, but return -ENOMEM at the end.
- 	 * - different from the way of handling in mlock etc.
- 	 */
--	vma = find_vma_prev(current->mm, start, &prev);
-+	vma = find_vma_prev(mm, start, &prev);
- 	if (vma && start > vma->vm_start)
- 		prev = vma;
+ 	return 0;
+@@ -929,7 +940,8 @@ static int madvise_inject_error(int beha
+ #endif
  
-@@ -1130,19 +1134,19 @@ int do_madvise(unsigned long start, size
- 		if (prev)
- 			vma = prev->vm_next;
- 		else	/* madvise_remove dropped mmap_sem */
--			vma = find_vma(current->mm, start);
-+			vma = find_vma(mm, start);
- 	}
- out:
- 	blk_finish_plug(&plug);
- 	if (write)
--		up_write(&current->mm->mmap_sem);
-+		up_write(&mm->mmap_sem);
- 	else
--		up_read(&current->mm->mmap_sem);
-+		up_read(&mm->mmap_sem);
- 
- 	return error;
- }
- 
- SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
+ static long
+-madvise_vma(struct vm_area_struct *vma, struct vm_area_struct **prev,
++madvise_vma(struct task_struct *task, struct vm_area_struct *vma,
++		struct vm_area_struct **prev,
+ 		unsigned long start, unsigned long end, int behavior)
  {
--	return do_madvise(start, len_in, behavior);
-+	return do_madvise(current, current->mm, start, len_in, behavior);
- }
+ 	switch (behavior) {
+@@ -938,9 +950,9 @@ madvise_vma(struct vm_area_struct *vma,
+ 	case MADV_WILLNEED:
+ 		return madvise_willneed(vma, prev, start, end);
+ 	case MADV_COLD:
+-		return madvise_cold(vma, prev, start, end);
++		return madvise_cold(task, vma, prev, start, end);
+ 	case MADV_PAGEOUT:
+-		return madvise_pageout(vma, prev, start, end);
++		return madvise_pageout(task, vma, prev, start, end);
+ 	case MADV_FREE:
+ 	case MADV_DONTNEED:
+ 		return madvise_dontneed_free(vma, prev, start, end, behavior);
+@@ -1140,7 +1152,8 @@ int do_madvise(struct task_struct *targe
+ 			tmp = end;
+ 
+ 		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
+-		error = madvise_vma(vma, &prev, start, tmp, behavior);
++		error = madvise_vma(target_task, vma, &prev,
++					start, tmp, behavior);
+ 		if (error)
+ 			goto out;
+ 		start = tmp;
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
