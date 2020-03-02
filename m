@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-madvise-allow-ksm-hints-for-remote-api.patch added
- to -mm tree
-Date: Mon, 02 Mar 2020 13:16:50 -0800
-Message-ID: <20200302211650.NHXDF6iT1%akpm@linux-foundation.org>
+Subject: + mm-support-both-pid-and-pidfd-for-process_madvise.patch
+ added to -mm tree
+Date: Mon, 02 Mar 2020 13:16:44 -0800
+Message-ID: <20200302211644.74DMEHDn8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52746 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52636 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725911AbgCBVQx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 2 Mar 2020 16:16:53 -0500
+        id S1726846AbgCBVQr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 2 Mar 2020 16:16:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexander.h.duyck@linux.intel.com, axboe@kernel.dk, bgeffon@google.com, christian@brauner.io, dancol@google.com, hannes@cmpxchg.org, jannh@google.com, joaodias@google.com, joel@joelfernandes.org, ktkhai@virtuozzo.com, linux-man@vger.kernel.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, oleksandr@redhat.com, shakeelb@google.com, sj38.park@gmail.com, sjpark@amazon.de, sonnyrao@google.com, sspatil@google.com, surenb@google.com, timmurray@google.com
 
 
 The patch titled
-     Subject: mm/madvise: allow KSM hints for remote API
+     Subject: mm/madvise: support both pid and pidfd for process_madvise
 has been added to the -mm tree.  Its filename is
-     mm-madvise-allow-ksm-hints-for-remote-api.patch
+     mm-support-both-pid-and-pidfd-for-process_madvise.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-allow-ksm-hints-for-remote-api.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-both-pid-and-pidfd-for-process_madvise.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-allow-ksm-hints-for-remote-api.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-both-pid-and-pidfd-for-process_madvise.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,95 +36,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleksandr Natalenko <oleksandr@redhat.com>
-Subject: mm/madvise: allow KSM hints for remote API
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm/madvise: support both pid and pidfd for process_madvise
 
-It all began with the fact that KSM works only on memory that is marked by
-madvise().  And the only way to get around that is to either:
+There is a demand[1] to support pid as well pidfd for process_madvise to
+reduce unnecessary syscall to get pidfd if the user has control of the
+target process(ie, they could guarantee the process is not gone or pid is
+not reused).
 
-  * use LD_PRELOAD; or
-  * patch the kernel with something like UKSM or PKSM.
+This patch aims for supporting both options like waitid(2).  So, the
+syscall is currently,
 
-(i skip ptrace can of worms here intentionally)
+	int process_madvise(int which, pid_t pid, void *addr,
+		size_t length, int advise, unsigned long flag);
 
-To overcome this restriction, lets employ a new remote madvise API.  This
-can be used by some small userspace helper daemon that will do auto-KSM
-job for us.
+@which is actually idtype_t for userspace libray and currently, it
+supports P_PID and P_PIDFD.
 
-I think of two major consumers of remote KSM hints:
+[1]  https://lore.kernel.org/linux-mm/9d849087-3359-c4ab-fbec-859e8186c509@virtuozzo.com/
 
-  * hosts, that run containers, especially similar ones and especially in
-    a trusted environment, sharing the same runtime like Node.js;
-
-  * heavy applications, that can be run in multiple instances, not
-    limited to opensource ones like Firefox, but also those that cannot be
-    modified since they are binary-only and, maybe, statically linked.
-
-Speaking of statistics, more numbers can be found in the very first
-submission, that is related to this one [1].  For my current setup with
-two Firefox instances I get 100 to 200 MiB saved for the second instance
-depending on the amount of tabs.
-
-1 FF instance with 15 tabs:
-
-   $ echo "$(cat /sys/kernel/mm/ksm/pages_sharing) * 4 / 1024" | bc
-   410
-
-2 FF instances, second one has 12 tabs (all the tabs are different):
-
-   $ echo "$(cat /sys/kernel/mm/ksm/pages_sharing) * 4 / 1024" | bc
-   592
-
-At the very moment I do not have specific numbers for containerised
-workload, but those should be comparable in case the containers share
-similar/same runtime.
-
-[1] https://lore.kernel.org/patchwork/patch/1012142/
-
-Link: http://lkml.kernel.org/r/20200302193630.68771-8-minchan@kernel.org
-Signed-off-by: Oleksandr Natalenko <oleksandr@redhat.com>
+Link: http://lkml.kernel.org/r/20200302193630.68771-6-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: SeongJae Park <sjpark@amazon.de>
+Suggested-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Christian Brauner <christian@brauner.io>
 Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 Cc: Brian Geffon <bgeffon@google.com>
-Cc: Christian Brauner <christian@brauner.io>
 Cc: Daniel Colascione <dancol@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joel Fernandes <joel@joelfernandes.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: John Dias <joaodias@google.com>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oleksandr Natalenko <oleksandr@redhat.com>
 Cc: Sandeep Patil <sspatil@google.com>
 Cc: SeongJae Park <sj38.park@gmail.com>
+Cc: SeongJae Park <sjpark@amazon.de>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Sonny Rao <sonnyrao@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Tim Murray <timmurray@google.com>
 Cc: <linux-man@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/syscalls.h |    3 ++-
+ mm/madvise.c             |   36 +++++++++++++++++++++++-------------
+ 2 files changed, 25 insertions(+), 14 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-allow-ksm-hints-for-remote-api
+--- a/include/linux/syscalls.h~mm-support-both-pid-and-pidfd-for-process_madvise
++++ a/include/linux/syscalls.h
+@@ -876,7 +876,8 @@ asmlinkage long sys_munlockall(void);
+ asmlinkage long sys_mincore(unsigned long start, size_t len,
+ 				unsigned char __user * vec);
+ asmlinkage long sys_madvise(unsigned long start, size_t len, int behavior);
+-asmlinkage long sys_process_madvise(int pidfd, unsigned long start,
++
++asmlinkage long sys_process_madvise(int which, pid_t pid, unsigned long start,
+ 			size_t len, int behavior, unsigned long flags);
+ asmlinkage long sys_remap_file_pages(unsigned long start, unsigned long size,
+ 			unsigned long prot, unsigned long pgoff,
+--- a/mm/madvise.c~mm-support-both-pid-and-pidfd-for-process_madvise
 +++ a/mm/madvise.c
-@@ -1005,6 +1005,10 @@ process_madvise_behavior_valid(int behav
- 	switch (behavior) {
- 	case MADV_COLD:
- 	case MADV_PAGEOUT:
-+#ifdef CONFIG_KSM
-+	case MADV_MERGEABLE:
-+	case MADV_UNMERGEABLE:
-+#endif
- 		return true;
- 	default:
- 		return false;
+@@ -1182,11 +1182,10 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 	return do_madvise(current, current->mm, start, len_in, behavior);
+ }
+ 
+-SYSCALL_DEFINE5(process_madvise, int, pidfd, unsigned long, start,
++SYSCALL_DEFINE6(process_madvise, int, which, pid_t, upid, unsigned long, start,
+ 		size_t, len_in, int, behavior, unsigned long, flags)
+ {
+ 	int ret;
+-	struct fd f;
+ 	struct pid *pid;
+ 	struct task_struct *task;
+ 	struct mm_struct *mm;
+@@ -1197,20 +1196,31 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 	if (!process_madvise_behavior_valid(behavior))
+ 		return -EINVAL;
+ 
+-	f = fdget(pidfd);
+-	if (!f.file)
+-		return -EBADF;
+-
+-	pid = pidfd_pid(f.file);
+-	if (IS_ERR(pid)) {
+-		ret = PTR_ERR(pid);
+-		goto fdput;
++	switch (which) {
++	case P_PID:
++		if (upid <= 0)
++			return -EINVAL;
++
++		pid = find_get_pid(upid);
++		if (!pid)
++			return -ESRCH;
++		break;
++	case P_PIDFD:
++		if (upid < 0)
++			return -EINVAL;
++
++		pid = pidfd_get_pid(upid);
++		if (IS_ERR(pid))
++			return PTR_ERR(pid);
++		break;
++	default:
++		return -EINVAL;
+ 	}
+ 
+ 	task = get_pid_task(pid, PIDTYPE_PID);
+ 	if (!task) {
+ 		ret = -ESRCH;
+-		goto fdput;
++		goto put_pid;
+ 	}
+ 
+ 	mm = mm_access(task, PTRACE_MODE_ATTACH_FSCREDS);
+@@ -1223,7 +1233,7 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 	mmput(mm);
+ release_task:
+ 	put_task_struct(task);
+-fdput:
+-	fdput(f);
++put_pid:
++	put_pid(pid);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from oleksandr@redhat.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-madvise-employ-mmget_still_valid-for-write-lock.patch
-mm-madvise-allow-ksm-hints-for-remote-api.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api.patch
+mm-check-fatal-signal-pending-of-target-process.patch
+pid-move-pidfd_get_pid-function-to-pidc.patch
+mm-support-both-pid-and-pidfd-for-process_madvise.patch
