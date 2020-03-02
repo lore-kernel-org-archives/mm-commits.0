@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-pagemaph-to-the-fine-documentation.patch added
- to -mm tree
-Date: Mon, 02 Mar 2020 14:55:34 -0800
-Message-ID: <20200302225534.DF3J4d41Y%akpm@linux-foundation.org>
+Subject: +
+ gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member.patch
+ added to -mm tree
+Date: Mon, 02 Mar 2020 15:05:32 -0800
+Message-ID: <20200302230532.8PdlaQBKL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48372 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49592 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726700AbgCBWzf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 2 Mar 2020 17:55:35 -0500
+        id S1726728AbgCBXFd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 2 Mar 2020 18:05:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, jhubbard@nvidia.com, mm-commits@vger.kernel.org, willy@infradead.org, ziy@nvidia.com
+To: gustavo@embeddedor.com, mm-commits@vger.kernel.org, oberpar@linux.ibm.com
 
 
 The patch titled
-     Subject: mm: add pagemap.h to the fine documentation
+     Subject: gcov: gcc_3_4: replace zero-length array with flexible-array member
 has been added to the -mm tree.  Its filename is
-     mm-add-pagemaph-to-the-fine-documentation.patch
+     gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-pagemaph-to-the-fine-documentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-pagemaph-to-the-fine-documentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,66 +37,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add pagemap.h to the fine documentation
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: gcov: gcc_3_4: replace zero-length array with flexible-array member
 
-The documentation currently does not include the deathless prose written
-to describe functions in pagemap.h because it's not included in any rst
-file.  Fix up the mismatches between parameter names and the documentation
-and add the file to mm-api.
+The current codebase makes use of the zero-length array language extension
+to the C90 standard, but the preferred mechanism to declare
+variable-length types such as these ones is a flexible array member[1][2],
+introduced in C99:
 
-Link: http://lkml.kernel.org/r/20200221220045.24989-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+struct foo {
+        int stuff;
+        struct boo array[];
+};
+
+By making use of the mechanism above, we will get a compiler warning in
+case the flexible array does not occur last in the structure, which will
+help us prevent some kind of undefined behavior bugs from being
+inadvertently introduced[3] to the codebase from now on.
+
+Also, notice that, dynamic memory allocations won't be affected by this
+change:
+
+"Flexible array members have incomplete type, and so the sizeof operator
+may not be applied.  As a quirk of the original implementation of
+zero-length arrays, sizeof evaluates to zero."[1]
+
+This issue was found with the help of Coccinelle.
+
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] https://github.com/KSPP/linux/issues/21
+[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+Link: http://lkml.kernel.org/r/20200302224501.GA14175@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/mm-api.rst |    3 +++
- include/linux/pagemap.h           |    8 ++++----
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ kernel/gcov/gcc_3_4.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/Documentation/core-api/mm-api.rst~mm-add-pagemaph-to-the-fine-documentation
-+++ a/Documentation/core-api/mm-api.rst
-@@ -73,6 +73,9 @@ File Mapping and Page Cache
- .. kernel-doc:: mm/truncate.c
-    :export:
- 
-+.. kernel-doc:: include/linux/pagemap.h
-+   :internal:
-+
- Memory pools
- ============
- 
---- a/include/linux/pagemap.h~mm-add-pagemaph-to-the-fine-documentation
-+++ a/include/linux/pagemap.h
-@@ -33,8 +33,8 @@ enum mapping_flags {
+--- a/kernel/gcov/gcc_3_4.c~gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member
++++ a/kernel/gcov/gcc_3_4.c
+@@ -38,7 +38,7 @@ static struct gcov_info *gcov_info_head;
+ struct gcov_fn_info {
+ 	unsigned int ident;
+ 	unsigned int checksum;
+-	unsigned int n_ctrs[0];
++	unsigned int n_ctrs[];
+ };
  
  /**
-  * mapping_set_error - record a writeback error in the address_space
-- * @mapping - the mapping in which an error should be set
-- * @error - the error to set in the mapping
-+ * @mapping: the mapping in which an error should be set
-+ * @error: the error to set in the mapping
-  *
-  * When writeback fails in some way, we must record that error so that
-  * userspace can be informed when fsync and the like are called.  We endeavor
-@@ -305,9 +305,9 @@ static inline struct page *find_lock_pag
-  * atomic allocation!
-  */
- static inline struct page *find_or_create_page(struct address_space *mapping,
--					pgoff_t offset, gfp_t gfp_mask)
-+					pgoff_t index, gfp_t gfp_mask)
- {
--	return pagecache_get_page(mapping, offset,
-+	return pagecache_get_page(mapping, index,
- 					FGP_LOCK|FGP_ACCESSED|FGP_CREAT,
- 					gfp_mask);
- }
+@@ -78,7 +78,7 @@ struct gcov_info {
+ 	unsigned int			n_functions;
+ 	const struct gcov_fn_info	*functions;
+ 	unsigned int			ctr_mask;
+-	struct gcov_ctr_info		counts[0];
++	struct gcov_ctr_info		counts[];
+ };
+ 
+ /**
+@@ -352,7 +352,7 @@ struct gcov_iterator {
+ 	unsigned int count;
+ 
+ 	int num_types;
+-	struct type_info type_info[0];
++	struct type_info type_info[];
+ };
+ 
+ static struct gcov_fn_info *get_func(struct gcov_iterator *iter)
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from gustavo@embeddedor.com are
 
-mm-improve-dump_page-for-compound-pages.patch
-mm-add-pagemaph-to-the-fine-documentation.patch
+lib-bch-replace-zero-length-array-with-flexible-array-member.patch
+lib-ts_bm-replace-zero-length-array-with-flexible-array-member.patch
+lib-ts_fsm-replace-zero-length-array-with-flexible-array-member.patch
+lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch
+gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member.patch
+gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member.patch
