@@ -1,146 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + pid-move-pidfd_get_pid-function-to-pidc.patch added to
- -mm tree
-Date: Mon, 02 Mar 2020 13:16:40 -0800
-Message-ID: <20200302211640.QH6XjiUbx%akpm__42219.7036373959$1583183827$gmane$org@linux-foundation.org>
+Subject: +
+ mm-compaction-disable-compact_unevictable_allowed-on-rt.patch added to -mm
+ tree
+Date: Mon, 02 Mar 2020 13:25:51 -0800
+Message-ID: <20200302212551.oe12E_Lfr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: application/octet-stream; charset=binary
+Content-Transfer-Encoding: base64
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52528 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54524 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726536AbgCBVQm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 2 Mar 2020 16:16:42 -0500
+        id S1725911AbgCBVZy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 2 Mar 2020 16:25:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.h.duyck@linux.intel.com, axboe@kernel.dk, bgeffon@google.com, christian@brauner.io, dancol@google.com, hannes@cmpxchg.org, jannh@google.com, joaodias@google.com, joel@joelfernandes.org, ktkhai@virtuozzo.com, linux-man@vger.kernel.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, oleksandr@redhat.com, shakeelb@google.com, sj38.park@gmail.com, sjpark@amazon.de, sonnyrao@google.com, sspatil@google.com, surenb@google.com, timmurray@google.com
+To: bigeasy@linutronix.de, keescook@chromium.org, mcgrof@kernel.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org, tglx@linutronix.de, yzaikin@google.com
 
-
-The patch titled
-     Subject: pid: move pidfd_get_pid() to pid.c
-has been added to the -mm tree.  Its filename is
-     pid-move-pidfd_get_pid-function-to-pidc.patch
-
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pid-move-pidfd_get_pid-function-to-pidc.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pid-move-pidfd_get_pid-function-to-pidc.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: pid: move pidfd_get_pid() to pid.c
-
-process_madvise syscall needs pidfd_get_pid function to translate pidfd to
-pid so this patch move the function to kernel/pid.c.
-
-Link: http://lkml.kernel.org/r/20200302193630.68771-5-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jann Horn <jannh@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Daniel Colascione <dancol@google.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Dias <joaodias@google.com>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleksandr Natalenko <oleksandr@redhat.com>
-Cc: Sandeep Patil <sspatil@google.com>
-Cc: SeongJae Park <sj38.park@gmail.com>
-Cc: SeongJae Park <sjpark@amazon.de>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Sonny Rao <sonnyrao@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Cc: <linux-man@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/pid.h |    1 +
- kernel/exit.c       |   17 -----------------
- kernel/pid.c        |   17 +++++++++++++++++
- 3 files changed, 18 insertions(+), 17 deletions(-)
-
---- a/include/linux/pid.h~pid-move-pidfd_get_pid-function-to-pidc
-+++ a/include/linux/pid.h
-@@ -75,6 +75,7 @@ extern const struct file_operations pidf
- struct file;
- 
- extern struct pid *pidfd_pid(const struct file *file);
-+struct pid *pidfd_get_pid(unsigned int fd);
- 
- static inline struct pid *get_pid(struct pid *pid)
- {
---- a/kernel/exit.c~pid-move-pidfd_get_pid-function-to-pidc
-+++ a/kernel/exit.c
-@@ -1470,23 +1470,6 @@ end:
- 	return retval;
- }
- 
--static struct pid *pidfd_get_pid(unsigned int fd)
--{
--	struct fd f;
--	struct pid *pid;
--
--	f = fdget(fd);
--	if (!f.file)
--		return ERR_PTR(-EBADF);
--
--	pid = pidfd_pid(f.file);
--	if (!IS_ERR(pid))
--		get_pid(pid);
--
--	fdput(f);
--	return pid;
--}
--
- static long kernel_waitid(int which, pid_t upid, struct waitid_info *infop,
- 			  int options, struct rusage *ru)
- {
---- a/kernel/pid.c~pid-move-pidfd_get_pid-function-to-pidc
-+++ a/kernel/pid.c
-@@ -496,6 +496,23 @@ struct pid *find_ge_pid(int nr, struct p
- 	return idr_get_next(&ns->idr, &nr);
- }
- 
-+struct pid *pidfd_get_pid(unsigned int fd)
-+{
-+	struct fd f;
-+	struct pid *pid;
-+
-+	f = fdget(fd);
-+	if (!f.file)
-+		return ERR_PTR(-EBADF);
-+
-+	pid = pidfd_pid(f.file);
-+	if (!IS_ERR(pid))
-+		get_pid(pid);
-+
-+	fdput(f);
-+	return pid;
-+}
-+
- /**
-  * pidfd_create() - Create a new pid file descriptor.
-  *
-_
-
-Patches currently in -mm which might be from minchan@kernel.org are
-
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api.patch
-mm-check-fatal-signal-pending-of-target-process.patch
-pid-move-pidfd_get_pid-function-to-pidc.patch
-mm-support-both-pid-and-pidfd-for-process_madvise.patch
+ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBtbS9jb21wYWN0aW9uOiBkaXNhYmxlIGNv
+bXBhY3RfdW5ldmljdGFibGVfYWxsb3dlZCBvbiBSVApoYXMgYmVlbiBhZGRlZCB0byB0aGUgLW1t
+IHRyZWUuICBJdHMgZmlsZW5hbWUgaXMKICAgICBtbS1jb21wYWN0aW9uLWRpc2FibGUtY29tcGFj
+dF91bmV2aWN0YWJsZV9hbGxvd2VkLW9uLXJ0LnBhdGNoCgpUaGlzIHBhdGNoIHNob3VsZCBzb29u
+IGFwcGVhciBhdAogICAgaHR0cDovL296bGFicy5vcmcvfmFrcG0vbW1vdHMvYnJva2VuLW91dC9t
+bS1jb21wYWN0aW9uLWRpc2FibGUtY29tcGFjdF91bmV2aWN0YWJsZV9hbGxvd2VkLW9uLXJ0LnBh
+dGNoCmFuZCBsYXRlciBhdAogICAgaHR0cDovL296bGFicy5vcmcvfmFrcG0vbW1vdG0vYnJva2Vu
+LW91dC9tbS1jb21wYWN0aW9uLWRpc2FibGUtY29tcGFjdF91bmV2aWN0YWJsZV9hbGxvd2VkLW9u
+LXJ0LnBhdGNoCgpCZWZvcmUgeW91IGp1c3QgZ28gYW5kIGhpdCAicmVwbHkiLCBwbGVhc2U6CiAg
+IGEpIENvbnNpZGVyIHdobyBlbHNlIHNob3VsZCBiZSBjYydlZAogICBiKSBQcmVmZXIgdG8gY2Mg
+YSBzdWl0YWJsZSBtYWlsaW5nIGxpc3QgYXMgd2VsbAogICBjKSBJZGVhbGx5OiBmaW5kIHRoZSBv
+cmlnaW5hbCBwYXRjaCBvbiB0aGUgbWFpbGluZyBsaXN0IGFuZCBkbyBhCiAgICAgIHJlcGx5LXRv
+LWFsbCB0byB0aGF0LCBhZGRpbmcgc3VpdGFibGUgYWRkaXRpb25hbCBjYydzCgoqKiogUmVtZW1i
+ZXIgdG8gdXNlIERvY3VtZW50YXRpb24vcHJvY2Vzcy9zdWJtaXQtY2hlY2tsaXN0LnJzdCB3aGVu
+IHRlc3RpbmcgeW91ciBjb2RlICoqKgoKVGhlIC1tbSB0cmVlIGlzIGluY2x1ZGVkIGludG8gbGlu
+dXgtbmV4dCBhbmQgaXMgdXBkYXRlZAp0aGVyZSBldmVyeSAzLTQgd29ya2luZyBkYXlzCgotLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KRnJvbTog
+U2ViYXN0aWFuIEFuZHJ6ZWogU2lld2lvciA8YmlnZWFzeUBsaW51dHJvbml4LmRlPgpTdWJqZWN0
+OiBtbS9jb21wYWN0aW9uOiBkaXNhYmxlIGNvbXBhY3RfdW5ldmljdGFibGVfYWxsb3dlZCBvbiBS
+VAoKU2luY2UgY29tbWl0IDViYmUzNTQ3YWEzYmEgKCJtbTogYWxsb3cgY29tcGFjdGlvbiBvZiB1
+bmV2aWN0YWJsZSBwYWdlcyIpChBpdCBpcyBhbGxvd2VkIHRvIGV4YW1pbmUgbWxvY2tlZCBwYWdl
+cyBhbmQgY29tcGFjdCB0aGVtIGJ5IGRlZmF1bHQuICBPbgotUlQgZXZlbiBtaW5vciBwYWdlZmF1
+bHRzIGFyZSBwcm9ibGVtYXRpYyBiZWNhdXNlIGl0IG1heSB0YWtlIGEgZmV3IDEwMHVzCnRvIHJl
+c29sdmUgdGhlbSBhbmQgdW50aWwgdGhlbiB0aGUgdGFzayBpcyBibG9ja2VkLgoKTWFrZSBjb21w
+YWN0X3VuZXZpY3RhYmxlX2FsbG93ZWQgPSAwIGRlZmF1bHQgYW5kIFJPIG9uIFJULgoKTGluazog
+aHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvbGludXgtbW0vMjAxOTA3MTAxNDQxMzgucXluNHR1dHRk
+cTZoN2txeEBsaW51dHJvbml4LmRlLwpMaW5rOiBodHRwOi8vbGttbC5rZXJuZWwub3JnL3IvMjAy
+MDAzMDIxNzM1MTYuaXlzdWVqaWxhdmEzN3Bza0BsaW51dHJvbml4LmRlClNpZ25lZC1vZmYtYnk6
+IFNlYmFzdGlhbiBBbmRyemVqIFNpZXdpb3IgPGJpZ2Vhc3lAbGludXRyb25peC5kZT4KQ2M6IFRo
+b21hcyBHbGVpeG5lciA8dGdseEBsaW51dHJvbml4LmRlPgpDYzogTHVpcyBDaGFtYmVybGFpbiA8
+bWNncm9mQGtlcm5lbC5vcmc+CkNjOiBLZWVzIENvb2sgPGtlZXNjb29rQGNocm9taXVtLm9yZz4K
+Q2M6IEl1cmlpIFphaWtpbiA8eXphaWtpbkBnb29nbGUuY29tPgpDYzogTWVsIEdvcm1hbiA8bWdv
+cm1hbkB0ZWNoc2luZ3VsYXJpdHkubmV0PgpTaWduZWQtb2ZmLWJ5OiBBbmRyZXcgTW9ydG9uIDxh
+a3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgotLS0KCiBEb2N1bWVudGF0aW9uL2FkbWluLWd1aWRl
+L3N5c2N0bC92bS5yc3QgfCAgICAxICsKIGtlcm5lbC9zeXNjdGwuYyAgICAgICAgICAgICAgICAg
+ICAgICAgICB8ICAgIDQgKysrKwogbW0vY29tcGFjdGlvbi5jICAgICAgICAgICAgICAgICAgICAg
+ICAgIHwgICAgNCArKysrCiAzIGZpbGVzIGNoYW5nZWQsIDkgaW5zZXJ0aW9ucygrKQoKLS0tIGEv
+RG9jdW1lbnRhdGlvbi9hZG1pbi1ndWlkZS9zeXNjdGwvdm0ucnN0fm1tLWNvbXBhY3Rpb24tZGlz
+YWJsZS1jb21wYWN0X3VuZXZpY3RhYmxlX2FsbG93ZWQtb24tcnQKKysrIGEvRG9jdW1lbnRhdGlv
+bi9hZG1pbi1ndWlkZS9zeXNjdGwvdm0ucnN0CkBAIC0xMjgsNiArMTI4LDcgQEAgYWxsb3dlZCB0
+byBleGFtaW5lIHRoZSB1bmV2aWN0YWJsZSBscnUgKAogVGhpcyBzaG91bGQgYmUgdXNlZCBvbiBz
+eXN0ZW1zIHdoZXJlIHN0YWxscyBmb3IgbWlub3IgcGFnZSBmYXVsdHMgYXJlIGFuCiBhY2NlcHRh
+YmxlIHRyYWRlIGZvciBsYXJnZSBjb250aWd1b3VzIGZyZWUgbWVtb3J5LiAgU2V0IHRvIDAgdG8g
+cHJldmVudAogY29tcGFjdGlvbiBmcm9tIG1vdmluZyBwYWdlcyB0aGF0IGFyZSB1bmV2aWN0YWJs
+ZS4gIERlZmF1bHQgdmFsdWUgaXMgMS4KK09uIENPTkZJR19QUkVFTVBUX1JUIHRoZSBkZWZhdWx0
+IHZhbHVlIGlzIDAuCiAKIAogZGlydHlfYmFja2dyb3VuZF9ieXRlcwotLS0gYS9rZXJuZWwvc3lz
+Y3RsLmN+bW0tY29tcGFjdGlvbi1kaXNhYmxlLWNvbXBhY3RfdW5ldmljdGFibGVfYWxsb3dlZC1v
+bi1ydAorKysgYS9rZXJuZWwvc3lzY3RsLmMKQEAgLTE0ODMsNyArMTQ4MywxMSBAQCBzdGF0aWMg
+c3RydWN0IGN0bF90YWJsZSB2bV90YWJsZVtdID0gewogCQkucHJvY25hbWUJPSAiY29tcGFjdF91
+bmV2aWN0YWJsZV9hbGxvd2VkIiwKIAkJLmRhdGEJCT0gJnN5c2N0bF9jb21wYWN0X3VuZXZpY3Rh
+YmxlX2FsbG93ZWQsCiAJCS5tYXhsZW4JCT0gc2l6ZW9mKGludCksCisjaWZkZWYgQ09ORklHX1BS
+RUVNUFRfUlQKKwkJLm1vZGUJCT0gMDQ0NCwKKyNlbHNlCiAJCS5tb2RlCQk9IDA2NDQsCisjZW5k
+aWYKIAkJLnByb2NfaGFuZGxlcgk9IHByb2NfZG9pbnR2ZWMsCiAJCS5leHRyYTEJCT0gU1lTQ1RM
+X1pFUk8sCiAJCS5leHRyYTIJCT0gU1lTQ1RMX09ORSwKLS0tIGEvbW0vY29tcGFjdGlvbi5jfm1t
+LWNvbXBhY3Rpb24tZGlzYWJsZS1jb21wYWN0X3VuZXZpY3RhYmxlX2FsbG93ZWQtb24tcnQKKysr
+IGEvbW0vY29tcGFjdGlvbi5jCkBAIC0xNTk0LDcgKzE1OTQsMTEgQEAgdHlwZWRlZiBlbnVtIHsK
+ICAqIEFsbG93IHVzZXJzcGFjZSB0byBjb250cm9sIHBvbGljeSBvbiBzY2FubmluZyB0aGUgdW5l
+dmljdGFibGUgTFJVIGZvcgogICogY29tcGFjdGFibGUgcGFnZXMuCiAgKi8KKyNpZmRlZiBDT05G
+SUdfUFJFRU1QVF9SVAoraW50IHN5c2N0bF9jb21wYWN0X3VuZXZpY3RhYmxlX2FsbG93ZWQgX19y
+ZWFkX21vc3RseSA9IDA7CisjZWxzZQogaW50IHN5c2N0bF9jb21wYWN0X3VuZXZpY3RhYmxlX2Fs
+bG93ZWQgX19yZWFkX21vc3RseSA9IDE7CisjZW5kaWYKIAogc3RhdGljIGlubGluZSB2b2lkCiB1
+cGRhdGVfZmFzdF9zdGFydF9wZm4oc3RydWN0IGNvbXBhY3RfY29udHJvbCAqY2MsIHVuc2lnbmVk
+IGxvbmcgcGZuKQpfCgpQYXRjaGVzIGN1cnJlbnRseSBpbiAtbW0gd2hpY2ggbWlnaHQgYmUgZnJv
+bSBiaWdlYXN5QGxpbnV0cm9uaXguZGUgYXJlCgptbS16M2ZvbGQtZG8tbm90LWluY2x1ZGUtcnds
+b2NraC1kaXJlY3RseS5wYXRjaAptbS1jb21wYWN0aW9uLWRpc2FibGUtY29tcGFjdF91bmV2aWN0
+YWJsZV9hbGxvd2VkLW9uLXJ0LnBhdGNoCgo=
