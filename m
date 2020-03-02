@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member.patch
- added to -mm tree
-Date: Mon, 02 Mar 2020 15:05:32 -0800
-Message-ID: <20200302230532.8PdlaQBKL%akpm@linux-foundation.org>
+ gcov-fs-replace-zero-length-array-with-flexible-array-member.patch added to
+ -mm tree
+Date: Mon, 02 Mar 2020 15:06:21 -0800
+Message-ID: <20200302230621.9QouVVopS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49592 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49628 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726728AbgCBXFd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 2 Mar 2020 18:05:33 -0500
+        id S1726728AbgCBXGW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 2 Mar 2020 18:06:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: gustavo@embeddedor.com, mm-commits@vger.kernel.org, oberpar@linux.ibm.com
 
 
 The patch titled
-     Subject: gcov: gcc_3_4: replace zero-length array with flexible-array member
+     Subject: kernel/gcov/fs.c: replace zero-length array with flexible-array member
 has been added to the -mm tree.  Its filename is
-     gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member.patch
+     gcov-fs-replace-zero-length-array-with-flexible-array-member.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/gcov-fs-replace-zero-length-array-with-flexible-array-member.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/gcov-fs-replace-zero-length-array-with-flexible-array-member.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,7 +38,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: gcov: gcc_3_4: replace zero-length array with flexible-array member
+Subject: kernel/gcov/fs.c: replace zero-length array with flexible-array member
 
 The current codebase makes use of the zero-length array language extension
 to the C90 standard, but the preferred mechanism to declare
@@ -68,44 +68,26 @@ This issue was found with the help of Coccinelle.
 [2] https://github.com/KSPP/linux/issues/21
 [3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
 
-Link: http://lkml.kernel.org/r/20200302224501.GA14175@embeddedor
+Link: http://lkml.kernel.org/r/20200302224851.GA26467@embeddedor
 Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/gcc_3_4.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/gcov/fs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/gcov/gcc_3_4.c~gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member
-+++ a/kernel/gcov/gcc_3_4.c
-@@ -38,7 +38,7 @@ static struct gcov_info *gcov_info_head;
- struct gcov_fn_info {
- 	unsigned int ident;
- 	unsigned int checksum;
--	unsigned int n_ctrs[0];
-+	unsigned int n_ctrs[];
+--- a/kernel/gcov/fs.c~gcov-fs-replace-zero-length-array-with-flexible-array-member
++++ a/kernel/gcov/fs.c
+@@ -58,7 +58,7 @@ struct gcov_node {
+ 	struct dentry *dentry;
+ 	struct dentry **links;
+ 	int num_loaded;
+-	char name[0];
++	char name[];
  };
  
- /**
-@@ -78,7 +78,7 @@ struct gcov_info {
- 	unsigned int			n_functions;
- 	const struct gcov_fn_info	*functions;
- 	unsigned int			ctr_mask;
--	struct gcov_ctr_info		counts[0];
-+	struct gcov_ctr_info		counts[];
- };
- 
- /**
-@@ -352,7 +352,7 @@ struct gcov_iterator {
- 	unsigned int count;
- 
- 	int num_types;
--	struct type_info type_info[0];
-+	struct type_info type_info[];
- };
- 
- static struct gcov_fn_info *get_func(struct gcov_iterator *iter)
+ static const char objtree[] = OBJTREE;
 _
 
 Patches currently in -mm which might be from gustavo@embeddedor.com are
@@ -116,3 +98,4 @@ lib-ts_fsm-replace-zero-length-array-with-flexible-array-member.patch
 lib-ts_kmp-replace-zero-length-array-with-flexible-array-member.patch
 gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member.patch
 gcov-gcc_3_4-replace-zero-length-array-with-flexible-array-member.patch
+gcov-fs-replace-zero-length-array-with-flexible-array-member.patch
