@@ -1,27 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-disable-kcsan-for-kmemleak.patch added to -mm tree
-Date: Tue, 03 Mar 2020 15:45:59 -0800
-Message-ID: <20200303234559.nnrAtgkQd%akpm@linux-foundation.org>
+Subject: +
+ vfs-partially-revert-dont-allow-writes-to-swap-files.patch added to -mm
+ tree
+Date: Tue, 03 Mar 2020 15:48:10 -0800
+Message-ID: <20200303234810.GG6UOWaBb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33402 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34122 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727604AbgCCXqC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Mar 2020 18:46:02 -0500
+        id S1727604AbgCCXsL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Mar 2020 18:48:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, catalin.marinas@arm.com, elver@google.com, mm-commits@vger.kernel.org
+To: darrick.wong@oracle.com, domenico.andreoli@linux.com, hch@lst.de, len.brown@intel.com, mkleinsoft@gmail.com, mm-commits@vger.kernel.org, pavel@ucw.cz, rjw@rjwysocki.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm/Makefile: disable KCSAN for kmemleak
+     Subject: vfs: partially revert "don't allow writes to swap files"
 has been added to the -mm tree.  Its filename is
-     mm-disable-kcsan-for-kmemleak.patch
+     vfs-partially-revert-dont-allow-writes-to-swap-files.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-disable-kcsan-for-kmemleak.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vfs-partially-revert-dont-allow-writes-to-swap-files.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-disable-kcsan-for-kmemleak.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-partially-revert-dont-allow-writes-to-swap-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,57 +37,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: mm/Makefile: disable KCSAN for kmemleak
+From: Darrick J. Wong <darrick.wong@oracle.com>
+Subject: vfs: partially revert "don't allow writes to swap files"
 
-Kmemleak could scan task stacks while plain writes happens to those stack
-variables which could results in data races.  For example, in
-sys_rt_sigaction and do_sigaction(), it could have plain writes in a
-32-byte size.  Since the kmemleak does not care about the actual values of
-a non-pointer and all do_sigaction() call sites only copy to stack
-variables, just disable KCSAN for kmemleak to avoid annotating anything
-outside Kmemleak just because Kmemleak scans everything.
+In commit dc617f29dbe5 ("vfs: don't allow writes to swap files") we tried
+to prevent userspace programs from writing to active swap devices. 
+However, it turns out that userspace hibernation requires the ability to
+write the hibernation image to a swap device, so revert the write path
+checks.
 
-Link: http://lkml.kernel.org/r/1583263716-25150-1-git-send-email-cai@lca.pw
-Signed-off-by: Qian Cai <cai@lca.pw>
-Suggested-by: Marco Elver <elver@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Link: http://lkml.kernel.org/r/20200303191023.GD8037@magnolia
+Fixes: dc617f29dbe5 ("vfs: don't allow writes to swap files")
+Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+Reported-by: Domenico Andreoli <domenico.andreoli@linux.com>
+Reported-by: Marian Klein <mkleinsoft@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ fs/block_dev.c |    3 ---
+ mm/filemap.c   |    3 ---
+ mm/memory.c    |    4 ----
+ mm/mmap.c      |    8 ++------
+ 4 files changed, 2 insertions(+), 16 deletions(-)
 
---- a/mm/Makefile~mm-disable-kcsan-for-kmemleak
-+++ a/mm/Makefile
-@@ -6,6 +6,7 @@
- KASAN_SANITIZE_slab_common.o := n
- KASAN_SANITIZE_slab.o := n
- KASAN_SANITIZE_slub.o := n
-+KCSAN_SANITIZE_kmemleak.o := n
+--- a/fs/block_dev.c~vfs-partially-revert-dont-allow-writes-to-swap-files
++++ a/fs/block_dev.c
+@@ -2001,9 +2001,6 @@ ssize_t blkdev_write_iter(struct kiocb *
+ 	if (bdev_read_only(I_BDEV(bd_inode)))
+ 		return -EPERM;
  
- # These files are disabled because they produce non-interesting and/or
- # flaky coverage that is not a function of syscall inputs. E.g. slab is out of
-_
-
-Patches currently in -mm which might be from cai@lca.pw are
-
-mm-disable-kcsan-for-kmemleak.patch
-mm-swapfile-fix-data-races-in-try_to_unuse.patch
-mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
-mm-vmscan-fix-data-races-at-kswapd_classzone_idx.patch
-percpu_counter-fix-a-data-race-at-vm_committed_as.patch
-mm-frontswap-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races-v2.patch
-mm-swap_state-mark-various-intentional-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races-v2.patch
-mm-page_counter-fix-various-data-races-at-memsw.patch
-mm-memcontrol-fix-a-data-race-in-scan-count.patch
-mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-mm-mempool-fix-a-data-race-in-mempool_free.patch
-mm-util-annotate-an-data-race-at-vm_committed_as.patch
-mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
-mm-annotate-a-data-race-in-page_zonenum.patch
+-	if (IS_SWAPFILE(bd_inode))
+-		return -ETXTBSY;
+-
+ 	if (!iov_iter_count(from))
+ 		return 0;
+ 
+--- a/mm/filemap.c~vfs-partially-revert-dont-allow-writes-to-swap-files
++++ a/mm/filemap.c
+@@ -2920,9 +2920,6 @@ inline ssize_t generic_write_checks(stru
+ 	loff_t count;
+ 	int ret;
+ 
+-	if (IS_SWAPFILE(inode))
+-		return -ETXTBSY;
+-
+ 	if (!iov_iter_count(from))
+ 		return 0;
+ 
+--- a/mm/memory.c~vfs-partially-revert-dont-allow-writes-to-swap-files
++++ a/mm/memory.c
+@@ -2376,10 +2376,6 @@ static vm_fault_t do_page_mkwrite(struct
+ 
+ 	vmf->flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
+ 
+-	if (vmf->vma->vm_file &&
+-	    IS_SWAPFILE(vmf->vma->vm_file->f_mapping->host))
+-		return VM_FAULT_SIGBUS;
