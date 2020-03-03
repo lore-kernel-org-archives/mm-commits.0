@@ -1,100 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: +
- vfs-partially-revert-dont-allow-writes-to-swap-files.patch added to -mm
- tree
-Date: Tue, 03 Mar 2020 15:48:10 -0800
-Message-ID: <20200303234810.GG6UOWaBb%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-compaction-disable-compact_unevictable_allowed-on-rt.patch removed from
+ -mm tree
+Date: Tue, 03 Mar 2020 15:53:13 -0800
+Message-ID: <20200303235313.zSzMvsMdd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34122 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36908 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727604AbgCCXsL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Mar 2020 18:48:11 -0500
+        id S1727762AbgCCXxP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Mar 2020 18:53:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darrick.wong@oracle.com, domenico.andreoli@linux.com, hch@lst.de, len.brown@intel.com, mkleinsoft@gmail.com, mm-commits@vger.kernel.org, pavel@ucw.cz, rjw@rjwysocki.net, viro@zeniv.linux.org.uk
+To: bigeasy@linutronix.de, keescook@chromium.org, mcgrof@kernel.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org, tglx@linutronix.de, yzaikin@google.com
 
 
 The patch titled
-     Subject: vfs: partially revert "don't allow writes to swap files"
-has been added to the -mm tree.  Its filename is
-     vfs-partially-revert-dont-allow-writes-to-swap-files.patch
+     Subject: mm/compaction: disable compact_unevictable_allowed on RT
+has been removed from the -mm tree.  Its filename was
+     mm-compaction-disable-compact_unevictable_allowed-on-rt.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vfs-partially-revert-dont-allow-writes-to-swap-files.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-partially-revert-dont-allow-writes-to-swap-files.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Darrick J. Wong <darrick.wong@oracle.com>
-Subject: vfs: partially revert "don't allow writes to swap files"
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm/compaction: disable compact_unevictable_allowed on RT
 
-In commit dc617f29dbe5 ("vfs: don't allow writes to swap files") we tried
-to prevent userspace programs from writing to active swap devices. 
-However, it turns out that userspace hibernation requires the ability to
-write the hibernation image to a swap device, so revert the write path
-checks.
+Since commit 5bbe3547aa3ba ("mm: allow compaction of unevictable pages")
+it is allowed to examine mlocked pages and compact them by default.  On
+-RT even minor pagefaults are problematic because it may take a few 100us
+to resolve them and until then the task is blocked.
 
-Link: http://lkml.kernel.org/r/20200303191023.GD8037@magnolia
-Fixes: dc617f29dbe5 ("vfs: don't allow writes to swap files")
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Reported-by: Domenico Andreoli <domenico.andreoli@linux.com>
-Reported-by: Marian Klein <mkleinsoft@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Make compact_unevictable_allowed = 0 default and RO on RT.
+
+Link: https://lore.kernel.org/linux-mm/20190710144138.qyn4tuttdq6h7kqx@linutronix.de/
+Link: http://lkml.kernel.org/r/20200302173516.iysuejilava37psk@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    3 ---
- mm/filemap.c   |    3 ---
- mm/memory.c    |    4 ----
- mm/mmap.c      |    8 ++------
- 4 files changed, 2 insertions(+), 16 deletions(-)
+ Documentation/admin-guide/sysctl/vm.rst |    1 +
+ kernel/sysctl.c                         |    4 ++++
+ mm/compaction.c                         |    4 ++++
+ 3 files changed, 9 insertions(+)
 
---- a/fs/block_dev.c~vfs-partially-revert-dont-allow-writes-to-swap-files
-+++ a/fs/block_dev.c
-@@ -2001,9 +2001,6 @@ ssize_t blkdev_write_iter(struct kiocb *
- 	if (bdev_read_only(I_BDEV(bd_inode)))
- 		return -EPERM;
+--- a/Documentation/admin-guide/sysctl/vm.rst~mm-compaction-disable-compact_unevictable_allowed-on-rt
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -128,6 +128,7 @@ allowed to examine the unevictable lru (
+ This should be used on systems where stalls for minor page faults are an
+ acceptable trade for large contiguous free memory.  Set to 0 to prevent
+ compaction from moving pages that are unevictable.  Default value is 1.
++On CONFIG_PREEMPT_RT the default value is 0.
  
--	if (IS_SWAPFILE(bd_inode))
--		return -ETXTBSY;
--
- 	if (!iov_iter_count(from))
- 		return 0;
  
---- a/mm/filemap.c~vfs-partially-revert-dont-allow-writes-to-swap-files
-+++ a/mm/filemap.c
-@@ -2920,9 +2920,6 @@ inline ssize_t generic_write_checks(stru
- 	loff_t count;
- 	int ret;
+ dirty_background_bytes
+--- a/kernel/sysctl.c~mm-compaction-disable-compact_unevictable_allowed-on-rt
++++ a/kernel/sysctl.c
+@@ -1483,7 +1483,11 @@ static struct ctl_table vm_table[] = {
+ 		.procname	= "compact_unevictable_allowed",
+ 		.data		= &sysctl_compact_unevictable_allowed,
+ 		.maxlen		= sizeof(int),
++#ifdef CONFIG_PREEMPT_RT
++		.mode		= 0444,
++#else
+ 		.mode		= 0644,
++#endif
+ 		.proc_handler	= proc_dointvec,
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
+--- a/mm/compaction.c~mm-compaction-disable-compact_unevictable_allowed-on-rt
++++ a/mm/compaction.c
+@@ -1594,7 +1594,11 @@ typedef enum {
+  * Allow userspace to control policy on scanning the unevictable LRU for
+  * compactable pages.
+  */
++#ifdef CONFIG_PREEMPT_RT
++int sysctl_compact_unevictable_allowed __read_mostly = 0;
++#else
+ int sysctl_compact_unevictable_allowed __read_mostly = 1;
++#endif
  
--	if (IS_SWAPFILE(inode))
--		return -ETXTBSY;
--
- 	if (!iov_iter_count(from))
- 		return 0;
- 
---- a/mm/memory.c~vfs-partially-revert-dont-allow-writes-to-swap-files
-+++ a/mm/memory.c
-@@ -2376,10 +2376,6 @@ static vm_fault_t do_page_mkwrite(struct
- 
- 	vmf->flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
- 
--	if (vmf->vma->vm_file &&
--	    IS_SWAPFILE(vmf->vma->vm_file->f_mapping->host))
--		return VM_FAULT_SIGBUS;
+ static inline void
+ update_fast_start_pfn(struct compact_control *cc, unsigned long pfn)
+_
+
+Patches currently in -mm which might be from bigeasy@linutronix.de are
+
+mm-z3fold-do-not-include-rwlockh-directly.patch
+really-limit-compact_unevictable_allowed-to-0-and-1.patch
