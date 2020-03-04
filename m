@@ -1,251 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] loop-charge-i-o-to-mem-and-blk-cg.patch
+Subject: [folded-merged]
+ mm-debug-add-tests-validating-architecture-page-table-helpers-fix-2.patch
  removed from -mm tree
-Date: Tue, 03 Mar 2020 16:27:05 -0800
-Message-ID: <20200304002705.ch2gZNSgL%akpm@linux-foundation.org>
+Date: Tue, 03 Mar 2020 16:39:09 -0800
+Message-ID: <20200304003909.uLUOg7GSC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51106 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727274AbgCDA1G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Mar 2020 19:27:06 -0500
+        id S1727725AbgCDAjL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Mar 2020 19:39:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axboe@kernel.dk, chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, lizefan@huawei.com, mhocko@kernel.org, mm-commits@vger.kernel.org, schatzberg.dan@gmail.com, shakeelb@google.com, tglx@linutronix.de, tj@kernel.org, vdavydov.dev@gmail.com, yang.shi@linux.alibaba.com
+To: anshuman.khandual@arm.com, cai@lca.pw, christophe.leroy@c-s.fr, james.morse@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: loop: charge i/o to mem and blk cg
+     Subject: mm/debug: replace __pa() with __pa_symbol() in debug_vm_pgtable()
 has been removed from the -mm tree.  Its filename was
-     loop-charge-i-o-to-mem-and-blk-cg.patch
+     mm-debug-add-tests-validating-architecture-page-table-helpers-fix-2.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into mm-debug-add-tests-validating-architecture-page-table-helpers.patch
 
 ------------------------------------------------------
-From: Dan Schatzberg <schatzberg.dan@gmail.com>
-Subject: loop: charge i/o to mem and blk cg
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/debug: replace __pa() with __pa_symbol() in debug_vm_pgtable()
 
-The current code only associates with the existing blkcg when aio is used
-to access the backing file.  This patch covers all types of i/o to the
-backing file and also associates the memcg so if the backing file is on
-tmpfs, memory is charged appropriately.
+Replace __pa() with __pa_symbol() in debug_vm_pgtable() while accessing
+the physical address for 'start_kernel' which is a kernel text symbol,
+else it might trigger the following warning on some platforms when
+DEBUG_VIRTUAL is enabled.
 
-This patch also exports cgroup_get_e_css so it can be used by the loop
-module.
+[   23.123852] ------------[ cut here ]------------
+[   23.124486] virt_to_phys used for non-linear address: (____ptrval____) (start_kernel+0x0/0x424)
+[   23.125663] WARNING: CPU: 11 PID: 1 at arch/arm64/mm/physaddr.c:15 __virt_to_phys+0x60/0x98
+[   23.126877] Modules linked in:
+[   23.127390] CPU: 11 PID: 1 Comm: swapper/0 Tainted: G        W 5.6.0-rc3-next-20200226-00001-g306225cc6ffd #163
+[   23.129139] Hardware name: linux,dummy-virt (DT)
+[   23.129898] pstate: 60400005 (nZCv daif +PAN -UAO)
+[   23.130693] pc : __virt_to_phys+0x60/0x98
+[   23.131359] lr : __virt_to_phys+0x60/0x98
+[   23.132022] sp : ffff800011e6be10
+[   23.132575] x29: ffff800011e6be10 x28: 0000000000000000
+[   23.133447] x27: 0000000000000000 x26: 0000000000000000
+[   23.134319] x25: 0000000000000000 x24: 0020000000000fd3
+[   23.135197] x23: fffffe000bd27700 x22: ffff0002fcae8000
+[   23.136069] x21: ffff800011a47000 x20: 0000000000000001
+[   23.136941] x19: ffff800011350a14 x18: 0000000000000010
+[   23.137815] x17: 000000006bb8910e x16: 00000000a1fdc699
+[   23.138693] x15: ffffffffffffffff x14: 6c656e72656b5f74
+[   23.139567] x13: 726174732820295f x12: 5f5f5f6c61767274
+[   23.140441] x11: 705f5f5f5f28203a x10: 7373657264646120
+[   23.141314] x9 : 7261656e696c2d6e x8 : ffff8000106b4e70
+[   23.142189] x7 : 00000000000002a1 x6 : ffff800011a58bba
+[   23.143067] x5 : 001fffffffffffff x4 : 0000000000000000
+[   23.143939] x3 : 00000000ffffffff x2 : ffff800011881bf8
+[   23.144810] x1 : 16ee3f9cb03efc00 x0 : 0000000000000000
+[   23.145682] Call trace:
+[   23.146097]  __virt_to_phys+0x60/0x98
+[   23.146710]  debug_vm_pgtable+0xd0/0x440
+[   23.147362]  kernel_init+0x18/0x100
+[   23.147944]  ret_from_fork+0x10/0x18
+[   23.148539] ---[ end trace fc4ccb3cb35ff225 ]---
 
-Link: http://lkml.kernel.org/r/206afee596c3f30c05b31ae5fc8b7f5d58863dc0.1582581887.git.schatzberg.dan@gmail.com
-Signed-off-by: Dan Schatzberg <schatzberg.dan@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/1582776031-30344-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reported-by: Qian Cai <cai@lca.pw>
+Cc: James Morse <james.morse@arm.com>
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c       |   59 ++++++++++++++++++++++-------------
- drivers/block/loop.h       |    3 +
- include/linux/memcontrol.h |    6 +++
- kernel/cgroup/cgroup.c     |    1 
- 4 files changed, 47 insertions(+), 22 deletions(-)
+ mm/debug_vm_pgtable.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/loop.c~loop-charge-i-o-to-mem-and-blk-cg
-+++ a/drivers/block/loop.c
-@@ -77,6 +77,7 @@
- #include <linux/uio.h>
- #include <linux/ioprio.h>
- #include <linux/blk-cgroup.h>
-+#include <linux/sched/mm.h>
- 
- #include "loop.h"
- 
-@@ -504,8 +505,6 @@ static void lo_rw_aio_complete(struct ki
- {
- 	struct loop_cmd *cmd = container_of(iocb, struct loop_cmd, iocb);
- 
--	if (cmd->css)
--		css_put(cmd->css);
- 	cmd->ret = ret;
- 	lo_rw_aio_do_completion(cmd);
- }
-@@ -566,8 +565,6 @@ static int lo_rw_aio(struct loop_device
- 	cmd->iocb.ki_complete = lo_rw_aio_complete;
- 	cmd->iocb.ki_flags = IOCB_DIRECT;
- 	cmd->iocb.ki_ioprio = IOPRIO_PRIO_VALUE(IOPRIO_CLASS_NONE, 0);
--	if (cmd->css)
--		kthread_associate_blkcg(cmd->css);
- 
- 	if (rw == WRITE)
- 		ret = call_write_iter(file, &cmd->iocb, &iter);
-@@ -575,7 +572,6 @@ static int lo_rw_aio(struct loop_device
- 		ret = call_read_iter(file, &cmd->iocb, &iter);
- 
- 	lo_rw_aio_do_completion(cmd);
--	kthread_associate_blkcg(NULL);
- 
- 	if (ret != -EIOCBQUEUED)
- 		cmd->iocb.ki_complete(&cmd->iocb, ret, 0);
-@@ -919,7 +915,7 @@ struct loop_worker {
- 	struct list_head cmd_list;
- 	struct list_head idle_list;
- 	struct loop_device *lo;
--	struct cgroup_subsys_state *css;
-+	struct cgroup_subsys_state *blkcg_css;
- 	unsigned long last_ran_at;
- };
- 
-@@ -936,7 +932,7 @@ static void loop_queue_work(struct loop_
- 
- 	spin_lock_irq(&lo->lo_lock);
- 
--	if (!cmd->css)
-+	if (!cmd->blkcg_css)
- 		goto queue_work;
- 
- 	node = &lo->worker_tree.rb_node;
-@@ -944,10 +940,10 @@ static void loop_queue_work(struct loop_
- 	while (*node) {
- 		parent = *node;
- 		cur_worker = container_of(*node, struct loop_worker, rb_node);
--		if (cur_worker->css == cmd->css) {
-+		if (cur_worker->blkcg_css == cmd->blkcg_css) {
- 			worker = cur_worker;
- 			break;
--		} else if ((long)cur_worker->css < (long)cmd->css) {
-+		} else if ((long)cur_worker->blkcg_css < (long)cmd->blkcg_css) {
- 			node = &(*node)->rb_left;
- 		} else {
- 			node = &(*node)->rb_right;
-@@ -959,13 +955,16 @@ static void loop_queue_work(struct loop_
- 	worker = kzalloc(sizeof(struct loop_worker), GFP_NOWAIT | __GFP_NOWARN);
- 	/*
- 	 * In the event we cannot allocate a worker, just queue on the
--	 * rootcg worker
-+	 * rootcg worker and issue the I/O as the rootcg
+--- a/mm/debug_vm_pgtable.c~mm-debug-add-tests-validating-architecture-page-table-helpers-fix-2
++++ a/mm/debug_vm_pgtable.c
+@@ -331,7 +331,7 @@ void __init debug_vm_pgtable(void)
+ 	 * helps avoid large memory block allocations to be used for mapping
+ 	 * at higher page table levels.
  	 */
--	if (!worker)
-+	if (!worker) {
-+		cmd->blkcg_css = NULL;
-+		cmd->memcg_css = NULL;
- 		goto queue_work;
-+	}
+-	paddr = __pa(&start_kernel);
++	paddr = __pa_symbol(&start_kernel);
  
--	worker->css = cmd->css;
--	css_get(worker->css);
-+	worker->blkcg_css = cmd->blkcg_css;
-+	css_get(worker->blkcg_css);
- 	INIT_WORK(&worker->work, loop_workfn);
- 	INIT_LIST_HEAD(&worker->cmd_list);
- 	INIT_LIST_HEAD(&worker->idle_list);
-@@ -1221,7 +1220,7 @@ static int __loop_clr_fd(struct loop_dev
- 				idle_list) {
- 		list_del(&worker->idle_list);
- 		rb_erase(&worker->rb_node, &lo->worker_tree);
--		css_put(worker->css);
-+		css_put(worker->blkcg_css);
- 		kfree(worker);
- 	}
- 	spin_unlock_irq(&lo->lo_lock);
-@@ -2030,13 +2029,18 @@ static blk_status_t loop_queue_rq(struct
- 	}
- 
- 	/* always use the first bio's css */
-+	cmd->blkcg_css = NULL;
-+	cmd->memcg_css = NULL;
- #ifdef CONFIG_BLK_CGROUP
--	if (cmd->use_aio && rq->bio && rq->bio->bi_blkg) {
--		cmd->css = &bio_blkcg(rq->bio)->css;
--		css_get(cmd->css);
--	} else
-+	if (rq->bio && rq->bio->bi_blkg) {
-+		cmd->blkcg_css = &bio_blkcg(rq->bio)->css;
-+#ifdef CONFIG_MEMCG
-+		cmd->memcg_css =
-+			cgroup_get_e_css(cmd->blkcg_css->cgroup,
-+					&memory_cgrp_subsys);
-+#endif
-+	}
- #endif
--		cmd->css = NULL;
- 	loop_queue_work(lo, cmd);
- 
- 	return BLK_STS_OK;
-@@ -2054,8 +2058,21 @@ static void loop_handle_cmd(struct loop_
- 		goto failed;
- 	}
- 
-+	if (cmd->blkcg_css)
-+		kthread_associate_blkcg(cmd->blkcg_css);
-+	if (cmd->memcg_css)
-+		memalloc_use_memcg(mem_cgroup_from_css(cmd->memcg_css));
-+
- 	ret = do_req_filebacked(lo, rq);
-- failed:
-+
-+	if (cmd->blkcg_css)
-+		kthread_associate_blkcg(NULL);
-+
-+	if (cmd->memcg_css) {
-+		memalloc_unuse_memcg();
-+		css_put(cmd->memcg_css);
-+	}
-+failed:
- 	/* complete non-aio request */
- 	if (!cmd->use_aio || ret) {
- 		cmd->ret = ret ? -EIO : 0;
-@@ -2129,7 +2146,7 @@ static void loop_free_idle_workers(struc
- 			break;
- 		list_del(&worker->idle_list);
- 		rb_erase(&worker->rb_node, &lo->worker_tree);
--		css_put(worker->css);
-+		css_put(worker->blkcg_css);
- 		kfree(worker);
- 	}
- 	if (!list_empty(&lo->idle_worker_list))
---- a/drivers/block/loop.h~loop-charge-i-o-to-mem-and-blk-cg
-+++ a/drivers/block/loop.h
-@@ -74,7 +74,8 @@ struct loop_cmd {
- 	long ret;
- 	struct kiocb iocb;
- 	struct bio_vec *bvec;
--	struct cgroup_subsys_state *css;
-+	struct cgroup_subsys_state *blkcg_css;
-+	struct cgroup_subsys_state *memcg_css;
- };
- 
- /* Support for loadable transfer modules */
---- a/include/linux/memcontrol.h~loop-charge-i-o-to-mem-and-blk-cg
-+++ a/include/linux/memcontrol.h
-@@ -922,6 +922,12 @@ static inline struct mem_cgroup *get_mem
- 	return NULL;
- }
- 
-+static inline
-+struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *css)
-+{
-+	return NULL;
-+}
-+
- static inline void mem_cgroup_put(struct mem_cgroup *memcg)
- {
- }
---- a/kernel/cgroup/cgroup.c~loop-charge-i-o-to-mem-and-blk-cg
-+++ a/kernel/cgroup/cgroup.c
-@@ -587,6 +587,7 @@ out_unlock:
- 	rcu_read_unlock();
- 	return css;
- }
-+EXPORT_SYMBOL_GPL(cgroup_get_e_css);
- 
- static void cgroup_get_live(struct cgroup *cgrp)
- {
+ 	pte_aligned = (paddr & PAGE_MASK) >> PAGE_SHIFT;
+ 	pmd_aligned = (paddr & PMD_MASK) >> PAGE_SHIFT;
 _
 
-Patches currently in -mm which might be from schatzberg.dan@gmail.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
+
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+mm-vma-add-missing-vma-flag-readable-name-for-vm_sync.patch
+mm-vma-make-vma_is_accessible-available-for-general-use.patch
+mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page.patch
+mm-vma-replace-all-remaining-open-encodings-with-vma_is_anonymous.patch
+mm-vma-append-unlikely-while-testing-vma-access-permissions.patch
+mm-vma-move-vm_no_khugepaged-into-generic-header.patch
+mm-vma-make-vma_is_foreign-available-for-general-use.patch
+mm-vma-make-is_vma_temporary_stack-available-for-general-use.patch
