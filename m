@@ -1,84 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-external-memory-hinting-api-fix.patch
- added to -mm tree
-Date: Tue, 03 Mar 2020 16:19:10 -0800
-Message-ID: <20200304001910.Tt4YNzHFp%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ loop-use-worker-per-cgroup-instead-of-kworker-fix.patch removed from -mm
+ tree
+Date: Tue, 03 Mar 2020 16:25:21 -0800
+Message-ID: <20200304002521.-DG_orGiC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49574 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50792 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727429AbgCDATL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Mar 2020 19:19:11 -0500
+        id S1727865AbgCDAZW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Mar 2020 19:25:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkp@intel.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, mm-commits@vger.kernel.org, schatzberg.dan@gmail.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: fix process_madvise build break for arm64
-has been added to the -mm tree.  Its filename is
-     mm-introduce-external-memory-hinting-api-fix.patch
+     Subject: loop: fix IS_ERR() vs NULL bugs in loop_prepare_queue()
+has been removed from the -mm tree.  Its filename was
+     loop-use-worker-per-cgroup-instead-of-kworker-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-external-memory-hinting-api-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-external-memory-hinting-api-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into loop-use-worker-per-cgroup-instead-of-kworker.patch
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: fix process_madvise build break for arm64
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: loop: fix IS_ERR() vs NULL bugs in loop_prepare_queue()
 
-0-day reported build break from process_madvise on ARM64.
+The alloc_workqueue() function returns NULL on error, it never returns
+error pointers.
 
-   aarch64-linux-ld: arch/arm64/kernel/head.o: relocation R_AARCH64_ABS32 against `_kernel_offset_le_lo32' can not be used when making a shared object
-   aarch64-linux-ld: arch/arm64/kernel/efi-entry.stub.o: relocation R_AARCH64_ABS32 against `__efistub_stext_offset' can not be used when making a shared object
-   arch/arm64/kernel/head.o: In function `kimage_vaddr':
-   (.idmap.text+0x0): dangerous relocation: unsupported relocation
-   arch/arm64/kernel/head.o: In function `__primary_switch':
-   (.idmap.text+0x378): dangerous relocation: unsupported relocation
-   (.idmap.text+0x380): dangerous relocation: unsupported relocation
->> arch/arm64/kernel/sys32.o:(.rodata+0xdb8): undefined reference to `__arm64_process_madvise'
-
-This patch should fix it.
-
-Link: http://lkml.kernel.org/r/20200303145756.GA219683@google.com
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: kbuild test robot <lkp@intel.com>
+Link: http://lkml.kernel.org/r/20200228172136.h5dvwvrg5yfywxss@kili.mountain
+Fixes: 29dab2122492 ("loop: use worker per cgroup instead of kworker")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Dan Schatzberg <schatzberg.dan@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/unistd32.h |    2 +-
+ drivers/block/loop.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/include/asm/unistd32.h~mm-introduce-external-memory-hinting-api-fix
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -884,7 +884,7 @@ __SYSCALL(__NR_openat2, sys_openat2)
- #define __NR_pidfd_getfd 438
- __SYSCALL(__NR_pidfd_getfd, sys_pidfd_getfd)
- #define __NR_process_madvise 439
--__SYSCALL(__NR_process_madvise, process_madvise)
-+__SYSCALL(__NR_process_madvise, sys_process_madvise)
+--- a/drivers/block/loop.c~loop-use-worker-per-cgroup-instead-of-kworker-fix
++++ a/drivers/block/loop.c
+@@ -901,7 +901,7 @@ static int loop_prepare_queue(struct loo
+ 					WQ_UNBOUND | WQ_FREEZABLE |
+ 					WQ_MEM_RECLAIM,
+ 					lo->lo_number);
+-	if (IS_ERR(lo->workqueue))
++	if (!lo->workqueue)
+ 		return -ENOMEM;
  
- /*
-  * Please add new compat syscalls above this comment and update
+ 	return 0;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api.patch
-mm-introduce-external-memory-hinting-api-fix.patch
-mm-check-fatal-signal-pending-of-target-process.patch
-pid-move-pidfd_get_pid-function-to-pidc.patch
-mm-support-both-pid-and-pidfd-for-process_madvise.patch
+lib-test_kmod-remove-a-null-test.patch
+loop-use-worker-per-cgroup-instead-of-kworker.patch
