@@ -1,36 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- =?US-ASCII?Q?memcg-fix-null-pointer-dereference-in-=5F=5Fmem=5Fcgroup=5F?=
- =?US-ASCII?Q?usage=5Funregister=5Fevent.patch?= added to -mm tree
-Date: Thu, 05 Mar 2020 19:24:30 -0800
-Message-ID: <20200306032430.3a6AiSD0O%akpm@linux-foundation.org>
+ slub-improve-bit-diffusion-for-freelist-ptr-obfuscation.patch added to -mm
+ tree
+Date: Thu, 05 Mar 2020 19:27:14 -0800
+Message-ID: <20200306032714.qBjTiILkH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58744 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58928 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726300AbgCFDYc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Mar 2020 22:24:32 -0500
+        id S1726300AbgCFD1Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Mar 2020 22:27:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brookxu@tencent.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+To: cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, silvio.cesare@gmail.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix NULL pointer dereference in __mem_cgroup_usage_unr=
-egister_event
+     Subject: slub: improve bit diffusion for freelist ptr obfuscation
 has been added to the -mm tree.  Its filename is
-     memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_ev=
-ent.patch
+     slub-improve-bit-diffusion-for-freelist-ptr-obfuscation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-null-pointer-derefer=
-ence-in-__mem_cgroup_usage_unregister_event.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-improve-bit-diffusion-for-freelist-ptr-obfuscation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-null-pointer-derefer=
-ence-in-__mem_cgroup_usage_unregister_event.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-improve-bit-diffusion-for-freelist-ptr-obfuscation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,135 +31,84 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Chunguang Xu <brookxu@tencent.com>
-Subject: memcg: fix NULL pointer dereference in __mem_cgroup_usage_unregist=
-er_event
+From: Kees Cook <keescook@chromium.org>
+Subject: slub: improve bit diffusion for freelist ptr obfuscation
 
-An eventfd monitors multiple memory thresholds of the cgroup, closes them,
-the kernel deletes all events related to this eventfd.  Before all events
-are deleted, another eventfd monitors the memory threshold of this cgroup,
-leading to a crash:
+Under CONFIG_SLAB_FREELIST_HARDENED=y, the obfuscation was relatively weak
+in that the ptr and ptr address were usually so close that the first XOR
+would result in an almost entirely 0-byte value[1], leaving most of the
+"secret" number ultimately being stored after the third XOR.  A single
+blind memory content exposure of the freelist was generally sufficient to
+learn the secret.
 
-[135.675108] BUG: kernel NULL pointer dereference, address: 0000000000000004
-[135.675350] #PF: supervisor write access in kernel mode
-[135.675579] #PF: error_code(0x0002) - not-present page
-[135.675816] PGD 800000033058e067 P4D 800000033058e067 PUD 3355ce067 PMD 0
-[135.676080] Oops: 0002 [#1] SMP PTI
-[135.676332] CPU: 2 PID: 14012 Comm: kworker/2:6 Kdump: loaded Not tainted =
-5.6.0-rc4 #3
-[135.676610] Hardware name: LENOVO 20AWS01K00/20AWS01K00, BIOS GLET70WW (2.=
-24 ) 05/21/2014
-[135.676909] Workqueue: events memcg_event_remove
-[135.677192] RIP: 0010:__mem_cgroup_usage_unregister_event+0xb3/0x190
-[135.677825] RSP: 0018:ffffb47e01c4fe18 EFLAGS: 00010202
-[135.678186] RAX: 0000000000000001 RBX: ffff8bb223a8a000 RCX: 0000000000000=
-001
-[135.678548] RDX: 0000000000000001 RSI: ffff8bb22fb83540 RDI: 0000000000000=
-001
-[135.678912] RBP: ffffb47e01c4fe48 R08: 0000000000000000 R09: 0000000000000=
-010
-[135.679287] R10: 000000000000000c R11: 071c71c71c71c71c R12: ffff8bb226aba=
-880
-[135.679670] R13: ffff8bb223a8a480 R14: 0000000000000000 R15: 0000000000000=
-000
-[135.680066] FS:=C2=A0 0000000000000000(0000) GS:ffff8bb242680000(0000) knl=
-GS:0000000000000000
-[135.680475] CS:=C2=A0 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[135.680894] CR2: 0000000000000004 CR3: 000000032c29c003 CR4: 0000000000160=
-6e0
-[135.681325] Call Trace:
-[135.681763]=C2=A0 memcg_event_remove+0x32/0x90
-[135.682209]=C2=A0 process_one_work+0x172/0x380
-[135.682657]=C2=A0 worker_thread+0x49/0x3f0
-[135.683111]=C2=A0 kthread+0xf8/0x130
-[135.683570]=C2=A0 ? max_active_store+0x80/0x80
-[135.684034]=C2=A0 ? kthread_bind+0x10/0x10
-[135.684506]=C2=A0 ret_from_fork+0x35/0x40
-[135.689733] CR2: 0000000000000004
+Add a swab() call to mix bits a little more.  This is a cheap way (1
+cycle) to make attacks need more than a single exposure to learn the
+secret (or to know _where_ the exposure is in memory).
 
-We can reproduce this problem in the following ways:
+kmalloc-32 freelist walk, before:
 
-1. We create a new cgroup subdirectory and a new eventfd, and then we
-   monitor multiple memory thresholds of the cgroup through this eventfd.
+ptr              ptr_addr            stored value      secret
+ffff90c22e019020@ffff90c22e019000 is 86528eb656b3b5bd (86528eb656b3b59d)
+ffff90c22e019040@ffff90c22e019020 is 86528eb656b3b5fd (86528eb656b3b59d)
+ffff90c22e019060@ffff90c22e019040 is 86528eb656b3b5bd (86528eb656b3b59d)
+ffff90c22e019080@ffff90c22e019060 is 86528eb656b3b57d (86528eb656b3b59d)
+ffff90c22e0190a0@ffff90c22e019080 is 86528eb656b3b5bd (86528eb656b3b59d)
+...
 
-2.  closing this eventfd, and __mem_cgroup_usage_unregister_event ()
-   will be called multiple times to delete all events related to this
-   eventfd.
+after:
 
-The first time __mem_cgroup_usage_unregister_event() is called, the kernel
-will clear all items related to this eventfd in thresholds-> primary.Since
-there is currently only one eventfd, thresholds-> primary becomes empty,
-so the kernel will set thresholds-> primary and hresholds-> spare to NULL.
-If at this time, the user creates a new eventfd and monitor the memory
-threshold of this cgroup, kernel will re-initialize thresholds-> primary.=
-=20
-Then when __mem_cgroup_usage_unregister_event () is called for the second
-time, because thresholds-> primary is not empty, the system will access
-thresholds-> spare, but thresholds-> spare is NULL, which will trigger a
-crash.
+ptr              ptr_addr            stored value      secret
+ffff9eed6e019020@ffff9eed6e019000 is 793d1135d52cda42 (86528eb656b3b59d)
+ffff9eed6e019040@ffff9eed6e019020 is 593d1135d52cda22 (86528eb656b3b59d)
+ffff9eed6e019060@ffff9eed6e019040 is 393d1135d52cda02 (86528eb656b3b59d)
+ffff9eed6e019080@ffff9eed6e019060 is 193d1135d52cdae2 (86528eb656b3b59d)
+ffff9eed6e0190a0@ffff9eed6e019080 is f93d1135d52cdac2 (86528eb656b3b59d)
 
-In general, the longer it takes to delete all events related to this
-eventfd, the easier it is to trigger this problem.
+[1] https://blog.infosectcbr.com.au/2020/03/weaknesses-in-linux-kernel-heap.html
 
-The solution is to check whether the thresholds associated with the
-eventfd has been cleared when deleting the event.  If so, we do nothing.
-
-Link: http://lkml.kernel.org/r/077a6f67-aefa-4591-efec-f2f3af2b0b02@gmail.c=
-om
-Signed-off-by: Chunguang Xu <brookxu@tencent.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/202003051623.AF4F8CB@keescook
+Fixes: 2482ddec670f ("mm: add SLUB free list pointer obfuscation")
+Reported-by: Silvio Cesare <silvio.cesare@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~memcg-fix-null-pointer-dereference-in-__mem_cgroup_us=
-age_unregister_event
-+++ a/mm/memcontrol.c
-@@ -4038,7 +4038,7 @@ static void __mem_cgroup_usage_unregiste
- 	struct mem_cgroup_thresholds *thresholds;
- 	struct mem_cgroup_threshold_ary *new;
- 	unsigned long usage;
--	int i, j, size;
-+	int i, j, size, entries;
-=20
- 	mutex_lock(&memcg->thresholds_lock);
-=20
-@@ -4058,14 +4058,20 @@ static void __mem_cgroup_usage_unregiste
- 	__mem_cgroup_threshold(memcg, type =3D=3D _MEMSWAP);
-=20
- 	/* Calculate new number of threshold */
--	size =3D 0;
-+	size =3D entries =3D 0;
- 	for (i =3D 0; i < thresholds->primary->size; i++) {
- 		if (thresholds->primary->entries[i].eventfd !=3D eventfd)
- 			size++;
-+		else
-+			entries++;
- 	}
-=20
- 	new =3D thresholds->spare;
-=20
-+	/* If items related to eventfd have been cleared, nothing to do */
-+	if (!entries)
-+		goto unlock;
-+
- 	/* Set thresholds array to NULL if we don't have thresholds */
- 	if (!size) {
- 		kfree(new);
+--- a/mm/slub.c~slub-improve-bit-diffusion-for-freelist-ptr-obfuscation
++++ a/mm/slub.c
+@@ -259,7 +259,7 @@ static inline void *freelist_ptr(const s
+ 	 * freepointer to be restored incorrectly.
+ 	 */
+ 	return (void *)((unsigned long)ptr ^ s->random ^
+-			(unsigned long)kasan_reset_tag((void *)ptr_addr));
++			swab((unsigned long)kasan_reset_tag((void *)ptr_addr)));
+ #else
+ 	return ptr;
+ #endif
 _
 
-Patches currently in -mm which might be from brookxu@tencent.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event.p=
-atch
+slub-improve-bit-diffusion-for-freelist-ptr-obfuscation.patch
+slub-relocate-freelist-pointer-to-middle-of-object.patch
+shmem-distribute-switch-variables-for-initialization.patch
+lib-test_stackinitc-xfail-switch-variable-init-tests.patch
+ubsan-add-trap-instrumentation-option.patch
+ubsan-split-bounds-checker-from-other-options.patch
+lkdtm-bugs-add-arithmetic-overflow-and-array-bounds-checks.patch
+ubsan-check-panic_on_warn.patch
+kasan-unset-panic_on_warn-before-calling-panic.patch
+ubsan-include-bug-type-in-report-header.patch
