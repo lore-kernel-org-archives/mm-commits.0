@@ -1,168 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [failures]
- mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch removed from -mm
- tree
-Date: Thu, 05 Mar 2020 18:50:51 -0800
-Message-ID: <20200306025051.QPiLshn8n%akpm@linux-foundation.org>
+Subject: [failures] mm-thp-clean-up-lru_add_page_tail.patch
+ removed from -mm tree
+Date: Thu, 05 Mar 2020 18:50:54 -0800
+Message-ID: <20200306025054.f8O6q0pNo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53838 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53900 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgCFCuw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Mar 2020 21:50:52 -0500
+        id S1726436AbgCFCu4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Mar 2020 21:50:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, alex.shi@linux.alibaba.com, daniel.m.jordan@oracle.com, hannes@cmpxchg.org, hughd@google.com, khlebnikov@yandex-team.ru, kirill@shutemov.name, kravetz@us.ibm.com, mhocko@kernel.org, mm-commits@vger.kernel.org, tj@kernel.org, vdavydov.dev@gmail.com, willy@infradead.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm/thp: move lru_add_page_tail func to huge_memory.c
+     Subject: mm/thp: clean up lru_add_page_tail
 has been removed from the -mm tree.  Its filename was
-     mm-thp-move-lru_add_page_tail-func-to-huge_memoryc.patch
+     mm-thp-clean-up-lru_add_page_tail.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/thp: move lru_add_page_tail func to huge_memory.c
+Subject: mm/thp: clean up lru_add_page_tail
 
-The func is only used in huge_memory.c, defining it in other file with a
-CONFIG_TRANSPARENT_HUGEPAGE macro restrict just looks weird.
+Since the first parameter is only used on a head page, it's better to make
+this clear with the namin.  And there is no need to keep checking
+PageHead():
 
-Let's move it close user.
+	VM_BUG_ON_PAGE(!PageHead(page), page);
 
-Link: http://lkml.kernel.org/r/1583146830-169516-5-git-send-email-alex.shi@linux.alibaba.com
+Link: http://lkml.kernel.org/r/1583146830-169516-6-git-send-email-alex.shi@linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Mike Kravetz <kravetz@us.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Kravetz <kravetz@us.ibm.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 ++--
- mm/huge_memory.c     |   35 +++++++++++++++++++++++++++++++++++
- mm/swap.c            |   41 +----------------------------------------
- 3 files changed, 38 insertions(+), 42 deletions(-)
+ mm/huge_memory.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/include/linux/swap.h~mm-thp-move-lru_add_page_tail-func-to-huge_memoryc
-+++ a/include/linux/swap.h
-@@ -328,11 +328,11 @@ extern unsigned long nr_free_pagecache_p
- 
- 
- /* linux/mm/swap.c */
-+extern void update_page_reclaim_stat(struct lruvec *lruvec,
-+						int file, int rotated);
- extern void lru_cache_add(struct page *);
- extern void lru_cache_add_anon(struct page *page);
- extern void lru_cache_add_file(struct page *page);
--extern void lru_add_page_tail(struct page *page, struct page *page_tail,
--			 struct lruvec *lruvec, struct list_head *head);
- extern void activate_page(struct page *);
- extern void mark_page_accessed(struct page *);
- extern void lru_add_drain(void);
---- a/mm/huge_memory.c~mm-thp-move-lru_add_page_tail-func-to-huge_memoryc
+--- a/mm/huge_memory.c~mm-thp-clean-up-lru_add_page_tail
 +++ a/mm/huge_memory.c
-@@ -2462,6 +2462,41 @@ static void remap_page(struct page *page
+@@ -2462,21 +2462,20 @@ static void remap_page(struct page *page
  	}
  }
  
-+void lru_add_page_tail(struct page *page, struct page *page_tail,
-+		       struct lruvec *lruvec, struct list_head *list)
-+{
-+	const int file = 0;
-+
-+	VM_BUG_ON_PAGE(!PageHead(page), page);
-+	VM_BUG_ON_PAGE(PageCompound(page_tail), page);
-+	VM_BUG_ON_PAGE(PageLRU(page_tail), page);
-+	lockdep_assert_held(&lruvec_pgdat(lruvec)->lru_lock);
-+
-+	if (!list)
-+		SetPageLRU(page_tail);
-+
-+	if (likely(PageLRU(page)))
-+		list_add_tail(&page_tail->lru, &page->lru);
-+	else if (list) {
-+		/* page reclaim is reclaiming a huge page */
-+		get_page(page_tail);
-+		list_add_tail(&page_tail->lru, list);
-+	} else {
-+		/*
-+		 * Head page has not yet been counted, as an hpage,
-+		 * so we must account for each subpage individually.
-+		 *
-+		 * Put page_tail on the list at the correct position
-+		 * so they all end up in order.
-+		 */
-+		add_page_to_lru_list_tail(page_tail, lruvec,
-+					  page_lru(page_tail));
-+	}
-+
-+	if (!PageUnevictable(page))
-+		update_page_reclaim_stat(lruvec, file, PageActive(page_tail));
-+}
-+
- static void __split_huge_page_tail(struct page *head, int tail,
- 		struct lruvec *lruvec, struct list_head *list)
- {
---- a/mm/swap.c~mm-thp-move-lru_add_page_tail-func-to-huge_memoryc
-+++ a/mm/swap.c
-@@ -262,8 +262,7 @@ void rotate_reclaimable_page(struct page
- 	}
- }
- 
--static void update_page_reclaim_stat(struct lruvec *lruvec,
--				     int file, int rotated)
-+void update_page_reclaim_stat(struct lruvec *lruvec, int file, int rotated)
- {
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
- 
-@@ -885,44 +884,6 @@ void __pagevec_release(struct pagevec *p
- }
- EXPORT_SYMBOL(__pagevec_release);
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--/* used by __split_huge_page_refcount() */
 -void lru_add_page_tail(struct page *page, struct page *page_tail,
--		       struct lruvec *lruvec, struct list_head *list)
--{
--	const int file = 0;
--
++void lru_add_page_tail(struct page *head, struct page *page_tail,
+ 		       struct lruvec *lruvec, struct list_head *list)
+ {
+ 	const int file = 0;
+ 
 -	VM_BUG_ON_PAGE(!PageHead(page), page);
 -	VM_BUG_ON_PAGE(PageCompound(page_tail), page);
 -	VM_BUG_ON_PAGE(PageLRU(page_tail), page);
--	lockdep_assert_held(&lruvec_pgdat(lruvec)->lru_lock);
--
--	if (!list)
--		SetPageLRU(page_tail);
--
++	VM_BUG_ON_PAGE(PageCompound(page_tail), head);
++	VM_BUG_ON_PAGE(PageLRU(page_tail), head);
+ 	lockdep_assert_held(&lruvec_pgdat(lruvec)->lru_lock);
+ 
+ 	if (!list)
+ 		SetPageLRU(page_tail);
+ 
 -	if (likely(PageLRU(page)))
 -		list_add_tail(&page_tail->lru, &page->lru);
--	else if (list) {
--		/* page reclaim is reclaiming a huge page */
--		get_page(page_tail);
--		list_add_tail(&page_tail->lru, list);
--	} else {
--		/*
--		 * Head page has not yet been counted, as an hpage,
--		 * so we must account for each subpage individually.
--		 *
--		 * Put page_tail on the list at the correct position
--		 * so they all end up in order.
--		 */
--		add_page_to_lru_list_tail(page_tail, lruvec,
--					  page_lru(page_tail));
--	}
--
++	if (likely(PageLRU(head)))
++		list_add_tail(&page_tail->lru, &head->lru);
+ 	else if (list) {
+ 		/* page reclaim is reclaiming a huge page */
+ 		get_page(page_tail);
+@@ -2493,7 +2492,7 @@ void lru_add_page_tail(struct page *page
+ 					  page_lru(page_tail));
+ 	}
+ 
 -	if (!PageUnevictable(page))
--		update_page_reclaim_stat(lruvec, file, PageActive(page_tail));
--}
--#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++	if (!PageUnevictable(head))
+ 		update_page_reclaim_stat(lruvec, file, PageActive(page_tail));
+ }
+ 
+_
+
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
+
+ocfs2-remove-fs_ocfs2_nm.patch
+ocfs2-remove-unused-macros.patch
+ocfs2-use-ocfs2_sec_bits-in-macro.patch
+ocfs2-remove-dlm_lock_is_remote.patch
+ocfs2-remove-useless-err.patch
+mm-thp-narrow-lru-locking.patch
