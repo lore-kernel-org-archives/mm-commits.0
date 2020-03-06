@@ -1,28 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-mem_cgroup_id_get_many-__maybe_unused.patch
- added to -mm tree
-Date: Thu, 05 Mar 2020 19:33:35 -0800
-Message-ID: <20200306033335.DPcdMgz3E%akpm@linux-foundation.org>
+Subject: + mm-correct-guards-for-non_swap_entry.patch added to -mm
+ tree
+Date: Thu, 05 Mar 2020 19:46:06 -0800
+Message-ID: <20200306034606.ZCixUypqX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60700 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34802 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726162AbgCFDdg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Mar 2020 22:33:36 -0500
+        id S1726243AbgCFDqH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Mar 2020 22:46:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chrisdown.name, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, vincenzo.frascino@arm.com
+To: arnd@arndb.de, dan.j.williams@intel.com, jglisse@redhat.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, steven.price@arm.com
 
 
 The patch titled
-     Subject: mm/memcontrol.c: make mem_cgroup_id_get_many() __maybe_unused
+     Subject: include/linux/swapops.h: correct guards for non_swap_entry()
 has been added to the -mm tree.  Its filename is
-     mm-make-mem_cgroup_id_get_many-__maybe_unused.patch
+     mm-correct-guards-for-non_swap_entry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-mem_cgroup_id_get_many-__maybe_unused.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-correct-guards-for-non_swap=
+_entry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-mem_cgroup_id_get_many-__maybe_unused.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-correct-guards-for-non_swap=
+_entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,52 +35,53 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: mm/memcontrol.c: make mem_cgroup_id_get_many() __maybe_unused
+=46rom: Steven Price <steven.price@arm.com>
+Subject: include/linux/swapops.h: correct guards for non_swap_entry()
 
-mem_cgroup_id_get_many() is currently used only when MMU or MEMCG_SWAP
-configuration options are enabled.  Having them disabled triggers the
-following warning at compile time:
+If CONFIG_DEVICE_PRIVATE is defined, but neither CONFIG_MEMORY_FAILURE nor
+CONFIG_MIGRATION, then non_swap_entry() will return 0, meaning that the
+condition (non_swap_entry(entry) && is_device_private_entry(entry)) in
+zap_pte_range() will never be true even if the entry is a device private
+one.
 
-linux/mm/memcontrol.c:4797:13: warning: `mem_cgroup_id_get_many' defined
-but not used [-Wunused-function]
- static void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned
- int n)
+Equally any other code depending on non_swap_entry() will not function as
+expected.
 
-Make mem_cgroup_id_get_many() __maybe_unused to address the issue.
-
-Link: http://lkml.kernel.org/r/20200305164354.48147-1-vincenzo.frascino@arm.com
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Chris Down <chris@chrisdown.name>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/20200305130550.22693-1-steven.price@arm.com
+Fixes: 5042db43cc26 ("mm/ZONE_DEVICE: new type of ZONE_DEVICE for unaddress=
+able memory")
+Signed-off-by: Steven Price <steven.price@arm.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
+ include/linux/swapops.h |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-make-mem_cgroup_id_get_many-__maybe_unused
-+++ a/mm/memcontrol.c
-@@ -4840,7 +4840,8 @@ static void mem_cgroup_id_remove(struct
- 	}
+--- a/include/linux/swapops.h~mm-correct-guards-for-non_swap_entry
++++ a/include/linux/swapops.h
+@@ -348,7 +348,8 @@ static inline void num_poisoned_pages_in
  }
- 
--static void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned int n)
-+static void __maybe_unused mem_cgroup_id_get_many(struct mem_cgroup *memcg,
-+						  unsigned int n)
+ #endif
+=20
+-#if defined(CONFIG_MEMORY_FAILURE) || defined(CONFIG_MIGRATION)
++#if defined(CONFIG_MEMORY_FAILURE) || defined(CONFIG_MIGRATION) || \
++    defined(CONFIG_DEVICE_PRIVATE)
+ static inline int non_swap_entry(swp_entry_t entry)
  {
- 	refcount_add(n, &memcg->id.ref);
- }
+ 	return swp_type(entry) >=3D MAX_SWAPFILES;
 _
 
-Patches currently in -mm which might be from vincenzo.frascino@arm.com are
+Patches currently in -mm which might be from steven.price@arm.com are
 
-mm-make-mem_cgroup_id_get_many-__maybe_unused.patch
+mm-correct-guards-for-non_swap_entry.patch
