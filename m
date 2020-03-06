@@ -1,77 +1,50 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- =?US-ASCII?Q?mm-numa-fix-bad-pmd-by-atomically-check-for-pmd=5Ftrans=5Fh?=
- =?US-ASCII?Q?uge-when-marking-page-tables-prot=5Fnuma-fix.patch?= removed
- from -mm tree
-Date: Thu, 05 Mar 2020 22:24:06 -0800
-Message-ID: <20200306062406.miPhDmN-Y%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Thu, 5 Mar 2020 22:27:51 -0800
+Message-ID: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34844 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725901AbgCFGYH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 6 Mar 2020 01:24:07 -0500
+        id S1725847AbgCFG1w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 6 Mar 2020 01:27:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz, zi.yan@cs.rutgers.edu
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org
 
+7 fixes, based on 9f65ed5fe41ce08ed1cb1f6a950f9ec694c142ad:
 
-The patch titled
-     Subject: mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa-fix
-has been removed from the -mm tree.  Its filename was
-     mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa-fix.patch
+    Mel Gorman <mgorman@techsingularity.net>:
+      mm, numa: fix bad pmd by atomically check for pmd_trans_huge when marking page tables prot_numa
 
-This patch was dropped because it was folded into mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa.patch
+    Huang Ying <ying.huang@intel.com>:
+      mm: fix possible PMD dirty bit lost in set_pmd_migration_entry()
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa-fix
+    "Kirill A. Shutemov" <kirill@shutemov.name>:
+      mm: avoid data corruption on CoW fault into PFN-mapped VMA
 
-fix comment typo, per Rafael
+    OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>:
+      fat: fix uninit-memory access for partial initialized inode
 
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <zi.yan@cs.rutgers.edu>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+    Sebastian Andrzej Siewior <bigeasy@linutronix.de>:
+      mm/z3fold.c: do not include rwlock.h directly
 
- mm/mprotect.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+    Vlastimil Babka <vbabka@suse.cz>:
+      mm, hotplug: fix page online with DEBUG_PAGEALLOC compiled but not enabled
 
---- a/mm/mprotect.c~mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa-fix
-+++ a/mm/mprotect.c
-@@ -209,7 +209,7 @@ static inline unsigned long change_pmd_r
- 		 * held for read. It's possible a parallel update to occur
- 		 * between pmd_trans_huge() and a pmd_none_or_clear_bad()
- 		 * check leading to a false positive and clearing.
--		 * Hence, it's ecessary to atomically read the PMD value
-+		 * Hence, it's necessary to atomically read the PMD value
- 		 * for all the checks.
- 		 */
- 		if (!is_swap_pmd(*pmd) && !pmd_devmap(*pmd) &&
-_
+    Miroslav Benes <mbenes@suse.cz>:
+      arch/Kconfig: update HAVE_RELIABLE_STACKTRACE description
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa.patch
-mm.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-selftest-add-mremap_dontunmap-selftest-fix.patch
-selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
-mm-migratec-migrate-pg_readahead-flag-fix.patch
-proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-linux-next-git-rejects.patch
-mm-add-vm_insert_pages-fix.patch
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
-seq_read-info-message-about-buggy-next-functions-fix.patch
-drivers-tty-serial-sh-scic-suppress-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+ arch/Kconfig        |    5 +++--
+ fs/fat/inode.c      |   19 +++++++------------
+ include/linux/mm.h  |    4 ++++
+ mm/huge_memory.c    |    3 +--
+ mm/memory.c         |   35 +++++++++++++++++++++++++++--------
+ mm/memory_hotplug.c |    8 +++++++-
+ mm/mprotect.c       |   38 ++++++++++++++++++++++++++++++++++++--
+ mm/z3fold.c         |    1 -
+ 8 files changed, 85 insertions(+), 28 deletions(-)
