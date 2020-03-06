@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- hugetlbfs-use-i_mmap_rwsem-to-address-page-fault-truncate-race.patch added
- to -mm tree
-Date: Thu, 05 Mar 2020 20:03:51 -0800
-Message-ID: <20200306040351.XDIWOFzE1%akpm@linux-foundation.org>
+ mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path.patch
+ added to -mm tree
+Date: Thu, 05 Mar 2020 20:08:05 -0800
+Message-ID: <20200306040805.WL3v-pupP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36940 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37558 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726359AbgCFEDx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Mar 2020 23:03:53 -0500
+        id S1726300AbgCFEIH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Mar 2020 23:08:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dave@stgolabs.net, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, prakash.sangappa@oracle.com
+To: mateusznosek0@gmail.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: hugetlbfs: use i_mmap_rwsem to address page fault/truncate race
+     Subject: mm, pagealloc: micro-optimisation: save two branches on hot page allocation path
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-use-i_mmap_rwsem-to-address-page-fault-truncate-race.patch
+     mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-use-i_mmap_rwsem-to-address-page-fault-truncate-race.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-use-i_mmap_rwsem-to-address-page-fault-truncate-race.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,153 +37,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlbfs: use i_mmap_rwsem to address page fault/truncate race
+From: Mateusz Nosek <mateusznosek0@gmail.com>
+Subject: mm, pagealloc: micro-optimisation: save two branches on hot page allocation path
 
-hugetlbfs page faults can race with truncate and hole punch operations. 
-Current code in the page fault path attempts to handle this by 'backing
-out' operations if we encounter the race.  One obvious omission in the
-current code is removing a page newly added to the page cache.  This is
-pretty straight forward to address, but there is a more subtle and
-difficult issue of backing out hugetlb reservations.  To handle this
-correctly, the 'reservation state' before page allocation needs to be
-noted so that it can be properly backed out.  There are four distinct
-possibilities for reservation state: shared/reserved, shared/no-resv,
-private/reserved and private/no-resv.  Backing out a reservation may
-require memory allocation which could fail so that needs to be taken into
-account as well.
+This patch makes ALLOC_KSWAPD equal to __GFP_KSWAPD_RECLAIM (cast to int).
 
-Instead of writing the required complicated code for this rare occurrence,
-just eliminate the race.  i_mmap_rwsem is now held in read mode for the
-duration of page fault processing.  Hold i_mmap_rwsem in write mode when
-modifying i_size.  In this way, truncation can not proceed when page
-faults are being processed.  In addition, i_size will not change during
-fault processing so a single check can be made to ensure faults are not
-beyond (proposed) end of file.  Faults can still race with hole punch, but
-that race is handled by existing code and the use of hugetlb_fault_mutex.
+Thanks to that code like:
+    if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+	    alloc_flags |= ALLOC_KSWAPD;
+can be changed to:
+    alloc_flags |= (__force int) (gfp_mask &__GFP_KSWAPD_RECLAIM);
+Thanks to this one branch less is generated in the assembly.
 
-With this modification, checks for races with truncation in the page fault
-path can be simplified and removed.  remove_inode_hugepages no longer
-needs to take hugetlb_fault_mutex in the case of truncation.  Comments are
-expanded to explain reasoning behind locking.
+In case of ALLOC_KSWAPD flag two branches are saved, first one in code
+that always executes in the beginning of page allocation and the second
+one in loop in page allocator slowpath.
 
-Link: http://lkml.kernel.org/r/20200305002650.160855-3-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Prakash Sangappa <prakash.sangappa@oracle.com>
+Link: http://lkml.kernel.org/r/20200304162118.14784-1-mateusznosek0@gmail.com
+Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   32 ++++++++++++++++++++++----------
- mm/hugetlb.c         |   23 +++++++++++------------
- 2 files changed, 33 insertions(+), 22 deletions(-)
+ mm/internal.h   |    2 +-
+ mm/page_alloc.c |   22 ++++++++++++++--------
+ 2 files changed, 15 insertions(+), 9 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-use-i_mmap_rwsem-to-address-page-fault-truncate-race
-+++ a/fs/hugetlbfs/inode.c
-@@ -393,10 +393,9 @@ hugetlb_vmdelete_list(struct rb_root_cac
-  *	In this case, we first scan the range and release found pages.
-  *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserv
-  *	maps and global counts.  Page faults can not race with truncation
-- *	in this routine.  hugetlb_no_page() prevents page faults in the
-- *	truncated range.  It checks i_size before allocation, and again after
-- *	with the page table lock for the page held.  The same lock must be
-- *	acquired to unmap a page.
-+ *	in this routine.  hugetlb_no_page() holds i_mmap_rwsem and prevents
-+ *	page faults in the truncated range by checking i_size.  i_size is
-+ *	modified while holding i_mmap_rwsem.
-  * hole punch is indicated if end is not LLONG_MAX
-  *	In the hole punch case we scan the range and release found pages.
-  *	Only when releasing a page is the associated region/reserv map
-@@ -434,9 +433,17 @@ static void remove_inode_hugepages(struc
- 			struct page *page = pvec.pages[i];
- 			u32 hash;
+--- a/mm/internal.h~mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path
++++ a/mm/internal.h
+@@ -532,7 +532,7 @@ unsigned long reclaim_clean_pages_from_l
+ #else
+ #define ALLOC_NOFRAGMENT	  0x0
+ #endif
+-#define ALLOC_KSWAPD		0x200 /* allow waking of kswapd */
++#define ALLOC_KSWAPD		0x800 /* allow waking of kswapd, __GFP_KSWAPD_RECLAIM set */
  
--			index = page->index;
--			hash = hugetlb_fault_mutex_hash(mapping, index);
--			mutex_lock(&hugetlb_fault_mutex_table[hash]);
-+			if (!truncate_op) {
-+				/*
-+				 * Only need to hold the fault mutex in the
-+				 * hole punch case.  This prevents races with
-+				 * page faults.  Races are not possible in the
-+				 * case of truncation.
-+				 */
-+				index = page->index;
-+				hash = hugetlb_fault_mutex_hash(mapping, index);
-+				mutex_lock(&hugetlb_fault_mutex_table[hash]);
-+			}
+ enum ttu_flags;
+ struct tlbflush_unmap_batch;
+--- a/mm/page_alloc.c~mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path
++++ a/mm/page_alloc.c
+@@ -3537,10 +3537,13 @@ static bool zone_allows_reclaim(struct z
+ static inline unsigned int
+ alloc_flags_nofragment(struct zone *zone, gfp_t gfp_mask)
+ {
+-	unsigned int alloc_flags = 0;
++	unsigned int alloc_flags;
  
- 			/*
- 			 * If page is mapped, it was faulted in after being
-@@ -479,7 +486,8 @@ static void remove_inode_hugepages(struc
- 			}
+-	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+-		alloc_flags |= ALLOC_KSWAPD;
++	/*
++	 * __GFP_KSWAPD_RECLAIM is assumed to be the same as ALLOC_KSWAPD
++	 * to save a branch.
++	 */
++	alloc_flags = (__force int) (gfp_mask & __GFP_KSWAPD_RECLAIM);
  
- 			unlock_page(page);
--			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
-+			if (!truncate_op)
-+				mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 		}
- 		huge_pagevec_release(&pvec);
- 		cond_resched();
-@@ -517,8 +525,8 @@ static int hugetlb_vmtruncate(struct ino
- 	BUG_ON(offset & ~huge_page_mask(h));
- 	pgoff = offset >> PAGE_SHIFT;
+ #ifdef CONFIG_ZONE_DMA32
+ 	if (!zone)
+@@ -4176,8 +4179,13 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ {
+ 	unsigned int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
  
--	i_size_write(inode, offset);
- 	i_mmap_lock_write(mapping);
-+	i_size_write(inode, offset);
- 	if (!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root))
- 		hugetlb_vmdelete_list(&mapping->i_mmap, pgoff, 0);
- 	i_mmap_unlock_write(mapping);
-@@ -640,7 +648,11 @@ static long hugetlbfs_fallocate(struct f
- 		/* addr is the offset within the file (zero based) */
- 		addr = index * hpage_size;
- 
--		/* mutex taken here, fault path and hole punch */
-+		/*
-+		 * fault mutex taken here, protects against fault path
-+		 * and hole punch.  inode_lock previously taken protects
-+		 * against truncation.
-+		 */
- 		hash = hugetlb_fault_mutex_hash(mapping, index);
- 		mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 
---- a/mm/hugetlb.c~hugetlbfs-use-i_mmap_rwsem-to-address-page-fault-truncate-race
-+++ a/mm/hugetlb.c
-@@ -3929,16 +3929,17 @@ static vm_fault_t hugetlb_no_page(struct
- 	}
+-	/* __GFP_HIGH is assumed to be the same as ALLOC_HIGH to save a branch. */
++	/*
++	 * __GFP_HIGH is assumed to be the same as ALLOC_HIGH
++	 * and __GFP_KSWAPD_RECLAIM is assumed to be the same as ALLOC_KSWAPD
++	 * to save two branches.
++	 */
+ 	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_HIGH);
++	BUILD_BUG_ON(__GFP_KSWAPD_RECLAIM != (__force gfp_t) ALLOC_KSWAPD);
  
  	/*
--	 * Use page lock to guard against racing truncation
--	 * before we get page_table_lock.
-+	 * We can not race with truncation due to holding i_mmap_rwsem.
-+	 * i_size is modified when holding i_mmap_rwsem, so check here
-+	 * once for faults beyond end of file.
+ 	 * The caller may dip into page reserves a bit more if the caller
+@@ -4185,7 +4193,8 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
+ 	 * set both ALLOC_HARDER (__GFP_ATOMIC) and ALLOC_HIGH (__GFP_HIGH).
  	 */
-+	size = i_size_read(mapping->host) >> huge_page_shift(h);
-+	if (idx >= size)
-+		goto out;
-+
- retry:
- 	page = find_lock_page(mapping, idx);
- 	if (!page) {
--		size = i_size_read(mapping->host) >> huge_page_shift(h);
--		if (idx >= size)
--			goto out;
--
- 		/*
- 		 * Check for page in userfault range
- 		 */
-@@ -4044,10 +4045,6 @@ retry:
- 	}
+-	alloc_flags |= (__force int) (gfp_mask & __GFP_HIGH);
++	alloc_flags |= (__force int)
++		(gfp_mask & (__GFP_HIGH | __GFP_KSWAPD_RECLAIM));
  
- 	ptl = huge_pte_lock(h, mm, ptep);
--	size = i_size_read(mapping->host) >> huge_page_shift(h);
--	if (idx >= size)
--		goto backout;
+ 	if (gfp_mask & __GFP_ATOMIC) {
+ 		/*
+@@ -4202,9 +4211,6 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	} else if (unlikely(rt_task(current)) && !in_interrupt())
+ 		alloc_flags |= ALLOC_HARDER;
+ 
+-	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+-		alloc_flags |= ALLOC_KSWAPD;
