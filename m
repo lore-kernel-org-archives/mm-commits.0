@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-filemapc-clear-page-error-before-actual-read.patch
+Subject: + memcg-optimize-memorynuma_stat-like-memorystat.patch
  added to -mm tree
-Date: Thu, 05 Mar 2020 20:13:16 -0800
-Message-ID: <20200306041316.Cd_DeRuBM%akpm@linux-foundation.org>
+Date: Thu, 05 Mar 2020 20:41:40 -0800
+Message-ID: <20200306044140.5DhwUcbB7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37910 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45480 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726351AbgCFENT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Mar 2020 23:13:19 -0500
+        id S1726251AbgCFElm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Mar 2020 23:41:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org, willy@infradead.org, xianting_tian@126.com
+To: guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com
 
 
 The patch titled
-     Subject: mm/filemap.c: clear page error before actual read
+     Subject: mm/memcg: optimize memory.numa_stat like memory.stat
 has been added to the -mm tree.  Its filename is
-     mm-filemapc-clear-page-error-before-actual-read.patch
+     memcg-optimize-memorynuma_stat-like-memorystat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemapc-clear-page-error-before-actual-read.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-optimize-memorynuma_stat-like-memorystat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemapc-clear-page-error-before-actual-read.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-optimize-memorynuma_stat-like-memorystat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,142 +36,142 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xianting Tian <xianting_tian@126.com>
-Subject: mm/filemap.c: clear page error before actual read
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm/memcg: optimize memory.numa_stat like memory.stat
 
-Mount failure issue happens under the scenario: Application forked dozens
-of threads to mount the same number of cramfs images separately in docker,
-but several mounts failed with high probability.  Mount failed due to the
-checking result of the page(read from the superblock of loop dev) is not
-uptodate after wait_on_page_locked(page) returned in function cramfs_read:
+Currently reading memory.numa_stat traverses the underlying memcg tree
+multiple times to accumulate the stats to present the hierarchical view of
+the memcg tree.  However the kernel already maintains the hierarchical
+view of the stats and use it in memory.stat.  Just use the same mechanism
+in memory.numa_stat as well.
 
-   wait_on_page_locked(page);
-   if (!PageUptodate(page)) {
-      ...
-   }
+I ran a simple benchmark which reads root_mem_cgroup's memory.numa_stat
+file in the presense of 10000 memcgs.  The results are:
 
-The reason of the checking result of the page not uptodate: systemd-udevd
-read the loopX dev before mount, because the status of loopX is Lo_unbound
-at this time, so loop_make_request directly trigger the calling of io_end
-handler end_buffer_async_read, which called SetPageError(page).  So It
-caused the page can't be set to uptodate in function
-end_buffer_async_read:
+Without the patch:
+$ time cat /dev/cgroup/memory/memory.numa_stat > /dev/null
 
-   if(page_uptodate && !PageError(page)) {
-      SetPageUptodate(page);
-   }
+real    0m0.700s
+user    0m0.001s
+sys     0m0.697s
 
-Then mount operation is performed, it used the same page which is just
-accessed by systemd-udevd above, Because this page is not uptodate, it
-will launch a actual read via submit_bh, then wait on this page by calling
-wait_on_page_locked(page).  When the I/O of the page done, io_end handler
-end_buffer_async_read is called, because no one cleared the page
-error(during the whole read path of mount), which is caused by
-systemd-udevd reading, so this page is still in "PageError" status, which
-can't be set to uptodate in function end_buffer_async_read, then caused
-mount failure.
+With the patch:
+$ time cat /dev/cgroup/memory/memory.numa_stat > /dev/null
 
-But sometimes mount succeed even through systemd-udeved read loopX dev
-just before, The reason is systemd-udevd launched other loopX read just
-between step 3.1 and 3.2, the steps as below:
+real    0m0.001s
+user    0m0.001s
+sys     0m0.000s
 
-1, loopX dev default status is Lo_unbound;
-2, systemd-udved read loopX dev (page is set to PageError);
-3, mount operation
-   1) set loopX status to Lo_bound;
-   ==>systemd-udevd read loopX dev<==
-   2) read loopX dev(page has no error)
-   3) mount succeed
-
-As the loopX dev status is set to Lo_bound after step 3.1, so the other
-loopX dev read by systemd-udevd will go through the whole I/O stack, part
-of the call trace as below:
-
-   SYS_read
-      vfs_read
-          do_sync_read
-              blkdev_aio_read
-                 generic_file_aio_read
-                     do_generic_file_read:
-                        ClearPageError(page);
-                        mapping->a_ops->readpage(filp, page);
-
-here, mapping->a_ops->readpage() is blkdev_readpage.  In latest kernel,
-some function name changed, the call trace as below:
-
-   blkdev_read_iter
-      generic_file_read_iter
-         generic_file_buffered_read:
-            /*
-             * A previous I/O error may have been due to temporary
-             * failures, eg. mutipath errors.
-             * Pg_error will be set again if readpage fails.
-             */
-            ClearPageError(page);
-            /* Start the actual read. The read will unlock the page*/
-            error=mapping->a_ops->readpage(flip, page);
-
-We can see ClearPageError(page) is called before the actual read,
-then the read in step 3.2 succeed.
-
-This patch is to add the calling of ClearPageError just before the actual
-read of read path of cramfs mount.  Without the patch, the call trace as
-below when performing cramfs mount:
-
-   do_mount
-      cramfs_read
-         cramfs_blkdev_read
-            read_cache_page
-               do_read_cache_page:
-                  filler(data, page);
-                  or
-                  mapping->a_ops->readpage(data, page);
-
-With the patch, the call trace as below when performing mount:
-
-   do_mount
-      cramfs_read
-         cramfs_blkdev_read
-            read_cache_page:
-               do_read_cache_page:
-                  ClearPageError(page); <== new add
-                  filler(data, page);
-                  or
-                  mapping->a_ops->readpage(data, page);
-
-With the patch, mount operation trigger the calling of
-ClearPageError(page) before the actual read, the page has no error if no
-additional page error happen when I/O done.
-
-Link: http://lkml.kernel.org/r/1583318844-22971-1-git-send-email-xianting_tian@126.com
-Signed-off-by: Xianting Tian <xianting_tian@126.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/20200304022058.248270-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/memcontrol.c |   50 +++++++++++++++++++++++-----------------------
+ 1 file changed, 26 insertions(+), 24 deletions(-)
 
---- a/mm/filemap.c~mm-filemapc-clear-page-error-before-actual-read
-+++ a/mm/filemap.c
-@@ -2823,6 +2823,14 @@ filler:
- 		unlock_page(page);
- 		goto out;
- 	}
-+
-+	/*
-+	 * A previous I/O error may have been due to temporary
-+	 * failures.
-+	 * Clear page error before actual read, PG_error will be
-+	 * set again if read page fails.
-+	 */
-+	ClearPageError(page);
- 	goto filler;
+--- a/mm/memcontrol.c~memcg-optimize-memorynuma_stat-like-memorystat
++++ a/mm/memcontrol.c
+@@ -3653,32 +3653,40 @@ static int mem_cgroup_move_charge_write(
+ #define LRU_ALL	     ((1 << NR_LRU_LISTS) - 1)
  
- out:
+ static unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+-					   int nid, unsigned int lru_mask)
++				int nid, unsigned int lru_mask, bool tree)
+ {
+ 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
+ 	unsigned long nr = 0;
+ 	enum lru_list lru;
++	unsigned long (*page_state)(struct lruvec *lruvec,
++				    enum node_stat_item idx);
+ 
+ 	VM_BUG_ON((unsigned)nid >= nr_node_ids);
+ 
++	page_state = tree ? lruvec_page_state : lruvec_page_state_local;
++
+ 	for_each_lru(lru) {
+ 		if (!(BIT(lru) & lru_mask))
+ 			continue;
+-		nr += lruvec_page_state_local(lruvec, NR_LRU_BASE + lru);
++		nr += page_state(lruvec, NR_LRU_BASE + lru);
+ 	}
+ 	return nr;
+ }
+ 
+ static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg,
+-					     unsigned int lru_mask)
++					     unsigned int lru_mask,
++					     bool tree)
+ {
+ 	unsigned long nr = 0;
+ 	enum lru_list lru;
++	unsigned long (*page_state)(struct mem_cgroup *memcg, int idx);
++
++	page_state = tree ? memcg_page_state : memcg_page_state_local;
+ 
+ 	for_each_lru(lru) {
+ 		if (!(BIT(lru) & lru_mask))
+ 			continue;
+-		nr += memcg_page_state_local(memcg, NR_LRU_BASE + lru);
++		nr += page_state(memcg, NR_LRU_BASE + lru);
+ 	}
+ 	return nr;
+ }
+@@ -3698,34 +3706,28 @@ static int memcg_numa_stat_show(struct s
+ 	};
+ 	const struct numa_stat *stat;
+ 	int nid;
+-	unsigned long nr;
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+ 
+ 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
+-		nr = mem_cgroup_nr_lru_pages(memcg, stat->lru_mask);
+-		seq_printf(m, "%s=%lu", stat->name, nr);
+-		for_each_node_state(nid, N_MEMORY) {
+-			nr = mem_cgroup_node_nr_lru_pages(memcg, nid,
+-							  stat->lru_mask);
+-			seq_printf(m, " N%d=%lu", nid, nr);
+-		}
++		seq_printf(m, "%s=%lu", stat->name,
++			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
++						   false));
++		for_each_node_state(nid, N_MEMORY)
++			seq_printf(m, " N%d=%lu", nid,
++				   mem_cgroup_node_nr_lru_pages(memcg, nid,
++							stat->lru_mask, false));
+ 		seq_putc(m, '\n');
+ 	}
+ 
+ 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
+-		struct mem_cgroup *iter;
+ 
+-		nr = 0;
+-		for_each_mem_cgroup_tree(iter, memcg)
+-			nr += mem_cgroup_nr_lru_pages(iter, stat->lru_mask);
+-		seq_printf(m, "hierarchical_%s=%lu", stat->name, nr);
+-		for_each_node_state(nid, N_MEMORY) {
+-			nr = 0;
+-			for_each_mem_cgroup_tree(iter, memcg)
+-				nr += mem_cgroup_node_nr_lru_pages(
+-					iter, nid, stat->lru_mask);
+-			seq_printf(m, " N%d=%lu", nid, nr);
+-		}
++		seq_printf(m, "hierarchical_%s=%lu", stat->name,
++			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
++						   true));
++		for_each_node_state(nid, N_MEMORY)
++			seq_printf(m, " N%d=%lu", nid,
++				   mem_cgroup_node_nr_lru_pages(memcg, nid,
++							stat->lru_mask, true));
+ 		seq_putc(m, '\n');
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from xianting_tian@126.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-mm-filemapc-clear-page-error-before-actual-read.patch
+memcg-css_tryget_online-cleanups.patch
+memcg-optimize-memorynuma_stat-like-memorystat.patch
