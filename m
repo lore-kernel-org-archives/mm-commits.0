@@ -1,29 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-track-foll_pin-pages-fix.patch added to -mm tree
-Date: Sat, 07 Mar 2020 13:53:31 -0800
-Message-ID: <20200307215331.W-UC9cxL4%akpm@linux-foundation.org>
+Subject: + mm-shmem-add-vmstat-for-hugepage-fallback.patch added
+ to -mm tree
+Date: Sat, 07 Mar 2020 14:10:06 -0800
+Message-ID: <20200307221006.sefutR1qa%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57234 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58636 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726116AbgCGVxd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Mar 2020 16:53:33 -0500
+        id S1726139AbgCGWKI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Mar 2020 17:10:08 -0500
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jhubbard@nvidia.com, mm-commits@vger.kernel.org, willy@infradead.org
+To: aarcange@redhat.com, jcline@redhat.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rientjes@google.com, rppt@linux.ibm.com, vbabka@suse.cz, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm/gup: fixup for ce35133be382 mm/gup: track FOLL_PIN pages
+     Subject: mm, shmem: add vmstat for hugepage fallback
 has been added to the -mm tree.  Its filename is
-     mm-gup-track-foll_pin-pages-fix.patch
+     mm-shmem-add-vmstat-for-hugepage-fallback.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-track-foll_pin-pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-add-vmstat-for-hugepage-fallback.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-track-foll_pin-pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-add-vmstat-for-hugepage-fallback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,99 +38,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: fixup for ce35133be382 mm/gup: track FOLL_PIN pages
+From: David Rientjes <rientjes@google.com>
+Subject: mm, shmem: add vmstat for hugepage fallback
 
-This is a fixup for the mmotm commit ce35133be382
-("mm/gup: track FOLL_PIN pages").
+The existing thp_fault_fallback indicates when thp attempts to allocate a
+hugepage but fails, or if the hugepage cannot be charged to the mem cgroup
+hierarchy.
 
-Add kerneldoc comments for pin_user_pages*() routines, in order
-to get rid of "make -W1" warnings when building mm/gup.o.
+Extend this to shmem as well.  Adds a new thp_file_fallback to complement
+thp_file_alloc that gets incremented when a hugepage is attempted to be
+allocated but fails, or if it cannot be charged to the mem cgroup
+hierarchy.
 
-This just adds @param documentation of:
-    pin_user_pages()
-    pin_user_pages_fast()
-    pin_user_pages_remote()
+Additionally, remove the check for CONFIG_TRANSPARENT_HUGE_PAGECACHE from
+shmem_alloc_hugepage() since it is only called with this configuration
+option.
 
-The param documentation was stolen from other gup.c functions,
-because it looks reasonable enough.
-
-Link: http://lkml.kernel.org/r/20200307021157.235726-1-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reported-by: Matthew Wilcox <willy@infradead.org>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.21.2003061421240.7412@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Jeremy Cline <jcline@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ Documentation/admin-guide/mm/transhuge.rst |    4 ++++
+ include/linux/vm_event_item.h              |    2 ++
+ mm/shmem.c                                 |   10 ++++++----
+ mm/vmstat.c                                |    1 +
+ 4 files changed, 13 insertions(+), 4 deletions(-)
 
---- a/mm/gup.c~mm-gup-track-foll_pin-pages-fix
-+++ a/mm/gup.c
-@@ -2690,6 +2690,12 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
- /**
-  * pin_user_pages_fast() - pin user pages in memory without taking locks
-  *
-+ * @start:      starting user address
-+ * @nr_pages:   number of pages from start to pin
-+ * @gup_flags:  flags modifying pin behaviour
-+ * @pages:      array that receives pointers to the pages pinned.
-+ *              Should be at least nr_pages long.
-+ *
-  * Nearly the same as get_user_pages_fast(), except that FOLL_PIN is set. See
-  * get_user_pages_fast() for documentation on the function arguments, because
-  * the arguments here are identical.
-@@ -2715,6 +2721,21 @@ EXPORT_SYMBOL_GPL(pin_user_pages_fast);
- /**
-  * pin_user_pages_remote() - pin pages of a remote process (task != current)
-  *
-+ * @tsk:	the task_struct to use for page fault accounting, or
-+ *		NULL if faults are not to be recorded.
-+ * @mm:		mm_struct of target mm
-+ * @start:	starting user address
-+ * @nr_pages:	number of pages from start to pin
-+ * @gup_flags:	flags modifying lookup behaviour
-+ * @pages:	array that receives pointers to the pages pinned.
-+ *		Should be at least nr_pages long. Or NULL, if caller
-+ *		only intends to ensure the pages are faulted in.
-+ * @vmas:	array of pointers to vmas corresponding to each page.
-+ *		Or NULL if the caller does not require them.
-+ * @locked:	pointer to lock flag indicating whether lock is held and
-+ *		subsequently whether VM_FAULT_RETRY functionality can be
-+ *		utilised. Lock must initially be held.
-+ *
-  * Nearly the same as get_user_pages_remote(), except that FOLL_PIN is set. See
-  * get_user_pages_remote() for documentation on the function arguments, because
-  * the arguments here are identical.
-@@ -2743,6 +2764,15 @@ EXPORT_SYMBOL(pin_user_pages_remote);
- /**
-  * pin_user_pages() - pin user pages in memory for use by other devices
-  *
-+ * @start:	starting user address
-+ * @nr_pages:	number of pages from start to pin
-+ * @gup_flags:	flags modifying lookup behaviour
-+ * @pages:	array that receives pointers to the pages pinned.
-+ *		Should be at least nr_pages long. Or NULL, if caller
-+ *		only intends to ensure the pages are faulted in.
-+ * @vmas:	array of pointers to vmas corresponding to each page.
-+ *		Or NULL if the caller does not require them.
-+ *
-  * Nearly the same as get_user_pages(), except that FOLL_TOUCH is not set, and
-  * FOLL_PIN is set.
-  *
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-shmem-add-vmstat-for-hugepage-fallback
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -319,6 +319,10 @@ thp_file_alloc
+ 	is incremented every time a file huge page is successfully
+ 	allocated.
+ 
++thp_file_fallback
++	is incremented if a file huge page is attempted to be allocated
++	but fails and instead falls back to using small pages.
++
+ thp_file_mapped
+ 	is incremented every time a file huge page is mapped into
+ 	user address space.
+--- a/include/linux/vm_event_item.h~mm-shmem-add-vmstat-for-hugepage-fallback
++++ a/include/linux/vm_event_item.h
+@@ -76,6 +76,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		THP_COLLAPSE_ALLOC,
+ 		THP_COLLAPSE_ALLOC_FAILED,
+ 		THP_FILE_ALLOC,
++		THP_FILE_FALLBACK,
+ 		THP_FILE_MAPPED,
+ 		THP_SPLIT_PAGE,
+ 		THP_SPLIT_PAGE_FAILED,
+@@ -115,6 +116,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 
+ #ifndef CONFIG_TRANSPARENT_HUGEPAGE
+ #define THP_FILE_ALLOC ({ BUILD_BUG(); 0; })
++#define THP_FILE_FALLBACK ({ BUILD_BUG(); 0; })
+ #define THP_FILE_MAPPED ({ BUILD_BUG(); 0; })
+ #endif
+ 
+--- a/mm/shmem.c~mm-shmem-add-vmstat-for-hugepage-fallback
++++ a/mm/shmem.c
+@@ -1472,9 +1472,6 @@ static struct page *shmem_alloc_hugepage
+ 	pgoff_t hindex;
+ 	struct page *page;
+ 
+-	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE))
+-		return NULL;
+-
+ 	hindex = round_down(index, HPAGE_PMD_NR);
+ 	if (xa_find(&mapping->i_pages, &hindex, hindex + HPAGE_PMD_NR - 1,
+ 								XA_PRESENT))
+@@ -1486,6 +1483,8 @@ static struct page *shmem_alloc_hugepage
+ 	shmem_pseudo_vma_destroy(&pvma);
+ 	if (page)
+ 		prep_transhuge_page(page);
++	else
++		count_vm_event(THP_FILE_FALLBACK);
+ 	return page;
+ }
+ 
+@@ -1871,8 +1870,11 @@ alloc_nohuge:
+ 
+ 	error = mem_cgroup_try_charge_delay(page, charge_mm, gfp, &memcg,
+ 					    PageTransHuge(page));
+-	if (error)
++	if (error) {
++		if (PageTransHuge(page))
++			count_vm_event(THP_FILE_FALLBACK);
+ 		goto unacct;
++	}
+ 	error = shmem_add_to_page_cache(page, mapping, hindex,
+ 					NULL, gfp & GFP_RECLAIM_MASK);
+ 	if (error) {
+--- a/mm/vmstat.c~mm-shmem-add-vmstat-for-hugepage-fallback
++++ a/mm/vmstat.c
+@@ -1259,6 +1259,7 @@ const char * const vmstat_text[] = {
+ 	"thp_collapse_alloc",
+ 	"thp_collapse_alloc_failed",
+ 	"thp_file_alloc",
++	"thp_file_fallback",
+ 	"thp_file_mapped",
+ 	"thp_split_page",
+ 	"thp_split_page_failed",
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-gup-split-get_user_pages_remote-into-two-routines.patch
-mm-gup-pass-a-flags-arg-to-__gup_device_-functions.patch
-mm-introduce-page_ref_sub_return.patch
-mm-gup-pass-gup-flags-to-two-more-routines.patch
-mm-gup-require-foll_get-for-get_user_pages_fast.patch
-mm-gup-track-foll_pin-pages.patch
-mm-gup-track-foll_pin-pages-fix.patch
-mm-gup-page-hpage_pinned_refcount-exact-pin-counts-for-huge-pages.patch
-mm-gup-proc-vmstat-pin_user_pages-foll_pin-reporting.patch
-mm-gup_benchmark-support-pin_user_pages-and-related-calls.patch
-selftests-vm-run_vmtests-invoke-gup_benchmark-with-basic-foll_pin-coverage.patch
-mm-dump_page-additional-diagnostics-for-huge-pinned-pages.patch
-checkpatch-support-base-commit-format.patch
+mm-shmem-add-vmstat-for-hugepage-fallback.patch
+mm-thp-track-fallbacks-due-to-failed-memcg-charges-separately.patch
