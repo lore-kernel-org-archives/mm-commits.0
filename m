@@ -1,29 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-speed-up-proc-statm.patch added to -mm tree
-Date: Sat, 07 Mar 2020 12:49:00 -0800
-Message-ID: <20200307204900.jwCraeyhF%akpm@linux-foundation.org>
+Subject: +
+ mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case.patch added to
+ -mm tree
+Date: Sat, 07 Mar 2020 12:58:42 -0800
+Message-ID: <20200307205842.m2xK7JlGC%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52300 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53460 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726252AbgCGUtC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Mar 2020 15:49:02 -0500
+        id S1726098AbgCGU6o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Mar 2020 15:58:44 -0500
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: bhe@redhat.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, richardw.yang@linux.intel.com, rppt@linux.ibm.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: speed up /proc/*/statm
+     Subject: mm/hotplug: fix hot remove failure in SPARSEMEM|!VMEMMAP case
 has been added to the -mm tree.  Its filename is
-     proc-speed-up-proc-statm.patch
+     mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-speed-up-proc-statm.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-speed-up-proc-statm.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,86 +39,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: speed up /proc/*/statm
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/hotplug: fix hot remove failure in SPARSEMEM|!VMEMMAP case
 
-top(1) reads all /proc/*/statm files but kernel threads will always have
-zeros.  Print those zeroes directly without going through
-seq_put_decimal_ull().
+In section_deactivate(), pfn_to_page() doesn't work any more after
+ms->section_mem_map is resetting to NULL in SPARSEMEM|!VMEMMAP case.  It
+caused hot remove failure:
 
-Speed up reading /proc/2/statm (which is kthreadd) is like 3%.
+kernel BUG at mm/page_alloc.c:4806!
+invalid opcode: 0000 [#1] SMP PTI
+CPU: 3 PID: 8 Comm: kworker/u16:0 Tainted: G        W         5.5.0-next-20200205+ #340
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
+Workqueue: kacpi_hotplug acpi_hotplug_work_fn
+RIP: 0010:free_pages+0x85/0xa0
+Call Trace:
+ __remove_pages+0x99/0xc0
+ arch_remove_memory+0x23/0x4d
+ try_remove_memory+0xc8/0x130
+ ? walk_memory_blocks+0x72/0xa0
+ __remove_memory+0xa/0x11
+ acpi_memory_device_remove+0x72/0x100
+ acpi_bus_trim+0x55/0x90
+ acpi_device_hotplug+0x2eb/0x3d0
+ acpi_hotplug_work_fn+0x1a/0x30
+ process_one_work+0x1a7/0x370
+ worker_thread+0x30/0x380
+ ? flush_rcu_work+0x30/0x30
+ kthread+0x112/0x130
+ ? kthread_create_on_node+0x60/0x60
+ ret_from_fork+0x35/0x40
 
-My system has more kernel threads than normal processes after booting KDE.
+Let's move the ->section_mem_map resetting after
+depopulate_section_memmap() to fix it.
 
-Link: http://lkml.kernel.org/r/20200307154435.GA2788@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/20200307084229.28251-2-bhe@redhat.com
+Fixes: ba72b4c8cf60 ("mm/sparsemem: support sub-section hotplug")
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   39 +++++++++++++++++++++++----------------
- 1 file changed, 23 insertions(+), 16 deletions(-)
+ mm/sparse.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/fs/proc/array.c~proc-speed-up-proc-statm
-+++ a/fs/proc/array.c
-@@ -635,28 +635,35 @@ int proc_tgid_stat(struct seq_file *m, s
- int proc_pid_statm(struct seq_file *m, struct pid_namespace *ns,
- 			struct pid *pid, struct task_struct *task)
- {
--	unsigned long size = 0, resident = 0, shared = 0, text = 0, data = 0;
- 	struct mm_struct *mm = get_task_mm(task);
+--- a/mm/sparse.c~mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case
++++ a/mm/sparse.c
+@@ -734,6 +734,7 @@ static void section_deactivate(unsigned
+ 	struct mem_section *ms = __pfn_to_section(pfn);
+ 	bool section_is_early = early_section(ms);
+ 	struct page *memmap = NULL;
++	bool empty = false;
+ 	unsigned long *subsection_map = ms->usage
+ 		? &ms->usage->subsection_map[0] : NULL;
  
- 	if (mm) {
-+		unsigned long size;
-+		unsigned long resident = 0;
-+		unsigned long shared = 0;
-+		unsigned long text = 0;
-+		unsigned long data = 0;
+@@ -764,7 +765,8 @@ static void section_deactivate(unsigned
+ 	 * For 2/ and 3/ the SPARSEMEM_VMEMMAP={y,n} cases are unified
+ 	 */
+ 	bitmap_xor(subsection_map, map, subsection_map, SUBSECTIONS_PER_SECTION);
+-	if (bitmap_empty(subsection_map, SUBSECTIONS_PER_SECTION)) {
++	empty = bitmap_empty(subsection_map, SUBSECTIONS_PER_SECTION);
++	if (empty) {
+ 		unsigned long section_nr = pfn_to_section_nr(pfn);
+ 
+ 		/*
+@@ -779,13 +781,15 @@ static void section_deactivate(unsigned
+ 			ms->usage = NULL;
+ 		}
+ 		memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
+-		ms->section_mem_map = (unsigned long)NULL;
+ 	}
+ 
+ 	if (section_is_early && memmap)
+ 		free_map_bootmem(memmap);
+ 	else
+ 		depopulate_section_memmap(pfn, nr_pages, altmap);
 +
- 		size = task_statm(mm, &shared, &text, &data, &resident);
- 		mmput(mm);
--	}
--	/*
--	 * For quick read, open code by putting numbers directly
--	 * expected format is
--	 * seq_printf(m, "%lu %lu %lu %lu 0 %lu 0\n",
--	 *               size, resident, shared, text, data);
--	 */
--	seq_put_decimal_ull(m, "", size);
--	seq_put_decimal_ull(m, " ", resident);
--	seq_put_decimal_ull(m, " ", shared);
--	seq_put_decimal_ull(m, " ", text);
--	seq_put_decimal_ull(m, " ", 0);
--	seq_put_decimal_ull(m, " ", data);
--	seq_put_decimal_ull(m, " ", 0);
--	seq_putc(m, '\n');
- 
-+		/*
-+		 * For quick read, open code by putting numbers directly
-+		 * expected format is
-+		 * seq_printf(m, "%lu %lu %lu %lu 0 %lu 0\n",
-+		 *               size, resident, shared, text, data);
-+		 */
-+		seq_put_decimal_ull(m, "", size);
-+		seq_put_decimal_ull(m, " ", resident);
-+		seq_put_decimal_ull(m, " ", shared);
-+		seq_put_decimal_ull(m, " ", text);
-+		seq_put_decimal_ull(m, " ", 0);
-+		seq_put_decimal_ull(m, " ", data);
-+		seq_put_decimal_ull(m, " ", 0);
-+		seq_putc(m, '\n');
-+	} else {
-+		seq_write(m, "0 0 0 0 0 0 0\n", 14);
-+	}
- 	return 0;
++	if (empty)
++		ms->section_mem_map = (unsigned long)NULL;
  }
  
+ static struct page * __meminit section_activate(int nid, unsigned long pfn,
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-ramfs-support-o_tmpfile.patch
-proc-faster-open-read-close-with-permanent-files.patch
-proc-speed-up-proc-statm.patch
-elf-delete-loc-variable.patch
-elf-allocate-less-for-static-executable.patch
-elf-dont-free-interpreters-elf-pheaders-on-common-path.patch
+mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case.patch
+mm-hotplug-only-respect-mem=-parameter-during-boot-stage.patch
