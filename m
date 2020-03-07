@@ -1,59 +1,122 @@
-From: akpm@linux-foundation.org
-Subject: [merged]
- arch-kconfig-update-have_reliable_stacktrace-description.patch removed from
- -mm tree
-Date: Fri, 06 Mar 2020 20:01:30 -0800
-Message-ID: <20200307040130.ygwklYNDd%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + proc-speed-up-proc-statm.patch added to -mm tree
+Date: Sat, 07 Mar 2020 12:49:00 -0800
+Message-ID: <20200307204900.jwCraeyhF%akpm@linux-foundation.org>
+References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50478 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgCGEBb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 6 Mar 2020 23:01:31 -0500
+        id S1726252AbgCGUtC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Mar 2020 15:49:02 -0500
+In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jpoimboe@redhat.com, mbenes@suse.cz, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/Kconfig: update HAVE_RELIABLE_STACKTRACE description
-has been removed from the -mm tree.  Its filename was
-     arch-kconfig-update-have_reliable_stacktrace-description.patch
+     Subject: proc: speed up /proc/*/statm
+has been added to the -mm tree.  Its filename is
+     proc-speed-up-proc-statm.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-speed-up-proc-statm.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-speed-up-proc-statm.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Miroslav Benes <mbenes@suse.cz>
-Subject: arch/Kconfig: update HAVE_RELIABLE_STACKTRACE description
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: speed up /proc/*/statm
 
-save_stack_trace_tsk_reliable() is not the only function providing the
-reliable stack traces anymore.  Architecture might define ARCH_STACKWALK
-which provides a newer stack walking interface and has
-arch_stack_walk_reliable() function.  Update the description accordingly.
+top(1) reads all /proc/*/statm files but kernel threads will always have
+zeros.  Print those zeroes directly without going through
+seq_put_decimal_ull().
 
-Link: http://lkml.kernel.org/r/20200120154042.9934-1-mbenes@suse.cz
-Signed-off-by: Miroslav Benes <mbenes@suse.cz>
-Acked-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Speed up reading /proc/2/statm (which is kthreadd) is like 3%.
+
+My system has more kernel threads than normal processes after booting KDE.
+
+Link: http://lkml.kernel.org/r/20200307154435.GA2788@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/proc/array.c |   39 +++++++++++++++++++++++----------------
+ 1 file changed, 23 insertions(+), 16 deletions(-)
 
---- a/arch/Kconfig~arch-kconfig-update-have_reliable_stacktrace-description
-+++ a/arch/Kconfig
-@@ -738,8 +738,9 @@ config HAVE_STACK_VALIDATION
- config HAVE_RELIABLE_STACKTRACE
- 	bool
- 	help
--	  Architecture has a save_stack_trace_tsk_reliable() function which
--	  only returns a stack trace if it can guarantee the trace is reliable.
-+	  Architecture has either save_stack_trace_tsk_reliable() or
-+	  arch_stack_walk_reliable() function which only returns a stack trace
-+	  if it can guarantee the trace is reliable.
+--- a/fs/proc/array.c~proc-speed-up-proc-statm
++++ a/fs/proc/array.c
+@@ -635,28 +635,35 @@ int proc_tgid_stat(struct seq_file *m, s
+ int proc_pid_statm(struct seq_file *m, struct pid_namespace *ns,
+ 			struct pid *pid, struct task_struct *task)
+ {
+-	unsigned long size = 0, resident = 0, shared = 0, text = 0, data = 0;
+ 	struct mm_struct *mm = get_task_mm(task);
  
- config HAVE_ARCH_HASH
- 	bool
+ 	if (mm) {
++		unsigned long size;
++		unsigned long resident = 0;
++		unsigned long shared = 0;
++		unsigned long text = 0;
++		unsigned long data = 0;
++
+ 		size = task_statm(mm, &shared, &text, &data, &resident);
+ 		mmput(mm);
+-	}
+-	/*
+-	 * For quick read, open code by putting numbers directly
+-	 * expected format is
+-	 * seq_printf(m, "%lu %lu %lu %lu 0 %lu 0\n",
+-	 *               size, resident, shared, text, data);
+-	 */
+-	seq_put_decimal_ull(m, "", size);
+-	seq_put_decimal_ull(m, " ", resident);
+-	seq_put_decimal_ull(m, " ", shared);
+-	seq_put_decimal_ull(m, " ", text);
+-	seq_put_decimal_ull(m, " ", 0);
+-	seq_put_decimal_ull(m, " ", data);
+-	seq_put_decimal_ull(m, " ", 0);
+-	seq_putc(m, '\n');
+ 
++		/*
++		 * For quick read, open code by putting numbers directly
++		 * expected format is
++		 * seq_printf(m, "%lu %lu %lu %lu 0 %lu 0\n",
++		 *               size, resident, shared, text, data);
++		 */
++		seq_put_decimal_ull(m, "", size);
++		seq_put_decimal_ull(m, " ", resident);
++		seq_put_decimal_ull(m, " ", shared);
++		seq_put_decimal_ull(m, " ", text);
++		seq_put_decimal_ull(m, " ", 0);
++		seq_put_decimal_ull(m, " ", data);
++		seq_put_decimal_ull(m, " ", 0);
++		seq_putc(m, '\n');
++	} else {
++		seq_write(m, "0 0 0 0 0 0 0\n", 14);
++	}
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mbenes@suse.cz are
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+ramfs-support-o_tmpfile.patch
+proc-faster-open-read-close-with-permanent-files.patch
+proc-speed-up-proc-statm.patch
+elf-delete-loc-variable.patch
+elf-allocate-less-for-static-executable.patch
+elf-dont-free-interpreters-elf-pheaders-on-common-path.patch
