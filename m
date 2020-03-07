@@ -1,29 +1,29 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-fallthrough.patch added to -mm tree
-Date: Sat, 07 Mar 2020 13:01:29 -0800
-Message-ID: <20200307210129.MbheUEC3x%akpm@linux-foundation.org>
+Subject: + mm-gup-track-foll_pin-pages-fix.patch added to -mm tree
+Date: Sat, 07 Mar 2020 13:53:31 -0800
+Message-ID: <20200307215331.W-UC9cxL4%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53850 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57234 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726098AbgCGVBb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Mar 2020 16:01:31 -0500
+        id S1726116AbgCGVxd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Mar 2020 16:53:33 -0500
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gustavo@embeddedor.com, joe@perches.com, mm-commits@vger.kernel.org
+To: jhubbard@nvidia.com, mm-commits@vger.kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: mm: use fallthrough;
+     Subject: mm/gup: fixup for ce35133be382 mm/gup: track FOLL_PIN pages
 has been added to the -mm tree.  Its filename is
-     mm-use-fallthrough.patch
+     mm-gup-track-foll_pin-pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-fallthrough.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-track-foll_pin-pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-fallthrough.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-track-foll_pin-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,180 +37,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: mm: use fallthrough;
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: fixup for ce35133be382 mm/gup: track FOLL_PIN pages
 
-Convert the various /* fallthrough */ comments to the pseudo-keyword
-fallthrough;
+This is a fixup for the mmotm commit ce35133be382
+("mm/gup: track FOLL_PIN pages").
 
-Done via script:
-https://lore.kernel.org/lkml/b56602fcf79f849e733e7b521bb0e17895d390fa.1582230379.git.joe@perches.com/
+Add kerneldoc comments for pin_user_pages*() routines, in order
+to get rid of "make -W1" warnings when building mm/gup.o.
 
-Link: http://lkml.kernel.org/r/f62fea5d10eb0ccfc05d87c242a620c261219b66.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+This just adds @param documentation of:
+    pin_user_pages()
+    pin_user_pages_fast()
+    pin_user_pages_remote()
+
+The param documentation was stolen from other gup.c functions,
+because it looks reasonable enough.
+
+Link: http://lkml.kernel.org/r/20200307021157.235726-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reported-by: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c            |    2 +-
- mm/hugetlb_cgroup.c |    6 +++---
- mm/ksm.c            |    3 +--
- mm/list_lru.c       |    2 +-
- mm/memcontrol.c     |    2 +-
- mm/mempolicy.c      |    3 ---
- mm/mmap.c           |    5 ++---
- mm/shmem.c          |    2 +-
- mm/zsmalloc.c       |    2 +-
- 9 files changed, 11 insertions(+), 16 deletions(-)
+ mm/gup.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
---- a/mm/gup.c~mm-use-fallthrough
+--- a/mm/gup.c~mm-gup-track-foll_pin-pages-fix
 +++ a/mm/gup.c
-@@ -1072,7 +1072,7 @@ retry:
- 				goto retry;
- 			case -EBUSY:
- 				ret = 0;
--				/* FALLTHRU */
-+				fallthrough;
- 			case -EFAULT:
- 			case -ENOMEM:
- 			case -EHWPOISON:
---- a/mm/hugetlb_cgroup.c~mm-use-fallthrough
-+++ a/mm/hugetlb_cgroup.c
-@@ -468,14 +468,14 @@ static int hugetlb_cgroup_read_u64_max(s
- 	switch (MEMFILE_ATTR(cft->private)) {
- 	case RES_RSVD_USAGE:
- 		counter = &h_cg->rsvd_hugepage[idx];
--		/* Fall through. */
-+		fallthrough;
- 	case RES_USAGE:
- 		val = (u64)page_counter_read(counter);
- 		seq_printf(seq, "%llu\n", val * PAGE_SIZE);
- 		break;
- 	case RES_RSVD_LIMIT:
- 		counter = &h_cg->rsvd_hugepage[idx];
--		/* Fall through. */
-+		fallthrough;
- 	case RES_LIMIT:
- 		val = (u64)counter->max;
- 		if (val == limit)
-@@ -515,7 +515,7 @@ static ssize_t hugetlb_cgroup_write(stru
- 	switch (MEMFILE_ATTR(of_cft(of)->private)) {
- 	case RES_RSVD_LIMIT:
- 		rsvd = true;
--		/* Fall through. */
-+		fallthrough;
- 	case RES_LIMIT:
- 		mutex_lock(&hugetlb_limit_mutex);
- 		ret = page_counter_set_max(
---- a/mm/ksm.c~mm-use-fallthrough
-+++ a/mm/ksm.c
-@@ -2813,8 +2813,7 @@ static int ksm_memory_callback(struct no
- 		 */
- 		ksm_check_stable_tree(mn->start_pfn,
- 				      mn->start_pfn + mn->nr_pages);
--		/* fallthrough */
--
-+		fallthrough;
- 	case MEM_CANCEL_OFFLINE:
- 		mutex_lock(&ksm_thread_mutex);
- 		ksm_run &= ~KSM_RUN_OFFLINE;
---- a/mm/list_lru.c~mm-use-fallthrough
-+++ a/mm/list_lru.c
-@@ -223,7 +223,7 @@ restart:
- 		switch (ret) {
- 		case LRU_REMOVED_RETRY:
- 			assert_spin_locked(&nlru->lock);
--			/* fall through */
-+			fallthrough;
- 		case LRU_REMOVED:
- 			isolated++;
- 			nlru->nr_items--;
---- a/mm/memcontrol.c~mm-use-fallthrough
-+++ a/mm/memcontrol.c
-@@ -5781,7 +5781,7 @@ retry:
- 		switch (get_mctgt_type(vma, addr, ptent, &target)) {
- 		case MC_TARGET_DEVICE:
- 			device = true;
--			/* fall through */
-+			fallthrough;
- 		case MC_TARGET_PAGE:
- 			page = target.page;
- 			/*
---- a/mm/mempolicy.c~mm-use-fallthrough
-+++ a/mm/mempolicy.c
-@@ -881,7 +881,6 @@ static void get_policy_nodemask(struct m
- 
- 	switch (p->mode) {
- 	case MPOL_BIND:
--		/* Fall through */
- 	case MPOL_INTERLEAVE:
- 		*nodes = p->v.nodes;
- 		break;
-@@ -2066,7 +2065,6 @@ bool init_nodemask_of_mempolicy(nodemask
- 		break;
- 
- 	case MPOL_BIND:
--		/* Fall through */
- 	case MPOL_INTERLEAVE:
- 		*mask =  mempolicy->v.nodes;
- 		break;
-@@ -2333,7 +2331,6 @@ bool __mpol_equal(struct mempolicy *a, s
- 
- 	switch (a->mode) {
- 	case MPOL_BIND:
--		/* Fall through */
- 	case MPOL_INTERLEAVE:
- 		return !!nodes_equal(a->v.nodes, b->v.nodes);
- 	case MPOL_PREFERRED:
---- a/mm/mmap.c~mm-use-fallthrough
-+++ a/mm/mmap.c
-@@ -1457,7 +1457,7 @@ unsigned long do_mmap(struct file *file,
- 			 * with MAP_SHARED to preserve backward compatibility.
- 			 */
- 			flags &= LEGACY_MAP_MASK;
--			/* fall through */
-+			fallthrough;
- 		case MAP_SHARED_VALIDATE:
- 			if (flags & ~flags_mask)
- 				return -EOPNOTSUPP;
-@@ -1484,8 +1484,7 @@ unsigned long do_mmap(struct file *file,
- 			vm_flags |= VM_SHARED | VM_MAYSHARE;
- 			if (!(file->f_mode & FMODE_WRITE))
- 				vm_flags &= ~(VM_MAYWRITE | VM_SHARED);
--
--			/* fall through */
-+			fallthrough;
- 		case MAP_PRIVATE:
- 			if (!(file->f_mode & FMODE_READ))
- 				return -EACCES;
---- a/mm/shmem.c~mm-use-fallthrough
-+++ a/mm/shmem.c
-@@ -3992,7 +3992,7 @@ bool shmem_huge_enabled(struct vm_area_s
- 			if (i_size >= HPAGE_PMD_SIZE &&
- 					i_size >> PAGE_SHIFT >= off)
- 				return true;
--			/* fall through */
-+			fallthrough;
- 		case SHMEM_HUGE_ADVISE:
- 			/* TODO: implement fadvise() hints */
- 			return (vma->vm_flags & VM_HUGEPAGE);
---- a/mm/zsmalloc.c~mm-use-fallthrough
-+++ a/mm/zsmalloc.c
-@@ -424,7 +424,7 @@ static void *zs_zpool_map(void *pool, un
- 	case ZPOOL_MM_WO:
- 		zs_mm = ZS_MM_WO;
- 		break;
--	case ZPOOL_MM_RW: /* fall through */
-+	case ZPOOL_MM_RW:
- 	default:
- 		zs_mm = ZS_MM_RW;
- 		break;
+@@ -2690,6 +2690,12 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
+ /**
+  * pin_user_pages_fast() - pin user pages in memory without taking locks
+  *
++ * @start:      starting user address
++ * @nr_pages:   number of pages from start to pin
++ * @gup_flags:  flags modifying pin behaviour
++ * @pages:      array that receives pointers to the pages pinned.
++ *              Should be at least nr_pages long.
++ *
+  * Nearly the same as get_user_pages_fast(), except that FOLL_PIN is set. See
+  * get_user_pages_fast() for documentation on the function arguments, because
+  * the arguments here are identical.
+@@ -2715,6 +2721,21 @@ EXPORT_SYMBOL_GPL(pin_user_pages_fast);
+ /**
+  * pin_user_pages_remote() - pin pages of a remote process (task != current)
+  *
++ * @tsk:	the task_struct to use for page fault accounting, or
++ *		NULL if faults are not to be recorded.
++ * @mm:		mm_struct of target mm
++ * @start:	starting user address
++ * @nr_pages:	number of pages from start to pin
++ * @gup_flags:	flags modifying lookup behaviour
++ * @pages:	array that receives pointers to the pages pinned.
++ *		Should be at least nr_pages long. Or NULL, if caller
++ *		only intends to ensure the pages are faulted in.
++ * @vmas:	array of pointers to vmas corresponding to each page.
++ *		Or NULL if the caller does not require them.
++ * @locked:	pointer to lock flag indicating whether lock is held and
++ *		subsequently whether VM_FAULT_RETRY functionality can be
++ *		utilised. Lock must initially be held.
++ *
+  * Nearly the same as get_user_pages_remote(), except that FOLL_PIN is set. See
+  * get_user_pages_remote() for documentation on the function arguments, because
+  * the arguments here are identical.
+@@ -2743,6 +2764,15 @@ EXPORT_SYMBOL(pin_user_pages_remote);
+ /**
+  * pin_user_pages() - pin user pages in memory for use by other devices
+  *
++ * @start:	starting user address
++ * @nr_pages:	number of pages from start to pin
++ * @gup_flags:	flags modifying lookup behaviour
++ * @pages:	array that receives pointers to the pages pinned.
++ *		Should be at least nr_pages long. Or NULL, if caller
++ *		only intends to ensure the pages are faulted in.
++ * @vmas:	array of pointers to vmas corresponding to each page.
++ *		Or NULL if the caller does not require them.
++ *
+  * Nearly the same as get_user_pages(), except that FOLL_TOUCH is not set, and
+  * FOLL_PIN is set.
+  *
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-use-fallthrough.patch
-string-add-stracpy-and-stracpy_pad-mechanisms.patch
-checkpatch-remove-email-address-comment-from-email-address-comparisons.patch
-checkpatch-prefer-fallthrough-over-fallthrough-comments.patch
-checkpatch-improve-gerrit-change-id-test.patch
+mm-gup-split-get_user_pages_remote-into-two-routines.patch
+mm-gup-pass-a-flags-arg-to-__gup_device_-functions.patch
+mm-introduce-page_ref_sub_return.patch
+mm-gup-pass-gup-flags-to-two-more-routines.patch
+mm-gup-require-foll_get-for-get_user_pages_fast.patch
+mm-gup-track-foll_pin-pages.patch
+mm-gup-track-foll_pin-pages-fix.patch
+mm-gup-page-hpage_pinned_refcount-exact-pin-counts-for-huge-pages.patch
+mm-gup-proc-vmstat-pin_user_pages-foll_pin-reporting.patch
+mm-gup_benchmark-support-pin_user_pages-and-related-calls.patch
+selftests-vm-run_vmtests-invoke-gup_benchmark-with-basic-foll_pin-coverage.patch
+mm-dump_page-additional-diagnostics-for-huge-pinned-pages.patch
+checkpatch-support-base-commit-format.patch
