@@ -1,102 +1,157 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- arm-arm64-add-support-for-folded-p4d-page-tables-fix.patch removed from -mm
- tree
-Date: Fri, 06 Mar 2020 20:01:07 -0800
-Message-ID: <20200307040107.LZbVml_SI%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-numa-fix-bad-pmd-by-atomically-check-for-pmd=5Ftrans=5Fh?=
+ =?US-ASCII?Q?uge-when-marking-page-tables-prot=5Fnuma.patch?= removed from
+ -mm tree
+Date: Fri, 06 Mar 2020 20:01:14 -0800
+Message-ID: <20200307040114.mNNLyVohR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49960 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50128 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726259AbgCGEBJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 6 Mar 2020 23:01:09 -0500
+        id S1726368AbgCGEBP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 6 Mar 2020 23:01:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anders.roxell@linaro.org, anshuman.khandual@arm.com, arnd@arndb.de, bcain@codeaurora.org, benh@kernel.crashing.org, catalin.marinas@arm.com, christophe.leroy@c-s.fr, dalias@libc.org, fenghua.yu@intel.com, geert+renesas@glider.be, gxt@pku.edu.cn, james.morse@arm.com, jonas@southpole.se, julien.thierry.kdev@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, maz@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, naresh.kamboju@linaro.org, paulus@samba.org, rppt@linux.ibm.com, sfr@canb.auug.org.au, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, suzuki.poulose@arm.com, tony.luck@intel.com, will@kernel.org, ysato@users.sourceforge.jp
+To: aquini@redhat.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz, zi.yan@cs.rutgers.edu
 
 
 The patch titled
-     Subject: arm64/mm: implement unmap_hotplug_p4d_range
+     Subject: mm, numa: fix bad pmd by atomically check for pmd_trans_huge when marking page tables prot_numa
 has been removed from the -mm tree.  Its filename was
-     arm-arm64-add-support-for-folded-p4d-page-tables-fix.patch
+     mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: arm64/mm: implement unmap_hotplug_p4d_range
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, numa: fix bad pmd by atomically check for pmd_trans_huge when marking page tables prot_numa
 
-Link: http://lkml.kernel.org/r/20200302135443.GA24831@linux.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Anders Roxell <anders.roxell@linaro.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Guan Xuetao <gxt@pku.edu.cn>
-Cc: James Morse <james.morse@arm.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Julien Thierry <julien.thierry.kdev@gmail.com>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Stephen Rothwell<sfr@canb.auug.org.au>
-Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+: A user reported a bug against a distribution kernel while running a
+: proprietary workload described as "memory intensive that is not swapping"
+: that is expected to apply to mainline kernels.  The workload is
+: read/write/modifying ranges of memory and checking the contents.  They
+: reported that within a few hours that a bad PMD would be reported followed
+: by a memory corruption where expected data was all zeros.  A partial
+: report of the bad PMD looked like
+: 
+:   [ 5195.338482] ../mm/pgtable-generic.c:33: bad pmd ffff8888157ba008(000002e0396009e2)
+:   [ 5195.341184] ------------[ cut here ]------------
+:   [ 5195.356880] kernel BUG at ../mm/pgtable-generic.c:35!
+:   ....
+:   [ 5195.410033] Call Trace:
+:   [ 5195.410471]  [<ffffffff811bc75d>] change_protection_range+0x7dd/0x930
+:   [ 5195.410716]  [<ffffffff811d4be8>] change_prot_numa+0x18/0x30
+:   [ 5195.410918]  [<ffffffff810adefe>] task_numa_work+0x1fe/0x310
+:   [ 5195.411200]  [<ffffffff81098322>] task_work_run+0x72/0x90
+:   [ 5195.411246]  [<ffffffff81077139>] exit_to_usermode_loop+0x91/0xc2
+:   [ 5195.411494]  [<ffffffff81003a51>] prepare_exit_to_usermode+0x31/0x40
+:   [ 5195.411739]  [<ffffffff815e56af>] retint_user+0x8/0x10
+: 
+: Decoding revealed that the PMD was a valid prot_numa PMD and the bad PMD
+: was a false detection.  The bug does not trigger if automatic NUMA
+: balancing or transparent huge pages is disabled.
+: 
+: The bug is due a race in change_pmd_range between a pmd_trans_huge and
+: pmd_nond_or_clear_bad check without any locks held.  During the
+: pmd_trans_huge check, a parallel protection update under lock can have
+: cleared the PMD and filled it with a prot_numa entry between the transhuge
+: check and the pmd_none_or_clear_bad check.
+: 
+: While this could be fixed with heavy locking, it's only necessary to make
+: a copy of the PMD on the stack during change_pmd_range and avoid races.  A
+: new helper is created for this as the check if quite subtle and the
+: existing similar helpful is not suitable.  This passed 154 hours of
+: testing (usually triggers between 20 minutes and 24 hours) without
+: detecting bad PMDs or corruption.  A basic test of an autonuma-intensive
+: workload showed no significant change in behaviour.
+
+Although Mel withdrew the patch on the face of LKML comment
+https://lkml.org/lkml/2017/4/10/922 the race window aforementioned is
+still open, and we have reports of Linpack test reporting bad residuals
+after the bad PMD warning is observed.  In addition to that, bad
+rss-counter and non-zero pgtables assertions are triggered on mm teardown
+for the task hitting the bad PMD.
+
+ host kernel: mm/pgtable-generic.c:40: bad pmd 00000000b3152f68(8000000d2d2008e7)
+ ....
+ host kernel: BUG: Bad rss-counter state mm:00000000b583043d idx:1 val:512
+ host kernel: BUG: non-zero pgtables_bytes on freeing mm: 4096
+
+The issue is observed on a v4.18-based distribution kernel, but the race
+window is expected to be applicable to mainline kernels, as well.
+
+[akpm@linux-foundation.org: fix comment typo, per Rafael]
+Link: http://lkml.kernel.org/r/20200216191800.22423-1-aquini@redhat.com
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Zi Yan <zi.yan@cs.rutgers.edu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ mm/mprotect.c |   38 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 36 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~arm-arm64-add-support-for-folded-p4d-page-tables-fix
-+++ a/arch/arm64/mm/mmu.c
-@@ -848,6 +848,24 @@ static void unmap_hotplug_pud_range(pgd_
- 	} while (addr = next, addr < end);
+--- a/mm/mprotect.c~mm-numa-fix-bad-pmd-by-atomically-check-for-pmd_trans_huge-when-marking-page-tables-prot_numa
++++ a/mm/mprotect.c
+@@ -161,6 +161,31 @@ static unsigned long change_pte_range(st
+ 	return pages;
  }
  
-+static void unmap_hotplug_p4d_range(pgd_t *pgd, unsigned long addr,
-+				unsigned long end, bool free_mapped)
++/*
++ * Used when setting automatic NUMA hinting protection where it is
++ * critical that a numa hinting PMD is not confused with a bad PMD.
++ */
++static inline int pmd_none_or_clear_bad_unless_trans_huge(pmd_t *pmd)
 +{
-+	unsigned long next;
-+	pgd_t *p4dp, p4d;
++	pmd_t pmdval = pmd_read_atomic(pmd);
 +
-+	do {
-+		next = p4d_addr_end(addr, end);
-+		p4dp = p4d_offset(pgd, addr);
-+		p4d = READ_ONCE(*p4dp);
-+		if (p4d_none(p4d))
-+			continue;
++	/* See pmd_none_or_trans_huge_or_clear_bad for info on barrier */
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	barrier();
++#endif
 +
-+		WARN_ON(!p4d_present(p4d));
-+		unmap_hotplug_pud_range(p4dp, addr, next, free_mapped);
-+	} while (addr = next, addr < end);
++	if (pmd_none(pmdval))
++		return 1;
++	if (pmd_trans_huge(pmdval))
++		return 0;
++	if (unlikely(pmd_bad(pmdval))) {
++		pmd_clear_bad(pmd);
++		return 1;
++	}
++
++	return 0;
 +}
 +
- static void unmap_hotplug_range(unsigned long addr, unsigned long end,
- 				bool free_mapped)
- {
-@@ -862,7 +880,7 @@ static void unmap_hotplug_range(unsigned
- 			continue;
+ static inline unsigned long change_pmd_range(struct vm_area_struct *vma,
+ 		pud_t *pud, unsigned long addr, unsigned long end,
+ 		pgprot_t newprot, int dirty_accountable, int prot_numa)
+@@ -178,8 +203,17 @@ static inline unsigned long change_pmd_r
+ 		unsigned long this_pages;
  
- 		WARN_ON(!pgd_present(pgd));
--		unmap_hotplug_pud_range(pgdp, addr, next, free_mapped);
-+		unmap_hotplug_p4d_range(pgdp, addr, next, free_mapped);
- 	} while (addr = next, addr < end);
- }
+ 		next = pmd_addr_end(addr, end);
+-		if (!is_swap_pmd(*pmd) && !pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)
+-				&& pmd_none_or_clear_bad(pmd))
++
++		/*
++		 * Automatic NUMA balancing walks the tables with mmap_sem
++		 * held for read. It's possible a parallel update to occur
++		 * between pmd_trans_huge() and a pmd_none_or_clear_bad()
++		 * check leading to a false positive and clearing.
++		 * Hence, it's necessary to atomically read the PMD value
++		 * for all the checks.
++		 */
++		if (!is_swap_pmd(*pmd) && !pmd_devmap(*pmd) &&
++		     pmd_none_or_clear_bad_unless_trans_huge(pmd))
+ 			goto next;
  
+ 		/* invoke the mmu notifier if the pmd is populated */
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
