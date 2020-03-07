@@ -1,16 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- powerpc-mm-thread-pgprot_t-through-create_section_mapping.patch added to
- -mm tree
-Date: Sat, 07 Mar 2020 15:04:55 -0800
-Message-ID: <20200307230455.0ZZNEKVUZ%akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-add-pgprot_t-to-mhp_params.patch
+ added to -mm tree
+Date: Sat, 07 Mar 2020 15:04:59 -0800
+Message-ID: <20200307230459.l3EoH3ry5%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39426 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726109AbgCGXE5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Mar 2020 18:04:57 -0500
+        id S1726109AbgCGXFC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Mar 2020 18:05:02 -0500
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com, dan.j.willi
 
 
 The patch titled
-     Subject: powerpc/mm: thread pgprot_t through create_section_mapping()
+     Subject: mm/memory_hotplug: add pgprot_t to mhp_params
 has been added to the -mm tree.  Its filename is
-     powerpc-mm-thread-pgprot_t-through-create_section_mapping.patch
+     mm-memory_hotplug-add-pgprot_t-to-mhp_params.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-thread-pgprot_t-through-create_section_mapping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-add-pgprot_t-to-mhp_params.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-thread-pgprot_t-through-create_section_mapping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-add-pgprot_t-to-mhp_params.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,200 +39,218 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: powerpc/mm: thread pgprot_t through create_section_mapping()
+Subject: mm/memory_hotplug: add pgprot_t to mhp_params
 
-In prepartion to support a pgprot_t argument for arch_add_memory().
+devm_memremap_pages() is currently used by the PCI P2PDMA code to create
+struct page mappings for IO memory.  At present, these mappings are
+created with PAGE_KERNEL which implies setting the PAT bits to be WB. 
+However, on x86, an mtrr register will typically override this and force
+the cache type to be UC-.  In the case firmware doesn't set this register
+it is effectively WB and will typically result in a machine check
+exception when it's accessed.
 
-Link: http://lkml.kernel.org/r/20200306170846.9333-6-logang@deltatee.com
+Other arches are not currently likely to function correctly seeing they
+don't have any MTRR registers to fall back on.
+
+To solve this, provide a way to specify the pgprot value explicitly to
+arch_add_memory().
+
+Of the arches that support MEMORY_HOTPLUG: x86_64, and arm64 need a simple
+change to pass the pgprot_t down to their respective functions which set
+up the page tables.  For x86_32, set the page tables explicitly using
+_set_memory_prot() (seeing they are already mapped).  For ia64, s390 and
+sh, reject anything but PAGE_KERNEL settings -- this should be fine, for
+now, seeing these architectures don't support ZONE_DEVICE.
+
+A check in __add_pages() is also added to ensure the pgprot parameter was
+set for all arches.
+
+Link: http://lkml.kernel.org/r/20200306170846.9333-7-logang@deltatee.com
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Eric Badger <ebadger@gigaio.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/hash.h  |    3 ++-
- arch/powerpc/include/asm/book3s/64/radix.h |    3 ++-
- arch/powerpc/include/asm/sparsemem.h       |    3 ++-
- arch/powerpc/mm/book3s64/hash_utils.c      |    5 +++--
- arch/powerpc/mm/book3s64/pgtable.c         |    7 ++++---
- arch/powerpc/mm/book3s64/radix_pgtable.c   |   18 +++++++++++-------
- arch/powerpc/mm/mem.c                      |    5 +++--
- 7 files changed, 27 insertions(+), 17 deletions(-)
+ arch/arm64/mm/mmu.c            |    3 ++-
+ arch/ia64/mm/init.c            |    3 +++
+ arch/powerpc/mm/mem.c          |    3 ++-
+ arch/s390/mm/init.c            |    3 +++
+ arch/sh/mm/init.c              |    3 +++
+ arch/x86/mm/init_32.c          |   12 ++++++++++++
+ arch/x86/mm/init_64.c          |    2 +-
+ include/linux/memory_hotplug.h |    3 +++
+ mm/memory_hotplug.c            |    5 ++++-
+ mm/memremap.c                  |    6 +++---
+ 10 files changed, 36 insertions(+), 7 deletions(-)
 
---- a/arch/powerpc/include/asm/book3s/64/hash.h~powerpc-mm-thread-pgprot_t-through-create_section_mapping
-+++ a/arch/powerpc/include/asm/book3s/64/hash.h
-@@ -251,7 +251,8 @@ extern int __meminit hash__vmemmap_creat
- extern void hash__vmemmap_remove_mapping(unsigned long start,
- 				     unsigned long page_size);
+--- a/arch/arm64/mm/mmu.c~mm-memory_hotplug-add-pgprot_t-to-mhp_params
++++ a/arch/arm64/mm/mmu.c
+@@ -1382,7 +1382,8 @@ int arch_add_memory(int nid, u64 start,
+ 		flags = NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
  
--int hash__create_section_mapping(unsigned long start, unsigned long end, int nid);
-+int hash__create_section_mapping(unsigned long start, unsigned long end,
-+				 int nid, pgprot_t prot);
- int hash__remove_section_mapping(unsigned long start, unsigned long end);
+ 	__create_pgd_mapping(swapper_pg_dir, start, __phys_to_virt(start),
+-			     size, PAGE_KERNEL, __pgd_pgtable_alloc, flags);
++			     size, params->pgprot, __pgd_pgtable_alloc,
++			     flags);
  
- #endif /* !__ASSEMBLY__ */
---- a/arch/powerpc/include/asm/book3s/64/radix.h~powerpc-mm-thread-pgprot_t-through-create_section_mapping
-+++ a/arch/powerpc/include/asm/book3s/64/radix.h
-@@ -289,7 +289,8 @@ static inline unsigned long radix__get_t
- }
+ 	memblock_clear_nomap(start, size);
  
- #ifdef CONFIG_MEMORY_HOTPLUG
--int radix__create_section_mapping(unsigned long start, unsigned long end, int nid);
-+int radix__create_section_mapping(unsigned long start, unsigned long end,
-+				  int nid, pgprot_t prot);
- int radix__remove_section_mapping(unsigned long start, unsigned long end);
- #endif /* CONFIG_MEMORY_HOTPLUG */
- #endif /* __ASSEMBLY__ */
---- a/arch/powerpc/include/asm/sparsemem.h~powerpc-mm-thread-pgprot_t-through-create_section_mapping
-+++ a/arch/powerpc/include/asm/sparsemem.h
-@@ -13,7 +13,8 @@
- #endif /* CONFIG_SPARSEMEM */
+--- a/arch/ia64/mm/init.c~mm-memory_hotplug-add-pgprot_t-to-mhp_params
++++ a/arch/ia64/mm/init.c
+@@ -676,6 +676,9 @@ int arch_add_memory(int nid, u64 start,
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
  
- #ifdef CONFIG_MEMORY_HOTPLUG
--extern int create_section_mapping(unsigned long start, unsigned long end, int nid);
-+extern int create_section_mapping(unsigned long start, unsigned long end,
-+				  int nid, pgprot_t prot);
- extern int remove_section_mapping(unsigned long start, unsigned long end);
- 
- #ifdef CONFIG_PPC_BOOK3S_64
---- a/arch/powerpc/mm/book3s64/hash_utils.c~powerpc-mm-thread-pgprot_t-through-create_section_mapping
-+++ a/arch/powerpc/mm/book3s64/hash_utils.c
-@@ -809,7 +809,8 @@ int resize_hpt_for_hotplug(unsigned long
- 	return 0;
- }
- 
--int hash__create_section_mapping(unsigned long start, unsigned long end, int nid)
-+int hash__create_section_mapping(unsigned long start, unsigned long end,
-+				 int nid, pgprot_t prot)
- {
- 	int rc;
- 
-@@ -819,7 +820,7 @@ int hash__create_section_mapping(unsigne
- 	}
- 
- 	rc = htab_bolt_mapping(start, end, __pa(start),
--			       pgprot_val(PAGE_KERNEL), mmu_linear_psize,
-+			       pgprot_val(prot), mmu_linear_psize,
- 			       mmu_kernel_ssize);
- 
- 	if (rc < 0) {
---- a/arch/powerpc/mm/book3s64/pgtable.c~powerpc-mm-thread-pgprot_t-through-create_section_mapping
-+++ a/arch/powerpc/mm/book3s64/pgtable.c
-@@ -171,12 +171,13 @@ void mmu_cleanup_all(void)
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--int __meminit create_section_mapping(unsigned long start, unsigned long end, int nid)
-+int __meminit create_section_mapping(unsigned long start, unsigned long end,
-+				     int nid, pgprot_t prot)
- {
- 	if (radix_enabled())
--		return radix__create_section_mapping(start, end, nid);
-+		return radix__create_section_mapping(start, end, nid, prot);
- 
--	return hash__create_section_mapping(start, end, nid);
-+	return hash__create_section_mapping(start, end, nid, prot);
- }
- 
- int __meminit remove_section_mapping(unsigned long start, unsigned long end)
---- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-mm-thread-pgprot_t-through-create_section_mapping
-+++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
-@@ -253,7 +253,7 @@ static unsigned long next_boundary(unsig
- 
- static int __meminit create_physical_mapping(unsigned long start,
- 					     unsigned long end,
--					     int nid)
-+					     int nid, pgprot_t _prot)
- {
- 	unsigned long vaddr, addr, mapping_size = 0;
- 	bool prev_exec, exec = false;
-@@ -289,7 +289,7 @@ static int __meminit create_physical_map
- 			prot = PAGE_KERNEL_X;
- 			exec = true;
- 		} else {
--			prot = PAGE_KERNEL;
-+			prot = _prot;
- 			exec = false;
- 		}
- 
-@@ -333,7 +333,7 @@ static void __init radix_init_pgtable(vo
- 
- 		WARN_ON(create_physical_mapping(reg->base,
- 						reg->base + reg->size,
--						-1));
-+						-1, PAGE_KERNEL));
- 	}
- 
- 	/* Find out how many PID bits are supported */
-@@ -712,8 +712,10 @@ static int __meminit stop_machine_change
- 
- 	spin_unlock(&init_mm.page_table_lock);
- 	pte_clear(&init_mm, params->aligned_start, params->pte);
--	create_physical_mapping(__pa(params->aligned_start), __pa(params->start), -1);
--	create_physical_mapping(__pa(params->end), __pa(params->aligned_end), -1);
-+	create_physical_mapping(__pa(params->aligned_start),
-+				__pa(params->start), -1, PAGE_KERNEL);
-+	create_physical_mapping(__pa(params->end), __pa(params->aligned_end),
-+				-1, PAGE_KERNEL);
- 	spin_lock(&init_mm.page_table_lock);
- 	return 0;
- }
-@@ -870,14 +872,16 @@ static void __meminit remove_pagetable(u
- 	radix__flush_tlb_kernel_range(start, end);
- }
- 
--int __meminit radix__create_section_mapping(unsigned long start, unsigned long end, int nid)
-+int __meminit radix__create_section_mapping(unsigned long start,
-+					    unsigned long end, int nid,
-+					    pgprot_t prot)
- {
- 	if (end >= RADIX_VMALLOC_START) {
- 		pr_warn("Outside the supported range\n");
- 		return -1;
- 	}
- 
--	return create_physical_mapping(__pa(start), __pa(end), nid);
-+	return create_physical_mapping(__pa(start), __pa(end), nid, prot);
- }
- 
- int __meminit radix__remove_section_mapping(unsigned long start, unsigned long end)
---- a/arch/powerpc/mm/mem.c~powerpc-mm-thread-pgprot_t-through-create_section_mapping
++	if (WARN_ON_ONCE(params->pgprot.pgprot != PAGE_KERNEL.pgprot))
++		return -EINVAL;
++
+ 	ret = __add_pages(nid, start_pfn, nr_pages, params);
+ 	if (ret)
+ 		printk("%s: Problem encountered in __add_pages() as ret=%d\n",
+--- a/arch/powerpc/mm/mem.c~mm-memory_hotplug-add-pgprot_t-to-mhp_params
 +++ a/arch/powerpc/mm/mem.c
-@@ -90,7 +90,8 @@ int memory_add_physaddr_to_nid(u64 start
- }
- #endif
- 
--int __weak create_section_mapping(unsigned long start, unsigned long end, int nid)
-+int __weak create_section_mapping(unsigned long start, unsigned long end,
-+				  int nid, pgprot_t prot)
- {
- 	return -ENODEV;
- }
-@@ -131,7 +132,7 @@ int __ref arch_add_memory(int nid, u64 s
+@@ -132,7 +132,8 @@ int __ref arch_add_memory(int nid, u64 s
  	resize_hpt_for_hotplug(memblock_phys_mem_size());
  
  	start = (unsigned long)__va(start);
--	rc = create_section_mapping(start, start + size, nid);
-+	rc = create_section_mapping(start, start + size, nid, PAGE_KERNEL);
+-	rc = create_section_mapping(start, start + size, nid, PAGE_KERNEL);
++	rc = create_section_mapping(start, start + size, nid,
++				    params->pgprot);
  	if (rc) {
  		pr_warn("Unable to create mapping for hot added memory 0x%llx..0x%llx: %d\n",
  			start, start + size, rc);
+--- a/arch/s390/mm/init.c~mm-memory_hotplug-add-pgprot_t-to-mhp_params
++++ a/arch/s390/mm/init.c
+@@ -277,6 +277,9 @@ int arch_add_memory(int nid, u64 start,
+ 	if (WARN_ON_ONCE(params->altmap))
+ 		return -EINVAL;
+ 
++	if (WARN_ON_ONCE(params->pgprot.pgprot != PAGE_KERNEL.pgprot))
++		return -EINVAL;
++
+ 	rc = vmem_add_mapping(start, size);
+ 	if (rc)
+ 		return rc;
+--- a/arch/sh/mm/init.c~mm-memory_hotplug-add-pgprot_t-to-mhp_params
++++ a/arch/sh/mm/init.c
+@@ -412,6 +412,9 @@ int arch_add_memory(int nid, u64 start,
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
+ 
++	if (WARN_ON_ONCE(params->pgprot.pgprot != PAGE_KERNEL.pgprot)
++		return -EINVAL;
++
+ 	/* We only have ZONE_NORMAL, so this is easy.. */
+ 	ret = __add_pages(nid, start_pfn, nr_pages, params);
+ 	if (unlikely(ret))
+--- a/arch/x86/mm/init_32.c~mm-memory_hotplug-add-pgprot_t-to-mhp_params
++++ a/arch/x86/mm/init_32.c
+@@ -858,6 +858,18 @@ int arch_add_memory(int nid, u64 start,
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
++	int ret;
++
++	/*
++	 * The page tables were already mapped at boot so if the caller
++	 * requests a different mapping type then we must change all the
++	 * pages with __set_memory_prot().
++	 */
++	if (params->pgprot.pgprot != PAGE_KERNEL.pgprot) {
++		ret = __set_memory_prot(start, nr_pages, params->pgprot);
++		if (ret)
++			return ret;
++	}
+ 
+ 	return __add_pages(nid, start_pfn, nr_pages, params);
+ }
+--- a/arch/x86/mm/init_64.c~mm-memory_hotplug-add-pgprot_t-to-mhp_params
++++ a/arch/x86/mm/init_64.c
+@@ -868,7 +868,7 @@ int arch_add_memory(int nid, u64 start,
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 
+-	init_memory_mapping(start, start + size, PAGE_KERNEL);
++	init_memory_mapping(start, start + size, params->pgprot);
+ 
+ 	return add_pages(nid, start_pfn, nr_pages, params);
+ }
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-add-pgprot_t-to-mhp_params
++++ a/include/linux/memory_hotplug.h
+@@ -56,9 +56,12 @@ enum {
+ /*
+  * Extended parameters for memory hotplug:
+  * altmap: alternative allocator for memmap array (optional)
++ * pgprot: page protection flags to apply to newly created page tables
++ *	(required)
+  */
+ struct mhp_params {
+ 	struct vmem_altmap *altmap;
++	pgprot_t pgprot;
+ };
+ 
+ /*
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-add-pgprot_t-to-mhp_params
++++ a/mm/memory_hotplug.c
+@@ -312,6 +312,9 @@ int __ref __add_pages(int nid, unsigned
+ 	int err;
+ 	struct vmem_altmap *altmap = params->altmap;
+ 
++	if (WARN_ON_ONCE(!params->pgprot.pgprot))
++		return -EINVAL;
++
+ 	err = check_hotplug_memory_addressable(pfn, nr_pages);
+ 	if (err)
+ 		return err;
+@@ -1002,7 +1005,7 @@ static int online_memory_block(struct me
+  */
+ int __ref add_memory_resource(int nid, struct resource *res)
+ {
+-	struct mhp_params params = {};
++	struct mhp_params params = { .pgprot = PAGE_KERNEL };
+ 	u64 start, size;
+ 	bool new_node = false;
+ 	int ret;
+--- a/mm/memremap.c~mm-memory_hotplug-add-pgprot_t-to-mhp_params
++++ a/mm/memremap.c
+@@ -186,8 +186,8 @@ void *memremap_pages(struct dev_pagemap
+ 		 * We do not want any optional features only our own memmap
+ 		 */
+ 		.altmap = pgmap_altmap(pgmap),
++		.pgprot = PAGE_KERNEL,
+ 	};
+-	pgprot_t pgprot = PAGE_KERNEL;
+ 	int error, is_ram;
+ 	bool need_devmap_managed = true;
+ 
+@@ -275,8 +275,8 @@ void *memremap_pages(struct dev_pagemap
+ 	if (nid < 0)
+ 		nid = numa_mem_id();
+ 
+-	error = track_pfn_remap(NULL, &pgprot, PHYS_PFN(res->start), 0,
+-			resource_size(res));
++	error = track_pfn_remap(NULL, &params.pgprot, PHYS_PFN(res->start),
++				0, resource_size(res));
+ 	if (error)
+ 		goto err_pfn_remap;
+ 
 _
 
 Patches currently in -mm which might be from logang@deltatee.com are
