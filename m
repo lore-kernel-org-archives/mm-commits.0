@@ -1,171 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- arm-arm64-add-support-for-folded-p4d-page-tables-fix-fix.patch removed from
- -mm tree
-Date: Fri, 06 Mar 2020 20:01:11 -0800
-Message-ID: <20200307040111.Nkzf3Q_ba%akpm@linux-foundation.org>
+ mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch removed
+ from -mm tree
+Date: Fri, 06 Mar 2020 20:01:17 -0800
+Message-ID: <20200307040117.u9Y2Kxoru%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50046 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50194 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726259AbgCGEBP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 6 Mar 2020 23:01:15 -0500
+        id S1726368AbgCGEBT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 6 Mar 2020 23:01:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anders.roxell@linaro.org, anshuman.khandual@arm.com, arnd@arndb.de, bcain@codeaurora.org, benh@kernel.crashing.org, catalin.marinas@arm.com, christophe.leroy@c-s.fr, dalias@libc.org, fenghua.yu@intel.com, geert+renesas@glider.be, gxt@pku.edu.cn, james.morse@arm.com, jonas@southpole.se, julien.thierry.kdev@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, maz@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, naresh.kamboju@linaro.org, paulus@samba.org, rppt@linux.ibm.com, sfr@canb.auug.org.au, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, suzuki.poulose@arm.com, tony.luck@intel.com, will@kernel.org, ysato@users.sourceforge.jp
+To: aarcange@redhat.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz, william.kucharski@oracle.com, ying.huang@intel.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: arm-arm64-add-support-for-folded-p4d-page-tables-fix-fix
+     Subject: mm: fix possible PMD dirty bit lost in set_pmd_migration_entry()
 has been removed from the -mm tree.  Its filename was
-     arm-arm64-add-support-for-folded-p4d-page-tables-fix-fix.patch
+     mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: arm-arm64-add-support-for-folded-p4d-page-tables-fix-fix
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm: fix possible PMD dirty bit lost in set_pmd_migration_entry()
 
-Link: http://lkml.kernel.org/r/20200302174553.GC4166275@arrakis.emea.arm.com
-Cc: Anders Roxell <anders.roxell@linaro.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Guan Xuetao <gxt@pku.edu.cn>
-Cc: James Morse <james.morse@arm.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Julien Thierry <julien.thierry.kdev@gmail.com>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Stephen Rothwell<sfr@canb.auug.org.au>
-Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+In set_pmd_migration_entry(), pmdp_invalidate() is used to change PMD
+atomically.  But the PMD is read before that with an ordinary memory
+reading.  If the THP (transparent huge page) is written between the PMD
+reading and pmdp_invalidate(), the PMD dirty bit may be lost, and cause
+data corruption.  The race window is quite small, but still possible in
+theory, so need to be fixed.
+
+The race is fixed via using the return value of pmdp_invalidate() to get
+the original content of PMD, which is a read/modify/write atomic
+operation.  So no THP writing can occur in between.
+
+The race has been introduced when the THP migration support is added in
+the commit 616b8371539a ("mm: thp: enable thp migration in generic path").
+But this fix depends on the commit d52605d7cb30 ("mm: do not lose dirty
+and accessed bits in pmdp_invalidate()").  So it's easy to be backported
+after v4.16.  But the race window is really small, so it may be fine not
+to backport the fix at all.
+
+Link: http://lkml.kernel.org/r/20200220075220.2327056-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |   41 ++++++++++++++++++++++++++++++-----------
- 1 file changed, 30 insertions(+), 11 deletions(-)
+ mm/huge_memory.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~arm-arm64-add-support-for-folded-p4d-page-tables-fix-fix
-+++ a/arch/arm64/mm/mmu.c
-@@ -816,7 +816,7 @@ static void unmap_hotplug_pmd_range(pud_
- 	} while (addr = next, addr < end);
- }
+--- a/mm/huge_memory.c~mm-fix-possible-pmd-dirty-bit-lost-in-set_pmd_migration_entry
++++ a/mm/huge_memory.c
+@@ -3043,8 +3043,7 @@ void set_pmd_migration_entry(struct page
+ 		return;
  
--static void unmap_hotplug_pud_range(pgd_t *pgdp, unsigned long addr,
-+static void unmap_hotplug_pud_range(p4d_t *p4dp, unsigned long addr,
- 				    unsigned long end, bool free_mapped)
- {
- 	unsigned long next;
-@@ -824,7 +824,7 @@ static void unmap_hotplug_pud_range(pgd_
- 
- 	do {
- 		next = pud_addr_end(addr, end);
--		pudp = pud_offset(pgdp, addr);
-+		pudp = pud_offset(p4dp, addr);
- 		pud = READ_ONCE(*pudp);
- 		if (pud_none(pud))
- 			continue;
-@@ -848,15 +848,15 @@ static void unmap_hotplug_pud_range(pgd_
- 	} while (addr = next, addr < end);
- }
- 
--static void unmap_hotplug_p4d_range(pgd_t *pgd, unsigned long addr,
--				unsigned long end, bool free_mapped)
-+static void unmap_hotplug_p4d_range(pgd_t *pgdp, unsigned long addr,
-+				    unsigned long end, bool free_mapped)
- {
- 	unsigned long next;
--	pgd_t *p4dp, p4d;
-+	p4d_t *p4dp, p4d;
- 
- 	do {
- 		next = p4d_addr_end(addr, end);
--		p4dp = p4d_offset(pgd, addr);
-+		p4dp = p4d_offset(pgdp, addr);
- 		p4d = READ_ONCE(*p4dp);
- 		if (p4d_none(p4d))
- 			continue;
-@@ -961,7 +961,7 @@ static void free_empty_pmd_table(pud_t *
- 	free_hotplug_pgtable_page(virt_to_page(pmdp));
- }
- 
--static void free_empty_pud_table(pgd_t *pgdp, unsigned long addr,
-+static void free_empty_pud_table(p4d_t *p4dp, unsigned long addr,
- 				 unsigned long end, unsigned long floor,
- 				 unsigned long ceiling)
- {
-@@ -970,7 +970,7 @@ static void free_empty_pud_table(pgd_t *
- 
- 	do {
- 		next = pud_addr_end(addr, end);
--		pudp = pud_offset(pgdp, addr);
-+		pudp = pud_offset(p4dp, addr);
- 		pud = READ_ONCE(*pudp);
- 		if (pud_none(pud))
- 			continue;
-@@ -990,17 +990,36 @@ static void free_empty_pud_table(pgd_t *
- 	 * entries are empty. Overlap with other regions have been
- 	 * handled by the floor/ceiling check.
- 	 */
--	pudp = pud_offset(pgdp, 0UL);
-+	pudp = pud_offset(p4dp, 0UL);
- 	for (i = 0; i < PTRS_PER_PUD; i++) {
- 		if (!pud_none(READ_ONCE(pudp[i])))
- 			return;
- 	}
- 
--	pgd_clear(pgdp);
-+	p4d_clear(p4dp);
- 	__flush_tlb_kernel_pgtable(start);
- 	free_hotplug_pgtable_page(virt_to_page(pudp));
- }
- 
-+static void free_empty_p4d_table(pgd_t *pgdp, unsigned long addr,
-+				 unsigned long end, unsigned long floor,
-+				 unsigned long ceiling)
-+{
-+	p4d_t *p4dp, p4d;
-+	unsigned long next;
-+
-+	do {
-+		next = p4d_addr_end(addr, end);
-+		p4dp = p4d_offset(pgdp, addr);
-+		p4d = READ_ONCE(*p4dp);
-+		if (p4d_none(p4d))
-+			continue;
-+
-+		WARN_ON(!p4d_present(p4d));
-+		free_empty_pud_table(p4dp, addr, next, floor, ceiling);
-+	} while (addr = next, addr < end);
-+}
-+
- static void free_empty_tables(unsigned long addr, unsigned long end,
- 			      unsigned long floor, unsigned long ceiling)
- {
-@@ -1015,7 +1034,7 @@ static void free_empty_tables(unsigned l
- 			continue;
- 
- 		WARN_ON(!pgd_present(pgd));
--		free_empty_pud_table(pgdp, addr, next, floor, ceiling);
-+		free_empty_p4d_table(pgdp, addr, next, floor, ceiling);
- 	} while (addr = next, addr < end);
- }
- #endif
+ 	flush_cache_range(vma, address, address + HPAGE_PMD_SIZE);
+-	pmdval = *pvmw->pmd;
+-	pmdp_invalidate(vma, address, pvmw->pmd);
++	pmdval = pmdp_invalidate(vma, address, pvmw->pmd);
+ 	if (pmd_dirty(pmdval))
+ 		set_page_dirty(page);
+ 	entry = make_migration_entry(page, pmd_write(pmdval));
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
