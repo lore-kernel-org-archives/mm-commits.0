@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-sparsemem-use-wrapped-macros-instead-of-open-coding.patch added to -mm
+ checkpatch-check-proper-licensing-of-devicetree-bindings.patch added to -mm
  tree
-Date: Sat, 07 Mar 2020 15:33:10 -0800
-Message-ID: <20200307233310.34OxDXR85%akpm@linux-foundation.org>
+Date: Mon, 09 Mar 2020 16:34:11 -0700
+Message-ID: <20200309233411.kqYJKgYKj%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42540 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43480 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726180AbgCGXdL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Mar 2020 18:33:11 -0500
+        id S1726275AbgCIXeN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Mar 2020 19:34:13 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chenqiwu@xiaomi.com, mm-commits@vger.kernel.org
+To: airlied@linux.ie, daniel@ffwll.ch, jernej.skrabec@siol.net, joe@perches.com, jonas@kwiboo.se, Laurent.pinchart@ideasonboard.com, lkundrak@v3.sk, mark.rutland@arm.com, mm-commits@vger.kernel.org, narmstrong@baylibre.com, robh@kernel.org
 
 
 The patch titled
-     Subject: mm/sparse.c: use macros instead of open-coding
+     Subject: checkpatch: check proper licensing of Devicetree bindings
 has been added to the -mm tree.  Its filename is
-     mm-sparsemem-use-wrapped-macros-instead-of-open-coding.patch
+     checkpatch-check-proper-licensing-of-devicetree-bindings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparsemem-use-wrapped-macros-instead-of-open-coding.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-check-proper-licensing-of-devicetree-bindings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparsemem-use-wrapped-macros-instead-of-open-coding.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-check-proper-licensing-of-devicetree-bindings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: chenqiwu <chenqiwu@xiaomi.com>
-Subject: mm/sparse.c: use macros instead of open-coding
+From: Lubomir Rintel <lkundrak@v3.sk>
+Subject: checkpatch: check proper licensing of Devicetree bindings
 
-Use macros instead of open-coding for better code readability.
+According to Devicetree maintainers (see Link: below), the Devicetree
+binding documents are preferrably licensed (GPL-2.0-only OR BSD-2-Clause).
 
-Link: http://lkml.kernel.org/r/1583489966-16390-1-git-send-email-qiwuchen55@gmail.com
-Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Let's check that.  The actual check is a bit more relaxed, to allow more
+liberal but compatible licensing (e.g.  GPL-2.0-or-later OR BSD-2-Clause).
+
+Link: https://lore.kernel.org/lkml/20200108142132.GA4830@bogus/
+Link: http://lkml.kernel.org/r/20200309215153.38824-1-lkundrak@v3.sk
+Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Neil Armstrong <narmstrong@baylibre.com>
+Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+Cc: Jonas Karlman <jonas@kwiboo.se>,
+Cc: Jernej Skrabec <jernej.skrabec@siol.net>,
+Cc: Mark Rutland <mark.rutland@arm.com>,
+Cc: David Airlie <airlied@linux.ie>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/mm/sparse.c~mm-sparsemem-use-wrapped-macros-instead-of-open-coding
-+++ a/mm/sparse.c
-@@ -385,8 +385,8 @@ static void __init check_usemap_section_
- 		old_pgdat_snr = NR_MEM_SECTIONS;
- 	}
- 
--	usemap_snr = pfn_to_section_nr(__pa(usage) >> PAGE_SHIFT);
--	pgdat_snr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
-+	usemap_snr = pfn_to_section_nr(virt_to_pfn(usage));
-+	pgdat_snr = pfn_to_section_nr(virt_to_pfn(pgdat));
- 	if (usemap_snr == pgdat_snr)
- 		return;
- 
-@@ -677,7 +677,7 @@ struct page * __meminit populate_section
- 
- 	return NULL;
- got_map_page:
--	ret = (struct page *)pfn_to_kaddr(page_to_pfn(page));
-+	ret = (struct page *)page_to_virt(page);
- got_map_ptr:
- 
- 	return ret;
+--- a/scripts/checkpatch.pl~checkpatch-check-proper-licensing-of-devicetree-bindings
++++ a/scripts/checkpatch.pl
+@@ -3171,6 +3171,17 @@ sub process {
+ 						WARN("SPDX_LICENSE_TAG",
+ 						     "'$spdx_license' is not supported in LICENSES/...\n" . $herecurr);
+ 					}
++					if ($realfile =~ m@^Documentation/devicetree/bindings/@ &&
++					    not $spdx_license =~ /GPL-2\.0.*BSD-2-Clause/) {
++						my $msg_level = \&WARN;
++						$msg_level = \&CHK if ($file);
++						if (&{$msg_level}("SPDX_LICENSE_TAG",
++
++								  "DT binding documents should be licensed (GPL-2.0-only OR BSD-2-Clause)\n" . $herecurr) &&
++						    $fix) {
++							$fixed[$fixlinenr] =~ s/SPDX-License-Identifier: .*/SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)/;
++						}
++					}
+ 				}
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from chenqiwu@xiaomi.com are
+Patches currently in -mm which might be from lkundrak@v3.sk are
 
-mm-slubc-replace-cpu_slab-partial-with-wrapped-apis.patch
-mm-slubc-replace-kmem_cache-cpu_partial-with-wrapped-apis.patch
-mm-sparsemem-use-wrapped-macros-instead-of-open-coding.patch
-mm-fix-ambiguous-comments-for-better-code-readability.patch
-lib-rbtree-fix-coding-style-of-assignments.patch
+checkpatch-check-spdx-tags-in-yaml-files.patch
+checkpatch-check-proper-licensing-of-devicetree-bindings.patch
