@@ -1,16 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- userfaultfd-wp-hook-userfault-handler-to-write-protection-fault.patch added
- to -mm tree
-Date: Mon, 09 Mar 2020 20:41:17 -0700
-Message-ID: <20200310034117.va9KWVTQS%akpm@linux-foundation.org>
+Subject: + userfaultfd-wp-add-wp-pagetable-tracking-to-x86.patch
+ added to -mm tree
+Date: Mon, 09 Mar 2020 20:41:20 -0700
+Message-ID: <20200310034120.sUzGmKzXC%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53560 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53610 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726195AbgCJDlT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Mar 2020 23:41:19 -0400
+        id S1726195AbgCJDlX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Mar 2020 23:41:23 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@con
 
 
 The patch titled
-     Subject: userfaultfd: wp: hook userfault handler to write protection fault
+     Subject: userfaultfd: wp: add WP pagetable tracking to x86
 has been added to the -mm tree.  Its filename is
-     userfaultfd-wp-hook-userfault-handler-to-write-protection-fault.patch
+     userfaultfd-wp-add-wp-pagetable-tracking-to-x86.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-wp-hook-userfault-handler-to-write-protection-fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-wp-add-wp-pagetable-tracking-to-x86.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-wp-hook-userfault-handler-to-write-protection-fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-wp-add-wp-pagetable-tracking-to-x86.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +39,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: wp: hook userfault handler to write protection fault
+Subject: userfaultfd: wp: add WP pagetable tracking to x86
 
-There are several cases write protection fault happens.  It could be a
-write to zero page, swaped page or userfault write protected page.  When
-the fault happens, there is no way to know if userfault write protect the
-page before.  Here we just blindly issue a userfault notification for vma
-with VM_UFFD_WP regardless if app write protects it yet.  Application
-should be ready to handle such wp fault.
+Accurate userfaultfd WP tracking is possible by tracking exactly which
+virtual memory ranges were writeprotected by userland.  We can't relay
+only on the RW bit of the mapped pagetable because that information is
+destroyed by fork() or KSM or swap.  If we were to relay on that, we'd
+need to stay on the safe side and generate false positive wp faults for
+every swapped out page.
 
-In the swapin case, always swapin as readonly.  This will cause false
-positive userfaults.  We need to decide later if to eliminate them with a
-flag like soft-dirty in the swap entry (see _PAGE_SWP_SOFT_DIRTY).
-
-hugetlbfs wouldn't need to worry about swapouts but and tmpfs would be
-handled by a swap entry bit like anonymous memory.
-
-The main problem with no easy solution to eliminate the false positives,
-will be if/when userfaultfd is extended to real filesystem pagecache. 
-When the pagecache is freed by reclaim we can't leave the radix tree
-pinned if the inode and in turn the radix tree is reclaimed as well.
-
-The estimation is that full accuracy and lack of false positives could be
-easily provided only to anonymous memory (as long as there's no fork or as
-long as MADV_DONTFORK is used on the userfaultfd anonymous range) tmpfs
-and hugetlbfs, it's most certainly worth to achieve it but in a later
-incremental patch.
-
-[peterx@redhat.com: don't conditionally drop FAULT_FLAG_WRITE in do_swap_page]
-Link: http://lkml.kernel.org/r/20200220163112.11409-3-peterx@redhat.com
+[peterx@redhat.com: append _PAGE_UFD_WP to _PAGE_CHG_MASK]
+Link: http://lkml.kernel.org/r/20200220163112.11409-4-peterx@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Reviewed-by: Jerome Glisse <jglisse@redhat.com>
-Cc: Shaohua Li <shli@fb.com>
+Reviewed-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Bobby Powers <bobbypowers@gmail.com>
 Cc:  Brian Geffon <bgeffon@google.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -90,39 +70,250 @@ Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ arch/x86/Kconfig                     |    1 
+ arch/x86/include/asm/pgtable.h       |   52 +++++++++++++++++++++++++
+ arch/x86/include/asm/pgtable_64.h    |    8 +++
+ arch/x86/include/asm/pgtable_types.h |   11 ++++-
+ include/asm-generic/pgtable.h        |    1 
+ include/asm-generic/pgtable_uffd.h   |   51 ++++++++++++++++++++++++
+ init/Kconfig                         |    5 ++
+ 7 files changed, 127 insertions(+), 2 deletions(-)
 
---- a/mm/memory.c~userfaultfd-wp-hook-userfault-handler-to-write-protection-fault
-+++ a/mm/memory.c
-@@ -2752,6 +2752,11 @@ static vm_fault_t do_wp_page(struct vm_f
- {
- 	struct vm_area_struct *vma = vmf->vma;
+--- a/arch/x86/include/asm/pgtable_64.h~userfaultfd-wp-add-wp-pagetable-tracking-to-x86
++++ a/arch/x86/include/asm/pgtable_64.h
+@@ -189,7 +189,7 @@ extern void sync_global_pgds(unsigned lo
+  *
+  * |     ...            | 11| 10|  9|8|7|6|5| 4| 3|2| 1|0| <- bit number
+  * |     ...            |SW3|SW2|SW1|G|L|D|A|CD|WT|U| W|P| <- bit names
+- * | TYPE (59-63) | ~OFFSET (9-58)  |0|0|X|X| X| X|X|SD|0| <- swp entry
++ * | TYPE (59-63) | ~OFFSET (9-58)  |0|0|X|X| X| X|F|SD|0| <- swp entry
+  *
+  * G (8) is aliased and used as a PROT_NONE indicator for
+  * !present ptes.  We need to start storing swap entries above
+@@ -197,9 +197,15 @@ extern void sync_global_pgds(unsigned lo
+  * erratum where they can be incorrectly set by hardware on
+  * non-present PTEs.
+  *
++ * SD Bits 1-4 are not used in non-present format and available for
++ * special use described below:
++ *
+  * SD (1) in swp entry is used to store soft dirty bit, which helps us
+  * remember soft dirty over page migration
+  *
++ * F (2) in swp entry is used to record when a pagetable is
++ * writeprotected by userfaultfd WP support.
++ *
+  * Bit 7 in swp entry should be 0 because pmd_present checks not only P,
+  * but also L and G.
+  *
+--- a/arch/x86/include/asm/pgtable.h~userfaultfd-wp-add-wp-pagetable-tracking-to-x86
++++ a/arch/x86/include/asm/pgtable.h
+@@ -25,6 +25,7 @@
+ #include <asm/x86_init.h>
+ #include <asm/fpu/xstate.h>
+ #include <asm/fpu/api.h>
++#include <asm-generic/pgtable_uffd.h>
  
-+	if (userfaultfd_wp(vma)) {
-+		pte_unmap_unlock(vmf->pte, vmf->ptl);
-+		return handle_userfault(vmf, VM_UFFD_WP);
-+	}
+ extern pgd_t early_top_pgt[PTRS_PER_PGD];
+ int __init __early_make_pgtable(unsigned long address, pmdval_t pmd);
+@@ -313,6 +314,23 @@ static inline pte_t pte_clear_flags(pte_
+ 	return native_make_pte(v & ~clear);
+ }
+ 
++#ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
++static inline int pte_uffd_wp(pte_t pte)
++{
++	return pte_flags(pte) & _PAGE_UFFD_WP;
++}
 +
- 	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
- 	if (!vmf->page) {
- 		/*
-@@ -3949,8 +3954,11 @@ static inline vm_fault_t create_huge_pmd
- /* `inline' is required to avoid gcc 4.1.2 build error */
- static inline vm_fault_t wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
++static inline pte_t pte_mkuffd_wp(pte_t pte)
++{
++	return pte_set_flags(pte, _PAGE_UFFD_WP);
++}
++
++static inline pte_t pte_clear_uffd_wp(pte_t pte)
++{
++	return pte_clear_flags(pte, _PAGE_UFFD_WP);
++}
++#endif /* CONFIG_HAVE_ARCH_USERFAULTFD_WP */
++
+ static inline pte_t pte_mkclean(pte_t pte)
  {
--	if (vma_is_anonymous(vmf->vma))
-+	if (vma_is_anonymous(vmf->vma)) {
-+		if (userfaultfd_wp(vmf->vma))
-+			return handle_userfault(vmf, VM_UFFD_WP);
- 		return do_huge_pmd_wp_page(vmf, orig_pmd);
-+	}
- 	if (vmf->vma->vm_ops->huge_fault)
- 		return vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PMD);
+ 	return pte_clear_flags(pte, _PAGE_DIRTY);
+@@ -392,6 +410,23 @@ static inline pmd_t pmd_clear_flags(pmd_
+ 	return native_make_pmd(v & ~clear);
+ }
  
++#ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
++static inline int pmd_uffd_wp(pmd_t pmd)
++{
++	return pmd_flags(pmd) & _PAGE_UFFD_WP;
++}
++
++static inline pmd_t pmd_mkuffd_wp(pmd_t pmd)
++{
++	return pmd_set_flags(pmd, _PAGE_UFFD_WP);
++}
++
++static inline pmd_t pmd_clear_uffd_wp(pmd_t pmd)
++{
++	return pmd_clear_flags(pmd, _PAGE_UFFD_WP);
++}
++#endif /* CONFIG_HAVE_ARCH_USERFAULTFD_WP */
++
+ static inline pmd_t pmd_mkold(pmd_t pmd)
+ {
+ 	return pmd_clear_flags(pmd, _PAGE_ACCESSED);
+@@ -1377,6 +1412,23 @@ static inline pmd_t pmd_swp_clear_soft_d
+ #endif
+ #endif
+ 
++#ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
++static inline pte_t pte_swp_mkuffd_wp(pte_t pte)
++{
++	return pte_set_flags(pte, _PAGE_SWP_UFFD_WP);
++}
++
++static inline int pte_swp_uffd_wp(pte_t pte)
++{
++	return pte_flags(pte) & _PAGE_SWP_UFFD_WP;
++}
++
++static inline pte_t pte_swp_clear_uffd_wp(pte_t pte)
++{
++	return pte_clear_flags(pte, _PAGE_SWP_UFFD_WP);
++}
++#endif /* CONFIG_HAVE_ARCH_USERFAULTFD_WP */
++
+ #define PKRU_AD_BIT 0x1
+ #define PKRU_WD_BIT 0x2
+ #define PKRU_BITS_PER_PKEY 2
+--- a/arch/x86/include/asm/pgtable_types.h~userfaultfd-wp-add-wp-pagetable-tracking-to-x86
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -32,6 +32,7 @@
+ 
+ #define _PAGE_BIT_SPECIAL	_PAGE_BIT_SOFTW1
+ #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_SOFTW1
++#define _PAGE_BIT_UFFD_WP	_PAGE_BIT_SOFTW2 /* userfaultfd wrprotected */
+ #define _PAGE_BIT_SOFT_DIRTY	_PAGE_BIT_SOFTW3 /* software dirty tracking */
+ #define _PAGE_BIT_DEVMAP	_PAGE_BIT_SOFTW4
+ 
+@@ -100,6 +101,14 @@
+ #define _PAGE_SWP_SOFT_DIRTY	(_AT(pteval_t, 0))
+ #endif
+ 
++#ifdef CONFIG_HAVE_ARCH_USERFAULTFD_WP
++#define _PAGE_UFFD_WP		(_AT(pteval_t, 1) << _PAGE_BIT_UFFD_WP)
++#define _PAGE_SWP_UFFD_WP	_PAGE_USER
++#else
++#define _PAGE_UFFD_WP		(_AT(pteval_t, 0))
++#define _PAGE_SWP_UFFD_WP	(_AT(pteval_t, 0))
++#endif
++
+ #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
+ #define _PAGE_NX	(_AT(pteval_t, 1) << _PAGE_BIT_NX)
+ #define _PAGE_DEVMAP	(_AT(u64, 1) << _PAGE_BIT_DEVMAP)
+@@ -118,7 +127,7 @@
+  */
+ #define _PAGE_CHG_MASK	(PTE_PFN_MASK | _PAGE_PCD | _PAGE_PWT |		\
+ 			 _PAGE_SPECIAL | _PAGE_ACCESSED | _PAGE_DIRTY |	\
+-			 _PAGE_SOFT_DIRTY | _PAGE_DEVMAP)
++			 _PAGE_SOFT_DIRTY | _PAGE_DEVMAP | _PAGE_UFFD_WP)
+ #define _HPAGE_CHG_MASK (_PAGE_CHG_MASK | _PAGE_PSE)
+ 
+ /*
+--- a/arch/x86/Kconfig~userfaultfd-wp-add-wp-pagetable-tracking-to-x86
++++ a/arch/x86/Kconfig
+@@ -230,6 +230,7 @@ config X86
+ 	select VIRT_TO_BUS
+ 	select X86_FEATURE_NAMES		if PROC_FS
+ 	select PROC_PID_ARCH_STATUS		if PROC_FS
++	select HAVE_ARCH_USERFAULTFD_WP		if USERFAULTFD
+ 
+ config INSTRUCTION_DECODER
+ 	def_bool y
+--- a/include/asm-generic/pgtable.h~userfaultfd-wp-add-wp-pagetable-tracking-to-x86
++++ a/include/asm-generic/pgtable.h
+@@ -10,6 +10,7 @@
+ #include <linux/mm_types.h>
+ #include <linux/bug.h>
+ #include <linux/errno.h>
++#include <asm-generic/pgtable_uffd.h>
+ 
+ #if 5 - defined(__PAGETABLE_P4D_FOLDED) - defined(__PAGETABLE_PUD_FOLDED) - \
+ 	defined(__PAGETABLE_PMD_FOLDED) != CONFIG_PGTABLE_LEVELS
+--- /dev/null
++++ a/include/asm-generic/pgtable_uffd.h
+@@ -0,0 +1,51 @@
++#ifndef _ASM_GENERIC_PGTABLE_UFFD_H
++#define _ASM_GENERIC_PGTABLE_UFFD_H
++
++#ifndef CONFIG_HAVE_ARCH_USERFAULTFD_WP
++static __always_inline int pte_uffd_wp(pte_t pte)
++{
++	return 0;
++}
++
++static __always_inline int pmd_uffd_wp(pmd_t pmd)
++{
++	return 0;
++}
++
++static __always_inline pte_t pte_mkuffd_wp(pte_t pte)
++{
++	return pte;
++}
++
++static __always_inline pmd_t pmd_mkuffd_wp(pmd_t pmd)
++{
++	return pmd;
++}
++
++static __always_inline pte_t pte_clear_uffd_wp(pte_t pte)
++{
++	return pte;
++}
++
++static __always_inline pmd_t pmd_clear_uffd_wp(pmd_t pmd)
++{
++	return pmd;
++}
++
++static __always_inline pte_t pte_swp_mkuffd_wp(pte_t pte)
++{
++	return pte;
++}
++
++static __always_inline int pte_swp_uffd_wp(pte_t pte)
++{
++	return 0;
++}
++
++static __always_inline pte_t pte_swp_clear_uffd_wp(pte_t pte)
++{
++	return pte;
++}
++#endif /* CONFIG_HAVE_ARCH_USERFAULTFD_WP */
++
++#endif /* _ASM_GENERIC_PGTABLE_UFFD_H */
+--- a/init/Kconfig~userfaultfd-wp-add-wp-pagetable-tracking-to-x86
++++ a/init/Kconfig
+@@ -1553,6 +1553,11 @@ config ADVISE_SYSCALLS
+ 	  applications use these syscalls, you can disable this option to save
+ 	  space.
+ 
++config HAVE_ARCH_USERFAULTFD_WP
++	bool
++	help
++	  Arch has userfaultfd write protection support
++
+ config MEMBARRIER
+ 	bool "Enable membarrier() system call" if EXPERT
+ 	default y
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
