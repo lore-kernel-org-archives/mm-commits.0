@@ -1,456 +1,607 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-selftests-add-write-protect-test.patch
- added to -mm tree
-Date: Mon, 09 Mar 2020 20:42:15 -0700
-Message-ID: <20200310034215.W9ICV72Ic%akpm@linux-foundation.org>
-References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Tue, 10 Mar 2020 10:37:18 -0700
+Message-ID: <20200310173718.h5ENwWHYU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54512 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39272 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726195AbgCJDmU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Mar 2020 23:42:20 -0400
-In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
+        id S1726271AbgCJRhU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Mar 2020 13:37:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@cons.org, david@redhat.com, dgilbert@redhat.com, dplotnikov@virtuozzo.com, gokhale2@llnl.gov, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, kirill@shutemov.name, mcfadden8@llnl.gov, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, peterx@redhat.com, riel@redhat.com, rppt@linux.vnet.ibm.com, shli@fb.com, xemul@parallels.com, xemul@virtuozzo.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: selftests: add write-protect test
-has been added to the -mm tree.  Its filename is
-     userfaultfd-selftests-add-write-protect-test.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-add-write-protect-test.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-add-write-protect-test.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: userfaultfd: selftests: add write-protect test
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Add uffd tests for write protection.
-
-Instead of introducing new tests for it, let's simply squashing uffd-wp
-tests into existing uffd-missing test cases.  Changes are:
-
-(1) Bouncing tests
-
-  We do the write-protection in two ways during the bouncing test:
-
-  - By using UFFDIO_COPY_MODE_WP when resolving MISSING pages: then
-    we'll make sure for each bounce process every single page will be
-    at least fault twice: once for MISSING, once for WP.
-
-  - By direct call UFFDIO_WRITEPROTECT on existing faulted memories:
-    To further torture the explicit page protection procedures of
-    uffd-wp, we split each bounce procedure into two halves (in the
-    background thread): the first half will be MISSING+WP for each
-    page as explained above.  After the first half, we write protect
-    the faulted region in the background thread to make sure at least
-    half of the pages will be write protected again which is the first
-    half to test the new UFFDIO_WRITEPROTECT call.  Then we continue
-    with the 2nd half, which will contain both MISSING and WP faulting
-    tests for the 2nd half and WP-only faults from the 1st half.
-
-(2) Event/Signal test
-
-  Mostly previous tests but will do MISSING+WP for each page.  For
-  sigbus-mode test we'll need to provide standalone path to handle the
-  write protection faults.
-
-For all tests, do statistics as well for uffd-wp pages.
-
-Link: http://lkml.kernel.org/r/20200220163112.11409-20-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Bobby Powers <bobbypowers@gmail.com>
-Cc:  Brian Geffon <bgeffon@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Denis Plotnikov <dplotnikov@virtuozzo.com>
-Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Martin Cracauer <cracauer@cons.org>
-Cc: Marty McFadden <mcfadden8@llnl.gov>
-Cc: Maya Gokhale <gokhale2@llnl.gov>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |  157 +++++++++++++++++----
- 1 file changed, 133 insertions(+), 24 deletions(-)
+ Documentation/devicetree/bindings/arm/psci.yaml    |    8 
+ arch/arm64/mm/context.c                            |    6 
+ drivers/bus/ti-sysc.c                              |    4 
+ drivers/gpu/drm/i915/display/intel_display_power.c |   29 --
+ drivers/gpu/drm/i915/gt/intel_workarounds.c        |    7 
+ drivers/gpu/drm/i915/i915_drv.h                    |    4 
+ drivers/gpu/drm/virtio/virtgpu_object.c            |    4 
+ drivers/hwmon/pmbus/xdpe12284.c                    |    8 
+ fs/io-wq.c                                         |   68 -----
+ fs/io-wq.h                                         |    4 
+ include/sound/soc.h                                |    3 
+ sound/soc/soc-pcm.c                                |  142 -----------
+ sound/soc/stm/stm32_sai_sub.c                      |    4 
+ 13 files changed, 291 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-add-write-protect-test
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -54,6 +54,7 @@
- #include <linux/userfaultfd.h>
- #include <setjmp.h>
- #include <stdbool.h>
-+#include <assert.h>
+--- a/arch/arm64/mm/context.c~linux-next-git-rejects
++++ a/arch/arm64/mm/context.c
+@@ -263,11 +263,6 @@ asmlinkage void post_ttbr_update_workaro
+ 			ARM64_WORKAROUND_CAVIUM_27456));
+ }
  
- #include "../kselftest.h"
+-<<<<<<< HEAD
+-static int asids_update_limit(void)
+-{
+-=======
+-void cpu_do_switch_mm(phys_addr_t pgd_phys, struct mm_struct *mm)
+ {
+ 	unsigned long ttbr1 = read_sysreg(ttbr1_el1);
+ 	unsigned long asid = ASID(mm);
+@@ -294,7 +289,6 @@ void cpu_do_switch_mm(phys_addr_t pgd_ph
  
-@@ -76,6 +77,8 @@ static int test_type;
- #define ALARM_INTERVAL_SECS 10
- static volatile bool test_uffdio_copy_eexist = true;
- static volatile bool test_uffdio_zeropage_eexist = true;
-+/* Whether to test uffd write-protection */
-+static bool test_uffdio_wp = false;
+ static int asids_update_limit(void)
+ {
+->>>>>>> linux-next/akpm-base
+ 	unsigned long num_available_asids = NUM_USER_ASIDS;
  
- static bool map_shared;
- static int huge_fd;
-@@ -90,6 +93,7 @@ pthread_attr_t attr;
- struct uffd_stats {
- 	int cpu;
- 	unsigned long missing_faults;
-+	unsigned long wp_faults;
- };
+ 	if (arm64_kernel_unmapped_at_el0())
+--- a/Documentation/devicetree/bindings/arm/psci.yaml~linux-next-git-rejects
++++ a/Documentation/devicetree/bindings/arm/psci.yaml
+@@ -101,14 +101,11 @@ properties:
  
- /* pthread_mutex_t starts at page offset 0 */
-@@ -139,9 +143,29 @@ static void uffd_stats_reset(struct uffd
- 	for (i = 0; i < n_cpus; i++) {
- 		uffd_stats[i].cpu = i;
- 		uffd_stats[i].missing_faults = 0;
-+		uffd_stats[i].wp_faults = 0;
+       [1] Kernel documentation - ARM idle states bindings
+         Documentation/devicetree/bindings/arm/idle-states.yaml
+-<<<<<<< HEAD
+-=======
+ 
+   "#power-domain-cells":
+     description:
+       The number of cells in a PM domain specifier as per binding in [3].
+       Must be 0 as to represent a single PM domain.
+->>>>>>> linux-next/akpm-base
+ 
+ patternProperties:
+   "^power-domain-":
+@@ -131,10 +128,6 @@ patternProperties:
+       helps to implement support for OSI mode and OS implementations may choose
+       to mandate it.
+ 
+-<<<<<<< HEAD
+-      [3] Documentation/devicetree/bindings/power/power-domain.yaml
+-      [4] Documentation/devicetree/bindings/power/domain-idle-state.yaml
+-=======
+       [3] Documentation/devicetree/bindings/power/power_domain.txt
+       [4] Documentation/devicetree/bindings/power/domain-idle-state.yaml
+ 
+@@ -143,7 +136,6 @@ patternProperties:
+     description:
+       List of phandles and PM domain specifiers, as defined by bindings of the
+       PM domain provider.
+->>>>>>> linux-next/akpm-base
+ 
+ required:
+   - compatible
+--- a/drivers/bus/ti-sysc.c~linux-next-git-rejects
++++ a/drivers/bus/ti-sysc.c
+@@ -1731,11 +1731,7 @@ static void sysc_init_module_quirks(stru
+ 		return;
+ 
+ 	if (ddata->cfg.quirks & SYSC_MODULE_QUIRK_HDQ1W) {
+-<<<<<<< HEAD
+-		ddata->clk_disable_quirk = sysc_pre_reset_quirk_hdq1w;
+-=======
+ 		ddata->pre_reset_quirk = sysc_pre_reset_quirk_hdq1w;
+->>>>>>> linux-next/akpm-base
+ 
+ 		return;
+ 	}
+--- a/drivers/gpu/drm/i915/display/intel_display_power.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/display/intel_display_power.c
+@@ -4526,16 +4526,6 @@ static void icl_mbus_init(struct drm_i91
+ 		MBUS_ABOX_BT_CREDIT_POOL2_MASK |
+ 		MBUS_ABOX_B_CREDIT_MASK |
+ 		MBUS_ABOX_BW_CREDIT_MASK;
+-<<<<<<< HEAD
+-
+-	val = I915_READ(MBUS_ABOX_CTL);
+-	val &= ~mask;
+-	val |= MBUS_ABOX_BT_CREDIT_POOL1(16) |
+-		MBUS_ABOX_BT_CREDIT_POOL2(16) |
+-		MBUS_ABOX_B_CREDIT(1) |
+-		MBUS_ABOX_BW_CREDIT(1);
+-	I915_WRITE(MBUS_ABOX_CTL, val);
+-=======
+ 	val = MBUS_ABOX_BT_CREDIT_POOL1(16) |
+ 		MBUS_ABOX_BT_CREDIT_POOL2(16) |
+ 		MBUS_ABOX_B_CREDIT(1) |
+@@ -4546,7 +4536,6 @@ static void icl_mbus_init(struct drm_i91
+ 		intel_de_rmw(dev_priv, MBUS_ABOX1_CTL, mask, val);
+ 		intel_de_rmw(dev_priv, MBUS_ABOX2_CTL, mask, val);
+ 	}
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static void hsw_assert_cdclk(struct drm_i915_private *dev_priv)
+@@ -5044,23 +5033,6 @@ static void tgl_bw_buddy_init(struct drm
+ 		intel_de_write(dev_priv, BW_BUDDY1_CTL, BW_BUDDY_DISABLE);
+ 		intel_de_write(dev_priv, BW_BUDDY2_CTL, BW_BUDDY_DISABLE);
+ 	} else {
+-<<<<<<< HEAD
+-		u32 val;
+-
+-		I915_WRITE(BW_BUDDY1_PAGE_MASK, table[i].page_mask);
+-		I915_WRITE(BW_BUDDY2_PAGE_MASK, table[i].page_mask);
+-
+-		/* Wa_22010178259:tgl */
+-		val = I915_READ(BW_BUDDY1_CTL);
+-		val &= ~BW_BUDDY_TLB_REQ_TIMER_MASK;
+-		val |= REG_FIELD_PREP(BW_BUDDY_TLB_REQ_TIMER_MASK, 0x8);
+-		I915_WRITE(BW_BUDDY1_CTL, val);
+-
+-		val = I915_READ(BW_BUDDY2_CTL);
+-		val &= ~BW_BUDDY_TLB_REQ_TIMER_MASK;
+-		val |= REG_FIELD_PREP(BW_BUDDY_TLB_REQ_TIMER_MASK, 0x8);
+-		I915_WRITE(BW_BUDDY2_CTL, val);
+-=======
+ 		intel_de_write(dev_priv, BW_BUDDY1_PAGE_MASK,
+ 			       table[i].page_mask);
+ 		intel_de_write(dev_priv, BW_BUDDY2_PAGE_MASK,
+@@ -5073,7 +5045,6 @@ static void tgl_bw_buddy_init(struct drm
+ 		intel_de_rmw(dev_priv, BW_BUDDY2_CTL,
+ 			     BW_BUDDY_TLB_REQ_TIMER_MASK,
+ 			     REG_FIELD_PREP(BW_BUDDY_TLB_REQ_TIMER_MASK, 0x8));
+->>>>>>> linux-next/akpm-base
  	}
  }
  
-+static void uffd_stats_report(struct uffd_stats *stats, int n_cpus)
-+{
-+	int i;
-+	unsigned long long miss_total = 0, wp_total = 0;
-+
-+	for (i = 0; i < n_cpus; i++) {
-+		miss_total += stats[i].missing_faults;
-+		wp_total += stats[i].wp_faults;
-+	}
-+
-+	printf("userfaults: %llu missing (", miss_total);
-+	for (i = 0; i < n_cpus; i++)
-+		printf("%lu+", stats[i].missing_faults);
-+	printf("\b), %llu wp (", wp_total);
-+	for (i = 0; i < n_cpus; i++)
-+		printf("%lu+", stats[i].wp_faults);
-+	printf("\b)\n");
-+}
-+
- static int anon_release_pages(char *rel_area)
+--- a/drivers/gpu/drm/i915/gt/intel_workarounds.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/gt/intel_workarounds.c
+@@ -580,9 +580,6 @@ static void icl_ctx_workarounds_init(str
+ static void tgl_ctx_workarounds_init(struct intel_engine_cs *engine,
+ 				     struct i915_wa_list *wal)
  {
- 	int ret = 0;
-@@ -262,10 +286,15 @@ struct uffd_test_ops {
- 	void (*alias_mapping)(__u64 *start, size_t len, unsigned long offset);
- };
+-<<<<<<< HEAD
+-	/* Wa_1409142259:tgl */
+-=======
+ 	/*
+ 	 * Wa_1409142259:tgl
+ 	 * Wa_1409347922:tgl
+@@ -592,7 +589,6 @@ static void tgl_ctx_workarounds_init(str
+ 	 * Wa_1409178076:tgl
+ 	 * Wa_1408979724:tgl
+ 	 */
+->>>>>>> linux-next/akpm-base
+ 	WA_SET_BIT_MASKED(GEN11_COMMON_SLICE_CHICKEN3,
+ 			  GEN12_DISABLE_CPS_AWARE_COLOR_PIPE);
  
--#define ANON_EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
-+#define SHMEM_EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
- 					 (1 << _UFFDIO_COPY) | \
- 					 (1 << _UFFDIO_ZEROPAGE))
+@@ -605,14 +601,11 @@ static void tgl_ctx_workarounds_init(str
+ 	 */
+ 	wa_add(wal, FF_MODE2, FF_MODE2_TDS_TIMER_MASK,
+ 	       FF_MODE2_TDS_TIMER_128, 0);
+-<<<<<<< HEAD
+-=======
  
-+#define ANON_EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
-+					 (1 << _UFFDIO_COPY) | \
-+					 (1 << _UFFDIO_ZEROPAGE) | \
-+					 (1 << _UFFDIO_WRITEPROTECT))
-+
- static struct uffd_test_ops anon_uffd_test_ops = {
- 	.expected_ioctls = ANON_EXPECTED_IOCTLS,
- 	.allocate_area	= anon_allocate_area,
-@@ -274,7 +303,7 @@ static struct uffd_test_ops anon_uffd_te
- };
- 
- static struct uffd_test_ops shmem_uffd_test_ops = {
--	.expected_ioctls = ANON_EXPECTED_IOCTLS,
-+	.expected_ioctls = SHMEM_EXPECTED_IOCTLS,
- 	.allocate_area	= shmem_allocate_area,
- 	.release_pages	= shmem_release_pages,
- 	.alias_mapping = noop_alias_mapping,
-@@ -298,6 +327,21 @@ static int my_bcmp(char *str1, char *str
- 	return 0;
+ 	/* WaDisableGPGPUMidThreadPreemption:tgl */
+ 	WA_SET_FIELD_MASKED(GEN8_CS_CHICKEN1,
+ 			    GEN9_PREEMPT_GPGPU_LEVEL_MASK,
+ 			    GEN9_PREEMPT_GPGPU_THREAD_GROUP_LEVEL);
+->>>>>>> linux-next/akpm-base
  }
  
-+static void wp_range(int ufd, __u64 start, __u64 len, bool wp)
-+{
-+	struct uffdio_writeprotect prms = { 0 };
-+
-+	/* Write protection page faults */
-+	prms.range.start = start;
-+	prms.range.len = len;
-+	/* Undo write-protect, do wakeup after that */
-+	prms.mode = wp ? UFFDIO_WRITEPROTECT_MODE_WP : 0;
-+
-+	if (ioctl(ufd, UFFDIO_WRITEPROTECT, &prms))
-+		fprintf(stderr, "clear WP failed for address 0x%Lx\n",
-+			start), exit(1);
-+}
-+
- static void *locking_thread(void *arg)
- {
- 	unsigned long cpu = (unsigned long) arg;
-@@ -436,7 +480,10 @@ static int __copy_page(int ufd, unsigned
- 	uffdio_copy.dst = (unsigned long) area_dst + offset;
- 	uffdio_copy.src = (unsigned long) area_src + offset;
- 	uffdio_copy.len = page_size;
--	uffdio_copy.mode = 0;
-+	if (test_uffdio_wp)
-+		uffdio_copy.mode = UFFDIO_COPY_MODE_WP;
-+	else
-+		uffdio_copy.mode = 0;
- 	uffdio_copy.copy = 0;
- 	if (ioctl(ufd, UFFDIO_COPY, &uffdio_copy)) {
- 		/* real retval in ufdio_copy.copy */
-@@ -493,15 +540,21 @@ static void uffd_handle_page_fault(struc
- 		fprintf(stderr, "unexpected msg event %u\n",
- 			msg->event), exit(1);
+ static void
+--- a/drivers/gpu/drm/i915/i915_drv.h~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/i915_drv.h
+@@ -501,11 +501,7 @@ struct i915_psr {
+ 	u16 su_x_granularity;
+ 	bool dc3co_enabled;
+ 	u32 dc3co_exit_delay;
+-<<<<<<< HEAD
+-	struct delayed_work idle_work;
+-=======
+ 	struct delayed_work dc3co_work;
+->>>>>>> linux-next/akpm-base
+ 	bool force_mode_changed;
+ };
  
--	if (bounces & BOUNCE_VERIFY &&
--	    msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
--		fprintf(stderr, "unexpected write fault\n"), exit(1);
-+	if (msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WP) {
-+		wp_range(uffd, msg->arg.pagefault.address, page_size, false);
-+		stats->wp_faults++;
-+	} else {
-+		/* Missing page faults */
-+		if (bounces & BOUNCE_VERIFY &&
-+		    msg->arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
-+			fprintf(stderr, "unexpected write fault\n"), exit(1);
+--- a/drivers/gpu/drm/virtio/virtgpu_object.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/virtio/virtgpu_object.c
+@@ -123,11 +123,7 @@ struct drm_gem_object *virtio_gpu_create
+ 	if (!bo)
+ 		return NULL;
  
--	offset = (char *)(unsigned long)msg->arg.pagefault.address - area_dst;
--	offset &= ~(page_size-1);
-+		offset = (char *)(unsigned long)msg->arg.pagefault.address - area_dst;
-+		offset &= ~(page_size-1);
- 
--	if (copy_page(uffd, offset))
--		stats->missing_faults++;
-+		if (copy_page(uffd, offset))
-+			stats->missing_faults++;
-+	}
+-<<<<<<< HEAD
+-	bo->base.base.funcs = &virtio_gpu_gem_funcs;
+-=======
+ 	bo->base.base.funcs = &virtio_gpu_shmem_funcs;
+->>>>>>> linux-next/akpm-base
+ 	bo->base.map_cached = true;
+ 	return &bo->base.base;
  }
+--- a/drivers/hwmon/pmbus/xdpe12284.c~linux-next-git-rejects
++++ a/drivers/hwmon/pmbus/xdpe12284.c
+@@ -18,12 +18,8 @@
+ #define XDPE122_AMD_625MV		0x10 /* AMD mode 6.25mV */
+ #define XDPE122_PAGE_NUM		2
  
- static void *uffd_poll_thread(void *arg)
-@@ -587,11 +640,30 @@ static void *uffd_read_thread(void *arg)
- static void *background_thread(void *arg)
+-<<<<<<< HEAD
+-static int xdpe122_read_word_data(struct i2c_client *client, int page, int reg)
+-=======
+ static int xdpe122_read_word_data(struct i2c_client *client, int page,
+ 				  int phase, int reg)
+->>>>>>> linux-next/akpm-base
  {
- 	unsigned long cpu = (unsigned long) arg;
--	unsigned long page_nr;
-+	unsigned long page_nr, start_nr, mid_nr, end_nr;
-+
-+	start_nr = cpu * nr_pages_per_cpu;
-+	end_nr = (cpu+1) * nr_pages_per_cpu;
-+	mid_nr = (start_nr + end_nr) / 2;
+ 	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
+ 	long val;
+@@ -34,11 +30,7 @@ static int xdpe122_read_word_data(struct
+ 	switch (reg) {
+ 	case PMBUS_VOUT_OV_FAULT_LIMIT:
+ 	case PMBUS_VOUT_UV_FAULT_LIMIT:
+-<<<<<<< HEAD
+-		ret = pmbus_read_word_data(client, page, reg);
+-=======
+ 		ret = pmbus_read_word_data(client, page, phase, reg);
+->>>>>>> linux-next/akpm-base
+ 		if (ret < 0)
+ 			return ret;
  
--	for (page_nr = cpu * nr_pages_per_cpu;
--	     page_nr < (cpu+1) * nr_pages_per_cpu;
--	     page_nr++)
-+	/* Copy the first half of the pages */
-+	for (page_nr = start_nr; page_nr < mid_nr; page_nr++)
-+		copy_page_retry(uffd, page_nr * page_size);
-+
-+	/*
-+	 * If we need to test uffd-wp, set it up now.  Then we'll have
-+	 * at least the first half of the pages mapped already which
-+	 * can be write-protected for testing
-+	 */
-+	if (test_uffdio_wp)
-+		wp_range(uffd, (unsigned long)area_dst + start_nr * page_size,
-+			nr_pages_per_cpu * page_size, true);
-+
-+	/*
-+	 * Continue the 2nd half of the page copying, handling write
-+	 * protection faults if any
-+	 */
-+	for (page_nr = mid_nr; page_nr < end_nr; page_nr++)
- 		copy_page_retry(uffd, page_nr * page_size);
+--- a/fs/io-wq.c~linux-next-git-rejects
++++ a/fs/io-wq.c
+@@ -510,53 +510,6 @@ get_next:
  
- 	return NULL;
-@@ -753,17 +825,31 @@ static int faulting_process(int signal_t
- 	}
- 
- 	for (nr = 0; nr < split_nr_pages; nr++) {
-+		int steps = 1;
-+		unsigned long offset = nr * page_size;
-+
- 		if (signal_test) {
- 			if (sigsetjmp(*sigbuf, 1) != 0) {
--				if (nr == lastnr) {
-+				if (steps == 1 && nr == lastnr) {
- 					fprintf(stderr, "Signal repeated\n");
- 					return 1;
- 				}
- 
- 				lastnr = nr;
- 				if (signal_test == 1) {
--					if (copy_page(uffd, nr * page_size))
--						signalled++;
-+					if (steps == 1) {
-+						/* This is a MISSING request */
-+						steps++;
-+						if (copy_page(uffd, offset))
-+							signalled++;
-+					} else {
-+						/* This is a WP request */
-+						assert(steps == 2);
-+						wp_range(uffd,
-+							 (__u64)area_dst +
-+							 offset,
-+							 page_size, false);
-+					}
- 				} else {
- 					signalled++;
- 					continue;
-@@ -776,8 +862,13 @@ static int faulting_process(int signal_t
- 			fprintf(stderr,
- 				"nr %lu memory corruption %Lu %Lu\n",
- 				nr, count,
--				count_verify[nr]), exit(1);
+ 			old_work = work;
+ 			work->func(&work);
+-<<<<<<< HEAD
+-
+-		if (work->files && current->files != work->files) {
+-			task_lock(current);
+-			current->files = work->files;
+-			task_unlock(current);
 -		}
-+				count_verify[nr]);
-+	        }
-+		/*
-+		 * Trigger write protection if there is by writting
-+		 * the same value back.
-+		 */
-+		*area_count(area_dst, nr) = count;
- 	}
+-		if (work->fs && current->fs != work->fs)
+-			current->fs = work->fs;
+-		if (work->mm != worker->mm)
+-			io_wq_switch_mm(worker, work);
+-		if (worker->cur_creds != work->creds)
+-			io_wq_switch_creds(worker, work);
+-		/*
+-		 * OK to set IO_WQ_WORK_CANCEL even for uncancellable work,
+-		 * the worker function will do the right thing.
+-		 */
+-		if (test_bit(IO_WQ_BIT_CANCEL, &wq->state))
+-			work->flags |= IO_WQ_WORK_CANCEL;
+-		if (worker->mm)
+-			work->flags |= IO_WQ_WORK_HAS_MM;
+-
+-		if (wq->get_work) {
+-			put_work = work;
+-			wq->get_work(work);
+-		}
+-
+-		old_work = work;
+-		work->func(&work);
+-
+-		spin_lock_irq(&worker->lock);
+-		worker->cur_work = NULL;
+-		spin_unlock_irq(&worker->lock);
+-
+-		spin_lock_irq(&wqe->lock);
+-
+-		if (hash != -1U) {
+-			wqe->hash_map &= ~BIT_ULL(hash);
+-			wqe->flags &= ~IO_WQE_FLAG_STALLED;
+-		}
+-		if (work && work != old_work) {
+-			spin_unlock_irq(&wqe->lock);
+-
+-			if (put_work && wq->put_work) {
+-				wq->put_work(put_work);
+-				put_work = NULL;
+-=======
+ 			work = (old_work == work) ? NULL : work;
+ 			io_assign_current_work(worker, work);
+ 			wq->free_work(old_work);
+@@ -571,7 +524,6 @@ get_next:
+ 				if (!work)
+ 					goto get_next;
+ 				spin_unlock_irq(&wqe->lock);
+->>>>>>> linux-next/akpm-base
+ 			}
+ 		} while (work);
  
- 	if (signal_test)
-@@ -799,6 +890,11 @@ static int faulting_process(int signal_t
- 				nr, count,
- 				count_verify[nr]), exit(1);
- 		}
-+		/*
-+		 * Trigger write protection if there is by writting
-+		 * the same value back.
-+		 */
-+		*area_count(area_dst, nr) = count;
- 	}
- 
- 	if (uffd_test_ops->release_pages(area_dst))
-@@ -902,6 +998,8 @@ static int userfaultfd_zeropage_test(voi
- 	uffdio_register.range.start = (unsigned long) area_dst;
- 	uffdio_register.range.len = nr_pages * page_size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	if (test_uffdio_wp)
-+		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		fprintf(stderr, "register failure\n"), exit(1);
- 
-@@ -947,6 +1045,8 @@ static int userfaultfd_events_test(void)
- 	uffdio_register.range.start = (unsigned long) area_dst;
- 	uffdio_register.range.len = nr_pages * page_size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	if (test_uffdio_wp)
-+		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		fprintf(stderr, "register failure\n"), exit(1);
- 
-@@ -977,7 +1077,8 @@ static int userfaultfd_events_test(void)
- 		return 1;
- 
- 	close(uffd);
--	printf("userfaults: %ld\n", stats.missing_faults);
-+
-+	uffd_stats_report(&stats, 1);
- 
- 	return stats.missing_faults != nr_pages;
+@@ -791,25 +743,17 @@ static bool io_wq_can_queue(struct io_wq
+ 	return true;
  }
-@@ -1007,6 +1108,8 @@ static int userfaultfd_sig_test(void)
- 	uffdio_register.range.start = (unsigned long) area_dst;
- 	uffdio_register.range.len = nr_pages * page_size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	if (test_uffdio_wp)
-+		uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		fprintf(stderr, "register failure\n"), exit(1);
  
-@@ -1139,6 +1242,8 @@ static int userfaultfd_stress(void)
- 		uffdio_register.range.start = (unsigned long) area_dst;
- 		uffdio_register.range.len = nr_pages * page_size;
- 		uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+		if (test_uffdio_wp)
-+			uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
- 		if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register)) {
- 			fprintf(stderr, "register failure\n");
- 			return 1;
-@@ -1193,6 +1298,11 @@ static int userfaultfd_stress(void)
- 		if (stress(uffd_stats))
- 			return 1;
+-<<<<<<< HEAD
+-static void io_run_cancel(struct io_wq_work *work)
+-{
+-=======
+ static void io_run_cancel(struct io_wq_work *work, struct io_wqe *wqe)
+ {
+ 	struct io_wq *wq = wqe->wq;
  
-+		/* Clear all the write protections if there is any */
-+		if (test_uffdio_wp)
-+			wp_range(uffd, (unsigned long)area_dst,
-+				 nr_pages * page_size, false);
-+
- 		/* unregister */
- 		if (ioctl(uffd, UFFDIO_UNREGISTER, &uffdio_register.range)) {
- 			fprintf(stderr, "unregister failure\n");
-@@ -1231,10 +1341,7 @@ static int userfaultfd_stress(void)
- 		area_src_alias = area_dst_alias;
- 		area_dst_alias = tmp_area;
+->>>>>>> linux-next/akpm-base
+ 	do {
+ 		struct io_wq_work *old_work = work;
  
--		printf("userfaults:");
--		for (cpu = 0; cpu < nr_cpus; cpu++)
--			printf(" %lu", uffd_stats[cpu].missing_faults);
--		printf("\n");
-+		uffd_stats_report(uffd_stats, nr_cpus);
+ 		work->flags |= IO_WQ_WORK_CANCEL;
+ 		work->func(&work);
+ 		work = (work == old_work) ? NULL : work;
+-<<<<<<< HEAD
+-=======
+ 		wq->free_work(old_work);
+->>>>>>> linux-next/akpm-base
+ 	} while (work);
+ }
+ 
+@@ -826,11 +770,7 @@ static void io_wqe_enqueue(struct io_wqe
+ 	 * It's close enough to not be an issue, fork() has the same delay.
+ 	 */
+ 	if (unlikely(!io_wq_can_queue(wqe, acct, work))) {
+-<<<<<<< HEAD
+-		io_run_cancel(work);
+-=======
+ 		io_run_cancel(work, wqe);
+->>>>>>> linux-next/akpm-base
+ 		return;
  	}
  
- 	if (err)
-@@ -1274,6 +1381,8 @@ static void set_test_type(const char *ty
- 	if (!strcmp(type, "anon")) {
- 		test_type = TEST_ANON;
- 		uffd_test_ops = &anon_uffd_test_ops;
-+		/* Only enable write-protect test for anonymous test */
-+		test_uffdio_wp = true;
- 	} else if (!strcmp(type, "hugetlb")) {
- 		test_type = TEST_HUGETLB;
- 		uffd_test_ops = &hugetlb_uffd_test_ops;
+@@ -969,11 +909,7 @@ static enum io_wq_cancel io_wqe_cancel_c
+ 	spin_unlock_irqrestore(&wqe->lock, flags);
+ 
+ 	if (found) {
+-<<<<<<< HEAD
+-		io_run_cancel(work);
+-=======
+ 		io_run_cancel(work, wqe);
+->>>>>>> linux-next/akpm-base
+ 		return IO_WQ_CANCEL_OK;
+ 	}
+ 
+@@ -1048,11 +984,7 @@ static enum io_wq_cancel io_wqe_cancel_w
+ 	spin_unlock_irqrestore(&wqe->lock, flags);
+ 
+ 	if (found) {
+-<<<<<<< HEAD
+-		io_run_cancel(work);
+-=======
+ 		io_run_cancel(work, wqe);
+->>>>>>> linux-next/akpm-base
+ 		return IO_WQ_CANCEL_OK;
+ 	}
+ 
+--- a/fs/io-wq.h~linux-next-git-rejects
++++ a/fs/io-wq.h
+@@ -7,10 +7,6 @@ enum {
+ 	IO_WQ_WORK_CANCEL	= 1,
+ 	IO_WQ_WORK_HASHED	= 4,
+ 	IO_WQ_WORK_UNBOUND	= 32,
+-<<<<<<< HEAD
+-	IO_WQ_WORK_CB		= 128,
+-=======
+->>>>>>> linux-next/akpm-base
+ 	IO_WQ_WORK_NO_CANCEL	= 256,
+ 	IO_WQ_WORK_CONCURRENT	= 512,
+ 
+--- a/include/sound/soc.h~linux-next-git-rejects
++++ a/include/sound/soc.h
+@@ -1166,8 +1166,6 @@ struct snd_soc_pcm_runtime {
+ 	     (i)++)
+ #define for_each_rtd_codec_dai_rollback(rtd, i, dai)		\
+ 	for (; (--(i) >= 0) && ((dai) = rtd->codec_dais[i]);)
+-<<<<<<< HEAD
+-=======
+ 
+ #define for_each_rtd_cpu_dai(rtd, i, dai)\
+ 	for ((i) = 0;						       \
+@@ -1175,7 +1173,6 @@ struct snd_soc_pcm_runtime {
+ 	     (i)++)
+ #define for_each_rtd_cpu_dai_rollback(rtd, i, dai)		\
+ 	for (; (--(i) >= 0) && ((dai) = rtd->cpu_dais[i]);)
+->>>>>>> linux-next/akpm-base
+ 
+ void snd_soc_close_delayed_work(struct snd_soc_pcm_runtime *rtd);
+ 
+--- a/sound/soc/soc-pcm.c~linux-next-git-rejects
++++ a/sound/soc/soc-pcm.c
+@@ -3288,145 +3288,3 @@ int snd_soc_dpcm_can_be_params(struct sn
+ 	return snd_soc_dpcm_check_state(fe, be, stream, state, ARRAY_SIZE(state));
+ }
+ EXPORT_SYMBOL_GPL(snd_soc_dpcm_can_be_params);
+-<<<<<<< HEAD
+-
+-#ifdef CONFIG_DEBUG_FS
+-static const char *dpcm_state_string(enum snd_soc_dpcm_state state)
+-{
+-	switch (state) {
+-	case SND_SOC_DPCM_STATE_NEW:
+-		return "new";
+-	case SND_SOC_DPCM_STATE_OPEN:
+-		return "open";
+-	case SND_SOC_DPCM_STATE_HW_PARAMS:
+-		return "hw_params";
+-	case SND_SOC_DPCM_STATE_PREPARE:
+-		return "prepare";
+-	case SND_SOC_DPCM_STATE_START:
+-		return "start";
+-	case SND_SOC_DPCM_STATE_STOP:
+-		return "stop";
+-	case SND_SOC_DPCM_STATE_SUSPEND:
+-		return "suspend";
+-	case SND_SOC_DPCM_STATE_PAUSED:
+-		return "paused";
+-	case SND_SOC_DPCM_STATE_HW_FREE:
+-		return "hw_free";
+-	case SND_SOC_DPCM_STATE_CLOSE:
+-		return "close";
+-	}
+-
+-	return "unknown";
+-}
+-
+-static ssize_t dpcm_show_state(struct snd_soc_pcm_runtime *fe,
+-				int stream, char *buf, size_t size)
+-{
+-	struct snd_pcm_hw_params *params = &fe->dpcm[stream].hw_params;
+-	struct snd_soc_dpcm *dpcm;
+-	ssize_t offset = 0;
+-	unsigned long flags;
+-
+-	/* FE state */
+-	offset += scnprintf(buf + offset, size - offset,
+-			"[%s - %s]\n", fe->dai_link->name,
+-			stream ? "Capture" : "Playback");
+-
+-	offset += scnprintf(buf + offset, size - offset, "State: %s\n",
+-	                dpcm_state_string(fe->dpcm[stream].state));
+-
+-	if ((fe->dpcm[stream].state >= SND_SOC_DPCM_STATE_HW_PARAMS) &&
+-	    (fe->dpcm[stream].state <= SND_SOC_DPCM_STATE_STOP))
+-		offset += scnprintf(buf + offset, size - offset,
+-				"Hardware Params: "
+-				"Format = %s, Channels = %d, Rate = %d\n",
+-				snd_pcm_format_name(params_format(params)),
+-				params_channels(params),
+-				params_rate(params));
+-
+-	/* BEs state */
+-	offset += scnprintf(buf + offset, size - offset, "Backends:\n");
+-
+-	if (list_empty(&fe->dpcm[stream].be_clients)) {
+-		offset += scnprintf(buf + offset, size - offset,
+-				" No active DSP links\n");
+-		goto out;
+-	}
+-
+-	spin_lock_irqsave(&fe->card->dpcm_lock, flags);
+-	for_each_dpcm_be(fe, stream, dpcm) {
+-		struct snd_soc_pcm_runtime *be = dpcm->be;
+-		params = &dpcm->hw_params;
+-
+-		offset += scnprintf(buf + offset, size - offset,
+-				"- %s\n", be->dai_link->name);
+-
+-		offset += scnprintf(buf + offset, size - offset,
+-				"   State: %s\n",
+-				dpcm_state_string(be->dpcm[stream].state));
+-
+-		if ((be->dpcm[stream].state >= SND_SOC_DPCM_STATE_HW_PARAMS) &&
+-		    (be->dpcm[stream].state <= SND_SOC_DPCM_STATE_STOP))
+-			offset += scnprintf(buf + offset, size - offset,
+-				"   Hardware Params: "
+-				"Format = %s, Channels = %d, Rate = %d\n",
+-				snd_pcm_format_name(params_format(params)),
+-				params_channels(params),
+-				params_rate(params));
+-	}
+-	spin_unlock_irqrestore(&fe->card->dpcm_lock, flags);
+-out:
+-	return offset;
+-}
+-
+-static ssize_t dpcm_state_read_file(struct file *file, char __user *user_buf,
+-				size_t count, loff_t *ppos)
+-{
+-	struct snd_soc_pcm_runtime *fe = file->private_data;
+-	ssize_t out_count = PAGE_SIZE, offset = 0, ret = 0;
+-	char *buf;
+-
+-	buf = kmalloc(out_count, GFP_KERNEL);
+-	if (!buf)
+-		return -ENOMEM;
+-
+-	if (snd_soc_dai_stream_valid(fe->cpu_dai, SNDRV_PCM_STREAM_PLAYBACK))
+-		offset += dpcm_show_state(fe, SNDRV_PCM_STREAM_PLAYBACK,
+-					buf + offset, out_count - offset);
+-
+-	if (snd_soc_dai_stream_valid(fe->cpu_dai, SNDRV_PCM_STREAM_CAPTURE))
+-		offset += dpcm_show_state(fe, SNDRV_PCM_STREAM_CAPTURE,
+-					buf + offset, out_count - offset);
+-
+-	ret = simple_read_from_buffer(user_buf, count, ppos, buf, offset);
+-
+-	kfree(buf);
+-	return ret;
+-}
+-
+-static const struct file_operations dpcm_state_fops = {
+-	.open = simple_open,
+-	.read = dpcm_state_read_file,
+-	.llseek = default_llseek,
+-};
+-
+-void soc_dpcm_debugfs_add(struct snd_soc_pcm_runtime *rtd)
+-{
+-	if (!rtd->dai_link)
+-		return;
+-
+-	if (!rtd->dai_link->dynamic)
+-		return;
+-
+-	if (!rtd->card->debugfs_card_root)
+-		return;
+-
+-	rtd->debugfs_dpcm_root = debugfs_create_dir(rtd->dai_link->name,
+-			rtd->card->debugfs_card_root);
+-
+-	debugfs_create_file("state", 0444, rtd->debugfs_dpcm_root,
+-			    rtd, &dpcm_state_fops);
+-}
+-#endif
+-=======
+->>>>>>> linux-next/akpm-base
+--- a/sound/soc/stm/stm32_sai_sub.c~linux-next-git-rejects
++++ a/sound/soc/stm/stm32_sai_sub.c
+@@ -1549,12 +1549,8 @@ static int stm32_sai_sub_probe(struct pl
+ 
+ 	ret = snd_dmaengine_pcm_register(&pdev->dev, conf, 0);
+ 	if (ret) {
+-<<<<<<< HEAD
+-		dev_err(&pdev->dev, "Could not register pcm dma\n");
+-=======
+ 		if (ret != -EPROBE_DEFER)
+ 			dev_err(&pdev->dev, "Could not register pcm dma\n");
+->>>>>>> linux-next/akpm-base
+ 		return ret;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-gup-rename-nonblocking-to-locked-where-proper.patch
-mm-gup-fix-__get_user_pages-on-fault-retry-of-hugetlb.patch
-mm-introduce-fault_signal_pending.patch
-x86-mm-use-helper-fault_signal_pending.patch
-arc-mm-use-helper-fault_signal_pending.patch
-arm64-mm-use-helper-fault_signal_pending.patch
-powerpc-mm-use-helper-fault_signal_pending.patch
-sh-mm-use-helper-fault_signal_pending.patch
-mm-return-faster-for-non-fatal-signals-in-user-mode-faults.patch
-userfaultfd-dont-retake-mmap_sem-to-emulate-nopage.patch
-mm-introduce-fault_flag_default.patch
-mm-introduce-fault_flag_interruptible.patch
-mm-allow-vm_fault_retry-for-multiple-times.patch
-mm-gup-allow-vm_fault_retry-for-multiple-times.patch
-mm-gup-allow-to-react-to-fatal-signals.patch
-mm-userfaultfd-honor-fault_flag_killable-in-fault-path.patch
-mm-merge-parameters-for-change_protection.patch
-userfaultfd-wp-apply-_page_uffd_wp-bit.patch
-userfaultfd-wp-drop-_page_uffd_wp-properly-when-fork.patch
-userfaultfd-wp-add-pmd_swp_uffd_wp-helpers.patch
-userfaultfd-wp-support-swap-and-page-migration.patch
-khugepaged-skip-collapse-if-uffd-wp-detected.patch
-userfaultfd-wp-dont-wake-up-when-doing-write-protect.patch
-userfaultfd-wp-declare-_uffdio_writeprotect-conditionally.patch
-userfaultfd-selftests-refactor-statistics.patch
-userfaultfd-selftests-add-write-protect-test.patch
+mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+mm.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
