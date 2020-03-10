@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-use-helper-fault_signal_pending.patch added to
+Subject: + arc-mm-use-helper-fault_signal_pending.patch added to
  -mm tree
-Date: Mon, 09 Mar 2020 20:38:35 -0700
-Message-ID: <20200310033835._0xEIXNuO%akpm@linux-foundation.org>
+Date: Mon, 09 Mar 2020 20:38:38 -0700
+Message-ID: <20200310033838.Mok98s2Y1%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52484 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726195AbgCJDij (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Mar 2020 23:38:39 -0400
+        id S1726195AbgCJDim (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Mar 2020 23:38:42 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@con
 
 
 The patch titled
-     Subject: x86/mm: use helper fault_signal_pending()
+     Subject: arc/mm: use helper fault_signal_pending()
 has been added to the -mm tree.  Its filename is
-     x86-mm-use-helper-fault_signal_pending.patch
+     arc-mm-use-helper-fault_signal_pending.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-use-helper-fault_signal_pending.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arc-mm-use-helper-fault_signal_pending.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-use-helper-fault_signal_pending.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arc-mm-use-helper-fault_signal_pending.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +39,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: x86/mm: use helper fault_signal_pending()
+Subject: arc/mm: use helper fault_signal_pending()
 
-Let's move the fatal signal check even earlier so that we can directly use
-the new fault_signal_pending() in x86 mm code.
+Let ARC to use the new helper fault_signal_pending() by moving the signal
+check out of the retry logic as standalone.  This should also helps to
+simplify the code a bit.
 
-Link: http://lkml.kernel.org/r/20200220155353.8676-5-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200220155843.9172-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Bobby Powers <bobbypowers@gmail.com>
@@ -68,52 +69,54 @@ Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ arch/arc/mm/fault.c |   34 +++++++++++++---------------------
+ 1 file changed, 13 insertions(+), 21 deletions(-)
 
---- a/arch/x86/mm/fault.c~x86-mm-use-helper-fault_signal_pending
-+++ a/arch/x86/mm/fault.c
-@@ -1464,27 +1464,25 @@ good_area:
+--- a/arch/arc/mm/fault.c~arc-mm-use-helper-fault_signal_pending
++++ a/arch/arc/mm/fault.c
+@@ -133,29 +133,21 @@ retry:
+ 
  	fault = handle_mm_fault(vma, address, flags);
- 	major |= fault & VM_FAULT_MAJOR;
  
 +	/* Quick path to respond to signals */
 +	if (fault_signal_pending(fault, regs)) {
 +		if (!user_mode(regs))
-+			no_context(regs, hw_error_code, address, SIGBUS,
-+				   BUS_ADRERR);
++			goto no_context;
 +		return;
 +	}
 +
  	/*
- 	 * If we need to retry the mmap_sem has already been released,
- 	 * and if there is a fatal signal pending there is no guarantee
- 	 * that we made any progress. Handle this case first.
+-	 * Fault retry nuances
++	 * Fault retry nuances, mmap_sem already relinquished by core mm
  	 */
 -	if (unlikely(fault & VM_FAULT_RETRY)) {
-+	if (unlikely((fault & VM_FAULT_RETRY) &&
-+		     (flags & FAULT_FLAG_ALLOW_RETRY))) {
- 		/* Retry at most once */
+-
+-		/*
+-		 * If fault needs to be retried, handle any pending signals
+-		 * first (by returning to user mode).
+-		 * mmap_sem already relinquished by core mm for RETRY case
+-		 */
+-		if (fatal_signal_pending(current)) {
+-			if (!user_mode(regs))
+-				goto no_context;
+-			return;
+-		}
+-		/*
+-		 * retry state machine
+-		 */
 -		if (flags & FAULT_FLAG_ALLOW_RETRY) {
 -			flags &= ~FAULT_FLAG_ALLOW_RETRY;
 -			flags |= FAULT_FLAG_TRIED;
--			if (!fatal_signal_pending(tsk))
--				goto retry;
+-			goto retry;
 -		}
--
--		/* User mode? Just return to handle the fatal exception */
--		if (flags & FAULT_FLAG_USER)
--			return;
--
--		/* Not returning to user mode? Handle exceptions or die: */
--		no_context(regs, hw_error_code, address, SIGBUS, BUS_ADRERR);
--		return;
++	if (unlikely((fault & VM_FAULT_RETRY) &&
++		     (flags & FAULT_FLAG_ALLOW_RETRY))) {
 +		flags &= ~FAULT_FLAG_ALLOW_RETRY;
 +		flags |= FAULT_FLAG_TRIED;
 +		goto retry;
  	}
  
- 	up_read(&mm->mmap_sem);
+ bad_area:
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
