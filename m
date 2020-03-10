@@ -1,16 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- userfaultfd-wp-drop-_page_uffd_wp-properly-when-fork.patch added to -mm
- tree
-Date: Mon, 09 Mar 2020 20:41:39 -0700
-Message-ID: <20200310034139.h_SFEFxhG%akpm@linux-foundation.org>
+Subject: + userfaultfd-wp-add-pmd_swp_uffd_wp-helpers.patch added
+ to -mm tree
+Date: Mon, 09 Mar 2020 20:41:43 -0700
+Message-ID: <20200310034143.LgC63azCA%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53904 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53954 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726195AbgCJDln (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Mar 2020 23:41:43 -0400
+        id S1726195AbgCJDlq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Mar 2020 23:41:46 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@con
 
 
 The patch titled
-     Subject: userfaultfd: wp: drop _PAGE_UFFD_WP properly when fork
+     Subject: userfaultfd: wp: add pmd_swp_*uffd_wp() helpers
 has been added to the -mm tree.  Its filename is
-     userfaultfd-wp-drop-_page_uffd_wp-properly-when-fork.patch
+     userfaultfd-wp-add-pmd_swp_uffd_wp-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-wp-drop-_page_uffd_wp-properly-when-fork.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-wp-add-pmd_swp_uffd_wp-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-wp-drop-_page_uffd_wp-properly-when-fork.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-wp-add-pmd_swp_uffd_wp-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: userfaultfd: wp: drop _PAGE_UFFD_WP properly when fork
+Subject: userfaultfd: wp: add pmd_swp_*uffd_wp() helpers
 
-UFFD_EVENT_FORK support for uffd-wp should be already there, except that
-we should clean the uffd-wp bit if uffd fork event is not enabled.  Detect
-that to avoid _PAGE_UFFD_WP being set even if the VMA is not being tracked
-by VM_UFFD_WP.  Do this for both small PTEs and huge PMDs.
+Adding these missing helpers for uffd-wp operations with pmd
+swap/migration entries.
 
-Link: http://lkml.kernel.org/r/20200220163112.11409-9-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200220163112.11409-10-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Jerome Glisse <jglisse@redhat.com>
 Reviewed-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
@@ -72,44 +69,58 @@ Cc: Shaohua Li <shli@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 ++++++++
- mm/memory.c      |    8 ++++++++
- 2 files changed, 16 insertions(+)
+ arch/x86/include/asm/pgtable.h     |   15 +++++++++++++++
+ include/asm-generic/pgtable_uffd.h |   15 +++++++++++++++
+ 2 files changed, 30 insertions(+)
 
---- a/mm/huge_memory.c~userfaultfd-wp-drop-_page_uffd_wp-properly-when-fork
-+++ a/mm/huge_memory.c
-@@ -1018,6 +1018,14 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	ret = -EAGAIN;
- 	pmd = *src_pmd;
- 
-+	/*
-+	 * Make sure the _PAGE_UFFD_WP bit is cleared if the new VMA
-+	 * does not have the VM_UFFD_WP, which means that the uffd
-+	 * fork event is not enabled.
-+	 */
-+	if (!(vma->vm_flags & VM_UFFD_WP))
-+		pmd = pmd_clear_uffd_wp(pmd);
+--- a/arch/x86/include/asm/pgtable.h~userfaultfd-wp-add-pmd_swp_uffd_wp-helpers
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1427,6 +1427,21 @@ static inline pte_t pte_swp_clear_uffd_w
+ {
+ 	return pte_clear_flags(pte, _PAGE_SWP_UFFD_WP);
+ }
 +
- #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
- 	if (unlikely(is_swap_pmd(pmd))) {
- 		swp_entry_t entry = pmd_to_swp_entry(pmd);
---- a/mm/memory.c~userfaultfd-wp-drop-_page_uffd_wp-properly-when-fork
-+++ a/mm/memory.c
-@@ -785,6 +785,14 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 		pte = pte_mkclean(pte);
- 	pte = pte_mkold(pte);
- 
-+	/*
-+	 * Make sure the _PAGE_UFFD_WP bit is cleared if the new VMA
-+	 * does not have the VM_UFFD_WP, which means that the uffd
-+	 * fork event is not enabled.
-+	 */
-+	if (!(vm_flags & VM_UFFD_WP))
-+		pte = pte_clear_uffd_wp(pte);
++static inline pmd_t pmd_swp_mkuffd_wp(pmd_t pmd)
++{
++	return pmd_set_flags(pmd, _PAGE_SWP_UFFD_WP);
++}
 +
- 	page = vm_normal_page(vma, addr, pte);
- 	if (page) {
- 		get_page(page);
++static inline int pmd_swp_uffd_wp(pmd_t pmd)
++{
++	return pmd_flags(pmd) & _PAGE_SWP_UFFD_WP;
++}
++
++static inline pmd_t pmd_swp_clear_uffd_wp(pmd_t pmd)
++{
++	return pmd_clear_flags(pmd, _PAGE_SWP_UFFD_WP);
++}
+ #endif /* CONFIG_HAVE_ARCH_USERFAULTFD_WP */
+ 
+ #define PKRU_AD_BIT 0x1
+--- a/include/asm-generic/pgtable_uffd.h~userfaultfd-wp-add-pmd_swp_uffd_wp-helpers
++++ a/include/asm-generic/pgtable_uffd.h
+@@ -46,6 +46,21 @@ static __always_inline pte_t pte_swp_cle
+ {
+ 	return pte;
+ }
++
++static inline pmd_t pmd_swp_mkuffd_wp(pmd_t pmd)
++{
++	return pmd;
++}
++
++static inline int pmd_swp_uffd_wp(pmd_t pmd)
++{
++	return 0;
++}
++
++static inline pmd_t pmd_swp_clear_uffd_wp(pmd_t pmd)
++{
++	return pmd;
++}
+ #endif /* CONFIG_HAVE_ARCH_USERFAULTFD_WP */
+ 
+ #endif /* _ASM_GENERIC_PGTABLE_UFFD_H */
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
