@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- linux-bitsh-add-compile-time-sanity-check-of-genmask-inputs.patch added to
- -mm tree
-Date: Mon, 09 Mar 2020 17:57:41 -0700
-Message-ID: <20200310005741.yFMy7WAMl%akpm@linux-foundation.org>
+ mm-page_alloc-use-free_area_empty-instead-of-open-coding.patch added to -mm
+ tree
+Date: Mon, 09 Mar 2020 19:29:47 -0700
+Message-ID: <20200310022947.yZNgWbkEQ%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48820 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38466 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727380AbgCJA5n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Mar 2020 20:57:43 -0400
+        id S1726450AbgCJC3t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Mar 2020 22:29:49 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@alien8.de, geert@linux-m68k.org, haren@us.ibm.com, joe@perches.com, johannes@sipsolutions.net, keescook@chromium.org, linux-kernel@vger.kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, rikard.falkeborn@gmail.com, tglx@linutronix.de, yamada.masahiro@socionext.com
+To: chenqiwu@xiaomi.com, mm-commits@vger.kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: linux/bits.h: add compile time sanity check of GENMASK inputs
+     Subject: mm/page_alloc.c: use free_area_empty() instead of open-coding
 has been added to the -mm tree.  Its filename is
-     linux-bitsh-add-compile-time-sanity-check-of-genmask-inputs.patch
+     mm-page_alloc-use-free_area_empty-instead-of-open-coding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-bitsh-add-compile-time-sanity-check-of-genmask-inputs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-use-free_area_empty-instead-of-open-coding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-bitsh-add-compile-time-sanity-check-of-genmask-inputs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-use-free_area_empty-instead-of-open-coding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,95 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
-Subject: linux/bits.h: add compile time sanity check of GENMASK inputs
+From: chenqiwu <chenqiwu@xiaomi.com>
+Subject: mm/page_alloc.c: use free_area_empty() instead of open-coding
 
-GENMASK() and GENMASK_ULL() are supposed to be called with the high bit as
-the first argument and the low bit as the second argument.  Mixing them
-will return a mask with zero bits set.
+Use free_area_empty() API to replace list_empty() for better code
+readability.
 
-Recent commits show getting this wrong is not uncommon, see e.g.  commit
-aa4c0c9091b0 ("net: stmmac: Fix misuses of GENMASK macro") and commit
-9bdd7bb3a844 ("clocksource/drivers/npcm: Fix misuse of GENMASK macro").
-
-To prevent such mistakes from appearing again, add compile time sanity
-checking to the arguments of GENMASK() and GENMASK_ULL().  If both
-arguments are known at compile time, and the low bit is higher than the
-high bit, break the build to detect the mistake immediately.
-
-Since GENMASK() is used in declarations, BUILD_BUG_ON_ZERO() must be used
-instead of BUILD_BUG_ON().
-
-__builtin_constant_p does not evaluate is argument, it only checks if it
-is a constant or not at compile time, and __builtin_choose_expr does not
-evaluate the expression that is not chosen.  Therefore, GENMASK(x++, 0)
-does only evaluate x++ once.
-
-Commit 95b980d62d52 ("linux/bits.h: make BIT(), GENMASK(), and friends
-available in assembly") made the macros in linux/bits.h available in
-assembly.  Since BUILD_BUG_OR_ZERO() is not asm compatible, disable the
-checks if the file is included in an asm file.
-
-Due to bugs in GCC versions before 4.9 [0], disable the check if building
-with a too old GCC compiler.
-
-[0]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19449
-
-Link: http://lkml.kernel.org/r/20200308193954.2372399-1-rikard.falkeborn@gmail.com
-Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
-Reviewed-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Haren Myneni <haren@us.ibm.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: lkml <linux-kernel@vger.kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/1583674354-7713-1-git-send-email-qiwuchen55@gmail.com
+Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bits.h |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/bits.h~linux-bitsh-add-compile-time-sanity-check-of-genmask-inputs
-+++ a/include/linux/bits.h
-@@ -18,12 +18,30 @@
-  * position @h. For example
-  * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
-  */
--#define GENMASK(h, l) \
-+#if !defined(__ASSEMBLY__) && \
-+	(!defined(CONFIG_CC_IS_GCC) || CONFIG_GCC_VERSION >= 49000)
-+#include <linux/build_bug.h>
-+#define GENMASK_INPUT_CHECK(h, l) \
-+	(BUILD_BUG_ON_ZERO(__builtin_choose_expr( \
-+		__builtin_constant_p((l) > (h)), (l) > (h), 0)))
-+#else
-+/*
-+ * BUILD_BUG_ON_ZERO is not available in h files included from asm files,
-+ * disable the input check if that is the case.
-+ */
-+#define GENMASK_INPUT_CHECK(h, l) 0
-+#endif
-+
-+#define __GENMASK(h, l) \
- 	(((~UL(0)) - (UL(1) << (l)) + 1) & \
- 	 (~UL(0) >> (BITS_PER_LONG - 1 - (h))))
-+#define GENMASK(h, l) \
-+	(GENMASK_INPUT_CHECK(h, l) + __GENMASK(h, l))
- 
--#define GENMASK_ULL(h, l) \
-+#define __GENMASK_ULL(h, l) \
- 	(((~ULL(0)) - (ULL(1) << (l)) + 1) & \
- 	 (~ULL(0) >> (BITS_PER_LONG_LONG - 1 - (h))))
-+#define GENMASK_ULL(h, l) \
-+	(GENMASK_INPUT_CHECK(h, l) + __GENMASK_ULL(h, l))
- 
- #endif	/* __LINUX_BITS_H */
+--- a/mm/page_alloc.c~mm-page_alloc-use-free_area_empty-instead-of-open-coding
++++ a/mm/page_alloc.c
+@@ -3473,8 +3473,7 @@ bool __zone_watermark_ok(struct zone *z,
+ 			return true;
+ 		}
+ #endif
+-		if (alloc_harder &&
+-			!list_empty(&area->free_list[MIGRATE_HIGHATOMIC]))
++		if (alloc_harder && !free_area_empty(area, MIGRATE_HIGHATOMIC))
+ 			return true;
+ 	}
+ 	return false;
 _
 
-Patches currently in -mm which might be from rikard.falkeborn@gmail.com are
+Patches currently in -mm which might be from chenqiwu@xiaomi.com are
 
-linux-bitsh-add-compile-time-sanity-check-of-genmask-inputs.patch
+mm-slubc-replace-cpu_slab-partial-with-wrapped-apis.patch
+mm-slubc-replace-kmem_cache-cpu_partial-with-wrapped-apis.patch
+mm-sparsemem-use-wrapped-macros-instead-of-open-coding.patch
+mm-page_alloc-use-free_area_empty-instead-of-open-coding.patch
+mm-fix-ambiguous-comments-for-better-code-readability.patch
+lib-rbtree-fix-coding-style-of-assignments.patch
