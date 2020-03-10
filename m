@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-mm-use-helper-fault_signal_pending.patch added
- to -mm tree
-Date: Mon, 09 Mar 2020 20:38:44 -0700
-Message-ID: <20200310033844.FtODBU6_5%akpm@linux-foundation.org>
+Subject: + sh-mm-use-helper-fault_signal_pending.patch added to
+ -mm tree
+Date: Mon, 09 Mar 2020 20:38:47 -0700
+Message-ID: <20200310033847.hOwpJ9EDF%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52620 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52662 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726295AbgCJDiq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Mar 2020 23:38:46 -0400
+        id S1726195AbgCJDiv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Mar 2020 23:38:51 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@con
 
 
 The patch titled
-     Subject: powerpc/mm: use helper fault_signal_pending()
+     Subject: sh/mm: use helper fault_signal_pending()
 has been added to the -mm tree.  Its filename is
-     powerpc-mm-use-helper-fault_signal_pending.patch
+     sh-mm-use-helper-fault_signal_pending.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-use-helper-fault_signal_pending.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-mm-use-helper-fault_signal_pending.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-use-helper-fault_signal_pending.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-mm-use-helper-fault_signal_pending.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +39,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: powerpc/mm: use helper fault_signal_pending()
+Subject: sh/mm: use helper fault_signal_pending()
 
-Let powerpc code to use the new helper, by moving the signal handling
-earlier before the retry logic.
+Let SH to use the new fault_signal_pending() helper.  Here we'll need to
+move the up_read() out because that's actually needed as long as !RETRY
+cases.  At the meantime we can drop all the rest of up_read()s now (which
+seems to be cleaner).
 
-Link: http://lkml.kernel.org/r/20200220160222.9422-1-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200220160226.9550-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Bobby Powers <bobbypowers@gmail.com>
@@ -68,38 +70,42 @@ Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/fault.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ arch/sh/mm/fault.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/powerpc/mm/fault.c~powerpc-mm-use-helper-fault_signal_pending
-+++ a/arch/powerpc/mm/fault.c
-@@ -582,6 +582,9 @@ good_area:
- 
- 	major |= fault & VM_FAULT_MAJOR;
- 
-+	if (fault_signal_pending(fault, regs))
-+		return user_mode(regs) ? 0 : SIGBUS;
-+
- 	/*
- 	 * Handle the retry right now, the mmap_sem has been released in that
- 	 * case.
-@@ -595,15 +598,8 @@ good_area:
- 			 */
- 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
- 			flags |= FAULT_FLAG_TRIED;
--			if (!fatal_signal_pending(current))
--				goto retry;
-+			goto retry;
- 		}
--
--		/*
--		 * User mode? Just return to handle the fatal exception otherwise
--		 * return to bad_page_fault
--		 */
--		return is_user ? 0 : SIGBUS;
+--- a/arch/sh/mm/fault.c~sh-mm-use-helper-fault_signal_pending
++++ a/arch/sh/mm/fault.c
+@@ -302,25 +302,25 @@ mm_fault_error(struct pt_regs *regs, uns
+ 	 * Pagefault was interrupted by SIGKILL. We have no reason to
+ 	 * continue pagefault.
+ 	 */
+-	if (fatal_signal_pending(current)) {
+-		if (!(fault & VM_FAULT_RETRY))
+-			up_read(&current->mm->mmap_sem);
++	if (fault_signal_pending(fault, regs)) {
+ 		if (!user_mode(regs))
+ 			no_context(regs, error_code, address);
+ 		return 1;
  	}
  
- 	up_read(&current->mm->mmap_sem);
++	/* Release mmap_sem first if necessary */
++	if (!(fault & VM_FAULT_RETRY))
++		up_read(&current->mm->mmap_sem);
++
+ 	if (!(fault & VM_FAULT_ERROR))
+ 		return 0;
+ 
+ 	if (fault & VM_FAULT_OOM) {
+ 		/* Kernel mode? Handle exceptions or die: */
+ 		if (!user_mode(regs)) {
+-			up_read(&current->mm->mmap_sem);
+ 			no_context(regs, error_code, address);
+ 			return 1;
+ 		}
+-		up_read(&current->mm->mmap_sem);
+ 
+ 		/*
+ 		 * We ran out of memory, call the OOM killer, and return the
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
