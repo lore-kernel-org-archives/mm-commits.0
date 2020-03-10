@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-allow-to-react-to-fatal-signals.patch added to
- -mm tree
-Date: Mon, 09 Mar 2020 20:39:17 -0700
-Message-ID: <20200310033917.k5Ng5EUq0%akpm@linux-foundation.org>
+Subject: +
+ mm-userfaultfd-honor-fault_flag_killable-in-fault-path.patch added to -mm
+ tree
+Date: Mon, 09 Mar 2020 20:39:21 -0700
+Message-ID: <20200310033921.fnno4_JLN%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52958 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726170AbgCJDjV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Mar 2020 23:39:21 -0400
+        id S1726170AbgCJDjZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Mar 2020 23:39:25 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +18,14 @@ To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@con
 
 
 The patch titled
-     Subject: mm/gup: allow to react to fatal signals
+     Subject: mm/userfaultfd: honor FAULT_FLAG_KILLABLE in fault path
 has been added to the -mm tree.  Its filename is
-     mm-gup-allow-to-react-to-fatal-signals.patch
+     mm-userfaultfd-honor-fault_flag_killable-in-fault-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-allow-to-react-to-fatal-signals.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-userfaultfd-honor-fault_flag_killable-in-fault-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-allow-to-react-to-fatal-signals.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-userfaultfd-honor-fault_flag_killable-in-fault-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,19 +40,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: allow to react to fatal signals
+Subject: mm/userfaultfd: honor FAULT_FLAG_KILLABLE in fault path
 
-The existing gup code does not react to the fatal signals in many code
-paths.  For example, in one retry path of gup we're still using
-down_read() rather than down_read_killable().  Also, when doing page
-faults we don't pass in FAULT_FLAG_KILLABLE as well, which means that
-within the faulting process we'll wait in non-killable way as well.  These
-were spotted by Linus during the code review of some other patches.
+Userfaultfd fault path was by default killable even if the caller does not
+have FAULT_FLAG_KILLABLE.  That makes sense before in that when with gup
+we don't have FAULT_FLAG_KILLABLE properly set before.  Now after previous
+patch we've got FAULT_FLAG_KILLABLE applied even for gup code so it should
+also make sense to let userfaultfd to honor the FAULT_FLAG_KILLABLE.
 
-Let's allow the gup code to react to fatal signals to improve the
-responsiveness of threads when during gup and being killed.
+Because we're unconditionally setting FAULT_FLAG_KILLABLE in gup code
+right now, this patch should have no functional change.  It also cleaned
+the code a little bit by introducing some helpers.
 
-Link: http://lkml.kernel.org/r/20200220160256.9887-1-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200220160300.9941-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Bobby Powers <bobbypowers@gmail.com>
@@ -75,57 +76,82 @@ Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c     |   12 +++++++++---
- mm/hugetlb.c |    3 ++-
- 2 files changed, 11 insertions(+), 4 deletions(-)
+ fs/userfaultfd.c |   36 ++++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
---- a/mm/gup.c~mm-gup-allow-to-react-to-fatal-signals
-+++ a/mm/gup.c
-@@ -857,7 +857,7 @@ static int faultin_page(struct task_stru
- 	if (*flags & FOLL_REMOTE)
- 		fault_flags |= FAULT_FLAG_REMOTE;
- 	if (locked)
--		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
-+		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
- 	if (*flags & FOLL_NOWAIT)
- 		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_RETRY_NOWAIT;
- 	if (*flags & FOLL_TRIED) {
-@@ -1200,7 +1200,7 @@ int fixup_user_fault(struct task_struct
- 	address = untagged_addr(address);
+--- a/fs/userfaultfd.c~mm-userfaultfd-honor-fault_flag_killable-in-fault-path
++++ a/fs/userfaultfd.c
+@@ -334,6 +334,30 @@ out:
+ 	return ret;
+ }
  
- 	if (unlocked)
--		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
-+		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
++/* Should pair with userfaultfd_signal_pending() */
++static inline long userfaultfd_get_blocking_state(unsigned int flags)
++{
++	if (flags & FAULT_FLAG_INTERRUPTIBLE)
++		return TASK_INTERRUPTIBLE;
++
++	if (flags & FAULT_FLAG_KILLABLE)
++		return TASK_KILLABLE;
++
++	return TASK_UNINTERRUPTIBLE;
++}
++
++/* Should pair with userfaultfd_get_blocking_state() */
++static inline bool userfaultfd_signal_pending(unsigned int flags)
++{
++	if (flags & FAULT_FLAG_INTERRUPTIBLE)
++		return signal_pending(current);
++
++	if (flags & FAULT_FLAG_KILLABLE)
++		return fatal_signal_pending(current);
++
++	return false;
++}
++
+ /*
+  * The locking rules involved in returning VM_FAULT_RETRY depending on
+  * FAULT_FLAG_ALLOW_RETRY, FAULT_FLAG_RETRY_NOWAIT and
+@@ -355,7 +379,7 @@ vm_fault_t handle_userfault(struct vm_fa
+ 	struct userfaultfd_ctx *ctx;
+ 	struct userfaultfd_wait_queue uwq;
+ 	vm_fault_t ret = VM_FAULT_SIGBUS;
+-	bool must_wait, return_to_userland;
++	bool must_wait;
+ 	long blocking_state;
  
- retry:
- 	vma = find_extend_vma(mm, address);
-@@ -1322,7 +1322,13 @@ retry:
- 			break;
+ 	/*
+@@ -462,9 +486,7 @@ vm_fault_t handle_userfault(struct vm_fa
+ 	uwq.ctx = ctx;
+ 	uwq.waken = false;
  
- 		*locked = 1;
--		down_read(&mm->mmap_sem);
-+		ret = down_read_killable(&mm->mmap_sem);
-+		if (ret) {
-+			BUG_ON(ret > 0);
-+			if (!pages_done)
-+				pages_done = ret;
-+			break;
-+		}
+-	return_to_userland = vmf->flags & FAULT_FLAG_INTERRUPTIBLE;
+-	blocking_state = return_to_userland ? TASK_INTERRUPTIBLE :
+-			 TASK_KILLABLE;
++	blocking_state = userfaultfd_get_blocking_state(vmf->flags);
  
- 		ret = __get_user_pages(tsk, mm, start, 1, flags | FOLL_TRIED,
- 				       pages, NULL, locked);
---- a/mm/hugetlb.c~mm-gup-allow-to-react-to-fatal-signals
-+++ a/mm/hugetlb.c
-@@ -4344,7 +4344,8 @@ long follow_hugetlb_page(struct mm_struc
- 			if (flags & FOLL_WRITE)
- 				fault_flags |= FAULT_FLAG_WRITE;
- 			if (locked)
--				fault_flags |= FAULT_FLAG_ALLOW_RETRY;
-+				fault_flags |= FAULT_FLAG_ALLOW_RETRY |
-+					FAULT_FLAG_KILLABLE;
- 			if (flags & FOLL_NOWAIT)
- 				fault_flags |= FAULT_FLAG_ALLOW_RETRY |
- 					FAULT_FLAG_RETRY_NOWAIT;
+ 	spin_lock_irq(&ctx->fault_pending_wqh.lock);
+ 	/*
+@@ -490,8 +512,7 @@ vm_fault_t handle_userfault(struct vm_fa
+ 	up_read(&mm->mmap_sem);
+ 
+ 	if (likely(must_wait && !READ_ONCE(ctx->released) &&
+-		   (return_to_userland ? !signal_pending(current) :
+-		    !fatal_signal_pending(current)))) {
++		   !userfaultfd_signal_pending(vmf->flags))) {
+ 		wake_up_poll(&ctx->fd_wqh, EPOLLIN);
+ 		schedule();
+ 		ret |= VM_FAULT_MAJOR;
+@@ -513,8 +534,7 @@ vm_fault_t handle_userfault(struct vm_fa
+ 			set_current_state(blocking_state);
+ 			if (READ_ONCE(uwq.waken) ||
+ 			    READ_ONCE(ctx->released) ||
+-			    (return_to_userland ? signal_pending(current) :
+-			     fatal_signal_pending(current)))
++			    userfaultfd_signal_pending(vmf->flags))
+ 				break;
+ 			schedule();
+ 		}
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
