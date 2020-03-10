@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-fault_signal_pending.patch added to -mm
- tree
-Date: Mon, 09 Mar 2020 20:38:29 -0700
-Message-ID: <20200310033829.UhaU9oxv8%akpm@linux-foundation.org>
+Subject: + x86-mm-use-helper-fault_signal_pending.patch added to
+ -mm tree
+Date: Mon, 09 Mar 2020 20:38:35 -0700
+Message-ID: <20200310033835._0xEIXNuO%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52442 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726195AbgCJDib (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Mar 2020 23:38:31 -0400
+        id S1726195AbgCJDij (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Mar 2020 23:38:39 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@con
 
 
 The patch titled
-     Subject: mm: introduce fault_signal_pending()
+     Subject: x86/mm: use helper fault_signal_pending()
 has been added to the -mm tree.  Its filename is
-     mm-introduce-fault_signal_pending.patch
+     x86-mm-use-helper-fault_signal_pending.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-fault_signal_pending.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-use-helper-fault_signal_pending.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-fault_signal_pending.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-use-helper-fault_signal_pending.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,26 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm: introduce fault_signal_pending()
+Subject: x86/mm: use helper fault_signal_pending()
 
-For most architectures, we've got a quick path to detect fatal signal
-after a handle_mm_fault().  Introduce a helper for that quick path.
+Let's move the fatal signal check even earlier so that we can directly use
+the new fault_signal_pending() in x86 mm code.
 
-It cleans the current codes a bit so we don't need to duplicate the same
-check across archs.  More importantly, this will be an unified place that
-we handle the signal immediately right after an interrupted page fault, so
-it'll be much easier for us if we want to change the behavior of handling
-signals later on for all the archs.
-
-Note that currently only part of the archs are using this new helper,
-because some archs have their own way to handle signals.  In the follow up
-patches, we'll try to apply this helper to all the rest of archs.
-
-Another note is that the "regs" parameter in the new helper is not used
-yet.  It'll be used very soon.  Now we kept it in this patch only to avoid
-touching all the archs again in the follow up patches.
-
-Link: http://lkml.kernel.org/r/20200220155353.8676-4-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200220155353.8676-5-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Bobby Powers <bobbypowers@gmail.com>
@@ -82,236 +68,52 @@ Cc: Pavel Emelyanov <xemul@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/fault.c        |    2 +-
- arch/arm/mm/fault.c          |    2 +-
- arch/hexagon/mm/vm_fault.c   |    2 +-
- arch/ia64/mm/fault.c         |    2 +-
- arch/m68k/mm/fault.c         |    2 +-
- arch/microblaze/mm/fault.c   |    2 +-
- arch/mips/mm/fault.c         |    2 +-
- arch/nds32/mm/fault.c        |    2 +-
- arch/nios2/mm/fault.c        |    2 +-
- arch/openrisc/mm/fault.c     |    2 +-
- arch/parisc/mm/fault.c       |    2 +-
- arch/riscv/mm/fault.c        |    2 +-
- arch/s390/mm/fault.c         |    3 +--
- arch/sparc/mm/fault_32.c     |    2 +-
- arch/sparc/mm/fault_64.c     |    2 +-
- arch/unicore32/mm/fault.c    |    2 +-
- arch/xtensa/mm/fault.c       |    2 +-
- include/linux/sched/signal.h |   13 +++++++++++++
- 18 files changed, 30 insertions(+), 18 deletions(-)
+ arch/x86/mm/fault.c |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
---- a/arch/alpha/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/alpha/mm/fault.c
-@@ -150,7 +150,7 @@ retry:
- 	   the fault.  */
+--- a/arch/x86/mm/fault.c~x86-mm-use-helper-fault_signal_pending
++++ a/arch/x86/mm/fault.c
+@@ -1464,27 +1464,25 @@ good_area:
  	fault = handle_mm_fault(vma, address, flags);
+ 	major |= fault & VM_FAULT_MAJOR;
  
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/arch/arm/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/arm/mm/fault.c
-@@ -295,7 +295,7 @@ retry:
- 	 * signal first. We do not need to release the mmap_sem because
- 	 * it would already be released in __lock_page_or_retry in
- 	 * mm/filemap.c. */
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current)) {
++	/* Quick path to respond to signals */
 +	if (fault_signal_pending(fault, regs)) {
- 		if (!user_mode(regs))
- 			goto no_context;
- 		return 0;
---- a/arch/hexagon/mm/vm_fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/hexagon/mm/vm_fault.c
-@@ -91,7 +91,7 @@ good_area:
- 
- 	fault = handle_mm_fault(vma, address, flags);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	/* The most common case -- we are done. */
---- a/arch/ia64/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/ia64/mm/fault.c
-@@ -141,7 +141,7 @@ retry:
- 	 */
- 	fault = handle_mm_fault(vma, address, flags);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/arch/m68k/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/m68k/mm/fault.c
-@@ -138,7 +138,7 @@ good_area:
- 	fault = handle_mm_fault(vma, address, flags);
- 	pr_debug("handle_mm_fault returns %x\n", fault);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return 0;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/arch/microblaze/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/microblaze/mm/fault.c
-@@ -217,7 +217,7 @@ good_area:
- 	 */
- 	fault = handle_mm_fault(vma, address, flags);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/arch/mips/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/mips/mm/fault.c
-@@ -154,7 +154,7 @@ good_area:
- 	 */
- 	fault = handle_mm_fault(vma, address, flags);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(regs))
- 		return;
- 
- 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
---- a/arch/nds32/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/nds32/mm/fault.c
-@@ -214,7 +214,7 @@ good_area:
- 	 * signal first. We do not need to release the mmap_sem because it
- 	 * would already be released in __lock_page_or_retry in mm/filemap.c.
- 	 */
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current)) {
-+	if (fault_signal_pending(fault, regs)) {
- 		if (!user_mode(regs))
- 			goto no_context;
- 		return;
---- a/arch/nios2/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/nios2/mm/fault.c
-@@ -133,7 +133,7 @@ good_area:
- 	 */
- 	fault = handle_mm_fault(vma, address, flags);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/arch/openrisc/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/openrisc/mm/fault.c
-@@ -161,7 +161,7 @@ good_area:
- 
- 	fault = handle_mm_fault(vma, address, flags);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/arch/parisc/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/parisc/mm/fault.c
-@@ -304,7 +304,7 @@ good_area:
- 
- 	fault = handle_mm_fault(vma, address, flags);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/arch/riscv/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/riscv/mm/fault.c
-@@ -117,7 +117,7 @@ good_area:
- 	 * signal first. We do not need to release the mmap_sem because it
- 	 * would already be released in __lock_page_or_retry in mm/filemap.c.
- 	 */
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(tsk))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/arch/s390/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/s390/mm/fault.c
-@@ -480,8 +480,7 @@ retry:
- 	 * the fault.
- 	 */
- 	fault = handle_mm_fault(vma, address, flags);
--	/* No reason to continue if interrupted by SIGKILL. */
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current)) {
-+	if (fault_signal_pending(fault, regs)) {
- 		fault = VM_FAULT_SIGNAL;
- 		if (flags & FAULT_FLAG_RETRY_NOWAIT)
- 			goto out_up;
---- a/arch/sparc/mm/fault_32.c~mm-introduce-fault_signal_pending
-+++ a/arch/sparc/mm/fault_32.c
-@@ -237,7 +237,7 @@ good_area:
- 	 */
- 	fault = handle_mm_fault(vma, address, flags);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/arch/sparc/mm/fault_64.c~mm-introduce-fault_signal_pending
-+++ a/arch/sparc/mm/fault_64.c
-@@ -425,7 +425,7 @@ good_area:
- 
- 	fault = handle_mm_fault(vma, address, flags);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		goto exit_exception;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/arch/unicore32/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/unicore32/mm/fault.c
-@@ -250,7 +250,7 @@ retry:
- 	 * signal first. We do not need to release the mmap_sem because
- 	 * it would already be released in __lock_page_or_retry in
- 	 * mm/filemap.c. */
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return 0;
- 
- 	if (!(fault & VM_FAULT_ERROR) && (flags & FAULT_FLAG_ALLOW_RETRY)) {
---- a/arch/xtensa/mm/fault.c~mm-introduce-fault_signal_pending
-+++ a/arch/xtensa/mm/fault.c
-@@ -110,7 +110,7 @@ good_area:
- 	 */
- 	fault = handle_mm_fault(vma, address, flags);
- 
--	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
---- a/include/linux/sched/signal.h~mm-introduce-fault_signal_pending
-+++ a/include/linux/sched/signal.h
-@@ -370,6 +370,19 @@ static inline int signal_pending_state(l
- }
- 
- /*
-+ * This should only be used in fault handlers to decide whether we
-+ * should stop the current fault routine to handle the signals
-+ * instead, especially with the case where we've got interrupted with
-+ * a VM_FAULT_RETRY.
-+ */
-+static inline bool fault_signal_pending(unsigned int fault_flags,
-+					struct pt_regs *regs)
-+{
-+	return unlikely((fault_flags & VM_FAULT_RETRY) &&
-+			fatal_signal_pending(current));
-+}
++		if (!user_mode(regs))
++			no_context(regs, hw_error_code, address, SIGBUS,
++				   BUS_ADRERR);
++		return;
++	}
 +
-+/*
-  * Reevaluate whether the task has signals pending delivery.
-  * Wake the task if so.
-  * This is required every time the blocked sigset_t changes.
+ 	/*
+ 	 * If we need to retry the mmap_sem has already been released,
+ 	 * and if there is a fatal signal pending there is no guarantee
+ 	 * that we made any progress. Handle this case first.
+ 	 */
+-	if (unlikely(fault & VM_FAULT_RETRY)) {
++	if (unlikely((fault & VM_FAULT_RETRY) &&
++		     (flags & FAULT_FLAG_ALLOW_RETRY))) {
+ 		/* Retry at most once */
+-		if (flags & FAULT_FLAG_ALLOW_RETRY) {
+-			flags &= ~FAULT_FLAG_ALLOW_RETRY;
+-			flags |= FAULT_FLAG_TRIED;
+-			if (!fatal_signal_pending(tsk))
+-				goto retry;
+-		}
+-
+-		/* User mode? Just return to handle the fatal exception */
+-		if (flags & FAULT_FLAG_USER)
+-			return;
+-
+-		/* Not returning to user mode? Handle exceptions or die: */
+-		no_context(regs, hw_error_code, address, SIGBUS, BUS_ADRERR);
+-		return;
++		flags &= ~FAULT_FLAG_ALLOW_RETRY;
++		flags |= FAULT_FLAG_TRIED;
++		goto retry;
+ 	}
+ 
+ 	up_read(&mm->mmap_sem);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
