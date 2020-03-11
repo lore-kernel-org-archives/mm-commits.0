@@ -1,27 +1,31 @@
-From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 11 Mar 2020 14:19:52 -0700
-Message-ID: <20200311211952.pu70QdyDF%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-remove-unnecessary-memory-fetch-in-pageheadhuge.patch added to
+ -mm tree
+Date: Wed, 11 Mar 2020 15:08:07 -0700
+Message-ID: <20200311220807.wgJDgCJpx%akpm@linux-foundation.org>
+References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52612 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42536 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726579AbgCKVTy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 11 Mar 2020 17:19:54 -0400
+        id S1729328AbgCKWII (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 11 Mar 2020 18:08:08 -0400
+In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, mm-commits@vger.kernel.org, nehaagarwal@google.com, rientjes@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm/hugetlb: remove unnecessary memory fetch in PageHeadHuge()
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-hugetlb-remove-unnecessary-memory-fetch-in-pageheadhuge.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-remove-unnecessary-memory-fetch-in-pageheadhuge.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-remove-unnecessary-memory-fetch-in-pageheadhuge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,114 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm/hugetlb: remove unnecessary memory fetch in PageHeadHuge()
 
+Commit f1e61557f023 ("mm: pack compound_dtor and compound_order into one
+word in struct page") changed compound_dtor from a pointer to an array
+index in order to pack it.  To check if page has the hugeltbfs
+compound_dtor, we can just compare the index directly without fetching the
+function pointer.  Said commit did that with PageHuge() and we can do the
+same with PageHeadHuge() to make the code a bit smaller and faster.
+
+Link: http://lkml.kernel.org/r/20200311172440.6988-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Neha Agarwal <nehaagarwal@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/cgroup.c |   39 ---------------------------------------
- 1 file changed, 39 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/cgroup/cgroup.c~linux-next-git-rejects
-+++ a/kernel/cgroup/cgroup.c
-@@ -4412,31 +4412,12 @@ static void css_task_iter_advance_css_se
- 			it->cur_tasks_head = &cset->dying_tasks;
- 			break;
- 		}
--<<<<<<< HEAD
--	} while (!css_set_populated(cset) && list_empty(&cset->dying_tasks));
--
--	if (!list_empty(&cset->tasks)) {
--		it->task_pos = cset->tasks.next;
--		it->cur_tasks_head = &cset->tasks;
--	} else if (!list_empty(&cset->mg_tasks)) {
--		it->task_pos = cset->mg_tasks.next;
--		it->cur_tasks_head = &cset->mg_tasks;
--	} else {
--		it->task_pos = cset->dying_tasks.next;
--		it->cur_tasks_head = &cset->dying_tasks;
--	}
--
--	it->tasks_head = &cset->tasks;
--	it->mg_tasks_head = &cset->mg_tasks;
--	it->dying_tasks_head = &cset->dying_tasks;
--=======
- 	}
- 	if (!cset) {
- 		it->task_pos = NULL;
- 		return;
- 	}
- 	it->task_pos = it->cur_tasks_head->next;
-->>>>>>> linux-next/akpm-base
+--- a/mm/hugetlb.c~mm-hugetlb-remove-unnecessary-memory-fetch-in-pageheadhuge
++++ a/mm/hugetlb.c
+@@ -1528,7 +1528,7 @@ int PageHeadHuge(struct page *page_head)
+ 	if (!PageHead(page_head))
+ 		return 0;
  
- 	/*
- 	 * We don't keep css_sets locked across iteration steps and thus
-@@ -4490,17 +4471,6 @@ repeat:
- 		else
- 			it->task_pos = it->task_pos->next;
- 
--<<<<<<< HEAD
--		if (it->task_pos == it->tasks_head) {
--			it->task_pos = it->mg_tasks_head->next;
--			it->cur_tasks_head = it->mg_tasks_head;
--		}
--		if (it->task_pos == it->mg_tasks_head) {
--			it->task_pos = it->dying_tasks_head->next;
--			it->cur_tasks_head = it->dying_tasks_head;
--		}
--		if (it->task_pos == it->dying_tasks_head)
--=======
- 		if (it->task_pos == &it->cur_cset->tasks) {
- 			it->cur_tasks_head = &it->cur_cset->mg_tasks;
- 			it->task_pos = it->cur_tasks_head->next;
-@@ -4510,7 +4480,6 @@ repeat:
- 			it->task_pos = it->cur_tasks_head->next;
- 		}
- 		if (it->task_pos == &it->cur_cset->dying_tasks)
-->>>>>>> linux-next/akpm-base
- 			css_task_iter_advance_css_set(it);
- 	} else {
- 		/* called from start, proceed to the first cset */
-@@ -4528,20 +4497,12 @@ repeat:
- 			goto repeat;
- 
- 		/* and dying leaders w/o live member threads */
--<<<<<<< HEAD
--		if (it->cur_tasks_head == it->dying_tasks_head &&
--=======
- 		if (it->cur_tasks_head == &it->cur_cset->dying_tasks &&
-->>>>>>> linux-next/akpm-base
- 		    !atomic_read(&task->signal->live))
- 			goto repeat;
- 	} else {
- 		/* skip all dying ones */
--<<<<<<< HEAD
--		if (it->cur_tasks_head == it->dying_tasks_head)
--=======
- 		if (it->cur_tasks_head == &it->cur_cset->dying_tasks)
-->>>>>>> linux-next/akpm-base
- 			goto repeat;
- 	}
+-	return get_compound_page_dtor(page_head) == free_huge_page;
++	return page_head[1].compound_dtor == HUGETLB_PAGE_DTOR;
  }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
-mm.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-selftest-add-mremap_dontunmap-selftest-fix.patch
-selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
-mm-migratec-migrate-pg_readahead-flag-fix.patch
-proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-mm-add-vm_insert_pages-fix.patch
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
-seq_read-info-message-about-buggy-next-functions-fix.patch
-drivers-tty-serial-sh-scic-suppress-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+mm-compaction-fully-assume-capture-is-not-null-in-compact_zone_order.patch
+mm-hugetlb-remove-unnecessary-memory-fetch-in-pageheadhuge.patch
