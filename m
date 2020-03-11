@@ -1,31 +1,27 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-filemapc-remove-unused-argument-from-shrink_readahead_size_eio.patch
- added to -mm tree
-Date: Tue, 10 Mar 2020 17:19:28 -0700
-Message-ID: <20200311001928.hcFPX_nXI%akpm@linux-foundation.org>
-References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 11 Mar 2020 14:19:52 -0700
+Message-ID: <20200311211952.pu70QdyDF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38694 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52612 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726463AbgCKAT3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Mar 2020 20:19:29 -0400
-In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
+        id S1726579AbgCKVTy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 11 Mar 2020 17:19:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jrdr.linux@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap.c: remove unused argument from shrink_readahead_size_eio()
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-filemapc-remove-unused-argument-from-shrink_readahead_size_eio.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemapc-remove-unused-argument-from-shrink_readahead_size_eio.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemapc-remove-unused-argument-from-shrink_readahead_size_eio.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +35,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Souptick Joarder <jrdr.linux@gmail.com>
-Subject: mm/filemap.c: remove unused argument from shrink_readahead_size_eio()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The first argument of shrink_readahead_size_eio() is not used.  Hence
-remove it from the function definition and from all the callers.
-
-Link: http://lkml.kernel.org/r/1583868093-24342-1-git-send-email-jrdr.linux@gmail.com
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/cgroup/cgroup.c |   39 ---------------------------------------
+ 1 file changed, 39 deletions(-)
 
---- a/mm/filemap.c~mm-filemapc-remove-unused-argument-from-shrink_readahead_size_eio
-+++ a/mm/filemap.c
-@@ -1962,8 +1962,7 @@ EXPORT_SYMBOL(find_get_pages_range_tag);
-  *
-  * It is going insane. Fix it by quickly scaling down the readahead size.
-  */
--static void shrink_readahead_size_eio(struct file *filp,
--					struct file_ra_state *ra)
-+static void shrink_readahead_size_eio(struct file_ra_state *ra)
- {
- 	ra->ra_pages /= 4;
+--- a/kernel/cgroup/cgroup.c~linux-next-git-rejects
++++ a/kernel/cgroup/cgroup.c
+@@ -4412,31 +4412,12 @@ static void css_task_iter_advance_css_se
+ 			it->cur_tasks_head = &cset->dying_tasks;
+ 			break;
+ 		}
+-<<<<<<< HEAD
+-	} while (!css_set_populated(cset) && list_empty(&cset->dying_tasks));
+-
+-	if (!list_empty(&cset->tasks)) {
+-		it->task_pos = cset->tasks.next;
+-		it->cur_tasks_head = &cset->tasks;
+-	} else if (!list_empty(&cset->mg_tasks)) {
+-		it->task_pos = cset->mg_tasks.next;
+-		it->cur_tasks_head = &cset->mg_tasks;
+-	} else {
+-		it->task_pos = cset->dying_tasks.next;
+-		it->cur_tasks_head = &cset->dying_tasks;
+-	}
+-
+-	it->tasks_head = &cset->tasks;
+-	it->mg_tasks_head = &cset->mg_tasks;
+-	it->dying_tasks_head = &cset->dying_tasks;
+-=======
+ 	}
+ 	if (!cset) {
+ 		it->task_pos = NULL;
+ 		return;
+ 	}
+ 	it->task_pos = it->cur_tasks_head->next;
+->>>>>>> linux-next/akpm-base
+ 
+ 	/*
+ 	 * We don't keep css_sets locked across iteration steps and thus
+@@ -4490,17 +4471,6 @@ repeat:
+ 		else
+ 			it->task_pos = it->task_pos->next;
+ 
+-<<<<<<< HEAD
+-		if (it->task_pos == it->tasks_head) {
+-			it->task_pos = it->mg_tasks_head->next;
+-			it->cur_tasks_head = it->mg_tasks_head;
+-		}
+-		if (it->task_pos == it->mg_tasks_head) {
+-			it->task_pos = it->dying_tasks_head->next;
+-			it->cur_tasks_head = it->dying_tasks_head;
+-		}
+-		if (it->task_pos == it->dying_tasks_head)
+-=======
+ 		if (it->task_pos == &it->cur_cset->tasks) {
+ 			it->cur_tasks_head = &it->cur_cset->mg_tasks;
+ 			it->task_pos = it->cur_tasks_head->next;
+@@ -4510,7 +4480,6 @@ repeat:
+ 			it->task_pos = it->cur_tasks_head->next;
+ 		}
+ 		if (it->task_pos == &it->cur_cset->dying_tasks)
+->>>>>>> linux-next/akpm-base
+ 			css_task_iter_advance_css_set(it);
+ 	} else {
+ 		/* called from start, proceed to the first cset */
+@@ -4528,20 +4497,12 @@ repeat:
+ 			goto repeat;
+ 
+ 		/* and dying leaders w/o live member threads */
+-<<<<<<< HEAD
+-		if (it->cur_tasks_head == it->dying_tasks_head &&
+-=======
+ 		if (it->cur_tasks_head == &it->cur_cset->dying_tasks &&
+->>>>>>> linux-next/akpm-base
+ 		    !atomic_read(&task->signal->live))
+ 			goto repeat;
+ 	} else {
+ 		/* skip all dying ones */
+-<<<<<<< HEAD
+-		if (it->cur_tasks_head == it->dying_tasks_head)
+-=======
+ 		if (it->cur_tasks_head == &it->cur_cset->dying_tasks)
+->>>>>>> linux-next/akpm-base
+ 			goto repeat;
+ 	}
  }
-@@ -2188,7 +2187,7 @@ readpage:
- 					goto find_page;
- 				}
- 				unlock_page(page);
--				shrink_readahead_size_eio(filp, ra);
-+				shrink_readahead_size_eio(ra);
- 				error = -EIO;
- 				goto readpage_error;
- 			}
-@@ -2560,7 +2559,7 @@ page_not_uptodate:
- 		goto retry_find;
- 
- 	/* Things didn't work out. Return zero to tell the mm layer so. */
--	shrink_readahead_size_eio(file, ra);
-+	shrink_readahead_size_eio(ra);
- 	return VM_FAULT_SIGBUS;
- 
- out_retry:
 _
 
-Patches currently in -mm which might be from jrdr.linux@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-filemapc-remove-unused-argument-from-shrink_readahead_size_eio.patch
+mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+mm.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
