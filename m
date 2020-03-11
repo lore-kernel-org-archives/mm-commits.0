@@ -1,30 +1,33 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs_parse-remove-pr_notice-about-each-validation.patch
- added to -mm tree
-Date: Wed, 11 Mar 2020 15:10:07 -0700
-Message-ID: <20200311221007.masgN6jXJ%akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?mmpage=5Falloccma-conditionally-prefer-cma-pageblocks-for-m?=
+ =?US-ASCII?Q?ovable-allocations-fix.patch?= added to -mm tree
+Date: Wed, 11 Mar 2020 16:26:02 -0700
+Message-ID: <20200311232602.GQ8SNyxZe%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44362 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729535AbgCKWKJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 11 Mar 2020 18:10:09 -0400
+        id S1731500AbgCKX0F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 11 Mar 2020 19:26:05 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, mm-commits@vger.kernel.org, seth.arnold@canonical.com
+To: anshuman.khandual@arm.com, cai@lca.pw, guro@fb.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, riel@surriel.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: fs_parse: Remove pr_notice() about each validation
+     Subject: mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix
 has been added to the -mm tree.  Its filename is
-     fs_parse-remove-pr_notice-about-each-validation.patch
+     mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs_parse-remove-pr_notice-about-each-validation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs_parse-remove-pr_notice-about-each-validation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,39 +41,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: fs_parse: Remove pr_notice() about each validation
+From: Roman Gushchin <guro@fb.com>
+Subject: mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix
 
-This notice fills my boot logs with scary-looking asterisks but doesn't
-really tell me anything.  Let's just remove it; validation errors are
-already reported separately, so this is just a redundant list of
-filesystems.
+ifdef the cma-specific code.
 
-$ dmesg | grep VALIDATE
-[    0.306256] *** VALIDATE tmpfs ***
-[    0.307422] *** VALIDATE proc ***
-[    0.308355] *** VALIDATE cgroup ***
-[    0.308741] *** VALIDATE cgroup2 ***
-[    0.813256] *** VALIDATE bpf ***
-[    0.815272] *** VALIDATE ramfs ***
-[    0.815665] *** VALIDATE hugetlbfs ***
-[    0.876970] *** VALIDATE nfs ***
-[    0.877383] *** VALIDATE nfs4 ***
-
-Link: http://lkml.kernel.org/r/202003061617.A8835CAAF@keescook
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Alexander Viro <viro@zeniv.linux.org.uk>
-Reviewed-by: Seth Arnold <seth.arnold@canonical.com>
+Link: http://lkml.kernel.org/r/20200311225832.GA178154@carbon.DHCP.thefacebook.com
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs_parser.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/fs_parser.c~fs_parse-remove-pr_notice-about-each-validation
-+++ a/fs/fs_parser.c
-@@ -368,8 +368,6 @@ bool fs_validate_description(const char
- 	const struct fs_parameter_spec *param, *p2;
- 	bool good = true;
+--- a/mm/page_alloc.c~mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix
++++ a/mm/page_alloc.c
+@@ -2713,6 +2713,7 @@ __rmqueue(struct zone *zone, unsigned in
+ {
+ 	struct page *page;
  
--	pr_notice("*** VALIDATE %s ***\n", name);
++#ifdef CONFIG_CMA
+ 	/*
+ 	 * Balance movable allocations between regular and CMA areas by
+ 	 * allocating from CMA when over half of the zone's free memory
+@@ -2725,6 +2726,7 @@ __rmqueue(struct zone *zone, unsigned in
+ 		if (page)
+ 			return page;
+ 	}
++#endif
+ retry:
+ 	page = __rmqueue_smallest(zone, order, migratetype);
+ 	if (unlikely(!page)) {
+_
+
+Patches currently in -mm which might be from guro@fb.com are
+
+mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations.patch
+mm-memcg-slab-introduce-mem_cgroup_from_obj.patch
+mm-memcg-slab-introduce-mem_cgroup_from_obj-v2.patch
+mm-kmem-cleanup-__memcg_kmem_charge_memcg-arguments.patch
+mm-kmem-cleanup-memcg_kmem_uncharge_memcg-arguments.patch
+mm-kmem-rename-memcg_kmem_uncharge-into-memcg_kmem_uncharge_page.patch
+mm-kmem-switch-to-nr_pages-in-__memcg_kmem_charge_memcg.patch
+mm-memcg-slab-cache-page-number-in-memcg_uncharge_slab.patch
+mm-kmem-rename-__memcg_kmem_uncharge_memcg-to-__memcg_kmem_uncharge.patch
+mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations.patch
+mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix.patch
