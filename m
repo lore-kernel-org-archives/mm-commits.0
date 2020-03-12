@@ -1,39 +1,90 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: + mm-gup-track-foll_pin-pages-fix-2.patch added to -mm tree
-Date: Wed, 11 Mar 2020 17:51:00 -0700
-Message-ID: <20200311175100.1614d82ae9ac21b73d922870@linux-foundation.org>
-References: <20200307232517.0eSNFUWfN%akpm@linux-foundation.org>
-        <202efdc4-2b19-278b-9960-3afb18b8173d@nvidia.com>
-        <20200311111352.1dff2984@p-imbrenda>
+Subject: +
+ kasan-detect-negative-size-in-memory-operation-function-fix-2.patch added
+ to -mm tree
+Date: Wed, 11 Mar 2020 18:04:40 -0700
+Message-ID: <20200312010440.uTD8arQg5%akpm@linux-foundation.org>
+References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35058 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40238 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387519AbgCLAvB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 11 Mar 2020 20:51:01 -0400
-In-Reply-To: <20200311111352.1dff2984@p-imbrenda>
+        id S2387480AbgCLBEl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 11 Mar 2020 21:04:41 -0400
+In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: John Hubbard <jhubbard@nvidia.com>, mm-commits@vger.kernel.org, Linux-MM <linux-mm@kvack.org>
+To: mm-commits@vger.kernel.org, peterz@infradead.org, rdunlap@infradead.org, walter-zh.wu@mediatek.com
 
-On Wed, 11 Mar 2020 11:13:52 +0100 Claudio Imbrenda <imbrenda@linux.ibm.com> wrote:
 
-> > any case, that's what this needs in order to build. Sorry for missing
-> > it in the review.
-> 
-> I don't think you missed it, because the patch I sent out to be
-> squashed did move it up
+The patch titled
+     Subject: kasan-detect-negative-size-in-memory-operation-function-fix-2
+has been added to the -mm tree.  Its filename is
+     kasan-detect-negative-size-in-memory-operation-function-fix-2.patch
 
-<figures out what happened>
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-detect-negative-size-in-memory-operation-function-fix-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-detect-negative-size-in-memory-operation-function-fix-2.patch
 
-hm, OK,
-http://lkml.kernel.org/r/20200306132537.783769-2-imbrenda@linux.ibm.com
-is billed as a fixup for 9947ea2c1e608e32 "mm/gup: track FOLL_PIN
-pages" but it actually applies after everything else.  I messed up
-untangling this.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Redone, should be OK now.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: kasan-detect-negative-size-in-memory-operation-function-fix-2
+
+fix objtool warning
+
+mm/kasan/common.o: warning: objtool: kasan_report()+0x13: call to report_enabled() with UACCESS enabled
+
+
+Link: http://lkml.kernel.org/r/20200305095436.GV2596@hirez.programming.kicks-ass.net
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Walter Wu <walter-zh.wu@mediatek.com>
+Tested-by: Walter Wu <walter-zh.wu@mediatek.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/kasan/common.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+--- a/mm/kasan/common.c~kasan-detect-negative-size-in-memory-operation-function-fix-2
++++ a/mm/kasan/common.c
+@@ -641,16 +641,17 @@ extern bool report_enabled(void);
+ 
+ bool kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip)
+ {
+-	unsigned long flags;
++	unsigned long flags = user_access_save();
++	bool ret = false;
+ 
+-	if (likely(!report_enabled()))
+-		return false;
++	if (likely(report_enabled())) {
++		__kasan_report(addr, size, is_write, ip);
++		ret = true;
++	}
+ 
+-	flags = user_access_save();
+-	__kasan_report(addr, size, is_write, ip);
+ 	user_access_restore(flags);
+ 
+-	return true;
++	return ret;
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+_
+
+Patches currently in -mm which might be from peterz@infradead.org are
+
+kasan-detect-negative-size-in-memory-operation-function-fix-2.patch
