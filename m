@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-may_enter_fs-bool-in-shrink_page_list.patch
+Subject: +
+ stackdepot-check-depot_index-before-accessing-the-stack-slab-fix.patch
  added to -mm tree
-Date: Thu, 12 Mar 2020 16:43:21 -0700
-Message-ID: <20200312234321.TEiHWk4Yz%akpm@linux-foundation.org>
+Date: Thu, 12 Mar 2020 16:44:40 -0700
+Message-ID: <20200312234440.vQvqS6ErA%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49134 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726772AbgCLXnW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Mar 2020 19:43:22 -0400
+        id S1726788AbgCLXol (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Mar 2020 19:44:41 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ktkhai@virtuozzo.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: make may_enter_fs bool in shrink_page_list()
+     Subject: lib/stackdepot.c: fix a condition in stack_depot_fetch()
 has been added to the -mm tree.  Its filename is
-     mm-make-may_enter_fs-bool-in-shrink_page_list.patch
+     stackdepot-check-depot_index-before-accessing-the-stack-slab-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-may_enter_fs-bool-in-shrink_page_list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/stackdepot-check-depot_index-before-accessing-the-stack-slab-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-may_enter_fs-bool-in-shrink_page_list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/stackdepot-check-depot_index-before-accessing-the-stack-slab-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,53 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Subject: mm/vmscan.c: make may_enter_fs bool in shrink_page_list()
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: lib/stackdepot.c: fix a condition in stack_depot_fetch()
 
-This gives some size improvement:
+We should check for a NULL pointer first before adding the offset. 
+Otherwise if the pointer is NULL and the offset is non-zero, it will lead
+to an Oops.
 
-$size mm/vmscan.o (before)
-   text	   data	    bss	    dec	    hex	filename
-  53670	  24123	     12	  77805	  12fed	mm/vmscan.o
-
-$size mm/vmscan.o (after)
-   text	   data	    bss	    dec	    hex	filename
-  53648	  24123	     12	  77783	  12fd7	mm/vmscan.o
-
-Link: http://lkml.kernel.org/r/Message-ID:
-Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20200312113006.GA20562@mwanda
+Fixes: d45048e65a59 ("lib/stackdepot.c: check depot_index before accessing the stack slab")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ lib/stackdepot.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/vmscan.c~mm-make-may_enter_fs-bool-in-shrink_page_list
-+++ a/mm/vmscan.c
-@@ -1084,9 +1084,8 @@ static unsigned long shrink_page_list(st
- 	while (!list_empty(page_list)) {
- 		struct address_space *mapping;
- 		struct page *page;
--		int may_enter_fs;
- 		enum page_references references = PAGEREF_RECLAIM;
--		bool dirty, writeback;
-+		bool dirty, writeback, may_enter_fs;
- 		unsigned int nr_pages;
+--- a/lib/stackdepot.c~stackdepot-check-depot_index-before-accessing-the-stack-slab-fix
++++ a/lib/stackdepot.c
+@@ -206,18 +206,16 @@ unsigned int stack_depot_fetch(depot_sta
+ 	size_t offset = parts.offset << STACK_ALLOC_ALIGN;
+ 	struct stack_record *stack;
  
- 		cond_resched();
-@@ -1267,7 +1266,7 @@ static unsigned long shrink_page_list(st
- 						goto activate_locked_split;
- 				}
++	*entries = NULL;
+ 	if (parts.slabindex > depot_index) {
+ 		WARN(1, "slab index %d out of bounds (%d) for stack id %08x\n",
+ 			parts.slabindex, depot_index, handle);
+-		*entries = NULL;
+ 		return 0;
+ 	}
+ 	slab = stack_slabs[parts.slabindex];
+-	stack = slab + offset;
+-	if (!stack) {
+-		*entries = NULL;
++	if (!slab)
+ 		return 0;
+-	}
++	stack = slab + offset;
  
--				may_enter_fs = 1;
-+				may_enter_fs = true;
- 
- 				/* Adding to swap updated mapping */
- 				mapping = page_mapping(page);
+ 	*entries = stack->entries;
+ 	return stack->size;
 _
 
-Patches currently in -mm which might be from ktkhai@virtuozzo.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-allocate-shrinker_map-on-appropriate-numa-node.patch
-mm-make-may_enter_fs-bool-in-shrink_page_list.patch
+stackdepot-check-depot_index-before-accessing-the-stack-slab-fix.patch
+lib-test_kmod-remove-a-null-test.patch
