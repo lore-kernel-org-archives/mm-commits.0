@@ -1,18 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- =?US-ASCII?Q?drivers-base-memory-store-mapping-between-mmop=5F-and-stri?=
- =?US-ASCII?Q?ng-in-an-array.patch?= added to -mm tree
-Date: Wed, 11 Mar 2020 17:00:34 -0700
-Message-ID: <20200312000034.vJBFsfO0K%akpm@linux-foundation.org>
+ mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type.patch
+ added to -mm tree
+Date: Wed, 11 Mar 2020 17:00:38 -0700
+Message-ID: <20200312000038.7eEMA0mSM%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45144 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731418AbgCLAAi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 11 Mar 2020 20:00:38 -0400
+        id S1731418AbgCLAAl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 11 Mar 2020 20:00:41 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -20,14 +18,14 @@ To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, gregkh@linuxfoun
 
 
 The patch titled
-     Subject: drivers/base/memory: store mapping between MMOP_* and string in an array
+     Subject: mm/memory_hotplug: convert memhp_auto_online to store an online_type
 has been added to the -mm tree.  Its filename is
-     drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array.patch
+     mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,12 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: drivers/base/memory: store mapping between MMOP_* and string in an array
+Subject: mm/memory_hotplug: convert memhp_auto_online to store an online_type
 
-Let's use a simple array which we can reuse soon.  While at it, move the
-string->mmop conversion out of the device hotplug lock.
+...  and rename it to memhp_default_online_type.  This is a preparation
+for more detailed default online behavior.
 
-Link: http://lkml.kernel.org/r/20200311123026.16071-4-david@redhat.com
+Link: http://lkml.kernel.org/r/20200311123026.16071-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -56,86 +54,127 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   38 +++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ arch/powerpc/platforms/powernv/memtrace.c |    2 +-
+ drivers/base/memory.c                     |   10 ++++------
+ drivers/hv/hv_balloon.c                   |    2 +-
+ include/linux/memory_hotplug.h            |    3 ++-
+ mm/memory_hotplug.c                       |   13 +++++++------
+ 5 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/drivers/base/memory.c~drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array
+--- a/arch/powerpc/platforms/powernv/memtrace.c~mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type
++++ a/arch/powerpc/platforms/powernv/memtrace.c
+@@ -240,7 +240,7 @@ static int memtrace_online(void)
+ 		 * If kernel isn't compiled with the auto online option
+ 		 * we need to online the memory ourselves.
+ 		 */
+-		if (!memhp_auto_online) {
++		if (memhp_default_online_type == MMOP_OFFLINE) {
+ 			lock_device_hotplug();
+ 			walk_memory_blocks(ent->start, ent->size, NULL,
+ 					   online_mem_block);
+--- a/drivers/base/memory.c~mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type
 +++ a/drivers/base/memory.c
-@@ -28,6 +28,24 @@
- 
- #define MEMORY_CLASS_NAME	"memory"
- 
-+static const char *const online_type_to_str[] = {
-+	[MMOP_OFFLINE] = "offline",
-+	[MMOP_ONLINE] = "online",
-+	[MMOP_ONLINE_KERNEL] = "online_kernel",
-+	[MMOP_ONLINE_MOVABLE] = "online_movable",
-+};
-+
-+static int memhp_online_type_from_str(const char *str)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(online_type_to_str); i++) {
-+		if (sysfs_streq(str, online_type_to_str[i]))
-+			return i;
-+	}
-+	return -EINVAL;
-+}
-+
- #define to_memory_block(dev) container_of(dev, struct memory_block, dev)
- 
- static int sections_per_block;
-@@ -236,26 +254,17 @@ static int memory_subsys_offline(struct
- static ssize_t state_store(struct device *dev, struct device_attribute *attr,
- 			   const char *buf, size_t count)
+@@ -386,10 +386,8 @@ static DEVICE_ATTR_RO(block_size_bytes);
+ static ssize_t auto_online_blocks_show(struct device *dev,
+ 				       struct device_attribute *attr, char *buf)
  {
-+	const int online_type = memhp_online_type_from_str(buf);
- 	struct memory_block *mem = to_memory_block(dev);
--	int ret, online_type;
-+	int ret;
-+
-+	if (online_type < 0)
-+		return -EINVAL;
+-	if (memhp_auto_online)
+-		return sprintf(buf, "online\n");
+-	else
+-		return sprintf(buf, "offline\n");
++	return sprintf(buf, "%s\n",
++		       online_type_to_str[memhp_default_online_type]);
+ }
  
- 	ret = lock_device_hotplug_sysfs();
- 	if (ret)
- 		return ret;
+ static ssize_t auto_online_blocks_store(struct device *dev,
+@@ -397,9 +395,9 @@ static ssize_t auto_online_blocks_store(
+ 					const char *buf, size_t count)
+ {
+ 	if (sysfs_streq(buf, "online"))
+-		memhp_auto_online = true;
++		memhp_default_online_type = MMOP_ONLINE;
+ 	else if (sysfs_streq(buf, "offline"))
+-		memhp_auto_online = false;
++		memhp_default_online_type = MMOP_OFFLINE;
+ 	else
+ 		return -EINVAL;
  
--	if (sysfs_streq(buf, "online_kernel"))
--		online_type = MMOP_ONLINE_KERNEL;
--	else if (sysfs_streq(buf, "online_movable"))
--		online_type = MMOP_ONLINE_MOVABLE;
--	else if (sysfs_streq(buf, "online"))
--		online_type = MMOP_ONLINE;
--	else if (sysfs_streq(buf, "offline"))
--		online_type = MMOP_OFFLINE;
--	else {
--		ret = -EINVAL;
--		goto err;
--	}
--
- 	switch (online_type) {
- 	case MMOP_ONLINE_KERNEL:
- 	case MMOP_ONLINE_MOVABLE:
-@@ -271,7 +280,6 @@ static ssize_t state_store(struct device
- 		ret = -EINVAL; /* should never happen */
- 	}
+--- a/drivers/hv/hv_balloon.c~mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type
++++ a/drivers/hv/hv_balloon.c
+@@ -727,7 +727,7 @@ static void hv_mem_hot_add(unsigned long
+ 		spin_unlock_irqrestore(&dm_device.ha_lock, flags);
  
--err:
- 	unlock_device_hotplug();
+ 		init_completion(&dm_device.ol_waitevent);
+-		dm_device.ha_waiting = !memhp_auto_online;
++		dm_device.ha_waiting = memhp_default_online_type == MMOP_OFFLINE;
  
- 	if (ret < 0)
+ 		nid = memory_add_physaddr_to_nid(PFN_PHYS(start_pfn));
+ 		ret = add_memory(nid, PFN_PHYS((start_pfn)),
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type
++++ a/include/linux/memory_hotplug.h
+@@ -117,7 +117,8 @@ extern int arch_add_memory(int nid, u64
+ 			struct mhp_restrictions *restrictions);
+ extern u64 max_mem_size;
+ 
+-extern bool memhp_auto_online;
++/* Default online_type (MMOP_*) when new memory blocks are added. */
++extern int memhp_default_online_type;
+ /* If movable_node boot option specified */
+ extern bool movable_node_enabled;
+ static inline bool movable_node_is_enabled(void)
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type
++++ a/mm/memory_hotplug.c
+@@ -67,18 +67,18 @@ void put_online_mems(void)
+ bool movable_node_enabled = false;
+ 
+ #ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+-bool memhp_auto_online;
++int memhp_default_online_type = MMOP_OFFLINE;
+ #else
+-bool memhp_auto_online = true;
++int memhp_default_online_type = MMOP_ONLINE;
+ #endif
+-EXPORT_SYMBOL_GPL(memhp_auto_online);
++EXPORT_SYMBOL_GPL(memhp_default_online_type);
+ 
+ static int __init setup_memhp_default_state(char *str)
+ {
+ 	if (!strcmp(str, "online"))
+-		memhp_auto_online = true;
++		memhp_default_online_type = MMOP_ONLINE;
+ 	else if (!strcmp(str, "offline"))
+-		memhp_auto_online = false;
++		memhp_default_online_type = MMOP_OFFLINE;
+ 
+ 	return 1;
+ }
+@@ -991,6 +991,7 @@ static int check_hotplug_memory_range(u6
+ 
+ static int online_memory_block(struct memory_block *mem, void *arg)
+ {
++	mem->online_type = memhp_default_online_type;
+ 	return device_online(&mem->dev);
+ }
+ 
+@@ -1063,7 +1064,7 @@ int __ref add_memory_resource(int nid, s
+ 	mem_hotplug_done();
+ 
+ 	/* online pages if requested */
+-	if (memhp_auto_online)
++	if (memhp_default_online_type != MMOP_OFFLINE)
+ 		walk_memory_blocks(start, size, NULL, online_memory_block);
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
