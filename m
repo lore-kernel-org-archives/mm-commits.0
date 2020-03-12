@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-tick-timer-stall-during-deferred-page-init.patch
- added to -mm tree
-Date: Wed, 11 Mar 2020 16:42:01 -0700
-Message-ID: <20200311234201.ckHCFI1R_%akpm@linux-foundation.org>
+Subject: + drivers-base-memory-map-mmop_offline-to-0.patch added
+ to -mm tree
+Date: Wed, 11 Mar 2020 17:00:29 -0700
+Message-ID: <20200312000029.Rr36jpA8p%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42450 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45068 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726194AbgCKXmE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 11 Mar 2020 19:42:04 -0400
+        id S1731418AbgCLAAb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 11 Mar 2020 20:00:31 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ktkhai@virtuozzo.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, shile.zhang@linux.alibaba.com
+To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, kys@microsoft.com, mhocko@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, paulus@samba.org, rafael@kernel.org, richard.weiyang@gmail.com, sthemmin@microsoft.com, tglx@linutronix.de, wei.liu@kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: fix tick timer stall during deferred page init
+     Subject: drivers/base/memory: map MMOP_OFFLINE to 0
 has been added to the -mm tree.  Its filename is
-     mm-fix-tick-timer-stall-during-deferred-page-init.patch
+     drivers-base-memory-map-mmop_offline-to-0.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-tick-timer-stall-during-deferred-page-init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-memory-map-mmop_offline-to-0.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-tick-timer-stall-during-deferred-page-init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-memory-map-mmop_offline-to-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,106 +38,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shile Zhang <shile.zhang@linux.alibaba.com>
-Subject: mm/page_alloc.c: fix tick timer stall during deferred page init
+From: David Hildenbrand <david@redhat.com>
+Subject: drivers/base/memory: map MMOP_OFFLINE to 0
 
-When 'CONFIG_DEFERRED_STRUCT_PAGE_INIT' is set, 'pgdatinit' kthread will
-initialise the deferred pages with local interrupts disabled.  It is
-introduced by commit 3a2d7fa8a3d5 ("mm: disable interrupts while
-initializing deferred pages").
+I have no idea why we have to start at -1.  Just treat 0 as the special
+case.  Clarify a comment (which was wrong, when we come via
+device_online() the first time, the online_type would have been 0 /
+MEM_ONLINE).  The default is now always MMOP_OFFLINE.
 
-On machine with NCPUS <= 2, the 'pgdatinit' kthread could be bound to the
-boot CPU, which could caused the tick timer long time stall, system
-jiffies not be updated in time.
+This is a preparation to use the online_type as an array index.
 
-The dmesg shown that:
-
-    [    0.197975] node 0 initialised, 32170688 pages in 1ms
-
-Obviously, 1ms is unreasonable.
-
-Now, fix it by restore in the pending interrupts for every 32*1204 pages
-(128MB) initialized, give the chance to update the systemd jiffies.  The
-reasonable demsg shown likes:
-
-    [    1.069306] node 0 initialised, 32203456 pages in 894ms
-
-Link: http://lkml.kernel.org/r/20200311123848.118638-1-shile.zhang@linux.alibaba.com
-Fixes: 3a2d7fa8a3d5 ("mm: disable interrupts while initializing deferred pages")
-Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Signed-off-by: Shile Zhang <shile.zhang@linux.alibaba.com>
-Co-developed-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Link: http://lkml.kernel.org/r/20200311123026.16071-3-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+ drivers/base/memory.c          |   11 ++++-------
+ include/linux/memory_hotplug.h |    2 +-
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
---- a/mm/page_alloc.c~mm-fix-tick-timer-stall-during-deferred-page-init
-+++ a/mm/page_alloc.c
-@@ -1765,12 +1765,17 @@ deferred_init_maxorder(u64 *i, struct zo
- 	return nr_pages;
- }
+--- a/drivers/base/memory.c~drivers-base-memory-map-mmop_offline-to-0
++++ a/drivers/base/memory.c
+@@ -211,17 +211,14 @@ static int memory_subsys_online(struct d
+ 		return 0;
  
-+/*
-+ * Release the pending interrupts for every TICK_PAGE_COUNT pages.
-+ */
-+#define TICK_PAGE_COUNT	(32 * 1024)
-+
- /* Initialise remaining memory on a node */
- static int __init deferred_init_memmap(void *data)
- {
- 	pg_data_t *pgdat = data;
- 	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
--	unsigned long spfn = 0, epfn = 0, nr_pages = 0;
-+	unsigned long spfn = 0, epfn = 0, nr_pages = 0, prev_nr_pages = 0;
- 	unsigned long first_init_pfn, flags;
- 	unsigned long start = jiffies;
- 	struct zone *zone;
-@@ -1781,6 +1786,7 @@ static int __init deferred_init_memmap(v
- 	if (!cpumask_empty(cpumask))
- 		set_cpus_allowed_ptr(current, cpumask);
- 
-+again:
- 	pgdat_resize_lock(pgdat, &flags);
- 	first_init_pfn = pgdat->first_deferred_pfn;
- 	if (first_init_pfn == ULONG_MAX) {
-@@ -1792,7 +1798,6 @@ static int __init deferred_init_memmap(v
- 	/* Sanity check boundaries */
- 	BUG_ON(pgdat->first_deferred_pfn < pgdat->node_start_pfn);
- 	BUG_ON(pgdat->first_deferred_pfn > pgdat_end_pfn(pgdat));
--	pgdat->first_deferred_pfn = ULONG_MAX;
- 
- 	/* Only the highest zone is deferred so find it */
- 	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-@@ -1811,9 +1816,23 @@ static int __init deferred_init_memmap(v
- 	 * that we can avoid introducing any issues with the buddy
- 	 * allocator.
+ 	/*
+-	 * If we are called from state_store(), online_type will be
+-	 * set >= 0 Otherwise we were called from the device online
+-	 * attribute and need to set the online_type.
++	 * When called via device_online() without configuring the online_type,
++	 * we want to default to MMOP_ONLINE.
  	 */
--	while (spfn < epfn)
-+	while (spfn < epfn) {
- 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
-+		/*
-+		 * Release the interrupts for every TICK_PAGE_COUNT pages
-+		 * (128MB) to give tick timer the chance to update the
-+		 * system jiffies.
-+		 */
-+		if ((nr_pages - prev_nr_pages) > TICK_PAGE_COUNT) {
-+			prev_nr_pages = nr_pages;
-+			pgdat->first_deferred_pfn = spfn;
-+			pgdat_resize_unlock(pgdat, &flags);
-+			goto again;
-+		}
-+	}
-+
- zone_empty:
-+	pgdat->first_deferred_pfn = ULONG_MAX;
- 	pgdat_resize_unlock(pgdat, &flags);
+-	if (mem->online_type < 0)
++	if (mem->online_type == MMOP_OFFLINE)
+ 		mem->online_type = MMOP_ONLINE;
  
- 	/* Sanity check that the next zone really is unpopulated */
+ 	ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
+-
+-	/* clear online_type */
+-	mem->online_type = -1;
++	mem->online_type = MMOP_OFFLINE;
+ 
+ 	return ret;
+ }
+--- a/include/linux/memory_hotplug.h~drivers-base-memory-map-mmop_offline-to-0
++++ a/include/linux/memory_hotplug.h
+@@ -48,7 +48,7 @@ enum {
+ /* Types for control the zone type of onlined and offlined memory */
+ enum {
+ 	/* Offline the memory. */
+-	MMOP_OFFLINE = -1,
++	MMOP_OFFLINE = 0,
+ 	/* Online the memory. Zone depends, see default_zone_for_pfn(). */
+ 	MMOP_ONLINE,
+ 	/* Online the memory to ZONE_NORMAL. */
 _
 
-Patches currently in -mm which might be from shile.zhang@linux.alibaba.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-fix-tick-timer-stall-during-deferred-page-init.patch
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
+virtio-balloon-switch-back-to-oom-handler-for-virtio_balloon_f_deflate_on_oom.patch
+drivers-base-memoryc-indicate-all-memory-blocks-as-removable.patch
+drivers-base-memoryc-drop-section_count.patch
+drivers-base-memoryc-drop-pages_correctly_probed.patch
+mm-page_extc-drop-pfn_present-check-when-onlining.patch
+mm-memory_hotplug-simplify-calculation-of-number-of-pages-in-__remove_pages.patch
+mm-memory_hotplug-cleanup-__add_pages.patch
+drivers-base-memory-rename-mmop_online_keep-to-mmop_online.patch
+drivers-base-memory-map-mmop_offline-to-0.patch
+drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array.patch
+mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type.patch
+mm-memory_hotplug-allow-to-specify-a-default-online_type.patch
