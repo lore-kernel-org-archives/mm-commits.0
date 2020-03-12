@@ -1,135 +1,91 @@
-From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Thu, 12 Mar 2020 12:17:07 -0700
-Message-ID: <20200312191707.tJQQRYiVP%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: +
+ fs-filesystemsc-downgrade-user-reachable-warn_once-to-pr_warn_once.patch
+ added to -mm tree
+Date: Thu, 12 Mar 2020 15:29:43 -0700
+Message-ID: <20200312222943.O1sOXgoTP%akpm@linux-foundation.org>
+References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42166 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52266 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726553AbgCLTRJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Mar 2020 15:17:09 -0400
+        id S1727064AbgCLW3p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Mar 2020 18:29:45 -0400
+In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: ast@kernel.org, ebiggers@google.com, gregkh@linuxfoundation.org, jeffv@google.com, jeyu@kernel.org, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, neilb@suse.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: fs/filesystems.c: downgrade user-reachable WARN_ONCE() to pr_warn_once()
+has been added to the -mm tree.  Its filename is
+     fs-filesystemsc-downgrade-user-reachable-warn_once-to-pr_warn_once.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-filesystemsc-downgrade-user-reachable-warn_once-to-pr_warn_once.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-filesystemsc-downgrade-user-reachable-warn_once-to-pr_warn_once.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Eric Biggers <ebiggers@google.com>
+Subject: fs/filesystems.c: downgrade user-reachable WARN_ONCE() to pr_warn_once()
+
+After request_module(), nothing is stopping the module from being unloaded
+until someone takes a reference to it via try_get_module().
+
+The WARN_ONCE() in get_fs_type() is thus user-reachable, via userspace
+running 'rmmod' concurrently.
+
+Since WARN_ONCE() is for kernel bugs only, not for user-reachable
+situations, downgrade this warning to pr_warn_once().
+
+Link: http://lkml.kernel.org/r/20200312202552.241885-3-ebiggers@kernel.org
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: Jessica Yu <jeyu@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: NeilBrown <neilb@suse.com>
+Cc: <stable@vger.kernel.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/cgroup.c |   39 ---------------------------------------
- 1 file changed, 39 deletions(-)
+ fs/filesystems.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/kernel/cgroup/cgroup.c~linux-next-git-rejects
-+++ a/kernel/cgroup/cgroup.c
-@@ -4412,31 +4412,12 @@ static void css_task_iter_advance_css_se
- 			it->cur_tasks_head = &cset->dying_tasks;
- 			break;
- 		}
--<<<<<<< HEAD
--	} while (!css_set_populated(cset) && list_empty(&cset->dying_tasks));
--
--	if (!list_empty(&cset->tasks)) {
--		it->task_pos = cset->tasks.next;
--		it->cur_tasks_head = &cset->tasks;
--	} else if (!list_empty(&cset->mg_tasks)) {
--		it->task_pos = cset->mg_tasks.next;
--		it->cur_tasks_head = &cset->mg_tasks;
--	} else {
--		it->task_pos = cset->dying_tasks.next;
--		it->cur_tasks_head = &cset->dying_tasks;
--	}
--
--	it->tasks_head = &cset->tasks;
--	it->mg_tasks_head = &cset->mg_tasks;
--	it->dying_tasks_head = &cset->dying_tasks;
--=======
+--- a/fs/filesystems.c~fs-filesystemsc-downgrade-user-reachable-warn_once-to-pr_warn_once
++++ a/fs/filesystems.c
+@@ -272,7 +272,9 @@ struct file_system_type *get_fs_type(con
+ 	fs = __get_fs_type(name, len);
+ 	if (!fs && (request_module("fs-%.*s", len, name) == 0)) {
+ 		fs = __get_fs_type(name, len);
+-		WARN_ONCE(!fs, "request_module fs-%.*s succeeded, but still no fs?\n", len, name);
++		if (!fs)
++			pr_warn_once("request_module fs-%.*s succeeded, but still no fs?\n",
++				     len, name);
  	}
- 	if (!cset) {
- 		it->task_pos = NULL;
- 		return;
- 	}
- 	it->task_pos = it->cur_tasks_head->next;
-->>>>>>> linux-next/akpm-base
  
- 	/*
- 	 * We don't keep css_sets locked across iteration steps and thus
-@@ -4490,17 +4471,6 @@ repeat:
- 		else
- 			it->task_pos = it->task_pos->next;
- 
--<<<<<<< HEAD
--		if (it->task_pos == it->tasks_head) {
--			it->task_pos = it->mg_tasks_head->next;
--			it->cur_tasks_head = it->mg_tasks_head;
--		}
--		if (it->task_pos == it->mg_tasks_head) {
--			it->task_pos = it->dying_tasks_head->next;
--			it->cur_tasks_head = it->dying_tasks_head;
--		}
--		if (it->task_pos == it->dying_tasks_head)
--=======
- 		if (it->task_pos == &it->cur_cset->tasks) {
- 			it->cur_tasks_head = &it->cur_cset->mg_tasks;
- 			it->task_pos = it->cur_tasks_head->next;
-@@ -4510,7 +4480,6 @@ repeat:
- 			it->task_pos = it->cur_tasks_head->next;
- 		}
- 		if (it->task_pos == &it->cur_cset->dying_tasks)
-->>>>>>> linux-next/akpm-base
- 			css_task_iter_advance_css_set(it);
- 	} else {
- 		/* called from start, proceed to the first cset */
-@@ -4528,20 +4497,12 @@ repeat:
- 			goto repeat;
- 
- 		/* and dying leaders w/o live member threads */
--<<<<<<< HEAD
--		if (it->cur_tasks_head == it->dying_tasks_head &&
--=======
- 		if (it->cur_tasks_head == &it->cur_cset->dying_tasks &&
-->>>>>>> linux-next/akpm-base
- 		    !atomic_read(&task->signal->live))
- 			goto repeat;
- 	} else {
- 		/* skip all dying ones */
--<<<<<<< HEAD
--		if (it->cur_tasks_head == it->dying_tasks_head)
--=======
- 		if (it->cur_tasks_head == &it->cur_cset->dying_tasks)
-->>>>>>> linux-next/akpm-base
- 			goto repeat;
- 	}
- }
+ 	if (dot && fs && !(fs->fs_flags & FS_HAS_SUBTYPE)) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ebiggers@google.com are
 
-memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
-mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
-mm.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-selftest-add-mremap_dontunmap-selftest-fix.patch
-selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
-mm-migratec-migrate-pg_readahead-flag-fix.patch
-proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-mm-add-vm_insert_pages-fix.patch
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
-seq_read-info-message-about-buggy-next-functions-fix.patch
-drivers-tty-serial-sh-scic-suppress-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+kmod-make-request_module-return-an-error-when-autoloading-is-disabled.patch
+fs-filesystemsc-downgrade-user-reachable-warn_once-to-pr_warn_once.patch
+docs-admin-guide-document-the-kernelmodprobe-sysctl.patch
+selftests-kmod-test-disabling-module-autoloading.patch
