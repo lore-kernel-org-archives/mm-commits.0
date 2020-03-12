@@ -1,33 +1,33 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- =?US-ASCII?Q?mm-special-create-generic-fallbacks-for-pte=5Fspecial-and-pt?=
- =?US-ASCII?Q?e=5Fmkspecial-v3.patch?= added to -mm tree
-Date: Wed, 11 Mar 2020 18:17:09 -0700
-Message-ID: <20200312011709.5Am6ng6wK%akpm@linux-foundation.org>
+ =?US-ASCII?Q?memcg-fix-null-pointer-dereference-in-=5F=5Fmem=5Fcgroup=5F?=
+ =?US-ASCII?Q?usage=5Funregister=5Fevent-fix.patch?= added to -mm tree
+Date: Wed, 11 Mar 2020 19:40:23 -0700
+Message-ID: <20200312024023.6QkFQpQ-l%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41048 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387404AbgCLBRK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 11 Mar 2020 21:17:10 -0400
+        id S2387501AbgCLCkZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 11 Mar 2020 22:40:25 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, mm-commits@vger.kernel.org, tsbogend@alpha.franken.de
+To: akpm@linux-foundation.org, brookxu@tencent.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial-v3
+     Subject: memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix
 has been added to the -mm tree.  Its filename is
-     mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial-v3.patch
+     memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,54 +41,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial-v3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix
 
-use defined(CONFIG_ARCH_HAS_PTE_SPECIAL) in mips per Thomas
+fix comment, per Kirill
 
-Link: http://lkml.kernel.org/r/1583851924-21603-1-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Chunguang Xu <brookxu@tencent.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/mips/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial-v3
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -273,7 +273,7 @@ extern pgd_t swapper_pg_dir[];
-  * Platform specific pte_special() and pte_mkspecial() definitions
-  * are required only when ARCH_HAS_PTE_SPECIAL is enabled.
-  */
--#if !defined(CONFIG_32BIT) && !defined(CONFIG_CPU_HAS_RIXI)
-+#if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
- #if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
- static inline int pte_special(pte_t pte)
- {
-@@ -297,7 +297,7 @@ static inline pte_t pte_mkspecial(pte_t
- 	return pte;
- }
- #endif
--#endif
-+#endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
+--- a/mm/memcontrol.c~memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix
++++ a/mm/memcontrol.c
+@@ -4068,7 +4068,7 @@ static void __mem_cgroup_usage_unregiste
  
- /*
-  * The following only work if pte_present() is true.
+ 	new = thresholds->spare;
+ 
+-	/* If items related to eventfd have been cleared, nothing to do */
++	/* If no items related to eventfd have been cleared, nothing to do */
+ 	if (!entries)
+ 		goto unlock;
+ 
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vma-add-missing-vma-flag-readable-name-for-vm_sync.patch
-mm-vma-make-vma_is_accessible-available-for-general-use.patch
-mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page.patch
-mm-vma-replace-all-remaining-open-encodings-with-vma_is_anonymous.patch
-mm-vma-append-unlikely-while-testing-vma-access-permissions.patch
-mm-vma-move-vm_no_khugepaged-into-generic-header.patch
-mm-vma-make-vma_is_foreign-available-for-general-use.patch
-mm-vma-make-is_vma_temporary_stack-available-for-general-use.patch
-mm-vma-define-a-default-value-for-vm_data_default_flags.patch
-mm-vma-introduce-vm_access_flags.patch
-mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial.patch
-mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial-v3.patch
-mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
+mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+mm.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+linux-next-git-rejects.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
