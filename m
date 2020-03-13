@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-do-not-allow-madv_pageout-for-cow-pages.patch added
- to -mm tree
-Date: Thu, 12 Mar 2020 17:26:32 -0700
-Message-ID: <20200313002632.K95DZ6F32%akpm@linux-foundation.org>
+Subject: + mm-gup-track-foll_pin-pages-fix-2-fix.patch added to
+ -mm tree
+Date: Thu, 12 Mar 2020 17:32:35 -0700
+Message-ID: <20200313003235.RqWdKo3i3%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56650 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57140 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726830AbgCMA0e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Mar 2020 20:26:34 -0400
+        id S1726620AbgCMAch (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Mar 2020 20:32:37 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dancol@google.com, dave.hansen@intel.com, jannh@google.com, joel@joelfernandes.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, imbrenda@linux.ibm.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm: do not allow MADV_PAGEOUT for CoW pages
+     Subject: mm-gup-track-foll_pin-pages-fix-2-fix
 has been added to the -mm tree.  Its filename is
-     mm-do-not-allow-madv_pageout-for-cow-pages.patch
+     mm-gup-track-foll_pin-pages-fix-2-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-do-not-allow-madv_pageout-for-cow-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-track-foll_pin-pages-fix-2-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-do-not-allow-madv_pageout-for-cow-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-track-foll_pin-pages-fix-2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,59 +38,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: do not allow MADV_PAGEOUT for CoW pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-gup-track-foll_pin-pages-fix-2-fix
 
-Jann has brought up a very interesting point [1].  While shared pages are
-excluded from MADV_PAGEOUT normally, CoW pages can be easily reclaimed
-that way.  This can lead to all sorts of hard to debug problems.  E.g. 
-performance problems outlined by Daniel [2].
+fix put_compound_head defined but not used
 
-There are runtime environments where there is a substantial memory shared
-among security domains via CoW memory and a easy to reclaim way of that
-memory, which MADV_{COLD,PAGEOUT} offers, can lead to either performance
-degradation in for the parent process which might be more privileged or
-even open side channel attacks.
-
-The feasibility of the latter is not really clear to me TBH but there is
-no real reason for exposure at this stage.  It seems there is no real use
-case to depend on reclaiming CoW memory via madvise at this stage so it is
-much easier to simply disallow it and this is what this patch does.  Put
-it simply MADV_{PAGEOUT,COLD} can operate only on the exclusively owned
-memory which is a straightforward semantic.
-
-[1] http://lkml.kernel.org/r/CAG48ez0G3JkMq61gUmyQAaCq=_TwHbi1XKzWRooxZkv08PQKuw@mail.gmail.com
-[2] http://lkml.kernel.org/r/CAKOZueua_v8jHCpmEtTB6f3i9e2YnmX4mqdYVWhV4E=Z-n+zRQ@mail.gmail.com
-
-Link: http://lkml.kernel.org/r/20200312082248.GS23944@dhcp22.suse.cz
-Fixes: 9c276cc65a58 ("mm: introduce MADV_COLD")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Jann Horn <jannh@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Daniel Colascione <dancol@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: "Joel Fernandes (Google)" <joel@joelfernandes.org>
-Cc: <stable@vger.kernel.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ mm/gup.c |   32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
---- a/mm/madvise.c~mm-do-not-allow-madv_pageout-for-cow-pages
-+++ a/mm/madvise.c
-@@ -335,12 +335,14 @@ static int madvise_cold_or_pageout_pte_r
- 		}
+--- a/mm/gup.c~mm-gup-track-foll_pin-pages-fix-2-fix
++++ a/mm/gup.c
+@@ -78,21 +78,6 @@ static __maybe_unused struct page *try_g
+ 	return NULL;
+ }
  
- 		page = pmd_page(orig_pmd);
+-static void put_compound_head(struct page *page, int refs, unsigned int flags)
+-{
+-	if (flags & FOLL_PIN)
+-		refs *= GUP_PIN_COUNTING_BIAS;
+-
+-	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
+-	/*
+-	 * Calling put_page() for each ref is unnecessarily slow. Only the last
+-	 * ref needs a put_page().
+-	 */
+-	if (refs > 1)
+-		page_ref_sub(page, refs - 1);
+-	put_page(page);
+-}
+-
+ /**
+  * try_grab_page() - elevate a page's refcount by a flag-dependent amount
+  *
+@@ -1967,7 +1952,24 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
+  * This code is based heavily on the PowerPC implementation by Nick Piggin.
+  */
+ #ifdef CONFIG_HAVE_FAST_GUP
 +
-+		/* Do not interfere with other mappings of this page */
-+		if (page_mapcount(page) != 1)
-+			goto huge_unlock;
++static void put_compound_head(struct page *page, int refs, unsigned int flags)
++{
++	if (flags & FOLL_PIN)
++		refs *= GUP_PIN_COUNTING_BIAS;
 +
- 		if (next - addr != HPAGE_PMD_SIZE) {
- 			int err;
- 
--			if (page_mapcount(page) != 1)
--				goto huge_unlock;
++	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
++	/*
++	 * Calling put_page() for each ref is unnecessarily slow. Only the last
++	 * ref needs a put_page().
++	 */
++	if (refs > 1)
++		page_ref_sub(page, refs - 1);
++	put_page(page);
++}
++
+ #ifdef CONFIG_GUP_GET_PTE_LOW_HIGH
++
+ /*
+  * WARNING: only to be used in the get_user_pages_fast() implementation.
+  *
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
+mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+mm.patch
+mm-gup-track-foll_pin-pages-fix-2-fix.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
