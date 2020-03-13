@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc-fix-2.patch added to
- -mm tree
-Date: Thu, 12 Mar 2020 20:13:26 -0700
-Message-ID: <20200313031326.TmzPL-x5b%akpm@linux-foundation.org>
+ selftests-vm-fix-map_hugetlb-length-used-for-testing-read-and-write.patch
+ added to -mm tree
+Date: Thu, 12 Mar 2020 20:25:28 -0700
+Message-ID: <20200313032528.pzqoIWk0K%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33232 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726310AbgCMDN1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Mar 2020 23:13:27 -0400
+        id S1726246AbgCMDZ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Mar 2020 23:25:29 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glider@google.com, lkp@intel.com, mm-commits@vger.kernel.org
+To: christophe.leroy@c-s.fr, leonardo@linux.ibm.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, shuah@kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: add IRQENTRY_TEXT and SOFTIRQENTRY_TEXT to linker script
+     Subject: selftests/vm: fix map_hugetlb length used for testing read and write
 has been added to the -mm tree.  Its filename is
-     kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc-fix-2.patch
+     selftests-vm-fix-map_hugetlb-length-used-for-testing-read-and-write.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-fix-map_hugetlb-length-used-for-testing-read-and-write.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-fix-map_hugetlb-length-used-for-testing-read-and-write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +39,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: glider@google.com
-Subject: ia64: add IRQENTRY_TEXT and SOFTIRQENTRY_TEXT to linker script
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Subject: selftests/vm: fix map_hugetlb length used for testing read and write
 
-This is needed to fix linker errors caused by lib/stackdepot.c
-referencing __{soft,}irqentry_text_{start,end}.
+Commit fa7b9a805c79 ("tools/selftest/vm: allow choosing mem size and page
+size in map_hugetlb") added the possibility to change the size of memory
+mapped for the test, but left the read and write test using the default
+value.  This is unnoticed when mapping a length greater than the default
+one, but segfaults otherwise.
 
-Link: http://lkml.kernel.org/r/20200311121124.243352-1-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reported-by: kbuild test robot <lkp@intel.com>
+Fix read_bytes() and write_bytes() by giving them the real length.
+
+Also fix the call to munmap().
+
+Link: http://lkml.kernel.org/r/9a404a13c871c4bd0ba9ede68f69a1225180dd7e.1580978385.git.christophe.leroy@c-s.fr
+Fixes: fa7b9a805c79 ("tools/selftest/vm: allow choosing mem size and page size in map_hugetlb")
+Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
+Reviewed-by: Leonardo Bras <leonardo@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/vmlinux.lds.S |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/vm/map_hugetlb.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/arch/ia64/kernel/vmlinux.lds.S~kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc-fix-2
-+++ a/arch/ia64/kernel/vmlinux.lds.S
-@@ -54,6 +54,8 @@ SECTIONS {
- 		CPUIDLE_TEXT
- 		LOCK_TEXT
- 		KPROBES_TEXT
-+		IRQENTRY_TEXT
-+		SOFTIRQENTRY_TEXT
- 		*(.gnu.linkonce.t*)
- 	}
+--- a/tools/testing/selftests/vm/map_hugetlb.c~selftests-vm-fix-map_hugetlb-length-used-for-testing-read-and-write
++++ a/tools/testing/selftests/vm/map_hugetlb.c
+@@ -45,20 +45,20 @@ static void check_bytes(char *addr)
+ 	printf("First hex is %x\n", *((unsigned int *)addr));
+ }
  
+-static void write_bytes(char *addr)
++static void write_bytes(char *addr, size_t length)
+ {
+ 	unsigned long i;
+ 
+-	for (i = 0; i < LENGTH; i++)
++	for (i = 0; i < length; i++)
+ 		*(addr + i) = (char)i;
+ }
+ 
+-static int read_bytes(char *addr)
++static int read_bytes(char *addr, size_t length)
+ {
+ 	unsigned long i;
+ 
+ 	check_bytes(addr);
+-	for (i = 0; i < LENGTH; i++)
++	for (i = 0; i < length; i++)
+ 		if (*(addr + i) != (char)i) {
+ 			printf("Mismatch at %lu\n", i);
+ 			return 1;
+@@ -96,11 +96,11 @@ int main(int argc, char **argv)
+ 
+ 	printf("Returned address is %p\n", addr);
+ 	check_bytes(addr);
+-	write_bytes(addr);
+-	ret = read_bytes(addr);
++	write_bytes(addr, length);
++	ret = read_bytes(addr, length);
+ 
+ 	/* munmap() length of MAP_HUGETLB memory must be hugepage aligned */
+-	if (munmap(addr, LENGTH)) {
++	if (munmap(addr, length)) {
+ 		perror("munmap");
+ 		exit(1);
+ 	}
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from christophe.leroy@c-s.fr are
 
-stackdepot-check-depot_index-before-accessing-the-stack-slab.patch
-stackdepot-build-with-fno-builtin.patch
-kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc.patch
-kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc-fix-1.patch
-kasan-stackdepot-move-filter_irq_stacks-to-stackdepotc-fix-2.patch
+selftests-vm-fix-map_hugetlb-length-used-for-testing-read-and-write.patch
