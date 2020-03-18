@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-silence-kcsan-splats-in-checksum.patch
- added to -mm tree
-Date: Tue, 17 Mar 2020 19:59:52 -0700
-Message-ID: <20200318025952.zBzj0hHEk%akpm@linux-foundation.org>
+Subject: + mm-swap-make-page_evictable-inline.patch added to -mm
+ tree
+Date: Tue, 17 Mar 2020 20:07:46 -0700
+Message-ID: <20200318030746.zoL-DyWUS%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56306 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57118 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726229AbgCRC7y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Mar 2020 22:59:54 -0400
+        id S1726229AbgCRDHt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Mar 2020 23:07:49 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, catalin.marinas@arm.com, elver@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, shakeelb@google.com, vbabka@suse.cz, willy@infradead.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm/kmemleak: silence KCSAN splats in checksum
+     Subject: mm: swap: make page_evictable() inline
 has been added to the -mm tree.  Its filename is
-     mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+     mm-swap-make-page_evictable-inline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-make-page_evictable-inline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-make-page_evictable-inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,88 +38,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: mm/kmemleak: silence KCSAN splats in checksum
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm: swap: make page_evictable() inline
 
-Even if KCSAN is disabled for kmemleak, update_checksum() could still call
-crc32() (which is outside of kmemleak.c) to dereference object->pointer. 
-Thus, the value of object->pointer could be accessed concurrently as
-noticed by KCSAN,
+When backporting commit 9c4e6b1a7027 ("mm, mlock, vmscan: no more skipping
+pagevecs") to our 4.9 kernel, our test bench noticed around 10% down with
+a couple of vm-scalability's test cases (lru-file-readonce,
+lru-file-readtwice and lru-file-mmap-read).  I didn't see that much down
+on my VM (32c-64g-2nodes).  It might be caused by the test configuration,
+which is 32c-256g with NUMA disabled and the tests were run in root memcg,
+so the tests actually stress only one inactive and active lru.  It sounds
+not very usual in mordern production environment.
 
- BUG: KCSAN: data-race in crc32_le_base / do_raw_spin_lock
+That commit did two major changes:
+1. Call page_evictable()
+2. Use smp_mb to force the PG_lru set visible
 
- write to 0xffffb0ea683a7d50 of 4 bytes by task 23575 on cpu 12:
-  do_raw_spin_lock+0x114/0x200
-  debug_spin_lock_after at kernel/locking/spinlock_debug.c:91
-  (inlined by) do_raw_spin_lock at kernel/locking/spinlock_debug.c:115
-  _raw_spin_lock+0x40/0x50
-  __handle_mm_fault+0xa9e/0xd00
-  handle_mm_fault+0xfc/0x2f0
-  do_page_fault+0x263/0x6f9
-  page_fault+0x34/0x40
+It looks they contribute the most overhead.  The page_evictable() is a
+function which does function prologue and epilogue, and that was used by
+page reclaim path only.  However, lru add is a very hot path, so it sounds
+better to make it inline.  However, it calls page_mapping() which is not
+inlined either, but the disassemble shows it doesn't do push and pop
+operations and it sounds not very straightforward to inline it.
 
- read to 0xffffb0ea683a7d50 of 4 bytes by task 839 on cpu 60:
-  crc32_le_base+0x67/0x350
-  crc32_le_base+0x67/0x350:
-  crc32_body at lib/crc32.c:106
-  (inlined by) crc32_le_generic at lib/crc32.c:179
-  (inlined by) crc32_le at lib/crc32.c:197
-  kmemleak_scan+0x528/0xd90
-  update_checksum at mm/kmemleak.c:1172
-  (inlined by) kmemleak_scan at mm/kmemleak.c:1497
-  kmemleak_scan_thread+0xcc/0xfa
-  kthread+0x1e0/0x200
-  ret_from_fork+0x27/0x50
+Other than this, it sounds smp_mb() is not necessary for x86 since
+SetPageLRU is atomic which enforces memory barrier already, replace it
+with smp_mb__after_atomic() in the following patch.
 
-If a shattered value was returned due to a data race, it will be corrected
-in the next scan.  Thus, let KCSAN ignore all reads in the region to
-silence KCSAN in case the write side is non-atomic.
+With the two fixes applied, the tests can get back around 5% on that test
+bench and get back normal on my VM.  Since the test bench configuration is
+not that usual and I also saw around 6% up on the latest upstream, so it
+sounds good enough IMHO.
 
-Link: http://lkml.kernel.org/r/20200317182754.2180-1-cai@lca.pw
-Signed-off-by: Qian Cai <cai@lca.pw>
-Suggested-by: Marco Elver <elver@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+The below is test data (lru-file-readtwice throughput) against the v5.6-rc4:
+	mainline	w/ inline fix
+          150MB            154MB
+
+With this patch the throughput gets 2.67% up.  The data with using
+smp_mb__after_atomic() is showed in the following patch.
+
+Shakeel Butt did the below test:
+
+On a real machine with limiting the 'dd' on a single node and reading 100
+GiB sparse file (less than a single node).  Just ran a single instance to
+not cause the lru lock contention.  The cmdline used is "dd if=file-100GiB
+of=/dev/null bs=4k".  Ran the cmd 10 times with drop_caches in between and
+measured the time it took.
+
+Without patch: 56.64143 +- 0.672 sec
+
+With patches: 56.10 +- 0.21 sec
+
+Link: http://lkml.kernel.org/r/1584500541-46817-1-git-send-email-yang.shi@linux.alibaba.com
+Fixes: 9c4e6b1a7027 ("mm, mlock, vmscan: no more skipping pagevecs")
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Tested-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/pagemap.h |   29 +++++++++++++++++++++++++----
+ include/linux/swap.h    |    1 -
+ mm/vmscan.c             |   23 -----------------------
+ 3 files changed, 25 insertions(+), 28 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-silence-kcsan-splats-in-checksum
-+++ a/mm/kmemleak.c
-@@ -1169,8 +1169,10 @@ static bool update_checksum(struct kmeml
- 	u32 old_csum = object->checksum;
- 
- 	kasan_disable_current();
-+	kcsan_disable_current();
- 	object->checksum = crc32(0, (void *)object->pointer, object->size);
- 	kasan_enable_current();
-+	kcsan_enable_current();
- 
- 	return object->checksum != old_csum;
+--- a/include/linux/pagemap.h~mm-swap-make-page_evictable-inline
++++ a/include/linux/pagemap.h
+@@ -70,11 +70,9 @@ static inline void mapping_clear_unevict
+ 	clear_bit(AS_UNEVICTABLE, &mapping->flags);
  }
-_
-
-Patches currently in -mm which might be from cai@lca.pw are
-
-page-flags-fix-a-crash-at-setpageerrorthp_swap.patch
-mm-kmemleak-silence-kcsan-splats-in-checksum.patch
-mm-disable-kcsan-for-kmemleak.patch
-mm-swapfile-fix-data-races-in-try_to_unuse.patch
-kasan-detect-negative-size-in-memory-operation-function-fix.patch
-mm-vmscan-fix-data-races-at-kswapd_classzone_idx.patch
-percpu_counter-fix-a-data-race-at-vm_committed_as.patch
-mm-frontswap-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races-v2.patch
-mm-swap_state-mark-various-intentional-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races-v2.patch
-mm-page_counter-fix-various-data-races-at-memsw.patch
-mm-memcontrol-fix-a-data-race-in-scan-count.patch
-mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-mm-mempool-fix-a-data-race-in-mempool_free.patch
-mm-util-annotate-an-data-race-at-vm_committed_as.patch
-mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
-mm-annotate-a-data-race-in-page_zonenum.patch
-mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
+ 
+-static inline int mapping_unevictable(struct address_space *mapping)
++static inline bool mapping_unevictable(struct address_space *mapping)
+ {
+-	if (mapping)
+-		return test_bit(AS_UNEVICTABLE, &mapping->flags);
+-	return !!mapping;
++	return mapping && test_bit(AS_UNEVICTABLE, &mapping->flags);
+ }
+ 
+ static inline void mapping_set_exiting(struct address_space *mapping)
+@@ -118,6 +116,29 @@ static inline void mapping_set_gfp_mask(
+ 	m->gfp_mask = mask;
+ }
+ 
++/**
++ * page_evictable - test whether a page is evictable
++ * @page: the page to test
++ *
++ * Test whether page is evictable--i.e., should be placed on active/inactive
++ * lists vs unevictable list.
++ *
++ * Reasons page might not be evictable:
++ * (1) page's mapping marked unevictable
++ * (2) page is part of an mlocked VMA
++ *
++ */
++static inline bool page_evictable(struct page *page)
++{
++	bool ret;
++
++	/* Prevent address_space of inode and swap cache from being freed */
++	rcu_read_lock();
++	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
++	rcu_read_unlock();
++	return ret;
++}
++
+ void release_pages(struct page **pages, int nr);
+ 
+ /*
+--- a/include/linux/swap.h~mm-swap-make-page_evictable-inline
++++ a/include/linux/swap.h
+@@ -374,7 +374,6 @@ extern int sysctl_min_slab_ratio;
+ #define node_reclaim_mode 0
+ #endif
+ 
+-extern int page_evictable(struct page *page);
+ extern void check_move_unevictable_pages(struct pagevec *pvec);
+ 
+ extern int kswapd_run(int nid);
+--- a/mm/vmscan.c~mm-swap-make-page_evictable-inline
++++ a/mm/vmscan.c
+@@ -4277,29 +4277,6 @@ int node_reclaim(struct pglist_data *pgd
+ }
+ #endif
+ 
+-/*
+- * page_evictable - test whether a page is evictable
+- * @page: the page to test
+- *
+- * Test whether page is evictable--i.e., should be placed on active/inactive
+- * lists vs unevictable list.
+- *
+- * Reasons page might not be evictable:
+- * (1) page's mapping marked unevictable
+- * (2) page is part of an mlocked VMA
+- *
+- */
+-int page_evictable(struct page *page)
+-{
+-	int ret;
+-
+-	/* Prevent address_space of inode and swap cache from being freed */
+-	rcu_read_lock();
+-	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
+-	rcu_read_unlock();
+-	return ret;
+-}
