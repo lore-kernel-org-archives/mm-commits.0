@@ -1,114 +1,176 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-memcg-make-memoryoomgroup-tolerable-to-task-migration.patch added to -mm
- tree
-Date: Wed, 18 Mar 2020 14:12:39 -0700
-Message-ID: <20200318211239.QNgTEA6Qo%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-swap-make-page_evictable-inline.patch
+ removed from -mm tree
+Date: Wed, 18 Mar 2020 14:14:20 -0700
+Message-ID: <20200318211420.QSYZsSUdg%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48690 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49578 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726747AbgCRVMl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Mar 2020 17:12:41 -0400
+        id S1726619AbgCRVOW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Mar 2020 17:14:22 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dschatzberg@fb.com, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, shakeelb@google.com, vbabka@suse.cz, willy@infradead.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm: memcg: make memory.oom.group tolerable to task migration
-has been added to the -mm tree.  Its filename is
-     mm-memcg-make-memoryoomgroup-tolerable-to-task-migration.patch
+     Subject: mm: swap: make page_evictable() inline
+has been removed from the -mm tree.  Its filename was
+     mm-swap-make-page_evictable-inline.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-make-memoryoomgroup-tolerable-to-task-migration.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-make-memoryoomgroup-tolerable-to-task-migration.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg: make memory.oom.group tolerable to task migration
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm: swap: make page_evictable() inline
 
-If a task is getting moved out of the OOMing cgroup, it might result in
-unexpected OOM killings if memory.oom.group is used anywhere in the cgroup
-tree.
+When backporting commit 9c4e6b1a7027 ("mm, mlock, vmscan: no more skipping
+pagevecs") to our 4.9 kernel, our test bench noticed around 10% down with
+a couple of vm-scalability's test cases (lru-file-readonce,
+lru-file-readtwice and lru-file-mmap-read).  I didn't see that much down
+on my VM (32c-64g-2nodes).  It might be caused by the test configuration,
+which is 32c-256g with NUMA disabled and the tests were run in root memcg,
+so the tests actually stress only one inactive and active lru.  It sounds
+not very usual in mordern production environment.
 
-Imagine the following example:
+That commit did two major changes:
+1. Call page_evictable()
+2. Use smp_mb to force the PG_lru set visible
 
-          A (oom.group = 1)
-         / \
-  (OOM) B   C
+It looks they contribute the most overhead.  The page_evictable() is a
+function which does function prologue and epilogue, and that was used by
+page reclaim path only.  However, lru add is a very hot path, so it sounds
+better to make it inline.  However, it calls page_mapping() which is not
+inlined either, but the disassemble shows it doesn't do push and pop
+operations and it sounds not very straightforward to inline it.
 
-Let's say B's memory.max is exceeded and it's OOMing.  The OOM killer
-selects a task in B as a victim, but someone asynchronously moves the task
-into C.  mem_cgroup_get_oom_group() will iterate over all ancestors of C
-up to the root cgroup.  In theory it had to stop at the oom_domain level -
-the memory cgroup which is OOMing.  But because B is not an ancestor of C,
-it's not happening.  Instead it chooses A (because it's oom.group is set),
-and kills all tasks in A.  This behavior is wrong because the OOM happened
-in B, so there is no reason to kill anything outside.
+Other than this, it sounds smp_mb() is not necessary for x86 since
+SetPageLRU is atomic which enforces memory barrier already, replace it
+with smp_mb__after_atomic() in the following patch.
 
-Fix this by checking it the memory cgroup to which the task belongs is a
-descendant of the oom_domain.  If not, memory.oom.group should be ignored,
-and the OOM killer should kill only the victim task.
+With the two fixes applied, the tests can get back around 5% on that test
+bench and get back normal on my VM.  Since the test bench configuration is
+not that usual and I also saw around 6% up on the latest upstream, so it
+sounds good enough IMHO.
 
-Link: http://lkml.kernel.org/r/20200316223510.3176148-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reported-by: Dan Schatzberg <dschatzberg@fb.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+The below is test data (lru-file-readtwice throughput) against the v5.6-rc4:
+	mainline	w/ inline fix
+          150MB            154MB
+
+With this patch the throughput gets 2.67% up.  The data with using
+smp_mb__after_atomic() is showed in the following patch.
+
+Shakeel Butt did the below test:
+
+On a real machine with limiting the 'dd' on a single node and reading 100
+GiB sparse file (less than a single node).  Just ran a single instance to
+not cause the lru lock contention.  The cmdline used is "dd if=file-100GiB
+of=/dev/null bs=4k".  Ran the cmd 10 times with drop_caches in between and
+measured the time it took.
+
+Without patch: 56.64143 +- 0.672 sec
+
+With patches: 56.10 +- 0.21 sec
+
+Link: http://lkml.kernel.org/r/1584500541-46817-1-git-send-email-yang.shi@linux.alibaba.com
+Fixes: 9c4e6b1a7027 ("mm, mlock, vmscan: no more skipping pagevecs")
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Tested-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/pagemap.h |   29 +++++++++++++++++++++++++----
+ include/linux/swap.h    |    1 -
+ mm/vmscan.c             |   23 -----------------------
+ 3 files changed, 25 insertions(+), 28 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-make-memoryoomgroup-tolerable-to-task-migration
-+++ a/mm/memcontrol.c
-@@ -1931,6 +1931,14 @@ struct mem_cgroup *mem_cgroup_get_oom_gr
- 		goto out;
+--- a/include/linux/pagemap.h~mm-swap-make-page_evictable-inline
++++ a/include/linux/pagemap.h
+@@ -70,11 +70,9 @@ static inline void mapping_clear_unevict
+ 	clear_bit(AS_UNEVICTABLE, &mapping->flags);
+ }
  
- 	/*
-+	 * If the victim task has been asynchronously moved to a different
-+	 * memory cgroup, we might end up killing tasks outside oom_domain.
-+	 * In this case it's better to ignore memory.group.oom.
-+	 */
-+	if (unlikely(!mem_cgroup_is_descendant(memcg, oom_domain)))
-+		goto out;
+-static inline int mapping_unevictable(struct address_space *mapping)
++static inline bool mapping_unevictable(struct address_space *mapping)
+ {
+-	if (mapping)
+-		return test_bit(AS_UNEVICTABLE, &mapping->flags);
+-	return !!mapping;
++	return mapping && test_bit(AS_UNEVICTABLE, &mapping->flags);
+ }
+ 
+ static inline void mapping_set_exiting(struct address_space *mapping)
+@@ -118,6 +116,29 @@ static inline void mapping_set_gfp_mask(
+ 	m->gfp_mask = mask;
+ }
+ 
++/**
++ * page_evictable - test whether a page is evictable
++ * @page: the page to test
++ *
++ * Test whether page is evictable--i.e., should be placed on active/inactive
++ * lists vs unevictable list.
++ *
++ * Reasons page might not be evictable:
++ * (1) page's mapping marked unevictable
++ * (2) page is part of an mlocked VMA
++ *
++ */
++static inline bool page_evictable(struct page *page)
++{
++	bool ret;
 +
-+	/*
- 	 * Traverse the memory cgroup hierarchy from the victim task's
- 	 * cgroup up to the OOMing cgroup (or root) to find the
- 	 * highest-level memory cgroup with oom.group set.
-_
-
-Patches currently in -mm which might be from guro@fb.com are
-
-mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations.patch
-mm-memcg-slab-introduce-mem_cgroup_from_obj.patch
-mm-memcg-slab-introduce-mem_cgroup_from_obj-v2.patch
-mm-kmem-cleanup-__memcg_kmem_charge_memcg-arguments.patch
-mm-kmem-cleanup-memcg_kmem_uncharge_memcg-arguments.patch
-mm-kmem-rename-memcg_kmem_uncharge-into-memcg_kmem_uncharge_page.patch
-mm-kmem-switch-to-nr_pages-in-__memcg_kmem_charge_memcg.patch
-mm-memcg-slab-cache-page-number-in-memcg_uncharge_slab.patch
-mm-kmem-rename-__memcg_kmem_uncharge_memcg-to-__memcg_kmem_uncharge.patch
-mm-memcg-make-memoryoomgroup-tolerable-to-task-migration.patch
-mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations.patch
-mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix.patch
-mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma.patch
-mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma-fix.patch
-mm-hugetlb-fix-hugetlb_cma_reserve-if-config_numa-isnt-set.patch
++	/* Prevent address_space of inode and swap cache from being freed */
++	rcu_read_lock();
++	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
++	rcu_read_unlock();
++	return ret;
++}
++
+ void release_pages(struct page **pages, int nr);
+ 
+ /*
+--- a/include/linux/swap.h~mm-swap-make-page_evictable-inline
++++ a/include/linux/swap.h
+@@ -374,7 +374,6 @@ extern int sysctl_min_slab_ratio;
+ #define node_reclaim_mode 0
+ #endif
+ 
+-extern int page_evictable(struct page *page);
+ extern void check_move_unevictable_pages(struct pagevec *pvec);
+ 
+ extern int kswapd_run(int nid);
+--- a/mm/vmscan.c~mm-swap-make-page_evictable-inline
++++ a/mm/vmscan.c
+@@ -4277,29 +4277,6 @@ int node_reclaim(struct pglist_data *pgd
+ }
+ #endif
+ 
+-/*
+- * page_evictable - test whether a page is evictable
+- * @page: the page to test
+- *
+- * Test whether page is evictable--i.e., should be placed on active/inactive
+- * lists vs unevictable list.
+- *
+- * Reasons page might not be evictable:
+- * (1) page's mapping marked unevictable
+- * (2) page is part of an mlocked VMA
+- *
+- */
+-int page_evictable(struct page *page)
+-{
+-	int ret;
+-
+-	/* Prevent address_space of inode and swap cache from being freed */
+-	rcu_read_lock();
+-	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
+-	rcu_read_unlock();
+-	return ret;
+-}
