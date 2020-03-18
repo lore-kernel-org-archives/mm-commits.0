@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-clarify-a-confusing-comment-for-vm_iomap_memory.patch added to -mm tree
-Date: Wed, 18 Mar 2020 13:39:00 -0700
-Message-ID: <20200318203900.BLNm0-3qs%akpm@linux-foundation.org>
+Subject: + psi-move-pf_memstall-out-of-task-flags.patch added to
+ -mm tree
+Date: Wed, 18 Mar 2020 14:03:59 -0700
+Message-ID: <20200318210359.4Bxem2mDA%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43366 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39390 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726647AbgCRUjB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Mar 2020 16:39:01 -0400
+        id S1727673AbgCRVEB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Mar 2020 17:04:01 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, wenhu.wang@vivo.com
+To: hannes@cmpxchg.org, laoar.shao@gmail.com, mm-commits@vger.kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: mm/memory.c: clarify a confusing comment for vm_iomap_memory
+     Subject: psi: move PF_MEMSTALL out of task->flags
 has been added to the -mm tree.  Its filename is
-     mm-clarify-a-confusing-comment-for-vm_iomap_memory.patch
+     psi-move-pf_memstall-out-of-task-flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-clarify-a-confusing-comment-for-vm_iomap_memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/psi-move-pf_memstall-out-of-task-flags.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clarify-a-confusing-comment-for-vm_iomap_memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/psi-move-pf_memstall-out-of-task-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,40 +38,151 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang Wenhu <wenhu.wang@vivo.com>
-Subject: mm/memory.c: clarify a confusing comment for vm_iomap_memory
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: psi: move PF_MEMSTALL out of task->flags
 
-The param "start" actually referes to the physical memory start, which is
-to be mapped into virtual area vma.  And it is the field vma->vm_start
-which stands for the start of the area.
+The task->flags is a 32-bits flag, in which 31 bits have already been
+consumed.  So it is hard to introduce other new per process flag. 
+Currently there're still enough spaces in the bit-field section of
+task_struct, so we can define the memstall state as a single bit in
+task_struct instead.
 
-Most of the time, we do not read through whole implementation of a
-function but only the definition and essential comments.  Accurate
-comments are definitely the base stone.
+This patch also removes an out-of-date comment pointed out by Matthew.
 
-Link: http://lkml.kernel.org/r/20200318052206.105104-1-wenhu.wang@vivo.com
-Signed-off-by: Wang Wenhu <wenhu.wang@vivo.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/1584408485-1921-1-git-send-email-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |    6 ++++--
+ kernel/sched/psi.c    |   12 ++++++------
+ kernel/sched/stats.h  |   10 +++++-----
+ 3 files changed, 15 insertions(+), 13 deletions(-)
 
---- a/mm/memory.c~mm-clarify-a-confusing-comment-for-vm_iomap_memory
-+++ a/mm/memory.c
-@@ -2009,7 +2009,7 @@ EXPORT_SYMBOL(remap_pfn_range);
- /**
-  * vm_iomap_memory - remap memory to userspace
-  * @vma: user vma to map to
-- * @start: start of area
-+ * @start: start of the physical memory to be mapped
-  * @len: size of area
-  *
-  * This is a simplified io_remap_pfn_range() for common driver use. The
+--- a/include/linux/sched.h~psi-move-pf_memstall-out-of-task-flags
++++ a/include/linux/sched.h
+@@ -782,9 +782,12 @@ struct task_struct {
+ 	unsigned			frozen:1;
+ #endif
+ #ifdef CONFIG_BLK_CGROUP
+-	/* to be used once the psi infrastructure lands upstream. */
+ 	unsigned			use_memdelay:1;
+ #endif
++#ifdef CONFIG_PSI
++	/* Stalled due to lack of memory */
++	unsigned			in_memstall:1;
++#endif
+ 
+ 	unsigned long			atomic_flags; /* Flags requiring atomic access. */
+ 
+@@ -1477,7 +1480,6 @@ extern struct pid *cad_pid;
+ #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
+ #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
+ #define PF_SWAPWRITE		0x00800000	/* Allowed to write to swap */
+-#define PF_MEMSTALL		0x01000000	/* Stalled due to lack of memory */
+ #define PF_UMH			0x02000000	/* I'm an Usermodehelper process */
+ #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
+ #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
+--- a/kernel/sched/psi.c~psi-move-pf_memstall-out-of-task-flags
++++ a/kernel/sched/psi.c
+@@ -818,17 +818,17 @@ void psi_memstall_enter(unsigned long *f
+ 	if (static_branch_likely(&psi_disabled))
+ 		return;
+ 
+-	*flags = current->flags & PF_MEMSTALL;
++	*flags = current->in_memstall;
+ 	if (*flags)
+ 		return;
+ 	/*
+-	 * PF_MEMSTALL setting & accounting needs to be atomic wrt
++	 * in_memstall setting & accounting needs to be atomic wrt
+ 	 * changes to the task's scheduling state, otherwise we can
+ 	 * race with CPU migration.
+ 	 */
+ 	rq = this_rq_lock_irq(&rf);
+ 
+-	current->flags |= PF_MEMSTALL;
++	current->in_memstall = 1;
+ 	psi_task_change(current, 0, TSK_MEMSTALL);
+ 
+ 	rq_unlock_irq(rq, &rf);
+@@ -851,13 +851,13 @@ void psi_memstall_leave(unsigned long *f
+ 	if (*flags)
+ 		return;
+ 	/*
+-	 * PF_MEMSTALL clearing & accounting needs to be atomic wrt
++	 * in_memstall clearing & accounting needs to be atomic wrt
+ 	 * changes to the task's scheduling state, otherwise we could
+ 	 * race with CPU migration.
+ 	 */
+ 	rq = this_rq_lock_irq(&rf);
+ 
+-	current->flags &= ~PF_MEMSTALL;
++	current->in_memstall = 0;
+ 	psi_task_change(current, TSK_MEMSTALL, 0);
+ 
+ 	rq_unlock_irq(rq, &rf);
+@@ -921,7 +921,7 @@ void cgroup_move_task(struct task_struct
+ 	else if (task->in_iowait)
+ 		task_flags = TSK_IOWAIT;
+ 
+-	if (task->flags & PF_MEMSTALL)
++	if (task->in_memstall)
+ 		task_flags |= TSK_MEMSTALL;
+ 
+ 	if (task_flags)
+--- a/kernel/sched/stats.h~psi-move-pf_memstall-out-of-task-flags
++++ a/kernel/sched/stats.h
+@@ -70,7 +70,7 @@ static inline void psi_enqueue(struct ta
+ 		return;
+ 
+ 	if (!wakeup || p->sched_psi_wake_requeue) {
+-		if (p->flags & PF_MEMSTALL)
++		if (p->in_memstall)
+ 			set |= TSK_MEMSTALL;
+ 		if (p->sched_psi_wake_requeue)
+ 			p->sched_psi_wake_requeue = 0;
+@@ -90,7 +90,7 @@ static inline void psi_dequeue(struct ta
+ 		return;
+ 
+ 	if (!sleep) {
+-		if (p->flags & PF_MEMSTALL)
++		if (p->in_memstall)
+ 			clear |= TSK_MEMSTALL;
+ 	} else {
+ 		if (p->in_iowait)
+@@ -109,14 +109,14 @@ static inline void psi_ttwu_dequeue(stru
+ 	 * deregister its sleep-persistent psi states from the old
+ 	 * queue, and let psi_enqueue() know it has to requeue.
+ 	 */
+-	if (unlikely(p->in_iowait || (p->flags & PF_MEMSTALL))) {
++	if (unlikely(p->in_iowait || p->in_memstall)) {
+ 		struct rq_flags rf;
+ 		struct rq *rq;
+ 		int clear = 0;
+ 
+ 		if (p->in_iowait)
+ 			clear |= TSK_IOWAIT;
+-		if (p->flags & PF_MEMSTALL)
++		if (p->in_memstall)
+ 			clear |= TSK_MEMSTALL;
+ 
+ 		rq = __task_rq_lock(p, &rf);
+@@ -131,7 +131,7 @@ static inline void psi_task_tick(struct
+ 	if (static_branch_likely(&psi_disabled))
+ 		return;
+ 
+-	if (unlikely(rq->curr->flags & PF_MEMSTALL))
++	if (unlikely(rq->curr->in_memstall))
+ 		psi_memstall_tick(rq->curr, cpu_of(rq));
+ }
+ #else /* CONFIG_PSI */
 _
 
-Patches currently in -mm which might be from wenhu.wang@vivo.com are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
 
-mm-clarify-a-confusing-comment-of-remap_pfn_range.patch
-mm-clarify-a-confusing-comment-for-vm_iomap_memory.patch
+mm-memcg-fix-build-error-around-the-usage-of-kmem_caches.patch
+psi-move-pf_memstall-out-of-task-flags.patch
