@@ -1,33 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- =?US-ASCII?Q?ocfs2-roll-back-the-reference-count-modification-of-the-p?=
- =?US-ASCII?Q?arent-directory-if-an-error-occurs.patch?= added to -mm tree
-Date: Tue, 17 Mar 2020 20:25:05 -0700
-Message-ID: <20200318032505.WynYpmNuA%akpm@linux-foundation.org>
+ hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch added to -mm
+ tree
+Date: Tue, 17 Mar 2020 21:08:17 -0700
+Message-ID: <20200318040817.c4iK5GCcn%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59680 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40022 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726250AbgCRDZH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Mar 2020 23:25:07 -0400
+        id S1726478AbgCREIS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Mar 2020 00:08:18 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, wangjian161@huawei.com
+To: akpm@linux-foundation.org, david@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: roll back the reference count modification of the parent directory if an error occurs
+     Subject: hv_balloon-dont-check-for-memhp_auto_online-manually-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs.patch
+     hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,97 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: wangjian <wangjian161@huawei.com>
-Subject: ocfs2: roll back the reference count modification of the parent directory if an error occurs
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hv_balloon-dont-check-for-memhp_auto_online-manually-fix
 
-Under some conditions, the directory cannot be deleted.  The specific
-scenarios are as follows: (for example, /mnt/ocfs2 is the mount point)
+needs changelog ;)
 
-1. Create the /mnt/ocfs2/p_dir directory.  At this time, the i_nlink
-   corresponding to the inode of the /mnt/ocfs2/p_dir directory is equal
-   to 2.
-
-2. During the process of creating the /mnt/ocfs2/p_dir/s_dir
-   directory, if the call to the inc_nlink function in ocfs2_mknod
-   succeeds, the functions such as ocfs2_init_acl,
-   ocfs2_init_security_set, and ocfs2_dentry_attach_lock fail.  At this
-   time, the i_nlink corresponding to the inode of the /mnt/ocfs2/p_dir
-   directory is equal to 3, but /mnt/ocfs2/p_dir/s_dir is not added to the
-   /mnt/ocfs2/p_dir directory entry.
-
-3. Delete the /mnt/ocfs2/p_dir directory (rm -rf /mnt/ocfs2/p_dir). 
-   At this time, it is found that the i_nlink corresponding to the inode
-   corresponding to the /mnt/ocfs2/p_dir directory is equal to 3. 
-   Therefore, the /mnt/ocfs2/p_dir directory cannot be deleted.
-
-Link: http://lkml.kernel.org/r/a44f6666-bbc4-405e-0e6c-0f4e922eeef6@huawei.com
-Signed-off-by: Jian wang <wangjian161@huawei.com>
-Reviewed-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/hv/hv_balloon.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs
-+++ a/fs/ocfs2/namei.c
-@@ -406,7 +406,7 @@ static int ocfs2_mknod(struct inode *dir
+--- a/drivers/hv/hv_balloon.c~hv_balloon-dont-check-for-memhp_auto_online-manually-fix
++++ a/drivers/hv/hv_balloon.c
+@@ -1700,8 +1700,8 @@ static int balloon_probe(struct hv_devic
  
- 	if (status < 0) {
- 		mlog_errno(status);
--		goto leave;
-+		goto roll_back;
- 	}
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ 	set_online_page_callback(&hv_online_page);
+-	register_memory_notifier(&hv_memory_nb);
+ 	init_completion(&dm_device.ol_waitevent);
++	register_memory_notifier(&hv_memory_nb);
+ #endif
  
- 	if (si.enable) {
-@@ -414,7 +414,7 @@ static int ocfs2_mknod(struct inode *dir
- 						 meta_ac, data_ac);
- 		if (status < 0) {
- 			mlog_errno(status);
--			goto leave;
-+			goto roll_back;
- 		}
- 	}
- 
-@@ -427,7 +427,7 @@ static int ocfs2_mknod(struct inode *dir
- 					  OCFS2_I(dir)->ip_blkno);
- 	if (status) {
- 		mlog_errno(status);
--		goto leave;
-+		goto roll_back;
- 	}
- 
- 	dl = dentry->d_fsdata;
-@@ -437,12 +437,19 @@ static int ocfs2_mknod(struct inode *dir
- 				 &lookup);
- 	if (status < 0) {
- 		mlog_errno(status);
--		goto leave;
-+		goto roll_back;
- 	}
- 
- 	insert_inode_hash(inode);
- 	d_instantiate(dentry, inode);
- 	status = 0;
-+
-+roll_back:
-+	if (status < 0 && S_ISDIR(mode)) {
-+		ocfs2_add_links_count(dirfe, -1);
-+		drop_nlink(dir);
-+	}
-+
- leave:
- 	if (status < 0 && did_quota_inode)
- 		dquot_free_inode(inode);
+ 	hv_set_drvdata(dev, &dm_device);
 _
 
-Patches currently in -mm which might be from wangjian161@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs.patch
+memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
+mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+mm.patch
+mm-gup-track-foll_pin-pages-fix-2-fix.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
+proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
