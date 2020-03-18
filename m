@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-compactionc-clean-code-by-removing-unnecessary-assignment.patch added to
+ mm-hugetlb-fix-hugetlb_cma_reserve-if-config_numa-isnt-set.patch added to
  -mm tree
-Date: Wed, 18 Mar 2020 13:21:59 -0700
-Message-ID: <20200318202159.W16DXQ48K%akpm@linux-foundation.org>
+Date: Wed, 18 Mar 2020 13:31:57 -0700
+Message-ID: <20200318203157.eCYCKLRdz%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60196 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39166 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726638AbgCRUWA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Mar 2020 16:22:00 -0400
+        id S1726596AbgCRUb6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Mar 2020 16:31:58 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mateusznosek0@gmail.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: agx@sigxcpu.org, andreas.schaufler@gmx.de, guro@fb.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org, riel@surriel.com
 
 
 The patch titled
-     Subject: mm/compaction.c: clean code by removing unnecessary assignment
+     Subject: mm: hugetlb: fix hugetlb_cma_reserve() if CONFIG_NUMA isn't set
 has been added to the -mm tree.  Its filename is
-     mm-compactionc-clean-code-by-removing-unnecessary-assignment.patch
+     mm-hugetlb-fix-hugetlb_cma_reserve-if-config_numa-isnt-set.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compactionc-clean-code-by-removing-unnecessary-assignment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-hugetlb_cma_reserve-if-config_numa-isnt-set.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compactionc-clean-code-by-removing-unnecessary-assignment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-hugetlb_cma_reserve-if-config_numa-isnt-set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,40 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mateusz Nosek <mateusznosek0@gmail.com>
-Subject: mm/compaction.c: clean code by removing unnecessary assignment
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: hugetlb: fix hugetlb_cma_reserve() if CONFIG_NUMA isn't set
 
-Previously 0 was assigned to variable 'last_migrated_pfn'.  But the
-variable is not read after that, so the assignment can be removed.
+If CONFIG_NUMA isn't set, there is no need to ensure that the hugetlb cma
+area belongs to a specific numa node.
 
-Link: http://lkml.kernel.org/r/20200318174509.15021-1-mateusznosek0@gmail.com
-Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+min/max_low_pfn can be used for limiting the maximum size of the
+hugetlb_cma area.
+
+Also for_each_mem_pfn_range() is defined only if
+CONFIG_HAVE_MEMBLOCK_NODE_MAP is set, and on arm (unlike most other
+architectures) it depends on CONFIG_NUMA.  This makes the build fail if
+CONFIG_NUMA isn't set.
+
+Link: http://lkml.kernel.org/r/20200318153424.3202304-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Reported-by: Andreas Schaufler <andreas.schaufler@gmx.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Guido Gnther <agx@sigxcpu.org>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/hugetlb.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/compaction.c~mm-compactionc-clean-code-by-removing-unnecessary-assignment
-+++ a/mm/compaction.c
-@@ -2182,7 +2182,6 @@ compact_zone(struct compact_control *cc,
- 			ret = COMPACT_CONTENDED;
- 			putback_movable_pages(&cc->migratepages);
- 			cc->nr_migratepages = 0;
--			last_migrated_pfn = 0;
- 			goto out;
- 		case ISOLATE_NONE:
- 			if (update_cached) {
-_
-
-Patches currently in -mm which might be from mateusznosek0@gmail.com are
-
-mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path.patch
-mm-page_allocc-micro-optimisation-remove-unnecessary-branch.patch
-mm-vmscanc-clean-code-by-removing-unnecessary-assignment.patch
-mm-compactionc-clean-code-by-removing-unnecessary-assignment.patch
-mm-hugetlbc-clean-code-by-removing-unnecessary-initialization.patch
-mm-shmemc-clean-code-by-removing-unnecessary-assignment.patch
-mm-mm_initc-clean-code-use-build_bug_on-when-comparing-compile-time-constant.patch
+--- a/mm/hugetlb.c~mm-hugetlb-fix-hugetlb_cma_reserve-if-config_numa-isnt-set
++++ a/mm/hugetlb.c
+@@ -5441,16 +5441,21 @@ void __init hugetlb_cma_reserve(int orde
+ 
+ 	reserved = 0;
+ 	for_each_node_state(nid, N_ONLINE) {
+-		unsigned long start_pfn, end_pfn;
+ 		unsigned long min_pfn = 0, max_pfn = 0;
+-		int res, i;
++		int res;
++#ifdef CONFIG_NUMA
++		unsigned long start_pfn, end_pfn;
++		int i;
+ 
+ 		for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, NULL) {
+ 			if (!min_pfn)
+ 				min_pfn = start_pfn;
+ 			max_pfn = end_pfn;
+ 		}
