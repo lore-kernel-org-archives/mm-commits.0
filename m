@@ -1,13 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 13 Mar 2020 13:56:47 -0700
-Message-ID: <20200313205647.cIZycYhC-%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Tue, 17 Mar 2020 19:28:50 -0700
+Message-ID: <20200318022850.AYYZc_1rM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55022 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53248 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726926AbgCMU4t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 13 Mar 2020 16:56:49 -0400
+        id S1726250AbgCRC2y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Mar 2020 22:28:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
@@ -15,24 +16,10 @@ To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 The patch titled
      Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -223,4 +210,3 @@ net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
 seq_read-info-message-about-buggy-next-functions-fix.patch
 drivers-tty-serial-sh-scic-suppress-warning.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
