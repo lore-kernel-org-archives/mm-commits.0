@@ -1,15 +1,18 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-memory-map-mmop_offline-to-0.patch added
- to -mm tree
-Date: Tue, 17 Mar 2020 21:08:37 -0700
-Message-ID: <20200318040837.W1J1YkJDI%akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?drivers-base-memory-store-mapping-between-mmop=5F-and-stri?=
+ =?US-ASCII?Q?ng-in-an-array.patch?= added to -mm tree
+Date: Tue, 17 Mar 2020 21:08:39 -0700
+Message-ID: <20200318040839.Gh8MLIOdi%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40094 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40152 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726586AbgCREIl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Mar 2020 00:08:41 -0400
+        id S1726607AbgCREIm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Mar 2020 00:08:42 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +20,14 @@ To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, ehabkost@redhat.
 
 
 The patch titled
-     Subject: drivers/base/memory: map MMOP_OFFLINE to 0
+     Subject: drivers/base/memory: store mapping between MMOP_* and string in an array
 has been added to the -mm tree.  Its filename is
-     drivers-base-memory-map-mmop_offline-to-0.patch
+     drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-memory-map-mmop_offline-to-0.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-memory-map-mmop_offline-to-0.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,16 +44,11 @@ there every 3-4 working days
 From: David Hildenbrand <david@redhat.com>
 To: linux-kernel@vger.kernel.org
 Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-hyperv@vger.kernel.org, David Hildenbrand <david@redhat.com>, Wei Yang <richard.weiyang@gmail.com>, Michal Hocko <mhocko@suse.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@kernel.org>, Oscar Salvador <osalvador@suse.de>, "Rafael J. Wysocki" <rafael@kernel.org>, Baoquan He <bhe@redhat.com>
-Subject: [PATCH v2 2/8] drivers/base/memory: map MMOP_OFFLINE to 0
-Date: Tue, 17 Mar 2020 11:49:36 +0100
+Subject: [PATCH v2 3/8] drivers/base/memory: store mapping between MMOP_* and string in an array
+Date: Tue, 17 Mar 2020 11:49:37 +0100
 
-Historically, we used the value -1. Just treat 0 as the special
-case now. Clarify a comment (which was wrong, when we come via
-device_online() the first time, the online_type would have been 0 /
-MEM_ONLINE). The default is now always MMOP_OFFLINE. This removes the
-last user of the manual "-1", which didn't use the enum value.
-
-This is a preparation to use the online_type as an array index.
+Let's use a simple array which we can reuse soon. While at it, move the
+string->mmop conversion out of the device hotplug lock.
 
 Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -63,49 +61,78 @@ Cc: Baoquan He <bhe@redhat.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- drivers/base/memory.c          | 11 ++++-------
- include/linux/memory_hotplug.h |  2 +-
- 2 files changed, 5 insertions(+), 8 deletions(-)
+ drivers/base/memory.c | 38 +++++++++++++++++++++++---------------
+ 1 file changed, 23 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index 8c5ce42c0fc3..e7e77cafef80 100644
+index e7e77cafef80..8a7f29c0bf97 100644
 --- a/drivers/base/memory.c
 +++ b/drivers/base/memory.c
-@@ -211,17 +211,14 @@ static int memory_subsys_online(struct device *dev)
- 		return 0;
+@@ -28,6 +28,24 @@
  
- 	/*
--	 * If we are called from state_store(), online_type will be
--	 * set >= 0 Otherwise we were called from the device online
--	 * attribute and need to set the online_type.
-+	 * When called via device_online() without configuring the online_type,
-+	 * we want to default to MMOP_ONLINE.
- 	 */
--	if (mem->online_type < 0)
-+	if (mem->online_type == MMOP_OFFLINE)
- 		mem->online_type = MMOP_ONLINE;
+ #define MEMORY_CLASS_NAME	"memory"
  
- 	ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
++static const char *const online_type_to_str[] = {
++	[MMOP_OFFLINE] = "offline",
++	[MMOP_ONLINE] = "online",
++	[MMOP_ONLINE_KERNEL] = "online_kernel",
++	[MMOP_ONLINE_MOVABLE] = "online_movable",
++};
++
++static int memhp_online_type_from_str(const char *str)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(online_type_to_str); i++) {
++		if (sysfs_streq(str, online_type_to_str[i]))
++			return i;
++	}
++	return -EINVAL;
++}
++
+ #define to_memory_block(dev) container_of(dev, struct memory_block, dev)
+ 
+ static int sections_per_block;
+@@ -236,26 +254,17 @@ static int memory_subsys_offline(struct device *dev)
+ static ssize_t state_store(struct device *dev, struct device_attribute *attr,
+ 			   const char *buf, size_t count)
+ {
++	const int online_type = memhp_online_type_from_str(buf);
+ 	struct memory_block *mem = to_memory_block(dev);
+-	int ret, online_type;
++	int ret;
++
++	if (online_type < 0)
++		return -EINVAL;
+ 
+ 	ret = lock_device_hotplug_sysfs();
+ 	if (ret)
+ 		return ret;
+ 
+-	if (sysfs_streq(buf, "online_kernel"))
+-		online_type = MMOP_ONLINE_KERNEL;
+-	else if (sysfs_streq(buf, "online_movable"))
+-		online_type = MMOP_ONLINE_MOVABLE;
+-	else if (sysfs_streq(buf, "online"))
+-		online_type = MMOP_ONLINE;
+-	else if (sysfs_streq(buf, "offline"))
+-		online_type = MMOP_OFFLINE;
+-	else {
+-		ret = -EINVAL;
+-		goto err;
+-	}
 -
--	/* clear online_type */
--	mem->online_type = -1;
-+	mem->online_type = MMOP_OFFLINE;
+ 	switch (online_type) {
+ 	case MMOP_ONLINE_KERNEL:
+ 	case MMOP_ONLINE_MOVABLE:
+@@ -271,7 +280,6 @@ static ssize_t state_store(struct device *dev, struct device_attribute *attr,
+ 		ret = -EINVAL; /* should never happen */
+ 	}
  
- 	return ret;
- }
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 261dbf010d5d..c2e06ed5e0e9 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -48,7 +48,7 @@ enum {
- /* Types for control the zone type of onlined and offlined memory */
- enum {
- 	/* Offline the memory. */
--	MMOP_OFFLINE = -1,
-+	MMOP_OFFLINE = 0,
- 	/* Online the memory. Zone depends, see default_zone_for_pfn(). */
- 	MMOP_ONLINE,
- 	/* Online the memory to ZONE_NORMAL. */
+-err:
+ 	unlock_device_hotplug();
+ 
+ 	if (ret < 0)
 -- 
 2.24.1
 
