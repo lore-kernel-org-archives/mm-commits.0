@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch added to -mm
+ hv_balloon-dont-check-for-memhp_auto_online-manually.patch added to -mm
  tree
-Date: Tue, 17 Mar 2020 21:08:44 -0700
-Message-ID: <20200318040844.0y4bKiTZF%akpm@linux-foundation.org>
+Date: Tue, 17 Mar 2020 21:08:43 -0700
+Message-ID: <20200318040843.93ujCqz3k%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40264 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40222 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726308AbgCREIr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Mar 2020 00:08:47 -0400
+        id S1726308AbgCREIp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Mar 2020 00:08:45 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@redhat.com, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, ehabkost@redhat.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, imammedo@redhat.com, kys@microsoft.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, paulus@samba.org, rafael@kernel.org, richard.weiyang@gmail.com, sthemmin@microsoft.com, vkuznets@redhat.com, wei.liu@kernel.org, yuhuang@redhat.com
 
 
 The patch titled
-     Subject: hv_balloon-dont-check-for-memhp_auto_online-manually-fix
+     Subject: hv_balloon: don't check for memhp_auto_online manually
 has been added to the -mm tree.  Its filename is
-     hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
+     hv_balloon-dont-check-for-memhp_auto_online-manually.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hv_balloon-dont-check-for-memhp_auto_online-manually.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hv_balloon-dont-check-for-memhp_auto_online-manually.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +39,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hv_balloon-dont-check-for-memhp_auto_online-manually-fix
+From: David Hildenbrand <david@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-hyperv@vger.kernel.org, David Hildenbrand <david@redhat.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Wei Liu <wei.liu@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@kernel.org>, Oscar Salvador <osalvador@suse.de>, "Rafael J. Wysocki" <rafael@kernel.org>, Baoquan He <bhe@redhat.com>, Wei Yang <richard.weiyang@gmail.com>, Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: [PATCH v2 5/8] hv_balloon: don't check for memhp_auto_online manually
+Date: Tue, 17 Mar 2020 11:49:39 +0100
 
-needs changelog ;)
+We get the MEM_ONLINE notifier call if memory is added right from the
+kernel via add_memory() or later from user space.
 
-Cc: David Hildenbrand <david@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Let's get rid of the "ha_waiting" flag - the wait event has an inbuilt
+mechanism (->done) for that. Initialize the wait event only once and
+reinitialize before adding memory. Unconditionally call complete() and
+wait_for_completion_timeout().
+
+If there are no waiters, complete() will only increment ->done - which
+will be reset by reinit_completion(). If complete() has already been
+called, wait_for_completion_timeout() will not wait.
+
+There is still the chance for a small race between concurrent
+reinit_completion() and complete(). If complete() wins, we would not
+wait - which is tolerable (and the race exists in current code as well).
+
+Note: We only wait for "some" memory to get onlined, which seems to be
+      good enough for now.
+
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: linux-hyperv@vger.kernel.org
+Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
+ drivers/hv/hv_balloon.c | 25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
- drivers/hv/hv_balloon.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/drivers/hv/hv_balloon.c~hv_balloon-dont-check-for-memhp_auto_online-manually-fix
-+++ a/drivers/hv/hv_balloon.c
-@@ -1700,8 +1700,8 @@ static int balloon_probe(struct hv_devic
+diff --git a/drivers/hv/hv_balloon.c b/drivers/hv/hv_balloon.c
+index a02ce43d778d..af5e09f08130 100644
+--- a/drivers/hv/hv_balloon.c
++++ b/drivers/hv/hv_balloon.c
+@@ -533,7 +533,6 @@ struct hv_dynmem_device {
+ 	 * State to synchronize hot-add.
+ 	 */
+ 	struct completion  ol_waitevent;
+-	bool ha_waiting;
+ 	/*
+ 	 * This thread handles hot-add
+ 	 * requests from the host as well as notifying
+@@ -634,10 +633,7 @@ static int hv_memory_notifier(struct notifier_block *nb, unsigned long val,
+ 	switch (val) {
+ 	case MEM_ONLINE:
+ 	case MEM_CANCEL_ONLINE:
+-		if (dm_device.ha_waiting) {
+-			dm_device.ha_waiting = false;
+-			complete(&dm_device.ol_waitevent);
+-		}
++		complete(&dm_device.ol_waitevent);
+ 		break;
  
+ 	case MEM_OFFLINE:
+@@ -726,8 +722,7 @@ static void hv_mem_hot_add(unsigned long start, unsigned long size,
+ 		has->covered_end_pfn +=  processed_pfn;
+ 		spin_unlock_irqrestore(&dm_device.ha_lock, flags);
+ 
+-		init_completion(&dm_device.ol_waitevent);
+-		dm_device.ha_waiting = !memhp_auto_online;
++		reinit_completion(&dm_device.ol_waitevent);
+ 
+ 		nid = memory_add_physaddr_to_nid(PFN_PHYS(start_pfn));
+ 		ret = add_memory(nid, PFN_PHYS((start_pfn)),
+@@ -753,15 +748,14 @@ static void hv_mem_hot_add(unsigned long start, unsigned long size,
+ 		}
+ 
+ 		/*
+-		 * Wait for the memory block to be onlined when memory onlining
+-		 * is done outside of kernel (memhp_auto_online). Since the hot
+-		 * add has succeeded, it is ok to proceed even if the pages in
+-		 * the hot added region have not been "onlined" within the
+-		 * allowed time.
++		 * Wait for memory to get onlined. If the kernel onlined the
++		 * memory when adding it, this will return directly. Otherwise,
++		 * it will wait for user space to online the memory. This helps
++		 * to avoid adding memory faster than it is getting onlined. As
++		 * adding succeeded, it is ok to proceed even if the memory was
++		 * not onlined in time.
+ 		 */
+-		if (dm_device.ha_waiting)
+-			wait_for_completion_timeout(&dm_device.ol_waitevent,
+-						    5*HZ);
++		wait_for_completion_timeout(&dm_device.ol_waitevent, 5 * HZ);
+ 		post_status(&dm_device);
+ 	}
+ }
+@@ -1707,6 +1701,7 @@ static int balloon_probe(struct hv_device *dev,
  #ifdef CONFIG_MEMORY_HOTPLUG
  	set_online_page_callback(&hv_online_page);
--	register_memory_notifier(&hv_memory_nb);
- 	init_completion(&dm_device.ol_waitevent);
-+	register_memory_notifier(&hv_memory_nb);
+ 	register_memory_notifier(&hv_memory_nb);
++	init_completion(&dm_device.ol_waitevent);
  #endif
  
  	hv_set_drvdata(dev, &dm_device);
-_
+-- 
+2.24.1
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
-mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
-mm.patch
-mm-gup-track-foll_pin-pages-fix-2-fix.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-selftest-add-mremap_dontunmap-selftest-fix.patch
-selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
-mm-migratec-migrate-pg_readahead-flag-fix.patch
-hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
-proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-mm-add-vm_insert_pages-fix.patch
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
-seq_read-info-message-about-buggy-next-functions-fix.patch
-drivers-tty-serial-sh-scic-suppress-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
+virtio-balloon-switch-back-to-oom-handler-for-virtio_balloon_f_deflate_on_oom.patch
+drivers-base-memoryc-indicate-all-memory-blocks-as-removable.patch
+drivers-base-memoryc-drop-section_count.patch
+drivers-base-memoryc-drop-pages_correctly_probed.patch
+mm-page_extc-drop-pfn_present-check-when-onlining.patch
+mm-memory_hotplug-simplify-calculation-of-number-of-pages-in-__remove_pages.patch
+mm-memory_hotplug-cleanup-__add_pages.patch
+drivers-base-memory-rename-mmop_online_keep-to-mmop_online.patch
+drivers-base-memory-map-mmop_offline-to-0.patch
+drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array.patch
+powernv-memtrace-always-online-added-memory-blocks.patch
+hv_balloon-dont-check-for-memhp_auto_online-manually.patch
+mm-memory_hotplug-unexport-memhp_auto_online.patch
+mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type.patch
+mm-memory_hotplug-allow-to-specify-a-default-online_type.patch
