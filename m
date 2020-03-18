@@ -1,30 +1,33 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- lib-test_lockup-test-module-to-generate-lockups-fix.patch added to -mm tree
-Date: Tue, 17 Mar 2020 20:19:11 -0700
-Message-ID: <20200318031911.h-a7sZwhZ%akpm@linux-foundation.org>
+ =?US-ASCII?Q?ocfs2-roll-back-the-reference-count-modification-of-the-p?=
+ =?US-ASCII?Q?arent-directory-if-an-error-occurs.patch?= added to -mm tree
+Date: Tue, 17 Mar 2020 20:25:05 -0700
+Message-ID: <20200318032505.WynYpmNuA%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59266 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59680 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726229AbgCRDTM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Mar 2020 23:19:12 -0400
+        id S1726250AbgCRDZH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Mar 2020 23:25:07 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, wangjian161@huawei.com
 
 
 The patch titled
-     Subject: lib/test_lockup: rename disable_irq to fix build error
+     Subject: ocfs2: roll back the reference count modification of the parent directory if an error occurs
 has been added to the -mm tree.  Its filename is
-     lib-test_lockup-test-module-to-generate-lockups-fix.patch
+     ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_lockup-test-module-to-generate-lockups-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_lockup-test-module-to-generate-lockups-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,89 +41,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: lib/test_lockup: rename disable_irq to fix build error
+From: wangjian <wangjian161@huawei.com>
+Subject: ocfs2: roll back the reference count modification of the parent directory if an error occurs
 
-mips:allmodconfig fails to build.
+Under some conditions, the directory cannot be deleted.  The specific
+scenarios are as follows: (for example, /mnt/ocfs2 is the mount point)
 
-lib/test_lockup.c:87:13: error:
-	'disable_irq' redeclared as different kind of symbol
-   87 | static bool disable_irq;
-      |             ^~~~~~~~~~~
-In file included from arch/mips/include/asm/highmem.h:24,
-                 from arch/mips/include/asm/pgtable-32.h:22,
-                 from arch/mips/include/asm/pgtable.h:14,
-                 from include/linux/mm.h:95,
-                 from lib/test_lockup.c:15:
-include/linux/interrupt.h:237:13: note:
-	previous declaration of 'disable_irq' was here
-  237 | extern void disable_irq(unsigned int irq);
+1. Create the /mnt/ocfs2/p_dir directory.  At this time, the i_nlink
+   corresponding to the inode of the /mnt/ocfs2/p_dir directory is equal
+   to 2.
 
-Rename the variable to fix the problem.
+2. During the process of creating the /mnt/ocfs2/p_dir/s_dir
+   directory, if the call to the inc_nlink function in ocfs2_mknod
+   succeeds, the functions such as ocfs2_init_acl,
+   ocfs2_init_security_set, and ocfs2_dentry_attach_lock fail.  At this
+   time, the i_nlink corresponding to the inode of the /mnt/ocfs2/p_dir
+   directory is equal to 3, but /mnt/ocfs2/p_dir/s_dir is not added to the
+   /mnt/ocfs2/p_dir directory entry.
 
-Link: http://lkml.kernel.org/r/20200317133614.23152-1-linux@roeck-us.net
-Fixes: 0e86238873f3 ("lib/test_lockup: test module to generate lockups")
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+3. Delete the /mnt/ocfs2/p_dir directory (rm -rf /mnt/ocfs2/p_dir). 
+   At this time, it is found that the i_nlink corresponding to the inode
+   corresponding to the /mnt/ocfs2/p_dir directory is equal to 3. 
+   Therefore, the /mnt/ocfs2/p_dir directory cannot be deleted.
+
+Link: http://lkml.kernel.org/r/a44f6666-bbc4-405e-0e6c-0f4e922eeef6@huawei.com
+Signed-off-by: Jian wang <wangjian161@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_lockup.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/ocfs2/namei.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/lib/test_lockup.c~lib-test_lockup-test-module-to-generate-lockups-fix
-+++ a/lib/test_lockup.c
-@@ -84,8 +84,8 @@ static unsigned long lock_wait_threshold
- module_param(lock_wait_threshold, ulong, 0400);
- MODULE_PARM_DESC(lock_wait_threshold, "print lock wait time longer than this in nanoseconds, default off");
+--- a/fs/ocfs2/namei.c~ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs
++++ a/fs/ocfs2/namei.c
+@@ -406,7 +406,7 @@ static int ocfs2_mknod(struct inode *dir
  
--static bool disable_irq;
--module_param(disable_irq, bool, 0400);
-+static bool test_disable_irq;
-+module_param_named(disable_irq, test_disable_irq, bool, 0400);
- MODULE_PARM_DESC(disable_irq, "disable interrupts: generate hard-lockups");
- 
- static bool disable_softirq;
-@@ -179,7 +179,7 @@ static void test_lock(bool master, bool
- 			down_write(&main_task->mm->mmap_sem);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		goto leave;
++		goto roll_back;
  	}
  
--	if (disable_irq)
-+	if (test_disable_irq)
- 		local_irq_disable();
- 
- 	if (disable_softirq)
-@@ -252,7 +252,7 @@ static void test_unlock(bool master, boo
- 	if (disable_softirq)
- 		local_bh_enable();
- 
--	if (disable_irq)
-+	if (test_disable_irq)
- 		local_irq_enable();
- 
- 	if (lock_mmap_sem && master) {
-@@ -479,8 +479,8 @@ static int __init test_lockup_init(void)
- 	if ((wait_state != TASK_RUNNING ||
- 	     (call_cond_resched && !reacquire_locks) ||
- 	     (alloc_pages_nr && gfpflags_allow_blocking(alloc_pages_gfp))) &&
--	    (disable_irq || disable_softirq || disable_preempt || lock_rcu ||
--	     lock_spinlock_ptr || lock_rwlock_ptr)) {
-+	    (test_disable_irq || disable_softirq || disable_preempt ||
-+	     lock_rcu || lock_spinlock_ptr || lock_rwlock_ptr)) {
- 		pr_err("refuse to sleep in atomic context\n");
- 		return -EINVAL;
+ 	if (si.enable) {
+@@ -414,7 +414,7 @@ static int ocfs2_mknod(struct inode *dir
+ 						 meta_ac, data_ac);
+ 		if (status < 0) {
+ 			mlog_errno(status);
+-			goto leave;
++			goto roll_back;
+ 		}
  	}
-@@ -495,7 +495,7 @@ static int __init test_lockup_init(void)
- 		  cooldown_secs, cooldown_nsecs, iterations, state,
- 		  all_cpus ? "all_cpus " : "",
- 		  iowait ? "iowait " : "",
--		  disable_irq ? "disable_irq " : "",
-+		  test_disable_irq ? "disable_irq " : "",
- 		  disable_softirq ? "disable_softirq " : "",
- 		  disable_preempt ? "disable_preempt " : "",
- 		  lock_rcu ? "lock_rcu " : "",
+ 
+@@ -427,7 +427,7 @@ static int ocfs2_mknod(struct inode *dir
+ 					  OCFS2_I(dir)->ip_blkno);
+ 	if (status) {
+ 		mlog_errno(status);
+-		goto leave;
++		goto roll_back;
+ 	}
+ 
+ 	dl = dentry->d_fsdata;
+@@ -437,12 +437,19 @@ static int ocfs2_mknod(struct inode *dir
+ 				 &lookup);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		goto leave;
++		goto roll_back;
+ 	}
+ 
+ 	insert_inode_hash(inode);
+ 	d_instantiate(dentry, inode);
+ 	status = 0;
++
++roll_back:
++	if (status < 0 && S_ISDIR(mode)) {
++		ocfs2_add_links_count(dirfe, -1);
++		drop_nlink(dir);
++	}
++
+ leave:
+ 	if (status < 0 && did_quota_inode)
+ 		dquot_free_inode(inode);
 _
 
-Patches currently in -mm which might be from linux@roeck-us.net are
+Patches currently in -mm which might be from wangjian161@huawei.com are
 
-lib-test_lockup-test-module-to-generate-lockups-fix.patch
+ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs.patch
