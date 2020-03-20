@@ -1,33 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- =?US-ASCII?Q?revert-topology-add-support-for-node=5Fto=5Fmem=5Fnode-to-d?=
- =?US-ASCII?Q?etermine-the-fallback-node.patch?= added to -mm tree
-Date: Fri, 20 Mar 2020 16:48:27 -0700
-Message-ID: <20200320234827.2y3ZGrhTb%akpm@linux-foundation.org>
+Subject: + mmap-remove-inline-of-vm_unmapped_area.patch added to
+ -mm tree
+Date: Fri, 20 Mar 2020 16:55:05 -0700
+Message-ID: <20200320235505.z8RuykfUm%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46980 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47716 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726773AbgCTXs3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 20 Mar 2020 19:48:29 -0400
+        id S1726773AbgCTXzH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 20 Mar 2020 19:55:07 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bharata@linux.ibm.com, cl@linux.com, iamjoonsoo.kim@lge.com, ktkhai@virtuozzo.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, nathanl@linux.ibm.com, penberg@kernel.org, puvichakravarthy@in.ibm.com, rientjes@google.com, sachinp@linux.vnet.ibm.com, srikar@linux.vnet.ibm.com, vbabka@suse.cz
+To: bp@suse.de, jaewon31.kim@samsung.com, mm-commits@vger.kernel.org, vbabka@suse.cz, walken@google.com, willy@infradead.org
 
 
 The patch titled
-     Subject: Revert "topology: add support for node_to_mem_node() to determine the fallback node"
+     Subject: mmap: remove inline of vm_unmapped_area
 has been added to the -mm tree.  Its filename is
-     revert-topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
+     mmap-remove-inline-of-vm_unmapped_area.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmap-remove-inline-of-vm_unmapped_area.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-remove-inline-of-vm_unmapped_area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,79 +38,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: Revert "topology: add support for node_to_mem_node() to determine the fallback node"
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: mmap: remove inline of vm_unmapped_area
 
-This reverts commit ad2c8144418c6a81cefe65379fd47bbe8344cef2.
+Patch series "mm: mmap: add mmap trace point", v3.
 
-The function node_to_mem_node() was introduced by that commit for use in SLUB
-on systems with memoryless nodes, but it turned out to be unreliable on some
-architectures/configurations and a simpler solution exists than fixing it up.
+Create mmap trace file and add trace point of vm_unmapped_area().
 
-Thus the previous commit "mm, slub: prevent kmalloc_node crashes and memory
-leaks" removed the only user of node_to_mem_node() and we can revert the commit
-that introduced it.
 
-Link: http://lkml.kernel.org/r/20200320115533.9604-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Bharata B Rao <bharata@linux.ibm.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nathan Lynch <nathanl@linux.ibm.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: PUVICHAKRAVARTHY RAMACHANDRAN <puvichakravarthy@in.ibm.com>
-Cc: Sachin Sant <sachinp@linux.vnet.ibm.com>
+This patch (of 2):
+
+In preparation for next patch remove inline of vm_unmapped_area and move
+code to mmap.c.  There is no logical change.
+
+Also remove unmapped_area[_topdown] out of mm.h, there is no code
+calling to them.
+
+Link: http://lkml.kernel.org/r/20200320055823.27089-2-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/topology.h |   17 -----------------
- mm/page_alloc.c          |    1 -
- 2 files changed, 18 deletions(-)
+ include/linux/mm.h |   21 +--------------------
+ mm/mmap.c          |   20 ++++++++++++++++++--
+ 2 files changed, 19 insertions(+), 22 deletions(-)
 
---- a/include/linux/topology.h~revert-topology-add-support-for-node_to_mem_node-to-determine-the-fallback-node
-+++ a/include/linux/topology.h
-@@ -130,20 +130,11 @@ static inline int numa_node_id(void)
-  * Use the accessor functions set_numa_mem(), numa_mem_id() and cpu_to_mem().
-  */
- DECLARE_PER_CPU(int, _numa_mem_);
--extern int _node_numa_mem_[MAX_NUMNODES];
+--- a/include/linux/mm.h~mmap-remove-inline-of-vm_unmapped_area
++++ a/include/linux/mm.h
+@@ -2535,26 +2535,7 @@ struct vm_unmapped_area_info {
+ 	unsigned long align_offset;
+ };
  
- #ifndef set_numa_mem
- static inline void set_numa_mem(int node)
- {
- 	this_cpu_write(_numa_mem_, node);
--	_node_numa_mem_[numa_node_id()] = node;
--}
--#endif
+-extern unsigned long unmapped_area(struct vm_unmapped_area_info *info);
+-extern unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info);
 -
--#ifndef node_to_mem_node
--static inline int node_to_mem_node(int node)
+-/*
+- * Search for an unmapped address range.
+- *
+- * We are looking for a range that:
+- * - does not intersect with any VMA;
+- * - is contained within the [low_limit, high_limit) interval;
+- * - is at least the desired size.
+- * - satisfies (begin_addr & align_mask) == (align_offset & align_mask)
+- */
+-static inline unsigned long
+-vm_unmapped_area(struct vm_unmapped_area_info *info)
 -{
--	return _node_numa_mem_[node];
- }
- #endif
- 
-@@ -166,7 +157,6 @@ static inline int cpu_to_mem(int cpu)
- static inline void set_cpu_numa_mem(int cpu, int node)
- {
- 	per_cpu(_numa_mem_, cpu) = node;
--	_node_numa_mem_[cpu_to_node(cpu)] = node;
- }
- #endif
- 
-@@ -180,13 +170,6 @@ static inline int numa_mem_id(void)
- }
- #endif
- 
--#ifndef node_to_mem_node
--static inline int node_to_mem_node(int node)
--{
--	return node;
+-	if (info->flags & VM_UNMAPPED_AREA_TOPDOWN)
+-		return unmapped_area_topdown(info);
+-	else
+-		return unmapped_area(info);
 -}
--#endif
++extern unsigned long vm_unmapped_area(struct vm_unmapped_area_info *info);
+ 
+ /* truncate.c */
+ extern void truncate_inode_pages(struct address_space *, loff_t);
+--- a/mm/mmap.c~mmap-remove-inline-of-vm_unmapped_area
++++ a/mm/mmap.c
+@@ -1864,7 +1864,7 @@ static inline unsigned long gap_end_offs
+ 	return (addr - info->align_offset) & info->align_mask;
+ }
+ 
+-unsigned long unmapped_area(struct vm_unmapped_area_info *info)
++static unsigned long unmapped_area(struct vm_unmapped_area_info *info)
+ {
+ 	/*
+ 	 * We implement the search by looking for an rbtree node that
+@@ -1966,7 +1966,7 @@ found:
+ 	return gap_start;
+ }
+ 
+-unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
++static unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+@@ -2065,6 +2065,22 @@ found_highest:
+ 	return gap_end;
+ }
+ 
++/*
++ * Search for an unmapped address range.
++ *
++ * We are looking for a range that:
++ * - does not intersect with any VMA;
++ * - is contained within the [low_limit, high_limit) interval;
++ * - is at least the desired size.
++ * - satisfies (begin_addr & align_mask) == (align_offset & align_mask)
++ */
++unsigned long vm_unmapped_area(struct vm_unmapped_area_info *info)
++{
++	if (info->flags & VM_UNMAPPED_AREA_TOPDOWN)
++		return unmapped_area_topdown(info);
++	else
++		return unmapped_area(info);
++}
+ 
+ #ifndef arch_get_mmap_end
+ #define arch_get_mmap_end(addr)	(TASK_SIZE)
+_
+
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+
+mmap-remove-inline-of-vm_unmapped_area.patch
+mm-mmap-add-trace-point-of-vm_unmapped_area.patch
