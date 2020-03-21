@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + compiler-remove-config_optimize_inlining-entirely.patch
- added to -mm tree
-Date: Fri, 20 Mar 2020 19:07:47 -0700
-Message-ID: <20200321020747.vVI0E--gn%akpm@linux-foundation.org>
+Subject: + mm-swap-make-page_evictable-inline-fix.patch added to
+ -mm tree
+Date: Fri, 20 Mar 2020 19:13:36 -0700
+Message-ID: <20200321021336.UTUBgbrUw%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53030 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726801AbgCUCHt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 20 Mar 2020 22:07:49 -0400
+        id S1726801AbgCUCNi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 20 Mar 2020 22:13:38 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, bp@alien8.de, davem@davemloft.net, hpa@zytor.com, masahiroy@kernel.org, miguel.ojeda.sandonis@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org, natechancellor@gmail.com, tglx@linutronix.de
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org, shakeelb@google.com, vbabka@suse.cz, willy@infradead.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: compiler: Remove CONFIG_OPTIMIZE_INLINING entirely
+     Subject: mm-swap-make-page_evictable-inline-fix
 has been added to the -mm tree.  Its filename is
-     compiler-remove-config_optimize_inlining-entirely.patch
+     mm-swap-make-page_evictable-inline-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compiler-remove-config_optimize_inlining-entirely.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-make-page_evictable-inline-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compiler-remove-config_optimize_inlining-entirely.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-make-page_evictable-inline-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,105 +38,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Masahiro Yamada <masahiroy@kernel.org>
-Subject: compiler: Remove CONFIG_OPTIMIZE_INLINING entirely
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-swap-make-page_evictable-inline-fix
 
-Commit ac7c3e4ff401 ("compiler: enable CONFIG_OPTIMIZE_INLINING
-forcibly") made this always-on option. We released v5.4 and v5.5
-including that commit.
+move page_evictable() to internal.h
 
-Remove the CONFIG option and clean up the code now.
-
-Link: http://lkml.kernel.org/r/20200220110807.32534-2-masahiroy@kernel.org
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-Reviewed-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: David Miller <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/configs/i386_defconfig   |    1 -
- arch/x86/configs/x86_64_defconfig |    1 -
- include/linux/compiler_types.h    |   11 +----------
- kernel/configs/tiny.config        |    1 -
- lib/Kconfig.debug                 |   12 ------------
- 5 files changed, 1 insertion(+), 25 deletions(-)
+ include/linux/pagemap.h |   23 -----------------------
+ mm/internal.h           |   23 +++++++++++++++++++++++
+ 2 files changed, 23 insertions(+), 23 deletions(-)
 
---- a/arch/x86/configs/i386_defconfig~compiler-remove-config_optimize_inlining-entirely
-+++ a/arch/x86/configs/i386_defconfig
-@@ -288,7 +288,6 @@ CONFIG_EARLY_PRINTK_DBGP=y
- CONFIG_DEBUG_STACKOVERFLOW=y
- # CONFIG_DEBUG_RODATA_TEST is not set
- CONFIG_DEBUG_BOOT_PARAMS=y
--CONFIG_OPTIMIZE_INLINING=y
- CONFIG_SECURITY=y
- CONFIG_SECURITY_NETWORK=y
- CONFIG_SECURITY_SELINUX=y
---- a/arch/x86/configs/x86_64_defconfig~compiler-remove-config_optimize_inlining-entirely
-+++ a/arch/x86/configs/x86_64_defconfig
-@@ -285,7 +285,6 @@ CONFIG_EARLY_PRINTK_DBGP=y
- CONFIG_DEBUG_STACKOVERFLOW=y
- # CONFIG_DEBUG_RODATA_TEST is not set
- CONFIG_DEBUG_BOOT_PARAMS=y
--CONFIG_OPTIMIZE_INLINING=y
- CONFIG_UNWINDER_ORC=y
- CONFIG_SECURITY=y
- CONFIG_SECURITY_NETWORK=y
---- a/include/linux/compiler_types.h~compiler-remove-config_optimize_inlining-entirely
-+++ a/include/linux/compiler_types.h
-@@ -129,22 +129,13 @@ struct ftrace_likely_data {
- #define __compiler_offsetof(a, b)	__builtin_offsetof(a, b)
+--- a/include/linux/pagemap.h~mm-swap-make-page_evictable-inline-fix
++++ a/include/linux/pagemap.h
+@@ -116,29 +116,6 @@ static inline void mapping_set_gfp_mask(
+ 	m->gfp_mask = mask;
+ }
+ 
+-/**
+- * page_evictable - test whether a page is evictable
+- * @page: the page to test
+- *
+- * Test whether page is evictable--i.e., should be placed on active/inactive
+- * lists vs unevictable list.
+- *
+- * Reasons page might not be evictable:
+- * (1) page's mapping marked unevictable
+- * (2) page is part of an mlocked VMA
+- *
+- */
+-static inline bool page_evictable(struct page *page)
+-{
+-	bool ret;
+-
+-	/* Prevent address_space of inode and swap cache from being freed */
+-	rcu_read_lock();
+-	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
+-	rcu_read_unlock();
+-	return ret;
+-}
+-
+ void release_pages(struct page **pages, int nr);
  
  /*
-- * Force always-inline if the user requests it so via the .config.
-  * Prefer gnu_inline, so that extern inline functions do not emit an
-  * externally visible function. This makes extern inline behave as per gnu89
-  * semantics rather than c99. This prevents multiple symbol definition errors
-  * of extern inline functions at link time.
-  * A lot of inline functions can cause havoc with function tracing.
-- * Do not use __always_inline here, since currently it expands to inline again
-- * (which would break users of __always_inline).
-  */
--#if !defined(CONFIG_OPTIMIZE_INLINING)
--#define inline inline __attribute__((__always_inline__)) __gnu_inline \
--	__inline_maybe_unused notrace
--#else
--#define inline inline                                    __gnu_inline \
--	__inline_maybe_unused notrace
--#endif
-+#define inline inline __gnu_inline __inline_maybe_unused notrace
+--- a/mm/internal.h~mm-swap-make-page_evictable-inline-fix
++++ a/mm/internal.h
+@@ -63,6 +63,29 @@ static inline unsigned long ra_submit(st
+ 					ra->start, ra->size, ra->async_size);
+ }
  
++/**
++ * page_evictable - test whether a page is evictable
++ * @page: the page to test
++ *
++ * Test whether page is evictable--i.e., should be placed on active/inactive
++ * lists vs unevictable list.
++ *
++ * Reasons page might not be evictable:
++ * (1) page's mapping marked unevictable
++ * (2) page is part of an mlocked VMA
++ *
++ */
++static inline bool page_evictable(struct page *page)
++{
++	bool ret;
++
++	/* Prevent address_space of inode and swap cache from being freed */
++	rcu_read_lock();
++	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
++	rcu_read_unlock();
++	return ret;
++}
++
  /*
-  * gcc provides both __inline__ and __inline as alternate spellings of
---- a/kernel/configs/tiny.config~compiler-remove-config_optimize_inlining-entirely
-+++ a/kernel/configs/tiny.config
-@@ -6,7 +6,6 @@ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
- CONFIG_KERNEL_XZ=y
- # CONFIG_KERNEL_LZO is not set
- # CONFIG_KERNEL_LZ4 is not set
--CONFIG_OPTIMIZE_INLINING=y
- # CONFIG_SLAB is not set
- # CONFIG_SLUB is not set
- CONFIG_SLOB=y
---- a/lib/Kconfig.debug~compiler-remove-config_optimize_inlining-entirely
-+++ a/lib/Kconfig.debug
-@@ -305,18 +305,6 @@ config HEADERS_INSTALL
- 	  user-space program samples. It is also needed by some features such
- 	  as uapi header sanity checks.
- 
--config OPTIMIZE_INLINING
--	def_bool y
--	help
--	  This option determines if the kernel forces gcc to inline the functions
--	  developers have marked 'inline'. Doing so takes away freedom from gcc to
--	  do what it thinks is best, which is desirable for the gcc 3.x series of
--	  compilers. The gcc 4.x series have a rewritten inlining algorithm and
--	  enabling this option will generate a smaller kernel there. Hopefully
--	  this algorithm is so good that allowing gcc 4.x and above to make the
--	  decision will become the default in the future. Until then this option
--	  is there to test gcc for this.
+  * Turn a non-refcounted page (->_refcount == 0) into refcounted with
+  * a count of one.
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
+mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+mm.patch
+mm-gup-track-foll_pin-pages-fix-2-fix.patch
+mm-swap-make-page_evictable-inline-fix.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
+proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
