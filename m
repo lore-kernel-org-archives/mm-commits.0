@@ -1,105 +1,93 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t.patch added to
- -mm tree
-Date: Fri, 20 Mar 2020 19:42:14 -0700
-Message-ID: <20200321024214.hVl3z2r8h%akpm@linux-foundation.org>
+ mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
+ added to -mm tree
+Date: Fri, 20 Mar 2020 19:42:16 -0700
+Message-ID: <20200321024216.wqit5IY95%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: application/octet-stream; charset=binary
-Content-Transfer-Encoding: base64
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56978 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726840AbgCUCmQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 20 Mar 2020 22:42:16 -0400
+        id S1726840AbgCUCmR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 20 Mar 2020 22:42:17 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
+To: akpm@linux-foundation.org, joe@perches.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
 
-ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBtbS9odWdldGxiLmM6IGZpeCBwcmludGsg
-Zm9ybWF0IHdhcm5pbmcgZm9yIDMyLWJpdCBwaHlzX2FkZHJfdApoYXMgYmVlbiBhZGRlZCB0byB0
-aGUgLW1tIHRyZWUuICBJdHMgZmlsZW5hbWUgaXMKICAgICBtbS1odWdldGxiYy1maXgtcHJpbnRr
-LWZvcm1hdC13YXJuaW5nLWZvci0zMi1iaXQtcGh5c19hZGRyX3QucGF0Y2gKClRoaXMgcGF0Y2gg
-c2hvdWxkIHNvb24gYXBwZWFyIGF0CiAgICBodHRwOi8vb3psYWJzLm9yZy9+YWtwbS9tbW90cy9i
-cm9rZW4tb3V0L21tLWh1Z2V0bGJjLWZpeC1wcmludGstZm9ybWF0LXdhcm5pbmctZm9yLTMyLWJp
-dC1waHlzX2FkZHJfdC5wYXRjaAphbmQgbGF0ZXIgYXQKICAgIGh0dHA6Ly9vemxhYnMub3JnL35h
-a3BtL21tb3RtL2Jyb2tlbi1vdXQvbW0taHVnZXRsYmMtZml4LXByaW50ay1mb3JtYXQtd2Fybmlu
-Zy1mb3ItMzItYml0LXBoeXNfYWRkcl90LnBhdGNoCgpCZWZvcmUgeW91IGp1c3QgZ28gYW5kIGhp
-dCAicmVwbHkiLCBwbGVhc2U6CiAgIGEpIENvbnNpZGVyIHdobyBlbHNlIHNob3VsZCBiZSBjYydl
-ZAogICBiKSBQcmVmZXIgdG8gY2MgYSBzdWl0YWJsZSBtYWlsaW5nIGxpc3QgYXMgd2VsbAogICBj
-KSBJZGVhbGx5OiBmaW5kIHRoZSBvcmlnaW5hbCBwYXRjaCBvbiB0aGUgbWFpbGluZyBsaXN0IGFu
-ZCBkbyBhCiAgICAgIHJlcGx5LXRvLWFsbCB0byB0aGF0LCBhZGRpbmcgc3VpdGFibGUgYWRkaXRp
-b25hbCBjYydzCgoqKiogUmVtZW1iZXIgdG8gdXNlIERvY3VtZW50YXRpb24vcHJvY2Vzcy9zdWJt
-aXQtY2hlY2tsaXN0LnJzdCB3aGVuIHRlc3RpbmcgeW91ciBjb2RlICoqKgoKVGhlIC1tbSB0cmVl
-IGlzIGluY2x1ZGVkIGludG8gbGludXgtbmV4dCBhbmQgaXMgdXBkYXRlZAp0aGVyZSBldmVyeSAz
-LTQgd29ya2luZyBkYXlzCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0KRnJvbTogUmFuZHkgRHVubGFwIDxyZHVubGFwQGluZnJhZGVhZC5vcmc+
-ClN1YmplY3Q6IG1tL2h1Z2V0bGIuYzogZml4IHByaW50ayBmb3JtYXQgd2FybmluZyBmb3IgMzIt
-Yml0IHBoeXNfYWRkcl90CgpGaXggcHJpbnRrIGZvcm1hdCB3YXJuaW5ncyB3aGVuIHBoeXNfYWRk
-cl90IGlzIDMyIGJpdHMsIGkuZS4sCkNPTkZJR19QSFlTX0FERFJfVF82NEJJVCBpcyBub3Qgc2V0
-L2VuYWJsZWQuCgpGaXhlcyB0aGVzZSBidWlsZCB3YXJuaW5nczoKICBDQyAgICAgIG1tL2h1Z2V0
-bGIubwpJbiBmaWxlIGluY2x1ZGVkIGZyb20gLi4vaW5jbHVkZS9saW51eC9wcmludGsuaDo3OjAs
-CiAgICAgICAgICAgICAgICAgZnJvbSAuLi9pbmNsdWRlL2xpbnV4L2tlcm5lbC5oOjE1LAogICAg
-ICAgICAgICAgICAgIGZyb20gLi4vaW5jbHVkZS9saW51eC9saXN0Lmg6OSwKICAgICAgICAgICAg
-ICAgICBmcm9tIC4uL21tL2h1Z2V0bGIuYzo2OgouLi9tbS9odWdldGxiLmM6IEluIGZ1bmN0aW9u
-IGBodWdldGxiX2NtYV9yZXNlcnZlJzoKLi4vaW5jbHVkZS9saW51eC9rZXJuX2xldmVscy5oOjU6
-MTg6IHdhcm5pbmc6IGZvcm1hdCBgJWxsdScgZXhwZWN0cyBhcmd1bWVudCBvZiB0eXBlIGBsb25n
-IGxvbmcgdW5zaWduZWQgaW50JywgYnV0IGFyZ3VtZW50IDQgaGFzIHR5cGUgYHVuc2lnbmVkIGlu
-dCcgWy1XZm9ybWF0PV0KICNkZWZpbmUgS0VSTl9TT0ggIgEiICAvKiBBU0NJSSBTdGFydCBPZiBI
-ZWFkZXIgKi8KICAgICAgICAgICAgICAgICAgXgouLi9pbmNsdWRlL2xpbnV4L2tlcm5fbGV2ZWxz
-Lmg6MTI6MjI6IG5vdGU6IGluIGV4cGFuc2lvbiBvZiBtYWNybyBgS0VSTl9TT0gnCiAjZGVmaW5l
-IEtFUk5fV0FSTklORyBLRVJOX1NPSCAiNCIgLyogd2FybmluZyBjb25kaXRpb25zICovCiAgICAg
-ICAgICAgICAgICAgICAgICBefn5+fn5+fgouLi9pbmNsdWRlL2xpbnV4L3ByaW50ay5oOjMwNjo5
-OiBub3RlOiBpbiBleHBhbnNpb24gb2YgbWFjcm8gYEtFUk5fV0FSTklORycKICBwcmludGsoS0VS
-Tl9XQVJOSU5HIHByX2ZtdChmbXQpLCAjI19fVkFfQVJHU19fKQogICAgICAgICBefn5+fn5+fn5+
-fn4KLi4vbW0vaHVnZXRsYi5jOjU0NzI6NDogbm90ZTogaW4gZXhwYW5zaW9uIG9mIG1hY3JvIGBw
-cl93YXJuJwogICAgcHJfd2FybigiaHVnZXRsYl9jbWE6IHJlc2VydmF0aW9uIGZhaWxlZDogZXJy
-ICVkLCBub2RlICVkLCBbJWxsdSwgJWxsdSkiLAogICAgXn5+fn5+fgouLi9tbS9odWdldGxiLmM6
-NTQ3Mjo2Nzogbm90ZTogZm9ybWF0IHN0cmluZyBpcyBkZWZpbmVkIGhlcmUKICAgIHByX3dhcm4o
-Imh1Z2V0bGJfY21hOiByZXNlcnZhdGlvbiBmYWlsZWQ6IGVyciAlZCwgbm9kZSAlZCwgWyVsbHUs
-ICVsbHUpIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIH5+fl4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICV1CkluIGZpbGUgaW5jbHVkZWQgZnJvbSAuLi9p
-bmNsdWRlL2xpbnV4L3ByaW50ay5oOjc6MCwKICAgICAgICAgICAgICAgICBmcm9tIC4uL2luY2x1
-ZGUvbGludXgva2VybmVsLmg6MTUsCiAgICAgICAgICAgICAgICAgZnJvbSAuLi9pbmNsdWRlL2xp
-bnV4L2xpc3QuaDo5LAogICAgICAgICAgICAgICAgIGZyb20gLi4vbW0vaHVnZXRsYi5jOjY6Ci4u
-L2luY2x1ZGUvbGludXgva2Vybl9sZXZlbHMuaDo1OjE4OiB3YXJuaW5nOiBmb3JtYXQgYCVsbHUn
-IGV4cGVjdHMgYXJndW1lbnQgb2YgdHlwZSBgbG9uZyBsb25nIHVuc2lnbmVkIGludCcsIGJ1dCBh
-cmd1bWVudCA1IGhhcyB0eXBlIGB1bnNpZ25lZCBpbnQnIFstV2Zvcm1hdD1dCiAjZGVmaW5lIEtF
-Uk5fU09IICIBIiAgLyogQVNDSUkgU3RhcnQgT2YgSGVhZGVyICovCiAgICAgICAgICAgICAgICAg
-IF4KLi4vaW5jbHVkZS9saW51eC9rZXJuX2xldmVscy5oOjEyOjIyOiBub3RlOiBpbiBleHBhbnNp
-b24gb2YgbWFjcm8gYEtFUk5fU09IJwogI2RlZmluZSBLRVJOX1dBUk5JTkcgS0VSTl9TT0ggIjQi
-IC8qIHdhcm5pbmcgY29uZGl0aW9ucyAqLwogICAgICAgICAgICAgICAgICAgICAgXn5+fn5+fn4K
-Li4vaW5jbHVkZS9saW51eC9wcmludGsuaDozMDY6OTogbm90ZTogaW4gZXhwYW5zaW9uIG9mIG1h
-Y3JvIGBLRVJOX1dBUk5JTkcnCiAgcHJpbnRrKEtFUk5fV0FSTklORyBwcl9mbXQoZm10KSwgIyNf
-X1ZBX0FSR1NfXykKICAgICAgICAgXn5+fn5+fn5+fn5+Ci4uL21tL2h1Z2V0bGIuYzo1NDcyOjQ6
-IG5vdGU6IGluIGV4cGFuc2lvbiBvZiBtYWNybyBgcHJfd2FybicKICAgIHByX3dhcm4oImh1Z2V0
-bGJfY21hOiByZXNlcnZhdGlvbiBmYWlsZWQ6IGVyciAlZCwgbm9kZSAlZCwgWyVsbHUsICVsbHUp
-IiwKICAgIF5+fn5+fn4KLi4vbW0vaHVnZXRsYi5jOjU0NzI6NzM6IG5vdGU6IGZvcm1hdCBzdHJp
-bmcgaXMgZGVmaW5lZCBoZXJlCiAgICBwcl93YXJuKCJodWdldGxiX2NtYTogcmVzZXJ2YXRpb24g
-ZmFpbGVkOiBlcnIgJWQsIG5vZGUgJWQsIFslbGx1LCAlbGx1KSIsCiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB+fn5e
-CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAldQoKTGluazogaHR0cDovL2xrbWwua2VybmVsLm9yZy9yL2I3NGRjYjYw
-LWVmMzUtZjA2ZS1kZTJkLWIxNjVlZDM4MDM2YUBpbmZyYWRlYWQub3JnClNpZ25lZC1vZmYtYnk6
-IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRlYWQub3JnPgpDYzogSm9lIFBlcmNoZXMgPGpv
-ZUBwZXJjaGVzLmNvbT4KQ2M6IE1pa2UgS3JhdmV0eiA8bWlrZS5rcmF2ZXR6QG9yYWNsZS5jb20+
-ClNpZ25lZC1vZmYtYnk6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+
-Ci0tLQoKIG1tL2h1Z2V0bGIuYyB8ICAgIDYgKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwgNCBpbnNl
-cnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKLS0tIGEvbW0vaHVnZXRsYi5jfm1tLWh1Z2V0bGJj
-LWZpeC1wcmludGstZm9ybWF0LXdhcm5pbmctZm9yLTMyLWJpdC1waHlzX2FkZHJfdAorKysgYS9t
-bS9odWdldGxiLmMKQEAgLTU2MDYsOCArNTYwNiwxMCBAQCB2b2lkIF9faW5pdCBodWdldGxiX2Nt
-YV9yZXNlcnZlKGludCBvcmRlCiAJCQkJCSAgICAgMCwgZmFsc2UsCiAJCQkJCSAgICAgImh1Z2V0
-bGIiLCAmaHVnZXRsYl9jbWFbbmlkXSk7CiAJCWlmIChyZXMpIHsKLQkJCXByX3dhcm4oImh1Z2V0
-bGJfY21hOiByZXNlcnZhdGlvbiBmYWlsZWQ6IGVyciAlZCwgbm9kZSAlZCwgWyVsbHUsICVsbHUp
-IiwKLQkJCQlyZXMsIG5pZCwgUEZOX1BIWVMobWluX3BmbiksIFBGTl9QSFlTKG1heF9wZm4pKTsK
-KwkJCXBoeXNfYWRkcl90IGJlZ3BhID0gUEZOX1BIWVMobWluX3Bmbik7CisJCQlwaHlzX2FkZHJf
-dCBlbmRwYSA9IFBGTl9QSFlTKG1heF9wZm4pOworCQkJcHJfd2FybigiaHVnZXRsYl9jbWE6IHJl
-c2VydmF0aW9uIGZhaWxlZDogZXJyICVkLCBub2RlICVkLCBbJXBhcCwgJXBhcCkiLAorCQkJCXJl
-cywgbmlkLCAmYmVncGEsICZlbmRwYSk7CiAJCQlicmVhazsKIAkJfQogCl8KClBhdGNoZXMgY3Vy
-cmVudGx5IGluIC1tbSB3aGljaCBtaWdodCBiZSBmcm9tIHJkdW5sYXBAaW5mcmFkZWFkLm9yZyBh
-cmUKCm1tLWh1Z2V0bGJjLWZpeC1wcmludGstZm9ybWF0LXdhcm5pbmctZm9yLTMyLWJpdC1waHlz
-X2FkZHJfdC5wYXRjaAoK
+
+The patch titled
+     Subject: mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix
+has been added to the -mm tree.  Its filename is
+     mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
+
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix
+
+add newline and use __func__, per Joe
+
+Cc: Joe Perches <joe@perches.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/mm/hugetlb.c~mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix
++++ a/mm/hugetlb.c
+@@ -5608,8 +5608,8 @@ void __init hugetlb_cma_reserve(int orde
+ 		if (res) {
+ 			phys_addr_t begpa = PFN_PHYS(min_pfn);
+ 			phys_addr_t endpa = PFN_PHYS(max_pfn);
+-			pr_warn("hugetlb_cma: reservation failed: err %d, node %d, [%pap, %pap)",
+-				res, nid, &begpa, &endpa);
++			pr_warn("%s: reservation failed: err %d, node %d, [%pap, %pap)\n",
++				__func__, res, nid, &begpa, &endpa);
+ 			break;
+ 		}
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
+mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+mm.patch
+mm-gup-track-foll_pin-pages-fix-2-fix.patch
+mm-swap-make-page_evictable-inline-fix.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
+proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+drivers-tty-serial-sh-scic-suppress-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
