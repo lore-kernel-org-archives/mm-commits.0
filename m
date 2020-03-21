@@ -1,159 +1,201 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-add-trace-point-of-vm_unmapped_area.patch added
- to -mm tree
-Date: Fri, 20 Mar 2020 16:55:08 -0700
-Message-ID: <20200320235508.yVW1dWjjm%akpm@linux-foundation.org>
+Subject: [to-be-updated] kcov-cleanup-debug-messages.patch removed
+ from -mm tree
+Date: Fri, 20 Mar 2020 17:23:16 -0700
+Message-ID: <20200321002316.Ren6hkWbZ%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47748 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55382 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726773AbgCTXzK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 20 Mar 2020 19:55:10 -0400
+        id S1726738AbgCUAXT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 20 Mar 2020 20:23:19 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@suse.de, jaewon31.kim@samsung.com, mm-commits@vger.kernel.org, vbabka@suse.cz, walken@google.com, willy@infradead.org
+To: andreyknvl@google.com, dvyukov@google.com, elver@google.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org, stern@rowland.harvard.edu
 
 
 The patch titled
-     Subject: mm: mmap: add trace point of vm_unmapped_area
-has been added to the -mm tree.  Its filename is
-     mm-mmap-add-trace-point-of-vm_unmapped_area.patch
+     Subject: kcov: clean up debug messages
+has been removed from the -mm tree.  Its filename was
+     kcov-cleanup-debug-messages.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-add-trace-point-of-vm_unmapped_area.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-add-trace-point-of-vm_unmapped_area.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Jaewon Kim <jaewon31.kim@samsung.com>
-Subject: mm: mmap: add trace point of vm_unmapped_area
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kcov: clean up debug messages
 
-Even on 64 bit kernel, the mmap failure can happen for a 32 bit task. 
-Virtual memory space shortage of a task on mmap is reported to userspace
-as -ENOMEM.  It can be confused as physical memory shortage of overall
-system.
+Patch series "kcov: collect coverage from usb soft interrupts", v2.
 
-The vm_unmapped_area can be called to by some drivers or other kernel core
-system like filesystem.  In my platform, GPU driver calls to
-vm_unmapped_area and the driver returns -ENOMEM even in GPU side shortage.
-It can be hard to distinguish which code layer returns the -ENOMEM.
+This patchset extends kcov to allow collecting coverage from soft
+interrupts and then uses the new functionality to collect coverage from
+USB code.
 
-Create mmap trace file and add trace point of vm_unmapped_area.
+This has allowed to find at least one new HID bug [1], which was recently
+fixed by Alan [2].
 
-i.e.)
-277.156599: vm_unmapped_area: addr=77e0d03000 err=0 total_vm=0x17014b flags=0x1 len=0x400000 lo=0x8000 hi=0x7878c27000 mask=0x0 ofs=0x1
-342.838740: vm_unmapped_area: addr=0 err=-12 total_vm=0xffb08 flags=0x0 len=0x100000 lo=0x40000000 hi=0xfffff000 mask=0x0 ofs=0x22
+[1] https://syzkaller.appspot.com/bug?extid=09ef48aa58261464b621
+[2] https://patchwork.kernel.org/patch/11283319/
 
-Link: http://lkml.kernel.org/r/20200320055823.27089-3-jaewon31.kim@samsung.com
-Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Any subsystem that uses softirqs (e.g. timers) can make use of this in
+the future. Looking at the recent syzbot reports, an obvious candidate
+is the networking subsystem [3, 4, 5 and many more].
+
+[3] https://syzkaller.appspot.com/bug?extid=522ab502c69badc66ab7
+[4] https://syzkaller.appspot.com/bug?extid=57f89d05946c53dbbb31
+[5] https://syzkaller.appspot.com/bug?extid=df358e65d9c1b9d3f5f4
+
+This patch (of 3):
+
+Previous commit left a lot of excessive debug messages, clean them up.
+
+Link: http://lkml.kernel.org/r/b9ec058ef7895cc699a2ddd9b6987e0a3f62cc91.1583778264.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmap.h |   48 ++++++++++++++++++++++++++++++++++
- mm/mmap.c                   |   12 +++++++-
- 2 files changed, 58 insertions(+), 2 deletions(-)
+ kernel/kcov.c |   22 ++--------------------
+ 1 file changed, 2 insertions(+), 20 deletions(-)
 
---- /dev/null
-+++ a/include/trace/events/mmap.h
-@@ -0,0 +1,48 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM mmap
-+
-+#if !defined(_TRACE_MMAP_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_MMAP_H
-+
-+#include <linux/tracepoint.h>
-+
-+TRACE_EVENT(vm_unmapped_area,
-+
-+	TP_PROTO(unsigned long addr, struct vm_unmapped_area_info *info),
-+
-+	TP_ARGS(addr, info),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long,	addr)
-+		__field(unsigned long,	total_vm)
-+		__field(unsigned long,	flags)
-+		__field(unsigned long,	length)
-+		__field(unsigned long,	low_limit)
-+		__field(unsigned long,	high_limit)
-+		__field(unsigned long,	align_mask)
-+		__field(unsigned long,	align_offset)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->addr = addr;
-+		__entry->total_vm = current->mm->total_vm;
-+		__entry->flags = info->flags;
-+		__entry->length = info->length;
-+		__entry->low_limit = info->low_limit;
-+		__entry->high_limit = info->high_limit;
-+		__entry->align_mask = info->align_mask;
-+		__entry->align_offset = info->align_offset;
-+	),
-+
-+	TP_printk("addr=%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx\n",
-+		IS_ERR_VALUE(__entry->addr) ? 0 : __entry->addr,
-+		IS_ERR_VALUE(__entry->addr) ? __entry->addr : 0,
-+		__entry->total_vm, __entry->flags, __entry->length,
-+		__entry->low_limit, __entry->high_limit, __entry->align_mask,
-+		__entry->align_offset)
-+);
-+#endif
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
---- a/mm/mmap.c~mm-mmap-add-trace-point-of-vm_unmapped_area
-+++ a/mm/mmap.c
-@@ -53,6 +53,9 @@
- #include <asm/tlb.h>
- #include <asm/mmu_context.h>
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/mmap.h>
-+
- #include "internal.h"
- 
- #ifndef arch_mmap_check
-@@ -2076,10 +2079,15 @@ found_highest:
-  */
- unsigned long vm_unmapped_area(struct vm_unmapped_area_info *info)
- {
-+	unsigned long addr;
-+
- 	if (info->flags & VM_UNMAPPED_AREA_TOPDOWN)
--		return unmapped_area_topdown(info);
-+		addr = unmapped_area_topdown(info);
- 	else
--		return unmapped_area(info);
-+		addr = unmapped_area(info);
-+
-+	trace_vm_unmapped_area(addr, info);
-+	return addr;
+--- a/kernel/kcov.c~kcov-cleanup-debug-messages
++++ a/kernel/kcov.c
+@@ -98,6 +98,7 @@ static struct kcov_remote *kcov_remote_f
+ 	return NULL;
  }
  
- #ifndef arch_get_mmap_end
++/* Must be called with kcov_remote_lock locked. */
+ static struct kcov_remote *kcov_remote_add(struct kcov *kcov, u64 handle)
+ {
+ 	struct kcov_remote *remote;
+@@ -119,16 +120,13 @@ static struct kcov_remote_area *kcov_rem
+ 	struct kcov_remote_area *area;
+ 	struct list_head *pos;
+ 
+-	kcov_debug("size = %u\n", size);
+ 	list_for_each(pos, &kcov_remote_areas) {
+ 		area = list_entry(pos, struct kcov_remote_area, list);
+ 		if (area->size == size) {
+ 			list_del(&area->list);
+-			kcov_debug("rv = %px\n", area);
+ 			return area;
+ 		}
+ 	}
+-	kcov_debug("rv = NULL\n");
+ 	return NULL;
+ }
+ 
+@@ -136,7 +134,6 @@ static struct kcov_remote_area *kcov_rem
+ static void kcov_remote_area_put(struct kcov_remote_area *area,
+ 					unsigned int size)
+ {
+-	kcov_debug("area = %px, size = %u\n", area, size);
+ 	INIT_LIST_HEAD(&area->list);
+ 	area->size = size;
+ 	list_add(&area->list, &kcov_remote_areas);
+@@ -366,7 +363,6 @@ static void kcov_remote_reset(struct kco
+ 	hash_for_each_safe(kcov_remote_map, bkt, tmp, remote, hnode) {
+ 		if (remote->kcov != kcov)
+ 			continue;
+-		kcov_debug("removing handle %llx\n", remote->handle);
+ 		hash_del(&remote->hnode);
+ 		kfree(remote);
+ 	}
+@@ -553,7 +549,6 @@ static int kcov_ioctl_locked(struct kcov
+ 
+ 	switch (cmd) {
+ 	case KCOV_INIT_TRACE:
+-		kcov_debug("KCOV_INIT_TRACE\n");
+ 		/*
+ 		 * Enable kcov in trace mode and setup buffer size.
+ 		 * Must happen before anything else.
+@@ -572,7 +567,6 @@ static int kcov_ioctl_locked(struct kcov
+ 		kcov->mode = KCOV_MODE_INIT;
+ 		return 0;
+ 	case KCOV_ENABLE:
+-		kcov_debug("KCOV_ENABLE\n");
+ 		/*
+ 		 * Enable coverage for the current task.
+ 		 * At this point user must have been enabled trace mode,
+@@ -598,7 +592,6 @@ static int kcov_ioctl_locked(struct kcov
+ 		kcov_get(kcov);
+ 		return 0;
+ 	case KCOV_DISABLE:
+-		kcov_debug("KCOV_DISABLE\n");
+ 		/* Disable coverage for the current task. */
+ 		unused = arg;
+ 		if (unused != 0 || current->kcov != kcov)
+@@ -610,7 +603,6 @@ static int kcov_ioctl_locked(struct kcov
+ 		kcov_put(kcov);
+ 		return 0;
+ 	case KCOV_REMOTE_ENABLE:
+-		kcov_debug("KCOV_REMOTE_ENABLE\n");
+ 		if (kcov->mode != KCOV_MODE_INIT || !kcov->area)
+ 			return -EINVAL;
+ 		t = current;
+@@ -629,7 +621,6 @@ static int kcov_ioctl_locked(struct kcov
+ 		kcov->remote_size = remote_arg->area_size;
+ 		spin_lock(&kcov_remote_lock);
+ 		for (i = 0; i < remote_arg->num_handles; i++) {
+-			kcov_debug("handle %llx\n", remote_arg->handles[i]);
+ 			if (!kcov_check_handle(remote_arg->handles[i],
+ 						false, true, false)) {
+ 				spin_unlock(&kcov_remote_lock);
+@@ -644,8 +635,6 @@ static int kcov_ioctl_locked(struct kcov
+ 			}
+ 		}
+ 		if (remote_arg->common_handle) {
+-			kcov_debug("common handle %llx\n",
+-					remote_arg->common_handle);
+ 			if (!kcov_check_handle(remote_arg->common_handle,
+ 						true, false, false)) {
+ 				spin_unlock(&kcov_remote_lock);
+@@ -782,7 +771,6 @@ void kcov_remote_start(u64 handle)
+ 	spin_lock(&kcov_remote_lock);
+ 	remote = kcov_remote_find(handle);
+ 	if (!remote) {
+-		kcov_debug("no remote found");
+ 		spin_unlock(&kcov_remote_lock);
+ 		return;
+ 	}
+@@ -810,8 +798,6 @@ void kcov_remote_start(u64 handle)
+ 	/* Reset coverage size. */
+ 	*(u64 *)area = 0;
+ 
+-	kcov_debug("area = %px, size = %u", area, size);
+-
+ 	kcov_start(t, size, area, mode, sequence);
+ 
+ }
+@@ -881,10 +867,8 @@ void kcov_remote_stop(void)
+ 	unsigned int size = t->kcov_size;
+ 	int sequence = t->kcov_sequence;
+ 
+-	if (!kcov) {
+-		kcov_debug("no kcov found\n");
++	if (!kcov)
+ 		return;
+-	}
+ 
+ 	kcov_stop(t);
+ 	t->kcov = NULL;
+@@ -894,8 +878,6 @@ void kcov_remote_stop(void)
+ 	 * KCOV_DISABLE could have been called between kcov_remote_start()
+ 	 * and kcov_remote_stop(), hence the check.
+ 	 */
+-	kcov_debug("move if: %d == %d && %d\n",
+-		sequence, kcov->sequence, (int)kcov->remote);
+ 	if (sequence == kcov->sequence && kcov->remote)
+ 		kcov_move_area(kcov->mode, kcov->area, kcov->size, area);
+ 	spin_unlock(&kcov->lock);
 _
 
-Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mmap-remove-inline-of-vm_unmapped_area.patch
-mm-mmap-add-trace-point-of-vm_unmapped_area.patch
+kcov-collect-coverage-from-interrupts.patch
+usb-core-kcov-collect-coverage-from-usb-complete-callback.patch
