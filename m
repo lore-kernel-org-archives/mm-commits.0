@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch added to -mm
- tree
-Date: Sat, 21 Mar 2020 13:43:11 -0700
-Message-ID: <20200321204311.PwC4YwHN_%akpm@linux-foundation.org>
+ mm-sparsec-move-subsection_map-related-functions-together-fix.patch added
+ to -mm tree
+Date: Sat, 21 Mar 2020 14:14:17 -0700
+Message-ID: <20200321211417.mKmiOzzk5%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59134 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38470 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726366AbgCUUnM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 21 Mar 2020 16:43:12 -0400
+        id S1726813AbgCUVOT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 21 Mar 2020 17:14:19 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: bhe@redhat.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add more spellings to spelling.txt
+     Subject: mm/sparse.c: move functions into CONFIG_MEMORY_HOTPLUG ifdeffery scope
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+     mm-sparsec-move-subsection_map-related-functions-together-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparsec-move-subsection_map-related-functions-together-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparsec-move-subsection_map-related-functions-together-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,169 +39,206 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: scripts/spelling.txt: add more spellings to spelling.txt
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/sparse.c: move functions into CONFIG_MEMORY_HOTPLUG ifdeffery scope
 
-Here are some of the more common spelling mistakes and typos that I've
-found while fixing up spelling mistakes in the kernel since November 2019
+Stephen reported warnings are seen with allnoconfig on x86_64:
 
-Link: http://lkml.kernel.org/r/20200313174946.228216-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+mm/sparse.c:311:12: warning: 'fill_subsection_map' defined but not used [-Wunused-function]
+  311 | static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
+      |            ^~~~~~~~~~~~~~~~~~~
+mm/sparse.c:306:13: warning: 'is_subsection_map_empty' defined but not used [-Wunused-function]
+  306 | static bool is_subsection_map_empty(struct mem_section *ms)
+      |             ^~~~~~~~~~~~~~~~~~~~~~~
+mm/sparse.c:301:12: warning: 'clear_subsection_map' defined but not used [-Wunused-function]
+  301 | static int clear_subsection_map(unsigned long pfn, unsigned long nr_pages)
+      |            ^~~~~~~~~~~~~~~~~~~~
+
+This is because allnoconfig on x86_64 sets  CONFIG_SPARSEMEM=y and
+CONFIG_MEMORY_HOTPLUG=n. Functions clear_subsection_map(),
+is_subsection_map_empty() and fill_subsection_map() are all defined
+outside CONFIG_MEMORY_HOTPLUG ifdeffery scope. However, their callers,
+section_activate() and section_deactivate() are inside CONFIG_MEMORY_HOTPLUG
+ifdeffery scope.
+
+So let's move them into the CONFIG_MEMORY_HOTPLUG iddeffery scope which
+includes their callers.
+
+Link: http://lkml.kernel.org/r/20200316045804.GC3486@MiWiFi-R3L-srv
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Tested-by: Stephen Rothwell <sfr@canb.auug.org.au>	[compile tested]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ mm/sparse.c |  128 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 64 insertions(+), 64 deletions(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spellings-to-spellingtxt
-+++ a/scripts/spelling.txt
-@@ -177,7 +177,9 @@ atomatically||automatically
- atomicly||atomically
- atempt||attempt
- attachement||attachment
-+attatch||attach
- attched||attached
-+attemp||attempt
- attemps||attempts
- attemping||attempting
- attepmpt||attempt
-@@ -235,11 +237,13 @@ brievely||briefly
- brigde||bridge
- broadcase||broadcast
- broadcat||broadcast
-+bufer||buffer
- bufufer||buffer
- cacluated||calculated
- caculate||calculate
- caculation||calculation
- cadidate||candidate
-+cahces||caches
- calender||calendar
- calescing||coalescing
- calle||called
-@@ -338,7 +342,6 @@ conditon||condition
- condtion||condition
- conected||connected
- conector||connector
--connecetd||connected
- configration||configuration
- configuartion||configuration
- configuation||configuration
-@@ -349,7 +352,9 @@ configuretion||configuration
- configutation||configuration
- conider||consider
- conjuction||conjunction
-+connecetd||connected
- connectinos||connections
-+connetor||connector
- connnection||connection
- connnections||connections
- consistancy||consistency
-@@ -469,6 +474,7 @@ difinition||definition
- digial||digital
- dimention||dimension
- dimesions||dimensions
-+disgest||digest
- dispalying||displaying
- diplay||display
- directon||direction
-@@ -553,6 +559,7 @@ etsablishment||establishment
- etsbalishment||establishment
- excecutable||executable
- exceded||exceeded
-+exceeed||exceed
- excellant||excellent
- execeeded||exceeded
- execeeds||exceeds
-@@ -742,6 +749,7 @@ initialzing||initializing
- initilization||initialization
- initilize||initialize
- initliaze||initialize
-+initilized||initialized
- inofficial||unofficial
- inrerface||interface
- insititute||institute
-@@ -802,6 +810,7 @@ irrelevent||irrelevant
- isnt||isn't
- isssue||issue
- issus||issues
-+iteraions||iterations
- iternations||iterations
- itertation||iteration
- itslef||itself
-@@ -828,6 +837,7 @@ libary||library
- librairies||libraries
- libraris||libraries
- licenceing||licencing
-+limted||limited
- logaritmic||logarithmic
- loggging||logging
- loggin||login
-@@ -924,6 +934,7 @@ nerver||never
- nescessary||necessary
- nessessary||necessary
- noticable||noticeable
-+notication||notification
- notications||notifications
- notifcations||notifications
- notifed||notified
-@@ -1007,6 +1018,7 @@ pendantic||pedantic
- peprocessor||preprocessor
- perfoming||performing
- perfomring||performing
-+periperal||peripheral
- peripherial||peripheral
- permissons||permissions
- peroid||period
-@@ -1043,6 +1055,7 @@ prefferably||preferably
- premption||preemption
- prepaired||prepared
- preperation||preparation
-+preprare||prepare
- pressre||pressure
- primative||primitive
- princliple||principle
-@@ -1064,6 +1077,7 @@ processsed||processed
- processsing||processing
- procteted||protected
- prodecure||procedure
-+progamming||programming
- progams||programs
- progess||progress
- programers||programmers
-@@ -1151,12 +1165,14 @@ replys||replies
- reponse||response
- representaion||representation
- reqeust||request
-+reqister||register
- requestied||requested
- requiere||require
- requirment||requirement
- requred||required
- requried||required
- requst||request
-+requsted||requested
- reregisteration||reregistration
- reseting||resetting
- reseved||reserved
-@@ -1227,10 +1243,12 @@ seqeuncer||sequencer
- seqeuencer||sequencer
- sequece||sequence
- sequencial||sequential
-+serivce||service
- serveral||several
- servive||service
- setts||sets
- settting||setting
-+shapshot||snapshot
- shotdown||shutdown
- shoud||should
- shouldnt||shouldn't
+--- a/mm/sparse.c~mm-sparsec-move-subsection_map-related-functions-together-fix
++++ a/mm/sparse.c
+@@ -244,74 +244,10 @@ void __init subsection_map_init(unsigned
+ 		nr_pages -= pfns;
+ 	}
+ }
+-
+-static int clear_subsection_map(unsigned long pfn, unsigned long nr_pages)
+-{
+-	DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
+-	DECLARE_BITMAP(tmp, SUBSECTIONS_PER_SECTION) = { 0 };
+-	struct mem_section *ms = __pfn_to_section(pfn);
+-	unsigned long *subsection_map = ms->usage
+-		? &ms->usage->subsection_map[0] : NULL;
+-
+-	subsection_mask_set(map, pfn, nr_pages);
+-	if (subsection_map)
+-		bitmap_and(tmp, map, subsection_map, SUBSECTIONS_PER_SECTION);
+-
+-	if (WARN(!subsection_map || !bitmap_equal(tmp, map, SUBSECTIONS_PER_SECTION),
+-				"section already deactivated (%#lx + %ld)\n",
+-				pfn, nr_pages))
+-		return -EINVAL;
+-
+-	bitmap_xor(subsection_map, map, subsection_map, SUBSECTIONS_PER_SECTION);
+-	return 0;
+-}
+-
+-static bool is_subsection_map_empty(struct mem_section *ms)
+-{
+-	return bitmap_empty(&ms->usage->subsection_map[0],
+-			    SUBSECTIONS_PER_SECTION);
+-}
+-
+-static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
+-{
+-	struct mem_section *ms = __pfn_to_section(pfn);
+-	DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
+-	unsigned long *subsection_map;
+-	int rc = 0;
+-
+-	subsection_mask_set(map, pfn, nr_pages);
+-
+-	subsection_map = &ms->usage->subsection_map[0];
+-
+-	if (bitmap_empty(map, SUBSECTIONS_PER_SECTION))
+-		rc = -EINVAL;
+-	else if (bitmap_intersects(map, subsection_map, SUBSECTIONS_PER_SECTION))
+-		rc = -EEXIST;
+-	else
+-		bitmap_or(subsection_map, map, subsection_map,
+-				SUBSECTIONS_PER_SECTION);
+-
+-	return rc;
+-}
+ #else
+ void __init subsection_map_init(unsigned long pfn, unsigned long nr_pages)
+ {
+ }
+-
+-static int clear_subsection_map(unsigned long pfn, unsigned long nr_pages)
+-{
+-	return 0;
+-}
+-
+-static bool is_subsection_map_empty(struct mem_section *ms)
+-{
+-	return true;
+-}
+-
+-static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
+-{
+-	return 0;
+-}
+ #endif
+ 
+ /* Record a memory area against a node. */
+@@ -730,6 +666,55 @@ static void free_map_bootmem(struct page
+ 
+ 	vmemmap_free(start, end, NULL);
+ }
++
++static int clear_subsection_map(unsigned long pfn, unsigned long nr_pages)
++{
++	DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
++	DECLARE_BITMAP(tmp, SUBSECTIONS_PER_SECTION) = { 0 };
++	struct mem_section *ms = __pfn_to_section(pfn);
++	unsigned long *subsection_map = ms->usage
++		? &ms->usage->subsection_map[0] : NULL;
++
++	subsection_mask_set(map, pfn, nr_pages);
++	if (subsection_map)
++		bitmap_and(tmp, map, subsection_map, SUBSECTIONS_PER_SECTION);
++
++	if (WARN(!subsection_map || !bitmap_equal(tmp, map, SUBSECTIONS_PER_SECTION),
++				"section already deactivated (%#lx + %ld)\n",
++				pfn, nr_pages))
++		return -EINVAL;
++
++	bitmap_xor(subsection_map, map, subsection_map, SUBSECTIONS_PER_SECTION);
++	return 0;
++}
++
++static bool is_subsection_map_empty(struct mem_section *ms)
++{
++	return bitmap_empty(&ms->usage->subsection_map[0],
++			    SUBSECTIONS_PER_SECTION);
++}
++
++static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
++{
++	struct mem_section *ms = __pfn_to_section(pfn);
++	DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
++	unsigned long *subsection_map;
++	int rc = 0;
++
++	subsection_mask_set(map, pfn, nr_pages);
++
++	subsection_map = &ms->usage->subsection_map[0];
++
++	if (bitmap_empty(map, SUBSECTIONS_PER_SECTION))
++		rc = -EINVAL;
++	else if (bitmap_intersects(map, subsection_map, SUBSECTIONS_PER_SECTION))
++		rc = -EEXIST;
++	else
++		bitmap_or(subsection_map, map, subsection_map,
++				SUBSECTIONS_PER_SECTION);
++
++	return rc;
++}
+ #else
+ struct page * __meminit populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
+@@ -773,6 +758,21 @@ static void free_map_bootmem(struct page
+ 			put_page_bootmem(page);
+ 	}
+ }
++
++static int clear_subsection_map(unsigned long pfn, unsigned long nr_pages)
++{
++	return 0;
++}
++
++static bool is_subsection_map_empty(struct mem_section *ms)
++{
++	return true;
++}
++
++static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
++{
++	return 0;
++}
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
+ /*
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
-mm-memblock-remove-redundant-assignment-to-variable-max_addr.patch
-lib-test_lockup-fix-spelling-mistake-iteraions-iterations.patch
+mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case.patch
+mm-sparsec-use-kvmalloc-kvfree-to-alloc-free-memmap-for-the-classic-sparse.patch
+mm-hotplug-only-respect-mem=-parameter-during-boot-stage.patch
+mm-sparsec-introduce-new-function-fill_subsection_map.patch
+mm-sparsec-introduce-a-new-function-clear_subsection_map.patch
+mm-sparsec-only-use-subsection-map-in-vmemmap-case.patch
+mm-sparsec-add-note-about-only-vmemmap-supporting-sub-section-hotplug.patch
+mm-sparsec-move-subsection_map-related-functions-together.patch
+mm-sparsec-move-subsection_map-related-functions-together-fix.patch
