@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-swap-use-smp_mb__after_atomic-to-order-lru-bit-set.patch added to -mm
- tree
-Date: Fri, 20 Mar 2020 18:22:54 -0700
-Message-ID: <20200321012254.0JyW0vqvm%akpm@linux-foundation.org>
+ sparcx86-vdso-remove-meaningless-undefining-config_optimize_inlining.patch
+ added to -mm tree
+Date: Fri, 20 Mar 2020 19:07:44 -0700
+Message-ID: <20200321020744.XltCyb7vC%akpm@linux-foundation.org>
 References: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45120 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52980 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726773AbgCUBWz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 20 Mar 2020 21:22:55 -0400
+        id S1726801AbgCUCHq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 20 Mar 2020 22:07:46 -0400
 In-Reply-To: <20200305222751.6d781a3f2802d79510941e4e@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mm-commits@vger.kernel.org, shakeelb@google.com, vbabka@suse.cz, willy@infradead.org, yang.shi@linux.alibaba.com
+To: arnd@arndb.de, bp@alien8.de, davem@davemloft.net, hpa@zytor.com, masahiroy@kernel.org, miguel.ojeda.sandonis@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org, natechancellor@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm: swap: use smp_mb__after_atomic() to order LRU bit set
+     Subject: sparc,x86: vdso: remove meaningless undefining CONFIG_OPTIMIZE_INLINING
 has been added to the -mm tree.  Its filename is
-     mm-swap-use-smp_mb__after_atomic-to-order-lru-bit-set.patch
+     sparcx86-vdso-remove-meaningless-undefining-config_optimize_inlining.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-use-smp_mb__after_atomic-to-order-lru-bit-set.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sparcx86-vdso-remove-meaningless-undefining-config_optimize_inlining.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-use-smp_mb__after_atomic-to-order-lru-bit-set.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sparcx86-vdso-remove-meaningless-undefining-config_optimize_inlining.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +39,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm: swap: use smp_mb__after_atomic() to order LRU bit set
+From: Masahiro Yamada <masahiroy@kernel.org>
+Subject: sparc,x86: vdso: remove meaningless undefining CONFIG_OPTIMIZE_INLINING
 
-Memory barrier is needed after setting LRU bit, but smp_mb() is too
-strong.  Some architectures, i.e.  x86, imply memory barrier with atomic
-operations, so replacing it with smp_mb__after_atomic() sounds better,
-which is nop on strong ordered machines, and full memory barriers on
-others.  With this change the vm-scalability cases would perform better on
-x86, I saw total 6% improvement with this patch and previous inline fix.
+The code, #undef CONFIG_OPTIMIZE_INLINING, is not working as expected
+because <linux/compiler_types.h> is parsed before vclock_gettime.c since
+28128c61e08e ("kconfig.h: Include compiler types to avoid missed struct
+attributes").
 
-The test data (lru-file-readtwice throughput) against v5.6-rc4:
-	mainline	w/ inline fix	w/ both (adding this)
-	150MB		154MB		159MB
+Since then, <linux/compiler_types.h> is included really early by using the
+'-include' option.  So, you cannot negate the decision of
+<linux/compiler_types.h> in this way.
 
-Link: http://lkml.kernel.org/r/1584500541-46817-2-git-send-email-yang.shi@linux.alibaba.com
-Fixes: 9c4e6b1a7027 ("mm, mlock, vmscan: no more skipping pagevecs")
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Tested-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+You can confirm it by checking the pre-processed code, like this:
+
+  $ make arch/x86/entry/vdso/vdso32/vclock_gettime.i
+
+There is no difference with/without CONFIG_CC_OPTIMIZE_FOR_SIZE.
+
+It is about two years since 28128c61e08e.  Nobody has reported a problem
+(or, nobody has even noticed the fact that this code is not working).
+
+It is ugly and unreliable to attempt to undefine a CONFIG option from C
+files, and anyway the inlining heuristic is up to the compiler.
+
+Just remove the broken code.
+
+Link: http://lkml.kernel.org/r/20200220110807.32534-1-masahiroy@kernel.org
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Acked-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/vdso/vdso32/vclock_gettime.c     |    4 ----
+ arch/x86/entry/vdso/vdso32/vclock_gettime.c |    4 ----
+ 2 files changed, 8 deletions(-)
 
---- a/mm/swap.c~mm-swap-use-smp_mb__after_atomic-to-order-lru-bit-set
-+++ a/mm/swap.c
-@@ -931,7 +931,6 @@ static void __pagevec_lru_add_fn(struct
+--- a/arch/sparc/vdso/vdso32/vclock_gettime.c~sparcx86-vdso-remove-meaningless-undefining-config_optimize_inlining
++++ a/arch/sparc/vdso/vdso32/vclock_gettime.c
+@@ -4,10 +4,6 @@
  
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
+ #define	BUILD_VDSO32
  
--	SetPageLRU(page);
- 	/*
- 	 * Page becomes evictable in two ways:
- 	 * 1) Within LRU lock [munlock_vma_page() and __munlock_pagevec()].
-@@ -958,7 +957,8 @@ static void __pagevec_lru_add_fn(struct
- 	 * looking at the same page) and the evictable page will be stranded
- 	 * in an unevictable LRU.
- 	 */
--	smp_mb();
-+	SetPageLRU(page);
-+	smp_mb__after_atomic();
+-#ifndef	CONFIG_CC_OPTIMIZE_FOR_SIZE
+-#undef	CONFIG_OPTIMIZE_INLINING
+-#endif
+-
+ #ifdef	CONFIG_SPARC64
  
- 	if (page_evictable(page)) {
- 		lru = page_lru(page);
-_
-
-Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
-
-mm-swap-make-page_evictable-inline.patch
-mm-swap-use-smp_mb__after_atomic-to-order-lru-bit-set.patch
-mm-vmpressure-dont-need-call-kfree-if-kstrndup-fails.patch
-mm-vmpressure-use-mem_cgroup_is_root-api.patch
-mm-vmscan-replace-open-codings-to-numa_no_node.patch
-mm-mempolicy-use-vm_bug_on_vma-in-queue_pages_test_walk.patch
-mm-migratec-migrate-pg_readahead-flag.patch
+ /*
+--- a/arch/x86/entry/vdso/vdso32/vclock_gettime.c~sparcx86-vdso-remove-meaningless-undefining-config_optimize_inlining
++++ a/arch/x86/entry/vdso/vdso32/vclock_gettime.c
+@@ -1,10 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #define BUILD_VDSO32
+ 
+-#ifndef CONFIG_CC_OPTIMIZE_FOR_SIZE
+-#undef CONFIG_OPTIMIZE_INLINING
+-#endif
