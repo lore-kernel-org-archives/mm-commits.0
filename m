@@ -1,91 +1,155 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 07/10] epoll: fix possible lost wakeup on
- epoll_ctl() path
-Date: Sat, 21 Mar 2020 18:22:30 -0700
-Message-ID: <20200322012230.v8ERPHp_B%akpm@linux-foundation.org>
+Subject: [patch 08/10] mm/mmu_notifier: silence PROVE_RCU_LIST
+ warnings
+Date: Sat, 21 Mar 2020 18:22:34 -0700
+Message-ID: <20200322012234.XRpe6rsK4%akpm@linux-foundation.org>
 References: <20200321181954.c0564dfd5514cd742b534884@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41326 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41392 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726859AbgCVBWc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 21 Mar 2020 21:22:32 -0400
+        id S1726859AbgCVBWf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 21 Mar 2020 21:22:35 -0400
 In-Reply-To: <20200321181954.c0564dfd5514cd742b534884@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris.kohlhoff@clearpool.io, dbueso@suse.de, jbaron@akamai.com, jes.sorensen@gmail.com, kuba@kernel.org, linux-mm@kvack.org, max@arangodb.com, mm-commits@vger.kernel.org, rpenyaev@suse.de, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, cai@lca.pw, jgg@mellanox.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, paulmck@kernel.org, torvalds@linux-foundation.org
 
-From: Roman Penyaev <rpenyaev@suse.de>
-Subject: epoll: fix possible lost wakeup on epoll_ctl() path
+From: Qian Cai <cai@lca.pw>
+Subject: mm/mmu_notifier: silence PROVE_RCU_LIST warnings
 
-This fixes possible lost wakeup introduced by commit a218cc491420. 
-Originally modifications to ep->wq were serialized by ep->wq.lock, but in
-the a218cc491420 new rw lock was introduced in order to relax fd event
-path, i.e.  callers of ep_poll_callback() function.
+It is safe to traverse mm->notifier_subscriptions->list either under SRCU
+read lock or mm->notifier_subscriptions->lock using
+hlist_for_each_entry_rcu().  Silence the PROVE_RCU_LIST false positives,
+for example,
 
-After the change ep_modify and ep_insert (both are called on epoll_ctl()
-path) were switched to ep->lock, but ep_poll (epoll_wait) was using
-ep->wq.lock on wqueue list modification.
+ WARNING: suspicious RCU usage
+ -----------------------------
+ mm/mmu_notifier.c:484 RCU-list traversed in non-reader section!!
 
-The bug doesn't lead to any wqueue list corruptions, because wake up path
-and list modifications were serialized by ep->wq.lock internally, but
-actual waitqueue_active() check prior wake_up() call can be reordered with
-modifications of ep ready list, thus wake up can be lost.
+ other info that might help us debug this:
 
-And yes, can be healed by explicit smp_mb():
+ rcu_scheduler_active = 2, debug_locks = 1
+ 3 locks held by libvirtd/802:
+  #0: ffff9321e3f58148 (&mm->mmap_sem#2){++++}, at: do_mprotect_pkey+0xe1/0x3e0
+  #1: ffffffff91ae6160 (mmu_notifier_invalidate_range_start){+.+.}, at: change_p4d_range+0x5fa/0x800
+  #2: ffffffff91ae6e08 (srcu){....}, at: __mmu_notifier_invalidate_range_start+0x178/0x460
 
-  list_add_tail(&epi->rdlink, &ep->rdllist);
-  smp_mb();
-  if (waitqueue_active(&ep->wq))
-	wake_up(&ep->wp);
+ stack backtrace:
+ CPU: 7 PID: 802 Comm: libvirtd Tainted: G          I       5.6.0-rc6-next-20200317+ #2
+ Hardware name: HP ProLiant BL460c Gen8, BIOS I31 11/02/2014
+ Call Trace:
+  dump_stack+0xa4/0xfe
+  lockdep_rcu_suspicious+0xeb/0xf5
+  __mmu_notifier_invalidate_range_start+0x3ff/0x460
+  change_p4d_range+0x746/0x800
+  change_protection+0x1df/0x300
+  mprotect_fixup+0x245/0x3e0
+  do_mprotect_pkey+0x23b/0x3e0
+  __x64_sys_mprotect+0x51/0x70
+  do_syscall_64+0x91/0xae8
+  entry_SYSCALL_64_after_hwframe+0x49/0xb3
 
-But let's make it simple, thus current patch replaces ep->wq.lock with the
-ep->lock for wqueue modifications, thus wake up path always observes
-activeness of the wqueue correcty.
-
-Link: http://lkml.kernel.org/r/20200214170211.561524-1-rpenyaev@suse.de
-Fixes: a218cc491420 ("epoll: use rwlock in order to reduce ep_poll_callback() contention")
-References: https://bugzilla.kernel.org/show_bug.cgi?id=205933
-Signed-off-by: Roman Penyaev <rpenyaev@suse.de>
-Reported-by: Max Neunhoeffer <max@arangodb.com>
-Bisected-by: Max Neunhoeffer <max@arangodb.com>
-Tested-by: Max Neunhoeffer <max@arangodb.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Christopher Kohlhoff <chris.kohlhoff@clearpool.io>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Jes Sorensen <jes.sorensen@gmail.com>
-Cc: <stable@vger.kernel.org>	[5.1+]
+Link: http://lkml.kernel.org/r/20200317175640.2047-1-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/mmu_notifier.c |   27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
---- a/fs/eventpoll.c~epoll-fix-possible-lost-wakeup-on-epoll_ctl-path
-+++ a/fs/eventpoll.c
-@@ -1854,9 +1854,9 @@ fetch_events:
- 		waiter = true;
- 		init_waitqueue_entry(&wait, current);
+--- a/mm/mmu_notifier.c~mm-mmu_notifier-silence-prove_rcu_list-warnings
++++ a/mm/mmu_notifier.c
+@@ -307,7 +307,8 @@ static void mn_hlist_release(struct mmu_
+ 	 * ->release returns.
+ 	 */
+ 	id = srcu_read_lock(&srcu);
+-	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist)
++	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist,
++				 srcu_read_lock_held(&srcu))
+ 		/*
+ 		 * If ->release runs before mmu_notifier_unregister it must be
+ 		 * handled, as it's the only way for the driver to flush all
+@@ -370,7 +371,8 @@ int __mmu_notifier_clear_flush_young(str
  
--		spin_lock_irq(&ep->wq.lock);
-+		write_lock_irq(&ep->lock);
- 		__add_wait_queue_exclusive(&ep->wq, &wait);
--		spin_unlock_irq(&ep->wq.lock);
-+		write_unlock_irq(&ep->lock);
- 	}
+ 	id = srcu_read_lock(&srcu);
+ 	hlist_for_each_entry_rcu(subscription,
+-				 &mm->notifier_subscriptions->list, hlist) {
++				 &mm->notifier_subscriptions->list, hlist,
++				 srcu_read_lock_held(&srcu)) {
+ 		if (subscription->ops->clear_flush_young)
+ 			young |= subscription->ops->clear_flush_young(
+ 				subscription, mm, start, end);
+@@ -389,7 +391,8 @@ int __mmu_notifier_clear_young(struct mm
  
- 	for (;;) {
-@@ -1904,9 +1904,9 @@ send_events:
- 		goto fetch_events;
+ 	id = srcu_read_lock(&srcu);
+ 	hlist_for_each_entry_rcu(subscription,
+-				 &mm->notifier_subscriptions->list, hlist) {
++				 &mm->notifier_subscriptions->list, hlist,
++				 srcu_read_lock_held(&srcu)) {
+ 		if (subscription->ops->clear_young)
+ 			young |= subscription->ops->clear_young(subscription,
+ 								mm, start, end);
+@@ -407,7 +410,8 @@ int __mmu_notifier_test_young(struct mm_
  
- 	if (waiter) {
--		spin_lock_irq(&ep->wq.lock);
-+		write_lock_irq(&ep->lock);
- 		__remove_wait_queue(&ep->wq, &wait);
--		spin_unlock_irq(&ep->wq.lock);
-+		write_unlock_irq(&ep->lock);
- 	}
+ 	id = srcu_read_lock(&srcu);
+ 	hlist_for_each_entry_rcu(subscription,
+-				 &mm->notifier_subscriptions->list, hlist) {
++				 &mm->notifier_subscriptions->list, hlist,
++				 srcu_read_lock_held(&srcu)) {
+ 		if (subscription->ops->test_young) {
+ 			young = subscription->ops->test_young(subscription, mm,
+ 							      address);
+@@ -428,7 +432,8 @@ void __mmu_notifier_change_pte(struct mm
  
- 	return res;
+ 	id = srcu_read_lock(&srcu);
+ 	hlist_for_each_entry_rcu(subscription,
+-				 &mm->notifier_subscriptions->list, hlist) {
++				 &mm->notifier_subscriptions->list, hlist,
++				 srcu_read_lock_held(&srcu)) {
+ 		if (subscription->ops->change_pte)
+ 			subscription->ops->change_pte(subscription, mm, address,
+ 						      pte);
+@@ -476,7 +481,8 @@ static int mn_hlist_invalidate_range_sta
+ 	int id;
+ 
+ 	id = srcu_read_lock(&srcu);
+-	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist) {
++	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist,
++				 srcu_read_lock_held(&srcu)) {
+ 		const struct mmu_notifier_ops *ops = subscription->ops;
+ 
+ 		if (ops->invalidate_range_start) {
+@@ -528,7 +534,8 @@ mn_hlist_invalidate_end(struct mmu_notif
+ 	int id;
+ 
+ 	id = srcu_read_lock(&srcu);
+-	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist) {
++	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist,
++				 srcu_read_lock_held(&srcu)) {
+ 		/*
+ 		 * Call invalidate_range here too to avoid the need for the
+ 		 * subsystem of having to register an invalidate_range_end
+@@ -582,7 +589,8 @@ void __mmu_notifier_invalidate_range(str
+ 
+ 	id = srcu_read_lock(&srcu);
+ 	hlist_for_each_entry_rcu(subscription,
+-				 &mm->notifier_subscriptions->list, hlist) {
++				 &mm->notifier_subscriptions->list, hlist,
++				 srcu_read_lock_held(&srcu)) {
+ 		if (subscription->ops->invalidate_range)
+ 			subscription->ops->invalidate_range(subscription, mm,
+ 							    start, end);
+@@ -714,7 +722,8 @@ find_get_mmu_notifier(struct mm_struct *
+ 
+ 	spin_lock(&mm->notifier_subscriptions->lock);
+ 	hlist_for_each_entry_rcu(subscription,
+-				 &mm->notifier_subscriptions->list, hlist) {
++				 &mm->notifier_subscriptions->list, hlist,
++				 lockdep_is_held(&mm->notifier_subscriptions->lock)) {
+ 		if (subscription->ops != ops)
+ 			continue;
+ 
 _
