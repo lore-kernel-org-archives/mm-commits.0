@@ -1,80 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: +
- =?US-ASCII?Q?drivers-infiniband-sw-siw-siw=5Fqp=5Frxc-suppress-uniniti?=
- =?US-ASCII?Q?alized-var-warning.patch?= added to -mm tree
-Date: Sat, 21 Mar 2020 18:14:45 -0700
-Message-ID: <20200322011445.jaJOoESxE%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ =?US-ASCII?Q?memcg-fix-null-pointer-dereference-in-=5F=5Fmem=5Fcgroup=5F?=
+ =?US-ASCII?Q?usage=5Funregister=5Fevent-fix.patch?= removed from -mm tree
+Date: Sat, 21 Mar 2020 18:15:19 -0700
+Message-ID: <20200322011519.7AzvLRMOj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39738 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39880 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727533AbgCVBOq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 21 Mar 2020 21:14:46 -0400
+        id S1727533AbgCVBPU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 21 Mar 2020 21:15:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bmt@zurich.ibm.com, dledford@redhat.com, jgg@ziepe.ca, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, brookxu@tencent.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: drivers/infiniband/sw/siw/siw_qp_rx.c: suppress uninitialized var warning
-has been added to the -mm tree.  Its filename is
-     drivers-infiniband-sw-siw-siw_qp_rxc-suppress-uninitialized-var-warning.patch
+     Subject: memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix
+has been removed from the -mm tree.  Its filename was
+     memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-infiniband-sw-siw-siw_qp_rxc-suppress-uninitialized-var-warning.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-infiniband-sw-siw-siw_qp_rxc-suppress-uninitialized-var-warning.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/infiniband/sw/siw/siw_qp_rx.c: suppress uninitialized var warning
+Subject: memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix
 
-drivers/infiniband/sw/siw/siw_qp_rx.c: In function siw_proc_send:
-./include/linux/spinlock.h:288:3: warning: flags may be used uninitialized in this function [-Wmaybe-uninitialized]
-   _raw_spin_unlock_irqrestore(lock, flags); \
-   ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-drivers/infiniband/sw/siw/siw_qp_rx.c:335:16: note: flags was declared here
-  unsigned long flags;
+fix comment, per Kirill
 
-Cc: Bernard Metzler <bmt@zurich.ibm.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Chunguang Xu <brookxu@tencent.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/sw/siw/siw_qp_rx.c |    2 +-
+ mm/memcontrol.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/infiniband/sw/siw/siw_qp_rx.c~drivers-infiniband-sw-siw-siw_qp_rxc-suppress-uninitialized-var-warning
-+++ a/drivers/infiniband/sw/siw/siw_qp_rx.c
-@@ -332,7 +332,7 @@ static struct siw_wqe *siw_rqe_get(struc
- 	struct siw_srq *srq;
- 	struct siw_wqe *wqe = NULL;
- 	bool srq_event = false;
--	unsigned long flags;
-+	unsigned long uninitialized_var(flags);
+--- a/mm/memcontrol.c~memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix
++++ a/mm/memcontrol.c
+@@ -4068,7 +4068,7 @@ static void __mem_cgroup_usage_unregiste
  
- 	srq = qp->srq;
- 	if (srq) {
+ 	new = thresholds->spare;
+ 
+-	/* If items related to eventfd have been cleared, nothing to do */
++	/* If no items related to eventfd have been cleared, nothing to do */
+ 	if (!entries)
+ 		goto unlock;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
+memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event.patch
 mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+drivers-infiniband-sw-siw-siw_qp_rxc-suppress-uninitialized-var-warning.patch
 drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
 mm.patch
 mm-gup-track-foll_pin-pages-fix-2-fix.patch
@@ -96,4 +80,3 @@ net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
 seq_read-info-message-about-buggy-next-functions-fix.patch
 drivers-tty-serial-sh-scic-suppress-warning.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
-drivers-infiniband-sw-siw-siw_qp_rxc-suppress-uninitialized-var-warning.patch
