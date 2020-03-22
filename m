@@ -1,72 +1,91 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 06/10] mm: do not allow MADV_PAGEOUT for CoW pages
-Date: Sat, 21 Mar 2020 18:22:26 -0700
-Message-ID: <20200322012226.yY5JKgG__%akpm@linux-foundation.org>
+Subject: [patch 07/10] epoll: fix possible lost wakeup on
+ epoll_ctl() path
+Date: Sat, 21 Mar 2020 18:22:30 -0700
+Message-ID: <20200322012230.v8ERPHp_B%akpm@linux-foundation.org>
 References: <20200321181954.c0564dfd5514cd742b534884@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41258 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726859AbgCVBW3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 21 Mar 2020 21:22:29 -0400
+        id S1726859AbgCVBWc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 21 Mar 2020 21:22:32 -0400
 In-Reply-To: <20200321181954.c0564dfd5514cd742b534884@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dancol@google.com, dave.hansen@intel.com, jannh@google.com, joel@joelfernandes.org, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, chris.kohlhoff@clearpool.io, dbueso@suse.de, jbaron@akamai.com, jes.sorensen@gmail.com, kuba@kernel.org, linux-mm@kvack.org, max@arangodb.com, mm-commits@vger.kernel.org, rpenyaev@suse.de, stable@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: do not allow MADV_PAGEOUT for CoW pages
+From: Roman Penyaev <rpenyaev@suse.de>
+Subject: epoll: fix possible lost wakeup on epoll_ctl() path
 
-Jann has brought up a very interesting point [1].  While shared pages are
-excluded from MADV_PAGEOUT normally, CoW pages can be easily reclaimed
-that way.  This can lead to all sorts of hard to debug problems.  E.g. 
-performance problems outlined by Daniel [2].
+This fixes possible lost wakeup introduced by commit a218cc491420. 
+Originally modifications to ep->wq were serialized by ep->wq.lock, but in
+the a218cc491420 new rw lock was introduced in order to relax fd event
+path, i.e.  callers of ep_poll_callback() function.
 
-There are runtime environments where there is a substantial memory shared
-among security domains via CoW memory and a easy to reclaim way of that
-memory, which MADV_{COLD,PAGEOUT} offers, can lead to either performance
-degradation in for the parent process which might be more privileged or
-even open side channel attacks.
+After the change ep_modify and ep_insert (both are called on epoll_ctl()
+path) were switched to ep->lock, but ep_poll (epoll_wait) was using
+ep->wq.lock on wqueue list modification.
 
-The feasibility of the latter is not really clear to me TBH but there is
-no real reason for exposure at this stage.  It seems there is no real use
-case to depend on reclaiming CoW memory via madvise at this stage so it is
-much easier to simply disallow it and this is what this patch does.  Put
-it simply MADV_{PAGEOUT,COLD} can operate only on the exclusively owned
-memory which is a straightforward semantic.
+The bug doesn't lead to any wqueue list corruptions, because wake up path
+and list modifications were serialized by ep->wq.lock internally, but
+actual waitqueue_active() check prior wake_up() call can be reordered with
+modifications of ep ready list, thus wake up can be lost.
 
-[1] http://lkml.kernel.org/r/CAG48ez0G3JkMq61gUmyQAaCq=_TwHbi1XKzWRooxZkv08PQKuw@mail.gmail.com
-[2] http://lkml.kernel.org/r/CAKOZueua_v8jHCpmEtTB6f3i9e2YnmX4mqdYVWhV4E=Z-n+zRQ@mail.gmail.com
+And yes, can be healed by explicit smp_mb():
 
-Link: http://lkml.kernel.org/r/20200312082248.GS23944@dhcp22.suse.cz
-Fixes: 9c276cc65a58 ("mm: introduce MADV_COLD")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Jann Horn <jannh@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Daniel Colascione <dancol@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: "Joel Fernandes (Google)" <joel@joelfernandes.org>
-Cc: <stable@vger.kernel.org>
+  list_add_tail(&epi->rdlink, &ep->rdllist);
+  smp_mb();
+  if (waitqueue_active(&ep->wq))
+	wake_up(&ep->wp);
+
+But let's make it simple, thus current patch replaces ep->wq.lock with the
+ep->lock for wqueue modifications, thus wake up path always observes
+activeness of the wqueue correcty.
+
+Link: http://lkml.kernel.org/r/20200214170211.561524-1-rpenyaev@suse.de
+Fixes: a218cc491420 ("epoll: use rwlock in order to reduce ep_poll_callback() contention")
+References: https://bugzilla.kernel.org/show_bug.cgi?id=205933
+Signed-off-by: Roman Penyaev <rpenyaev@suse.de>
+Reported-by: Max Neunhoeffer <max@arangodb.com>
+Bisected-by: Max Neunhoeffer <max@arangodb.com>
+Tested-by: Max Neunhoeffer <max@arangodb.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Christopher Kohlhoff <chris.kohlhoff@clearpool.io>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Jes Sorensen <jes.sorensen@gmail.com>
+Cc: <stable@vger.kernel.org>	[5.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ fs/eventpoll.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/madvise.c~mm-do-not-allow-madv_pageout-for-cow-pages
-+++ a/mm/madvise.c
-@@ -335,12 +335,14 @@ static int madvise_cold_or_pageout_pte_r
- 		}
+--- a/fs/eventpoll.c~epoll-fix-possible-lost-wakeup-on-epoll_ctl-path
++++ a/fs/eventpoll.c
+@@ -1854,9 +1854,9 @@ fetch_events:
+ 		waiter = true;
+ 		init_waitqueue_entry(&wait, current);
  
- 		page = pmd_page(orig_pmd);
-+
-+		/* Do not interfere with other mappings of this page */
-+		if (page_mapcount(page) != 1)
-+			goto huge_unlock;
-+
- 		if (next - addr != HPAGE_PMD_SIZE) {
- 			int err;
+-		spin_lock_irq(&ep->wq.lock);
++		write_lock_irq(&ep->lock);
+ 		__add_wait_queue_exclusive(&ep->wq, &wait);
+-		spin_unlock_irq(&ep->wq.lock);
++		write_unlock_irq(&ep->lock);
+ 	}
  
--			if (page_mapcount(page) != 1)
--				goto huge_unlock;
+ 	for (;;) {
+@@ -1904,9 +1904,9 @@ send_events:
+ 		goto fetch_events;
+ 
+ 	if (waiter) {
+-		spin_lock_irq(&ep->wq.lock);
++		write_lock_irq(&ep->lock);
+ 		__remove_wait_queue(&ep->wq, &wait);
+-		spin_unlock_irq(&ep->wq.lock);
++		write_unlock_irq(&ep->lock);
+ 	}
+ 
+ 	return res;
+_
