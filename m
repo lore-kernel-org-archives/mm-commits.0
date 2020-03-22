@@ -1,81 +1,63 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
- removed from -mm tree
-Date: Sat, 21 Mar 2020 18:15:42 -0700
-Message-ID: <20200322011542.t9t34zCn9%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Sat, 21 Mar 2020 18:19:54 -0700
+Message-ID: <20200321181954.c0564dfd5514cd742b534884@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39946 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40634 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726859AbgCVBPo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 21 Mar 2020 21:15:44 -0400
+        id S1726859AbgCVBT5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 21 Mar 2020 21:19:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhe@redhat.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pankaj.gupta.linux@gmail.com, richardw.yang@linux.intel.com, rppt@linux.ibm.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org
+
+10 fixes, based on c63c50fc2ec9afc4de21ef9ead2eac64b178cce1:
 
 
-The patch titled
-     Subject: mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix
-has been removed from the -mm tree.  Its filename was
-     mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+    Chunguang Xu <brookxu@tencent.com>:
+      memcg: fix NULL pointer dereference in __mem_cgroup_usage_unregister_event
 
-This patch was dropped because it was folded into mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case.patch
+    Baoquan He <bhe@redhat.com>:
+      mm/hotplug: fix hot remove failure in SPARSEMEM|!VMEMMAP case
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix
+    Qian Cai <cai@lca.pw>:
+      page-flags: fix a crash at SetPageError(THP_SWAP)
 
-remove unneeded initialization, per David
+    Chris Down <chris@chrisdown.name>:
+      mm, memcg: fix corruption on 64-bit divisor in memory.high throttling
+      mm, memcg: throttle allocators based on ancestral memory.high
 
-Cc: Baoquan He <bhe@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Wei Yang <richardw.yang@linux.intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+    Michal Hocko <mhocko@suse.com>:
+      mm: do not allow MADV_PAGEOUT for CoW pages
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+    Roman Penyaev <rpenyaev@suse.de>:
+      epoll: fix possible lost wakeup on epoll_ctl() path
 
---- a/mm/sparse.c~mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix
-+++ a/mm/sparse.c
-@@ -734,7 +734,7 @@ static void section_deactivate(unsigned
- 	struct mem_section *ms = __pfn_to_section(pfn);
- 	bool section_is_early = early_section(ms);
- 	struct page *memmap = NULL;
--	bool empty = false;
-+	bool empty;
- 	unsigned long *subsection_map = ms->usage
- 		? &ms->usage->subsection_map[0] : NULL;
- 
-_
+    Qian Cai <cai@lca.pw>:
+      mm/mmu_notifier: silence PROVE_RCU_LIST warnings
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+    Vlastimil Babka <vbabka@suse.cz>:
+      mm, slub: prevent kmalloc_node crashes and memory leaks
 
-mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case.patch
-drivers-infiniband-sw-siw-siw_qp_rxc-suppress-uninitialized-var-warning.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-gup-track-foll_pin-pages-fix-2-fix.patch
-mm-swap-make-page_evictable-inline-fix.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-selftest-add-mremap_dontunmap-selftest-fix.patch
-selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
-mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
-mm-migratec-migrate-pg_readahead-flag-fix.patch
-hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
-proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-linux-next-git-rejects.patch
-mm-add-vm_insert_pages-fix.patch
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
-seq_read-info-message-about-buggy-next-functions-fix.patch
-drivers-tty-serial-sh-scic-suppress-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+    Joerg Roedel <jroedel@suse.de>:
+      x86/mm: split vmalloc_sync_all()
+
+ arch/x86/mm/fault.c        |   26 ++++++++++-
+ drivers/acpi/apei/ghes.c   |    2 
+ fs/eventpoll.c             |    8 +--
+ include/linux/page-flags.h |    2 
+ include/linux/vmalloc.h    |    5 +-
+ kernel/notifier.c          |    2 
+ mm/madvise.c               |   12 +++--
+ mm/memcontrol.c            |  105 ++++++++++++++++++++++++++++-----------------
+ mm/mmu_notifier.c          |   27 +++++++----
+ mm/nommu.c                 |   10 +++-
+ mm/slub.c                  |   26 +++++++----
+ mm/sparse.c                |    8 ++-
+ mm/vmalloc.c               |   11 +++-
+ 13 files changed, 165 insertions(+), 79 deletions(-)
