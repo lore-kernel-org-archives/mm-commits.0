@@ -1,63 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- =?US-ASCII?Q?memcg-fix-null-pointer-dereference-in-=5F=5Fmem=5Fcgroup=5F?=
- =?US-ASCII?Q?usage=5Funregister=5Fevent-fix.patch?= removed from -mm tree
-Date: Sat, 21 Mar 2020 18:15:19 -0700
-Message-ID: <20200322011519.7AzvLRMOj%akpm@linux-foundation.org>
+ mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+ removed from -mm tree
+Date: Sat, 21 Mar 2020 18:15:42 -0700
+Message-ID: <20200322011542.t9t34zCn9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39880 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727533AbgCVBPU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 21 Mar 2020 21:15:20 -0400
+        id S1726859AbgCVBPo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 21 Mar 2020 21:15:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, brookxu@tencent.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
+To: akpm@linux-foundation.org, bhe@redhat.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pankaj.gupta.linux@gmail.com, richardw.yang@linux.intel.com, rppt@linux.ibm.com
 
 
 The patch titled
-     Subject: memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix
+     Subject: mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix.patch
+     mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
 
-This patch was dropped because it was folded into memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event.patch
+This patch was dropped because it was folded into mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix
+Subject: mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix
 
-fix comment, per Kirill
+remove unneeded initialization, per David
 
-Cc: Chunguang Xu <brookxu@tencent.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Wei Yang <richardw.yang@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ mm/sparse.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event-fix
-+++ a/mm/memcontrol.c
-@@ -4068,7 +4068,7 @@ static void __mem_cgroup_usage_unregiste
- 
- 	new = thresholds->spare;
- 
--	/* If items related to eventfd have been cleared, nothing to do */
-+	/* If no items related to eventfd have been cleared, nothing to do */
- 	if (!entries)
- 		goto unlock;
+--- a/mm/sparse.c~mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix
++++ a/mm/sparse.c
+@@ -734,7 +734,7 @@ static void section_deactivate(unsigned
+ 	struct mem_section *ms = __pfn_to_section(pfn);
+ 	bool section_is_early = early_section(ms);
+ 	struct page *memmap = NULL;
+-	bool empty = false;
++	bool empty;
+ 	unsigned long *subsection_map = ms->usage
+ 		? &ms->usage->subsection_map[0] : NULL;
  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-fix-null-pointer-dereference-in-__mem_cgroup_usage_unregister_event.patch
-mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case-fix.patch
+mm-hotplug-fix-hot-remove-failure-in-sparsememvmemmap-case.patch
 drivers-infiniband-sw-siw-siw_qp_rxc-suppress-uninitialized-var-warning.patch
 drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
 mm.patch
