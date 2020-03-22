@@ -1,214 +1,131 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 10/10] x86/mm: split vmalloc_sync_all()
-Date: Sat, 21 Mar 2020 18:22:41 -0700
-Message-ID: <20200322012241.7AfzulcPB%akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-n?=
+ =?US-ASCII?Q?egative-errors.patch?= added to -mm tree
+Date: Sat, 21 Mar 2020 18:39:40 -0700
+Message-ID: <20200322013940.Q_VfhpYgQ%akpm@linux-foundation.org>
 References: <20200321181954.c0564dfd5514cd742b534884@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41534 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46684 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726859AbgCVBWn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 21 Mar 2020 21:22:43 -0400
+        id S1727296AbgCVBjm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 21 Mar 2020 21:39:42 -0400
 In-Reply-To: <20200321181954.c0564dfd5514cd742b534884@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bp@suse.de, dave.hansen@linux.intel.com, jroedel@suse.de, linux-mm@kvack.org, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, oliver.sang@intel.com, peterz@infradead.org, rafael.j.wysocki@intel.com, shile.zhang@linux.alibaba.com, stable@vger.kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
+To: aquini@redhat.com, mm-commits@vger.kernel.org, shakeelb@google.com, shuah@kernel.org, vbabka@suse.cz
 
-From: Joerg Roedel <jroedel@suse.de>
-Subject: x86/mm: split vmalloc_sync_all()
 
-Commit 3f8fd02b1bf1 ("mm/vmalloc: Sync unmappings in
-__purge_vmap_area_lazy()") introduced a call to vmalloc_sync_all() in the
-vunmap() code-path.  While this change was necessary to maintain
-correctness on x86-32-pae kernels, it also adds additional cycles for
-architectures that don't need it.
+The patch titled
+     Subject: tools/testing/selftests/vm/mlock2-tests: fix mlock2 false-negative errors
+has been added to the -mm tree.  Its filename is
+     tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors.patch
 
-Specifically on x86-64 with CONFIG_VMAP_STACK=y some people reported
-severe performance regressions in micro-benchmarks because it now also
-calls the x86-64 implementation of vmalloc_sync_all() on vunmap().  But
-the vmalloc_sync_all() implementation on x86-64 is only needed for newly
-created mappings.
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors.patch
 
-To avoid the unnecessary work on x86-64 and to gain the performance back,
-split up vmalloc_sync_all() into two functions:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-	* vmalloc_sync_mappings(), and
-	* vmalloc_sync_unmappings()
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-Most call-sites to vmalloc_sync_all() only care about new mappings being
-synchronized.  The only exception is the new call-site added in the above
-mentioned commit.
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-Shile Zhang directed us to a report of an 80% regression in reaim
-throughput.
+------------------------------------------------------
+From: Rafael Aquini <aquini@redhat.com>
+Subject: tools/testing/selftests/vm/mlock2-tests: fix mlock2 false-negative errors
 
-Link: http://lkml.kernel.org/r/20191009124418.8286-1-joro@8bytes.org
-Link: https://lists.01.org/hyperkitty/list/lkp@lists.01.org/thread/4D3JPPHBNOSPFK2KEPC6KGKS6J25AIDB/
-Link: http://lkml.kernel.org/r/20191113095530.228959-1-shile.zhang@linux.alibaba.com
-Fixes: 3f8fd02b1bf1 ("mm/vmalloc: Sync unmappings in __purge_vmap_area_lazy()")
-Signed-off-by: Joerg Roedel <jroedel@suse.de>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Reported-by: Shile Zhang <shile.zhang@linux.alibaba.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>	[GHES]
-Tested-by: Borislav Petkov <bp@suse.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: <stable@vger.kernel.org>
+Changes for commit 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping
+pagevecs") break this test expectations on the behavior of mlock syscall
+family immediately inserting the recently faulted pages into the
+UNEVICTABLE_LRU, when MCL_ONFAULT is passed to the syscall as part of its
+flag-set.
+
+There is no functional error introduced by the aforementioned commit, but
+it opens up a time window where the recently faulted and locked pages
+might yet not be put back into the UNEVICTABLE_LRU, thus causing a
+subsequent and immediate PFN flag check for the UNEVICTABLE bit to trip on
+false-negative errors, as it happens with this test.
+
+This patch fix the false negative by forcefully resorting to a code path
+that will call a CPU pagevec drain right after the fault but before the
+PFN flag check takes place, sorting out the race that way.
+
+Link: http://lkml.kernel.org/r/20200322013525.1095493-1-aquini@redhat.com
+Fixes: 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping pagevecs")
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c      |   26 ++++++++++++++++++++++++--
- drivers/acpi/apei/ghes.c |    2 +-
- include/linux/vmalloc.h  |    5 +++--
- kernel/notifier.c        |    2 +-
- mm/nommu.c               |   10 +++++++---
- mm/vmalloc.c             |   11 +++++++----
- 6 files changed, 43 insertions(+), 13 deletions(-)
+ tools/testing/selftests/vm/mlock2-tests.c |   22 ++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/arch/x86/mm/fault.c~x86-mm-split-vmalloc_sync_all
-+++ a/arch/x86/mm/fault.c
-@@ -190,7 +190,7 @@ static inline pmd_t *vmalloc_sync_one(pg
- 	return pmd_k;
+--- a/tools/testing/selftests/vm/mlock2-tests.c~tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors
++++ a/tools/testing/selftests/vm/mlock2-tests.c
+@@ -7,6 +7,7 @@
+ #include <sys/time.h>
+ #include <sys/resource.h>
+ #include <stdbool.h>
++#include <sched.h>
+ #include "mlock2.h"
+ 
+ #include "../kselftest.h"
+@@ -328,6 +329,22 @@ out:
+ 	return ret;
  }
  
--void vmalloc_sync_all(void)
-+static void vmalloc_sync(void)
++/*
++ * After commit 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping pagevecs")
++ * changes made by calls to mlock* family might not be immediately reflected
++ * on the LRUs, thus checking the PFN flags might race against pagevec drain.
++ *
++ * In order to sort out that race, and get the after fault checks consistent,
++ * the "quick and dirty" trick below is required in order to force a call to
++ * lru_add_drain_all() to get the recently MLOCK_ONFAULT pages moved to
++ * the unevictable LRU, as expected by the checks in this selftest.
++ */
++static void force_lru_add_drain_all(void)
++{
++	sched_yield();
++	system("echo 1 > /proc/sys/vm/compact_memory");
++}
++
+ static int onfault_check(char *map)
  {
- 	unsigned long address;
- 
-@@ -217,6 +217,16 @@ void vmalloc_sync_all(void)
+ 	unsigned long page_size = getpagesize();
+@@ -343,6 +360,9 @@ static int onfault_check(char *map)
  	}
- }
  
-+void vmalloc_sync_mappings(void)
-+{
-+	vmalloc_sync();
-+}
+ 	*map = 'a';
 +
-+void vmalloc_sync_unmappings(void)
-+{
-+	vmalloc_sync();
-+}
++	force_lru_add_drain_all();
 +
- /*
-  * 32-bit:
-  *
-@@ -319,11 +329,23 @@ out:
+ 	page1_flags = get_pageflags((unsigned long)map);
+ 	page2_flags = get_pageflags((unsigned long)map + page_size);
  
- #else /* CONFIG_X86_64: */
+@@ -465,6 +485,8 @@ static int test_lock_onfault_of_present(
+ 		goto unmap;
+ 	}
  
--void vmalloc_sync_all(void)
-+void vmalloc_sync_mappings(void)
- {
-+	/*
-+	 * 64-bit mappings might allocate new p4d/pud pages
-+	 * that need to be propagated to all tasks' PGDs.
-+	 */
- 	sync_global_pgds(VMALLOC_START & PGDIR_MASK, VMALLOC_END);
- }
- 
-+void vmalloc_sync_unmappings(void)
-+{
-+	/*
-+	 * Unmappings never allocate or free p4d/pud pages.
-+	 * No work is required here.
-+	 */
-+}
++	force_lru_add_drain_all();
 +
- /*
-  * 64-bit:
-  *
---- a/drivers/acpi/apei/ghes.c~x86-mm-split-vmalloc_sync_all
-+++ a/drivers/acpi/apei/ghes.c
-@@ -171,7 +171,7 @@ int ghes_estatus_pool_init(int num_ghes)
- 	 * New allocation must be visible in all pgd before it can be found by
- 	 * an NMI allocating from the pool.
- 	 */
--	vmalloc_sync_all();
-+	vmalloc_sync_mappings();
- 
- 	rc = gen_pool_add(ghes_estatus_pool, addr, PAGE_ALIGN(len), -1);
- 	if (rc)
---- a/include/linux/vmalloc.h~x86-mm-split-vmalloc_sync_all
-+++ a/include/linux/vmalloc.h
-@@ -141,8 +141,9 @@ extern int remap_vmalloc_range_partial(s
- 
- extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
- 							unsigned long pgoff);
--void vmalloc_sync_all(void);
-- 
-+void vmalloc_sync_mappings(void);
-+void vmalloc_sync_unmappings(void);
-+
- /*
-  *	Lowlevel-APIs (not for driver use!)
-  */
---- a/kernel/notifier.c~x86-mm-split-vmalloc_sync_all
-+++ a/kernel/notifier.c
-@@ -519,7 +519,7 @@ NOKPROBE_SYMBOL(notify_die);
- 
- int register_die_notifier(struct notifier_block *nb)
- {
--	vmalloc_sync_all();
-+	vmalloc_sync_mappings();
- 	return atomic_notifier_chain_register(&die_chain, nb);
- }
- EXPORT_SYMBOL_GPL(register_die_notifier);
---- a/mm/nommu.c~x86-mm-split-vmalloc_sync_all
-+++ a/mm/nommu.c
-@@ -370,10 +370,14 @@ void vm_unmap_aliases(void)
- EXPORT_SYMBOL_GPL(vm_unmap_aliases);
- 
- /*
-- * Implement a stub for vmalloc_sync_all() if the architecture chose not to
-- * have one.
-+ * Implement a stub for vmalloc_sync_[un]mapping() if the architecture
-+ * chose not to have one.
-  */
--void __weak vmalloc_sync_all(void)
-+void __weak vmalloc_sync_mappings(void)
-+{
-+}
-+
-+void __weak vmalloc_sync_unmappings(void)
- {
- }
- 
---- a/mm/vmalloc.c~x86-mm-split-vmalloc_sync_all
-+++ a/mm/vmalloc.c
-@@ -1295,7 +1295,7 @@ static bool __purge_vmap_area_lazy(unsig
- 	 * First make sure the mappings are removed from all page-tables
- 	 * before they are freed.
- 	 */
--	vmalloc_sync_all();
-+	vmalloc_sync_unmappings();
- 
- 	/*
- 	 * TODO: to calculate a flush range without looping.
-@@ -3128,16 +3128,19 @@ int remap_vmalloc_range(struct vm_area_s
- EXPORT_SYMBOL(remap_vmalloc_range);
- 
- /*
-- * Implement a stub for vmalloc_sync_all() if the architecture chose not to
-- * have one.
-+ * Implement stubs for vmalloc_sync_[un]mappings () if the architecture chose
-+ * not to have one.
-  *
-  * The purpose of this function is to make sure the vmalloc area
-  * mappings are identical in all page-tables in the system.
-  */
--void __weak vmalloc_sync_all(void)
-+void __weak vmalloc_sync_mappings(void)
- {
- }
- 
-+void __weak vmalloc_sync_unmappings(void)
-+{
-+}
- 
- static int f(pte_t *pte, unsigned long addr, void *data)
- {
+ 	page1_flags = get_pageflags((unsigned long)map);
+ 	page2_flags = get_pageflags((unsigned long)map + page_size);
+ 	page1_flags = get_kpageflags(page1_flags & PFN_MASK);
 _
+
+Patches currently in -mm which might be from aquini@redhat.com are
+
+tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors.patch
