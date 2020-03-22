@@ -1,33 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- =?US-ASCII?Q?tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-n?=
- =?US-ASCII?Q?egative-errors.patch?= added to -mm tree
-Date: Sat, 21 Mar 2020 18:39:40 -0700
-Message-ID: <20200322013940.Q_VfhpYgQ%akpm@linux-foundation.org>
+Subject: + bus-mhi-fix-printk-format-for-size_t.patch added to -mm
+ tree
+Date: Sat, 21 Mar 2020 21:41:36 -0700
+Message-ID: <20200322044136.kjmPrLi3F%akpm@linux-foundation.org>
 References: <20200321181954.c0564dfd5514cd742b534884@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46684 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34104 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727296AbgCVBjm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 21 Mar 2020 21:39:42 -0400
+        id S1725825AbgCVElh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 22 Mar 2020 00:41:37 -0400
 In-Reply-To: <20200321181954.c0564dfd5514cd742b534884@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aquini@redhat.com, mm-commits@vger.kernel.org, shakeelb@google.com, shuah@kernel.org, vbabka@suse.cz
+To: hemantk@codeaurora.org, manivannan.sadhasivam@linaro.org, mm-commits@vger.kernel.org, rdunlap@infradead.org
 
 
 The patch titled
-     Subject: tools/testing/selftests/vm/mlock2-tests: fix mlock2 false-negative errors
+     Subject: bus/mhi: fix printk format for size_t
 has been added to the -mm tree.  Its filename is
-     tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors.patch
+     bus-mhi-fix-printk-format-for-size_t.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bus-mhi-fix-printk-format-for-size_t.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bus-mhi-fix-printk-format-for-size_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,91 +38,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: tools/testing/selftests/vm/mlock2-tests: fix mlock2 false-negative errors
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: bus/mhi: fix printk format for size_t
 
-Changes for commit 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping
-pagevecs") break this test expectations on the behavior of mlock syscall
-family immediately inserting the recently faulted pages into the
-UNEVICTABLE_LRU, when MCL_ONFAULT is passed to the syscall as part of its
-flag-set.
+Fix printk format warning by using %z for size_t modifier:
 
-There is no functional error introduced by the aforementioned commit, but
-it opens up a time window where the recently faulted and locked pages
-might yet not be put back into the UNEVICTABLE_LRU, thus causing a
-subsequent and immediate PFN flag check for the UNEVICTABLE bit to trip on
-false-negative errors, as it happens with this test.
+../drivers/bus/mhi/core/boot.c: In function `mhi_rddm_prepare':
+../drivers/bus/mhi/core/boot.c:55:15: warning: format `%lx' expects argument of type `long unsigned int', but argument 5 has type `size_t {aka unsigned int}' [-Wformat=]
+  dev_dbg(dev, "Address: %p and len: 0x%lx sequence: %u
+",
 
-This patch fix the false negative by forcefully resorting to a code path
-that will call a CPU pagevec drain right after the fault but before the
-PFN flag check takes place, sorting out the race that way.
-
-Link: http://lkml.kernel.org/r/20200322013525.1095493-1-aquini@redhat.com
-Fixes: 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping pagevecs")
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: http://lkml.kernel.org/r/c4852a82-cdb9-6318-70a4-96ccb4ba5af2@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Cc: Hemant Kumar <hemantk@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mlock2-tests.c |   22 ++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/bus/mhi/core/boot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/mlock2-tests.c~tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors
-+++ a/tools/testing/selftests/vm/mlock2-tests.c
-@@ -7,6 +7,7 @@
- #include <sys/time.h>
- #include <sys/resource.h>
- #include <stdbool.h>
-+#include <sched.h>
- #include "mlock2.h"
+--- a/drivers/bus/mhi/core/boot.c~bus-mhi-fix-printk-format-for-size_t
++++ a/drivers/bus/mhi/core/boot.c
+@@ -52,7 +52,7 @@ void mhi_rddm_prepare(struct mhi_control
+ 			    BHIE_RXVECDB_SEQNUM_BMSK, BHIE_RXVECDB_SEQNUM_SHFT,
+ 			    sequence_id);
  
- #include "../kselftest.h"
-@@ -328,6 +329,22 @@ out:
- 	return ret;
+-	dev_dbg(dev, "Address: %p and len: 0x%lx sequence: %u\n",
++	dev_dbg(dev, "Address: %p and len: 0x%zx sequence: %u\n",
+ 		&mhi_buf->dma_addr, mhi_buf->len, sequence_id);
  }
  
-+/*
-+ * After commit 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping pagevecs")
-+ * changes made by calls to mlock* family might not be immediately reflected
-+ * on the LRUs, thus checking the PFN flags might race against pagevec drain.
-+ *
-+ * In order to sort out that race, and get the after fault checks consistent,
-+ * the "quick and dirty" trick below is required in order to force a call to
-+ * lru_add_drain_all() to get the recently MLOCK_ONFAULT pages moved to
-+ * the unevictable LRU, as expected by the checks in this selftest.
-+ */
-+static void force_lru_add_drain_all(void)
-+{
-+	sched_yield();
-+	system("echo 1 > /proc/sys/vm/compact_memory");
-+}
-+
- static int onfault_check(char *map)
- {
- 	unsigned long page_size = getpagesize();
-@@ -343,6 +360,9 @@ static int onfault_check(char *map)
- 	}
- 
- 	*map = 'a';
-+
-+	force_lru_add_drain_all();
-+
- 	page1_flags = get_pageflags((unsigned long)map);
- 	page2_flags = get_pageflags((unsigned long)map + page_size);
- 
-@@ -465,6 +485,8 @@ static int test_lock_onfault_of_present(
- 		goto unmap;
- 	}
- 
-+	force_lru_add_drain_all();
-+
- 	page1_flags = get_pageflags((unsigned long)map);
- 	page2_flags = get_pageflags((unsigned long)map + page_size);
- 	page1_flags = get_kpageflags(page1_flags & PFN_MASK);
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors.patch
+mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t.patch
+bus-mhi-fix-printk-format-for-size_t.patch
