@@ -1,163 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Mon, 23 Mar 2020 12:04:46 -0700
-Message-ID: <20200323190446.odDv08LXw%akpm@linux-foundation.org>
+Subject: +
+ lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch added to
+ -mm tree
+Date: Mon, 23 Mar 2020 13:53:26 -0700
+Message-ID: <20200323205326.FugQe5bIs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54712 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55188 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727218AbgCWTEt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Mar 2020 15:04:49 -0400
+        id S1725893AbgCWUxa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Mar 2020 16:53:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: colin.king@canonical.com, gregkh@linuxfoundation.org, keescook@chromium.org, khlebnikov@yandex-team.ru, linux@roeck-us.net, mm-commits@vger.kernel.org, peterz@infradead.org, pmladek@suse.com, rostedt@goodmis.org, sashal@kernel.org, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: lib/test_lockup.c: add parameters for locking generic vfs locks
+has been added to the -mm tree.  Its filename is
+     lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: lib/test_lockup.c: add parameters for locking generic vfs locks
 
+file_path=<path>	defines file or directory to open
+lock_inode=Y		set lock_rwsem_ptr to inode->i_rwsem
+lock_mapping=Y		set lock_rwsem_ptr to mapping->i_mmap_rwsem
+lock_sb_umount=Y	set lock_rwsem_ptr to sb->s_umount
+
+This gives safe and simple way to see how system reacts to contention of
+common vfs locks and how syscalls depend on them directly or indirectly.
+
+For example to block s_umount for 60 seconds:
+# modprobe test_lockup file_path=. lock_sb_umount time_secs=60 state=S
+
+This is useful for checking/testing scalability issues like this:
+https://lore.kernel.org/lkml/158497590858.7371.9311902565121473436.stgit@buzz/
+
+Link: http://lkml.kernel.org/r/158498153964.5621.83061779039255681.stgit@buzz
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c |    4 
- sound/core/oss/pcm_plugin.c                       |   61 ------------
- 2 files changed, 65 deletions(-)
+ lib/test_lockup.c |   45 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -524,11 +524,7 @@ static void dm_dcn_crtc_high_irq(void *i
+--- a/lib/test_lockup.c~lib-test_lockup-add-parameters-for-locking-generic-vfs-locks
++++ a/lib/test_lockup.c
+@@ -14,6 +14,7 @@
+ #include <linux/nmi.h>
+ #include <linux/mm.h>
+ #include <linux/uaccess.h>
++#include <linux/file.h>
  
- 	acrtc_state = to_dm_crtc_state(acrtc->base.state);
+ static unsigned int time_secs;
+ module_param(time_secs, uint, 0600);
+@@ -140,6 +141,24 @@ static bool reallocate_pages;
+ module_param(reallocate_pages, bool, 0400);
+ MODULE_PARM_DESC(reallocate_pages, "free and allocate pages between iterations");
  
--<<<<<<< HEAD
--	DRM_DEBUG_DRIVER("crtc:%d, vupdate-vrr:%d, planes:%d\n", acrtc->crtc_id,
--=======
- 	DRM_DEBUG_VBL("crtc:%d, vupdate-vrr:%d, planes:%d\n", acrtc->crtc_id,
-->>>>>>> linux-next/akpm-base
- 			 amdgpu_dm_vrr_active(acrtc_state),
- 			 acrtc_state->active_planes);
++struct file *test_file;
++struct inode *test_inode;
++static char test_file_path[256];
++module_param_string(file_path, test_file_path, sizeof(test_file_path), 0400);
++MODULE_PARM_DESC(file_path, "file path to test");
++
++static bool test_lock_inode;
++module_param_named(lock_inode, test_lock_inode, bool, 0400);
++MODULE_PARM_DESC(lock_inode, "lock file -> inode -> i_rwsem");
++
++static bool test_lock_mapping;
++module_param_named(lock_mapping, test_lock_mapping, bool, 0400);
++MODULE_PARM_DESC(lock_mapping, "lock file -> mapping -> i_mmap_rwsem");
++
++static bool test_lock_sb_umount;
++module_param_named(lock_sb_umount, test_lock_sb_umount, bool, 0400);
++MODULE_PARM_DESC(lock_sb_umount, "lock file -> sb -> s_umount");
++
+ static atomic_t alloc_pages_failed = ATOMIC_INIT(0);
  
---- a/sound/core/oss/pcm_plugin.c~linux-next-git-rejects
-+++ a/sound/core/oss/pcm_plugin.c
-@@ -201,32 +201,6 @@ static snd_pcm_sframes_t calc_dst_frames
- {
- 	struct snd_pcm_plugin *plugin, *plugin_next;
- 
--<<<<<<< HEAD
--	if (snd_BUG_ON(!plug))
--		return -ENXIO;
--	if (drv_frames == 0)
--		return 0;
--	stream = snd_pcm_plug_stream(plug);
--	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
--		plugin = snd_pcm_plug_last(plug);
--		while (plugin && drv_frames > 0) {
--			if (drv_frames > plugin->buf_frames)
--				drv_frames = plugin->buf_frames;
--			plugin_prev = plugin->prev;
--			if (plugin->src_frames)
--				drv_frames = plugin->src_frames(plugin, drv_frames);
--			plugin = plugin_prev;
--		}
--	} else if (stream == SNDRV_PCM_STREAM_CAPTURE) {
--		plugin = snd_pcm_plug_first(plug);
--		while (plugin && drv_frames > 0) {
--			plugin_next = plugin->next;
--			if (plugin->dst_frames)
--				drv_frames = plugin->dst_frames(plugin, drv_frames);
--			if (drv_frames > plugin->buf_frames)
--				drv_frames = plugin->buf_frames;
--			plugin = plugin_next;
--=======
- 	plugin = snd_pcm_plug_first(plug);
- 	while (plugin && frames > 0) {
- 		plugin_next = plugin->next;
-@@ -256,7 +230,6 @@ static snd_pcm_sframes_t calc_src_frames
- 			frames = plugin->src_frames(plugin, frames);
- 			if (frames < 0)
- 				return frames;
-->>>>>>> linux-next/akpm-base
- 		}
- 		plugin = plugin_prev;
- 	}
-@@ -282,46 +255,12 @@ snd_pcm_sframes_t snd_pcm_plug_slave_siz
- {
- 	if (snd_BUG_ON(!plug))
- 		return -ENXIO;
--<<<<<<< HEAD
--	if (clt_frames == 0)
--		return 0;
--	frames = clt_frames;
--	stream = snd_pcm_plug_stream(plug);
--	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
--		plugin = snd_pcm_plug_first(plug);
--		while (plugin && frames > 0) {
--			plugin_next = plugin->next;
--			if (plugin->dst_frames) {
--				frames = plugin->dst_frames(plugin, frames);
--				if (frames < 0)
--					return frames;
--			}
--			if (frames > plugin->buf_frames)
--				frames = plugin->buf_frames;
--			plugin = plugin_next;
--		}
--	} else if (stream == SNDRV_PCM_STREAM_CAPTURE) {
--		plugin = snd_pcm_plug_last(plug);
--		while (plugin) {
--			if (frames > plugin->buf_frames)
--				frames = plugin->buf_frames;
--			plugin_prev = plugin->prev;
--			if (plugin->src_frames) {
--				frames = plugin->src_frames(plugin, frames);
--				if (frames < 0)
--					return frames;
--			}
--			plugin = plugin_prev;
--		}
--	} else
--=======
- 	switch (snd_pcm_plug_stream(plug)) {
- 	case SNDRV_PCM_STREAM_PLAYBACK:
- 		return calc_dst_frames(plug, clt_frames);
- 	case SNDRV_PCM_STREAM_CAPTURE:
- 		return calc_src_frames(plug, clt_frames);
- 	default:
-->>>>>>> linux-next/akpm-base
- 		snd_BUG();
+ static atomic64_t max_lock_wait = ATOMIC64_INIT(0);
+@@ -490,6 +509,29 @@ static int __init test_lockup_init(void)
  		return -EINVAL;
  	}
+ 
++	if (test_file_path[0]) {
++		test_file = filp_open(test_file_path, O_RDONLY, 0);
++		if (IS_ERR(test_file)) {
++			pr_err("cannot find file_path\n");
++			return -EINVAL;
++		}
++		test_inode = file_inode(test_file);
++	} else if (test_lock_inode ||
++		   test_lock_mapping ||
++		   test_lock_sb_umount) {
++		pr_err("no file to lock\n");
++		return -EINVAL;
++	}
++
++	if (test_lock_inode && test_inode)
++		lock_rwsem_ptr = (unsigned long)&test_inode->i_rwsem;
++
++	if (test_lock_mapping && test_file && test_file->f_mapping)
++		lock_rwsem_ptr = (unsigned long)&test_file->f_mapping->i_mmap_rwsem;
++
++	if (test_lock_sb_umount && test_inode)
++		lock_rwsem_ptr = (unsigned long)&test_inode->i_sb->s_umount;
++
+ 	pr_notice("START pid=%d time=%u +%u ns cooldown=%u +%u ns iterations=%u state=%s %s%s%s%s%s%s%s%s%s%s%s\n",
+ 		  main_task->pid, time_secs, time_nsecs,
+ 		  cooldown_secs, cooldown_nsecs, iterations, state,
+@@ -542,6 +584,9 @@ static int __init test_lockup_init(void)
+ 
+ 	pr_notice("FINISH in %llu ns\n", local_clock() - test_start);
+ 
++	if (test_file)
++		fput(test_file);
++
+ 	if (signal_pending(main_task))
+ 		return -EINTR;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
 
-drivers-infiniband-sw-siw-siw_qp_rxc-suppress-uninitialized-var-warning.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-gup-track-foll_pin-pages-fix-2-fix.patch
-mm-swap-make-page_evictable-inline-fix.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-selftest-add-mremap_dontunmap-selftest-fix.patch
-selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
-mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
-mm-migratec-migrate-pg_readahead-flag-fix.patch
-hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
-proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-mm-add-vm_insert_pages-fix.patch
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
-seq_read-info-message-about-buggy-next-functions-fix.patch
-drivers-tty-serial-sh-scic-suppress-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+lib-test_lockup-test-module-to-generate-lockups.patch
+lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch
