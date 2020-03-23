@@ -1,155 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch added to
- -mm tree
-Date: Mon, 23 Mar 2020 13:53:26 -0700
-Message-ID: <20200323205326.FugQe5bIs%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ =?US-ASCII?Q?tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-n?=
+ =?US-ASCII?Q?egative-errors.patch?= removed from -mm tree
+Date: Mon, 23 Mar 2020 14:19:14 -0700
+Message-ID: <20200323211914.7KJMeLkGf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55188 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33800 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725893AbgCWUxa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Mar 2020 16:53:30 -0400
+        id S1726203AbgCWVTS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Mar 2020 17:19:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, gregkh@linuxfoundation.org, keescook@chromium.org, khlebnikov@yandex-team.ru, linux@roeck-us.net, mm-commits@vger.kernel.org, peterz@infradead.org, pmladek@suse.com, rostedt@goodmis.org, sashal@kernel.org, sergey.senozhatsky@gmail.com
+To: aquini@redhat.com, mm-commits@vger.kernel.org, shakeelb@google.com, shuah@kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: lib/test_lockup.c: add parameters for locking generic vfs locks
-has been added to the -mm tree.  Its filename is
-     lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch
+     Subject: tools/testing/selftests/vm/mlock2-tests: fix mlock2 false-negative errors
+has been removed from the -mm tree.  Its filename was
+     tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: lib/test_lockup.c: add parameters for locking generic vfs locks
+From: Rafael Aquini <aquini@redhat.com>
+Subject: tools/testing/selftests/vm/mlock2-tests: fix mlock2 false-negative errors
 
-file_path=<path>	defines file or directory to open
-lock_inode=Y		set lock_rwsem_ptr to inode->i_rwsem
-lock_mapping=Y		set lock_rwsem_ptr to mapping->i_mmap_rwsem
-lock_sb_umount=Y	set lock_rwsem_ptr to sb->s_umount
+Changes for commit 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping
+pagevecs") break this test expectations on the behavior of mlock syscall
+family immediately inserting the recently faulted pages into the
+UNEVICTABLE_LRU, when MCL_ONFAULT is passed to the syscall as part of its
+flag-set.
 
-This gives safe and simple way to see how system reacts to contention of
-common vfs locks and how syscalls depend on them directly or indirectly.
+There is no functional error introduced by the aforementioned commit, but
+it opens up a time window where the recently faulted and locked pages
+might yet not be put back into the UNEVICTABLE_LRU, thus causing a
+subsequent and immediate PFN flag check for the UNEVICTABLE bit to trip on
+false-negative errors, as it happens with this test.
 
-For example to block s_umount for 60 seconds:
-# modprobe test_lockup file_path=. lock_sb_umount time_secs=60 state=S
+This patch fix the false negative by forcefully resorting to a code path
+that will call a CPU pagevec drain right after the fault but before the
+PFN flag check takes place, sorting out the race that way.
 
-This is useful for checking/testing scalability issues like this:
-https://lore.kernel.org/lkml/158497590858.7371.9311902565121473436.stgit@buzz/
-
-Link: http://lkml.kernel.org/r/158498153964.5621.83061779039255681.stgit@buzz
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: http://lkml.kernel.org/r/20200322013525.1095493-1-aquini@redhat.com
+Fixes: 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping pagevecs")
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_lockup.c |   45 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ tools/testing/selftests/vm/mlock2-tests.c |   22 ++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/lib/test_lockup.c~lib-test_lockup-add-parameters-for-locking-generic-vfs-locks
-+++ a/lib/test_lockup.c
-@@ -14,6 +14,7 @@
- #include <linux/nmi.h>
- #include <linux/mm.h>
- #include <linux/uaccess.h>
-+#include <linux/file.h>
+--- a/tools/testing/selftests/vm/mlock2-tests.c~tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors
++++ a/tools/testing/selftests/vm/mlock2-tests.c
+@@ -7,6 +7,7 @@
+ #include <sys/time.h>
+ #include <sys/resource.h>
+ #include <stdbool.h>
++#include <sched.h>
+ #include "mlock2.h"
  
- static unsigned int time_secs;
- module_param(time_secs, uint, 0600);
-@@ -140,6 +141,24 @@ static bool reallocate_pages;
- module_param(reallocate_pages, bool, 0400);
- MODULE_PARM_DESC(reallocate_pages, "free and allocate pages between iterations");
+ #include "../kselftest.h"
+@@ -328,6 +329,22 @@ out:
+ 	return ret;
+ }
  
-+struct file *test_file;
-+struct inode *test_inode;
-+static char test_file_path[256];
-+module_param_string(file_path, test_file_path, sizeof(test_file_path), 0400);
-+MODULE_PARM_DESC(file_path, "file path to test");
++/*
++ * After commit 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping pagevecs")
++ * changes made by calls to mlock* family might not be immediately reflected
++ * on the LRUs, thus checking the PFN flags might race against pagevec drain.
++ *
++ * In order to sort out that race, and get the after fault checks consistent,
++ * the "quick and dirty" trick below is required in order to force a call to
++ * lru_add_drain_all() to get the recently MLOCK_ONFAULT pages moved to
++ * the unevictable LRU, as expected by the checks in this selftest.
++ */
++static void force_lru_add_drain_all(void)
++{
++	sched_yield();
++	system("echo 1 > /proc/sys/vm/compact_memory");
++}
 +
-+static bool test_lock_inode;
-+module_param_named(lock_inode, test_lock_inode, bool, 0400);
-+MODULE_PARM_DESC(lock_inode, "lock file -> inode -> i_rwsem");
-+
-+static bool test_lock_mapping;
-+module_param_named(lock_mapping, test_lock_mapping, bool, 0400);
-+MODULE_PARM_DESC(lock_mapping, "lock file -> mapping -> i_mmap_rwsem");
-+
-+static bool test_lock_sb_umount;
-+module_param_named(lock_sb_umount, test_lock_sb_umount, bool, 0400);
-+MODULE_PARM_DESC(lock_sb_umount, "lock file -> sb -> s_umount");
-+
- static atomic_t alloc_pages_failed = ATOMIC_INIT(0);
- 
- static atomic64_t max_lock_wait = ATOMIC64_INIT(0);
-@@ -490,6 +509,29 @@ static int __init test_lockup_init(void)
- 		return -EINVAL;
+ static int onfault_check(char *map)
+ {
+ 	unsigned long page_size = getpagesize();
+@@ -343,6 +360,9 @@ static int onfault_check(char *map)
  	}
  
-+	if (test_file_path[0]) {
-+		test_file = filp_open(test_file_path, O_RDONLY, 0);
-+		if (IS_ERR(test_file)) {
-+			pr_err("cannot find file_path\n");
-+			return -EINVAL;
-+		}
-+		test_inode = file_inode(test_file);
-+	} else if (test_lock_inode ||
-+		   test_lock_mapping ||
-+		   test_lock_sb_umount) {
-+		pr_err("no file to lock\n");
-+		return -EINVAL;
-+	}
+ 	*map = 'a';
 +
-+	if (test_lock_inode && test_inode)
-+		lock_rwsem_ptr = (unsigned long)&test_inode->i_rwsem;
++	force_lru_add_drain_all();
 +
-+	if (test_lock_mapping && test_file && test_file->f_mapping)
-+		lock_rwsem_ptr = (unsigned long)&test_file->f_mapping->i_mmap_rwsem;
-+
-+	if (test_lock_sb_umount && test_inode)
-+		lock_rwsem_ptr = (unsigned long)&test_inode->i_sb->s_umount;
-+
- 	pr_notice("START pid=%d time=%u +%u ns cooldown=%u +%u ns iterations=%u state=%s %s%s%s%s%s%s%s%s%s%s%s\n",
- 		  main_task->pid, time_secs, time_nsecs,
- 		  cooldown_secs, cooldown_nsecs, iterations, state,
-@@ -542,6 +584,9 @@ static int __init test_lockup_init(void)
+ 	page1_flags = get_pageflags((unsigned long)map);
+ 	page2_flags = get_pageflags((unsigned long)map + page_size);
  
- 	pr_notice("FINISH in %llu ns\n", local_clock() - test_start);
+@@ -465,6 +485,8 @@ static int test_lock_onfault_of_present(
+ 		goto unmap;
+ 	}
  
-+	if (test_file)
-+		fput(test_file);
++	force_lru_add_drain_all();
 +
- 	if (signal_pending(main_task))
- 		return -EINTR;
- 
+ 	page1_flags = get_pageflags((unsigned long)map);
+ 	page2_flags = get_pageflags((unsigned long)map + page_size);
+ 	page1_flags = get_kpageflags(page1_flags & PFN_MASK);
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
-
-kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
-lib-test_lockup-test-module-to-generate-lockups.patch
-lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch
+Patches currently in -mm which might be from aquini@redhat.com are
