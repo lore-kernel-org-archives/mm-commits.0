@@ -1,113 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- =?US-ASCII?Q?tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-n?=
- =?US-ASCII?Q?egative-errors.patch?= removed from -mm tree
-Date: Mon, 23 Mar 2020 14:19:14 -0700
-Message-ID: <20200323211914.7KJMeLkGf%akpm@linux-foundation.org>
+Subject: + checkpatch-avoid-warning-about-uninitialized_var.patch
+ added to -mm tree
+Date: Mon, 23 Mar 2020 17:51:09 -0700
+Message-ID: <20200324005109.zaAqJFC5m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33800 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726203AbgCWVTS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Mar 2020 17:19:18 -0400
+        id S1727005AbgCXAvL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Mar 2020 20:51:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aquini@redhat.com, mm-commits@vger.kernel.org, shakeelb@google.com, shuah@kernel.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/testing/selftests/vm/mlock2-tests: fix mlock2 false-negative errors
-has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors.patch
+     Subject: checkpatch: avoid warning about uninitialized_var()
+has been added to the -mm tree.  Its filename is
+     checkpatch-avoid-warning-about-uninitialized_var.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-avoid-warning-about-uninitialized_var.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-avoid-warning-about-uninitialized_var.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: tools/testing/selftests/vm/mlock2-tests: fix mlock2 false-negative errors
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: avoid warning about uninitialized_var()
 
-Changes for commit 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping
-pagevecs") break this test expectations on the behavior of mlock syscall
-family immediately inserting the recently faulted pages into the
-UNEVICTABLE_LRU, when MCL_ONFAULT is passed to the syscall as part of its
-flag-set.
+WARNING: function definition argument 'flags' should also have an identifier name
+#26: FILE: drivers/tty/serial/sh-sci.c:1348:
++       unsigned long uninitialized_var(flags);
 
-There is no functional error introduced by the aforementioned commit, but
-it opens up a time window where the recently faulted and locked pages
-might yet not be put back into the UNEVICTABLE_LRU, thus causing a
-subsequent and immediate PFN flag check for the UNEVICTABLE bit to trip on
-false-negative errors, as it happens with this test.
+Special-case uninitialized_var() to prevent this.
 
-This patch fix the false negative by forcefully resorting to a code path
-that will call a CPU pagevec drain right after the fault but before the
-PFN flag check takes place, sorting out the race that way.
-
-Link: http://lkml.kernel.org/r/20200322013525.1095493-1-aquini@redhat.com
-Fixes: 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping pagevecs")
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: http://lkml.kernel.org/r/7db7944761b0bd88c70eb17d4b7f40fe589e14ed.camel@perches.com
+Tested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mlock2-tests.c |   22 ++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ scripts/checkpatch.pl |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/vm/mlock2-tests.c~tools-testing-selftests-vm-mlock2-tests-fix-mlock2-false-negative-errors
-+++ a/tools/testing/selftests/vm/mlock2-tests.c
-@@ -7,6 +7,7 @@
- #include <sys/time.h>
- #include <sys/resource.h>
- #include <stdbool.h>
-+#include <sched.h>
- #include "mlock2.h"
+--- a/scripts/checkpatch.pl~checkpatch-avoid-warning-about-uninitialized_var
++++ a/scripts/checkpatch.pl
+@@ -4071,7 +4071,7 @@ sub process {
+ 		}
  
- #include "../kselftest.h"
-@@ -328,6 +329,22 @@ out:
- 	return ret;
- }
+ # check for function declarations without arguments like "int foo()"
+-		if ($line =~ /(\b$Type\s+$Ident)\s*\(\s*\)/) {
++		if ($line =~ /(\b$Type\s*$Ident)\s*\(\s*\)/) {
+ 			if (ERROR("FUNCTION_WITHOUT_ARGS",
+ 				  "Bad function definition - $1() should probably be $1(void)\n" . $herecurr) &&
+ 			    $fix) {
+@@ -6287,13 +6287,17 @@ sub process {
+ 		}
  
-+/*
-+ * After commit 9c4e6b1a7027f ("mm, mlock, vmscan: no more skipping pagevecs")
-+ * changes made by calls to mlock* family might not be immediately reflected
-+ * on the LRUs, thus checking the PFN flags might race against pagevec drain.
-+ *
-+ * In order to sort out that race, and get the after fault checks consistent,
-+ * the "quick and dirty" trick below is required in order to force a call to
-+ * lru_add_drain_all() to get the recently MLOCK_ONFAULT pages moved to
-+ * the unevictable LRU, as expected by the checks in this selftest.
-+ */
-+static void force_lru_add_drain_all(void)
-+{
-+	sched_yield();
-+	system("echo 1 > /proc/sys/vm/compact_memory");
-+}
-+
- static int onfault_check(char *map)
- {
- 	unsigned long page_size = getpagesize();
-@@ -343,6 +360,9 @@ static int onfault_check(char *map)
- 	}
- 
- 	*map = 'a';
-+
-+	force_lru_add_drain_all();
-+
- 	page1_flags = get_pageflags((unsigned long)map);
- 	page2_flags = get_pageflags((unsigned long)map + page_size);
- 
-@@ -465,6 +485,8 @@ static int test_lock_onfault_of_present(
- 		goto unmap;
- 	}
- 
-+	force_lru_add_drain_all();
-+
- 	page1_flags = get_pageflags((unsigned long)map);
- 	page2_flags = get_pageflags((unsigned long)map + page_size);
- 	page1_flags = get_kpageflags(page1_flags & PFN_MASK);
+ # check for function declarations that have arguments without identifier names
++# while avoiding uninitialized_var(x)
+ 		if (defined $stat &&
+-		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*\(\s*([^{]+)\s*\)\s*;/s &&
+-		    $1 ne "void") {
+-			my $args = trim($1);
++		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*(?:($Ident)|\(\s*\*\s*$Ident\s*\))\s*\(\s*([^{]+)\s*\)\s*;/s &&
++		    (!defined($1) ||
++		     (defined($1) && $1 ne "uninitialized_var")) &&
++		     $2 ne "void") {
++			my $args = trim($2);
+ 			while ($args =~ m/\s*($Type\s*(?:$Ident|\(\s*\*\s*$Ident?\s*\)\s*$balanced_parens)?)/g) {
+ 				my $arg = trim($1);
+-				if ($arg =~ /^$Type$/ && $arg !~ /enum\s+$Ident$/) {
++				if ($arg =~ /^$Type$/ &&
++					$arg !~ /enum\s+$Ident$/) {
+ 					WARN("FUNCTION_ARGUMENTS",
+ 					     "function definition argument '$arg' should also have an identifier name\n" . $herecurr);
+ 				}
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from joe@perches.com are
+
+mm-use-fallthrough.patch
+checkpatch-remove-email-address-comment-from-email-address-comparisons.patch
+checkpatch-prefer-fallthrough-over-fallthrough-comments.patch
+checkpatch-improve-gerrit-change-id-test.patch
+checkpatch-avoid-warning-about-uninitialized_var.patch
