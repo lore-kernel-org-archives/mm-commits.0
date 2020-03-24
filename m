@@ -1,97 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-avoid-warning-about-uninitialized_var.patch
- added to -mm tree
-Date: Mon, 23 Mar 2020 17:51:09 -0700
-Message-ID: <20200324005109.zaAqJFC5m%akpm@linux-foundation.org>
+Subject: [obsolete]
+ mm-memcg-slab-introduce-mem_cgroup_from_obj-v2.patch removed from -mm tree
+Date: Mon, 23 Mar 2020 18:07:40 -0700
+Message-ID: <20200324010740.Lm6Jimsia%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47526 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49756 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727005AbgCXAvL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Mar 2020 20:51:11 -0400
+        id S1727032AbgCXBHm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Mar 2020 21:07:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org
+To: guro@fb.com, hannes@cmpxchg.org, laoar.shao@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: checkpatch: avoid warning about uninitialized_var()
-has been added to the -mm tree.  Its filename is
-     checkpatch-avoid-warning-about-uninitialized_var.patch
+     Subject: mm-memcg-slab-introduce-mem_cgroup_from_obj-v2
+has been removed from the -mm tree.  Its filename was
+     mm-memcg-slab-introduce-mem_cgroup_from_obj-v2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-avoid-warning-about-uninitialized_var.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-avoid-warning-about-uninitialized_var.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: avoid warning about uninitialized_var()
+From: Roman Gushchin <guro@fb.com>
+Subject: mm-memcg-slab-introduce-mem_cgroup_from_obj-v2
 
-WARNING: function definition argument 'flags' should also have an identifier name
-#26: FILE: drivers/tty/serial/sh-sci.c:1348:
-+       unsigned long uninitialized_var(flags);
+fix build issues
 
-Special-case uninitialized_var() to prevent this.
-
-Link: http://lkml.kernel.org/r/7db7944761b0bd88c70eb17d4b7f40fe589e14ed.camel@perches.com
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20200225022154.GA573375@carbon.DHCP.thefacebook.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ include/linux/memcontrol.h |   14 +++++++-------
+ mm/memcontrol.c            |    2 +-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-avoid-warning-about-uninitialized_var
-+++ a/scripts/checkpatch.pl
-@@ -4071,7 +4071,7 @@ sub process {
- 		}
+--- a/include/linux/memcontrol.h~mm-memcg-slab-introduce-mem_cgroup_from_obj-v2
++++ a/include/linux/memcontrol.h
+@@ -420,8 +420,6 @@ struct lruvec *mem_cgroup_page_lruvec(st
  
- # check for function declarations without arguments like "int foo()"
--		if ($line =~ /(\b$Type\s+$Ident)\s*\(\s*\)/) {
-+		if ($line =~ /(\b$Type\s*$Ident)\s*\(\s*\)/) {
- 			if (ERROR("FUNCTION_WITHOUT_ARGS",
- 				  "Bad function definition - $1() should probably be $1(void)\n" . $herecurr) &&
- 			    $fix) {
-@@ -6287,13 +6287,17 @@ sub process {
- 		}
+ struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
  
- # check for function declarations that have arguments without identifier names
-+# while avoiding uninitialized_var(x)
- 		if (defined $stat &&
--		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*\(\s*([^{]+)\s*\)\s*;/s &&
--		    $1 ne "void") {
--			my $args = trim($1);
-+		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*(?:($Ident)|\(\s*\*\s*$Ident\s*\))\s*\(\s*([^{]+)\s*\)\s*;/s &&
-+		    (!defined($1) ||
-+		     (defined($1) && $1 ne "uninitialized_var")) &&
-+		     $2 ne "void") {
-+			my $args = trim($2);
- 			while ($args =~ m/\s*($Type\s*(?:$Ident|\(\s*\*\s*$Ident?\s*\)\s*$balanced_parens)?)/g) {
- 				my $arg = trim($1);
--				if ($arg =~ /^$Type$/ && $arg !~ /enum\s+$Ident$/) {
-+				if ($arg =~ /^$Type$/ &&
-+					$arg !~ /enum\s+$Ident$/) {
- 					WARN("FUNCTION_ARGUMENTS",
- 					     "function definition argument '$arg' should also have an identifier name\n" . $herecurr);
- 				}
+-struct mem_cgroup *mem_cgroup_from_obj(void *p);
+-
+ struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm);
+ 
+ struct mem_cgroup *get_mem_cgroup_from_page(struct page *page);
+@@ -915,11 +913,6 @@ static inline bool mm_match_cgroup(struc
+ 	return true;
+ }
+ 
+-static inline struct mem_cgroup *mem_cgroup_from_obj(void *p)
+-{
+-	return NULL;
+-}
+-
+ static inline struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm)
+ {
+ 	return NULL;
+@@ -1439,6 +1432,8 @@ static inline int memcg_cache_id(struct
+ 	return memcg ? memcg->kmemcg_id : -1;
+ }
+ 
++struct mem_cgroup *mem_cgroup_from_obj(void *p);
++
+ #else
+ 
+ static inline int memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
+@@ -1480,6 +1475,11 @@ static inline void memcg_put_cache_ids(v
+ {
+ }
+ 
++static inline struct mem_cgroup *mem_cgroup_from_obj(void *p)
++{
++       return NULL;
++}
++
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+--- a/mm/memcontrol.c~mm-memcg-slab-introduce-mem_cgroup_from_obj-v2
++++ a/mm/memcontrol.c
+@@ -2670,6 +2670,7 @@ static void commit_charge(struct page *p
+ 		unlock_page_lru(page, isolated);
+ }
+ 
++#ifdef CONFIG_MEMCG_KMEM
+ /*
+  * Returns a pointer to the memory cgroup to which the kernel object is charged.
+  *
+@@ -2697,7 +2698,6 @@ struct mem_cgroup *mem_cgroup_from_obj(v
+ 	return page->mem_cgroup;
+ }
+ 
+-#ifdef CONFIG_MEMCG_KMEM
+ static int memcg_alloc_cache_id(void)
+ {
+ 	int id, size;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from guro@fb.com are
 
-mm-use-fallthrough.patch
-checkpatch-remove-email-address-comment-from-email-address-comparisons.patch
-checkpatch-prefer-fallthrough-over-fallthrough-comments.patch
-checkpatch-improve-gerrit-change-id-test.patch
-checkpatch-avoid-warning-about-uninitialized_var.patch
+mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations.patch
+mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations-v2.patch
+mm-memcg-slab-introduce-mem_cgroup_from_obj.patch
+mm-kmem-cleanup-__memcg_kmem_charge_memcg-arguments.patch
+mm-kmem-cleanup-memcg_kmem_uncharge_memcg-arguments.patch
+mm-kmem-rename-memcg_kmem_uncharge-into-memcg_kmem_uncharge_page.patch
+mm-kmem-switch-to-nr_pages-in-__memcg_kmem_charge_memcg.patch
+mm-memcg-slab-cache-page-number-in-memcg_uncharge_slab.patch
+mm-kmem-rename-__memcg_kmem_uncharge_memcg-to-__memcg_kmem_uncharge.patch
+mm-memcg-make-memoryoomgroup-tolerable-to-task-migration.patch
+mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations.patch
+mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix.patch
+mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma.patch
+mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma-fix.patch
+mm-hugetlb-fix-hugetlb_cma_reserve-if-config_numa-isnt-set.patch
