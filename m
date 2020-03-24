@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-gup-fix-omission-of-check-on-foll_longterm-in-gup-fast-path.patch added
- to -mm tree
-Date: Mon, 23 Mar 2020 19:06:18 -0700
-Message-ID: <20200324020618.o0Deh8uT_%akpm@linux-foundation.org>
+Subject: + mm-use-vm_fault-error-code-directly.patch added to -mm
+ tree
+Date: Mon, 23 Mar 2020 19:35:31 -0700
+Message-ID: <20200324023531.NyucyM_L_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58580 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33390 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727032AbgCXCGU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Mar 2020 22:06:20 -0400
+        id S1726824AbgCXCfe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Mar 2020 22:35:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com, hch@infradead.org, hch@lst.de, ira.weiny@intel.com, jgg@mellanox.com, jgg@ziepe.ca, jhubbard@nvidia.com, kernelfans@gmail.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com, shuah@kernel.org, willy@infradead.org
+To: aneesh.kumar@linux.vnet.ibm.com, hch@lst.de, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, willy@infradead.org
 
 
 The patch titled
-     Subject: mm/gup: fix omission of check on FOLL_LONGTERM in gup fast path
+     Subject: mm/filemap.c: use vm_fault error code directly
 has been added to the -mm tree.  Its filename is
-     mm-gup-fix-omission-of-check-on-foll_longterm-in-gup-fast-path.patch
+     mm-use-vm_fault-error-code-directly.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-fix-omission-of-check-on-foll_longterm-in-gup-fast-path.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-vm_fault-error-code-directly.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-fix-omission-of-check-on-foll_longterm-in-gup-fast-path.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-vm_fault-error-code-directly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,67 +36,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pingfan Liu <kernelfans@gmail.com>
-Subject: mm/gup: fix omission of check on FOLL_LONGTERM in gup fast path
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/filemap.c: use vm_fault error code directly
 
-FOLL_LONGTERM is a special case of FOLL_PIN.  It suggests a pin which is
-going to be given to hardware and can't move.  It would truncate CMA
-permanently and should be excluded.
+Use VM_FAULT_OOM instead of indirecting through vmf_error(-ENOMEM).
 
-In gup slow path, where
-__gup_longterm_locked->check_and_migrate_cma_pages() handles
-FOLL_LONGTERM, but in fast path, there lacks such a check, which means a
-possible leak of CMA page to longterm pinned.
-
-Place a check in try_grab_compound_head() in the fast path to fix the
-leak, and if FOLL_LONGTERM happens on CMA, it will fall back to slow path
-to migrate the page.
-
-Some note about the check: Huge page's subpages have the same migrate type
-due to either allocation from a free_list[] or alloc_contig_range() with
-param MIGRATE_MOVABLE.  So it is enough to check on a single subpage by
-is_migrate_cma_page(subpage)
-
-Link: http://lkml.kernel.org/r/1584876733-17405-3-git-send-email-kernelfans@gmail.com
-Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+Link: http://lkml.kernel.org/r/20200318140253.6141-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-fix-omission-of-check-on-foll_longterm-in-gup-fast-path
-+++ a/mm/gup.c
-@@ -89,6 +89,14 @@ static __maybe_unused struct page *try_g
- 		int orig_refs = refs;
+--- a/mm/filemap.c~mm-use-vm_fault-error-code-directly
++++ a/mm/filemap.c
+@@ -2502,7 +2502,7 @@ retry_find:
+ 		if (!page) {
+ 			if (fpin)
+ 				goto out_retry;
+-			return vmf_error(-ENOMEM);
++			return VM_FAULT_OOM;
+ 		}
+ 	}
  
- 		/*
-+		 * Can't do FOLL_LONGTERM + FOLL_PIN with CMA in the gup fast
-+		 * path, so fail and let the caller fall back to the slow path.
-+		 */
-+		if (unlikely(flags & FOLL_LONGTERM) &&
-+				is_migrate_cma_page(page))
-+			return NULL;
-+
-+		/*
- 		 * When pinning a compound page of order > 1 (which is what
- 		 * hpage_pincount_available() checks for), use an exact count to
- 		 * track it, via hpage_pincount_add/_sub().
 _
 
-Patches currently in -mm which might be from kernelfans@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-gup-rename-nr-as-nr_pinned-in-get_user_pages_fast.patch
-mm-gup-fix-omission-of-check-on-foll_longterm-in-gup-fast-path.patch
-mm-sparse-rename-pfn_present-as-pfn_in_present_section.patch
+mm-improve-dump_page-for-compound-pages.patch
+mm-add-pagemaph-to-the-fine-documentation.patch
+mm-use-vm_fault-error-code-directly.patch
+mm-rename-arguments-to-find_subpage.patch
+mm-check-pagetail-in-hpage_nr_pages-even-when-thp.patch
+mm-optimise-find_subpage-for-thp.patch
+mm-remove-config_transparent_huge_pagecache.patch
+mm-use-vm_bug_on_page-in-clear_page_dirty_for_io.patch
+mm-unexport-find_get_entry.patch
+mm-rewrite-pagecache_get_page-documentation.patch
+proc-inline-vma_stop-into-m_stop.patch
+proc-remove-m_cache_vma.patch
+proc-use-ppos-instead-of-m-version.patch
+seq_file-remove-m-version.patch
+proc-inline-m_next_vma-into-m_next.patch
