@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma-fix-2.patch
- added to -mm tree
-Date: Mon, 23 Mar 2020 18:19:25 -0700
-Message-ID: <20200324011925.J1lhQmUnH%akpm@linux-foundation.org>
+ mm-gup-rename-nr-as-nr_pinned-in-get_user_pages_fast.patch added to -mm
+ tree
+Date: Mon, 23 Mar 2020 19:06:15 -0700
+Message-ID: <20200324020615.uQAoThyeh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52644 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727113AbgCXBT0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Mar 2020 21:19:26 -0400
+        id S1727032AbgCXCGR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Mar 2020 22:06:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.schaufler@gmx.de, aslan@fb.com, guro@fb.com, js1304@gmail.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, riel@surriel.com
+To: aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com, hch@infradead.org, ira.weiny@intel.com, jgg@ziepe.ca, jhubbard@nvidia.com, kernelfans@gmail.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com, shuah@kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: mm: hugetlb: fix per-node size calculation for hugetlb_cma
+     Subject: mm/gup: rename nr as nr_pinned in get_user_pages_fast()
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma-fix-2.patch
+     mm-gup-rename-nr-as-nr_pinned-in-get_user_pages_fast.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-rename-nr-as-nr_pinned-in-get_user_pages_fast.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-rename-nr-as-nr_pinned-in-get_user_pages_fast.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,67 +37,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: hugetlb: fix per-node size calculation for hugetlb_cma
+From: Pingfan Liu <kernelfans@gmail.com>
+Subject: mm/gup: rename nr as nr_pinned in get_user_pages_fast()
 
-Aslan found a bug in the per-node hugetlb_cma area size calculation:
-the total remaining size should cap the per-node area size instead
-of be the minimal possible allocation.
+To better reflect the held state of pages and make code self-explaining,
+rename nr as nr_pinned.
 
-Without the fix:
-[    0.004136] hugetlb_cma: reserve 2048 MiB, up to 1024 MiB per node
-[    0.004138] cma: Reserved 2048 MiB at 0x0000000180000000
-[    0.004139] hugetlb_cma: reserved 2048 MiB on node 0
-
-With the fix:
-[    0.006780] hugetlb_cma: reserve 2048 MiB, up to 1024 MiB per node
-[    0.006786] cma: Reserved 1024 MiB at 0x00000001c0000000
-[    0.006787] hugetlb_cma: reserved 1024 MiB on node 0
-[    0.006788] cma: Reserved 1024 MiB at 0x00000003c0000000
-[    0.006789] hugetlb_cma: reserved 1024 MiB on node 1
-
-Link: http://lkml.kernel.org/r/20200323233411.2407279-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reported-by: Aslan Bakirov <aslan@fb.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Andreas Schaufler <andreas.schaufler@gmx.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
+Link: http://lkml.kernel.org/r/1584876733-17405-2-git-send-email-kernelfans@gmail.com
+Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma-fix-2
-+++ a/mm/hugetlb.c
-@@ -5582,7 +5582,7 @@ void __init hugetlb_cma_reserve(int orde
- 			max_pfn = end_pfn;
+--- a/mm/gup.c~mm-gup-rename-nr-as-nr_pinned-in-get_user_pages_fast
++++ a/mm/gup.c
+@@ -2637,7 +2637,7 @@ int __get_user_pages_fast(unsigned long
+ {
+ 	unsigned long len, end;
+ 	unsigned long flags;
+-	int nr = 0;
++	int nr_pinned = 0;
+ 	/*
+ 	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
+ 	 * because gup fast is always a "pin with a +1 page refcount" request.
+@@ -2671,11 +2671,11 @@ int __get_user_pages_fast(unsigned long
+ 	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
+ 	    gup_fast_permitted(start, end)) {
+ 		local_irq_save(flags);
+-		gup_pgd_range(start, end, gup_flags, pages, &nr);
++		gup_pgd_range(start, end, gup_flags, pages, &nr_pinned);
+ 		local_irq_restore(flags);
+ 	}
+ 
+-	return nr;
++	return nr_pinned;
+ }
+ EXPORT_SYMBOL_GPL(__get_user_pages_fast);
+ 
+@@ -2707,7 +2707,7 @@ static int internal_get_user_pages_fast(
+ 					struct page **pages)
+ {
+ 	unsigned long addr, len, end;
+-	int nr = 0, ret = 0;
++	int nr_pinned = 0, ret = 0;
+ 
+ 	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
+ 				       FOLL_FORCE | FOLL_PIN | FOLL_GET)))
+@@ -2726,25 +2726,25 @@ static int internal_get_user_pages_fast(
+ 	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
+ 	    gup_fast_permitted(start, end)) {
+ 		local_irq_disable();
+-		gup_pgd_range(addr, end, gup_flags, pages, &nr);
++		gup_pgd_range(addr, end, gup_flags, pages, &nr_pinned);
+ 		local_irq_enable();
+-		ret = nr;
++		ret = nr_pinned;
+ 	}
+ 
+-	if (nr < nr_pages) {
++	if (nr_pinned < nr_pages) {
+ 		/* Try to get the remaining pages with get_user_pages */
+-		start += nr << PAGE_SHIFT;
+-		pages += nr;
++		start += nr_pinned << PAGE_SHIFT;
++		pages += nr_pinned;
+ 
+-		ret = __gup_longterm_unlocked(start, nr_pages - nr,
++		ret = __gup_longterm_unlocked(start, nr_pages - nr_pinned,
+ 					      gup_flags, pages);
+ 
+ 		/* Have to be a bit careful with return values */
+-		if (nr > 0) {
++		if (nr_pinned > 0) {
+ 			if (ret < 0)
+-				ret = nr;
++				ret = nr_pinned;
+ 			else
+-				ret += nr;
++				ret += nr_pinned;
  		}
+ 	}
  
--		size = max(per_node, hugetlb_cma_size - reserved);
-+		size = min(per_node, hugetlb_cma_size - reserved);
- 		size = round_up(size, PAGE_SIZE << order);
- 
- 		if (size > ((max_pfn - min_pfn) << PAGE_SHIFT) / 2) {
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from kernelfans@gmail.com are
 
-mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations.patch
-mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations-v2.patch
-mm-memcg-slab-introduce-mem_cgroup_from_obj.patch
-mm-kmem-cleanup-__memcg_kmem_charge_memcg-arguments.patch
-mm-kmem-cleanup-memcg_kmem_uncharge_memcg-arguments.patch
-mm-kmem-rename-memcg_kmem_uncharge-into-memcg_kmem_uncharge_page.patch
-mm-kmem-switch-to-nr_pages-in-__memcg_kmem_charge_memcg.patch
-mm-memcg-slab-cache-page-number-in-memcg_uncharge_slab.patch
-mm-kmem-rename-__memcg_kmem_uncharge_memcg-to-__memcg_kmem_uncharge.patch
-mm-memcg-make-memoryoomgroup-tolerable-to-task-migration.patch
-mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations.patch
-mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix.patch
-mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma.patch
-mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma-fix.patch
-mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma-fix-2.patch
-mm-hugetlb-fix-hugetlb_cma_reserve-if-config_numa-isnt-set.patch
+mm-gup-rename-nr-as-nr_pinned-in-get_user_pages_fast.patch
+mm-gup-fix-omission-of-check-on-foll_longterm-in-gup-fast-path.patch
+mm-sparse-rename-pfn_present-as-pfn_in_present_section.patch
