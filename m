@@ -1,70 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- mm-memcg-slab-introduce-mem_cgroup_from_obj-v2.patch removed from -mm tree
-Date: Mon, 23 Mar 2020 18:07:40 -0700
-Message-ID: <20200324010740.Lm6Jimsia%akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?mm-fork-fix-kernel=5Fstack-memcg-stats-for-various-stack-?=
+ =?US-ASCII?Q?implementations-v2.patch?= added to -mm tree
+Date: Mon, 23 Mar 2020 18:11:25 -0700
+Message-ID: <20200324011125.aIK63naNn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49756 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727032AbgCXBHm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Mar 2020 21:07:42 -0400
+        id S1727036AbgCXBL1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Mar 2020 21:11:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, hannes@cmpxchg.org, laoar.shao@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com
+To: bharata@linux.ibm.com, guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com
 
 
 The patch titled
-     Subject: mm-memcg-slab-introduce-mem_cgroup_from_obj-v2
-has been removed from the -mm tree.  Its filename was
-     mm-memcg-slab-introduce-mem_cgroup_from_obj-v2.patch
+     Subject: mm: fork: fix kernel_stack memcg stats for various stack implementations
+has been added to the -mm tree.  Its filename is
+     mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations-v2.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm-memcg-slab-introduce-mem_cgroup_from_obj-v2
+Subject: mm: fork: fix kernel_stack memcg stats for various stack implementations
 
-fix build issues
+introduce mem_cgroup_from_obj()
 
-Link: http://lkml.kernel.org/r/20200225022154.GA573375@carbon.DHCP.thefacebook.com
+Link: http://lkml.kernel.org/r/20200324004221.GA36662@carbon.dhcp.thefacebook.com
+Fixes: 4d96ba353075 ("mm: memcg/slab: stop setting page->mem_cgroup pointer for slab pages")
 Signed-off-by: Roman Gushchin <guro@fb.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
 Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Bharata B Rao <bharata@linux.ibm.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   14 +++++++-------
- mm/memcontrol.c            |    2 +-
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/memcontrol.h |    7 +++++++
+ mm/memcontrol.c            |   27 +++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+)
 
---- a/include/linux/memcontrol.h~mm-memcg-slab-introduce-mem_cgroup_from_obj-v2
+--- a/include/linux/memcontrol.h~mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations-v2
 +++ a/include/linux/memcontrol.h
-@@ -420,8 +420,6 @@ struct lruvec *mem_cgroup_page_lruvec(st
- 
- struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
- 
--struct mem_cgroup *mem_cgroup_from_obj(void *p);
--
- struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm);
- 
- struct mem_cgroup *get_mem_cgroup_from_page(struct page *page);
-@@ -915,11 +913,6 @@ static inline bool mm_match_cgroup(struc
- 	return true;
- }
- 
--static inline struct mem_cgroup *mem_cgroup_from_obj(void *p)
--{
--	return NULL;
--}
--
- static inline struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm)
- {
- 	return NULL;
-@@ -1439,6 +1432,8 @@ static inline int memcg_cache_id(struct
+@@ -1432,6 +1432,8 @@ static inline int memcg_cache_id(struct
  	return memcg ? memcg->kmemcg_id : -1;
  }
  
@@ -73,7 +70,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  #else
  
  static inline int memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
-@@ -1480,6 +1475,11 @@ static inline void memcg_put_cache_ids(v
+@@ -1473,6 +1475,11 @@ static inline void memcg_put_cache_ids(v
  {
  }
  
@@ -85,21 +82,39 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  #endif /* CONFIG_MEMCG_KMEM */
  
  #endif /* _LINUX_MEMCONTROL_H */
---- a/mm/memcontrol.c~mm-memcg-slab-introduce-mem_cgroup_from_obj-v2
+--- a/mm/memcontrol.c~mm-fork-fix-kernel_stack-memcg-stats-for-various-stack-implementations-v2
 +++ a/mm/memcontrol.c
-@@ -2670,6 +2670,7 @@ static void commit_charge(struct page *p
- 		unlock_page_lru(page, isolated);
+@@ -2672,6 +2672,33 @@ static void commit_charge(struct page *p
  }
  
-+#ifdef CONFIG_MEMCG_KMEM
- /*
-  * Returns a pointer to the memory cgroup to which the kernel object is charged.
-  *
-@@ -2697,7 +2698,6 @@ struct mem_cgroup *mem_cgroup_from_obj(v
- 	return page->mem_cgroup;
- }
- 
--#ifdef CONFIG_MEMCG_KMEM
+ #ifdef CONFIG_MEMCG_KMEM
++/*
++ * Returns a pointer to the memory cgroup to which the kernel object is charged.
++ *
++ * The caller must ensure the memcg lifetime, e.g. by taking rcu_read_lock(),
++ * cgroup_mutex, etc.
++ */
++struct mem_cgroup *mem_cgroup_from_obj(void *p)
++{
++	struct page *page;
++
++	if (mem_cgroup_disabled())
++		return NULL;
++
++	page = virt_to_head_page(p);
++
++	/*
++	 * Slab pages don't have page->mem_cgroup set because corresponding
++	 * kmem caches can be reparented during the lifetime. That's why
++	 * memcg_from_slab_page() should be used instead.
++	 */
++	if (PageSlab(page))
++		return memcg_from_slab_page(page);
++
++	/* All other pages use page->mem_cgroup */
++	return page->mem_cgroup;
++}
++
  static int memcg_alloc_cache_id(void)
  {
  	int id, size;
