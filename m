@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rename-arguments-to-find_subpage.patch added to -mm
- tree
-Date: Mon, 23 Mar 2020 19:35:34 -0700
-Message-ID: <20200324023534.ilEK_Bv8t%akpm@linux-foundation.org>
+Subject: + mm-check-pagetail-in-hpage_nr_pages-even-when-thp.patch
+ added to -mm tree
+Date: Mon, 23 Mar 2020 19:35:36 -0700
+Message-ID: <20200324023536.O1cL0MIhG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33420 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33450 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726824AbgCXCff (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Mar 2020 22:35:35 -0400
+        id S1726824AbgCXCfj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Mar 2020 22:35:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, hch@lst.de, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, willy@infradead.org
 
 
 The patch titled
-     Subject: include/linux/pagemap.h: rename arguments to find_subpage
+     Subject: include/linux/huge_mm.h: check PageTail in hpage_nr_pages even when !THP
 has been added to the -mm tree.  Its filename is
-     mm-rename-arguments-to-find_subpage.patch
+     mm-check-pagetail-in-hpage_nr_pages-even-when-thp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-arguments-to-find_subpage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-check-pagetail-in-hpage_nr_pages-even-when-thp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-arguments-to-find_subpage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-check-pagetail-in-hpage_nr_pages-even-when-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,52 +37,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: include/linux/pagemap.h: rename arguments to find_subpage
+Subject: include/linux/huge_mm.h: check PageTail in hpage_nr_pages even when !THP
 
-This isn't just a random struct page, it's known to be a head page, and
-calling it head makes the function better self-documenting.  The pgoff_t
-is less confusing if it's named index instead of offset.  Also add a
-couple of comments to explain why we're doing various things.
+It's even more important to check that we don't have a tail page when
+calling hpage_nr_pages() when THP are disabled.
 
-Link: http://lkml.kernel.org/r/20200318140253.6141-3-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200318140253.6141-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ include/linux/huge_mm.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/include/linux/pagemap.h~mm-rename-arguments-to-find_subpage
-+++ a/include/linux/pagemap.h
-@@ -331,14 +331,19 @@ static inline struct page *grab_cache_pa
- 			mapping_gfp_mask(mapping));
- }
+--- a/include/linux/huge_mm.h~mm-check-pagetail-in-hpage_nr_pages-even-when-thp
++++ a/include/linux/huge_mm.h
+@@ -287,7 +287,11 @@ static inline struct list_head *page_def
+ #define HPAGE_PUD_MASK ({ BUILD_BUG(); 0; })
+ #define HPAGE_PUD_SIZE ({ BUILD_BUG(); 0; })
  
--static inline struct page *find_subpage(struct page *page, pgoff_t offset)
-+/*
-+ * Given the page we found in the page cache, return the page corresponding
-+ * to this index in the file
-+ */
-+static inline struct page *find_subpage(struct page *head, pgoff_t index)
+-#define hpage_nr_pages(x) 1
++static inline int hpage_nr_pages(struct page *page)
++{
++	VM_BUG_ON_PAGE(PageTail(page), page);
++	return 1;
++}
+ 
+ static inline bool __transparent_hugepage_enabled(struct vm_area_struct *vma)
  {
--	if (PageHuge(page))
--		return page;
-+	/* HugeTLBfs wants the head page regardless */
-+	if (PageHuge(head))
-+		return head;
- 
--	VM_BUG_ON_PAGE(PageTail(page), page);
-+	VM_BUG_ON_PAGE(PageTail(head), head);
- 
--	return page + (offset & (compound_nr(page) - 1));
-+	return head + (index & (compound_nr(head) - 1));
- }
- 
- struct page *find_get_entry(struct address_space *mapping, pgoff_t offset);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
