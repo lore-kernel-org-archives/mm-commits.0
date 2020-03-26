@@ -1,171 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] psi-move-pf_memstall-out-of-task-flags.patch
- removed from -mm tree
-Date: Thu, 26 Mar 2020 11:16:22 -0700
-Message-ID: <20200326181622.XTACDRyZb%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-slub-prevent-kmalloc_node-crashes-and-memory-leaks.patch removed from
+ -mm tree
+Date: Thu, 26 Mar 2020 11:16:16 -0700
+Message-ID: <20200326181616.Brys9mmHD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60134 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727719AbgCZSQX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 26 Mar 2020 14:16:23 -0400
+        id S1727719AbgCZSQS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 26 Mar 2020 14:16:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, laoar.shao@gmail.com, mm-commits@vger.kernel.org, willy@infradead.org
+To: bharata@linux.ibm.com, cl@linux.com, iamjoonsoo.kim@lge.com, ktkhai@virtuozzo.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, nathanl@linux.ibm.com, penberg@kernel.org, puvichakravarthy@in.ibm.com, rientjes@google.com, sachinp@linux.vnet.ibm.com, srikar@linux.vnet.ibm.com, stable@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: psi: move PF_MEMSTALL out of task->flags
+     Subject: mm, slub: prevent kmalloc_node crashes and memory leaks
 has been removed from the -mm tree.  Its filename was
-     psi-move-pf_memstall-out-of-task-flags.patch
+     mm-slub-prevent-kmalloc_node-crashes-and-memory-leaks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: psi: move PF_MEMSTALL out of task->flags
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slub: prevent kmalloc_node crashes and memory leaks
 
-The task->flags is a 32-bits flag, in which 31 bits have already been
-consumed.  So it is hard to introduce other new per process flag. 
-Currently there're still enough spaces in the bit-field section of
-task_struct, so we can define the memstall state as a single bit in
-task_struct instead.
+Sachin reports [1] a crash in SLUB __slab_alloc():
 
-This patch also removes an out-of-date comment pointed out by Matthew.
+BUG: Kernel NULL pointer dereference on read at 0x000073b0
+Faulting instruction address: 0xc0000000003d55f4
+Oops: Kernel access of bad area, sig: 11 [#1]
+LE PAGE_SIZE=64K MMU=Hash SMP NR_CPUS=2048 NUMA pSeries
+Modules linked in:
+CPU: 19 PID: 1 Comm: systemd Not tainted 5.6.0-rc2-next-20200218-autotest #1
+NIP:  c0000000003d55f4 LR: c0000000003d5b94 CTR: 0000000000000000
+REGS: c0000008b37836d0 TRAP: 0300   Not tainted  (5.6.0-rc2-next-20200218-autotest)
+MSR:  8000000000009033 <SF,EE,ME,IR,DR,RI,LE>  CR: 24004844  XER: 00000000
+CFAR: c00000000000dec4 DAR: 00000000000073b0 DSISR: 40000000 IRQMASK: 1
+GPR00: c0000000003d5b94 c0000008b3783960 c00000000155d400 c0000008b301f500
+GPR04: 0000000000000dc0 0000000000000002 c0000000003443d8 c0000008bb398620
+GPR08: 00000008ba2f0000 0000000000000001 0000000000000000 0000000000000000
+GPR12: 0000000024004844 c00000001ec52a00 0000000000000000 0000000000000000
+GPR16: c0000008a1b20048 c000000001595898 c000000001750c18 0000000000000002
+GPR20: c000000001750c28 c000000001624470 0000000fffffffe0 5deadbeef0000122
+GPR24: 0000000000000001 0000000000000dc0 0000000000000002 c0000000003443d8
+GPR28: c0000008b301f500 c0000008bb398620 0000000000000000 c00c000002287180
+NIP [c0000000003d55f4] ___slab_alloc+0x1f4/0x760
+LR [c0000000003d5b94] __slab_alloc+0x34/0x60
+Call Trace:
+[c0000008b3783960] [c0000000003d5734] ___slab_alloc+0x334/0x760 (unreliable)
+[c0000008b3783a40] [c0000000003d5b94] __slab_alloc+0x34/0x60
+[c0000008b3783a70] [c0000000003d6fa0] __kmalloc_node+0x110/0x490
+[c0000008b3783af0] [c0000000003443d8] kvmalloc_node+0x58/0x110
+[c0000008b3783b30] [c0000000003fee38] mem_cgroup_css_online+0x108/0x270
+[c0000008b3783b90] [c000000000235aa8] online_css+0x48/0xd0
+[c0000008b3783bc0] [c00000000023eaec] cgroup_apply_control_enable+0x2ec/0x4d0
+[c0000008b3783ca0] [c000000000242318] cgroup_mkdir+0x228/0x5f0
+[c0000008b3783d10] [c00000000051e170] kernfs_iop_mkdir+0x90/0xf0
+[c0000008b3783d50] [c00000000043dc00] vfs_mkdir+0x110/0x230
+[c0000008b3783da0] [c000000000441c90] do_mkdirat+0xb0/0x1a0
+[c0000008b3783e20] [c00000000000b278] system_call+0x5c/0x68
 
-Link: http://lkml.kernel.org/r/1584408485-1921-1-git-send-email-laoar.shao@gmail.com
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+This is a PowerPC platform with following NUMA topology:
+
+available: 2 nodes (0-1)
+node 0 cpus:
+node 0 size: 0 MB
+node 0 free: 0 MB
+node 1 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+node 1 size: 35247 MB
+node 1 free: 30907 MB
+node distances:
+node   0   1
+  0:  10  40
+  1:  40  10
+
+possible numa nodes: 0-31
+
+This only happens with a mmotm patch "mm/memcontrol.c: allocate shrinker_map on
+appropriate NUMA node" [2] which effectively calls kmalloc_node for each
+possible node. SLUB however only allocates kmem_cache_node on online
+N_NORMAL_MEMORY nodes, and relies on node_to_mem_node to return such valid node
+for other nodes since commit a561ce00b09e ("slub: fall back to
+node_to_mem_node() node if allocating on memoryless node"). This is however not
+true in this configuration where the _node_numa_mem_ array is not initialized
+for nodes 0 and 2-31, thus it contains zeroes and get_partial() ends up
+accessing non-allocated kmem_cache_node.
+
+A related issue was reported by Bharata (originally by Ramachandran) [3] where
+a similar PowerPC configuration, but with mainline kernel without patch [2]
+ends up allocating large amounts of pages by kmalloc-1k kmalloc-512. This seems
+to have the same underlying issue with node_to_mem_node() not behaving as
+expected, and might probably also lead to an infinite loop with
+CONFIG_SLUB_CPU_PARTIAL [4].
+
+This patch should fix both issues by not relying on node_to_mem_node() anymore
+and instead simply falling back to NUMA_NO_NODE, when kmalloc_node(node) is
+attempted for a node that's not online, or has no usable memory. The "usable
+memory" condition is also changed from node_present_pages() to N_NORMAL_MEMORY
+node state, as that is exactly the condition that SLUB uses to allocate
+kmem_cache_node structures. The check in get_partial() is removed completely,
+as the checks in ___slab_alloc() are now sufficient to prevent get_partial()
+being reached with an invalid node.
+
+[1] https://lore.kernel.org/linux-next/3381CD91-AB3D-4773-BA04-E7A072A63968@linux.vnet.ibm.com/
+[2] https://lore.kernel.org/linux-mm/fff0e636-4c36-ed10-281c-8cdb0687c839@virtuozzo.com/
+[3] https://lore.kernel.org/linux-mm/20200317092624.GB22538@in.ibm.com/
+[4] https://lore.kernel.org/linux-mm/088b5996-faae-8a56-ef9c-5b567125ae54@suse.cz/
+
+Link: http://lkml.kernel.org/r/20200320115533.9604-1-vbabka@suse.cz
+Fixes: a561ce00b09e ("slub: fall back to node_to_mem_node() node if allocating on memoryless node")
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Sachin Sant <sachinp@linux.vnet.ibm.com>
+Tested-by: Sachin Sant <sachinp@linux.vnet.ibm.com>
+Reported-by: PUVICHAKRAVARTHY RAMACHANDRAN <puvichakravarthy@in.ibm.com>
+Tested-by: Bharata B Rao <bharata@linux.ibm.com>
+Debugged-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Reviewed-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Nathan Lynch <nathanl@linux.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    6 ++++--
- kernel/sched/psi.c    |   12 ++++++------
- kernel/sched/stats.h  |   10 +++++-----
- 3 files changed, 15 insertions(+), 13 deletions(-)
+ mm/slub.c |   26 +++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 9 deletions(-)
 
---- a/include/linux/sched.h~psi-move-pf_memstall-out-of-task-flags
-+++ a/include/linux/sched.h
-@@ -794,9 +794,12 @@ struct task_struct {
- 	unsigned			frozen:1;
- #endif
- #ifdef CONFIG_BLK_CGROUP
--	/* to be used once the psi infrastructure lands upstream. */
- 	unsigned			use_memdelay:1;
- #endif
-+#ifdef CONFIG_PSI
-+	/* Stalled due to lack of memory */
-+	unsigned			in_memstall:1;
-+#endif
+--- a/mm/slub.c~mm-slub-prevent-kmalloc_node-crashes-and-memory-leaks
++++ a/mm/slub.c
+@@ -1973,8 +1973,6 @@ static void *get_partial(struct kmem_cac
  
- 	unsigned long			atomic_flags; /* Flags requiring atomic access. */
+ 	if (node == NUMA_NO_NODE)
+ 		searchnode = numa_mem_id();
+-	else if (!node_present_pages(node))
+-		searchnode = node_to_mem_node(node);
  
-@@ -1503,7 +1506,6 @@ extern struct pid *cad_pid;
- #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
- #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
- #define PF_SWAPWRITE		0x00800000	/* Allowed to write to swap */
--#define PF_MEMSTALL		0x01000000	/* Stalled due to lack of memory */
- #define PF_UMH			0x02000000	/* I'm an Usermodehelper process */
- #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
- #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
---- a/kernel/sched/psi.c~psi-move-pf_memstall-out-of-task-flags
-+++ a/kernel/sched/psi.c
-@@ -818,17 +818,17 @@ void psi_memstall_enter(unsigned long *f
- 	if (static_branch_likely(&psi_disabled))
- 		return;
+ 	object = get_partial_node(s, get_node(s, searchnode), c, flags);
+ 	if (object || node != NUMA_NO_NODE)
+@@ -2563,17 +2561,27 @@ static void *___slab_alloc(struct kmem_c
+ 	struct page *page;
  
--	*flags = current->flags & PF_MEMSTALL;
-+	*flags = current->in_memstall;
- 	if (*flags)
- 		return;
- 	/*
--	 * PF_MEMSTALL setting & accounting needs to be atomic wrt
-+	 * in_memstall setting & accounting needs to be atomic wrt
- 	 * changes to the task's scheduling state, otherwise we can
- 	 * race with CPU migration.
- 	 */
- 	rq = this_rq_lock_irq(&rf);
+ 	page = c->page;
+-	if (!page)
++	if (!page) {
++		/*
++		 * if the node is not online or has no normal memory, just
++		 * ignore the node constraint
++		 */
++		if (unlikely(node != NUMA_NO_NODE &&
++			     !node_state(node, N_NORMAL_MEMORY)))
++			node = NUMA_NO_NODE;
+ 		goto new_slab;
++	}
+ redo:
  
--	current->flags |= PF_MEMSTALL;
-+	current->in_memstall = 1;
- 	psi_task_change(current, 0, TSK_MEMSTALL);
- 
- 	rq_unlock_irq(rq, &rf);
-@@ -851,13 +851,13 @@ void psi_memstall_leave(unsigned long *f
- 	if (*flags)
- 		return;
- 	/*
--	 * PF_MEMSTALL clearing & accounting needs to be atomic wrt
-+	 * in_memstall clearing & accounting needs to be atomic wrt
- 	 * changes to the task's scheduling state, otherwise we could
- 	 * race with CPU migration.
- 	 */
- 	rq = this_rq_lock_irq(&rf);
- 
--	current->flags &= ~PF_MEMSTALL;
-+	current->in_memstall = 0;
- 	psi_task_change(current, TSK_MEMSTALL, 0);
- 
- 	rq_unlock_irq(rq, &rf);
-@@ -921,7 +921,7 @@ void cgroup_move_task(struct task_struct
- 	else if (task->in_iowait)
- 		task_flags = TSK_IOWAIT;
- 
--	if (task->flags & PF_MEMSTALL)
-+	if (task->in_memstall)
- 		task_flags |= TSK_MEMSTALL;
- 
- 	if (task_flags)
---- a/kernel/sched/stats.h~psi-move-pf_memstall-out-of-task-flags
-+++ a/kernel/sched/stats.h
-@@ -70,7 +70,7 @@ static inline void psi_enqueue(struct ta
- 		return;
- 
- 	if (!wakeup || p->sched_psi_wake_requeue) {
--		if (p->flags & PF_MEMSTALL)
-+		if (p->in_memstall)
- 			set |= TSK_MEMSTALL;
- 		if (p->sched_psi_wake_requeue)
- 			p->sched_psi_wake_requeue = 0;
-@@ -90,7 +90,7 @@ static inline void psi_dequeue(struct ta
- 		return;
- 
- 	if (!sleep) {
--		if (p->flags & PF_MEMSTALL)
-+		if (p->in_memstall)
- 			clear |= TSK_MEMSTALL;
- 	} else {
- 		if (p->in_iowait)
-@@ -109,14 +109,14 @@ static inline void psi_ttwu_dequeue(stru
- 	 * deregister its sleep-persistent psi states from the old
- 	 * queue, and let psi_enqueue() know it has to requeue.
- 	 */
--	if (unlikely(p->in_iowait || (p->flags & PF_MEMSTALL))) {
-+	if (unlikely(p->in_iowait || p->in_memstall)) {
- 		struct rq_flags rf;
- 		struct rq *rq;
- 		int clear = 0;
- 
- 		if (p->in_iowait)
- 			clear |= TSK_IOWAIT;
--		if (p->flags & PF_MEMSTALL)
-+		if (p->in_memstall)
- 			clear |= TSK_MEMSTALL;
- 
- 		rq = __task_rq_lock(p, &rf);
-@@ -131,7 +131,7 @@ static inline void psi_task_tick(struct
- 	if (static_branch_likely(&psi_disabled))
- 		return;
- 
--	if (unlikely(rq->curr->flags & PF_MEMSTALL))
-+	if (unlikely(rq->curr->in_memstall))
- 		psi_memstall_tick(rq->curr, cpu_of(rq));
- }
- #else /* CONFIG_PSI */
-_
-
-Patches currently in -mm which might be from laoar.shao@gmail.com are
-
-mm-memcg-fix-build-error-around-the-usage-of-kmem_caches.patch
+ 	if (unlikely(!node_match(page, node))) {
+-		int searchnode = node;
+-
+-		if (node != NUMA_NO_NODE && !node_present_pages(node))
+-			searchnode = node_to_mem_node(node);
