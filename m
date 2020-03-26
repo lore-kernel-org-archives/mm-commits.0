@@ -1,29 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mempolicy-require-at-least-one-nodeid-for-mpol_preferred.patch added to
- -mm tree
-Date: Wed, 25 Mar 2020 17:52:27 -0700
-Message-ID: <20200326005227.pxcWTawbT%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 26 Mar 2020 11:15:31 -0700
+Message-ID: <20200326181531.7K7vEX0xm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50898 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59576 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727539AbgCZAw2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 25 Mar 2020 20:52:28 -0400
+        id S1726363AbgCZSPd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 26 Mar 2020 14:15:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 3ntr0py1337@gmail.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mempolicy: require at least one nodeid for MPOL_PREFERRED
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-require-at-least-one-nodeid-for-mpol_preferred.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-require-at-least-one-nodeid-for-mpol_preferred.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-require-at-least-one-nodeid-for-mpol_preferred.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,56 +35,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: mempolicy: require at least one nodeid for MPOL_PREFERRED
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Using an empty (malformed) nodelist that is not caught during mount option
-parsing leads to a stack-out-of-bounds access.
-
-The option string that was used was: "mpol=prefer:,".  However,
-MPOL_PREFERRED requires a single node number, which is not being provided
-here.
-
-Add a check that 'nodes' is not empty after parsing for MPOL_PREFERRED's
-nodeid.
-
-Link: http://lkml.kernel.org/r/89526377-7eb6-b662-e1d8-4430928abde9@infradead.org
-Fixes: 095f1fc4ebf3 ("mempolicy: rework shmem mpol parsing and display")
-Reported-by: Entropy Moe <3ntr0py1337@gmail.com>
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/amazon/ena/ena_netdev.c  |    6 ----
+ drivers/net/macsec.c                          |    3 --
+ drivers/net/wireless/intel/iwlwifi/pcie/drv.c |   22 ----------------
+ tools/testing/selftests/net/Makefile          |    3 --
+ 4 files changed, 34 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-require-at-least-one-nodeid-for-mpol_preferred
-+++ a/mm/mempolicy.c
-@@ -2897,7 +2897,9 @@ int mpol_parse_str(char *str, struct mem
- 	switch (mode) {
- 	case MPOL_PREFERRED:
- 		/*
--		 * Insist on a nodelist of one node only
-+		 * Insist on a nodelist of one node only, although later
-+		 * we use first_node(nodes) to grab a single node, so here
-+		 * nodelist (or nodes) cannot be empty.
- 		 */
- 		if (nodelist) {
- 			char *rest = nodelist;
-@@ -2905,6 +2907,8 @@ int mpol_parse_str(char *str, struct mem
- 				rest++;
- 			if (*rest)
- 				goto out;
-+			if (nodes_empty(nodes))
-+				goto out;
- 		}
- 		break;
- 	case MPOL_INTERLEAVE:
+--- a/drivers/net/ethernet/amazon/ena/ena_netdev.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/amazon/ena/ena_netdev.c
+@@ -3484,13 +3484,7 @@ static int ena_restore_device(struct ena
+ 
+ 	mod_timer(&adapter->timer_service, round_jiffies(jiffies + HZ));
+ 	adapter->last_keep_alive_jiffies = jiffies;
+-<<<<<<< HEAD
+-	dev_err(&pdev->dev,
+-		"Device reset completed successfully, Driver info: %s\n",
+-		version);
+-=======
+ 	dev_err(&pdev->dev, "Device reset completed successfully\n");
+->>>>>>> linux-next/akpm-base
+ 
+ 	return rc;
+ err_disable_msix:
+--- a/drivers/net/macsec.c~linux-next-git-rejects
++++ a/drivers/net/macsec.c
+@@ -20,10 +20,7 @@
+ #include <net/macsec.h>
+ #include <linux/phy.h>
+ #include <linux/if_arp.h>
+-<<<<<<< HEAD
+-=======
+ #include <linux/byteorder/generic.h>
+->>>>>>> linux-next/akpm-base
+ 
+ #include <uapi/linux/if_macsec.h>
+ 
+--- a/drivers/net/wireless/intel/iwlwifi/pcie/drv.c~linux-next-git-rejects
++++ a/drivers/net/wireless/intel/iwlwifi/pcie/drv.c
+@@ -819,27 +819,6 @@ MODULE_DEVICE_TABLE(pci, iwl_hw_card_ids
+ 
+ static const struct iwl_dev_info iwl_dev_info_table[] = {
+ #if IS_ENABLED(CONFIG_IWLMVM)
+-<<<<<<< HEAD
+-	IWL_DEV_INFO(0x2526, 0x0010, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0x0014, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0x0018, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0x001C, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0x4010, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0x4018, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0x401C, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0x6010, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0x6014, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0x8014, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0x8010, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0xA014, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0xE010, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-	IWL_DEV_INFO(0x2526, 0xE014, iwl9260_2ac_160_cfg, iwl9260_160_name),
+-
+-	IWL_DEV_INFO(0x2526, 0x0030, iwl9560_2ac_160_cfg, iwl9560_160_name),
+-	IWL_DEV_INFO(0x2526, 0x0038, iwl9560_2ac_160_cfg, iwl9560_160_name),
+-	IWL_DEV_INFO(0x2526, 0x003C, iwl9560_2ac_160_cfg, iwl9560_160_name),
+-	IWL_DEV_INFO(0x2526, 0x4030, iwl9560_2ac_160_cfg, iwl9560_160_name),
+-=======
+ /* 9000 */
+ 	IWL_DEV_INFO(0x2526, 0x1550, iwl9260_2ac_cfg, iwl9260_killer_1550_name),
+ 	IWL_DEV_INFO(0x2526, 0x1551, iwl9560_2ac_cfg_soc, iwl9560_killer_1550s_name),
+@@ -961,7 +940,6 @@ static const struct iwl_dev_info iwl_dev
+ 	IWL_DEV_INFO(0x2723, 0x1654, iwl_ax200_cfg_cc, iwl_ax200_killer_1650x_name),
+ 	IWL_DEV_INFO(0x2723, IWL_CFG_ANY, iwl_ax200_cfg_cc, iwl_ax200_name),
+ 
+->>>>>>> linux-next/akpm-base
+ #endif /* CONFIG_IWLMVM */
+ };
+ 
+--- a/tools/testing/selftests/net/Makefile~linux-next-git-rejects
++++ a/tools/testing/selftests/net/Makefile
+@@ -14,10 +14,7 @@ TEST_PROGS += tcp_fastopen_backup_key.sh
+ TEST_PROGS += fin_ack_lat.sh fib_nexthop_multiprefix.sh fib_nexthops.sh
+ TEST_PROGS += altnames.sh icmp_redirect.sh ip6_gre_headroom.sh
+ TEST_PROGS += route_localnet.sh
+-<<<<<<< HEAD
+-=======
+ TEST_PROGS += reuseaddr_ports_exhausted.sh
+->>>>>>> linux-next/akpm-base
+ TEST_PROGS_EXTENDED := in_netns.sh
+ TEST_GEN_FILES =  socket nettest
+ TEST_GEN_FILES += psock_fanout psock_tpacket msg_zerocopy reuseport_addr_any
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mempolicy-require-at-least-one-nodeid-for-mpol_preferred.patch
-mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t.patch
-bus-mhi-fix-printk-format-for-size_t.patch
+drivers-infiniband-sw-siw-siw_qp_rxc-suppress-uninitialized-var-warning.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-gup-track-foll_pin-pages-fix-2-fix.patch
+mm-swap-make-page_evictable-inline-fix.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
+proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
