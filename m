@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-vm_fault-error-code-directly.patch added to -mm
+Subject: +
+ mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch added to -mm
  tree
-Date: Wed, 25 Mar 2020 17:38:32 -0700
-Message-ID: <20200326003832.mmNfL3W3A%akpm@linux-foundation.org>
+Date: Wed, 25 Mar 2020 17:38:39 -0700
+Message-ID: <20200326003839.cDNaHS1pV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47158 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47200 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727536AbgCZAif (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 25 Mar 2020 20:38:35 -0400
+        id S1727536AbgCZAil (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 25 Mar 2020 20:38:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, hch@lst.de, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, willy@infradead.org
+To: aneesh.kumar@linux.ibm.com, bhe@redhat.com, dan.j.williams@intel.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, pankaj.gupta.linux@gmail.com, richardw.yang@linux.intel.com, rppt@linux.ibm.com, sachinp@linux.vnet.ibm.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap.c: use vm_fault error code directly
+     Subject: mm/sparse: fix kernel crash with pfn_section_valid check
 has been added to the -mm tree.  Its filename is
-     mm-use-vm_fault-error-code-directly.patch
+     mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-vm_fault-error-code-directly.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-vm_fault-error-code-directly.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,50 +37,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/filemap.c: use vm_fault error code directly
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/sparse: fix kernel crash with pfn_section_valid check
 
-Use VM_FAULT_OOM instead of indirecting through vmf_error(-ENOMEM).
+Fixes the below crash
 
-Link: http://lkml.kernel.org/r/20200318140253.6141-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+BUG: Kernel NULL pointer dereference on read at 0x00000000
+Faulting instruction address: 0xc000000000c3447c
+Oops: Kernel access of bad area, sig: 11 [#1]
+LE PAGE_SIZE=64K MMU=Hash SMP NR_CPUS=2048 NUMA pSeries
+CPU: 11 PID: 7519 Comm: lt-ndctl Not tainted 5.6.0-rc7-autotest #1
+...
+NIP [c000000000c3447c] vmemmap_populated+0x98/0xc0
+LR [c000000000088354] vmemmap_free+0x144/0x320
+Call Trace:
+ section_deactivate+0x220/0x240
+ __remove_pages+0x118/0x170
+ arch_remove_memory+0x3c/0x150
+ memunmap_pages+0x1cc/0x2f0
+ devm_action_release+0x30/0x50
+ release_nodes+0x2f8/0x3e0
+ device_release_driver_internal+0x168/0x270
+ unbind_store+0x130/0x170
+ drv_attr_store+0x44/0x60
+ sysfs_kf_write+0x68/0x80
+ kernfs_fop_write+0x100/0x290
+ __vfs_write+0x3c/0x70
+ vfs_write+0xcc/0x240
+ ksys_write+0x7c/0x140
+ system_call+0x5c/0x68
+
+With commit: d41e2f3bd546 ("mm/hotplug: fix hot remove failure in
+SPARSEMEM|!VMEMMAP case") section_mem_map is set to NULL after
+depopulate_section_mem().  This was done so that pfn_page() can work
+correctly with kernel config that disables SPARSEMEM_VMEMMAP.  With that
+config pfn_to_page does
+
+	__section_mem_map_addr(__sec) + __pfn;
+where
+
+static inline struct page *__section_mem_map_addr(struct mem_section *section)
+{
+	unsigned long map = section->section_mem_map;
+	map &= SECTION_MAP_MASK;
+	return (struct page *)map;
+}
+
+Now with SPASEMEM_VMEMAP enabled, mem_section->usage->subsection_map is
+used to check the pfn validity (pfn_valid()).  Since section_deactivate
+release mem_section->usage if a section is fully deactivated, pfn_valid()
+check after a subsection_deactivate cause a kernel crash.
+
+static inline int pfn_valid(unsigned long pfn)
+{
+...
+	return early_section(ms) || pfn_section_valid(ms, pfn);
+}
+
+where
+
+static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
+{
+	int idx = subsection_map_index(pfn);
+
+	return test_bit(idx, ms->usage->subsection_map);
+}
+
+Avoid this by clearing SECTION_HAS_MEM_MAP when mem_section->usage is freed.
+
+Link: http://lkml.kernel.org/r/20200325031914.107660-1-aneesh.kumar@linux.ibm.com
+Fixes: d41e2f3bd546 ("mm/hotplug: fix hot remove failure in SPARSEMEM|!VMEMMAP case")
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reported-by: Sachin Sant <sachinp@linux.vnet.ibm.com>
+Tested-by: Sachin Sant <sachinp@linux.vnet.ibm.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/sparse.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/filemap.c~mm-use-vm_fault-error-code-directly
-+++ a/mm/filemap.c
-@@ -2490,7 +2490,7 @@ retry_find:
- 		if (!page) {
- 			if (fpin)
- 				goto out_retry;
--			return vmf_error(-ENOMEM);
-+			return VM_FAULT_OOM;
+--- a/mm/sparse.c~mm-sparse-fix-kernel-crash-with-pfn_section_valid-check
++++ a/mm/sparse.c
+@@ -781,6 +781,8 @@ static void section_deactivate(unsigned
+ 			ms->usage = NULL;
  		}
+ 		memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
++		/* Mark the section invalid */
++		ms->section_mem_map &= ~SECTION_HAS_MEM_MAP;
  	}
  
+ 	if (section_is_early && memmap)
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-mm-use-vm_fault-error-code-directly.patch
-mm-rename-arguments-to-find_subpage.patch
-mm-use-vm_bug_on_page-in-clear_page_dirty_for_io.patch
-mm-unexport-find_get_entry.patch
-mm-rewrite-pagecache_get_page-documentation.patch
-mm-improve-dump_page-for-compound-pages.patch
-mm-add-pagemaph-to-the-fine-documentation.patch
-mm-check-pagetail-in-hpage_nr_pages-even-when-thp.patch
-mm-optimise-find_subpage-for-thp.patch
-mm-remove-config_transparent_huge_pagecache.patch
-proc-inline-vma_stop-into-m_stop.patch
-proc-remove-m_cache_vma.patch
-proc-use-ppos-instead-of-m-version.patch
-seq_file-remove-m-version.patch
-proc-inline-m_next_vma-into-m_next.patch
+mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch
