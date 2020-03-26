@@ -1,224 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mm-split-vmalloc_sync_all.patch removed from
- -mm tree
-Date: Thu, 26 Mar 2020 11:16:19 -0700
-Message-ID: <20200326181619.BFGn3EQSE%akpm@linux-foundation.org>
+Subject: [merged] psi-move-pf_memstall-out-of-task-flags.patch
+ removed from -mm tree
+Date: Thu, 26 Mar 2020 11:16:22 -0700
+Message-ID: <20200326181622.XTACDRyZb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60082 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727719AbgCZSQV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 26 Mar 2020 14:16:21 -0400
+        id S1727719AbgCZSQX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 26 Mar 2020 14:16:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@suse.de, dave.hansen@linux.intel.com, jroedel@suse.de, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, oliver.sang@intel.com, peterz@infradead.org, rafael.j.wysocki@intel.com, shile.zhang@linux.alibaba.com, stable@vger.kernel.org, tglx@linutronix.de
+To: hannes@cmpxchg.org, laoar.shao@gmail.com, mm-commits@vger.kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: x86/mm: split vmalloc_sync_all()
+     Subject: psi: move PF_MEMSTALL out of task->flags
 has been removed from the -mm tree.  Its filename was
-     x86-mm-split-vmalloc_sync_all.patch
+     psi-move-pf_memstall-out-of-task-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joerg Roedel <jroedel@suse.de>
-Subject: x86/mm: split vmalloc_sync_all()
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: psi: move PF_MEMSTALL out of task->flags
 
-Commit 3f8fd02b1bf1 ("mm/vmalloc: Sync unmappings in
-__purge_vmap_area_lazy()") introduced a call to vmalloc_sync_all() in the
-vunmap() code-path.  While this change was necessary to maintain
-correctness on x86-32-pae kernels, it also adds additional cycles for
-architectures that don't need it.
+The task->flags is a 32-bits flag, in which 31 bits have already been
+consumed.  So it is hard to introduce other new per process flag. 
+Currently there're still enough spaces in the bit-field section of
+task_struct, so we can define the memstall state as a single bit in
+task_struct instead.
 
-Specifically on x86-64 with CONFIG_VMAP_STACK=y some people reported
-severe performance regressions in micro-benchmarks because it now also
-calls the x86-64 implementation of vmalloc_sync_all() on vunmap().  But
-the vmalloc_sync_all() implementation on x86-64 is only needed for newly
-created mappings.
+This patch also removes an out-of-date comment pointed out by Matthew.
 
-To avoid the unnecessary work on x86-64 and to gain the performance back,
-split up vmalloc_sync_all() into two functions:
-
-	* vmalloc_sync_mappings(), and
-	* vmalloc_sync_unmappings()
-
-Most call-sites to vmalloc_sync_all() only care about new mappings being
-synchronized.  The only exception is the new call-site added in the above
-mentioned commit.
-
-Shile Zhang directed us to a report of an 80% regression in reaim
-throughput.
-
-Link: http://lkml.kernel.org/r/20191009124418.8286-1-joro@8bytes.org
-Link: https://lists.01.org/hyperkitty/list/lkp@lists.01.org/thread/4D3JPPHBNOSPFK2KEPC6KGKS6J25AIDB/
-Link: http://lkml.kernel.org/r/20191113095530.228959-1-shile.zhang@linux.alibaba.com
-Fixes: 3f8fd02b1bf1 ("mm/vmalloc: Sync unmappings in __purge_vmap_area_lazy()")
-Signed-off-by: Joerg Roedel <jroedel@suse.de>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Reported-by: Shile Zhang <shile.zhang@linux.alibaba.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>	[GHES]
-Tested-by: Borislav Petkov <bp@suse.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1584408485-1921-1-git-send-email-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c      |   26 ++++++++++++++++++++++++--
- drivers/acpi/apei/ghes.c |    2 +-
- include/linux/vmalloc.h  |    5 +++--
- kernel/notifier.c        |    2 +-
- mm/nommu.c               |   10 +++++++---
- mm/vmalloc.c             |   11 +++++++----
- 6 files changed, 43 insertions(+), 13 deletions(-)
+ include/linux/sched.h |    6 ++++--
+ kernel/sched/psi.c    |   12 ++++++------
+ kernel/sched/stats.h  |   10 +++++-----
+ 3 files changed, 15 insertions(+), 13 deletions(-)
 
---- a/arch/x86/mm/fault.c~x86-mm-split-vmalloc_sync_all
-+++ a/arch/x86/mm/fault.c
-@@ -190,7 +190,7 @@ static inline pmd_t *vmalloc_sync_one(pg
- 	return pmd_k;
- }
+--- a/include/linux/sched.h~psi-move-pf_memstall-out-of-task-flags
++++ a/include/linux/sched.h
+@@ -794,9 +794,12 @@ struct task_struct {
+ 	unsigned			frozen:1;
+ #endif
+ #ifdef CONFIG_BLK_CGROUP
+-	/* to be used once the psi infrastructure lands upstream. */
+ 	unsigned			use_memdelay:1;
+ #endif
++#ifdef CONFIG_PSI
++	/* Stalled due to lack of memory */
++	unsigned			in_memstall:1;
++#endif
  
--void vmalloc_sync_all(void)
-+static void vmalloc_sync(void)
- {
- 	unsigned long address;
+ 	unsigned long			atomic_flags; /* Flags requiring atomic access. */
  
-@@ -217,6 +217,16 @@ void vmalloc_sync_all(void)
- 	}
- }
+@@ -1503,7 +1506,6 @@ extern struct pid *cad_pid;
+ #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
+ #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
+ #define PF_SWAPWRITE		0x00800000	/* Allowed to write to swap */
+-#define PF_MEMSTALL		0x01000000	/* Stalled due to lack of memory */
+ #define PF_UMH			0x02000000	/* I'm an Usermodehelper process */
+ #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
+ #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
+--- a/kernel/sched/psi.c~psi-move-pf_memstall-out-of-task-flags
++++ a/kernel/sched/psi.c
+@@ -818,17 +818,17 @@ void psi_memstall_enter(unsigned long *f
+ 	if (static_branch_likely(&psi_disabled))
+ 		return;
  
-+void vmalloc_sync_mappings(void)
-+{
-+	vmalloc_sync();
-+}
-+
-+void vmalloc_sync_unmappings(void)
-+{
-+	vmalloc_sync();
-+}
-+
- /*
-  * 32-bit:
-  *
-@@ -319,11 +329,23 @@ out:
- 
- #else /* CONFIG_X86_64: */
- 
--void vmalloc_sync_all(void)
-+void vmalloc_sync_mappings(void)
- {
-+	/*
-+	 * 64-bit mappings might allocate new p4d/pud pages
-+	 * that need to be propagated to all tasks' PGDs.
-+	 */
- 	sync_global_pgds(VMALLOC_START & PGDIR_MASK, VMALLOC_END);
- }
- 
-+void vmalloc_sync_unmappings(void)
-+{
-+	/*
-+	 * Unmappings never allocate or free p4d/pud pages.
-+	 * No work is required here.
-+	 */
-+}
-+
- /*
-  * 64-bit:
-  *
---- a/drivers/acpi/apei/ghes.c~x86-mm-split-vmalloc_sync_all
-+++ a/drivers/acpi/apei/ghes.c
-@@ -171,7 +171,7 @@ int ghes_estatus_pool_init(int num_ghes)
- 	 * New allocation must be visible in all pgd before it can be found by
- 	 * an NMI allocating from the pool.
- 	 */
--	vmalloc_sync_all();
-+	vmalloc_sync_mappings();
- 
- 	rc = gen_pool_add(ghes_estatus_pool, addr, PAGE_ALIGN(len), -1);
- 	if (rc)
---- a/include/linux/vmalloc.h~x86-mm-split-vmalloc_sync_all
-+++ a/include/linux/vmalloc.h
-@@ -141,8 +141,9 @@ extern int remap_vmalloc_range_partial(s
- 
- extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
- 							unsigned long pgoff);
--void vmalloc_sync_all(void);
-- 
-+void vmalloc_sync_mappings(void);
-+void vmalloc_sync_unmappings(void);
-+
- /*
-  *	Lowlevel-APIs (not for driver use!)
-  */
---- a/kernel/notifier.c~x86-mm-split-vmalloc_sync_all
-+++ a/kernel/notifier.c
-@@ -519,7 +519,7 @@ NOKPROBE_SYMBOL(notify_die);
- 
- int register_die_notifier(struct notifier_block *nb)
- {
--	vmalloc_sync_all();
-+	vmalloc_sync_mappings();
- 	return atomic_notifier_chain_register(&die_chain, nb);
- }
- EXPORT_SYMBOL_GPL(register_die_notifier);
---- a/mm/nommu.c~x86-mm-split-vmalloc_sync_all
-+++ a/mm/nommu.c
-@@ -370,10 +370,14 @@ void vm_unmap_aliases(void)
- EXPORT_SYMBOL_GPL(vm_unmap_aliases);
- 
- /*
-- * Implement a stub for vmalloc_sync_all() if the architecture chose not to
-- * have one.
-+ * Implement a stub for vmalloc_sync_[un]mapping() if the architecture
-+ * chose not to have one.
-  */
--void __weak vmalloc_sync_all(void)
-+void __weak vmalloc_sync_mappings(void)
-+{
-+}
-+
-+void __weak vmalloc_sync_unmappings(void)
- {
- }
- 
---- a/mm/vmalloc.c~x86-mm-split-vmalloc_sync_all
-+++ a/mm/vmalloc.c
-@@ -1295,7 +1295,7 @@ static bool __purge_vmap_area_lazy(unsig
- 	 * First make sure the mappings are removed from all page-tables
- 	 * before they are freed.
- 	 */
--	vmalloc_sync_all();
-+	vmalloc_sync_unmappings();
- 
+-	*flags = current->flags & PF_MEMSTALL;
++	*flags = current->in_memstall;
+ 	if (*flags)
+ 		return;
  	/*
- 	 * TODO: to calculate a flush range without looping.
-@@ -3128,16 +3128,19 @@ int remap_vmalloc_range(struct vm_area_s
- EXPORT_SYMBOL(remap_vmalloc_range);
+-	 * PF_MEMSTALL setting & accounting needs to be atomic wrt
++	 * in_memstall setting & accounting needs to be atomic wrt
+ 	 * changes to the task's scheduling state, otherwise we can
+ 	 * race with CPU migration.
+ 	 */
+ 	rq = this_rq_lock_irq(&rf);
  
- /*
-- * Implement a stub for vmalloc_sync_all() if the architecture chose not to
-- * have one.
-+ * Implement stubs for vmalloc_sync_[un]mappings () if the architecture chose
-+ * not to have one.
-  *
-  * The purpose of this function is to make sure the vmalloc area
-  * mappings are identical in all page-tables in the system.
-  */
--void __weak vmalloc_sync_all(void)
-+void __weak vmalloc_sync_mappings(void)
- {
+-	current->flags |= PF_MEMSTALL;
++	current->in_memstall = 1;
+ 	psi_task_change(current, 0, TSK_MEMSTALL);
+ 
+ 	rq_unlock_irq(rq, &rf);
+@@ -851,13 +851,13 @@ void psi_memstall_leave(unsigned long *f
+ 	if (*flags)
+ 		return;
+ 	/*
+-	 * PF_MEMSTALL clearing & accounting needs to be atomic wrt
++	 * in_memstall clearing & accounting needs to be atomic wrt
+ 	 * changes to the task's scheduling state, otherwise we could
+ 	 * race with CPU migration.
+ 	 */
+ 	rq = this_rq_lock_irq(&rf);
+ 
+-	current->flags &= ~PF_MEMSTALL;
++	current->in_memstall = 0;
+ 	psi_task_change(current, TSK_MEMSTALL, 0);
+ 
+ 	rq_unlock_irq(rq, &rf);
+@@ -921,7 +921,7 @@ void cgroup_move_task(struct task_struct
+ 	else if (task->in_iowait)
+ 		task_flags = TSK_IOWAIT;
+ 
+-	if (task->flags & PF_MEMSTALL)
++	if (task->in_memstall)
+ 		task_flags |= TSK_MEMSTALL;
+ 
+ 	if (task_flags)
+--- a/kernel/sched/stats.h~psi-move-pf_memstall-out-of-task-flags
++++ a/kernel/sched/stats.h
+@@ -70,7 +70,7 @@ static inline void psi_enqueue(struct ta
+ 		return;
+ 
+ 	if (!wakeup || p->sched_psi_wake_requeue) {
+-		if (p->flags & PF_MEMSTALL)
++		if (p->in_memstall)
+ 			set |= TSK_MEMSTALL;
+ 		if (p->sched_psi_wake_requeue)
+ 			p->sched_psi_wake_requeue = 0;
+@@ -90,7 +90,7 @@ static inline void psi_dequeue(struct ta
+ 		return;
+ 
+ 	if (!sleep) {
+-		if (p->flags & PF_MEMSTALL)
++		if (p->in_memstall)
+ 			clear |= TSK_MEMSTALL;
+ 	} else {
+ 		if (p->in_iowait)
+@@ -109,14 +109,14 @@ static inline void psi_ttwu_dequeue(stru
+ 	 * deregister its sleep-persistent psi states from the old
+ 	 * queue, and let psi_enqueue() know it has to requeue.
+ 	 */
+-	if (unlikely(p->in_iowait || (p->flags & PF_MEMSTALL))) {
++	if (unlikely(p->in_iowait || p->in_memstall)) {
+ 		struct rq_flags rf;
+ 		struct rq *rq;
+ 		int clear = 0;
+ 
+ 		if (p->in_iowait)
+ 			clear |= TSK_IOWAIT;
+-		if (p->flags & PF_MEMSTALL)
++		if (p->in_memstall)
+ 			clear |= TSK_MEMSTALL;
+ 
+ 		rq = __task_rq_lock(p, &rf);
+@@ -131,7 +131,7 @@ static inline void psi_task_tick(struct
+ 	if (static_branch_likely(&psi_disabled))
+ 		return;
+ 
+-	if (unlikely(rq->curr->flags & PF_MEMSTALL))
++	if (unlikely(rq->curr->in_memstall))
+ 		psi_memstall_tick(rq->curr, cpu_of(rq));
  }
- 
-+void __weak vmalloc_sync_unmappings(void)
-+{
-+}
- 
- static int f(pte_t *pte, unsigned long addr, void *data)
- {
+ #else /* CONFIG_PSI */
 _
 
-Patches currently in -mm which might be from jroedel@suse.de are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
+
+mm-memcg-fix-build-error-around-the-usage-of-kmem_caches.patch
