@@ -1,31 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- =?US-ASCII?Q?mm-memory=5Fhotplug-allow-arch-override-of-non-boot-memory-?=
- =?US-ASCII?Q?resource-names.patch?= added to -mm tree
-Date: Thu, 26 Mar 2020 12:28:06 -0700
-Message-ID: <20200326192806.jJRzNUYSH%akpm@linux-foundation.org>
+ arm64-memory-give-hotplug-memory-a-different-resource-name.patch added to
+ -mm tree
+Date: Thu, 26 Mar 2020 12:28:09 -0700
+Message-ID: <20200326192809.ThpX5QZOK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53818 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53862 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727354AbgCZT2J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 26 Mar 2020 15:28:09 -0400
+        id S1726067AbgCZT2M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 26 Mar 2020 15:28:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anshuman.khandual@arm.com, bhsharma@redhat.com, catalin.marinas@arm.com, david@redhat.com, ebiederm@xmission.com, james.morse@arm.com, mm-commits@vger.kernel.org, will@kernel.org
+To: anshuman.khandual@arm.com, bhsharma@redhat.com, catalin.marinas@arm.com, david@redhat.com, ebiederm@xmission.com, james.morse@arm.com, mm-commits@vger.kernel.org, will@kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: allow arch override of non boot memory resource names
+     Subject: arm64: memory: give hotplug memory a different resource name
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names.patch
+     arm64-memory-give-hotplug-memory-a-different-resource-name.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-memory-give-hotplug-memory-a-different-resource-name.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-memory-give-hotplug-memory-a-different-resource-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,27 +38,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: James Morse <james.morse@arm.com>
-Subject: mm/memory_hotplug: allow arch override of non boot memory resource names
+Subject: arm64: memory: give hotplug memory a different resource name
 
-Memory added to the system by hotplug has a 'System RAM' resource created
-for it.  This is exposed to user-space via /proc/iomem.
+If kexec chooses to place the kernel in a memory region that was added
+after boot, we fail to boot as the kernel is running from a location that
+is not described as memory by the UEFI memory map or the original DT.
 
-This poses problems for kexec on arm64.  If kexec decides to place the
-kernel in one of these newly onlined regions, the new kernel will find
-itself booting from a region not described as memory in the firmware
-tables.
+To prevent unaware user-space kexec from doing this accidentally, give
+these regions a different name.
 
-Arm64 doesn't have a structure like the e820 memory map that can be
-re-written when memory is brought online.  Instead arm64 uses the UEFI
-memory map, or the memory node from the DT, sometimes both.  We never
-rewrite these.
-
-Allow an architecture to specify a different name for these hotplug
-regions.
-
-Link: http://lkml.kernel.org/r/20200326180730.4754-3-james.morse@arm.com
+Link: http://lkml.kernel.org/r/20200326180730.4754-4-james.morse@arm.com
 Signed-off-by: James Morse <james.morse@arm.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Bhupesh Sharma <bhsharma@redhat.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -70,31 +58,29 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/arm64/include/asm/memory.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names
-+++ a/mm/memory_hotplug.c
-@@ -42,6 +42,10 @@
- #include "internal.h"
- #include "shuffle.h"
+--- a/arch/arm64/include/asm/memory.h~arm64-memory-give-hotplug-memory-a-different-resource-name
++++ a/arch/arm64/include/asm/memory.h
+@@ -166,6 +166,17 @@
+ #define IOREMAP_MAX_ORDER	(PMD_SHIFT)
+ #endif
  
-+#ifndef MEMORY_HOTPLUG_RES_NAME
-+#define MEMORY_HOTPLUG_RES_NAME "System RAM"
-+#endif
++/*
++ * Memory hotplug allows new regions of 'System RAM' to be added to the system.
++ * These aren't described as memory by the UEFI memory map, or DT memory node.
++ * If we kexec from one of these regions, the new kernel boots from a location
++ * that isn't described as RAM.
++ *
++ * Give these resources a different name, so unaware kexec doesn't do this by
++ * accident.
++ */
++#define MEMORY_HOTPLUG_RES_NAME "System RAM (hotplug)"
 +
- /*
-  * online_page_callback contains pointer to current page onlining function.
-  * Initially it is generic_online_page(). If it is required it could be
-@@ -102,7 +106,7 @@ static struct resource *register_memory_
- {
- 	struct resource *res;
- 	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
--	char *resource_name = "System RAM";
-+	char *resource_name = MEMORY_HOTPLUG_RES_NAME;
- 
- 	/*
- 	 * Make sure value parsed from 'mem=' only restricts memory adding
+ #ifndef __ASSEMBLY__
+ extern u64			vabits_actual;
+ #define PAGE_END		(_PAGE_END(vabits_actual))
 _
 
 Patches currently in -mm which might be from james.morse@arm.com are
