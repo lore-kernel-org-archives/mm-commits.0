@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-clean-up-several-indentation-issues.patch
- added to -mm tree
-Date: Wed, 25 Mar 2020 17:32:00 -0700
-Message-ID: <20200326003200.QYjAXpwy_%akpm@linux-foundation.org>
+Subject: +
+ mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch added to -mm
+ tree
+Date: Wed, 25 Mar 2020 17:35:25 -0700
+Message-ID: <20200326003525.vdqmoGKAf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44484 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45604 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727550AbgCZAcD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 25 Mar 2020 20:32:03 -0400
+        id S1727536AbgCZAf2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 25 Mar 2020 20:35:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.ibm.com, bhe@redhat.com, dan.j.williams@intel.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, sachinp@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: reiserfs: clean up several indentation issues
+     Subject: mm/sparse: fix kernel crash with pfn_section_valid check
 has been added to the -mm tree.  Its filename is
-     reiserfs-clean-up-several-indentation-issues.patch
+     mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/reiserfs-clean-up-several-indentation-issues.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/reiserfs-clean-up-several-indentation-issues.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,83 +37,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: reiserfs: clean up several indentation issues
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/sparse: fix kernel crash with pfn_section_valid check
 
-There are several places where code is indented incorrectly. Fix these.
+Fixes the below crash
 
-Link: http://lkml.kernel.org/r/20200325135018.113431-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+BUG: Kernel NULL pointer dereference on read at 0x00000000
+Faulting instruction address: 0xc000000000c3447c
+Oops: Kernel access of bad area, sig: 11 [#1]
+LE PAGE_SIZE=64K MMU=Hash SMP NR_CPUS=2048 NUMA pSeries
+CPU: 11 PID: 7519 Comm: lt-ndctl Not tainted 5.6.0-rc7-autotest #1
+...
+NIP [c000000000c3447c] vmemmap_populated+0x98/0xc0
+LR [c000000000088354] vmemmap_free+0x144/0x320
+Call Trace:
+ section_deactivate+0x220/0x240
+ __remove_pages+0x118/0x170
+ arch_remove_memory+0x3c/0x150
+ memunmap_pages+0x1cc/0x2f0
+ devm_action_release+0x30/0x50
+ release_nodes+0x2f8/0x3e0
+ device_release_driver_internal+0x168/0x270
+ unbind_store+0x130/0x170
+ drv_attr_store+0x44/0x60
+ sysfs_kf_write+0x68/0x80
+ kernfs_fop_write+0x100/0x290
+ __vfs_write+0x3c/0x70
+ vfs_write+0xcc/0x240
+ ksys_write+0x7c/0x140
+ system_call+0x5c/0x68
+
+With commit: d41e2f3bd546 ("mm/hotplug: fix hot remove failure in
+SPARSEMEM|!VMEMMAP case") section_mem_map is set to NULL after
+depopulate_section_mem().  This was done so that pfn_page() can work
+correctly with kernel config that disables SPARSEMEM_VMEMMAP.  With that
+config pfn_to_page does
+
+	__section_mem_map_addr(__sec) + __pfn;
+where
+
+static inline struct page *__section_mem_map_addr(struct mem_section *section)
+{
+	unsigned long map = section->section_mem_map;
+	map &= SECTION_MAP_MASK;
+	return (struct page *)map;
+}
+
+Now with SPASEMEM_VMEMAP enabled, mem_section->usage->subsection_map is
+used to check the pfn validity (pfn_valid()).  Since section_deactivate
+release mem_section->usage if a section is fully deactivated, pfn_valid()
+check after a subsection_deactivate cause a kernel crash.
+
+static inline int pfn_valid(unsigned long pfn)
+{
+...
+	return early_section(ms) || pfn_section_valid(ms, pfn);
+}
+
+where
+
+static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
+{
+	int idx = subsection_map_index(pfn);
+
+	return test_bit(idx, ms->usage->subsection_map);
+}
+
+Avoid this by clearing SECTION_HAS_MEM_MAP when mem_section->usage is freed.
+
+Link: http://lkml.kernel.org/r/20200325031914.107660-1-aneesh.kumar@linux.ibm.com
+Fixes: d41e2f3bd546 ("mm/hotplug: fix hot remove failure in SPARSEMEM|!VMEMMAP case")
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reported-by: Sachin Sant <sachinp@linux.vnet.ibm.com>
+Tested-by: Sachin Sant <sachinp@linux.vnet.ibm.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/do_balan.c |    2 +-
- fs/reiserfs/ioctl.c    |   11 ++++++-----
- fs/reiserfs/namei.c    |   10 +++++-----
- 3 files changed, 12 insertions(+), 11 deletions(-)
+ mm/sparse.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/reiserfs/do_balan.c~reiserfs-clean-up-several-indentation-issues
-+++ a/fs/reiserfs/do_balan.c
-@@ -842,7 +842,7 @@ static void balance_leaf_paste_right_who
- 	struct item_head *pasted;
- 	struct buffer_info bi;
- 
--							buffer_info_init_right(tb, &bi);
-+	buffer_info_init_right(tb, &bi);
- 	leaf_shift_right(tb, tb->rnum[0], tb->rbytes);
- 
- 	/* append item in R[0] */
---- a/fs/reiserfs/ioctl.c~reiserfs-clean-up-several-indentation-issues
-+++ a/fs/reiserfs/ioctl.c
-@@ -184,11 +184,12 @@ int reiserfs_unpack(struct inode *inode,
+--- a/mm/sparse.c~mm-sparse-fix-kernel-crash-with-pfn_section_valid-check
++++ a/mm/sparse.c
+@@ -781,6 +781,8 @@ static void section_deactivate(unsigned
+ 			ms->usage = NULL;
+ 		}
+ 		memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
++		/* Mark the section invalid */
++		ms->section_mem_map &= ~SECTION_HAS_MEM_MAP;
  	}
  
- 	/* we need to make sure nobody is changing the file size beneath us */
--{
--	int depth = reiserfs_write_unlock_nested(inode->i_sb);
--	inode_lock(inode);
--	reiserfs_write_lock_nested(inode->i_sb, depth);
--}
-+	{
-+		int depth = reiserfs_write_unlock_nested(inode->i_sb);
-+
-+		inode_lock(inode);
-+		reiserfs_write_lock_nested(inode->i_sb, depth);
-+	}
- 
- 	reiserfs_write_lock(inode->i_sb);
- 
---- a/fs/reiserfs/namei.c~reiserfs-clean-up-several-indentation-issues
-+++ a/fs/reiserfs/namei.c
-@@ -838,10 +838,10 @@ static int reiserfs_mkdir(struct inode *
- 	 */
- 	INC_DIR_INODE_NLINK(dir)
- 
--	    retval = reiserfs_new_inode(&th, dir, mode, NULL /*symlink */ ,
--					old_format_only(dir->i_sb) ?
--					EMPTY_DIR_SIZE_V1 : EMPTY_DIR_SIZE,
--					dentry, inode, &security);
-+	retval = reiserfs_new_inode(&th, dir, mode, NULL /*symlink */,
-+				    old_format_only(dir->i_sb) ?
-+				    EMPTY_DIR_SIZE_V1 : EMPTY_DIR_SIZE,
-+				    dentry, inode, &security);
- 	if (retval) {
- 		DEC_DIR_INODE_NLINK(dir)
- 		goto out_failed;
-@@ -967,7 +967,7 @@ static int reiserfs_rmdir(struct inode *
- 	reiserfs_update_sd(&th, inode);
- 
- 	DEC_DIR_INODE_NLINK(dir)
--	    dir->i_size -= (DEH_SIZE + de.de_entrylen);
-+	dir->i_size -= (DEH_SIZE + de.de_entrylen);
- 	reiserfs_update_sd(&th, dir);
- 
- 	/* prevent empty directory from getting lost */
+ 	if (section_is_early && memmap)
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
-mm-memblock-remove-redundant-assignment-to-variable-max_addr.patch
-lib-test_lockup-fix-spelling-mistake-iteraions-iterations.patch
-reiserfs-clean-up-several-indentation-issues.patch
+mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch
