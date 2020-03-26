@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- arm64-memory-give-hotplug-memory-a-different-resource-name.patch added to
+Subject: + kcov-collect-coverage-from-interrupts-v4.patch added to
  -mm tree
-Date: Thu, 26 Mar 2020 12:28:09 -0700
-Message-ID: <20200326192809.ThpX5QZOK%akpm@linux-foundation.org>
+Date: Thu, 26 Mar 2020 12:37:29 -0700
+Message-ID: <20200326193729.oXkwDMpkd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53862 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726067AbgCZT2M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 26 Mar 2020 15:28:12 -0400
+        id S1726067AbgCZTha (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 26 Mar 2020 15:37:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, bhsharma@redhat.com, catalin.marinas@arm.com, david@redhat.com, ebiederm@xmission.com, james.morse@arm.com, mm-commits@vger.kernel.org, will@kernel.org
+To: andreyknvl@gmail.com, andreyknvl@google.com, elver@google.com, glider@google.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org, stern@rowland.harvard.edu
 
 
 The patch titled
-     Subject: arm64: memory: give hotplug memory a different resource name
+     Subject: kcov-collect-coverage-from-interrupts-v4
 has been added to the -mm tree.  Its filename is
-     arm64-memory-give-hotplug-memory-a-different-resource-name.patch
+     kcov-collect-coverage-from-interrupts-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-memory-give-hotplug-memory-a-different-resource-name.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kcov-collect-coverage-from-interrupts-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-memory-give-hotplug-memory-a-different-resource-name.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kcov-collect-coverage-from-interrupts-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,54 +36,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: James Morse <james.morse@arm.com>
-Subject: arm64: memory: give hotplug memory a different resource name
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kcov-collect-coverage-from-interrupts-v4
 
-If kexec chooses to place the kernel in a memory region that was added
-after boot, we fail to boot as the kernel is running from a location that
-is not described as memory by the UEFI memory map or the original DT.
+turn current->kcov_softirq into unsigned int to fix objtool warning
 
-To prevent unaware user-space kexec from doing this accidentally, give
-these regions a different name.
-
-Link: http://lkml.kernel.org/r/20200326180730.4754-4-james.morse@arm.com
-Signed-off-by: James Morse <james.morse@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Bhupesh Sharma <bhsharma@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Will Deacon <will@kernel.org>
+Link: http://lkml.kernel.org/r/841c778aa3849c5cb8c3761f56b87ce653a88671.1585233617.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/memory.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ include/linux/sched.h |    2 +-
+ kernel/kcov.c         |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/include/asm/memory.h~arm64-memory-give-hotplug-memory-a-different-resource-name
-+++ a/arch/arm64/include/asm/memory.h
-@@ -166,6 +166,17 @@
- #define IOREMAP_MAX_ORDER	(PMD_SHIFT)
+--- a/include/linux/sched.h~kcov-collect-coverage-from-interrupts-v4
++++ a/include/linux/sched.h
+@@ -1232,7 +1232,7 @@ struct task_struct {
+ 	int				kcov_sequence;
+ 
+ 	/* Collect coverage from softirq context: */
+-	bool				kcov_softirq;
++	unsigned int			kcov_softirq;
  #endif
  
-+/*
-+ * Memory hotplug allows new regions of 'System RAM' to be added to the system.
-+ * These aren't described as memory by the UEFI memory map, or DT memory node.
-+ * If we kexec from one of these regions, the new kernel boots from a location
-+ * that isn't described as RAM.
-+ *
-+ * Give these resources a different name, so unaware kexec doesn't do this by
-+ * accident.
-+ */
-+#define MEMORY_HOTPLUG_RES_NAME "System RAM (hotplug)"
-+
- #ifndef __ASSEMBLY__
- extern u64			vabits_actual;
- #define PAGE_END		(_PAGE_END(vabits_actual))
+ #ifdef CONFIG_MEMCG
+--- a/kernel/kcov.c~kcov-collect-coverage-from-interrupts-v4
++++ a/kernel/kcov.c
+@@ -886,7 +886,7 @@ void kcov_remote_start(u64 handle)
+ 
+ 	if (in_serving_softirq()) {
+ 		kcov_remote_softirq_start(t);
+-		t->kcov_softirq = true;
++		t->kcov_softirq = 1;
+ 	}
+ 	kcov_start(t, kcov, size, area, mode, sequence);
+ 
+@@ -984,7 +984,7 @@ void kcov_remote_stop(void)
+ 
+ 	kcov_stop(t);
+ 	if (in_serving_softirq()) {
+-		t->kcov_softirq = false;
++		t->kcov_softirq = 0;
+ 		kcov_remote_softirq_stop(t);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from james.morse@arm.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-kexec-prevent-removal-of-memory-in-use-by-a-loaded-kexec-image.patch
-mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names.patch
-arm64-memory-give-hotplug-memory-a-different-resource-name.patch
+kcov-cleanup-debug-messages.patch
+kcov-fix-potential-use-after-free-in-kcov_remote_start.patch
+kcov-move-t-kcov-assignments-into-kcov_start-stop.patch
+kcov-move-t-kcov_sequence-assignment.patch
+kcov-use-t-kcov_mode-as-enabled-indicator.patch
+kcov-collect-coverage-from-interrupts.patch
+kcov-collect-coverage-from-interrupts-v4.patch
+usb-core-kcov-collect-coverage-from-usb-complete-callback.patch
