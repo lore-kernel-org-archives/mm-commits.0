@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix.patch
- added to -mm tree
-Date: Sat, 28 Mar 2020 13:01:59 -0700
-Message-ID: <20200328200159.SxtizPJfo%akpm@linux-foundation.org>
+Subject: + getdelays-fix-netlink-attribute-length.patch added to
+ -mm tree
+Date: Sat, 28 Mar 2020 13:04:43 -0700
+Message-ID: <20200328200443.ZdmdYg8Ph%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52976 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53316 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726976AbgC1UCA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 28 Mar 2020 16:02:00 -0400
+        id S1726976AbgC1UEo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 28 Mar 2020 16:04:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mm-commits@vger.kernel.org, oleg@redhat.com
+To: dsahern@kernel.org, johannes@sipsolutions.net, laoar.shao@gmail.com, mm-commits@vger.kernel.org, nagar@watson.ibm.com
 
 
 The patch titled
-     Subject: ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix
+     Subject: tools/accounting/getdelays.c: fix netlink attribute length
 has been added to the -mm tree.  Its filename is
-     ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix.patch
+     getdelays-fix-netlink-attribute-length.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/getdelays-fix-netlink-attribute-length.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/getdelays-fix-netlink-attribute-length.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,34 +36,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix
+From: David Ahern <dsahern@kernel.org>
+Subject: tools/accounting/getdelays.c: fix netlink attribute length
 
-s/PIDTYPE_PID/PIDTYPE_TGID/, per Eric
+A recent change to the netlink code: 6e237d099fac ("netlink: Relax attr
+validation for fixed length types") logs a warning when programs send
+messages with invalid attributes (e.g., wrong length for a u32).  Yafang
+reported this error message for tools/accounting/getdelays.c.
 
-Link: http://lkml.kernel.org/r/20200327195643.GA9366@redhat.com
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+send_cmd() is wrongly adding 1 to the attribute length.  As noted in
+include/uapi/linux/netlink.h nla_len should be NLA_HDRLEN + payload
+length, so drop the +1.
+
+Link: http://lkml.kernel.org/r/20200327173111.63922-1-dsahern@kernel.org
+Fixes: 9e06d3f9f6b1 ("per task delay accounting taskstats interface: documentation fix")
+Signed-off-by: David Ahern <dsahern@kernel.org>
+Reported-by: Yafang Shao <laoar.shao@gmail.com>
+Tested-by: Yafang Shao <laoar.shao@gmail.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Shailabh Nagar <nagar@watson.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    2 +-
+ tools/accounting/getdelays.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/ipc/mqueue.c~ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix
-+++ a/ipc/mqueue.c
-@@ -801,7 +801,7 @@ static void __do_notify(struct mqueue_in
- 			 * bypass check_kill_permission(). It is from kernel
- 			 * but si_fromuser() can't know this.
- 			 */
--			task = pid_task(info->notify_owner, PIDTYPE_PID);
-+			task = pid_task(info->notify_owner, PIDTYPE_TGID);
- 			if (task)
- 				do_send_sig_info(info->notify.sigev_signo,
- 						&sig_i, task, PIDTYPE_TGID);
+--- a/tools/accounting/getdelays.c~getdelays-fix-netlink-attribute-length
++++ a/tools/accounting/getdelays.c
+@@ -136,7 +136,7 @@ static int send_cmd(int sd, __u16 nlmsg_
+ 	msg.g.version = 0x1;
+ 	na = (struct nlattr *) GENLMSG_DATA(&msg);
+ 	na->nla_type = nla_type;
+-	na->nla_len = nla_len + 1 + NLA_HDRLEN;
++	na->nla_len = nla_len + NLA_HDRLEN;
+ 	memcpy(NLA_DATA(na), nla_data, nla_len);
+ 	msg.n.nlmsg_len += NLMSG_ALIGN(na->nla_len);
+ 
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from dsahern@kernel.org are
 
-ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission.patch
-ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix.patch
-aio-simplify-read_events.patch
+getdelays-fix-netlink-attribute-length.patch
