@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- maintainers-list-the-section-entries-in-the-preferred-order.patch added to
+ ocfs2-use-memalloc_nofs_save-instead-of-memalloc_noio_save.patch added to
  -mm tree
-Date: Sat, 28 Mar 2020 17:56:38 -0700
-Message-ID: <20200329005638.e8iUJH8c4%akpm@linux-foundation.org>
+Date: Sat, 28 Mar 2020 18:00:56 -0700
+Message-ID: <20200329010056.hWvBbf382%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50116 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50476 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726604AbgC2A4k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 28 Mar 2020 20:56:40 -0400
+        id S1727701AbgC2BA6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 28 Mar 2020 21:00:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andy.shevchenko@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
+To: gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, willy@infradead.org
 
 
 The patch titled
-     Subject: MAINTAINERS: list the section entries in the preferred order
+     Subject: ocfs2: use memalloc_nofs_save instead of memalloc_noio_save
 has been added to the -mm tree.  Its filename is
-     maintainers-list-the-section-entries-in-the-preferred-order.patch
+     ocfs2-use-memalloc_nofs_save-instead-of-memalloc_noio_save.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-list-the-section-entries-in-the-preferred-order.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-use-memalloc_nofs_save-instead-of-memalloc_noio_save.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-list-the-section-entries-in-the-preferred-order.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-use-memalloc_nofs_save-instead-of-memalloc_noio_save.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,111 +37,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: list the section entries in the preferred order
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: ocfs2: use memalloc_nofs_save instead of memalloc_noio_save
 
-The MAINTAINERS file header has never shown a preferred order for the
-section entries but scripts/parse-maintainers.pl added a preferred order
-with commit 61f741645a35 ("parse-maintainers: Add section pattern
-sorting")
+OCFS2 doesn't mind if memory reclaim makes I/Os happen; it just cares that
+it won't be reentered, so it can use memalloc_nofs_save() instead of
+memalloc_noio_save().
 
-Commit 5cdbec108fd2 ("parse-maintainers: Do not sort section content by
-default") changed the preferred order to be a bit more sensible.
-
-Update the MAINTAINERS section description block to use this preferred
-section entry ordering.
-
-Add a slightly better description for the N: entry too.
-
-Link: http://lkml.kernel.org/r/5aa5aad6fb1678230c260337dc066cd449a2bf32.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Link: http://lkml.kernel.org/r/20200326200214.1102-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ fs/ocfs2/cluster/tcp.c |   24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
---- a/MAINTAINERS~maintainers-list-the-section-entries-in-the-preferred-order
-+++ a/MAINTAINERS
-@@ -77,21 +77,13 @@ Tips for patch submitters
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-use-memalloc_nofs_save-instead-of-memalloc_noio_save
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -1570,15 +1570,13 @@ static void o2net_start_connect(struct w
+ 	struct sockaddr_in myaddr = {0, }, remoteaddr = {0, };
+ 	int ret = 0, stop;
+ 	unsigned int timeout;
+-	unsigned int noio_flag;
++	unsigned int nofs_flag;
  
- 8.	Happy hacking.
+ 	/*
+-	 * sock_create allocates the sock with GFP_KERNEL. We must set
+-	 * per-process flag PF_MEMALLOC_NOIO so that all allocations done
+-	 * by this process are done as if GFP_NOIO was specified. So we
+-	 * are not reentering filesystem while doing memory reclaim.
++	 * sock_create allocates the sock with GFP_KERNEL. We must
++	 * prevent the filesystem from being reentered by memory reclaim.
+ 	 */
+-	noio_flag = memalloc_noio_save();
++	nofs_flag = memalloc_nofs_save();
+ 	/* if we're greater we initiate tx, otherwise we accept */
+ 	if (o2nm_this_node() <= o2net_num_from_nn(nn))
+ 		goto out;
+@@ -1683,7 +1681,7 @@ out:
+ 	if (mynode)
+ 		o2nm_node_put(mynode);
  
--Descriptions of section entries
---------------------------------
-+Descriptions of section entries and preferred order
-+---------------------------------------------------
+-	memalloc_noio_restore(noio_flag);
++	memalloc_nofs_restore(nofs_flag);
+ 	return;
+ }
  
- 	M: *Mail* patches to: FullName <address@domain>
- 	R: Designated *Reviewer*: FullName <address@domain>
- 	   These reviewers should be CCed on patches.
- 	L: *Mailing list* that is relevant to this area
--	W: *Web-page* with status/info
--	B: URI for where to file *bugs*. A web-page with detailed bug
--	   filing info, a direct bug tracker link, or a mailto: URI.
--	C: URI for *chat* protocol, server and channel where developers
--	   usually hang out, for example irc://server/channel.
--	Q: *Patchwork* web based patch tracking system site
--	T: *SCM* tree type and location.
--	   Type is one of: git, hg, quilt, stgit, topgit
- 	S: *Status*, one of the following:
- 	   Supported:	Someone is actually paid to look after this.
- 	   Maintained:	Someone actually looks after it.
-@@ -102,30 +94,39 @@ Descriptions of section entries
- 	   Obsolete:	Old code. Something tagged obsolete generally means
- 			it has been replaced by a better system and you
- 			should be using that.
-+	W: *Web-page* with status/info
-+	Q: *Patchwork* web based patch tracking system site
-+	B: URI for where to file *bugs*. A web-page with detailed bug
-+	   filing info, a direct bug tracker link, or a mailto: URI.
-+	C: URI for *chat* protocol, server and channel where developers
-+	   usually hang out, for example irc://server/channel.
- 	P: Subsystem Profile document for more details submitting
- 	   patches to the given subsystem. This is either an in-tree file,
- 	   or a URI. See Documentation/maintainer/maintainer-entry-profile.rst
- 	   for details.
-+	T: *SCM* tree type and location.
-+	   Type is one of: git, hg, quilt, stgit, topgit
- 	F: *Files* and directories wildcard patterns.
- 	   A trailing slash includes all files and subdirectory files.
- 	   F:	drivers/net/	all files in and below drivers/net
- 	   F:	drivers/net/*	all files in drivers/net, but not below
- 	   F:	*/net/*		all files in "any top level directory"/net
- 	   One pattern per line.  Multiple F: lines acceptable.
-+	X: *Excluded* files and directories that are NOT maintained, same
-+	   rules as F:. Files exclusions are tested before file matches.
-+	   Can be useful for excluding a specific subdirectory, for instance:
-+	   F:	net/
-+	   X:	net/ipv6/
-+	   matches all files in and below net excluding net/ipv6/
- 	N: Files and directories *Regex* patterns.
--	   N:	[^a-z]tegra	all files whose path contains the word tegra
-+	   N:	[^a-z]tegra	all files whose path contains tegra
-+	                        (not including files like integrator)
- 	   One pattern per line.  Multiple N: lines acceptable.
- 	   scripts/get_maintainer.pl has different behavior for files that
- 	   match F: pattern and matches of N: patterns.  By default,
- 	   get_maintainer will not look at git log history when an F: pattern
- 	   match occurs.  When an N: match occurs, git log history is used
- 	   to also notify the people that have git commit signatures.
--	X: *Excluded* files and directories that are NOT maintained, same
--	   rules as F:. Files exclusions are tested before file matches.
--	   Can be useful for excluding a specific subdirectory, for instance:
--	   F:	net/
--	   X:	net/ipv6/
--	   matches all files in and below net excluding net/ipv6/
- 	K: *Content regex* (perl extended) pattern match in a patch or file.
- 	   For instance:
- 	   K: of_get_profile
+@@ -1810,15 +1808,13 @@ static int o2net_accept_one(struct socke
+ 	struct o2nm_node *local_node = NULL;
+ 	struct o2net_sock_container *sc = NULL;
+ 	struct o2net_node *nn;
+-	unsigned int noio_flag;
++	unsigned int nofs_flag;
+ 
+ 	/*
+-	 * sock_create_lite allocates the sock with GFP_KERNEL. We must set
+-	 * per-process flag PF_MEMALLOC_NOIO so that all allocations done
+-	 * by this process are done as if GFP_NOIO was specified. So we
+-	 * are not reentering filesystem while doing memory reclaim.
++	 * sock_create_lite allocates the sock with GFP_KERNEL. We must
++	 * prevent the filesystem from being reentered by memory reclaim.
+ 	 */
+-	noio_flag = memalloc_noio_save();
++	nofs_flag = memalloc_nofs_save();
+ 
+ 	BUG_ON(sock == NULL);
+ 	*more = 0;
+@@ -1934,7 +1930,7 @@ out:
+ 	if (sc)
+ 		sc_put(sc);
+ 
+-	memalloc_noio_restore(noio_flag);
++	memalloc_nofs_restore(nofs_flag);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-use-fallthrough.patch
-maintainers-list-the-section-entries-in-the-preferred-order.patch
-checkpatch-remove-email-address-comment-from-email-address-comparisons.patch
-checkpatch-prefer-fallthrough-over-fallthrough-comments.patch
-checkpatch-improve-gerrit-change-id-test.patch
-checkpatch-avoid-warning-about-uninitialized_var.patch
+ocfs2-use-memalloc_nofs_save-instead-of-memalloc_noio_save.patch
+mm-use-vm_fault-error-code-directly.patch
+mm-rename-arguments-to-find_subpage.patch
+mm-use-vm_bug_on_page-in-clear_page_dirty_for_io.patch
+mm-unexport-find_get_entry.patch
+mm-rewrite-pagecache_get_page-documentation.patch
+mm-improve-dump_page-for-compound-pages.patch
+mm-add-pagemaph-to-the-fine-documentation.patch
+mm-check-pagetail-in-hpage_nr_pages-even-when-thp.patch
+mm-optimise-find_subpage-for-thp.patch
+mm-remove-config_transparent_huge_pagecache.patch
+proc-inline-vma_stop-into-m_stop.patch
+proc-remove-m_cache_vma.patch
+proc-use-ppos-instead-of-m-version.patch
+seq_file-remove-m-version.patch
+proc-inline-m_next_vma-into-m_next.patch
