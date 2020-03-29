@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + umh-fix-refcount-underflow-in-fork_usermode_blob.patch
- added to -mm tree
-Date: Sat, 28 Mar 2020 17:55:28 -0700
-Message-ID: <20200329005528.xeKtdz2A0%akpm@linux-foundation.org>
+Subject: +
+ maintainers-list-the-section-entries-in-the-preferred-order.patch added to
+ -mm tree
+Date: Sat, 28 Mar 2020 17:56:38 -0700
+Message-ID: <20200329005638.e8iUJH8c4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50044 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50116 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726604AbgC2Aza (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 28 Mar 2020 20:55:30 -0400
+        id S1726604AbgC2A4k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 28 Mar 2020 20:56:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ast@kernel.org, davem@davemloft.net, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: andy.shevchenko@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: umh: fix refcount underflow in fork_usermode_blob().
+     Subject: MAINTAINERS: list the section entries in the preferred order
 has been added to the -mm tree.  Its filename is
-     umh-fix-refcount-underflow-in-fork_usermode_blob.patch
+     maintainers-list-the-section-entries-in-the-preferred-order.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/umh-fix-refcount-underflow-in-fork_usermode_blob.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-list-the-section-entries-in-the-preferred-order.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/umh-fix-refcount-underflow-in-fork_usermode_blob.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-list-the-section-entries-in-the-preferred-order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,60 +37,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Subject: umh: fix refcount underflow in fork_usermode_blob().
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: list the section entries in the preferred order
 
-Since free_bprm(bprm) always calls allow_write_access(bprm->file) and
-fput(bprm->file) if bprm->file is set to non-NULL, __do_execve_file()
-must call deny_write_access(file) and get_file(file) if called from
-do_execve_file() path. Otherwise, use-after-free access can happen at
-fput(file) in fork_usermode_blob().
+The MAINTAINERS file header has never shown a preferred order for the
+section entries but scripts/parse-maintainers.pl added a preferred order
+with commit 61f741645a35 ("parse-maintainers: Add section pattern
+sorting")
 
-  general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6b6b: 0000 [#1] SMP DEBUG_PAGEALLOC
-  CPU: 3 PID: 4131 Comm: insmod Tainted: G           O      5.6.0-rc5+ #978
-  Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/29/2019
-  RIP: 0010:fork_usermode_blob+0xaa/0x190
+Commit 5cdbec108fd2 ("parse-maintainers: Do not sort section content by
+default") changed the preferred order to be a bit more sensible.
 
-Link: http://lkml.kernel.org/r/9b846b1f-a231-4f09-8c37-6bfb0d1e7b05@i-love.sakura.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Fixes: 449325b52b7a6208 ("umh: introduce fork_usermode_blob() helper")
-Cc: <stable@vger.kernel.org> [4.18+]
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Update the MAINTAINERS section description block to use this preferred
+section entry ordering.
+
+Add a slightly better description for the N: entry too.
+
+Link: http://lkml.kernel.org/r/5aa5aad6fb1678230c260337dc066cd449a2bf32.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ MAINTAINERS |   35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
---- a/fs/exec.c~umh-fix-refcount-underflow-in-fork_usermode_blob
-+++ a/fs/exec.c
-@@ -1761,11 +1761,17 @@ static int __do_execve_file(int fd, stru
- 	check_unsafe_exec(bprm);
- 	current->in_execve = 1;
+--- a/MAINTAINERS~maintainers-list-the-section-entries-in-the-preferred-order
++++ a/MAINTAINERS
+@@ -77,21 +77,13 @@ Tips for patch submitters
  
--	if (!file)
-+	if (!file) {
- 		file = do_open_execat(fd, filename, flags);
--	retval = PTR_ERR(file);
--	if (IS_ERR(file))
--		goto out_unmark;
-+		retval = PTR_ERR(file);
-+		if (IS_ERR(file))
-+			goto out_unmark;
-+	} else {
-+		retval = deny_write_access(file);
-+		if (retval)
-+			goto out_unmark;
-+		get_file(file);
-+	}
+ 8.	Happy hacking.
  
- 	sched_exec();
+-Descriptions of section entries
+--------------------------------
++Descriptions of section entries and preferred order
++---------------------------------------------------
  
+ 	M: *Mail* patches to: FullName <address@domain>
+ 	R: Designated *Reviewer*: FullName <address@domain>
+ 	   These reviewers should be CCed on patches.
+ 	L: *Mailing list* that is relevant to this area
+-	W: *Web-page* with status/info
+-	B: URI for where to file *bugs*. A web-page with detailed bug
+-	   filing info, a direct bug tracker link, or a mailto: URI.
+-	C: URI for *chat* protocol, server and channel where developers
+-	   usually hang out, for example irc://server/channel.
+-	Q: *Patchwork* web based patch tracking system site
+-	T: *SCM* tree type and location.
+-	   Type is one of: git, hg, quilt, stgit, topgit
+ 	S: *Status*, one of the following:
+ 	   Supported:	Someone is actually paid to look after this.
+ 	   Maintained:	Someone actually looks after it.
+@@ -102,30 +94,39 @@ Descriptions of section entries
+ 	   Obsolete:	Old code. Something tagged obsolete generally means
+ 			it has been replaced by a better system and you
+ 			should be using that.
++	W: *Web-page* with status/info
++	Q: *Patchwork* web based patch tracking system site
++	B: URI for where to file *bugs*. A web-page with detailed bug
++	   filing info, a direct bug tracker link, or a mailto: URI.
++	C: URI for *chat* protocol, server and channel where developers
++	   usually hang out, for example irc://server/channel.
+ 	P: Subsystem Profile document for more details submitting
+ 	   patches to the given subsystem. This is either an in-tree file,
+ 	   or a URI. See Documentation/maintainer/maintainer-entry-profile.rst
+ 	   for details.
++	T: *SCM* tree type and location.
++	   Type is one of: git, hg, quilt, stgit, topgit
+ 	F: *Files* and directories wildcard patterns.
+ 	   A trailing slash includes all files and subdirectory files.
+ 	   F:	drivers/net/	all files in and below drivers/net
+ 	   F:	drivers/net/*	all files in drivers/net, but not below
+ 	   F:	*/net/*		all files in "any top level directory"/net
+ 	   One pattern per line.  Multiple F: lines acceptable.
++	X: *Excluded* files and directories that are NOT maintained, same
++	   rules as F:. Files exclusions are tested before file matches.
++	   Can be useful for excluding a specific subdirectory, for instance:
++	   F:	net/
++	   X:	net/ipv6/
++	   matches all files in and below net excluding net/ipv6/
+ 	N: Files and directories *Regex* patterns.
+-	   N:	[^a-z]tegra	all files whose path contains the word tegra
++	   N:	[^a-z]tegra	all files whose path contains tegra
++	                        (not including files like integrator)
+ 	   One pattern per line.  Multiple N: lines acceptable.
+ 	   scripts/get_maintainer.pl has different behavior for files that
+ 	   match F: pattern and matches of N: patterns.  By default,
+ 	   get_maintainer will not look at git log history when an F: pattern
+ 	   match occurs.  When an N: match occurs, git log history is used
+ 	   to also notify the people that have git commit signatures.
+-	X: *Excluded* files and directories that are NOT maintained, same
+-	   rules as F:. Files exclusions are tested before file matches.
+-	   Can be useful for excluding a specific subdirectory, for instance:
+-	   F:	net/
+-	   X:	net/ipv6/
+-	   matches all files in and below net excluding net/ipv6/
+ 	K: *Content regex* (perl extended) pattern match in a patch or file.
+ 	   For instance:
+ 	   K: of_get_profile
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from joe@perches.com are
 
-kernel-hung_taskc-monitor-killed-tasks.patch
-umh-fix-refcount-underflow-in-fork_usermode_blob.patch
+mm-use-fallthrough.patch
+maintainers-list-the-section-entries-in-the-preferred-order.patch
+checkpatch-remove-email-address-comment-from-email-address-comparisons.patch
+checkpatch-prefer-fallthrough-over-fallthrough-comments.patch
+checkpatch-improve-gerrit-change-id-test.patch
+checkpatch-avoid-warning-about-uninitialized_var.patch
