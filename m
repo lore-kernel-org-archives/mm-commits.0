@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- hfsplus-fix-crash-and-filesystem-corruption-when-deleting-files.patch added
- to -mm tree
-Date: Sat, 28 Mar 2020 16:19:30 -0700
-Message-ID: <20200328231930.Zmqx_CNQI%akpm@linux-foundation.org>
+Subject: + umh-fix-refcount-underflow-in-fork_usermode_blob.patch
+ added to -mm tree
+Date: Sat, 28 Mar 2020 17:55:28 -0700
+Message-ID: <20200329005528.xeKtdz2A0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39272 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50044 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727151AbgC1XTb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 28 Mar 2020 19:19:31 -0400
+        id S1726604AbgC2Aza (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 28 Mar 2020 20:55:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anton@tuxera.com, mm-commits@vger.kernel.org, simon@tuxera.com
+To: ast@kernel.org, davem@davemloft.net, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: hfsplus: fix crash and filesystem corruption when deleting files
+     Subject: umh: fix refcount underflow in fork_usermode_blob().
 has been added to the -mm tree.  Its filename is
-     hfsplus-fix-crash-and-filesystem-corruption-when-deleting-files.patch
+     umh-fix-refcount-underflow-in-fork_usermode_blob.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-fix-crash-and-filesystem-corruption-when-deleting-files.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/umh-fix-refcount-underflow-in-fork_usermode_blob.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-fix-crash-and-filesystem-corruption-when-deleting-files.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/umh-fix-refcount-underflow-in-fork_usermode_blob.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,51 +36,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Simon Gander <simon@tuxera.com>
-Subject: hfsplus: fix crash and filesystem corruption when deleting files
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Subject: umh: fix refcount underflow in fork_usermode_blob().
 
-When removing files containing extended attributes, the hfsplus driver may
-remove the wrong entries from the attributes b-tree, causing major
-filesystem damage and in some cases even kernel crashes.
+Since free_bprm(bprm) always calls allow_write_access(bprm->file) and
+fput(bprm->file) if bprm->file is set to non-NULL, __do_execve_file()
+must call deny_write_access(file) and get_file(file) if called from
+do_execve_file() path. Otherwise, use-after-free access can happen at
+fput(file) in fork_usermode_blob().
 
-To remove a file, all its extended attributes have to be removed as well. 
-The driver does this by looking up all keys in the attributes b-tree with
-the cnid of the file.  Each of these entries then gets deleted using the
-key used for searching, which doesn't contain the attribute's name when it
-should.  Since the key doesn't contain the name, the deletion routine will
-not find the correct entry and instead remove the one in front of it.  If
-parent nodes have to be modified, these become corrupt as well.  This
-causes invalid links and unsorted entries that not even macOS's fsck_hfs
-is able to fix.
+  general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6b6b: 0000 [#1] SMP DEBUG_PAGEALLOC
+  CPU: 3 PID: 4131 Comm: insmod Tainted: G           O      5.6.0-rc5+ #978
+  Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/29/2019
+  RIP: 0010:fork_usermode_blob+0xaa/0x190
 
-To fix this, modify the search key before an entry is deleted from the
-attributes b-tree by copying the found entry's key into the search key,
-therefore ensuring that the correct entry gets removed from the tree.
-
-Link: http://lkml.kernel.org/r/20200327155541.1521-1-simon@tuxera.com
-Signed-off-by: Simon Gander <simon@tuxera.com>
-Reviewed-by: Anton Altaparmakov <anton@tuxera.com>
+Link: http://lkml.kernel.org/r/9b846b1f-a231-4f09-8c37-6bfb0d1e7b05@i-love.sakura.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Fixes: 449325b52b7a6208 ("umh: introduce fork_usermode_blob() helper")
+Cc: <stable@vger.kernel.org> [4.18+]
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/attributes.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/exec.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/fs/hfsplus/attributes.c~hfsplus-fix-crash-and-filesystem-corruption-when-deleting-files
-+++ a/fs/hfsplus/attributes.c
-@@ -292,6 +292,10 @@ static int __hfsplus_delete_attr(struct
- 		return -ENOENT;
- 	}
+--- a/fs/exec.c~umh-fix-refcount-underflow-in-fork_usermode_blob
++++ a/fs/exec.c
+@@ -1761,11 +1761,17 @@ static int __do_execve_file(int fd, stru
+ 	check_unsafe_exec(bprm);
+ 	current->in_execve = 1;
  
-+	/* Avoid btree corruption */
-+	hfs_bnode_read(fd->bnode, fd->search_key,
-+			fd->keyoffset, fd->keylength);
-+
- 	err = hfs_brec_remove(fd);
- 	if (err)
- 		return err;
+-	if (!file)
++	if (!file) {
+ 		file = do_open_execat(fd, filename, flags);
+-	retval = PTR_ERR(file);
+-	if (IS_ERR(file))
+-		goto out_unmark;
++		retval = PTR_ERR(file);
++		if (IS_ERR(file))
++			goto out_unmark;
++	} else {
++		retval = deny_write_access(file);
++		if (retval)
++			goto out_unmark;
++		get_file(file);
++	}
+ 
+ 	sched_exec();
+ 
 _
 
-Patches currently in -mm which might be from simon@tuxera.com are
+Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
 
-hfsplus-fix-crash-and-filesystem-corruption-when-deleting-files.patch
+kernel-hung_taskc-monitor-killed-tasks.patch
+umh-fix-refcount-underflow-in-fork_usermode_blob.patch
