@@ -1,90 +1,242 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
- added to -mm tree
-Date: Mon, 30 Mar 2020 14:19:38 -0700
-Message-ID: <20200330211938.fEX8biPQL%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-swap-move-inode_lock-out-of-claim_swapfile.patch removed from -mm tree
+Date: Mon, 30 Mar 2020 15:22:57 -0700
+Message-ID: <20200330222257.TlLPGi_Gm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54142 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728453AbgC3VTj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 30 Mar 2020 17:19:39 -0400
+        id S1728880AbgC3WW7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 30 Mar 2020 18:22:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bp@suse.de, jaewon31.kim@samsung.com, mm-commits@vger.kernel.org, vbabka@suse.cz, walken@google.com, willy@infradead.org
+To: akpm@linux-foundation.org, darrick.wong@oracle.com, hch@infradead.org, mm-commits@vger.kernel.org, naohiro.aota@wdc.com, qais.yousef@arm.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mmap-add-trace-point-of-vm_unmapped_area-fix
-has been added to the -mm tree.  Its filename is
-     mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
+     Subject: mm/swapfile.c: move inode_lock out of claim_swapfile
+has been removed from the -mm tree.  Its filename was
+     mm-swap-move-inode_lock-out-of-claim_swapfile.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mmap-add-trace-point-of-vm_unmapped_area-fix
+From: Naohiro Aota <naohiro.aota@wdc.com>
+Subject: mm/swapfile.c: move inode_lock out of claim_swapfile
 
-prefix address printk with 0x, per Matthew
+claim_swapfile() currently keeps the inode locked when it is successful,
+or the file is already swapfile (with -EBUSY).  And, on the other error
+cases, it does not lock the inode.
 
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Jaewon Kim <jaewon31.kim@samsung.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This inconsistency of the lock state and return value is quite confusing
+and actually causing a bad unlock balance as below in the "bad_swap"
+section of __do_sys_swapon().
+
+This commit fixes this issue by moving the inode_lock() and IS_SWAPFILE
+check out of claim_swapfile().  The inode is unlocked in
+"bad_swap_unlock_inode" section, so that the inode is ensured to be
+unlocked at "bad_swap".  Thus, error handling codes after the locking now
+jumps to "bad_swap_unlock_inode" instead of "bad_swap".
+
+    =====================================
+    WARNING: bad unlock balance detected!
+    5.5.0-rc7+ #176 Not tainted
+    -------------------------------------
+    swapon/4294 is trying to release lock (&sb->s_type->i_mutex_key) at:
+    [<ffffffff8173a6eb>] __do_sys_swapon+0x94b/0x3550
+    but there are no more locks to release!
+
+    other info that might help us debug this:
+    no locks held by swapon/4294.
+
+    stack backtrace:
+    CPU: 5 PID: 4294 Comm: swapon Not tainted 5.5.0-rc7-BTRFS-ZNS+ #176
+    Hardware name: ASUS All Series/H87-PRO, BIOS 2102 07/29/2014
+    Call Trace:
+     dump_stack+0xa1/0xea
+     ? __do_sys_swapon+0x94b/0x3550
+     print_unlock_imbalance_bug.cold+0x114/0x123
+     ? __do_sys_swapon+0x94b/0x3550
+     lock_release+0x562/0xed0
+     ? kvfree+0x31/0x40
+     ? lock_downgrade+0x770/0x770
+     ? kvfree+0x31/0x40
+     ? rcu_read_lock_sched_held+0xa1/0xd0
+     ? rcu_read_lock_bh_held+0xb0/0xb0
+     up_write+0x2d/0x490
+     ? kfree+0x293/0x2f0
+     __do_sys_swapon+0x94b/0x3550
+     ? putname+0xb0/0xf0
+     ? kmem_cache_free+0x2e7/0x370
+     ? do_sys_open+0x184/0x3e0
+     ? generic_max_swapfile_size+0x40/0x40
+     ? do_syscall_64+0x27/0x4b0
+     ? entry_SYSCALL_64_after_hwframe+0x49/0xbe
+     ? lockdep_hardirqs_on+0x38c/0x590
+     __x64_sys_swapon+0x54/0x80
+     do_syscall_64+0xa4/0x4b0
+     entry_SYSCALL_64_after_hwframe+0x49/0xbe
+    RIP: 0033:0x7f15da0a0dc7
+
+Link: http://lkml.kernel.org/r/20200206090132.154869-1-naohiro.aota@wdc.com
+Fixes: 1638045c3677 ("mm: set S_SWAPFILE on blockdev swap devices")
+Signed-off-by: Naohiro Aota <naohiro.aota@wdc.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+Tested-by: Qais Youef <qais.yousef@arm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |   41 ++++++++++++++++++++---------------------
+ 1 file changed, 20 insertions(+), 21 deletions(-)
 
---- a/include/trace/events/mmap.h~mm-mmap-add-trace-point-of-vm_unmapped_area-fix
-+++ a/include/trace/events/mmap.h
-@@ -35,7 +35,7 @@ TRACE_EVENT(vm_unmapped_area,
- 		__entry->align_offset = info->align_offset;
- 	),
+--- a/mm/swapfile.c~mm-swap-move-inode_lock-out-of-claim_swapfile
++++ a/mm/swapfile.c
+@@ -2899,10 +2899,6 @@ static int claim_swapfile(struct swap_in
+ 		p->bdev = inode->i_sb->s_bdev;
+ 	}
  
--	TP_printk("addr=%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx\n",
-+	TP_printk("addr=0x%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx\n",
- 		IS_ERR_VALUE(__entry->addr) ? 0 : __entry->addr,
- 		IS_ERR_VALUE(__entry->addr) ? __entry->addr : 0,
- 		__entry->total_vm, __entry->flags, __entry->length,
+-	inode_lock(inode);
+-	if (IS_SWAPFILE(inode))
+-		return -EBUSY;
+-
+ 	return 0;
+ }
+ 
+@@ -3157,36 +3153,41 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	mapping = swap_file->f_mapping;
+ 	inode = mapping->host;
+ 
+-	/* will take i_rwsem; */
+ 	error = claim_swapfile(p, inode);
+ 	if (unlikely(error))
+ 		goto bad_swap;
+ 
++	inode_lock(inode);
++	if (IS_SWAPFILE(inode)) {
++		error = -EBUSY;
++		goto bad_swap_unlock_inode;
++	}
++
+ 	/*
+ 	 * Read the swap header.
+ 	 */
+ 	if (!mapping->a_ops->readpage) {
+ 		error = -EINVAL;
+-		goto bad_swap;
++		goto bad_swap_unlock_inode;
+ 	}
+ 	page = read_mapping_page(mapping, 0, swap_file);
+ 	if (IS_ERR(page)) {
+ 		error = PTR_ERR(page);
+-		goto bad_swap;
++		goto bad_swap_unlock_inode;
+ 	}
+ 	swap_header = kmap(page);
+ 
+ 	maxpages = read_swap_header(p, swap_header, inode);
+ 	if (unlikely(!maxpages)) {
+ 		error = -EINVAL;
+-		goto bad_swap;
++		goto bad_swap_unlock_inode;
+ 	}
+ 
+ 	/* OK, set up the swap map and apply the bad block list */
+ 	swap_map = vzalloc(maxpages);
+ 	if (!swap_map) {
+ 		error = -ENOMEM;
+-		goto bad_swap;
++		goto bad_swap_unlock_inode;
+ 	}
+ 
+ 	if (bdi_cap_stable_pages_required(inode_to_bdi(inode)))
+@@ -3211,7 +3212,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 					GFP_KERNEL);
+ 		if (!cluster_info) {
+ 			error = -ENOMEM;
+-			goto bad_swap;
++			goto bad_swap_unlock_inode;
+ 		}
+ 
+ 		for (ci = 0; ci < nr_cluster; ci++)
+@@ -3220,7 +3221,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		p->percpu_cluster = alloc_percpu(struct percpu_cluster);
+ 		if (!p->percpu_cluster) {
+ 			error = -ENOMEM;
+-			goto bad_swap;
++			goto bad_swap_unlock_inode;
+ 		}
+ 		for_each_possible_cpu(cpu) {
+ 			struct percpu_cluster *cluster;
+@@ -3234,13 +3235,13 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 
+ 	error = swap_cgroup_swapon(p->type, maxpages);
+ 	if (error)
+-		goto bad_swap;
++		goto bad_swap_unlock_inode;
+ 
+ 	nr_extents = setup_swap_map_and_extents(p, swap_header, swap_map,
+ 		cluster_info, maxpages, &span);
+ 	if (unlikely(nr_extents < 0)) {
+ 		error = nr_extents;
+-		goto bad_swap;
++		goto bad_swap_unlock_inode;
+ 	}
+ 	/* frontswap enabled? set up bit-per-page map for frontswap */
+ 	if (IS_ENABLED(CONFIG_FRONTSWAP))
+@@ -3280,7 +3281,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 
+ 	error = init_swap_address_space(p->type, maxpages);
+ 	if (error)
+-		goto bad_swap;
++		goto bad_swap_unlock_inode;
+ 
+ 	/*
+ 	 * Flush any pending IO and dirty mappings before we start using this
+@@ -3290,7 +3291,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	error = inode_drain_writes(inode);
+ 	if (error) {
+ 		inode->i_flags &= ~S_SWAPFILE;
+-		goto bad_swap;
++		goto bad_swap_unlock_inode;
+ 	}
+ 
+ 	mutex_lock(&swapon_mutex);
+@@ -3315,6 +3316,8 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 
+ 	error = 0;
+ 	goto out;
++bad_swap_unlock_inode:
++	inode_unlock(inode);
+ bad_swap:
+ 	free_percpu(p->percpu_cluster);
+ 	p->percpu_cluster = NULL;
+@@ -3322,6 +3325,7 @@ bad_swap:
+ 		set_blocksize(p->bdev, p->old_block_size);
+ 		blkdev_put(p->bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
+ 	}
++	inode = NULL;
+ 	destroy_swap_extents(p);
+ 	swap_cgroup_swapoff(p->type);
+ 	spin_lock(&swap_lock);
+@@ -3333,13 +3337,8 @@ bad_swap:
+ 	kvfree(frontswap_map);
+ 	if (inced_nr_rotate_swap)
+ 		atomic_dec(&nr_rotate_swap);
+-	if (swap_file) {
+-		if (inode) {
+-			inode_unlock(inode);
+-			inode = NULL;
+-		}
++	if (swap_file)
+ 		filp_close(swap_file, NULL);
+-	}
+ out:
+ 	if (page && !IS_ERR(page)) {
+ 		kunmap(page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-gup-track-foll_pin-pages-fix-2-fix.patch
-mm-swap-make-page_evictable-inline-fix.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
-selftest-add-mremap_dontunmap-selftest-fix.patch
-selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
-mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
-mm-migratec-migrate-pg_readahead-flag-fix.patch
-hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
-proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-linux-next-git-rejects.patch
-mm-add-vm_insert_pages-fix.patch
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
-seq_read-info-message-about-buggy-next-functions-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+Patches currently in -mm which might be from naohiro.aota@wdc.com are
