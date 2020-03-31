@@ -1,145 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch removed from
- -mm tree
-Date: Mon, 30 Mar 2020 15:23:09 -0700
-Message-ID: <20200330222309.5eTk9ZUJH%akpm@linux-foundation.org>
+Subject: +
+ drivers-net-ethernet-mellanox-mlx4-crdumpc-fix-build-with-gcc-720.patch
+ added to -mm tree
+Date: Mon, 30 Mar 2020 18:07:22 -0700
+Message-ID: <20200331010722.XCDU0oIRv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47700 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47350 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728944AbgC3WXM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 30 Mar 2020 18:23:12 -0400
+        id S1729129AbgCaBHZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 30 Mar 2020 21:07:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.ibm.com, bhe@redhat.com, dan.j.williams@intel.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, pankaj.gupta.linux@gmail.com, richard.weiyang@gmail.com, rppt@linux.ibm.com, sachinp@linux.vnet.ibm.com, stable@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, jacob.e.keller@intel.com, jiri@mellanox.com, kuba@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/sparse: fix kernel crash with pfn_section_valid check
-has been removed from the -mm tree.  Its filename was
-     mm-sparse-fix-kernel-crash-with-pfn_section_valid-check.patch
+     Subject: drivers/net/ethernet/mellanox/mlx4/crdump.c: fix build with gcc-7.2.0
+has been added to the -mm tree.  Its filename is
+     drivers-net-ethernet-mellanox-mlx4-crdumpc-fix-build-with-gcc-720.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-net-ethernet-mellanox-mlx4-crdumpc-fix-build-with-gcc-720.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-net-ethernet-mellanox-mlx4-crdumpc-fix-build-with-gcc-720.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/sparse: fix kernel crash with pfn_section_valid check
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/net/ethernet/mellanox/mlx4/crdump.c: fix build with gcc-7.2.0
 
-Fix the below crash
+drivers/net/ethernet/mellanox/mlx4/crdump.c:45:10: error: initializer element is not constant
+  .name = region_cr_space_str,
+          ^~~~~~~~~~~~~~~~~~~
+drivers/net/ethernet/mellanox/mlx4/crdump.c:45:10: note: (near initialization for region_cr_space_ops.name)
+drivers/net/ethernet/mellanox/mlx4/crdump.c:50:10: error: initializer element is not constant
+  .name = region_fw_health_str,
+          ^~~~~~~~~~~~~~~~~~~~
+drivers/net/ethernet/mellanox/mlx4/crdump.c:50:10: note: (near initialization for region_fw_health_ops.name)
 
-BUG: Kernel NULL pointer dereference on read at 0x00000000
-Faulting instruction address: 0xc000000000c3447c
-Oops: Kernel access of bad area, sig: 11 [#1]
-LE PAGE_SIZE=64K MMU=Hash SMP NR_CPUS=2048 NUMA pSeries
-CPU: 11 PID: 7519 Comm: lt-ndctl Not tainted 5.6.0-rc7-autotest #1
-...
-NIP [c000000000c3447c] vmemmap_populated+0x98/0xc0
-LR [c000000000088354] vmemmap_free+0x144/0x320
-Call Trace:
- section_deactivate+0x220/0x240
- __remove_pages+0x118/0x170
- arch_remove_memory+0x3c/0x150
- memunmap_pages+0x1cc/0x2f0
- devm_action_release+0x30/0x50
- release_nodes+0x2f8/0x3e0
- device_release_driver_internal+0x168/0x270
- unbind_store+0x130/0x170
- drv_attr_store+0x44/0x60
- sysfs_kf_write+0x68/0x80
- kernfs_fop_write+0x100/0x290
- __vfs_write+0x3c/0x70
- vfs_write+0xcc/0x240
- ksys_write+0x7c/0x140
- system_call+0x5c/0x68
-
-The crash is due to NULL dereference at
-
-test_bit(idx, ms->usage->subsection_map); due to ms->usage = NULL; in
-pfn_section_valid()
-
-With commit d41e2f3bd546 ("mm/hotplug: fix hot remove failure in
-SPARSEMEM|!VMEMMAP case") section_mem_map is set to NULL after
-depopulate_section_mem().  This was done so that pfn_page() can work
-correctly with kernel config that disables SPARSEMEM_VMEMMAP.  With that
-config pfn_to_page does
-
-	__section_mem_map_addr(__sec) + __pfn;
-
-where
-
-static inline struct page *__section_mem_map_addr(struct mem_section *section)
-{
-	unsigned long map = section->section_mem_map;
-	map &= SECTION_MAP_MASK;
-	return (struct page *)map;
-}
-
-Now with SPASEMEM_VMEMAP enabled, mem_section->usage->subsection_map is
-used to check the pfn validity (pfn_valid()).  Since section_deactivate
-release mem_section->usage if a section is fully deactivated, pfn_valid()
-check after a subsection_deactivate cause a kernel crash.
-
-static inline int pfn_valid(unsigned long pfn)
-{
-...
-	return early_section(ms) || pfn_section_valid(ms, pfn);
-}
-
-where
-
-static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
-{
-	int idx = subsection_map_index(pfn);
-
-	return test_bit(idx, ms->usage->subsection_map);
-}
-
-Avoid this by clearing SECTION_HAS_MEM_MAP when mem_section->usage is
-freed.  For architectures like ppc64 where large pages are used for
-vmmemap mapping (16MB), a specific vmemmap mapping can cover multiple
-sections.  Hence before a vmemmap mapping page can be freed, the kernel
-needs to make sure there are no valid sections within that mapping. 
-Clearing the section valid bit before depopulate_section_memap enables
-this.
-
-[aneesh.kumar@linux.ibm.com: add comment]
-  Link: http://lkml.kernel.org/r/20200326133235.343616-1-aneesh.kumar@linux.ibm.comLink: http://lkml.kernel.org/r/20200325031914.107660-1-aneesh.kumar@linux.ibm.com
-Fixes: d41e2f3bd546 ("mm/hotplug: fix hot remove failure in SPARSEMEM|!VMEMMAP case")
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reported-by: Sachin Sant <sachinp@linux.vnet.ibm.com>
-Tested-by: Sachin Sant <sachinp@linux.vnet.ibm.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: <stable@vger.kernel.org>
+Cc: Jacob Keller <jacob.e.keller@intel.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jiri Pirko <jiri@mellanox.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/net/ethernet/mellanox/mlx4/crdump.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/sparse.c~mm-sparse-fix-kernel-crash-with-pfn_section_valid-check
-+++ a/mm/sparse.c
-@@ -781,6 +781,12 @@ static void section_deactivate(unsigned
- 			ms->usage = NULL;
- 		}
- 		memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
-+		/*
-+		 * Mark the section invalid so that valid_section()
-+		 * return false. This prevents code from dereferencing
-+		 * ms->usage array.
-+		 */
-+		ms->section_mem_map &= ~SECTION_HAS_MEM_MAP;
- 	}
+--- a/drivers/net/ethernet/mellanox/mlx4/crdump.c~drivers-net-ethernet-mellanox-mlx4-crdumpc-fix-build-with-gcc-720
++++ a/drivers/net/ethernet/mellanox/mlx4/crdump.c
+@@ -38,8 +38,8 @@
+ #define CR_ENABLE_BIT_OFFSET		0xF3F04
+ #define MAX_NUM_OF_DUMPS_TO_STORE	(8)
  
- 	if (section_is_early && memmap)
+-static const char * const region_cr_space_str = "cr-space";
+-static const char * const region_fw_health_str = "fw-health";
++static const char region_cr_space_str[] = "cr-space";
++static const char region_fw_health_str[] = "fw-health";
+ 
+ static const struct devlink_region_ops region_cr_space_ops = {
+ 	.name = region_cr_space_str,
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-gup-track-foll_pin-pages-fix-2-fix.patch
+mm-swap-make-page_evictable-inline-fix.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
+mm-migratec-migrate-pg_readahead-flag-fix.patch
+hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
+proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+linux-next-git-rejects.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+drivers-net-ethernet-mellanox-mlx4-crdumpc-fix-build-with-gcc-720.patch
