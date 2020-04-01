@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2.patch
- added to -mm tree
-Date: Wed, 01 Apr 2020 14:08:14 -0700
-Message-ID: <20200401210814.zl6JOB6H-%akpm@linux-foundation.org>
+ mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch added to
+ -mm tree
+Date: Wed, 01 Apr 2020 14:57:02 -0700
+Message-ID: <20200401215702.N700c1Mno%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59324 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732337AbgDAVIQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 17:08:16 -0400
+        id S1732527AbgDAV5D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 17:57:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 1vier1@web.de, dave@stgolabs.net, ebiederm@xmission.com, elfring@users.sourceforge.net, manfred@colorfullife.com, mm-commits@vger.kernel.org, oleg@redhat.com, stable@vger.kernel.org, yoji.fujihar.min@gmail.com
+To: chris@chrisdown.name, hannes@cmpxchg.org, kuba@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/mqueue.c: change __do_notify() to bypass check_kill_permission()
+     Subject: mm, memcg: Do not high throttle allocators based on wraparound
 has been added to the -mm tree.  Its filename is
-     ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2.patch
+     mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,128 +37,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: ipc/mqueue.c: change __do_notify() to bypass check_kill_permission()
+From: Jakub Kicinski <kuba@kernel.org>
+Subject: mm, memcg: Do not high throttle allocators based on wraparound
 
-Commit cc731525f26a ("signal: Remove kernel interal si_code magic")
-changed the value of SI_FROMUSER(SI_MESGQ), this means that mq_notify() no
-longer works if the sender doesn't have rights to send a signal.
+If a cgroup violates its memory.high constraints, we may end up unduly
+penalising it.  For example, for the following hierarchy:
 
-Change __do_notify() to use do_send_sig_info() instead of kill_pid_info()
-to avoid check_kill_permission().
+A:   max high, 20 usage
+A/B: 9 high, 10 usage
+A/C: max high, 10 usage
 
-This needs the additional notify.sigev_signo != 0 check, shouldn't we
-change do_mq_notify() to deny sigev_signo == 0 ?
+We would end up doing the following calculation below when calculating
+high delay for A/B:
 
-Test-case:
+A/B: 10 - 9 = 1...
+A:   20 - PAGE_COUNTER_MAX = 21, so set max_overage to 21.
 
-	#include <signal.h>
-	#include <mqueue.h>
-	#include <unistd.h>
-	#include <sys/wait.h>
-	#include <assert.h>
+This gets worse with higher disparities in usage in the parent.
 
-	static int notified;
+I have no idea how this disappeared from the final version of the patch,
+but it is certainly Not Good(tm).  This wasn't obvious in testing because,
+for a simple cgroup hierarchy with only one child, the result is usually
+roughly the same.  It's only in more complex hierarchies that things go
+really awry (although still, the effects are limited to a maximum of 2
+seconds in schedule_timeout_killable at a maximum).
 
-	static void sigh(int sig)
-	{
-		notified = 1;
-	}
-
-	int main(void)
-	{
-		signal(SIGIO, sigh);
-
-		int fd = mq_open("/mq", O_RDWR|O_CREAT, 0666, NULL);
-		assert(fd >= 0);
-
-		struct sigevent se = {
-			.sigev_notify	= SIGEV_SIGNAL,
-			.sigev_signo	= SIGIO,
-		};
-		assert(mq_notify(fd, &se) == 0);
-
-		if (!fork()) {
-			assert(setuid(1) == 0);
-			mq_send(fd, "",1,0);
-			return 0;
-		}
-
-		wait(NULL);
-		mq_unlink("/mq");
-		assert(notified);
-		return 0;
-	}
-
-[manfred@colorfullife.com: 1) Add self_exec_id evaluation so that the implementation matches do_notify_parent 2) use PIDTYPE_TGID everywhere]
-Link: http://lkml.kernel.org/r/e2a782e4-eab9-4f5c-c749-c07a8f7a4e66@colorfullife.com
-Fixes: cc731525f26a ("signal: Remove kernel interal si_code magic")
-Reported-by: Yoji <yoji.fujihar.min@gmail.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Markus Elfring <elfring@users.sourceforge.net>
-Cc: <1vier1@web.de>
-Cc: <stable@vger.kernel.org>
+[chris@chrisdown.name: changelog]
+Link: http://lkml.kernel.org/r/20200331152424.GA1019937@chrisdown.name
+Fixes: e26733e0d0ec ("mm, memcg: throttle allocators based on ancestral memory.high")
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Chris Down <chris@chrisdown.name>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>	[5.4.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |   34 ++++++++++++++++++++++++++--------
- 1 file changed, 26 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/ipc/mqueue.c~ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2
-+++ a/ipc/mqueue.c
-@@ -142,6 +142,7 @@ struct mqueue_inode_info {
+--- a/mm/memcontrol.c~mm-memcg-do-not-high-throttle-allocators-based-on-wraparound
++++ a/mm/memcontrol.c
+@@ -2324,6 +2324,9 @@ static unsigned long calculate_high_dela
+ 		usage = page_counter_read(&memcg->memory);
+ 		high = READ_ONCE(memcg->high);
  
- 	struct sigevent notify;
- 	struct pid *notify_owner;
-+	u32 notify_self_exec_id;
- 	struct user_namespace *notify_user_ns;
- 	struct user_struct *user;	/* user who created, for accounting */
- 	struct sock *notify_sock;
-@@ -774,28 +775,44 @@ static void __do_notify(struct mqueue_in
- 	 * synchronously. */
- 	if (info->notify_owner &&
- 	    info->attr.mq_curmsgs == 1) {
--		struct kernel_siginfo sig_i;
- 		switch (info->notify.sigev_notify) {
- 		case SIGEV_NONE:
- 			break;
--		case SIGEV_SIGNAL:
--			/* sends signal */
-+		case SIGEV_SIGNAL: {
-+			struct kernel_siginfo sig_i;
-+			struct task_struct *task;
++		if (usage <= high)
++			continue;
 +
-+			/* do_mq_notify() accepts sigev_signo == 0, why?? */
-+			if (!info->notify.sigev_signo)
-+				break;
- 
- 			clear_siginfo(&sig_i);
- 			sig_i.si_signo = info->notify.sigev_signo;
- 			sig_i.si_errno = 0;
- 			sig_i.si_code = SI_MESGQ;
- 			sig_i.si_value = info->notify.sigev_value;
--			/* map current pid/uid into info->owner's namespaces */
- 			rcu_read_lock();
-+			/* map current pid/uid into info->owner's namespaces */
- 			sig_i.si_pid = task_tgid_nr_ns(current,
- 						ns_of_pid(info->notify_owner));
--			sig_i.si_uid = from_kuid_munged(info->notify_user_ns, current_uid());
-+			sig_i.si_uid = from_kuid_munged(info->notify_user_ns,
-+						current_uid());
-+			/*
-+			 * We can't use kill_pid_info(), this signal should
-+			 * bypass check_kill_permission(). It is from kernel
-+			 * but si_fromuser() can't know this.
-+			 * We do check the self_exec_id, to avoid sending
-+			 * signals to programs that don't expect them.
-+			 */
-+			task = pid_task(info->notify_owner, PIDTYPE_TGID);
-+			if (task && task->self_exec_id ==
-+						info->notify_self_exec_id) {
-+				do_send_sig_info(info->notify.sigev_signo,
-+						&sig_i, task, PIDTYPE_TGID);
-+			}
- 			rcu_read_unlock();
+ 		/*
+ 		 * Prevent division by 0 in overage calculation by acting as if
+ 		 * it was a threshold of 1 page
+_
+
+Patches currently in -mm which might be from kuba@kernel.org are
+
+mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch
