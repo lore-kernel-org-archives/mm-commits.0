@@ -1,85 +1,131 @@
 From: akpm@linux-foundation.org
 Subject: [alternative-merged]
- drivers-net-ethernet-mellanox-mlx4-crdumpc-fix-build-with-gcc-720.patch
- removed from -mm tree
-Date: Tue, 31 Mar 2020 18:09:15 -0700
-Message-ID: <20200401010915.E5H5swMF8%akpm@linux-foundation.org>
+ mm-fix-tick-timer-stall-during-deferred-page-init.patch removed from -mm
+ tree
+Date: Wed, 01 Apr 2020 11:07:43 -0700
+Message-ID: <20200401180743.TRrmSG9RW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46310 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731554AbgDABJR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 31 Mar 2020 21:09:17 -0400
+        id S1732121AbgDASHp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 14:07:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, jacob.e.keller@intel.com, jiri@mellanox.com, kuba@kernel.org, mm-commits@vger.kernel.org
+To: bhe@redhat.com, daniel.m.jordan@oracle.com, david@redhat.com, ktkhai@virtuozzo.com, mhocko@kernel.org, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, pasha.tatashin@soleen.com, shile.zhang@linux.alibaba.com
 
 
 The patch titled
-     Subject: drivers/net/ethernet/mellanox/mlx4/crdump.c: fix build with gcc-7.2.0
+     Subject: mm/page_alloc.c: fix tick timer stall during deferred page init
 has been removed from the -mm tree.  Its filename was
-     drivers-net-ethernet-mellanox-mlx4-crdumpc-fix-build-with-gcc-720.patch
+     mm-fix-tick-timer-stall-during-deferred-page-init.patch
 
 This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/net/ethernet/mellanox/mlx4/crdump.c: fix build with gcc-7.2.0
+From: Shile Zhang <shile.zhang@linux.alibaba.com>
+Subject: mm/page_alloc.c: fix tick timer stall during deferred page init
 
-drivers/net/ethernet/mellanox/mlx4/crdump.c:45:10: error: initializer element is not constant
-  .name = region_cr_space_str,
-          ^~~~~~~~~~~~~~~~~~~
-drivers/net/ethernet/mellanox/mlx4/crdump.c:45:10: note: (near initialization for region_cr_space_ops.name)
-drivers/net/ethernet/mellanox/mlx4/crdump.c:50:10: error: initializer element is not constant
-  .name = region_fw_health_str,
-          ^~~~~~~~~~~~~~~~~~~~
-drivers/net/ethernet/mellanox/mlx4/crdump.c:50:10: note: (near initialization for region_fw_health_ops.name)
+When 'CONFIG_DEFERRED_STRUCT_PAGE_INIT' is set, 'pgdatinit' kthread will
+initialise the deferred pages with local interrupts disabled.  It is
+introduced by commit 3a2d7fa8a3d5 ("mm: disable interrupts while
+initializing deferred pages").
 
-Cc: Jacob Keller <jacob.e.keller@intel.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Jiri Pirko <jiri@mellanox.com>
-Cc: David S. Miller <davem@davemloft.net>
+On machine with NCPUS <= 2, the 'pgdatinit' kthread could be bound to the
+boot CPU, which could caused the tick timer long time stall, system
+jiffies not be updated in time.
+
+The dmesg shown that:
+
+    [    0.197975] node 0 initialised, 32170688 pages in 1ms
+
+Obviously, 1ms is unreasonable.
+
+Now, fix it by restore in the pending interrupts for every 32*1204 pages
+(128MB) initialized, give the chance to update the systemd jiffies.  The
+reasonable demsg shown likes:
+
+    [    1.069306] node 0 initialised, 32203456 pages in 894ms
+
+Link: http://lkml.kernel.org/r/20200311123848.118638-1-shile.zhang@linux.alibaba.com
+Fixes: 3a2d7fa8a3d5 ("mm: disable interrupts while initializing deferred pages")
+Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Signed-off-by: Shile Zhang <shile.zhang@linux.alibaba.com>
+Co-developed-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/mellanox/mlx4/crdump.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   25 ++++++++++++++++++++++---
+ 1 file changed, 22 insertions(+), 3 deletions(-)
 
---- a/drivers/net/ethernet/mellanox/mlx4/crdump.c~drivers-net-ethernet-mellanox-mlx4-crdumpc-fix-build-with-gcc-720
-+++ a/drivers/net/ethernet/mellanox/mlx4/crdump.c
-@@ -38,8 +38,8 @@
- #define CR_ENABLE_BIT_OFFSET		0xF3F04
- #define MAX_NUM_OF_DUMPS_TO_STORE	(8)
+--- a/mm/page_alloc.c~mm-fix-tick-timer-stall-during-deferred-page-init
++++ a/mm/page_alloc.c
+@@ -1764,12 +1764,17 @@ deferred_init_maxorder(u64 *i, struct zo
+ 	return nr_pages;
+ }
  
--static const char * const region_cr_space_str = "cr-space";
--static const char * const region_fw_health_str = "fw-health";
-+static const char region_cr_space_str[] = "cr-space";
-+static const char region_fw_health_str[] = "fw-health";
++/*
++ * Release the pending interrupts for every TICK_PAGE_COUNT pages.
++ */
++#define TICK_PAGE_COUNT	(32 * 1024)
++
+ /* Initialise remaining memory on a node */
+ static int __init deferred_init_memmap(void *data)
+ {
+ 	pg_data_t *pgdat = data;
+ 	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
+-	unsigned long spfn = 0, epfn = 0, nr_pages = 0;
++	unsigned long spfn = 0, epfn = 0, nr_pages = 0, prev_nr_pages = 0;
+ 	unsigned long first_init_pfn, flags;
+ 	unsigned long start = jiffies;
+ 	struct zone *zone;
+@@ -1780,6 +1785,7 @@ static int __init deferred_init_memmap(v
+ 	if (!cpumask_empty(cpumask))
+ 		set_cpus_allowed_ptr(current, cpumask);
  
- static const struct devlink_region_ops region_cr_space_ops = {
- 	.name = region_cr_space_str,
++again:
+ 	pgdat_resize_lock(pgdat, &flags);
+ 	first_init_pfn = pgdat->first_deferred_pfn;
+ 	if (first_init_pfn == ULONG_MAX) {
+@@ -1791,7 +1797,6 @@ static int __init deferred_init_memmap(v
+ 	/* Sanity check boundaries */
+ 	BUG_ON(pgdat->first_deferred_pfn < pgdat->node_start_pfn);
+ 	BUG_ON(pgdat->first_deferred_pfn > pgdat_end_pfn(pgdat));
+-	pgdat->first_deferred_pfn = ULONG_MAX;
+ 
+ 	/* Only the highest zone is deferred so find it */
+ 	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+@@ -1810,9 +1815,23 @@ static int __init deferred_init_memmap(v
+ 	 * that we can avoid introducing any issues with the buddy
+ 	 * allocator.
+ 	 */
+-	while (spfn < epfn)
++	while (spfn < epfn) {
+ 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
++		/*
++		 * Release the interrupts for every TICK_PAGE_COUNT pages
++		 * (128MB) to give tick timer the chance to update the
++		 * system jiffies.
++		 */
++		if ((nr_pages - prev_nr_pages) > TICK_PAGE_COUNT) {
++			prev_nr_pages = nr_pages;
++			pgdat->first_deferred_pfn = spfn;
++			pgdat_resize_unlock(pgdat, &flags);
++			goto again;
++		}
++	}
++
+ zone_empty:
++	pgdat->first_deferred_pfn = ULONG_MAX;
+ 	pgdat_resize_unlock(pgdat, &flags);
+ 
+ 	/* Sanity check that the next zone really is unpopulated */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-gup-track-foll_pin-pages-fix-2-fix.patch
-mm-swap-make-page_evictable-inline-fix.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
-selftest-add-mremap_dontunmap-selftest-fix.patch
-selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
-mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
-mm-migratec-migrate-pg_readahead-flag-fix.patch
-hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
-proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-linux-next-git-rejects.patch
-mm-add-vm_insert_pages-fix.patch
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
-seq_read-info-message-about-buggy-next-functions-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+Patches currently in -mm which might be from shile.zhang@linux.alibaba.com are
