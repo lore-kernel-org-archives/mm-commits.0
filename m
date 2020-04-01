@@ -1,26 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission.patch
- removed from -mm tree
-Date: Wed, 01 Apr 2020 14:05:15 -0700
-Message-ID: <20200401210515.gMDMliL6Y%akpm@linux-foundation.org>
+Subject: +
+ ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2.patch
+ added to -mm tree
+Date: Wed, 01 Apr 2020 14:08:14 -0700
+Message-ID: <20200401210814.zl6JOB6H-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58692 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732337AbgDAVFR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 17:05:17 -0400
+        id S1732337AbgDAVIQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 17:08:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, ebiederm@xmission.com, elfring@users.sourceforge.net, manfred@colorfullife.com, mm-commits@vger.kernel.org, oleg@redhat.com, stable@vger.kernel.org, yoji.fujihar.min@gmail.com
+To: 1vier1@web.de, dave@stgolabs.net, ebiederm@xmission.com, elfring@users.sourceforge.net, manfred@colorfullife.com, mm-commits@vger.kernel.org, oleg@redhat.com, stable@vger.kernel.org, yoji.fujihar.min@gmail.com
 
 
 The patch titled
      Subject: ipc/mqueue.c: change __do_notify() to bypass check_kill_permission()
-has been removed from the -mm tree.  Its filename was
-     ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission.patch
+has been added to the -mm tree.  Its filename is
+     ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
@@ -76,26 +90,34 @@ Test-case:
 		return 0;
 	}
 
-[oleg@redhat.com: s/PIDTYPE_PID/PIDTYPE_TGID/, per Eric]
-  Link: http://lkml.kernel.org/r/20200327195643.GA9366@redhat.com
-Link: http://lkml.kernel.org/r/20200324200932.GB24230@redhat.com
+[manfred@colorfullife.com: 1) Add self_exec_id evaluation so that the implementation matches do_notify_parent 2) use PIDTYPE_TGID everywhere]
+Link: http://lkml.kernel.org/r/e2a782e4-eab9-4f5c-c749-c07a8f7a4e66@colorfullife.com
 Fixes: cc731525f26a ("signal: Remove kernel interal si_code magic")
 Reported-by: Yoji <yoji.fujihar.min@gmail.com>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
 Cc: Markus Elfring <elfring@users.sourceforge.net>
+Cc: <1vier1@web.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |   28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ ipc/mqueue.c |   34 ++++++++++++++++++++++++++--------
+ 1 file changed, 26 insertions(+), 8 deletions(-)
 
---- a/ipc/mqueue.c~ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission
+--- a/ipc/mqueue.c~ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2
 +++ a/ipc/mqueue.c
-@@ -774,28 +774,40 @@ static void __do_notify(struct mqueue_in
+@@ -142,6 +142,7 @@ struct mqueue_inode_info {
+ 
+ 	struct sigevent notify;
+ 	struct pid *notify_owner;
++	u32 notify_self_exec_id;
+ 	struct user_namespace *notify_user_ns;
+ 	struct user_struct *user;	/* user who created, for accounting */
+ 	struct sock *notify_sock;
+@@ -774,28 +775,44 @@ static void __do_notify(struct mqueue_in
  	 * synchronously. */
  	if (info->notify_owner &&
  	    info->attr.mq_curmsgs == 1) {
@@ -130,9 +152,13 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +			 * We can't use kill_pid_info(), this signal should
 +			 * bypass check_kill_permission(). It is from kernel
 +			 * but si_fromuser() can't know this.
++			 * We do check the self_exec_id, to avoid sending
++			 * signals to programs that don't expect them.
 +			 */
 +			task = pid_task(info->notify_owner, PIDTYPE_TGID);
-+			if (task)
++			if (task && task->self_exec_id ==
++						info->notify_self_exec_id) {
 +				do_send_sig_info(info->notify.sigev_signo,
 +						&sig_i, task, PIDTYPE_TGID);
++			}
  			rcu_read_unlock();
