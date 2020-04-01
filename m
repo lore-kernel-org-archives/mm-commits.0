@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch added to
- -mm tree
-Date: Wed, 01 Apr 2020 14:57:02 -0700
-Message-ID: <20200401215702.N700c1Mno%akpm@linux-foundation.org>
+Subject: + compilerh-fix-error-in-build_bug_on-reporting.patch
+ added to -mm tree
+Date: Wed, 01 Apr 2020 15:22:04 -0700
+Message-ID: <20200401222204.s10L3eApC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41094 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48146 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732527AbgDAV5D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 17:57:03 -0400
+        id S1732385AbgDAWWG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 18:22:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chrisdown.name, hannes@cmpxchg.org, kuba@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: abbotti@mev.co.uk, daniel.santos@pobox.com, joe@perches.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, vegard.nossum@oracle.com, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: mm, memcg: Do not high throttle allocators based on wraparound
+     Subject: compiler.h: fix error in BUILD_BUG_ON() reporting
 has been added to the -mm tree.  Its filename is
-     mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch
+     compilerh-fix-error-in-build_bug_on-reporting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/compilerh-fix-error-in-build_bug_on-reporting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/compilerh-fix-error-in-build_bug_on-reporting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,59 +36,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jakub Kicinski <kuba@kernel.org>
-Subject: mm, memcg: Do not high throttle allocators based on wraparound
+From: Vegard Nossum <vegard.nossum@oracle.com>
+Subject: compiler.h: fix error in BUILD_BUG_ON() reporting
 
-If a cgroup violates its memory.high constraints, we may end up unduly
-penalising it.  For example, for the following hierarchy:
+compiletime_assert() uses __LINE__ to create a unique function name.  This
+means that if you have more than one BUILD_BUG_ON() in the same source
+line (which can happen if they appear e.g.  in a macro), then the error
+message from the compiler might output the wrong condition.
 
-A:   max high, 20 usage
-A/B: 9 high, 10 usage
-A/C: max high, 10 usage
+For this source file:
 
-We would end up doing the following calculation below when calculating
-high delay for A/B:
+	#include <linux/build_bug.h>
 
-A/B: 10 - 9 = 1...
-A:   20 - PAGE_COUNTER_MAX = 21, so set max_overage to 21.
+	#define macro() \
+		BUILD_BUG_ON(1); \
+		BUILD_BUG_ON(0);
 
-This gets worse with higher disparities in usage in the parent.
+	void foo()
+	{
+		macro();
+	}
 
-I have no idea how this disappeared from the final version of the patch,
-but it is certainly Not Good(tm).  This wasn't obvious in testing because,
-for a simple cgroup hierarchy with only one child, the result is usually
-roughly the same.  It's only in more complex hierarchies that things go
-really awry (although still, the effects are limited to a maximum of 2
-seconds in schedule_timeout_killable at a maximum).
+gcc would output:
 
-[chris@chrisdown.name: changelog]
-Link: http://lkml.kernel.org/r/20200331152424.GA1019937@chrisdown.name
-Fixes: e26733e0d0ec ("mm, memcg: throttle allocators based on ancestral memory.high")
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-Signed-off-by: Chris Down <chris@chrisdown.name>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[5.4.x]
+./include/linux/compiler.h:350:38: error: call to `__compiletime_assert_9' declared with attribute error: BUILD_BUG_ON failed: 0
+  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
+
+However, it was not the BUILD_BUG_ON(0) that failed, so it should say 1
+instead of 0. With this patch, we use __COUNTER__ instead of __LINE__, so
+each BUILD_BUG_ON() gets a different function name and the correct
+condition is printed:
+
+./include/linux/compiler.h:350:38: error: call to `__compiletime_assert_0' declared with attribute error: BUILD_BUG_ON failed: 1
+  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+
+Link: http://lkml.kernel.org/r/20200331112637.25047-1-vegard.nossum@oracle.com
+Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
+Reviewed-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Reviewed-by: Daniel Santos <daniel.santos@pobox.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Ian Abbott <abbotti@mev.co.uk>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/compiler.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-do-not-high-throttle-allocators-based-on-wraparound
-+++ a/mm/memcontrol.c
-@@ -2324,6 +2324,9 @@ static unsigned long calculate_high_dela
- 		usage = page_counter_read(&memcg->memory);
- 		high = READ_ONCE(memcg->high);
+--- a/include/linux/compiler.h~compilerh-fix-error-in-build_bug_on-reporting
++++ a/include/linux/compiler.h
+@@ -347,7 +347,7 @@ static inline void *offset_to_ptr(const
+  * compiler has support to do so.
+  */
+ #define compiletime_assert(condition, msg) \
+-	_compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
++	_compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
  
-+		if (usage <= high)
-+			continue;
-+
- 		/*
- 		 * Prevent division by 0 in overage calculation by acting as if
- 		 * it was a threshold of 1 page
+ #define compiletime_assert_atomic_type(t)				\
+ 	compiletime_assert(__native_word(t),				\
 _
 
-Patches currently in -mm which might be from kuba@kernel.org are
+Patches currently in -mm which might be from vegard.nossum@oracle.com are
 
-mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch
+compilerh-fix-error-in-build_bug_on-reporting.patch
