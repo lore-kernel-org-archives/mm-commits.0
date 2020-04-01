@@ -1,131 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- mm-fix-tick-timer-stall-during-deferred-page-init.patch removed from -mm
- tree
-Date: Wed, 01 Apr 2020 11:07:43 -0700
-Message-ID: <20200401180743.TRrmSG9RW%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix.patch
+ removed from -mm tree
+Date: Wed, 01 Apr 2020 14:04:33 -0700
+Message-ID: <20200401210433.v7INQ1nqS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44670 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58612 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732121AbgDASHp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 14:07:45 -0400
+        id S1732337AbgDAVEf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 17:04:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, daniel.m.jordan@oracle.com, david@redhat.com, ktkhai@virtuozzo.com, mhocko@kernel.org, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, pasha.tatashin@soleen.com, shile.zhang@linux.alibaba.com
+To: ebiederm@xmission.com, mm-commits@vger.kernel.org, oleg@redhat.com
 
 
 The patch titled
-     Subject: mm/page_alloc.c: fix tick timer stall during deferred page init
+     Subject: ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix
 has been removed from the -mm tree.  Its filename was
-     mm-fix-tick-timer-stall-during-deferred-page-init.patch
+     ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was folded into ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission.patch
 
 ------------------------------------------------------
-From: Shile Zhang <shile.zhang@linux.alibaba.com>
-Subject: mm/page_alloc.c: fix tick timer stall during deferred page init
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix
 
-When 'CONFIG_DEFERRED_STRUCT_PAGE_INIT' is set, 'pgdatinit' kthread will
-initialise the deferred pages with local interrupts disabled.  It is
-introduced by commit 3a2d7fa8a3d5 ("mm: disable interrupts while
-initializing deferred pages").
+s/PIDTYPE_PID/PIDTYPE_TGID/, per Eric
 
-On machine with NCPUS <= 2, the 'pgdatinit' kthread could be bound to the
-boot CPU, which could caused the tick timer long time stall, system
-jiffies not be updated in time.
-
-The dmesg shown that:
-
-    [    0.197975] node 0 initialised, 32170688 pages in 1ms
-
-Obviously, 1ms is unreasonable.
-
-Now, fix it by restore in the pending interrupts for every 32*1204 pages
-(128MB) initialized, give the chance to update the systemd jiffies.  The
-reasonable demsg shown likes:
-
-    [    1.069306] node 0 initialised, 32203456 pages in 894ms
-
-Link: http://lkml.kernel.org/r/20200311123848.118638-1-shile.zhang@linux.alibaba.com
-Fixes: 3a2d7fa8a3d5 ("mm: disable interrupts while initializing deferred pages")
-Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Signed-off-by: Shile Zhang <shile.zhang@linux.alibaba.com>
-Co-developed-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com
+Link: http://lkml.kernel.org/r/20200327195643.GA9366@redhat.com
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+ ipc/mqueue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-fix-tick-timer-stall-during-deferred-page-init
-+++ a/mm/page_alloc.c
-@@ -1764,12 +1764,17 @@ deferred_init_maxorder(u64 *i, struct zo
- 	return nr_pages;
- }
- 
-+/*
-+ * Release the pending interrupts for every TICK_PAGE_COUNT pages.
-+ */
-+#define TICK_PAGE_COUNT	(32 * 1024)
-+
- /* Initialise remaining memory on a node */
- static int __init deferred_init_memmap(void *data)
- {
- 	pg_data_t *pgdat = data;
- 	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
--	unsigned long spfn = 0, epfn = 0, nr_pages = 0;
-+	unsigned long spfn = 0, epfn = 0, nr_pages = 0, prev_nr_pages = 0;
- 	unsigned long first_init_pfn, flags;
- 	unsigned long start = jiffies;
- 	struct zone *zone;
-@@ -1780,6 +1785,7 @@ static int __init deferred_init_memmap(v
- 	if (!cpumask_empty(cpumask))
- 		set_cpus_allowed_ptr(current, cpumask);
- 
-+again:
- 	pgdat_resize_lock(pgdat, &flags);
- 	first_init_pfn = pgdat->first_deferred_pfn;
- 	if (first_init_pfn == ULONG_MAX) {
-@@ -1791,7 +1797,6 @@ static int __init deferred_init_memmap(v
- 	/* Sanity check boundaries */
- 	BUG_ON(pgdat->first_deferred_pfn < pgdat->node_start_pfn);
- 	BUG_ON(pgdat->first_deferred_pfn > pgdat_end_pfn(pgdat));
--	pgdat->first_deferred_pfn = ULONG_MAX;
- 
- 	/* Only the highest zone is deferred so find it */
- 	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-@@ -1810,9 +1815,23 @@ static int __init deferred_init_memmap(v
- 	 * that we can avoid introducing any issues with the buddy
- 	 * allocator.
- 	 */
--	while (spfn < epfn)
-+	while (spfn < epfn) {
- 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
-+		/*
-+		 * Release the interrupts for every TICK_PAGE_COUNT pages
-+		 * (128MB) to give tick timer the chance to update the
-+		 * system jiffies.
-+		 */
-+		if ((nr_pages - prev_nr_pages) > TICK_PAGE_COUNT) {
-+			prev_nr_pages = nr_pages;
-+			pgdat->first_deferred_pfn = spfn;
-+			pgdat_resize_unlock(pgdat, &flags);
-+			goto again;
-+		}
-+	}
-+
- zone_empty:
-+	pgdat->first_deferred_pfn = ULONG_MAX;
- 	pgdat_resize_unlock(pgdat, &flags);
- 
- 	/* Sanity check that the next zone really is unpopulated */
+--- a/ipc/mqueue.c~ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-fix
++++ a/ipc/mqueue.c
+@@ -801,7 +801,7 @@ static void __do_notify(struct mqueue_in
+ 			 * bypass check_kill_permission(). It is from kernel
+ 			 * but si_fromuser() can't know this.
+ 			 */
+-			task = pid_task(info->notify_owner, PIDTYPE_PID);
++			task = pid_task(info->notify_owner, PIDTYPE_TGID);
+ 			if (task)
+ 				do_send_sig_info(info->notify.sigev_signo,
+ 						&sig_i, task, PIDTYPE_TGID);
 _
 
-Patches currently in -mm which might be from shile.zhang@linux.alibaba.com are
+Patches currently in -mm which might be from oleg@redhat.com are
+
+ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission.patch
+ipc-mqueuec-change-__do_notify-to-bypass-check_kill_permission-v2.patch
+aio-simplify-read_events.patch
