@@ -1,29 +1,33 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 099/155] mm/gup: allow VM_FAULT_RETRY for multiple
- times
-Date: Wed, 01 Apr 2020 21:08:49 -0700
-Message-ID: <20200402040849.ezjm4X9v0%akpm@linux-foundation.org>
+Subject: [patch 100/155] mm/gup: allow to react to fatal signals
+Date: Wed, 01 Apr 2020 21:08:53 -0700
+Message-ID: <20200402040853.kV3BL4oyi%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60550 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60696 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727746AbgDBEIv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:08:51 -0400
+        id S1726205AbgDBEI6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:08:58 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, bgeffon@google.com, bobbypowers@gmail.com, cracauer@cons.org, david@redhat.com, dgilbert@redhat.com, dplotnikov@virtuozzo.com, gokhale2@llnl.gov, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, kirill@shutemov.name, linux-mm@kvack.org, mcfadden8@llnl.gov, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, peterx@redhat.com, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org, willy@infradead.org, xemul@openvz.org
 
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: allow VM_FAULT_RETRY for multiple times
+Subject: mm/gup: allow to react to fatal signals
 
-This is the gup counterpart of the change that allows the VM_FAULT_RETRY
-to happen for more than once.  One thing to mention is that we must check
-the fatal signal here before retry because the GUP can be interrupted by
-that, otherwise we can loop forever.
+The existing gup code does not react to the fatal signals in many code
+paths.  For example, in one retry path of gup we're still using
+down_read() rather than down_read_killable().  Also, when doing page
+faults we don't pass in FAULT_FLAG_KILLABLE as well, which means that
+within the faulting process we'll wait in non-killable way as well.  These
+were spotted by Linus during the code review of some other patches.
 
-Link: http://lkml.kernel.org/r/20200220195357.16371-1-peterx@redhat.com
+Let's allow the gup code to react to fatal signals to improve the
+responsiveness of threads when during gup and being killed.
+
+Link: http://lkml.kernel.org/r/20200220160256.9887-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Tested-by: Brian Geffon <bgeffon@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -47,80 +51,55 @@ Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c     |   27 +++++++++++++++++++++------
- mm/hugetlb.c |    6 ++++--
- 2 files changed, 25 insertions(+), 8 deletions(-)
+ mm/gup.c     |   12 +++++++++---
+ mm/hugetlb.c |    3 ++-
+ 2 files changed, 11 insertions(+), 4 deletions(-)
 
---- a/mm/gup.c~mm-gup-allow-vm_fault_retry-for-multiple-times
+--- a/mm/gup.c~mm-gup-allow-to-react-to-fatal-signals
 +++ a/mm/gup.c
-@@ -868,7 +868,10 @@ static int faultin_page(struct task_stru
+@@ -864,7 +864,7 @@ static int faultin_page(struct task_stru
+ 	if (*flags & FOLL_REMOTE)
+ 		fault_flags |= FAULT_FLAG_REMOTE;
+ 	if (locked)
+-		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
++		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
  	if (*flags & FOLL_NOWAIT)
  		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_RETRY_NOWAIT;
  	if (*flags & FOLL_TRIED) {
--		VM_WARN_ON_ONCE(fault_flags & FAULT_FLAG_ALLOW_RETRY);
-+		/*
-+		 * Note: FAULT_FLAG_ALLOW_RETRY and FAULT_FLAG_TRIED
-+		 * can co-exist
-+		 */
- 		fault_flags |= FAULT_FLAG_TRIED;
- 	}
+@@ -1207,7 +1207,7 @@ int fixup_user_fault(struct task_struct
+ 	address = untagged_addr(address);
  
-@@ -1228,7 +1231,6 @@ retry:
- 		down_read(&mm->mmap_sem);
- 		if (!(fault_flags & FAULT_FLAG_TRIED)) {
- 			*unlocked = true;
--			fault_flags &= ~FAULT_FLAG_ALLOW_RETRY;
- 			fault_flags |= FAULT_FLAG_TRIED;
- 			goto retry;
- 		}
-@@ -1312,17 +1314,30 @@ static __always_inline long __get_user_p
- 		if (likely(pages))
- 			pages += ret;
- 		start += ret << PAGE_SHIFT;
-+		lock_dropped = true;
+ 	if (unlocked)
+-		fault_flags |= FAULT_FLAG_ALLOW_RETRY;
++		fault_flags |= FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
  
-+retry:
- 		/*
- 		 * Repeat on the address that fired VM_FAULT_RETRY
--		 * without FAULT_FLAG_ALLOW_RETRY but with
--		 * FAULT_FLAG_TRIED.
-+		 * with both FAULT_FLAG_ALLOW_RETRY and
-+		 * FAULT_FLAG_TRIED.  Note that GUP can be interrupted
-+		 * by fatal signals, so we need to check it before we
-+		 * start trying again otherwise it can loop forever.
- 		 */
-+
-+		if (fatal_signal_pending(current))
-+			break;
-+
+ retry:
+ 	vma = find_extend_vma(mm, address);
+@@ -1329,7 +1329,13 @@ retry:
+ 			break;
+ 
  		*locked = 1;
--		lock_dropped = true;
- 		down_read(&mm->mmap_sem);
-+
- 		ret = __get_user_pages(tsk, mm, start, 1, flags | FOLL_TRIED,
--				       pages, NULL, NULL);
-+				       pages, NULL, locked);
-+		if (!*locked) {
-+			/* Continue to retry until we succeeded */
-+			BUG_ON(ret != 0);
-+			goto retry;
+-		down_read(&mm->mmap_sem);
++		ret = down_read_killable(&mm->mmap_sem);
++		if (ret) {
++			BUG_ON(ret > 0);
++			if (!pages_done)
++				pages_done = ret;
++			break;
 +		}
- 		if (ret != 1) {
- 			BUG_ON(ret > 1);
- 			if (!pages_done)
---- a/mm/hugetlb.c~mm-gup-allow-vm_fault_retry-for-multiple-times
+ 
+ 		ret = __get_user_pages(tsk, mm, start, 1, flags | FOLL_TRIED,
+ 				       pages, NULL, locked);
+--- a/mm/hugetlb.c~mm-gup-allow-to-react-to-fatal-signals
 +++ a/mm/hugetlb.c
-@@ -4349,8 +4349,10 @@ long follow_hugetlb_page(struct mm_struc
+@@ -4344,7 +4344,8 @@ long follow_hugetlb_page(struct mm_struc
+ 			if (flags & FOLL_WRITE)
+ 				fault_flags |= FAULT_FLAG_WRITE;
+ 			if (locked)
+-				fault_flags |= FAULT_FLAG_ALLOW_RETRY;
++				fault_flags |= FAULT_FLAG_ALLOW_RETRY |
++					FAULT_FLAG_KILLABLE;
+ 			if (flags & FOLL_NOWAIT)
  				fault_flags |= FAULT_FLAG_ALLOW_RETRY |
  					FAULT_FLAG_RETRY_NOWAIT;
- 			if (flags & FOLL_TRIED) {
--				VM_WARN_ON_ONCE(fault_flags &
--						FAULT_FLAG_ALLOW_RETRY);
-+				/*
-+				 * Note: FAULT_FLAG_ALLOW_RETRY and
-+				 * FAULT_FLAG_TRIED can co-exist
-+				 */
- 				fault_flags |= FAULT_FLAG_TRIED;
- 			}
- 			ret = hugetlb_fault(mm, vma, vaddr, fault_flags);
 _
