@@ -1,49 +1,98 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 059/155] mm/swap_state.c: use the same way to
- count page in [add_to|delete_from]_swap_cache
-Date: Wed, 01 Apr 2020 21:06:26 -0700
-Message-ID: <20200402040626.BH45PPJxR%akpm@linux-foundation.org>
+Subject: [patch 060/155] mm, memcg: fix build error around the
+ usage of kmem_caches
+Date: Wed, 01 Apr 2020 21:06:30 -0700
+Message-ID: <20200402040630.5wtvrtiGI%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56276 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56448 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725789AbgDBEG2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:06:28 -0400
+        id S1725789AbgDBEGb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:06:31 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, torvalds@linux-foundation.org, willy@infradead.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, laoar.shao@gmail.com, linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org, tj@kernel.org, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
 
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/swap_state.c: use the same way to count page in [add_to|delete_from]_swap_cache
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm, memcg: fix build error around the usage of kmem_caches
 
-add_to_swap_cache() and delete_from_swap_cache() are counterparts, while
-currently they use different ways to count pages.
+When I manually set default n to MEMCG_KMEM in init/Kconfig, bellow error
+occurs,
 
-It doesn't break anything because we only have two sizes for PageAnon, but
-this is confusing and not good practice.
+mm/slab_common.c: In function 'memcg_slab_start':
+mm/slab_common.c:1530:30: error: 'struct mem_cgroup' has no member named
+'kmem_caches'
+  return seq_list_start(&memcg->kmem_caches, *pos);
+                              ^
+mm/slab_common.c: In function 'memcg_slab_next':
+mm/slab_common.c:1537:32: error: 'struct mem_cgroup' has no member named
+'kmem_caches'
+  return seq_list_next(p, &memcg->kmem_caches, pos);
+                                ^
+mm/slab_common.c: In function 'memcg_slab_show':
+mm/slab_common.c:1551:16: error: 'struct mem_cgroup' has no member named
+'kmem_caches'
+  if (p == memcg->kmem_caches.next)
+                ^
+  CC      arch/x86/xen/smp.o
+mm/slab_common.c: In function 'memcg_slab_start':
+mm/slab_common.c:1531:1: warning: control reaches end of non-void function
+[-Wreturn-type]
+ }
+ ^
+mm/slab_common.c: In function 'memcg_slab_next':
+mm/slab_common.c:1538:1: warning: control reaches end of non-void function
+[-Wreturn-type]
+ }
+ ^
 
-This patch corrects it by making both functions use hpage_nr_pages().
+That's because kmem_caches is defined only when CONFIG_MEMCG_KMEM is set,
+while memcg_slab_start() will use it no matter CONFIG_MEMCG_KMEM is defined
+or not.
 
-Link: http://lkml.kernel.org/r/20200315012920.2687-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+By the way, the reason I mannuly undefined CONFIG_MEMCG_KMEM is to verify
+whether my some other code change is still stable when CONFIG_MEMCG_KMEM is
+not set. Unfortunately, the existing code has been already unstable since
+v4.11.
+
+Link: http://lkml.kernel.org/r/1580970260-2045-1-git-send-email-laoar.shao@gmail.com
+Fixes: bc2791f857e1 ("slab: link memcg kmem_caches on their associated memory cgroup")
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Acked-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c  |    3 ++-
+ mm/slab_common.c |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/swap_state.c~mm-swap_statec-use-the-same-way-to-count-page-in-_swap_cache
-+++ a/mm/swap_state.c
-@@ -116,7 +116,7 @@ int add_to_swap_cache(struct page *page,
- 	struct address_space *address_space = swap_address_space(entry);
- 	pgoff_t idx = swp_offset(entry);
- 	XA_STATE_ORDER(xas, &address_space->i_pages, idx, compound_order(page));
--	unsigned long i, nr = compound_nr(page);
-+	unsigned long i, nr = hpage_nr_pages(page);
+--- a/mm/memcontrol.c~mm-memcg-fix-build-error-around-the-usage-of-kmem_caches
++++ a/mm/memcontrol.c
+@@ -4792,7 +4792,8 @@ static struct cftype mem_cgroup_legacy_f
+ 		.write = mem_cgroup_reset,
+ 		.read_u64 = mem_cgroup_read_u64,
+ 	},
+-#if defined(CONFIG_SLAB) || defined(CONFIG_SLUB_DEBUG)
++#if defined(CONFIG_MEMCG_KMEM) && \
++	(defined(CONFIG_SLAB) || defined(CONFIG_SLUB_DEBUG))
+ 	{
+ 		.name = "kmem.slabinfo",
+ 		.seq_start = memcg_slab_start,
+--- a/mm/slab_common.c~mm-memcg-fix-build-error-around-the-usage-of-kmem_caches
++++ a/mm/slab_common.c
+@@ -1521,7 +1521,7 @@ void dump_unreclaimable_slab(void)
+ 	mutex_unlock(&slab_mutex);
+ }
  
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageSwapCache(page), page);
+-#if defined(CONFIG_MEMCG)
++#if defined(CONFIG_MEMCG_KMEM)
+ void *memcg_slab_start(struct seq_file *m, loff_t *pos)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
 _
