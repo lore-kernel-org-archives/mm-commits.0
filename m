@@ -1,67 +1,105 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 114/155] mm/page_alloc: increase default
- min_free_kbytes bound
-Date: Wed, 01 Apr 2020 21:09:44 -0700
-Message-ID: <20200402040944.GNLbwZ9bh%akpm@linux-foundation.org>
+Subject: [patch 115/155] mm, pagealloc: micro-optimisation: save
+ two branches on hot page allocation path
+Date: Wed, 01 Apr 2020 21:09:47 -0700
+Message-ID: <20200402040947.UHtYZsOYT%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34242 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34328 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725789AbgDBEJp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:09:45 -0400
+        id S1725789AbgDBEJs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:09:48 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, jsavitz@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org, mateusznosek0@gmail.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Joel Savitz <jsavitz@redhat.com>
-Subject: mm/page_alloc: increase default min_free_kbytes bound
+From: Mateusz Nosek <mateusznosek0@gmail.com>
+Subject: mm, pagealloc: micro-optimisation: save two branches on hot page allocation path
 
-Currently, the vm.min_free_kbytes sysctl value is capped at a hardcoded
-64M in init_per_zone_wmark_min (unless it is overridden by khugepaged
-initialization).
+This patch makes ALLOC_KSWAPD equal to __GFP_KSWAPD_RECLAIM (cast to int).
 
-This value has not been modified since 2005, and enterprise-grade systems
-now frequently have hundreds of GB of RAM and multiple 10, 40, or even 100
-GB NICs.  We have seen page allocation failures on heavily loaded systems
-related to NIC drivers.  These issues were resolved by an increase to
-vm.min_free_kbytes.
+Thanks to that code like:
+    if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+	    alloc_flags |= ALLOC_KSWAPD;
+can be changed to:
+    alloc_flags |= (__force int) (gfp_mask &__GFP_KSWAPD_RECLAIM);
+Thanks to this one branch less is generated in the assembly.
 
-This patch increases the hardcoded value by a factor of 4 as a temporary
-solution.
+In case of ALLOC_KSWAPD flag two branches are saved, first one in code
+that always executes in the beginning of page allocation and the second
+one in loop in page allocator slowpath.
 
-Further work to make the calculation of vm.min_free_kbytes more consistent
-throughout the kernel would be desirable.
-
-As an example of the inconsistency of the current method, this value is
-recalculated by init_per_zone_wmark_min() in the case of memory hotplug
-which will override the value set by set_recommended_min_free_kbytes()
-called during khugepaged initialization even if khugepaged remains
-enabled, however an on/off toggle of khugepaged will then recalculate and
-set the value via set_recommended_min_free_kbytes().
-
-Link: http://lkml.kernel.org/r/20200220150103.5183-1-jsavitz@redhat.com
-Signed-off-by: Joel Savitz <jsavitz@redhat.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Rafael Aquini <aquini@redhat.com>
+Link: http://lkml.kernel.org/r/20200304162118.14784-1-mateusznosek0@gmail.com
+Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/internal.h   |    2 +-
+ mm/page_alloc.c |   22 ++++++++++++++--------
+ 2 files changed, 15 insertions(+), 9 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-increase-default-min_free_kbytes-bound
+--- a/mm/internal.h~mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path
++++ a/mm/internal.h
+@@ -555,7 +555,7 @@ unsigned long reclaim_clean_pages_from_l
+ #else
+ #define ALLOC_NOFRAGMENT	  0x0
+ #endif
+-#define ALLOC_KSWAPD		0x200 /* allow waking of kswapd */
++#define ALLOC_KSWAPD		0x800 /* allow waking of kswapd, __GFP_KSWAPD_RECLAIM set */
+ 
+ enum ttu_flags;
+ struct tlbflush_unmap_batch;
+--- a/mm/page_alloc.c~mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path
 +++ a/mm/page_alloc.c
-@@ -7868,8 +7868,8 @@ int __meminit init_per_zone_wmark_min(vo
- 		min_free_kbytes = new_min_free_kbytes;
- 		if (min_free_kbytes < 128)
- 			min_free_kbytes = 128;
--		if (min_free_kbytes > 65536)
--			min_free_kbytes = 65536;
-+		if (min_free_kbytes > 262144)
-+			min_free_kbytes = 262144;
- 	} else {
- 		pr_warn("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
- 				new_min_free_kbytes, user_min_free_kbytes);
-_
+@@ -3536,10 +3536,13 @@ static bool zone_allows_reclaim(struct z
+ static inline unsigned int
+ alloc_flags_nofragment(struct zone *zone, gfp_t gfp_mask)
+ {
+-	unsigned int alloc_flags = 0;
++	unsigned int alloc_flags;
+ 
+-	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+-		alloc_flags |= ALLOC_KSWAPD;
++	/*
++	 * __GFP_KSWAPD_RECLAIM is assumed to be the same as ALLOC_KSWAPD
++	 * to save a branch.
++	 */
++	alloc_flags = (__force int) (gfp_mask & __GFP_KSWAPD_RECLAIM);
+ 
+ #ifdef CONFIG_ZONE_DMA32
+ 	if (!zone)
+@@ -4175,8 +4178,13 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ {
+ 	unsigned int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
+ 
+-	/* __GFP_HIGH is assumed to be the same as ALLOC_HIGH to save a branch. */
++	/*
++	 * __GFP_HIGH is assumed to be the same as ALLOC_HIGH
++	 * and __GFP_KSWAPD_RECLAIM is assumed to be the same as ALLOC_KSWAPD
++	 * to save two branches.
++	 */
+ 	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_HIGH);
++	BUILD_BUG_ON(__GFP_KSWAPD_RECLAIM != (__force gfp_t) ALLOC_KSWAPD);
+ 
+ 	/*
+ 	 * The caller may dip into page reserves a bit more if the caller
+@@ -4184,7 +4192,8 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
+ 	 * set both ALLOC_HARDER (__GFP_ATOMIC) and ALLOC_HIGH (__GFP_HIGH).
+ 	 */
+-	alloc_flags |= (__force int) (gfp_mask & __GFP_HIGH);
++	alloc_flags |= (__force int)
++		(gfp_mask & (__GFP_HIGH | __GFP_KSWAPD_RECLAIM));
+ 
+ 	if (gfp_mask & __GFP_ATOMIC) {
+ 		/*
+@@ -4201,9 +4210,6 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	} else if (unlikely(rt_task(current)) && !in_interrupt())
+ 		alloc_flags |= ALLOC_HARDER;
+ 
+-	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+-		alloc_flags |= ALLOC_KSWAPD;
