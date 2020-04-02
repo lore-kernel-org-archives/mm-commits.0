@@ -1,27 +1,27 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 076/155] mm, memcg: prevent memory.low load/store
+Subject: [patch 077/155] mm, memcg: prevent memory.min load/store
  tearing
-Date: Wed, 01 Apr 2020 21:07:24 -0700
-Message-ID: <20200402040724.6Xz5_-c5d%akpm@linux-foundation.org>
+Date: Wed, 01 Apr 2020 21:07:27 -0700
+Message-ID: <20200402040727.hkXp15f5V%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58428 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58552 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726963AbgDBEHZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:07:25 -0400
+        id S1726963AbgDBEH2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:07:28 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, tj@kernel.org, torvalds@linux-foundation.org
 
 From: Chris Down <chris@chrisdown.name>
-Subject: mm, memcg: prevent memory.low load/store tearing
+Subject: mm, memcg: prevent memory.min load/store tearing
 
 This can be set concurrently with reads, which may cause the wrong value
 to be propagated.
 
-Link: http://lkml.kernel.org/r/448206f44b0fa7be9dad2ca2601d2bcb2c0b7844.1584034301.git.chris@chrisdown.name
+Link: http://lkml.kernel.org/r/e809b4e6b0c1626dac6945970de06409a180ee65.1584034301.git.chris@chrisdown.name
 Signed-off-by: Chris Down <chris@chrisdown.name>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -30,37 +30,58 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_counter.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/memcontrol.c   |    5 +++--
+ mm/page_counter.c |    9 +++++----
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/page_counter.c~mm-memcg-prevent-memorylow-load-store-tearing
+--- a/mm/memcontrol.c~mm-memcg-prevent-memorymin-load-store-tearing
++++ a/mm/memcontrol.c
+@@ -6389,7 +6389,7 @@ enum mem_cgroup_protection mem_cgroup_pr
+ 		return MEMCG_PROT_NONE;
+ 
+ 	if (parent == root) {
+-		memcg->memory.emin = memcg->memory.min;
++		memcg->memory.emin = READ_ONCE(memcg->memory.min);
+ 		memcg->memory.elow = memcg->memory.low;
+ 		goto out;
+ 	}
+@@ -6397,7 +6397,8 @@ enum mem_cgroup_protection mem_cgroup_pr
+ 	parent_usage = page_counter_read(&parent->memory);
+ 
+ 	memcg->memory.emin = effective_protection(usage, parent_usage,
+-			memcg->memory.min, READ_ONCE(parent->memory.emin),
++			READ_ONCE(memcg->memory.min),
++			READ_ONCE(parent->memory.emin),
+ 			atomic_long_read(&parent->memory.children_min_usage));
+ 
+ 	memcg->memory.elow = effective_protection(usage, parent_usage,
+--- a/mm/page_counter.c~mm-memcg-prevent-memorymin-load-store-tearing
 +++ a/mm/page_counter.c
-@@ -17,6 +17,7 @@ static void propagate_protected_usage(st
+@@ -17,14 +17,15 @@ static void propagate_protected_usage(st
  				      unsigned long usage)
  {
  	unsigned long protected, old_protected;
-+	unsigned long low;
+-	unsigned long low;
++	unsigned long low, min;
  	long delta;
  
  	if (!c->parent)
-@@ -30,8 +31,9 @@ static void propagate_protected_usage(st
- 			atomic_long_add(delta, &c->parent->children_min_usage);
- 	}
+ 		return;
  
--	if (c->low || atomic_long_read(&c->low_usage)) {
--		protected = min(usage, c->low);
-+	low = READ_ONCE(c->low);
-+	if (low || atomic_long_read(&c->low_usage)) {
-+		protected = min(usage, low);
- 		old_protected = atomic_long_xchg(&c->low_usage, protected);
+-	if (c->min || atomic_long_read(&c->min_usage)) {
+-		protected = min(usage, c->min);
++	min = READ_ONCE(c->min);
++	if (min || atomic_long_read(&c->min_usage)) {
++		protected = min(usage, min);
+ 		old_protected = atomic_long_xchg(&c->min_usage, protected);
  		delta = protected - old_protected;
  		if (delta)
-@@ -222,7 +224,7 @@ void page_counter_set_low(struct page_co
+@@ -207,7 +208,7 @@ void page_counter_set_min(struct page_co
  {
  	struct page_counter *c;
  
--	counter->low = nr_pages;
-+	WRITE_ONCE(counter->low, nr_pages);
+-	counter->min = nr_pages;
++	WRITE_ONCE(counter->min, nr_pages);
  
  	for (c = counter; c; c = c->parent)
  		propagate_protected_usage(c, atomic_long_read(&c->usage));
