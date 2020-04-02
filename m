@@ -1,101 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch removed
+ kasan-detect-negative-size-in-memory-operation-function-fix.patch removed
  from -mm tree
-Date: Wed, 01 Apr 2020 20:31:46 -0700
-Message-ID: <20200402033146.8eMwnvGIn%akpm@linux-foundation.org>
+Date: Wed, 01 Apr 2020 20:33:22 -0700
+Message-ID: <20200402033322.rt7wSdrwU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56862 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57038 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387407AbgDBDbs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 23:31:48 -0400
+        id S1732498AbgDBDdZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 23:33:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bgeffon@google.com, mm-commits@vger.kernel.org
+To: cai@lca.pw, mm-commits@vger.kernel.org, walter-zh.wu@mediatek.com
 
 
 The patch titled
-     Subject: selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes
+     Subject: kasan/tags: fix -Wdeclaration-after-statement warn
 has been removed from the -mm tree.  Its filename was
-     selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+     kasan-detect-negative-size-in-memory-operation-function-fix.patch
 
-This patch was dropped because it was folded into selftest-add-mremap_dontunmap-selftest.patch
+This patch was dropped because it was folded into kasan-detect-negative-size-in-memory-operation-function.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes
+From: Qian Cai <cai@lca.pw>
+Subject: kasan/tags: fix -Wdeclaration-after-statement warn
 
-ERROR: Bad function definition - void mremap_dontunmap_partial_mapping_overwrite() should probably be void mremap_dontunmap_partial_mapping_overwrite(void)
-#34: FILE: tools/testing/selftests/vm/mremap_dontunmap.c:228:
-+static void mremap_dontunmap_partial_mapping_overwrite()
+The linux-next commit "kasan: detect negative size in memory operation
+function" introduced a compilation warning,
 
-WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()
-#68: FILE: tools/testing/selftests/vm/mremap_dontunmap.c:251:
-+	BUG_ON(source_mapping == MAP_FAILED, "mmap");
+mm/kasan/tags_report.c:51:27: warning: ISO C90 forbids mixing
+declarations and code [-Wdeclaration-after-statement]
+        struct kasan_alloc_meta *alloc_meta;
 
-WARNING: line over 80 characters
-#109: FILE: tools/testing/selftests/vm/mremap_dontunmap.c:264:
-+		   MREMAP_DONTUNMAP | MREMAP_MAYMOVE | MREMAP_FIXED, dest_mapping);
+Fix it by moving a code around a bit where there is no strict
+dependency.
 
-WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()
-#110: FILE: tools/testing/selftests/vm/mremap_dontunmap.c:265:
-+	BUG_ON(dest_mapping == MAP_FAILED, "mremap");
-
-WARNING: line over 80 characters
-#111: FILE: tools/testing/selftests/vm/mremap_dontunmap.c:266:
-+	BUG_ON(dest_mapping != remapped_mapping, "expected to remap to dest_mapping");
-
-WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()
-#111: FILE: tools/testing/selftests/vm/mremap_dontunmap.c:266:
-+	BUG_ON(dest_mapping != remapped_mapping, "expected to remap to dest_mapping");
-
-WARNING: line over 80 characters
-#120: FILE: tools/testing/selftests/vm/mremap_dontunmap.c:272:
-+	BUG_ON(check_region_contains_byte(dest_mapping, 5 * page_size, 'a') != 0,
-
-WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()
-#120: FILE: tools/testing/selftests/vm/mremap_dontunmap.c:272:
-+	BUG_ON(check_region_contains_byte(dest_mapping, 5 * page_size, 'a') != 0,
-
-WARNING: Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()
-#133: FILE: tools/testing/selftests/vm/mremap_dontunmap.c:280:
-+	BUG_ON(munmap(dest_mapping, 10 * page_size) == -1,
-
-total: 1 errors, 8 warnings, 126 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/selftest-add-mremap_dontunmap-selftest-v7.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Brian Geffon <bgeffon@google.com>
+Link: http://lkml.kernel.org/r/1583509030-27939-1-git-send-email-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Cc: Walter Wu <walter-zh.wu@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mremap_dontunmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/tags_report.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/vm/mremap_dontunmap.c~selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes
-+++ a/tools/testing/selftests/vm/mremap_dontunmap.c
-@@ -225,7 +225,7 @@ static void mremap_dontunmap_partial_map
+--- a/mm/kasan/tags_report.c~kasan-detect-negative-size-in-memory-operation-function-fix
++++ a/mm/kasan/tags_report.c
+@@ -36,17 +36,6 @@
+ 
+ const char *get_bug_type(struct kasan_access_info *info)
+ {
+-	/*
+-	 * If access_size is a negative number, then it has reason to be
+-	 * defined as out-of-bounds bug type.
+-	 *
+-	 * Casting negative numbers to size_t would indeed turn up as
+-	 * a large size_t and its value will be larger than ULONG_MAX/2,
+-	 * so that this can qualify as out-of-bounds.
+-	 */
+-	if (info->access_addr + info->access_size < info->access_addr)
+-		return "out-of-bounds";
+-
+ #ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
+ 	struct kasan_alloc_meta *alloc_meta;
+ 	struct kmem_cache *cache;
+@@ -71,6 +60,17 @@ const char *get_bug_type(struct kasan_ac
+ 	}
+ 
+ #endif
++	/*
++	 * If access_size is a negative number, then it has reason to be
++	 * defined as out-of-bounds bug type.
++	 *
++	 * Casting negative numbers to size_t would indeed turn up as
++	 * a large size_t and its value will be larger than ULONG_MAX/2,
++	 * so that this can qualify as out-of-bounds.
++	 */
++	if (info->access_addr + info->access_size < info->access_addr)
++		return "out-of-bounds";
++
+ 	return "invalid-access";
  }
  
- // This test validates that we can remap over only a portion of a mapping.
--static void mremap_dontunmap_partial_mapping_overwrite()
-+static void mremap_dontunmap_partial_mapping_overwrite(void)
- {
- 	/*
- 	 *  source mapping:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cai@lca.pw are
 
-selftest-add-mremap_dontunmap-selftest.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-disable-kcsan-for-kmemleak.patch
+mm-swapfile-fix-data-races-in-try_to_unuse.patch
+kasan-detect-negative-size-in-memory-operation-function.patch
+mm-vmscan-fix-data-races-at-kswapd_classzone_idx.patch
