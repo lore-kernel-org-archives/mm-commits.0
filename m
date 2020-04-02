@@ -1,52 +1,115 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 108/155] mm/sparsemem: get address to page struct
- instead of address to pfn
-Date: Wed, 01 Apr 2020 21:09:24 -0700
-Message-ID: <20200402040924.8ku8o5ahW%akpm@linux-foundation.org>
+Subject: [patch 109/155] mm/sparse: rename pfn_present() to
+ pfn_in_present_section()
+Date: Wed, 01 Apr 2020 21:09:27 -0700
+Message-ID: <20200402040927.s0q2olliU%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33454 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33578 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725789AbgDBEJ0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:09:26 -0400
+        id S1725789AbgDBEJ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:09:29 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhe@redhat.com, dan.j.williams@intel.com, david@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, dan.j.williams@intel.com, david@redhat.com, gregkh@linuxfoundation.org, kernelfans@gmail.com, leonardo@linux.ibm.com, linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, nathanl@linux.ibm.com, nfont@linux.vnet.ibm.com, paulus@samba.org, rafael@kernel.org, torvalds@linux-foundation.org
 
-From: Wei Yang <richardw.yang@linux.intel.com>
-Subject: mm/sparsemem: get address to page struct instead of address to pfn
+From: Pingfan Liu <kernelfans@gmail.com>
+Subject: mm/sparse: rename pfn_present() to pfn_in_present_section()
 
-memmap should be the address to page struct instead of address to pfn.
+After introducing mem sub section concept, pfn_present() loses its literal
+meaning, and will not be necessary a truth on partial populated mem
+section.
 
-As mentioned by David, if system memory and devmem sit within a section,
-the mismatch address would lead kdump to dump unexpected memory.
+Since all of the callers use it to judge an absent section, it is better
+to rename pfn_present() as pfn_in_present_section().
 
-Since sub-section only works for SPARSEMEM_VMEMMAP, pfn_to_page() is valid
-to get the page struct address at this point.
-
-Link: http://lkml.kernel.org/r/20200210005048.10437-1-richardw.yang@linux.intel.com
-Fixes: ba72b4c8cf60 ("mm/sparsemem: support sub-section hotplug")
-Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Link: http://lkml.kernel.org/r/1581919110-29575-1-git-send-email-kernelfans@gmail.com
+Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>		[powerpc]
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Baoquan He <bhe@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Leonardo Bras <leonardo@linux.ibm.com>
+Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Cc: Nathan Lynch <nathanl@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/platforms/pseries/hotplug-memory.c |    2 +-
+ drivers/base/node.c                             |    2 +-
+ include/linux/mmzone.h                          |    4 ++--
+ mm/page_ext.c                                   |    2 +-
+ mm/shuffle.c                                    |    2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/sparse.c~mm-sparsemem-get-address-to-page-struct-instead-of-address-to-pfn
-+++ a/mm/sparse.c
-@@ -894,7 +894,7 @@ int __meminit sparse_add_section(int nid
+--- a/arch/powerpc/platforms/pseries/hotplug-memory.c~mm-sparse-rename-pfn_present-as-pfn_in_present_section
++++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
+@@ -360,7 +360,7 @@ static bool lmb_is_removable(struct drme
  
- 	/* Align memmap to section boundary in the subsection case */
- 	if (section_nr_to_pfn(section_nr) != start_pfn)
--		memmap = pfn_to_kaddr(section_nr_to_pfn(section_nr));
-+		memmap = pfn_to_page(section_nr_to_pfn(section_nr));
- 	sparse_init_one_section(ms, section_nr, memmap, ms->usage, 0);
+ 	for (i = 0; i < scns_per_block; i++) {
+ 		pfn = PFN_DOWN(phys_addr);
+-		if (!pfn_present(pfn)) {
++		if (!pfn_in_present_section(pfn)) {
+ 			phys_addr += MIN_MEMORY_BLOCK_SIZE;
+ 			continue;
+ 		}
+--- a/drivers/base/node.c~mm-sparse-rename-pfn_present-as-pfn_in_present_section
++++ a/drivers/base/node.c
+@@ -772,7 +772,7 @@ static int register_mem_sect_under_node(
+ 		 * memory block could have several absent sections from start.
+ 		 * skip pfn range from absent section
+ 		 */
+-		if (!pfn_present(pfn)) {
++		if (!pfn_in_present_section(pfn)) {
+ 			pfn = round_down(pfn + PAGES_PER_SECTION,
+ 					 PAGES_PER_SECTION) - 1;
+ 			continue;
+--- a/include/linux/mmzone.h~mm-sparse-rename-pfn_present-as-pfn_in_present_section
++++ a/include/linux/mmzone.h
+@@ -1374,7 +1374,7 @@ static inline int pfn_valid(unsigned lon
+ }
+ #endif
  
- 	return 0;
+-static inline int pfn_present(unsigned long pfn)
++static inline int pfn_in_present_section(unsigned long pfn)
+ {
+ 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
+ 		return 0;
+@@ -1411,7 +1411,7 @@ void sparse_init(void);
+ #else
+ #define sparse_init()	do {} while (0)
+ #define sparse_index_init(_sec, _nid)  do {} while (0)
+-#define pfn_present pfn_valid
++#define pfn_in_present_section pfn_valid
+ #define subsection_map_init(_pfn, _nr_pages) do {} while (0)
+ #endif /* CONFIG_SPARSEMEM */
+ 
+--- a/mm/page_ext.c~mm-sparse-rename-pfn_present-as-pfn_in_present_section
++++ a/mm/page_ext.c
+@@ -304,7 +304,7 @@ static int __meminit online_page_ext(uns
+ 	}
+ 
+ 	for (pfn = start; !fail && pfn < end; pfn += PAGES_PER_SECTION) {
+-		if (!pfn_present(pfn))
++		if (!pfn_in_present_section(pfn))
+ 			continue;
+ 		fail = init_section_page_ext(pfn, nid);
+ 	}
+--- a/mm/shuffle.c~mm-sparse-rename-pfn_present-as-pfn_in_present_section
++++ a/mm/shuffle.c
+@@ -72,7 +72,7 @@ static struct page * __meminit shuffle_v
+ 		return NULL;
+ 
+ 	/* ...is the pfn in a present section or a hole? */
+-	if (!pfn_present(pfn))
++	if (!pfn_in_present_section(pfn))
+ 		return NULL;
+ 
+ 	/* ...is the page free and currently on a free_area list? */
 _
