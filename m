@@ -1,62 +1,46 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 125/155] mm/vmscan.c: make may_enter_fs bool in
- shrink_page_list()
-Date: Wed, 01 Apr 2020 21:10:18 -0700
-Message-ID: <20200402041018.Ql1JvqAUf%akpm@linux-foundation.org>
+Subject: [patch 126/155] mm/vmscan.c: do_try_to_free_pages():
+ clean code by removing unnecessary assignment
+Date: Wed, 01 Apr 2020 21:10:21 -0700
+Message-ID: <20200402041021.eHQMu6xra%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35662 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726136AbgDBEKT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:10:19 -0400
+        id S1726136AbgDBEKW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:10:22 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ktkhai@virtuozzo.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org, mateusznosek0@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Kirill Tkhai <ktkhai@virtuozzo.com>
-Subject: mm/vmscan.c: make may_enter_fs bool in shrink_page_list()
+From: Mateusz Nosek <mateusznosek0@gmail.com>
+Subject: mm/vmscan.c: do_try_to_free_pages(): clean code by removing unnecessary assignment
 
-This gives some size improvement:
+sc->memcg_low_skipped resets skipped_deactivate to 0 but this is not
+needed as this code path is never reachable with skipped_deactivate != 0
+due to previous sc->skipped_deactivate branch.
 
-$size mm/vmscan.o (before)
-   text	   data	    bss	    dec	    hex	filename
-  53670	  24123	     12	  77805	  12fed	mm/vmscan.o
-
-$size mm/vmscan.o (after)
-   text	   data	    bss	    dec	    hex	filename
-  53648	  24123	     12	  77783	  12fd7	mm/vmscan.o
-
-Link: http://lkml.kernel.org/r/Message-ID:
-Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+[mhocko@kernel.org: rewrite changelog]
+Link: http://lkml.kernel.org/r/20200319165938.23354-1-mateusznosek0@gmail.com
+Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/vmscan.c~mm-make-may_enter_fs-bool-in-shrink_page_list
+--- a/mm/vmscan.c~mm-vmscanc-do_try_to_free_pages-clean-code-by-removing-unnecessary-assignment
 +++ a/mm/vmscan.c
-@@ -1084,9 +1084,8 @@ static unsigned long shrink_page_list(st
- 	while (!list_empty(page_list)) {
- 		struct address_space *mapping;
- 		struct page *page;
--		int may_enter_fs;
- 		enum page_references references = PAGEREF_RECLAIM;
--		bool dirty, writeback;
-+		bool dirty, writeback, may_enter_fs;
- 		unsigned int nr_pages;
- 
- 		cond_resched();
-@@ -1267,7 +1266,7 @@ static unsigned long shrink_page_list(st
- 						goto activate_locked_split;
- 				}
- 
--				may_enter_fs = 1;
-+				may_enter_fs = true;
- 
- 				/* Adding to swap updated mapping */
- 				mapping = page_mapping(page);
+@@ -3093,7 +3093,6 @@ retry:
+ 	if (sc->memcg_low_skipped) {
+ 		sc->priority = initial_priority;
+ 		sc->force_deactivate = 0;
+-		sc->skipped_deactivate = 0;
+ 		sc->memcg_low_reclaim = 1;
+ 		sc->memcg_low_skipped = 0;
+ 		goto retry;
 _
