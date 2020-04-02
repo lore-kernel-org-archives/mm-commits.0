@@ -1,113 +1,122 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 147/155] hugetlb_cgroup: support noreserve
- mappings
-Date: Wed, 01 Apr 2020 21:11:31 -0700
-Message-ID: <20200402041131.AsrG1azep%akpm@linux-foundation.org>
+Subject: [patch 148/155] hugetlb: support file_region coalescing
+ again
+Date: Wed, 01 Apr 2020 21:11:35 -0700
+Message-ID: <20200402041135.civT2PVle%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38354 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38428 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726136AbgDBELd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:11:33 -0400
+        id S1726136AbgDBELg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:11:36 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, almasrymina@google.com, gthelen@google.com, linux-mm@kvack.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rientjes@google.com, sandipan@linux.ibm.com, shakeelb@google.com, shuah@kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, almasrymina@google.com, gthelen@google.com, linux-mm@kvack.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, rientjes@google.com, sandipan@linux.ibm.com, shakeelb@google.com, shuah@kernel.org, torvalds@linux-foundation.org
 
 From: Mina Almasry <almasrymina@google.com>
-Subject: hugetlb_cgroup: support noreserve mappings
+Subject: hugetlb: support file_region coalescing again
 
-Support MAP_NORESERVE accounting as part of the new counter.
+An earlier patch in this series disabled file_region coalescing in order
+to hang the hugetlb_cgroup uncharge info on the file_region entries.
 
-For each hugepage allocation, at allocation time we check if there is a
-reservation for this allocation or not.  If there is a reservation for
-this allocation, then this allocation was charged at reservation time, and
-we don't re-account it.  If there is no reserevation for this allocation,
-we charge the appropriate hugetlb_cgroup.
+This patch re-adds support for coalescing of file_region entries. 
+Essentially everytime we add an entry, we call a recursive function that
+tries to coalesce the added region with the regions next to it.  The worst
+case call depth for this function is 3: one to coalesce with the region
+next to it, one to coalesce to the region prev, and one to reach the base
+case.
 
-The hugetlb_cgroup to uncharge for this allocation is stored in
-page[3].private.  We use new APIs added in an earlier patch to set this
-pointer.
+This is an important performance optimization as private mappings add
+their entries page by page, and we could incur big performance costs for
+large mappings with lots of file_region entries in their resv_map.
 
-Link: http://lkml.kernel.org/r/20200211213128.73302-6-almasrymina@google.com
+[almasrymina@google.com: fix CONFIG_CGROUP_HUGETLB ifdefs]
+  Link: http://lkml.kernel.org/r/20200214204544.231482-1-almasrymina@google.com
+[almasrymina@google.com: remove check_coalesce_bug debug code]
+  Link: http://lkml.kernel.org/r/20200219233610.13808-1-almasrymina@google.com
+Link: http://lkml.kernel.org/r/20200211213128.73302-7-almasrymina@google.com
 Signed-off-by: Mina Almasry <almasrymina@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Greg Thelen <gthelen@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Sandipan Das <sandipan@linux.ibm.com>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   27 ++++++++++++++++++++++++++-
- 1 file changed, 26 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
---- a/mm/hugetlb.c~hugetlb_cgroup-support-noreserve-mappings
+--- a/mm/hugetlb.c~hugetlb-support-file_region-coalescing-again
 +++ a/mm/hugetlb.c
-@@ -1345,6 +1345,8 @@ static void __free_huge_page(struct page
- 	clear_page_huge_active(page);
- 	hugetlb_cgroup_uncharge_page(hstate_index(h),
- 				     pages_per_huge_page(h), page);
-+	hugetlb_cgroup_uncharge_page_rsvd(hstate_index(h),
-+					  pages_per_huge_page(h), page);
- 	if (restore_reserve)
- 		h->resv_huge_pages++;
+@@ -276,6 +276,48 @@ static void record_hugetlb_cgroup_unchar
+ #endif
+ }
  
-@@ -2281,6 +2283,7 @@ struct page *alloc_huge_page(struct vm_a
- 	long gbl_chg;
- 	int ret, idx;
- 	struct hugetlb_cgroup *h_cg;
-+	bool deferred_reserve;
- 
- 	idx = hstate_index(h);
- 	/*
-@@ -2318,9 +2321,19 @@ struct page *alloc_huge_page(struct vm_a
- 			gbl_chg = 1;
- 	}
- 
-+	/* If this allocation is not consuming a reservation, charge it now.
-+	 */
-+	deferred_reserve = map_chg || avoid_reserve || !vma_resv_map(vma);
-+	if (deferred_reserve) {
-+		ret = hugetlb_cgroup_charge_cgroup_rsvd(
-+			idx, pages_per_huge_page(h), &h_cg);
-+		if (ret)
-+			goto out_subpool_put;
++static bool has_same_uncharge_info(struct file_region *rg,
++				   struct file_region *org)
++{
++#ifdef CONFIG_CGROUP_HUGETLB
++	return rg && org &&
++	       rg->reservation_counter == org->reservation_counter &&
++	       rg->css == org->css;
++
++#else
++	return true;
++#endif
++}
++
++static void coalesce_file_region(struct resv_map *resv, struct file_region *rg)
++{
++	struct file_region *nrg = NULL, *prg = NULL;
++
++	prg = list_prev_entry(rg, link);
++	if (&prg->link != &resv->regions && prg->to == rg->from &&
++	    has_same_uncharge_info(prg, rg)) {
++		prg->to = rg->to;
++
++		list_del(&rg->link);
++		kfree(rg);
++
++		coalesce_file_region(resv, prg);
++		return;
 +	}
 +
- 	ret = hugetlb_cgroup_charge_cgroup(idx, pages_per_huge_page(h), &h_cg);
- 	if (ret)
--		goto out_subpool_put;
-+		goto out_uncharge_cgroup_reservation;
- 
- 	spin_lock(&hugetlb_lock);
- 	/*
-@@ -2343,6 +2356,14 @@ struct page *alloc_huge_page(struct vm_a
- 		/* Fall through */
- 	}
- 	hugetlb_cgroup_commit_charge(idx, pages_per_huge_page(h), h_cg, page);
-+	/* If allocation is not consuming a reservation, also store the
-+	 * hugetlb_cgroup pointer on the page.
-+	 */
-+	if (deferred_reserve) {
-+		hugetlb_cgroup_commit_charge_rsvd(idx, pages_per_huge_page(h),
-+						  h_cg, page);
-+	}
++	nrg = list_next_entry(rg, link);
++	if (&nrg->link != &resv->regions && nrg->from == rg->to &&
++	    has_same_uncharge_info(nrg, rg)) {
++		nrg->from = rg->from;
 +
- 	spin_unlock(&hugetlb_lock);
- 
- 	set_page_private(page, (unsigned long)spool);
-@@ -2367,6 +2388,10 @@ struct page *alloc_huge_page(struct vm_a
- 
- out_uncharge_cgroup:
- 	hugetlb_cgroup_uncharge_cgroup(idx, pages_per_huge_page(h), h_cg);
-+out_uncharge_cgroup_reservation:
-+	if (deferred_reserve)
-+		hugetlb_cgroup_uncharge_cgroup_rsvd(idx, pages_per_huge_page(h),
-+						    h_cg);
- out_subpool_put:
- 	if (map_chg || avoid_reserve)
- 		hugepage_subpool_put_pages(spool, 1);
++		list_del(&rg->link);
++		kfree(rg);
++
++		coalesce_file_region(resv, nrg);
++		return;
++	}
++}
++
+ /* Must be called with resv->lock held. Calling this with count_only == true
+  * will count the number of pages to be added but will not modify the linked
+  * list. If regions_needed != NULL and count_only == true, then regions_needed
+@@ -327,6 +369,7 @@ static long add_reservation_in_range(str
+ 				record_hugetlb_cgroup_uncharge_info(h_cg, h,
+ 								    resv, nrg);
+ 				list_add(&nrg->link, rg->link.prev);
++				coalesce_file_region(resv, nrg);
+ 			} else if (regions_needed)
+ 				*regions_needed += 1;
+ 		}
+@@ -344,6 +387,7 @@ static long add_reservation_in_range(str
+ 				resv, last_accounted_offset, t);
+ 			record_hugetlb_cgroup_uncharge_info(h_cg, h, resv, nrg);
+ 			list_add(&nrg->link, rg->link.prev);
++			coalesce_file_region(resv, nrg);
+ 		} else if (regions_needed)
+ 			*regions_needed += 1;
+ 	}
 _
