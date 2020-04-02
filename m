@@ -1,89 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-introduce-fault_signal_pending-fix.patch removed from -mm tree
-Date: Wed, 01 Apr 2020 20:29:46 -0700
-Message-ID: <20200402032946.wGDLMovCR%akpm@linux-foundation.org>
+ mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch removed from -mm tree
+Date: Wed, 01 Apr 2020 20:30:21 -0700
+Message-ID: <20200402033021.Jz6ZqTvNz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56530 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56640 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733251AbgDBD3s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 23:29:48 -0400
+        id S1733269AbgDBDa0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 23:30:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkp@intel.com, mm-commits@vger.kernel.org, peterx@redhat.com
+To: akpm@linux-foundation.org, bp@suse.de, jaewon31.kim@samsung.com, mm-commits@vger.kernel.org, vbabka@suse.cz, walken@google.com, willy@infradead.org
 
 
 The patch titled
-     Subject: mm-introduce-fault_signal_pending-fix
+     Subject: mm-mmap-add-trace-point-of-vm_unmapped_area-fix
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-fault_signal_pending-fix.patch
+     mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
 
-This patch was dropped because it was folded into mm-introduce-fault_signal_pending.patch
+This patch was dropped because it was folded into mm-mmap-add-trace-point-of-vm_unmapped_area.patch
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm-introduce-fault_signal_pending-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mmap-add-trace-point-of-vm_unmapped_area-fix
 
-fix sparse warnings
+prefix address printk with 0x, per Matthew
 
-Link: http://lkml.kernel.org/r/20200311145921.GD479302@xz-x1
-Reported-by: kbuild test robot <lkp@intel.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Jaewon Kim <jaewon31.kim@samsung.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/fault.c         |    2 +-
- include/linux/sched/signal.h |    4 +++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ include/trace/events/mmap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/mips/mm/fault.c~mm-introduce-fault_signal_pending-fix
-+++ a/arch/mips/mm/fault.c
-@@ -154,7 +154,7 @@ good_area:
- 	 */
- 	fault = handle_mm_fault(vma, address, flags);
+--- a/include/trace/events/mmap.h~mm-mmap-add-trace-point-of-vm_unmapped_area-fix
++++ a/include/trace/events/mmap.h
+@@ -35,7 +35,7 @@ TRACE_EVENT(vm_unmapped_area,
+ 		__entry->align_offset = info->align_offset;
+ 	),
  
--	if (fault_signal_pending(regs))
-+	if (fault_signal_pending(fault, regs))
- 		return;
- 
- 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
---- a/include/linux/sched/signal.h~mm-introduce-fault_signal_pending-fix
-+++ a/include/linux/sched/signal.h
-@@ -10,6 +10,8 @@
- #include <linux/cred.h>
- #include <linux/refcount.h>
- #include <linux/posix-timers.h>
-+#include <linux/mm_types.h>
-+#include <asm/ptrace.h>
- 
- /*
-  * Types defining task->signal and task->sighand and APIs using them:
-@@ -375,7 +377,7 @@ static inline int signal_pending_state(l
-  * instead, especially with the case where we've got interrupted with
-  * a VM_FAULT_RETRY.
-  */
--static inline bool fault_signal_pending(unsigned int fault_flags,
-+static inline bool fault_signal_pending(vm_fault_t fault_flags,
- 					struct pt_regs *regs)
- {
- 	return unlikely((fault_flags & VM_FAULT_RETRY) &&
+-	TP_printk("addr=%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx\n",
++	TP_printk("addr=0x%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx\n",
+ 		IS_ERR_VALUE(__entry->addr) ? 0 : __entry->addr,
+ 		IS_ERR_VALUE(__entry->addr) ? __entry->addr : 0,
+ 		__entry->total_vm, __entry->flags, __entry->length,
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-gup-rename-nonblocking-to-locked-where-proper.patch
-mm-gup-fix-__get_user_pages-on-fault-retry-of-hugetlb.patch
-mm-introduce-fault_signal_pending.patch
-x86-mm-use-helper-fault_signal_pending.patch
-arc-mm-use-helper-fault_signal_pending.patch
-arm64-mm-use-helper-fault_signal_pending.patch
-powerpc-mm-use-helper-fault_signal_pending.patch
-sh-mm-use-helper-fault_signal_pending.patch
-mm-return-faster-for-non-fatal-signals-in-user-mode-faults.patch
-userfaultfd-dont-retake-mmap_sem-to-emulate-nopage.patch
-mm-introduce-fault_flag_default.patch
-mm-introduce-fault_flag_interruptible.patch
-mm-allow-vm_fault_retry-for-multiple-times.patch
-mm-gup-allow-vm_fault_retry-for-multiple-times.patch
-mm-gup-allow-to-react-to-fatal-signals.patch
-mm-userfaultfd-honor-fault_flag_killable-in-fault-path.patch
+mm-mmap-add-trace-point-of-vm_unmapped_area.patch
+selftest-add-mremap_dontunmap-selftest-fix.patch
+selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
+hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
+hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
