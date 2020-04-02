@@ -1,54 +1,47 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 017/155] ocfs2: ocfs2_fs.h: replace zero-length
- array with flexible-array member
-Date: Wed, 01 Apr 2020 21:03:58 -0700
-Message-ID: <20200402040358.j_QpSCqHG%akpm@linux-foundation.org>
+Subject: [patch 018/155] ocfs2: roll back the reference count
+ modification of the parent directory if an error occurs
+Date: Wed, 01 Apr 2020 21:04:02 -0700
+Message-ID: <20200402040402.LbuROalds%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48700 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726136AbgDBEEB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:04:01 -0400
+        id S1726136AbgDBEEE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:04:04 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com, gustavo@embeddedor.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, torvalds@linux-foundation.org, wangjian161@huawei.com
 
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: ocfs2: ocfs2_fs.h: replace zero-length array with flexible-array member
+From: wangjian <wangjian161@huawei.com>
+Subject: ocfs2: roll back the reference count modification of the parent directory if an error occurs
 
-The current codebase makes use of the zero-length array language extension
-to the C90 standard, but the preferred mechanism to declare
-variable-length types such as these ones is a flexible array member[1][2],
-introduced in C99:
+Under some conditions, the directory cannot be deleted.  The specific
+scenarios are as follows: (for example, /mnt/ocfs2 is the mount point)
 
-struct foo {
-        int stuff;
-        struct boo array[];
-};
+1. Create the /mnt/ocfs2/p_dir directory.  At this time, the i_nlink
+   corresponding to the inode of the /mnt/ocfs2/p_dir directory is equal
+   to 2.
 
-By making use of the mechanism above, we will get a compiler warning in
-case the flexible array does not occur last in the structure, which will
-help us prevent some kind of undefined behavior bugs from being
-inadvertently introduced[3] to the codebase from now on.
+2. During the process of creating the /mnt/ocfs2/p_dir/s_dir
+   directory, if the call to the inc_nlink function in ocfs2_mknod
+   succeeds, the functions such as ocfs2_init_acl,
+   ocfs2_init_security_set, and ocfs2_dentry_attach_lock fail.  At this
+   time, the i_nlink corresponding to the inode of the /mnt/ocfs2/p_dir
+   directory is equal to 3, but /mnt/ocfs2/p_dir/s_dir is not added to the
+   /mnt/ocfs2/p_dir directory entry.
 
-Also, notice that, dynamic memory allocations won't be affected by this
-change:
+3. Delete the /mnt/ocfs2/p_dir directory (rm -rf /mnt/ocfs2/p_dir). 
+   At this time, it is found that the i_nlink corresponding to the inode
+   corresponding to the /mnt/ocfs2/p_dir directory is equal to 3. 
+   Therefore, the /mnt/ocfs2/p_dir directory cannot be deleted.
 
-"Flexible array members have incomplete type, and so the sizeof operator
-may not be applied.  As a quirk of the original implementation of
-zero-length arrays, sizeof evaluates to zero."[1]
-
-This issue was found with the help of Coccinelle.
-
-[1] https://urldefense.com/v3/__https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html__;!!GqivPVa7Brio!OKPotRhYhHbCG2kibo8Q6_6CuKaa28d_74h1svxyR6rbshrK2L_BdrQpNbvJWBWb40QCkg$
-[2] https://urldefense.com/v3/__https://github.com/KSPP/linux/issues/21__;!!GqivPVa7Brio!OKPotRhYhHbCG2kibo8Q6_6CuKaa28d_74h1svxyR6rbshrK2L_BdrQpNbvJWBUhNn9M6g$
-[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
-
-Link: http://lkml.kernel.org/r/20200309202155.GA8432@embeddedor
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/a44f6666-bbc4-405e-0e6c-0f4e922eeef6@huawei.com
+Signed-off-by: Jian wang <wangjian161@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -58,90 +51,57 @@ Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2_fs.h |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/ocfs2/namei.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/fs/ocfs2/ocfs2_fs.h~ocfs2-ocfs2_fsh-replace-zero-length-array-with-flexible-array-member
-+++ a/fs/ocfs2/ocfs2_fs.h
-@@ -470,7 +470,7 @@ struct ocfs2_extent_list {
- 	__le16 l_reserved1;
- 	__le64 l_reserved2;		/* Pad to
- 					   sizeof(ocfs2_extent_rec) */
--/*10*/	struct ocfs2_extent_rec l_recs[0];	/* Extent records */
-+/*10*/	struct ocfs2_extent_rec l_recs[];	/* Extent records */
- };
+--- a/fs/ocfs2/namei.c~ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs
++++ a/fs/ocfs2/namei.c
+@@ -406,7 +406,7 @@ static int ocfs2_mknod(struct inode *dir
  
- /*
-@@ -484,7 +484,7 @@ struct ocfs2_chain_list {
- 	__le16 cl_count;		/* Total chains in this list */
- 	__le16 cl_next_free_rec;	/* Next unused chain slot */
- 	__le64 cl_reserved1;
--/*10*/	struct ocfs2_chain_rec cl_recs[0];	/* Chain records */
-+/*10*/	struct ocfs2_chain_rec cl_recs[];	/* Chain records */
- };
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		goto leave;
++		goto roll_back;
+ 	}
  
- /*
-@@ -496,7 +496,7 @@ struct ocfs2_truncate_log {
- /*00*/	__le16 tl_count;		/* Total records in this log */
- 	__le16 tl_used;			/* Number of records in use */
- 	__le32 tl_reserved1;
--/*08*/	struct ocfs2_truncate_rec tl_recs[0];	/* Truncate records */
-+/*08*/	struct ocfs2_truncate_rec tl_recs[];	/* Truncate records */
- };
+ 	if (si.enable) {
+@@ -414,7 +414,7 @@ static int ocfs2_mknod(struct inode *dir
+ 						 meta_ac, data_ac);
+ 		if (status < 0) {
+ 			mlog_errno(status);
+-			goto leave;
++			goto roll_back;
+ 		}
+ 	}
  
- /*
-@@ -640,7 +640,7 @@ struct ocfs2_local_alloc
- 	__le16 la_size;		/* Size of included bitmap, in bytes */
- 	__le16 la_reserved1;
- 	__le64 la_reserved2;
--/*10*/	__u8   la_bitmap[0];
-+/*10*/	__u8   la_bitmap[];
- };
+@@ -427,7 +427,7 @@ static int ocfs2_mknod(struct inode *dir
+ 					  OCFS2_I(dir)->ip_blkno);
+ 	if (status) {
+ 		mlog_errno(status);
+-		goto leave;
++		goto roll_back;
+ 	}
  
- /*
-@@ -653,7 +653,7 @@ struct ocfs2_inline_data
- 				 * for data, starting at id_data */
- 	__le16	id_reserved0;
- 	__le32	id_reserved1;
--	__u8	id_data[0];	/* Start of user data */
-+	__u8	id_data[];	/* Start of user data */
- };
+ 	dl = dentry->d_fsdata;
+@@ -437,12 +437,19 @@ static int ocfs2_mknod(struct inode *dir
+ 				 &lookup);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		goto leave;
++		goto roll_back;
+ 	}
  
- /*
-@@ -798,7 +798,7 @@ struct ocfs2_dx_entry_list {
- 					 * possible in de_entries */
- 	__le16		de_num_used;	/* Current number of
- 					 * de_entries entries */
--	struct	ocfs2_dx_entry		de_entries[0];	/* Indexed dir entries
-+	struct	ocfs2_dx_entry		de_entries[];	/* Indexed dir entries
- 							 * in a packed array of
- 							 * length de_num_used */
- };
-@@ -935,7 +935,7 @@ struct ocfs2_refcount_list {
- 	__le16 rl_used;		/* Current number of used records */
- 	__le32 rl_reserved2;
- 	__le64 rl_reserved1;	/* Pad to sizeof(ocfs2_refcount_record) */
--/*10*/	struct ocfs2_refcount_rec rl_recs[0];	/* Refcount records */
-+/*10*/	struct ocfs2_refcount_rec rl_recs[];	/* Refcount records */
- };
- 
- 
-@@ -1021,7 +1021,7 @@ struct ocfs2_xattr_header {
- 						    buckets.  A block uses
- 						    xb_check and sets
- 						    this field to zero.) */
--	struct ocfs2_xattr_entry xh_entries[0]; /* xattr entry list. */
-+	struct ocfs2_xattr_entry xh_entries[]; /* xattr entry list. */
- };
- 
- /*
-@@ -1207,7 +1207,7 @@ struct ocfs2_local_disk_dqinfo {
- /* Header of one chunk of a quota file */
- struct ocfs2_local_disk_chunk {
- 	__le32 dqc_free;	/* Number of free entries in the bitmap */
--	__u8 dqc_bitmap[0];	/* Bitmap of entries in the corresponding
-+	__u8 dqc_bitmap[];	/* Bitmap of entries in the corresponding
- 				 * chunk of quota file */
- };
- 
+ 	insert_inode_hash(inode);
+ 	d_instantiate(dentry, inode);
+ 	status = 0;
++
++roll_back:
++	if (status < 0 && S_ISDIR(mode)) {
++		ocfs2_add_links_count(dirfe, -1);
++		drop_nlink(dir);
++	}
++
+ leave:
+ 	if (status < 0 && did_quota_inode)
+ 		dquot_free_inode(inode);
 _
