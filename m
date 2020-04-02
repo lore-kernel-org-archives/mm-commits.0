@@ -1,53 +1,54 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 021/155] fs_parse: remove pr_notice() about each
- validation
-Date: Wed, 01 Apr 2020 21:04:13 -0700
-Message-ID: <20200402040413.Zgd4kZt3B%akpm@linux-foundation.org>
+Subject: [patch 022/155] mm/slub.c: replace cpu_slab->partial with
+ wrapped APIs
+Date: Wed, 01 Apr 2020 21:04:16 -0700
+Message-ID: <20200402040416.1PpRnkdgc%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49264 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49424 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726136AbgDBEEO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:04:14 -0400
+        id S1726136AbgDBEER (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:04:17 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, keescook@chromium.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, seth.arnold@canonical.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, chenqiwu@xiaomi.com, cl@linux.com, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
 
-From: Kees Cook <keescook@chromium.org>
-Subject: fs_parse: remove pr_notice() about each validation
+From: chenqiwu <chenqiwu@xiaomi.com>
+Subject: mm/slub.c: replace cpu_slab->partial with wrapped APIs
 
-This notice fills my boot logs with scary-looking asterisks but doesn't
-really tell me anything.  Let's just remove it; validation errors are
-already reported separately, so this is just a redundant list of
-filesystems.
+There are slub_percpu_partial() and slub_set_percpu_partial() APIs to wrap
+kmem_cache->cpu_partial.  This patch will use the two to replace
+cpu_slab->partial in slub code.
 
-$ dmesg | grep VALIDATE
-[    0.306256] *** VALIDATE tmpfs ***
-[    0.307422] *** VALIDATE proc ***
-[    0.308355] *** VALIDATE cgroup ***
-[    0.308741] *** VALIDATE cgroup2 ***
-[    0.813256] *** VALIDATE bpf ***
-[    0.815272] *** VALIDATE ramfs ***
-[    0.815665] *** VALIDATE hugetlbfs ***
-[    0.876970] *** VALIDATE nfs ***
-[    0.877383] *** VALIDATE nfs4 ***
-
-Link: http://lkml.kernel.org/r/202003061617.A8835CAAF@keescook
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Reviewed-by: Seth Arnold <seth.arnold@canonical.com>
+Link: http://lkml.kernel.org/r/1581951895-3038-1-git-send-email-qiwuchen55@gmail.com
+Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs_parser.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/slub.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/fs_parser.c~fs_parse-remove-pr_notice-about-each-validation
-+++ a/fs/fs_parser.c
-@@ -368,8 +368,6 @@ bool fs_validate_description(const char
- 	const struct fs_parameter_spec *param, *p2;
- 	bool good = true;
+--- a/mm/slub.c~mm-slubc-replace-cpu_slab-partial-with-wrapped-apis
++++ a/mm/slub.c
+@@ -2205,11 +2205,11 @@ static void unfreeze_partials(struct kme
+ 	struct kmem_cache_node *n = NULL, *n2 = NULL;
+ 	struct page *page, *discard_page = NULL;
  
--	pr_notice("*** VALIDATE %s ***\n", name);
+-	while ((page = c->partial)) {
++	while ((page = slub_percpu_partial(c))) {
+ 		struct page new;
+ 		struct page old;
+ 
+-		c->partial = page->next;
++		slub_set_percpu_partial(c, page);
+ 
+ 		n2 = get_node(s, page_to_nid(page));
+ 		if (n != n2) {
+_
