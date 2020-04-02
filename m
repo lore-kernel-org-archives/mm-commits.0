@@ -1,62 +1,113 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix.patch
- removed from -mm tree
-Date: Wed, 01 Apr 2020 20:35:21 -0700
-Message-ID: <20200402033521.YauveDvkN%akpm@linux-foundation.org>
+ mm-compaction-disable-compact_unevictable_allowed-on-rt-v5.patch removed
+ from -mm tree
+Date: Wed, 01 Apr 2020 20:36:51 -0700
+Message-ID: <20200402033651.oB6OKvxXq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57188 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57310 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732498AbgDBDfY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 23:35:24 -0400
+        id S1732498AbgDBDgw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 23:36:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, js1304@gmail.com, mgorman@techsingularity.net, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, riel@surriel.com, rientjes@google.com, vbabka@suse.cz, ziy@nvidia.com
+To: bigeasy@linutronix.de, keescook@chromium.org, mcgrof@kernel.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org, tglx@linutronix.de, vbabka@suse.cz, yzaikin@google.com
 
 
 The patch titled
-     Subject: mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix
+     Subject: mm-compaction-disable-compact_unevictable_allowed-on-rt-v5
 has been removed from the -mm tree.  Its filename was
-     mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix.patch
+     mm-compaction-disable-compact_unevictable_allowed-on-rt-v5.patch
 
-This patch was dropped because it was folded into mmthpcompactioncma-allow-thp-migration-for-cma-allocations.patch
+This patch was dropped because it was folded into mm-compaction-disable-compact_unevictable_allowed-on-rt.patch
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm-compaction-disable-compact_unevictable_allowed-on-rt-v5
 
-Mike Kravetz pointed out that the second if condition could do the
-wrong thing for hugetlbfs pages, and that check really only needs
-to run on THPs.
+v4-v5: - Add Vlastimil's Acked-by
+       - s/changed changed/changed/
 
-Cleanup suggested by Vlastimil.
+v3-v4: - Replace WARN_ONCE() with pr_warn_once() and extend the message
+         by name of the task and its pid.
+       - Use proc_dointvec_minmax() in the !RT case.
+       - Added Mel's Ack as per
+         20200304091159.GN3818@techsingularity.net.
 
-Thank you both!
-
-Link: http://lkml.kernel.org/r/20200228104700.0af2f18d@imladris.surriel.com
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
+Link: https://lore.kernel.org/linux-mm/20190710144138.qyn4tuttdq6h7kqx@linutronix.de/
+Link: http://lkml.kernel.org/r/20200319165536.ovi75tsr2seared4@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/sysctl.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
---- a/mm/page_alloc.c~mmthpcompactioncma-allow-thp-migration-for-cma-allocations-fix
-+++ a/mm/page_alloc.c
-@@ -8292,12 +8292,12 @@ struct page *has_unmovable_pages(struct
- 			struct page *head = compound_head(page);
- 			unsigned int skip_pages;
+--- a/kernel/sysctl.c~mm-compaction-disable-compact_unevictable_allowed-on-rt-v5
++++ a/kernel/sysctl.c
+@@ -213,9 +213,9 @@ static int proc_do_cad_pid(struct ctl_ta
+ static int proc_taint(struct ctl_table *table, int write,
+ 			       void __user *buffer, size_t *lenp, loff_t *ppos);
+ #ifdef CONFIG_COMPACTION
+-static int proc_dointvec_warn_RT_change(struct ctl_table *table, int write,
+-					void __user *buffer, size_t *lenp,
+-					loff_t *ppos);
++static int proc_dointvec_minmax_warn_RT_change(struct ctl_table *table,
++					       int write, void __user *buffer,
++					       size_t *lenp, loff_t *ppos);
+ #endif
+ #endif
  
--			if (PageHuge(page) &&
--			    !hugepage_migration_supported(page_hstate(head)))
--				return page;
+@@ -1489,7 +1489,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &sysctl_compact_unevictable_allowed,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_warn_RT_change,
++		.proc_handler	= proc_dointvec_minmax_warn_RT_change,
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
+@@ -2578,21 +2578,23 @@ int proc_dointvec(struct ctl_table *tabl
+ }
+ 
+ #ifdef CONFIG_COMPACTION
+-static int proc_dointvec_warn_RT_change(struct ctl_table *table, int write,
+-					void __user *buffer, size_t *lenp,
+-					loff_t *ppos)
++static int proc_dointvec_minmax_warn_RT_change(struct ctl_table *table,
++					       int write, void __user *buffer,
++					       size_t *lenp, loff_t *ppos)
+ {
+ 	int ret, old;
+ 
+ 	if (!IS_ENABLED(CONFIG_PREEMPT_RT) || !write)
+-		return proc_dointvec(table, write, buffer, lenp, ppos);
++		return proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+ 
+ 	old = *(int *)table->data;
+-	ret = proc_dointvec(table, write, buffer, lenp, ppos);
++	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+ 	if (ret)
+ 		return ret;
+-	WARN_ONCE(old != *(int *)table->data, "sysctl attribute %s changed.",
+-		  table->procname);
++	if (old != *(int *)table->data)
++		pr_warn_once("sysctl attribute %s changed by %s[%d]\n",
++			     table->procname, current->comm,
++			     task_pid_nr(current));
+ 	return ret;
+ }
+ #endif
+_
+
+Patches currently in -mm which might be from bigeasy@linutronix.de are
+
+really-limit-compact_unevictable_allowed-to-0-and-1.patch
+mm-compaction-disable-compact_unevictable_allowed-on-rt.patch
