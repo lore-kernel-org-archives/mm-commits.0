@@ -1,74 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kasan-detect-negative-size-in-memory-operation-function-fix-2.patch removed
- from -mm tree
-Date: Wed, 01 Apr 2020 20:33:25 -0700
-Message-ID: <20200402033325.w0hiNDGg0%akpm@linux-foundation.org>
+ kasan-fix-wstringop-overflow-warning.patch removed from -mm tree
+Date: Wed, 01 Apr 2020 20:34:40 -0700
+Message-ID: <20200402033440.jqWttcNYy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57056 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732498AbgDBDd0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 23:33:26 -0400
+        id S2387403AbgDBDel (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 23:34:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, peterz@infradead.org, rdunlap@infradead.org, walter-zh.wu@mediatek.com
+To: aryabinin@virtuozzo.com, cai@lca.pw, dvyukov@google.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, walter-zh.wu@mediatek.com
 
 
 The patch titled
-     Subject: kasan-detect-negative-size-in-memory-operation-function-fix-2
+     Subject: kasan: fix -Wstringop-overflow warning
 has been removed from the -mm tree.  Its filename was
-     kasan-detect-negative-size-in-memory-operation-function-fix-2.patch
+     kasan-fix-wstringop-overflow-warning.patch
 
-This patch was dropped because it was folded into kasan-detect-negative-size-in-memory-operation-function.patch
+This patch was dropped because it was folded into kasan-add-test-for-invalid-size-in-memmove.patch
 
 ------------------------------------------------------
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: kasan-detect-negative-size-in-memory-operation-function-fix-2
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: kasan: fix -Wstringop-overflow warning
 
-fix objtool warning
+Compiling with gcc-9.2.1 points out below warnings.
 
-mm/kasan/common.o: warning: objtool: kasan_report()+0x13: call to report_enabled() with UACCESS enabled
+In function 'memmove',
+    inlined from 'kmalloc_memmove_invalid_size' at lib/test_kasan.c:301:2:
+include/linux/string.h:441:9: warning: '__builtin_memmove' specified
+bound 18446744073709551614 exceeds maximum object size
+9223372036854775807 [-Wstringop-overflow=]
 
+Why generate this warning?  Because our test function deliberately pass a
+negative number in memmove(), so we need to make it "volatile" so that
+compiler doesn't see it.
 
-Link: http://lkml.kernel.org/r/20200305095436.GV2596@hirez.programming.kicks-ass.net
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Walter Wu <walter-zh.wu@mediatek.com>
-Tested-by: Walter Wu <walter-zh.wu@mediatek.com>
+The volatile trick is documented here:
+https://gcc.gnu.org/onlinedocs/gcc-9.2.0/gcc/Warning-Options.html#Warning-Options
+
+"They do not occur for variables or elements declared volatile. Because
+these warnings depend on optimization, the exact variables or elements
+for which there are warnings depends on the precise optimization options
+and version of GCC used."
+
+Link: http://lkml.kernel.org/r/20200311134244.13016-1-walter-zh.wu@mediatek.com
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Qian Cai <cai@lca.pw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ lib/test_kasan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/common.c~kasan-detect-negative-size-in-memory-operation-function-fix-2
-+++ a/mm/kasan/common.c
-@@ -641,16 +641,17 @@ extern bool report_enabled(void);
- 
- bool kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip)
+--- a/lib/test_kasan.c~kasan-fix-wstringop-overflow-warning
++++ a/lib/test_kasan.c
+@@ -289,6 +289,7 @@ static noinline void __init kmalloc_memm
  {
--	unsigned long flags;
-+	unsigned long flags = user_access_save();
-+	bool ret = false;
+ 	char *ptr;
+ 	size_t size = 64;
++	volatile size_t invalid_size = -2;
  
--	if (likely(!report_enabled()))
--		return false;
-+	if (likely(report_enabled())) {
-+		__kasan_report(addr, size, is_write, ip);
-+		ret = true;
-+	}
+ 	pr_info("invalid size in memmove\n");
+ 	ptr = kmalloc(size, GFP_KERNEL);
+@@ -298,7 +299,7 @@ static noinline void __init kmalloc_memm
+ 	}
  
--	flags = user_access_save();
--	__kasan_report(addr, size, is_write, ip);
- 	user_access_restore(flags);
- 
--	return true;
-+	return ret;
+ 	memset((char *)ptr, 0, 64);
+-	memmove((char *)ptr, (char *)ptr + 4, -2);
++	memmove((char *)ptr, (char *)ptr + 4, invalid_size);
+ 	kfree(ptr);
  }
  
- #ifdef CONFIG_MEMORY_HOTPLUG
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
 
 kasan-detect-negative-size-in-memory-operation-function.patch
+kasan-add-test-for-invalid-size-in-memmove.patch
