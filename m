@@ -1,27 +1,27 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 091/155] arm64/mm: use helper
+Subject: [patch 092/155] powerpc/mm: use helper
  fault_signal_pending()
-Date: Wed, 01 Apr 2020 21:08:18 -0700
-Message-ID: <20200402040818.r6XvGAGiG%akpm@linux-foundation.org>
+Date: Wed, 01 Apr 2020 21:08:22 -0700
+Message-ID: <20200402040822._ZYNCCE1O%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59832 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59938 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728395AbgDBEIT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:08:19 -0400
+        id S1726136AbgDBEIX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:08:23 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, bgeffon@google.com, bobbypowers@gmail.com, cracauer@cons.org, david@redhat.com, dgilbert@redhat.com, dplotnikov@virtuozzo.com, gokhale2@llnl.gov, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, kirill@shutemov.name, linux-mm@kvack.org, mcfadden8@llnl.gov, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, peterx@redhat.com, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org, willy@infradead.org, xemul@openvz.org
 
 From: Peter Xu <peterx@redhat.com>
-Subject: arm64/mm: use helper fault_signal_pending()
+Subject: powerpc/mm: use helper fault_signal_pending()
 
-Let the arm64 fault handling to use the new fault_signal_pending() helper,
-by moving the signal handling out of the retry logic.
+Let powerpc code to use the new helper, by moving the signal handling
+earlier before the retry logic.
 
-Link: http://lkml.kernel.org/r/20200220155927.9264-1-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200220160222.9422-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Tested-by: Brian Geffon <bgeffon@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -45,36 +45,26 @@ Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/fault.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ arch/powerpc/mm/fault.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
---- a/arch/arm64/mm/fault.c~arm64-mm-use-helper-fault_signal_pending
-+++ a/arch/arm64/mm/fault.c
-@@ -513,19 +513,14 @@ retry:
- 	fault = __do_page_fault(mm, addr, mm_flags, vm_flags);
+--- a/arch/powerpc/mm/fault.c~powerpc-mm-use-helper-fault_signal_pending
++++ a/arch/powerpc/mm/fault.c
+@@ -582,6 +582,9 @@ good_area:
+ 
  	major |= fault & VM_FAULT_MAJOR;
  
--	if (fault & VM_FAULT_RETRY) {
--		/*
--		 * If we need to retry but a fatal signal is pending,
--		 * handle the signal first. We do not need to release
--		 * the mmap_sem because it would already be released
--		 * in __lock_page_or_retry in mm/filemap.c.
--		 */
--		if (fatal_signal_pending(current)) {
--			if (!user_mode(regs))
--				goto no_context;
--			return 0;
--		}
-+	/* Quick path to respond to signals */
-+	if (fault_signal_pending(fault, regs)) {
-+		if (!user_mode(regs))
-+			goto no_context;
-+		return 0;
-+	}
- 
-+	if (fault & VM_FAULT_RETRY) {
- 		/*
- 		 * Clear FAULT_FLAG_ALLOW_RETRY to avoid any risk of
- 		 * starvation.
-_
++	if (fault_signal_pending(fault, regs))
++		return user_mode(regs) ? 0 : SIGBUS;
++
+ 	/*
+ 	 * Handle the retry right now, the mmap_sem has been released in that
+ 	 * case.
+@@ -595,15 +598,8 @@ good_area:
+ 			 */
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
+ 			flags |= FAULT_FLAG_TRIED;
+-			if (!fatal_signal_pending(current))
+-				goto retry;
++			goto retry;
+ 		}
