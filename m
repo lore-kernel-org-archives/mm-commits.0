@@ -1,56 +1,94 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 073/155] mm/memcontrol.c: make
- mem_cgroup_id_get_many() __maybe_unused
-Date: Wed, 01 Apr 2020 21:07:13 -0700
-Message-ID: <20200402040713.Uh_yvY9Nb%akpm@linux-foundation.org>
+Subject: [patch 074/155] mm, memcg: prevent memory.high load/store
+ tearing
+Date: Wed, 01 Apr 2020 21:07:17 -0700
+Message-ID: <20200402040717.j_tcNT_CB%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58086 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58196 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727746AbgDBEHR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:07:17 -0400
+        id S1727746AbgDBEHT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:07:19 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris@chrisdown.name, hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vdavydov.dev@gmail.com, vincenzo.frascino@arm.com
+To: akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, tj@kernel.org, torvalds@linux-foundation.org
 
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: mm/memcontrol.c: make mem_cgroup_id_get_many() __maybe_unused
+From: Chris Down <chris@chrisdown.name>
+Subject: mm, memcg: prevent memory.high load/store tearing
 
-mem_cgroup_id_get_many() is currently used only when MMU or MEMCG_SWAP
-configuration options are enabled.  Having them disabled triggers the
-following warning at compile time:
+A mem_cgroup's high attribute can be concurrently set at the same time as
+we are trying to read it -- for example, if we are in memory_high_write at
+the same time as we are trying to do high reclaim.
 
-linux/mm/memcontrol.c:4797:13: warning: `mem_cgroup_id_get_many' defined
-but not used [-Wunused-function]
- static void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned
- int n)
-
-Make mem_cgroup_id_get_many() __maybe_unused to address the issue.
-
-Link: http://lkml.kernel.org/r/20200305164354.48147-1-vincenzo.frascino@arm.com
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Chris Down <chris@chrisdown.name>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/2f66f7038ed1d4688e59de72b627ae0ea52efa83.1584034301.git.chris@chrisdown.name
+Signed-off-by: Chris Down <chris@chrisdown.name>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/memcontrol.c~mm-make-mem_cgroup_id_get_many-__maybe_unused
+--- a/mm/memcontrol.c~mm-memcg-prevent-memoryhigh-load-store-tearing
 +++ a/mm/memcontrol.c
-@@ -4863,7 +4863,8 @@ static void mem_cgroup_id_remove(struct
- 	}
- }
- 
--static void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned int n)
-+static void __maybe_unused mem_cgroup_id_get_many(struct mem_cgroup *memcg,
-+						  unsigned int n)
+@@ -2242,7 +2242,7 @@ static void reclaim_high(struct mem_cgro
+ 			 gfp_t gfp_mask)
  {
- 	refcount_add(n, &memcg->id.ref);
+ 	do {
+-		if (page_counter_read(&memcg->memory) <= memcg->high)
++		if (page_counter_read(&memcg->memory) <= READ_ONCE(memcg->high))
+ 			continue;
+ 		memcg_memory_event(memcg, MEMCG_HIGH);
+ 		try_to_free_mem_cgroup_pages(memcg, nr_pages, gfp_mask, true);
+@@ -2582,7 +2582,7 @@ done_restock:
+ 	 * reclaim, the cost of mismatch is negligible.
+ 	 */
+ 	do {
+-		if (page_counter_read(&memcg->memory) > memcg->high) {
++		if (page_counter_read(&memcg->memory) > READ_ONCE(memcg->high)) {
+ 			/* Don't bother a random interrupted task */
+ 			if (in_interrupt()) {
+ 				schedule_work(&memcg->high_work);
+@@ -4325,7 +4325,8 @@ void mem_cgroup_wb_stats(struct bdi_writ
+ 	*pheadroom = PAGE_COUNTER_MAX;
+ 
+ 	while ((parent = parent_mem_cgroup(memcg))) {
+-		unsigned long ceiling = min(memcg->memory.max, memcg->high);
++		unsigned long ceiling = min(memcg->memory.max,
++					    READ_ONCE(memcg->high));
+ 		unsigned long used = page_counter_read(&memcg->memory);
+ 
+ 		*pheadroom = min(*pheadroom, ceiling - min(ceiling, used));
+@@ -5047,7 +5048,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	if (!memcg)
+ 		return ERR_PTR(error);
+ 
+-	memcg->high = PAGE_COUNTER_MAX;
++	WRITE_ONCE(memcg->high, PAGE_COUNTER_MAX);
+ 	memcg->soft_limit = PAGE_COUNTER_MAX;
+ 	if (parent) {
+ 		memcg->swappiness = mem_cgroup_swappiness(parent);
+@@ -5200,7 +5201,7 @@ static void mem_cgroup_css_reset(struct
+ 	page_counter_set_max(&memcg->tcpmem, PAGE_COUNTER_MAX);
+ 	page_counter_set_min(&memcg->memory, 0);
+ 	page_counter_set_low(&memcg->memory, 0);
+-	memcg->high = PAGE_COUNTER_MAX;
++	WRITE_ONCE(memcg->high, PAGE_COUNTER_MAX);
+ 	memcg->soft_limit = PAGE_COUNTER_MAX;
+ 	memcg_wb_domain_size_changed(memcg);
  }
+@@ -6016,7 +6017,7 @@ static ssize_t memory_high_write(struct
+ 	if (err)
+ 		return err;
+ 
+-	memcg->high = high;
++	WRITE_ONCE(memcg->high, high);
+ 
+ 	for (;;) {
+ 		unsigned long nr_pages = page_counter_read(&memcg->memory);
 _
