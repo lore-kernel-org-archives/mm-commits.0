@@ -1,66 +1,153 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 030/155] mm/page-writeback.c: write_cache_pages():
- deduplicate identical checks
-Date: Wed, 01 Apr 2020 21:04:43 -0700
-Message-ID: <20200402040443.RZ8EXB9WY%akpm@linux-foundation.org>
+Subject: [patch 031/155] mm/filemap.c: clear page error before
+ actual read
+Date: Wed, 01 Apr 2020 21:04:47 -0700
+Message-ID: <20200402040447.lT5ZiWQj-%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50750 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50916 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726136AbgDBEEp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:04:45 -0400
+        id S1726136AbgDBEEt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:04:49 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ira.weiny@intel.com, jack@suse.cz, linux-mm@kvack.org, mfo@canonical.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, jack@suse.cz, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, willy@infradead.org, xianting_tian@126.com, yubin@h3c.com
 
-From: Mauricio Faria de Oliveira <mfo@canonical.com>
-Subject: mm/page-writeback.c: write_cache_pages(): deduplicate identical checks
+From: Xianting Tian <xianting_tian@126.com>
+Subject: mm/filemap.c: clear page error before actual read
 
-There used to be a 'retry' label in between the two (identical) checks
-when first introduced in commit f446daaea9d4 ("mm: implement writeback
-livelock avoidance using page tagging"), and later modified/updated in
-commit 6e6938b6d313 ("writeback: introduce .tagged_writepages for the
-WB_SYNC_NONE sync stage").
+Mount failure issue happens under the scenario: Application forked dozens
+of threads to mount the same number of cramfs images separately in docker,
+but several mounts failed with high probability.  Mount failed due to the
+checking result of the page(read from the superblock of loop dev) is not
+uptodate after wait_on_page_locked(page) returned in function cramfs_read:
 
-The label has been removed in commit 64081362e8ff ("mm/page-writeback.c:
-fix range_cyclic writeback vs writepages deadlock"), and the (identical)
-checks are now present / performed immediately one after another.
+   wait_on_page_locked(page);
+   if (!PageUptodate(page)) {
+      ...
+   }
 
-So, remove/deduplicate the latter check, moving tag_pages_for_writeback()
-into the former check before the 'tag' variable assignment, so it's clear
-that it's not used in this (similarly-named) function call but only later
-in pagevec_lookup_range_tag().
+The reason of the checking result of the page not uptodate: systemd-udevd
+read the loopX dev before mount, because the status of loopX is Lo_unbound
+at this time, so loop_make_request directly trigger the calling of io_end
+handler end_buffer_async_read, which called SetPageError(page).  So It
+caused the page can't be set to uptodate in function
+end_buffer_async_read:
 
-Link: http://lkml.kernel.org/r/20200218221716.1648-1-mfo@canonical.com
-Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+   if(page_uptodate && !PageError(page)) {
+      SetPageUptodate(page);
+   }
+
+Then mount operation is performed, it used the same page which is just
+accessed by systemd-udevd above, Because this page is not uptodate, it
+will launch a actual read via submit_bh, then wait on this page by calling
+wait_on_page_locked(page).  When the I/O of the page done, io_end handler
+end_buffer_async_read is called, because no one cleared the page
+error(during the whole read path of mount), which is caused by
+systemd-udevd reading, so this page is still in "PageError" status, which
+can't be set to uptodate in function end_buffer_async_read, then caused
+mount failure.
+
+But sometimes mount succeed even through systemd-udeved read loopX dev
+just before, The reason is systemd-udevd launched other loopX read just
+between step 3.1 and 3.2, the steps as below:
+
+1, loopX dev default status is Lo_unbound;
+2, systemd-udved read loopX dev (page is set to PageError);
+3, mount operation
+   1) set loopX status to Lo_bound;
+   ==>systemd-udevd read loopX dev<==
+   2) read loopX dev(page has no error)
+   3) mount succeed
+
+As the loopX dev status is set to Lo_bound after step 3.1, so the other
+loopX dev read by systemd-udevd will go through the whole I/O stack, part
+of the call trace as below:
+
+   SYS_read
+      vfs_read
+          do_sync_read
+              blkdev_aio_read
+                 generic_file_aio_read
+                     do_generic_file_read:
+                        ClearPageError(page);
+                        mapping->a_ops->readpage(filp, page);
+
+here, mapping->a_ops->readpage() is blkdev_readpage.  In latest kernel,
+some function name changed, the call trace as below:
+
+   blkdev_read_iter
+      generic_file_read_iter
+         generic_file_buffered_read:
+            /*
+             * A previous I/O error may have been due to temporary
+             * failures, eg. mutipath errors.
+             * Pg_error will be set again if readpage fails.
+             */
+            ClearPageError(page);
+            /* Start the actual read. The read will unlock the page*/
+            error=mapping->a_ops->readpage(flip, page);
+
+We can see ClearPageError(page) is called before the actual read,
+then the read in step 3.2 succeed.
+
+This patch is to add the calling of ClearPageError just before the actual
+read of read path of cramfs mount.  Without the patch, the call trace as
+below when performing cramfs mount:
+
+   do_mount
+      cramfs_read
+         cramfs_blkdev_read
+            read_cache_page
+               do_read_cache_page:
+                  filler(data, page);
+                  or
+                  mapping->a_ops->readpage(data, page);
+
+With the patch, the call trace as below when performing mount:
+
+   do_mount
+      cramfs_read
+         cramfs_blkdev_read
+            read_cache_page:
+               do_read_cache_page:
+                  ClearPageError(page); <== new add
+                  filler(data, page);
+                  or
+                  mapping->a_ops->readpage(data, page);
+
+With the patch, mount operation trigger the calling of
+ClearPageError(page) before the actual read, the page has no error if no
+additional page error happen when I/O done.
+
+Link: http://lkml.kernel.org/r/1583318844-22971-1-git-send-email-xianting_tian@126.com
+Signed-off-by: Xianting Tian <xianting_tian@126.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
+Cc: <yubin@h3c.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/filemap.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/page-writeback.c~mm-page-writebackc-write_cache_pages-deduplicate-identical-checks
-+++ a/mm/page-writeback.c
-@@ -2182,12 +2182,12 @@ int write_cache_pages(struct address_spa
- 		if (wbc->range_start == 0 && wbc->range_end == LLONG_MAX)
- 			range_whole = 1;
+--- a/mm/filemap.c~mm-filemapc-clear-page-error-before-actual-read
++++ a/mm/filemap.c
+@@ -2823,6 +2823,14 @@ filler:
+ 		unlock_page(page);
+ 		goto out;
  	}
--	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_writepages)
-+	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_writepages) {
-+		tag_pages_for_writeback(mapping, index, end);
- 		tag = PAGECACHE_TAG_TOWRITE;
--	else
-+	} else {
- 		tag = PAGECACHE_TAG_DIRTY;
--	if (wbc->sync_mode == WB_SYNC_ALL || wbc->tagged_writepages)
--		tag_pages_for_writeback(mapping, index, end);
-+	}
- 	done_index = index;
- 	while (!done && (index <= end)) {
- 		int i;
++
++	/*
++	 * A previous I/O error may have been due to temporary
++	 * failures.
++	 * Clear page error before actual read, PG_error will be
++	 * set again if read page fails.
++	 */
++	ClearPageError(page);
+ 	goto filler;
+ 
+ out:
 _
