@@ -1,116 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-swap-make-page_evictable-inline-fix.patch removed from -mm tree
-Date: Wed, 01 Apr 2020 20:27:36 -0700
-Message-ID: <20200402032736.bguhunxIe%akpm@linux-foundation.org>
+ mm-introduce-fault_signal_pending-fix.patch removed from -mm tree
+Date: Wed, 01 Apr 2020 20:29:46 -0700
+Message-ID: <20200402032946.wGDLMovCR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56340 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56530 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733044AbgDBD1i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 23:27:38 -0400
+        id S1733251AbgDBD3s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 23:29:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org, shakeelb@google.com, vbabka@suse.cz, willy@infradead.org, yang.shi@linux.alibaba.com
+To: lkp@intel.com, mm-commits@vger.kernel.org, peterx@redhat.com
 
 
 The patch titled
-     Subject: mm-swap-make-page_evictable-inline-fix
+     Subject: mm-introduce-fault_signal_pending-fix
 has been removed from the -mm tree.  Its filename was
-     mm-swap-make-page_evictable-inline-fix.patch
+     mm-introduce-fault_signal_pending-fix.patch
 
-This patch was dropped because it was folded into mm-swap-make-page_evictable-inline.patch
+This patch was dropped because it was folded into mm-introduce-fault_signal_pending.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swap-make-page_evictable-inline-fix
+From: Peter Xu <peterx@redhat.com>
+Subject: mm-introduce-fault_signal_pending-fix
 
-move page_evictable() to internal.h
+fix sparse warnings
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/20200311145921.GD479302@xz-x1
+Reported-by: kbuild test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   23 -----------------------
- mm/internal.h           |   23 +++++++++++++++++++++++
- 2 files changed, 23 insertions(+), 23 deletions(-)
+ arch/mips/mm/fault.c         |    2 +-
+ include/linux/sched/signal.h |    4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/pagemap.h~mm-swap-make-page_evictable-inline-fix
-+++ a/include/linux/pagemap.h
-@@ -116,29 +116,6 @@ static inline void mapping_set_gfp_mask(
- 	m->gfp_mask = mask;
- }
+--- a/arch/mips/mm/fault.c~mm-introduce-fault_signal_pending-fix
++++ a/arch/mips/mm/fault.c
+@@ -154,7 +154,7 @@ good_area:
+ 	 */
+ 	fault = handle_mm_fault(vma, address, flags);
  
--/**
-- * page_evictable - test whether a page is evictable
-- * @page: the page to test
-- *
-- * Test whether page is evictable--i.e., should be placed on active/inactive
-- * lists vs unevictable list.
-- *
-- * Reasons page might not be evictable:
-- * (1) page's mapping marked unevictable
-- * (2) page is part of an mlocked VMA
-- *
-- */
--static inline bool page_evictable(struct page *page)
--{
--	bool ret;
--
--	/* Prevent address_space of inode and swap cache from being freed */
--	rcu_read_lock();
--	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
--	rcu_read_unlock();
--	return ret;
--}
--
- void release_pages(struct page **pages, int nr);
+-	if (fault_signal_pending(regs))
++	if (fault_signal_pending(fault, regs))
+ 		return;
+ 
+ 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
+--- a/include/linux/sched/signal.h~mm-introduce-fault_signal_pending-fix
++++ a/include/linux/sched/signal.h
+@@ -10,6 +10,8 @@
+ #include <linux/cred.h>
+ #include <linux/refcount.h>
+ #include <linux/posix-timers.h>
++#include <linux/mm_types.h>
++#include <asm/ptrace.h>
  
  /*
---- a/mm/internal.h~mm-swap-make-page_evictable-inline-fix
-+++ a/mm/internal.h
-@@ -63,6 +63,29 @@ static inline unsigned long ra_submit(st
- 					ra->start, ra->size, ra->async_size);
- }
- 
-+/**
-+ * page_evictable - test whether a page is evictable
-+ * @page: the page to test
-+ *
-+ * Test whether page is evictable--i.e., should be placed on active/inactive
-+ * lists vs unevictable list.
-+ *
-+ * Reasons page might not be evictable:
-+ * (1) page's mapping marked unevictable
-+ * (2) page is part of an mlocked VMA
-+ *
-+ */
-+static inline bool page_evictable(struct page *page)
-+{
-+	bool ret;
-+
-+	/* Prevent address_space of inode and swap cache from being freed */
-+	rcu_read_lock();
-+	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
-+	rcu_read_unlock();
-+	return ret;
-+}
-+
- /*
-  * Turn a non-refcounted page (->_refcount == 0) into refcounted with
-  * a count of one.
+  * Types defining task->signal and task->sighand and APIs using them:
+@@ -375,7 +377,7 @@ static inline int signal_pending_state(l
+  * instead, especially with the case where we've got interrupted with
+  * a VM_FAULT_RETRY.
+  */
+-static inline bool fault_signal_pending(unsigned int fault_flags,
++static inline bool fault_signal_pending(vm_fault_t fault_flags,
+ 					struct pt_regs *regs)
+ {
+ 	return unlikely((fault_flags & VM_FAULT_RETRY) &&
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-swap-make-page_evictable-inline.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
-selftest-add-mremap_dontunmap-selftest-fix.patch
-selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-gup-rename-nonblocking-to-locked-where-proper.patch
+mm-gup-fix-__get_user_pages-on-fault-retry-of-hugetlb.patch
+mm-introduce-fault_signal_pending.patch
+x86-mm-use-helper-fault_signal_pending.patch
+arc-mm-use-helper-fault_signal_pending.patch
+arm64-mm-use-helper-fault_signal_pending.patch
+powerpc-mm-use-helper-fault_signal_pending.patch
+sh-mm-use-helper-fault_signal_pending.patch
+mm-return-faster-for-non-fatal-signals-in-user-mode-faults.patch
+userfaultfd-dont-retake-mmap_sem-to-emulate-nopage.patch
+mm-introduce-fault_flag_default.patch
+mm-introduce-fault_flag_interruptible.patch
+mm-allow-vm_fault_retry-for-multiple-times.patch
+mm-gup-allow-vm_fault_retry-for-multiple-times.patch
+mm-gup-allow-to-react-to-fatal-signals.patch
+mm-userfaultfd-honor-fault_flag_killable-in-fault-path.patch
