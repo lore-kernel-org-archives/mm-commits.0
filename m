@@ -1,136 +1,47 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 135/155] mm/mempolicy: check hugepage migration is
- supported by arch in vma_migratable()
-Date: Wed, 01 Apr 2020 21:10:52 -0700
-Message-ID: <20200402041052.Y4zsoYman%akpm@linux-foundation.org>
+Subject: [patch 136/155] mm: mempolicy: use VM_BUG_ON_VMA in
+ queue_pages_test_walk()
+Date: Wed, 01 Apr 2020 21:10:55 -0700
+Message-ID: <20200402041055.o8u300uTM%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36952 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37046 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726136AbgDBEKx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:10:53 -0400
+        id S1726136AbgDBEK4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:10:56 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anshuman.khandual@arm.com, linux-mm@kvack.org, lixinhai.lxh@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, cai@lca.pw, linux-mm@kvack.org, lixinhai.lxh@gmail.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yang.shi@linux.alibaba.com
 
-From: Li Xinhai <lixinhai.lxh@gmail.com>
-Subject: mm/mempolicy: check hugepage migration is supported by arch in vma_migratable()
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm: mempolicy: use VM_BUG_ON_VMA in queue_pages_test_walk()
 
-vma_migratable() is called to check if pages in vma can be migrated before
-go ahead to further actions.  Currently it is used in below code path:
+The VM_BUG_ON() is already used by queue_pages_test_walk(), it sounds
+better to dump more debug information by using VM_BUG_ON_VMA() to help
+debugging.
 
-- task_numa_work
-- mbind
-- move_pages
-
-For hugetlb mapping, whether vma is migratable or not is determined by:
-- CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
-- arch_hugetlb_migration_supported
-
-Issue: current code only checks for CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
-alone, and no code should use it directly.  (note that current code in
-vma_migratable don't cause failure or bug because
-unmap_and_move_huge_page() will catch unsupported hugepage and handle it
-properly)
-
-This patch checks the two factors by hugepage_migration_supported for
-impoving code logic and robustness.  It will enable early bail out of
-hugepage migration procedure, but because currently all architecture
-supporting hugepage migration is able to support all page size, we would
-not see performance gain with this patch applied.
-
-vma_migratable() is moved to mm/mempolicy.c, because of the circular
-reference of mempolicy.h and hugetlb.h cause defining it as inline not
-feasible.
-
-Link: http://lkml.kernel.org/r/1579786179-30633-1-git-send-email-lixinhai.lxh@gmail.com
-Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/1579068565-110432-1-git-send-email-yang.shi@linux.alibaba.com
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Li Xinhai" <lixinhai.lxh@gmail.com>
+Cc: Qian Cai <cai@lca.pw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   29 +----------------------------
- mm/mempolicy.c            |   28 ++++++++++++++++++++++++++++
- 2 files changed, 29 insertions(+), 28 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mempolicy.h~mm-mempolicy-checking-hugepage-migration-is-supported-by-arch-in-vma_migratable
-+++ a/include/linux/mempolicy.h
-@@ -173,34 +173,7 @@ extern int mpol_parse_str(char *str, str
- extern void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol);
- 
- /* Check if a vma is migratable */
--static inline bool vma_migratable(struct vm_area_struct *vma)
--{
--	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
--		return false;
--
--	/*
--	 * DAX device mappings require predictable access latency, so avoid
--	 * incurring periodic faults.
--	 */
--	if (vma_is_dax(vma))
--		return false;
--
--#ifndef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
--	if (vma->vm_flags & VM_HUGETLB)
--		return false;
--#endif
--
--	/*
--	 * Migration allocates pages in the highest zone. If we cannot
--	 * do so then migration (at least from node to node) is not
--	 * possible.
--	 */
--	if (vma->vm_file &&
--		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
--								< policy_zone)
--			return false;
--	return true;
--}
-+extern bool vma_migratable(struct vm_area_struct *vma);
- 
- extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
- extern void mpol_put_task_policy(struct task_struct *);
---- a/mm/mempolicy.c~mm-mempolicy-checking-hugepage-migration-is-supported-by-arch-in-vma_migratable
+--- a/mm/mempolicy.c~mm-mempolicy-use-vm_bug_on_vma-in-queue_pages_test_walk
 +++ a/mm/mempolicy.c
-@@ -1743,6 +1743,34 @@ COMPAT_SYSCALL_DEFINE4(migrate_pages, co
+@@ -650,7 +650,7 @@ static int queue_pages_test_walk(unsigne
+ 	unsigned long flags = qp->flags;
  
- #endif /* CONFIG_COMPAT */
+ 	/* range check first */
+-	VM_BUG_ON((vma->vm_start > start) || (vma->vm_end < end));
++	VM_BUG_ON_VMA((vma->vm_start > start) || (vma->vm_end < end), vma);
  
-+bool vma_migratable(struct vm_area_struct *vma)
-+{
-+	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
-+		return false;
-+
-+	/*
-+	 * DAX device mappings require predictable access latency, so avoid
-+	 * incurring periodic faults.
-+	 */
-+	if (vma_is_dax(vma))
-+		return false;
-+
-+	if (is_vm_hugetlb_page(vma) &&
-+		!hugepage_migration_supported(hstate_vma(vma)))
-+		return false;
-+
-+	/*
-+	 * Migration allocates pages in the highest zone. If we cannot
-+	 * do so then migration (at least from node to node) is not
-+	 * possible.
-+	 */
-+	if (vma->vm_file &&
-+		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
-+			< policy_zone)
-+		return false;
-+	return true;
-+}
-+
- struct mempolicy *__get_vma_policy(struct vm_area_struct *vma,
- 						unsigned long addr)
- {
+ 	if (!qp->first) {
+ 		qp->first = vma;
 _
