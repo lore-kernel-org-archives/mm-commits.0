@@ -1,50 +1,62 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 124/155] mm/vmscan.c: clean code by removing
- unnecessary assignment
-Date: Wed, 01 Apr 2020 21:10:15 -0700
-Message-ID: <20200402041015.Sm_nRspvB%akpm@linux-foundation.org>
+Subject: [patch 125/155] mm/vmscan.c: make may_enter_fs bool in
+ shrink_page_list()
+Date: Wed, 01 Apr 2020 21:10:18 -0700
+Message-ID: <20200402041018.Ql1JvqAUf%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35558 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35662 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726136AbgDBEKQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:10:16 -0400
+        id S1726136AbgDBEKT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:10:19 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org, mateusznosek0@gmail.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, torvalds@linux-foundation.org, willy@infradead.org
+To: akpm@linux-foundation.org, ktkhai@virtuozzo.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Mateusz Nosek <mateusznosek0@gmail.com>
-Subject: mm/vmscan.c: clean code by removing unnecessary assignment
+From: Kirill Tkhai <ktkhai@virtuozzo.com>
+Subject: mm/vmscan.c: make may_enter_fs bool in shrink_page_list()
 
-Previously 0 was assigned to variable 'lruvec_size', but the variable was
-never read later.  So the assignment can be removed.
+This gives some size improvement:
 
-Link: http://lkml.kernel.org/r/20200229214022.11853-1-mateusznosek0@gmail.com
-Fixes: f87bccde6a7d ("mm/vmscan: remove unused lru_pages argument")
-Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+$size mm/vmscan.o (before)
+   text	   data	    bss	    dec	    hex	filename
+  53670	  24123	     12	  77805	  12fed	mm/vmscan.o
+
+$size mm/vmscan.o (after)
+   text	   data	    bss	    dec	    hex	filename
+  53648	  24123	     12	  77783	  12fd7	mm/vmscan.o
+
+Link: http://lkml.kernel.org/r/Message-ID:
+Signed-off-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/vmscan.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscanc-clean-code-by-removing-unnecessary-assignment
+--- a/mm/vmscan.c~mm-make-may_enter_fs-bool-in-shrink_page_list
 +++ a/mm/vmscan.c
-@@ -2427,10 +2427,8 @@ out:
- 		case SCAN_FILE:
- 		case SCAN_ANON:
- 			/* Scan one type exclusively */
--			if ((scan_balance == SCAN_FILE) != file) {
--				lruvec_size = 0;
-+			if ((scan_balance == SCAN_FILE) != file)
- 				scan = 0;
--			}
- 			break;
- 		default:
- 			/* Look ma, no brain */
+@@ -1084,9 +1084,8 @@ static unsigned long shrink_page_list(st
+ 	while (!list_empty(page_list)) {
+ 		struct address_space *mapping;
+ 		struct page *page;
+-		int may_enter_fs;
+ 		enum page_references references = PAGEREF_RECLAIM;
+-		bool dirty, writeback;
++		bool dirty, writeback, may_enter_fs;
+ 		unsigned int nr_pages;
+ 
+ 		cond_resched();
+@@ -1267,7 +1266,7 @@ static unsigned long shrink_page_list(st
+ 						goto activate_locked_split;
+ 				}
+ 
+-				may_enter_fs = 1;
++				may_enter_fs = true;
+ 
+ 				/* Adding to swap updated mapping */
+ 				mapping = page_mapping(page);
 _
