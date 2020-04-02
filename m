@@ -1,86 +1,92 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 153/155] selftests/vm: fix map_hugetlb length used
- for testing read and write
-Date: Wed, 01 Apr 2020 21:11:51 -0700
-Message-ID: <20200402041151.Oj5_LzOcN%akpm@linux-foundation.org>
+Subject: [patch 154/155] mm/hugetlb: fix build failure with
+ HUGETLB_PAGE but not HUGEBTLBFS
+Date: Wed, 01 Apr 2020 21:11:54 -0700
+Message-ID: <20200402041154.rvrGUeBta%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38956 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39106 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726136AbgDBELw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:11:52 -0400
+        id S1726136AbgDBEL4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:11:56 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, christophe.leroy@c-s.fr, leonardo@linux.ibm.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, shuah@kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: agl@us.ibm.com, ak@suse.de, akpm@linux-foundation.org, bhe@redhat.com, christophe.leroy@c-s.fr, linux-mm@kvack.org, lkp@intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, nacc@us.ibm.com, npiggin@suse.de, torvalds@linux-foundation.org
 
 From: Christophe Leroy <christophe.leroy@c-s.fr>
-Subject: selftests/vm: fix map_hugetlb length used for testing read and write
+Subject: mm/hugetlb: fix build failure with HUGETLB_PAGE but not HUGEBTLBFS
 
-Commit fa7b9a805c79 ("tools/selftest/vm: allow choosing mem size and page
-size in map_hugetlb") added the possibility to change the size of memory
-mapped for the test, but left the read and write test using the default
-value.  This is unnoticed when mapping a length greater than the default
-one, but segfaults otherwise.
+When CONFIG_HUGETLB_PAGE is set but not CONFIG_HUGETLBFS, the following
+build failure is encoutered:
 
-Fix read_bytes() and write_bytes() by giving them the real length.
+In file included from arch/powerpc/mm/fault.c:33:0:
+./include/linux/hugetlb.h: In function 'hstate_inode':
+./include/linux/hugetlb.h:477:9: error: implicit declaration of function 'HUGETLBFS_SB' [-Werror=implicit-function-declaration]
+  return HUGETLBFS_SB(i->i_sb)->hstate;
+         ^
+./include/linux/hugetlb.h:477:30: error: invalid type argument of '->' (have 'int')
+  return HUGETLBFS_SB(i->i_sb)->hstate;
+                              ^
 
-Also fix the call to munmap().
+Gate hstate_inode() with CONFIG_HUGETLBFS instead of CONFIG_HUGETLB_PAGE.
 
-Link: http://lkml.kernel.org/r/9a404a13c871c4bd0ba9ede68f69a1225180dd7e.1580978385.git.christophe.leroy@c-s.fr
-Fixes: fa7b9a805c79 ("tools/selftest/vm: allow choosing mem size and page size in map_hugetlb")
+Link: http://lkml.kernel.org/r/7e8c3a3c9a587b9cd8a2f146df32a421b961f3a2.1584432148.git.christophe.leroy@c-s.fr
+Link: https://patchwork.ozlabs.org/patch/1255548/#2386036
+Fixes: a137e1cc6d6e ("hugetlbfs: per mount huge page sizes")
 Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
-Reviewed-by: Leonardo Bras <leonardo@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
+Reported-by: kbuild test robot <lkp@intel.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/map_hugetlb.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/hugetlb.h |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/vm/map_hugetlb.c~selftests-vm-fix-map_hugetlb-length-used-for-testing-read-and-write
-+++ a/tools/testing/selftests/vm/map_hugetlb.c
-@@ -45,20 +45,20 @@ static void check_bytes(char *addr)
- 	printf("First hex is %x\n", *((unsigned int *)addr));
+--- a/include/linux/hugetlb.h~mm-hugetlb-fix-build-failure-with-hugetlb_page-but-not-hugebtlbfs
++++ a/include/linux/hugetlb.h
+@@ -443,7 +443,10 @@ static inline bool is_file_hugepages(str
+ 	return is_file_shm_hugepages(file);
  }
  
--static void write_bytes(char *addr)
-+static void write_bytes(char *addr, size_t length)
- {
- 	unsigned long i;
+-
++static inline struct hstate *hstate_inode(struct inode *i)
++{
++	return HUGETLBFS_SB(i->i_sb)->hstate;
++}
+ #else /* !CONFIG_HUGETLBFS */
  
--	for (i = 0; i < LENGTH; i++)
-+	for (i = 0; i < length; i++)
- 		*(addr + i) = (char)i;
+ #define is_file_hugepages(file)			false
+@@ -455,6 +458,10 @@ hugetlb_file_setup(const char *name, siz
+ 	return ERR_PTR(-ENOSYS);
  }
  
--static int read_bytes(char *addr)
-+static int read_bytes(char *addr, size_t length)
++static inline struct hstate *hstate_inode(struct inode *i)
++{
++	return NULL;
++}
+ #endif /* !CONFIG_HUGETLBFS */
+ 
+ #ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+@@ -525,11 +532,6 @@ extern unsigned int default_hstate_idx;
+ 
+ #define default_hstate (hstates[default_hstate_idx])
+ 
+-static inline struct hstate *hstate_inode(struct inode *i)
+-{
+-	return HUGETLBFS_SB(i->i_sb)->hstate;
+-}
+-
+ static inline struct hstate *hstate_file(struct file *f)
  {
- 	unsigned long i;
- 
- 	check_bytes(addr);
--	for (i = 0; i < LENGTH; i++)
-+	for (i = 0; i < length; i++)
- 		if (*(addr + i) != (char)i) {
- 			printf("Mismatch at %lu\n", i);
- 			return 1;
-@@ -96,11 +96,11 @@ int main(int argc, char **argv)
- 
- 	printf("Returned address is %p\n", addr);
- 	check_bytes(addr);
--	write_bytes(addr);
--	ret = read_bytes(addr);
-+	write_bytes(addr, length);
-+	ret = read_bytes(addr, length);
- 
- 	/* munmap() length of MAP_HUGETLB memory must be hugepage aligned */
--	if (munmap(addr, LENGTH)) {
-+	if (munmap(addr, length)) {
- 		perror("munmap");
- 		exit(1);
- 	}
-_
+ 	return hstate_inode(file_inode(f));
+@@ -781,11 +783,6 @@ static inline struct hstate *hstate_vma(
+ {
+ 	return NULL;
+ }
