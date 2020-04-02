@@ -1,30 +1,32 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 041/155] mm/gup: pass gup flags to two more
- routines
-Date: Wed, 01 Apr 2020 21:05:22 -0700
-Message-ID: <20200402040522.sqqriIxBV%akpm@linux-foundation.org>
+Subject: [patch 042/155] mm/gup: require FOLL_GET for
+ get_user_pages_fast()
+Date: Wed, 01 Apr 2020 21:05:25 -0700
+Message-ID: <20200402040525._b4dZ1F8q%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52524 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52716 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725789AbgDBEFY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:05:24 -0400
+        id S1725789AbgDBEF1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:05:27 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, ira.weiny@intel.com, jack@suse.cz, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, linux-mm@kvack.org, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, shuah@kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz, viro@zeniv.linux.org.uk, willy@infradead.org
 
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: pass gup flags to two more routines
+Subject: mm/gup: require FOLL_GET for get_user_pages_fast()
 
-In preparation for an upcoming patch, send gup flags args to two more
-routines: put_compound_head(), and undo_dev_pagemap().
+Internal to mm/gup.c, require that get_user_pages_fast() and
+__get_user_pages_fast() identify themselves, by setting FOLL_GET.  This is
+required in order to be able to make decisions based on "FOLL_PIN, or
+FOLL_GET, or both or neither are set", in upcoming patches.
 
-Link: http://lkml.kernel.org/r/20200211001536.1027652-5-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200211001536.1027652-6-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
@@ -44,99 +46,56 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ mm/gup.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-pass-gup-flags-to-two-more-routines
+--- a/mm/gup.c~mm-gup-require-foll_get-for-get_user_pages_fast
 +++ a/mm/gup.c
-@@ -1870,6 +1870,7 @@ static inline pte_t gup_get_pte(pte_t *p
- #endif /* CONFIG_GUP_GET_PTE_LOW_HIGH */
+@@ -2390,6 +2390,14 @@ int __get_user_pages_fast(unsigned long
+ 	unsigned long len, end;
+ 	unsigned long flags;
+ 	int nr =3D 0;
++	/*
++	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
++	 * because gup fast is always a "pin with a +1 page refcount" request.
++	 */
++	unsigned int gup_flags =3D FOLL_GET;
++
++	if (write)
++		gup_flags |=3D FOLL_WRITE;
 =20
- static void __maybe_unused undo_dev_pagemap(int *nr, int nr_start,
-+					    unsigned int flags,
- 					    struct page **pages)
- {
- 	while ((*nr) - nr_start) {
-@@ -1909,7 +1910,7 @@ static int gup_pte_range(pmd_t pmd, unsi
-=20
- 			pgmap =3D get_dev_pagemap(pte_pfn(pte), pgmap);
- 			if (unlikely(!pgmap)) {
--				undo_dev_pagemap(nr, nr_start, pages);
-+				undo_dev_pagemap(nr, nr_start, flags, pages);
- 				goto pte_unmap;
- 			}
- 		} else if (pte_special(pte))
-@@ -1974,7 +1975,7 @@ static int __gup_device_huge(unsigned lo
-=20
- 		pgmap =3D get_dev_pagemap(pfn, pgmap);
- 		if (unlikely(!pgmap)) {
--			undo_dev_pagemap(nr, nr_start, pages);
-+			undo_dev_pagemap(nr, nr_start, flags, pages);
- 			return 0;
- 		}
- 		SetPageReferenced(page);
-@@ -2001,7 +2002,7 @@ static int __gup_device_huge_pmd(pmd_t o
- 		return 0;
-=20
- 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
--		undo_dev_pagemap(nr, nr_start, pages);
-+		undo_dev_pagemap(nr, nr_start, flags, pages);
- 		return 0;
+ 	start =3D untagged_addr(start) & PAGE_MASK;
+ 	len =3D (unsigned long) nr_pages << PAGE_SHIFT;
+@@ -2415,7 +2423,7 @@ int __get_user_pages_fast(unsigned long
+ 	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
+ 	    gup_fast_permitted(start, end)) {
+ 		local_irq_save(flags);
+-		gup_pgd_range(start, end, write ? FOLL_WRITE : 0, pages, &nr);
++		gup_pgd_range(start, end, gup_flags, pages, &nr);
+ 		local_irq_restore(flags);
  	}
- 	return 1;
-@@ -2019,7 +2020,7 @@ static int __gup_device_huge_pud(pud_t o
- 		return 0;
 =20
- 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
--		undo_dev_pagemap(nr, nr_start, pages);
-+		undo_dev_pagemap(nr, nr_start, flags, pages);
- 		return 0;
- 	}
- 	return 1;
-@@ -2053,7 +2054,7 @@ static int record_subpages(struct page *
- 	return nr;
+@@ -2454,7 +2462,7 @@ static int internal_get_user_pages_fast(
+ 	int nr =3D 0, ret =3D 0;
+=20
+ 	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
+-				       FOLL_FORCE | FOLL_PIN)))
++				       FOLL_FORCE | FOLL_PIN | FOLL_GET)))
+ 		return -EINVAL;
+=20
+ 	start =3D untagged_addr(start) & PAGE_MASK;
+@@ -2521,6 +2529,13 @@ int get_user_pages_fast(unsigned long st
+ 	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
+ 		return -EINVAL;
+=20
++	/*
++	 * The caller may or may not have explicitly set FOLL_GET; either way is
++	 * OK. However, internally (within mm/gup.c), gup fast variants must set
++	 * FOLL_GET, because gup fast is always a "pin with a +1 page refcount"
++	 * request.
++	 */
++	gup_flags |=3D FOLL_GET;
+ 	return internal_get_user_pages_fast(start, nr_pages, gup_flags, pages);
  }
-=20
--static void put_compound_head(struct page *page, int refs)
-+static void put_compound_head(struct page *page, int refs, unsigned int fl=
-ags)
- {
- 	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
- 	/*
-@@ -2103,7 +2104,7 @@ static int gup_hugepte(pte_t *ptep, unsi
- 		return 0;
-=20
- 	if (unlikely(pte_val(pte) !=3D pte_val(*ptep))) {
--		put_compound_head(head, refs);
-+		put_compound_head(head, refs, flags);
- 		return 0;
- 	}
-=20
-@@ -2163,7 +2164,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_
- 		return 0;
-=20
- 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
--		put_compound_head(head, refs);
-+		put_compound_head(head, refs, flags);
- 		return 0;
- 	}
-=20
-@@ -2197,7 +2198,7 @@ static int gup_huge_pud(pud_t orig, pud_
- 		return 0;
-=20
- 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
--		put_compound_head(head, refs);
-+		put_compound_head(head, refs, flags);
- 		return 0;
- 	}
-=20
-@@ -2226,7 +2227,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_
- 		return 0;
-=20
- 	if (unlikely(pgd_val(orig) !=3D pgd_val(*pgdp))) {
--		put_compound_head(head, refs);
-+		put_compound_head(head, refs, flags);
- 		return 0;
- 	}
-=20
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
 _
