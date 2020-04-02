@@ -1,45 +1,144 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 133/155] mm/compaction.c: clean code by removing
- unnecessary assignment
-Date: Wed, 01 Apr 2020 21:10:45 -0700
-Message-ID: <20200402041045.NWQxIBY6p%akpm@linux-foundation.org>
+Subject: [patch 134/155] mm/mempolicy: support MPOL_MF_STRICT for
+ huge page mapping
+Date: Wed, 01 Apr 2020 21:10:48 -0700
+Message-ID: <20200402041048.YVOjNm2cC%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36718 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36848 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726136AbgDBEKq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Apr 2020 00:10:46 -0400
+        id S1726136AbgDBEKv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Apr 2020 00:10:51 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux-mm@kvack.org, mateusznosek0@gmail.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, linux-man@vger.kernel.org, linux-mm@kvack.org, lixinhai.lxh@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, naoya.horiguchi@nec.com, torvalds@linux-foundation.org
 
-From: Mateusz Nosek <mateusznosek0@gmail.com>
-Subject: mm/compaction.c: clean code by removing unnecessary assignment
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm/mempolicy: support MPOL_MF_STRICT for huge page mapping
 
-Previously 0 was assigned to variable 'last_migrated_pfn'.  But the
-variable is not read after that, so the assignment can be removed.
+MPOL_MF_STRICT is used in mbind() for purposes:
 
-Link: http://lkml.kernel.org/r/20200318174509.15021-1-mateusznosek0@gmail.com
-Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+(1) MPOL_MF_STRICT is set alone without MPOL_MF_MOVE or
+    MPOL_MF_MOVE_ALL, to check if there is misplaced page and return -EIO;
+
+(2) MPOL_MF_STRICT is set with MPOL_MF_MOVE or MPOL_MF_MOVE_ALL, to
+    check if there is misplaced page which is failed to isolate, or page
+    is success on isolate but failed to move, and return -EIO.
+
+For non hugepage mapping, (1) and (2) are implemented as expectation.  For
+hugepage mapping, (1) is not implemented.  And in (2), the part about
+failed to isolate and report -EIO is not implemented.
+
+This patch implements the missed parts for hugepage mapping.  Benefits
+with it applied:
+
+- User space can apply same code logic to handle mbind() on hugepage and
+  non hugepage mapping;
+
+- Reliably using MPOL_MF_STRICT alone to check whether there is
+  misplaced page or not when bind policy on address range, especially for
+  address range which contains both hugepage and non hugepage mapping.
+
+Analysis of potential impact to existing users:
+
+- If MPOL_MF_STRICT alone was previously used, hugetlb pages not
+  following the memory policy would not cause an EIO error.  After this
+  change, hugetlb pages are treated like all other pages.  If
+  MPOL_MF_STRICT alone is used and hugetlb pages do not follow memory
+  policy an EIO error will be returned.
+
+- For users who using MPOL_MF_STRICT with MPOL_MF_MOVE or
+  MPOL_MF_MOVE_ALL, the semantic about some pages could not be moved will
+  not be changed by this patch, because failed to isolate and failed to
+  move have same effects to users, so their existing code will not be
+  impacted.
+
+In mbind man page, the note about 'MPOL_MF_STRICT is ignored on huge page
+mappings' can be removed after this patch is applied.
+
+Mike:
+
+: The current behavior with MPOL_MF_STRICT and hugetlb pages is inconsistent
+: and does not match documentation (as described above).  The special
+: behavior for hugetlb pages ideally should have been removed when hugetlb
+: page migration was introduced.  It is unlikely that anyone relies on
+: today's inconsistent behavior, and removing one more case of special
+: handling for hugetlb pages is a good thing.
+
+Link: http://lkml.kernel.org/r/1581559627-6206-1-git-send-email-lixinhai.lxh@gmail.com
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: linux-man <linux-man@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/mempolicy.c |   37 +++++++++++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
 
---- a/mm/compaction.c~mm-compactionc-clean-code-by-removing-unnecessary-assignment
-+++ a/mm/compaction.c
-@@ -2182,7 +2182,6 @@ compact_zone(struct compact_control *cc,
- 			ret = COMPACT_CONTENDED;
- 			putback_movable_pages(&cc->migratepages);
- 			cc->nr_migratepages = 0;
--			last_migrated_pfn = 0;
- 			goto out;
- 		case ISOLATE_NONE:
- 			if (update_cached) {
+--- a/mm/mempolicy.c~mm-mempolicy-support-mpol_mf_strict-for-huge-page-mapping
++++ a/mm/mempolicy.c
+@@ -557,9 +557,10 @@ static int queue_pages_hugetlb(pte_t *pt
+ 			       unsigned long addr, unsigned long end,
+ 			       struct mm_walk *walk)
+ {
++	int ret = 0;
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	struct queue_pages *qp = walk->private;
+-	unsigned long flags = qp->flags;
++	unsigned long flags = (qp->flags & MPOL_MF_VALID);
+ 	struct page *page;
+ 	spinlock_t *ptl;
+ 	pte_t entry;
+@@ -571,16 +572,44 @@ static int queue_pages_hugetlb(pte_t *pt
+ 	page = pte_page(entry);
+ 	if (!queue_pages_required(page, qp))
+ 		goto unlock;
++
++	if (flags == MPOL_MF_STRICT) {
++		/*
++		 * STRICT alone means only detecting misplaced page and no
++		 * need to further check other vma.
++		 */
++		ret = -EIO;
++		goto unlock;
++	}
++
++	if (!vma_migratable(walk->vma)) {
++		/*
++		 * Must be STRICT with MOVE*, otherwise .test_walk() have
++		 * stopped walking current vma.
++		 * Detecting misplaced page but allow migrating pages which
++		 * have been queued.
++		 */
++		ret = 1;
++		goto unlock;
++	}
++
+ 	/* With MPOL_MF_MOVE, we migrate only unshared hugepage. */
+ 	if (flags & (MPOL_MF_MOVE_ALL) ||
+-	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1))
+-		isolate_huge_page(page, qp->pagelist);
++	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1)) {
++		if (!isolate_huge_page(page, qp->pagelist) &&
++			(flags & MPOL_MF_STRICT))
++			/*
++			 * Failed to isolate page but allow migrating pages
++			 * which have been queued.
++			 */
++			ret = 1;
++	}
+ unlock:
+ 	spin_unlock(ptl);
+ #else
+ 	BUG();
+ #endif
+-	return 0;
++	return ret;
+ }
+ 
+ #ifdef CONFIG_NUMA_BALANCING
 _
