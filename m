@@ -1,60 +1,92 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch removed from -mm tree
-Date: Wed, 01 Apr 2020 20:30:21 -0700
-Message-ID: <20200402033021.Jz6ZqTvNz%akpm@linux-foundation.org>
+ mm-add-mremap_dontunmap-to-mremap-v6.patch removed from -mm tree
+Date: Wed, 01 Apr 2020 20:30:47 -0700
+Message-ID: <20200402033047.EOCedMbAX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56640 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733269AbgDBDa0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 23:30:26 -0400
+        id S1733269AbgDBDat (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 23:30:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bp@suse.de, jaewon31.kim@samsung.com, mm-commits@vger.kernel.org, vbabka@suse.cz, walken@google.com, willy@infradead.org
+To: aarcange@redhat.com, arnd@arndb.de, bgeffon@google.com, fweimer@redhat.com, joel@joelfernandes.org, jsbarnes@google.com, kirill@shutemov.name, lokeshgidra@google.com, luto@amacapital.net, minchan@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com, natechancellor@gmail.com, sonnyrao@google.com, vbabka@suse.cz, will@kernel.org, yuzhao@google.com
 
 
 The patch titled
-     Subject: mm-mmap-add-trace-point-of-vm_unmapped_area-fix
+     Subject: mm-add-mremap_dontunmap-to-mremap-v6
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
+     mm-add-mremap_dontunmap-to-mremap-v6.patch
 
-This patch was dropped because it was folded into mm-mmap-add-trace-point-of-vm_unmapped_area.patch
+This patch was dropped because it was folded into mm-add-mremap_dontunmap-t=
+o-mremap.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mmap-add-trace-point-of-vm_unmapped_area-fix
+=46rom: Brian Geffon <bgeffon@google.com>
+Subject: mm-add-mremap_dontunmap-to-mremap-v6
 
-prefix address printk with 0x, per Matthew
-
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Jaewon Kim <jaewon31.kim@samsung.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michel Lespinasse <walken@google.com>
+- Code cleanup suggested by Kirill.
+- Correct commit message to more accurately reflect the behavior.
+- Clear VM_LOCKED and VM_LOCKEDONFAULT on the old vma.
+        =C2=A0 =C2=A0
+Link: http://lkml.kernel.org/r/20200218173221.237674-1-bgeffon@google.com
+Signed-off-by: Brian Geffon <bgeffon@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Will Deacon <will@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Jesse Barnes <jsbarnes@google.com>
+Cc: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mremap.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/include/trace/events/mmap.h~mm-mmap-add-trace-point-of-vm_unmapped_area-fix
-+++ a/include/trace/events/mmap.h
-@@ -35,7 +35,7 @@ TRACE_EVENT(vm_unmapped_area,
- 		__entry->align_offset = info->align_offset;
- 	),
- 
--	TP_printk("addr=%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx\n",
-+	TP_printk("addr=0x%lx err=%ld total_vm=0x%lx flags=0x%lx len=0x%lx lo=0x%lx hi=0x%lx mask=0x%lx ofs=0x%lx\n",
- 		IS_ERR_VALUE(__entry->addr) ? 0 : __entry->addr,
- 		IS_ERR_VALUE(__entry->addr) ? __entry->addr : 0,
- 		__entry->total_vm, __entry->flags, __entry->length,
+--- a/mm/mremap.c~mm-add-mremap_dontunmap-to-mremap-v6
++++ a/mm/mremap.c
+@@ -426,8 +426,13 @@ static unsigned long move_vma(struct vm_
+ 		 * for old_len, but we're now adding new_len - old_len locked
+ 		 * bytes to the new mapping.
+ 		 */
+-		if (new_len > old_len)
++		if (vm_flags & VM_LOCKED && new_len > old_len) {
+ 			mm->locked_vm +=3D (new_len - old_len) >> PAGE_SHIFT;
++			*locked =3D true;
++		}
++
++		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
++		vma->vm_flags &=3D VM_LOCKED_CLEAR_MASK;
+=20
+ 		goto out;
+ 	}
+@@ -686,7 +691,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 	if (down_write_killable(&current->mm->mmap_sem))
+ 		return -EINTR;
+=20
+-	if (flags & MREMAP_FIXED || flags & MREMAP_DONTUNMAP) {
++	if (flags & (MREMAP_FIXED | MREMAP_DONTUNMAP)) {
+ 		ret =3D mremap_to(addr, old_len, new_addr, new_len,
+ 				&locked, flags, &uf, &uf_unmap_early,
+ 				&uf_unmap);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bgeffon@google.com are
 
-mm-mmap-add-trace-point-of-vm_unmapped_area.patch
-selftest-add-mremap_dontunmap-selftest-fix.patch
-selftest-add-mremap_dontunmap-selftest-v7-checkpatch-fixes.patch
-hugetlb_cgroup-add-reservation-accounting-for-private-mappings-fix.patch
-hugetlb_cgroup-add-accounting-for-shared-mappings-fix.patch
+mm-add-mremap_dontunmap-to-mremap.patch
+mm-add-mremap_dontunmap-to-mremap-v7.patch
+selftest-add-mremap_dontunmap-selftest.patch
+selftest-add-mremap_dontunmap-selftest-v7.patch
