@@ -1,96 +1,113 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-gup-track-foll_pin-pages-fix-2-fix.patch removed from -mm tree
-Date: Wed, 01 Apr 2020 20:25:27 -0700
-Message-ID: <20200402032527.3D7Lkubof%akpm@linux-foundation.org>
+ mm-swap-make-page_evictable-inline-fix.patch removed from -mm tree
+Date: Wed, 01 Apr 2020 20:27:36 -0700
+Message-ID: <20200402032736.bguhunxIe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55758 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56340 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732664AbgDBDZ2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 1 Apr 2020 23:25:28 -0400
+        id S1733044AbgDBD1i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 1 Apr 2020 23:27:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, imbrenda@linux.ibm.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org, shakeelb@google.com, vbabka@suse.cz, willy@infradead.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm-gup-track-foll_pin-pages-fix-2-fix
+     Subject: mm-swap-make-page_evictable-inline-fix
 has been removed from the -mm tree.  Its filename was
-     mm-gup-track-foll_pin-pages-fix-2-fix.patch
+     mm-swap-make-page_evictable-inline-fix.patch
 
-This patch was dropped because it was folded into mm-gup-track-foll_pin-pages.patch
+This patch was dropped because it was folded into mm-swap-make-page_evictable-inline.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-gup-track-foll_pin-pages-fix-2-fix
+Subject: mm-swap-make-page_evictable-inline-fix
 
-fix put_compound_head defined but not used
+move page_evictable() to internal.h
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ include/linux/pagemap.h |   23 -----------------------
+ mm/internal.h           |   23 +++++++++++++++++++++++
+ 2 files changed, 23 insertions(+), 23 deletions(-)
 
---- a/mm/gup.c~mm-gup-track-foll_pin-pages-fix-2-fix
-+++ a/mm/gup.c
-@@ -78,21 +78,6 @@ static __maybe_unused struct page *try_g
- 	return NULL;
+--- a/include/linux/pagemap.h~mm-swap-make-page_evictable-inline-fix
++++ a/include/linux/pagemap.h
+@@ -116,29 +116,6 @@ static inline void mapping_set_gfp_mask(
+ 	m->gfp_mask = mask;
  }
  
--static void put_compound_head(struct page *page, int refs, unsigned int flags)
+-/**
+- * page_evictable - test whether a page is evictable
+- * @page: the page to test
+- *
+- * Test whether page is evictable--i.e., should be placed on active/inactive
+- * lists vs unevictable list.
+- *
+- * Reasons page might not be evictable:
+- * (1) page's mapping marked unevictable
+- * (2) page is part of an mlocked VMA
+- *
+- */
+-static inline bool page_evictable(struct page *page)
 -{
--	if (flags & FOLL_PIN)
--		refs *= GUP_PIN_COUNTING_BIAS;
+-	bool ret;
 -
--	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
--	/*
--	 * Calling put_page() for each ref is unnecessarily slow. Only the last
--	 * ref needs a put_page().
--	 */
--	if (refs > 1)
--		page_ref_sub(page, refs - 1);
--	put_page(page);
+-	/* Prevent address_space of inode and swap cache from being freed */
+-	rcu_read_lock();
+-	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
+-	rcu_read_unlock();
+-	return ret;
 -}
 -
- /**
-  * try_grab_page() - elevate a page's refcount by a flag-dependent amount
-  *
-@@ -1967,7 +1952,24 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
-  * This code is based heavily on the PowerPC implementation by Nick Piggin.
-  */
- #ifdef CONFIG_HAVE_FAST_GUP
-+
-+static void put_compound_head(struct page *page, int refs, unsigned int flags)
+ void release_pages(struct page **pages, int nr);
+ 
+ /*
+--- a/mm/internal.h~mm-swap-make-page_evictable-inline-fix
++++ a/mm/internal.h
+@@ -63,6 +63,29 @@ static inline unsigned long ra_submit(st
+ 					ra->start, ra->size, ra->async_size);
+ }
+ 
++/**
++ * page_evictable - test whether a page is evictable
++ * @page: the page to test
++ *
++ * Test whether page is evictable--i.e., should be placed on active/inactive
++ * lists vs unevictable list.
++ *
++ * Reasons page might not be evictable:
++ * (1) page's mapping marked unevictable
++ * (2) page is part of an mlocked VMA
++ *
++ */
++static inline bool page_evictable(struct page *page)
 +{
-+	if (flags & FOLL_PIN)
-+		refs *= GUP_PIN_COUNTING_BIAS;
++	bool ret;
 +
-+	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
-+	/*
-+	 * Calling put_page() for each ref is unnecessarily slow. Only the last
-+	 * ref needs a put_page().
-+	 */
-+	if (refs > 1)
-+		page_ref_sub(page, refs - 1);
-+	put_page(page);
++	/* Prevent address_space of inode and swap cache from being freed */
++	rcu_read_lock();
++	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
++	rcu_read_unlock();
++	return ret;
 +}
 +
- #ifdef CONFIG_GUP_GET_PTE_LOW_HIGH
-+
  /*
-  * WARNING: only to be used in the get_user_pages_fast() implementation.
-  *
+  * Turn a non-refcounted page (->_refcount == 0) into refcounted with
+  * a count of one.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-gup-track-foll_pin-pages.patch
-mm-swap-make-page_evictable-inline-fix.patch
+mm-swap-make-page_evictable-inline.patch
 memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
 mm-mmap-add-trace-point-of-vm_unmapped_area-fix.patch
 selftest-add-mremap_dontunmap-selftest-fix.patch
