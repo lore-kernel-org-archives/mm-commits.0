@@ -1,64 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] getdelays-fix-netlink-attribute-length.patch
- removed from -mm tree
-Date: Fri, 03 Apr 2020 13:34:46 -0700
-Message-ID: <20200403203446.7Y-81g_t1%akpm@linux-foundation.org>
+Subject: [merged]
+ kthread-mark-timer-used-by-delayed-kthread-works-as-irq-safe.patch removed
+ from -mm tree
+Date: Fri, 03 Apr 2020 13:34:49 -0700
+Message-ID: <20200403203449.I-LKhMDkH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57492 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUet (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:34:49 -0400
+        id S1726368AbgDCUeu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:34:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dsahern@kernel.org, johannes@sipsolutions.net, laoar.shao@gmail.com, mm-commits@vger.kernel.org, nagar@watson.ibm.com, stable@vger.kernel.org
+To: grygorii.strashko@ti.com, mm-commits@vger.kernel.org, pmladek@suse.com, tglx@linutronix.de, tj@kernel.org
 
 
 The patch titled
-     Subject: tools/accounting/getdelays.c: fix netlink attribute length
+     Subject: kthread: mark timer used by delayed kthread works as IRQ safe
 has been removed from the -mm tree.  Its filename was
-     getdelays-fix-netlink-attribute-length.patch
+     kthread-mark-timer-used-by-delayed-kthread-works-as-irq-safe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Ahern <dsahern@kernel.org>
-Subject: tools/accounting/getdelays.c: fix netlink attribute length
+From: Petr Mladek <pmladek@suse.com>
+Subject: kthread: mark timer used by delayed kthread works as IRQ safe
 
-A recent change to the netlink code: 6e237d099fac ("netlink: Relax attr
-validation for fixed length types") logs a warning when programs send
-messages with invalid attributes (e.g., wrong length for a u32).  Yafang
-reported this error message for tools/accounting/getdelays.c.
+The timer used by delayed kthread works are IRQ safe because the used
+kthread_delayed_work_timer_fn() is IRQ safe.
 
-send_cmd() is wrongly adding 1 to the attribute length.  As noted in
-include/uapi/linux/netlink.h nla_len should be NLA_HDRLEN + payload
-length, so drop the +1.
+It is properly marked when initialized by KTHREAD_DELAYED_WORK_INIT(). 
+But TIMER_IRQSAFE flag is missing when initialized by
+kthread_init_delayed_work().
 
-Link: http://lkml.kernel.org/r/20200327173111.63922-1-dsahern@kernel.org
-Fixes: 9e06d3f9f6b1 ("per task delay accounting taskstats interface: documentation fix")
-Signed-off-by: David Ahern <dsahern@kernel.org>
-Reported-by: Yafang Shao <laoar.shao@gmail.com>
-Tested-by: Yafang Shao <laoar.shao@gmail.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Shailabh Nagar <nagar@watson.ibm.com>
-Cc: <stable@vger.kernel.org>
+The missing flag might trigger invalid warning from del_timer_sync() when
+kthread_mod_delayed_work() is called with interrupts disabled.
+
+This patch is result of a discussion about using the API, see
+https://lkml.kernel.org/r/cfa886ad-e3b7-c0d2-3ff8-58d94170eab5@ti.com
+
+Link: http://lkml.kernel.org/r/20200217120709.1974-1-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Reported-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Tested-by: Grygorii Strashko <grygorii.strashko@ti.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/accounting/getdelays.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kthread.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/accounting/getdelays.c~getdelays-fix-netlink-attribute-length
-+++ a/tools/accounting/getdelays.c
-@@ -136,7 +136,7 @@ static int send_cmd(int sd, __u16 nlmsg_
- 	msg.g.version = 0x1;
- 	na = (struct nlattr *) GENLMSG_DATA(&msg);
- 	na->nla_type = nla_type;
--	na->nla_len = nla_len + 1 + NLA_HDRLEN;
-+	na->nla_len = nla_len + NLA_HDRLEN;
- 	memcpy(NLA_DATA(na), nla_data, nla_len);
- 	msg.n.nlmsg_len += NLMSG_ALIGN(na->nla_len);
+--- a/include/linux/kthread.h~kthread-mark-timer-used-by-delayed-kthread-works-as-irq-safe
++++ a/include/linux/kthread.h
+@@ -165,7 +165,8 @@ extern void __kthread_init_worker(struct
+ 	do {								\
+ 		kthread_init_work(&(dwork)->work, (fn));		\
+ 		timer_setup(&(dwork)->timer,				\
+-			     kthread_delayed_work_timer_fn, 0);		\
++			     kthread_delayed_work_timer_fn,		\
++			     TIMER_IRQSAFE);				\
+ 	} while (0)
  
+ int kthread_worker_fn(void *worker_ptr);
 _
 
-Patches currently in -mm which might be from dsahern@kernel.org are
+Patches currently in -mm which might be from pmladek@suse.com are
