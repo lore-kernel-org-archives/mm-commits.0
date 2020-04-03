@@ -1,64 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-gup-proc-vmstat-pin_user_pages-foll_pin-reporting.patch removed from -mm
- tree
-Date: Fri, 03 Apr 2020 13:36:45 -0700
-Message-ID: <20200403203645.m3tuh72k5%akpm@linux-foundation.org>
+ mm-gup_benchmark-support-pin_user_pages-and-related-calls.patch removed
+ from -mm tree
+Date: Fri, 03 Apr 2020 13:36:48 -0700
+Message-ID: <20200403203648.sQoKZKEw7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59476 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59520 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUgr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:36:47 -0400
+        id S1726368AbgDCUgv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:36:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, ira.weiny@intel.com, jack@suse.cz, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, shuah@kernel.org, vbabka@suse.cz, viro@zeniv.linux.org.uk, willy@infradead.org
 
 
 The patch titled
-     Subject: mm/gup: /proc/vmstat: pin_user_pages (FOLL_PIN) reporting
+     Subject: mm/gup_benchmark: support pin_user_pages() and related calls
 has been removed from the -mm tree.  Its filename was
-     mm-gup-proc-vmstat-pin_user_pages-foll_pin-reporting.patch
+     mm-gup_benchmark-support-pin_user_pages-and-related-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: /proc/vmstat: pin_user_pages (FOLL_PIN) reporting
+Subject: mm/gup_benchmark: support pin_user_pages() and related calls
 
-Now that pages are "DMA-pinned" via pin_user_page*(), and unpinned via
-unpin_user_pages*(), we need some visibility into whether all of this is
-working correctly.
+Up until now, gup_benchmark supported testing of the following kernel
+functions:
 
-Add two new fields to /proc/vmstat:
+* get_user_pages(): via the '-U' command line option
+* get_user_pages_longterm(): via the '-L' command line option
+* get_user_pages_fast(): as the default (no options required)
 
-    nr_foll_pin_acquired
-    nr_foll_pin_released
+Add test coverage for the new corresponding pin_*() functions:
 
-These are documented in Documentation/core-api/pin_user_pages.rst.  They
-represent the number of pages (since boot time) that have been pinned
-("nr_foll_pin_acquired") and unpinned ("nr_foll_pin_released"), via
-pin_user_pages*() and unpin_user_pages*().
+* pin_user_pages_fast(): via the '-a' command line option
+* pin_user_pages():      via the '-b' command line option
 
-In the absence of long-running DMA or RDMA operations that hold pages
-pinned, the above two fields will normally be equal to each other.
+Also, add an option for clarity: '-u' for what is now (still) the default
+choice: get_user_pages_fast().
 
-Also: update Documentation/core-api/pin_user_pages.rst, to remove an
-earlier (now confirmed untrue) claim about a performance problem with
-/proc/vmstat.
+Also, for the commands that set FOLL_PIN, verify that the pages really are
+dma-pinned, via the new is_dma_pinned() routine.  Those commands are:
 
-Also: update Documentation/core-api/pin_user_pages.rst to rename the new
-/proc/vmstat entries, to the names listed here.
+    PIN_FAST_BENCHMARK     : calls pin_user_pages_fast()
+    PIN_BENCHMARK          : calls pin_user_pages()
 
-Link: http://lkml.kernel.org/r/20200211001536.1027652-9-jhubbard@nvidia.com
+In between the calls to pin_*() and unpin_user_pages(), check each page:
+if page_maybe_dma_pinned() returns false, then WARN and return.
+
+Do this outside of the benchmark timestamps, so that it doesn't affect
+reported times.
+
+Link: http://lkml.kernel.org/r/20200211001536.1027652-10-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -74,148 +77,163 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |   33 ++++++++++++++++----
- include/linux/mmzone.h                    |    2 +
- mm/gup.c                                  |   13 +++++++
- mm/vmstat.c                               |    2 +
- 4 files changed, 45 insertions(+), 5 deletions(-)
+ mm/gup_benchmark.c                         |   71 +++++++++++++++++--
+ tools/testing/selftests/vm/gup_benchmark.c |   15 +++-
+ 2 files changed, 80 insertions(+), 6 deletions(-)
 
---- a/Documentation/core-api/pin_user_pages.rst~mm-gup-proc-vmstat-pin_user=
-_pages-foll_pin-reporting
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -208,12 +208,35 @@ has the following new calls to exercise
- You can monitor how many total dma-pinned pages have been acquired and rel=
-eased
- since the system was booted, via two new /proc/vmstat entries: ::
+--- a/mm/gup_benchmark.c~mm-gup_benchmark-support-pin_user_pages-and-relate=
+d-calls
++++ a/mm/gup_benchmark.c
+@@ -8,6 +8,8 @@
+ #define GUP_FAST_BENCHMARK	_IOWR('g', 1, struct gup_benchmark)
+ #define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
+ #define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
++#define PIN_FAST_BENCHMARK	_IOWR('g', 4, struct gup_benchmark)
++#define PIN_BENCHMARK		_IOWR('g', 5, struct gup_benchmark)
 =20
--    /proc/vmstat/nr_foll_pin_requested
--    /proc/vmstat/nr_foll_pin_requested
-+    /proc/vmstat/nr_foll_pin_acquired
-+    /proc/vmstat/nr_foll_pin_released
-=20
--Those are both going to show zero, unless CONFIG_DEBUG_VM is set. This is
--because there is a noticeable performance drop in unpin_user_page(), when =
-they
--are activated.
-+Under normal conditions, these two values will be equal unless there are a=
-ny
-+long-term [R]DMA pins in place, or during pin/unpin transitions.
-+
-+* nr_foll_pin_acquired: This is the number of logical pins that have been
-+  acquired since the system was powered on. For huge pages, the head page =
-is
-+  pinned once for each page (head page and each tail page) within the huge=
- page.
-+  This follows the same sort of behavior that get_user_pages() uses for hu=
-ge
-+  pages: the head page is refcounted once for each tail or head page in th=
-e huge
-+  page, when get_user_pages() is applied to a huge page.
-+
-+* nr_foll_pin_released: The number of logical pins that have been released=
- since
-+  the system was powered on. Note that pages are released (unpinned) on a
-+  PAGE_SIZE granularity, even if the original pin was applied to a huge pa=
-ge.
-+  Becaused of the pin count behavior described above in "nr_foll_pin_acqui=
-red",
-+  the accounting balances out, so that after doing this::
-+
-+    pin_user_pages(huge_page);
-+    for (each page in huge_page)
-+        unpin_user_page(page);
-+
-+...the following is expected::
-+
-+    nr_foll_pin_released =3D=3D nr_foll_pin_acquired
-+
-+(...unless it was already out of balance due to a long-term RDMA pin being=
- in
-+place.)
-=20
- References
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- a/include/linux/mmzone.h~mm-gup-proc-vmstat-pin_user_pages-foll_pin-rep=
-orting
-+++ a/include/linux/mmzone.h
-@@ -243,6 +243,8 @@ enum node_stat_item {
- 	NR_DIRTIED,		/* page dirtyings since bootup */
- 	NR_WRITTEN,		/* page writings since bootup */
- 	NR_KERNEL_MISC_RECLAIMABLE,	/* reclaimable non-slab kernel pages */
-+	NR_FOLL_PIN_ACQUIRED,	/* via: pin_user_page(), gup flag: FOLL_PIN */
-+	NR_FOLL_PIN_RELEASED,	/* pages returned via unpin_user_page() */
- 	NR_VM_NODE_STAT_ITEMS
+ struct gup_benchmark {
+ 	__u64 get_delta_usec;
+@@ -19,6 +21,48 @@ struct gup_benchmark {
+ 	__u64 expansion[10];	/* For future use */
  };
 =20
---- a/mm/gup.c~mm-gup-proc-vmstat-pin_user_pages-foll_pin-reporting
-+++ a/mm/gup.c
-@@ -86,6 +86,8 @@ static __maybe_unused struct page *try_g
- 	if (flags & FOLL_GET)
- 		return try_get_compound_head(page, refs);
- 	else if (flags & FOLL_PIN) {
-+		int orig_refs =3D refs;
++static void put_back_pages(unsigned int cmd, struct page **pages,
++			   unsigned long nr_pages)
++{
++	unsigned long i;
 +
- 		/*
- 		 * When pinning a compound page of order > 1 (which is what
- 		 * hpage_pincount_available() checks for), use an exact count to
-@@ -104,6 +106,9 @@ static __maybe_unused struct page *try_g
- 		if (hpage_pincount_available(page))
- 			hpage_pincount_add(page, refs);
-=20
-+		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_ACQUIRED,
-+				    orig_refs);
++	switch (cmd) {
++	case GUP_FAST_BENCHMARK:
++	case GUP_LONGTERM_BENCHMARK:
++	case GUP_BENCHMARK:
++		for (i =3D 0; i < nr_pages; i++)
++			put_page(pages[i]);
++		break;
 +
- 		return page;
- 	}
-=20
-@@ -158,6 +163,8 @@ bool __must_check try_grab_page(struct p
- 		 * once, so that the page really is pinned.
- 		 */
- 		page_ref_add(page, refs);
++	case PIN_FAST_BENCHMARK:
++	case PIN_BENCHMARK:
++		unpin_user_pages(pages, nr_pages);
++		break;
++	}
++}
 +
-+		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_ACQUIRED, 1);
- 	}
-=20
- 	return true;
-@@ -178,6 +185,7 @@ static bool __unpin_devmap_managed_user_
-=20
- 	count =3D page_ref_sub_return(page, refs);
-=20
-+	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
- 	/*
- 	 * devmap page refcounts are 1-based, rather than 0-based: if
- 	 * refcount is 1, then the page is free and the refcount is
-@@ -228,6 +236,8 @@ void unpin_user_page(struct page *page)
-=20
- 	if (page_ref_sub_and_test(page, refs))
- 		__put_page(page);
++static void verify_dma_pinned(unsigned int cmd, struct page **pages,
++			      unsigned long nr_pages)
++{
++	unsigned long i;
++	struct page *page;
 +
-+	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
- }
- EXPORT_SYMBOL(unpin_user_page);
-=20
-@@ -2014,6 +2024,9 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
- static void put_compound_head(struct page *page, int refs, unsigned int fl=
-ags)
++	switch (cmd) {
++	case PIN_FAST_BENCHMARK:
++	case PIN_BENCHMARK:
++		for (i =3D 0; i < nr_pages; i++) {
++			page =3D pages[i];
++			if (WARN(!page_maybe_dma_pinned(page),
++				 "pages[%lu] is NOT dma-pinned\n", i)) {
++
++				dump_page(page, "gup_benchmark failure");
++				break;
++			}
++		}
++		break;
++	}
++}
++
+ static int __gup_benchmark_ioctl(unsigned int cmd,
+ 		struct gup_benchmark *gup)
  {
- 	if (flags & FOLL_PIN) {
-+		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED,
-+				    refs);
-+
- 		if (hpage_pincount_available(page))
- 			hpage_pincount_sub(page, refs);
- 		else
---- a/mm/vmstat.c~mm-gup-proc-vmstat-pin_user_pages-foll_pin-reporting
-+++ a/mm/vmstat.c
-@@ -1168,6 +1168,8 @@ const char * const vmstat_text[] =3D {
- 	"nr_dirtied",
- 	"nr_written",
- 	"nr_kernel_misc_reclaimable",
-+	"nr_foll_pin_acquired",
-+	"nr_foll_pin_released",
+@@ -66,6 +110,14 @@ static int __gup_benchmark_ioctl(unsigne
+ 			nr =3D get_user_pages(addr, nr, gup->flags, pages + i,
+ 					    NULL);
+ 			break;
++		case PIN_FAST_BENCHMARK:
++			nr =3D pin_user_pages_fast(addr, nr, gup->flags,
++						 pages + i);
++			break;
++		case PIN_BENCHMARK:
++			nr =3D pin_user_pages(addr, nr, gup->flags, pages + i,
++					    NULL);
++			break;
+ 		default:
+ 			kvfree(pages);
+ 			ret =3D -EINVAL;
+@@ -78,15 +130,22 @@ static int __gup_benchmark_ioctl(unsigne
+ 	}
+ 	end_time =3D ktime_get();
 =20
- 	/* enum writeback_stat_item counters */
- 	"nr_dirty_threshold",
++	/* Shifting the meaning of nr_pages: now it is actual number pinned: */
++	nr_pages =3D i;
++
+ 	gup->get_delta_usec =3D ktime_us_delta(end_time, start_time);
+ 	gup->size =3D addr - gup->addr;
+=20
++	/*
++	 * Take an un-benchmark-timed moment to verify DMA pinned
++	 * state: print a warning if any non-dma-pinned pages are found:
++	 */
++	verify_dma_pinned(cmd, pages, nr_pages);
++
+ 	start_time =3D ktime_get();
+-	for (i =3D 0; i < nr_pages; i++) {
+-		if (!pages[i])
+-			break;
+-		put_page(pages[i]);
+-	}
++
++	put_back_pages(cmd, pages, nr_pages);
++
+ 	end_time =3D ktime_get();
+ 	gup->put_delta_usec =3D ktime_us_delta(end_time, start_time);
+=20
+@@ -105,6 +164,8 @@ static long gup_benchmark_ioctl(struct f
+ 	case GUP_FAST_BENCHMARK:
+ 	case GUP_LONGTERM_BENCHMARK:
+ 	case GUP_BENCHMARK:
++	case PIN_FAST_BENCHMARK:
++	case PIN_BENCHMARK:
+ 		break;
+ 	default:
+ 		return -EINVAL;
+--- a/tools/testing/selftests/vm/gup_benchmark.c~mm-gup_benchmark-support-p=
+in_user_pages-and-related-calls
++++ a/tools/testing/selftests/vm/gup_benchmark.c
+@@ -18,6 +18,10 @@
+ #define GUP_LONGTERM_BENCHMARK	_IOWR('g', 2, struct gup_benchmark)
+ #define GUP_BENCHMARK		_IOWR('g', 3, struct gup_benchmark)
+=20
++/* Similar to above, but use FOLL_PIN instead of FOLL_GET. */
++#define PIN_FAST_BENCHMARK	_IOWR('g', 4, struct gup_benchmark)
++#define PIN_BENCHMARK		_IOWR('g', 5, struct gup_benchmark)
++
+ /* Just the flags we need, copied from mm.h: */
+ #define FOLL_WRITE	0x01	/* check pte is writable */
+=20
+@@ -40,8 +44,14 @@ int main(int argc, char **argv)
+ 	char *file =3D "/dev/zero";
+ 	char *p;
+=20
+-	while ((opt =3D getopt(argc, argv, "m:r:n:f:tTLUwSH")) !=3D -1) {
++	while ((opt =3D getopt(argc, argv, "m:r:n:f:abtTLUuwSH")) !=3D -1) {
+ 		switch (opt) {
++		case 'a':
++			cmd =3D PIN_FAST_BENCHMARK;
++			break;
++		case 'b':
++			cmd =3D PIN_BENCHMARK;
++			break;
+ 		case 'm':
+ 			size =3D atoi(optarg) * MB;
+ 			break;
+@@ -63,6 +73,9 @@ int main(int argc, char **argv)
+ 		case 'U':
+ 			cmd =3D GUP_BENCHMARK;
+ 			break;
++		case 'u':
++			cmd =3D GUP_FAST_BENCHMARK;
++			break;
+ 		case 'w':
+ 			write =3D 1;
+ 			break;
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
