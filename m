@@ -1,152 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-userfaultfd-honor-fault_flag_killable-in-fault-path.patch removed from
- -mm tree
-Date: Fri, 03 Apr 2020 13:39:03 -0700
-Message-ID: <20200403203903.ybfYGzm8x%akpm@linux-foundation.org>
+Subject: [merged] mmap-remove-inline-of-vm_unmapped_area.patch
+ removed from -mm tree
+Date: Fri, 03 Apr 2020 13:39:10 -0700
+Message-ID: <20200403203910.RDBKW0S_k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35006 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35100 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727909AbgDCUjG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:39:06 -0400
+        id S1727909AbgDCUjL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:39:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@cons.org, david@redhat.com, dgilbert@redhat.com, dplotnikov@virtuozzo.com, gokhale2@llnl.gov, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, kirill@shutemov.name, mcfadden8@llnl.gov, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, peterx@redhat.com, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org, willy@infradead.org, xemul@openvz.org
+To: bp@suse.de, jaewon31.kim@samsung.com, mm-commits@vger.kernel.org, vbabka@suse.cz, walken@google.com, willy@infradead.org
 
 
 The patch titled
-     Subject: mm/userfaultfd: honor FAULT_FLAG_KILLABLE in fault path
+     Subject: mmap: remove inline of vm_unmapped_area
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-honor-fault_flag_killable-in-fault-path.patch
+     mmap-remove-inline-of-vm_unmapped_area.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/userfaultfd: honor FAULT_FLAG_KILLABLE in fault path
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: mmap: remove inline of vm_unmapped_area
 
-Userfaultfd fault path was by default killable even if the caller does not
-have FAULT_FLAG_KILLABLE.  That makes sense before in that when with gup
-we don't have FAULT_FLAG_KILLABLE properly set before.  Now after previous
-patch we've got FAULT_FLAG_KILLABLE applied even for gup code so it should
-also make sense to let userfaultfd to honor the FAULT_FLAG_KILLABLE.
+Patch series "mm: mmap: add mmap trace point", v3.
 
-Because we're unconditionally setting FAULT_FLAG_KILLABLE in gup code
-right now, this patch should have no functional change.  It also cleaned
-the code a little bit by introducing some helpers.
+Create mmap trace file and add trace point of vm_unmapped_area().
 
-Link: http://lkml.kernel.org/r/20200220160300.9941-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Tested-by: Brian Geffon <bgeffon@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Bobby Powers <bobbypowers@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Denis Plotnikov <dplotnikov@virtuozzo.com>
-Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Martin Cracauer <cracauer@cons.org>
-Cc: Marty McFadden <mcfadden8@llnl.gov>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Maya Gokhale <gokhale2@llnl.gov>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+
+This patch (of 2):
+
+In preparation for next patch remove inline of vm_unmapped_area and move
+code to mmap.c.  There is no logical change.
+
+Also remove unmapped_area[_topdown] out of mm.h, there is no code
+calling to them.
+
+Link: http://lkml.kernel.org/r/20200320055823.27089-2-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   36 ++++++++++++++++++++++++++++--------
- 1 file changed, 28 insertions(+), 8 deletions(-)
+ include/linux/mm.h |   21 +--------------------
+ mm/mmap.c          |   20 ++++++++++++++++++--
+ 2 files changed, 19 insertions(+), 22 deletions(-)
 
---- a/fs/userfaultfd.c~mm-userfaultfd-honor-fault_flag_killable-in-fault-path
-+++ a/fs/userfaultfd.c
-@@ -334,6 +334,30 @@ out:
- 	return ret;
+--- a/include/linux/mm.h~mmap-remove-inline-of-vm_unmapped_area
++++ a/include/linux/mm.h
+@@ -2530,26 +2530,7 @@ struct vm_unmapped_area_info {
+ 	unsigned long align_offset;
+ };
+ 
+-extern unsigned long unmapped_area(struct vm_unmapped_area_info *info);
+-extern unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info);
+-
+-/*
+- * Search for an unmapped address range.
+- *
+- * We are looking for a range that:
+- * - does not intersect with any VMA;
+- * - is contained within the [low_limit, high_limit) interval;
+- * - is at least the desired size.
+- * - satisfies (begin_addr & align_mask) == (align_offset & align_mask)
+- */
+-static inline unsigned long
+-vm_unmapped_area(struct vm_unmapped_area_info *info)
+-{
+-	if (info->flags & VM_UNMAPPED_AREA_TOPDOWN)
+-		return unmapped_area_topdown(info);
+-	else
+-		return unmapped_area(info);
+-}
++extern unsigned long vm_unmapped_area(struct vm_unmapped_area_info *info);
+ 
+ /* truncate.c */
+ extern void truncate_inode_pages(struct address_space *, loff_t);
+--- a/mm/mmap.c~mmap-remove-inline-of-vm_unmapped_area
++++ a/mm/mmap.c
+@@ -1848,7 +1848,7 @@ unacct_error:
+ 	return error;
  }
  
-+/* Should pair with userfaultfd_signal_pending() */
-+static inline long userfaultfd_get_blocking_state(unsigned int flags)
-+{
-+	if (flags & FAULT_FLAG_INTERRUPTIBLE)
-+		return TASK_INTERRUPTIBLE;
-+
-+	if (flags & FAULT_FLAG_KILLABLE)
-+		return TASK_KILLABLE;
-+
-+	return TASK_UNINTERRUPTIBLE;
-+}
-+
-+/* Should pair with userfaultfd_get_blocking_state() */
-+static inline bool userfaultfd_signal_pending(unsigned int flags)
-+{
-+	if (flags & FAULT_FLAG_INTERRUPTIBLE)
-+		return signal_pending(current);
-+
-+	if (flags & FAULT_FLAG_KILLABLE)
-+		return fatal_signal_pending(current);
-+
-+	return false;
-+}
-+
- /*
-  * The locking rules involved in returning VM_FAULT_RETRY depending on
-  * FAULT_FLAG_ALLOW_RETRY, FAULT_FLAG_RETRY_NOWAIT and
-@@ -355,7 +379,7 @@ vm_fault_t handle_userfault(struct vm_fa
- 	struct userfaultfd_ctx *ctx;
- 	struct userfaultfd_wait_queue uwq;
- 	vm_fault_t ret = VM_FAULT_SIGBUS;
--	bool must_wait, return_to_userland;
-+	bool must_wait;
- 	long blocking_state;
- 
+-unsigned long unmapped_area(struct vm_unmapped_area_info *info)
++static unsigned long unmapped_area(struct vm_unmapped_area_info *info)
+ {
  	/*
-@@ -462,9 +486,7 @@ vm_fault_t handle_userfault(struct vm_fa
- 	uwq.ctx = ctx;
- 	uwq.waken = false;
+ 	 * We implement the search by looking for an rbtree node that
+@@ -1951,7 +1951,7 @@ found:
+ 	return gap_start;
+ }
  
--	return_to_userland = vmf->flags & FAULT_FLAG_INTERRUPTIBLE;
--	blocking_state = return_to_userland ? TASK_INTERRUPTIBLE :
--			 TASK_KILLABLE;
-+	blocking_state = userfaultfd_get_blocking_state(vmf->flags);
+-unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
++static unsigned long unmapped_area_topdown(struct vm_unmapped_area_info *info)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+@@ -2050,6 +2050,22 @@ found_highest:
+ 	return gap_end;
+ }
  
- 	spin_lock_irq(&ctx->fault_pending_wqh.lock);
- 	/*
-@@ -490,8 +512,7 @@ vm_fault_t handle_userfault(struct vm_fa
- 	up_read(&mm->mmap_sem);
++/*
++ * Search for an unmapped address range.
++ *
++ * We are looking for a range that:
++ * - does not intersect with any VMA;
++ * - is contained within the [low_limit, high_limit) interval;
++ * - is at least the desired size.
++ * - satisfies (begin_addr & align_mask) == (align_offset & align_mask)
++ */
++unsigned long vm_unmapped_area(struct vm_unmapped_area_info *info)
++{
++	if (info->flags & VM_UNMAPPED_AREA_TOPDOWN)
++		return unmapped_area_topdown(info);
++	else
++		return unmapped_area(info);
++}
  
- 	if (likely(must_wait && !READ_ONCE(ctx->released) &&
--		   (return_to_userland ? !signal_pending(current) :
--		    !fatal_signal_pending(current)))) {
-+		   !userfaultfd_signal_pending(vmf->flags))) {
- 		wake_up_poll(&ctx->fd_wqh, EPOLLIN);
- 		schedule();
- 		ret |= VM_FAULT_MAJOR;
-@@ -513,8 +534,7 @@ vm_fault_t handle_userfault(struct vm_fa
- 			set_current_state(blocking_state);
- 			if (READ_ONCE(uwq.waken) ||
- 			    READ_ONCE(ctx->released) ||
--			    (return_to_userland ? signal_pending(current) :
--			     fatal_signal_pending(current)))
-+			    userfaultfd_signal_pending(vmf->flags))
- 				break;
- 			schedule();
- 		}
+ #ifndef arch_get_mmap_end
+ #define arch_get_mmap_end(addr)	(TASK_SIZE)
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
-
-mm-merge-parameters-for-change_protection.patch
-userfaultfd-wp-apply-_page_uffd_wp-bit.patch
-userfaultfd-wp-drop-_page_uffd_wp-properly-when-fork.patch
-userfaultfd-wp-add-pmd_swp_uffd_wp-helpers.patch
-userfaultfd-wp-support-swap-and-page-migration.patch
-khugepaged-skip-collapse-if-uffd-wp-detected.patch
-userfaultfd-wp-dont-wake-up-when-doing-write-protect.patch
-userfaultfd-wp-declare-_uffdio_writeprotect-conditionally.patch
-userfaultfd-selftests-refactor-statistics.patch
-userfaultfd-selftests-add-write-protect-test.patch
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
