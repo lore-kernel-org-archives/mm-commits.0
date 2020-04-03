@@ -1,115 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-css_tryget_online-cleanups.patch removed
- from -mm tree
-Date: Fri, 03 Apr 2020 13:37:48 -0700
-Message-ID: <20200403203748.XxdbuXTiA%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-make-mem_cgroup_id_get_many-__maybe_unused.patch removed from -mm tree
+Date: Fri, 03 Apr 2020 13:37:51 -0700
+Message-ID: <20200403203751.wkSZo9iue%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60900 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33148 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727879AbgDCUht (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:37:49 -0400
+        id S1727879AbgDCUhw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:37:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com
+To: chris@chrisdown.name, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, vincenzo.frascino@arm.com
 
 
 The patch titled
-     Subject: memcg: css_tryget_online cleanups
+     Subject: mm/memcontrol.c: make mem_cgroup_id_get_many() __maybe_unused
 has been removed from the -mm tree.  Its filename was
-     memcg-css_tryget_online-cleanups.patch
+     mm-make-mem_cgroup_id_get_many-__maybe_unused.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: css_tryget_online cleanups
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: mm/memcontrol.c: make mem_cgroup_id_get_many() __maybe_unused
 
-Currently multiple locations in memcg code, css_tryget_online() is being
-used. However it doesn't matter whether the cgroup is online for the
-callers. Online used to matter when we had reparenting on offlining and
-we needed a way to prevent new ones from showing up.
+mem_cgroup_id_get_many() is currently used only when MMU or MEMCG_SWAP
+configuration options are enabled.  Having them disabled triggers the
+following warning at compile time:
 
-The failure case for couple of these css_tryget_online usage is to
-fallback to root_mem_cgroup which kind of make bypassing the memcg
-limits possible for some workloads. For example creating an inotify
-group in a subcontainer and then deleting that container after moving the
-process to a different container will make all the event objects
-allocated for that group to the root_mem_cgroup. So, using
-css_tryget_online() is dangerous for such cases.
+linux/mm/memcontrol.c:4797:13: warning: `mem_cgroup_id_get_many' defined
+but not used [-Wunused-function]
+ static void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned
+ int n)
 
-Two locations still use the online version. The swapin of offlined
-memcg's pages and the memcg kmem cache creation. The kmem cache indeed
-needs the online version as the kernel does the reparenting of memcg
-kmem caches. For the swapin case, it has been left for later as the
-fallback is not really that concerning.
+Make mem_cgroup_id_get_many() __maybe_unused to address the issue.
 
-With swap accounting enabled, if the memcg of the swapped out page is
-not online then the memcg extracted from the given 'mm' will be charged
-and if 'mm' is NULL then root memcg will be charged.  However I could
-not find a code path where the given 'mm' will be NULL for swap-in
-case.
-
-Link: http://lkml.kernel.org/r/20200302203109.179417-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/20200305164354.48147-1-vincenzo.frascino@arm.com
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Chris Down <chris@chrisdown.name>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~memcg-css_tryget_online-cleanups
+--- a/mm/memcontrol.c~mm-make-mem_cgroup_id_get_many-__maybe_unused
 +++ a/mm/memcontrol.c
-@@ -656,7 +656,7 @@ retry:
- 	 */
- 	__mem_cgroup_remove_exceeded(mz, mctz);
- 	if (!soft_limit_excess(mz->memcg) ||
--	    !css_tryget_online(&mz->memcg->css))
-+	    !css_tryget(&mz->memcg->css))
- 		goto retry;
- done:
- 	return mz;
-@@ -972,7 +972,8 @@ struct mem_cgroup *get_mem_cgroup_from_p
- 		return NULL;
+@@ -4863,7 +4863,8 @@ static void mem_cgroup_id_remove(struct
+ 	}
+ }
  
- 	rcu_read_lock();
--	if (!memcg || !css_tryget_online(&memcg->css))
-+	/* Page should not get uncharged and freed memcg under us. */
-+	if (!memcg || WARN_ON_ONCE(!css_tryget(&memcg->css)))
- 		memcg = root_mem_cgroup;
- 	rcu_read_unlock();
- 	return memcg;
-@@ -985,10 +986,13 @@ EXPORT_SYMBOL(get_mem_cgroup_from_page);
- static __always_inline struct mem_cgroup *get_mem_cgroup_from_current(void)
+-static void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned int n)
++static void __maybe_unused mem_cgroup_id_get_many(struct mem_cgroup *memcg,
++						  unsigned int n)
  {
- 	if (unlikely(current->active_memcg)) {
--		struct mem_cgroup *memcg = root_mem_cgroup;
-+		struct mem_cgroup *memcg;
- 
- 		rcu_read_lock();
--		if (css_tryget_online(&current->active_memcg->css))
-+		/* current->active_memcg must hold a ref. */
-+		if (WARN_ON_ONCE(!css_tryget(&current->active_memcg->css)))
-+			memcg = root_mem_cgroup;
-+		else
- 			memcg = current->active_memcg;
- 		rcu_read_unlock();
- 		return memcg;
-@@ -6789,7 +6793,7 @@ void mem_cgroup_sk_alloc(struct sock *sk
- 		goto out;
- 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && !memcg->tcpmem_active)
- 		goto out;
--	if (css_tryget_online(&memcg->css))
-+	if (css_tryget(&memcg->css))
- 		sk->sk_memcg = memcg;
- out:
- 	rcu_read_unlock();
+ 	refcount_add(n, &memcg->id.ref);
+ }
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
-
-memcg-optimize-memorynuma_stat-like-memorystat.patch
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
