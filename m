@@ -1,85 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-add-test-for-invalid-size-in-memmove.patch
+Subject: [merged]
+ mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path.patch
  removed from -mm tree
-Date: Fri, 03 Apr 2020 13:39:31 -0700
-Message-ID: <20200403203931.slrZTEecb%akpm@linux-foundation.org>
+Date: Fri, 03 Apr 2020 13:39:35 -0700
+Message-ID: <20200403203935.RYUEhR4gu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35394 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35504 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727809AbgDCUjc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:39:32 -0400
+        id S1727829AbgDCUjg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:39:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, lkp@intel.com, mm-commits@vger.kernel.org, walter-zh.wu@mediatek.com
+To: mateusznosek0@gmail.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: kasan: add test for invalid size in memmove
+     Subject: mm, pagealloc: micro-optimisation: save two branches on hot page allocation path
 has been removed from the -mm tree.  Its filename was
-     kasan-add-test-for-invalid-size-in-memmove.patch
+     mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Walter Wu <walter-zh.wu@mediatek.com>
-Subject: kasan: add test for invalid size in memmove
+From: Mateusz Nosek <mateusznosek0@gmail.com>
+Subject: mm, pagealloc: micro-optimisation: save two branches on hot page allocation path
 
-Test negative size in memmove in order to verify whether it correctly get
-KASAN report.
+This patch makes ALLOC_KSWAPD equal to __GFP_KSWAPD_RECLAIM (cast to int).
 
-Casting negative numbers to size_t would indeed turn up as a large size_t,
-so it will have out-of-bounds bug and be detected by KASAN.
+Thanks to that code like:
+    if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+	    alloc_flags |= ALLOC_KSWAPD;
+can be changed to:
+    alloc_flags |= (__force int) (gfp_mask &__GFP_KSWAPD_RECLAIM);
+Thanks to this one branch less is generated in the assembly.
 
-[walter-zh.wu@mediatek.com: fix -Wstringop-overflow warning]
-  Link: http://lkml.kernel.org/r/20200311134244.13016-1-walter-zh.wu@mediatek.com
-Link: http://lkml.kernel.org/r/20191112065313.7060-1-walter-zh.wu@mediatek.com
-Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: kernel test robot <lkp@intel.com>
+In case of ALLOC_KSWAPD flag two branches are saved, first one in code
+that always executes in the beginning of page allocation and the second
+one in loop in page allocator slowpath.
+
+Link: http://lkml.kernel.org/r/20200304162118.14784-1-mateusznosek0@gmail.com
+Signed-off-by: Mateusz Nosek <mateusznosek0@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ mm/internal.h   |    2 +-
+ mm/page_alloc.c |   22 ++++++++++++++--------
+ 2 files changed, 15 insertions(+), 9 deletions(-)
 
---- a/lib/test_kasan.c~kasan-add-test-for-invalid-size-in-memmove
-+++ a/lib/test_kasan.c
-@@ -285,6 +285,24 @@ static noinline void __init kmalloc_oob_
- 	kfree(ptr);
- }
+--- a/mm/internal.h~mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path
++++ a/mm/internal.h
+@@ -555,7 +555,7 @@ unsigned long reclaim_clean_pages_from_l
+ #else
+ #define ALLOC_NOFRAGMENT	  0x0
+ #endif
+-#define ALLOC_KSWAPD		0x200 /* allow waking of kswapd */
++#define ALLOC_KSWAPD		0x800 /* allow waking of kswapd, __GFP_KSWAPD_RECLAIM set */
  
-+static noinline void __init kmalloc_memmove_invalid_size(void)
-+{
-+	char *ptr;
-+	size_t size = 64;
-+	volatile size_t invalid_size = -2;
-+
-+	pr_info("invalid size in memmove\n");
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	if (!ptr) {
-+		pr_err("Allocation failed\n");
-+		return;
-+	}
-+
-+	memset((char *)ptr, 0, 64);
-+	memmove((char *)ptr, (char *)ptr + 4, invalid_size);
-+	kfree(ptr);
-+}
-+
- static noinline void __init kmalloc_uaf(void)
+ enum ttu_flags;
+ struct tlbflush_unmap_batch;
+--- a/mm/page_alloc.c~mm-micro-optimisation-save-two-branches-on-hot-page-allocation-path
++++ a/mm/page_alloc.c
+@@ -3536,10 +3536,13 @@ static bool zone_allows_reclaim(struct z
+ static inline unsigned int
+ alloc_flags_nofragment(struct zone *zone, gfp_t gfp_mask)
  {
- 	char *ptr;
-@@ -799,6 +817,7 @@ static int __init kmalloc_tests_init(voi
- 	kmalloc_oob_memset_4();
- 	kmalloc_oob_memset_8();
- 	kmalloc_oob_memset_16();
-+	kmalloc_memmove_invalid_size();
- 	kmalloc_uaf();
- 	kmalloc_uaf_memset();
- 	kmalloc_uaf2();
-_
-
-Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
+-	unsigned int alloc_flags = 0;
++	unsigned int alloc_flags;
+ 
+-	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+-		alloc_flags |= ALLOC_KSWAPD;
++	/*
++	 * __GFP_KSWAPD_RECLAIM is assumed to be the same as ALLOC_KSWAPD
++	 * to save a branch.
++	 */
++	alloc_flags = (__force int) (gfp_mask & __GFP_KSWAPD_RECLAIM);
+ 
+ #ifdef CONFIG_ZONE_DMA32
+ 	if (!zone)
+@@ -4175,8 +4178,13 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ {
+ 	unsigned int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
+ 
+-	/* __GFP_HIGH is assumed to be the same as ALLOC_HIGH to save a branch. */
++	/*
++	 * __GFP_HIGH is assumed to be the same as ALLOC_HIGH
++	 * and __GFP_KSWAPD_RECLAIM is assumed to be the same as ALLOC_KSWAPD
++	 * to save two branches.
++	 */
+ 	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_HIGH);
++	BUILD_BUG_ON(__GFP_KSWAPD_RECLAIM != (__force gfp_t) ALLOC_KSWAPD);
+ 
+ 	/*
+ 	 * The caller may dip into page reserves a bit more if the caller
+@@ -4184,7 +4192,8 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	 * policy or is asking for __GFP_HIGH memory.  GFP_ATOMIC requests will
+ 	 * set both ALLOC_HARDER (__GFP_ATOMIC) and ALLOC_HIGH (__GFP_HIGH).
+ 	 */
+-	alloc_flags |= (__force int) (gfp_mask & __GFP_HIGH);
++	alloc_flags |= (__force int)
++		(gfp_mask & (__GFP_HIGH | __GFP_KSWAPD_RECLAIM));
+ 
+ 	if (gfp_mask & __GFP_ATOMIC) {
+ 		/*
+@@ -4201,9 +4210,6 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	} else if (unlikely(rt_task(current)) && !in_interrupt())
+ 		alloc_flags |= ALLOC_HARDER;
+ 
+-	if (gfp_mask & __GFP_KSWAPD_RECLAIM)
+-		alloc_flags |= ALLOC_KSWAPD;
