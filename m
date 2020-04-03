@@ -1,51 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-remove-dlm_lock_is_remote.patch removed
- from -mm tree
-Date: Fri, 03 Apr 2020 13:35:08 -0700
-Message-ID: <20200403203508.T2Fp4HGVd%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-there-is-no-need-to-log-twice-in-several-functions.patch removed from
+ -mm tree
+Date: Fri, 03 Apr 2020 13:35:11 -0700
+Message-ID: <20200403203511.0lEnqL-Ap%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57766 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57842 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUfK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:35:10 -0400
+        id S1726368AbgDCUfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:35:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.shi@linux.alibaba.com, gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+To: gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, wangyan122@huawei.com
 
 
 The patch titled
-     Subject: ocfs2: remove dlm_lock_is_remote
+     Subject: ocfs2: there is no need to log twice in several functions
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-dlm_lock_is_remote.patch
+     ocfs2-there-is-no-need-to-log-twice-in-several-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: ocfs2: remove dlm_lock_is_remote
+From: wangyan <wangyan122@huawei.com>
+Subject: ocfs2: there is no need to log twice in several functions
 
-This macro has been unused since it was introduced.
+There is no need to log twice in several functions.
 
-Link: http://lkml.kernel.org/r/1579578203-254451-1-git-send-email-alex.shi@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/77eec86a-f634-5b98-4f7d-0cd15185a37b@huawei.com
+Signed-off-by: Yan Wang <wangyan122@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
 Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmthread.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ocfs2/alloc.c    |    1 -
+ fs/ocfs2/suballoc.c |    5 -----
+ 2 files changed, 6 deletions(-)
 
---- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-remove-dlm_lock_is_remote
-+++ a/fs/ocfs2/dlm/dlmthread.c
-@@ -39,8 +39,6 @@
- static int dlm_thread(void *data);
- static void dlm_flush_asts(struct dlm_ctxt *dlm);
+--- a/fs/ocfs2/alloc.c~ocfs2-there-is-no-need-to-log-twice-in-several-functions
++++ a/fs/ocfs2/alloc.c
+@@ -1060,7 +1060,6 @@ bail:
+ 			brelse(bhs[i]);
+ 			bhs[i] = NULL;
+ 		}
+-		mlog_errno(status);
+ 	}
+ 	return status;
+ }
+--- a/fs/ocfs2/suballoc.c~ocfs2-there-is-no-need-to-log-twice-in-several-functions
++++ a/fs/ocfs2/suballoc.c
+@@ -2509,9 +2509,6 @@ static int _ocfs2_free_suballoc_bits(han
  
--#define dlm_lock_is_remote(dlm, lock)     ((lock)->ml.node != (dlm)->node_num)
+ bail:
+ 	brelse(group_bh);
