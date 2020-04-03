@@ -1,129 +1,46 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-gup-split-get_user_pages_remote-into-two-routines.patch removed from -mm
+ mm-gup-pass-a-flags-arg-to-__gup_device_-functions.patch removed from -mm
  tree
-Date: Fri, 03 Apr 2020 13:36:25 -0700
-Message-ID: <20200403203625.ZdX5x1lfh%akpm@linux-foundation.org>
+Date: Fri, 03 Apr 2020 13:36:28 -0700
+Message-ID: <20200403203628.u92MpqNKG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59148 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59210 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUg1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:36:27 -0400
+        id S1726368AbgDCUg3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:36:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, ira.weiny@intel.com, jack@suse.cz, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, shuah@kernel.org, vbabka@suse.cz, viro@zeniv.linux.org.uk, willy@infradead.org
 
 
 The patch titled
-     Subject: mm/gup: split get_user_pages_remote() into two routines
+     Subject: mm/gup: pass a flags arg to __gup_device_* functions
 has been removed from the -mm tree.  Its filename was
-     mm-gup-split-get_user_pages_remote-into-two-routines.patch
+     mm-gup-pass-a-flags-arg-to-__gup_device_-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: split get_user_pages_remote() into two routines
+Subject: mm/gup: pass a flags arg to __gup_device_* functions
 
-Patch series "mm/gup: track FOLL_PIN pages", v6.
+A subsequent patch requires access to gup flags, so pass the flags
+argument through to the __gup_device_* functions.
 
-This activates tracking of FOLL_PIN pages.  This is in support of fixing
-the get_user_pages()+DMA problem described in [1]-[4].
+Also placate checkpatch.pl by shortening a nearby line.
 
-FOLL_PIN support is now in the main linux tree.  However, the patch to use
-FOLL_PIN to track pages was *not* submitted, because Leon saw an RDMA test
-suite failure that involved (I think) page refcount overflows when huge
-pages were used.
-
-This patch definitively solves that kind of overflow problem, by adding an
-exact pincount, for compound pages (of order > 1), in the 3rd struct page
-of a compound page.  If available, that form of pincounting is used,
-instead of the GUP_PIN_COUNTING_BIAS approach.  Thanks again to Jan Kara
-for that idea.
-
-Other interesting changes:
-
-* dump_page(): added one, or two new things to report for compound
-  pages: head refcount (for all compound pages), and map_pincount (for
-  compound pages of order > 1).
-
-* Documentation/core-api/pin_user_pages.rst: removed the "TODO" for the
-  huge page refcount upper limit problems, and added notes about how it
-  works now.  Also added a note about the dump_page() enhancements.
-
-* Added some comments in gup.c and mm.h, to explain that there are two
-  ways to count pinned pages: exact (for compound pages of order > 1) and
-  fuzzy (GUP_PIN_COUNTING_BIAS: for all other pages).
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-General notes about the tracking patch:
-
-This is a prerequisite to solving the problem of proper interactions
-between file-backed pages, and [R]DMA activities, as discussed in [1],
-[2], [3], [4] and in a remarkable number of email threads since about
-2017.  :)
-
-In contrast to earlier approaches, the page tracking can be incrementally
-applied to the kernel call sites that, until now, have been simply calling
-get_user_pages() ("gup").  In other words, opt-in by changing from this:
-
-    get_user_pages() (sets FOLL_GET)
-    put_page()
-
-to this:
-    pin_user_pages() (sets FOLL_PIN)
-    unpin_user_page()
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Future steps:
-
-* Convert more subsystems from get_user_pages() to pin_user_pages().
-  The first probably needs to be bio/biovecs, because any filesystem
-  testing is too difficult without those in place.
-
-* Change VFS and filesystems to respond appropriately when encountering
-  dma-pinned pages.
-
-* Work with Ira and others to connect this all up with file system
-  leases.
-
-[1] Some slow progress on get_user_pages() (Apr 2, 2019):
-    https://lwn.net/Articles/784574/
-
-[2] DMA and get_user_pages() (LPC: Dec 12, 2018):
-    https://lwn.net/Articles/774411/
-
-[3] The trouble with get_user_pages() (Apr 30, 2018):
-    https://lwn.net/Articles/753027/
-
-[4] LWN kernel index: get_user_pages()
-    https://lwn.net/Kernel/Index/#Memory_management-get_user_pages
-
-
-This patch (of 12):
-
-An upcoming patch requires reusing the implementation of
-get_user_pages_remote().  Split up get_user_pages_remote() into an outer
-routine that checks flags, and an implementation routine that will be
-reused.  This makes subsequent changes much easier to understand.
-
-There should be no change in behavior due to this patch.
-
-Link: http://lkml.kernel.org/r/20200211001536.1027652-2-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200211001536.1027652-3-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Reviewed-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -138,76 +55,111 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   56 +++++++++++++++++++++++++++++++----------------------
- 1 file changed, 33 insertions(+), 23 deletions(-)
+ mm/gup.c |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
---- a/mm/gup.c~mm-gup-split-get_user_pages_remote-into-two-routines
+--- a/mm/gup.c~mm-gup-pass-a-flags-arg-to-__gup_device_-functions
 +++ a/mm/gup.c
-@@ -1557,6 +1557,37 @@ static __always_inline long __gup_longte
+@@ -1963,7 +1963,8 @@ static int gup_pte_range(pmd_t pmd, unsi
+=20
+ #if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGE=
+PAGE)
+ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+-		unsigned long end, struct page **pages, int *nr)
++			     unsigned long end, unsigned int flags,
++			     struct page **pages, int *nr)
+ {
+ 	int nr_start =3D *nr;
+ 	struct dev_pagemap *pgmap =3D NULL;
+@@ -1989,13 +1990,14 @@ static int __gup_device_huge(unsigned lo
  }
- #endif /* CONFIG_FS_DAX || CONFIG_CMA */
 =20
-+#ifdef CONFIG_MMU
-+static long __get_user_pages_remote(struct task_struct *tsk,
-+				    struct mm_struct *mm,
-+				    unsigned long start, unsigned long nr_pages,
-+				    unsigned int gup_flags, struct page **pages,
-+				    struct vm_area_struct **vmas, int *locked)
-+{
-+	/*
-+	 * Parts of FOLL_LONGTERM behavior are incompatible with
-+	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
-+	 * vmas. However, this only comes up if locked is set, and there are
-+	 * callers that do request FOLL_LONGTERM, but do not set locked. So,
-+	 * allow what we can.
-+	 */
-+	if (gup_flags & FOLL_LONGTERM) {
-+		if (WARN_ON_ONCE(locked))
-+			return -EINVAL;
-+		/*
-+		 * This will check the vmas (even if our vmas arg is NULL)
-+		 * and return -ENOTSUPP if DAX isn't allowed in this case:
-+		 */
-+		return __gup_longterm_locked(tsk, mm, start, nr_pages, pages,
-+					     vmas, gup_flags | FOLL_TOUCH |
-+					     FOLL_REMOTE);
-+	}
-+
-+	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
-+				       locked,
-+				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
-+}
-+
- /*
-  * get_user_pages_remote() - pin user pages in memory
-  * @tsk:	the task_struct to use for page fault accounting, or
-@@ -1619,7 +1650,6 @@ static __always_inline long __gup_longte
-  * should use get_user_pages because it cannot pass
-  * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
-  */
--#ifdef CONFIG_MMU
- long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
- 		unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
-@@ -1632,28 +1662,8 @@ long get_user_pages_remote(struct task_s
- 	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
- 		return -EINVAL;
+ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long ad=
+dr,
+-		unsigned long end, struct page **pages, int *nr)
++				 unsigned long end, unsigned int flags,
++				 struct page **pages, int *nr)
+ {
+ 	unsigned long fault_pfn;
+ 	int nr_start =3D *nr;
 =20
--	/*
--	 * Parts of FOLL_LONGTERM behavior are incompatible with
--	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
--	 * vmas. However, this only comes up if locked is set, and there are
--	 * callers that do request FOLL_LONGTERM, but do not set locked. So,
--	 * allow what we can.
--	 */
--	if (gup_flags & FOLL_LONGTERM) {
--		if (WARN_ON_ONCE(locked))
--			return -EINVAL;
--		/*
--		 * This will check the vmas (even if our vmas arg is NULL)
--		 * and return -ENOTSUPP if DAX isn't allowed in this case:
--		 */
--		return __gup_longterm_locked(tsk, mm, start, nr_pages, pages,
--					     vmas, gup_flags | FOLL_TOUCH |
--					     FOLL_REMOTE);
--	}
+ 	fault_pfn =3D pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+-	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
++	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
+ 		return 0;
+=20
+ 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
+@@ -2006,13 +2008,14 @@ static int __gup_device_huge_pmd(pmd_t o
+ }
+=20
+ static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long ad=
+dr,
+-		unsigned long end, struct page **pages, int *nr)
++				 unsigned long end, unsigned int flags,
++				 struct page **pages, int *nr)
+ {
+ 	unsigned long fault_pfn;
+ 	int nr_start =3D *nr;
+=20
+ 	fault_pfn =3D pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+-	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
++	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
+ 		return 0;
+=20
+ 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
+@@ -2023,14 +2026,16 @@ static int __gup_device_huge_pud(pud_t o
+ }
+ #else
+ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long ad=
+dr,
+-		unsigned long end, struct page **pages, int *nr)
++				 unsigned long end, unsigned int flags,
++				 struct page **pages, int *nr)
+ {
+ 	BUILD_BUG();
+ 	return 0;
+ }
+=20
+ static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long add=
+r,
+-		unsigned long end, struct page **pages, int *nr)
++				 unsigned long end, unsigned int flags,
++				 struct page **pages, int *nr)
+ {
+ 	BUILD_BUG();
+ 	return 0;
+@@ -2146,7 +2151,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ 	if (pmd_devmap(orig)) {
+ 		if (unlikely(flags & FOLL_LONGTERM))
+ 			return 0;
+-		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
++		return __gup_device_huge_pmd(orig, pmdp, addr, end, flags,
++					     pages, nr);
+ 	}
+=20
+ 	page =3D pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+@@ -2167,7 +2173,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_
+ }
+=20
+ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages, int *nr)
++			unsigned long end, unsigned int flags,
++			struct page **pages, int *nr)
+ {
+ 	struct page *head, *page;
+ 	int refs;
+@@ -2178,7 +2185,8 @@ static int gup_huge_pud(pud_t orig, pud_
+ 	if (pud_devmap(orig)) {
+ 		if (unlikely(flags & FOLL_LONGTERM))
+ 			return 0;
+-		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr);
++		return __gup_device_huge_pud(orig, pudp, addr, end, flags,
++					     pages, nr);
+ 	}
+=20
+ 	page =3D pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+_
+
+Patches currently in -mm which might be from jhubbard@nvidia.com are
+
+checkpatch-support-base-commit-format.patch
