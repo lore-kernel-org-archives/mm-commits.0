@@ -1,190 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch removed from
- -mm tree
-Date: Fri, 03 Apr 2020 13:34:57 -0700
-Message-ID: <20200403203457.6QrMZZvNM%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-remove-fs_ocfs2_nm.patch removed from -mm
+ tree
+Date: Fri, 03 Apr 2020 13:34:59 -0700
+Message-ID: <20200403203459.NaLHs_FcY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57632 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUe7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:34:59 -0400
+        id S1726368AbgDCUfA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:35:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: alex.shi@linux.alibaba.com, gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add more spellings to spelling.txt
+     Subject: ocfs2: remove FS_OCFS2_NM
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+     ocfs2-remove-fs_ocfs2_nm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: scripts/spelling.txt: add more spellings to spelling.txt
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: ocfs2: remove FS_OCFS2_NM
 
-Here are some of the more common spelling mistakes and typos that I've
-found while fixing up spelling mistakes in the kernel since November 2019
+This macro is unused since commit ab09203e302b ("sysctl fs: Remove dead
+binary sysctl support").
 
-Link: http://lkml.kernel.org/r/20200313174946.228216-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/1579577812-251572-1-git-send-email-alex.shi@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ fs/ocfs2/stackglue.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spellings-to-spellingtxt
-+++ a/scripts/spelling.txt
-@@ -177,7 +177,9 @@ atomatically||automatically
- atomicly||atomically
- atempt||attempt
- attachement||attachment
-+attatch||attach
- attched||attached
-+attemp||attempt
- attemps||attempts
- attemping||attempting
- attepmpt||attempt
-@@ -235,11 +237,13 @@ brievely||briefly
- brigde||bridge
- broadcase||broadcast
- broadcat||broadcast
-+bufer||buffer
- bufufer||buffer
- cacluated||calculated
- caculate||calculate
- caculation||calculation
- cadidate||candidate
-+cahces||caches
- calender||calendar
- calescing||coalescing
- calle||called
-@@ -338,7 +342,6 @@ conditon||condition
- condtion||condition
- conected||connected
- conector||connector
--connecetd||connected
- configration||configuration
- configuartion||configuration
- configuation||configuration
-@@ -349,7 +352,9 @@ configuretion||configuration
- configutation||configuration
- conider||consider
- conjuction||conjunction
-+connecetd||connected
- connectinos||connections
-+connetor||connector
- connnection||connection
- connnections||connections
- consistancy||consistency
-@@ -469,6 +474,7 @@ difinition||definition
- digial||digital
- dimention||dimension
- dimesions||dimensions
-+disgest||digest
- dispalying||displaying
- diplay||display
- directon||direction
-@@ -553,6 +559,7 @@ etsablishment||establishment
- etsbalishment||establishment
- excecutable||executable
- exceded||exceeded
-+exceeed||exceed
- excellant||excellent
- execeeded||exceeded
- execeeds||exceeds
-@@ -742,6 +749,7 @@ initialzing||initializing
- initilization||initialization
- initilize||initialize
- initliaze||initialize
-+initilized||initialized
- inofficial||unofficial
- inrerface||interface
- insititute||institute
-@@ -802,6 +810,7 @@ irrelevent||irrelevant
- isnt||isn't
- isssue||issue
- issus||issues
-+iteraions||iterations
- iternations||iterations
- itertation||iteration
- itslef||itself
-@@ -828,6 +837,7 @@ libary||library
- librairies||libraries
- libraris||libraries
- licenceing||licencing
-+limted||limited
- logaritmic||logarithmic
- loggging||logging
- loggin||login
-@@ -924,6 +934,7 @@ nerver||never
- nescessary||necessary
- nessessary||necessary
- noticable||noticeable
-+notication||notification
- notications||notifications
- notifcations||notifications
- notifed||notified
-@@ -1007,6 +1018,7 @@ pendantic||pedantic
- peprocessor||preprocessor
- perfoming||performing
- perfomring||performing
-+periperal||peripheral
- peripherial||peripheral
- permissons||permissions
- peroid||period
-@@ -1043,6 +1055,7 @@ prefferably||preferably
- premption||preemption
- prepaired||prepared
- preperation||preparation
-+preprare||prepare
- pressre||pressure
- primative||primitive
- princliple||principle
-@@ -1064,6 +1077,7 @@ processsed||processed
- processsing||processing
- procteted||protected
- prodecure||procedure
-+progamming||programming
- progams||programs
- progess||progress
- programers||programmers
-@@ -1151,12 +1165,14 @@ replys||replies
- reponse||response
- representaion||representation
- reqeust||request
-+reqister||register
- requestied||requested
- requiere||require
- requirment||requirement
- requred||required
- requried||required
- requst||request
-+requsted||requested
- reregisteration||reregistration
- reseting||resetting
- reseved||reserved
-@@ -1227,10 +1243,12 @@ seqeuncer||sequencer
- seqeuencer||sequencer
- sequece||sequence
- sequencial||sequential
-+serivce||service
- serveral||several
- servive||service
- setts||sets
- settting||setting
-+shapshot||snapshot
- shotdown||shutdown
- shoud||should
- shouldnt||shouldn't
-_
-
-Patches currently in -mm which might be from colin.king@canonical.com are
-
-lib-test_lockup-fix-spelling-mistake-iteraions-iterations.patch
-reiserfs-clean-up-several-indentation-issues.patch
+--- a/fs/ocfs2/stackglue.c~ocfs2-remove-fs_ocfs2_nm
++++ a/fs/ocfs2/stackglue.c
+@@ -656,8 +656,6 @@ error:
+  * and easier to preserve the name.
+  */
+ 
+-#define FS_OCFS2_NM		1
