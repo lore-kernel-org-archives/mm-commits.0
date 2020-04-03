@@ -1,107 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-fully-assume-capture-is-not-null-in-compact_zone_order.patch
- removed from -mm tree
-Date: Fri, 03 Apr 2020 13:40:07 -0700
-Message-ID: <20200403204007.MTE_yXtFa%akpm@linux-foundation.org>
+ really-limit-compact_unevictable_allowed-to-0-and-1.patch removed from -mm
+ tree
+Date: Fri, 03 Apr 2020 13:40:09 -0700
+Message-ID: <20200403204009.hZ3RxEz1F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35978 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUkI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:40:08 -0400
+        id S1726368AbgDCUkL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:40:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.carpenter@oracle.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, bigeasy@linutronix.de, keescook@chromium.org, mcgrof@kernel.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org, tglx@linutronix.de, vbabka@suse.cz, yzaikin@google.com
 
 
 The patch titled
-     Subject: mm, compaction: fully assume capture is not NULL in compact_zone_order()
+     Subject: mm/compaction: really limit compact_unevictable_allowed to 0 and 1
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-fully-assume-capture-is-not-null-in-compact_zone_order.patch
+     really-limit-compact_unevictable_allowed-to-0-and-1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: fully assume capture is not NULL in compact_zone_order()
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm/compaction: really limit compact_unevictable_allowed to 0 and 1
 
-Dan reports:
+The proc file `compact_unevictable_allowed' should allow 0 and 1 only, the
+`extra*' attribues have been set properly but without
+proc_dointvec_minmax() as the `proc_handler' the limit will not be
+enforced.
 
-The patch 5e1f0f098b46: "mm, compaction: capture a page under direct
-compaction" from Mar 5, 2019, leads to the following Smatch complaint:
+Use proc_dointvec_minmax() as the `proc_handler' to enfoce the valid
+specified range.
 
-    mm/compaction.c:2321 compact_zone_order()
-     error: we previously assumed 'capture' could be null (see line 2313)
-
-mm/compaction.c
-  2288  static enum compact_result compact_zone_order(struct zone *zone, int order,
-  2289                  gfp_t gfp_mask, enum compact_priority prio,
-  2290                  unsigned int alloc_flags, int classzone_idx,
-  2291                  struct page **capture)
-                                      ^^^^^^^
-
-  2313		if (capture)
-                    ^^^^^^^
-Check for NULL
-
-  2314			current->capture_control = &capc;
-  2315
-  2316		ret = compact_zone(&cc, &capc);
-  2317
-  2318		VM_BUG_ON(!list_empty(&cc.freepages));
-  2319		VM_BUG_ON(!list_empty(&cc.migratepages));
-  2320
-  2321		*capture = capc.page;
-                ^^^^^^^^
-Unchecked dereference.
-
-  2322		current->capture_control = NULL;
-  2323
-
-In practice this is not an issue, as the only caller path passes non-NULL
-capture:
-
-__alloc_pages_direct_compact()
-  struct page *page = NULL;
-  try_to_compact_pages(capture = &page);
-    compact_zone_order(capture = capture);
-
-So let's remove the unnecessary check, which should also make Smatch happy.
-
-Link: http://lkml.kernel.org/r/18b0df3c-0589-d96c-23fa-040798fee187@suse.cz
-Fixes: 5e1f0f098b46 ("mm, compaction: capture a page under direct compaction")
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/20200303202054.gsosv7fsx2ma3cic@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-fully-assume-capture-is-not-null-in-compact_zone_order
-+++ a/mm/compaction.c
-@@ -2314,8 +2314,7 @@ static enum compact_result compact_zone_
- 		.page = NULL,
- 	};
- 
--	if (capture)
--		current->capture_control = &capc;
-+	current->capture_control = &capc;
- 
- 	ret = compact_zone(&cc, &capc);
- 
-@@ -2337,6 +2336,7 @@ int sysctl_extfrag_threshold = 500;
-  * @alloc_flags: The allocation flags of the current allocation
-  * @ac: The context of current allocation
-  * @prio: Determines how hard direct compaction should try to succeed
-+ * @capture: Pointer to free page created by compaction will be stored here
-  *
-  * This is the main entry point for direct page compaction.
-  */
+--- a/kernel/sysctl.c~really-limit-compact_unevictable_allowed-to-0-and-1
++++ a/kernel/sysctl.c
+@@ -1467,7 +1467,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &sysctl_compact_unevictable_allowed,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
