@@ -1,120 +1,544 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?ocfs2-roll-back-the-reference-count-modification-of-the-p?=
- =?US-ASCII?Q?arent-directory-if-an-error-occurs.patch?= removed from -mm
- tree
-Date: Fri, 03 Apr 2020 13:35:35 -0700
-Message-ID: <20200403203535.nTLvMoz3Z%akpm@linux-foundation.org>
+ ocfs2-use-scnprintf-for-avoiding-potential-buffer-overflow.patch removed
+ from -mm tree
+Date: Fri, 03 Apr 2020 13:35:38 -0700
+Message-ID: <20200403203538.jFgs9-XJf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58366 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58418 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUfg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:35:36 -0400
+        id S1726368AbgDCUfk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:35:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, wangjian161@huawei.com
+To: gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, tiwai@suse.de
 
 
 The patch titled
-     Subject: ocfs2: roll back the reference count modification of the parent directory if an error occurs
+     Subject: ocfs2: use scnprintf() for avoiding potential buffer overflow
 has been removed from the -mm tree.  Its filename was
-     ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs.patch
+     ocfs2-use-scnprintf-for-avoiding-potential-buffer-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: wangjian <wangjian161@huawei.com>
-Subject: ocfs2: roll back the reference count modification of the parent directory if an error occurs
+From: Takashi Iwai <tiwai@suse.de>
+Subject: ocfs2: use scnprintf() for avoiding potential buffer overflow
 
-Under some conditions, the directory cannot be deleted.  The specific
-scenarios are as follows: (for example, /mnt/ocfs2 is the mount point)
+Since snprintf() returns the would-be-output size instead of the actual
+output size, the succeeding calls may go beyond the given buffer limit. 
+Fix it by replacing with scnprintf().
 
-1. Create the /mnt/ocfs2/p_dir directory.  At this time, the i_nlink
-   corresponding to the inode of the /mnt/ocfs2/p_dir directory is equal
-   to 2.
-
-2. During the process of creating the /mnt/ocfs2/p_dir/s_dir
-   directory, if the call to the inc_nlink function in ocfs2_mknod
-   succeeds, the functions such as ocfs2_init_acl,
-   ocfs2_init_security_set, and ocfs2_dentry_attach_lock fail.  At this
-   time, the i_nlink corresponding to the inode of the /mnt/ocfs2/p_dir
-   directory is equal to 3, but /mnt/ocfs2/p_dir/s_dir is not added to the
-   /mnt/ocfs2/p_dir directory entry.
-
-3. Delete the /mnt/ocfs2/p_dir directory (rm -rf /mnt/ocfs2/p_dir). 
-   At this time, it is found that the i_nlink corresponding to the inode
-   corresponding to the /mnt/ocfs2/p_dir directory is equal to 3. 
-   Therefore, the /mnt/ocfs2/p_dir directory cannot be deleted.
-
-Link: http://lkml.kernel.org/r/a44f6666-bbc4-405e-0e6c-0f4e922eeef6@huawei.com
-Signed-off-by: Jian wang <wangjian161@huawei.com>
-Reviewed-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/20200311093516.25300-1-tiwai@suse.de
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Gang He <ghe@suse.com>
 Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |   10 +--
+ fs/ocfs2/cluster/netdebug.c  |    4 -
+ fs/ocfs2/dlm/dlmdebug.c      |  100 ++++++++++++++++-----------------
+ fs/ocfs2/super.c             |   46 +++++++--------
+ 4 files changed, 80 insertions(+), 80 deletions(-)
 
---- a/fs/ocfs2/namei.c~ocfs2-roll-back-the-reference-count-modification-of-the-parent-directory-if-an-error-occurs
-+++ a/fs/ocfs2/namei.c
-@@ -406,7 +406,7 @@ static int ocfs2_mknod(struct inode *dir
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-use-scnprintf-for-avoiding-potential-buffer-overflow
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1307,7 +1307,7 @@ static int o2hb_debug_open(struct inode
  
- 	if (status < 0) {
- 		mlog_errno(status);
--		goto leave;
-+		goto roll_back;
+ 	case O2HB_DB_TYPE_REGION_NUMBER:
+ 		reg = (struct o2hb_region *)db->db_data;
+-		out += snprintf(buf + out, PAGE_SIZE - out, "%d\n",
++		out += scnprintf(buf + out, PAGE_SIZE - out, "%d\n",
+ 				reg->hr_region_num);
+ 		goto done;
+ 
+@@ -1317,12 +1317,12 @@ static int o2hb_debug_open(struct inode
+ 		/* If 0, it has never been set before */
+ 		if (lts)
+ 			lts = jiffies_to_msecs(jiffies - lts);
+-		out += snprintf(buf + out, PAGE_SIZE - out, "%lu\n", lts);
++		out += scnprintf(buf + out, PAGE_SIZE - out, "%lu\n", lts);
+ 		goto done;
+ 
+ 	case O2HB_DB_TYPE_REGION_PINNED:
+ 		reg = (struct o2hb_region *)db->db_data;
+-		out += snprintf(buf + out, PAGE_SIZE - out, "%u\n",
++		out += scnprintf(buf + out, PAGE_SIZE - out, "%u\n",
+ 				!!reg->hr_item_pinned);
+ 		goto done;
+ 
+@@ -1331,8 +1331,8 @@ static int o2hb_debug_open(struct inode
  	}
  
- 	if (si.enable) {
-@@ -414,7 +414,7 @@ static int ocfs2_mknod(struct inode *dir
- 						 meta_ac, data_ac);
- 		if (status < 0) {
- 			mlog_errno(status);
--			goto leave;
-+			goto roll_back;
+ 	while ((i = find_next_bit(map, db->db_len, i + 1)) < db->db_len)
+-		out += snprintf(buf + out, PAGE_SIZE - out, "%d ", i);
+-	out += snprintf(buf + out, PAGE_SIZE - out, "\n");
++		out += scnprintf(buf + out, PAGE_SIZE - out, "%d ", i);
++	out += scnprintf(buf + out, PAGE_SIZE - out, "\n");
+ 
+ done:
+ 	i_size_write(inode, out);
+--- a/fs/ocfs2/cluster/netdebug.c~ocfs2-use-scnprintf-for-avoiding-potential-buffer-overflow
++++ a/fs/ocfs2/cluster/netdebug.c
+@@ -443,8 +443,8 @@ static int o2net_fill_bitmap(char *buf,
+ 	o2net_fill_node_map(map, sizeof(map));
+ 
+ 	while ((i = find_next_bit(map, O2NM_MAX_NODES, i + 1)) < O2NM_MAX_NODES)
+-		out += snprintf(buf + out, PAGE_SIZE - out, "%d ", i);
+-	out += snprintf(buf + out, PAGE_SIZE - out, "\n");
++		out += scnprintf(buf + out, PAGE_SIZE - out, "%d ", i);
++	out += scnprintf(buf + out, PAGE_SIZE - out, "\n");
+ 
+ 	return out;
+ }
+--- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-use-scnprintf-for-avoiding-potential-buffer-overflow
++++ a/fs/ocfs2/dlm/dlmdebug.c
+@@ -244,11 +244,11 @@ static int stringify_lockname(const char
+ 		memcpy((__be64 *)&inode_blkno_be,
+ 		       (char *)&lockname[OCFS2_DENTRY_LOCK_INO_START],
+ 		       sizeof(__be64));
+-		out += snprintf(buf + out, len - out, "%.*s%08x",
++		out += scnprintf(buf + out, len - out, "%.*s%08x",
+ 				OCFS2_DENTRY_LOCK_INO_START - 1, lockname,
+ 				(unsigned int)be64_to_cpu(inode_blkno_be));
+ 	} else
+-		out += snprintf(buf + out, len - out, "%.*s",
++		out += scnprintf(buf + out, len - out, "%.*s",
+ 				locklen, lockname);
+ 	return out;
+ }
+@@ -260,7 +260,7 @@ static int stringify_nodemap(unsigned lo
+ 	int i = -1;
+ 
+ 	while ((i = find_next_bit(nodemap, maxnodes, i + 1)) < maxnodes)
+-		out += snprintf(buf + out, len - out, "%d ", i);
++		out += scnprintf(buf + out, len - out, "%d ", i);
+ 
+ 	return out;
+ }
+@@ -278,34 +278,34 @@ static int dump_mle(struct dlm_master_li
+ 		mle_type = "MIG";
+ 
+ 	out += stringify_lockname(mle->mname, mle->mnamelen, buf + out, len - out);
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"\t%3s\tmas=%3u\tnew=%3u\tevt=%1d\tuse=%1d\tref=%3d\n",
+ 			mle_type, mle->master, mle->new_master,
+ 			!list_empty(&mle->hb_events),
+ 			!!mle->inuse,
+ 			kref_read(&mle->mle_refs));
+ 
+-	out += snprintf(buf + out, len - out, "Maybe=");
++	out += scnprintf(buf + out, len - out, "Maybe=");
+ 	out += stringify_nodemap(mle->maybe_map, O2NM_MAX_NODES,
+ 				 buf + out, len - out);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+-	out += snprintf(buf + out, len - out, "Vote=");
++	out += scnprintf(buf + out, len - out, "Vote=");
+ 	out += stringify_nodemap(mle->vote_map, O2NM_MAX_NODES,
+ 				 buf + out, len - out);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+-	out += snprintf(buf + out, len - out, "Response=");
++	out += scnprintf(buf + out, len - out, "Response=");
+ 	out += stringify_nodemap(mle->response_map, O2NM_MAX_NODES,
+ 				 buf + out, len - out);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+-	out += snprintf(buf + out, len - out, "Node=");
++	out += scnprintf(buf + out, len - out, "Node=");
+ 	out += stringify_nodemap(mle->node_map, O2NM_MAX_NODES,
+ 				 buf + out, len - out);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+ 	return out;
+ }
+@@ -353,7 +353,7 @@ static int debug_purgelist_print(struct
+ 	int out = 0;
+ 	unsigned long total = 0;
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Dumping Purgelist for Domain: %s\n", dlm->name);
+ 
+ 	spin_lock(&dlm->spinlock);
+@@ -365,13 +365,13 @@ static int debug_purgelist_print(struct
+ 		out += stringify_lockname(res->lockname.name,
+ 					  res->lockname.len,
+ 					  buf + out, len - out);
+-		out += snprintf(buf + out, len - out, "\t%ld\n",
++		out += scnprintf(buf + out, len - out, "\t%ld\n",
+ 				(jiffies - res->last_used)/HZ);
+ 		spin_unlock(&res->spinlock);
+ 	}
+ 	spin_unlock(&dlm->spinlock);
+ 
+-	out += snprintf(buf + out, len - out, "Total on list: %lu\n", total);
++	out += scnprintf(buf + out, len - out, "Total on list: %lu\n", total);
+ 
+ 	return out;
+ }
+@@ -410,7 +410,7 @@ static int debug_mle_print(struct dlm_ct
+ 	int i, out = 0;
+ 	unsigned long total = 0, longest = 0, bucket_count = 0;
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Dumping MLEs for Domain: %s\n", dlm->name);
+ 
+ 	spin_lock(&dlm->master_lock);
+@@ -428,7 +428,7 @@ static int debug_mle_print(struct dlm_ct
+ 	}
+ 	spin_unlock(&dlm->master_lock);
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Total: %lu, Longest: %lu\n", total, longest);
+ 	return out;
+ }
+@@ -467,7 +467,7 @@ static int dump_lock(struct dlm_lock *lo
+ 
+ #define DEBUG_LOCK_VERSION	1
+ 	spin_lock(&lock->spinlock);
+-	out = snprintf(buf, len, "LOCK:%d,%d,%d,%d,%d,%d:%lld,%d,%d,%d,%d,%d,"
++	out = scnprintf(buf, len, "LOCK:%d,%d,%d,%d,%d,%d:%lld,%d,%d,%d,%d,%d,"
+ 		       "%d,%d,%d,%d\n",
+ 		       DEBUG_LOCK_VERSION,
+ 		       list_type, lock->ml.type, lock->ml.convert_type,
+@@ -491,13 +491,13 @@ static int dump_lockres(struct dlm_lock_
+ 	int i;
+ 	int out = 0;
+ 
+-	out += snprintf(buf + out, len - out, "NAME:");
++	out += scnprintf(buf + out, len - out, "NAME:");
+ 	out += stringify_lockname(res->lockname.name, res->lockname.len,
+ 				  buf + out, len - out);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+ #define DEBUG_LRES_VERSION	1
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"LRES:%d,%d,%d,%ld,%d,%d,%d,%d,%d,%d,%d\n",
+ 			DEBUG_LRES_VERSION,
+ 			res->owner, res->state, res->last_used,
+@@ -509,17 +509,17 @@ static int dump_lockres(struct dlm_lock_
+ 			kref_read(&res->refs));
+ 
+ 	/* refmap */
+-	out += snprintf(buf + out, len - out, "RMAP:");
++	out += scnprintf(buf + out, len - out, "RMAP:");
+ 	out += stringify_nodemap(res->refmap, O2NM_MAX_NODES,
+ 				 buf + out, len - out);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+ 	/* lvb */
+-	out += snprintf(buf + out, len - out, "LVBX:");
++	out += scnprintf(buf + out, len - out, "LVBX:");
+ 	for (i = 0; i < DLM_LVB_LEN; i++)
+-		out += snprintf(buf + out, len - out,
++		out += scnprintf(buf + out, len - out,
+ 					"%02x", (unsigned char)res->lvb[i]);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+ 	/* granted */
+ 	list_for_each_entry(lock, &res->granted, list)
+@@ -533,7 +533,7 @@ static int dump_lockres(struct dlm_lock_
+ 	list_for_each_entry(lock, &res->blocked, list)
+ 		out += dump_lock(lock, 2, buf + out, len - out);
+ 
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+ 	return out;
+ }
+@@ -683,41 +683,41 @@ static int debug_state_print(struct dlm_
+ 	}
+ 
+ 	/* Domain: xxxxxxxxxx  Key: 0xdfbac769 */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Domain: %s  Key: 0x%08x  Protocol: %d.%d\n",
+ 			dlm->name, dlm->key, dlm->dlm_locking_proto.pv_major,
+ 			dlm->dlm_locking_proto.pv_minor);
+ 
+ 	/* Thread Pid: xxx  Node: xxx  State: xxxxx */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Thread Pid: %d  Node: %d  State: %s\n",
+ 			task_pid_nr(dlm->dlm_thread_task), dlm->node_num, state);
+ 
+ 	/* Number of Joins: xxx  Joining Node: xxx */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Number of Joins: %d  Joining Node: %d\n",
+ 			dlm->num_joins, dlm->joining_node);
+ 
+ 	/* Domain Map: xx xx xx */
+-	out += snprintf(buf + out, len - out, "Domain Map: ");
++	out += scnprintf(buf + out, len - out, "Domain Map: ");
+ 	out += stringify_nodemap(dlm->domain_map, O2NM_MAX_NODES,
+ 				 buf + out, len - out);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+ 	/* Exit Domain Map: xx xx xx */
+-	out += snprintf(buf + out, len - out, "Exit Domain Map: ");
++	out += scnprintf(buf + out, len - out, "Exit Domain Map: ");
+ 	out += stringify_nodemap(dlm->exit_domain_map, O2NM_MAX_NODES,
+ 				 buf + out, len - out);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+ 	/* Live Map: xx xx xx */
+-	out += snprintf(buf + out, len - out, "Live Map: ");
++	out += scnprintf(buf + out, len - out, "Live Map: ");
+ 	out += stringify_nodemap(dlm->live_nodes_map, O2NM_MAX_NODES,
+ 				 buf + out, len - out);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+ 	/* Lock Resources: xxx (xxx) */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Lock Resources: %d (%d)\n",
+ 			atomic_read(&dlm->res_cur_count),
+ 			atomic_read(&dlm->res_tot_count));
+@@ -729,29 +729,29 @@ static int debug_state_print(struct dlm_
+ 		cur_mles += atomic_read(&dlm->mle_cur_count[i]);
+ 
+ 	/* MLEs: xxx (xxx) */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"MLEs: %d (%d)\n", cur_mles, tot_mles);
+ 
+ 	/*  Blocking: xxx (xxx) */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"  Blocking: %d (%d)\n",
+ 			atomic_read(&dlm->mle_cur_count[DLM_MLE_BLOCK]),
+ 			atomic_read(&dlm->mle_tot_count[DLM_MLE_BLOCK]));
+ 
+ 	/*  Mastery: xxx (xxx) */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"  Mastery: %d (%d)\n",
+ 			atomic_read(&dlm->mle_cur_count[DLM_MLE_MASTER]),
+ 			atomic_read(&dlm->mle_tot_count[DLM_MLE_MASTER]));
+ 
+ 	/*  Migration: xxx (xxx) */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"  Migration: %d (%d)\n",
+ 			atomic_read(&dlm->mle_cur_count[DLM_MLE_MIGRATION]),
+ 			atomic_read(&dlm->mle_tot_count[DLM_MLE_MIGRATION]));
+ 
+ 	/* Lists: Dirty=Empty  Purge=InUse  PendingASTs=Empty  ... */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Lists: Dirty=%s  Purge=%s  PendingASTs=%s  "
+ 			"PendingBASTs=%s\n",
+ 			(list_empty(&dlm->dirty_list) ? "Empty" : "InUse"),
+@@ -760,12 +760,12 @@ static int debug_state_print(struct dlm_
+ 			(list_empty(&dlm->pending_basts) ? "Empty" : "InUse"));
+ 
+ 	/* Purge Count: xxx  Refs: xxx */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Purge Count: %d  Refs: %d\n", dlm->purge_count,
+ 			kref_read(&dlm->dlm_refs));
+ 
+ 	/* Dead Node: xxx */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Dead Node: %d\n", dlm->reco.dead_node);
+ 
+ 	/* What about DLM_RECO_STATE_FINALIZE? */
+@@ -775,19 +775,19 @@ static int debug_state_print(struct dlm_
+ 		state = "INACTIVE";
+ 
+ 	/* Recovery Pid: xxxx  Master: xxx  State: xxxx */
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"Recovery Pid: %d  Master: %d  State: %s\n",
+ 			task_pid_nr(dlm->dlm_reco_thread_task),
+ 			dlm->reco.new_master, state);
+ 
+ 	/* Recovery Map: xx xx */
+-	out += snprintf(buf + out, len - out, "Recovery Map: ");
++	out += scnprintf(buf + out, len - out, "Recovery Map: ");
+ 	out += stringify_nodemap(dlm->recovery_map, O2NM_MAX_NODES,
+ 				 buf + out, len - out);
+-	out += snprintf(buf + out, len - out, "\n");
++	out += scnprintf(buf + out, len - out, "\n");
+ 
+ 	/* Recovery Node State: */
+-	out += snprintf(buf + out, len - out, "Recovery Node State:\n");
++	out += scnprintf(buf + out, len - out, "Recovery Node State:\n");
+ 	list_for_each_entry(node, &dlm->reco.node_data, list) {
+ 		switch (node->state) {
+ 		case DLM_RECO_NODE_DATA_INIT:
+@@ -815,7 +815,7 @@ static int debug_state_print(struct dlm_
+ 			state = "BAD";
+ 			break;
  		}
+-		out += snprintf(buf + out, len - out, "\t%u - %s\n",
++		out += scnprintf(buf + out, len - out, "\t%u - %s\n",
+ 				node->node_num, state);
  	}
  
-@@ -427,7 +427,7 @@ static int ocfs2_mknod(struct inode *dir
- 					  OCFS2_I(dir)->ip_blkno);
- 	if (status) {
- 		mlog_errno(status);
--		goto leave;
-+		goto roll_back;
+--- a/fs/ocfs2/super.c~ocfs2-use-scnprintf-for-avoiding-potential-buffer-overflow
++++ a/fs/ocfs2/super.c
+@@ -220,31 +220,31 @@ static int ocfs2_osb_dump(struct ocfs2_s
+ 	int i, out = 0;
+ 	unsigned long flags;
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => Id: %-s  Uuid: %-s  Gen: 0x%X  Label: %-s\n",
+ 			"Device", osb->dev_str, osb->uuid_str,
+ 			osb->fs_generation, osb->vol_label);
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => State: %d  Flags: 0x%lX\n", "Volume",
+ 			atomic_read(&osb->vol_state), osb->osb_flags);
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => Block: %lu  Cluster: %d\n", "Sizes",
+ 			osb->sb->s_blocksize, osb->s_clustersize);
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => Compat: 0x%X  Incompat: 0x%X  "
+ 			"ROcompat: 0x%X\n",
+ 			"Features", osb->s_feature_compat,
+ 			osb->s_feature_incompat, osb->s_feature_ro_compat);
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => Opts: 0x%lX  AtimeQuanta: %u\n", "Mount",
+ 			osb->s_mount_opt, osb->s_atime_quantum);
+ 
+ 	if (cconn) {
+-		out += snprintf(buf + out, len - out,
++		out += scnprintf(buf + out, len - out,
+ 				"%10s => Stack: %s  Name: %*s  "
+ 				"Version: %d.%d\n", "Cluster",
+ 				(*osb->osb_cluster_stack == '\0' ?
+@@ -255,7 +255,7 @@ static int ocfs2_osb_dump(struct ocfs2_s
  	}
  
- 	dl = dentry->d_fsdata;
-@@ -437,12 +437,19 @@ static int ocfs2_mknod(struct inode *dir
- 				 &lookup);
- 	if (status < 0) {
- 		mlog_errno(status);
--		goto leave;
-+		goto roll_back;
- 	}
+ 	spin_lock_irqsave(&osb->dc_task_lock, flags);
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => Pid: %d  Count: %lu  WakeSeq: %lu  "
+ 			"WorkSeq: %lu\n", "DownCnvt",
+ 			(osb->dc_task ?  task_pid_nr(osb->dc_task) : -1),
+@@ -264,32 +264,32 @@ static int ocfs2_osb_dump(struct ocfs2_s
+ 	spin_unlock_irqrestore(&osb->dc_task_lock, flags);
  
- 	insert_inode_hash(inode);
- 	d_instantiate(dentry, inode);
- 	status = 0;
-+
-+roll_back:
-+	if (status < 0 && S_ISDIR(mode)) {
-+		ocfs2_add_links_count(dirfe, -1);
-+		drop_nlink(dir);
-+	}
-+
- leave:
- 	if (status < 0 && did_quota_inode)
- 		dquot_free_inode(inode);
+ 	spin_lock(&osb->osb_lock);
+-	out += snprintf(buf + out, len - out, "%10s => Pid: %d  Nodes:",
++	out += scnprintf(buf + out, len - out, "%10s => Pid: %d  Nodes:",
+ 			"Recovery",
+ 			(osb->recovery_thread_task ?
+ 			 task_pid_nr(osb->recovery_thread_task) : -1));
+ 	if (rm->rm_used == 0)
+-		out += snprintf(buf + out, len - out, " None\n");
++		out += scnprintf(buf + out, len - out, " None\n");
+ 	else {
+ 		for (i = 0; i < rm->rm_used; i++)
+-			out += snprintf(buf + out, len - out, " %d",
++			out += scnprintf(buf + out, len - out, " %d",
+ 					rm->rm_entries[i]);
+-		out += snprintf(buf + out, len - out, "\n");
++		out += scnprintf(buf + out, len - out, "\n");
+ 	}
+ 	spin_unlock(&osb->osb_lock);
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => Pid: %d  Interval: %lu\n", "Commit",
+ 			(osb->commit_task ? task_pid_nr(osb->commit_task) : -1),
+ 			osb->osb_commit_interval);
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => State: %d  TxnId: %lu  NumTxns: %d\n",
+ 			"Journal", osb->journal->j_state,
+ 			osb->journal->j_trans_id,
+ 			atomic_read(&osb->journal->j_num_trans));
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => GlobalAllocs: %d  LocalAllocs: %d  "
+ 			"SubAllocs: %d  LAWinMoves: %d  SAExtends: %d\n",
+ 			"Stats",
+@@ -299,7 +299,7 @@ static int ocfs2_osb_dump(struct ocfs2_s
+ 			atomic_read(&osb->alloc_stats.moves),
+ 			atomic_read(&osb->alloc_stats.bg_extends));
+ 
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => State: %u  Descriptor: %llu  Size: %u bits  "
+ 			"Default: %u bits\n",
+ 			"LocalAlloc", osb->local_alloc_state,
+@@ -307,7 +307,7 @@ static int ocfs2_osb_dump(struct ocfs2_s
+ 			osb->local_alloc_bits, osb->local_alloc_default_bits);
+ 
+ 	spin_lock(&osb->osb_lock);
+-	out += snprintf(buf + out, len - out,
++	out += scnprintf(buf + out, len - out,
+ 			"%10s => InodeSlot: %d  StolenInodes: %d, "
+ 			"MetaSlot: %d  StolenMeta: %d\n", "Steal",
+ 			osb->s_inode_steal_slot,
+@@ -316,20 +316,20 @@ static int ocfs2_osb_dump(struct ocfs2_s
+ 			atomic_read(&osb->s_num_meta_stolen));
+ 	spin_unlock(&osb->osb_lock);
+ 
+-	out += snprintf(buf + out, len - out, "OrphanScan => ");
+-	out += snprintf(buf + out, len - out, "Local: %u  Global: %u ",
++	out += scnprintf(buf + out, len - out, "OrphanScan => ");
++	out += scnprintf(buf + out, len - out, "Local: %u  Global: %u ",
+ 			os->os_count, os->os_seqno);
+-	out += snprintf(buf + out, len - out, " Last Scan: ");
++	out += scnprintf(buf + out, len - out, " Last Scan: ");
+ 	if (atomic_read(&os->os_state) == ORPHAN_SCAN_INACTIVE)
+-		out += snprintf(buf + out, len - out, "Disabled\n");
++		out += scnprintf(buf + out, len - out, "Disabled\n");
+ 	else
+-		out += snprintf(buf + out, len - out, "%lu seconds ago\n",
++		out += scnprintf(buf + out, len - out, "%lu seconds ago\n",
+ 				(unsigned long)(ktime_get_seconds() - os->os_scantime));
+ 
+-	out += snprintf(buf + out, len - out, "%10s => %3s  %10s\n",
++	out += scnprintf(buf + out, len - out, "%10s => %3s  %10s\n",
+ 			"Slots", "Num", "RecoGen");
+ 	for (i = 0; i < osb->max_slots; ++i) {
+-		out += snprintf(buf + out, len - out,
++		out += scnprintf(buf + out, len - out,
+ 				"%10s  %c %3d  %10d\n",
+ 				" ",
+ 				(i == osb->slot_num ? '*' : ' '),
 _
 
-Patches currently in -mm which might be from wangjian161@huawei.com are
+Patches currently in -mm which might be from tiwai@suse.de are
