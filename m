@@ -1,135 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-vma-make-vma_is_foreign-available-for-general-use.patch removed from -mm
- tree
-Date: Fri, 03 Apr 2020 13:38:11 -0700
-Message-ID: <20200403203811.968r49yPW%akpm@linux-foundation.org>
+Subject: [merged] mm-add-pagemaph-to-the-fine-documentation.patch
+ removed from -mm tree
+Date: Fri, 03 Apr 2020 13:38:16 -0700
+Message-ID: <20200403203816.KwCKcB-0h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34222 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34284 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727809AbgDCUiM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:38:12 -0400
+        id S1726368AbgDCUiR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:38:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, tglx@linutronix.de, vbabka@suse.cz
+To: corbet@lwn.net, jhubbard@nvidia.com, mm-commits@vger.kernel.org, willy@infradead.org, ziy@nvidia.com
 
 
 The patch titled
-     Subject: mm/vma: make vma_is_foreign() available for general use
+     Subject: mm: add pagemap.h to the fine documentation
 has been removed from the -mm tree.  Its filename was
-     mm-vma-make-vma_is_foreign-available-for-general-use.patch
+     mm-add-pagemaph-to-the-fine-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/vma: make vma_is_foreign() available for general use
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: add pagemap.h to the fine documentation
 
-Idea of a foreign VMA with respect to the present context is very generic.
-But currently there are two identical definitions for this in powerpc and
-x86 platforms.  Lets consolidate those redundant definitions while making
-vma_is_foreign() available for general use later.  This should not cause
-any functional change.
+The documentation currently does not include the deathless prose written
+to describe functions in pagemap.h because it's not included in any rst
+file.  Fix up the mismatches between parameter names and the documentation
+and add the file to mm-api.
 
-Link: http://lkml.kernel.org/r/1582782965-3274-3-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
+Link: http://lkml.kernel.org/r/20200221220045.24989-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/book3s64/pkeys.c   |   12 ------------
- arch/x86/include/asm/mmu_context.h |   15 ---------------
- include/linux/mm.h                 |   11 +++++++++++
- 3 files changed, 11 insertions(+), 27 deletions(-)
+ Documentation/core-api/mm-api.rst |    3 +++
+ include/linux/pagemap.h           |    8 ++++----
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
---- a/arch/powerpc/mm/book3s64/pkeys.c~mm-vma-make-vma_is_foreign-available-for-general-use
-+++ a/arch/powerpc/mm/book3s64/pkeys.c
-@@ -381,18 +381,6 @@ bool arch_pte_access_permitted(u64 pte,
-  * So do not enforce things if the VMA is not from the current mm, or if we are
-  * in a kernel thread.
-  */
--static inline bool vma_is_foreign(struct vm_area_struct *vma)
--{
--	if (!current->mm)
--		return true;
--
--	/* if it is not our ->mm, it has to be foreign */
--	if (current->mm != vma->vm_mm)
--		return true;
--
--	return false;
--}
--
- bool arch_vma_access_permitted(struct vm_area_struct *vma, bool write,
- 			       bool execute, bool foreign)
- {
---- a/arch/x86/include/asm/mmu_context.h~mm-vma-make-vma_is_foreign-available-for-general-use
-+++ a/arch/x86/include/asm/mmu_context.h
-@@ -213,21 +213,6 @@ static inline void arch_unmap(struct mm_
-  * So do not enforce things if the VMA is not from the current
-  * mm, or if we are in a kernel thread.
-  */
--static inline bool vma_is_foreign(struct vm_area_struct *vma)
--{
--	if (!current->mm)
--		return true;
--	/*
--	 * Should PKRU be enforced on the access to this VMA?  If
--	 * the VMA is from another process, then PKRU has no
--	 * relevance and should not be enforced.
--	 */
--	if (current->mm != vma->vm_mm)
--		return true;
--
--	return false;
--}
--
- static inline bool arch_vma_access_permitted(struct vm_area_struct *vma,
- 		bool write, bool execute, bool foreign)
- {
---- a/include/linux/mm.h~mm-vma-make-vma_is_foreign-available-for-general-use
-+++ a/include/linux/mm.h
-@@ -27,6 +27,7 @@
- #include <linux/memremap.h>
- #include <linux/overflow.h>
- #include <linux/sizes.h>
-+#include <linux/sched.h>
+--- a/Documentation/core-api/mm-api.rst~mm-add-pagemaph-to-the-fine-documentation
++++ a/Documentation/core-api/mm-api.rst
+@@ -73,6 +73,9 @@ File Mapping and Page Cache
+ .. kernel-doc:: mm/truncate.c
+    :export:
  
- struct mempolicy;
- struct anon_vma;
-@@ -543,6 +544,16 @@ static inline bool vma_is_anonymous(stru
- 	return !vma->vm_ops;
++.. kernel-doc:: include/linux/pagemap.h
++   :internal:
++
+ Memory pools
+ ============
+ 
+--- a/include/linux/pagemap.h~mm-add-pagemaph-to-the-fine-documentation
++++ a/include/linux/pagemap.h
+@@ -33,8 +33,8 @@ enum mapping_flags {
+ 
+ /**
+  * mapping_set_error - record a writeback error in the address_space
+- * @mapping - the mapping in which an error should be set
+- * @error - the error to set in the mapping
++ * @mapping: the mapping in which an error should be set
++ * @error: the error to set in the mapping
+  *
+  * When writeback fails in some way, we must record that error so that
+  * userspace can be informed when fsync and the like are called.  We endeavor
+@@ -303,9 +303,9 @@ static inline struct page *find_lock_pag
+  * atomic allocation!
+  */
+ static inline struct page *find_or_create_page(struct address_space *mapping,
+-					pgoff_t offset, gfp_t gfp_mask)
++					pgoff_t index, gfp_t gfp_mask)
+ {
+-	return pagecache_get_page(mapping, offset,
++	return pagecache_get_page(mapping, index,
+ 					FGP_LOCK|FGP_ACCESSED|FGP_CREAT,
+ 					gfp_mask);
  }
- 
-+static inline bool vma_is_foreign(struct vm_area_struct *vma)
-+{
-+	if (!current->mm)
-+		return true;
-+
-+	if (current->mm != vma->vm_mm)
-+		return true;
-+
-+	return false;
-+}
- #ifdef CONFIG_SHMEM
- /*
-  * The vma_is_shmem is not inline because it is used only by slow
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-vma-add-missing-vma-flag-readable-name-for-vm_sync.patch
-mm-vma-make-vma_is_accessible-available-for-general-use.patch
-mm-vma-replace-all-remaining-open-encodings-with-is_vm_hugetlb_page.patch
-mm-vma-replace-all-remaining-open-encodings-with-vma_is_anonymous.patch
-mm-vma-append-unlikely-while-testing-vma-access-permissions.patch
-mm-vma-define-a-default-value-for-vm_data_default_flags.patch
-mm-vma-introduce-vm_access_flags.patch
-mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial.patch
-mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial-v3.patch
-mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+mm-optimise-find_subpage-for-thp.patch
+mm-remove-config_transparent_huge_pagecache.patch
+proc-inline-vma_stop-into-m_stop.patch
+proc-remove-m_cache_vma.patch
+proc-use-ppos-instead-of-m-version.patch
+seq_file-remove-m-version.patch
+proc-inline-m_next_vma-into-m_next.patch
