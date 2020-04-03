@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-clarify-__gfp_memalloc-usage-checkpatch-fixes.patch
- added to -mm tree
-Date: Fri, 03 Apr 2020 16:44:26 -0700
-Message-ID: <20200403234426.arOEP9uTb%akpm@linux-foundation.org>
+Subject: + ipc-shm-make-compat_ksys_shmctl-static.patch added to
+ -mm tree
+Date: Fri, 03 Apr 2020 16:45:55 -0700
+Message-ID: <20200403234555.CoFd1leUN%akpm@linux-foundation.org>
 References: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38856 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39016 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725268AbgDCXo2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 19:44:28 -0400
+        id S1725268AbgDCXp4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 19:45:56 -0400
 In-Reply-To: <20200401210155.09e3b9742e1c6e732f5a7250@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: hulkci@huawei.com, mm-commits@vger.kernel.org, yanaijie@huawei.com
 
 
 The patch titled
-     Subject: mm-clarify-__gfp_memalloc-usage-checkpatch-fixes
+     Subject: ipc/shm.c: make compat_ksys_shmctl() static
 has been added to the -mm tree.  Its filename is
-     mm-clarify-__gfp_memalloc-usage-checkpatch-fixes.patch
+     ipc-shm-make-compat_ksys_shmctl-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-clarify-__gfp_memalloc-usage-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-make-compat_ksys_shmctl-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clarify-__gfp_memalloc-usage-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-make-compat_ksys_shmctl-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,61 +38,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-clarify-__gfp_memalloc-usage-checkpatch-fixes
+From: Jason Yan <yanaijie@huawei.com>
+Subject: ipc/shm.c: make compat_ksys_shmctl() static
 
-WARNING: line over 80 characters
-#32: FILE: include/linux/gfp.h:114:
-+ * completely and implement a throttling mechanism which controls the consumption
+Fix the following sparse warning:
 
-total: 0 errors, 1 warnings, 9 lines checked
+ipc/shm.c:1335:6: warning: symbol 'compat_ksys_shmctl' was not declared.
+Should it be static?
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-clarify-__gfp_memalloc-usage.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20200403063933.24785-1-yanaijie@huawei.com
+Signed-off-by: Jason Yan <yanaijie@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/shm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/gfp.h~mm-clarify-__gfp_memalloc-usage-checkpatch-fixes
-+++ a/include/linux/gfp.h
-@@ -111,8 +111,8 @@ struct vm_area_struct;
-  * very shortly e.g. process exiting or swapping. Users either should
-  * be the MM or co-ordinating closely with the VM (e.g. swap over NFS).
-  * Users of this flag have to be extremely careful to not deplete the reserve
-- * completely and implement a throttling mechanism which controls the consumption
-- * of the reserve based on the amount of freed memory.
-+ * completely and implement a throttling mechanism which controls the
-+ * consumption of the reserve based on the amount of freed memory.
-  *
-  * %__GFP_NOMEMALLOC is used to explicitly forbid access to emergency reserves.
-  * This takes precedence over the %__GFP_MEMALLOC flag if both are set.
+--- a/ipc/shm.c~ipc-shm-make-compat_ksys_shmctl-static
++++ a/ipc/shm.c
+@@ -1332,7 +1332,7 @@ static int copy_compat_shmid_from_user(s
+ 	}
+ }
+ 
+-long compat_ksys_shmctl(int shmid, int cmd, void __user *uptr, int version)
++static long compat_ksys_shmctl(int shmid, int cmd, void __user *uptr, int version)
+ {
+ 	struct ipc_namespace *ns;
+ 	struct shmid64_ds sem64;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yanaijie@huawei.com are
 
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-mm-clarify-__gfp_memalloc-usage-checkpatch-fixes.patch
-mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
-mm-migratec-migrate-pg_readahead-flag-fix.patch
-hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
-proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-linux-next-git-rejects.patch
-mm-add-vm_insert_pages-fix.patch
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
-seq_read-info-message-about-buggy-next-functions-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+ipc-shm-make-compat_ksys_shmctl-static.patch
