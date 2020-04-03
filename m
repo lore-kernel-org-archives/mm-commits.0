@@ -1,558 +1,631 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations.patch
+ hugetlbfs-use-i_mmap_rwsem-for-more-pmd-sharing-synchronization.patch
  removed from -mm tree
-Date: Fri, 03 Apr 2020 13:40:31 -0700
-Message-ID: <20200403204031.g9nObj7bP%akpm@linux-foundation.org>
+Date: Fri, 03 Apr 2020 13:40:25 -0700
+Message-ID: <20200403204025.wkWkVPi7G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36566 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36472 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727835AbgDCUkd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:40:33 -0400
+        id S1727835AbgDCUk1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:40:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: almasrymina@google.com, gthelen@google.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rientjes@google.com, sandipan@linux.ibm.com, shakeelb@google.com, shuah@kernel.org
+To: aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dave@stgolabs.net, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, prakash.sangappa@oracle.com
 
 
 The patch titled
-     Subject: hugetlb_cgroup: add interface for charge/uncharge hugetlb reservations
+     Subject: hugetlbfs: use i_mmap_rwsem for more pmd sharing synchronization
 has been removed from the -mm tree.  Its filename was
-     hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations.patch
+     hugetlbfs-use-i_mmap_rwsem-for-more-pmd-sharing-synchronization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mina Almasry <almasrymina@google.com>
-Subject: hugetlb_cgroup: add interface for charge/uncharge hugetlb reservations
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlbfs: use i_mmap_rwsem for more pmd sharing synchronization
 
-Augments hugetlb_cgroup_charge_cgroup to be able to charge hugetlb usage
-or hugetlb reservation counter.
+Patch series "hugetlbfs: use i_mmap_rwsem for more synchronization", v2.
 
-Adds a new interface to uncharge a hugetlb_cgroup counter via
-hugetlb_cgroup_uncharge_counter.
+While discussing the issue with huge_pte_offset [1], I remembered that
+there were more outstanding hugetlb races.  These issues are:
 
-Integrates the counter with hugetlb_cgroup, via hugetlb_cgroup_init,
-hugetlb_cgroup_have_usage, and hugetlb_cgroup_css_offline.
+1) For shared pmds, huge PTE pointers returned by huge_pte_alloc can become
+   invalid via a call to huge_pmd_unshare by another thread.
+2) hugetlbfs page faults can race with truncation causing invalid global
+   reserve counts and state.
 
-Link: http://lkml.kernel.org/r/20200211213128.73302-2-almasrymina@google.com
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Sandipan Das <sandipan@linux.ibm.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+A previous attempt was made to use i_mmap_rwsem in this manner as
+described at [2].  However, those patches were reverted starting with [3]
+due to locking issues.
+
+To effectively use i_mmap_rwsem to address the above issues it needs to be
+held (in read mode) during page fault processing.  However, during fault
+processing we need to lock the page we will be adding.  Lock ordering
+requires we take page lock before i_mmap_rwsem.  Waiting until after
+taking the page lock is too late in the fault process for the
+synchronization we want to do.
+
+To address this lock ordering issue, the following patches change the lock
+ordering for hugetlb pages.  This is not too invasive as hugetlbfs
+processing is done separate from core mm in many places.  However, I don't
+really like this idea.  Much ugliness is contained in the new routine
+hugetlb_page_mapping_lock_write() of patch 1.
+
+The only other way I can think of to address these issues is by catching
+all the races.  After catching a race, cleanup, backout, retry ...  etc,
+as needed.  This can get really ugly, especially for huge page
+reservations.  At one time, I started writing some of the reservation
+backout code for page faults and it got so ugly and complicated I went
+down the path of adding synchronization to avoid the races.  Any other
+suggestions would be welcome.
+
+[1] https://lore.kernel.org/linux-mm/1582342427-230392-1-git-send-email-longpeng2@huawei.com/
+[2] https://lore.kernel.org/linux-mm/20181222223013.22193-1-mike.kravetz@oracle.com/
+[3] https://lore.kernel.org/linux-mm/20190103235452.29335-1-mike.kravetz@oracle.com
+[4] https://lore.kernel.org/linux-mm/1584028670.7365.182.camel@lca.pw/
+[5] https://lore.kernel.org/lkml/20200312183142.108df9ac@canb.auug.org.au/
+
+
+This patch (of 2):
+
+While looking at BUGs associated with invalid huge page map counts, it was
+discovered and observed that a huge pte pointer could become 'invalid' and
+point to another task's page table.  Consider the following:
+
+A task takes a page fault on a shared hugetlbfs file and calls
+huge_pte_alloc to get a ptep.  Suppose the returned ptep points to a
+shared pmd.
+
+Now, another task truncates the hugetlbfs file.  As part of truncation, it
+unmaps everyone who has the file mapped.  If the range being truncated is
+covered by a shared pmd, huge_pmd_unshare will be called.  For all but the
+last user of the shared pmd, huge_pmd_unshare will clear the pud pointing
+to the pmd.  If the task in the middle of the page fault is not the last
+user, the ptep returned by huge_pte_alloc now points to another task's
+page table or worse.  This leads to bad things such as incorrect page
+map/reference counts or invalid memory references.
+
+To fix, expand the use of i_mmap_rwsem as follows:
+- i_mmap_rwsem is held in read mode whenever huge_pmd_share is called.
+  huge_pmd_share is only called via huge_pte_alloc, so callers of
+  huge_pte_alloc take i_mmap_rwsem before calling.  In addition, callers
+  of huge_pte_alloc continue to hold the semaphore until finished with
+  the ptep.
+- i_mmap_rwsem is held in write mode whenever huge_pmd_unshare is called.
+
+One problem with this scheme is that it requires taking i_mmap_rwsem
+before taking the page lock during page faults.  This is not the order
+specified in the rest of mm code.  Handling of hugetlbfs pages is mostly
+isolated today.  Therefore, we use this alternative locking order for
+PageHuge() pages.
+
+         mapping->i_mmap_rwsem
+           hugetlb_fault_mutex (hugetlbfs specific page fault mutex)
+             page->flags PG_locked (lock_page)
+
+To help with lock ordering issues, hugetlb_page_mapping_lock_write() is
+introduced to write lock the i_mmap_rwsem associated with a page.
+
+In most cases it is easy to get address_space via vma->vm_file->f_mapping.
+However, in the case of migration or memory errors for anon pages we do
+not have an associated vma.  A new routine _get_hugetlb_page_mapping()
+will use anon_vma to get address_space in these cases.
+
+Link: http://lkml.kernel.org/r/20200316205756.146666-2-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Prakash Sangappa <prakash.sangappa@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb_cgroup.h |  123 ++++++++++++++++++---
- mm/hugetlb.c                   |    2 
- mm/hugetlb_cgroup.c            |  174 +++++++++++++++++++++++++------
- 3 files changed, 251 insertions(+), 48 deletions(-)
+ fs/hugetlbfs/inode.c    |    2 
+ include/linux/fs.h      |    5 +
+ include/linux/hugetlb.h |    8 +
+ mm/hugetlb.c            |  156 +++++++++++++++++++++++++++++++++++---
+ mm/memory-failure.c     |   29 ++++++-
+ mm/migrate.c            |   25 +++++-
+ mm/rmap.c               |   17 +++-
+ mm/userfaultfd.c        |   11 ++
+ 8 files changed, 234 insertions(+), 19 deletions(-)
 
---- a/include/linux/hugetlb_cgroup.h~hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -20,32 +20,64 @@
- struct hugetlb_cgroup;
- /*
-  * Minimum page order trackable by hugetlb cgroup.
-- * At least 3 pages are necessary for all the tracking information.
-+ * At least 4 pages are necessary for all the tracking information.
-+ * The second tail page (hpage[2]) is the fault usage cgroup.
-+ * The third tail page (hpage[3]) is the reservation usage cgroup.
-  */
- #define HUGETLB_CGROUP_MIN_ORDER	2
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-use-i_mmap_rwsem-for-more-pmd-sharing-synchronization
++++ a/fs/hugetlbfs/inode.c
+@@ -450,7 +450,9 @@ static void remove_inode_hugepages(struc
+ 			if (unlikely(page_mapped(page))) {
+ 				BUG_ON(truncate_op);
  
- #ifdef CONFIG_CGROUP_HUGETLB
- 
--static inline struct hugetlb_cgroup *hugetlb_cgroup_from_page(struct page *page)
-+static inline struct hugetlb_cgroup *
-+__hugetlb_cgroup_from_page(struct page *page, bool rsvd)
- {
- 	VM_BUG_ON_PAGE(!PageHuge(page), page);
- 
- 	if (compound_order(page) < HUGETLB_CGROUP_MIN_ORDER)
- 		return NULL;
--	return (struct hugetlb_cgroup *)page[2].private;
-+	if (rsvd)
-+		return (struct hugetlb_cgroup *)page[3].private;
-+	else
-+		return (struct hugetlb_cgroup *)page[2].private;
-+}
-+
-+static inline struct hugetlb_cgroup *hugetlb_cgroup_from_page(struct page *page)
-+{
-+	return __hugetlb_cgroup_from_page(page, false);
++				mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 				i_mmap_lock_write(mapping);
++				mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 				hugetlb_vmdelete_list(&mapping->i_mmap,
+ 					index * pages_per_huge_page(h),
+ 					(index + 1) * pages_per_huge_page(h));
+--- a/include/linux/fs.h~hugetlbfs-use-i_mmap_rwsem-for-more-pmd-sharing-synchronization
++++ a/include/linux/fs.h
+@@ -526,6 +526,11 @@ static inline void i_mmap_lock_write(str
+ 	down_write(&mapping->i_mmap_rwsem);
  }
  
--static inline
--int set_hugetlb_cgroup(struct page *page, struct hugetlb_cgroup *h_cg)
-+static inline struct hugetlb_cgroup *
-+hugetlb_cgroup_from_page_rsvd(struct page *page)
++static inline int i_mmap_trylock_write(struct address_space *mapping)
 +{
-+	return __hugetlb_cgroup_from_page(page, true);
++	return down_write_trylock(&mapping->i_mmap_rwsem);
 +}
 +
-+static inline int __set_hugetlb_cgroup(struct page *page,
-+				       struct hugetlb_cgroup *h_cg, bool rsvd)
+ static inline void i_mmap_unlock_write(struct address_space *mapping)
  {
- 	VM_BUG_ON_PAGE(!PageHuge(page), page);
+ 	up_write(&mapping->i_mmap_rwsem);
+--- a/include/linux/hugetlb.h~hugetlbfs-use-i_mmap_rwsem-for-more-pmd-sharing-synchronization
++++ a/include/linux/hugetlb.h
+@@ -109,6 +109,8 @@ u32 hugetlb_fault_mutex_hash(struct addr
  
- 	if (compound_order(page) < HUGETLB_CGROUP_MIN_ORDER)
- 		return -1;
--	page[2].private	= (unsigned long)h_cg;
-+	if (rsvd)
-+		page[3].private = (unsigned long)h_cg;
-+	else
-+		page[2].private = (unsigned long)h_cg;
+ pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud);
+ 
++struct address_space *hugetlb_page_mapping_lock_write(struct page *hpage);
++
+ extern int sysctl_hugetlb_shm_group;
+ extern struct list_head huge_boot_pages;
+ 
+@@ -151,6 +153,12 @@ static inline unsigned long hugetlb_tota
  	return 0;
  }
  
-+static inline int set_hugetlb_cgroup(struct page *page,
-+				     struct hugetlb_cgroup *h_cg)
-+{
-+	return __set_hugetlb_cgroup(page, h_cg, false);
-+}
-+
-+static inline int set_hugetlb_cgroup_rsvd(struct page *page,
-+					  struct hugetlb_cgroup *h_cg)
-+{
-+	return __set_hugetlb_cgroup(page, h_cg, true);
-+}
-+
- static inline bool hugetlb_cgroup_disabled(void)
- {
- 	return !cgroup_subsys_enabled(hugetlb_cgrp_subsys);
-@@ -53,13 +85,27 @@ static inline bool hugetlb_cgroup_disabl
- 
- extern int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
- 					struct hugetlb_cgroup **ptr);
-+extern int hugetlb_cgroup_charge_cgroup_rsvd(int idx, unsigned long nr_pages,
-+					     struct hugetlb_cgroup **ptr);
- extern void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
- 					 struct hugetlb_cgroup *h_cg,
- 					 struct page *page);
-+extern void hugetlb_cgroup_commit_charge_rsvd(int idx, unsigned long nr_pages,
-+					      struct hugetlb_cgroup *h_cg,
-+					      struct page *page);
- extern void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
- 					 struct page *page);
-+extern void hugetlb_cgroup_uncharge_page_rsvd(int idx, unsigned long nr_pages,
-+					      struct page *page);
-+
- extern void hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
- 					   struct hugetlb_cgroup *h_cg);
-+extern void hugetlb_cgroup_uncharge_cgroup_rsvd(int idx, unsigned long nr_pages,
-+						struct hugetlb_cgroup *h_cg);
-+extern void hugetlb_cgroup_uncharge_counter(struct page_counter *p,
-+					    unsigned long nr_pages,
-+					    struct cgroup_subsys_state *css);
-+
- extern void hugetlb_cgroup_file_init(void) __init;
- extern void hugetlb_cgroup_migrate(struct page *oldhpage,
- 				   struct page *newhpage);
-@@ -70,8 +116,26 @@ static inline struct hugetlb_cgroup *hug
- 	return NULL;
- }
- 
--static inline
--int set_hugetlb_cgroup(struct page *page, struct hugetlb_cgroup *h_cg)
-+static inline struct hugetlb_cgroup *
-+hugetlb_cgroup_from_page_resv(struct page *page)
++static inline struct address_space *hugetlb_page_mapping_lock_write(
++							struct page *hpage)
 +{
 +	return NULL;
 +}
 +
-+static inline struct hugetlb_cgroup *
-+hugetlb_cgroup_from_page_rsvd(struct page *page)
-+{
-+	return NULL;
-+}
-+
-+static inline int set_hugetlb_cgroup(struct page *page,
-+				     struct hugetlb_cgroup *h_cg)
-+{
-+	return 0;
-+}
-+
-+static inline int set_hugetlb_cgroup_rsvd(struct page *page,
-+					  struct hugetlb_cgroup *h_cg)
+ static inline int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr,
+ 					pte_t *ptep)
  {
- 	return 0;
- }
-@@ -81,28 +145,51 @@ static inline bool hugetlb_cgroup_disabl
- 	return true;
- }
- 
--static inline int
--hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
--			     struct hugetlb_cgroup **ptr)
-+static inline int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
-+					       struct hugetlb_cgroup **ptr)
- {
- 	return 0;
- }
- 
--static inline void
--hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
--			     struct hugetlb_cgroup *h_cg,
--			     struct page *page)
-+static inline int hugetlb_cgroup_charge_cgroup_rsvd(int idx,
-+						    unsigned long nr_pages,
-+						    struct hugetlb_cgroup **ptr)
-+{
-+	return 0;
-+}
-+
-+static inline void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
-+						struct hugetlb_cgroup *h_cg,
-+						struct page *page)
- {
- }
- 
- static inline void
--hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages, struct page *page)
-+hugetlb_cgroup_commit_charge_rsvd(int idx, unsigned long nr_pages,
-+				  struct hugetlb_cgroup *h_cg,
-+				  struct page *page)
-+{
-+}
-+
-+static inline void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
-+						struct page *page)
-+{
-+}
-+
-+static inline void hugetlb_cgroup_uncharge_page_rsvd(int idx,
-+						     unsigned long nr_pages,
-+						     struct page *page)
-+{
-+}
-+static inline void hugetlb_cgroup_uncharge_cgroup(int idx,
-+						  unsigned long nr_pages,
-+						  struct hugetlb_cgroup *h_cg)
- {
- }
- 
- static inline void
--hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
--			       struct hugetlb_cgroup *h_cg)
-+hugetlb_cgroup_uncharge_cgroup_rsvd(int idx, unsigned long nr_pages,
-+				    struct hugetlb_cgroup *h_cg)
- {
- }
- 
---- a/mm/hugetlb.c~hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations
+--- a/mm/hugetlb.c~hugetlbfs-use-i_mmap_rwsem-for-more-pmd-sharing-synchronization
 +++ a/mm/hugetlb.c
-@@ -1072,6 +1072,7 @@ static void update_and_free_page(struct
- 				1 << PG_writeback);
- 	}
- 	VM_BUG_ON_PAGE(hugetlb_cgroup_from_page(page), page);
-+	VM_BUG_ON_PAGE(hugetlb_cgroup_from_page_rsvd(page), page);
- 	set_compound_page_dtor(page, NULL_COMPOUND_DTOR);
- 	set_page_refcounted(page);
- 	if (hstate_is_gigantic(h)) {
-@@ -1257,6 +1258,7 @@ static void prep_new_huge_page(struct hs
- 	set_compound_page_dtor(page, HUGETLB_PAGE_DTOR);
- 	spin_lock(&hugetlb_lock);
- 	set_hugetlb_cgroup(page, NULL);
-+	set_hugetlb_cgroup_rsvd(page, NULL);
- 	h->nr_huge_pages++;
- 	h->nr_huge_pages_node[nid]++;
- 	spin_unlock(&hugetlb_lock);
---- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations
-+++ a/mm/hugetlb_cgroup.c
-@@ -61,14 +61,26 @@ struct hugetlb_cgroup {
- static struct hugetlb_cgroup *root_h_cgroup __read_mostly;
- 
- static inline struct page_counter *
--hugetlb_cgroup_counter_from_cgroup(struct hugetlb_cgroup *h_cg, int idx,
--				   bool rsvd)
-+__hugetlb_cgroup_counter_from_cgroup(struct hugetlb_cgroup *h_cg, int idx,
-+				     bool rsvd)
- {
- 	if (rsvd)
- 		return &h_cg->rsvd_hugepage[idx];
- 	return &h_cg->hugepage[idx];
+@@ -1322,6 +1322,106 @@ int PageHeadHuge(struct page *page_head)
+ 	return get_compound_page_dtor(page_head) == free_huge_page;
  }
  
-+static inline struct page_counter *
-+hugetlb_cgroup_counter_from_cgroup(struct hugetlb_cgroup *h_cg, int idx)
++/*
++ * Find address_space associated with hugetlbfs page.
++ * Upon entry page is locked and page 'was' mapped although mapped state
++ * could change.  If necessary, use anon_vma to find vma and associated
++ * address space.  The returned mapping may be stale, but it can not be
++ * invalid as page lock (which is held) is required to destroy mapping.
++ */
++static struct address_space *_get_hugetlb_page_mapping(struct page *hpage)
 +{
-+	return __hugetlb_cgroup_counter_from_cgroup(h_cg, idx, false);
-+}
++	struct anon_vma *anon_vma;
++	pgoff_t pgoff_start, pgoff_end;
++	struct anon_vma_chain *avc;
++	struct address_space *mapping = page_mapping(hpage);
 +
-+static inline struct page_counter *
-+hugetlb_cgroup_counter_from_cgroup_rsvd(struct hugetlb_cgroup *h_cg, int idx)
-+{
-+	return __hugetlb_cgroup_counter_from_cgroup(h_cg, idx, true);
-+}
++	/* Simple file based mapping */
++	if (mapping)
++		return mapping;
 +
- static inline
- struct hugetlb_cgroup *hugetlb_cgroup_from_css(struct cgroup_subsys_state *s)
- {
-@@ -97,8 +109,12 @@ static inline bool hugetlb_cgroup_have_u
- 	int idx;
- 
- 	for (idx = 0; idx < hugetlb_max_hstate; idx++) {
--		if (page_counter_read(&h_cg->hugepage[idx]))
-+		if (page_counter_read(
-+			    hugetlb_cgroup_counter_from_cgroup(h_cg, idx)) ||
-+		    page_counter_read(hugetlb_cgroup_counter_from_cgroup_rsvd(
-+			    h_cg, idx))) {
- 			return true;
-+		}
- 	}
- 	return false;
- }
-@@ -109,18 +125,34 @@ static void hugetlb_cgroup_init(struct h
- 	int idx;
- 
- 	for (idx = 0; idx < HUGE_MAX_HSTATE; idx++) {
--		struct page_counter *counter = &h_cgroup->hugepage[idx];
--		struct page_counter *parent = NULL;
-+		struct page_counter *fault_parent = NULL;
-+		struct page_counter *rsvd_parent = NULL;
- 		unsigned long limit;
- 		int ret;
- 
--		if (parent_h_cgroup)
--			parent = &parent_h_cgroup->hugepage[idx];
--		page_counter_init(counter, parent);
-+		if (parent_h_cgroup) {
-+			fault_parent = hugetlb_cgroup_counter_from_cgroup(
-+				parent_h_cgroup, idx);
-+			rsvd_parent = hugetlb_cgroup_counter_from_cgroup_rsvd(
-+				parent_h_cgroup, idx);
-+		}
-+		page_counter_init(hugetlb_cgroup_counter_from_cgroup(h_cgroup,
-+								     idx),
-+				  fault_parent);
-+		page_counter_init(
-+			hugetlb_cgroup_counter_from_cgroup_rsvd(h_cgroup, idx),
-+			rsvd_parent);
- 
- 		limit = round_down(PAGE_COUNTER_MAX,
- 				   1 << huge_page_order(&hstates[idx]));
--		ret = page_counter_set_max(counter, limit);
-+
-+		ret = page_counter_set_max(
-+			hugetlb_cgroup_counter_from_cgroup(h_cgroup, idx),
-+			limit);
-+		VM_BUG_ON(ret);
-+		ret = page_counter_set_max(
-+			hugetlb_cgroup_counter_from_cgroup_rsvd(h_cgroup, idx),
-+			limit);
- 		VM_BUG_ON(ret);
- 	}
- }
-@@ -150,7 +182,6 @@ static void hugetlb_cgroup_css_free(stru
- 	kfree(h_cgroup);
- }
- 
--
- /*
-  * Should be called with hugetlb_lock held.
-  * Since we are holding hugetlb_lock, pages cannot get moved from
-@@ -227,8 +258,9 @@ static inline void hugetlb_event(struct
- 		 !hugetlb_cgroup_is_root(hugetlb));
- }
- 
--int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
--				 struct hugetlb_cgroup **ptr)
-+static int __hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
-+					  struct hugetlb_cgroup **ptr,
-+					  bool rsvd)
- {
- 	int ret = 0;
- 	struct page_counter *counter;
-@@ -251,50 +283,103 @@ again:
- 	}
- 	rcu_read_unlock();
- 
--	if (!page_counter_try_charge(&h_cg->hugepage[idx], nr_pages,
--				     &counter)) {
-+	if (!page_counter_try_charge(
-+		    __hugetlb_cgroup_counter_from_cgroup(h_cg, idx, rsvd),
-+		    nr_pages, &counter)) {
- 		ret = -ENOMEM;
- 		hugetlb_event(h_cg, idx, HUGETLB_MAX);
-+		css_put(&h_cg->css);
-+		goto done;
- 	}
--	css_put(&h_cg->css);
-+	/* Reservations take a reference to the css because they do not get
-+	 * reparented.
++	/*
++	 * Even anonymous hugetlbfs mappings are associated with an
++	 * underlying hugetlbfs file (see hugetlb_file_setup in mmap
++	 * code).  Find a vma associated with the anonymous vma, and
++	 * use the file pointer to get address_space.
 +	 */
-+	if (!rsvd)
-+		css_put(&h_cg->css);
- done:
- 	*ptr = h_cg;
++	anon_vma = page_lock_anon_vma_read(hpage);
++	if (!anon_vma)
++		return mapping;  /* NULL */
++
++	/* Use first found vma */
++	pgoff_start = page_to_pgoff(hpage);
++	pgoff_end = pgoff_start + hpage_nr_pages(hpage) - 1;
++	anon_vma_interval_tree_foreach(avc, &anon_vma->rb_root,
++					pgoff_start, pgoff_end) {
++		struct vm_area_struct *vma = avc->vma;
++
++		mapping = vma->vm_file->f_mapping;
++		break;
++	}
++
++	anon_vma_unlock_read(anon_vma);
++	return mapping;
++}
++
++/*
++ * Find and lock address space (mapping) in write mode.
++ *
++ * Upon entry, the page is locked which allows us to find the mapping
++ * even in the case of an anon page.  However, locking order dictates
++ * the i_mmap_rwsem be acquired BEFORE the page lock.  This is hugetlbfs
++ * specific.  So, we first try to lock the sema while still holding the
++ * page lock.  If this works, great!  If not, then we need to drop the
++ * page lock and then acquire i_mmap_rwsem and reacquire page lock.  Of
++ * course, need to revalidate state along the way.
++ */
++struct address_space *hugetlb_page_mapping_lock_write(struct page *hpage)
++{
++	struct address_space *mapping, *mapping2;
++
++	mapping = _get_hugetlb_page_mapping(hpage);
++retry:
++	if (!mapping)
++		return mapping;
++
++	/*
++	 * If no contention, take lock and return
++	 */
++	if (i_mmap_trylock_write(mapping))
++		return mapping;
++
++	/*
++	 * Must drop page lock and wait on mapping sema.
++	 * Note:  Once page lock is dropped, mapping could become invalid.
++	 * As a hack, increase map count until we lock page again.
++	 */
++	atomic_inc(&hpage->_mapcount);
++	unlock_page(hpage);
++	i_mmap_lock_write(mapping);
++	lock_page(hpage);
++	atomic_add_negative(-1, &hpage->_mapcount);
++
++	/* verify page is still mapped */
++	if (!page_mapped(hpage)) {
++		i_mmap_unlock_write(mapping);
++		return NULL;
++	}
++
++	/*
++	 * Get address space again and verify it is the same one
++	 * we locked.  If not, drop lock and retry.
++	 */
++	mapping2 = _get_hugetlb_page_mapping(hpage);
++	if (mapping2 != mapping) {
++		i_mmap_unlock_write(mapping);
++		mapping = mapping2;
++		goto retry;
++	}
++
++	return mapping;
++}
++
+ pgoff_t __basepage_index(struct page *page)
+ {
+ 	struct page *page_head = compound_head(page);
+@@ -3312,6 +3412,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 	int cow;
+ 	struct hstate *h = hstate_vma(vma);
+ 	unsigned long sz = huge_page_size(h);
++	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	struct mmu_notifier_range range;
+ 	int ret = 0;
+ 
+@@ -3322,6 +3423,14 @@ int copy_hugetlb_page_range(struct mm_st
+ 					vma->vm_start,
+ 					vma->vm_end);
+ 		mmu_notifier_invalidate_range_start(&range);
++	} else {
++		/*
++		 * For shared mappings i_mmap_rwsem must be held to call
++		 * huge_pte_alloc, otherwise the returned ptep could go
++		 * away if part of a shared pmd and another thread calls
++		 * huge_pmd_unshare.
++		 */
++		i_mmap_lock_read(mapping);
+ 	}
+ 
+ 	for (addr = vma->vm_start; addr < vma->vm_end; addr += sz) {
+@@ -3399,6 +3508,8 @@ int copy_hugetlb_page_range(struct mm_st
+ 
+ 	if (cow)
+ 		mmu_notifier_invalidate_range_end(&range);
++	else
++		i_mmap_unlock_read(mapping);
+ 
  	return ret;
  }
+@@ -3847,13 +3958,15 @@ retry:
+ 			};
  
-+int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
-+				 struct hugetlb_cgroup **ptr)
-+{
-+	return __hugetlb_cgroup_charge_cgroup(idx, nr_pages, ptr, false);
-+}
-+
-+int hugetlb_cgroup_charge_cgroup_rsvd(int idx, unsigned long nr_pages,
-+				      struct hugetlb_cgroup **ptr)
-+{
-+	return __hugetlb_cgroup_charge_cgroup(idx, nr_pages, ptr, true);
-+}
-+
- /* Should be called with hugetlb_lock held */
--void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
--				  struct hugetlb_cgroup *h_cg,
--				  struct page *page)
-+static void __hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
-+					   struct hugetlb_cgroup *h_cg,
-+					   struct page *page, bool rsvd)
- {
- 	if (hugetlb_cgroup_disabled() || !h_cg)
- 		return;
+ 			/*
+-			 * hugetlb_fault_mutex must be dropped before
+-			 * handling userfault.  Reacquire after handling
+-			 * fault to make calling code simpler.
++			 * hugetlb_fault_mutex and i_mmap_rwsem must be
++			 * dropped before handling userfault.  Reacquire
++			 * after handling fault to make calling code simpler.
+ 			 */
+ 			hash = hugetlb_fault_mutex_hash(mapping, idx);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
++			i_mmap_unlock_read(mapping);
+ 			ret = handle_userfault(&vmf, VM_UFFD_MISSING);
++			i_mmap_lock_read(mapping);
+ 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 			goto out;
+ 		}
+@@ -4018,6 +4131,11 @@ vm_fault_t hugetlb_fault(struct mm_struc
  
--	set_hugetlb_cgroup(page, h_cg);
-+	__set_hugetlb_cgroup(page, h_cg, rsvd);
- 	return;
- }
+ 	ptep = huge_pte_offset(mm, haddr, huge_page_size(h));
+ 	if (ptep) {
++		/*
++		 * Since we hold no locks, ptep could be stale.  That is
++		 * OK as we are only making decisions based on content and
++		 * not actually modifying content here.
++		 */
+ 		entry = huge_ptep_get(ptep);
+ 		if (unlikely(is_hugetlb_entry_migration(entry))) {
+ 			migration_entry_wait_huge(vma, mm, ptep);
+@@ -4031,14 +4149,29 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 			return VM_FAULT_OOM;
+ 	}
  
-+void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
-+				  struct hugetlb_cgroup *h_cg,
-+				  struct page *page)
-+{
-+	__hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, page, false);
-+}
-+
-+void hugetlb_cgroup_commit_charge_rsvd(int idx, unsigned long nr_pages,
-+				       struct hugetlb_cgroup *h_cg,
-+				       struct page *page)
-+{
-+	__hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, page, true);
-+}
-+
- /*
-  * Should be called with hugetlb_lock held
++	/*
++	 * Acquire i_mmap_rwsem before calling huge_pte_alloc and hold
++	 * until finished with ptep.  This prevents huge_pmd_unshare from
++	 * being called elsewhere and making the ptep no longer valid.
++	 *
++	 * ptep could have already be assigned via huge_pte_offset.  That
++	 * is OK, as huge_pte_alloc will return the same value unless
++	 * something has changed.
++	 */
+ 	mapping = vma->vm_file->f_mapping;
+-	idx = vma_hugecache_offset(h, vma, haddr);
++	i_mmap_lock_read(mapping);
++	ptep = huge_pte_alloc(mm, haddr, huge_page_size(h));
++	if (!ptep) {
++		i_mmap_unlock_read(mapping);
++		return VM_FAULT_OOM;
++	}
+ 
+ 	/*
+ 	 * Serialize hugepage allocation and instantiation, so that we don't
+ 	 * get spurious allocation failures if two CPUs race to instantiate
+ 	 * the same page in the page cache.
+ 	 */
++	idx = vma_hugecache_offset(h, vma, haddr);
+ 	hash = hugetlb_fault_mutex_hash(mapping, idx);
+ 	mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 
+@@ -4126,6 +4259,7 @@ out_ptl:
+ 	}
+ out_mutex:
+ 	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
++	i_mmap_unlock_read(mapping);
+ 	/*
+ 	 * Generally it's safe to hold refcount during waiting page lock. But
+ 	 * here we just wait to defer the next page fault to avoid busy loop and
+@@ -4776,10 +4910,12 @@ void adjust_range_if_pmd_sharing_possibl
+  * Search for a shareable pmd page for hugetlb. In any case calls pmd_alloc()
+  * and returns the corresponding pte. While this is not necessary for the
+  * !shared pmd case because we can allocate the pmd later as well, it makes the
+- * code much cleaner. pmd allocation is essential for the shared case because
+- * pud has to be populated inside the same i_mmap_rwsem section - otherwise
+- * racing tasks could either miss the sharing (see huge_pte_offset) or select a
+- * bad pmd for sharing.
++ * code much cleaner.
++ *
++ * This routine must be called with i_mmap_rwsem held in at least read mode.
++ * For hugetlbfs, this prevents removal of any page table entries associated
++ * with the address space.  This is important as we are setting up sharing
++ * based on existing page table entries (mappings).
   */
--void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
--				  struct page *page)
-+static void __hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
-+					   struct page *page, bool rsvd)
+ pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud)
  {
- 	struct hugetlb_cgroup *h_cg;
+@@ -4796,7 +4932,6 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 	if (!vma_shareable(vma, addr))
+ 		return (pte_t *)pmd_alloc(mm, pud, addr);
  
- 	if (hugetlb_cgroup_disabled())
- 		return;
- 	lockdep_assert_held(&hugetlb_lock);
--	h_cg = hugetlb_cgroup_from_page(page);
-+	h_cg = __hugetlb_cgroup_from_page(page, rsvd);
- 	if (unlikely(!h_cg))
- 		return;
--	set_hugetlb_cgroup(page, NULL);
--	page_counter_uncharge(&h_cg->hugepage[idx], nr_pages);
-+	__set_hugetlb_cgroup(page, NULL, rsvd);
-+
-+	page_counter_uncharge(__hugetlb_cgroup_counter_from_cgroup(h_cg, idx,
-+								   rsvd),
-+			      nr_pages);
-+
-+	if (rsvd)
-+		css_put(&h_cg->css);
-+
- 	return;
+-	i_mmap_lock_read(mapping);
+ 	vma_interval_tree_foreach(svma, &mapping->i_mmap, idx, idx) {
+ 		if (svma == vma)
+ 			continue;
+@@ -4826,7 +4961,6 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 	spin_unlock(ptl);
+ out:
+ 	pte = (pte_t *)pmd_alloc(mm, pud, addr);
+-	i_mmap_unlock_read(mapping);
+ 	return pte;
  }
  
--void hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
--				    struct hugetlb_cgroup *h_cg)
-+void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
-+				  struct page *page)
-+{
-+	__hugetlb_cgroup_uncharge_page(idx, nr_pages, page, false);
-+}
-+
-+void hugetlb_cgroup_uncharge_page_rsvd(int idx, unsigned long nr_pages,
-+				       struct page *page)
-+{
-+	__hugetlb_cgroup_uncharge_page(idx, nr_pages, page, true);
-+}
-+
-+static void __hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
-+					     struct hugetlb_cgroup *h_cg,
-+					     bool rsvd)
- {
- 	if (hugetlb_cgroup_disabled() || !h_cg)
- 		return;
-@@ -302,8 +387,35 @@ void hugetlb_cgroup_uncharge_cgroup(int
- 	if (huge_page_order(&hstates[idx]) < HUGETLB_CGROUP_MIN_ORDER)
- 		return;
+@@ -4837,7 +4971,7 @@ out:
+  * indicated by page_count > 1, unmap is achieved by clearing pud and
+  * decrementing the ref count. If count == 1, the pte page is not shared.
+  *
+- * called with page table lock held.
++ * Called with page table lock held and i_mmap_rwsem held in write mode.
+  *
+  * returns: 1 successfully unmapped a shared pte page
+  *	    0 the underlying pte page is not shared, or it is the last user
+--- a/mm/memory-failure.c~hugetlbfs-use-i_mmap_rwsem-for-more-pmd-sharing-synchronization
++++ a/mm/memory-failure.c
+@@ -954,7 +954,7 @@ static bool hwpoison_user_mappings(struc
+ 	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
+ 	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
+-	bool unmap_success;
++	bool unmap_success = true;
+ 	int kill = 1, forcekill;
+ 	struct page *hpage = *hpagep;
+ 	bool mlocked = PageMlocked(hpage);
+@@ -1016,7 +1016,32 @@ static bool hwpoison_user_mappings(struc
+ 	if (kill)
+ 		collect_procs(hpage, &tokill, flags & MF_ACTION_REQUIRED);
  
--	page_counter_uncharge(&h_cg->hugepage[idx], nr_pages);
--	return;
-+	page_counter_uncharge(__hugetlb_cgroup_counter_from_cgroup(h_cg, idx,
-+								   rsvd),
-+			      nr_pages);
+-	unmap_success = try_to_unmap(hpage, ttu);
++	if (!PageHuge(hpage)) {
++		unmap_success = try_to_unmap(hpage, ttu);
++	} else {
++		/*
++		 * For hugetlb pages, try_to_unmap could potentially call
++		 * huge_pmd_unshare.  Because of this, take semaphore in
++		 * write mode here and set TTU_RMAP_LOCKED to indicate we
++		 * have taken the lock at this higer level.
++		 *
++		 * Note that the call to hugetlb_page_mapping_lock_write
++		 * is necessary even if mapping is already set.  It handles
++		 * ugliness of potentially having to drop page lock to obtain
++		 * i_mmap_rwsem.
++		 */
++		mapping = hugetlb_page_mapping_lock_write(hpage);
 +
-+	if (rsvd)
-+		css_put(&h_cg->css);
-+}
-+
-+void hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
-+				    struct hugetlb_cgroup *h_cg)
-+{
-+	__hugetlb_cgroup_uncharge_cgroup(idx, nr_pages, h_cg, false);
-+}
-+
-+void hugetlb_cgroup_uncharge_cgroup_rsvd(int idx, unsigned long nr_pages,
-+					 struct hugetlb_cgroup *h_cg)
-+{
-+	__hugetlb_cgroup_uncharge_cgroup(idx, nr_pages, h_cg, true);
-+}
-+
-+void hugetlb_cgroup_uncharge_counter(struct page_counter *p,
-+				     unsigned long nr_pages,
-+				     struct cgroup_subsys_state *css)
-+{
-+	if (hugetlb_cgroup_disabled() || !p || !css)
-+		return;
-+
-+	page_counter_uncharge(p, nr_pages);
-+	css_put(css);
- }
++		if (mapping) {
++			unmap_success = try_to_unmap(hpage,
++						     ttu|TTU_RMAP_LOCKED);
++			i_mmap_unlock_write(mapping);
++		} else {
++			pr_info("Memory failure: %#lx: could not find mapping for mapped huge page\n",
++				pfn);
++			unmap_success = false;
++		}
++	}
+ 	if (!unmap_success)
+ 		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
+ 		       pfn, page_mapcount(hpage));
+--- a/mm/migrate.c~hugetlbfs-use-i_mmap_rwsem-for-more-pmd-sharing-synchronization
++++ a/mm/migrate.c
+@@ -1282,6 +1282,7 @@ static int unmap_and_move_huge_page(new_
+ 	int page_was_mapped = 0;
+ 	struct page *new_hpage;
+ 	struct anon_vma *anon_vma = NULL;
++	struct address_space *mapping = NULL;
  
- enum {
-@@ -418,7 +530,7 @@ static ssize_t hugetlb_cgroup_write(stru
- 	case RES_LIMIT:
- 		mutex_lock(&hugetlb_limit_mutex);
- 		ret = page_counter_set_max(
--			hugetlb_cgroup_counter_from_cgroup(h_cg, idx, rsvd),
-+			__hugetlb_cgroup_counter_from_cgroup(h_cg, idx, rsvd),
- 			nr_pages);
- 		mutex_unlock(&hugetlb_limit_mutex);
- 		break;
-@@ -674,6 +786,7 @@ void __init hugetlb_cgroup_file_init(voi
- void hugetlb_cgroup_migrate(struct page *oldhpage, struct page *newhpage)
- {
- 	struct hugetlb_cgroup *h_cg;
-+	struct hugetlb_cgroup *h_cg_rsvd;
- 	struct hstate *h = page_hstate(oldhpage);
+ 	/*
+ 	 * Migratability of hugepages depends on architectures and their size.
+@@ -1329,18 +1330,36 @@ static int unmap_and_move_huge_page(new_
+ 		goto put_anon;
  
- 	if (hugetlb_cgroup_disabled())
-@@ -682,10 +795,11 @@ void hugetlb_cgroup_migrate(struct page
- 	VM_BUG_ON_PAGE(!PageHuge(oldhpage), oldhpage);
- 	spin_lock(&hugetlb_lock);
- 	h_cg = hugetlb_cgroup_from_page(oldhpage);
-+	h_cg_rsvd = hugetlb_cgroup_from_page_rsvd(oldhpage);
- 	set_hugetlb_cgroup(oldhpage, NULL);
+ 	if (page_mapped(hpage)) {
++		/*
++		 * try_to_unmap could potentially call huge_pmd_unshare.
++		 * Because of this, take semaphore in write mode here and
++		 * set TTU_RMAP_LOCKED to let lower levels know we have
++		 * taken the lock.
++		 */
++		mapping = hugetlb_page_mapping_lock_write(hpage);
++		if (unlikely(!mapping))
++			goto unlock_put_anon;
++
+ 		try_to_unmap(hpage,
+-			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
++			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS|
++			TTU_RMAP_LOCKED);
+ 		page_was_mapped = 1;
++		/*
++		 * Leave mapping locked until after subsequent call to
++		 * remove_migration_ptes()
++		 */
+ 	}
  
- 	/* move the h_cg details to new cgroup */
--	set_hugetlb_cgroup(newhpage, h_cg);
-+	set_hugetlb_cgroup_rsvd(newhpage, h_cg_rsvd);
- 	list_move(&newhpage->lru, &h->hugepage_activelist);
- 	spin_unlock(&hugetlb_lock);
- 	return;
+ 	if (!page_mapped(hpage))
+ 		rc = move_to_new_page(new_hpage, hpage, mode);
+ 
+-	if (page_was_mapped)
++	if (page_was_mapped) {
+ 		remove_migration_ptes(hpage,
+-			rc == MIGRATEPAGE_SUCCESS ? new_hpage : hpage, false);
++			rc == MIGRATEPAGE_SUCCESS ? new_hpage : hpage, true);
++		i_mmap_unlock_write(mapping);
++	}
+ 
++unlock_put_anon:
+ 	unlock_page(new_hpage);
+ 
+ put_anon:
+--- a/mm/rmap.c~hugetlbfs-use-i_mmap_rwsem-for-more-pmd-sharing-synchronization
++++ a/mm/rmap.c
+@@ -22,9 +22,10 @@
+  *
+  * inode->i_mutex	(while writing or truncating, not reading or faulting)
+  *   mm->mmap_sem
+- *     page->flags PG_locked (lock_page)
++ *     page->flags PG_locked (lock_page)   * (see huegtlbfs below)
+  *       hugetlbfs_i_mmap_rwsem_key (in huge_pmd_share)
+  *         mapping->i_mmap_rwsem
++ *           hugetlb_fault_mutex (hugetlbfs specific page fault mutex)
+  *           anon_vma->rwsem
+  *             mm->page_table_lock or pte_lock
+  *               pgdat->lru_lock (in mark_page_accessed, isolate_lru_page)
+@@ -43,6 +44,11 @@
+  * anon_vma->rwsem,mapping->i_mutex      (memory_failure, collect_procs_anon)
+  *   ->tasklist_lock
+  *     pte map lock
++ *
++ * * hugetlbfs PageHuge() pages take locks in this order:
++ *         mapping->i_mmap_rwsem
++ *           hugetlb_fault_mutex (hugetlbfs specific page fault mutex)
++ *             page->flags PG_locked (lock_page)
+  */
+ 
+ #include <linux/mm.h>
+@@ -1409,6 +1415,9 @@ static bool try_to_unmap_one(struct page
+ 		/*
+ 		 * If sharing is possible, start and end will be adjusted
+ 		 * accordingly.
++		 *
++		 * If called for a huge page, caller must hold i_mmap_rwsem
++		 * in write mode as it is possible to call huge_pmd_unshare.
+ 		 */
+ 		adjust_range_if_pmd_sharing_possible(vma, &range.start,
+ 						     &range.end);
+@@ -1456,6 +1465,12 @@ static bool try_to_unmap_one(struct page
+ 		address = pvmw.address;
+ 
+ 		if (PageHuge(page)) {
++			/*
++			 * To call huge_pmd_unshare, i_mmap_rwsem must be
++			 * held in write mode.  Caller needs to explicitly
++			 * do this outside rmap routines.
++			 */
++			VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
+ 			if (huge_pmd_unshare(mm, &address, pvmw.pte)) {
+ 				/*
+ 				 * huge_pmd_unshare unmapped an entire PMD
+--- a/mm/userfaultfd.c~hugetlbfs-use-i_mmap_rwsem-for-more-pmd-sharing-synchronization
++++ a/mm/userfaultfd.c
+@@ -276,10 +276,14 @@ retry:
+ 		BUG_ON(dst_addr >= dst_start + len);
+ 
+ 		/*
+-		 * Serialize via hugetlb_fault_mutex
++		 * Serialize via i_mmap_rwsem and hugetlb_fault_mutex.
++		 * i_mmap_rwsem ensures the dst_pte remains valid even
++		 * in the case of shared pmds.  fault mutex prevents
++		 * races with other faulting threads.
+ 		 */
+-		idx = linear_page_index(dst_vma, dst_addr);
+ 		mapping = dst_vma->vm_file->f_mapping;
++		i_mmap_lock_read(mapping);
++		idx = linear_page_index(dst_vma, dst_addr);
+ 		hash = hugetlb_fault_mutex_hash(mapping, idx);
+ 		mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 
+@@ -287,6 +291,7 @@ retry:
+ 		dst_pte = huge_pte_alloc(dst_mm, dst_addr, vma_hpagesize);
+ 		if (!dst_pte) {
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
++			i_mmap_unlock_read(mapping);
+ 			goto out_unlock;
+ 		}
+ 
+@@ -294,6 +299,7 @@ retry:
+ 		dst_pteval = huge_ptep_get(dst_pte);
+ 		if (!huge_pte_none(dst_pteval)) {
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
++			i_mmap_unlock_read(mapping);
+ 			goto out_unlock;
+ 		}
+ 
+@@ -301,6 +307,7 @@ retry:
+ 						dst_addr, src_addr, &page);
+ 
+ 		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
++		i_mmap_unlock_read(mapping);
+ 		vm_alloc_shared = vm_shared;
+ 
+ 		cond_resched();
 _
 
-Patches currently in -mm which might be from almasrymina@google.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
