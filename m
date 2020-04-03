@@ -1,94 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-remove-unused-macros.patch removed from
- -mm tree
-Date: Fri, 03 Apr 2020 13:35:02 -0700
-Message-ID: <20200403203502.eJcnjvubQ%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-use-ocfs2_sec_bits-in-macro.patch removed
+ from -mm tree
+Date: Fri, 03 Apr 2020 13:35:05 -0700
+Message-ID: <20200403203505.hxUeK-ZHI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57692 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57734 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUfD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:35:03 -0400
+        id S1726368AbgDCUfG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:35:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.shi@linux.alibaba.com, cg.chen@huawei.com, gechangwei@live.cn, ghe@suse.com, gregkh@linuxfoundation.org, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, rfontana@redhat.com, tglx@linutronix.de
+To: alex.shi@linux.alibaba.com, gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
 
 
 The patch titled
-     Subject: ocfs2: remove unused macros
+     Subject: ocfs2: use OCFS2_SEC_BITS in macro
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-unused-macros.patch
+     ocfs2-use-ocfs2_sec_bits-in-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: ocfs2: remove unused macros
+Subject: ocfs2: use OCFS2_SEC_BITS in macro
 
-O2HB_DEFAULT_BLOCK_BITS/DLM_THREAD_MAX_ASTS/DLM_MIGRATION_RETRY_MS and
-OCFS2_MAX_RESV_WINDOW_BITS/OCFS2_MIN_RESV_WINDOW_BITS have been unused
-since commit 66effd3c6812 ("ocfs2/dlm: Do not migrate resource to a node
-that is leaving the domain").
+This macro should be used.
 
-Link: http://lkml.kernel.org/r/1579577827-251796-1-git-send-email-alex.shi@linux.alibaba.com
+Link: http://lkml.kernel.org/r/1579577840-251956-1-git-send-email-alex.shi@linux.alibaba.com
 Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: ChenGang <cg.chen@huawei.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Richard Fontana <rfontana@redhat.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Gang He <ghe@suse.com>
 Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    2 --
- fs/ocfs2/dlm/dlmmaster.c     |    2 --
- fs/ocfs2/dlm/dlmthread.c     |    1 -
- fs/ocfs2/reservations.c      |    3 ---
- 4 files changed, 8 deletions(-)
+ fs/ocfs2/dlmglue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-remove-unused-macros
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -101,8 +101,6 @@ static struct o2hb_callback {
- 
- static struct o2hb_callback *hbcall_from_type(enum o2hb_callback_type type);
- 
--#define O2HB_DEFAULT_BLOCK_BITS       9
--
- enum o2hb_heartbeat_modes {
- 	O2HB_HEARTBEAT_LOCAL		= 0,
- 	O2HB_HEARTBEAT_GLOBAL,
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-remove-unused-macros
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -2749,8 +2749,6 @@ leave:
- 	return ret;
+--- a/fs/ocfs2/dlmglue.c~ocfs2-use-ocfs2_sec_bits-in-macro
++++ a/fs/ocfs2/dlmglue.c
+@@ -2133,7 +2133,7 @@ static void ocfs2_downconvert_on_unlock(
  }
  
--#define DLM_MIGRATION_RETRY_MS  100
--
- /*
-  * Should be called only after beginning the domain leave process.
-  * There should not be any remaining locks on nonlocal lock resources,
---- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-remove-unused-macros
-+++ a/fs/ocfs2/dlm/dlmthread.c
-@@ -680,7 +680,6 @@ static void dlm_flush_asts(struct dlm_ct
+ #define OCFS2_SEC_BITS   34
+-#define OCFS2_SEC_SHIFT  (64 - 34)
++#define OCFS2_SEC_SHIFT  (64 - OCFS2_SEC_BITS)
+ #define OCFS2_NSEC_MASK  ((1ULL << OCFS2_SEC_SHIFT) - 1)
  
- #define DLM_THREAD_TIMEOUT_MS (4 * 1000)
- #define DLM_THREAD_MAX_DIRTY  100
--#define DLM_THREAD_MAX_ASTS   10
- 
- static int dlm_thread(void *data)
- {
---- a/fs/ocfs2/reservations.c~ocfs2-remove-unused-macros
-+++ a/fs/ocfs2/reservations.c
-@@ -33,9 +33,6 @@
- 
- static DEFINE_SPINLOCK(resv_lock);
- 
--#define	OCFS2_MIN_RESV_WINDOW_BITS	8
--#define	OCFS2_MAX_RESV_WINDOW_BITS	1024
+ /* LVB only has room for 64 bits of time here so we pack it for
+_
+
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
