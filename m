@@ -1,36 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-gup-fix-__get_user_pages-on-fault-retry-of-hugetlb.patch removed from
- -mm tree
-Date: Fri, 03 Apr 2020 13:38:21 -0700
-Message-ID: <20200403203821.i8b44RDkM%akpm@linux-foundation.org>
+Subject: [merged] x86-mm-use-helper-fault_signal_pending.patch
+ removed from -mm tree
+Date: Fri, 03 Apr 2020 13:38:27 -0700
+Message-ID: <20200403203827.XH_72RtRS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34356 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34450 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUiW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:38:22 -0400
+        id S1726368AbgDCUi3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:38:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@cons.org, david@redhat.com, dgilbert@redhat.com, dplotnikov@virtuozzo.com, gokhale2@llnl.gov, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, kirill@shutemov.name, mcfadden8@llnl.gov, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, peterx@redhat.com, rppt@linux.vnet.ibm.com, torvalds@linux-foundation.org, willy@infradead.org, xemul@openvz.org
 
 
 The patch titled
-     Subject: mm/gup: fix __get_user_pages() on fault retry of hugetlb
+     Subject: x86/mm: use helper fault_signal_pending()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-fix-__get_user_pages-on-fault-retry-of-hugetlb.patch
+     x86-mm-use-helper-fault_signal_pending.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: fix __get_user_pages() on fault retry of hugetlb
+Subject: x86/mm: use helper fault_signal_pending()
 
-When follow_hugetlb_page() returns with *locked==0, it means we've got a
-VM_FAULT_RETRY within the fauling process and we've released the mmap_sem.
-When that happens, we should stop and bail out.
+Let's move the fatal signal check even earlier so that we can directly use
+the new fault_signal_pending() in x86 mm code.
 
-Link: http://lkml.kernel.org/r/20200220155353.8676-3-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200220155353.8676-5-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Tested-by: Brian Geffon <bgeffon@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -54,39 +52,39 @@ Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/x86/mm/fault.c |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
---- a/mm/gup.c~mm-gup-fix-__get_user_pages-on-fault-retry-of-hugetlb
-+++ a/mm/gup.c
-@@ -1065,6 +1065,16 @@ static long __get_user_pages(struct task
- 				i = follow_hugetlb_page(mm, vma, pages, vmas,
- 						&start, &nr_pages, i,
- 						gup_flags, locked);
-+				if (locked && *locked == 0) {
-+					/*
-+					 * We've got a VM_FAULT_RETRY
-+					 * and we've lost mmap_sem.
-+					 * We must stop here.
-+					 */
-+					BUG_ON(gup_flags & FOLL_NOWAIT);
-+					BUG_ON(ret != 0);
-+					goto out;
-+				}
- 				continue;
- 			}
- 		}
-_
-
-Patches currently in -mm which might be from peterx@redhat.com are
-
-mm-merge-parameters-for-change_protection.patch
-userfaultfd-wp-apply-_page_uffd_wp-bit.patch
-userfaultfd-wp-drop-_page_uffd_wp-properly-when-fork.patch
-userfaultfd-wp-add-pmd_swp_uffd_wp-helpers.patch
-userfaultfd-wp-support-swap-and-page-migration.patch
-khugepaged-skip-collapse-if-uffd-wp-detected.patch
-userfaultfd-wp-dont-wake-up-when-doing-write-protect.patch
-userfaultfd-wp-declare-_uffdio_writeprotect-conditionally.patch
-userfaultfd-selftests-refactor-statistics.patch
-userfaultfd-selftests-add-write-protect-test.patch
+--- a/arch/x86/mm/fault.c~x86-mm-use-helper-fault_signal_pending
++++ a/arch/x86/mm/fault.c
+@@ -1464,27 +1464,25 @@ good_area:
+ 	fault = handle_mm_fault(vma, address, flags);
+ 	major |= fault & VM_FAULT_MAJOR;
+ 
++	/* Quick path to respond to signals */
++	if (fault_signal_pending(fault, regs)) {
++		if (!user_mode(regs))
++			no_context(regs, hw_error_code, address, SIGBUS,
++				   BUS_ADRERR);
++		return;
++	}
++
+ 	/*
+ 	 * If we need to retry the mmap_sem has already been released,
+ 	 * and if there is a fatal signal pending there is no guarantee
+ 	 * that we made any progress. Handle this case first.
+ 	 */
+-	if (unlikely(fault & VM_FAULT_RETRY)) {
++	if (unlikely((fault & VM_FAULT_RETRY) &&
++		     (flags & FAULT_FLAG_ALLOW_RETRY))) {
+ 		/* Retry at most once */
+-		if (flags & FAULT_FLAG_ALLOW_RETRY) {
+-			flags &= ~FAULT_FLAG_ALLOW_RETRY;
+-			flags |= FAULT_FLAG_TRIED;
+-			if (!fatal_signal_pending(tsk))
+-				goto retry;
+-		}
+-
+-		/* User mode? Just return to handle the fatal exception */
+-		if (flags & FAULT_FLAG_USER)
+-			return;
