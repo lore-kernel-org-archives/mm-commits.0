@@ -1,39 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcg-slab-cache-page-number-in-memcg_uncharge_slab.patch removed from
- -mm tree
-Date: Fri, 03 Apr 2020 13:37:35 -0700
-Message-ID: <20200403203735.p_AW8XwVI%akpm@linux-foundation.org>
+ mm-kmem-rename-__memcg_kmem_uncharge_memcg-to-__memcg_kmem_uncharge.patch
+ removed from -mm tree
+Date: Fri, 03 Apr 2020 13:37:38 -0700
+Message-ID: <20200403203738.t-54IQo0L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60260 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60286 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727809AbgDCUhh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:37:37 -0400
+        id S1727809AbgDCUhj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:37:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: mm: memcg/slab: cache page number in memcg_(un)charge_slab()
+     Subject: mm: kmem: rename (__)memcg_kmem_(un)charge_memcg() to __memcg_kmem_(un)charge()
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-slab-cache-page-number-in-memcg_uncharge_slab.patch
+     mm-kmem-rename-__memcg_kmem_uncharge_memcg-to-__memcg_kmem_uncharge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg/slab: cache page number in memcg_(un)charge_slab()
+Subject: mm: kmem: rename (__)memcg_kmem_(un)charge_memcg() to __memcg_kmem_(un)charge()
 
-There are many places in memcg_charge_slab() and memcg_uncharge_slab()
-which are calculating the number of pages to charge, css references to
-grab etc depending on the order of the slab page.
+Drop the _memcg suffix from (__)memcg_kmem_(un)charge functions.  It's
+shorter and more obvious.
 
-Let's simplify the code by calculating it once and caching in the local
-variable.
+These are the most basic functions which are just (un)charging the given
+cgroup with the given amount of pages.
 
-Link: http://lkml.kernel.org/r/20200109202659.752357-6-guro@fb.com
+Also fix up the corresponding comments.
+
+Link: http://lkml.kernel.org/r/20200109202659.752357-7-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -42,75 +43,158 @@ Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ include/linux/memcontrol.h |   19 +++++++---------
+ mm/memcontrol.c            |   40 +++++++++++++++++------------------
+ mm/slab.h                  |    4 +--
+ 3 files changed, 31 insertions(+), 32 deletions(-)
 
---- a/mm/slab.h~mm-memcg-slab-cache-page-number-in-memcg_uncharge_slab
-+++ a/mm/slab.h
-@@ -348,6 +348,7 @@ static __always_inline int memcg_charge_
- 					     gfp_t gfp, int order,
- 					     struct kmem_cache *s)
- {
-+	unsigned int nr_pages = 1 << order;
- 	struct mem_cgroup *memcg;
- 	struct lruvec *lruvec;
- 	int ret;
-@@ -360,21 +361,21 @@ static __always_inline int memcg_charge_
+--- a/include/linux/memcontrol.h~mm-kmem-rename-__memcg_kmem_uncharge_memcg-to-__memcg_kmem_uncharge
++++ a/include/linux/memcontrol.h
+@@ -1367,12 +1367,11 @@ struct kmem_cache *memcg_kmem_get_cache(
+ void memcg_kmem_put_cache(struct kmem_cache *cachep);
  
- 	if (unlikely(!memcg || mem_cgroup_is_root(memcg))) {
- 		mod_node_page_state(page_pgdat(page), cache_vmstat_idx(s),
--				    (1 << order));
--		percpu_ref_get_many(&s->memcg_params.refcnt, 1 << order);
-+				    nr_pages);
-+		percpu_ref_get_many(&s->memcg_params.refcnt, nr_pages);
+ #ifdef CONFIG_MEMCG_KMEM
++int __memcg_kmem_charge(struct mem_cgroup *memcg, gfp_t gfp,
++			unsigned int nr_pages);
++void __memcg_kmem_uncharge(struct mem_cgroup *memcg, unsigned int nr_pages);
+ int __memcg_kmem_charge_page(struct page *page, gfp_t gfp, int order);
+ void __memcg_kmem_uncharge_page(struct page *page, int order);
+-int __memcg_kmem_charge_memcg(struct mem_cgroup *memcg, gfp_t gfp,
+-			      unsigned int nr_pages);
+-void __memcg_kmem_uncharge_memcg(struct mem_cgroup *memcg,
+-				 unsigned int nr_pages);
+ 
+ extern struct static_key_false memcg_kmem_enabled_key;
+ extern struct workqueue_struct *memcg_kmem_cache_wq;
+@@ -1408,19 +1407,19 @@ static inline void memcg_kmem_uncharge_p
+ 		__memcg_kmem_uncharge_page(page, order);
+ }
+ 
+-static inline int memcg_kmem_charge_memcg(struct mem_cgroup *memcg, gfp_t gfp,
+-					  unsigned int nr_pages)
++static inline int memcg_kmem_charge(struct mem_cgroup *memcg, gfp_t gfp,
++				    unsigned int nr_pages)
+ {
+ 	if (memcg_kmem_enabled())
+-		return __memcg_kmem_charge_memcg(memcg, gfp, nr_pages);
++		return __memcg_kmem_charge(memcg, gfp, nr_pages);
+ 	return 0;
+ }
+ 
+-static inline void memcg_kmem_uncharge_memcg(struct mem_cgroup *memcg,
+-					     unsigned int nr_pages)
++static inline void memcg_kmem_uncharge(struct mem_cgroup *memcg,
++				       unsigned int nr_pages)
+ {
+ 	if (memcg_kmem_enabled())
+-		__memcg_kmem_uncharge_memcg(memcg, nr_pages);
++		__memcg_kmem_uncharge(memcg, nr_pages);
+ }
+ 
+ /*
+--- a/mm/memcontrol.c~mm-kmem-rename-__memcg_kmem_uncharge_memcg-to-__memcg_kmem_uncharge
++++ a/mm/memcontrol.c
+@@ -2881,15 +2881,15 @@ void memcg_kmem_put_cache(struct kmem_ca
+ }
+ 
+ /**
+- * __memcg_kmem_charge_memcg: charge a kmem page
++ * __memcg_kmem_charge: charge a number of kernel pages to a memcg
+  * @memcg: memory cgroup to charge
+  * @gfp: reclaim mode
+  * @nr_pages: number of pages to charge
+  *
+  * Returns 0 on success, an error code on failure.
+  */
+-int __memcg_kmem_charge_memcg(struct mem_cgroup *memcg, gfp_t gfp,
+-			      unsigned int nr_pages)
++int __memcg_kmem_charge(struct mem_cgroup *memcg, gfp_t gfp,
++			unsigned int nr_pages)
+ {
+ 	struct page_counter *counter;
+ 	int ret;
+@@ -2917,6 +2917,21 @@ int __memcg_kmem_charge_memcg(struct mem
+ }
+ 
+ /**
++ * __memcg_kmem_uncharge: uncharge a number of kernel pages from a memcg
++ * @memcg: memcg to uncharge
++ * @nr_pages: number of pages to uncharge
++ */
++void __memcg_kmem_uncharge(struct mem_cgroup *memcg, unsigned int nr_pages)
++{
++	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
++		page_counter_uncharge(&memcg->kmem, nr_pages);
++
++	page_counter_uncharge(&memcg->memory, nr_pages);
++	if (do_memsw_account())
++		page_counter_uncharge(&memcg->memsw, nr_pages);
++}
++
++/**
+  * __memcg_kmem_charge_page: charge a kmem page to the current memory cgroup
+  * @page: page to charge
+  * @gfp: reclaim mode
+@@ -2934,7 +2949,7 @@ int __memcg_kmem_charge_page(struct page
+ 
+ 	memcg = get_mem_cgroup_from_current();
+ 	if (!mem_cgroup_is_root(memcg)) {
+-		ret = __memcg_kmem_charge_memcg(memcg, gfp, 1 << order);
++		ret = __memcg_kmem_charge(memcg, gfp, 1 << order);
+ 		if (!ret) {
+ 			page->mem_cgroup = memcg;
+ 			__SetPageKmemcg(page);
+@@ -2945,21 +2960,6 @@ int __memcg_kmem_charge_page(struct page
+ }
+ 
+ /**
+- * __memcg_kmem_uncharge_memcg: uncharge a kmem page
+- * @memcg: memcg to uncharge
+- * @nr_pages: number of pages to uncharge
+- */
+-void __memcg_kmem_uncharge_memcg(struct mem_cgroup *memcg,
+-				 unsigned int nr_pages)
+-{
+-	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
+-		page_counter_uncharge(&memcg->kmem, nr_pages);
+-
+-	page_counter_uncharge(&memcg->memory, nr_pages);
+-	if (do_memsw_account())
+-		page_counter_uncharge(&memcg->memsw, nr_pages);
+-}
+-/**
+  * __memcg_kmem_uncharge_page: uncharge a kmem page
+  * @page: page to uncharge
+  * @order: allocation order
+@@ -2973,7 +2973,7 @@ void __memcg_kmem_uncharge_page(struct p
+ 		return;
+ 
+ 	VM_BUG_ON_PAGE(mem_cgroup_is_root(memcg), page);
+-	__memcg_kmem_uncharge_memcg(memcg, nr_pages);
++	__memcg_kmem_uncharge(memcg, nr_pages);
+ 	page->mem_cgroup = NULL;
+ 
+ 	/* slab pages do not have PageKmemcg flag set */
+--- a/mm/slab.h~mm-kmem-rename-__memcg_kmem_uncharge_memcg-to-__memcg_kmem_uncharge
++++ a/mm/slab.h
+@@ -366,7 +366,7 @@ static __always_inline int memcg_charge_
  		return 0;
  	}
  
--	ret = memcg_kmem_charge_memcg(memcg, gfp, 1 << order);
-+	ret = memcg_kmem_charge_memcg(memcg, gfp, nr_pages);
+-	ret = memcg_kmem_charge_memcg(memcg, gfp, nr_pages);
++	ret = memcg_kmem_charge(memcg, gfp, nr_pages);
  	if (ret)
  		goto out;
  
- 	lruvec = mem_cgroup_lruvec(memcg, page_pgdat(page));
--	mod_lruvec_state(lruvec, cache_vmstat_idx(s), 1 << order);
-+	mod_lruvec_state(lruvec, cache_vmstat_idx(s), nr_pages);
- 
- 	/* transer try_charge() page references to kmem_cache */
--	percpu_ref_get_many(&s->memcg_params.refcnt, 1 << order);
--	css_put_many(&memcg->css, 1 << order);
-+	percpu_ref_get_many(&s->memcg_params.refcnt, nr_pages);
-+	css_put_many(&memcg->css, nr_pages);
- out:
- 	css_put(&memcg->css);
- 	return ret;
-@@ -387,6 +388,7 @@ out:
- static __always_inline void memcg_uncharge_slab(struct page *page, int order,
- 						struct kmem_cache *s)
- {
-+	unsigned int nr_pages = 1 << order;
- 	struct mem_cgroup *memcg;
- 	struct lruvec *lruvec;
- 
-@@ -394,15 +396,15 @@ static __always_inline void memcg_unchar
- 	memcg = READ_ONCE(s->memcg_params.memcg);
+@@ -397,7 +397,7 @@ static __always_inline void memcg_unchar
  	if (likely(!mem_cgroup_is_root(memcg))) {
  		lruvec = mem_cgroup_lruvec(memcg, page_pgdat(page));
--		mod_lruvec_state(lruvec, cache_vmstat_idx(s), -(1 << order));
--		memcg_kmem_uncharge_memcg(memcg, order);
-+		mod_lruvec_state(lruvec, cache_vmstat_idx(s), -nr_pages);
-+		memcg_kmem_uncharge_memcg(memcg, nr_pages);
+ 		mod_lruvec_state(lruvec, cache_vmstat_idx(s), -nr_pages);
+-		memcg_kmem_uncharge_memcg(memcg, nr_pages);
++		memcg_kmem_uncharge(memcg, nr_pages);
  	} else {
  		mod_node_page_state(page_pgdat(page), cache_vmstat_idx(s),
--				    -(1 << order));
-+				    -nr_pages);
- 	}
- 	rcu_read_unlock();
- 
--	percpu_ref_put_many(&s->memcg_params.refcnt, 1 << order);
-+	percpu_ref_put_many(&s->memcg_params.refcnt, nr_pages);
- }
- 
- extern void slab_init_memcg_params(struct kmem_cache *);
+ 				    -nr_pages);
 _
 
 Patches currently in -mm which might be from guro@fb.com are
