@@ -1,179 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-swap-make-page_evictable-inline.patch removed
- from -mm tree
-Date: Fri, 03 Apr 2020 13:37:11 -0700
-Message-ID: <20200403203711.Vqm91iFLJ%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-swap-use-smp_mb__after_atomic-to-order-lru-bit-set.patch removed from
+ -mm tree
+Date: Fri, 03 Apr 2020 13:37:13 -0700
+Message-ID: <20200403203713.1XSwUkNWa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59974 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727809AbgDCUhM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:37:12 -0400
+        id S1727809AbgDCUhO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:37:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mm-commits@vger.kernel.org, shakeelb@google.com, vbabka@suse.cz, willy@infradead.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm: swap: make page_evictable() inline
+     Subject: mm: swap: use smp_mb__after_atomic() to order LRU bit set
 has been removed from the -mm tree.  Its filename was
-     mm-swap-make-page_evictable-inline.patch
+     mm-swap-use-smp_mb__after_atomic-to-order-lru-bit-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm: swap: make page_evictable() inline
+Subject: mm: swap: use smp_mb__after_atomic() to order LRU bit set
 
-When backporting commit 9c4e6b1a7027 ("mm, mlock, vmscan: no more skipping
-pagevecs") to our 4.9 kernel, our test bench noticed around 10% down with
-a couple of vm-scalability's test cases (lru-file-readonce,
-lru-file-readtwice and lru-file-mmap-read).  I didn't see that much down
-on my VM (32c-64g-2nodes).  It might be caused by the test configuration,
-which is 32c-256g with NUMA disabled and the tests were run in root memcg,
-so the tests actually stress only one inactive and active lru.  It sounds
-not very usual in mordern production environment.
+Memory barrier is needed after setting LRU bit, but smp_mb() is too
+strong.  Some architectures, i.e.  x86, imply memory barrier with atomic
+operations, so replacing it with smp_mb__after_atomic() sounds better,
+which is nop on strong ordered machines, and full memory barriers on
+others.  With this change the vm-scalability cases would perform better on
+x86, I saw total 6% improvement with this patch and previous inline fix.
 
-That commit did two major changes:
-1. Call page_evictable()
-2. Use smp_mb to force the PG_lru set visible
+The test data (lru-file-readtwice throughput) against v5.6-rc4:
+	mainline	w/ inline fix	w/ both (adding this)
+	150MB		154MB		159MB
 
-It looks they contribute the most overhead.  The page_evictable() is a
-function which does function prologue and epilogue, and that was used by
-page reclaim path only.  However, lru add is a very hot path, so it sounds
-better to make it inline.  However, it calls page_mapping() which is not
-inlined either, but the disassemble shows it doesn't do push and pop
-operations and it sounds not very straightforward to inline it.
-
-Other than this, it sounds smp_mb() is not necessary for x86 since
-SetPageLRU is atomic which enforces memory barrier already, replace it
-with smp_mb__after_atomic() in the following patch.
-
-With the two fixes applied, the tests can get back around 5% on that test
-bench and get back normal on my VM.  Since the test bench configuration is
-not that usual and I also saw around 6% up on the latest upstream, so it
-sounds good enough IMHO.
-
-The below is test data (lru-file-readtwice throughput) against the v5.6-rc4:
-	mainline	w/ inline fix
-          150MB            154MB
-
-With this patch the throughput gets 2.67% up.  The data with using
-smp_mb__after_atomic() is showed in the following patch.
-
-Shakeel Butt did the below test:
-
-On a real machine with limiting the 'dd' on a single node and reading 100
-GiB sparse file (less than a single node).  Just ran a single instance to
-not cause the lru lock contention.  The cmdline used is "dd if=file-100GiB
-of=/dev/null bs=4k".  Ran the cmd 10 times with drop_caches in between and
-measured the time it took.
-
-Without patch: 56.64143 +- 0.672 sec
-
-With patches: 56.10 +- 0.21 sec
-
-[akpm@linux-foundation.org: move page_evictable() to internal.h]
-Link: http://lkml.kernel.org/r/1584500541-46817-1-git-send-email-yang.shi@linux.alibaba.com
+Link: http://lkml.kernel.org/r/1584500541-46817-2-git-send-email-yang.shi@linux.alibaba.com
 Fixes: 9c4e6b1a7027 ("mm, mlock, vmscan: no more skipping pagevecs")
 Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Tested-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    6 ++----
- include/linux/swap.h    |    1 -
- mm/internal.h           |   23 +++++++++++++++++++++++
- mm/vmscan.c             |   23 -----------------------
- 4 files changed, 25 insertions(+), 28 deletions(-)
+ mm/swap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/pagemap.h~mm-swap-make-page_evictable-inline
-+++ a/include/linux/pagemap.h
-@@ -70,11 +70,9 @@ static inline void mapping_clear_unevict
- 	clear_bit(AS_UNEVICTABLE, &mapping->flags);
- }
+--- a/mm/swap.c~mm-swap-use-smp_mb__after_atomic-to-order-lru-bit-set
++++ a/mm/swap.c
+@@ -931,7 +931,6 @@ static void __pagevec_lru_add_fn(struct
  
--static inline int mapping_unevictable(struct address_space *mapping)
-+static inline bool mapping_unevictable(struct address_space *mapping)
- {
--	if (mapping)
--		return test_bit(AS_UNEVICTABLE, &mapping->flags);
--	return !!mapping;
-+	return mapping && test_bit(AS_UNEVICTABLE, &mapping->flags);
- }
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
  
- static inline void mapping_set_exiting(struct address_space *mapping)
---- a/include/linux/swap.h~mm-swap-make-page_evictable-inline
-+++ a/include/linux/swap.h
-@@ -374,7 +374,6 @@ extern int sysctl_min_slab_ratio;
- #define node_reclaim_mode 0
- #endif
+-	SetPageLRU(page);
+ 	/*
+ 	 * Page becomes evictable in two ways:
+ 	 * 1) Within LRU lock [munlock_vma_page() and __munlock_pagevec()].
+@@ -958,7 +957,8 @@ static void __pagevec_lru_add_fn(struct
+ 	 * looking at the same page) and the evictable page will be stranded
+ 	 * in an unevictable LRU.
+ 	 */
+-	smp_mb();
++	SetPageLRU(page);
++	smp_mb__after_atomic();
  
--extern int page_evictable(struct page *page);
- extern void check_move_unevictable_pages(struct pagevec *pvec);
- 
- extern int kswapd_run(int nid);
---- a/mm/internal.h~mm-swap-make-page_evictable-inline
-+++ a/mm/internal.h
-@@ -63,6 +63,29 @@ static inline unsigned long ra_submit(st
- 					ra->start, ra->size, ra->async_size);
- }
- 
-+/**
-+ * page_evictable - test whether a page is evictable
-+ * @page: the page to test
-+ *
-+ * Test whether page is evictable--i.e., should be placed on active/inactive
-+ * lists vs unevictable list.
-+ *
-+ * Reasons page might not be evictable:
-+ * (1) page's mapping marked unevictable
-+ * (2) page is part of an mlocked VMA
-+ *
-+ */
-+static inline bool page_evictable(struct page *page)
-+{
-+	bool ret;
-+
-+	/* Prevent address_space of inode and swap cache from being freed */
-+	rcu_read_lock();
-+	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
-+	rcu_read_unlock();
-+	return ret;
-+}
-+
- /*
-  * Turn a non-refcounted page (->_refcount == 0) into refcounted with
-  * a count of one.
---- a/mm/vmscan.c~mm-swap-make-page_evictable-inline
-+++ a/mm/vmscan.c
-@@ -4277,29 +4277,6 @@ int node_reclaim(struct pglist_data *pgd
- }
- #endif
- 
--/*
-- * page_evictable - test whether a page is evictable
-- * @page: the page to test
-- *
-- * Test whether page is evictable--i.e., should be placed on active/inactive
-- * lists vs unevictable list.
-- *
-- * Reasons page might not be evictable:
-- * (1) page's mapping marked unevictable
-- * (2) page is part of an mlocked VMA
-- *
-- */
--int page_evictable(struct page *page)
--{
--	int ret;
--
--	/* Prevent address_space of inode and swap cache from being freed */
--	rcu_read_lock();
--	ret = !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
--	rcu_read_unlock();
--	return ret;
--}
+ 	if (page_evictable(page)) {
+ 		lru = page_lru(page);
+_
+
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+
+mm-migratec-migrate-pg_readahead-flag.patch
