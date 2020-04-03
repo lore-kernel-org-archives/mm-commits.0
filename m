@@ -1,154 +1,148 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-mempolicy-support-mpol_mf_strict-for-huge-page-mapping.patch removed
- from -mm tree
-Date: Fri, 03 Apr 2020 13:40:15 -0700
-Message-ID: <20200403204015.KvNBRqnnS%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-mempolicy-checking-hugepage-migration-is-supported-by-?=
+ =?US-ASCII?Q?arch-in-vma=5Fmigratable.patch?= removed from -mm tree
+Date: Fri, 03 Apr 2020 13:40:17 -0700
+Message-ID: <20200403204017.chYtR2n7t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36102 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36194 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727835AbgDCUkQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:40:16 -0400
+        id S1727835AbgDCUkS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:40:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux-man@vger.kernel.org, lixinhai.lxh@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, naoya.horiguchi@nec.com
+To: anshuman.khandual@arm.com, lixinhai.lxh@gmail.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: mm/mempolicy: support MPOL_MF_STRICT for huge page mapping
+     Subject: mm/mempolicy: check hugepage migration is supported by arch in vma_migratable()
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-support-mpol_mf_strict-for-huge-page-mapping.patch
+     mm-mempolicy-checking-hugepage-migration-is-supported-by-arch-in-vma_migratable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Li Xinhai <lixinhai.lxh@gmail.com>
-Subject: mm/mempolicy: support MPOL_MF_STRICT for huge page mapping
+Subject: mm/mempolicy: check hugepage migration is supported by arch in vma_migratable()
 
-MPOL_MF_STRICT is used in mbind() for purposes:
+vma_migratable() is called to check if pages in vma can be migrated before
+go ahead to further actions.  Currently it is used in below code path:
 
-(1) MPOL_MF_STRICT is set alone without MPOL_MF_MOVE or
-    MPOL_MF_MOVE_ALL, to check if there is misplaced page and return -EIO;
+- task_numa_work
+- mbind
+- move_pages
 
-(2) MPOL_MF_STRICT is set with MPOL_MF_MOVE or MPOL_MF_MOVE_ALL, to
-    check if there is misplaced page which is failed to isolate, or page
-    is success on isolate but failed to move, and return -EIO.
+For hugetlb mapping, whether vma is migratable or not is determined by:
+- CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+- arch_hugetlb_migration_supported
 
-For non hugepage mapping, (1) and (2) are implemented as expectation.  For
-hugepage mapping, (1) is not implemented.  And in (2), the part about
-failed to isolate and report -EIO is not implemented.
+Issue: current code only checks for CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+alone, and no code should use it directly.  (note that current code in
+vma_migratable don't cause failure or bug because
+unmap_and_move_huge_page() will catch unsupported hugepage and handle it
+properly)
 
-This patch implements the missed parts for hugepage mapping.  Benefits
-with it applied:
+This patch checks the two factors by hugepage_migration_supported for
+impoving code logic and robustness.  It will enable early bail out of
+hugepage migration procedure, but because currently all architecture
+supporting hugepage migration is able to support all page size, we would
+not see performance gain with this patch applied.
 
-- User space can apply same code logic to handle mbind() on hugepage and
-  non hugepage mapping;
+vma_migratable() is moved to mm/mempolicy.c, because of the circular
+reference of mempolicy.h and hugetlb.h cause defining it as inline not
+feasible.
 
-- Reliably using MPOL_MF_STRICT alone to check whether there is
-  misplaced page or not when bind policy on address range, especially for
-  address range which contains both hugepage and non hugepage mapping.
-
-Analysis of potential impact to existing users:
-
-- If MPOL_MF_STRICT alone was previously used, hugetlb pages not
-  following the memory policy would not cause an EIO error.  After this
-  change, hugetlb pages are treated like all other pages.  If
-  MPOL_MF_STRICT alone is used and hugetlb pages do not follow memory
-  policy an EIO error will be returned.
-
-- For users who using MPOL_MF_STRICT with MPOL_MF_MOVE or
-  MPOL_MF_MOVE_ALL, the semantic about some pages could not be moved will
-  not be changed by this patch, because failed to isolate and failed to
-  move have same effects to users, so their existing code will not be
-  impacted.
-
-In mbind man page, the note about 'MPOL_MF_STRICT is ignored on huge page
-mappings' can be removed after this patch is applied.
-
-Mike:
-
-: The current behavior with MPOL_MF_STRICT and hugetlb pages is inconsistent
-: and does not match documentation (as described above).  The special
-: behavior for hugetlb pages ideally should have been removed when hugetlb
-: page migration was introduced.  It is unlikely that anyone relies on
-: today's inconsistent behavior, and removing one more case of special
-: handling for hugetlb pages is a good thing.
-
-Link: http://lkml.kernel.org/r/1581559627-6206-1-git-send-email-lixinhai.lxh@gmail.com
+Link: http://lkml.kernel.org/r/1579786179-30633-1-git-send-email-lixinhai.lxh@gmail.com
 Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: linux-man <linux-man@vger.kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   37 +++++++++++++++++++++++++++++++++----
- 1 file changed, 33 insertions(+), 4 deletions(-)
+ include/linux/mempolicy.h |   29 +----------------------------
+ mm/mempolicy.c            |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+), 28 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-support-mpol_mf_strict-for-huge-page-mapping
-+++ a/mm/mempolicy.c
-@@ -557,9 +557,10 @@ static int queue_pages_hugetlb(pte_t *pt
- 			       unsigned long addr, unsigned long end,
- 			       struct mm_walk *walk)
- {
-+	int ret = 0;
- #ifdef CONFIG_HUGETLB_PAGE
- 	struct queue_pages *qp = walk->private;
--	unsigned long flags = qp->flags;
-+	unsigned long flags = (qp->flags & MPOL_MF_VALID);
- 	struct page *page;
- 	spinlock_t *ptl;
- 	pte_t entry;
-@@ -571,16 +572,44 @@ static int queue_pages_hugetlb(pte_t *pt
- 	page = pte_page(entry);
- 	if (!queue_pages_required(page, qp))
- 		goto unlock;
-+
-+	if (flags == MPOL_MF_STRICT) {
-+		/*
-+		 * STRICT alone means only detecting misplaced page and no
-+		 * need to further check other vma.
-+		 */
-+		ret = -EIO;
-+		goto unlock;
-+	}
-+
-+	if (!vma_migratable(walk->vma)) {
-+		/*
-+		 * Must be STRICT with MOVE*, otherwise .test_walk() have
-+		 * stopped walking current vma.
-+		 * Detecting misplaced page but allow migrating pages which
-+		 * have been queued.
-+		 */
-+		ret = 1;
-+		goto unlock;
-+	}
-+
- 	/* With MPOL_MF_MOVE, we migrate only unshared hugepage. */
- 	if (flags & (MPOL_MF_MOVE_ALL) ||
--	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1))
--		isolate_huge_page(page, qp->pagelist);
-+	    (flags & MPOL_MF_MOVE && page_mapcount(page) == 1)) {
-+		if (!isolate_huge_page(page, qp->pagelist) &&
-+			(flags & MPOL_MF_STRICT))
-+			/*
-+			 * Failed to isolate page but allow migrating pages
-+			 * which have been queued.
-+			 */
-+			ret = 1;
-+	}
- unlock:
- 	spin_unlock(ptl);
- #else
- 	BUG();
- #endif
--	return 0;
-+	return ret;
- }
+--- a/include/linux/mempolicy.h~mm-mempolicy-checking-hugepage-migration-is-supported-by-arch-in-vma_migratable
++++ a/include/linux/mempolicy.h
+@@ -173,34 +173,7 @@ extern int mpol_parse_str(char *str, str
+ extern void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol);
  
- #ifdef CONFIG_NUMA_BALANCING
+ /* Check if a vma is migratable */
+-static inline bool vma_migratable(struct vm_area_struct *vma)
+-{
+-	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
+-		return false;
+-
+-	/*
+-	 * DAX device mappings require predictable access latency, so avoid
+-	 * incurring periodic faults.
+-	 */
+-	if (vma_is_dax(vma))
+-		return false;
+-
+-#ifndef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+-	if (vma->vm_flags & VM_HUGETLB)
+-		return false;
+-#endif
+-
+-	/*
+-	 * Migration allocates pages in the highest zone. If we cannot
+-	 * do so then migration (at least from node to node) is not
+-	 * possible.
+-	 */
+-	if (vma->vm_file &&
+-		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
+-								< policy_zone)
+-			return false;
+-	return true;
+-}
++extern bool vma_migratable(struct vm_area_struct *vma);
+ 
+ extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
+ extern void mpol_put_task_policy(struct task_struct *);
+--- a/mm/mempolicy.c~mm-mempolicy-checking-hugepage-migration-is-supported-by-arch-in-vma_migratable
++++ a/mm/mempolicy.c
+@@ -1743,6 +1743,34 @@ COMPAT_SYSCALL_DEFINE4(migrate_pages, co
+ 
+ #endif /* CONFIG_COMPAT */
+ 
++bool vma_migratable(struct vm_area_struct *vma)
++{
++	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
++		return false;
++
++	/*
++	 * DAX device mappings require predictable access latency, so avoid
++	 * incurring periodic faults.
++	 */
++	if (vma_is_dax(vma))
++		return false;
++
++	if (is_vm_hugetlb_page(vma) &&
++		!hugepage_migration_supported(hstate_vma(vma)))
++		return false;
++
++	/*
++	 * Migration allocates pages in the highest zone. If we cannot
++	 * do so then migration (at least from node to node) is not
++	 * possible.
++	 */
++	if (vma->vm_file &&
++		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
++			< policy_zone)
++		return false;
++	return true;
++}
++
+ struct mempolicy *__get_vma_policy(struct vm_area_struct *vma,
+ 						unsigned long addr)
+ {
 _
 
 Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
