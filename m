@@ -1,35 +1,34 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcg-prevent-memoryhigh-load-store-tearing.patch removed from -mm tree
-Date: Fri, 03 Apr 2020 13:37:53 -0700
-Message-ID: <20200403203753.PsSEmWTX6%akpm@linux-foundation.org>
+ mm-memcg-prevent-memorylow-load-store-tearing.patch removed from -mm tree
+Date: Fri, 03 Apr 2020 13:37:57 -0700
+Message-ID: <20200403203757.nEDWQL3sh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33540 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUhy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:37:54 -0400
+        id S1727879AbgDCUh6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:37:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, tj@kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: prevent memory.high load/store tearing
+     Subject: mm, memcg: prevent memory.low load/store tearing
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-prevent-memoryhigh-load-store-tearing.patch
+     mm-memcg-prevent-memorylow-load-store-tearing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Chris Down <chris@chrisdown.name>
-Subject: mm, memcg: prevent memory.high load/store tearing
+Subject: mm, memcg: prevent memory.low load/store tearing
 
-A mem_cgroup's high attribute can be concurrently set at the same time as
-we are trying to read it -- for example, if we are in memory_high_write at
-the same time as we are trying to do high reclaim.
+This can be set concurrently with reads, which may cause the wrong value
+to be propagated.
 
-Link: http://lkml.kernel.org/r/2f66f7038ed1d4688e59de72b627ae0ea52efa83.1584034301.git.chris@chrisdown.name
+Link: http://lkml.kernel.org/r/448206f44b0fa7be9dad2ca2601d2bcb2c0b7844.1584034301.git.chris@chrisdown.name
 Signed-off-by: Chris Down <chris@chrisdown.name>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -38,66 +37,40 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/page_counter.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-prevent-memoryhigh-load-store-tearing
-+++ a/mm/memcontrol.c
-@@ -2242,7 +2242,7 @@ static void reclaim_high(struct mem_cgro
- 			 gfp_t gfp_mask)
+--- a/mm/page_counter.c~mm-memcg-prevent-memorylow-load-store-tearing
++++ a/mm/page_counter.c
+@@ -17,6 +17,7 @@ static void propagate_protected_usage(st
+ 				      unsigned long usage)
  {
- 	do {
--		if (page_counter_read(&memcg->memory) <= memcg->high)
-+		if (page_counter_read(&memcg->memory) <= READ_ONCE(memcg->high))
- 			continue;
- 		memcg_memory_event(memcg, MEMCG_HIGH);
- 		try_to_free_mem_cgroup_pages(memcg, nr_pages, gfp_mask, true);
-@@ -2582,7 +2582,7 @@ done_restock:
- 	 * reclaim, the cost of mismatch is negligible.
- 	 */
- 	do {
--		if (page_counter_read(&memcg->memory) > memcg->high) {
-+		if (page_counter_read(&memcg->memory) > READ_ONCE(memcg->high)) {
- 			/* Don't bother a random interrupted task */
- 			if (in_interrupt()) {
- 				schedule_work(&memcg->high_work);
-@@ -4325,7 +4325,8 @@ void mem_cgroup_wb_stats(struct bdi_writ
- 	*pheadroom = PAGE_COUNTER_MAX;
+ 	unsigned long protected, old_protected;
++	unsigned long low;
+ 	long delta;
  
- 	while ((parent = parent_mem_cgroup(memcg))) {
--		unsigned long ceiling = min(memcg->memory.max, memcg->high);
-+		unsigned long ceiling = min(memcg->memory.max,
-+					    READ_ONCE(memcg->high));
- 		unsigned long used = page_counter_read(&memcg->memory);
+ 	if (!c->parent)
+@@ -30,8 +31,9 @@ static void propagate_protected_usage(st
+ 			atomic_long_add(delta, &c->parent->children_min_usage);
+ 	}
  
- 		*pheadroom = min(*pheadroom, ceiling - min(ceiling, used));
-@@ -5047,7 +5048,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 	if (!memcg)
- 		return ERR_PTR(error);
+-	if (c->low || atomic_long_read(&c->low_usage)) {
+-		protected = min(usage, c->low);
++	low = READ_ONCE(c->low);
++	if (low || atomic_long_read(&c->low_usage)) {
++		protected = min(usage, low);
+ 		old_protected = atomic_long_xchg(&c->low_usage, protected);
+ 		delta = protected - old_protected;
+ 		if (delta)
+@@ -222,7 +224,7 @@ void page_counter_set_low(struct page_co
+ {
+ 	struct page_counter *c;
  
--	memcg->high = PAGE_COUNTER_MAX;
-+	WRITE_ONCE(memcg->high, PAGE_COUNTER_MAX);
- 	memcg->soft_limit = PAGE_COUNTER_MAX;
- 	if (parent) {
- 		memcg->swappiness = mem_cgroup_swappiness(parent);
-@@ -5200,7 +5201,7 @@ static void mem_cgroup_css_reset(struct
- 	page_counter_set_max(&memcg->tcpmem, PAGE_COUNTER_MAX);
- 	page_counter_set_min(&memcg->memory, 0);
- 	page_counter_set_low(&memcg->memory, 0);
--	memcg->high = PAGE_COUNTER_MAX;
-+	WRITE_ONCE(memcg->high, PAGE_COUNTER_MAX);
- 	memcg->soft_limit = PAGE_COUNTER_MAX;
- 	memcg_wb_domain_size_changed(memcg);
- }
-@@ -6016,7 +6017,7 @@ static ssize_t memory_high_write(struct
- 	if (err)
- 		return err;
+-	counter->low = nr_pages;
++	WRITE_ONCE(counter->low, nr_pages);
  
--	memcg->high = high;
-+	WRITE_ONCE(memcg->high, high);
- 
- 	for (;;) {
- 		unsigned long nr_pages = page_counter_read(&memcg->memory);
+ 	for (c = counter; c; c = c->parent)
+ 		propagate_protected_usage(c, atomic_long_read(&c->usage));
 _
 
 Patches currently in -mm which might be from chris@chrisdown.name are
