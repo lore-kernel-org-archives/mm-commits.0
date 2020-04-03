@@ -1,46 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-gup-pass-a-flags-arg-to-__gup_device_-functions.patch removed from -mm
- tree
-Date: Fri, 03 Apr 2020 13:36:28 -0700
-Message-ID: <20200403203628.u92MpqNKG%akpm@linux-foundation.org>
+Subject: [merged] mm-introduce-page_ref_sub_return.patch removed
+ from -mm tree
+Date: Fri, 03 Apr 2020 13:36:31 -0700
+Message-ID: <20200403203631.xIZnSNzqZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59210 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726368AbgDCUg3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:36:29 -0400
+        id S1726368AbgDCUgc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:36:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, ira.weiny@intel.com, jack@suse.cz, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, shuah@kernel.org, vbabka@suse.cz, viro@zeniv.linux.org.uk, willy@infradead.org
 
 
 The patch titled
-     Subject: mm/gup: pass a flags arg to __gup_device_* functions
+     Subject: mm: introduce page_ref_sub_return()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-pass-a-flags-arg-to-__gup_device_-functions.patch
+     mm-introduce-page_ref_sub_return.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: pass a flags arg to __gup_device_* functions
+Subject: mm: introduce page_ref_sub_return()
 
-A subsequent patch requires access to gup flags, so pass the flags
-argument through to the __gup_device_* functions.
+An upcoming patch requires subtracting a large chunk of refcounts from a
+page, and checking what the resulting refcount is.  This is a little
+different than the usual "check for zero refcount" that many of the page
+ref functions already do.  However, it is similar to a few other routines
+that (like this one) are generally useful for things such as 1-based
+refcounting.
 
-Also placate checkpatch.pl by shortening a nearby line.
+Add page_ref_sub_return(), that subtracts a chunk of refcounts atomically,
+and returns an atomic snapshot of the result.
 
-Link: http://lkml.kernel.org/r/20200211001536.1027652-3-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200211001536.1027652-4-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -55,109 +59,27 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ include/linux/page_ref.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/mm/gup.c~mm-gup-pass-a-flags-arg-to-__gup_device_-functions
-+++ a/mm/gup.c
-@@ -1963,7 +1963,8 @@ static int gup_pte_range(pmd_t pmd, unsi
-=20
- #if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGE=
-PAGE)
- static int __gup_device_huge(unsigned long pfn, unsigned long addr,
--		unsigned long end, struct page **pages, int *nr)
-+			     unsigned long end, unsigned int flags,
-+			     struct page **pages, int *nr)
- {
- 	int nr_start =3D *nr;
- 	struct dev_pagemap *pgmap =3D NULL;
-@@ -1989,13 +1990,14 @@ static int __gup_device_huge(unsigned lo
+--- a/include/linux/page_ref.h~mm-introduce-page_ref_sub_return
++++ a/include/linux/page_ref.h
+@@ -102,6 +102,15 @@ static inline void page_ref_sub(struct p
+ 		__page_ref_mod(page, -nr);
  }
 =20
- static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long ad=
-dr,
--		unsigned long end, struct page **pages, int *nr)
-+				 unsigned long end, unsigned int flags,
-+				 struct page **pages, int *nr)
++static inline int page_ref_sub_return(struct page *page, int nr)
++{
++	int ret =3D atomic_sub_return(nr, &page->_refcount);
++
++	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod_and_return))
++		__page_ref_mod_and_return(page, -nr, ret);
++	return ret;
++}
++
+ static inline void page_ref_inc(struct page *page)
  {
- 	unsigned long fault_pfn;
- 	int nr_start =3D *nr;
-=20
- 	fault_pfn =3D pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
--	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
-+	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
- 		return 0;
-=20
- 	if (unlikely(pmd_val(orig) !=3D pmd_val(*pmdp))) {
-@@ -2006,13 +2008,14 @@ static int __gup_device_huge_pmd(pmd_t o
- }
-=20
- static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long ad=
-dr,
--		unsigned long end, struct page **pages, int *nr)
-+				 unsigned long end, unsigned int flags,
-+				 struct page **pages, int *nr)
- {
- 	unsigned long fault_pfn;
- 	int nr_start =3D *nr;
-=20
- 	fault_pfn =3D pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
--	if (!__gup_device_huge(fault_pfn, addr, end, pages, nr))
-+	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
- 		return 0;
-=20
- 	if (unlikely(pud_val(orig) !=3D pud_val(*pudp))) {
-@@ -2023,14 +2026,16 @@ static int __gup_device_huge_pud(pud_t o
- }
- #else
- static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long ad=
-dr,
--		unsigned long end, struct page **pages, int *nr)
-+				 unsigned long end, unsigned int flags,
-+				 struct page **pages, int *nr)
- {
- 	BUILD_BUG();
- 	return 0;
- }
-=20
- static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long add=
-r,
--		unsigned long end, struct page **pages, int *nr)
-+				 unsigned long end, unsigned int flags,
-+				 struct page **pages, int *nr)
- {
- 	BUILD_BUG();
- 	return 0;
-@@ -2146,7 +2151,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_
- 	if (pmd_devmap(orig)) {
- 		if (unlikely(flags & FOLL_LONGTERM))
- 			return 0;
--		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
-+		return __gup_device_huge_pmd(orig, pmdp, addr, end, flags,
-+					     pages, nr);
- 	}
-=20
- 	page =3D pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-@@ -2167,7 +2173,8 @@ static int gup_huge_pmd(pmd_t orig, pmd_
- }
-=20
- static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
--		unsigned long end, unsigned int flags, struct page **pages, int *nr)
-+			unsigned long end, unsigned int flags,
-+			struct page **pages, int *nr)
- {
- 	struct page *head, *page;
- 	int refs;
-@@ -2178,7 +2185,8 @@ static int gup_huge_pud(pud_t orig, pud_
- 	if (pud_devmap(orig)) {
- 		if (unlikely(flags & FOLL_LONGTERM))
- 			return 0;
--		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr);
-+		return __gup_device_huge_pud(orig, pudp, addr, end, flags,
-+					     pages, nr);
- 	}
-=20
- 	page =3D pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+ 	atomic_inc(&page->_refcount);
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
