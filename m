@@ -1,400 +1,558 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlb_cgroup-add-hugetlb_cgroup-reservation-counter.patch removed from
- -mm tree
-Date: Fri, 03 Apr 2020 13:40:29 -0700
-Message-ID: <20200403204029.z8HDjHZMr%akpm@linux-foundation.org>
+ hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations.patch
+ removed from -mm tree
+Date: Fri, 03 Apr 2020 13:40:31 -0700
+Message-ID: <20200403204031.g9nObj7bP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36542 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36566 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727835AbgDCUkb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:40:31 -0400
+        id S1727835AbgDCUkd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:40:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: almasrymina@google.com, gthelen@google.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rientjes@google.com, sandipan@linux.ibm.com, shakeelb@google.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: hugetlb_cgroup: add hugetlb_cgroup reservation counter
+     Subject: hugetlb_cgroup: add interface for charge/uncharge hugetlb reservations
 has been removed from the -mm tree.  Its filename was
-     hugetlb_cgroup-add-hugetlb_cgroup-reservation-counter.patch
+     hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mina Almasry <almasrymina@google.com>
-Subject: hugetlb_cgroup: add hugetlb_cgroup reservation counter
+Subject: hugetlb_cgroup: add interface for charge/uncharge hugetlb reservations
 
-These counters will track hugetlb reservations rather than hugetlb memory
-faulted in.  This patch only adds the counter, following patches add the
-charging and uncharging of the counter.
+Augments hugetlb_cgroup_charge_cgroup to be able to charge hugetlb usage
+or hugetlb reservation counter.
 
-This is patch 1 of an 9 patch series.
+Adds a new interface to uncharge a hugetlb_cgroup counter via
+hugetlb_cgroup_uncharge_counter.
 
-Problem:
+Integrates the counter with hugetlb_cgroup, via hugetlb_cgroup_init,
+hugetlb_cgroup_have_usage, and hugetlb_cgroup_css_offline.
 
-Currently tasks attempting to reserve more hugetlb memory than is
-available get a failure at mmap/shmget time.  This is thanks to Hugetlbfs
-Reservations [1].  However, if a task attempts to reserve more hugetlb
-memory than its hugetlb_cgroup limit allows, the kernel will allow the
-mmap/shmget call, but will SIGBUS the task when it attempts to fault in
-the excess memory.
-
-We have users hitting their hugetlb_cgroup limits and thus we've been
-looking at this failure mode.  We'd like to improve this behavior such
-that users violating the hugetlb_cgroup limits get an error on mmap/shmget
-time, rather than getting SIGBUS'd when they try to fault the excess
-memory in.  This gives the user an opportunity to fallback more gracefully
-to non-hugetlbfs memory for example.
-
-The underlying problem is that today's hugetlb_cgroup accounting happens
-at hugetlb memory *fault* time, rather than at *reservation* time.  Thus,
-enforcing the hugetlb_cgroup limit only happens at fault time, and the
-offending task gets SIGBUS'd.
-
-Proposed Solution:
-
-A new page counter named
-'hugetlb.xMB.rsvd.[limit|usage|max_usage]_in_bytes'. This counter has
-slightly different semantics than
-'hugetlb.xMB.[limit|usage|max_usage]_in_bytes':
-
-- While usage_in_bytes tracks all *faulted* hugetlb memory,
-  rsvd.usage_in_bytes tracks all *reserved* hugetlb memory and hugetlb
-  memory faulted in without a prior reservation.
-
-- If a task attempts to reserve more memory than limit_in_bytes allows,
-  the kernel will allow it to do so.  But if a task attempts to reserve
-  more memory than rsvd.limit_in_bytes, the kernel will fail this
-  reservation.
-
-This proposal is implemented in this patch series, with tests to verify
-functionality and show the usage.
-
-Alternatives considered:
-
-1. A new cgroup, instead of only a new page_counter attached to the
-   existing hugetlb_cgroup.  Adding a new cgroup seemed like a lot of code
-   duplication with hugetlb_cgroup.  Keeping hugetlb related page counters
-   under hugetlb_cgroup seemed cleaner as well.
-
-2. Instead of adding a new counter, we considered adding a sysctl that
-   modifies the behavior of hugetlb.xMB.[limit|usage]_in_bytes, to do
-   accounting at reservation time rather than fault time.  Adding a new
-   page_counter seems better as userspace could, if it wants, choose to
-   enforce different cgroups differently: one via limit_in_bytes, and
-   another via rsvd.limit_in_bytes.  This could be very useful if you're
-   transitioning how hugetlb memory is partitioned on your system one
-   cgroup at a time, for example.  Also, someone may find usage for both
-   limit_in_bytes and rsvd.limit_in_bytes concurrently, and this approach
-   gives them the option to do so.
-
-Testing:
-- Added tests passing.
-- Used libhugetlbfs for regression testing.
-
-[1]: https://www.kernel.org/doc/html/latest/vm/hugetlbfs_reserv.html
-
-Link: http://lkml.kernel.org/r/20200211213128.73302-1-almasrymina@google.com
+Link: http://lkml.kernel.org/r/20200211213128.73302-2-almasrymina@google.com
 Signed-off-by: Mina Almasry <almasrymina@google.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
 Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: Sandipan Das <sandipan@linux.ibm.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    4 -
- mm/hugetlb_cgroup.c     |  115 +++++++++++++++++++++++++++++++++-----
- 2 files changed, 104 insertions(+), 15 deletions(-)
+ include/linux/hugetlb_cgroup.h |  123 ++++++++++++++++++---
+ mm/hugetlb.c                   |    2 
+ mm/hugetlb_cgroup.c            |  174 +++++++++++++++++++++++++------
+ 3 files changed, 251 insertions(+), 48 deletions(-)
 
---- a/include/linux/hugetlb.h~hugetlb_cgroup-add-hugetlb_cgroup-reservation-counter
-+++ a/include/linux/hugetlb.h
-@@ -440,8 +440,8 @@ struct hstate {
- 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+--- a/include/linux/hugetlb_cgroup.h~hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations
++++ a/include/linux/hugetlb_cgroup.h
+@@ -20,32 +20,64 @@
+ struct hugetlb_cgroup;
+ /*
+  * Minimum page order trackable by hugetlb cgroup.
+- * At least 3 pages are necessary for all the tracking information.
++ * At least 4 pages are necessary for all the tracking information.
++ * The second tail page (hpage[2]) is the fault usage cgroup.
++ * The third tail page (hpage[3]) is the reservation usage cgroup.
+  */
+ #define HUGETLB_CGROUP_MIN_ORDER	2
+ 
  #ifdef CONFIG_CGROUP_HUGETLB
- 	/* cgroup control files */
--	struct cftype cgroup_files_dfl[5];
--	struct cftype cgroup_files_legacy[5];
-+	struct cftype cgroup_files_dfl[7];
-+	struct cftype cgroup_files_legacy[9];
- #endif
- 	char name[HSTATE_NAME_LEN];
- };
---- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-add-hugetlb_cgroup-reservation-counter
-+++ a/mm/hugetlb_cgroup.c
-@@ -36,6 +36,11 @@ struct hugetlb_cgroup {
- 	 */
- 	struct page_counter hugepage[HUGE_MAX_HSTATE];
  
-+	/*
-+	 * the counter to account for hugepage reservations from hugetlb.
-+	 */
-+	struct page_counter rsvd_hugepage[HUGE_MAX_HSTATE];
+-static inline struct hugetlb_cgroup *hugetlb_cgroup_from_page(struct page *page)
++static inline struct hugetlb_cgroup *
++__hugetlb_cgroup_from_page(struct page *page, bool rsvd)
+ {
+ 	VM_BUG_ON_PAGE(!PageHuge(page), page);
+ 
+ 	if (compound_order(page) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return NULL;
+-	return (struct hugetlb_cgroup *)page[2].private;
++	if (rsvd)
++		return (struct hugetlb_cgroup *)page[3].private;
++	else
++		return (struct hugetlb_cgroup *)page[2].private;
++}
 +
- 	atomic_long_t events[HUGE_MAX_HSTATE][HUGETLB_NR_MEMORY_EVENTS];
- 	atomic_long_t events_local[HUGE_MAX_HSTATE][HUGETLB_NR_MEMORY_EVENTS];
++static inline struct hugetlb_cgroup *hugetlb_cgroup_from_page(struct page *page)
++{
++	return __hugetlb_cgroup_from_page(page, false);
+ }
  
-@@ -55,6 +60,15 @@ struct hugetlb_cgroup {
+-static inline
+-int set_hugetlb_cgroup(struct page *page, struct hugetlb_cgroup *h_cg)
++static inline struct hugetlb_cgroup *
++hugetlb_cgroup_from_page_rsvd(struct page *page)
++{
++	return __hugetlb_cgroup_from_page(page, true);
++}
++
++static inline int __set_hugetlb_cgroup(struct page *page,
++				       struct hugetlb_cgroup *h_cg, bool rsvd)
+ {
+ 	VM_BUG_ON_PAGE(!PageHuge(page), page);
  
+ 	if (compound_order(page) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return -1;
+-	page[2].private	= (unsigned long)h_cg;
++	if (rsvd)
++		page[3].private = (unsigned long)h_cg;
++	else
++		page[2].private = (unsigned long)h_cg;
+ 	return 0;
+ }
+ 
++static inline int set_hugetlb_cgroup(struct page *page,
++				     struct hugetlb_cgroup *h_cg)
++{
++	return __set_hugetlb_cgroup(page, h_cg, false);
++}
++
++static inline int set_hugetlb_cgroup_rsvd(struct page *page,
++					  struct hugetlb_cgroup *h_cg)
++{
++	return __set_hugetlb_cgroup(page, h_cg, true);
++}
++
+ static inline bool hugetlb_cgroup_disabled(void)
+ {
+ 	return !cgroup_subsys_enabled(hugetlb_cgrp_subsys);
+@@ -53,13 +85,27 @@ static inline bool hugetlb_cgroup_disabl
+ 
+ extern int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
+ 					struct hugetlb_cgroup **ptr);
++extern int hugetlb_cgroup_charge_cgroup_rsvd(int idx, unsigned long nr_pages,
++					     struct hugetlb_cgroup **ptr);
+ extern void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
+ 					 struct hugetlb_cgroup *h_cg,
+ 					 struct page *page);
++extern void hugetlb_cgroup_commit_charge_rsvd(int idx, unsigned long nr_pages,
++					      struct hugetlb_cgroup *h_cg,
++					      struct page *page);
+ extern void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
+ 					 struct page *page);
++extern void hugetlb_cgroup_uncharge_page_rsvd(int idx, unsigned long nr_pages,
++					      struct page *page);
++
+ extern void hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
+ 					   struct hugetlb_cgroup *h_cg);
++extern void hugetlb_cgroup_uncharge_cgroup_rsvd(int idx, unsigned long nr_pages,
++						struct hugetlb_cgroup *h_cg);
++extern void hugetlb_cgroup_uncharge_counter(struct page_counter *p,
++					    unsigned long nr_pages,
++					    struct cgroup_subsys_state *css);
++
+ extern void hugetlb_cgroup_file_init(void) __init;
+ extern void hugetlb_cgroup_migrate(struct page *oldhpage,
+ 				   struct page *newhpage);
+@@ -70,8 +116,26 @@ static inline struct hugetlb_cgroup *hug
+ 	return NULL;
+ }
+ 
+-static inline
+-int set_hugetlb_cgroup(struct page *page, struct hugetlb_cgroup *h_cg)
++static inline struct hugetlb_cgroup *
++hugetlb_cgroup_from_page_resv(struct page *page)
++{
++	return NULL;
++}
++
++static inline struct hugetlb_cgroup *
++hugetlb_cgroup_from_page_rsvd(struct page *page)
++{
++	return NULL;
++}
++
++static inline int set_hugetlb_cgroup(struct page *page,
++				     struct hugetlb_cgroup *h_cg)
++{
++	return 0;
++}
++
++static inline int set_hugetlb_cgroup_rsvd(struct page *page,
++					  struct hugetlb_cgroup *h_cg)
+ {
+ 	return 0;
+ }
+@@ -81,28 +145,51 @@ static inline bool hugetlb_cgroup_disabl
+ 	return true;
+ }
+ 
+-static inline int
+-hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
+-			     struct hugetlb_cgroup **ptr)
++static inline int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
++					       struct hugetlb_cgroup **ptr)
+ {
+ 	return 0;
+ }
+ 
+-static inline void
+-hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
+-			     struct hugetlb_cgroup *h_cg,
+-			     struct page *page)
++static inline int hugetlb_cgroup_charge_cgroup_rsvd(int idx,
++						    unsigned long nr_pages,
++						    struct hugetlb_cgroup **ptr)
++{
++	return 0;
++}
++
++static inline void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
++						struct hugetlb_cgroup *h_cg,
++						struct page *page)
+ {
+ }
+ 
+ static inline void
+-hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages, struct page *page)
++hugetlb_cgroup_commit_charge_rsvd(int idx, unsigned long nr_pages,
++				  struct hugetlb_cgroup *h_cg,
++				  struct page *page)
++{
++}
++
++static inline void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
++						struct page *page)
++{
++}
++
++static inline void hugetlb_cgroup_uncharge_page_rsvd(int idx,
++						     unsigned long nr_pages,
++						     struct page *page)
++{
++}
++static inline void hugetlb_cgroup_uncharge_cgroup(int idx,
++						  unsigned long nr_pages,
++						  struct hugetlb_cgroup *h_cg)
+ {
+ }
+ 
+ static inline void
+-hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
+-			       struct hugetlb_cgroup *h_cg)
++hugetlb_cgroup_uncharge_cgroup_rsvd(int idx, unsigned long nr_pages,
++				    struct hugetlb_cgroup *h_cg)
+ {
+ }
+ 
+--- a/mm/hugetlb.c~hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations
++++ a/mm/hugetlb.c
+@@ -1072,6 +1072,7 @@ static void update_and_free_page(struct
+ 				1 << PG_writeback);
+ 	}
+ 	VM_BUG_ON_PAGE(hugetlb_cgroup_from_page(page), page);
++	VM_BUG_ON_PAGE(hugetlb_cgroup_from_page_rsvd(page), page);
+ 	set_compound_page_dtor(page, NULL_COMPOUND_DTOR);
+ 	set_page_refcounted(page);
+ 	if (hstate_is_gigantic(h)) {
+@@ -1257,6 +1258,7 @@ static void prep_new_huge_page(struct hs
+ 	set_compound_page_dtor(page, HUGETLB_PAGE_DTOR);
+ 	spin_lock(&hugetlb_lock);
+ 	set_hugetlb_cgroup(page, NULL);
++	set_hugetlb_cgroup_rsvd(page, NULL);
+ 	h->nr_huge_pages++;
+ 	h->nr_huge_pages_node[nid]++;
+ 	spin_unlock(&hugetlb_lock);
+--- a/mm/hugetlb_cgroup.c~hugetlb_cgroup-add-interface-for-charge-uncharge-hugetlb-reservations
++++ a/mm/hugetlb_cgroup.c
+@@ -61,14 +61,26 @@ struct hugetlb_cgroup {
  static struct hugetlb_cgroup *root_h_cgroup __read_mostly;
  
+ static inline struct page_counter *
+-hugetlb_cgroup_counter_from_cgroup(struct hugetlb_cgroup *h_cg, int idx,
+-				   bool rsvd)
++__hugetlb_cgroup_counter_from_cgroup(struct hugetlb_cgroup *h_cg, int idx,
++				     bool rsvd)
+ {
+ 	if (rsvd)
+ 		return &h_cg->rsvd_hugepage[idx];
+ 	return &h_cg->hugepage[idx];
+ }
+ 
 +static inline struct page_counter *
-+hugetlb_cgroup_counter_from_cgroup(struct hugetlb_cgroup *h_cg, int idx,
-+				   bool rsvd)
++hugetlb_cgroup_counter_from_cgroup(struct hugetlb_cgroup *h_cg, int idx)
 +{
-+	if (rsvd)
-+		return &h_cg->rsvd_hugepage[idx];
-+	return &h_cg->hugepage[idx];
++	return __hugetlb_cgroup_counter_from_cgroup(h_cg, idx, false);
++}
++
++static inline struct page_counter *
++hugetlb_cgroup_counter_from_cgroup_rsvd(struct hugetlb_cgroup *h_cg, int idx)
++{
++	return __hugetlb_cgroup_counter_from_cgroup(h_cg, idx, true);
 +}
 +
  static inline
  struct hugetlb_cgroup *hugetlb_cgroup_from_css(struct cgroup_subsys_state *s)
  {
-@@ -294,28 +308,42 @@ void hugetlb_cgroup_uncharge_cgroup(int
+@@ -97,8 +109,12 @@ static inline bool hugetlb_cgroup_have_u
+ 	int idx;
  
- enum {
- 	RES_USAGE,
-+	RES_RSVD_USAGE,
- 	RES_LIMIT,
-+	RES_RSVD_LIMIT,
- 	RES_MAX_USAGE,
-+	RES_RSVD_MAX_USAGE,
- 	RES_FAILCNT,
-+	RES_RSVD_FAILCNT,
- };
- 
- static u64 hugetlb_cgroup_read_u64(struct cgroup_subsys_state *css,
- 				   struct cftype *cft)
- {
- 	struct page_counter *counter;
-+	struct page_counter *rsvd_counter;
- 	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(css);
- 
- 	counter = &h_cg->hugepage[MEMFILE_IDX(cft->private)];
-+	rsvd_counter = &h_cg->rsvd_hugepage[MEMFILE_IDX(cft->private)];
- 
- 	switch (MEMFILE_ATTR(cft->private)) {
- 	case RES_USAGE:
- 		return (u64)page_counter_read(counter) * PAGE_SIZE;
-+	case RES_RSVD_USAGE:
-+		return (u64)page_counter_read(rsvd_counter) * PAGE_SIZE;
- 	case RES_LIMIT:
- 		return (u64)counter->max * PAGE_SIZE;
-+	case RES_RSVD_LIMIT:
-+		return (u64)rsvd_counter->max * PAGE_SIZE;
- 	case RES_MAX_USAGE:
- 		return (u64)counter->watermark * PAGE_SIZE;
-+	case RES_RSVD_MAX_USAGE:
-+		return (u64)rsvd_counter->watermark * PAGE_SIZE;
- 	case RES_FAILCNT:
- 		return counter->failcnt;
-+	case RES_RSVD_FAILCNT:
-+		return rsvd_counter->failcnt;
- 	default:
- 		BUG();
+ 	for (idx = 0; idx < hugetlb_max_hstate; idx++) {
+-		if (page_counter_read(&h_cg->hugepage[idx]))
++		if (page_counter_read(
++			    hugetlb_cgroup_counter_from_cgroup(h_cg, idx)) ||
++		    page_counter_read(hugetlb_cgroup_counter_from_cgroup_rsvd(
++			    h_cg, idx))) {
+ 			return true;
++		}
  	}
-@@ -337,10 +365,16 @@ static int hugetlb_cgroup_read_u64_max(s
- 			   1 << huge_page_order(&hstates[idx]));
+ 	return false;
+ }
+@@ -109,18 +125,34 @@ static void hugetlb_cgroup_init(struct h
+ 	int idx;
  
- 	switch (MEMFILE_ATTR(cft->private)) {
-+	case RES_RSVD_USAGE:
-+		counter = &h_cg->rsvd_hugepage[idx];
-+		/* Fall through. */
- 	case RES_USAGE:
- 		val = (u64)page_counter_read(counter);
- 		seq_printf(seq, "%llu\n", val * PAGE_SIZE);
- 		break;
-+	case RES_RSVD_LIMIT:
-+		counter = &h_cg->rsvd_hugepage[idx];
-+		/* Fall through. */
- 	case RES_LIMIT:
- 		val = (u64)counter->max;
- 		if (val == limit)
-@@ -364,6 +398,7 @@ static ssize_t hugetlb_cgroup_write(stru
- 	int ret, idx;
- 	unsigned long nr_pages;
- 	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(of_css(of));
-+	bool rsvd = false;
+ 	for (idx = 0; idx < HUGE_MAX_HSTATE; idx++) {
+-		struct page_counter *counter = &h_cgroup->hugepage[idx];
+-		struct page_counter *parent = NULL;
++		struct page_counter *fault_parent = NULL;
++		struct page_counter *rsvd_parent = NULL;
+ 		unsigned long limit;
+ 		int ret;
  
- 	if (hugetlb_cgroup_is_root(h_cg)) /* Can't set limit on root */
- 		return -EINVAL;
-@@ -377,9 +412,14 @@ static ssize_t hugetlb_cgroup_write(stru
- 	nr_pages = round_down(nr_pages, 1 << huge_page_order(&hstates[idx]));
+-		if (parent_h_cgroup)
+-			parent = &parent_h_cgroup->hugepage[idx];
+-		page_counter_init(counter, parent);
++		if (parent_h_cgroup) {
++			fault_parent = hugetlb_cgroup_counter_from_cgroup(
++				parent_h_cgroup, idx);
++			rsvd_parent = hugetlb_cgroup_counter_from_cgroup_rsvd(
++				parent_h_cgroup, idx);
++		}
++		page_counter_init(hugetlb_cgroup_counter_from_cgroup(h_cgroup,
++								     idx),
++				  fault_parent);
++		page_counter_init(
++			hugetlb_cgroup_counter_from_cgroup_rsvd(h_cgroup, idx),
++			rsvd_parent);
  
- 	switch (MEMFILE_ATTR(of_cft(of)->private)) {
-+	case RES_RSVD_LIMIT:
-+		rsvd = true;
-+		/* Fall through. */
- 	case RES_LIMIT:
- 		mutex_lock(&hugetlb_limit_mutex);
--		ret = page_counter_set_max(&h_cg->hugepage[idx], nr_pages);
+ 		limit = round_down(PAGE_COUNTER_MAX,
+ 				   1 << huge_page_order(&hstates[idx]));
+-		ret = page_counter_set_max(counter, limit);
++
 +		ret = page_counter_set_max(
-+			hugetlb_cgroup_counter_from_cgroup(h_cg, idx, rsvd),
-+			nr_pages);
- 		mutex_unlock(&hugetlb_limit_mutex);
- 		break;
- 	default:
-@@ -405,18 +445,25 @@ static ssize_t hugetlb_cgroup_reset(stru
- 				    char *buf, size_t nbytes, loff_t off)
++			hugetlb_cgroup_counter_from_cgroup(h_cgroup, idx),
++			limit);
++		VM_BUG_ON(ret);
++		ret = page_counter_set_max(
++			hugetlb_cgroup_counter_from_cgroup_rsvd(h_cgroup, idx),
++			limit);
+ 		VM_BUG_ON(ret);
+ 	}
+ }
+@@ -150,7 +182,6 @@ static void hugetlb_cgroup_css_free(stru
+ 	kfree(h_cgroup);
+ }
+ 
+-
+ /*
+  * Should be called with hugetlb_lock held.
+  * Since we are holding hugetlb_lock, pages cannot get moved from
+@@ -227,8 +258,9 @@ static inline void hugetlb_event(struct
+ 		 !hugetlb_cgroup_is_root(hugetlb));
+ }
+ 
+-int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
+-				 struct hugetlb_cgroup **ptr)
++static int __hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
++					  struct hugetlb_cgroup **ptr,
++					  bool rsvd)
  {
  	int ret = 0;
--	struct page_counter *counter;
-+	struct page_counter *counter, *rsvd_counter;
- 	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(of_css(of));
+ 	struct page_counter *counter;
+@@ -251,50 +283,103 @@ again:
+ 	}
+ 	rcu_read_unlock();
  
- 	counter = &h_cg->hugepage[MEMFILE_IDX(of_cft(of)->private)];
-+	rsvd_counter = &h_cg->rsvd_hugepage[MEMFILE_IDX(of_cft(of)->private)];
+-	if (!page_counter_try_charge(&h_cg->hugepage[idx], nr_pages,
+-				     &counter)) {
++	if (!page_counter_try_charge(
++		    __hugetlb_cgroup_counter_from_cgroup(h_cg, idx, rsvd),
++		    nr_pages, &counter)) {
+ 		ret = -ENOMEM;
+ 		hugetlb_event(h_cg, idx, HUGETLB_MAX);
++		css_put(&h_cg->css);
++		goto done;
+ 	}
+-	css_put(&h_cg->css);
++	/* Reservations take a reference to the css because they do not get
++	 * reparented.
++	 */
++	if (!rsvd)
++		css_put(&h_cg->css);
+ done:
+ 	*ptr = h_cg;
+ 	return ret;
+ }
  
- 	switch (MEMFILE_ATTR(of_cft(of)->private)) {
- 	case RES_MAX_USAGE:
- 		page_counter_reset_watermark(counter);
++int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
++				 struct hugetlb_cgroup **ptr)
++{
++	return __hugetlb_cgroup_charge_cgroup(idx, nr_pages, ptr, false);
++}
++
++int hugetlb_cgroup_charge_cgroup_rsvd(int idx, unsigned long nr_pages,
++				      struct hugetlb_cgroup **ptr)
++{
++	return __hugetlb_cgroup_charge_cgroup(idx, nr_pages, ptr, true);
++}
++
+ /* Should be called with hugetlb_lock held */
+-void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
+-				  struct hugetlb_cgroup *h_cg,
+-				  struct page *page)
++static void __hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
++					   struct hugetlb_cgroup *h_cg,
++					   struct page *page, bool rsvd)
+ {
+ 	if (hugetlb_cgroup_disabled() || !h_cg)
+ 		return;
+ 
+-	set_hugetlb_cgroup(page, h_cg);
++	__set_hugetlb_cgroup(page, h_cg, rsvd);
+ 	return;
+ }
+ 
++void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
++				  struct hugetlb_cgroup *h_cg,
++				  struct page *page)
++{
++	__hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, page, false);
++}
++
++void hugetlb_cgroup_commit_charge_rsvd(int idx, unsigned long nr_pages,
++				       struct hugetlb_cgroup *h_cg,
++				       struct page *page)
++{
++	__hugetlb_cgroup_commit_charge(idx, nr_pages, h_cg, page, true);
++}
++
+ /*
+  * Should be called with hugetlb_lock held
+  */
+-void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
+-				  struct page *page)
++static void __hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
++					   struct page *page, bool rsvd)
+ {
+ 	struct hugetlb_cgroup *h_cg;
+ 
+ 	if (hugetlb_cgroup_disabled())
+ 		return;
+ 	lockdep_assert_held(&hugetlb_lock);
+-	h_cg = hugetlb_cgroup_from_page(page);
++	h_cg = __hugetlb_cgroup_from_page(page, rsvd);
+ 	if (unlikely(!h_cg))
+ 		return;
+-	set_hugetlb_cgroup(page, NULL);
+-	page_counter_uncharge(&h_cg->hugepage[idx], nr_pages);
++	__set_hugetlb_cgroup(page, NULL, rsvd);
++
++	page_counter_uncharge(__hugetlb_cgroup_counter_from_cgroup(h_cg, idx,
++								   rsvd),
++			      nr_pages);
++
++	if (rsvd)
++		css_put(&h_cg->css);
++
+ 	return;
+ }
+ 
+-void hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
+-				    struct hugetlb_cgroup *h_cg)
++void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
++				  struct page *page)
++{
++	__hugetlb_cgroup_uncharge_page(idx, nr_pages, page, false);
++}
++
++void hugetlb_cgroup_uncharge_page_rsvd(int idx, unsigned long nr_pages,
++				       struct page *page)
++{
++	__hugetlb_cgroup_uncharge_page(idx, nr_pages, page, true);
++}
++
++static void __hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
++					     struct hugetlb_cgroup *h_cg,
++					     bool rsvd)
+ {
+ 	if (hugetlb_cgroup_disabled() || !h_cg)
+ 		return;
+@@ -302,8 +387,35 @@ void hugetlb_cgroup_uncharge_cgroup(int
+ 	if (huge_page_order(&hstates[idx]) < HUGETLB_CGROUP_MIN_ORDER)
+ 		return;
+ 
+-	page_counter_uncharge(&h_cg->hugepage[idx], nr_pages);
+-	return;
++	page_counter_uncharge(__hugetlb_cgroup_counter_from_cgroup(h_cg, idx,
++								   rsvd),
++			      nr_pages);
++
++	if (rsvd)
++		css_put(&h_cg->css);
++}
++
++void hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
++				    struct hugetlb_cgroup *h_cg)
++{
++	__hugetlb_cgroup_uncharge_cgroup(idx, nr_pages, h_cg, false);
++}
++
++void hugetlb_cgroup_uncharge_cgroup_rsvd(int idx, unsigned long nr_pages,
++					 struct hugetlb_cgroup *h_cg)
++{
++	__hugetlb_cgroup_uncharge_cgroup(idx, nr_pages, h_cg, true);
++}
++
++void hugetlb_cgroup_uncharge_counter(struct page_counter *p,
++				     unsigned long nr_pages,
++				     struct cgroup_subsys_state *css)
++{
++	if (hugetlb_cgroup_disabled() || !p || !css)
++		return;
++
++	page_counter_uncharge(p, nr_pages);
++	css_put(css);
+ }
+ 
+ enum {
+@@ -418,7 +530,7 @@ static ssize_t hugetlb_cgroup_write(stru
+ 	case RES_LIMIT:
+ 		mutex_lock(&hugetlb_limit_mutex);
+ 		ret = page_counter_set_max(
+-			hugetlb_cgroup_counter_from_cgroup(h_cg, idx, rsvd),
++			__hugetlb_cgroup_counter_from_cgroup(h_cg, idx, rsvd),
+ 			nr_pages);
+ 		mutex_unlock(&hugetlb_limit_mutex);
  		break;
-+	case RES_RSVD_MAX_USAGE:
-+		page_counter_reset_watermark(rsvd_counter);
-+		break;
- 	case RES_FAILCNT:
- 		counter->failcnt = 0;
- 		break;
-+	case RES_RSVD_FAILCNT:
-+		rsvd_counter->failcnt = 0;
-+		break;
- 	default:
- 		ret = -EINVAL;
- 		break;
-@@ -471,7 +518,7 @@ static void __init __hugetlb_cgroup_file
- 	struct hstate *h = &hstates[idx];
+@@ -674,6 +786,7 @@ void __init hugetlb_cgroup_file_init(voi
+ void hugetlb_cgroup_migrate(struct page *oldhpage, struct page *newhpage)
+ {
+ 	struct hugetlb_cgroup *h_cg;
++	struct hugetlb_cgroup *h_cg_rsvd;
+ 	struct hstate *h = page_hstate(oldhpage);
  
- 	/* format the size */
--	mem_fmt(buf, 32, huge_page_size(h));
-+	mem_fmt(buf, sizeof(buf), huge_page_size(h));
+ 	if (hugetlb_cgroup_disabled())
+@@ -682,10 +795,11 @@ void hugetlb_cgroup_migrate(struct page
+ 	VM_BUG_ON_PAGE(!PageHuge(oldhpage), oldhpage);
+ 	spin_lock(&hugetlb_lock);
+ 	h_cg = hugetlb_cgroup_from_page(oldhpage);
++	h_cg_rsvd = hugetlb_cgroup_from_page_rsvd(oldhpage);
+ 	set_hugetlb_cgroup(oldhpage, NULL);
  
- 	/* Add the limit file */
- 	cft = &h->cgroup_files_dfl[0];
-@@ -481,15 +528,30 @@ static void __init __hugetlb_cgroup_file
- 	cft->write = hugetlb_cgroup_write_dfl;
- 	cft->flags = CFTYPE_NOT_ON_ROOT;
- 
--	/* Add the current usage file */
-+	/* Add the reservation limit file */
- 	cft = &h->cgroup_files_dfl[1];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.max", buf);
-+	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_LIMIT);
-+	cft->seq_show = hugetlb_cgroup_read_u64_max;
-+	cft->write = hugetlb_cgroup_write_dfl;
-+	cft->flags = CFTYPE_NOT_ON_ROOT;
-+
-+	/* Add the current usage file */
-+	cft = &h->cgroup_files_dfl[2];
- 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.current", buf);
- 	cft->private = MEMFILE_PRIVATE(idx, RES_USAGE);
- 	cft->seq_show = hugetlb_cgroup_read_u64_max;
- 	cft->flags = CFTYPE_NOT_ON_ROOT;
- 
-+	/* Add the current reservation usage file */
-+	cft = &h->cgroup_files_dfl[3];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.current", buf);
-+	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_USAGE);
-+	cft->seq_show = hugetlb_cgroup_read_u64_max;
-+	cft->flags = CFTYPE_NOT_ON_ROOT;
-+
- 	/* Add the events file */
--	cft = &h->cgroup_files_dfl[2];
-+	cft = &h->cgroup_files_dfl[4];
- 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.events", buf);
- 	cft->private = MEMFILE_PRIVATE(idx, 0);
- 	cft->seq_show = hugetlb_events_show;
-@@ -497,7 +559,7 @@ static void __init __hugetlb_cgroup_file
- 	cft->flags = CFTYPE_NOT_ON_ROOT;
- 
- 	/* Add the events.local file */
--	cft = &h->cgroup_files_dfl[3];
-+	cft = &h->cgroup_files_dfl[5];
- 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.events.local", buf);
- 	cft->private = MEMFILE_PRIVATE(idx, 0);
- 	cft->seq_show = hugetlb_events_local_show;
-@@ -506,7 +568,7 @@ static void __init __hugetlb_cgroup_file
- 	cft->flags = CFTYPE_NOT_ON_ROOT;
- 
- 	/* NULL terminate the last cft */
--	cft = &h->cgroup_files_dfl[4];
-+	cft = &h->cgroup_files_dfl[6];
- 	memset(cft, 0, sizeof(*cft));
- 
- 	WARN_ON(cgroup_add_dfl_cftypes(&hugetlb_cgrp_subsys,
-@@ -520,7 +582,7 @@ static void __init __hugetlb_cgroup_file
- 	struct hstate *h = &hstates[idx];
- 
- 	/* format the size */
--	mem_fmt(buf, 32, huge_page_size(h));
-+	mem_fmt(buf, sizeof(buf), huge_page_size(h));
- 
- 	/* Add the limit file */
- 	cft = &h->cgroup_files_legacy[0];
-@@ -529,28 +591,55 @@ static void __init __hugetlb_cgroup_file
- 	cft->read_u64 = hugetlb_cgroup_read_u64;
- 	cft->write = hugetlb_cgroup_write_legacy;
- 
--	/* Add the usage file */
-+	/* Add the reservation limit file */
- 	cft = &h->cgroup_files_legacy[1];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.limit_in_bytes", buf);
-+	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_LIMIT);
-+	cft->read_u64 = hugetlb_cgroup_read_u64;
-+	cft->write = hugetlb_cgroup_write_legacy;
-+
-+	/* Add the usage file */
-+	cft = &h->cgroup_files_legacy[2];
- 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.usage_in_bytes", buf);
- 	cft->private = MEMFILE_PRIVATE(idx, RES_USAGE);
- 	cft->read_u64 = hugetlb_cgroup_read_u64;
- 
-+	/* Add the reservation usage file */
-+	cft = &h->cgroup_files_legacy[3];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.usage_in_bytes", buf);
-+	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_USAGE);
-+	cft->read_u64 = hugetlb_cgroup_read_u64;
-+
- 	/* Add the MAX usage file */
--	cft = &h->cgroup_files_legacy[2];
-+	cft = &h->cgroup_files_legacy[4];
- 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.max_usage_in_bytes", buf);
- 	cft->private = MEMFILE_PRIVATE(idx, RES_MAX_USAGE);
- 	cft->write = hugetlb_cgroup_reset;
- 	cft->read_u64 = hugetlb_cgroup_read_u64;
- 
-+	/* Add the MAX reservation usage file */
-+	cft = &h->cgroup_files_legacy[5];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.max_usage_in_bytes", buf);
-+	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_MAX_USAGE);
-+	cft->write = hugetlb_cgroup_reset;
-+	cft->read_u64 = hugetlb_cgroup_read_u64;
-+
- 	/* Add the failcntfile */
--	cft = &h->cgroup_files_legacy[3];
-+	cft = &h->cgroup_files_legacy[6];
- 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.failcnt", buf);
--	cft->private  = MEMFILE_PRIVATE(idx, RES_FAILCNT);
-+	cft->private = MEMFILE_PRIVATE(idx, RES_FAILCNT);
-+	cft->write = hugetlb_cgroup_reset;
-+	cft->read_u64 = hugetlb_cgroup_read_u64;
-+
-+	/* Add the reservation failcntfile */
-+	cft = &h->cgroup_files_legacy[7];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.rsvd.failcnt", buf);
-+	cft->private = MEMFILE_PRIVATE(idx, RES_RSVD_FAILCNT);
- 	cft->write = hugetlb_cgroup_reset;
- 	cft->read_u64 = hugetlb_cgroup_read_u64;
- 
- 	/* NULL terminate the last cft */
--	cft = &h->cgroup_files_legacy[4];
-+	cft = &h->cgroup_files_legacy[8];
- 	memset(cft, 0, sizeof(*cft));
- 
- 	WARN_ON(cgroup_add_legacy_cftypes(&hugetlb_cgrp_subsys,
+ 	/* move the h_cg details to new cgroup */
+-	set_hugetlb_cgroup(newhpage, h_cg);
++	set_hugetlb_cgroup_rsvd(newhpage, h_cg_rsvd);
+ 	list_move(&newhpage->lru, &h->hugepage_activelist);
+ 	spin_unlock(&hugetlb_lock);
+ 	return;
 _
 
 Patches currently in -mm which might be from almasrymina@google.com are
