@@ -1,131 +1,114 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlb-support-file_region-coalescing-again.patch removed from -mm tree
-Date: Fri, 03 Apr 2020 13:40:47 -0700
-Message-ID: <20200403204047.Om9veEGAI%akpm@linux-foundation.org>
+ =?US-ASCII?Q?selftests-vm-run=5Fvmtests-invoke-gup=5Fbenchmark-with-basic?=
+ =?US-ASCII?Q?-foll=5Fpin-coverage.patch?= removed from -mm tree
+Date: Fri, 03 Apr 2020 13:40:50 -0700
+Message-ID: <20200403204050.BUThJ8D4V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36994 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37142 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727907AbgDCUkt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Apr 2020 16:40:49 -0400
+        id S1727907AbgDCUkw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Apr 2020 16:40:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: almasrymina@google.com, gthelen@google.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, rientjes@google.com, sandipan@linux.ibm.com, shakeelb@google.com, shuah@kernel.org
+To: corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org, ira.weiny@intel.com, jack@suse.cz, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, shuah@kernel.org, vbabka@suse.cz, viro@zeniv.linux.org.uk, willy@infradead.org
 
 
 The patch titled
-     Subject: hugetlb: support file_region coalescing again
+     Subject: selftests/vm: run_vmtests: invoke gup_benchmark with basic FO=
+LL_PIN coverage
 has been removed from the -mm tree.  Its filename was
-     hugetlb-support-file_region-coalescing-again.patch
+     selftests-vm-run_vmtests-invoke-gup_benchmark-with-basic-foll_pin-cove=
+rage.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Mina Almasry <almasrymina@google.com>
-Subject: hugetlb: support file_region coalescing again
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: selftests/vm: run_vmtests: invoke gup_benchmark with basic FOLL_PI=
+N coverage
 
-An earlier patch in this series disabled file_region coalescing in order
-to hang the hugetlb_cgroup uncharge info on the file_region entries.
+It's good to have basic unit test coverage of the new FOLL_PIN behavior.=20
+Fortunately, the gup_benchmark unit test is extremely fast (a few
+milliseconds), so adding it the the run_vmtests suite is going to cause no
+noticeable change in running time.
 
-This patch re-adds support for coalescing of file_region entries. 
-Essentially everytime we add an entry, we call a recursive function that
-tries to coalesce the added region with the regions next to it.  The worst
-case call depth for this function is 3: one to coalesce with the region
-next to it, one to coalesce to the region prev, and one to reach the base
-case.
+So, add two new invocations to run_vmtests:
 
-This is an important performance optimization as private mappings add
-their entries page by page, and we could incur big performance costs for
-large mappings with lots of file_region entries in their resv_map.
+1) Run gup_benchmark with normal get_user_pages().
 
-[almasrymina@google.com: fix CONFIG_CGROUP_HUGETLB ifdefs]
-  Link: http://lkml.kernel.org/r/20200214204544.231482-1-almasrymina@google.com
-[almasrymina@google.com: remove check_coalesce_bug debug code]
-  Link: http://lkml.kernel.org/r/20200219233610.13808-1-almasrymina@google.com
-Link: http://lkml.kernel.org/r/20200211213128.73302-7-almasrymina@google.com
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Greg Thelen <gthelen@google.com>
+2) Run gup_benchmark with pin_user_pages().  This is much like the
+   first call, except that it sets FOLL_PIN.
+
+Running these two in quick succession also provide a visual comparison of
+the running times, which is convenient.
+
+The new invocations are fairly early in the run_vmtests script, because
+with test suites, it's usually preferable to put the shorter, faster tests
+first, all other things being equal.
+
+Link: http://lkml.kernel.org/r/20200211001536.1027652-11-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Sandipan Das <sandipan@linux.ibm.com>
-Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ tools/testing/selftests/vm/run_vmtests |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/mm/hugetlb.c~hugetlb-support-file_region-coalescing-again
-+++ a/mm/hugetlb.c
-@@ -276,6 +276,48 @@ static void record_hugetlb_cgroup_unchar
- #endif
- }
- 
-+static bool has_same_uncharge_info(struct file_region *rg,
-+				   struct file_region *org)
-+{
-+#ifdef CONFIG_CGROUP_HUGETLB
-+	return rg && org &&
-+	       rg->reservation_counter == org->reservation_counter &&
-+	       rg->css == org->css;
+--- a/tools/testing/selftests/vm/run_vmtests~selftests-vm-run_vmtests-invok=
+e-gup_benchmark-with-basic-foll_pin-coverage
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -123,6 +123,28 @@ else
+ 	echo "[PASS]"
+ fi
+=20
++echo "--------------------------------------------"
++echo "running 'gup_benchmark -U' (normal/slow gup)"
++echo "--------------------------------------------"
++./gup_benchmark -U
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=3D1
++else
++	echo "[PASS]"
++fi
 +
-+#else
-+	return true;
-+#endif
-+}
++echo "------------------------------------------"
++echo "running gup_benchmark -b (pin_user_pages)"
++echo "------------------------------------------"
++./gup_benchmark -b
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=3D1
++else
++	echo "[PASS]"
++fi
 +
-+static void coalesce_file_region(struct resv_map *resv, struct file_region *rg)
-+{
-+	struct file_region *nrg = NULL, *prg = NULL;
-+
-+	prg = list_prev_entry(rg, link);
-+	if (&prg->link != &resv->regions && prg->to == rg->from &&
-+	    has_same_uncharge_info(prg, rg)) {
-+		prg->to = rg->to;
-+
-+		list_del(&rg->link);
-+		kfree(rg);
-+
-+		coalesce_file_region(resv, prg);
-+		return;
-+	}
-+
-+	nrg = list_next_entry(rg, link);
-+	if (&nrg->link != &resv->regions && nrg->from == rg->to &&
-+	    has_same_uncharge_info(nrg, rg)) {
-+		nrg->from = rg->from;
-+
-+		list_del(&rg->link);
-+		kfree(rg);
-+
-+		coalesce_file_region(resv, nrg);
-+		return;
-+	}
-+}
-+
- /* Must be called with resv->lock held. Calling this with count_only == true
-  * will count the number of pages to be added but will not modify the linked
-  * list. If regions_needed != NULL and count_only == true, then regions_needed
-@@ -327,6 +369,7 @@ static long add_reservation_in_range(str
- 				record_hugetlb_cgroup_uncharge_info(h_cg, h,
- 								    resv, nrg);
- 				list_add(&nrg->link, rg->link.prev);
-+				coalesce_file_region(resv, nrg);
- 			} else if (regions_needed)
- 				*regions_needed += 1;
- 		}
-@@ -344,6 +387,7 @@ static long add_reservation_in_range(str
- 				resv, last_accounted_offset, t);
- 			record_hugetlb_cgroup_uncharge_info(h_cg, h, resv, nrg);
- 			list_add(&nrg->link, rg->link.prev);
-+			coalesce_file_region(resv, nrg);
- 		} else if (regions_needed)
- 			*regions_needed += 1;
- 	}
+ echo "-------------------"
+ echo "running userfaultfd"
+ echo "-------------------"
 _
 
-Patches currently in -mm which might be from almasrymina@google.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
+
+checkpatch-support-base-commit-format.patch
