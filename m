@@ -1,113 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+Subject: +
+ mm-slab_common-fix-a-typo-in-comment-eariler-earlier.patch added to -mm
  tree
-Date: Sun, 05 Apr 2020 14:16:13 -0700
-Message-ID: <20200405211613.-t4e-_32c%akpm@linux-foundation.org>
+Date: Sun, 05 Apr 2020 15:06:46 -0700
+Message-ID: <20200405220646.yNEC5SI3d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37938 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45018 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726887AbgDEVQO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 5 Apr 2020 17:16:14 -0400
+        id S1726887AbgDEWGr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 5 Apr 2020 18:06:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hqjagain@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm, slab_common: Fix a typo in comment "eariler"->"earlier"
+has been added to the -mm tree.  Its filename is
+     mm-slab_common-fix-a-typo-in-comment-eariler-earlier.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-fix-a-typo-in-comment-eariler-earlier.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-fix-a-typo-in-comment-eariler-earlier.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Qiujun Huang <hqjagain@gmail.com>
+Subject: mm, slab_common: Fix a typo in comment "eariler"->"earlier"
 
+There is a typo in comment, fix it.
+s/eariler/earlier/
+
+Link: http://lkml.kernel.org/r/20200405160544.1246-1-hqjagain@gmail.com
+Signed-off-by: Qiujun Huang <hqjagain@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/configs/bcm2835_defconfig       |    3 ---
- arch/arm/configs/omap2plus_defconfig     |   10 ----------
- include/dt-bindings/clock/imx8mn-clock.h |    5 -----
- 3 files changed, 18 deletions(-)
+ mm/slab_common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm/configs/bcm2835_defconfig~linux-next-git-rejects
-+++ a/arch/arm/configs/bcm2835_defconfig
-@@ -103,10 +103,7 @@ CONFIG_WATCHDOG=y
- CONFIG_BCM2835_WDT=y
- CONFIG_MFD_SYSCON=y
- CONFIG_REGULATOR=y
--<<<<<<< HEAD
--=======
- CONFIG_REGULATOR_FIXED_VOLTAGE=y
-->>>>>>> linux-next/akpm-base
- CONFIG_REGULATOR_GPIO=y
- CONFIG_MEDIA_SUPPORT=y
- CONFIG_MEDIA_CAMERA_SUPPORT=y
---- a/arch/arm/configs/omap2plus_defconfig~linux-next-git-rejects
-+++ a/arch/arm/configs/omap2plus_defconfig
-@@ -360,26 +360,16 @@ CONFIG_OMAP2_DSS_DSI=y
- CONFIG_DRM_OMAP_PANEL_DSI_CM=m
- CONFIG_DRM_TILCDC=m
- CONFIG_DRM_PANEL_SIMPLE=m
--<<<<<<< HEAD
--=======
- CONFIG_DRM_DISPLAY_CONNECTOR=m
- CONFIG_DRM_SIMPLE_BRIDGE=m
- CONFIG_DRM_TI_TPD12S015=m
-->>>>>>> linux-next/akpm-base
- CONFIG_DRM_PANEL_LG_LB035Q02=m
- CONFIG_DRM_PANEL_NEC_NL8048HL11=m
- CONFIG_DRM_PANEL_SHARP_LS037V7DW01=m
- CONFIG_DRM_PANEL_SONY_ACX565AKM=m
- CONFIG_DRM_PANEL_TPO_TD028TTEC1=m
- CONFIG_DRM_PANEL_TPO_TD043MTEA1=m
--<<<<<<< HEAD
--CONFIG_DRM_DISPLAY_CONNECTOR=m
--CONFIG_DRM_SIMPLE_BRIDGE=m
--CONFIG_DRM_TI_TFP410=m
--CONFIG_DRM_TI_TPD12S015=m
--=======
- CONFIG_DRM_TI_TFP410=m
-->>>>>>> linux-next/akpm-base
- CONFIG_FB=y
- CONFIG_FIRMWARE_EDID=y
- CONFIG_FB_MODE_HELPERS=y
---- a/include/dt-bindings/clock/imx8mn-clock.h~linux-next-git-rejects
-+++ a/include/dt-bindings/clock/imx8mn-clock.h
-@@ -229,16 +229,11 @@
- #define IMX8MN_SYS_PLL2_500M_CG			210
- 
- #define IMX8MN_CLK_SNVS_ROOT			211
--<<<<<<< HEAD
--
--#define IMX8MN_CLK_END				212
--=======
- #define IMX8MN_CLK_GPU_CORE			212
- #define IMX8MN_CLK_GPU_SHADER			213
- 
- #define IMX8MN_CLK_A53_CORE			214
- 
- #define IMX8MN_CLK_END				215
-->>>>>>> linux-next/akpm-base
- 
- #endif
+--- a/mm/slab_common.c~mm-slab_common-fix-a-typo-in-comment-eariler-earlier
++++ a/mm/slab_common.c
+@@ -731,7 +731,7 @@ static void kmemcg_rcufn(struct rcu_head
+ 	/*
+ 	 * We need to grab blocking locks.  Bounce to ->work.  The
+ 	 * work item shares the space with the RCU head and can't be
+-	 * initialized eariler.
++	 * initialized earlier.
+ 	 */
+ 	INIT_WORK(&s->memcg_params.work, kmemcg_workfn);
+ 	queue_work(memcg_kmem_cache_wq, &s->memcg_params.work);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hqjagain@gmail.com are
 
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-mm-clarify-__gfp_memalloc-usage-checkpatch-fixes.patch
-mm-hugetlbc-fix-printk-format-warning-for-32-bit-phys_addr_t-fix.patch
-mm-migratec-migrate-pg_readahead-flag-fix.patch
-hv_balloon-dont-check-for-memhp_auto_online-manually-fix.patch
-proc-faster-open-read-close-with-permanent-files-checkpatch-fixes.patch
-linux-next-fix.patch
-mm-add-vm_insert_pages-fix.patch
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
-seq_read-info-message-about-buggy-next-functions-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-slab_common-fix-a-typo-in-comment-eariler-earlier.patch
+kmod-fix-a-typo-assuems-assumes.patch
+lib-kconfigdebug-fix-a-typo-capabilitiy-capability.patch
