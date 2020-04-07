@@ -1,66 +1,90 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 144/166] kallsyms: unexport kallsyms_lookup_name()
- and kallsyms_on_each_symbol()
-Date: Mon, 06 Apr 2020 20:11:43 -0700
-Message-ID: <20200407031143.TIUdoIaga%akpm@linux-foundation.org>
+Subject: [patch 145/166] reiserfs: clean up several indentation
+ issues
+Date: Mon, 06 Apr 2020 20:11:46 -0700
+Message-ID: <20200407031146.FMz2VXFVO%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57486 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57560 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726663AbgDGDLp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:11:45 -0400
+        id S1726633AbgDGDLr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:11:47 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ast@kernel.org, frederic@kernel.org, gregkh@linuxfoundation.org, hch@lst.de, joe.lawrence@redhat.com, linux-mm@kvack.org, mathieu.desnoyers@efficios.com, mbenes@suse.cz, mhiramat@kernel.org, mm-commits@vger.kernel.org, pmladek@suse.com, prasad@linux.vnet.ibm.com, qperret@google.com, tglx@linutronix.de, torvalds@linux-foundation.org, will@kernel.org
+To: akpm@linux-foundation.org, colin.king@canonical.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Will Deacon <will@kernel.org>
-Subject: kallsyms: unexport kallsyms_lookup_name() and kallsyms_on_each_symbol()
+From: Colin Ian King <colin.king@canonical.com>
+Subject: reiserfs: clean up several indentation issues
 
-kallsyms_lookup_name() and kallsyms_on_each_symbol() are exported to
-modules despite having no in-tree users and being wide open to abuse by
-out-of-tree modules that can use them as a method to invoke arbitrary
-non-exported kernel functions.
+There are several places where code is indented incorrectly. Fix these.
 
-Unexport kallsyms_lookup_name() and kallsyms_on_each_symbol().
-
-Link: http://lkml.kernel.org/r/20200221114404.14641-4-will@kernel.org
-Signed-off-by: Will Deacon <will@kernel.org>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Alexei Starovoitov <ast@kernel.org>
-Reviewed-by: Masami Hiramatsu <mhiramat@kernel.org>
-Reviewed-by: Quentin Perret <qperret@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: K.Prasad <prasad@linux.vnet.ibm.com>
-Cc: Miroslav Benes <mbenes@suse.cz>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Joe Lawrence <joe.lawrence@redhat.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Link: http://lkml.kernel.org/r/20200325135018.113431-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/reiserfs/do_balan.c |    2 +-
+ fs/reiserfs/ioctl.c    |   11 ++++++-----
+ fs/reiserfs/namei.c    |   10 +++++-----
+ 3 files changed, 12 insertions(+), 11 deletions(-)
 
---- a/kernel/kallsyms.c~kallsyms-unexport-kallsyms_lookup_name-and-kallsyms_on_each_symbol
-+++ a/kernel/kallsyms.c
-@@ -175,7 +175,6 @@ unsigned long kallsyms_lookup_name(const
- 	}
- 	return module_kallsyms_lookup_name(name);
- }
--EXPORT_SYMBOL_GPL(kallsyms_lookup_name);
+--- a/fs/reiserfs/do_balan.c~reiserfs-clean-up-several-indentation-issues
++++ a/fs/reiserfs/do_balan.c
+@@ -842,7 +842,7 @@ static void balance_leaf_paste_right_who
+ 	struct item_head *pasted;
+ 	struct buffer_info bi;
  
- int kallsyms_on_each_symbol(int (*fn)(void *, const char *, struct module *,
- 				      unsigned long),
-@@ -194,7 +193,6 @@ int kallsyms_on_each_symbol(int (*fn)(vo
- 	}
- 	return module_kallsyms_on_each_symbol(fn, data);
- }
--EXPORT_SYMBOL_GPL(kallsyms_on_each_symbol);
+-							buffer_info_init_right(tb, &bi);
++	buffer_info_init_right(tb, &bi);
+ 	leaf_shift_right(tb, tb->rnum[0], tb->rbytes);
  
- static unsigned long get_symbol_pos(unsigned long addr,
- 				    unsigned long *symbolsize,
+ 	/* append item in R[0] */
+--- a/fs/reiserfs/ioctl.c~reiserfs-clean-up-several-indentation-issues
++++ a/fs/reiserfs/ioctl.c
+@@ -184,11 +184,12 @@ int reiserfs_unpack(struct inode *inode,
+ 	}
+ 
+ 	/* we need to make sure nobody is changing the file size beneath us */
+-{
+-	int depth = reiserfs_write_unlock_nested(inode->i_sb);
+-	inode_lock(inode);
+-	reiserfs_write_lock_nested(inode->i_sb, depth);
+-}
++	{
++		int depth = reiserfs_write_unlock_nested(inode->i_sb);
++
++		inode_lock(inode);
++		reiserfs_write_lock_nested(inode->i_sb, depth);
++	}
+ 
+ 	reiserfs_write_lock(inode->i_sb);
+ 
+--- a/fs/reiserfs/namei.c~reiserfs-clean-up-several-indentation-issues
++++ a/fs/reiserfs/namei.c
+@@ -838,10 +838,10 @@ static int reiserfs_mkdir(struct inode *
+ 	 */
+ 	INC_DIR_INODE_NLINK(dir)
+ 
+-	    retval = reiserfs_new_inode(&th, dir, mode, NULL /*symlink */ ,
+-					old_format_only(dir->i_sb) ?
+-					EMPTY_DIR_SIZE_V1 : EMPTY_DIR_SIZE,
+-					dentry, inode, &security);
++	retval = reiserfs_new_inode(&th, dir, mode, NULL /*symlink */,
++				    old_format_only(dir->i_sb) ?
++				    EMPTY_DIR_SIZE_V1 : EMPTY_DIR_SIZE,
++				    dentry, inode, &security);
+ 	if (retval) {
+ 		DEC_DIR_INODE_NLINK(dir)
+ 		goto out_failed;
+@@ -967,7 +967,7 @@ static int reiserfs_rmdir(struct inode *
+ 	reiserfs_update_sd(&th, inode);
+ 
+ 	DEC_DIR_INODE_NLINK(dir)
+-	    dir->i_size -= (DEH_SIZE + de.de_entrylen);
++	dir->i_size -= (DEH_SIZE + de.de_entrylen);
+ 	reiserfs_update_sd(&th, dir);
+ 
+ 	/* prevent empty directory from getting lost */
 _
