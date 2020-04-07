@@ -1,27 +1,49 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 069/166] mm/memory_hotplug: convert
- memhp_auto_online to store an online_type
-Date: Mon, 06 Apr 2020 20:07:40 -0700
-Message-ID: <20200407030740.tLljpgb2b%akpm@linux-foundation.org>
+Subject: [patch 070/166] mm/memory_hotplug: allow to specify a
+ default online_type
+Date: Mon, 06 Apr 2020 20:07:44 -0700
+Message-ID: <20200407030744.rxeMK84Sk%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52708 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52776 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726303AbgDGDHm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:07:42 -0400
+        id S1726303AbgDGDHr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:07:47 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, ehabkost@redhat.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, imammedo@redhat.com, kys@microsoft.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, pankaj.gupta.linux@gmail.com, paulus@samba.org, rafael@kernel.org, richard.weiyang@gmail.com, sthemmin@microsoft.com, torvalds@linux-foundation.org, vkuznets@redhat.com, wei.liu@kernel.org, yuhuang@redhat.com
 
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: convert memhp_auto_online to store an online_type
+Subject: mm/memory_hotplug: allow to specify a default online_type
 
-...  and rename it to memhp_default_online_type.  This is a preparation
-for more detailed default online behavior.
+For now, distributions implement advanced udev rules to essentially
+- Don't online any hotplugged memory (s390x)
+- Online all memory to ZONE_NORMAL (e.g., most virt environments like
+  hyperv)
+- Online all memory to ZONE_MOVABLE in case the zone imbalance is taken
+  care of (e.g., bare metal, special virt environments)
 
-Link: http://lkml.kernel.org/r/20200317104942.11178-8-david@redhat.com
+In summary: All memory is usually onlined the same way, however, the
+kernel always has to ask user space to come up with the same answer. 
+E.g., Hyper-V always waits for a memory block to get onlined before
+continuing, otherwise it might end up adding memory faster than
+onlining it, which can result in strange OOM situations.  This waiting
+slows down adding of a bigger amount of memory.
+
+Let's allow to specify a default online_type, not just "online" and
+"offline".  This allows distributions to configure the default online_type
+when booting up and be done with it.
+
+We can now specify "offline", "online", "online_movable" and
+"online_kernel" via
+- "memhp_default_state=" on the kernel cmdline
+- /sys/devices/system/memory/auto_online_blocks
+just like we are able to specify for a single memory block via
+/sys/devices/system/memory/memoryX/state
+
+Link: http://lkml.kernel.org/r/20200317104942.11178-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -45,89 +67,66 @@ Cc: Yumei Huang <yuhuang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |   10 ++++------
- include/linux/memory_hotplug.h |    3 ++-
- mm/memory_hotplug.c            |   11 ++++++-----
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/base/memory.c          |   11 +++++------
+ include/linux/memory_hotplug.h |    2 ++
+ mm/memory_hotplug.c            |    8 ++++----
+ 3 files changed, 11 insertions(+), 10 deletions(-)
 
---- a/drivers/base/memory.c~mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type
+--- a/drivers/base/memory.c~mm-memory_hotplug-allow-to-specify-a-default-online_type
 +++ a/drivers/base/memory.c
-@@ -378,10 +378,8 @@ static DEVICE_ATTR_RO(block_size_bytes);
- static ssize_t auto_online_blocks_show(struct device *dev,
- 				       struct device_attribute *attr, char *buf)
- {
--	if (memhp_auto_online)
--		return sprintf(buf, "online\n");
--	else
--		return sprintf(buf, "offline\n");
-+	return sprintf(buf, "%s\n",
-+		       online_type_to_str[memhp_default_online_type]);
- }
+@@ -34,7 +34,7 @@ static const char *const online_type_to_
+ 	[MMOP_ONLINE_MOVABLE] = "online_movable",
+ };
  
- static ssize_t auto_online_blocks_store(struct device *dev,
-@@ -389,9 +387,9 @@ static ssize_t auto_online_blocks_store(
+-static int memhp_online_type_from_str(const char *str)
++int memhp_online_type_from_str(const char *str)
+ {
+ 	int i;
+ 
+@@ -386,13 +386,12 @@ static ssize_t auto_online_blocks_store(
+ 					struct device_attribute *attr,
  					const char *buf, size_t count)
  {
- 	if (sysfs_streq(buf, "online"))
--		memhp_auto_online = true;
-+		memhp_default_online_type = MMOP_ONLINE;
- 	else if (sysfs_streq(buf, "offline"))
--		memhp_auto_online = false;
-+		memhp_default_online_type = MMOP_OFFLINE;
- 	else
+-	if (sysfs_streq(buf, "online"))
+-		memhp_default_online_type = MMOP_ONLINE;
+-	else if (sysfs_streq(buf, "offline"))
+-		memhp_default_online_type = MMOP_OFFLINE;
+-	else
++	const int online_type = memhp_online_type_from_str(buf);
++
++	if (online_type < 0)
  		return -EINVAL;
  
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type
++	memhp_default_online_type = online_type;
+ 	return count;
+ }
+ 
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-allow-to-specify-a-default-online_type
 +++ a/include/linux/memory_hotplug.h
-@@ -117,7 +117,8 @@ extern int arch_add_memory(int nid, u64
+@@ -117,6 +117,8 @@ extern int arch_add_memory(int nid, u64
  			struct mhp_restrictions *restrictions);
  extern u64 max_mem_size;
  
--extern bool memhp_auto_online;
-+/* Default online_type (MMOP_*) when new memory blocks are added. */
-+extern int memhp_default_online_type;
++extern int memhp_online_type_from_str(const char *str);
++
+ /* Default online_type (MMOP_*) when new memory blocks are added. */
+ extern int memhp_default_online_type;
  /* If movable_node boot option specified */
- extern bool movable_node_enabled;
- static inline bool movable_node_is_enabled(void)
---- a/mm/memory_hotplug.c~mm-memory_hotplug-convert-memhp_auto_online-to-store-an-online_type
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-allow-to-specify-a-default-online_type
 +++ a/mm/memory_hotplug.c
-@@ -67,17 +67,17 @@ void put_online_mems(void)
- bool movable_node_enabled = false;
- 
- #ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
--bool memhp_auto_online;
-+int memhp_default_online_type = MMOP_OFFLINE;
- #else
--bool memhp_auto_online = true;
-+int memhp_default_online_type = MMOP_ONLINE;
- #endif
+@@ -74,10 +74,10 @@ int memhp_default_online_type = MMOP_ONL
  
  static int __init setup_memhp_default_state(char *str)
  {
- 	if (!strcmp(str, "online"))
--		memhp_auto_online = true;
-+		memhp_default_online_type = MMOP_ONLINE;
- 	else if (!strcmp(str, "offline"))
--		memhp_auto_online = false;
-+		memhp_default_online_type = MMOP_OFFLINE;
+-	if (!strcmp(str, "online"))
+-		memhp_default_online_type = MMOP_ONLINE;
+-	else if (!strcmp(str, "offline"))
+-		memhp_default_online_type = MMOP_OFFLINE;
++	const int online_type = memhp_online_type_from_str(str);
++
++	if (online_type >= 0)
++		memhp_default_online_type = online_type;
  
  	return 1;
  }
-@@ -990,6 +990,7 @@ static int check_hotplug_memory_range(u6
- 
- static int online_memory_block(struct memory_block *mem, void *arg)
- {
-+	mem->online_type = memhp_default_online_type;
- 	return device_online(&mem->dev);
- }
- 
-@@ -1062,7 +1063,7 @@ int __ref add_memory_resource(int nid, s
- 	mem_hotplug_done();
- 
- 	/* online pages if requested */
--	if (memhp_auto_online)
-+	if (memhp_default_online_type != MMOP_OFFLINE)
- 		walk_memory_blocks(start, size, NULL, online_memory_block);
- 
- 	return ret;
 _
