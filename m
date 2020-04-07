@@ -1,117 +1,78 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 116/166] lib: test_stackinit.c: XFAIL switch
- variable init tests
-Date: Mon, 06 Apr 2020 20:10:12 -0700
-Message-ID: <20200407031012.k4Ehy3SAU%akpm@linux-foundation.org>
+Subject: [patch 117/166] lib/stackdepot.c: check depot_index
+ before accessing the stack slab
+Date: Mon, 06 Apr 2020 20:10:15 -0700
+Message-ID: <20200407031015.xHHCl9ozQ%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55652 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55710 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726396AbgDGDKO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:10:14 -0400
+        id S1726396AbgDGDKR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:10:17 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ard.biesheuvel@linaro.org, glider@google.com, jannh@google.com, keescook@chromium.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, andreyknvl@google.com, arnd@arndb.de, aryabinin@virtuozzo.com, dan.carpenter@oracle.com, dvyukov@google.com, elver@google.com, glider@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, vegard.nossum@oracle.com
 
-From: Kees Cook <keescook@chromium.org>
-Subject: lib: test_stackinit.c: XFAIL switch variable init tests
+From: Alexander Potapenko <glider@google.com>
+Subject: lib/stackdepot.c: check depot_index before accessing the stack slab
 
-The tests for initializing a variable defined between a switch statement's
-test and its first "case" statement are currently not initialized in
-Clang[1] nor the proposed auto-initialization feature in GCC.
+Avoid crashes on corrupted stack ids.  Despite stack ID corruption may
+indicate other bugs in the program, we'd better fail gracefully on such
+IDs instead of crashing the kernel.
 
-We should retain the test (so that we can evaluate compiler fixes), but
-mark it as an "expected fail".  The rest of the kernel source will be
-adjusted to avoid this corner case.
+This patch has been previously mailed as part of KMSAN RFC patch series.
 
-Also disable -Wswitch-unreachable for the test so that the intentionally
-broken code won't trigger warnings for GCC (nor future Clang) when
-initialization happens this unhandled place.
+Link: http://lkml.kernel.org/r/20200220141916.55455-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: lib/stackdepot.c: fix a condition in stack_depot_fetch()
 
-[1] https://bugs.llvm.org/show_bug.cgi?id=44916
+We should check for a NULL pointer first before adding the offset. 
+Otherwise if the pointer is NULL and the offset is non-zero, it will lead
+to an Oops.
 
-Link: http://lkml.kernel.org/r/202002191358.2897A07C6@keescook
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Suggested-by: Alexander Potapenko <glider@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Link: http://lkml.kernel.org/r/20200312113006.GA20562@mwanda
+Fixes: d45048e65a59 ("lib/stackdepot.c: check depot_index before accessing the stack slab")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile         |    1 +
- lib/test_stackinit.c |   28 ++++++++++++++++++----------
- 2 files changed, 19 insertions(+), 10 deletions(-)
+ lib/stackdepot.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
---- a/lib/Makefile~lib-test_stackinitc-xfail-switch-variable-init-tests
-+++ a/lib/Makefile
-@@ -87,6 +87,7 @@ obj-$(CONFIG_TEST_KMOD) += test_kmod.o
- obj-$(CONFIG_TEST_DEBUG_VIRTUAL) += test_debug_virtual.o
- obj-$(CONFIG_TEST_MEMCAT_P) += test_memcat_p.o
- obj-$(CONFIG_TEST_OBJAGG) += test_objagg.o
-+CFLAGS_test_stackinit.o += $(call cc-disable-warning, switch-unreachable)
- obj-$(CONFIG_TEST_STACKINIT) += test_stackinit.o
- obj-$(CONFIG_TEST_BLACKHOLE_DEV) += test_blackhole_dev.o
- obj-$(CONFIG_TEST_MEMINIT) += test_meminit.o
---- a/lib/test_stackinit.c~lib-test_stackinitc-xfail-switch-variable-init-tests
-+++ a/lib/test_stackinit.c
-@@ -92,8 +92,9 @@ static bool range_contains(char *haystac
-  * @var_type: type to be tested for zeroing initialization
-  * @which: is this a SCALAR, STRING, or STRUCT type?
-  * @init_level: what kind of initialization is performed
-+ * @xfail: is this test expected to fail?
-  */
--#define DEFINE_TEST_DRIVER(name, var_type, which)		\
-+#define DEFINE_TEST_DRIVER(name, var_type, which, xfail)	\
- /* Returns 0 on success, 1 on failure. */			\
- static noinline __init int test_ ## name (void)			\
- {								\
-@@ -139,13 +140,14 @@ static noinline __init int test_ ## name
- 	for (sum = 0, i = 0; i < target_size; i++)		\
- 		sum += (check_buf[i] == 0xFF);			\
- 								\
--	if (sum == 0)						\
-+	if (sum == 0) {						\
- 		pr_info(#name " ok\n");				\
--	else							\
--		pr_warn(#name " FAIL (uninit bytes: %d)\n",	\
--			sum);					\
--								\
--	return (sum != 0);					\
-+		return 0;					\
-+	} else {						\
-+		pr_warn(#name " %sFAIL (uninit bytes: %d)\n",	\
-+			(xfail) ? "X" : "", sum);		\
-+		return (xfail) ? 0 : 1;				\
-+	}							\
- }
- #define DEFINE_TEST(name, var_type, which, init_level)		\
- /* no-op to force compiler into ignoring "uninitialized" vars */\
-@@ -189,7 +191,7 @@ static noinline __init int leaf_ ## name
- 								\
- 	return (int)buf[0] | (int)buf[sizeof(buf) - 1];		\
- }								\
--DEFINE_TEST_DRIVER(name, var_type, which)
-+DEFINE_TEST_DRIVER(name, var_type, which, 0)
- 
- /* Structure with no padding. */
- struct test_packed {
-@@ -326,8 +328,14 @@ static noinline __init int leaf_switch_2
- 	return __leaf_switch_none(2, fill);
- }
- 
--DEFINE_TEST_DRIVER(switch_1_none, uint64_t, SCALAR);
--DEFINE_TEST_DRIVER(switch_2_none, uint64_t, SCALAR);
-+/*
-+ * These are expected to fail for most configurations because neither
-+ * GCC nor Clang have a way to perform initialization of variables in
-+ * non-code areas (i.e. in a switch statement before the first "case").
-+ * https://bugs.llvm.org/show_bug.cgi?id=44916
-+ */
-+DEFINE_TEST_DRIVER(switch_1_none, uint64_t, SCALAR, 1);
-+DEFINE_TEST_DRIVER(switch_2_none, uint64_t, SCALAR, 1);
- 
- static int __init test_stackinit_init(void)
+--- a/lib/stackdepot.c~stackdepot-check-depot_index-before-accessing-the-stack-slab
++++ a/lib/stackdepot.c
+@@ -202,9 +202,20 @@ unsigned int stack_depot_fetch(depot_sta
+ 			       unsigned long **entries)
  {
+ 	union handle_parts parts = { .handle = handle };
+-	void *slab = stack_slabs[parts.slabindex];
++	void *slab;
+ 	size_t offset = parts.offset << STACK_ALLOC_ALIGN;
+-	struct stack_record *stack = slab + offset;
++	struct stack_record *stack;
++
++	*entries = NULL;
++	if (parts.slabindex > depot_index) {
++		WARN(1, "slab index %d out of bounds (%d) for stack id %08x\n",
++			parts.slabindex, depot_index, handle);
++		return 0;
++	}
++	slab = stack_slabs[parts.slabindex];
++	if (!slab)
++		return 0;
++	stack = slab + offset;
+ 
+ 	*entries = stack->entries;
+ 	return stack->size;
 _
