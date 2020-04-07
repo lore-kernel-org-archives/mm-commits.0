@@ -1,61 +1,44 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 114/166] lib/ts_kmp.c: replace zero-length array
- with flexible-array member
-Date: Mon, 06 Apr 2020 20:10:06 -0700
-Message-ID: <20200407031006.7zJnvFh4b%akpm@linux-foundation.org>
+Subject: [patch 115/166] lib/scatterlist: fix sg_copy_buffer()
+ kerneldoc
+Date: Mon, 06 Apr 2020 20:10:09 -0700
+Message-ID: <20200407031009.EWZ4Qzc6U%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55542 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55590 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726648AbgDGDKH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:10:07 -0400
+        id S1726648AbgDGDKK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:10:10 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gustavo@embeddedor.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akinobu.mita@gmail.com, akpm@linux-foundation.org, geert+renesas@glider.be, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: lib/ts_kmp.c: replace zero-length array with flexible-array member
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: lib/scatterlist: fix sg_copy_buffer() kerneldoc
 
-The current codebase makes use of the zero-length array language extension
-to the C90 standard, but the preferred mechanism to declare
-variable-length types such as these ones is a flexible array member[1][2],
-introduced in C99:
+Add the missing closing parenthesis to the description for the to_buffer
+parameter of sg_copy_buffer().
 
-struct foo {
-        int stuff;
-        struct boo array[];
-};
-
-By making use of the mechanism above, we will get a compiler warning in
-case the flexible array does not occur last in the structure, which will
-help us prevent some kind of undefined behavior bugs from being
-inadvertenly introduced[3] to the codebase from now on.
-
-This issue was found with the help of Coccinelle.
-
-[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-[2] https://github.com/KSPP/linux/issues/21
-[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
-
-Link: http://lkml.kernel.org/r/20200211205948.GA26459@embeddedor
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Link: http://lkml.kernel.org/r/20200212084241.8778-1-geert+renesas@glider.be
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Akinobu Mita <akinobu.mita@gmail.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ts_kmp.c |    2 +-
+ lib/scatterlist.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/ts_kmp.c~lib-ts_kmp-replace-zero-length-array-with-flexible-array-member
-+++ a/lib/ts_kmp.c
-@@ -36,7 +36,7 @@ struct ts_kmp
- {
- 	u8 *		pattern;
- 	unsigned int	pattern_len;
--	unsigned int 	prefix_tbl[0];
-+	unsigned int	prefix_tbl[];
- };
- 
- static unsigned int kmp_find(struct ts_config *conf, struct ts_state *state)
+--- a/lib/scatterlist.c~lib-scatterlist-fix-sg_copy_buffer-kerneldoc
++++ a/lib/scatterlist.c
+@@ -832,7 +832,7 @@ EXPORT_SYMBOL(sg_miter_stop);
+  * @buflen:		 The number of bytes to copy
+  * @skip:		 Number of bytes to skip before copying
+  * @to_buffer:		 transfer direction (true == from an sg list to a
+- *			 buffer, false == from a buffer to an sg list
++ *			 buffer, false == from a buffer to an sg list)
+  *
+  * Returns the number of copied bytes.
+  *
 _
