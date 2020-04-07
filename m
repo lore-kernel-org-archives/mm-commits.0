@@ -1,94 +1,90 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 002/166] mm: don't prepare anon_vma if vma has
- VM_WIPEONFORK
-Date: Mon, 06 Apr 2020 20:03:33 -0700
-Message-ID: <20200407030333.lRZnlkrMc%akpm@linux-foundation.org>
+Subject: [patch 003/166] Revert "mm/rmap.c: reuse mergeable
+ anon_vma as parent when fork"
+Date: Mon, 06 Apr 2020 20:03:36 -0700
+Message-ID: <20200407030336.B-tPyqvqF%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47116 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47190 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726287AbgDGDDf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:03:35 -0400
+        id S1726287AbgDGDDi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:03:38 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, linux-mm@kvack.org, lixinhai.lxh@gmail.com, mm-commits@vger.kernel.org, riel@redhat.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, linux-mm@kvack.org, lixinhai.lxh@gmail.com, mm-commits@vger.kernel.org, riel@redhat.com, torvalds@linux-foundation.org, willy@infradead.org
 
 From: Li Xinhai <lixinhai.lxh@gmail.com>
-Subject: mm: don't prepare anon_vma if vma has VM_WIPEONFORK
+Subject: Revert "mm/rmap.c: reuse mergeable anon_vma as parent when fork"
 
-Patch series "mm: Fix misuse of parent anon_vma in dup_mmap path".
+This reverts commit 4e4a9eb921332b9d1 ("mm/rmap.c: reuse mergeable
+anon_vma as parent when fork").
 
-This patchset fixes the misuse of parenet anon_vma, which mainly caused by
-child vma's vm_next and vm_prev are left same as its parent after
-duplicate vma.  Finally, code reached parent vma's neighbor by referring
-pointer of child vma and executed wrong logic.
-
-The first two patches fix relevant issues, and the third patch sets
-vm_next and vm_prev to NULL when duplicate vma to prevent potential misuse
-in future.  
-
-Effects of the first bug is that causes rmap code to check both parent and
-child's page table, although a page couldn't be mapped by both parent and
-child, because child vma has WIPEONFORK so all pages mapped by child are
-'new' and not relevant to parent.
-
-Effects of the second bug is that the relationship of anon_vma of parent
-and child are totallyconvoluted.  It would cause 'son', 'grandson', ...,
-etc, to share 'parent' anon_vma, which disobey the design rule of reusing
-anon_vma (the rule to be followed is that reusing should among vma of same
-process, and vma should not gone through fork).
-
-So, both issues should cause unnecessary rmap walking and have unexpected
-complexity.
-
-These two issues would not be directly visible, I used debugging code to
-check the anon_vma pointers of parent and child when inspecting the
-suspicious implementation of issue #2, then find the problem.
-
-
-This patch (of 3):
-
-In dup_mmap(), anon_vma_prepare() is called for vma has VM_WIPEONFORK, and
+In dup_mmap(), anon_vma_fork() is called for attaching anon_vma and
 parameter 'tmp' (i.e., the new vma of child) has same ->vm_next and
-->vm_prev as its parent vma.  That allows anon_vma used by parent been
-mistakenly shared by child (find_mergeable_anon_vma() will do this reuse
-work).
+->vm_prev as its parent vma.  That causes the anon_vma used by parent been
+mistakenly shared by child (In anon_vma_clone(), the code added by that
+commit will do this reuse work).
 
-Besides this issue, call anon_vma_prepare() should be avoided because we
-don't copy page for this vma.  Preparing anon_vma will be handled during
-fault.
+Besides this issue, the design of reusing anon_vma from vma which has gone
+through fork should be avoided ([1]).  So, this patch reverts that commit
+and maintains the consistent logic of reusing anon_vma for
+fork/split/merge vma.
 
-Link: http://lkml.kernel.org/r/1581150928-3214-2-git-send-email-lixinhai.lxh@gmail.com
-Fixes: d2cd9ede6e19 ("mm,fork: introduce MADV_WIPEONFORK")
+Reusing anon_vma within the process is fine.  But if a vma has gone
+through fork(), then that vma's anon_vma should not be shared with its
+neighbor vma.  As explained in [1], when vma gone through fork(), the
+check for list_is_singular(vma->anon_vma_chain) will be false, and
+don't share anon_vma.
+
+With current issue, one example can clarify more.  Parent process do
+below two steps:
+
+1. p_vma_1 is created and p_anon_vma_1 is prepared;
+
+2. p_vma_2 is created and share p_anon_vma_1; (this is allowed,
+   becaues p_vma_1 didn't gothrough fork()); parent process do fork():
+
+3. c_vma_1 is dup from p_vma_1, and has its own c_anon_vma_1
+   prepared; at this point, c_vma_1->anon_vma_chain has two items, one
+   for p_anon_vma_1 and one for c_anon_vma_1;
+
+4. c_vma_2 is dup from p_vma_2, it is not allowed to share
+   c_anon_vma_1, because
+
+c_vma_1->anon_vma_chain has two items.
+[1] commit d0e9fe1758f2 ("Simplify and comment on anon_vma re-use for
+    anon_vma_prepare()") explains the test of "list_is_singular()".
+
+Link: http://lkml.kernel.org/r/1581150928-3214-3-git-send-email-lixinhai.lxh@gmail.com
+Fixes: 4e4a9eb92133 ("mm/rmap.c: reuse mergeable anon_vma as parent when fork")
 Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/rmap.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
---- a/kernel/fork.c~mm-dont-prepare-anon_vma-if-vma-has-vm_wipeonfork
-+++ a/kernel/fork.c
-@@ -553,10 +553,12 @@ static __latent_entropy int dup_mmap(str
- 		if (retval)
- 			goto fail_nomem_anon_vma_fork;
- 		if (tmp->vm_flags & VM_WIPEONFORK) {
--			/* VM_WIPEONFORK gets a clean slate in the child. */
-+			/*
-+			 * VM_WIPEONFORK gets a clean slate in the child.
-+			 * Don't prepare anon_vma until fault since we don't
-+			 * copy page for current vma.
-+			 */
- 			tmp->anon_vma = NULL;
--			if (anon_vma_prepare(tmp))
--				goto fail_nomem_anon_vma_fork;
- 		} else if (anon_vma_fork(tmp, mpnt))
- 			goto fail_nomem_anon_vma_fork;
- 		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
-_
+--- a/mm/rmap.c~revert-mm-rmapc-reuse-mergeable-anon_vma-as-parent-when-fork
++++ a/mm/rmap.c
+@@ -275,19 +275,6 @@ int anon_vma_clone(struct vm_area_struct
+ {
+ 	struct anon_vma_chain *avc, *pavc;
+ 	struct anon_vma *root = NULL;
+-	struct vm_area_struct *prev = dst->vm_prev, *pprev = src->vm_prev;
+-
+-	/*
+-	 * If parent share anon_vma with its vm_prev, keep this sharing in in
+-	 * child.
+-	 *
+-	 * 1. Parent has vm_prev, which implies we have vm_prev.
+-	 * 2. Parent and its vm_prev have the same anon_vma.
+-	 */
+-	if (!dst->anon_vma && src->anon_vma &&
+-	    pprev && pprev->anon_vma == src->anon_vma)
+-		dst->anon_vma = prev->anon_vma;
