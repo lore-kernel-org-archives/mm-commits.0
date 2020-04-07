@@ -1,119 +1,76 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 104/166] compiler: remove CONFIG_OPTIMIZE_INLINING
- entirely
-Date: Mon, 06 Apr 2020 20:09:33 -0700
-Message-ID: <20200407030933.AkZXUjv2D%akpm@linux-foundation.org>
+Subject: [patch 105/166] compiler.h: fix error in BUILD_BUG_ON()
+ reporting
+Date: Mon, 06 Apr 2020 20:09:37 -0700
+Message-ID: <20200407030937.QP0WCVcPW%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54890 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726396AbgDGDJh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:09:37 -0400
+        id S1726396AbgDGDJj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:09:39 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, bp@alien8.de, davem@davemloft.net, hpa@zytor.com, linux-mm@kvack.org, masahiroy@kernel.org, miguel.ojeda.sandonis@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org, natechancellor@gmail.com, tglx@linutronix.de, torvalds@linux-foundation.org
+To: abbotti@mev.co.uk, akpm@linux-foundation.org, daniel.santos@pobox.com, joe@perches.com, linux-mm@kvack.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vegard.nossum@oracle.com, yamada.masahiro@socionext.com
 
-From: Masahiro Yamada <masahiroy@kernel.org>
-Subject: compiler: remove CONFIG_OPTIMIZE_INLINING entirely
+From: Vegard Nossum <vegard.nossum@oracle.com>
+Subject: compiler.h: fix error in BUILD_BUG_ON() reporting
 
-Commit ac7c3e4ff401 ("compiler: enable CONFIG_OPTIMIZE_INLINING
-forcibly") made this always-on option. We released v5.4 and v5.5
-including that commit.
+compiletime_assert() uses __LINE__ to create a unique function name.  This
+means that if you have more than one BUILD_BUG_ON() in the same source
+line (which can happen if they appear e.g.  in a macro), then the error
+message from the compiler might output the wrong condition.
 
-Remove the CONFIG option and clean up the code now.
+For this source file:
 
-Link: http://lkml.kernel.org/r/20200220110807.32534-2-masahiroy@kernel.org
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-Reviewed-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: David Miller <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+	#include <linux/build_bug.h>
+
+	#define macro() \
+		BUILD_BUG_ON(1); \
+		BUILD_BUG_ON(0);
+
+	void foo()
+	{
+		macro();
+	}
+
+gcc would output:
+
+./include/linux/compiler.h:350:38: error: call to `__compiletime_assert_9' declared with attribute error: BUILD_BUG_ON failed: 0
+  _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
+
+However, it was not the BUILD_BUG_ON(0) that failed, so it should say 1
+instead of 0. With this patch, we use __COUNTER__ instead of __LINE__, so
+each BUILD_BUG_ON() gets a different function name and the correct
+condition is printed:
+
+./include/linux/compiler.h:350:38: error: call to `__compiletime_assert_0' declared with attribute error: BUILD_BUG_ON failed: 1
+  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+
+Link: http://lkml.kernel.org/r/20200331112637.25047-1-vegard.nossum@oracle.com
+Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
+Reviewed-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Reviewed-by: Daniel Santos <daniel.santos@pobox.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Ian Abbott <abbotti@mev.co.uk>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/configs/i386_defconfig   |    1 -
- arch/x86/configs/x86_64_defconfig |    1 -
- include/linux/compiler_types.h    |   11 +----------
- kernel/configs/tiny.config        |    1 -
- lib/Kconfig.debug                 |   12 ------------
- 5 files changed, 1 insertion(+), 25 deletions(-)
+ include/linux/compiler.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/configs/i386_defconfig~compiler-remove-config_optimize_inlining-entirely
-+++ a/arch/x86/configs/i386_defconfig
-@@ -285,7 +285,6 @@ CONFIG_EARLY_PRINTK_DBGP=y
- CONFIG_DEBUG_STACKOVERFLOW=y
- # CONFIG_DEBUG_RODATA_TEST is not set
- CONFIG_DEBUG_BOOT_PARAMS=y
--CONFIG_OPTIMIZE_INLINING=y
- CONFIG_SECURITY=y
- CONFIG_SECURITY_NETWORK=y
- CONFIG_SECURITY_SELINUX=y
---- a/arch/x86/configs/x86_64_defconfig~compiler-remove-config_optimize_inlining-entirely
-+++ a/arch/x86/configs/x86_64_defconfig
-@@ -282,7 +282,6 @@ CONFIG_EARLY_PRINTK_DBGP=y
- CONFIG_DEBUG_STACKOVERFLOW=y
- # CONFIG_DEBUG_RODATA_TEST is not set
- CONFIG_DEBUG_BOOT_PARAMS=y
--CONFIG_OPTIMIZE_INLINING=y
- CONFIG_UNWINDER_ORC=y
- CONFIG_SECURITY=y
- CONFIG_SECURITY_NETWORK=y
---- a/include/linux/compiler_types.h~compiler-remove-config_optimize_inlining-entirely
-+++ a/include/linux/compiler_types.h
-@@ -129,22 +129,13 @@ struct ftrace_likely_data {
- #define __compiler_offsetof(a, b)	__builtin_offsetof(a, b)
- 
- /*
-- * Force always-inline if the user requests it so via the .config.
-  * Prefer gnu_inline, so that extern inline functions do not emit an
-  * externally visible function. This makes extern inline behave as per gnu89
-  * semantics rather than c99. This prevents multiple symbol definition errors
-  * of extern inline functions at link time.
-  * A lot of inline functions can cause havoc with function tracing.
-- * Do not use __always_inline here, since currently it expands to inline again
-- * (which would break users of __always_inline).
+--- a/include/linux/compiler.h~compilerh-fix-error-in-build_bug_on-reporting
++++ a/include/linux/compiler.h
+@@ -347,7 +347,7 @@ static inline void *offset_to_ptr(const
+  * compiler has support to do so.
   */
--#if !defined(CONFIG_OPTIMIZE_INLINING)
--#define inline inline __attribute__((__always_inline__)) __gnu_inline \
--	__inline_maybe_unused notrace
--#else
--#define inline inline                                    __gnu_inline \
--	__inline_maybe_unused notrace
--#endif
-+#define inline inline __gnu_inline __inline_maybe_unused notrace
+ #define compiletime_assert(condition, msg) \
+-	_compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
++	_compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
  
- /*
-  * gcc provides both __inline__ and __inline as alternate spellings of
---- a/kernel/configs/tiny.config~compiler-remove-config_optimize_inlining-entirely
-+++ a/kernel/configs/tiny.config
-@@ -6,7 +6,6 @@ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
- CONFIG_KERNEL_XZ=y
- # CONFIG_KERNEL_LZO is not set
- # CONFIG_KERNEL_LZ4 is not set
--CONFIG_OPTIMIZE_INLINING=y
- # CONFIG_SLAB is not set
- # CONFIG_SLUB is not set
- CONFIG_SLOB=y
---- a/lib/Kconfig.debug~compiler-remove-config_optimize_inlining-entirely
-+++ a/lib/Kconfig.debug
-@@ -305,18 +305,6 @@ config HEADERS_INSTALL
- 	  user-space program samples. It is also needed by some features such
- 	  as uapi header sanity checks.
- 
--config OPTIMIZE_INLINING
--	def_bool y
--	help
--	  This option determines if the kernel forces gcc to inline the functions
--	  developers have marked 'inline'. Doing so takes away freedom from gcc to
--	  do what it thinks is best, which is desirable for the gcc 3.x series of
--	  compilers. The gcc 4.x series have a rewritten inlining algorithm and
--	  enabling this option will generate a smaller kernel there. Hopefully
--	  this algorithm is so good that allowing gcc 4.x and above to make the
--	  decision will become the default in the future. Until then this option
--	  is there to test gcc for this.
+ #define compiletime_assert_atomic_type(t)				\
+ 	compiletime_assert(__native_word(t),				\
+_
