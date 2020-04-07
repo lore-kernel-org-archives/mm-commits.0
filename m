@@ -1,149 +1,83 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 101/166] asm-generic: fix unistd_32.h generation
- format
-Date: Mon, 06 Apr 2020 20:09:23 -0700
-Message-ID: <20200407030923.HjTrT723H%akpm@linux-foundation.org>
+Subject: [patch 103/166] sparc,x86: vdso: remove meaningless
+ undefining CONFIG_OPTIMIZE_INLINING
+Date: Mon, 06 Apr 2020 20:09:30 -0700
+Message-ID: <20200407030930.A7AaTPhN_%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54682 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54820 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726396AbgDGDJ1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:09:27 -0400
+        id S1726396AbgDGDJc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:09:32 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, benh@kernel.crashing.org, chris@zankel.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, fenghua.yu@intel.com, ink@jurassic.park.msu.ru, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, linux-mm@kvack.org, mattst88@gmail.com, michal.simek@xilinx.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulburton@kernel.org, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, stefan.asserhall@xilinx.com, tony.luck@intel.com, torvalds@linux-foundation.org, ysato@users.sourceforge.jp
+To: akpm@linux-foundation.org, arnd@arndb.de, bp@alien8.de, davem@davemloft.net, hpa@zytor.com, linux-mm@kvack.org, masahiroy@kernel.org, miguel.ojeda.sandonis@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org, natechancellor@gmail.com, tglx@linutronix.de, torvalds@linux-foundation.org
 
-From: Michal Simek <michal.simek@xilinx.com>
-Subject: asm-generic: fix unistd_32.h generation format
+From: Masahiro Yamada <masahiroy@kernel.org>
+Subject: sparc,x86: vdso: remove meaningless undefining CONFIG_OPTIMIZE_INLINING
 
-Generated files are also checked by sparse that's why add newline to
-remove sparse (C=1) warning.
+The code, #undef CONFIG_OPTIMIZE_INLINING, is not working as expected
+because <linux/compiler_types.h> is parsed before vclock_gettime.c since
+28128c61e08e ("kconfig.h: Include compiler types to avoid missed struct
+attributes").
 
-The issue was found on Microblaze and reported like this:
-./arch/microblaze/include/generated/uapi/asm/unistd_32.h:438:45: warning:
-no newline at end of file
+Since then, <linux/compiler_types.h> is included really early by using the
+'-include' option.  So, you cannot negate the decision of
+<linux/compiler_types.h> in this way.
 
-Mips and PowerPC have it already but let's align with style used by m68k.
+You can confirm it by checking the pre-processed code, like this:
 
-Link: http://lkml.kernel.org/r/4d32ab4e1fb2edb691d2e1687e8fb303c09fd023.1581504803.git.michal.simek@xilinx.com
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Reviewed-by: Stefan Asserhall <stefan.asserhall@xilinx.com>
-Acked-by: Max Filippov <jcmvbkbc@gmail.com> (xtensa)
+  $ make arch/x86/entry/vdso/vdso32/vclock_gettime.i
+
+There is no difference with/without CONFIG_CC_OPTIMIZE_FOR_SIZE.
+
+It is about two years since 28128c61e08e.  Nobody has reported a problem
+(or, nobody has even noticed the fact that this code is not working).
+
+It is ugly and unreliable to attempt to undefine a CONFIG option from C
+files, and anyway the inlining heuristic is up to the compiler.
+
+Just remove the broken code.
+
+Link: http://lkml.kernel.org/r/20200220110807.32534-1-masahiroy@kernel.org
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Acked-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Burton <paulburton@kernel.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/syscalls/syscallhdr.sh      |    2 +-
- arch/ia64/kernel/syscalls/syscallhdr.sh       |    2 +-
- arch/microblaze/kernel/syscalls/syscallhdr.sh |    2 +-
- arch/mips/kernel/syscalls/syscallhdr.sh       |    3 +--
- arch/parisc/kernel/syscalls/syscallhdr.sh     |    2 +-
- arch/powerpc/kernel/syscalls/syscallhdr.sh    |    3 +--
- arch/sh/kernel/syscalls/syscallhdr.sh         |    2 +-
- arch/sparc/kernel/syscalls/syscallhdr.sh      |    2 +-
- arch/xtensa/kernel/syscalls/syscallhdr.sh     |    2 +-
- 9 files changed, 9 insertions(+), 11 deletions(-)
+ arch/sparc/vdso/vdso32/vclock_gettime.c     |    4 ----
+ arch/x86/entry/vdso/vdso32/vclock_gettime.c |    4 ----
+ 2 files changed, 8 deletions(-)
 
---- a/arch/alpha/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
-+++ a/arch/alpha/kernel/syscalls/syscallhdr.sh
-@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
- 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
- 	printf "#endif\n"
- 	printf "\n"
--	printf "#endif /* %s */" "${fileguard}"
-+	printf "#endif /* %s */\n" "${fileguard}"
- ) > "$out"
---- a/arch/ia64/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
-+++ a/arch/ia64/kernel/syscalls/syscallhdr.sh
-@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
- 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
- 	printf "#endif\n"
- 	printf "\n"
--	printf "#endif /* %s */" "${fileguard}"
-+	printf "#endif /* %s */\n" "${fileguard}"
- ) > "$out"
---- a/arch/microblaze/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
-+++ a/arch/microblaze/kernel/syscalls/syscallhdr.sh
-@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
- 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
- 	printf "#endif\n"
- 	printf "\n"
--	printf "#endif /* %s */" "${fileguard}"
-+	printf "#endif /* %s */\n" "${fileguard}"
- ) > "$out"
---- a/arch/mips/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
-+++ a/arch/mips/kernel/syscalls/syscallhdr.sh
-@@ -32,6 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
- 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
- 	printf "#endif\n"
- 	printf "\n"
--	printf "#endif /* %s */" "${fileguard}"
--	printf "\n"
-+	printf "#endif /* %s */\n" "${fileguard}"
- ) > "$out"
---- a/arch/parisc/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
-+++ a/arch/parisc/kernel/syscalls/syscallhdr.sh
-@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
- 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
- 	printf "#endif\n"
- 	printf "\n"
--	printf "#endif /* %s */" "${fileguard}"
-+	printf "#endif /* %s */\n" "${fileguard}"
- ) > "$out"
---- a/arch/powerpc/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
-+++ a/arch/powerpc/kernel/syscalls/syscallhdr.sh
-@@ -32,6 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
- 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
- 	printf "#endif\n"
- 	printf "\n"
--	printf "#endif /* %s */" "${fileguard}"
--	printf "\n"
-+	printf "#endif /* %s */\n" "${fileguard}"
- ) > "$out"
---- a/arch/sh/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
-+++ a/arch/sh/kernel/syscalls/syscallhdr.sh
-@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
- 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
- 	printf "#endif\n"
- 	printf "\n"
--	printf "#endif /* %s */" "${fileguard}"
-+	printf "#endif /* %s */\n" "${fileguard}"
- ) > "$out"
---- a/arch/sparc/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
-+++ a/arch/sparc/kernel/syscalls/syscallhdr.sh
-@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
- 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
- 	printf "#endif\n"
- 	printf "\n"
--	printf "#endif /* %s */" "${fileguard}"
-+	printf "#endif /* %s */\n" "${fileguard}"
- ) > "$out"
---- a/arch/xtensa/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
-+++ a/arch/xtensa/kernel/syscalls/syscallhdr.sh
-@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
- 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
- 	printf "#endif\n"
- 	printf "\n"
--	printf "#endif /* %s */" "${fileguard}"
-+	printf "#endif /* %s */\n" "${fileguard}"
- ) > "$out"
-_
+--- a/arch/sparc/vdso/vdso32/vclock_gettime.c~sparcx86-vdso-remove-meaningless-undefining-config_optimize_inlining
++++ a/arch/sparc/vdso/vdso32/vclock_gettime.c
+@@ -4,10 +4,6 @@
+ 
+ #define	BUILD_VDSO32
+ 
+-#ifndef	CONFIG_CC_OPTIMIZE_FOR_SIZE
+-#undef	CONFIG_OPTIMIZE_INLINING
+-#endif
+-
+ #ifdef	CONFIG_SPARC64
+ 
+ /*
+--- a/arch/x86/entry/vdso/vdso32/vclock_gettime.c~sparcx86-vdso-remove-meaningless-undefining-config_optimize_inlining
++++ a/arch/x86/entry/vdso/vdso32/vclock_gettime.c
+@@ -1,10 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #define BUILD_VDSO32
+ 
+-#ifndef CONFIG_CC_OPTIMIZE_FOR_SIZE
+-#undef CONFIG_OPTIMIZE_INLINING
+-#endif
