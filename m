@@ -1,22 +1,22 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 113/166] lib/ts_fsm.c: replace zero-length array
+Subject: [patch 114/166] lib/ts_kmp.c: replace zero-length array
  with flexible-array member
-Date: Mon, 06 Apr 2020 20:10:03 -0700
-Message-ID: <20200407031003.wPPp7AGjP%akpm@linux-foundation.org>
+Date: Mon, 06 Apr 2020 20:10:06 -0700
+Message-ID: <20200407031006.7zJnvFh4b%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55492 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55542 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726648AbgDGDKE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:10:04 -0400
+        id S1726648AbgDGDKH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:10:07 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, gustavo@embeddedor.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: lib/ts_fsm.c: replace zero-length array with flexible-array member
+Subject: lib/ts_kmp.c: replace zero-length array with flexible-array member
 
 The current codebase makes use of the zero-length array language extension
 to the C90 standard, but the preferred mechanism to declare
@@ -39,23 +39,23 @@ This issue was found with the help of Coccinelle.
 [2] https://github.com/KSPP/linux/issues/21
 [3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
 
-Link: http://lkml.kernel.org/r/20200211205813.GA25602@embeddedor
+Link: http://lkml.kernel.org/r/20200211205948.GA26459@embeddedor
 Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ts_fsm.c |    2 +-
+ lib/ts_kmp.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/ts_fsm.c~lib-ts_fsm-replace-zero-length-array-with-flexible-array-member
-+++ a/lib/ts_fsm.c
-@@ -32,7 +32,7 @@
- struct ts_fsm
+--- a/lib/ts_kmp.c~lib-ts_kmp-replace-zero-length-array-with-flexible-array-member
++++ a/lib/ts_kmp.c
+@@ -36,7 +36,7 @@ struct ts_kmp
  {
- 	unsigned int		ntokens;
--	struct ts_fsm_token	tokens[0];
-+	struct ts_fsm_token	tokens[];
+ 	u8 *		pattern;
+ 	unsigned int	pattern_len;
+-	unsigned int 	prefix_tbl[0];
++	unsigned int	prefix_tbl[];
  };
  
- /* other values derived from ctype.h */
+ static unsigned int kmp_find(struct ts_config *conf, struct ts_state *state)
 _
