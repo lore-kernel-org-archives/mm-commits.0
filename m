@@ -1,74 +1,105 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 122/166] lib/rbtree: fix coding style of
- assignments
-Date: Mon, 06 Apr 2020 20:10:31 -0700
-Message-ID: <20200407031031.KyIx4qL9f%akpm@linux-foundation.org>
+Subject: [patch 124/166] linux/bits.h: add compile time sanity
+ check of GENMASK inputs
+Date: Mon, 06 Apr 2020 20:10:38 -0700
+Message-ID: <20200407031038.8mS1ou6Ll%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56052 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726591AbgDGDKe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:10:34 -0400
+        id S1726591AbgDGDKk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:10:40 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chenqiwu@xiaomi.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, walken@google.com
+To: akpm@linux-foundation.org, bp@alien8.de, geert@linux-m68k.org, haren@us.ibm.com, joe@perches.com, johannes@sipsolutions.net, keescook@chromium.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, mingo@redhat.com, mm-commits@vger.kernel.org, rikard.falkeborn@gmail.com, tglx@linutronix.de, torvalds@linux-foundation.org, yamada.masahiro@socionext.com
 
-From: chenqiwu <chenqiwu@xiaomi.com>
-Subject: lib/rbtree: fix coding style of assignments
+From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Subject: linux/bits.h: add compile time sanity check of GENMASK inputs
 
-Leave blank space between the right-hand and left-hand side of the
-assignment to meet the kernel coding style better.
+GENMASK() and GENMASK_ULL() are supposed to be called with the high bit as
+the first argument and the low bit as the second argument.  Mixing them
+will return a mask with zero bits set.
 
-Link: http://lkml.kernel.org/r/1582621140-25850-1-git-send-email-qiwuchen55@gmail.com
-Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
-Reviewed-by: Michel Lespinasse <walken@google.com>
+Recent commits show getting this wrong is not uncommon, see e.g.  commit
+aa4c0c9091b0 ("net: stmmac: Fix misuses of GENMASK macro") and commit
+9bdd7bb3a844 ("clocksource/drivers/npcm: Fix misuse of GENMASK macro").
+
+To prevent such mistakes from appearing again, add compile time sanity
+checking to the arguments of GENMASK() and GENMASK_ULL().  If both
+arguments are known at compile time, and the low bit is higher than the
+high bit, break the build to detect the mistake immediately.
+
+Since GENMASK() is used in declarations, BUILD_BUG_ON_ZERO() must be used
+instead of BUILD_BUG_ON().
+
+__builtin_constant_p does not evaluate is argument, it only checks if it
+is a constant or not at compile time, and __builtin_choose_expr does not
+evaluate the expression that is not chosen.  Therefore, GENMASK(x++, 0)
+does only evaluate x++ once.
+
+Commit 95b980d62d52 ("linux/bits.h: make BIT(), GENMASK(), and friends
+available in assembly") made the macros in linux/bits.h available in
+assembly.  Since BUILD_BUG_OR_ZERO() is not asm compatible, disable the
+checks if the file is included in an asm file.
+
+Due to bugs in GCC versions before 4.9 [0], disable the check if building
+with a too old GCC compiler.
+
+[0]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19449
+
+Link: http://lkml.kernel.org/r/20200308193954.2372399-1-rikard.falkeborn@gmail.com
+Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Reviewed-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Haren Myneni <haren@us.ibm.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: lkml <linux-kernel@vger.kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree.c       |    4 ++--
- tools/lib/rbtree.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/bits.h |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
---- a/lib/rbtree.c~lib-rbtree-fix-coding-style-of-assignments
-+++ a/lib/rbtree.c
-@@ -503,7 +503,7 @@ struct rb_node *rb_next(const struct rb_
- 	if (node->rb_right) {
- 		node = node->rb_right;
- 		while (node->rb_left)
--			node=node->rb_left;
-+			node = node->rb_left;
- 		return (struct rb_node *)node;
- 	}
+--- a/include/linux/bits.h~linux-bitsh-add-compile-time-sanity-check-of-genmask-inputs
++++ a/include/linux/bits.h
+@@ -18,12 +18,30 @@
+  * position @h. For example
+  * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
+  */
+-#define GENMASK(h, l) \
++#if !defined(__ASSEMBLY__) && \
++	(!defined(CONFIG_CC_IS_GCC) || CONFIG_GCC_VERSION >= 49000)
++#include <linux/build_bug.h>
++#define GENMASK_INPUT_CHECK(h, l) \
++	(BUILD_BUG_ON_ZERO(__builtin_choose_expr( \
++		__builtin_constant_p((l) > (h)), (l) > (h), 0)))
++#else
++/*
++ * BUILD_BUG_ON_ZERO is not available in h files included from asm files,
++ * disable the input check if that is the case.
++ */
++#define GENMASK_INPUT_CHECK(h, l) 0
++#endif
++
++#define __GENMASK(h, l) \
+ 	(((~UL(0)) - (UL(1) << (l)) + 1) & \
+ 	 (~UL(0) >> (BITS_PER_LONG - 1 - (h))))
++#define GENMASK(h, l) \
++	(GENMASK_INPUT_CHECK(h, l) + __GENMASK(h, l))
  
-@@ -535,7 +535,7 @@ struct rb_node *rb_prev(const struct rb_
- 	if (node->rb_left) {
- 		node = node->rb_left;
- 		while (node->rb_right)
--			node=node->rb_right;
-+			node = node->rb_right;
- 		return (struct rb_node *)node;
- 	}
+-#define GENMASK_ULL(h, l) \
++#define __GENMASK_ULL(h, l) \
+ 	(((~ULL(0)) - (ULL(1) << (l)) + 1) & \
+ 	 (~ULL(0) >> (BITS_PER_LONG_LONG - 1 - (h))))
++#define GENMASK_ULL(h, l) \
++	(GENMASK_INPUT_CHECK(h, l) + __GENMASK_ULL(h, l))
  
---- a/tools/lib/rbtree.c~lib-rbtree-fix-coding-style-of-assignments
-+++ a/tools/lib/rbtree.c
-@@ -497,7 +497,7 @@ struct rb_node *rb_next(const struct rb_
- 	if (node->rb_right) {
- 		node = node->rb_right;
- 		while (node->rb_left)
--			node=node->rb_left;
-+			node = node->rb_left;
- 		return (struct rb_node *)node;
- 	}
- 
-@@ -528,7 +528,7 @@ struct rb_node *rb_prev(const struct rb_
- 	if (node->rb_left) {
- 		node = node->rb_left;
- 		while (node->rb_right)
--			node=node->rb_right;
-+			node = node->rb_right;
- 		return (struct rb_node *)node;
- 	}
- 
+ #endif	/* __LINUX_BITS_H */
 _
