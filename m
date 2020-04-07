@@ -1,47 +1,65 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 128/166] checkpatch: check SPDX tags in YAML files
-Date: Mon, 06 Apr 2020 20:10:51 -0700
-Message-ID: <20200407031051.JoeAi47-Y%akpm@linux-foundation.org>
+Subject: [patch 129/166] checkpatch: support "base-commit:" format
+Date: Mon, 06 Apr 2020 20:10:55 -0700
+Message-ID: <20200407031055.HtyJaPi3-%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56524 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56584 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726331AbgDGDKy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:10:54 -0400
+        id S1726331AbgDGDK4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:10:56 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, linux-mm@kvack.org, lkundrak@v3.sk, mm-commits@vger.kernel.org, robh@kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, apw@canonical.com, corbet@lwn.net, jhubbard@nvidia.com, joe@perches.com, konstantin@linuxfoundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Lubomir Rintel <lkundrak@v3.sk>
-Subject: checkpatch: check SPDX tags in YAML files
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: checkpatch: support "base-commit:" format
 
-This adds a warning when a YAML file is lacking a SPDX header on first
-line, or it uses incorrect commenting style.
+In order to support the get-lore-mbox.py tool described in [1], I ran:
 
-Currently the only YAML files in the tree are Devicetree binding
-documents.
+    git format-patch --base=<commit> --cover-letter <revrange>
 
-Link: http://lkml.kernel.org/r/20200129123356.388669-1-lkundrak@v3.sk
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+...  which generated a "base-commit: <commit-hash>" tag at the end of the
+cover letter.  However, checkpatch.pl generated an error upon encounting
+"base-commit:" in the cover letter:
+
+    "ERROR: Please use git commit description style..."
+
+...  because it found the "commit" keyword, and failed to recognize that
+it was part of the "base-commit" phrase, and as such, should not be
+subjected to the same commit description style rules.
+
+Update checkpatch.pl to include a special case for "base-commit:" (at the
+start of the line, possibly with some leading whitespace) so that that tag
+no longer generates a checkpatch error.
+
+[1] https://lwn.net/Articles/811528/ "Better tools for kernel
+    developers"
+
+Link: http://lkml.kernel.org/r/20200213055004.69235-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Suggested-by: Joe Perches <joe@perches.com>
 Acked-by: Joe Perches <joe@perches.com>
-Cc: Rob Herring <robh@kernel.org>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  scripts/checkpatch.pl |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-check-spdx-tags-in-yaml-files
+--- a/scripts/checkpatch.pl~checkpatch-support-base-commit-format
 +++ a/scripts/checkpatch.pl
-@@ -3106,7 +3106,7 @@ sub process {
- 					$comment = '/*';
- 				} elsif ($realfile =~ /\.(c|dts|dtsi)$/) {
- 					$comment = '//';
--				} elsif (($checklicenseline == 2) || $realfile =~ /\.(sh|pl|py|awk|tc)$/) {
-+				} elsif (($checklicenseline == 2) || $realfile =~ /\.(sh|pl|py|awk|tc|yaml)$/) {
- 					$comment = '#';
- 				} elsif ($realfile =~ /\.rst$/) {
- 					$comment = '..';
+@@ -2780,7 +2780,7 @@ sub process {
+ 
+ # Check for git id commit length and improperly formed commit descriptions
+ 		if ($in_commit_log && !$commit_log_possible_stack_dump &&
+-		    $line !~ /^\s*(?:Link|Patchwork|http|https|BugLink):/i &&
++		    $line !~ /^\s*(?:Link|Patchwork|http|https|BugLink|base-commit):/i &&
+ 		    $line !~ /^This reverts commit [0-9a-f]{7,40}/ &&
+ 		    ($line =~ /\bcommit\s+[0-9a-f]{5,}\b/i ||
+ 		     ($line =~ /(?:\s|^)[0-9a-f]{12,40}(?:[\s"'\(\[]|$)/i &&
 _
