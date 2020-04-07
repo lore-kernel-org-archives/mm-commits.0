@@ -1,40 +1,70 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 025/166] mm: add function __putback_isolated_page
-Date: Mon, 06 Apr 2020 20:04:53 -0700
-Message-ID: <20200407030453.wHtLS1Hh4%akpm@linux-foundation.org>
+Subject: [patch 026/166] mm: introduce Reported pages
+Date: Mon, 06 Apr 2020 20:04:56 -0700
+Message-ID: <20200407030456.APhgffkrS%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48866 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48954 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726331AbgDGDEz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:04:55 -0400
+        id S1726331AbgDGDFB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:05:01 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com, dan.j.williams@intel.com, dave.hansen@intel.com, david@redhat.com, konrad.wilk@oracle.com, lcapitulino@redhat.com, linux-mm@kvack.org, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com, nitesh@redhat.com, osalvador@suse.de, pagupta@redhat.com, pbonzini@redhat.com, riel@surriel.com, torvalds@linux-foundation.org, vbabka@suse.cz, wei.w.wang@intel.com, weiqi4@huawei.com, willy@infradead.org, yang.zhang.wz@gmail.com
 
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Subject: mm: add function __putback_isolated_page
+Subject: mm: introduce Reported pages
 
-There are cases where we would benefit from avoiding having to go through
-the allocation and free cycle to return an isolated page.
+In order to pave the way for free page reporting in virtualized
+environments we will need a way to get pages out of the free lists and
+identify those pages after they have been returned.  To accomplish this,
+this patch adds the concept of a Reported Buddy, which is essentially
+meant to just be the Uptodate flag used in conjunction with the Buddy page
+type.
 
-Examples for this might include page poisoning in which we isolate a page
-and then put it back in the free list without ever having actually
-allocated it.
+To prevent the reported pages from leaking outside of the buddy lists I
+added a check to clear the PageReported bit in the del_page_from_free_list
+function.  As a result any reported page that is split, merged, or
+allocated will have the flag cleared prior to the PageBuddy value being
+cleared.
 
-This will enable us to also avoid notifiers for the future free page
-reporting which will need to avoid retriggering page reporting when
-returning pages that have been reported on.
+The process for reporting pages is fairly simple.  Once we free a page
+that meets the minimum order for page reporting we will schedule a worker
+thread to start 2s or more in the future.  That worker thread will begin
+working from the lowest supported page reporting order up to MAX_ORDER - 1
+pulling unreported pages from the free list and storing them in the
+scatterlist.
 
-Link: http://lkml.kernel.org/r/20200211224624.29318.89287.stgit@localhost.localdomain
+When processing each individual free list it is necessary for the worker
+thread to release the zone lock when it needs to stop and report the full
+scatterlist of pages.  To reduce the work of the next iteration the worker
+thread will rotate the free list so that the first unreported page in the
+free list becomes the first entry in the list.
+
+It will then call a reporting function providing information on how many
+entries are in the scatterlist.  Once the function completes it will
+return the pages to the free area from which they were allocated and start
+over pulling more pages from the free areas until there are no longer
+enough pages to report on to keep the worker busy, or we have processed as
+many pages as were contained in the free area when we started processing
+the list.
+
+The worker thread will work in a round-robin fashion making its way though
+each zone requesting reporting, and through each reportable free list
+within that zone.  Once all free areas within the zone have been processed
+it will check to see if there have been any requests for reporting while
+it was processing.  If so it will reschedule the worker thread to start up
+again in roughly 2s and exit.
+
+Link: http://lkml.kernel.org/r/20200211224635.29318.19750.stgit@localhost.localdomain
 Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Acked-by: David Hildenbrand <david@redhat.com>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Luiz Capitulino <lcapitulino@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -52,66 +82,542 @@ Cc: wei qi <weiqi4@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h       |    2 ++
- mm/page_alloc.c     |   19 +++++++++++++++++++
- mm/page_isolation.c |    6 ++----
- 3 files changed, 23 insertions(+), 4 deletions(-)
+ include/linux/page-flags.h     |   11 +
+ include/linux/page_reporting.h |   25 ++
+ mm/Kconfig                     |   11 +
+ mm/Makefile                    |    1 
+ mm/page_alloc.c                |   17 +
+ mm/page_reporting.c            |  319 +++++++++++++++++++++++++++++++
+ mm/page_reporting.h            |   54 +++++
+ 7 files changed, 434 insertions(+), 4 deletions(-)
 
---- a/mm/internal.h~mm-add-function-__putback_isolated_page
-+++ a/mm/internal.h
-@@ -180,6 +180,8 @@ static inline struct page *pageblock_pfn
- }
+--- a/include/linux/page-flags.h~mm-introduce-reported-pages
++++ a/include/linux/page-flags.h
+@@ -168,6 +168,9 @@ enum pageflags {
  
- extern int __isolate_free_page(struct page *page, unsigned int order);
-+extern void __putback_isolated_page(struct page *page, unsigned int order,
-+				    int mt);
- extern void memblock_free_pages(struct page *page, unsigned long pfn,
- 					unsigned int order);
- extern void __free_pages_core(struct page *page, unsigned int order);
---- a/mm/page_alloc.c~mm-add-function-__putback_isolated_page
-+++ a/mm/page_alloc.c
-@@ -3211,6 +3211,25 @@ int __isolate_free_page(struct page *pag
- 	return 1UL << order;
- }
+ 	/* non-lru isolated movable page */
+ 	PG_isolated = PG_reclaim,
++
++	/* Only valid for buddy pages. Used to track pages that are reported */
++	PG_reported = PG_uptodate,
+ };
  
-+/**
-+ * __putback_isolated_page - Return a now-isolated page back where we got it
-+ * @page: Page that was isolated
-+ * @order: Order of the isolated page
-+ *
-+ * This function is meant to return a page pulled from the free lists via
-+ * __isolate_free_page back to the free lists they were pulled from.
+ #ifndef __GENERATING_BOUNDS_H
+@@ -437,6 +440,14 @@ PAGEFLAG(Idle, idle, PF_ANY)
+ #endif
+ 
+ /*
++ * PageReported() is used to track reported free pages within the Buddy
++ * allocator. We can use the non-atomic version of the test and set
++ * operations as both should be shielded with the zone lock to prevent
++ * any possible races on the setting or clearing of the bit.
 + */
-+void __putback_isolated_page(struct page *page, unsigned int order, int mt)
++__PAGEFLAG(Reported, reported, PF_NO_COMPOUND)
++
++/*
+  * On an anonymous page mapped into a user virtual memory area,
+  * page->mapping points to its anon_vma, not to a struct address_space;
+  * with the PAGE_MAPPING_ANON bit set to distinguish it.  See rmap.h.
+--- /dev/null
++++ a/include/linux/page_reporting.h
+@@ -0,0 +1,25 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_PAGE_REPORTING_H
++#define _LINUX_PAGE_REPORTING_H
++
++#include <linux/mmzone.h>
++#include <linux/scatterlist.h>
++
++#define PAGE_REPORTING_CAPACITY		32
++
++struct page_reporting_dev_info {
++	/* function that alters pages to make them "reported" */
++	int (*report)(struct page_reporting_dev_info *prdev,
++		      struct scatterlist *sg, unsigned int nents);
++
++	/* work struct for processing reports */
++	struct delayed_work work;
++
++	/* Current state of page reporting */
++	atomic_t state;
++};
++
++/* Tear-down and bring-up for page reporting devices */
++void page_reporting_unregister(struct page_reporting_dev_info *prdev);
++int page_reporting_register(struct page_reporting_dev_info *prdev);
++#endif /*_LINUX_PAGE_REPORTING_H */
+--- a/mm/Kconfig~mm-introduce-reported-pages
++++ a/mm/Kconfig
+@@ -237,6 +237,17 @@ config COMPACTION
+ 	  linux-mm@kvack.org.
+ 
+ #
++# support for free page reporting
++config PAGE_REPORTING
++	bool "Free page reporting"
++	def_bool n
++	help
++	  Free page reporting allows for the incremental acquisition of
++	  free pages from the buddy allocator for the purpose of reporting
++	  those pages to another entity, such as a hypervisor, so that the
++	  memory can be freed within the host for other uses.
++
++#
+ # support for page migration
+ #
+ config MIGRATION
+--- a/mm/Makefile~mm-introduce-reported-pages
++++ a/mm/Makefile
+@@ -111,3 +111,4 @@ obj-$(CONFIG_HMM_MIRROR) += hmm.o
+ obj-$(CONFIG_MEMFD_CREATE) += memfd.o
+ obj-$(CONFIG_MAPPING_DIRTY_HELPERS) += mapping_dirty_helpers.o
+ obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
++obj-$(CONFIG_PAGE_REPORTING) += page_reporting.o
+--- a/mm/page_alloc.c~mm-introduce-reported-pages
++++ a/mm/page_alloc.c
+@@ -74,6 +74,7 @@
+ #include <asm/div64.h>
+ #include "internal.h"
+ #include "shuffle.h"
++#include "page_reporting.h"
+ 
+ /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
+ static DEFINE_MUTEX(pcp_batch_high_lock);
+@@ -896,6 +897,10 @@ static inline void move_to_free_list(str
+ static inline void del_page_from_free_list(struct page *page, struct zone *zone,
+ 					   unsigned int order)
+ {
++	/* clear reported state and update reported page count */
++	if (page_reported(page))
++		__ClearPageReported(page);
++
+ 	list_del(&page->lru);
+ 	__ClearPageBuddy(page);
+ 	set_page_private(page, 0);
+@@ -959,7 +964,7 @@ buddy_merge_likely(unsigned long pfn, un
+ static inline void __free_one_page(struct page *page,
+ 		unsigned long pfn,
+ 		struct zone *zone, unsigned int order,
+-		int migratetype)
++		int migratetype, bool report)
+ {
+ 	struct capture_control *capc = task_capc(zone);
+ 	unsigned long uninitialized_var(buddy_pfn);
+@@ -1044,6 +1049,10 @@ done_merging:
+ 		add_to_free_list_tail(page, zone, order, migratetype);
+ 	else
+ 		add_to_free_list(page, zone, order, migratetype);
++
++	/* Notify page reporting subsystem of freed page */
++	if (report)
++		page_reporting_notify_free(order);
+ }
+ 
+ /*
+@@ -1360,7 +1369,7 @@ static void free_pcppages_bulk(struct zo
+ 		if (unlikely(isolated_pageblocks))
+ 			mt = get_pageblock_migratetype(page);
+ 
+-		__free_one_page(page, page_to_pfn(page), zone, 0, mt);
++		__free_one_page(page, page_to_pfn(page), zone, 0, mt, true);
+ 		trace_mm_page_pcpu_drain(page, 0, mt);
+ 	}
+ 	spin_unlock(&zone->lock);
+@@ -1376,7 +1385,7 @@ static void free_one_page(struct zone *z
+ 		is_migrate_isolate(migratetype))) {
+ 		migratetype = get_pfnblock_migratetype(page, pfn);
+ 	}
+-	__free_one_page(page, pfn, zone, order, migratetype);
++	__free_one_page(page, pfn, zone, order, migratetype, true);
+ 	spin_unlock(&zone->lock);
+ }
+ 
+@@ -3227,7 +3236,7 @@ void __putback_isolated_page(struct page
+ 	lockdep_assert_held(&zone->lock);
+ 
+ 	/* Return isolated page to tail of freelist. */
+-	__free_one_page(page, page_to_pfn(page), zone, order, mt);
++	__free_one_page(page, page_to_pfn(page), zone, order, mt, false);
+ }
+ 
+ /*
+--- /dev/null
++++ a/mm/page_reporting.c
+@@ -0,0 +1,319 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/mm.h>
++#include <linux/mmzone.h>
++#include <linux/page_reporting.h>
++#include <linux/gfp.h>
++#include <linux/export.h>
++#include <linux/delay.h>
++#include <linux/scatterlist.h>
++
++#include "page_reporting.h"
++#include "internal.h"
++
++#define PAGE_REPORTING_DELAY	(2 * HZ)
++static struct page_reporting_dev_info __rcu *pr_dev_info __read_mostly;
++
++enum {
++	PAGE_REPORTING_IDLE = 0,
++	PAGE_REPORTING_REQUESTED,
++	PAGE_REPORTING_ACTIVE
++};
++
++/* request page reporting */
++static void
++__page_reporting_request(struct page_reporting_dev_info *prdev)
 +{
-+	struct zone *zone = page_zone(page);
++	unsigned int state;
 +
-+	/* zone lock should be held when this function is called */
-+	lockdep_assert_held(&zone->lock);
++	/* Check to see if we are in desired state */
++	state = atomic_read(&prdev->state);
++	if (state == PAGE_REPORTING_REQUESTED)
++		return;
 +
-+	/* Return isolated page to tail of freelist. */
-+	__free_one_page(page, page_to_pfn(page), zone, order, mt);
++	/*
++	 *  If reporting is already active there is nothing we need to do.
++	 *  Test against 0 as that represents PAGE_REPORTING_IDLE.
++	 */
++	state = atomic_xchg(&prdev->state, PAGE_REPORTING_REQUESTED);
++	if (state != PAGE_REPORTING_IDLE)
++		return;
++
++	/*
++	 * Delay the start of work to allow a sizable queue to build. For
++	 * now we are limiting this to running no more than once every
++	 * couple of seconds.
++	 */
++	schedule_delayed_work(&prdev->work, PAGE_REPORTING_DELAY);
 +}
 +
- /*
-  * Update NUMA hit/miss statistics
-  *
---- a/mm/page_isolation.c~mm-add-function-__putback_isolated_page
-+++ a/mm/page_isolation.c
-@@ -117,13 +117,11 @@ static void unset_migratetype_isolate(st
- 		__mod_zone_freepage_state(zone, nr_pages, migratetype);
- 	}
- 	set_pageblock_migratetype(page, migratetype);
-+	if (isolated_page)
-+		__putback_isolated_page(page, order, migratetype);
- 	zone->nr_isolate_pageblock--;
- out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
--	if (isolated_page) {
--		post_alloc_hook(page, order, __GFP_MOVABLE);
--		__free_pages(page, order);
--	}
- }
- 
- static inline struct page *
++/* notify prdev of free page reporting request */
++void __page_reporting_notify(void)
++{
++	struct page_reporting_dev_info *prdev;
++
++	/*
++	 * We use RCU to protect the pr_dev_info pointer. In almost all
++	 * cases this should be present, however in the unlikely case of
++	 * a shutdown this will be NULL and we should exit.
++	 */
++	rcu_read_lock();
++	prdev = rcu_dereference(pr_dev_info);
++	if (likely(prdev))
++		__page_reporting_request(prdev);
++
++	rcu_read_unlock();
++}
++
++static void
++page_reporting_drain(struct page_reporting_dev_info *prdev,
++		     struct scatterlist *sgl, unsigned int nents, bool reported)
++{
++	struct scatterlist *sg = sgl;
++
++	/*
++	 * Drain the now reported pages back into their respective
++	 * free lists/areas. We assume at least one page is populated.
++	 */
++	do {
++		struct page *page = sg_page(sg);
++		int mt = get_pageblock_migratetype(page);
++		unsigned int order = get_order(sg->length);
++
++		__putback_isolated_page(page, order, mt);
++
++		/* If the pages were not reported due to error skip flagging */
++		if (!reported)
++			continue;
++
++		/*
++		 * If page was not comingled with another page we can
++		 * consider the result to be "reported" since the page
++		 * hasn't been modified, otherwise we will need to
++		 * report on the new larger page when we make our way
++		 * up to that higher order.
++		 */
++		if (PageBuddy(page) && page_order(page) == order)
++			__SetPageReported(page);
++	} while ((sg = sg_next(sg)));
++
++	/* reinitialize scatterlist now that it is empty */
++	sg_init_table(sgl, nents);
++}
++
++/*
++ * The page reporting cycle consists of 4 stages, fill, report, drain, and
++ * idle. We will cycle through the first 3 stages until we cannot obtain a
++ * full scatterlist of pages, in that case we will switch to idle.
++ */
++static int
++page_reporting_cycle(struct page_reporting_dev_info *prdev, struct zone *zone,
++		     unsigned int order, unsigned int mt,
++		     struct scatterlist *sgl, unsigned int *offset)
++{
++	struct free_area *area = &zone->free_area[order];
++	struct list_head *list = &area->free_list[mt];
++	unsigned int page_len = PAGE_SIZE << order;
++	struct page *page, *next;
++	int err = 0;
++
++	/*
++	 * Perform early check, if free area is empty there is
++	 * nothing to process so we can skip this free_list.
++	 */
++	if (list_empty(list))
++		return err;
++
++	spin_lock_irq(&zone->lock);
++
++	/* loop through free list adding unreported pages to sg list */
++	list_for_each_entry_safe(page, next, list, lru) {
++		/* We are going to skip over the reported pages. */
++		if (PageReported(page))
++			continue;
++
++		/* Attempt to pull page from list */
++		if (!__isolate_free_page(page, order))
++			break;
++
++		/* Add page to scatter list */
++		--(*offset);
++		sg_set_page(&sgl[*offset], page, page_len, 0);
++
++		/* If scatterlist isn't full grab more pages */
++		if (*offset)
++			continue;
++
++		/* release lock before waiting on report processing */
++		spin_unlock_irq(&zone->lock);
++
++		/* begin processing pages in local list */
++		err = prdev->report(prdev, sgl, PAGE_REPORTING_CAPACITY);
++
++		/* reset offset since the full list was reported */
++		*offset = PAGE_REPORTING_CAPACITY;
++
++		/* reacquire zone lock and resume processing */
++		spin_lock_irq(&zone->lock);
++
++		/* flush reported pages from the sg list */
++		page_reporting_drain(prdev, sgl, PAGE_REPORTING_CAPACITY, !err);
++
++		/*
++		 * Reset next to first entry, the old next isn't valid
++		 * since we dropped the lock to report the pages
++		 */
++		next = list_first_entry(list, struct page, lru);
++
++		/* exit on error */
++		if (err)
++			break;
++	}
++
++	spin_unlock_irq(&zone->lock);
++
++	return err;
++}
++
++static int
++page_reporting_process_zone(struct page_reporting_dev_info *prdev,
++			    struct scatterlist *sgl, struct zone *zone)
++{
++	unsigned int order, mt, leftover, offset = PAGE_REPORTING_CAPACITY;
++	unsigned long watermark;
++	int err = 0;
++
++	/* Generate minimum watermark to be able to guarantee progress */
++	watermark = low_wmark_pages(zone) +
++		    (PAGE_REPORTING_CAPACITY << PAGE_REPORTING_MIN_ORDER);
++
++	/*
++	 * Cancel request if insufficient free memory or if we failed
++	 * to allocate page reporting statistics for the zone.
++	 */
++	if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
++		return err;
++
++	/* Process each free list starting from lowest order/mt */
++	for (order = PAGE_REPORTING_MIN_ORDER; order < MAX_ORDER; order++) {
++		for (mt = 0; mt < MIGRATE_TYPES; mt++) {
++			/* We do not pull pages from the isolate free list */
++			if (is_migrate_isolate(mt))
++				continue;
++
++			err = page_reporting_cycle(prdev, zone, order, mt,
++						   sgl, &offset);
++			if (err)
++				return err;
++		}
++	}
++
++	/* report the leftover pages before going idle */
++	leftover = PAGE_REPORTING_CAPACITY - offset;
++	if (leftover) {
++		sgl = &sgl[offset];
++		err = prdev->report(prdev, sgl, leftover);
++
++		/* flush any remaining pages out from the last report */
++		spin_lock_irq(&zone->lock);
++		page_reporting_drain(prdev, sgl, leftover, !err);
++		spin_unlock_irq(&zone->lock);
++	}
++
++	return err;
++}
++
++static void page_reporting_process(struct work_struct *work)
++{
++	struct delayed_work *d_work = to_delayed_work(work);
++	struct page_reporting_dev_info *prdev =
++		container_of(d_work, struct page_reporting_dev_info, work);
++	int err = 0, state = PAGE_REPORTING_ACTIVE;
++	struct scatterlist *sgl;
++	struct zone *zone;
++
++	/*
++	 * Change the state to "Active" so that we can track if there is
++	 * anyone requests page reporting after we complete our pass. If
++	 * the state is not altered by the end of the pass we will switch
++	 * to idle and quit scheduling reporting runs.
++	 */
++	atomic_set(&prdev->state, state);
++
++	/* allocate scatterlist to store pages being reported on */
++	sgl = kmalloc_array(PAGE_REPORTING_CAPACITY, sizeof(*sgl), GFP_KERNEL);
++	if (!sgl)
++		goto err_out;
++
++	sg_init_table(sgl, PAGE_REPORTING_CAPACITY);
++
++	for_each_zone(zone) {
++		err = page_reporting_process_zone(prdev, sgl, zone);
++		if (err)
++			break;
++	}
++
++	kfree(sgl);
++err_out:
++	/*
++	 * If the state has reverted back to requested then there may be
++	 * additional pages to be processed. We will defer for 2s to allow
++	 * more pages to accumulate.
++	 */
++	state = atomic_cmpxchg(&prdev->state, state, PAGE_REPORTING_IDLE);
++	if (state == PAGE_REPORTING_REQUESTED)
++		schedule_delayed_work(&prdev->work, PAGE_REPORTING_DELAY);
++}
++
++static DEFINE_MUTEX(page_reporting_mutex);
++DEFINE_STATIC_KEY_FALSE(page_reporting_enabled);
++
++int page_reporting_register(struct page_reporting_dev_info *prdev)
++{
++	int err = 0;
++
++	mutex_lock(&page_reporting_mutex);
++
++	/* nothing to do if already in use */
++	if (rcu_access_pointer(pr_dev_info)) {
++		err = -EBUSY;
++		goto err_out;
++	}
++
++	/* initialize state and work structures */
++	atomic_set(&prdev->state, PAGE_REPORTING_IDLE);
++	INIT_DELAYED_WORK(&prdev->work, &page_reporting_process);
++
++	/* Begin initial flush of zones */
++	__page_reporting_request(prdev);
++
++	/* Assign device to allow notifications */
++	rcu_assign_pointer(pr_dev_info, prdev);
++
++	/* enable page reporting notification */
++	if (!static_key_enabled(&page_reporting_enabled)) {
++		static_branch_enable(&page_reporting_enabled);
++		pr_info("Free page reporting enabled\n");
++	}
++err_out:
++	mutex_unlock(&page_reporting_mutex);
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(page_reporting_register);
++
++void page_reporting_unregister(struct page_reporting_dev_info *prdev)
++{
++	mutex_lock(&page_reporting_mutex);
++
++	if (rcu_access_pointer(pr_dev_info) == prdev) {
++		/* Disable page reporting notification */
++		RCU_INIT_POINTER(pr_dev_info, NULL);
++		synchronize_rcu();
++
++		/* Flush any existing work, and lock it out */
++		cancel_delayed_work_sync(&prdev->work);
++	}
++
++	mutex_unlock(&page_reporting_mutex);
++}
++EXPORT_SYMBOL_GPL(page_reporting_unregister);
+--- /dev/null
++++ a/mm/page_reporting.h
+@@ -0,0 +1,54 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _MM_PAGE_REPORTING_H
++#define _MM_PAGE_REPORTING_H
++
++#include <linux/mmzone.h>
++#include <linux/pageblock-flags.h>
++#include <linux/page-isolation.h>
++#include <linux/jump_label.h>
++#include <linux/slab.h>
++#include <asm/pgtable.h>
++#include <linux/scatterlist.h>
++
++#define PAGE_REPORTING_MIN_ORDER	pageblock_order
++
++#ifdef CONFIG_PAGE_REPORTING
++DECLARE_STATIC_KEY_FALSE(page_reporting_enabled);
++void __page_reporting_notify(void);
++
++static inline bool page_reported(struct page *page)
++{
++	return static_branch_unlikely(&page_reporting_enabled) &&
++	       PageReported(page);
++}
++
++/**
++ * page_reporting_notify_free - Free page notification to start page processing
++ *
++ * This function is meant to act as a screener for __page_reporting_notify
++ * which will determine if a give zone has crossed over the high-water mark
++ * that will justify us beginning page treatment. If we have crossed that
++ * threshold then it will start the process of pulling some pages and
++ * placing them in the batch list for treatment.
++ */
++static inline void page_reporting_notify_free(unsigned int order)
++{
++	/* Called from hot path in __free_one_page() */
++	if (!static_branch_unlikely(&page_reporting_enabled))
++		return;
++
++	/* Determine if we have crossed reporting threshold */
++	if (order < PAGE_REPORTING_MIN_ORDER)
++		return;
++
++	/* This will add a few cycles, but should be called infrequently */
++	__page_reporting_notify();
++}
++#else /* CONFIG_PAGE_REPORTING */
++#define page_reported(_page)	false
++
++static inline void page_reporting_notify_free(unsigned int order)
++{
++}
++#endif /* CONFIG_PAGE_REPORTING */
++#endif /*_MM_PAGE_REPORTING_H */
 _
