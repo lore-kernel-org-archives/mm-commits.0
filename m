@@ -1,45 +1,50 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 029/166] mm/page_reporting: rotate reported pages
- to the tail of the list
-Date: Mon, 06 Apr 2020 20:05:10 -0700
-Message-ID: <20200407030510.-M_NXcqkd%akpm@linux-foundation.org>
+Subject: [patch 030/166] mm/page_reporting: add budget limit on
+ how many pages can be reported per pass
+Date: Mon, 06 Apr 2020 20:05:14 -0700
+Message-ID: <20200407030514.mvnNkds85%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49218 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49290 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726303AbgDGDFM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:05:12 -0400
+        id S1726303AbgDGDFS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:05:18 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com, dan.j.williams@intel.com, dave.hansen@intel.com, david@redhat.com, konrad.wilk@oracle.com, lcapitulino@redhat.com, linux-mm@kvack.org, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com, nitesh@redhat.com, osalvador@suse.de, pagupta@redhat.com, pbonzini@redhat.com, riel@surriel.com, torvalds@linux-foundation.org, vbabka@suse.cz, wei.w.wang@intel.com, weiqi4@huawei.com, willy@infradead.org, yang.zhang.wz@gmail.com
 
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Subject: mm/page_reporting: rotate reported pages to the tail of the list
+Subject: mm/page_reporting: add budget limit on how many pages can be reported per pass
 
-Rather than walking over the same pages again and again to get to the
-pages that have yet to be reported we can save ourselves a significant
-amount of time by simply rotating the list so that when we have a full
-list of reported pages the head of the list is pointing to the next
-non-reported page.  Doing this should save us some significant time when
-processing each free list.
+In order to keep ourselves from reporting pages that are just going to be
+reused again in the case of heavy churn we can put a limit on how many
+total pages we will process per pass.  Doing this will allow the worker
+thread to go into idle much more quickly so that we avoid competing with
+other threads that might be allocating or freeing pages.
 
-This doesn't gain us much in the standard case as all of the non-reported
-pages should be near the top of the list already.  However in the case of
-page shuffling this results in a noticeable improvement.  Below are the
-will-it-scale page_fault1 w/ THP numbers for 16 tasks with and without
-this patch.
+The logic added here will limit the worker thread to no more than one
+sixteenth of the total free pages in a given area per list.  Once that
+limit is reached it will update the state so that at the end of the pass
+we will reschedule the worker to try again in 2 seconds when the memory
+churn has hopefully settled down.
+
+Again this optimization doesn't show much of a benefit in the standard
+case as the memory churn is minmal.  However with page allocator shuffling
+enabled the gain is quite noticeable.  Below are the results with a THP
+enabled version of the will-it-scale page_fault1 test showing the
+improvement in iterations for 16 processes or threads.
 
 Without:
 tasks   processes       processes_idle  threads         threads_idle
-16      8093776.25      0.17            5393242.00      38.20
+16      8283274.75      0.17            5594261.00      38.15
 
 With:
 tasks   processes       processes_idle  threads         threads_idle
-16      8283274.75      0.17            5594261.00      38.15
+16      8767010.50      0.21            5791312.75      36.98
 
-Link: http://lkml.kernel.org/r/20200211224708.29318.16862.stgit@localhost.localdomain
+Link: http://lkml.kernel.org/r/20200211224719.29318.72113.stgit@localhost.localdomain
 Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -63,57 +68,87 @@ Cc: wei qi <weiqi4@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_reporting.c |   32 +++++++++++++++++++++++---------
- 1 file changed, 23 insertions(+), 9 deletions(-)
+ include/linux/page_reporting.h |    1 
+ mm/page_reporting.c            |   33 ++++++++++++++++++++++++++++++-
+ 2 files changed, 33 insertions(+), 1 deletion(-)
 
---- a/mm/page_reporting.c~mm-page_reporting-rotate-reported-pages-to-the-tail-of-the-list
+--- a/include/linux/page_reporting.h~mm-page_reporting-add-budget-limit-on-how-many-pages-can-be-reported-per-pass
++++ a/include/linux/page_reporting.h
+@@ -5,6 +5,7 @@
+ #include <linux/mmzone.h>
+ #include <linux/scatterlist.h>
+ 
++/* This value should always be a power of 2, see page_reporting_cycle() */
+ #define PAGE_REPORTING_CAPACITY		32
+ 
+ struct page_reporting_dev_info {
+--- a/mm/page_reporting.c~mm-page_reporting-add-budget-limit-on-how-many-pages-can-be-reported-per-pass
 +++ a/mm/page_reporting.c
-@@ -131,17 +131,27 @@ page_reporting_cycle(struct page_reporti
+@@ -114,6 +114,7 @@ page_reporting_cycle(struct page_reporti
+ 	struct list_head *list = &area->free_list[mt];
+ 	unsigned int page_len = PAGE_SIZE << order;
+ 	struct page *page, *next;
++	long budget;
+ 	int err = 0;
+ 
+ 	/*
+@@ -125,12 +126,39 @@ page_reporting_cycle(struct page_reporti
+ 
+ 	spin_lock_irq(&zone->lock);
+ 
++	/*
++	 * Limit how many calls we will be making to the page reporting
++	 * device for this list. By doing this we avoid processing any
++	 * given list for too long.
++	 *
++	 * The current value used allows us enough calls to process over a
++	 * sixteenth of the current list plus one additional call to handle
++	 * any pages that may have already been present from the previous
++	 * list processed. This should result in us reporting all pages on
++	 * an idle system in about 30 seconds.
++	 *
++	 * The division here should be cheap since PAGE_REPORTING_CAPACITY
++	 * should always be a power of 2.
++	 */
++	budget = DIV_ROUND_UP(area->nr_free, PAGE_REPORTING_CAPACITY * 16);
++
+ 	/* loop through free list adding unreported pages to sg list */
+ 	list_for_each_entry_safe(page, next, list, lru) {
+ 		/* We are going to skip over the reported pages. */
  		if (PageReported(page))
  			continue;
  
--		/* Attempt to pull page from list */
--		if (!__isolate_free_page(page, order))
--			break;
--
--		/* Add page to scatter list */
--		--(*offset);
--		sg_set_page(&sgl[*offset], page, page_len, 0);
-+		/* Attempt to pull page from list and place in scatterlist */
-+		if (*offset) {
-+			if (!__isolate_free_page(page, order)) {
-+				next = page;
-+				break;
-+			}
-+
-+			/* Add page to scatter list */
-+			--(*offset);
-+			sg_set_page(&sgl[*offset], page, page_len, 0);
- 
--		/* If scatterlist isn't full grab more pages */
--		if (*offset)
- 			continue;
++		/*
++		 * If we fully consumed our budget then update our
++		 * state to indicate that we are requesting additional
++		 * processing and exit this list.
++		 */
++		if (budget < 0) {
++			atomic_set(&prdev->state, PAGE_REPORTING_REQUESTED);
++			next = page;
++			break;
 +		}
 +
-+		/*
-+		 * Make the first non-processed page in the free list
-+		 * the new head of the free list before we release the
-+		 * zone lock.
-+		 */
-+		if (&page->lru != list && !list_is_first(&page->lru, list))
-+			list_rotate_to_front(&page->lru, list);
+ 		/* Attempt to pull page from list and place in scatterlist */
+ 		if (*offset) {
+ 			if (!__isolate_free_page(page, order)) {
+@@ -146,7 +174,7 @@ page_reporting_cycle(struct page_reporti
+ 		}
  
- 		/* release lock before waiting on report processing */
- 		spin_unlock_irq(&zone->lock);
-@@ -169,6 +179,10 @@ page_reporting_cycle(struct page_reporti
- 			break;
- 	}
+ 		/*
+-		 * Make the first non-processed page in the free list
++		 * Make the first non-reported page in the free list
+ 		 * the new head of the free list before we release the
+ 		 * zone lock.
+ 		 */
+@@ -162,6 +190,9 @@ page_reporting_cycle(struct page_reporti
+ 		/* reset offset since the full list was reported */
+ 		*offset = PAGE_REPORTING_CAPACITY;
  
-+	/* Rotate any leftover pages to the head of the freelist */
-+	if (&next->lru != list && !list_is_first(&next->lru, list))
-+		list_rotate_to_front(&next->lru, list);
++		/* update budget to reflect call to report function */
++		budget--;
 +
- 	spin_unlock_irq(&zone->lock);
+ 		/* reacquire zone lock and resume processing */
+ 		spin_lock_irq(&zone->lock);
  
- 	return err;
 _
