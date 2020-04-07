@@ -1,90 +1,69 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 145/166] reiserfs: clean up several indentation
- issues
-Date: Mon, 06 Apr 2020 20:11:46 -0700
-Message-ID: <20200407031146.FMz2VXFVO%akpm@linux-foundation.org>
+Subject: [patch 147/166] gcov: gcc_4_7: replace zero-length array
+ with flexible-array member
+Date: Mon, 06 Apr 2020 20:11:52 -0700
+Message-ID: <20200407031152.5DFUMTlhw%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57560 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57682 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726633AbgDGDLr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:11:47 -0400
+        id S1726591AbgDGDLz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:11:55 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, colin.king@canonical.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, gustavo@embeddedor.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, oberpar@linux.ibm.com, torvalds@linux-foundation.org
 
-From: Colin Ian King <colin.king@canonical.com>
-Subject: reiserfs: clean up several indentation issues
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: gcov: gcc_4_7: replace zero-length array with flexible-array member
 
-There are several places where code is indented incorrectly. Fix these.
+The current codebase makes use of the zero-length array language extension
+to the C90 standard, but the preferred mechanism to declare
+variable-length types such as these ones is a flexible array member[1][2],
+introduced in C99:
 
-Link: http://lkml.kernel.org/r/20200325135018.113431-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+struct foo {
+        int stuff;
+        struct boo array[];
+};
+
+By making use of the mechanism above, we will get a compiler warning in
+case the flexible array does not occur last in the structure, which will
+help us prevent some kind of undefined behavior bugs from being
+inadvertently introduced[3] to the codebase from now on.
+
+Also, notice that, dynamic memory allocations won't be affected by this
+change:
+
+"Flexible array members have incomplete type, and so the sizeof operator
+may not be applied.  As a quirk of the original implementation of
+zero-length arrays, sizeof evaluates to zero."[1]
+
+This issue was found with the help of Coccinelle.
+
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] https://github.com/KSPP/linux/issues/21
+[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+Link: http://lkml.kernel.org/r/20200213152241.GA877@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Acked-by: Peter Oberparleiter <oberpar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/do_balan.c |    2 +-
- fs/reiserfs/ioctl.c    |   11 ++++++-----
- fs/reiserfs/namei.c    |   10 +++++-----
- 3 files changed, 12 insertions(+), 11 deletions(-)
+ kernel/gcov/gcc_4_7.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/reiserfs/do_balan.c~reiserfs-clean-up-several-indentation-issues
-+++ a/fs/reiserfs/do_balan.c
-@@ -842,7 +842,7 @@ static void balance_leaf_paste_right_who
- 	struct item_head *pasted;
- 	struct buffer_info bi;
+--- a/kernel/gcov/gcc_4_7.c~gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member
++++ a/kernel/gcov/gcc_4_7.c
+@@ -68,7 +68,7 @@ struct gcov_fn_info {
+ 	unsigned int ident;
+ 	unsigned int lineno_checksum;
+ 	unsigned int cfg_checksum;
+-	struct gcov_ctr_info ctrs[0];
++	struct gcov_ctr_info ctrs[];
+ };
  
--							buffer_info_init_right(tb, &bi);
-+	buffer_info_init_right(tb, &bi);
- 	leaf_shift_right(tb, tb->rnum[0], tb->rbytes);
- 
- 	/* append item in R[0] */
---- a/fs/reiserfs/ioctl.c~reiserfs-clean-up-several-indentation-issues
-+++ a/fs/reiserfs/ioctl.c
-@@ -184,11 +184,12 @@ int reiserfs_unpack(struct inode *inode,
- 	}
- 
- 	/* we need to make sure nobody is changing the file size beneath us */
--{
--	int depth = reiserfs_write_unlock_nested(inode->i_sb);
--	inode_lock(inode);
--	reiserfs_write_lock_nested(inode->i_sb, depth);
--}
-+	{
-+		int depth = reiserfs_write_unlock_nested(inode->i_sb);
-+
-+		inode_lock(inode);
-+		reiserfs_write_lock_nested(inode->i_sb, depth);
-+	}
- 
- 	reiserfs_write_lock(inode->i_sb);
- 
---- a/fs/reiserfs/namei.c~reiserfs-clean-up-several-indentation-issues
-+++ a/fs/reiserfs/namei.c
-@@ -838,10 +838,10 @@ static int reiserfs_mkdir(struct inode *
- 	 */
- 	INC_DIR_INODE_NLINK(dir)
- 
--	    retval = reiserfs_new_inode(&th, dir, mode, NULL /*symlink */ ,
--					old_format_only(dir->i_sb) ?
--					EMPTY_DIR_SIZE_V1 : EMPTY_DIR_SIZE,
--					dentry, inode, &security);
-+	retval = reiserfs_new_inode(&th, dir, mode, NULL /*symlink */,
-+				    old_format_only(dir->i_sb) ?
-+				    EMPTY_DIR_SIZE_V1 : EMPTY_DIR_SIZE,
-+				    dentry, inode, &security);
- 	if (retval) {
- 		DEC_DIR_INODE_NLINK(dir)
- 		goto out_failed;
-@@ -967,7 +967,7 @@ static int reiserfs_rmdir(struct inode *
- 	reiserfs_update_sd(&th, inode);
- 
- 	DEC_DIR_INODE_NLINK(dir)
--	    dir->i_size -= (DEH_SIZE + de.de_entrylen);
-+	dir->i_size -= (DEH_SIZE + de.de_entrylen);
- 	reiserfs_update_sd(&th, dir);
- 
- 	/* prevent empty directory from getting lost */
+ /**
 _
