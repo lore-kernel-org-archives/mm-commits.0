@@ -1,57 +1,149 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 102/166] kernel/extable.c: use address-of operator
- on section symbols
-Date: Mon, 06 Apr 2020 20:09:27 -0700
-Message-ID: <20200407030927.cWCFKGYsv%akpm@linux-foundation.org>
+Subject: [patch 101/166] asm-generic: fix unistd_32.h generation
+ format
+Date: Mon, 06 Apr 2020 20:09:23 -0700
+Message-ID: <20200407030923.HjTrT723H%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54766 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54682 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726396AbgDGDJ2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Apr 2020 23:09:28 -0400
+        id S1726396AbgDGDJ1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Apr 2020 23:09:27 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, natechancellor@gmail.com, ndesaulniers@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, arnd@arndb.de, benh@kernel.crashing.org, chris@zankel.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, fenghua.yu@intel.com, ink@jurassic.park.msu.ru, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, linux-mm@kvack.org, mattst88@gmail.com, michal.simek@xilinx.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulburton@kernel.org, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, stefan.asserhall@xilinx.com, tony.luck@intel.com, torvalds@linux-foundation.org, ysato@users.sourceforge.jp
 
-From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: kernel/extable.c: use address-of operator on section symbols
+From: Michal Simek <michal.simek@xilinx.com>
+Subject: asm-generic: fix unistd_32.h generation format
 
-Clang warns:
+Generated files are also checked by sparse that's why add newline to
+remove sparse (C=1) warning.
 
-../kernel/extable.c:37:52: warning: array comparison always evaluates to
-a constant [-Wtautological-compare]
-        if (main_extable_sort_needed && __stop___ex_table > __start___ex_table) {
-                                                          ^
-1 warning generated.
+The issue was found on Microblaze and reported like this:
+./arch/microblaze/include/generated/uapi/asm/unistd_32.h:438:45: warning:
+no newline at end of file
 
-These are not true arrays, they are linker defined symbols, which are just
-addresses.  Using the address of operator silences the warning and does
-not change the resulting assembly with either clang/ld.lld or gcc/ld
-(tested with diff + objdump -Dr).
+Mips and PowerPC have it already but let's align with style used by m68k.
 
-Link: https://github.com/ClangBuiltLinux/linux/issues/892
-Link: http://lkml.kernel.org/r/20200219202036.45702-1-natechancellor@gmail.com
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/4d32ab4e1fb2edb691d2e1687e8fb303c09fd023.1581504803.git.michal.simek@xilinx.com
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Reviewed-by: Stefan Asserhall <stefan.asserhall@xilinx.com>
+Acked-by: Max Filippov <jcmvbkbc@gmail.com> (xtensa)
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/extable.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/alpha/kernel/syscalls/syscallhdr.sh      |    2 +-
+ arch/ia64/kernel/syscalls/syscallhdr.sh       |    2 +-
+ arch/microblaze/kernel/syscalls/syscallhdr.sh |    2 +-
+ arch/mips/kernel/syscalls/syscallhdr.sh       |    3 +--
+ arch/parisc/kernel/syscalls/syscallhdr.sh     |    2 +-
+ arch/powerpc/kernel/syscalls/syscallhdr.sh    |    3 +--
+ arch/sh/kernel/syscalls/syscallhdr.sh         |    2 +-
+ arch/sparc/kernel/syscalls/syscallhdr.sh      |    2 +-
+ arch/xtensa/kernel/syscalls/syscallhdr.sh     |    2 +-
+ 9 files changed, 9 insertions(+), 11 deletions(-)
 
---- a/kernel/extable.c~kernel-extable-use-address-of-operator-on-section-symbols
-+++ a/kernel/extable.c
-@@ -34,7 +34,8 @@ u32 __initdata __visible main_extable_so
- /* Sort the kernel's built-in exception table */
- void __init sort_main_extable(void)
- {
--	if (main_extable_sort_needed && __stop___ex_table > __start___ex_table) {
-+	if (main_extable_sort_needed &&
-+	    &__stop___ex_table > &__start___ex_table) {
- 		pr_notice("Sorting __ex_table...\n");
- 		sort_extable(__start___ex_table, __stop___ex_table);
- 	}
+--- a/arch/alpha/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/alpha/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/ia64/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/ia64/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/microblaze/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/microblaze/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/mips/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/mips/kernel/syscalls/syscallhdr.sh
+@@ -32,6 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
+-	printf "\n"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/parisc/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/parisc/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/powerpc/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/powerpc/kernel/syscalls/syscallhdr.sh
+@@ -32,6 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
+-	printf "\n"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/sh/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/sh/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/sparc/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/sparc/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
+--- a/arch/xtensa/kernel/syscalls/syscallhdr.sh~asm-generic-fix-unistd_32h-generation-format
++++ a/arch/xtensa/kernel/syscalls/syscallhdr.sh
+@@ -32,5 +32,5 @@ grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my
+ 	printf "#define __NR_syscalls\t%s\n" "${nxt}"
+ 	printf "#endif\n"
+ 	printf "\n"
+-	printf "#endif /* %s */" "${fileguard}"
++	printf "#endif /* %s */\n" "${fileguard}"
+ ) > "$out"
 _
