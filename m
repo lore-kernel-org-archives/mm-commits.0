@@ -1,175 +1,111 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-wp-add-helper-for-writeprotect-check.patch removed from -mm
- tree
-Date: Tue, 07 Apr 2020 18:57:36 -0700
-Message-ID: <20200408015736.NG5Yik6wa%akpm@linux-foundation.org>
+ userfaultfd-wp-hook-userfault-handler-to-write-protection-fault.patch
+ removed from -mm tree
+Date: Tue, 07 Apr 2020 18:57:39 -0700
+Message-ID: <20200408015739.1I5b3LyiR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50996 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726417AbgDHB5j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:57:39 -0400
+        id S1726417AbgDHB5l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:57:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@cons.org, david@redhat.com, dgilbert@redhat.com, dplotnikov@virtuozzo.com, gokhale2@llnl.gov, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, kirill@shutemov.name, mcfadden8@llnl.gov, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, peterx@redhat.com, riel@redhat.com, rppt@linux.vnet.ibm.com, shli@fb.com, xemul@openvz.org
 
 
 The patch titled
-     Subject: userfaultfd: wp: add helper for writeprotect check
+     Subject: userfaultfd: wp: hook userfault handler to write protection fault
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-wp-add-helper-for-writeprotect-check.patch
+     userfaultfd-wp-hook-userfault-handler-to-write-protection-fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shaohua Li <shli@fb.com>
-Subject: userfaultfd: wp: add helper for writeprotect check
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: wp: hook userfault handler to write protection fault
 
-Patch series "userfaultfd: write protection support", v6.
+There are several cases write protection fault happens.  It could be a
+write to zero page, swaped page or userfault write protected page.  When
+the fault happens, there is no way to know if userfault write protect the
+page before.  Here we just blindly issue a userfault notification for vma
+with VM_UFFD_WP regardless if app write protects it yet.  Application
+should be ready to handle such wp fault.
 
-Overview
-========
+In the swapin case, always swapin as readonly.  This will cause false
+positive userfaults.  We need to decide later if to eliminate them with a
+flag like soft-dirty in the swap entry (see _PAGE_SWP_SOFT_DIRTY).
 
-The uffd-wp work was initialized by Shaohua Li [1], and later continued by
-Andrea [2].  This series is based upon Andrea's latest userfaultfd tree,
-and it is a continuous works from both Shaohua and Andrea.  Many of the
-follow up ideas come from Andrea too.
+hugetlbfs wouldn't need to worry about swapouts but and tmpfs would be
+handled by a swap entry bit like anonymous memory.
 
-Besides the old MISSING register mode of userfaultfd, the new uffd-wp
-support provides another alternative register mode called
-UFFDIO_REGISTER_MODE_WP that can be used to listen to not only missing
-page faults but also write protection page faults, or even they can be
-registered together.  At the same time, the new feature also provides a
-new userfaultfd ioctl called UFFDIO_WRITEPROTECT which allows the
-userspace to write protect a range or memory or fixup write permission of
-faulted pages.
+The main problem with no easy solution to eliminate the false positives,
+will be if/when userfaultfd is extended to real filesystem pagecache. 
+When the pagecache is freed by reclaim we can't leave the radix tree
+pinned if the inode and in turn the radix tree is reclaimed as well.
 
-Please refer to the document patch "userfaultfd: wp:
-UFFDIO_REGISTER_MODE_WP documentation update" for more information on the
-new interface and what it can do.
+The estimation is that full accuracy and lack of false positives could be
+easily provided only to anonymous memory (as long as there's no fork or as
+long as MADV_DONTFORK is used on the userfaultfd anonymous range) tmpfs
+and hugetlbfs, it's most certainly worth to achieve it but in a later
+incremental patch.
 
-The major workflow of an uffd-wp program should be:
-
-  1. Register a memory region with WP mode using UFFDIO_REGISTER_MODE_WP
-
-  2. Write protect part of the whole registered region using
-     UFFDIO_WRITEPROTECT, passing in UFFDIO_WRITEPROTECT_MODE_WP to
-     show that we want to write protect the range.
-
-  3. Start a working thread that modifies the protected pages,
-     meanwhile listening to UFFD messages.
-
-  4. When a write is detected upon the protected range, page fault
-     happens, a UFFD message will be generated and reported to the
-     page fault handling thread
-
-  5. The page fault handler thread resolves the page fault using the
-     new UFFDIO_WRITEPROTECT ioctl, but this time passing in
-     !UFFDIO_WRITEPROTECT_MODE_WP instead showing that we want to
-     recover the write permission.  Before this operation, the fault
-     handler thread can do anything it wants, e.g., dumps the page to
-     a persistent storage.
-
-  6. The worker thread will continue running with the correctly
-     applied write permission from step 5.
-
-Currently there are already two projects that are based on this new
-userfaultfd feature.
-
-QEMU Live Snapshot: The project provides a way to allow the QEMU
-                    hypervisor to take snapshot of VMs without
-                    stopping the VM [3].
-
-LLNL umap library:  The project provides a mmap-like interface and
-                    "allow to have an application specific buffer of
-                    pages cached from a large file, i.e. out-of-core
-                    execution using memory map" [4][5].
-
-Before posting the patchset, this series was smoke tested against QEMU
-live snapshot and the LLNL umap library (by doing parallel quicksort using
-128 sorting threads + 80 uffd servicing threads).  My sincere thanks to
-Marty Mcfadden and Denis Plotnikov for the help along the way.
-
-TODO
-====
-
-- hugetlbfs/shmem support
-- performance
-- more architectures
-- cooperate with mprotect()-allowed processes (???)
-- ...
-
-References
-==========
-
-[1] https://lwn.net/Articles/666187/
-[2] https://git.kernel.org/pub/scm/linux/kernel/git/andrea/aa.git/log/?h=userfault
-[3] https://github.com/denis-plotnikov/qemu/commits/background-snapshot-kvm
-[4] https://github.com/LLNL/umap
-[5] https://llnl-umap.readthedocs.io/en/develop/
-[6] https://git.kernel.org/pub/scm/linux/kernel/git/andrea/aa.git/commit/?h=userfault&id=b245ecf6cf59156966f3da6e6b674f6695a5ffa5
-[7] https://lkml.org/lkml/2018/11/21/370
-[8] https://lkml.org/lkml/2018/12/30/64
-
-
-This patch (of 19):
-
-Add helper for writeprotect check. Will use it later.
-
-Link: http://lkml.kernel.org/r/20200220163112.11409-2-peterx@redhat.com
-Signed-off-by: Shaohua Li <shli@fb.com>
+[peterx@redhat.com: don't conditionally drop FAULT_FLAG_WRITE in do_swap_page]
+Link: http://lkml.kernel.org/r/20200220163112.11409-3-peterx@redhat.com
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Jerome Glisse <jglisse@redhat.com>
 Reviewed-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Jerome Glisse <jglisse@redhat.com>
+Cc: Shaohua Li <shli@fb.com>
 Cc: Bobby Powers <bobbypowers@gmail.com>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Denis Plotnikov <dplotnikov@virtuozzo.com>
 Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Cc: Martin Cracauer <cracauer@cons.org>
 Cc: Marty McFadden <mcfadden8@llnl.gov>
 Cc: Maya Gokhale <gokhale2@llnl.gov>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/userfaultfd_k.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/memory.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/include/linux/userfaultfd_k.h~userfaultfd-wp-add-helper-for-writeprotect-check
-+++ a/include/linux/userfaultfd_k.h
-@@ -52,6 +52,11 @@ static inline bool userfaultfd_missing(s
- 	return vma->vm_flags & VM_UFFD_MISSING;
- }
+--- a/mm/memory.c~userfaultfd-wp-hook-userfault-handler-to-write-protection-fault
++++ a/mm/memory.c
+@@ -2752,6 +2752,11 @@ static vm_fault_t do_wp_page(struct vm_f
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
  
-+static inline bool userfaultfd_wp(struct vm_area_struct *vma)
-+{
-+	return vma->vm_flags & VM_UFFD_WP;
-+}
++	if (userfaultfd_wp(vma)) {
++		pte_unmap_unlock(vmf->pte, vmf->ptl);
++		return handle_userfault(vmf, VM_UFFD_WP);
++	}
 +
- static inline bool userfaultfd_armed(struct vm_area_struct *vma)
+ 	vmf->page = vm_normal_page(vma, vmf->address, vmf->orig_pte);
+ 	if (!vmf->page) {
+ 		/*
+@@ -3948,8 +3953,11 @@ static inline vm_fault_t create_huge_pmd
+ /* `inline' is required to avoid gcc 4.1.2 build error */
+ static inline vm_fault_t wp_huge_pmd(struct vm_fault *vmf, pmd_t orig_pmd)
  {
- 	return vma->vm_flags & (VM_UFFD_MISSING | VM_UFFD_WP);
-@@ -95,6 +100,11 @@ static inline bool userfaultfd_missing(s
- {
- 	return false;
- }
-+
-+static inline bool userfaultfd_wp(struct vm_area_struct *vma)
-+{
-+	return false;
-+}
+-	if (vma_is_anonymous(vmf->vma))
++	if (vma_is_anonymous(vmf->vma)) {
++		if (userfaultfd_wp(vmf->vma))
++			return handle_userfault(vmf, VM_UFFD_WP);
+ 		return do_huge_pmd_wp_page(vmf, orig_pmd);
++	}
+ 	if (vmf->vma->vm_ops->huge_fault) {
+ 		vm_fault_t ret = vmf->vma->vm_ops->huge_fault(vmf, PE_SIZE_PMD);
  
- static inline bool userfaultfd_armed(struct vm_area_struct *vma)
- {
 _
 
-Patches currently in -mm which might be from shli@fb.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
