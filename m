@@ -1,79 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- gcov-fs-replace-zero-length-array-with-flexible-array-member.patch removed
- from -mm tree
-Date: Tue, 07 Apr 2020 19:02:17 -0700
-Message-ID: <20200408020217.pV7vcgUup%akpm@linux-foundation.org>
+ init-cleanup-anon_inodes-and-old-io-schedulers-options.patch removed from
+ -mm tree
+Date: Tue, 07 Apr 2020 19:02:19 -0700
+Message-ID: <20200408020219.XehE2lxNI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55234 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHCCS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:02:18 -0400
+        id S1726406AbgDHCCV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:02:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gustavo@embeddedor.com, mm-commits@vger.kernel.org, oberpar@linux.ibm.com
+To: gregkh@linuxfoundation.org, krzk@kernel.org, mm-commits@vger.kernel.org, tglx@linutronix.de, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: kernel/gcov/fs.c: replace zero-length array with flexible-array member
+     Subject: init/Kconfig: clean up ANON_INODES and old IO schedulers options
 has been removed from the -mm tree.  Its filename was
-     gcov-fs-replace-zero-length-array-with-flexible-array-member.patch
+     init-cleanup-anon_inodes-and-old-io-schedulers-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: kernel/gcov/fs.c: replace zero-length array with flexible-array member
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: init/Kconfig: clean up ANON_INODES and old IO schedulers options
 
-The current codebase makes use of the zero-length array language extension
-to the C90 standard, but the preferred mechanism to declare
-variable-length types such as these ones is a flexible array member[1][2],
-introduced in C99:
+CONFIG_ANON_INODES is gone since commit 5dd50aaeb185 ("Make anon_inodes
+unconditional").
 
-struct foo {
-        int stuff;
-        struct boo array[];
-};
+CONFIG_CFQ_GROUP_IOSCHED was replaced with CONFIG_BFQ_GROUP_IOSCHED in
+commit f382fb0bcef4 ("block: remove legacy IO schedulers").
 
-By making use of the mechanism above, we will get a compiler warning in
-case the flexible array does not occur last in the structure, which will
-help us prevent some kind of undefined behavior bugs from being
-inadvertently introduced[3] to the codebase from now on.
-
-Also, notice that, dynamic memory allocations won't be affected by this
-change:
-
-"Flexible array members have incomplete type, and so the sizeof operator
-may not be applied.  As a quirk of the original implementation of
-zero-length arrays, sizeof evaluates to zero."[1]
-
-This issue was found with the help of Coccinelle.
-
-[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-[2] https://github.com/KSPP/linux/issues/21
-[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
-
-Link: http://lkml.kernel.org/r/20200302224851.GA26467@embeddedor
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
+Link: http://lkml.kernel.org/r/20200130192419.3026-1-krzk@kernel.org
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/gcov/fs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/Kconfig |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/kernel/gcov/fs.c~gcov-fs-replace-zero-length-array-with-flexible-array-member
-+++ a/kernel/gcov/fs.c
-@@ -58,7 +58,7 @@ struct gcov_node {
- 	struct dentry *dentry;
- 	struct dentry **links;
- 	int num_loaded;
--	char name[0];
-+	char name[];
- };
+--- a/init/Kconfig~init-cleanup-anon_inodes-and-old-io-schedulers-options
++++ a/init/Kconfig
+@@ -872,7 +872,7 @@ config BLK_CGROUP
+ 	This option only enables generic Block IO controller infrastructure.
+ 	One needs to also enable actual IO controlling logic/policy. For
+ 	enabling proportional weight division of disk bandwidth in CFQ, set
+-	CONFIG_CFQ_GROUP_IOSCHED=y; for enabling throttling policy, set
++	CONFIG_BFQ_GROUP_IOSCHED=y; for enabling throttling policy, set
+ 	CONFIG_BLK_DEV_THROTTLING=y.
  
- static const char objtree[] = OBJTREE;
+ 	See Documentation/admin-guide/cgroup-v1/blkio-controller.rst for more information.
+@@ -1538,7 +1538,6 @@ config AIO
+ 
+ config IO_URING
+ 	bool "Enable IO uring support" if EXPERT
+-	select ANON_INODES
+ 	select IO_WQ
+ 	default y
+ 	help
 _
 
-Patches currently in -mm which might be from gustavo@embeddedor.com are
+Patches currently in -mm which might be from krzk@kernel.org are
