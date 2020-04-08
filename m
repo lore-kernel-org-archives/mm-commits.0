@@ -1,67 +1,92 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-set-vm_next-and-vm_prev-to-null-in-vm_area_dup.patch removed from -mm
- tree
-Date: Tue, 07 Apr 2020 18:56:23 -0700
-Message-ID: <20200408015623.vCSl23Bn6%akpm@linux-foundation.org>
+ mm-vma-add-missing-vma-flag-readable-name-for-vm_sync.patch removed from
+ -mm tree
+Date: Tue, 07 Apr 2020 18:56:26 -0700
+Message-ID: <20200408015626.4Jhg8jnwm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49708 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49820 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726417AbgDHB4Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:56:24 -0400
+        id S1726417AbgDHB42 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:56:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, lixinhai.lxh@gmail.com, mm-commits@vger.kernel.org, riel@redhat.com, willy@infradead.org
+To: acme@kernel.org, aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com, arnd@arndb.de, benh@kernel.crashing.org, dalias@libc.org, dave.hansen@linux.intel.com, geert@linux-m68k.org, guoren@kernel.org, luto@kernel.org, mgorman@suse.de, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com, paulburton@kernel.org, paulus@ozlabs.org, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, rostedt@goodmis.org, tglx@linutronix.de, vbabka@suse.cz, viro@zeniv.linux.org.uk, will@kernel.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm: set vm_next and vm_prev to NULL in vm_area_dup()
+     Subject: mm/vma: add missing VMA flag readable name for VM_SYNC
 has been removed from the -mm tree.  Its filename was
-     mm-set-vm_next-and-vm_prev-to-null-in-vm_area_dup.patch
+     mm-vma-add-missing-vma-flag-readable-name-for-vm_sync.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Li Xinhai <lixinhai.lxh@gmail.com>
-Subject: mm: set vm_next and vm_prev to NULL in vm_area_dup()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/vma: add missing VMA flag readable name for VM_SYNC
 
-Set ->vm_next and ->vm_prev to NULL to prevent potential misuse from the
-new duplicated vma.
+Patch series "mm/vma: Use all available wrappers when possible", v2.
 
-Currently, only in fork path there are misuse for handling anon_vma.  No
-other bugs been revealed with this patch applied.
+Apart from adding a VMA flag readable name for trace purpose, this series
+does some open encoding replacements with availabe VMA specific wrappers. 
+This skips VM_HUGETLB check in vma_migratable() as its already being done
+with another patch (https://patchwork.kernel.org/patch/11347831/) which is
+yet to be merged.
 
-Link: http://lkml.kernel.org/r/1581150928-3214-4-git-send-email-lixinhai.lxh@gmail.com
-Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
+
+This patch (of 4):
+
+This just adds the missing readable name for VM_SYNC.
+
+Link: http://lkml.kernel.org/r/1582520593-30704-2-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nick Piggin <npiggin@gmail.com>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/trace/events/mmflags.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/fork.c~mm-set-vm_next-and-vm_prev-to-null-in-vm_area_dup
-+++ a/kernel/fork.c
-@@ -361,6 +361,7 @@ struct vm_area_struct *vm_area_dup(struc
- 	if (new) {
- 		*new = *orig;
- 		INIT_LIST_HEAD(&new->anon_vma_chain);
-+		new->vm_next = new->vm_prev = NULL;
- 	}
- 	return new;
- }
-@@ -562,7 +563,6 @@ static __latent_entropy int dup_mmap(str
- 		} else if (anon_vma_fork(tmp, mpnt))
- 			goto fail_nomem_anon_vma_fork;
- 		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
--		tmp->vm_next = tmp->vm_prev = NULL;
- 		file = tmp->vm_file;
- 		if (file) {
- 			struct inode *inode = file_inode(file);
+--- a/include/trace/events/mmflags.h~mm-vma-add-missing-vma-flag-readable-name-for-vm_sync
++++ a/include/trace/events/mmflags.h
+@@ -154,6 +154,7 @@ IF_HAVE_PG_IDLE(PG_idle,		"idle"		)
+ 	{VM_ACCOUNT,			"account"	},		\
+ 	{VM_NORESERVE,			"noreserve"	},		\
+ 	{VM_HUGETLB,			"hugetlb"	},		\
++	{VM_SYNC,			"sync"		},		\
+ 	__VM_ARCH_SPECIFIC_1				,		\
+ 	{VM_WIPEONFORK,			"wipeonfork"	},		\
+ 	{VM_DONTDUMP,			"dontdump"	},		\
 _
 
-Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
+
+mm-vma-define-a-default-value-for-vm_data_default_flags.patch
+mm-vma-introduce-vm_access_flags.patch
+mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial.patch
+mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial-v3.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
