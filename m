@@ -1,75 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-support-base-commit-format.patch
- removed from -mm tree
-Date: Tue, 07 Apr 2020 19:01:29 -0700
-Message-ID: <20200408020129.g1R4vd6uq%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-prefer-fallthrough-over-fallthrough-comments.patch removed from
+ -mm tree
+Date: Tue, 07 Apr 2020 19:01:32 -0700
+Message-ID: <20200408020132.4oTJqijwP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54678 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54706 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726443AbgDHCBb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:01:31 -0400
+        id S1726443AbgDHCBd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:01:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@canonical.com, corbet@lwn.net, jhubbard@nvidia.com, joe@perches.com, konstantin@linuxfoundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: support "base-commit:" format
+     Subject: checkpatch: prefer fallthrough; over fallthrough comments
 has been removed from the -mm tree.  Its filename was
-     checkpatch-support-base-commit-format.patch
+     checkpatch-prefer-fallthrough-over-fallthrough-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: checkpatch: support "base-commit:" format
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: prefer fallthrough; over fallthrough comments
 
-In order to support the get-lore-mbox.py tool described in [1], I ran:
+commit 294f69e662d1 ("compiler_attributes.h: Add 'fallthrough' pseudo
+keyword for switch/case use") added the pseudo keyword so add a test for
+it to checkpatch.
 
-    git format-patch --base=<commit> --cover-letter <revrange>
+Warn on a patch or use --strict for files.
 
-...  which generated a "base-commit: <commit-hash>" tag at the end of the
-cover letter.  However, checkpatch.pl generated an error upon encounting
-"base-commit:" in the cover letter:
-
-    "ERROR: Please use git commit description style..."
-
-...  because it found the "commit" keyword, and failed to recognize that
-it was part of the "base-commit" phrase, and as such, should not be
-subjected to the same commit description style rules.
-
-Update checkpatch.pl to include a special case for "base-commit:" (at the
-start of the line, possibly with some leading whitespace) so that that tag
-no longer generates a checkpatch error.
-
-[1] https://lwn.net/Articles/811528/ "Better tools for kernel
-    developers"
-
-Link: http://lkml.kernel.org/r/20200213055004.69235-2-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Suggested-by: Joe Perches <joe@perches.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: http://lkml.kernel.org/r/8b6c1b9031ab9f3cdebada06b8d46467f1492d68.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-support-base-commit-format
+--- a/scripts/checkpatch.pl~checkpatch-prefer-fallthrough-over-fallthrough-comments
 +++ a/scripts/checkpatch.pl
-@@ -2780,7 +2780,7 @@ sub process {
+@@ -2294,6 +2294,19 @@ sub pos_last_openparen {
+ 	return length(expand_tabs(substr($line, 0, $last_openparen))) + 1;
+ }
  
- # Check for git id commit length and improperly formed commit descriptions
- 		if ($in_commit_log && !$commit_log_possible_stack_dump &&
--		    $line !~ /^\s*(?:Link|Patchwork|http|https|BugLink):/i &&
-+		    $line !~ /^\s*(?:Link|Patchwork|http|https|BugLink|base-commit):/i &&
- 		    $line !~ /^This reverts commit [0-9a-f]{7,40}/ &&
- 		    ($line =~ /\bcommit\s+[0-9a-f]{5,}\b/i ||
- 		     ($line =~ /(?:\s|^)[0-9a-f]{12,40}(?:[\s"'\(\[]|$)/i &&
++sub get_raw_comment {
++	my ($line, $rawline) = @_;
++	my $comment = '';
++
++	for my $i (0 .. (length($line) - 1)) {
++		if (substr($line, $i, 1) eq "$;") {
++			$comment .= substr($rawline, $i, 1);
++		}
++	}
++
++	return $comment;
++}
++
+ sub process {
+ 	my $filename = shift;
+ 
+@@ -2455,6 +2468,7 @@ sub process {
+ 		$sline =~ s/$;/ /g;	#with comments as spaces
+ 
+ 		my $rawline = $rawlines[$linenr - 1];
++		my $raw_comment = get_raw_comment($line, $rawline);
+ 
+ # check if it's a mode change, rename or start of a patch
+ 		if (!$in_commit_log &&
+@@ -6408,6 +6422,28 @@ sub process {
+ 			}
+ 		}
+ 
++# check for /* fallthrough */ like comment, prefer fallthrough;
++		my @fallthroughs = (
++			'fallthrough',
++			'@fallthrough@',
++			'lint -fallthrough[ \t]*',
++			'intentional(?:ly)?[ \t]*fall(?:(?:s | |-)[Tt]|t)hr(?:ough|u|ew)',
++			'(?:else,?\s*)?FALL(?:S | |-)?THR(?:OUGH|U|EW)[ \t.!]*(?:-[^\n\r]*)?',
++			'Fall(?:(?:s | |-)[Tt]|t)hr(?:ough|u|ew)[ \t.!]*(?:-[^\n\r]*)?',
++			'fall(?:s | |-)?thr(?:ough|u|ew)[ \t.!]*(?:-[^\n\r]*)?',
++		    );
++		if ($raw_comment ne '') {
++			foreach my $ft (@fallthroughs) {
++				if ($raw_comment =~ /$ft/) {
++					my $msg_level = \&WARN;
++					$msg_level = \&CHK if ($file);
++					&{$msg_level}("PREFER_FALLTHROUGH",
++						      "Prefer 'fallthrough;' over fallthrough comment\n" . $herecurr);
++					last;
++				}
++			}
++		}
++
+ # check for switch/default statements without a break;
+ 		if ($perl_version_ok &&
+ 		    defined $stat &&
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from joe@perches.com are
