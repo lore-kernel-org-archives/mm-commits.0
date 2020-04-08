@@ -1,140 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kselftest-introduce-new-epoll-test-case.patch
- removed from -mm tree
-Date: Tue, 07 Apr 2020 19:01:48 -0700
-Message-ID: <20200408020148.FkaUgYyPF%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch removed from -mm
+ tree
+Date: Tue, 07 Apr 2020 19:01:51 -0700
+Message-ID: <20200408020151.7W8Z4yVub%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54874 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHCBt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:01:49 -0400
+        id S1726406AbgDHCBy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:01:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris.kohlhoff@clearpool.io, dbueso@suse.de, jbaron@akamai.com, jes.sorensen@gmail.com, kuba@kernel.org, max@arangodb.com, mm-commits@vger.kernel.org, rpenyaev@suse.de
+To: dbueso@suse.de, jbaron@akamai.com, mm-commits@vger.kernel.org, normalperson@yhbt.net, rpenyaev@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: kselftest: introduce new epoll test case
+     Subject: fs/epoll: make nesting accounting safe for -rt kernel
 has been removed from the -mm tree.  Its filename was
-     kselftest-introduce-new-epoll-test-case.patch
+     fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Roman Penyaev <rpenyaev@suse.de>
-Subject: kselftest: introduce new epoll test case
+From: Jason Baron <jbaron@akamai.com>
+Subject: fs/epoll: make nesting accounting safe for -rt kernel
 
-This testcase repeats epollbug.c from the bug:
+Davidlohr Bueso pointed out that when CONFIG_DEBUG_LOCK_ALLOC is set
+ep_poll_safewake() can take several non-raw spinlocks after disabling
+interrupts.  Since a spinlock can block in the -rt kernel, we can't take a
+spinlock after disabling interrupts.  So let's re-work how we determine
+the nesting level such that it plays nicely with the -rt kernel.
 
-  https://bugzilla.kernel.org/show_bug.cgi?id=205933
+Let's introduce a 'nests' field in struct eventpoll that records the
+current nesting level during ep_poll_callback().  Then, if we nest again
+we can find the previous struct eventpoll that we were called from and
+increase our count by 1.  The 'nests' field is protected by
+ep->poll_wait.lock.
 
-What it tests?  It tests the race between epoll_ctl() and epoll_wait(). 
-New event mask passed to epoll_ctl() triggers wake up, which can be missed
-because of the bug described in the link.  Reproduction is 100%, so easy
-to fix.  Kudos, Max, for wonderful test case.
+I've also moved the visited field to reduce the size of struct eventpoll
+from 184 bytes to 176 bytes on x86_64 for !CONFIG_DEBUG_LOCK_ALLOC, which
+is typical for a production config.
 
-Link: http://lkml.kernel.org/r/20200214170211.561524-2-rpenyaev@suse.de
-Signed-off-by: Roman Penyaev <rpenyaev@suse.de>
-Cc: Max Neunhoeffer <max@arangodb.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Christopher Kohlhoff <chris.kohlhoff@clearpool.io>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Jes Sorensen <jes.sorensen@gmail.com>
+Link: http://lkml.kernel.org/r/1582739816-13167-1-git-send-email-jbaron@akamai.com
+Reported-by: Davidlohr Bueso <dbueso@suse.de>
+Signed-off-by: Jason Baron <jbaron@akamai.com>
+Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Roman Penyaev <rpenyaev@suse.de>
+Cc: Eric Wong <normalperson@yhbt.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c |   67 +++++++++-
- 1 file changed, 66 insertions(+), 1 deletion(-)
+ fs/eventpoll.c |   64 +++++++++++++++++++++++++++++++----------------
+ 1 file changed, 43 insertions(+), 21 deletions(-)
 
---- a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c~kselftest-introduce-new-epoll-test-case
-+++ a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c
-@@ -7,13 +7,14 @@
- #include <pthread.h>
- #include <sys/epoll.h>
- #include <sys/socket.h>
-+#include <sys/eventfd.h>
- #include "../../kselftest_harness.h"
+--- a/fs/eventpoll.c~fs-epoll-make-nesting-accounting-safe-for-rt-kernel
++++ a/fs/eventpoll.c
+@@ -218,13 +218,18 @@ struct eventpoll {
+ 	struct file *file;
  
- struct epoll_mtcontext
+ 	/* used to optimize loop detection check */
+-	int visited;
+ 	struct list_head visited_list_link;
++	int visited;
+ 
+ #ifdef CONFIG_NET_RX_BUSY_POLL
+ 	/* used to track busy poll napi_id */
+ 	unsigned int napi_id;
+ #endif
++
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	/* tracks wakeup nests for lockdep validation */
++	u8 nests;
++#endif
+ };
+ 
+ /* Wait structure used by the poll hooks */
+@@ -545,30 +550,47 @@ out_unlock:
+  */
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ 
+-static DEFINE_PER_CPU(int, wakeup_nest);
+-
+-static void ep_poll_safewake(wait_queue_head_t *wq)
++static void ep_poll_safewake(struct eventpoll *ep, struct epitem *epi)
  {
- 	int efd[3];
- 	int sfd[4];
--	int count;
-+	volatile int count;
++	struct eventpoll *ep_src;
+ 	unsigned long flags;
+-	int subclass;
++	u8 nests = 0;
  
- 	pthread_t main;
- 	pthread_t waiter;
-@@ -3071,4 +3072,68 @@ TEST(epoll58)
- 	close(ctx.sfd[3]);
+-	local_irq_save(flags);
+-	preempt_disable();
+-	subclass = __this_cpu_read(wakeup_nest);
+-	spin_lock_nested(&wq->lock, subclass + 1);
+-	__this_cpu_inc(wakeup_nest);
+-	wake_up_locked_poll(wq, POLLIN);
+-	__this_cpu_dec(wakeup_nest);
+-	spin_unlock(&wq->lock);
+-	local_irq_restore(flags);
+-	preempt_enable();
++	/*
++	 * To set the subclass or nesting level for spin_lock_irqsave_nested()
++	 * it might be natural to create a per-cpu nest count. However, since
++	 * we can recurse on ep->poll_wait.lock, and a non-raw spinlock can
++	 * schedule() in the -rt kernel, the per-cpu variable are no longer
++	 * protected. Thus, we are introducing a per eventpoll nest field.
++	 * If we are not being call from ep_poll_callback(), epi is NULL and
++	 * we are at the first level of nesting, 0. Otherwise, we are being
++	 * called from ep_poll_callback() and if a previous wakeup source is
++	 * not an epoll file itself, we are at depth 1 since the wakeup source
++	 * is depth 0. If the wakeup source is a previous epoll file in the
++	 * wakeup chain then we use its nests value and record ours as
++	 * nests + 1. The previous epoll file nests value is stable since its
++	 * already holding its own poll_wait.lock.
++	 */
++	if (epi) {
++		if ((is_file_epoll(epi->ffd.file))) {
++			ep_src = epi->ffd.file->private_data;
++			nests = ep_src->nests;
++		} else {
++			nests = 1;
++		}
++	}
++	spin_lock_irqsave_nested(&ep->poll_wait.lock, flags, nests);
++	ep->nests = nests + 1;
++	wake_up_locked_poll(&ep->poll_wait, EPOLLIN);
++	ep->nests = 0;
++	spin_unlock_irqrestore(&ep->poll_wait.lock, flags);
  }
  
-+static void *epoll59_thread(void *ctx_)
-+{
-+	struct epoll_mtcontext *ctx = ctx_;
-+	struct epoll_event e;
-+	int i;
-+
-+	for (i = 0; i < 100000; i++) {
-+		while (ctx->count == 0)
-+			;
-+
-+		e.events = EPOLLIN | EPOLLERR | EPOLLET;
-+		epoll_ctl(ctx->efd[0], EPOLL_CTL_MOD, ctx->sfd[0], &e);
-+		ctx->count = 0;
-+	}
-+
-+	return NULL;
-+}
-+
-+/*
-+ *        t0
-+ *      (p) \
-+ *           e0
-+ *     (et) /
-+ *        e0
-+ *
-+ * Based on https://bugzilla.kernel.org/show_bug.cgi?id=205933
-+ */
-+TEST(epoll59)
-+{
-+	pthread_t emitter;
-+	struct pollfd pfd;
-+	struct epoll_event e;
-+	struct epoll_mtcontext ctx = { 0 };
-+	int i, ret;
-+
-+	signal(SIGUSR1, signal_handler);
-+
-+	ctx.efd[0] = epoll_create1(0);
-+	ASSERT_GE(ctx.efd[0], 0);
-+
-+	ctx.sfd[0] = eventfd(1, 0);
-+	ASSERT_GE(ctx.sfd[0], 0);
-+
-+	e.events = EPOLLIN | EPOLLERR | EPOLLET;
-+	ASSERT_EQ(epoll_ctl(ctx.efd[0], EPOLL_CTL_ADD, ctx.sfd[0], &e), 0);
-+
-+	ASSERT_EQ(pthread_create(&emitter, NULL, epoll59_thread, &ctx), 0);
-+
-+	for (i = 0; i < 100000; i++) {
-+		ret = epoll_wait(ctx.efd[0], &e, 1, 1000);
-+		ASSERT_GT(ret, 0);
-+
-+		while (ctx.count != 0)
-+			;
-+		ctx.count = 1;
-+	}
-+	if (pthread_tryjoin_np(emitter, NULL) < 0) {
-+		pthread_kill(emitter, SIGUSR1);
-+		pthread_join(emitter, NULL);
-+	}
-+	close(ctx.efd[0]);
-+	close(ctx.sfd[0]);
-+}
-+
- TEST_HARNESS_MAIN
+ #else
+ 
+-static void ep_poll_safewake(wait_queue_head_t *wq)
++static void ep_poll_safewake(struct eventpoll *ep, struct epitem *epi)
+ {
+-	wake_up_poll(wq, EPOLLIN);
++	wake_up_poll(&ep->poll_wait, EPOLLIN);
+ }
+ 
+ #endif
+@@ -789,7 +811,7 @@ static void ep_free(struct eventpoll *ep
+ 
+ 	/* We need to release all tasks waiting for these file */
+ 	if (waitqueue_active(&ep->poll_wait))
+-		ep_poll_safewake(&ep->poll_wait);
++		ep_poll_safewake(ep, NULL);
+ 
+ 	/*
+ 	 * We need to lock this because we could be hit by
+@@ -1258,7 +1280,7 @@ out_unlock:
+ 
+ 	/* We have to call this outside the lock */
+ 	if (pwake)
+-		ep_poll_safewake(&ep->poll_wait);
++		ep_poll_safewake(ep, epi);
+ 
+ 	if (!(epi->event.events & EPOLLEXCLUSIVE))
+ 		ewake = 1;
+@@ -1562,7 +1584,7 @@ static int ep_insert(struct eventpoll *e
+ 
+ 	/* We have to call this outside the lock */
+ 	if (pwake)
+-		ep_poll_safewake(&ep->poll_wait);
++		ep_poll_safewake(ep, NULL);
+ 
+ 	return 0;
+ 
+@@ -1666,7 +1688,7 @@ static int ep_modify(struct eventpoll *e
+ 
+ 	/* We have to call this outside the lock */
+ 	if (pwake)
+-		ep_poll_safewake(&ep->poll_wait);
++		ep_poll_safewake(ep, NULL);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from rpenyaev@suse.de are
+Patches currently in -mm which might be from jbaron@akamai.com are
