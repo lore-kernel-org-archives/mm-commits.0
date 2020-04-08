@@ -1,40 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] userfaultfd-wp-add-uffdio_copy_mode_wp.patch
+Subject: [merged] mm-merge-parameters-for-change_protection.patch
  removed from -mm tree
-Date: Tue, 07 Apr 2020 18:57:48 -0700
-Message-ID: <20200408015748.2UnsVoJdL%akpm@linux-foundation.org>
+Date: Tue, 07 Apr 2020 18:57:51 -0700
+Message-ID: <20200408015751.YvdESJWP4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51172 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51218 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726467AbgDHB5u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:57:50 -0400
+        id S1726484AbgDHB5x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:57:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@cons.org, david@redhat.com, dgilbert@redhat.com, dplotnikov@virtuozzo.com, gokhale2@llnl.gov, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, kirill@shutemov.name, mcfadden8@llnl.gov, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, peterx@redhat.com, riel@redhat.com, rppt@linux.vnet.ibm.com, shli@fb.com, xemul@openvz.org
 
 
 The patch titled
-     Subject: userfaultfd: wp: add UFFDIO_COPY_MODE_WP
+     Subject: mm: merge parameters for change_protection()
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-wp-add-uffdio_copy_mode_wp.patch
+     mm-merge-parameters-for-change_protection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: wp: add UFFDIO_COPY_MODE_WP
+From: Peter Xu <peterx@redhat.com>
+Subject: mm: merge parameters for change_protection()
 
-This allows UFFDIO_COPY to map pages write-protected.
+change_protection() was used by either the NUMA or mprotect() code,
+there's one parameter for each of the callers (dirty_accountable and
+prot_numa).  Further, these parameters are passed along the calls:
 
-[peterx@redhat.com: switch to VM_WARN_ON_ONCE in mfill_atomic_pte; add brackets
- around "dst_vma->vm_flags & VM_WRITE"; fix wordings in comments and
- commit messages]
-Link: http://lkml.kernel.org/r/20200220163112.11409-6-peterx@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+  - change_protection_range()
+  - change_p4d_range()
+  - change_pud_range()
+  - change_pmd_range()
+  - ...
+
+Now we introduce a flag for change_protect() and all these helpers to
+replace these parameters.  Then we can avoid passing multiple parameters
+multiple times along the way.
+
+More importantly, it'll greatly simplify the work if we want to introduce
+any new parameters to change_protection().  In the follow up patches, a
+new parameter for userfaultfd write protection will be introduced.
+
+No functional change at all.
+
+Link: http://lkml.kernel.org/r/20200220163112.11409-7-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Jerome Glisse <jglisse@redhat.com>
-Reviewed-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Bobby Powers <bobbypowers@gmail.com>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -48,178 +62,214 @@ Cc: Marty McFadden <mcfadden8@llnl.gov>
 Cc: Maya Gokhale <gokhale2@llnl.gov>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Shaohua Li <shli@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c                 |    5 ++--
- include/linux/userfaultfd_k.h    |    2 -
- include/uapi/linux/userfaultfd.h |   11 ++++----
- mm/userfaultfd.c                 |   36 ++++++++++++++++++++---------
- 4 files changed, 35 insertions(+), 19 deletions(-)
+ include/linux/huge_mm.h |    2 +-
+ include/linux/mm.h      |   14 +++++++++++++-
+ mm/huge_memory.c        |    3 ++-
+ mm/mempolicy.c          |    2 +-
+ mm/mprotect.c           |   29 ++++++++++++++++-------------
+ 5 files changed, 33 insertions(+), 17 deletions(-)
 
---- a/fs/userfaultfd.c~userfaultfd-wp-add-uffdio_copy_mode_wp
-+++ a/fs/userfaultfd.c
-@@ -1724,11 +1724,12 @@ static int userfaultfd_copy(struct userf
- 	ret = -EINVAL;
- 	if (uffdio_copy.src + uffdio_copy.len <= uffdio_copy.src)
- 		goto out;
--	if (uffdio_copy.mode & ~UFFDIO_COPY_MODE_DONTWAKE)
-+	if (uffdio_copy.mode & ~(UFFDIO_COPY_MODE_DONTWAKE|UFFDIO_COPY_MODE_WP))
- 		goto out;
- 	if (mmget_not_zero(ctx->mm)) {
- 		ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
--				   uffdio_copy.len, &ctx->mmap_changing);
-+				   uffdio_copy.len, &ctx->mmap_changing,
-+				   uffdio_copy.mode);
- 		mmput(ctx->mm);
- 	} else {
- 		return -ESRCH;
---- a/include/linux/userfaultfd_k.h~userfaultfd-wp-add-uffdio_copy_mode_wp
-+++ a/include/linux/userfaultfd_k.h
-@@ -36,7 +36,7 @@ extern vm_fault_t handle_userfault(struc
+--- a/include/linux/huge_mm.h~mm-merge-parameters-for-change_protection
++++ a/include/linux/huge_mm.h
+@@ -46,7 +46,7 @@ extern bool move_huge_pmd(struct vm_area
+ 			 pmd_t *old_pmd, pmd_t *new_pmd);
+ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, pgprot_t newprot,
+-			int prot_numa);
++			unsigned long cp_flags);
+ vm_fault_t vmf_insert_pfn_pmd_prot(struct vm_fault *vmf, pfn_t pfn,
+ 				   pgprot_t pgprot, bool write);
  
- extern ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
- 			    unsigned long src_start, unsigned long len,
--			    bool *mmap_changing);
-+			    bool *mmap_changing, __u64 mode);
- extern ssize_t mfill_zeropage(struct mm_struct *dst_mm,
- 			      unsigned long dst_start,
- 			      unsigned long len,
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-wp-add-uffdio_copy_mode_wp
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -203,13 +203,14 @@ struct uffdio_copy {
- 	__u64 dst;
- 	__u64 src;
- 	__u64 len;
-+#define UFFDIO_COPY_MODE_DONTWAKE		((__u64)1<<0)
- 	/*
--	 * There will be a wrprotection flag later that allows to map
--	 * pages wrprotected on the fly. And such a flag will be
--	 * available if the wrprotection ioctl are implemented for the
--	 * range according to the uffdio_register.ioctls.
-+	 * UFFDIO_COPY_MODE_WP will map the page write protected on
-+	 * the fly.  UFFDIO_COPY_MODE_WP is available only if the
-+	 * write protected ioctl is implemented for the range
-+	 * according to the uffdio_register.ioctls.
- 	 */
--#define UFFDIO_COPY_MODE_DONTWAKE		((__u64)1<<0)
-+#define UFFDIO_COPY_MODE_WP			((__u64)1<<1)
- 	__u64 mode;
- 
- 	/*
---- a/mm/userfaultfd.c~userfaultfd-wp-add-uffdio_copy_mode_wp
-+++ a/mm/userfaultfd.c
-@@ -53,7 +53,8 @@ static int mcopy_atomic_pte(struct mm_st
- 			    struct vm_area_struct *dst_vma,
- 			    unsigned long dst_addr,
- 			    unsigned long src_addr,
--			    struct page **pagep)
-+			    struct page **pagep,
-+			    bool wp_copy)
- {
- 	struct mem_cgroup *memcg;
- 	pte_t _dst_pte, *dst_pte;
-@@ -99,9 +100,9 @@ static int mcopy_atomic_pte(struct mm_st
- 	if (mem_cgroup_try_charge(page, dst_mm, GFP_KERNEL, &memcg, false))
- 		goto out_release;
- 
--	_dst_pte = mk_pte(page, dst_vma->vm_page_prot);
--	if (dst_vma->vm_flags & VM_WRITE)
--		_dst_pte = pte_mkwrite(pte_mkdirty(_dst_pte));
-+	_dst_pte = pte_mkdirty(mk_pte(page, dst_vma->vm_page_prot));
-+	if ((dst_vma->vm_flags & VM_WRITE) && !wp_copy)
-+		_dst_pte = pte_mkwrite(_dst_pte);
- 
- 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
- 	if (dst_vma->vm_file) {
-@@ -415,7 +416,8 @@ static __always_inline ssize_t mfill_ato
- 						unsigned long dst_addr,
- 						unsigned long src_addr,
- 						struct page **page,
--						bool zeropage)
-+						bool zeropage,
-+						bool wp_copy)
- {
- 	ssize_t err;
- 
-@@ -432,11 +434,13 @@ static __always_inline ssize_t mfill_ato
- 	if (!(dst_vma->vm_flags & VM_SHARED)) {
- 		if (!zeropage)
- 			err = mcopy_atomic_pte(dst_mm, dst_pmd, dst_vma,
--					       dst_addr, src_addr, page);
-+					       dst_addr, src_addr, page,
-+					       wp_copy);
- 		else
- 			err = mfill_zeropage_pte(dst_mm, dst_pmd,
- 						 dst_vma, dst_addr);
- 	} else {
-+		VM_WARN_ON_ONCE(wp_copy);
- 		if (!zeropage)
- 			err = shmem_mcopy_atomic_pte(dst_mm, dst_pmd,
- 						     dst_vma, dst_addr,
-@@ -454,7 +458,8 @@ static __always_inline ssize_t __mcopy_a
- 					      unsigned long src_start,
- 					      unsigned long len,
- 					      bool zeropage,
--					      bool *mmap_changing)
-+					      bool *mmap_changing,
-+					      __u64 mode)
- {
- 	struct vm_area_struct *dst_vma;
- 	ssize_t err;
-@@ -462,6 +467,7 @@ static __always_inline ssize_t __mcopy_a
- 	unsigned long src_addr, dst_addr;
- 	long copied;
- 	struct page *page;
-+	bool wp_copy;
- 
- 	/*
- 	 * Sanitize the command parameters:
-@@ -508,6 +514,14 @@ retry:
- 		goto out_unlock;
- 
- 	/*
-+	 * validate 'mode' now that we know the dst_vma: don't allow
-+	 * a wrprotect copy if the userfaultfd didn't register as WP.
-+	 */
-+	wp_copy = mode & UFFDIO_COPY_MODE_WP;
-+	if (wp_copy && !(dst_vma->vm_flags & VM_UFFD_WP))
-+		goto out_unlock;
+--- a/include/linux/mm.h~mm-merge-parameters-for-change_protection
++++ a/include/linux/mm.h
+@@ -1771,9 +1771,21 @@ extern unsigned long move_page_tables(st
+ 		unsigned long old_addr, struct vm_area_struct *new_vma,
+ 		unsigned long new_addr, unsigned long len,
+ 		bool need_rmap_locks);
 +
-+	/*
- 	 * If this is a HUGETLB vma, pass off to appropriate routine
- 	 */
- 	if (is_vm_hugetlb_page(dst_vma))
-@@ -562,7 +576,7 @@ retry:
- 		BUG_ON(pmd_trans_huge(*dst_pmd));
++/*
++ * Flags used by change_protection().  For now we make it a bitmap so
++ * that we can pass in multiple flags just like parameters.  However
++ * for now all the callers are only use one of the flags at the same
++ * time.
++ */
++/* Whether we should allow dirty bit accounting */
++#define  MM_CP_DIRTY_ACCT                  (1UL << 0)
++/* Whether this protection change is for NUMA hints */
++#define  MM_CP_PROT_NUMA                   (1UL << 1)
++
+ extern unsigned long change_protection(struct vm_area_struct *vma, unsigned long start,
+ 			      unsigned long end, pgprot_t newprot,
+-			      int dirty_accountable, int prot_numa);
++			      unsigned long cp_flags);
+ extern int mprotect_fixup(struct vm_area_struct *vma,
+ 			  struct vm_area_struct **pprev, unsigned long start,
+ 			  unsigned long end, unsigned long newflags);
+--- a/mm/huge_memory.c~mm-merge-parameters-for-change_protection
++++ a/mm/huge_memory.c
+@@ -1979,13 +1979,14 @@ bool move_huge_pmd(struct vm_area_struct
+  *  - HPAGE_PMD_NR is protections changed and TLB flush necessary
+  */
+ int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+-		unsigned long addr, pgprot_t newprot, int prot_numa)
++		unsigned long addr, pgprot_t newprot, unsigned long cp_flags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	spinlock_t *ptl;
+ 	pmd_t entry;
+ 	bool preserve_write;
+ 	int ret;
++	bool prot_numa = cp_flags & MM_CP_PROT_NUMA;
  
- 		err = mfill_atomic_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
--				       src_addr, &page, zeropage);
-+				       src_addr, &page, zeropage, wp_copy);
+ 	ptl = __pmd_trans_huge_lock(pmd, vma);
+ 	if (!ptl)
+--- a/mm/mempolicy.c~mm-merge-parameters-for-change_protection
++++ a/mm/mempolicy.c
+@@ -627,7 +627,7 @@ unsigned long change_prot_numa(struct vm
+ {
+ 	int nr_updated;
+ 
+-	nr_updated = change_protection(vma, addr, end, PAGE_NONE, 0, 1);
++	nr_updated = change_protection(vma, addr, end, PAGE_NONE, MM_CP_PROT_NUMA);
+ 	if (nr_updated)
+ 		count_vm_numa_events(NUMA_PTE_UPDATES, nr_updated);
+ 
+--- a/mm/mprotect.c~mm-merge-parameters-for-change_protection
++++ a/mm/mprotect.c
+@@ -37,12 +37,14 @@
+ 
+ static unsigned long change_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long addr, unsigned long end, pgprot_t newprot,
+-		int dirty_accountable, int prot_numa)
++		unsigned long cp_flags)
+ {
+ 	pte_t *pte, oldpte;
+ 	spinlock_t *ptl;
+ 	unsigned long pages = 0;
+ 	int target_node = NUMA_NO_NODE;
++	bool dirty_accountable = cp_flags & MM_CP_DIRTY_ACCT;
++	bool prot_numa = cp_flags & MM_CP_PROT_NUMA;
+ 
+ 	/*
+ 	 * Can be called with only the mmap_sem for reading by
+@@ -188,7 +190,7 @@ static inline int pmd_none_or_clear_bad_
+ 
+ static inline unsigned long change_pmd_range(struct vm_area_struct *vma,
+ 		pud_t *pud, unsigned long addr, unsigned long end,
+-		pgprot_t newprot, int dirty_accountable, int prot_numa)
++		pgprot_t newprot, unsigned long cp_flags)
+ {
+ 	pmd_t *pmd;
+ 	unsigned long next;
+@@ -229,7 +231,7 @@ static inline unsigned long change_pmd_r
+ 				__split_huge_pmd(vma, pmd, addr, false, NULL);
+ 			} else {
+ 				int nr_ptes = change_huge_pmd(vma, pmd, addr,
+-						newprot, prot_numa);
++							      newprot, cp_flags);
+ 
+ 				if (nr_ptes) {
+ 					if (nr_ptes == HPAGE_PMD_NR) {
+@@ -244,7 +246,7 @@ static inline unsigned long change_pmd_r
+ 			/* fall through, the trans huge pmd just split */
+ 		}
+ 		this_pages = change_pte_range(vma, pmd, addr, next, newprot,
+-				 dirty_accountable, prot_numa);
++					      cp_flags);
+ 		pages += this_pages;
+ next:
  		cond_resched();
+@@ -260,7 +262,7 @@ next:
  
- 		if (unlikely(err == -ENOENT)) {
-@@ -609,14 +623,14 @@ out:
- 
- ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
- 		     unsigned long src_start, unsigned long len,
--		     bool *mmap_changing)
-+		     bool *mmap_changing, __u64 mode)
+ static inline unsigned long change_pud_range(struct vm_area_struct *vma,
+ 		p4d_t *p4d, unsigned long addr, unsigned long end,
+-		pgprot_t newprot, int dirty_accountable, int prot_numa)
++		pgprot_t newprot, unsigned long cp_flags)
  {
- 	return __mcopy_atomic(dst_mm, dst_start, src_start, len, false,
--			      mmap_changing);
-+			      mmap_changing, mode);
- }
+ 	pud_t *pud;
+ 	unsigned long next;
+@@ -272,7 +274,7 @@ static inline unsigned long change_pud_r
+ 		if (pud_none_or_clear_bad(pud))
+ 			continue;
+ 		pages += change_pmd_range(vma, pud, addr, next, newprot,
+-				 dirty_accountable, prot_numa);
++					  cp_flags);
+ 	} while (pud++, addr = next, addr != end);
  
- ssize_t mfill_zeropage(struct mm_struct *dst_mm, unsigned long start,
- 		       unsigned long len, bool *mmap_changing)
+ 	return pages;
+@@ -280,7 +282,7 @@ static inline unsigned long change_pud_r
+ 
+ static inline unsigned long change_p4d_range(struct vm_area_struct *vma,
+ 		pgd_t *pgd, unsigned long addr, unsigned long end,
+-		pgprot_t newprot, int dirty_accountable, int prot_numa)
++		pgprot_t newprot, unsigned long cp_flags)
  {
--	return __mcopy_atomic(dst_mm, start, 0, len, true, mmap_changing);
-+	return __mcopy_atomic(dst_mm, start, 0, len, true, mmap_changing, 0);
+ 	p4d_t *p4d;
+ 	unsigned long next;
+@@ -292,7 +294,7 @@ static inline unsigned long change_p4d_r
+ 		if (p4d_none_or_clear_bad(p4d))
+ 			continue;
+ 		pages += change_pud_range(vma, p4d, addr, next, newprot,
+-				 dirty_accountable, prot_numa);
++					  cp_flags);
+ 	} while (p4d++, addr = next, addr != end);
+ 
+ 	return pages;
+@@ -300,7 +302,7 @@ static inline unsigned long change_p4d_r
+ 
+ static unsigned long change_protection_range(struct vm_area_struct *vma,
+ 		unsigned long addr, unsigned long end, pgprot_t newprot,
+-		int dirty_accountable, int prot_numa)
++		unsigned long cp_flags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pgd_t *pgd;
+@@ -317,7 +319,7 @@ static unsigned long change_protection_r
+ 		if (pgd_none_or_clear_bad(pgd))
+ 			continue;
+ 		pages += change_p4d_range(vma, pgd, addr, next, newprot,
+-				 dirty_accountable, prot_numa);
++					  cp_flags);
+ 	} while (pgd++, addr = next, addr != end);
+ 
+ 	/* Only flush the TLB if we actually modified any entries: */
+@@ -330,14 +332,15 @@ static unsigned long change_protection_r
+ 
+ unsigned long change_protection(struct vm_area_struct *vma, unsigned long start,
+ 		       unsigned long end, pgprot_t newprot,
+-		       int dirty_accountable, int prot_numa)
++		       unsigned long cp_flags)
+ {
+ 	unsigned long pages;
+ 
+ 	if (is_vm_hugetlb_page(vma))
+ 		pages = hugetlb_change_protection(vma, start, end, newprot);
+ 	else
+-		pages = change_protection_range(vma, start, end, newprot, dirty_accountable, prot_numa);
++		pages = change_protection_range(vma, start, end, newprot,
++						cp_flags);
+ 
+ 	return pages;
  }
+@@ -459,7 +462,7 @@ success:
+ 	vma_set_page_prot(vma);
+ 
+ 	change_protection(vma, start, end, vma->vm_page_prot,
+-			  dirty_accountable, 0);
++			  dirty_accountable ? MM_CP_DIRTY_ACCT : 0);
+ 
+ 	/*
+ 	 * Private VM_LOCKED VMA becoming writable: trigger COW to avoid major
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from peterx@redhat.com are
+
+mm-mempolicy-allow-lookup_node-to-handle-fatal-signal.patch
+mm-gup-mark-lock-taken-only-after-a-successful-retake.patch
