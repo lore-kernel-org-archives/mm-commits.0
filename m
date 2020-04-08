@@ -1,79 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-avoid-warning-about-uninitialized_var.patch removed from -mm
- tree
-Date: Tue, 07 Apr 2020 19:01:46 -0700
-Message-ID: <20200408020146.BaLsiHpqe%akpm@linux-foundation.org>
+Subject: [merged] kselftest-introduce-new-epoll-test-case.patch
+ removed from -mm tree
+Date: Tue, 07 Apr 2020 19:01:48 -0700
+Message-ID: <20200408020148.FkaUgYyPF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54856 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54874 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHCBr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:01:47 -0400
+        id S1726406AbgDHCBt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:01:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org
+To: chris.kohlhoff@clearpool.io, dbueso@suse.de, jbaron@akamai.com, jes.sorensen@gmail.com, kuba@kernel.org, max@arangodb.com, mm-commits@vger.kernel.org, rpenyaev@suse.de
 
 
 The patch titled
-     Subject: checkpatch: avoid warning about uninitialized_var()
+     Subject: kselftest: introduce new epoll test case
 has been removed from the -mm tree.  Its filename was
-     checkpatch-avoid-warning-about-uninitialized_var.patch
+     kselftest-introduce-new-epoll-test-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: avoid warning about uninitialized_var()
+From: Roman Penyaev <rpenyaev@suse.de>
+Subject: kselftest: introduce new epoll test case
 
-WARNING: function definition argument 'flags' should also have an identifier name
-#26: FILE: drivers/tty/serial/sh-sci.c:1348:
-+       unsigned long uninitialized_var(flags);
+This testcase repeats epollbug.c from the bug:
 
-Special-case uninitialized_var() to prevent this.
+  https://bugzilla.kernel.org/show_bug.cgi?id=205933
 
-Link: http://lkml.kernel.org/r/7db7944761b0bd88c70eb17d4b7f40fe589e14ed.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
+What it tests?  It tests the race between epoll_ctl() and epoll_wait(). 
+New event mask passed to epoll_ctl() triggers wake up, which can be missed
+because of the bug described in the link.  Reproduction is 100%, so easy
+to fix.  Kudos, Max, for wonderful test case.
+
+Link: http://lkml.kernel.org/r/20200214170211.561524-2-rpenyaev@suse.de
+Signed-off-by: Roman Penyaev <rpenyaev@suse.de>
+Cc: Max Neunhoeffer <max@arangodb.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Christopher Kohlhoff <chris.kohlhoff@clearpool.io>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Jes Sorensen <jes.sorensen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c |   67 +++++++++-
+ 1 file changed, 66 insertions(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-avoid-warning-about-uninitialized_var
-+++ a/scripts/checkpatch.pl
-@@ -4071,7 +4071,7 @@ sub process {
- 		}
+--- a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c~kselftest-introduce-new-epoll-test-case
++++ a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c
+@@ -7,13 +7,14 @@
+ #include <pthread.h>
+ #include <sys/epoll.h>
+ #include <sys/socket.h>
++#include <sys/eventfd.h>
+ #include "../../kselftest_harness.h"
  
- # check for function declarations without arguments like "int foo()"
--		if ($line =~ /(\b$Type\s+$Ident)\s*\(\s*\)/) {
-+		if ($line =~ /(\b$Type\s*$Ident)\s*\(\s*\)/) {
- 			if (ERROR("FUNCTION_WITHOUT_ARGS",
- 				  "Bad function definition - $1() should probably be $1(void)\n" . $herecurr) &&
- 			    $fix) {
-@@ -6287,13 +6287,17 @@ sub process {
- 		}
+ struct epoll_mtcontext
+ {
+ 	int efd[3];
+ 	int sfd[4];
+-	int count;
++	volatile int count;
  
- # check for function declarations that have arguments without identifier names
-+# while avoiding uninitialized_var(x)
- 		if (defined $stat &&
--		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*\(\s*([^{]+)\s*\)\s*;/s &&
--		    $1 ne "void") {
--			my $args = trim($1);
-+		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*(?:($Ident)|\(\s*\*\s*$Ident\s*\))\s*\(\s*([^{]+)\s*\)\s*;/s &&
-+		    (!defined($1) ||
-+		     (defined($1) && $1 ne "uninitialized_var")) &&
-+		     $2 ne "void") {
-+			my $args = trim($2);
- 			while ($args =~ m/\s*($Type\s*(?:$Ident|\(\s*\*\s*$Ident?\s*\)\s*$balanced_parens)?)/g) {
- 				my $arg = trim($1);
--				if ($arg =~ /^$Type$/ && $arg !~ /enum\s+$Ident$/) {
-+				if ($arg =~ /^$Type$/ &&
-+					$arg !~ /enum\s+$Ident$/) {
- 					WARN("FUNCTION_ARGUMENTS",
- 					     "function definition argument '$arg' should also have an identifier name\n" . $herecurr);
- 				}
+ 	pthread_t main;
+ 	pthread_t waiter;
+@@ -3071,4 +3072,68 @@ TEST(epoll58)
+ 	close(ctx.sfd[3]);
+ }
+ 
++static void *epoll59_thread(void *ctx_)
++{
++	struct epoll_mtcontext *ctx = ctx_;
++	struct epoll_event e;
++	int i;
++
++	for (i = 0; i < 100000; i++) {
++		while (ctx->count == 0)
++			;
++
++		e.events = EPOLLIN | EPOLLERR | EPOLLET;
++		epoll_ctl(ctx->efd[0], EPOLL_CTL_MOD, ctx->sfd[0], &e);
++		ctx->count = 0;
++	}
++
++	return NULL;
++}
++
++/*
++ *        t0
++ *      (p) \
++ *           e0
++ *     (et) /
++ *        e0
++ *
++ * Based on https://bugzilla.kernel.org/show_bug.cgi?id=205933
++ */
++TEST(epoll59)
++{
++	pthread_t emitter;
++	struct pollfd pfd;
++	struct epoll_event e;
++	struct epoll_mtcontext ctx = { 0 };
++	int i, ret;
++
++	signal(SIGUSR1, signal_handler);
++
++	ctx.efd[0] = epoll_create1(0);
++	ASSERT_GE(ctx.efd[0], 0);
++
++	ctx.sfd[0] = eventfd(1, 0);
++	ASSERT_GE(ctx.sfd[0], 0);
++
++	e.events = EPOLLIN | EPOLLERR | EPOLLET;
++	ASSERT_EQ(epoll_ctl(ctx.efd[0], EPOLL_CTL_ADD, ctx.sfd[0], &e), 0);
++
++	ASSERT_EQ(pthread_create(&emitter, NULL, epoll59_thread, &ctx), 0);
++
++	for (i = 0; i < 100000; i++) {
++		ret = epoll_wait(ctx.efd[0], &e, 1, 1000);
++		ASSERT_GT(ret, 0);
++
++		while (ctx.count != 0)
++			;
++		ctx.count = 1;
++	}
++	if (pthread_tryjoin_np(emitter, NULL) < 0) {
++		pthread_kill(emitter, SIGUSR1);
++		pthread_join(emitter, NULL);
++	}
++	close(ctx.efd[0]);
++	close(ctx.sfd[0]);
++}
++
+ TEST_HARNESS_MAIN
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from rpenyaev@suse.de are
