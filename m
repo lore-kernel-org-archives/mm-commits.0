@@ -1,99 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- reiserfs-clean-up-several-indentation-issues.patch removed from -mm tree
-Date: Tue, 07 Apr 2020 19:02:09 -0700
-Message-ID: <20200408020209.WJ4PmX8OZ%akpm@linux-foundation.org>
+Subject: [merged] kmod-fix-a-typo-assuems-assumes.patch removed
+ from -mm tree
+Date: Tue, 07 Apr 2020 19:02:11 -0700
+Message-ID: <20200408020211.rYOXZ6KlC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55144 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55158 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHCCL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:02:11 -0400
+        id S1726406AbgDHCCN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:02:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, mm-commits@vger.kernel.org
+To: hqjagain@gmail.com, mcgrof@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reiserfs: clean up several indentation issues
+     Subject: kernel/kmod.c: fix a typo "assuems" -> "assumes"
 has been removed from the -mm tree.  Its filename was
-     reiserfs-clean-up-several-indentation-issues.patch
+     kmod-fix-a-typo-assuems-assumes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: reiserfs: clean up several indentation issues
+From: Qiujun Huang <hqjagain@gmail.com>
+Subject: kernel/kmod.c: fix a typo "assuems" -> "assumes"
 
-There are several places where code is indented incorrectly. Fix these.
+There is a typo in comment.  Fix it.  s/assuems/assumes/
 
-Link: http://lkml.kernel.org/r/20200325135018.113431-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Link: http://lkml.kernel.org/r/1585891029-6450-1-git-send-email-hqjagain@gmail.com
+Signed-off-by: Qiujun Huang <hqjagain@gmail.com>
+Acked-by: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/do_balan.c |    2 +-
- fs/reiserfs/ioctl.c    |   11 ++++++-----
- fs/reiserfs/namei.c    |   10 +++++-----
- 3 files changed, 12 insertions(+), 11 deletions(-)
+ kernel/kmod.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/reiserfs/do_balan.c~reiserfs-clean-up-several-indentation-issues
-+++ a/fs/reiserfs/do_balan.c
-@@ -842,7 +842,7 @@ static void balance_leaf_paste_right_who
- 	struct item_head *pasted;
- 	struct buffer_info bi;
- 
--							buffer_info_init_right(tb, &bi);
-+	buffer_info_init_right(tb, &bi);
- 	leaf_shift_right(tb, tb->rnum[0], tb->rbytes);
- 
- 	/* append item in R[0] */
---- a/fs/reiserfs/ioctl.c~reiserfs-clean-up-several-indentation-issues
-+++ a/fs/reiserfs/ioctl.c
-@@ -184,11 +184,12 @@ int reiserfs_unpack(struct inode *inode,
- 	}
- 
- 	/* we need to make sure nobody is changing the file size beneath us */
--{
--	int depth = reiserfs_write_unlock_nested(inode->i_sb);
--	inode_lock(inode);
--	reiserfs_write_lock_nested(inode->i_sb, depth);
--}
-+	{
-+		int depth = reiserfs_write_unlock_nested(inode->i_sb);
-+
-+		inode_lock(inode);
-+		reiserfs_write_lock_nested(inode->i_sb, depth);
-+	}
- 
- 	reiserfs_write_lock(inode->i_sb);
- 
---- a/fs/reiserfs/namei.c~reiserfs-clean-up-several-indentation-issues
-+++ a/fs/reiserfs/namei.c
-@@ -838,10 +838,10 @@ static int reiserfs_mkdir(struct inode *
- 	 */
- 	INC_DIR_INODE_NLINK(dir)
- 
--	    retval = reiserfs_new_inode(&th, dir, mode, NULL /*symlink */ ,
--					old_format_only(dir->i_sb) ?
--					EMPTY_DIR_SIZE_V1 : EMPTY_DIR_SIZE,
--					dentry, inode, &security);
-+	retval = reiserfs_new_inode(&th, dir, mode, NULL /*symlink */,
-+				    old_format_only(dir->i_sb) ?
-+				    EMPTY_DIR_SIZE_V1 : EMPTY_DIR_SIZE,
-+				    dentry, inode, &security);
- 	if (retval) {
- 		DEC_DIR_INODE_NLINK(dir)
- 		goto out_failed;
-@@ -967,7 +967,7 @@ static int reiserfs_rmdir(struct inode *
- 	reiserfs_update_sd(&th, inode);
- 
- 	DEC_DIR_INODE_NLINK(dir)
--	    dir->i_size -= (DEH_SIZE + de.de_entrylen);
-+	dir->i_size -= (DEH_SIZE + de.de_entrylen);
- 	reiserfs_update_sd(&th, dir);
- 
- 	/* prevent empty directory from getting lost */
+--- a/kernel/kmod.c~kmod-fix-a-typo-assuems-assumes
++++ a/kernel/kmod.c
+@@ -35,7 +35,7 @@
+  *		       (u64) THREAD_SIZE * 8UL);
+  *
+  * If you need less than 50 threads would mean we're dealing with systems
+- * smaller than 3200 pages. This assuems you are capable of having ~13M memory,
++ * smaller than 3200 pages. This assumes you are capable of having ~13M memory,
+  * and this would only be an be an upper limit, after which the OOM killer
+  * would take effect. Systems like these are very unlikely if modules are
+  * enabled.
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from hqjagain@gmail.com are
+
+mm-slab_common-fix-a-typo-in-comment-eariler-earlier.patch
