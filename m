@@ -1,144 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplug-allow-to-specify-a-default-online_type.patch removed from
- -mm tree
-Date: Tue, 07 Apr 2020 18:59:21 -0700
-Message-ID: <20200408015921.aVPL82ySg%akpm@linux-foundation.org>
+ shmem-distribute-switch-variables-for-initialization.patch removed from -mm
+ tree
+Date: Tue, 07 Apr 2020 18:59:25 -0700
+Message-ID: <20200408015925.CW1bQnzOA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52754 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHB7X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:59:23 -0400
+        id S1726406AbgDHB70 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:59:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, ehabkost@redhat.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, imammedo@redhat.com, kys@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, pankaj.gupta.linux@gmail.com, paulus@samba.org, rafael@kernel.org, richard.weiyang@gmail.com, sthemmin@microsoft.com, vkuznets@redhat.com, wei.liu@kernel.org, yuhuang@redhat.com
+To: akpm@linux-foundation.org, glider@google.com, hughd@google.com, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: allow to specify a default online_type
+     Subject: mm/shmem.c: distribute switch variables for initialization
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-allow-to-specify-a-default-online_type.patch
+     shmem-distribute-switch-variables-for-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: allow to specify a default online_type
+From: Kees Cook <keescook@chromium.org>
+Subject: mm/shmem.c: distribute switch variables for initialization
 
-For now, distributions implement advanced udev rules to essentially
-- Don't online any hotplugged memory (s390x)
-- Online all memory to ZONE_NORMAL (e.g., most virt environments like
-  hyperv)
-- Online all memory to ZONE_MOVABLE in case the zone imbalance is taken
-  care of (e.g., bare metal, special virt environments)
+Variables declared in a switch statement before any case statements cannot
+be automatically initialized with compiler instrumentation (as they are
+not part of any execution flow).  With GCC's proposed automatic stack
+variable initialization feature, this triggers a warning (and they don't
+get initialized).  Clang's automatic stack variable initialization (via
+CONFIG_INIT_STACK_ALL=y) doesn't throw a warning, but it also doesn't
+initialize such variables[1].  Note that these warnings (or silent
+skipping) happen before the dead-store elimination optimization phase, so
+even when the automatic initializations are later elided in favor of
+direct initializations, the warnings remain.
 
-In summary: All memory is usually onlined the same way, however, the
-kernel always has to ask user space to come up with the same answer. 
-E.g., Hyper-V always waits for a memory block to get onlined before
-continuing, otherwise it might end up adding memory faster than
-onlining it, which can result in strange OOM situations.  This waiting
-slows down adding of a bigger amount of memory.
+To avoid these problems, move such variables into the "case" where they're
+used or lift them up into the main function body.
 
-Let's allow to specify a default online_type, not just "online" and
-"offline".  This allows distributions to configure the default online_type
-when booting up and be done with it.
+mm/shmem.c: In function `shmem_getpage_gfp':
+mm/shmem.c:1816:10: warning: statement will never be executed [-Wswitch-unreachable]
+ 1816 |   loff_t i_size;
+      |          ^~~~~~
 
-We can now specify "offline", "online", "online_movable" and
-"online_kernel" via
-- "memhp_default_state=" on the kernel cmdline
-- /sys/devices/system/memory/auto_online_blocks
-just like we are able to specify for a single memory block via
-/sys/devices/system/memory/memoryX/state
+[1] https://bugs.llvm.org/show_bug.cgi?id=44916
 
-Link: http://lkml.kernel.org/r/20200317104942.11178-9-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Eduardo Habkost <ehabkost@redhat.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Wei Liu <wei.liu@kernel.org>
-Cc: Yumei Huang <yuhuang@redhat.com>
+Link: http://lkml.kernel.org/r/20200220062312.69165-1-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |   11 +++++------
- include/linux/memory_hotplug.h |    2 ++
- mm/memory_hotplug.c            |    8 ++++----
- 3 files changed, 11 insertions(+), 10 deletions(-)
+ mm/shmem.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/drivers/base/memory.c~mm-memory_hotplug-allow-to-specify-a-default-online_type
-+++ a/drivers/base/memory.c
-@@ -34,7 +34,7 @@ static const char *const online_type_to_
- 	[MMOP_ONLINE_MOVABLE] = "online_movable",
- };
- 
--static int memhp_online_type_from_str(const char *str)
-+int memhp_online_type_from_str(const char *str)
- {
- 	int i;
- 
-@@ -386,13 +386,12 @@ static ssize_t auto_online_blocks_store(
- 					struct device_attribute *attr,
- 					const char *buf, size_t count)
- {
--	if (sysfs_streq(buf, "online"))
--		memhp_default_online_type = MMOP_ONLINE;
--	else if (sysfs_streq(buf, "offline"))
--		memhp_default_online_type = MMOP_OFFLINE;
--	else
-+	const int online_type = memhp_online_type_from_str(buf);
+--- a/mm/shmem.c~shmem-distribute-switch-variables-for-initialization
++++ a/mm/shmem.c
+@@ -1812,17 +1812,20 @@ repeat:
+ 	if (shmem_huge == SHMEM_HUGE_FORCE)
+ 		goto alloc_huge;
+ 	switch (sbinfo->huge) {
+-		loff_t i_size;
+-		pgoff_t off;
+ 	case SHMEM_HUGE_NEVER:
+ 		goto alloc_nohuge;
+-	case SHMEM_HUGE_WITHIN_SIZE:
++	case SHMEM_HUGE_WITHIN_SIZE: {
++		loff_t i_size;
++		pgoff_t off;
 +
-+	if (online_type < 0)
- 		return -EINVAL;
- 
-+	memhp_default_online_type = online_type;
- 	return count;
- }
- 
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-allow-to-specify-a-default-online_type
-+++ a/include/linux/memory_hotplug.h
-@@ -117,6 +117,8 @@ extern int arch_add_memory(int nid, u64
- 			struct mhp_restrictions *restrictions);
- extern u64 max_mem_size;
- 
-+extern int memhp_online_type_from_str(const char *str);
+ 		off = round_up(index, HPAGE_PMD_NR);
+ 		i_size = round_up(i_size_read(inode), PAGE_SIZE);
+ 		if (i_size >= HPAGE_PMD_SIZE &&
+ 		    i_size >> PAGE_SHIFT >= off)
+ 			goto alloc_huge;
+-		/* fallthrough */
 +
- /* Default online_type (MMOP_*) when new memory blocks are added. */
- extern int memhp_default_online_type;
- /* If movable_node boot option specified */
---- a/mm/memory_hotplug.c~mm-memory_hotplug-allow-to-specify-a-default-online_type
-+++ a/mm/memory_hotplug.c
-@@ -74,10 +74,10 @@ int memhp_default_online_type = MMOP_ONL
- 
- static int __init setup_memhp_default_state(char *str)
- {
--	if (!strcmp(str, "online"))
--		memhp_default_online_type = MMOP_ONLINE;
--	else if (!strcmp(str, "offline"))
--		memhp_default_online_type = MMOP_OFFLINE;
-+	const int online_type = memhp_online_type_from_str(str);
-+
-+	if (online_type >= 0)
-+		memhp_default_online_type = online_type;
- 
- 	return 1;
- }
++		fallthrough;
++	}
+ 	case SHMEM_HUGE_ADVISE:
+ 		if (sgp_huge == SGP_HUGE)
+ 			goto alloc_huge;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
-
-drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
+Patches currently in -mm which might be from keescook@chromium.org are
