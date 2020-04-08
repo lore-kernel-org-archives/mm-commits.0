@@ -1,139 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch removed
+ lib-bch-replace-zero-length-array-with-flexible-array-member.patch removed
  from -mm tree
-Date: Tue, 07 Apr 2020 19:00:49 -0700
-Message-ID: <20200408020049.s1vK7Iyzz%akpm@linux-foundation.org>
+Date: Tue, 07 Apr 2020 19:00:52 -0700
+Message-ID: <20200408020052.WKiYcp5cM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54196 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54232 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726421AbgDHCAw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:00:52 -0400
+        id S1726421AbgDHCAy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:00:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, gregkh@linuxfoundation.org, keescook@chromium.org, khlebnikov@yandex-team.ru, linux@roeck-us.net, mm-commits@vger.kernel.org, peterz@infradead.org, pmladek@suse.com, rostedt@goodmis.org, sashal@kernel.org, sergey.senozhatsky@gmail.com
+To: gustavo@embeddedor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_lockup.c: add parameters for locking generic vfs locks
+     Subject: lib/bch.c: replace zero-length array with flexible-array member
 has been removed from the -mm tree.  Its filename was
-     lib-test_lockup-add-parameters-for-locking-generic-vfs-locks.patch
+     lib-bch-replace-zero-length-array-with-flexible-array-member.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: lib/test_lockup.c: add parameters for locking generic vfs locks
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: lib/bch.c: replace zero-length array with flexible-array member
 
-file_path=<path>	defines file or directory to open
-lock_inode=Y		set lock_rwsem_ptr to inode->i_rwsem
-lock_mapping=Y		set lock_rwsem_ptr to mapping->i_mmap_rwsem
-lock_sb_umount=Y	set lock_rwsem_ptr to sb->s_umount
+The current codebase makes use of the zero-length array language extension
+to the C90 standard, but the preferred mechanism to declare
+variable-length types such as these ones is a flexible array member[1][2],
+introduced in C99:
 
-This gives safe and simple way to see how system reacts to contention of
-common vfs locks and how syscalls depend on them directly or indirectly.
+struct foo {
+        int stuff;
+        struct boo array[];
+};
 
-For example to block s_umount for 60 seconds:
-# modprobe test_lockup file_path=. lock_sb_umount time_secs=60 state=S
+By making use of the mechanism above, we will get a compiler warning in
+case the flexible array does not occur last in the structure, which will
+help us prevent some kind of undefined behavior bugs from being
+inadvertenly introduced[3] to the codebase from now on.
 
-This is useful for checking/testing scalability issues like this:
-https://lore.kernel.org/lkml/158497590858.7371.9311902565121473436.stgit@buzz/
+This issue was found with the help of Coccinelle.
 
-Link: http://lkml.kernel.org/r/158498153964.5621.83061779039255681.stgit@buzz
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] https://github.com/KSPP/linux/issues/21
+[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+Link: http://lkml.kernel.org/r/20200211205119.GA21234@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_lockup.c |   45 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ lib/bch.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/test_lockup.c~lib-test_lockup-add-parameters-for-locking-generic-vfs-locks
-+++ a/lib/test_lockup.c
-@@ -14,6 +14,7 @@
- #include <linux/nmi.h>
- #include <linux/mm.h>
- #include <linux/uaccess.h>
-+#include <linux/file.h>
+--- a/lib/bch.c~lib-bch-replace-zero-length-array-with-flexible-array-member
++++ a/lib/bch.c
+@@ -102,7 +102,7 @@
+  */
+ struct gf_poly {
+ 	unsigned int deg;    /* polynomial degree */
+-	unsigned int c[0];   /* polynomial terms */
++	unsigned int c[];   /* polynomial terms */
+ };
  
- static unsigned int time_secs;
- module_param(time_secs, uint, 0600);
-@@ -140,6 +141,24 @@ static bool reallocate_pages;
- module_param(reallocate_pages, bool, 0400);
- MODULE_PARM_DESC(reallocate_pages, "free and allocate pages between iterations");
- 
-+struct file *test_file;
-+struct inode *test_inode;
-+static char test_file_path[256];
-+module_param_string(file_path, test_file_path, sizeof(test_file_path), 0400);
-+MODULE_PARM_DESC(file_path, "file path to test");
-+
-+static bool test_lock_inode;
-+module_param_named(lock_inode, test_lock_inode, bool, 0400);
-+MODULE_PARM_DESC(lock_inode, "lock file -> inode -> i_rwsem");
-+
-+static bool test_lock_mapping;
-+module_param_named(lock_mapping, test_lock_mapping, bool, 0400);
-+MODULE_PARM_DESC(lock_mapping, "lock file -> mapping -> i_mmap_rwsem");
-+
-+static bool test_lock_sb_umount;
-+module_param_named(lock_sb_umount, test_lock_sb_umount, bool, 0400);
-+MODULE_PARM_DESC(lock_sb_umount, "lock file -> sb -> s_umount");
-+
- static atomic_t alloc_pages_failed = ATOMIC_INIT(0);
- 
- static atomic64_t max_lock_wait = ATOMIC64_INIT(0);
-@@ -490,6 +509,29 @@ static int __init test_lockup_init(void)
- 		return -EINVAL;
- 	}
- 
-+	if (test_file_path[0]) {
-+		test_file = filp_open(test_file_path, O_RDONLY, 0);
-+		if (IS_ERR(test_file)) {
-+			pr_err("cannot find file_path\n");
-+			return -EINVAL;
-+		}
-+		test_inode = file_inode(test_file);
-+	} else if (test_lock_inode ||
-+		   test_lock_mapping ||
-+		   test_lock_sb_umount) {
-+		pr_err("no file to lock\n");
-+		return -EINVAL;
-+	}
-+
-+	if (test_lock_inode && test_inode)
-+		lock_rwsem_ptr = (unsigned long)&test_inode->i_rwsem;
-+
-+	if (test_lock_mapping && test_file && test_file->f_mapping)
-+		lock_rwsem_ptr = (unsigned long)&test_file->f_mapping->i_mmap_rwsem;
-+
-+	if (test_lock_sb_umount && test_inode)
-+		lock_rwsem_ptr = (unsigned long)&test_inode->i_sb->s_umount;
-+
- 	pr_notice("START pid=%d time=%u +%u ns cooldown=%u +%u ns iterations=%u state=%s %s%s%s%s%s%s%s%s%s%s%s\n",
- 		  main_task->pid, time_secs, time_nsecs,
- 		  cooldown_secs, cooldown_nsecs, iterations, state,
-@@ -542,6 +584,9 @@ static int __init test_lockup_init(void)
- 
- 	pr_notice("FINISH in %llu ns\n", local_clock() - test_start);
- 
-+	if (test_file)
-+		fput(test_file);
-+
- 	if (signal_pending(main_task))
- 		return -EINTR;
- 
+ /* given its degree, compute a polynomial size in bytes */
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
-
-kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+Patches currently in -mm which might be from gustavo@embeddedor.com are
