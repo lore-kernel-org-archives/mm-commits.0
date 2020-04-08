@@ -1,182 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch removed from -mm
+Subject: [merged] elf-delete-loc-variable.patch removed from -mm
  tree
-Date: Tue, 07 Apr 2020 19:01:51 -0700
-Message-ID: <20200408020151.7W8Z4yVub%akpm@linux-foundation.org>
+Date: Tue, 07 Apr 2020 19:01:54 -0700
+Message-ID: <20200408020154.NTGbJO2sX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54902 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHCBy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:01:54 -0400
+        id S1726406AbgDHCBz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:01:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbueso@suse.de, jbaron@akamai.com, mm-commits@vger.kernel.org, normalperson@yhbt.net, rpenyaev@suse.de, viro@zeniv.linux.org.uk
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/epoll: make nesting accounting safe for -rt kernel
+     Subject: fs/binfmt_elf.c: delete "loc" variable
 has been removed from the -mm tree.  Its filename was
-     fs-epoll-make-nesting-accounting-safe-for-rt-kernel.patch
+     elf-delete-loc-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@akamai.com>
-Subject: fs/epoll: make nesting accounting safe for -rt kernel
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fs/binfmt_elf.c: delete "loc" variable
 
-Davidlohr Bueso pointed out that when CONFIG_DEBUG_LOCK_ALLOC is set
-ep_poll_safewake() can take several non-raw spinlocks after disabling
-interrupts.  Since a spinlock can block in the -rt kernel, we can't take a
-spinlock after disabling interrupts.  So let's re-work how we determine
-the nesting level such that it plays nicely with the -rt kernel.
+"loc" variable became just a wrapper for PT_INTERP ELF header after main
+ELF header was moved to "bprm->buf".  Delete it.
 
-Let's introduce a 'nests' field in struct eventpoll that records the
-current nesting level during ep_poll_callback().  Then, if we nest again
-we can find the previous struct eventpoll that we were called from and
-increase our count by 1.  The 'nests' field is protected by
-ep->poll_wait.lock.
-
-I've also moved the visited field to reduce the size of struct eventpoll
-from 184 bytes to 176 bytes on x86_64 for !CONFIG_DEBUG_LOCK_ALLOC, which
-is typical for a production config.
-
-Link: http://lkml.kernel.org/r/1582739816-13167-1-git-send-email-jbaron@akamai.com
-Reported-by: Davidlohr Bueso <dbueso@suse.de>
-Signed-off-by: Jason Baron <jbaron@akamai.com>
-Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Roman Penyaev <rpenyaev@suse.de>
-Cc: Eric Wong <normalperson@yhbt.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/20200219184847.GA4871@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   64 +++++++++++++++++++++++++++++++----------------
- 1 file changed, 43 insertions(+), 21 deletions(-)
+ fs/binfmt_elf.c |   32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
---- a/fs/eventpoll.c~fs-epoll-make-nesting-accounting-safe-for-rt-kernel
-+++ a/fs/eventpoll.c
-@@ -218,13 +218,18 @@ struct eventpoll {
- 	struct file *file;
+--- a/fs/binfmt_elf.c~elf-delete-loc-variable
++++ a/fs/binfmt_elf.c
+@@ -699,15 +699,13 @@ static int load_elf_binary(struct linux_
+ 	unsigned long reloc_func_desc __maybe_unused = 0;
+ 	int executable_stack = EXSTACK_DEFAULT;
+ 	struct elfhdr *elf_ex = (struct elfhdr *)bprm->buf;
+-	struct {
+-		struct elfhdr interp_elf_ex;
+-	} *loc;
++	struct elfhdr *interp_elf_ex;
+ 	struct arch_elf_state arch_state = INIT_ARCH_ELF_STATE;
+ 	struct mm_struct *mm;
+ 	struct pt_regs *regs;
  
- 	/* used to optimize loop detection check */
--	int visited;
- 	struct list_head visited_list_link;
-+	int visited;
+-	loc = kmalloc(sizeof(*loc), GFP_KERNEL);
+-	if (!loc) {
++	interp_elf_ex = kmalloc(sizeof(*interp_elf_ex), GFP_KERNEL);
++	if (!interp_elf_ex) {
+ 		retval = -ENOMEM;
+ 		goto out_ret;
+ 	}
+@@ -772,8 +770,8 @@ static int load_elf_binary(struct linux_
+ 		would_dump(bprm, interpreter);
  
- #ifdef CONFIG_NET_RX_BUSY_POLL
- 	/* used to track busy poll napi_id */
- 	unsigned int napi_id;
- #endif
-+
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	/* tracks wakeup nests for lockdep validation */
-+	u8 nests;
-+#endif
- };
+ 		/* Get the exec headers */
+-		retval = elf_read(interpreter, &loc->interp_elf_ex,
+-				  sizeof(loc->interp_elf_ex), 0);
++		retval = elf_read(interpreter, interp_elf_ex,
++				  sizeof(*interp_elf_ex), 0);
+ 		if (retval < 0)
+ 			goto out_free_dentry;
  
- /* Wait structure used by the poll hooks */
-@@ -545,30 +550,47 @@ out_unlock:
-  */
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
+@@ -807,25 +805,25 @@ out_free_interp:
+ 	if (interpreter) {
+ 		retval = -ELIBBAD;
+ 		/* Not an ELF interpreter */
+-		if (memcmp(loc->interp_elf_ex.e_ident, ELFMAG, SELFMAG) != 0)
++		if (memcmp(interp_elf_ex->e_ident, ELFMAG, SELFMAG) != 0)
+ 			goto out_free_dentry;
+ 		/* Verify the interpreter has a valid arch */
+-		if (!elf_check_arch(&loc->interp_elf_ex) ||
+-		    elf_check_fdpic(&loc->interp_elf_ex))
++		if (!elf_check_arch(interp_elf_ex) ||
++		    elf_check_fdpic(interp_elf_ex))
+ 			goto out_free_dentry;
  
--static DEFINE_PER_CPU(int, wakeup_nest);
--
--static void ep_poll_safewake(wait_queue_head_t *wq)
-+static void ep_poll_safewake(struct eventpoll *ep, struct epitem *epi)
- {
-+	struct eventpoll *ep_src;
- 	unsigned long flags;
--	int subclass;
-+	u8 nests = 0;
+ 		/* Load the interpreter program headers */
+-		interp_elf_phdata = load_elf_phdrs(&loc->interp_elf_ex,
++		interp_elf_phdata = load_elf_phdrs(interp_elf_ex,
+ 						   interpreter);
+ 		if (!interp_elf_phdata)
+ 			goto out_free_dentry;
  
--	local_irq_save(flags);
--	preempt_disable();
--	subclass = __this_cpu_read(wakeup_nest);
--	spin_lock_nested(&wq->lock, subclass + 1);
--	__this_cpu_inc(wakeup_nest);
--	wake_up_locked_poll(wq, POLLIN);
--	__this_cpu_dec(wakeup_nest);
--	spin_unlock(&wq->lock);
--	local_irq_restore(flags);
--	preempt_enable();
-+	/*
-+	 * To set the subclass or nesting level for spin_lock_irqsave_nested()
-+	 * it might be natural to create a per-cpu nest count. However, since
-+	 * we can recurse on ep->poll_wait.lock, and a non-raw spinlock can
-+	 * schedule() in the -rt kernel, the per-cpu variable are no longer
-+	 * protected. Thus, we are introducing a per eventpoll nest field.
-+	 * If we are not being call from ep_poll_callback(), epi is NULL and
-+	 * we are at the first level of nesting, 0. Otherwise, we are being
-+	 * called from ep_poll_callback() and if a previous wakeup source is
-+	 * not an epoll file itself, we are at depth 1 since the wakeup source
-+	 * is depth 0. If the wakeup source is a previous epoll file in the
-+	 * wakeup chain then we use its nests value and record ours as
-+	 * nests + 1. The previous epoll file nests value is stable since its
-+	 * already holding its own poll_wait.lock.
-+	 */
-+	if (epi) {
-+		if ((is_file_epoll(epi->ffd.file))) {
-+			ep_src = epi->ffd.file->private_data;
-+			nests = ep_src->nests;
-+		} else {
-+			nests = 1;
-+		}
-+	}
-+	spin_lock_irqsave_nested(&ep->poll_wait.lock, flags, nests);
-+	ep->nests = nests + 1;
-+	wake_up_locked_poll(&ep->poll_wait, EPOLLIN);
-+	ep->nests = 0;
-+	spin_unlock_irqrestore(&ep->poll_wait.lock, flags);
- }
+ 		/* Pass PT_LOPROC..PT_HIPROC headers to arch code */
+ 		elf_ppnt = interp_elf_phdata;
+-		for (i = 0; i < loc->interp_elf_ex.e_phnum; i++, elf_ppnt++)
++		for (i = 0; i < interp_elf_ex->e_phnum; i++, elf_ppnt++)
+ 			switch (elf_ppnt->p_type) {
+ 			case PT_LOPROC ... PT_HIPROC:
+-				retval = arch_elf_pt_proc(&loc->interp_elf_ex,
++				retval = arch_elf_pt_proc(interp_elf_ex,
+ 							  elf_ppnt, interpreter,
+ 							  true, &arch_state);
+ 				if (retval)
+@@ -840,7 +838,7 @@ out_free_interp:
+ 	 * the exec syscall.
+ 	 */
+ 	retval = arch_check_elf(elf_ex,
+-				!!interpreter, &loc->interp_elf_ex,
++				!!interpreter, interp_elf_ex,
+ 				&arch_state);
+ 	if (retval)
+ 		goto out_free_dentry;
+@@ -1056,7 +1054,7 @@ out_free_interp:
+ 	}
  
- #else
+ 	if (interpreter) {
+-		elf_entry = load_elf_interp(&loc->interp_elf_ex,
++		elf_entry = load_elf_interp(interp_elf_ex,
+ 					    interpreter,
+ 					    load_bias, interp_elf_phdata);
+ 		if (!IS_ERR((void *)elf_entry)) {
+@@ -1065,7 +1063,7 @@ out_free_interp:
+ 			 * adjustment
+ 			 */
+ 			interp_load_addr = elf_entry;
+-			elf_entry += loc->interp_elf_ex.e_entry;
++			elf_entry += interp_elf_ex->e_entry;
+ 		}
+ 		if (BAD_ADDR(elf_entry)) {
+ 			retval = IS_ERR((void *)elf_entry) ?
+@@ -1154,7 +1152,7 @@ out_free_interp:
+ 	start_thread(regs, elf_entry, bprm->p);
+ 	retval = 0;
+ out:
+-	kfree(loc);
++	kfree(interp_elf_ex);
+ out_ret:
+ 	return retval;
  
--static void ep_poll_safewake(wait_queue_head_t *wq)
-+static void ep_poll_safewake(struct eventpoll *ep, struct epitem *epi)
- {
--	wake_up_poll(wq, EPOLLIN);
-+	wake_up_poll(&ep->poll_wait, EPOLLIN);
- }
- 
- #endif
-@@ -789,7 +811,7 @@ static void ep_free(struct eventpoll *ep
- 
- 	/* We need to release all tasks waiting for these file */
- 	if (waitqueue_active(&ep->poll_wait))
--		ep_poll_safewake(&ep->poll_wait);
-+		ep_poll_safewake(ep, NULL);
- 
- 	/*
- 	 * We need to lock this because we could be hit by
-@@ -1258,7 +1280,7 @@ out_unlock:
- 
- 	/* We have to call this outside the lock */
- 	if (pwake)
--		ep_poll_safewake(&ep->poll_wait);
-+		ep_poll_safewake(ep, epi);
- 
- 	if (!(epi->event.events & EPOLLEXCLUSIVE))
- 		ewake = 1;
-@@ -1562,7 +1584,7 @@ static int ep_insert(struct eventpoll *e
- 
- 	/* We have to call this outside the lock */
- 	if (pwake)
--		ep_poll_safewake(&ep->poll_wait);
-+		ep_poll_safewake(ep, NULL);
- 
- 	return 0;
- 
-@@ -1666,7 +1688,7 @@ static int ep_modify(struct eventpoll *e
- 
- 	/* We have to call this outside the lock */
- 	if (pwake)
--		ep_poll_safewake(&ep->poll_wait);
-+		ep_poll_safewake(ep, NULL);
- 
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from jbaron@akamai.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+ramfs-support-o_tmpfile.patch
