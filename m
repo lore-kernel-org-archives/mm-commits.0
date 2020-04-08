@@ -1,53 +1,56 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?drivers-base-memory-store-mapping-between-mmop=5F-and-stri?=
- =?US-ASCII?Q?ng-in-an-array.patch?= removed from -mm tree
-Date: Tue, 07 Apr 2020 18:59:08 -0700
-Message-ID: <20200408015908.26vGxpbmn%akpm@linux-foundation.org>
+ powernv-memtrace-always-online-added-memory-blocks.patch removed from -mm
+ tree
+Date: Tue, 07 Apr 2020 18:59:10 -0700
+Message-ID: <20200408015910.jl_hHyCwl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52408 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHB7K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:59:10 -0400
+        id S1726406AbgDHB7M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:59:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, ehabkost@redhat.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, imammedo@redhat.com, kys@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, pankaj.gupta.linux@gmail.com, paulus@samba.org, rafael@kernel.org, richard.weiyang@gmail.com, sthemmin@microsoft.com, vkuznets@redhat.com, wei.liu@kernel.org, yuhuang@redhat.com
+To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, ehabkost@redhat.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, imammedo@redhat.com, kys@microsoft.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, paulus@samba.org, rafael@kernel.org, richard.weiyang@gmail.com, sthemmin@microsoft.com, vkuznets@redhat.com, wei.liu@kernel.org, yuhuang@redhat.com
 
 
 The patch titled
-     Subject: drivers/base/memory: store mapping between MMOP_* and string in an array
+     Subject: powernv/memtrace: always online added memory blocks
 has been removed from the -mm tree.  Its filename was
-     drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array.patch
+     powernv-memtrace-always-online-added-memory-blocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: drivers/base/memory: store mapping between MMOP_* and string in an array
+Subject: powernv/memtrace: always online added memory blocks
 
-Let's use a simple array which we can reuse soon.  While at it, move the
-string->mmop conversion out of the device hotplug lock.
+Let's always try to online the re-added memory blocks.  In case
+add_memory() already onlined the added memory blocks, the first
+device_online() call will fail and stop processing the remaining memory
+blocks.
 
-Link: http://lkml.kernel.org/r/20200317104942.11178-4-david@redhat.com
+This avoids manually having to check memhp_auto_online.
+
+Note: PPC always onlines all hotplugged memory directly from the kernel as
+well - something that is handled by user space on other architectures.
+
+Link: http://lkml.kernel.org/r/20200317104942.11178-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Eduardo Habkost <ehabkost@redhat.com>
 Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Igor Mammedov <imammedo@redhat.com>
 Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
 Cc: Stephen Hemminger <sthemmin@microsoft.com>
 Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Cc: Wei Liu <wei.liu@kernel.org>
@@ -55,61 +58,34 @@ Cc: Yumei Huang <yuhuang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   38 +++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ arch/powerpc/platforms/powernv/memtrace.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
---- a/drivers/base/memory.c~drivers-base-memory-store-mapping-between-mmop_-and-string-in-an-array
-+++ a/drivers/base/memory.c
-@@ -27,6 +27,24 @@
+--- a/arch/powerpc/platforms/powernv/memtrace.c~powernv-memtrace-always-online-added-memory-blocks
++++ a/arch/powerpc/platforms/powernv/memtrace.c
+@@ -231,16 +231,10 @@ static int memtrace_online(void)
+ 			continue;
+ 		}
  
- #define MEMORY_CLASS_NAME	"memory"
+-		/*
+-		 * If kernel isn't compiled with the auto online option
+-		 * we need to online the memory ourselves.
+-		 */
+-		if (!memhp_auto_online) {
+-			lock_device_hotplug();
+-			walk_memory_blocks(ent->start, ent->size, NULL,
+-					   online_mem_block);
+-			unlock_device_hotplug();
+-		}
++		lock_device_hotplug();
++		walk_memory_blocks(ent->start, ent->size, NULL,
++				   online_mem_block);
++		unlock_device_hotplug();
  
-+static const char *const online_type_to_str[] = {
-+	[MMOP_OFFLINE] = "offline",
-+	[MMOP_ONLINE] = "online",
-+	[MMOP_ONLINE_KERNEL] = "online_kernel",
-+	[MMOP_ONLINE_MOVABLE] = "online_movable",
-+};
-+
-+static int memhp_online_type_from_str(const char *str)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(online_type_to_str); i++) {
-+		if (sysfs_streq(str, online_type_to_str[i]))
-+			return i;
-+	}
-+	return -EINVAL;
-+}
-+
- #define to_memory_block(dev) container_of(dev, struct memory_block, dev)
- 
- static int sections_per_block;
-@@ -228,26 +246,17 @@ static int memory_subsys_offline(struct
- static ssize_t state_store(struct device *dev, struct device_attribute *attr,
- 			   const char *buf, size_t count)
- {
-+	const int online_type = memhp_online_type_from_str(buf);
- 	struct memory_block *mem = to_memory_block(dev);
--	int ret, online_type;
-+	int ret;
-+
-+	if (online_type < 0)
-+		return -EINVAL;
- 
- 	ret = lock_device_hotplug_sysfs();
- 	if (ret)
- 		return ret;
- 
--	if (sysfs_streq(buf, "online_kernel"))
--		online_type = MMOP_ONLINE_KERNEL;
--	else if (sysfs_streq(buf, "online_movable"))
--		online_type = MMOP_ONLINE_MOVABLE;
--	else if (sysfs_streq(buf, "online"))
--		online_type = MMOP_ONLINE;
--	else if (sysfs_streq(buf, "offline"))
--		online_type = MMOP_OFFLINE;
--	else {
--		ret = -EINVAL;
--		goto err;
--	}
+ 		/*
+ 		 * Memory was added successfully so clean up references to it
+_
+
+Patches currently in -mm which might be from david@redhat.com are
+
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
