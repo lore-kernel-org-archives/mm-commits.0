@@ -1,107 +1,175 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_reporting-add-free-page-reporting-documentation.patch removed from
- -mm tree
-Date: Tue, 07 Apr 2020 18:57:30 -0700
-Message-ID: <20200408015730.FgrLbffXC%akpm@linux-foundation.org>
+ userfaultfd-wp-add-helper-for-writeprotect-check.patch removed from -mm
+ tree
+Date: Tue, 07 Apr 2020 18:57:36 -0700
+Message-ID: <20200408015736.NG5Yik6wa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50924 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50996 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726421AbgDHB5b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:57:31 -0400
+        id S1726417AbgDHB5j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:57:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, alexander.h.duyck@linux.intel.com, dan.j.williams@intel.com, dave.hansen@intel.com, david@redhat.com, konrad.wilk@oracle.com, lcapitulino@redhat.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com, nitesh@redhat.com, osalvador@suse.de, pagupta@redhat.com, pbonzini@redhat.com, riel@surriel.com, vbabka@suse.cz, wei.w.wang@intel.com, weiqi4@huawei.com, willy@infradead.org, yang.zhang.wz@gmail.com
+To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@cons.org, david@redhat.com, dgilbert@redhat.com, dplotnikov@virtuozzo.com, gokhale2@llnl.gov, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, kirill@shutemov.name, mcfadden8@llnl.gov, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, peterx@redhat.com, riel@redhat.com, rppt@linux.vnet.ibm.com, shli@fb.com, xemul@openvz.org
 
 
 The patch titled
-     Subject: mm/page_reporting: add free page reporting documentation
+     Subject: userfaultfd: wp: add helper for writeprotect check
 has been removed from the -mm tree.  Its filename was
-     mm-page_reporting-add-free-page-reporting-documentation.patch
+     userfaultfd-wp-add-helper-for-writeprotect-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Subject: mm/page_reporting: add free page reporting documentation
+From: Shaohua Li <shli@fb.com>
+Subject: userfaultfd: wp: add helper for writeprotect check
 
-Add documentation for free page reporting.  Currently the only consumer is
-virtio-balloon, however it is possible that other drivers might make use
-of this so it is best to add a bit of documetation explaining at a high
-level how to use the API.
+Patch series "userfaultfd: write protection support", v6.
 
-Link: http://lkml.kernel.org/r/20200211224730.29318.43815.stgit@localhost.localdomain
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Overview
+========
+
+The uffd-wp work was initialized by Shaohua Li [1], and later continued by
+Andrea [2].  This series is based upon Andrea's latest userfaultfd tree,
+and it is a continuous works from both Shaohua and Andrea.  Many of the
+follow up ideas come from Andrea too.
+
+Besides the old MISSING register mode of userfaultfd, the new uffd-wp
+support provides another alternative register mode called
+UFFDIO_REGISTER_MODE_WP that can be used to listen to not only missing
+page faults but also write protection page faults, or even they can be
+registered together.  At the same time, the new feature also provides a
+new userfaultfd ioctl called UFFDIO_WRITEPROTECT which allows the
+userspace to write protect a range or memory or fixup write permission of
+faulted pages.
+
+Please refer to the document patch "userfaultfd: wp:
+UFFDIO_REGISTER_MODE_WP documentation update" for more information on the
+new interface and what it can do.
+
+The major workflow of an uffd-wp program should be:
+
+  1. Register a memory region with WP mode using UFFDIO_REGISTER_MODE_WP
+
+  2. Write protect part of the whole registered region using
+     UFFDIO_WRITEPROTECT, passing in UFFDIO_WRITEPROTECT_MODE_WP to
+     show that we want to write protect the range.
+
+  3. Start a working thread that modifies the protected pages,
+     meanwhile listening to UFFD messages.
+
+  4. When a write is detected upon the protected range, page fault
+     happens, a UFFD message will be generated and reported to the
+     page fault handling thread
+
+  5. The page fault handler thread resolves the page fault using the
+     new UFFDIO_WRITEPROTECT ioctl, but this time passing in
+     !UFFDIO_WRITEPROTECT_MODE_WP instead showing that we want to
+     recover the write permission.  Before this operation, the fault
+     handler thread can do anything it wants, e.g., dumps the page to
+     a persistent storage.
+
+  6. The worker thread will continue running with the correctly
+     applied write permission from step 5.
+
+Currently there are already two projects that are based on this new
+userfaultfd feature.
+
+QEMU Live Snapshot: The project provides a way to allow the QEMU
+                    hypervisor to take snapshot of VMs without
+                    stopping the VM [3].
+
+LLNL umap library:  The project provides a mmap-like interface and
+                    "allow to have an application specific buffer of
+                    pages cached from a large file, i.e. out-of-core
+                    execution using memory map" [4][5].
+
+Before posting the patchset, this series was smoke tested against QEMU
+live snapshot and the LLNL umap library (by doing parallel quicksort using
+128 sorting threads + 80 uffd servicing threads).  My sincere thanks to
+Marty Mcfadden and Denis Plotnikov for the help along the way.
+
+TODO
+====
+
+- hugetlbfs/shmem support
+- performance
+- more architectures
+- cooperate with mprotect()-allowed processes (???)
+- ...
+
+References
+==========
+
+[1] https://lwn.net/Articles/666187/
+[2] https://git.kernel.org/pub/scm/linux/kernel/git/andrea/aa.git/log/?h=userfault
+[3] https://github.com/denis-plotnikov/qemu/commits/background-snapshot-kvm
+[4] https://github.com/LLNL/umap
+[5] https://llnl-umap.readthedocs.io/en/develop/
+[6] https://git.kernel.org/pub/scm/linux/kernel/git/andrea/aa.git/commit/?h=userfault&id=b245ecf6cf59156966f3da6e6b674f6695a5ffa5
+[7] https://lkml.org/lkml/2018/11/21/370
+[8] https://lkml.org/lkml/2018/12/30/64
+
+
+This patch (of 19):
+
+Add helper for writeprotect check. Will use it later.
+
+Link: http://lkml.kernel.org/r/20200220163112.11409-2-peterx@redhat.com
+Signed-off-by: Shaohua Li <shli@fb.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Jerome Glisse <jglisse@redhat.com>
+Reviewed-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Bobby Powers <bobbypowers@gmail.com>
+Cc: Brian Geffon <bgeffon@google.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nitesh Narayan Lal <nitesh@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pankaj Gupta <pagupta@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Wang <wei.w.wang@intel.com>
-Cc: Yang Zhang <yang.zhang.wz@gmail.com>
-Cc: wei qi <weiqi4@huawei.com>
+Cc: Denis Plotnikov <dplotnikov@virtuozzo.com>
+Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Martin Cracauer <cracauer@cons.org>
+Cc: Marty McFadden <mcfadden8@llnl.gov>
+Cc: Maya Gokhale <gokhale2@llnl.gov>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/free_page_reporting.rst |   41 +++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ include/linux/userfaultfd_k.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- /dev/null
-+++ a/Documentation/vm/free_page_reporting.rst
-@@ -0,0 +1,41 @@
-+.. _free_page_reporting:
+--- a/include/linux/userfaultfd_k.h~userfaultfd-wp-add-helper-for-writeprotect-check
++++ a/include/linux/userfaultfd_k.h
+@@ -52,6 +52,11 @@ static inline bool userfaultfd_missing(s
+ 	return vma->vm_flags & VM_UFFD_MISSING;
+ }
+ 
++static inline bool userfaultfd_wp(struct vm_area_struct *vma)
++{
++	return vma->vm_flags & VM_UFFD_WP;
++}
 +
-+=====================
-+Free Page Reporting
-+=====================
+ static inline bool userfaultfd_armed(struct vm_area_struct *vma)
+ {
+ 	return vma->vm_flags & (VM_UFFD_MISSING | VM_UFFD_WP);
+@@ -95,6 +100,11 @@ static inline bool userfaultfd_missing(s
+ {
+ 	return false;
+ }
 +
-+Free page reporting is an API by which a device can register to receive
-+lists of pages that are currently unused by the system. This is useful in
-+the case of virtualization where a guest is then able to use this data to
-+notify the hypervisor that it is no longer using certain pages in memory.
-+
-+For the driver, typically a balloon driver, to use of this functionality
-+it will allocate and initialize a page_reporting_dev_info structure. The
-+field within the structure it will populate is the "report" function
-+pointer used to process the scatterlist. It must also guarantee that it can
-+handle at least PAGE_REPORTING_CAPACITY worth of scatterlist entries per
-+call to the function. A call to page_reporting_register will register the
-+page reporting interface with the reporting framework assuming no other
-+page reporting devices are already registered.
-+
-+Once registered the page reporting API will begin reporting batches of
-+pages to the driver. The API will start reporting pages 2 seconds after
-+the interface is registered and will continue to do so 2 seconds after any
-+page of a sufficiently high order is freed.
-+
-+Pages reported will be stored in the scatterlist passed to the reporting
-+function with the final entry having the end bit set in entry nent - 1.
-+While pages are being processed by the report function they will not be
-+accessible to the allocator. Once the report function has been completed
-+the pages will be returned to the free area from which they were obtained.
-+
-+Prior to removing a driver that is making use of free page reporting it
-+is necessary to call page_reporting_unregister to have the
-+page_reporting_dev_info structure that is currently in use by free page
-+reporting removed. Doing this will prevent further reports from being
-+issued via the interface. If another driver or the same driver is
-+registered it is possible for it to resume where the previous driver had
-+left off in terms of reporting free pages.
-+
-+Alexander Duyck, Dec 04, 2019
-+
++static inline bool userfaultfd_wp(struct vm_area_struct *vma)
++{
++	return false;
++}
+ 
+ static inline bool userfaultfd_armed(struct vm_area_struct *vma)
+ {
 _
 
-Patches currently in -mm which might be from alexander.h.duyck@linux.intel.com are
+Patches currently in -mm which might be from shli@fb.com are
