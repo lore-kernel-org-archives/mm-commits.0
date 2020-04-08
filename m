@@ -1,127 +1,126 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- compiler-remove-config_optimize_inlining-entirely.patch removed from -mm
- tree
-Date: Tue, 07 Apr 2020 19:00:33 -0700
-Message-ID: <20200408020033.uksPArrf-%akpm@linux-foundation.org>
+ maintainers-list-the-section-entries-in-the-preferred-order.patch removed
+ from -mm tree
+Date: Tue, 07 Apr 2020 19:00:38 -0700
+Message-ID: <20200408020038.elFhA6giL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53996 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54054 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726437AbgDHCAe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:00:34 -0400
+        id S1726464AbgDHCAj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:00:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, bp@alien8.de, davem@davemloft.net, hpa@zytor.com, masahiroy@kernel.org, miguel.ojeda.sandonis@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org, natechancellor@gmail.com, tglx@linutronix.de
+To: andy.shevchenko@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler: remove CONFIG_OPTIMIZE_INLINING entirely
+     Subject: MAINTAINERS: list the section entries in the preferred order
 has been removed from the -mm tree.  Its filename was
-     compiler-remove-config_optimize_inlining-entirely.patch
+     maintainers-list-the-section-entries-in-the-preferred-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Masahiro Yamada <masahiroy@kernel.org>
-Subject: compiler: remove CONFIG_OPTIMIZE_INLINING entirely
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: list the section entries in the preferred order
 
-Commit ac7c3e4ff401 ("compiler: enable CONFIG_OPTIMIZE_INLINING
-forcibly") made this always-on option. We released v5.4 and v5.5
-including that commit.
+The MAINTAINERS file header has never shown a preferred order for the
+section entries but scripts/parse-maintainers.pl added a preferred order
+with commit 61f741645a35 ("parse-maintainers: Add section pattern
+sorting")
 
-Remove the CONFIG option and clean up the code now.
+Commit 5cdbec108fd2 ("parse-maintainers: Do not sort section content by
+default") changed the preferred order to be a bit more sensible.
 
-Link: http://lkml.kernel.org/r/20200220110807.32534-2-masahiroy@kernel.org
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-Reviewed-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: David Miller <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Update the MAINTAINERS section description block to use this preferred
+section entry ordering.
+
+Add a slightly better description for the N: entry too.
+
+Link: http://lkml.kernel.org/r/5aa5aad6fb1678230c260337dc066cd449a2bf32.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/configs/i386_defconfig   |    1 -
- arch/x86/configs/x86_64_defconfig |    1 -
- include/linux/compiler_types.h    |   11 +----------
- kernel/configs/tiny.config        |    1 -
- lib/Kconfig.debug                 |   12 ------------
- 5 files changed, 1 insertion(+), 25 deletions(-)
+ MAINTAINERS |   35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
---- a/arch/x86/configs/i386_defconfig~compiler-remove-config_optimize_inlining-entirely
-+++ a/arch/x86/configs/i386_defconfig
-@@ -285,7 +285,6 @@ CONFIG_EARLY_PRINTK_DBGP=y
- CONFIG_DEBUG_STACKOVERFLOW=y
- # CONFIG_DEBUG_RODATA_TEST is not set
- CONFIG_DEBUG_BOOT_PARAMS=y
--CONFIG_OPTIMIZE_INLINING=y
- CONFIG_SECURITY=y
- CONFIG_SECURITY_NETWORK=y
- CONFIG_SECURITY_SELINUX=y
---- a/arch/x86/configs/x86_64_defconfig~compiler-remove-config_optimize_inlining-entirely
-+++ a/arch/x86/configs/x86_64_defconfig
-@@ -282,7 +282,6 @@ CONFIG_EARLY_PRINTK_DBGP=y
- CONFIG_DEBUG_STACKOVERFLOW=y
- # CONFIG_DEBUG_RODATA_TEST is not set
- CONFIG_DEBUG_BOOT_PARAMS=y
--CONFIG_OPTIMIZE_INLINING=y
- CONFIG_UNWINDER_ORC=y
- CONFIG_SECURITY=y
- CONFIG_SECURITY_NETWORK=y
---- a/include/linux/compiler_types.h~compiler-remove-config_optimize_inlining-entirely
-+++ a/include/linux/compiler_types.h
-@@ -129,22 +129,13 @@ struct ftrace_likely_data {
- #define __compiler_offsetof(a, b)	__builtin_offsetof(a, b)
+--- a/MAINTAINERS~maintainers-list-the-section-entries-in-the-preferred-order
++++ a/MAINTAINERS
+@@ -77,21 +77,13 @@ Tips for patch submitters
  
- /*
-- * Force always-inline if the user requests it so via the .config.
-  * Prefer gnu_inline, so that extern inline functions do not emit an
-  * externally visible function. This makes extern inline behave as per gnu89
-  * semantics rather than c99. This prevents multiple symbol definition errors
-  * of extern inline functions at link time.
-  * A lot of inline functions can cause havoc with function tracing.
-- * Do not use __always_inline here, since currently it expands to inline again
-- * (which would break users of __always_inline).
-  */
--#if !defined(CONFIG_OPTIMIZE_INLINING)
--#define inline inline __attribute__((__always_inline__)) __gnu_inline \
--	__inline_maybe_unused notrace
--#else
--#define inline inline                                    __gnu_inline \
--	__inline_maybe_unused notrace
--#endif
-+#define inline inline __gnu_inline __inline_maybe_unused notrace
+ 8.	Happy hacking.
  
- /*
-  * gcc provides both __inline__ and __inline as alternate spellings of
---- a/kernel/configs/tiny.config~compiler-remove-config_optimize_inlining-entirely
-+++ a/kernel/configs/tiny.config
-@@ -6,7 +6,6 @@ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
- CONFIG_KERNEL_XZ=y
- # CONFIG_KERNEL_LZO is not set
- # CONFIG_KERNEL_LZ4 is not set
--CONFIG_OPTIMIZE_INLINING=y
- # CONFIG_SLAB is not set
- # CONFIG_SLUB is not set
- CONFIG_SLOB=y
---- a/lib/Kconfig.debug~compiler-remove-config_optimize_inlining-entirely
-+++ a/lib/Kconfig.debug
-@@ -305,18 +305,6 @@ config HEADERS_INSTALL
- 	  user-space program samples. It is also needed by some features such
- 	  as uapi header sanity checks.
+-Descriptions of section entries
+--------------------------------
++Descriptions of section entries and preferred order
++---------------------------------------------------
  
--config OPTIMIZE_INLINING
--	def_bool y
--	help
--	  This option determines if the kernel forces gcc to inline the functions
--	  developers have marked 'inline'. Doing so takes away freedom from gcc to
--	  do what it thinks is best, which is desirable for the gcc 3.x series of
--	  compilers. The gcc 4.x series have a rewritten inlining algorithm and
--	  enabling this option will generate a smaller kernel there. Hopefully
--	  this algorithm is so good that allowing gcc 4.x and above to make the
--	  decision will become the default in the future. Until then this option
--	  is there to test gcc for this.
+ 	M: *Mail* patches to: FullName <address@domain>
+ 	R: Designated *Reviewer*: FullName <address@domain>
+ 	   These reviewers should be CCed on patches.
+ 	L: *Mailing list* that is relevant to this area
+-	W: *Web-page* with status/info
+-	B: URI for where to file *bugs*. A web-page with detailed bug
+-	   filing info, a direct bug tracker link, or a mailto: URI.
+-	C: URI for *chat* protocol, server and channel where developers
+-	   usually hang out, for example irc://server/channel.
+-	Q: *Patchwork* web based patch tracking system site
+-	T: *SCM* tree type and location.
+-	   Type is one of: git, hg, quilt, stgit, topgit
+ 	S: *Status*, one of the following:
+ 	   Supported:	Someone is actually paid to look after this.
+ 	   Maintained:	Someone actually looks after it.
+@@ -102,30 +94,39 @@ Descriptions of section entries
+ 	   Obsolete:	Old code. Something tagged obsolete generally means
+ 			it has been replaced by a better system and you
+ 			should be using that.
++	W: *Web-page* with status/info
++	Q: *Patchwork* web based patch tracking system site
++	B: URI for where to file *bugs*. A web-page with detailed bug
++	   filing info, a direct bug tracker link, or a mailto: URI.
++	C: URI for *chat* protocol, server and channel where developers
++	   usually hang out, for example irc://server/channel.
+ 	P: Subsystem Profile document for more details submitting
+ 	   patches to the given subsystem. This is either an in-tree file,
+ 	   or a URI. See Documentation/maintainer/maintainer-entry-profile.rst
+ 	   for details.
++	T: *SCM* tree type and location.
++	   Type is one of: git, hg, quilt, stgit, topgit
+ 	F: *Files* and directories wildcard patterns.
+ 	   A trailing slash includes all files and subdirectory files.
+ 	   F:	drivers/net/	all files in and below drivers/net
+ 	   F:	drivers/net/*	all files in drivers/net, but not below
+ 	   F:	*/net/*		all files in "any top level directory"/net
+ 	   One pattern per line.  Multiple F: lines acceptable.
++	X: *Excluded* files and directories that are NOT maintained, same
++	   rules as F:. Files exclusions are tested before file matches.
++	   Can be useful for excluding a specific subdirectory, for instance:
++	   F:	net/
++	   X:	net/ipv6/
++	   matches all files in and below net excluding net/ipv6/
+ 	N: Files and directories *Regex* patterns.
+-	   N:	[^a-z]tegra	all files whose path contains the word tegra
++	   N:	[^a-z]tegra	all files whose path contains tegra
++	                        (not including files like integrator)
+ 	   One pattern per line.  Multiple N: lines acceptable.
+ 	   scripts/get_maintainer.pl has different behavior for files that
+ 	   match F: pattern and matches of N: patterns.  By default,
+ 	   get_maintainer will not look at git log history when an F: pattern
+ 	   match occurs.  When an N: match occurs, git log history is used
+ 	   to also notify the people that have git commit signatures.
+-	X: *Excluded* files and directories that are NOT maintained, same
+-	   rules as F:. Files exclusions are tested before file matches.
+-	   Can be useful for excluding a specific subdirectory, for instance:
+-	   F:	net/
+-	   X:	net/ipv6/
+-	   matches all files in and below net excluding net/ipv6/
+ 	K: *Content regex* (perl extended) pattern match in a patch or file.
+ 	   For instance:
+ 	   K: of_get_profile
+_
+
+Patches currently in -mm which might be from joe@perches.com are
