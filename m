@@ -1,114 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hotplug-only-respect-mem=-parameter-during-boot-stage.patch removed from
- -mm tree
-Date: Tue, 07 Apr 2020 18:58:42 -0700
-Message-ID: <20200408015842.5KXiZRFMe%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-memory=5Fhotplug-simplify-calculation-of-number-of-pages?=
+ =?US-ASCII?Q?-in-=5F=5Fremove=5Fpages.patch?= removed from -mm tree
+Date: Tue, 07 Apr 2020 18:58:45 -0700
+Message-ID: <20200408015845.4ZoIMSTzd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52060 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52090 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHB6n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:58:43 -0400
+        id S1726406AbgDHB6r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:58:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, bsingharora@gmail.com, david@redhat.com, jgross@suse.com, mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org, william.kucharski@oracle.com
+To: bhe@redhat.com, dan.j.williams@intel.com, david@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org, osalvador@suse.de, richard.weiyang@gmail.com, segher@kernel.crashing.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: only respect mem= parameter during boot stage
+     Subject: mm/memory_hotplug.c: simplify calculation of number of pages in __remove_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-hotplug-only-respect-mem=-parameter-during-boot-stage.patch
+     mm-memory_hotplug-simplify-calculation-of-number-of-pages-in-__remove_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/memory_hotplug.c: only respect mem= parameter during boot stage
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug.c: simplify calculation of number of pages in __remove_pages()
 
-In commit 357b4da50a62 ("x86: respect memory size limiting via mem= 
-parameter") a global varialbe max_mem_size is added to store the value
-parsed from 'mem= ', then checked when memory region is added.  This truly
-stops those DIMMs from being added into system memory during boot-time.
+In commit 52fb87c81f11 ("mm/memory_hotplug: cleanup __remove_pages()"), we
+cleaned up __remove_pages(), and introduced a shorter variant to calculate
+the number of pages to the next section boundary.
 
-However, it also limits the later memory hotplug functionality.  Any DIMM
-can't be hotplugged any more if its region is beyond the max_mem_size.  We
-will get errors like:
+Turns out we can make this calculation easier to read.  We always want to
+have the number of pages (> 0) to the next section boundary, starting from
+the current pfn.
 
-[  216.387164] acpi PNP0C80:02: add_memory failed
-[  216.389301] acpi PNP0C80:02: acpi_memory_enable_device() error
-[  216.392187] acpi PNP0C80:02: Enumeration failure
+We'll clean up __remove_pages() in a follow-up patch and directly make use
+of this computation.
 
-This will cause issue in a known use case where 'mem=' is added to the
-hypervisor.  The memory that lies after 'mem=' boundary will be assigned
-to KVM guests.  After commit 357b4da50a62 merged, memory can't be extended
-dynamically if system memory on hypervisor is not sufficient.
-
-So fix it by also checking if it's during boot-time restricting to add
-memory.  Otherwise, skip the restriction.
-
-And also add this use case to document of 'mem=' kernel parameter.
-
-Link: http://lkml.kernel.org/r/20200204050643.20925-1-bhe@redhat.com
-Fixes: 357b4da50a62 ("x86: respect memory size limiting via mem= parameter")
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Juergen Gross <jgross@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+Link: http://lkml.kernel.org/r/20200228095819.10750-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Segher Boessenkool <segher@kernel.crashing.org>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |   13 +++++++++++--
- mm/memory_hotplug.c                             |    8 +++++++-
- 2 files changed, 18 insertions(+), 3 deletions(-)
+ mm/memory_hotplug.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-hotplug-only-respect-mem=-parameter-during-boot-stage
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -2573,13 +2573,22 @@
- 			For details see: Documentation/admin-guide/hw-vuln/mds.rst
- 
- 	mem=nn[KMG]	[KNL,BOOT] Force usage of a specific amount of memory
--			Amount of memory to be used when the kernel is not able
--			to see the whole system memory or for test.
-+			Amount of memory to be used in cases as follows:
-+
-+			1 for test;
-+			2 when the kernel is not able to see the whole system memory;
-+			3 memory that lies after 'mem=' boundary is excluded from
-+			 the hypervisor, then assigned to KVM guests.
-+
- 			[X86] Work as limiting max address. Use together
- 			with memmap= to avoid physical address space collisions.
- 			Without memmap= PCI devices could be placed at addresses
- 			belonging to unused RAM.
- 
-+			Note that this only takes effects during boot time since
-+			in above case 3, memory may need be hot added after boot
-+			if system memory of hypervisor is not sufficient.
-+
- 	mem=nopentium	[BUGS=X86-32] Disable usage of 4MB pages for kernel
- 			memory.
- 
---- a/mm/memory_hotplug.c~mm-hotplug-only-respect-mem=-parameter-during-boot-stage
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-simplify-calculation-of-number-of-pages-in-__remove_pages
 +++ a/mm/memory_hotplug.c
-@@ -105,7 +105,13 @@ static struct resource *register_memory_
- 	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
- 	char *resource_name = "System RAM";
- 
--	if (start + size > max_mem_size)
-+	/*
-+	 * Make sure value parsed from 'mem=' only restricts memory adding
-+	 * while booting, so that memory hotplug won't be impacted. Please
-+	 * refer to document of 'mem=' in kernel-parameters.txt for more
-+	 * details.
-+	 */
-+	if (start + size > max_mem_size && system_state < SYSTEM_RUNNING)
- 		return ERR_PTR(-E2BIG);
- 
- 	/*
+@@ -534,7 +534,8 @@ void __remove_pages(unsigned long pfn, u
+ 	for (; pfn < end_pfn; pfn += cur_nr_pages) {
+ 		cond_resched();
+ 		/* Select all remaining pages up to the next section boundary */
+-		cur_nr_pages = min(end_pfn - pfn, -(pfn | PAGE_SECTION_MASK));
++		cur_nr_pages = min(end_pfn - pfn,
++				   SECTION_ALIGN_UP(pfn + 1) - pfn);
+ 		__remove_section(pfn, cur_nr_pages, map_offset, altmap);
+ 		map_offset = 0;
+ 	}
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from david@redhat.com are
+
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
