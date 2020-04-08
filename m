@@ -1,54 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kmod-fix-a-typo-assuems-assumes.patch removed
- from -mm tree
-Date: Tue, 07 Apr 2020 19:02:11 -0700
-Message-ID: <20200408020211.rYOXZ6KlC%akpm@linux-foundation.org>
+Subject: [merged]
+ gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member.patch
+ removed from -mm tree
+Date: Tue, 07 Apr 2020 19:02:13 -0700
+Message-ID: <20200408020213.-FqAlyQfy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55158 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55184 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHCCN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:02:13 -0400
+        id S1726406AbgDHCCO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:02:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hqjagain@gmail.com, mcgrof@kernel.org, mm-commits@vger.kernel.org
+To: gustavo@embeddedor.com, mm-commits@vger.kernel.org, oberpar@linux.ibm.com
 
 
 The patch titled
-     Subject: kernel/kmod.c: fix a typo "assuems" -> "assumes"
+     Subject: gcov: gcc_4_7: replace zero-length array with flexible-array member
 has been removed from the -mm tree.  Its filename was
-     kmod-fix-a-typo-assuems-assumes.patch
+     gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Qiujun Huang <hqjagain@gmail.com>
-Subject: kernel/kmod.c: fix a typo "assuems" -> "assumes"
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: gcov: gcc_4_7: replace zero-length array with flexible-array member
 
-There is a typo in comment.  Fix it.  s/assuems/assumes/
+The current codebase makes use of the zero-length array language extension
+to the C90 standard, but the preferred mechanism to declare
+variable-length types such as these ones is a flexible array member[1][2],
+introduced in C99:
 
-Link: http://lkml.kernel.org/r/1585891029-6450-1-git-send-email-hqjagain@gmail.com
-Signed-off-by: Qiujun Huang <hqjagain@gmail.com>
-Acked-by: Luis Chamberlain <mcgrof@kernel.org>
+struct foo {
+        int stuff;
+        struct boo array[];
+};
+
+By making use of the mechanism above, we will get a compiler warning in
+case the flexible array does not occur last in the structure, which will
+help us prevent some kind of undefined behavior bugs from being
+inadvertently introduced[3] to the codebase from now on.
+
+Also, notice that, dynamic memory allocations won't be affected by this
+change:
+
+"Flexible array members have incomplete type, and so the sizeof operator
+may not be applied.  As a quirk of the original implementation of
+zero-length arrays, sizeof evaluates to zero."[1]
+
+This issue was found with the help of Coccinelle.
+
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] https://github.com/KSPP/linux/issues/21
+[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+Link: http://lkml.kernel.org/r/20200213152241.GA877@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Acked-by: Peter Oberparleiter <oberpar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    2 +-
+ kernel/gcov/gcc_4_7.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/kmod.c~kmod-fix-a-typo-assuems-assumes
-+++ a/kernel/kmod.c
-@@ -35,7 +35,7 @@
-  *		       (u64) THREAD_SIZE * 8UL);
-  *
-  * If you need less than 50 threads would mean we're dealing with systems
-- * smaller than 3200 pages. This assuems you are capable of having ~13M memory,
-+ * smaller than 3200 pages. This assumes you are capable of having ~13M memory,
-  * and this would only be an be an upper limit, after which the OOM killer
-  * would take effect. Systems like these are very unlikely if modules are
-  * enabled.
+--- a/kernel/gcov/gcc_4_7.c~gcov-gcc_4_7-replace-zero-length-array-with-flexible-array-member
++++ a/kernel/gcov/gcc_4_7.c
+@@ -68,7 +68,7 @@ struct gcov_fn_info {
+ 	unsigned int ident;
+ 	unsigned int lineno_checksum;
+ 	unsigned int cfg_checksum;
+-	struct gcov_ctr_info ctrs[0];
++	struct gcov_ctr_info ctrs[];
+ };
+ 
+ /**
 _
 
-Patches currently in -mm which might be from hqjagain@gmail.com are
-
-mm-slab_common-fix-a-typo-in-comment-eariler-earlier.patch
+Patches currently in -mm which might be from gustavo@embeddedor.com are
