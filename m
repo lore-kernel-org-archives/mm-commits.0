@@ -1,115 +1,156 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- linux-bitsh-add-compile-time-sanity-check-of-genmask-inputs.patch removed
- from -mm tree
-Date: Tue, 07 Apr 2020 19:01:21 -0700
-Message-ID: <20200408020121.INZFbuTGR%akpm@linux-foundation.org>
+ =?US-ASCII?Q?checkpatch-remove-email-address-comment-from-email-address-c?=
+ =?US-ASCII?Q?omparisons.patch?= removed from -mm tree
+Date: Tue, 07 Apr 2020 19:01:25 -0700
+Message-ID: <20200408020125.85pEGIPJM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54532 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54632 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726420AbgDHCBY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:01:24 -0400
+        id S1726443AbgDHCB1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:01:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@alien8.de, geert@linux-m68k.org, haren@us.ibm.com, joe@perches.com, johannes@sipsolutions.net, keescook@chromium.org, linux-kernel@vger.kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, rikard.falkeborn@gmail.com, tglx@linutronix.de, yamada.masahiro@socionext.com
+To: joe@perches.com, mm-commits@vger.kernel.org, peterz@infradead.org
 
 
 The patch titled
-     Subject: linux/bits.h: add compile time sanity check of GENMASK inputs
+     Subject: checkpatch: remove email address comment from email address comparisons
 has been removed from the -mm tree.  Its filename was
-     linux-bitsh-add-compile-time-sanity-check-of-genmask-inputs.patch
+     checkpatch-remove-email-address-comment-from-email-address-comparisons.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
-Subject: linux/bits.h: add compile time sanity check of GENMASK inputs
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: remove email address comment from email address comparisons
 
-GENMASK() and GENMASK_ULL() are supposed to be called with the high bit as
-the first argument and the low bit as the second argument.  Mixing them
-will return a mask with zero bits set.
+About 2% of the last 100K commits have email addresses that include an
+RFC2822 compliant comment like:
 
-Recent commits show getting this wrong is not uncommon, see e.g.  commit
-aa4c0c9091b0 ("net: stmmac: Fix misuses of GENMASK macro") and commit
-9bdd7bb3a844 ("clocksource/drivers/npcm: Fix misuse of GENMASK macro").
+	Peter Zijlstra (Intel) <peterz@infradead.org>
 
-To prevent such mistakes from appearing again, add compile time sanity
-checking to the arguments of GENMASK() and GENMASK_ULL().  If both
-arguments are known at compile time, and the low bit is higher than the
-high bit, break the build to detect the mistake immediately.
+checkpatch currently does a comparison of the complete name and address to
+the submitted author to determine if the author has signed-off and emits a
+warning if the exact email names and addresses do not match.
 
-Since GENMASK() is used in declarations, BUILD_BUG_ON_ZERO() must be used
-instead of BUILD_BUG_ON().
+Unfortunately, the author email address can be written without the comment
+like:
 
-__builtin_constant_p does not evaluate is argument, it only checks if it
-is a constant or not at compile time, and __builtin_choose_expr does not
-evaluate the expression that is not chosen.  Therefore, GENMASK(x++, 0)
-does only evaluate x++ once.
+	Peter Zijlstra <peterz@infradead.org>
 
-Commit 95b980d62d52 ("linux/bits.h: make BIT(), GENMASK(), and friends
-available in assembly") made the macros in linux/bits.h available in
-assembly.  Since BUILD_BUG_OR_ZERO() is not asm compatible, disable the
-checks if the file is included in an asm file.
+Add logic to compare the comment stripped email addresses to avoid this
+warning.
 
-Due to bugs in GCC versions before 4.9 [0], disable the check if building
-with a too old GCC compiler.
-
-[0]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=19449
-
-Link: http://lkml.kernel.org/r/20200308193954.2372399-1-rikard.falkeborn@gmail.com
-Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
-Reviewed-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Haren Myneni <haren@us.ibm.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: lkml <linux-kernel@vger.kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/ebaa2f7c8f94e25520981945cddcc1982e70e072.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Peter Zijlstra <peterz@infradead.org>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bits.h |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   39 +++++++++++++++++++++++++++++----------
+ 1 file changed, 29 insertions(+), 10 deletions(-)
 
---- a/include/linux/bits.h~linux-bitsh-add-compile-time-sanity-check-of-genmask-inputs
-+++ a/include/linux/bits.h
-@@ -18,12 +18,30 @@
-  * position @h. For example
-  * GENMASK_ULL(39, 21) gives us the 64bit vector 0x000000ffffe00000.
-  */
--#define GENMASK(h, l) \
-+#if !defined(__ASSEMBLY__) && \
-+	(!defined(CONFIG_CC_IS_GCC) || CONFIG_GCC_VERSION >= 49000)
-+#include <linux/build_bug.h>
-+#define GENMASK_INPUT_CHECK(h, l) \
-+	(BUILD_BUG_ON_ZERO(__builtin_choose_expr( \
-+		__builtin_constant_p((l) > (h)), (l) > (h), 0)))
-+#else
-+/*
-+ * BUILD_BUG_ON_ZERO is not available in h files included from asm files,
-+ * disable the input check if that is the case.
-+ */
-+#define GENMASK_INPUT_CHECK(h, l) 0
-+#endif
+--- a/scripts/checkpatch.pl~checkpatch-remove-email-address-comment-from-email-address-comparisons
++++ a/scripts/checkpatch.pl
+@@ -1118,6 +1118,7 @@ sub parse_email {
+ 	my ($formatted_email) = @_;
+ 
+ 	my $name = "";
++	my $name_comment = "";
+ 	my $address = "";
+ 	my $comment = "";
+ 
+@@ -1150,6 +1151,10 @@ sub parse_email {
+ 
+ 	$name = trim($name);
+ 	$name =~ s/^\"|\"$//g;
++	$name =~ s/(\s*\([^\)]+\))\s*//;
++	if (defined($1)) {
++		$name_comment = trim($1);
++	}
+ 	$address = trim($address);
+ 	$address =~ s/^\<|\>$//g;
+ 
+@@ -1158,7 +1163,7 @@ sub parse_email {
+ 		$name = "\"$name\"";
+ 	}
+ 
+-	return ($name, $address, $comment);
++	return ($name, $name_comment, $address, $comment);
+ }
+ 
+ sub format_email {
+@@ -1184,6 +1189,23 @@ sub format_email {
+ 	return $formatted_email;
+ }
+ 
++sub reformat_email {
++	my ($email) = @_;
 +
-+#define __GENMASK(h, l) \
- 	(((~UL(0)) - (UL(1) << (l)) + 1) & \
- 	 (~UL(0) >> (BITS_PER_LONG - 1 - (h))))
-+#define GENMASK(h, l) \
-+	(GENMASK_INPUT_CHECK(h, l) + __GENMASK(h, l))
++	my ($email_name, $name_comment, $email_address, $comment) = parse_email($email);
++	return format_email($email_name, $email_address);
++}
++
++sub same_email_addresses {
++	my ($email1, $email2) = @_;
++
++	my ($email1_name, $name1_comment, $email1_address, $comment1) = parse_email($email1);
++	my ($email2_name, $name2_comment, $email2_address, $comment2) = parse_email($email2);
++
++	return $email1_name eq $email2_name &&
++	       $email1_address eq $email2_address;
++}
++
+ sub which {
+ 	my ($bin) = @_;
  
--#define GENMASK_ULL(h, l) \
-+#define __GENMASK_ULL(h, l) \
- 	(((~ULL(0)) - (ULL(1) << (l)) + 1) & \
- 	 (~ULL(0) >> (BITS_PER_LONG_LONG - 1 - (h))))
-+#define GENMASK_ULL(h, l) \
-+	(GENMASK_INPUT_CHECK(h, l) + __GENMASK_ULL(h, l))
+@@ -2604,17 +2626,16 @@ sub process {
+ 			$author = $1;
+ 			$author = encode("utf8", $author) if ($line =~ /=\?utf-8\?/i);
+ 			$author =~ s/"//g;
++			$author = reformat_email($author);
+ 		}
  
- #endif	/* __LINUX_BITS_H */
+ # Check the patch for a signoff:
+-		if ($line =~ /^\s*signed-off-by:/i) {
++		if ($line =~ /^\s*signed-off-by:\s*(.*)/i) {
+ 			$signoff++;
+ 			$in_commit_log = 0;
+ 			if ($author ne '') {
+-				my $l = $line;
+-				$l =~ s/"//g;
+-				if ($l =~ /^\s*signed-off-by:\s*\Q$author\E/i) {
+-				    $authorsignoff = 1;
++				if (same_email_addresses($1, $author)) {
++					$authorsignoff = 1;
+ 				}
+ 			}
+ 		}
+@@ -2664,7 +2685,7 @@ sub process {
+ 				}
+ 			}
+ 
+-			my ($email_name, $email_address, $comment) = parse_email($email);
++			my ($email_name, $name_comment, $email_address, $comment) = parse_email($email);
+ 			my $suggested_email = format_email(($email_name, $email_address));
+ 			if ($suggested_email eq "") {
+ 				ERROR("BAD_SIGN_OFF",
+@@ -2675,9 +2696,7 @@ sub process {
+ 				$dequoted =~ s/" </ </;
+ 				# Don't force email to have quotes
+ 				# Allow just an angle bracketed address
+-				if ("$dequoted$comment" ne $email &&
+-				    "<$email_address>$comment" ne $email &&
+-				    "$suggested_email$comment" ne $email) {
++				if (!same_email_addresses($email, $suggested_email)) {
+ 					WARN("BAD_SIGN_OFF",
+ 					     "email address '$email' might be better as '$suggested_email$comment'\n" . $herecurr);
+ 				}
 _
 
-Patches currently in -mm which might be from rikard.falkeborn@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
