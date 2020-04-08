@@ -1,41 +1,45 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- virtio-balloon-pull-page-poisoning-config-out-of-free-page-hinting.patch
+ virtio-balloon-add-support-for-providing-free-page-reports-to-host.patch
  removed from -mm tree
-Date: Tue, 07 Apr 2020 18:57:19 -0700
-Message-ID: <20200408015719.ococcWjPM%akpm@linux-foundation.org>
+Date: Tue, 07 Apr 2020 18:57:21 -0700
+Message-ID: <20200408015721.qZjrBXKMk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50752 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50792 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726444AbgDHB5X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:57:23 -0400
+        id S1726444AbgDHB5Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:57:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, alexander.h.duyck@linux.intel.com, dan.j.williams@intel.com, dave.hansen@intel.com, david@redhat.com, konrad.wilk@oracle.com, lcapitulino@redhat.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, mst@redhat.com, nitesh@redhat.com, osalvador@suse.de, pagupta@redhat.com, pbonzini@redhat.com, riel@surriel.com, vbabka@suse.cz, wei.w.wang@intel.com, weiqi4@huawei.com, willy@infradead.org, yang.zhang.wz@gmail.com
 
 
 The patch titled
-     Subject: virtio-balloon: pull page poisoning config out of free page hinting
+     Subject: virtio-balloon: add support for providing free page reports to host
 has been removed from the -mm tree.  Its filename was
-     virtio-balloon-pull-page-poisoning-config-out-of-free-page-hinting.patch
+     virtio-balloon-add-support-for-providing-free-page-reports-to-host.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Subject: virtio-balloon: pull page poisoning config out of free page hinting
+Subject: virtio-balloon: add support for providing free page reports to host
 
-Currently the page poisoning setting wasn't being enabled unless free page
-hinting was enabled.  However we will need the page poisoning tracking
-logic as well for free page reporting.  As such pull it out and make it a
-separate bit of config in the probe function.
+Add support for the page reporting feature provided by virtio-balloon. 
+Reporting differs from the regular balloon functionality in that is is
+much less durable than a standard memory balloon.  Instead of creating a
+list of pages that cannot be accessed the pages are only inaccessible
+while they are being indicated to the virtio interface.  Once the
+interface has acknowledged them they are placed back into their respective
+free lists and are once again accessible by the guest system.
 
-In addition we need to add support for the more recent init_on_free
-feature which expects a behavior similar to page poisoning in that we
-expect the page to be pre-zeroed.
+Unlike a standard balloon we don't inflate and deflate the pages.  Instead
+we perform the reporting, and once the reporting is completed it is
+assumed that the page has been dropped from the guest and will be faulted
+back in the next time the page is accessed.
 
-Link: http://lkml.kernel.org/r/20200211224646.29318.695.stgit@localhost.localdomain
+Link: http://lkml.kernel.org/r/20200211224657.29318.68624.stgit@localhost.localdomain
 Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
@@ -59,56 +63,173 @@ Cc: wei qi <weiqi4@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |   23 +++++++++++++++++------
- 1 file changed, 17 insertions(+), 6 deletions(-)
+ drivers/virtio/Kconfig              |    1 
+ drivers/virtio/virtio_balloon.c     |   64 ++++++++++++++++++++++++++
+ include/uapi/linux/virtio_balloon.h |    1 
+ 3 files changed, 66 insertions(+)
 
---- a/drivers/virtio/virtio_balloon.c~virtio-balloon-pull-page-poisoning-config-out-of-free-page-hinting
+--- a/drivers/virtio/Kconfig~virtio-balloon-add-support-for-providing-free-page-reports-to-host
++++ a/drivers/virtio/Kconfig
+@@ -58,6 +58,7 @@ config VIRTIO_BALLOON
+ 	tristate "Virtio balloon driver"
+ 	depends on VIRTIO
+ 	select MEMORY_BALLOON
++	select PAGE_REPORTING
+ 	---help---
+ 	 This driver supports increasing and decreasing the amount
+ 	 of memory within a KVM guest.
+--- a/drivers/virtio/virtio_balloon.c~virtio-balloon-add-support-for-providing-free-page-reports-to-host
 +++ a/drivers/virtio/virtio_balloon.c
-@@ -864,7 +864,6 @@ static int virtio_balloon_register_shrin
- static int virtballoon_probe(struct virtio_device *vdev)
- {
- 	struct virtio_balloon *vb;
--	__u32 poison_val;
- 	int err;
+@@ -19,6 +19,7 @@
+ #include <linux/mount.h>
+ #include <linux/magic.h>
+ #include <linux/pseudo_fs.h>
++#include <linux/page_reporting.h>
  
- 	if (!vdev->config->get) {
-@@ -930,11 +929,20 @@ static int virtballoon_probe(struct virt
- 						  VIRTIO_BALLOON_CMD_ID_STOP);
- 		spin_lock_init(&vb->free_page_list_lock);
- 		INIT_LIST_HEAD(&vb->free_page_list);
--		if (virtio_has_feature(vdev, VIRTIO_BALLOON_F_PAGE_POISON)) {
-+	}
-+	if (virtio_has_feature(vdev, VIRTIO_BALLOON_F_PAGE_POISON)) {
-+		/* Start with poison val of 0 representing general init */
-+		__u32 poison_val = 0;
+ /*
+  * Balloon device works in 4K page units.  So each page is pointed to by
+@@ -47,6 +48,7 @@ enum virtio_balloon_vq {
+ 	VIRTIO_BALLOON_VQ_DEFLATE,
+ 	VIRTIO_BALLOON_VQ_STATS,
+ 	VIRTIO_BALLOON_VQ_FREE_PAGE,
++	VIRTIO_BALLOON_VQ_REPORTING,
+ 	VIRTIO_BALLOON_VQ_MAX
+ };
+ 
+@@ -114,6 +116,10 @@ struct virtio_balloon {
+ 
+ 	/* To register a shrinker to shrink memory upon memory pressure */
+ 	struct shrinker shrinker;
 +
-+		/*
-+		 * Let the hypervisor know that we are expecting a
-+		 * specific value to be written back in balloon pages.
-+		 */
-+		if (!want_init_on_free())
- 			memset(&poison_val, PAGE_POISON, sizeof(poison_val));
--			virtio_cwrite(vb->vdev, struct virtio_balloon_config,
--				      poison_val, &poison_val);
--		}
++	/* Free page reporting device */
++	struct virtqueue *reporting_vq;
++	struct page_reporting_dev_info pr_dev_info;
+ };
+ 
+ static struct virtio_device_id id_table[] = {
+@@ -153,6 +159,33 @@ static void tell_host(struct virtio_ball
+ 
+ }
+ 
++int virtballoon_free_page_report(struct page_reporting_dev_info *pr_dev_info,
++				   struct scatterlist *sg, unsigned int nents)
++{
++	struct virtio_balloon *vb =
++		container_of(pr_dev_info, struct virtio_balloon, pr_dev_info);
++	struct virtqueue *vq = vb->reporting_vq;
++	unsigned int unused, err;
 +
-+		virtio_cwrite(vb->vdev, struct virtio_balloon_config,
-+			      poison_val, &poison_val);
++	/* We should always be able to add these buffers to an empty queue. */
++	err = virtqueue_add_inbuf(vq, sg, nents, vb, GFP_NOWAIT | __GFP_NOWARN);
++
++	/*
++	 * In the extremely unlikely case that something has occurred and we
++	 * are able to trigger an error we will simply display a warning
++	 * and exit without actually processing the pages.
++	 */
++	if (WARN_ON_ONCE(err))
++		return err;
++
++	virtqueue_kick(vq);
++
++	/* When host has read buffer, this completes via balloon_ack */
++	wait_event(vb->acked, virtqueue_get_buf(vq, &unused));
++
++	return 0;
++}
++
+ static void set_page_pfns(struct virtio_balloon *vb,
+ 			  __virtio32 pfns[], struct page *page)
+ {
+@@ -481,6 +514,7 @@ static int init_vqs(struct virtio_balloo
+ 	names[VIRTIO_BALLOON_VQ_STATS] = NULL;
+ 	callbacks[VIRTIO_BALLOON_VQ_FREE_PAGE] = NULL;
+ 	names[VIRTIO_BALLOON_VQ_FREE_PAGE] = NULL;
++	names[VIRTIO_BALLOON_VQ_REPORTING] = NULL;
+ 
+ 	if (virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_STATS_VQ)) {
+ 		names[VIRTIO_BALLOON_VQ_STATS] = "stats";
+@@ -492,6 +526,11 @@ static int init_vqs(struct virtio_balloo
+ 		callbacks[VIRTIO_BALLOON_VQ_FREE_PAGE] = NULL;
  	}
- 	/*
- 	 * We continue to use VIRTIO_BALLOON_F_DEFLATE_ON_OOM to decide if a
-@@ -1045,7 +1053,10 @@ static int virtballoon_restore(struct vi
  
- static int virtballoon_validate(struct virtio_device *vdev)
++	if (virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_REPORTING)) {
++		names[VIRTIO_BALLOON_VQ_REPORTING] = "reporting_vq";
++		callbacks[VIRTIO_BALLOON_VQ_REPORTING] = balloon_ack;
++	}
++
+ 	err = vb->vdev->config->find_vqs(vb->vdev, VIRTIO_BALLOON_VQ_MAX,
+ 					 vqs, callbacks, names, NULL, NULL);
+ 	if (err)
+@@ -524,6 +563,9 @@ static int init_vqs(struct virtio_balloo
+ 	if (virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_FREE_PAGE_HINT))
+ 		vb->free_page_vq = vqs[VIRTIO_BALLOON_VQ_FREE_PAGE];
+ 
++	if (virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_REPORTING))
++		vb->reporting_vq = vqs[VIRTIO_BALLOON_VQ_REPORTING];
++
+ 	return 0;
+ }
+ 
+@@ -953,12 +995,31 @@ static int virtballoon_probe(struct virt
+ 		if (err)
+ 			goto out_del_balloon_wq;
+ 	}
++
++	vb->pr_dev_info.report = virtballoon_free_page_report;
++	if (virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_REPORTING)) {
++		unsigned int capacity;
++
++		capacity = virtqueue_get_vring_size(vb->reporting_vq);
++		if (capacity < PAGE_REPORTING_CAPACITY) {
++			err = -ENOSPC;
++			goto out_unregister_shrinker;
++		}
++
++		err = page_reporting_register(&vb->pr_dev_info);
++		if (err)
++			goto out_unregister_shrinker;
++	}
++
+ 	virtio_device_ready(vdev);
+ 
+ 	if (towards_target(vb))
+ 		virtballoon_changed(vdev);
+ 	return 0;
+ 
++out_unregister_shrinker:
++	if (virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_DEFLATE_ON_OOM))
++		virtio_balloon_unregister_shrinker(vb);
+ out_del_balloon_wq:
+ 	if (virtio_has_feature(vdev, VIRTIO_BALLOON_F_FREE_PAGE_HINT))
+ 		destroy_workqueue(vb->balloon_wq);
+@@ -997,6 +1058,8 @@ static void virtballoon_remove(struct vi
  {
--	if (!page_poisoning_enabled())
-+	/* Tell the host whether we care about poisoned pages. */
-+	if (!want_init_on_free() &&
-+	    (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY) ||
-+	     !page_poisoning_enabled()))
- 		__virtio_clear_bit(vdev, VIRTIO_BALLOON_F_PAGE_POISON);
+ 	struct virtio_balloon *vb = vdev->priv;
  
- 	__virtio_clear_bit(vdev, VIRTIO_F_IOMMU_PLATFORM);
++	if (virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_REPORTING))
++		page_reporting_unregister(&vb->pr_dev_info);
+ 	if (virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_DEFLATE_ON_OOM))
+ 		virtio_balloon_unregister_shrinker(vb);
+ 	spin_lock_irq(&vb->stop_update_lock);
+@@ -1069,6 +1132,7 @@ static unsigned int features[] = {
+ 	VIRTIO_BALLOON_F_DEFLATE_ON_OOM,
+ 	VIRTIO_BALLOON_F_FREE_PAGE_HINT,
+ 	VIRTIO_BALLOON_F_PAGE_POISON,
++	VIRTIO_BALLOON_F_REPORTING,
+ };
+ 
+ static struct virtio_driver virtio_balloon_driver = {
+--- a/include/uapi/linux/virtio_balloon.h~virtio-balloon-add-support-for-providing-free-page-reports-to-host
++++ a/include/uapi/linux/virtio_balloon.h
+@@ -36,6 +36,7 @@
+ #define VIRTIO_BALLOON_F_DEFLATE_ON_OOM	2 /* Deflate balloon on OOM */
+ #define VIRTIO_BALLOON_F_FREE_PAGE_HINT	3 /* VQ to report free pages */
+ #define VIRTIO_BALLOON_F_PAGE_POISON	4 /* Guest is using page poisoning */
++#define VIRTIO_BALLOON_F_REPORTING	5 /* Page reporting virtqueue */
+ 
+ /* Size of a PFN in the balloon interface. */
+ #define VIRTIO_BALLOON_PFN_SHIFT 12
 _
 
 Patches currently in -mm which might be from alexander.h.duyck@linux.intel.com are
