@@ -1,187 +1,266 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-sparsec-move-subsection_map-related-functions-together.patch removed
+ drivers-base-memory-rename-mmop_online_keep-to-mmop_online.patch removed
  from -mm tree
-Date: Tue, 07 Apr 2020 18:59:01 -0700
-Message-ID: <20200408015901.HBJVpwdoq%akpm@linux-foundation.org>
+Date: Tue, 07 Apr 2020 18:59:04 -0700
+Message-ID: <20200408015904.bIOf9_eoy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52268 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHB7E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:59:04 -0400
+        id S1726406AbgDHB7F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:59:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, dan.j.williams@intel.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, richard.weiyang@gmail.com, sfr@canb.auug.org.au
+To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, ehabkost@redhat.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, imammedo@redhat.com, kys@microsoft.com, mhocko@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, pankaj.gupta.linux@gmail.com, paulus@samba.org, rafael@kernel.org, richard.weiyang@gmail.com, sthemmin@microsoft.com, vkuznets@redhat.com, wei.liu@kernel.org, yuhuang@redhat.com
 
 
 The patch titled
-     Subject: mm/sparse.c: move subsection_map related functions together
+     Subject: drivers/base/memory: rename MMOP_ONLINE_KEEP to MMOP_ONLINE
 has been removed from the -mm tree.  Its filename was
-     mm-sparsec-move-subsection_map-related-functions-together.patch
+     drivers-base-memory-rename-mmop_online_keep-to-mmop_online.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/sparse.c: move subsection_map related functions together
+From: David Hildenbrand <david@redhat.com>
+Subject: drivers/base/memory: rename MMOP_ONLINE_KEEP to MMOP_ONLINE
 
-No functional change.
+Patch series "mm/memory_hotplug: allow to specify a default online_type", v3.
 
-[bhe@redhat.com: move functions into CONFIG_MEMORY_HOTPLUG ifdeffery scope]
-  Link: http://lkml.kernel.org/r/20200316045804.GC3486@MiWiFi-R3L-srv
-Link: http://lkml.kernel.org/r/20200312124414.439-6-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
+Distributions nowadays use udev rules ([1] [2]) to specify if and how to
+online hotplugged memory.  The rules seem to get more complex with many
+special cases.  Due to the various special cases,
+CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE cannot be used.  All memory hotplug
+is handled via udev rules.
+
+Every time we hotplug memory, the udev rule will come to the same
+conclusion.  Especially Hyper-V (but also soon virtio-mem) add a lot of
+memory in separate memory blocks and wait for memory to get onlined by
+user space before continuing to add more memory blocks (to not add memory
+faster than it is getting onlined).  This of course slows down the whole
+memory hotplug process.
+
+To make the job of distributions easier and to avoid udev rules that get
+more and more complicated, let's extend the mechanism provided by
+- /sys/devices/system/memory/auto_online_blocks
+- "memhp_default_state=" on the kernel cmdline
+to be able to specify also "online_movable" as well as "online_kernel"
+
+=== Example /usr/libexec/config-memhotplug ===
+
+#!/bin/bash
+
+VIRT=`systemd-detect-virt --vm`
+ARCH=`uname -p`
+
+sense_virtio_mem() {
+  if [ -d "/sys/bus/virtio/drivers/virtio_mem/" ]; then
+    DEVICES=`find /sys/bus/virtio/drivers/virtio_mem/ -maxdepth 1 -type l | wc -l`
+    if [ $DEVICES != "0" ]; then
+        return 0
+    fi
+  fi
+  return 1
+}
+
+if [ ! -e "/sys/devices/system/memory/auto_online_blocks" ]; then
+  echo "Memory hotplug configuration support missing in the kernel"
+  exit 1
+fi
+
+if grep "memhp_default_state=" /proc/cmdline > /dev/null; then
+  echo "Memory hotplug configuration overridden in kernel cmdline (memhp_default_state=)"
+  exit 1
+fi
+
+if [ $VIRT == "microsoft" ]; then
+  echo "Detected Hyper-V on $ARCH"
+  # Hyper-V wants all memory in ZONE_NORMAL
+  ONLINE_TYPE="online_kernel"
+elif sense_virtio_mem; then
+  echo "Detected virtio-mem on $ARCH"
+  # virtio-mem wants all memory in ZONE_NORMAL
+  ONLINE_TYPE="online_kernel"
+elif [ $ARCH == "s390x" ] || [ $ARCH == "s390" ]; then
+  echo "Detected $ARCH"
+  # standby memory should not be onlined automatically
+  ONLINE_TYPE="offline"
+elif [ $ARCH == "ppc64" ] || [ $ARCH == "ppc64le" ]; then
+  echo "Detected" $ARCH
+  # PPC64 onlines all hotplugged memory right from the kernel
+  ONLINE_TYPE="offline"
+elif [ $VIRT == "none" ]; then
+  echo "Detected bare-metal on $ARCH"
+  # Bare metal users expect hotplugged memory to be unpluggable. We assume
+  # that ZONE imbalances on such enterpise servers cannot happen and is
+  # properly documented
+  ONLINE_TYPE="online_movable"
+else
+  # TODO: Hypervisors that want to unplug DIMMs and can guarantee that ZONE
+  # imbalances won't happen
+  echo "Detected $VIRT on $ARCH"
+  # Usually, ballooning is used in virtual environments, so memory should go to
+  # ZONE_NORMAL. However, sometimes "movable_node" is relevant.
+  ONLINE_TYPE="online"
+fi
+
+echo "Selected online_type:" $ONLINE_TYPE
+
+# Configure what to do with memory that will be hotplugged in the future
+echo $ONLINE_TYPE 2>/dev/null > /sys/devices/system/memory/auto_online_blocks
+if [ $? != "0" ]; then
+  echo "Memory hotplug cannot be configured (e.g., old kernel or missing permissions)"
+  # A backup udev rule should handle old kernels if necessary
+  exit 1
+fi
+
+# Process all already pluggedd blocks (e.g., DIMMs, but also Hyper-V or virtio-mem)
+if [ $ONLINE_TYPE != "offline" ]; then
+  for MEMORY in /sys/devices/system/memory/memory*; do
+    STATE=`cat $MEMORY/state`
+    if [ $STATE == "offline" ]; then
+        echo $ONLINE_TYPE > $MEMORY/state
+    fi
+  done
+fi
+
+=== Example /usr/lib/systemd/system/config-memhotplug.service ===
+
+[Unit]
+Description=Configure memory hotplug behavior
+DefaultDependencies=no
+Conflicts=shutdown.target
+Before=sysinit.target shutdown.target
+After=systemd-modules-load.service
+ConditionPathExists=|/sys/devices/system/memory/auto_online_blocks
+
+[Service]
+ExecStart=/usr/libexec/config-memhotplug
+Type=oneshot
+TimeoutSec=0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target
+
+=== Example modification to the 40-redhat.rules [2] ===
+
+: diff --git a/40-redhat.rules b/40-redhat.rules-new
+: index 2c690e5..168fd03 100644
+: --- a/40-redhat.rules
+: +++ b/40-redhat.rules-new
+: @@ -6,6 +6,9 @@ SUBSYSTEM=="cpu", ACTION=="add", TEST=="online", ATTR{online}=="0", ATTR{online}
+:  # Memory hotadd request
+:  SUBSYSTEM!="memory", GOTO="memory_hotplug_end"
+:  ACTION!="add", GOTO="memory_hotplug_end"
+: +# memory hotplug behavior configured
+: +PROGRAM=="grep online /sys/devices/system/memory/auto_online_blocks", GOTO="memory_hotplug_end"
+: +
+:  PROGRAM="/bin/uname -p", RESULT=="s390*", GOTO="memory_hotplug_end"
+: 
+:  ENV{.state}="online"
+
+===
+
+[1] https://github.com/lnykryn/systemd-rhel/pull/281
+[2] https://github.com/lnykryn/systemd-rhel/blob/staging/rules/40-redhat.rules
+
+
+This patch (of 8):
+
+The name is misleading and it's not really clear what is "kept".  Let's
+just name it like the online_type name we expose to user space ("online").
+
+Add some documentation to the types.
+
+Link: http://lkml.kernel.org/r/20200319131221.14044-1-david@redhat.com
+Link: http://lkml.kernel.org/r/20200317104942.11178-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Yumei Huang <yuhuang@redhat.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Eduardo Habkost <ehabkost@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: K. Y. Srinivasan <kys@microsoft.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Wei Liu <wei.liu@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |  110 ++++++++++++++++++++++++--------------------------
- 1 file changed, 53 insertions(+), 57 deletions(-)
+ drivers/base/memory.c          |    9 +++++----
+ include/linux/memory_hotplug.h |    6 +++++-
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
---- a/mm/sparse.c~mm-sparsec-move-subsection_map-related-functions-together
-+++ a/mm/sparse.c
-@@ -666,6 +666,55 @@ static void free_map_bootmem(struct page
+--- a/drivers/base/memory.c~drivers-base-memory-rename-mmop_online_keep-to-mmop_online
++++ a/drivers/base/memory.c
+@@ -208,7 +208,7 @@ static int memory_subsys_online(struct d
+ 	 * attribute and need to set the online_type.
+ 	 */
+ 	if (mem->online_type < 0)
+-		mem->online_type = MMOP_ONLINE_KEEP;
++		mem->online_type = MMOP_ONLINE;
  
- 	vmemmap_free(start, end, NULL);
- }
-+
-+static int clear_subsection_map(unsigned long pfn, unsigned long nr_pages)
-+{
-+	DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
-+	DECLARE_BITMAP(tmp, SUBSECTIONS_PER_SECTION) = { 0 };
-+	struct mem_section *ms = __pfn_to_section(pfn);
-+	unsigned long *subsection_map = ms->usage
-+		? &ms->usage->subsection_map[0] : NULL;
-+
-+	subsection_mask_set(map, pfn, nr_pages);
-+	if (subsection_map)
-+		bitmap_and(tmp, map, subsection_map, SUBSECTIONS_PER_SECTION);
-+
-+	if (WARN(!subsection_map || !bitmap_equal(tmp, map, SUBSECTIONS_PER_SECTION),
-+				"section already deactivated (%#lx + %ld)\n",
-+				pfn, nr_pages))
-+		return -EINVAL;
-+
-+	bitmap_xor(subsection_map, map, subsection_map, SUBSECTIONS_PER_SECTION);
-+	return 0;
-+}
-+
-+static bool is_subsection_map_empty(struct mem_section *ms)
-+{
-+	return bitmap_empty(&ms->usage->subsection_map[0],
-+			    SUBSECTIONS_PER_SECTION);
-+}
-+
-+static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
-+{
-+	struct mem_section *ms = __pfn_to_section(pfn);
-+	DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
-+	unsigned long *subsection_map;
-+	int rc = 0;
-+
-+	subsection_mask_set(map, pfn, nr_pages);
-+
-+	subsection_map = &ms->usage->subsection_map[0];
-+
-+	if (bitmap_empty(map, SUBSECTIONS_PER_SECTION))
-+		rc = -EINVAL;
-+	else if (bitmap_intersects(map, subsection_map, SUBSECTIONS_PER_SECTION))
-+		rc = -EEXIST;
-+	else
-+		bitmap_or(subsection_map, map, subsection_map,
-+				SUBSECTIONS_PER_SECTION);
-+
-+	return rc;
-+}
- #else
- struct page * __meminit populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
-@@ -709,46 +758,22 @@ static void free_map_bootmem(struct page
- 			put_page_bootmem(page);
+ 	ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
+ 
+@@ -243,7 +243,7 @@ static ssize_t state_store(struct device
+ 	else if (sysfs_streq(buf, "online_movable"))
+ 		online_type = MMOP_ONLINE_MOVABLE;
+ 	else if (sysfs_streq(buf, "online"))
+-		online_type = MMOP_ONLINE_KEEP;
++		online_type = MMOP_ONLINE;
+ 	else if (sysfs_streq(buf, "offline"))
+ 		online_type = MMOP_OFFLINE;
+ 	else {
+@@ -254,7 +254,7 @@ static ssize_t state_store(struct device
+ 	switch (online_type) {
+ 	case MMOP_ONLINE_KERNEL:
+ 	case MMOP_ONLINE_MOVABLE:
+-	case MMOP_ONLINE_KEEP:
++	case MMOP_ONLINE:
+ 		/* mem->online_type is protected by device_hotplug_lock */
+ 		mem->online_type = online_type;
+ 		ret = device_online(&mem->dev);
+@@ -334,7 +334,8 @@ static ssize_t valid_zones_show(struct d
  	}
- }
--#endif /* CONFIG_SPARSEMEM_VMEMMAP */
  
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
- static int clear_subsection_map(unsigned long pfn, unsigned long nr_pages)
- {
--	DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
--	DECLARE_BITMAP(tmp, SUBSECTIONS_PER_SECTION) = { 0 };
--	struct mem_section *ms = __pfn_to_section(pfn);
--	unsigned long *subsection_map = ms->usage
--		? &ms->usage->subsection_map[0] : NULL;
--
--	subsection_mask_set(map, pfn, nr_pages);
--	if (subsection_map)
--		bitmap_and(tmp, map, subsection_map, SUBSECTIONS_PER_SECTION);
--
--	if (WARN(!subsection_map || !bitmap_equal(tmp, map, SUBSECTIONS_PER_SECTION),
--				"section already deactivated (%#lx + %ld)\n",
--				pfn, nr_pages))
--		return -EINVAL;
--
--	bitmap_xor(subsection_map, map, subsection_map, SUBSECTIONS_PER_SECTION);
- 	return 0;
- }
+ 	nid = mem->nid;
+-	default_zone = zone_for_pfn_range(MMOP_ONLINE_KEEP, nid, start_pfn, nr_pages);
++	default_zone = zone_for_pfn_range(MMOP_ONLINE, nid, start_pfn,
++					  nr_pages);
+ 	strcat(buf, default_zone->name);
  
- static bool is_subsection_map_empty(struct mem_section *ms)
- {
--	return bitmap_empty(&ms->usage->subsection_map[0],
--			    SUBSECTIONS_PER_SECTION);
--}
--#else
--static int clear_subsection_map(unsigned long pfn, unsigned long nr_pages)
--{
--	return 0;
-+	return true;
- }
+ 	print_allowed_zone(buf, nid, start_pfn, nr_pages, MMOP_ONLINE_KERNEL,
+--- a/include/linux/memory_hotplug.h~drivers-base-memory-rename-mmop_online_keep-to-mmop_online
++++ a/include/linux/memory_hotplug.h
+@@ -47,9 +47,13 @@ enum {
  
--static bool is_subsection_map_empty(struct mem_section *ms)
-+static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
- {
--	return true;
-+	return 0;
- }
--#endif
-+#endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ /* Types for control the zone type of onlined and offlined memory */
+ enum {
++	/* Offline the memory. */
+ 	MMOP_OFFLINE = -1,
+-	MMOP_ONLINE_KEEP,
++	/* Online the memory. Zone depends, see default_zone_for_pfn(). */
++	MMOP_ONLINE,
++	/* Online the memory to ZONE_NORMAL. */
+ 	MMOP_ONLINE_KERNEL,
++	/* Online the memory to ZONE_MOVABLE. */
+ 	MMOP_ONLINE_MOVABLE,
+ };
  
- /*
-  * To deactivate a memory region, there are 3 cases to handle across
-@@ -810,35 +835,6 @@ static void section_deactivate(unsigned
- 		ms->section_mem_map = (unsigned long)NULL;
- }
- 
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
--static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
--{
--	struct mem_section *ms = __pfn_to_section(pfn);
--	DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
--	unsigned long *subsection_map;
--	int rc = 0;
--
--	subsection_mask_set(map, pfn, nr_pages);
--
--	subsection_map = &ms->usage->subsection_map[0];
--
--	if (bitmap_empty(map, SUBSECTIONS_PER_SECTION))
--		rc = -EINVAL;
--	else if (bitmap_intersects(map, subsection_map, SUBSECTIONS_PER_SECTION))
--		rc = -EEXIST;
--	else
--		bitmap_or(subsection_map, map, subsection_map,
--				SUBSECTIONS_PER_SECTION);
--
--	return rc;
--}
--#else
--static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
--{
--	return 0;
--}
--#endif
+_
+
+Patches currently in -mm which might be from david@redhat.com are
+
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
