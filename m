@@ -1,65 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-make-it-clear-that-gfp-reclaim-modifiers-are-valid-only?=
- =?US-ASCII?Q?-for-sleepable-allocations.patch?= removed from -mm tree
-Date: Tue, 07 Apr 2020 18:56:42 -0700
-Message-ID: <20200408015642.7WkAHULti%akpm@linux-foundation.org>
+ mm-migratec-no-need-to-check-for-i-start-in-do_pages_move.patch removed
+ from -mm tree
+Date: Tue, 07 Apr 2020 18:56:44 -0700
+Message-ID: <20200408015644.XGmjODFRU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50172 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726443AbgDHB4n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:56:43 -0400
+        id S1726420AbgDHB4q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:56:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joel@joelfernandes.org, mhocko@suse.com, mm-commits@vger.kernel.org, neilb@suse.de, paulmck@kernel.org, rientjes@google.com
+To: david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, richardw.yang@linux.intel.com
 
 
 The patch titled
-     Subject: mm: make it clear that gfp reclaim modifiers are valid only for sleepable allocations
+     Subject: mm/migrate.c: no need to check for i > start in do_pages_move()
 has been removed from the -mm tree.  Its filename was
-     mm-make-it-clear-that-gfp-reclaim-modifiers-are-valid-only-for-sleepable-allocations.patch
+     mm-migratec-no-need-to-check-for-i-start-in-do_pages_move.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: make it clear that gfp reclaim modifiers are valid only for sleepable allocations
+From: Wei Yang <richardw.yang@linux.intel.com>
+Subject: mm/migrate.c: no need to check for i > start in do_pages_move()
 
-While it might be really clear to MM developers that gfp reclaim modifiers
-are applicable only to sleepable allocations (those with
-__GFP_DIRECT_RECLAIM) it seems that actual users of the API are not always
-sure.  Make it explicit that they are not applicable for GFP_NOWAIT or
-GFP_ATOMIC allocations which are the most commonly used non-sleepable
-allocation masks.
+Patch series "cleanup on do_pages_move()", v5.
 
-Link: http://lkml.kernel.org/r/20200403083543.11552-3-mhocko@kernel.org
-Acked-by: Paul E. McKenney <paulmck@kernel.org>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Neil Brown <neilb@suse.de>
+The logic in do_pages_move() is a little mess for audience to read and has
+some potential error on handling the return value. Especially there are
+three calls on do_move_pages_to_node() and store_status() with almost the
+same form.
+
+This patch set tries to make the code a little friendly for audience by
+consolidate the calls.
+
+
+This patch (of 4):
+
+At this point, we always have i >= start.  If i == start, store_status()
+will return 0.  So we can drop the check for i > start.
+
+[david@redhat.com rephrase changelog]
+
+Link: http://lkml.kernel.org/r/20200214003017.25558-2-richardw.yang@linux.intel.com
+Signed-off-by: Wei Yang <richardw.yang@linux.intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/migrate.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/include/linux/gfp.h~mm-make-it-clear-that-gfp-reclaim-modifiers-are-valid-only-for-sleepable-allocations
-+++ a/include/linux/gfp.h
-@@ -124,6 +124,8 @@ struct vm_area_struct;
-  *
-  * Reclaim modifiers
-  * ~~~~~~~~~~~~~~~~~
-+ * Please note that all the following flags are only applicable to sleepable
-+ * allocations (e.g. %GFP_NOWAIT and %GFP_ATOMIC will ignore them).
-  *
-  * %__GFP_IO can start physical IO.
-  *
+--- a/mm/migrate.c~mm-migratec-no-need-to-check-for-i-start-in-do_pages_move
++++ a/mm/migrate.c
+@@ -1694,11 +1694,9 @@ static int do_pages_move(struct mm_struc
+ 				err += nr_pages - i - 1;
+ 			goto out;
+ 		}
+-		if (i > start) {
+-			err = store_status(status, start, current_node, i - start);
+-			if (err)
+-				goto out;
+-		}
++		err = store_status(status, start, current_node, i - start);
++		if (err)
++			goto out;
+ 		current_node = NUMA_NO_NODE;
+ 	}
+ out_flush:
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
-
-mm-clarify-__gfp_memalloc-usage.patch
+Patches currently in -mm which might be from richardw.yang@linux.intel.com are
