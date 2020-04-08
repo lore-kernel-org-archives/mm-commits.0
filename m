@@ -1,75 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-check-proper-licensing-of-devicetree-bindings.patch removed from
- -mm tree
-Date: Tue, 07 Apr 2020 19:01:43 -0700
-Message-ID: <20200408020143.rdvXxL8V4%akpm@linux-foundation.org>
+ checkpatch-avoid-warning-about-uninitialized_var.patch removed from -mm
+ tree
+Date: Tue, 07 Apr 2020 19:01:46 -0700
+Message-ID: <20200408020146.BaLsiHpqe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54812 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54856 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726406AbgDHCBo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 22:01:44 -0400
+        id S1726406AbgDHCBr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 22:01:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: airlied@linux.ie, daniel@ffwll.ch, jernej.skrabec@siol.net, joe@perches.com, jonas@kwiboo.se, laurent.pinchart@ideasonboard.com, lkundrak@v3.sk, mark.rutland@arm.com, mm-commits@vger.kernel.org, narmstrong@baylibre.com, robh@kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: check proper licensing of Devicetree bindings
+     Subject: checkpatch: avoid warning about uninitialized_var()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-check-proper-licensing-of-devicetree-bindings.patch
+     checkpatch-avoid-warning-about-uninitialized_var.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lubomir Rintel <lkundrak@v3.sk>
-Subject: checkpatch: check proper licensing of Devicetree bindings
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: avoid warning about uninitialized_var()
 
-According to Devicetree maintainers (see Link: below), the Devicetree
-binding documents are preferrably licensed (GPL-2.0-only OR BSD-2-Clause).
+WARNING: function definition argument 'flags' should also have an identifier name
+#26: FILE: drivers/tty/serial/sh-sci.c:1348:
++       unsigned long uninitialized_var(flags);
 
-Let's check that.  The actual check is a bit more relaxed, to allow more
-liberal but compatible licensing (e.g.  GPL-2.0-or-later OR BSD-2-Clause).
+Special-case uninitialized_var() to prevent this.
 
-Link: https://lore.kernel.org/lkml/20200108142132.GA4830@bogus/
-Link: http://lkml.kernel.org/r/20200309215153.38824-1-lkundrak@v3.sk
-Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Neil Armstrong <narmstrong@baylibre.com>
-Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-Cc: Jonas Karlman <jonas@kwiboo.se>,
-Cc: Jernej Skrabec <jernej.skrabec@siol.net>,
-Cc: Mark Rutland <mark.rutland@arm.com>,
-Cc: David Airlie <airlied@linux.ie>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
+Link: http://lkml.kernel.org/r/7db7944761b0bd88c70eb17d4b7f40fe589e14ed.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Tested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ scripts/checkpatch.pl |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-check-proper-licensing-of-devicetree-bindings
+--- a/scripts/checkpatch.pl~checkpatch-avoid-warning-about-uninitialized_var
 +++ a/scripts/checkpatch.pl
-@@ -3157,6 +3157,17 @@ sub process {
- 						WARN("SPDX_LICENSE_TAG",
- 						     "'$spdx_license' is not supported in LICENSES/...\n" . $herecurr);
- 					}
-+					if ($realfile =~ m@^Documentation/devicetree/bindings/@ &&
-+					    not $spdx_license =~ /GPL-2\.0.*BSD-2-Clause/) {
-+						my $msg_level = \&WARN;
-+						$msg_level = \&CHK if ($file);
-+						if (&{$msg_level}("SPDX_LICENSE_TAG",
-+
-+								  "DT binding documents should be licensed (GPL-2.0-only OR BSD-2-Clause)\n" . $herecurr) &&
-+						    $fix) {
-+							$fixed[$fixlinenr] =~ s/SPDX-License-Identifier: .*/SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)/;
-+						}
-+					}
- 				}
- 			}
+@@ -4071,7 +4071,7 @@ sub process {
  		}
+ 
+ # check for function declarations without arguments like "int foo()"
+-		if ($line =~ /(\b$Type\s+$Ident)\s*\(\s*\)/) {
++		if ($line =~ /(\b$Type\s*$Ident)\s*\(\s*\)/) {
+ 			if (ERROR("FUNCTION_WITHOUT_ARGS",
+ 				  "Bad function definition - $1() should probably be $1(void)\n" . $herecurr) &&
+ 			    $fix) {
+@@ -6287,13 +6287,17 @@ sub process {
+ 		}
+ 
+ # check for function declarations that have arguments without identifier names
++# while avoiding uninitialized_var(x)
+ 		if (defined $stat &&
+-		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*\(\s*([^{]+)\s*\)\s*;/s &&
+-		    $1 ne "void") {
+-			my $args = trim($1);
++		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*(?:($Ident)|\(\s*\*\s*$Ident\s*\))\s*\(\s*([^{]+)\s*\)\s*;/s &&
++		    (!defined($1) ||
++		     (defined($1) && $1 ne "uninitialized_var")) &&
++		     $2 ne "void") {
++			my $args = trim($2);
+ 			while ($args =~ m/\s*($Type\s*(?:$Ident|\(\s*\*\s*$Ident?\s*\)\s*$balanced_parens)?)/g) {
+ 				my $arg = trim($1);
+-				if ($arg =~ /^$Type$/ && $arg !~ /enum\s+$Ident$/) {
++				if ($arg =~ /^$Type$/ &&
++					$arg !~ /enum\s+$Ident$/) {
+ 					WARN("FUNCTION_ARGUMENTS",
+ 					     "function definition argument '$arg' should also have an identifier name\n" . $herecurr);
+ 				}
 _
 
-Patches currently in -mm which might be from lkundrak@v3.sk are
+Patches currently in -mm which might be from joe@perches.com are
