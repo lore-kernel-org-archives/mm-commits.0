@@ -1,47 +1,42 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-wp-support-swap-and-page-migration.patch removed from -mm tree
-Date: Tue, 07 Apr 2020 18:58:03 -0700
-Message-ID: <20200408015803.-CRGYKy4P%akpm@linux-foundation.org>
+ khugepaged-skip-collapse-if-uffd-wp-detected.patch removed from -mm tree
+Date: Tue, 07 Apr 2020 18:58:06 -0700
+Message-ID: <20200408015806.UrsTHquEp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51388 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51432 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726484AbgDHB6F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Apr 2020 21:58:05 -0400
+        id S1726437AbgDHB6I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Apr 2020 21:58:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, bgeffon@google.com, bobbypowers@gmail.com, cracauer@cons.org, david@redhat.com, dgilbert@redhat.com, dplotnikov@virtuozzo.com, gokhale2@llnl.gov, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, kirill@shutemov.name, mcfadden8@llnl.gov, mgorman@suse.de, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, peterx@redhat.com, riel@redhat.com, rppt@linux.vnet.ibm.com, shli@fb.com, xemul@openvz.org
 
 
 The patch titled
-     Subject: userfaultfd: wp: support swap and page migration
+     Subject: khugepaged: skip collapse if uffd-wp detected
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-wp-support-swap-and-page-migration.patch
+     khugepaged-skip-collapse-if-uffd-wp-detected.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: userfaultfd: wp: support swap and page migration
+Subject: khugepaged: skip collapse if uffd-wp detected
 
-For either swap and page migration, we all use the bit 2 of the entry to
-identify whether this entry is uffd write-protected.  It plays a similar
-role as the existing soft dirty bit in swap entries but only for keeping
-the uffd-wp tracking for a specific PTE/PMD.
+Don't collapse the huge PMD if there is any userfault write protected
+small PTEs.  The problem is that the write protection is in small page
+granularity and there's no way to keep all these write protection
+information if the small pages are going to be merged into a huge PMD.
 
-Something special here is that when we want to recover the uffd-wp bit
-from a swap/migration entry to the PTE bit we'll also need to take care of
-the _PAGE_RW bit and make sure it's cleared, otherwise even with the
-_PAGE_UFFD_WP bit we can't trap it at all.
+The same thing needs to be considered for swap entries and migration
+entries.  So do the check as well disregarding khugepaged_max_ptes_swap.
 
-In change_pte_range() we do nothing for uffd if the PTE is a swap entry. 
-That can lead to data mismatch if the page that we are going to write
-protect is swapped out when sending the UFFDIO_WRITEPROTECT.  This patch
-also applies/removes the uffd-wp bit even for the swap entries.
-
-Link: http://lkml.kernel.org/r/20200220163112.11409-11-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200220163112.11409-12-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Jerome Glisse <jglisse@redhat.com>
+Reviewed-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Bobby Powers <bobbypowers@gmail.com>
 Cc: Brian Geffon <bgeffon@google.com>
@@ -49,7 +44,6 @@ Cc: David Hildenbrand <david@redhat.com>
 Cc: Denis Plotnikov <dplotnikov@virtuozzo.com>
 Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Cc: Martin Cracauer <cracauer@cons.org>
@@ -57,192 +51,72 @@ Cc: Marty McFadden <mcfadden8@llnl.gov>
 Cc: Maya Gokhale <gokhale2@llnl.gov>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Shaohua Li <shli@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swapops.h |    2 ++
- mm/huge_memory.c        |    3 +++
- mm/memory.c             |    8 ++++++++
- mm/migrate.c            |    6 ++++++
- mm/mprotect.c           |   28 +++++++++++++++++-----------
- mm/rmap.c               |    6 ++++++
- 6 files changed, 42 insertions(+), 11 deletions(-)
+ include/trace/events/huge_memory.h |    1 +
+ mm/khugepaged.c                    |   23 +++++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
 
---- a/include/linux/swapops.h~userfaultfd-wp-support-swap-and-page-migration
-+++ a/include/linux/swapops.h
-@@ -68,6 +68,8 @@ static inline swp_entry_t pte_to_swp_ent
- 
- 	if (pte_swp_soft_dirty(pte))
- 		pte = pte_swp_clear_soft_dirty(pte);
-+	if (pte_swp_uffd_wp(pte))
-+		pte = pte_swp_clear_uffd_wp(pte);
- 	arch_entry = __pte_to_swp_entry(pte);
- 	return swp_entry(__swp_type(arch_entry), __swp_offset(arch_entry));
- }
---- a/mm/huge_memory.c~userfaultfd-wp-support-swap-and-page-migration
-+++ a/mm/huge_memory.c
-@@ -2297,6 +2297,7 @@ static void __split_huge_pmd_locked(stru
- 		write = is_write_migration_entry(entry);
- 		young = false;
- 		soft_dirty = pmd_swp_soft_dirty(old_pmd);
-+		uffd_wp = pmd_swp_uffd_wp(old_pmd);
- 	} else {
- 		page = pmd_page(old_pmd);
- 		if (pmd_dirty(old_pmd))
-@@ -2329,6 +2330,8 @@ static void __split_huge_pmd_locked(stru
- 			entry = swp_entry_to_pte(swp_entry);
- 			if (soft_dirty)
- 				entry = pte_swp_mksoft_dirty(entry);
-+			if (uffd_wp)
-+				entry = pte_swp_mkuffd_wp(entry);
- 		} else {
- 			entry = mk_pte(page + i, READ_ONCE(vma->vm_page_prot));
- 			entry = maybe_mkwrite(entry, vma);
---- a/mm/memory.c~userfaultfd-wp-support-swap-and-page-migration
-+++ a/mm/memory.c
-@@ -733,6 +733,8 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 				pte = swp_entry_to_pte(entry);
- 				if (pte_swp_soft_dirty(*src_pte))
- 					pte = pte_swp_mksoft_dirty(pte);
-+				if (pte_swp_uffd_wp(*src_pte))
-+					pte = pte_swp_mkuffd_wp(pte);
- 				set_pte_at(src_mm, addr, src_pte, pte);
- 			}
- 		} else if (is_device_private_entry(entry)) {
-@@ -762,6 +764,8 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 			    is_cow_mapping(vm_flags)) {
- 				make_device_private_entry_read(&entry);
- 				pte = swp_entry_to_pte(entry);
-+				if (pte_swp_uffd_wp(*src_pte))
-+					pte = pte_swp_mkuffd_wp(pte);
- 				set_pte_at(src_mm, addr, src_pte, pte);
- 			}
+--- a/include/trace/events/huge_memory.h~khugepaged-skip-collapse-if-uffd-wp-detected
++++ a/include/trace/events/huge_memory.h
+@@ -13,6 +13,7 @@
+ 	EM( SCAN_PMD_NULL,		"pmd_null")			\
+ 	EM( SCAN_EXCEED_NONE_PTE,	"exceed_none_pte")		\
+ 	EM( SCAN_PTE_NON_PRESENT,	"pte_non_present")		\
++	EM( SCAN_PTE_UFFD_WP,		"pte_uffd_wp")			\
+ 	EM( SCAN_PAGE_RO,		"no_writable_page")		\
+ 	EM( SCAN_LACK_REFERENCED_PAGE,	"lack_referenced_page")		\
+ 	EM( SCAN_PAGE_NULL,		"page_null")			\
+--- a/mm/khugepaged.c~khugepaged-skip-collapse-if-uffd-wp-detected
++++ a/mm/khugepaged.c
+@@ -29,6 +29,7 @@ enum scan_result {
+ 	SCAN_PMD_NULL,
+ 	SCAN_EXCEED_NONE_PTE,
+ 	SCAN_PTE_NON_PRESENT,
++	SCAN_PTE_UFFD_WP,
+ 	SCAN_PAGE_RO,
+ 	SCAN_LACK_REFERENCED_PAGE,
+ 	SCAN_PAGE_NULL,
+@@ -1137,6 +1138,15 @@ static int khugepaged_scan_pmd(struct mm
+ 		pte_t pteval = *_pte;
+ 		if (is_swap_pte(pteval)) {
+ 			if (++unmapped <= khugepaged_max_ptes_swap) {
++				/*
++				 * Always be strict with uffd-wp
++				 * enabled swap entries.  Please see
++				 * comment below for pte_uffd_wp().
++				 */
++				if (pte_swp_uffd_wp(pteval)) {
++					result = SCAN_PTE_UFFD_WP;
++					goto out_unmap;
++				}
+ 				continue;
+ 			} else {
+ 				result = SCAN_EXCEED_SWAP_PTE;
+@@ -1156,6 +1166,19 @@ static int khugepaged_scan_pmd(struct mm
+ 			result = SCAN_PTE_NON_PRESENT;
+ 			goto out_unmap;
  		}
-@@ -3098,6 +3102,10 @@ vm_fault_t do_swap_page(struct vm_fault
- 	flush_icache_page(vma, page);
- 	if (pte_swp_soft_dirty(vmf->orig_pte))
- 		pte = pte_mksoft_dirty(pte);
-+	if (pte_swp_uffd_wp(vmf->orig_pte)) {
-+		pte = pte_mkuffd_wp(pte);
-+		pte = pte_wrprotect(pte);
-+	}
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
- 	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
- 	vmf->orig_pte = pte;
---- a/mm/migrate.c~userfaultfd-wp-support-swap-and-page-migration
-+++ a/mm/migrate.c
-@@ -243,11 +243,15 @@ static bool remove_migration_pte(struct
- 		entry = pte_to_swp_entry(*pvmw.pte);
- 		if (is_write_migration_entry(entry))
- 			pte = maybe_mkwrite(pte, vma);
-+		else if (pte_swp_uffd_wp(*pvmw.pte))
-+			pte = pte_mkuffd_wp(pte);
++		if (pte_uffd_wp(pteval)) {
++			/*
++			 * Don't collapse the page if any of the small
++			 * PTEs are armed with uffd write protection.
++			 * Here we can also mark the new huge pmd as
++			 * write protected if any of the small ones is
++			 * marked but that could bring uknown
++			 * userfault messages that falls outside of
++			 * the registered range.  So, just be simple.
++			 */
++			result = SCAN_PTE_UFFD_WP;
++			goto out_unmap;
++		}
+ 		if (pte_write(pteval))
+ 			writable = true;
  
- 		if (unlikely(is_zone_device_page(new))) {
- 			if (is_device_private_page(new)) {
- 				entry = make_device_private_entry(new, pte_write(pte));
- 				pte = swp_entry_to_pte(entry);
-+				if (pte_swp_uffd_wp(*pvmw.pte))
-+					pte = pte_mkuffd_wp(pte);
- 			}
- 		}
- 
-@@ -2338,6 +2342,8 @@ again:
- 			swp_pte = swp_entry_to_pte(entry);
- 			if (pte_soft_dirty(pte))
- 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+			if (pte_uffd_wp(pte))
-+				swp_pte = pte_swp_mkuffd_wp(swp_pte);
- 			set_pte_at(mm, addr, ptep, swp_pte);
- 
- 			/*
---- a/mm/mprotect.c~userfaultfd-wp-support-swap-and-page-migration
-+++ a/mm/mprotect.c
-@@ -139,11 +139,11 @@ static unsigned long change_pte_range(st
- 			}
- 			ptep_modify_prot_commit(vma, addr, pte, oldpte, ptent);
- 			pages++;
--		} else if (IS_ENABLED(CONFIG_MIGRATION)) {
-+		} else if (is_swap_pte(oldpte)) {
- 			swp_entry_t entry = pte_to_swp_entry(oldpte);
-+			pte_t newpte;
- 
- 			if (is_write_migration_entry(entry)) {
--				pte_t newpte;
- 				/*
- 				 * A protection check is difficult so
- 				 * just be safe and disable write
-@@ -152,22 +152,28 @@ static unsigned long change_pte_range(st
- 				newpte = swp_entry_to_pte(entry);
- 				if (pte_swp_soft_dirty(oldpte))
- 					newpte = pte_swp_mksoft_dirty(newpte);
--				set_pte_at(vma->vm_mm, addr, pte, newpte);
--
--				pages++;
--			}
--
--			if (is_write_device_private_entry(entry)) {
--				pte_t newpte;
--
-+				if (pte_swp_uffd_wp(oldpte))
-+					newpte = pte_swp_mkuffd_wp(newpte);
-+			} else if (is_write_device_private_entry(entry)) {
- 				/*
- 				 * We do not preserve soft-dirtiness. See
- 				 * copy_one_pte() for explanation.
- 				 */
- 				make_device_private_entry_read(&entry);
- 				newpte = swp_entry_to_pte(entry);
--				set_pte_at(vma->vm_mm, addr, pte, newpte);
-+				if (pte_swp_uffd_wp(oldpte))
-+					newpte = pte_swp_mkuffd_wp(newpte);
-+			} else {
-+				newpte = oldpte;
-+			}
- 
-+			if (uffd_wp)
-+				newpte = pte_swp_mkuffd_wp(newpte);
-+			else if (uffd_wp_resolve)
-+				newpte = pte_swp_clear_uffd_wp(newpte);
-+
-+			if (!pte_same(oldpte, newpte)) {
-+				set_pte_at(vma->vm_mm, addr, pte, newpte);
- 				pages++;
- 			}
- 		}
---- a/mm/rmap.c~userfaultfd-wp-support-swap-and-page-migration
-+++ a/mm/rmap.c
-@@ -1502,6 +1502,8 @@ static bool try_to_unmap_one(struct page
- 			swp_pte = swp_entry_to_pte(entry);
- 			if (pte_soft_dirty(pteval))
- 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+			if (pte_uffd_wp(pteval))
-+				swp_pte = pte_swp_mkuffd_wp(swp_pte);
- 			set_pte_at(mm, pvmw.address, pvmw.pte, swp_pte);
- 			/*
- 			 * No need to invalidate here it will synchronize on
-@@ -1601,6 +1603,8 @@ static bool try_to_unmap_one(struct page
- 			swp_pte = swp_entry_to_pte(entry);
- 			if (pte_soft_dirty(pteval))
- 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+			if (pte_uffd_wp(pteval))
-+				swp_pte = pte_swp_mkuffd_wp(swp_pte);
- 			set_pte_at(mm, address, pvmw.pte, swp_pte);
- 			/*
- 			 * No need to invalidate here it will synchronize on
-@@ -1667,6 +1671,8 @@ static bool try_to_unmap_one(struct page
- 			swp_pte = swp_entry_to_pte(entry);
- 			if (pte_soft_dirty(pteval))
- 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+			if (pte_uffd_wp(pteval))
-+				swp_pte = pte_swp_mkuffd_wp(swp_pte);
- 			set_pte_at(mm, address, pvmw.pte, swp_pte);
- 			/* Invalidate as we cleared the pte */
- 			mmu_notifier_invalidate_range(mm, address,
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
