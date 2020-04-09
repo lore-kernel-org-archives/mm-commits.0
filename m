@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-use-a-dedicated-lock-in-struct-pid.patch added to
- -mm tree
-Date: Wed, 08 Apr 2020 17:32:24 -0700
-Message-ID: <20200409003224.hCOTnFAIm%akpm@linux-foundation.org>
+Subject: + docs-mm-slabh-fix-a-broken-cross-reference.patch added
+ to -mm tree
+Date: Wed, 08 Apr 2020 17:34:25 -0700
+Message-ID: <20200409003425.9o4vh7qsR%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40078 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40230 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726545AbgDIAc0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Apr 2020 20:32:26 -0400
+        id S1726536AbgDIAe0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Apr 2020 20:34:26 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, allison@lohutok.net, areber@redhat.com, aubrey.li@linux.intel.com, avagin@gmail.com, bfields@fieldses.org, christian.brauner@ubuntu.com, cyphar@cyphar.com, ebiederm@xmission.com, gregkh@linuxfoundation.org, guro@fb.com, jlayton@kernel.org, joel@joelfernandes.org, keescook@chromium.org, linmiaohe@huawei.com, mhocko@suse.com, mingo@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com, peterz@infradead.org, sargun@sargun.me, tglx@linutronix.de, viro@zeniv.linux.org.uk
+To: cl@linux.com, corbet@lwn.net, iamjoonsoo.kim@lge.com, mchehab+huawei@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: proc: Use a dedicated lock in struct pid
+     Subject: docs: mm: slab.h: fix a broken cross-reference
 has been added to the -mm tree.  Its filename is
-     proc-use-a-dedicated-lock-in-struct-pid.patch
+     docs-mm-slabh-fix-a-broken-cross-reference.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-use-a-dedicated-lock-in-struct-pid.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/docs-mm-slabh-fix-a-broken-cross-reference.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-use-a-dedicated-lock-in-struct-pid.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/docs-mm-slabh-fix-a-broken-cross-reference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,152 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: proc: Use a dedicated lock in struct pid
+From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Subject: docs: mm: slab.h: fix a broken cross-reference
 
-syzbot wrote:
-> ========================================================
-> WARNING: possible irq lock inversion dependency detected
-> 5.6.0-syzkaller #0 Not tainted
-> --------------------------------------------------------
-> swapper/1/0 just changed the state of lock:
-> ffffffff898090d8 (tasklist_lock){.+.?}-{2:2}, at: send_sigurg+0x9f/0x320 fs/fcntl.c:840
-> but this lock took another, SOFTIRQ-unsafe lock in the past:
->  (&pid->wait_pidfd){+.+.}-{2:2}
->
->
-> and interrupts could create inverse lock ordering between them.
->
->
-> other info that might help us debug this:
->  Possible interrupt unsafe locking scenario:
->
->        CPU0                    CPU1
->        ----                    ----
->   lock(&pid->wait_pidfd);
->                                local_irq_disable();
->                                lock(tasklist_lock);
->                                lock(&pid->wait_pidfd);
->   <Interrupt>
->     lock(tasklist_lock);
->
->  *** DEADLOCK ***
->
-> 4 locks held by swapper/1/0:
+There is a typo at the cross-reference link, causing this warning:
 
-The problem is that because wait_pidfd.lock is taken under the tasklist
-lock.  It must always be taken with irqs disabled as tasklist_lock can be
-taken from interrupt context and if wait_pidfd.lock was already taken this
-would create a lock order inversion.
+	./include/linux/slab.h:11: WARNING: undefined label: memory-allocation (if the link has no caption the label must precede a section header)
 
-Oleg suggested just disabling irqs where I have added extra calls to
-wait_pidfd.lock.  That should be safe and I think the code will eventually
-do that.  It was rightly pointed out by Christian that sharing the
-wait_pidfd.lock was a premature optimization.
-
-It is also true that my pre-merge window testing was insufficient.  So
-remove the premature optimization and give struct pid a dedicated lock of
-it's own for struct pid things.  I have verified that lockdep sees all 3
-paths where we take the new pid->lock and lockdep does not complain.
-
-It is my current day dream that one day pid->lock can be used to guard the
-task lists as well and then the tasklist_lock won't need to be held to
-deliver signals.  That will require taking pid->lock with irqs disabled.
-
-Link: https://lore.kernel.org/lkml/00000000000011d66805a25cd73f@google.com/
-Link: http://lkml.kernel.org/r/87pnchwwlj.fsf_-_@x220.int.ebiederm.org
-Fixes: 7bc3e6e55acf ("proc: Use a list of inodes to flush from proc")
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Reported-by: syzbot+343f75cdeea091340956@syzkaller.appspotmail.com
-Reported-by: syzbot+832aabf700bc3ec920b9@syzkaller.appspotmail.com
-Reported-by: syzbot+f675f964019f884dbd0f@syzkaller.appspotmail.com
-Reported-by: syzbot+a9fb1457d720a55d6dc5@syzkaller.appspotmail.com
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Allison Randal <allison@lohutok.net>
-Cc: Adrian Reber <areber@redhat.com>
-Cc: Aubrey Li <aubrey.li@linux.intel.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: J. Bruce Fields <bfields@fieldses.org>
-Cc: Aleksa Sarai <cyphar@cyphar.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Sargun Dhillon <sargun@sargun.me>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/0aeac24235d356ebd935d11e147dcc6edbb6465c.1586359676.git.mchehab+huawei@kernel.org
+Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c      |   10 +++++-----
- include/linux/pid.h |    1 +
- kernel/pid.c        |    1 +
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ include/linux/slab.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/base.c~proc-use-a-dedicated-lock-in-struct-pid
-+++ a/fs/proc/base.c
-@@ -1839,9 +1839,9 @@ void proc_pid_evict_inode(struct proc_in
- 	struct pid *pid = ei->pid;
- 
- 	if (S_ISDIR(ei->vfs_inode.i_mode)) {
--		spin_lock(&pid->wait_pidfd.lock);
-+		spin_lock(&pid->lock);
- 		hlist_del_init_rcu(&ei->sibling_inodes);
--		spin_unlock(&pid->wait_pidfd.lock);
-+		spin_unlock(&pid->lock);
- 	}
- 
- 	put_pid(pid);
-@@ -1877,9 +1877,9 @@ struct inode *proc_pid_make_inode(struct
- 	/* Let the pid remember us for quick removal */
- 	ei->pid = pid;
- 	if (S_ISDIR(mode)) {
--		spin_lock(&pid->wait_pidfd.lock);
-+		spin_lock(&pid->lock);
- 		hlist_add_head_rcu(&ei->sibling_inodes, &pid->inodes);
--		spin_unlock(&pid->wait_pidfd.lock);
-+		spin_unlock(&pid->lock);
- 	}
- 
- 	task_dump_owner(task, 0, &inode->i_uid, &inode->i_gid);
-@@ -3273,7 +3273,7 @@ static const struct inode_operations pro
- 
- void proc_flush_pid(struct pid *pid)
- {
--	proc_invalidate_siblings_dcache(&pid->inodes, &pid->wait_pidfd.lock);
-+	proc_invalidate_siblings_dcache(&pid->inodes, &pid->lock);
- 	put_pid(pid);
- }
- 
---- a/include/linux/pid.h~proc-use-a-dedicated-lock-in-struct-pid
-+++ a/include/linux/pid.h
-@@ -60,6 +60,7 @@ struct pid
- {
- 	refcount_t count;
- 	unsigned int level;
-+	spinlock_t lock;
- 	/* lists of tasks that use this pid */
- 	struct hlist_head tasks[PIDTYPE_MAX];
- 	struct hlist_head inodes;
---- a/kernel/pid.c~proc-use-a-dedicated-lock-in-struct-pid
-+++ a/kernel/pid.c
-@@ -256,6 +256,7 @@ struct pid *alloc_pid(struct pid_namespa
- 
- 	get_pid_ns(ns);
- 	refcount_set(&pid->count, 1);
-+	spin_lock_init(&pid->lock);
- 	for (type = 0; type < PIDTYPE_MAX; ++type)
- 		INIT_HLIST_HEAD(&pid->tasks[type]);
- 
+--- a/include/linux/slab.h~docs-mm-slabh-fix-a-broken-cross-reference
++++ a/include/linux/slab.h
+@@ -501,7 +501,7 @@ static __always_inline void *kmalloc_lar
+  * :ref:`Documentation/core-api/mm-api.rst <mm-api-gfp-flags>`
+  *
+  * The recommended usage of the @flags is described at
+- * :ref:`Documentation/core-api/memory-allocation.rst <memory-allocation>`
++ * :ref:`Documentation/core-api/memory-allocation.rst <memory_allocation>`
+  *
+  * Below is a brief outline of the most useful GFP flags
+  *
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from mchehab+huawei@kernel.org are
 
-proc-use-a-dedicated-lock-in-struct-pid.patch
+docs-mm-slabh-fix-a-broken-cross-reference.patch
