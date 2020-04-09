@@ -1,31 +1,29 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-page_alloc-make-pcpu_drain_mutex-and-pcpu_drain-static.patch added to
- -mm tree
-Date: Wed, 08 Apr 2020 18:30:49 -0700
-Message-ID: <20200409013049.3qfl_dT4E%akpm@linux-foundation.org>
+Subject: + mm-cma-numa-node-interface-fix.patch added to -mm tree
+Date: Wed, 08 Apr 2020 21:39:43 -0700
+Message-ID: <20200409043943.vwo4xw79H%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48644 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726523AbgDIBat (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Apr 2020 21:30:49 -0400
+        id S1725271AbgDIEjo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Apr 2020 00:39:44 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hulkci@huawei.com, mm-commits@vger.kernel.org, yanaijie@huawei.com
+To: akpm@linux-foundation.org, andreas.schaufler@gmx.de, aslan@fb.com, guro@fb.com, js1304@gmail.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, riel@surriel.com
 
 
 The patch titled
-     Subject: mm/page_alloc: make pcpu_drain_mutex and pcpu_drain static
+     Subject: mm-cma-numa-node-interface-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-make-pcpu_drain_mutex-and-pcpu_drain-static.patch
+     mm-cma-numa-node-interface-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-make-pcpu_drain_mutex-and-pcpu_drain-static.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-numa-node-interface-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-make-pcpu_drain_mutex-and-pcpu_drain-static.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-numa-node-interface-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,40 +37,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jason Yan <yanaijie@huawei.com>
-Subject: mm/page_alloc: make pcpu_drain_mutex and pcpu_drain static
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-cma-numa-node-interface-fix
 
-Fix the following sparse warning:
+./include/linux/cma.h: In function cma_declare_contiguous:
+./include/linux/cma.h:38:41: error: NUMA_NO_NODE undeclared (first use in this function)
+    order_per_bit, fixed, name, res_cma, NUMA_NO_NODE);
+                                         ^~~~~~~~~~~~
 
-mm/page_alloc.c:106:1: warning: symbol 'pcpu_drain_mutex' was not
-declared. Should it be static?
-mm/page_alloc.c:107:1: warning: symbol '__pcpu_scope_pcpu_drain' was not
-declared. Should it be static?
-
-Link: http://lkml.kernel.org/r/20200407023925.46438-1-yanaijie@huawei.com
-Signed-off-by: Jason Yan <yanaijie@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
+Cc: Aslan Bakirov <aslan@fb.com>
+Cc: Roman Gushchin <guro@fb.com>
+Acked-by: Michal Hocko <mhocko@kernel.org>
+Cc: Andreas Schaufler <andreas.schaufler@gmx.de>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Joonsoo Kim <js1304@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/cma.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-make-pcpu_drain_mutex-and-pcpu_drain-static
-+++ a/mm/page_alloc.c
-@@ -103,8 +103,8 @@ struct pcpu_drain {
- 	struct zone *zone;
- 	struct work_struct work;
- };
--DEFINE_MUTEX(pcpu_drain_mutex);
--DEFINE_PER_CPU(struct pcpu_drain, pcpu_drain);
-+static DEFINE_MUTEX(pcpu_drain_mutex);
-+static DEFINE_PER_CPU(struct pcpu_drain, pcpu_drain);
+--- a/include/linux/cma.h~mm-cma-numa-node-interface-fix
++++ a/include/linux/cma.h
+@@ -4,6 +4,7 @@
  
- #ifdef CONFIG_GCC_PLUGIN_LATENT_ENTROPY
- volatile unsigned long latent_entropy __latent_entropy;
+ #include <linux/init.h>
+ #include <linux/types.h>
++#include <linux/numa.h>
+ 
+ /*
+  * There is always at least global CMA area and a few optional
 _
 
-Patches currently in -mm which might be from yanaijie@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-make-pcpu_drain_mutex-and-pcpu_drain-static.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+mm-clarify-__gfp_memalloc-usage-update-checkpatch-fixes.patch
+linux-next-fix.patch
+linux-next-git-rejects.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mm-cma-numa-node-interface-fix.patch
