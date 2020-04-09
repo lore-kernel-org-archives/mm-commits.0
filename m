@@ -1,79 +1,159 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fat-dont-allow-to-mount-if-the-fat-length-==-0.patch
- added to -mm tree
-Date: Wed, 08 Apr 2020 18:07:50 -0700
-Message-ID: <20200409010750.t3QDF5_Lo%akpm@linux-foundation.org>
+Subject: [nacked]
+ list-prevent-compiler-reloads-inside-safe-list-iteration.patch removed from
+ -mm tree
+Date: Wed, 08 Apr 2020 18:03:11 -0700
+Message-ID: <20200409010311._VBPnmIWD%akpm__41041.9576264516$1586394686$gmane$org@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46026 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726555AbgDIBHv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Apr 2020 21:07:51 -0400
+        id S1726527AbgDIBDM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Apr 2020 21:03:12 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, elver@google.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: chris@chris-wilson.co.uk, David.Laight@ACULAB.COM, elver@google.com, mark.rutland@arm.com, mm-commits@vger.kernel.org, paulmck@kernel.org, rdunlap@infradead.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: don't allow to mount if the FAT length == 0
-has been added to the -mm tree.  Its filename is
-     fat-dont-allow-to-mount-if-the-fat-length-==-0.patch
+     Subject: lib/list: prevent compiler reloads inside 'safe' list iteration
+has been removed from the -mm tree.  Its filename was
+     list-prevent-compiler-reloads-inside-safe-list-iteration.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-dont-allow-to-mount-if-the-fat-length-%3D%3D-0.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fat-dont-allow-to-mount-if-the-fat-length-%3D%3D-0.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fat: don't allow to mount if the FAT length == 0
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: lib/list: prevent compiler reloads inside 'safe' list iteration
 
-If FAT length == 0, the image doesn't have any data. And it can be the
-cause of overlapping the root dir and FAT entries.
+Instruct the compiler to read the next element in the list iteration
+once, and that it is not allowed to reload the value from the stale
+element later. This is important as during the course of the safe
+iteration, the stale element may be poisoned (unbeknownst to the
+compiler).
 
-Also Windows treats it as invalid format.
+This helps prevent kcsan warnings over 'unsafe' conduct in releasing the
+list elements during list_for_each_entry_safe() and friends.
 
-Link: http://lkml.kernel.org/r/87r1wz8mrd.fsf@mail.parknet.co.jp
-Reported-by: syzbot+6f1624f937d9d6911e2d@syzkaller.appspotmail.com
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Link: http://lkml.kernel.org/r/20200310092119.14965-1-chris@chris-wilson.co.uk
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/list.h |   50 +++++++++++++++++++++++++++++------------
+ 1 file changed, 36 insertions(+), 14 deletions(-)
 
---- a/fs/fat/inode.c~fat-dont-allow-to-mount-if-the-fat-length-==-0
-+++ a/fs/fat/inode.c
-@@ -1520,6 +1520,12 @@ static int fat_read_bpb(struct super_blo
- 		goto out;
- 	}
+--- a/include/linux/list.h~list-prevent-compiler-reloads-inside-safe-list-iteration
++++ a/include/linux/list.h
+@@ -537,6 +537,17 @@ static inline void list_splice_tail_init
+ 	list_entry((pos)->member.next, typeof(*(pos)), member)
  
-+	if (bpb->fat_fat_length == 0 && bpb->fat32_length == 0) {
-+		if (!silent)
-+			fat_msg(sb, KERN_ERR, "bogus number of FAT sectors");
-+		goto out;
-+	}
+ /**
++ * list_next_entry_safe - get the next element in list [once]
++ * @pos:	the type * to cursor
++ * @member:	the name of the list_head within the struct.
++ *
++ * Like list_next_entry() but prevents the compiler from reloading the
++ * next element.
++ */
++#define list_next_entry_safe(pos, member) \
++	list_entry(READ_ONCE((pos)->member.next), typeof(*(pos)), member)
 +
- 	error = 0;
++/**
+  * list_prev_entry - get the prev element in list
+  * @pos:	the type * to cursor
+  * @member:	the name of the list_head within the struct.
+@@ -545,6 +556,17 @@ static inline void list_splice_tail_init
+ 	list_entry((pos)->member.prev, typeof(*(pos)), member)
  
- out:
+ /**
++ * list_prev_entry_safe - get the prev element in list [once]
++ * @pos:	the type * to cursor
++ * @member:	the name of the list_head within the struct.
++ *
++ * Like list_prev_entry() but prevents the compiler from reloading the
++ * previous element.
++ */
++#define list_prev_entry_safe(pos, member) \
++	list_entry(READ_ONCE((pos)->member.prev), typeof(*(pos)), member)
++
++/**
+  * list_for_each	-	iterate over a list
+  * @pos:	the &struct list_head to use as a loop cursor.
+  * @head:	the head for your list.
+@@ -686,9 +708,9 @@ static inline void list_splice_tail_init
+  */
+ #define list_for_each_entry_safe(pos, n, head, member)			\
+ 	for (pos = list_first_entry(head, typeof(*pos), member),	\
+-		n = list_next_entry(pos, member);			\
++		n = list_next_entry_safe(pos, member);			\
+ 	     &pos->member != (head); 					\
+-	     pos = n, n = list_next_entry(n, member))
++	     pos = n, n = list_next_entry_safe(n, member))
+ 
+ /**
+  * list_for_each_entry_safe_continue - continue list iteration safe against removal
+@@ -700,11 +722,11 @@ static inline void list_splice_tail_init
+  * Iterate over list of given type, continuing after current point,
+  * safe against removal of list entry.
+  */
+-#define list_for_each_entry_safe_continue(pos, n, head, member) 		\
+-	for (pos = list_next_entry(pos, member), 				\
+-		n = list_next_entry(pos, member);				\
+-	     &pos->member != (head);						\
+-	     pos = n, n = list_next_entry(n, member))
++#define list_for_each_entry_safe_continue(pos, n, head, member) 	\
++	for (pos = list_next_entry(pos, member), 			\
++		n = list_next_entry_safe(pos, member);			\
++	     &pos->member != (head);					\
++	     pos = n, n = list_next_entry_safe(n, member))
+ 
+ /**
+  * list_for_each_entry_safe_from - iterate over list from current point safe against removal
+@@ -716,10 +738,10 @@ static inline void list_splice_tail_init
+  * Iterate over list of given type from current point, safe against
+  * removal of list entry.
+  */
+-#define list_for_each_entry_safe_from(pos, n, head, member) 			\
+-	for (n = list_next_entry(pos, member);					\
+-	     &pos->member != (head);						\
+-	     pos = n, n = list_next_entry(n, member))
++#define list_for_each_entry_safe_from(pos, n, head, member) 		\
++	for (n = list_next_entry_safe(pos, member);			\
++	     &pos->member != (head);					\
++	     pos = n, n = list_next_entry_safe(n, member))
+ 
+ /**
+  * list_for_each_entry_safe_reverse - iterate backwards over list safe against removal
+@@ -733,9 +755,9 @@ static inline void list_splice_tail_init
+  */
+ #define list_for_each_entry_safe_reverse(pos, n, head, member)		\
+ 	for (pos = list_last_entry(head, typeof(*pos), member),		\
+-		n = list_prev_entry(pos, member);			\
++		n = list_prev_entry_safe(pos, member);			\
+ 	     &pos->member != (head); 					\
+-	     pos = n, n = list_prev_entry(n, member))
++	     pos = n, n = list_prev_entry_safe(n, member))
+ 
+ /**
+  * list_safe_reset_next - reset a stale list_for_each_entry_safe loop
+@@ -750,7 +772,7 @@ static inline void list_splice_tail_init
+  * completing the current iteration of the loop body.
+  */
+ #define list_safe_reset_next(pos, n, member)				\
+-	n = list_next_entry(pos, member)
++	n = list_next_entry_safe(pos, member)
+ 
+ /*
+  * Double linked lists with a single pointer list head.
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
-
-fat-dont-allow-to-mount-if-the-fat-length-==-0.patch
+Patches currently in -mm which might be from chris@chris-wilson.co.uk are
