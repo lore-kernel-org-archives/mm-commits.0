@@ -1,100 +1,79 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-no-need-try-to-truncate-file-beyond-i_size.patch
- added to -mm tree
-Date: Wed, 08 Apr 2020 18:11:55 -0700
-Message-ID: <20200409011155.OUS6Ryqyg%akpm@linux-foundation.org>
+Subject: [obsolete]
+ mm-clarify-__gfp_memalloc-usage-checkpatch-fixes.patch removed from -mm
+ tree
+Date: Wed, 08 Apr 2020 18:24:44 -0700
+Message-ID: <20200409012444.n8iR0EHK-%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46322 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47706 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726534AbgDIBL4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Apr 2020 21:11:56 -0400
+        id S1726552AbgDIBYp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Apr 2020 21:24:45 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chge@linux.alibaba.com, gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: no need try to truncate file beyond i_size
-has been added to the -mm tree.  Its filename is
-     ocfs2-no-need-try-to-truncate-file-beyond-i_size.patch
+     Subject: mm-clarify-__gfp_memalloc-usage-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-clarify-__gfp_memalloc-usage-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-no-need-try-to-truncate-file-beyond-i_size.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-no-need-try-to-truncate-file-beyond-i_size.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Changwei Ge <chge@linux.alibaba.com>
-Subject: ocfs2: no need try to truncate file beyond i_size
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-clarify-__gfp_memalloc-usage-checkpatch-fixes
 
-Linux fallocate(2) with FALLOC_FL_PUNCH_HOLE mode set, its offset can
-exceed inode size.  Ocfs2 now does't allow that offset beyond inode size. 
-This restriction is not necessary and voilates fallocate(2) semantics.
+WARNING: line over 80 characters
+#32: FILE: include/linux/gfp.h:114:
++ * completely and implement a throttling mechanism which controls the consumption
 
-If fallocate(2) offset is beyond inode size, just return success and do
-nothing further.
+total: 0 errors, 1 warnings, 9 lines checked
 
-Otherwise, ocfs2 will crash the kernel.
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
 
-kernel BUG at fs/ocfs2//alloc.c:7264!
- ocfs2_truncate_inline+0x20f/0x360 [ocfs2]
- ? ocfs2_read_blocks+0x2f3/0x5f0 [ocfs2]
- ocfs2_remove_inode_range+0x23c/0xcb0 [ocfs2]
- ? ocfs2_read_inode_block+0x10/0x20 [ocfs2]
- ? ocfs2_allocate_extend_trans+0x1a0/0x1a0 [ocfs2]
- __ocfs2_change_file_space+0x4a5/0x650 [ocfs2]
- ocfs2_fallocate+0x83/0xa0 [ocfs2]
- ? __audit_syscall_entry+0xb8/0x100
- ? __sb_start_write+0x3b/0x70
- vfs_fallocate+0x148/0x230
- SyS_fallocate+0x48/0x80
- do_syscall_64+0x79/0x170
+./patches/mm-clarify-__gfp_memalloc-usage.patch has style problems, please review.
 
-Link: http://lkml.kernel.org/r/20200407082754.17565-1-chge@linux.alibaba.com
-Signed-off-by: Changwei Ge <chge@linux.alibaba.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/gfp.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-no-need-try-to-truncate-file-beyond-i_size
-+++ a/fs/ocfs2/alloc.c
-@@ -7402,6 +7402,10 @@ int ocfs2_truncate_inline(struct inode *
- 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)di_bh->b_data;
- 	struct ocfs2_inline_data *idata = &di->id2.i_data;
- 
-+	/* No need to punch hole beyond i_size. */
-+	if (start >= i_size_read(inode))
-+		return 0;
-+
- 	if (end > i_size_read(inode))
- 		end = i_size_read(inode);
- 
+--- a/include/linux/gfp.h~mm-clarify-__gfp_memalloc-usage-checkpatch-fixes
++++ a/include/linux/gfp.h
+@@ -111,8 +111,8 @@ struct vm_area_struct;
+  * very shortly e.g. process exiting or swapping. Users either should
+  * be the MM or co-ordinating closely with the VM (e.g. swap over NFS).
+  * Users of this flag have to be extremely careful to not deplete the reserve
+- * completely and implement a throttling mechanism which controls the consumption
+- * of the reserve based on the amount of freed memory.
++ * completely and implement a throttling mechanism which controls the
++ * consumption of the reserve based on the amount of freed memory.
+  *
+  * %__GFP_NOMEMALLOC is used to explicitly forbid access to emergency reserves.
+  * This takes precedence over the %__GFP_MEMALLOC flag if both are set.
 _
 
-Patches currently in -mm which might be from chge@linux.alibaba.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-no-need-try-to-truncate-file-beyond-i_size.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+linux-next-fix.patch
+linux-next-git-rejects.patch
+mm-add-vm_insert_pages-fix.patch
+net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy-fix.patch
+seq_read-info-message-about-buggy-next-functions-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
