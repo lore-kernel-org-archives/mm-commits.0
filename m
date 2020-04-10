@@ -1,437 +1,535 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 16/35] mm/vma: define a default value for
- VM_DATA_DEFAULT_FLAGS
-Date: Fri, 10 Apr 2020 14:33:05 -0700
-Message-ID: <20200410213305.1kilHaPjJ%akpm@linux-foundation.org>
+Subject: [patch 18/35] mm/special: create generic fallbacks for
+ pte_special() and pte_mkspecial()
+Date: Fri, 10 Apr 2020 14:33:13 -0700
+Message-ID: <20200410213313.TPs1BLKEl%akpm@linux-foundation.org>
 References: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46972 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47210 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726657AbgDJVdI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Apr 2020 17:33:08 -0400
+        id S1726725AbgDJVdP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Apr 2020 17:33:15 -0400
 In-Reply-To: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anshuman.khandual@arm.com, bcain@codeaurora.org, catalin.marinas@arm.com, chris@zankel.net, dalias@libc.org, davem@davemloft.net, geert@linux-m68k.org, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, James.Bottomley@HansenPartnership.com, jdike@addtoit.com, jonas@southpole.se, ley.foon.tan@intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, paulburton@kernel.org, ralf@linux-mips.org, rth@twiddle.net, tglx@linutronix.de, tony.luck@intel.com, torvalds@linux-foundation.org, vbabka@suse.cz, vgupta@synopsys.com, ysato@users.sourceforge.jp
+To: akpm@linux-foundation.org, anshuman.khandual@arm.com, anton.ivanov@cambridgegreys.com, bcain@codeaurora.org, chris@zankel.net, davem@davemloft.net, deanbo422@gmail.com, deller@gmx.de, fenghua.yu@intel.com, geert@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, ink@jurassic.park.msu.ru, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, jdike@addtoit.com, jonas@southpole.se, ley.foon.tan@intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, mattst88@gmail.com, mm-commits@vger.kernel.org, monstr@monstr.eu, nickhu@andestech.com, paulburton@kernel.org, ralf@linux-mips.org, richard@nod.at, rth@twiddle.net, sammy@sammy.net, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, tony.luck@intel.com, torvalds@linux-foundation.org, tsbogend@alpha.franken.de
 
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/vma: define a default value for VM_DATA_DEFAULT_FLAGS
+Subject: mm/special: create generic fallbacks for pte_special() and pte_mkspecial()
 
-There are many platforms with exact same value for VM_DATA_DEFAULT_FLAGS
-This creates a default value for VM_DATA_DEFAULT_FLAGS in line with the
-existing VM_STACK_DEFAULT_FLAGS.  While here, also define some more macros
-with standard VMA access flag combinations that are used frequently across
-many platforms.  Apart from simplification, this reduces code duplication
-as well.
+Currently there are many platforms that dont enable ARCH_HAS_PTE_SPECIAL
+but required to define quite similar fallback stubs for special page table
+entry helpers such as pte_special() and pte_mkspecial(), as they get build
+in generic MM without a config check.  This creates two generic fallback
+stub definitions for these helpers, eliminating much code duplication.
 
-Link: http://lkml.kernel.org/r/1583391014-8170-2-git-send-email-anshuman.khandual@arm.com
+mips platform has a special case where pte_special() and pte_mkspecial()
+visibility is wider than what ARCH_HAS_PTE_SPECIAL enablement requires. 
+This restricts those symbol visibility in order to avoid redefinitions
+which is now exposed through this new generic stubs and subsequent build
+failure.  arm platform set_pte_at() definition needs to be moved into a C
+file just to prevent a build failure.
+
+[anshuman.khandual@arm.com: use defined(CONFIG_ARCH_HAS_PTE_SPECIAL) in mips per Thomas]
+  Link: http://lkml.kernel.org/r/1583851924-21603-1-git-send-email-anshuman.khandual@arm.com
+Link: http://lkml.kernel.org/r/1583802551-15406-1-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Guo Ren <guoren@kernel.org>			[csky]
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>	[m68k]
+Acked-by: Stafford Horne <shorne@gmail.com>		[openrisc]
+Acked-by: Helge Deller <deller@gmx.de>			[parisc]
 Cc: Richard Henderson <rth@twiddle.net>
-Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Cc: Brian Cain <bcain@codeaurora.org>
 Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Sam Creasey <sammy@sammy.net>
 Cc: Michal Simek <monstr@monstr.eu>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Paul Burton <paulburton@kernel.org>
 Cc: Nick Hu <nickhu@andestech.com>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Vincent Chen <deanbo422@gmail.com>
 Cc: Ley Foon Tan <ley.foon.tan@intel.com>
 Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Rich Felker <dalias@libc.org>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Guan Xuetao <gxt@pku.edu.cn>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Guan Xuetao <gxt@pku.edu.cn>
 Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/page.h      |    3 ---
- arch/arc/include/asm/page.h        |    2 +-
- arch/arm/include/asm/page.h        |    4 +---
- arch/arm64/include/asm/page.h      |    4 +---
- arch/c6x/include/asm/page.h        |    5 +----
- arch/csky/include/asm/page.h       |    3 ---
- arch/h8300/include/asm/page.h      |    2 --
- arch/hexagon/include/asm/page.h    |    3 +--
- arch/ia64/include/asm/page.h       |    5 +----
- arch/m68k/include/asm/page.h       |    3 ---
- arch/microblaze/include/asm/page.h |    2 --
- arch/mips/include/asm/page.h       |    5 +----
- arch/nds32/include/asm/page.h      |    3 ---
- arch/nios2/include/asm/page.h      |    3 +--
- arch/openrisc/include/asm/page.h   |    5 -----
- arch/parisc/include/asm/page.h     |    3 ---
- arch/powerpc/include/asm/page.h    |    9 ++-------
- arch/powerpc/include/asm/page_64.h |    7 ++-----
- arch/riscv/include/asm/page.h      |    3 +--
- arch/s390/include/asm/page.h       |    3 +--
- arch/sh/include/asm/page.h         |    3 ---
- arch/sparc/include/asm/page_32.h   |    3 ---
- arch/sparc/include/asm/page_64.h   |    3 ---
- arch/unicore32/include/asm/page.h  |    3 ---
- arch/x86/include/asm/page_types.h  |    4 +---
- arch/x86/um/asm/vm-flags.h         |   10 ++--------
- arch/xtensa/include/asm/page.h     |    3 ---
- include/linux/mm.h                 |   14 ++++++++++++++
- 28 files changed, 31 insertions(+), 89 deletions(-)
+ arch/alpha/include/asm/pgtable.h         |    2 
+ arch/arm/include/asm/pgtable-2level.h    |    2 
+ arch/arm/include/asm/pgtable.h           |   15 -------
+ arch/arm/mm/mmu.c                        |   14 ++++++
+ arch/csky/include/asm/pgtable.h          |    3 -
+ arch/hexagon/include/asm/pgtable.h       |    2 
+ arch/ia64/include/asm/pgtable.h          |    2 
+ arch/m68k/include/asm/mcf_pgtable.h      |   10 ----
+ arch/m68k/include/asm/motorola_pgtable.h |    2 
+ arch/m68k/include/asm/sun3_pgtable.h     |    2 
+ arch/microblaze/include/asm/pgtable.h    |    4 -
+ arch/mips/include/asm/pgtable.h          |   44 ++++++++++++++-------
+ arch/nds32/include/asm/pgtable.h         |    9 ----
+ arch/nios2/include/asm/pgtable.h         |    3 -
+ arch/openrisc/include/asm/pgtable.h      |    2 
+ arch/parisc/include/asm/pgtable.h        |    2 
+ arch/sparc/include/asm/pgtable_32.h      |    7 ---
+ arch/um/include/asm/pgtable.h            |   10 ----
+ arch/unicore32/include/asm/pgtable.h     |    3 -
+ arch/xtensa/include/asm/pgtable.h        |    3 -
+ include/linux/mm.h                       |   12 +++++
+ 21 files changed, 58 insertions(+), 95 deletions(-)
 
---- a/arch/alpha/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/alpha/include/asm/page.h
-@@ -90,9 +90,6 @@ typedef struct page *pgtable_t;
- #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
- #endif /* CONFIG_DISCONTIGMEM */
+--- a/arch/alpha/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/alpha/include/asm/pgtable.h
+@@ -268,7 +268,6 @@ extern inline void pud_clear(pud_t * pud
+ extern inline int pte_write(pte_t pte)		{ return !(pte_val(pte) & _PAGE_FOW); }
+ extern inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+ extern inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+-extern inline int pte_special(pte_t pte)	{ return 0; }
  
--#define VM_DATA_DEFAULT_FLAGS		(VM_READ | VM_WRITE | VM_EXEC | \
--					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
--
- #include <asm-generic/memory_model.h>
- #include <asm-generic/getorder.h>
+ extern inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) |= _PAGE_FOW; return pte; }
+ extern inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~(__DIRTY_BITS); return pte; }
+@@ -276,7 +275,6 @@ extern inline pte_t pte_mkold(pte_t pte)
+ extern inline pte_t pte_mkwrite(pte_t pte)	{ pte_val(pte) &= ~_PAGE_FOW; return pte; }
+ extern inline pte_t pte_mkdirty(pte_t pte)	{ pte_val(pte) |= __DIRTY_BITS; return pte; }
+ extern inline pte_t pte_mkyoung(pte_t pte)	{ pte_val(pte) |= __ACCESS_BITS; return pte; }
+-extern inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
  
---- a/arch/arc/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/arc/include/asm/page.h
-@@ -102,7 +102,7 @@ typedef pte_t * pgtable_t;
- #define virt_addr_valid(kaddr)  pfn_valid(virt_to_pfn(kaddr))
+ #define PAGE_DIR_OFFSET(tsk,address) pgd_offset((tsk),(address))
  
- /* Default Permissions for stack/heaps pages (Non Executable) */
--#define VM_DATA_DEFAULT_FLAGS   (VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+--- a/arch/arm/include/asm/pgtable-2level.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/arm/include/asm/pgtable-2level.h
+@@ -211,8 +211,6 @@ static inline pmd_t *pmd_offset(pud_t *p
+ #define pmd_addr_end(addr,end) (end)
  
- #define WANT_PAGE_VIRTUAL   1
+ #define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
+-#define pte_special(pte)	(0)
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
  
---- a/arch/arm64/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/arm64/include/asm/page.h
-@@ -36,9 +36,7 @@ extern int pfn_valid(unsigned long);
- 
- #endif /* !__ASSEMBLY__ */
- 
--#define VM_DATA_DEFAULT_FLAGS \
--	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
--	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
- 
- #include <asm-generic/getorder.h>
- 
---- a/arch/arm/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/arm/include/asm/page.h
-@@ -161,9 +161,7 @@ extern int pfn_valid(unsigned long);
- 
- #endif /* !__ASSEMBLY__ */
- 
--#define VM_DATA_DEFAULT_FLAGS \
--	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
--	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
- 
- #include <asm-generic/getorder.h>
- 
---- a/arch/c6x/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/c6x/include/asm/page.h
-@@ -2,10 +2,7 @@
- #ifndef _ASM_C6X_PAGE_H
- #define _ASM_C6X_PAGE_H
- 
--#define VM_DATA_DEFAULT_FLAGS \
--	(VM_READ | VM_WRITE | \
--	((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
--		 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
- 
- #include <asm-generic/page.h>
- 
---- a/arch/csky/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/csky/include/asm/page.h
-@@ -85,9 +85,6 @@ extern unsigned long va_pa_offset;
- 				 PHYS_OFFSET_OFFSET)
- #define virt_to_page(x)	(mem_map + MAP_NR(x))
- 
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
--
- #define pfn_to_kaddr(x)	__va(PFN_PHYS(x))
- 
- #include <asm-generic/memory_model.h>
---- a/arch/h8300/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/h8300/include/asm/page.h
-@@ -6,8 +6,6 @@
- #include <linux/types.h>
- 
- #define MAP_NR(addr) (((uintptr_t)(addr)-PAGE_OFFSET) >> PAGE_SHIFT)
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
- 
- #ifndef __ASSEMBLY__
- extern unsigned long rom_length;
---- a/arch/hexagon/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/hexagon/include/asm/page.h
-@@ -93,8 +93,7 @@ struct page;
- #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(__pa(kaddr)))
- 
- /* Default vm area behavior is non-executable.  */
--#define VM_DATA_DEFAULT_FLAGS (VM_READ | VM_WRITE | \
--				VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
- 
- #define pfn_valid(pfn) ((pfn) < max_mapnr)
- #define virt_addr_valid(kaddr) pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
---- a/arch/ia64/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/ia64/include/asm/page.h
-@@ -218,10 +218,7 @@ get_order (unsigned long size)
- 
- #define PAGE_OFFSET			RGN_BASE(RGN_KERNEL)
- 
--#define VM_DATA_DEFAULT_FLAGS		(VM_READ | VM_WRITE |					\
--					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |		\
--					 (((current->personality & READ_IMPLIES_EXEC) != 0)	\
--					  ? VM_EXEC : 0))
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
- 
- #define GATE_ADDR		RGN_BASE(RGN_GATE)
- 
---- a/arch/m68k/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/m68k/include/asm/page.h
-@@ -65,9 +65,6 @@ extern unsigned long _ramend;
- #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
- #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
- 
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
--
- #include <asm-generic/getorder.h>
- 
- #endif /* _M68K_PAGE_H */
---- a/arch/microblaze/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/microblaze/include/asm/page.h
-@@ -194,8 +194,6 @@ extern int page_is_ram(unsigned long pfn
- 
- #ifdef CONFIG_MMU
- 
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
- #endif /* CONFIG_MMU */
- 
- #endif /* __KERNEL__ */
---- a/arch/mips/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/mips/include/asm/page.h
-@@ -253,10 +253,7 @@ extern bool __virt_addr_valid(const vola
- #define virt_addr_valid(kaddr)						\
- 	__virt_addr_valid((const volatile void *) (kaddr))
- 
--#define VM_DATA_DEFAULT_FLAGS \
--	(VM_READ | VM_WRITE | \
--	 ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
--	 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
- 
- #include <asm-generic/memory_model.h>
- #include <asm-generic/getorder.h>
---- a/arch/nds32/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/nds32/include/asm/page.h
-@@ -59,9 +59,6 @@ typedef struct page *pgtable_t;
- 
- #endif /* !__ASSEMBLY__ */
- 
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
--
- #endif /* __KERNEL__ */
- 
+ /*
+  * We don't have huge page support for short descriptors, for the moment
+--- a/arch/arm/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/arm/include/asm/pgtable.h
+@@ -243,19 +243,8 @@ static inline void __sync_icache_dcache(
+ extern void __sync_icache_dcache(pte_t pteval);
  #endif
---- a/arch/nios2/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/nios2/include/asm/page.h
-@@ -98,8 +98,7 @@ static inline bool pfn_valid(unsigned lo
- # define virt_to_page(vaddr)	pfn_to_page(PFN_DOWN(virt_to_phys(vaddr)))
- # define virt_addr_valid(vaddr)	pfn_valid(PFN_DOWN(virt_to_phys(vaddr)))
  
--# define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+# define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
- 
- #include <asm-generic/memory_model.h>
- 
---- a/arch/openrisc/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/openrisc/include/asm/page.h
-@@ -86,11 +86,6 @@ typedef struct page *pgtable_t;
- 
- #endif /* __ASSEMBLY__ */
- 
+-static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+-			      pte_t *ptep, pte_t pteval)
+-{
+-	unsigned long ext = 0;
 -
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-	if (addr < TASK_SIZE && pte_valid_user(pteval)) {
+-		if (!pte_special(pteval))
+-			__sync_icache_dcache(pteval);
+-		ext |= PTE_EXT_NG;
+-	}
 -
--
- #include <asm-generic/memory_model.h>
- #include <asm-generic/getorder.h>
+-	set_pte_ext(ptep, pteval, ext);
+-}
++void set_pte_at(struct mm_struct *mm, unsigned long addr,
++		      pte_t *ptep, pte_t pteval);
  
---- a/arch/parisc/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/parisc/include/asm/page.h
-@@ -180,9 +180,6 @@ extern int npmem_ranges;
- #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
- #define virt_to_page(kaddr)     pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+ static inline pte_t clear_pte_bit(pte_t pte, pgprot_t prot)
+ {
+--- a/arch/arm/mm/mmu.c~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/arm/mm/mmu.c
+@@ -1646,3 +1646,17 @@ void __init early_mm_init(const struct m
+ 	build_mem_type_table();
+ 	early_paging_init(mdesc);
+ }
++
++void set_pte_at(struct mm_struct *mm, unsigned long addr,
++			      pte_t *ptep, pte_t pteval)
++{
++	unsigned long ext = 0;
++
++	if (addr < TASK_SIZE && pte_valid_user(pteval)) {
++		if (!pte_special(pteval))
++			__sync_icache_dcache(pteval);
++		ext |= PTE_EXT_NG;
++	}
++
++	set_pte_ext(ptep, pteval, ext);
++}
+--- a/arch/csky/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/csky/include/asm/pgtable.h
+@@ -110,9 +110,6 @@ extern unsigned long empty_zero_page[PAG
+ extern void load_pgd(unsigned long pg_dir);
+ extern pte_t invalid_pte_table[PTRS_PER_PTE];
  
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-static inline int pte_special(pte_t pte) { return 0; }
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
 -
- #include <asm-generic/memory_model.h>
- #include <asm-generic/getorder.h>
- #include <asm/pdc.h>
---- a/arch/powerpc/include/asm/page_64.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/powerpc/include/asm/page_64.h
-@@ -94,11 +94,8 @@ extern u64 ppc64_pft_size;
-  * stack by default, so in the absence of a PT_GNU_STACK program header
-  * we turn execute permission off.
+ static inline void set_pte(pte_t *p, pte_t pte)
+ {
+ 	*p = pte;
+--- a/arch/hexagon/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/hexagon/include/asm/pgtable.h
+@@ -158,8 +158,6 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD
+ 
+ /* Seems to be zero even in architectures where the zero page is firewalled? */
+ #define FIRST_USER_ADDRESS 0UL
+-#define pte_special(pte)	0
+-#define pte_mkspecial(pte)	(pte)
+ 
+ /*  HUGETLB not working currently  */
+ #ifdef CONFIG_HUGETLB_PAGE
+--- a/arch/ia64/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/ia64/include/asm/pgtable.h
+@@ -298,7 +298,6 @@ extern unsigned long VMALLOC_END;
+ #define pte_exec(pte)		((pte_val(pte) & _PAGE_AR_RX) != 0)
+ #define pte_dirty(pte)		((pte_val(pte) & _PAGE_D) != 0)
+ #define pte_young(pte)		((pte_val(pte) & _PAGE_A) != 0)
+-#define pte_special(pte)	0
+ 
+ /*
+  * Note: we convert AR_RWX to AR_RX and AR_RW to AR_R by clearing the 2nd bit in the
+@@ -311,7 +310,6 @@ extern unsigned long VMALLOC_END;
+ #define pte_mkclean(pte)	(__pte(pte_val(pte) & ~_PAGE_D))
+ #define pte_mkdirty(pte)	(__pte(pte_val(pte) | _PAGE_D))
+ #define pte_mkhuge(pte)		(__pte(pte_val(pte)))
+-#define pte_mkspecial(pte)	(pte)
+ 
+ /*
+  * Because ia64's Icache and Dcache is not coherent (on a cpu), we need to
+--- a/arch/m68k/include/asm/mcf_pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/m68k/include/asm/mcf_pgtable.h
+@@ -235,11 +235,6 @@ static inline int pte_young(pte_t pte)
+ 	return pte_val(pte) & CF_PAGE_ACCESSED;
+ }
+ 
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
+-
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+ 	pte_val(pte) &= ~CF_PAGE_WRITABLE;
+@@ -312,11 +307,6 @@ static inline pte_t pte_mkcache(pte_t pt
+ 	return pte;
+ }
+ 
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	return pte;
+-}
+-
+ #define swapper_pg_dir kernel_pg_dir
+ extern pgd_t kernel_pg_dir[PTRS_PER_PGD];
+ 
+--- a/arch/m68k/include/asm/motorola_pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/m68k/include/asm/motorola_pgtable.h
+@@ -174,7 +174,6 @@ static inline void pud_set(pud_t *pudp,
+ static inline int pte_write(pte_t pte)		{ return !(pte_val(pte) & _PAGE_RONLY); }
+ static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) |= _PAGE_RONLY; return pte; }
+ static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~_PAGE_DIRTY; return pte; }
+@@ -192,7 +191,6 @@ static inline pte_t pte_mkcache(pte_t pt
+ 	pte_val(pte) = (pte_val(pte) & _CACHEMASK040) | m68k_supervisor_cachemode;
+ 	return pte;
+ }
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+ 
+ #define PAGE_DIR_OFFSET(tsk,address) pgd_offset((tsk),(address))
+ 
+--- a/arch/m68k/include/asm/sun3_pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/m68k/include/asm/sun3_pgtable.h
+@@ -155,7 +155,6 @@ static inline void pmd_clear (pmd_t *pmd
+ static inline int pte_write(pte_t pte)		{ return pte_val(pte) & SUN3_PAGE_WRITEABLE; }
+ static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & SUN3_PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)		{ return pte_val(pte) & SUN3_PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) &= ~SUN3_PAGE_WRITEABLE; return pte; }
+ static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~SUN3_PAGE_MODIFIED; return pte; }
+@@ -168,7 +167,6 @@ static inline pte_t pte_mknocache(pte_t
+ //static inline pte_t pte_mkcache(pte_t pte)	{ pte_val(pte) &= SUN3_PAGE_NOCACHE; return pte; }
+ // until then, use:
+ static inline pte_t pte_mkcache(pte_t pte)	{ return pte; }
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+ 
+ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+ extern pgd_t kernel_pg_dir[PTRS_PER_PGD];
+--- a/arch/microblaze/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/microblaze/include/asm/pgtable.h
+@@ -77,10 +77,6 @@ extern pte_t *va_to_pte(unsigned long ad
+  * Undefined behaviour if not..
   */
--#define VM_STACK_DEFAULT_FLAGS32	(VM_READ | VM_WRITE | VM_EXEC | \
--					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
--
--#define VM_STACK_DEFAULT_FLAGS64	(VM_READ | VM_WRITE | \
--					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_STACK_DEFAULT_FLAGS32	VM_DATA_FLAGS_EXEC
-+#define VM_STACK_DEFAULT_FLAGS64	VM_DATA_FLAGS_NON_EXEC
  
- #define VM_STACK_DEFAULT_FLAGS \
- 	(is_32bit_task() ? \
---- a/arch/powerpc/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/powerpc/include/asm/page.h
-@@ -240,13 +240,8 @@ static inline bool pfn_valid(unsigned lo
-  * and needs to be executable.  This means the whole heap ends
-  * up being executable.
+-static inline int pte_special(pte_t pte)	{ return 0; }
+-
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+-
+ /* Start and end of the vmalloc area. */
+ /* Make sure to map the vmalloc area above the pinned kernel memory area
+    of 32Mb.  */
+--- a/arch/mips/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/mips/include/asm/pgtable.h
+@@ -270,6 +270,36 @@ cache_sync_done:
+ extern pgd_t swapper_pg_dir[];
+ 
+ /*
++ * Platform specific pte_special() and pte_mkspecial() definitions
++ * are required only when ARCH_HAS_PTE_SPECIAL is enabled.
++ */
++#if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
++#if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
++static inline int pte_special(pte_t pte)
++{
++	return pte.pte_low & _PAGE_SPECIAL;
++}
++
++static inline pte_t pte_mkspecial(pte_t pte)
++{
++	pte.pte_low |= _PAGE_SPECIAL;
++	return pte;
++}
++#else
++static inline int pte_special(pte_t pte)
++{
++	return pte_val(pte) & _PAGE_SPECIAL;
++}
++
++static inline pte_t pte_mkspecial(pte_t pte)
++{
++	pte_val(pte) |= _PAGE_SPECIAL;
++	return pte;
++}
++#endif
++#endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
++
++/*
+  * The following only work if pte_present() is true.
+  * Undefined behaviour if not..
   */
--#define VM_DATA_DEFAULT_FLAGS32 \
--	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
--				 VM_READ | VM_WRITE | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+@@ -277,7 +307,6 @@ extern pgd_t swapper_pg_dir[];
+ static inline int pte_write(pte_t pte)	{ return pte.pte_low & _PAGE_WRITE; }
+ static inline int pte_dirty(pte_t pte)	{ return pte.pte_low & _PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)	{ return pte.pte_low & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return pte.pte_low & _PAGE_SPECIAL; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+@@ -338,17 +367,10 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	}
+ 	return pte;
+ }
 -
--#define VM_DATA_DEFAULT_FLAGS64	(VM_READ | VM_WRITE | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS32	VM_DATA_FLAGS_TSK_EXEC
-+#define VM_DATA_DEFAULT_FLAGS64	VM_DATA_FLAGS_NON_EXEC
- 
- #ifdef __powerpc64__
- #include <asm/page_64.h>
---- a/arch/riscv/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/riscv/include/asm/page.h
-@@ -137,8 +137,7 @@ extern phys_addr_t __phys_addr_symbol(un
- 
- #define virt_addr_valid(vaddr)	(pfn_valid(virt_to_pfn(vaddr)))
- 
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
- 
- #include <asm-generic/memory_model.h>
- #include <asm-generic/getorder.h>
---- a/arch/s390/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/s390/include/asm/page.h
-@@ -181,8 +181,7 @@ int arch_make_page_accessible(struct pag
- 
- #define virt_addr_valid(kaddr)	pfn_valid(virt_to_pfn(kaddr))
- 
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
- 
- #include <asm-generic/memory_model.h>
- #include <asm-generic/getorder.h>
---- a/arch/sh/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/sh/include/asm/page.h
-@@ -182,9 +182,6 @@ typedef struct page *pgtable_t;
- #endif
- #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
- 
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
--
- #include <asm-generic/memory_model.h>
- #include <asm-generic/getorder.h>
- 
---- a/arch/sparc/include/asm/page_32.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/sparc/include/asm/page_32.h
-@@ -133,9 +133,6 @@ extern unsigned long pfn_base;
- #define pfn_valid(pfn)		(((pfn) >= (pfn_base)) && (((pfn)-(pfn_base)) < max_mapnr))
- #define virt_addr_valid(kaddr)	((((unsigned long)(kaddr)-PAGE_OFFSET)>>PAGE_SHIFT) < max_mapnr)
- 
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
--
- #include <asm-generic/memory_model.h>
- #include <asm-generic/getorder.h>
- 
---- a/arch/sparc/include/asm/page_64.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/sparc/include/asm/page_64.h
-@@ -158,9 +158,6 @@ extern unsigned long PAGE_OFFSET;
- 
- #endif /* !(__ASSEMBLY__) */
- 
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
--
- #include <asm-generic/getorder.h>
- 
- #endif /* _SPARC64_PAGE_H */
---- a/arch/unicore32/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/unicore32/include/asm/page.h
-@@ -69,9 +69,6 @@ extern int pfn_valid(unsigned long);
- 
- #endif /* !__ASSEMBLY__ */
- 
--#define VM_DATA_DEFAULT_FLAGS \
--	(VM_READ | VM_WRITE | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
--
- #include <asm-generic/getorder.h>
- 
- #endif
---- a/arch/x86/include/asm/page_types.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/x86/include/asm/page_types.h
-@@ -35,9 +35,7 @@
- 
- #define PAGE_OFFSET		((unsigned long)__PAGE_OFFSET)
- 
--#define VM_DATA_DEFAULT_FLAGS \
--	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0 ) | \
--	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
- 
- #define __PHYSICAL_START	ALIGN(CONFIG_PHYSICAL_START, \
- 				      CONFIG_PHYSICAL_ALIGN)
---- a/arch/x86/um/asm/vm-flags.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/x86/um/asm/vm-flags.h
-@@ -9,17 +9,11 @@
- 
- #ifdef CONFIG_X86_32
- 
--#define VM_DATA_DEFAULT_FLAGS \
--	(VM_READ | VM_WRITE | \
--	((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0 ) | \
--		 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
- 
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	pte.pte_low |= _PAGE_SPECIAL;
+-	return pte;
+-}
  #else
+ static inline int pte_write(pte_t pte)	{ return pte_val(pte) & _PAGE_WRITE; }
+ static inline int pte_dirty(pte_t pte)	{ return pte_val(pte) & _PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)	{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return pte_val(pte) & _PAGE_SPECIAL; }
  
--#define VM_DATA_DEFAULT_FLAGS (VM_READ | VM_WRITE | VM_EXEC | \
--	VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
--#define VM_STACK_DEFAULT_FLAGS (VM_GROWSDOWN | VM_READ | VM_WRITE | \
--	VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-+#define VM_STACK_DEFAULT_FLAGS (VM_GROWSDOWN | VM_DATA_FLAGS_EXEC)
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+@@ -392,12 +414,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	return pte;
+ }
  
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	pte_val(pte) |= _PAGE_SPECIAL;
+-	return pte;
+-}
+-
+ #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ static inline int pte_huge(pte_t pte)	{ return pte_val(pte) & _PAGE_HUGE; }
+ 
+--- a/arch/nds32/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/nds32/include/asm/pgtable.h
+@@ -286,15 +286,6 @@ PTE_BIT_FUNC(mkclean, &=~_PAGE_D);
+ PTE_BIT_FUNC(mkdirty, |=_PAGE_D);
+ PTE_BIT_FUNC(mkold, &=~_PAGE_YOUNG);
+ PTE_BIT_FUNC(mkyoung, |=_PAGE_YOUNG);
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
+-
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	return pte;
+-}
+ 
+ /*
+  * Mark the prot value as uncacheable and unbufferable.
+--- a/arch/nios2/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/nios2/include/asm/pgtable.h
+@@ -113,7 +113,6 @@ static inline int pte_dirty(pte_t pte)
+ 	{ return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)		\
+ 	{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ #define pgprot_noncached pgprot_noncached
+ 
+@@ -168,8 +167,6 @@ static inline pte_t pte_mkdirty(pte_t pt
+ 	return pte;
+ }
+ 
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+-
+ static inline pte_t pte_mkyoung(pte_t pte)
+ {
+ 	pte_val(pte) |= _PAGE_ACCESSED;
+--- a/arch/openrisc/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/openrisc/include/asm/pgtable.h
+@@ -236,8 +236,6 @@ static inline int pte_write(pte_t pte) {
+ static inline int pte_exec(pte_t pte)  { return pte_val(pte) & _PAGE_EXEC; }
+ static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return 0; }
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+--- a/arch/parisc/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/parisc/include/asm/pgtable.h
+@@ -377,7 +377,6 @@ static inline void pud_clear(pud_t *pud)
+ static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+ static inline int pte_write(pte_t pte)		{ return pte_val(pte) & _PAGE_WRITE; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~_PAGE_DIRTY; return pte; }
+ static inline pte_t pte_mkold(pte_t pte)	{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
+@@ -385,7 +384,6 @@ static inline pte_t pte_wrprotect(pte_t
+ static inline pte_t pte_mkdirty(pte_t pte)	{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
+ static inline pte_t pte_mkyoung(pte_t pte)	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+ static inline pte_t pte_mkwrite(pte_t pte)	{ pte_val(pte) |= _PAGE_WRITE; return pte; }
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+ 
+ /*
+  * Huge pte definitions.
+--- a/arch/sparc/include/asm/pgtable_32.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/sparc/include/asm/pgtable_32.h
+@@ -223,11 +223,6 @@ static inline int pte_young(pte_t pte)
+ 	return pte_val(pte) & SRMMU_REF;
+ }
+ 
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
+-
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+ 	return __pte(pte_val(pte) & ~SRMMU_WRITE);
+@@ -258,8 +253,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	return __pte(pte_val(pte) | SRMMU_REF);
+ }
+ 
+-#define pte_mkspecial(pte)    (pte)
+-
+ #define pfn_pte(pfn, prot)		mk_pte(pfn_to_page(pfn), prot)
+ 
+ static inline unsigned long pte_pfn(pte_t pte)
+--- a/arch/um/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/um/include/asm/pgtable.h
+@@ -167,11 +167,6 @@ static inline int pte_newprot(pte_t pte)
+ 	return(pte_present(pte) && (pte_get_bits(pte, _PAGE_NEWPROT)));
+ }
+ 
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
+-
+ /*
+  * =================================
+  * Flags setting section.
+@@ -247,11 +242,6 @@ static inline pte_t pte_mknewpage(pte_t
+ 	return(pte);
+ }
+ 
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	return(pte);
+-}
+-
+ static inline void set_pte(pte_t *pteptr, pte_t pteval)
+ {
+ 	pte_copy(*pteptr, pteval);
+--- a/arch/unicore32/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/unicore32/include/asm/pgtable.h
+@@ -177,7 +177,6 @@ extern struct page *empty_zero_page;
+ #define pte_dirty(pte)		(pte_val(pte) & PTE_DIRTY)
+ #define pte_young(pte)		(pte_val(pte) & PTE_YOUNG)
+ #define pte_exec(pte)		(pte_val(pte) & PTE_EXEC)
+-#define pte_special(pte)	(0)
+ 
+ #define PTE_BIT_FUNC(fn, op) \
+ static inline pte_t pte_##fn(pte_t pte) { pte_val(pte) op; return pte; }
+@@ -189,8 +188,6 @@ PTE_BIT_FUNC(mkdirty,   |= PTE_DIRTY);
+ PTE_BIT_FUNC(mkold,     &= ~PTE_YOUNG);
+ PTE_BIT_FUNC(mkyoung,   |= PTE_YOUNG);
+ 
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+-
+ /*
+  * Mark the prot value as uncacheable.
+  */
+--- a/arch/xtensa/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/xtensa/include/asm/pgtable.h
+@@ -266,7 +266,6 @@ static inline void paging_init(void) { }
+ static inline int pte_write(pte_t pte) { return pte_val(pte) & _PAGE_WRITABLE; }
+ static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return 0; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)	
+ 	{ pte_val(pte) &= ~(_PAGE_WRITABLE | _PAGE_HW_WRITE); return pte; }
+@@ -280,8 +279,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+ static inline pte_t pte_mkwrite(pte_t pte)
+ 	{ pte_val(pte) |= _PAGE_WRITABLE; return pte; }
+-static inline pte_t pte_mkspecial(pte_t pte)
+-	{ return pte; }
+ 
+ #define pgprot_noncached(prot) (__pgprot(pgprot_val(prot) & ~_PAGE_CA_MASK))
+ 
+--- a/include/linux/mm.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/include/linux/mm.h
+@@ -1927,6 +1927,18 @@ static inline void sync_mm_rss(struct mm
+ }
  #endif
- #endif
---- a/arch/xtensa/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
-+++ a/arch/xtensa/include/asm/page.h
-@@ -203,8 +203,5 @@ static inline unsigned long ___pa(unsign
  
- #endif /* __ASSEMBLY__ */
- 
--#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
--				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#ifndef CONFIG_ARCH_HAS_PTE_SPECIAL
++static inline int pte_special(pte_t pte)
++{
++	return 0;
++}
++
++static inline pte_t pte_mkspecial(pte_t pte)
++{
++	return pte;
++}
++#endif
++
+ #ifndef CONFIG_ARCH_HAS_PTE_DEVMAP
+ static inline int pte_devmap(pte_t pte)
+ {
+_
