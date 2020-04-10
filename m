@@ -1,333 +1,295 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 20/35] mm/memory_hotplug: rename mhp_restrictions
- to mhp_params
-Date: Fri, 10 Apr 2020 14:33:21 -0700
-Message-ID: <20200410213321.S-XgeJDgS%akpm@linux-foundation.org>
+Subject: [patch 21/35] x86/mm: thread pgprot_t through
+ init_memory_mapping()
+Date: Fri, 10 Apr 2020 14:33:24 -0700
+Message-ID: <20200410213324.Ml0cz5N3H%akpm@linux-foundation.org>
 References: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47364 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726594AbgDJVdW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Apr 2020 17:33:22 -0400
+        id S1726594AbgDJVd0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Apr 2020 17:33:26 -0400
 In-Reply-To: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@redhat.com, ebadger@gigaio.com, hch@lst.de, hpa@zytor.com, jgg@ziepe.ca, linux-mm@kvack.org, logang@deltatee.com, luto@kernel.org, mhocko@suse.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, tglx@linutronix.de, torvalds@linux-foundation.org, will@kernel.org
 
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: mm/memory_hotplug: rename mhp_restrictions to mhp_params
+Subject: x86/mm: thread pgprot_t through init_memory_mapping()
 
-The mhp_restrictions struct really doesn't specify anything resembling a
-restriction anymore so rename it to be mhp_params as it is a list of
-extended parameters.
+In preparation to support a pgprot_t argument for arch_add_memory().
 
-Link: http://lkml.kernel.org/r/20200306170846.9333-3-logang@deltatee.com
+It's required to move the prototype of init_memory_mapping() seeing the
+original location came before the definition of pgprot_t.
+
+Link: http://lkml.kernel.org/r/20200306170846.9333-4-logang@deltatee.com
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Eric Badger <ebadger@gigaio.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c            |    4 ++--
- arch/ia64/mm/init.c            |    4 ++--
- arch/powerpc/mm/mem.c          |    4 ++--
- arch/s390/mm/init.c            |    6 +++---
- arch/sh/mm/init.c              |    4 ++--
- arch/x86/mm/init_32.c          |    4 ++--
- arch/x86/mm/init_64.c          |    8 ++++----
- include/linux/memory_hotplug.h |   16 ++++++++--------
- mm/memory_hotplug.c            |    8 ++++----
- mm/memremap.c                  |    8 ++++----
- 10 files changed, 33 insertions(+), 33 deletions(-)
+ arch/x86/include/asm/page_types.h |    3 --
+ arch/x86/include/asm/pgtable.h    |    3 ++
+ arch/x86/kernel/amd_gart_64.c     |    3 +-
+ arch/x86/mm/init.c                |    9 ++++---
+ arch/x86/mm/init_32.c             |    3 +-
+ arch/x86/mm/init_64.c             |   32 +++++++++++++++-------------
+ arch/x86/mm/mm_internal.h         |    3 +-
+ arch/x86/platform/uv/bios_uv.c    |    3 +-
+ 8 files changed, 34 insertions(+), 25 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~mm-memory_hotplug-rename-mhp_restrictions-to-mhp_params
-+++ a/arch/arm64/mm/mmu.c
-@@ -1374,7 +1374,7 @@ static void __remove_pgd_mapping(pgd_t *
- }
+--- a/arch/x86/include/asm/page_types.h~x86-mm-thread-pgprot_t-through-init_memory_mapping
++++ a/arch/x86/include/asm/page_types.h
+@@ -71,9 +71,6 @@ static inline phys_addr_t get_max_mapped
  
- int arch_add_memory(int nid, u64 start, u64 size,
--			struct mhp_restrictions *restrictions)
-+		    struct mhp_params *params)
- {
- 	int ret, flags = 0;
+ bool pfn_range_is_mapped(unsigned long start_pfn, unsigned long end_pfn);
  
-@@ -1387,7 +1387,7 @@ int arch_add_memory(int nid, u64 start,
- 	memblock_clear_nomap(start, size);
+-extern unsigned long init_memory_mapping(unsigned long start,
+-					 unsigned long end);
+-
+ extern void initmem_init(void);
  
- 	ret = __add_pages(nid, start >> PAGE_SHIFT, size >> PAGE_SHIFT,
--			   restrictions);
-+			   params);
- 	if (ret)
- 		__remove_pgd_mapping(swapper_pg_dir,
- 				     __phys_to_virt(start), size);
---- a/arch/ia64/mm/init.c~mm-memory_hotplug-rename-mhp_restrictions-to-mhp_params
-+++ a/arch/ia64/mm/init.c
-@@ -670,13 +670,13 @@ mem_init (void)
+ #endif	/* !__ASSEMBLY__ */
+--- a/arch/x86/include/asm/pgtable.h~x86-mm-thread-pgprot_t-through-init_memory_mapping
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1081,6 +1081,9 @@ static inline void __meminit init_trampo
  
- #ifdef CONFIG_MEMORY_HOTPLUG
- int arch_add_memory(int nid, u64 start, u64 size,
--			struct mhp_restrictions *restrictions)
-+		    struct mhp_params *params)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	int ret;
+ void __init poking_init(void);
  
--	ret = __add_pages(nid, start_pfn, nr_pages, restrictions);
-+	ret = __add_pages(nid, start_pfn, nr_pages, params);
- 	if (ret)
- 		printk("%s: Problem encountered in __add_pages() as ret=%d\n",
- 		       __func__,  ret);
---- a/arch/powerpc/mm/mem.c~mm-memory_hotplug-rename-mhp_restrictions-to-mhp_params
-+++ a/arch/powerpc/mm/mem.c
-@@ -122,7 +122,7 @@ static void flush_dcache_range_chunked(u
- }
++unsigned long init_memory_mapping(unsigned long start,
++				  unsigned long end, pgprot_t prot);
++
+ # ifdef CONFIG_RANDOMIZE_MEMORY
+ void __meminit init_trampoline(void);
+ # else
+--- a/arch/x86/kernel/amd_gart_64.c~x86-mm-thread-pgprot_t-through-init_memory_mapping
++++ a/arch/x86/kernel/amd_gart_64.c
+@@ -744,7 +744,8 @@ int __init gart_iommu_init(void)
  
- int __ref arch_add_memory(int nid, u64 start, u64 size,
--			struct mhp_restrictions *restrictions)
-+			  struct mhp_params *params)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
-@@ -138,7 +138,7 @@ int __ref arch_add_memory(int nid, u64 s
- 		return -EFAULT;
- 	}
+ 	start_pfn = PFN_DOWN(aper_base);
+ 	if (!pfn_range_is_mapped(start_pfn, end_pfn))
+-		init_memory_mapping(start_pfn<<PAGE_SHIFT, end_pfn<<PAGE_SHIFT);
++		init_memory_mapping(start_pfn<<PAGE_SHIFT, end_pfn<<PAGE_SHIFT,
++				    PAGE_KERNEL);
  
--	return __add_pages(nid, start_pfn, nr_pages, restrictions);
-+	return __add_pages(nid, start_pfn, nr_pages, params);
- }
- 
- void __ref arch_remove_memory(int nid, u64 start, u64 size,
---- a/arch/s390/mm/init.c~mm-memory_hotplug-rename-mhp_restrictions-to-mhp_params
-+++ a/arch/s390/mm/init.c
-@@ -268,20 +268,20 @@ device_initcall(s390_cma_mem_init);
- #endif /* CONFIG_CMA */
- 
- int arch_add_memory(int nid, u64 start, u64 size,
--		struct mhp_restrictions *restrictions)
-+		    struct mhp_params *params)
- {
- 	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long size_pages = PFN_DOWN(size);
- 	int rc;
- 
--	if (WARN_ON_ONCE(restrictions->altmap))
-+	if (WARN_ON_ONCE(params->altmap))
- 		return -EINVAL;
- 
- 	rc = vmem_add_mapping(start, size);
- 	if (rc)
- 		return rc;
- 
--	rc = __add_pages(nid, start_pfn, size_pages, restrictions);
-+	rc = __add_pages(nid, start_pfn, size_pages, params);
- 	if (rc)
- 		vmem_remove_mapping(start, size);
- 	return rc;
---- a/arch/sh/mm/init.c~mm-memory_hotplug-rename-mhp_restrictions-to-mhp_params
-+++ a/arch/sh/mm/init.c
-@@ -406,14 +406,14 @@ void __init mem_init(void)
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
- int arch_add_memory(int nid, u64 start, u64 size,
--			struct mhp_restrictions *restrictions)
-+		    struct mhp_params *params)
- {
- 	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	int ret;
- 
- 	/* We only have ZONE_NORMAL, so this is easy.. */
--	ret = __add_pages(nid, start_pfn, nr_pages, restrictions);
-+	ret = __add_pages(nid, start_pfn, nr_pages, params);
- 	if (unlikely(ret))
- 		printk("%s: Failed, __add_pages() == %d\n", __func__, ret);
- 
---- a/arch/x86/mm/init_32.c~mm-memory_hotplug-rename-mhp_restrictions-to-mhp_params
+ 	pr_info("PCI-DMA: using GART IOMMU.\n");
+ 	iommu_size = check_iommu_size(info.aper_base, aper_size);
+--- a/arch/x86/mm/init_32.c~x86-mm-thread-pgprot_t-through-init_memory_mapping
 +++ a/arch/x86/mm/init_32.c
-@@ -819,12 +819,12 @@ void __init mem_init(void)
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
- int arch_add_memory(int nid, u64 start, u64 size,
--			struct mhp_restrictions *restrictions)
-+		    struct mhp_params *params)
+@@ -257,7 +257,8 @@ static inline int __is_kernel_text(unsig
+ unsigned long __init
+ kernel_physical_mapping_init(unsigned long start,
+ 			     unsigned long end,
+-			     unsigned long page_size_mask)
++			     unsigned long page_size_mask,
++			     pgprot_t prot)
  {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 
--	return __add_pages(nid, start_pfn, nr_pages, restrictions);
-+	return __add_pages(nid, start_pfn, nr_pages, params);
- }
- 
- void arch_remove_memory(int nid, u64 start, u64 size,
---- a/arch/x86/mm/init_64.c~mm-memory_hotplug-rename-mhp_restrictions-to-mhp_params
+ 	int use_pse = page_size_mask == (1<<PG_LEVEL_2M);
+ 	unsigned long last_map_addr = end;
+--- a/arch/x86/mm/init_64.c~x86-mm-thread-pgprot_t-through-init_memory_mapping
 +++ a/arch/x86/mm/init_64.c
-@@ -843,11 +843,11 @@ static void update_end_of_memory_vars(u6
- }
- 
- int add_pages(int nid, unsigned long start_pfn, unsigned long nr_pages,
--				struct mhp_restrictions *restrictions)
-+	      struct mhp_params *params)
- {
- 	int ret;
- 
--	ret = __add_pages(nid, start_pfn, nr_pages, restrictions);
-+	ret = __add_pages(nid, start_pfn, nr_pages, params);
- 	WARN_ON_ONCE(ret);
- 
- 	/* update max_pfn, max_low_pfn and high_memory */
-@@ -858,14 +858,14 @@ int add_pages(int nid, unsigned long sta
- }
- 
- int arch_add_memory(int nid, u64 start, u64 size,
--			struct mhp_restrictions *restrictions)
-+		    struct mhp_params *params)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 
- 	init_memory_mapping(start, start + size);
- 
--	return add_pages(nid, start_pfn, nr_pages, restrictions);
-+	return add_pages(nid, start_pfn, nr_pages, params);
- }
- 
- #define PAGE_INUSE 0xFD
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-rename-mhp_restrictions-to-mhp_params
-+++ a/include/linux/memory_hotplug.h
-@@ -58,10 +58,10 @@ enum {
- };
- 
- /*
-- * Restrictions for the memory hotplug:
-- * altmap: alternative allocator for memmap array
-+ * Extended parameters for memory hotplug:
-+ * altmap: alternative allocator for memmap array (optional)
+@@ -585,7 +585,7 @@ phys_pmd_init(pmd_t *pmd_page, unsigned
   */
--struct mhp_restrictions {
-+struct mhp_params {
- 	struct vmem_altmap *altmap;
- };
- 
-@@ -112,7 +112,7 @@ extern int restore_online_page_callback(
- extern int try_online_node(int nid);
- 
- extern int arch_add_memory(int nid, u64 start, u64 size,
--			struct mhp_restrictions *restrictions);
-+			   struct mhp_params *params);
- extern u64 max_mem_size;
- 
- extern int memhp_online_type_from_str(const char *str);
-@@ -133,17 +133,17 @@ extern void __remove_pages(unsigned long
- 
- /* reasonably generic interface to expand the physical pages */
- extern int __add_pages(int nid, unsigned long start_pfn, unsigned long nr_pages,
--		       struct mhp_restrictions *restrictions);
-+		       struct mhp_params *params);
- 
- #ifndef CONFIG_ARCH_HAS_ADD_PAGES
- static inline int add_pages(int nid, unsigned long start_pfn,
--		unsigned long nr_pages, struct mhp_restrictions *restrictions)
-+		unsigned long nr_pages, struct mhp_params *params)
+ static unsigned long __meminit
+ phys_pud_init(pud_t *pud_page, unsigned long paddr, unsigned long paddr_end,
+-	      unsigned long page_size_mask, bool init)
++	      unsigned long page_size_mask, pgprot_t _prot, bool init)
  {
--	return __add_pages(nid, start_pfn, nr_pages, restrictions);
-+	return __add_pages(nid, start_pfn, nr_pages, params);
- }
- #else /* ARCH_HAS_ADD_PAGES */
- int add_pages(int nid, unsigned long start_pfn, unsigned long nr_pages,
--	      struct mhp_restrictions *restrictions);
-+	      struct mhp_params *params);
- #endif /* ARCH_HAS_ADD_PAGES */
+ 	unsigned long pages = 0, paddr_next;
+ 	unsigned long paddr_last = paddr_end;
+@@ -595,7 +595,7 @@ phys_pud_init(pud_t *pud_page, unsigned
+ 	for (; i < PTRS_PER_PUD; i++, paddr = paddr_next) {
+ 		pud_t *pud;
+ 		pmd_t *pmd;
+-		pgprot_t prot = PAGE_KERNEL;
++		pgprot_t prot = _prot;
  
- #ifdef CONFIG_NUMA
---- a/mm/memory_hotplug.c~mm-memory_hotplug-rename-mhp_restrictions-to-mhp_params
-+++ a/mm/memory_hotplug.c
-@@ -304,12 +304,12 @@ static int check_hotplug_memory_addressa
-  * add the new pages.
-  */
- int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
--		struct mhp_restrictions *restrictions)
-+		struct mhp_params *params)
+ 		vaddr = (unsigned long)__va(paddr);
+ 		pud = pud_page + pud_index(vaddr);
+@@ -644,9 +644,12 @@ phys_pud_init(pud_t *pud_page, unsigned
+ 		if (page_size_mask & (1<<PG_LEVEL_1G)) {
+ 			pages++;
+ 			spin_lock(&init_mm.page_table_lock);
++
++			prot = __pgprot(pgprot_val(prot) | __PAGE_KERNEL_LARGE);
++
+ 			set_pte_init((pte_t *)pud,
+ 				     pfn_pte((paddr & PUD_MASK) >> PAGE_SHIFT,
+-					     PAGE_KERNEL_LARGE),
++					     prot),
+ 				     init);
+ 			spin_unlock(&init_mm.page_table_lock);
+ 			paddr_last = paddr_next;
+@@ -669,7 +672,7 @@ phys_pud_init(pud_t *pud_page, unsigned
+ 
+ static unsigned long __meminit
+ phys_p4d_init(p4d_t *p4d_page, unsigned long paddr, unsigned long paddr_end,
+-	      unsigned long page_size_mask, bool init)
++	      unsigned long page_size_mask, pgprot_t prot, bool init)
  {
- 	const unsigned long end_pfn = pfn + nr_pages;
- 	unsigned long cur_nr_pages;
- 	int err;
--	struct vmem_altmap *altmap = restrictions->altmap;
-+	struct vmem_altmap *altmap = params->altmap;
+ 	unsigned long vaddr, vaddr_end, vaddr_next, paddr_next, paddr_last;
  
- 	err = check_hotplug_memory_addressable(pfn, nr_pages);
- 	if (err)
-@@ -1002,7 +1002,7 @@ static int online_memory_block(struct me
-  */
- int __ref add_memory_resource(int nid, struct resource *res)
- {
--	struct mhp_restrictions restrictions = {};
-+	struct mhp_params params = {};
- 	u64 start, size;
- 	bool new_node = false;
- 	int ret;
-@@ -1030,7 +1030,7 @@ int __ref add_memory_resource(int nid, s
- 	new_node = ret;
+@@ -679,7 +682,7 @@ phys_p4d_init(p4d_t *p4d_page, unsigned
  
- 	/* call arch's memory hotadd */
--	ret = arch_add_memory(nid, start, size, &restrictions);
-+	ret = arch_add_memory(nid, start, size, &params);
- 	if (ret < 0)
- 		goto error;
+ 	if (!pgtable_l5_enabled())
+ 		return phys_pud_init((pud_t *) p4d_page, paddr, paddr_end,
+-				     page_size_mask, init);
++				     page_size_mask, prot, init);
  
---- a/mm/memremap.c~mm-memory_hotplug-rename-mhp_restrictions-to-mhp_params
-+++ a/mm/memremap.c
-@@ -184,7 +184,7 @@ void *memremap_pages(struct dev_pagemap
- {
- 	struct resource *res = &pgmap->res;
- 	struct dev_pagemap *conflict_pgmap;
--	struct mhp_restrictions restrictions = {
-+	struct mhp_params params = {
- 		/*
- 		 * We do not want any optional features only our own memmap
- 		 */
-@@ -302,7 +302,7 @@ void *memremap_pages(struct dev_pagemap
- 	 */
- 	if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
- 		error = add_pages(nid, PHYS_PFN(res->start),
--				PHYS_PFN(resource_size(res)), &restrictions);
-+				PHYS_PFN(resource_size(res)), &params);
- 	} else {
- 		error = kasan_add_zero_shadow(__va(res->start), resource_size(res));
- 		if (error) {
-@@ -311,7 +311,7 @@ void *memremap_pages(struct dev_pagemap
+ 	for (; vaddr < vaddr_end; vaddr = vaddr_next) {
+ 		p4d_t *p4d = p4d_page + p4d_index(vaddr);
+@@ -702,13 +705,13 @@ phys_p4d_init(p4d_t *p4d_page, unsigned
+ 		if (!p4d_none(*p4d)) {
+ 			pud = pud_offset(p4d, 0);
+ 			paddr_last = phys_pud_init(pud, paddr, __pa(vaddr_end),
+-					page_size_mask, init);
++					page_size_mask, prot, init);
+ 			continue;
  		}
  
- 		error = arch_add_memory(nid, res->start, resource_size(res),
--					&restrictions);
-+					&params);
+ 		pud = alloc_low_page();
+ 		paddr_last = phys_pud_init(pud, paddr, __pa(vaddr_end),
+-					   page_size_mask, init);
++					   page_size_mask, prot, init);
+ 
+ 		spin_lock(&init_mm.page_table_lock);
+ 		p4d_populate_init(&init_mm, p4d, pud, init);
+@@ -722,7 +725,7 @@ static unsigned long __meminit
+ __kernel_physical_mapping_init(unsigned long paddr_start,
+ 			       unsigned long paddr_end,
+ 			       unsigned long page_size_mask,
+-			       bool init)
++			       pgprot_t prot, bool init)
+ {
+ 	bool pgd_changed = false;
+ 	unsigned long vaddr, vaddr_start, vaddr_end, vaddr_next, paddr_last;
+@@ -743,13 +746,13 @@ __kernel_physical_mapping_init(unsigned
+ 			paddr_last = phys_p4d_init(p4d, __pa(vaddr),
+ 						   __pa(vaddr_end),
+ 						   page_size_mask,
+-						   init);
++						   prot, init);
+ 			continue;
+ 		}
+ 
+ 		p4d = alloc_low_page();
+ 		paddr_last = phys_p4d_init(p4d, __pa(vaddr), __pa(vaddr_end),
+-					   page_size_mask, init);
++					   page_size_mask, prot, init);
+ 
+ 		spin_lock(&init_mm.page_table_lock);
+ 		if (pgtable_l5_enabled())
+@@ -778,10 +781,10 @@ __kernel_physical_mapping_init(unsigned
+ unsigned long __meminit
+ kernel_physical_mapping_init(unsigned long paddr_start,
+ 			     unsigned long paddr_end,
+-			     unsigned long page_size_mask)
++			     unsigned long page_size_mask, pgprot_t prot)
+ {
+ 	return __kernel_physical_mapping_init(paddr_start, paddr_end,
+-					      page_size_mask, true);
++					      page_size_mask, prot, true);
+ }
+ 
+ /*
+@@ -796,7 +799,8 @@ kernel_physical_mapping_change(unsigned
+ 			       unsigned long page_size_mask)
+ {
+ 	return __kernel_physical_mapping_init(paddr_start, paddr_end,
+-					      page_size_mask, false);
++					      page_size_mask, PAGE_KERNEL,
++					      false);
+ }
+ 
+ #ifndef CONFIG_NUMA
+@@ -863,7 +867,7 @@ int arch_add_memory(int nid, u64 start,
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 
+-	init_memory_mapping(start, start + size);
++	init_memory_mapping(start, start + size, PAGE_KERNEL);
+ 
+ 	return add_pages(nid, start_pfn, nr_pages, params);
+ }
+--- a/arch/x86/mm/init.c~x86-mm-thread-pgprot_t-through-init_memory_mapping
++++ a/arch/x86/mm/init.c
+@@ -467,7 +467,7 @@ bool pfn_range_is_mapped(unsigned long s
+  * the physical memory. To access them they are temporarily mapped.
+  */
+ unsigned long __ref init_memory_mapping(unsigned long start,
+-					       unsigned long end)
++					unsigned long end, pgprot_t prot)
+ {
+ 	struct map_range mr[NR_RANGE_MR];
+ 	unsigned long ret = 0;
+@@ -481,7 +481,8 @@ unsigned long __ref init_memory_mapping(
+ 
+ 	for (i = 0; i < nr_range; i++)
+ 		ret = kernel_physical_mapping_init(mr[i].start, mr[i].end,
+-						   mr[i].page_size_mask);
++						   mr[i].page_size_mask,
++						   prot);
+ 
+ 	add_pfn_range_mapped(start >> PAGE_SHIFT, ret >> PAGE_SHIFT);
+ 
+@@ -521,7 +522,7 @@ static unsigned long __init init_range_m
+ 		 */
+ 		can_use_brk_pgt = max(start, (u64)pgt_buf_end<<PAGE_SHIFT) >=
+ 				    min(end, (u64)pgt_buf_top<<PAGE_SHIFT);
+-		init_memory_mapping(start, end);
++		init_memory_mapping(start, end, PAGE_KERNEL);
+ 		mapped_ram_size += end - start;
+ 		can_use_brk_pgt = true;
  	}
+@@ -661,7 +662,7 @@ void __init init_mem_mapping(void)
+ #endif
  
- 	if (!error) {
-@@ -319,7 +319,7 @@ void *memremap_pages(struct dev_pagemap
+ 	/* the ISA range is always mapped regardless of memory holes */
+-	init_memory_mapping(0, ISA_END_ADDRESS);
++	init_memory_mapping(0, ISA_END_ADDRESS, PAGE_KERNEL);
  
- 		zone = &NODE_DATA(nid)->node_zones[ZONE_DEVICE];
- 		move_pfn_range_to_zone(zone, PHYS_PFN(res->start),
--				PHYS_PFN(resource_size(res)), restrictions.altmap);
-+				PHYS_PFN(resource_size(res)), params.altmap);
- 	}
+ 	/* Init the trampoline, possibly with KASLR memory offset */
+ 	init_trampoline();
+--- a/arch/x86/mm/mm_internal.h~x86-mm-thread-pgprot_t-through-init_memory_mapping
++++ a/arch/x86/mm/mm_internal.h
+@@ -12,7 +12,8 @@ void early_ioremap_page_table_range_init
  
- 	mem_hotplug_done();
+ unsigned long kernel_physical_mapping_init(unsigned long start,
+ 					     unsigned long end,
+-					     unsigned long page_size_mask);
++					     unsigned long page_size_mask,
++					     pgprot_t prot);
+ unsigned long kernel_physical_mapping_change(unsigned long start,
+ 					     unsigned long end,
+ 					     unsigned long page_size_mask);
+--- a/arch/x86/platform/uv/bios_uv.c~x86-mm-thread-pgprot_t-through-init_memory_mapping
++++ a/arch/x86/platform/uv/bios_uv.c
+@@ -352,7 +352,8 @@ void __iomem *__init efi_ioremap(unsigne
+ 	if (type == EFI_MEMORY_MAPPED_IO)
+ 		return ioremap(phys_addr, size);
+ 
+-	last_map_pfn = init_memory_mapping(phys_addr, phys_addr + size);
++	last_map_pfn = init_memory_mapping(phys_addr, phys_addr + size,
++					   PAGE_KERNEL);
+ 	if ((last_map_pfn << PAGE_SHIFT) < phys_addr + size) {
+ 		unsigned long top = last_map_pfn << PAGE_SHIFT;
+ 		efi_ioremap(top, size - (top - phys_addr), type, attribute);
 _
