@@ -1,113 +1,473 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 30/35] selftests: kmod: test disabling module
- autoloading
-Date: Fri, 10 Apr 2020 14:33:57 -0700
-Message-ID: <20200410213357.g-HhHnyHi%akpm@linux-foundation.org>
+Subject: [patch 31/35] change email address for Pali
+ =?utf-8?Q?Roh=C3=A1r?=
+Date: Fri, 10 Apr 2020 14:34:00 -0700
+Message-ID: <20200410213400.DMoow51CI%akpm@linux-foundation.org>
 References: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48168 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48228 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726582AbgDJVd7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Apr 2020 17:33:59 -0400
+        id S1726582AbgDJVeB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Apr 2020 17:34:01 -0400
 In-Reply-To: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ast@kernel.org, ebiggers@google.com, gregkh@linuxfoundation.org, jeffv@google.com, jeyu@kernel.org, keescook@chromium.org, linux-mm@kvack.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, neilb@suse.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, gregkh@linuxfoundation.org, joe@perches.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, pali@kernel.org, torvalds@linux-foundation.org
 
-From: Eric Biggers <ebiggers@google.com>
-Subject: selftests: kmod: test disabling module autoloading
+=46rom: Pali Roh=C3=A1r <pali@kernel.org>
+Subject: change email address for Pali Roh=C3=A1r
 
-Test that request_module() fails with -ENOENT when
-/proc/sys/kernel/modprobe contains (a) a nonexistent path, and (b) an
-empty path.
+For security reasons I stopped using gmail account and kernel address is
+now up-to-date alias to my personal address.
 
-Case (b) is a regression test for the patch "kmod: make request_module()
-return an error when autoloading is disabled".
+People periodically send me emails to address which they found in source
+code of drivers, so this change reflects state where people can contact me.
 
-Tested with 'kmod.sh -t 0010 && kmod.sh -t 0011', and also simply with
-'kmod.sh' to run all kmod tests.
-
-Link: http://lkml.kernel.org/r/20200312202552.241885-5-ebiggers@kernel.org
-Signed-off-by: Eric Biggers <ebiggers@google.com>
-Acked-by: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
+Link: http://lkml.kernel.org/r/20200307104237.8199-1-pali@kernel.org
+Signed-off-by: Pali Roh=C3=A1r <pali@kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jeff Vander Stoep <jeffv@google.com>
-Cc: Jessica Yu <jeyu@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: NeilBrown <neilb@suse.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kmod/kmod.sh |   30 +++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ Documentation/ABI/testing/sysfs-platform-dell-laptop |    8 ++---
+ MAINTAINERS                                          |   16 +++++-----
+ arch/arm/mach-omap2/omap-secure.c                    |    2 -
+ arch/arm/mach-omap2/omap-secure.h                    |    2 -
+ arch/arm/mach-omap2/omap-smc.S                       |    2 -
+ drivers/char/hw_random/omap3-rom-rng.c               |    4 +-
+ drivers/hwmon/dell-smm-hwmon.c                       |    4 +-
+ drivers/platform/x86/dell-laptop.c                   |    4 +-
+ drivers/platform/x86/dell-rbtn.c                     |    4 +-
+ drivers/platform/x86/dell-rbtn.h                     |    2 -
+ drivers/platform/x86/dell-smbios-base.c              |    4 +-
+ drivers/platform/x86/dell-smbios-smm.c               |    2 -
+ drivers/platform/x86/dell-smbios.h                   |    2 -
+ drivers/platform/x86/dell-smo8800.c                  |    2 -
+ drivers/platform/x86/dell-wmi.c                      |    4 +-
+ drivers/power/supply/bq2415x_charger.c               |    4 +-
+ drivers/power/supply/bq27xxx_battery.c               |    2 -
+ drivers/power/supply/isp1704_charger.c               |    2 -
+ drivers/power/supply/rx51_battery.c                  |    4 +-
+ fs/udf/ecma_167.h                                    |    2 -
+ fs/udf/osta_udf.h                                    |    2 -
+ include/linux/power/bq2415x_charger.h                |    2 -
+ tools/laptop/freefall/freefall.c                     |    2 -
+ 23 files changed, 41 insertions(+), 41 deletions(-)
 
---- a/tools/testing/selftests/kmod/kmod.sh~selftests-kmod-test-disabling-module-autoloading
-+++ a/tools/testing/selftests/kmod/kmod.sh
-@@ -61,6 +61,8 @@ ALL_TESTS="$ALL_TESTS 0006:10:1"
- ALL_TESTS="$ALL_TESTS 0007:5:1"
- ALL_TESTS="$ALL_TESTS 0008:150:1"
- ALL_TESTS="$ALL_TESTS 0009:150:1"
-+ALL_TESTS="$ALL_TESTS 0010:1:1"
-+ALL_TESTS="$ALL_TESTS 0011:1:1"
- 
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
-@@ -149,6 +151,7 @@ function load_req_mod()
- 
- test_finish()
- {
-+	echo "$MODPROBE" > /proc/sys/kernel/modprobe
- 	echo "Test completed"
- }
- 
-@@ -443,6 +446,30 @@ kmod_test_0009()
- 	config_expect_result ${FUNCNAME[0]} SUCCESS
- }
- 
-+kmod_test_0010()
-+{
-+	kmod_defaults_driver
-+	config_num_threads 1
-+	echo "/KMOD_TEST_NONEXISTENT" > /proc/sys/kernel/modprobe
-+	config_trigger ${FUNCNAME[0]}
-+	config_expect_result ${FUNCNAME[0]} -ENOENT
-+	echo "$MODPROBE" > /proc/sys/kernel/modprobe
-+}
-+
-+kmod_test_0011()
-+{
-+	kmod_defaults_driver
-+	config_num_threads 1
-+	# This causes the kernel to not even try executing modprobe.  The error
-+	# code is still -ENOENT like when modprobe doesn't exist, so we can't
-+	# easily test for the exact difference.  But this still is a useful test
-+	# since there was a bug where request_module() returned 0 in this case.
-+	echo > /proc/sys/kernel/modprobe
-+	config_trigger ${FUNCNAME[0]}
-+	config_expect_result ${FUNCNAME[0]} -ENOENT
-+	echo "$MODPROBE" > /proc/sys/kernel/modprobe
-+}
-+
- list_tests()
- {
- 	echo "Test ID list:"
-@@ -460,6 +487,8 @@ list_tests()
- 	echo "0007 x $(get_test_count 0007) - multithreaded tests with default setup test request_module() and get_fs_type()"
- 	echo "0008 x $(get_test_count 0008) - multithreaded - push kmod_concurrent over max_modprobes for request_module()"
- 	echo "0009 x $(get_test_count 0009) - multithreaded - push kmod_concurrent over max_modprobes for get_fs_type()"
-+	echo "0010 x $(get_test_count 0010) - test nonexistent modprobe path"
-+	echo "0011 x $(get_test_count 0011) - test completely disabling module autoloading"
- }
- 
- usage()
-@@ -616,6 +645,7 @@ test_reqs
- allow_user_defaults
- load_req_mod
- 
-+MODPROBE=$(</proc/sys/kernel/modprobe)
- trap "test_finish" EXIT
- 
- parse_args $@
+--- a/arch/arm/mach-omap2/omap-secure.c~change-email-address-for-pali-rohar
++++ a/arch/arm/mach-omap2/omap-secure.c
+@@ -5,7 +5,7 @@
+  * Copyright (C) 2011 Texas Instruments, Inc.
+  *	Santosh Shilimkar <santosh.shilimkar@ti.com>
+  * Copyright (C) 2012 Ivaylo Dimitrov <freemangordon@abv.bg>
+- * Copyright (C) 2013 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2013 Pali Roh=C3=A1r <pali@kernel.org>
+  */
+=20
+ #include <linux/arm-smccc.h>
+--- a/arch/arm/mach-omap2/omap-secure.h~change-email-address-for-pali-rohar
++++ a/arch/arm/mach-omap2/omap-secure.h
+@@ -5,7 +5,7 @@
+  * Copyright (C) 2011 Texas Instruments, Inc.
+  *	Santosh Shilimkar <santosh.shilimkar@ti.com>
+  * Copyright (C) 2012 Ivaylo Dimitrov <freemangordon@abv.bg>
+- * Copyright (C) 2013 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2013 Pali Roh=C3=A1r <pali@kernel.org>
+  */
+ #ifndef OMAP_ARCH_OMAP_SECURE_H
+ #define OMAP_ARCH_OMAP_SECURE_H
+--- a/arch/arm/mach-omap2/omap-smc.S~change-email-address-for-pali-rohar
++++ a/arch/arm/mach-omap2/omap-smc.S
+@@ -6,7 +6,7 @@
+  * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
+  *
+  * Copyright (C) 2012 Ivaylo Dimitrov <freemangordon@abv.bg>
+- * Copyright (C) 2013 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2013 Pali Roh=C3=A1r <pali@kernel.org>
+  */
+=20
+ #include <linux/linkage.h>
+--- a/Documentation/ABI/testing/sysfs-platform-dell-laptop~change-email-add=
+ress-for-pali-rohar
++++ a/Documentation/ABI/testing/sysfs-platform-dell-laptop
+@@ -2,7 +2,7 @@ What:		/sys/class/leds/dell::kbd_backlig
+ Date:		December 2014
+ KernelVersion:	3.19
+ Contact:	Gabriele Mazzotta <gabriele.mzt@gmail.com>,
+-		Pali Roh=C3=A1r <pali.rohar@gmail.com>
++		Pali Roh=C3=A1r <pali@kernel.org>
+ Description:
+ 		This file allows to control the automatic keyboard
+ 		illumination mode on some systems that have an ambient
+@@ -13,7 +13,7 @@ What:		/sys/class/leds/dell::kbd_backlig
+ Date:		December 2014
+ KernelVersion:	3.19
+ Contact:	Gabriele Mazzotta <gabriele.mzt@gmail.com>,
+-		Pali Roh=C3=A1r <pali.rohar@gmail.com>
++		Pali Roh=C3=A1r <pali@kernel.org>
+ Description:
+ 		This file allows to specifiy the on/off threshold value,
+ 		as reported by the ambient light sensor.
+@@ -22,7 +22,7 @@ What:		/sys/class/leds/dell::kbd_backlig
+ Date:		December 2014
+ KernelVersion:	3.19
+ Contact:	Gabriele Mazzotta <gabriele.mzt@gmail.com>,
+-		Pali Roh=C3=A1r <pali.rohar@gmail.com>
++		Pali Roh=C3=A1r <pali@kernel.org>
+ Description:
+ 		This file allows to control the input triggers that
+ 		turn on the keyboard backlight illumination that is
+@@ -45,7 +45,7 @@ What:		/sys/class/leds/dell::kbd_backlig
+ Date:		December 2014
+ KernelVersion:	3.19
+ Contact:	Gabriele Mazzotta <gabriele.mzt@gmail.com>,
+-		Pali Roh=C3=A1r <pali.rohar@gmail.com>
++		Pali Roh=C3=A1r <pali@kernel.org>
+ Description:
+ 		This file allows to specify the interval after which the
+ 		keyboard illumination is disabled because of inactivity.
+--- a/drivers/char/hw_random/omap3-rom-rng.c~change-email-address-for-pali-=
+rohar
++++ a/drivers/char/hw_random/omap3-rom-rng.c
+@@ -4,7 +4,7 @@
+  * Copyright (C) 2009 Nokia Corporation
+  * Author: Juha Yrjola <juha.yrjola@solidboot.com>
+  *
+- * Copyright (C) 2013 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2013 Pali Roh=C3=A1r <pali@kernel.org>
+  *
+  * This file is licensed under  the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
+@@ -178,5 +178,5 @@ module_platform_driver(omap3_rom_rng_dri
+=20
+ MODULE_ALIAS("platform:omap3-rom-rng");
+ MODULE_AUTHOR("Juha Yrjola");
+-MODULE_AUTHOR("Pali Roh=C3=A1r <pali.rohar@gmail.com>");
++MODULE_AUTHOR("Pali Roh=C3=A1r <pali@kernel.org>");
+ MODULE_LICENSE("GPL");
+--- a/drivers/hwmon/dell-smm-hwmon.c~change-email-address-for-pali-rohar
++++ a/drivers/hwmon/dell-smm-hwmon.c
+@@ -7,7 +7,7 @@
+  * Hwmon integration:
+  * Copyright (C) 2011  Jean Delvare <jdelvare@suse.de>
+  * Copyright (C) 2013, 2014  Guenter Roeck <linux@roeck-us.net>
+- * Copyright (C) 2014, 2015  Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2014, 2015  Pali Roh=C3=A1r <pali@kernel.org>
+  */
+=20
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+@@ -86,7 +86,7 @@ static unsigned int auto_fan;
+ #define I8K_HWMON_HAVE_FAN3	(1 << 12)
+=20
+ MODULE_AUTHOR("Massimo Dal Zotto (dz@debian.org)");
+-MODULE_AUTHOR("Pali Roh=C3=A1r <pali.rohar@gmail.com>");
++MODULE_AUTHOR("Pali Roh=C3=A1r <pali@kernel.org>");
+ MODULE_DESCRIPTION("Dell laptop SMM BIOS hwmon driver");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("i8k");
+--- a/drivers/platform/x86/dell-laptop.c~change-email-address-for-pali-rohar
++++ a/drivers/platform/x86/dell-laptop.c
+@@ -4,7 +4,7 @@
+  *
+  *  Copyright (c) Red Hat <mjg@redhat.com>
+  *  Copyright (c) 2014 Gabriele Mazzotta <gabriele.mzt@gmail.com>
+- *  Copyright (c) 2014 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ *  Copyright (c) 2014 Pali Roh=C3=A1r <pali@kernel.org>
+  *
+  *  Based on documentation in the libsmbios package:
+  *  Copyright (C) 2005-2014 Dell Inc.
+@@ -2295,6 +2295,6 @@ module_exit(dell_exit);
+=20
+ MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+ MODULE_AUTHOR("Gabriele Mazzotta <gabriele.mzt@gmail.com>");
+-MODULE_AUTHOR("Pali Roh=C3=A1r <pali.rohar@gmail.com>");
++MODULE_AUTHOR("Pali Roh=C3=A1r <pali@kernel.org>");
+ MODULE_DESCRIPTION("Dell laptop driver");
+ MODULE_LICENSE("GPL");
+--- a/drivers/platform/x86/dell-rbtn.c~change-email-address-for-pali-rohar
++++ a/drivers/platform/x86/dell-rbtn.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ /*
+     Dell Airplane Mode Switch driver
+-    Copyright (C) 2014-2015  Pali Roh=C3=A1r <pali.rohar@gmail.com>
++    Copyright (C) 2014-2015  Pali Roh=C3=A1r <pali@kernel.org>
+=20
+ */
+=20
+@@ -495,5 +495,5 @@ MODULE_PARM_DESC(auto_remove_rfkill, "Au
+ 				     "(default true)");
+ MODULE_DEVICE_TABLE(acpi, rbtn_ids);
+ MODULE_DESCRIPTION("Dell Airplane Mode Switch driver");
+-MODULE_AUTHOR("Pali Roh=C3=A1r <pali.rohar@gmail.com>");
++MODULE_AUTHOR("Pali Roh=C3=A1r <pali@kernel.org>");
+ MODULE_LICENSE("GPL");
+--- a/drivers/platform/x86/dell-rbtn.h~change-email-address-for-pali-rohar
++++ a/drivers/platform/x86/dell-rbtn.h
+@@ -1,7 +1,7 @@
+ /* SPDX-License-Identifier: GPL-2.0-or-later */
+ /*
+     Dell Airplane Mode Switch driver
+-    Copyright (C) 2014-2015  Pali Roh=C3=A1r <pali.rohar@gmail.com>
++    Copyright (C) 2014-2015  Pali Roh=C3=A1r <pali@kernel.org>
+=20
+ */
+=20
+--- a/drivers/platform/x86/dell-smbios-base.c~change-email-address-for-pali=
+-rohar
++++ a/drivers/platform/x86/dell-smbios-base.c
+@@ -4,7 +4,7 @@
+  *
+  *  Copyright (c) Red Hat <mjg@redhat.com>
+  *  Copyright (c) 2014 Gabriele Mazzotta <gabriele.mzt@gmail.com>
+- *  Copyright (c) 2014 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ *  Copyright (c) 2014 Pali Roh=C3=A1r <pali@kernel.org>
+  *
+  *  Based on documentation in the libsmbios package:
+  *  Copyright (C) 2005-2014 Dell Inc.
+@@ -645,7 +645,7 @@ module_exit(dell_smbios_exit);
+=20
+ MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+ MODULE_AUTHOR("Gabriele Mazzotta <gabriele.mzt@gmail.com>");
+-MODULE_AUTHOR("Pali Roh=C3=A1r <pali.rohar@gmail.com>");
++MODULE_AUTHOR("Pali Roh=C3=A1r <pali@kernel.org>");
+ MODULE_AUTHOR("Mario Limonciello <mario.limonciello@dell.com>");
+ MODULE_DESCRIPTION("Common functions for kernel modules using Dell SMBIOS"=
+);
+ MODULE_LICENSE("GPL");
+--- a/drivers/platform/x86/dell-smbios.h~change-email-address-for-pali-rohar
++++ a/drivers/platform/x86/dell-smbios.h
+@@ -4,7 +4,7 @@
+  *
+  *  Copyright (c) Red Hat <mjg@redhat.com>
+  *  Copyright (c) 2014 Gabriele Mazzotta <gabriele.mzt@gmail.com>
+- *  Copyright (c) 2014 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ *  Copyright (c) 2014 Pali Roh=C3=A1r <pali@kernel.org>
+  *
+  *  Based on documentation in the libsmbios package:
+  *  Copyright (C) 2005-2014 Dell Inc.
+--- a/drivers/platform/x86/dell-smbios-smm.c~change-email-address-for-pali-=
+rohar
++++ a/drivers/platform/x86/dell-smbios-smm.c
+@@ -4,7 +4,7 @@
+  *
+  *  Copyright (c) Red Hat <mjg@redhat.com>
+  *  Copyright (c) 2014 Gabriele Mazzotta <gabriele.mzt@gmail.com>
+- *  Copyright (c) 2014 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ *  Copyright (c) 2014 Pali Roh=C3=A1r <pali@kernel.org>
+  *  Copyright (c) 2017 Dell Inc.
+  */
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+--- a/drivers/platform/x86/dell-smo8800.c~change-email-address-for-pali-roh=
+ar
++++ a/drivers/platform/x86/dell-smo8800.c
+@@ -3,7 +3,7 @@
+  *  dell-smo8800.c - Dell Latitude ACPI SMO88XX freefall sensor driver
+  *
+  *  Copyright (C) 2012 Sonal Santan <sonal.santan@gmail.com>
+- *  Copyright (C) 2014 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ *  Copyright (C) 2014 Pali Roh=C3=A1r <pali@kernel.org>
+  *
+  *  This is loosely based on lis3lv02d driver.
+  */
+--- a/drivers/platform/x86/dell-wmi.c~change-email-address-for-pali-rohar
++++ a/drivers/platform/x86/dell-wmi.c
+@@ -3,7 +3,7 @@
+  * Dell WMI hotkeys
+  *
+  * Copyright (C) 2008 Red Hat <mjg@redhat.com>
+- * Copyright (C) 2014-2015 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2014-2015 Pali Roh=C3=A1r <pali@kernel.org>
+  *
+  * Portions based on wistron_btns.c:
+  * Copyright (C) 2005 Miloslav Trmac <mitr@volny.cz>
+@@ -29,7 +29,7 @@
+ #include "dell-wmi-descriptor.h"
+=20
+ MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+-MODULE_AUTHOR("Pali Roh=C3=A1r <pali.rohar@gmail.com>");
++MODULE_AUTHOR("Pali Roh=C3=A1r <pali@kernel.org>");
+ MODULE_DESCRIPTION("Dell laptop WMI hotkeys driver");
+ MODULE_LICENSE("GPL");
+=20
+--- a/drivers/power/supply/bq2415x_charger.c~change-email-address-for-pali-=
+rohar
++++ a/drivers/power/supply/bq2415x_charger.c
+@@ -2,7 +2,7 @@
+ /*
+  * bq2415x charger driver
+  *
+- * Copyright (C) 2011-2013  Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2011-2013  Pali Roh=C3=A1r <pali@kernel.org>
+  *
+  * Datasheets:
+  * http://www.ti.com/product/bq24150
+@@ -1788,6 +1788,6 @@ static struct i2c_driver bq2415x_driver
+ };
+ module_i2c_driver(bq2415x_driver);
+=20
+-MODULE_AUTHOR("Pali Roh=C3=A1r <pali.rohar@gmail.com>");
++MODULE_AUTHOR("Pali Roh=C3=A1r <pali@kernel.org>");
+ MODULE_DESCRIPTION("bq2415x charger driver");
+ MODULE_LICENSE("GPL");
+--- a/drivers/power/supply/bq27xxx_battery.c~change-email-address-for-pali-=
+rohar
++++ a/drivers/power/supply/bq27xxx_battery.c
+@@ -4,7 +4,7 @@
+  * Copyright (C) 2008 Rodolfo Giometti <giometti@linux.it>
+  * Copyright (C) 2008 Eurotech S.p.A. <info@eurotech.it>
+  * Copyright (C) 2010-2011 Lars-Peter Clausen <lars@metafoo.de>
+- * Copyright (C) 2011 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2011 Pali Roh=C3=A1r <pali@kernel.org>
+  * Copyright (C) 2017 Liam Breck <kernel@networkimprov.net>
+  *
+  * Based on a previous work by Copyright (C) 2008 Texas Instruments, Inc.
+--- a/drivers/power/supply/isp1704_charger.c~change-email-address-for-pali-=
+rohar
++++ a/drivers/power/supply/isp1704_charger.c
+@@ -3,7 +3,7 @@
+  * ISP1704 USB Charger Detection driver
+  *
+  * Copyright (C) 2010 Nokia Corporation
+- * Copyright (C) 2012 - 2013 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2012 - 2013 Pali Roh=C3=A1r <pali@kernel.org>
+  */
+=20
+ #include <linux/kernel.h>
+--- a/drivers/power/supply/rx51_battery.c~change-email-address-for-pali-roh=
+ar
++++ a/drivers/power/supply/rx51_battery.c
+@@ -2,7 +2,7 @@
+ /*
+  * Nokia RX-51 battery driver
+  *
+- * Copyright (C) 2012  Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2012  Pali Roh=C3=A1r <pali@kernel.org>
+  */
+=20
+ #include <linux/module.h>
+@@ -278,6 +278,6 @@ static struct platform_driver rx51_batte
+ module_platform_driver(rx51_battery_driver);
+=20
+ MODULE_ALIAS("platform:rx51-battery");
+-MODULE_AUTHOR("Pali Roh=C3=A1r <pali.rohar@gmail.com>");
++MODULE_AUTHOR("Pali Roh=C3=A1r <pali@kernel.org>");
+ MODULE_DESCRIPTION("Nokia RX-51 battery driver");
+ MODULE_LICENSE("GPL");
+--- a/fs/udf/ecma_167.h~change-email-address-for-pali-rohar
++++ a/fs/udf/ecma_167.h
+@@ -5,7 +5,7 @@
+  * http://www.ecma.ch
+  *
+  * Copyright (c) 2001-2002  Ben Fennema
+- * Copyright (c) 2017-2019  Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (c) 2017-2019  Pali Roh=C3=A1r <pali@kernel.org>
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+--- a/fs/udf/osta_udf.h~change-email-address-for-pali-rohar
++++ a/fs/udf/osta_udf.h
+@@ -5,7 +5,7 @@
+  * http://www.osta.org
+  *
+  * Copyright (c) 2001-2004  Ben Fennema
+- * Copyright (c) 2017-2019  Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (c) 2017-2019  Pali Roh=C3=A1r <pali@kernel.org>
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+--- a/include/linux/power/bq2415x_charger.h~change-email-address-for-pali-r=
+ohar
++++ a/include/linux/power/bq2415x_charger.h
+@@ -2,7 +2,7 @@
+ /*
+  * bq2415x charger driver
+  *
+- * Copyright (C) 2011-2013  Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright (C) 2011-2013  Pali Roh=C3=A1r <pali@kernel.org>
+  */
+=20
+ #ifndef BQ2415X_CHARGER_H
+--- a/MAINTAINERS~change-email-address-for-pali-rohar
++++ a/MAINTAINERS
+@@ -727,7 +727,7 @@ L:	linux-alpha@vger.kernel.org
+ F:	arch/alpha/
+=20
+ ALPS PS/2 TOUCHPAD DRIVER
+-R:	Pali Roh=C3=A1r <pali.rohar@gmail.com>
++R:	Pali Roh=C3=A1r <pali@kernel.org>
+ F:	drivers/input/mouse/alps.*
+=20
+ ALTERA I2C CONTROLLER DRIVER
+@@ -4774,23 +4774,23 @@ F:	drivers/net/fddi/defza.*
+=20
+ DELL LAPTOP DRIVER
+ M:	Matthew Garrett <mjg59@srcf.ucam.org>
+-M:	Pali Roh=C3=A1r <pali.rohar@gmail.com>
++M:	Pali Roh=C3=A1r <pali@kernel.org>
+ L:	platform-driver-x86@vger.kernel.org
+ S:	Maintained
+ F:	drivers/platform/x86/dell-laptop.c
+=20
+ DELL LAPTOP FREEFALL DRIVER
+-M:	Pali Roh=C3=A1r <pali.rohar@gmail.com>
++M:	Pali Roh=C3=A1r <pali@kernel.org>
+ S:	Maintained
+ F:	drivers/platform/x86/dell-smo8800.c
+=20
+ DELL LAPTOP RBTN DRIVER
+-M:	Pali Roh=C3=A1r <pali.rohar@gmail.com>
++M:	Pali Roh=C3=A1r <pali@kernel.org>
+ S:	Maintained
+ F:	drivers/platform/x86/dell-rbtn.*
+=20
+ DELL LAPTOP SMM DRIVER
+-M:	Pali Roh=C3=A1r <pali.rohar@gmail.com>
++M:	Pali Roh=C3=A1r <pali@kernel.org>
+ S:	Maintained
+ F:	drivers/hwmon/dell-smm-hwmon.c
+ F:	include/uapi/linux/i8k.h
+@@ -4802,7 +4802,7 @@ S:	Maintained
+ F:	drivers/platform/x86/dell_rbu.c
+=20
+ DELL SMBIOS DRIVER
+-M:	Pali Roh=C3=A1r <pali.rohar@gmail.com>
++M:	Pali Roh=C3=A1r <pali@kernel.org>
+ M:	Mario Limonciello <mario.limonciello@dell.com>
+ L:	platform-driver-x86@vger.kernel.org
+ S:	Maintained
+@@ -4835,7 +4835,7 @@ F:	drivers/platform/x86/dell-wmi-descrip
+=20
+ DELL WMI NOTIFICATIONS DRIVER
+ M:	Matthew Garrett <mjg59@srcf.ucam.org>
+-M:	Pali Roh=C3=A1r <pali.rohar@gmail.com>
++M:	Pali Roh=C3=A1r <pali@kernel.org>
+ S:	Maintained
+ F:	drivers/platform/x86/dell-wmi.c
+=20
+@@ -11950,7 +11950,7 @@ F:	drivers/media/i2c/et8ek8
+ F:	drivers/media/i2c/ad5820.c
+=20
+ NOKIA N900 POWER SUPPLY DRIVERS
+-R:	Pali Roh=C3=A1r <pali.rohar@gmail.com>
++R:	Pali Roh=C3=A1r <pali@kernel.org>
+ F:	include/linux/power/bq2415x_charger.h
+ F:	include/linux/power/bq27xxx_battery.h
+ F:	drivers/power/supply/bq2415x_charger.c
+--- a/tools/laptop/freefall/freefall.c~change-email-address-for-pali-rohar
++++ a/tools/laptop/freefall/freefall.c
+@@ -4,7 +4,7 @@
+  * Copyright 2008 Eric Piel
+  * Copyright 2009 Pavel Machek <pavel@ucw.cz>
+  * Copyright 2012 Sonal Santan
+- * Copyright 2014 Pali Roh=C3=A1r <pali.rohar@gmail.com>
++ * Copyright 2014 Pali Roh=C3=A1r <pali@kernel.org>
+  */
+=20
+ #include <stdio.h>
 _
