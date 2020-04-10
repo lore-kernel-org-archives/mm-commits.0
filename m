@@ -1,58 +1,73 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 07/35] mm/gup: fix null pointer dereference
- detected by coverity
-Date: Fri, 10 Apr 2020 14:32:35 -0700
-Message-ID: <20200410213235.M6eTaELL2%akpm@linux-foundation.org>
+Subject: [patch 08/35] ocfs2: no need try to truncate file beyond
+ i_size
+Date: Fri, 10 Apr 2020 14:32:38 -0700
+Message-ID: <20200410213238.KttQSeJuw%akpm@linux-foundation.org>
 References: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46428 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46480 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726582AbgDJVcf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Apr 2020 17:32:35 -0400
+        id S1726582AbgDJVcl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Apr 2020 17:32:41 -0400
 In-Reply-To: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ira.weiny@intel.com, linux-mm@kvack.org, miles.chen@mediatek.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, chge@linux.alibaba.com, gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: mm/gup: fix null pointer dereference detected by coverity
+From: Changwei Ge <chge@linux.alibaba.com>
+Subject: ocfs2: no need try to truncate file beyond i_size
 
-In fixup_user_fault(), it is possible that unlocked is NULL,
-so we should test unlocked before using it.
+Linux fallocate(2) with FALLOC_FL_PUNCH_HOLE mode set, its offset can
+exceed inode size.  Ocfs2 now does't allow that offset beyond inode size. 
+This restriction is not necessary and voilates fallocate(2) semantics.
 
-For example, in arch/arc/kernel/process.c, NULL is passed
-to fixup_user_fault().
+If fallocate(2) offset is beyond inode size, just return success and do
+nothing further.
 
-SYSCALL_DEFINE3(arc_usr_cmpxchg, int *, uaddr, int, expected, int, new)
-{
-...
-	ret = fixup_user_fault(current, current->mm, (unsigned long) uaddr,
-			       FAULT_FLAG_WRITE, NULL);
-...
-}
+Otherwise, ocfs2 will crash the kernel.
 
-Link: http://lkml.kernel.org/r/20200407095107.1988-1-miles.chen@mediatek.com
-Fixes: 4a9e1cda2748 ("mm: bring in additional flag for fixup_user_fault to signal unlock")
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+kernel BUG at fs/ocfs2//alloc.c:7264!
+ ocfs2_truncate_inline+0x20f/0x360 [ocfs2]
+ ? ocfs2_read_blocks+0x2f3/0x5f0 [ocfs2]
+ ocfs2_remove_inode_range+0x23c/0xcb0 [ocfs2]
+ ? ocfs2_read_inode_block+0x10/0x20 [ocfs2]
+ ? ocfs2_allocate_extend_trans+0x1a0/0x1a0 [ocfs2]
+ __ocfs2_change_file_space+0x4a5/0x650 [ocfs2]
+ ocfs2_fallocate+0x83/0xa0 [ocfs2]
+ ? __audit_syscall_entry+0xb8/0x100
+ ? __sb_start_write+0x3b/0x70
+ vfs_fallocate+0x148/0x230
+ SyS_fallocate+0x48/0x80
+ do_syscall_64+0x79/0x170
+
+Link: http://lkml.kernel.org/r/20200407082754.17565-1-chge@linux.alibaba.com
+Signed-off-by: Changwei Ge <chge@linux.alibaba.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/gup.c~mm-gup-fix-null-pointer-dereference-detected-by-coverity
-+++ a/mm/gup.c
-@@ -1231,7 +1231,8 @@ retry:
- 	if (ret & VM_FAULT_RETRY) {
- 		down_read(&mm->mmap_sem);
- 		if (!(fault_flags & FAULT_FLAG_TRIED)) {
--			*unlocked = true;
-+			if (unlocked)
-+				*unlocked = true;
- 			fault_flags |= FAULT_FLAG_TRIED;
- 			goto retry;
- 		}
+--- a/fs/ocfs2/alloc.c~ocfs2-no-need-try-to-truncate-file-beyond-i_size
++++ a/fs/ocfs2/alloc.c
+@@ -7402,6 +7402,10 @@ int ocfs2_truncate_inline(struct inode *
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)di_bh->b_data;
+ 	struct ocfs2_inline_data *idata = &di->id2.i_data;
+ 
++	/* No need to punch hole beyond i_size. */
++	if (start >= i_size_read(inode))
++		return 0;
++
+ 	if (end > i_size_read(inode))
+ 		end = i_size_read(inode);
+ 
 _
