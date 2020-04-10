@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-math-avoid-trailing-n-hidden-in-pr_fmt.patch added
+Subject: +
+ mm-mmap-initialize-align_offset-explicitly-for-vm_unmapped_area.patch added
  to -mm tree
-Date: Thu, 09 Apr 2020 21:53:37 -0700
-Message-ID: <20200410045337.iQndFbAdG%akpm@linux-foundation.org>
+Date: Thu, 09 Apr 2020 21:55:53 -0700
+Message-ID: <20200410045553.t-cezSAeg%akpm@linux-foundation.org>
 References: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56802 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725838AbgDJExi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Apr 2020 00:53:38 -0400
+        id S1725208AbgDJEzz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Apr 2020 00:55:55 -0400
 In-Reply-To: <20200406200254.a69ebd9e08c4074e41ddebaf@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, christophe.jaillet@wanadoo.fr, gregkh@linuxfoundation.org, mchehab+samsung@kernel.org, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: akpm@linux-foundation.org, bp@suse.de, jaewon31.kim@samsung.com, mm-commits@vger.kernel.org, walken@google.com, willy@infradead.org
 
 
 The patch titled
-     Subject: lib/math: avoid trailing newline hidden in pr_fmt()
+     Subject: mm/mmap.c: initialize align_offset explicitly for vm_unmapped_area
 has been added to the -mm tree.  Its filename is
-     lib-math-avoid-trailing-n-hidden-in-pr_fmt.patch
+     mm-mmap-initialize-align_offset-explicitly-for-vm_unmapped_area.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-math-avoid-trailing-n-hidden-in-pr_fmt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-initialize-align_offset-explicitly-for-vm_unmapped_area.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-math-avoid-trailing-n-hidden-in-pr_fmt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-initialize-align_offset-explicitly-for-vm_unmapped_area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,80 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: lib/math: avoid trailing newline hidden in pr_fmt()
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: mm/mmap.c: initialize align_offset explicitly for vm_unmapped_area
 
-pr_xxx() functions usually have a newline at the end of the logging
-message.
+On passing requirement to vm_unmapped_area, arch_get_unmapped_area and
+arch_get_unmapped_area_topdown did not set align_offset.  Internally on
+both unmapped_area and unmapped_area_topdown, if info->align_mask is 0,
+then info->align_offset was meaningless.
 
-Here, this newline is added via the 'pr_fmt' macro.
+But commit df529cabb7a2 ("mm: mmap: add trace point of vm_unmapped_area")
+always prints info->align_offset even though it is uninitialized.  Fix
+this uninitialized value issue by setting it to 0 explicitly.
 
-In order to be more consistent with other files, use a more standard
-convention and put these newlines back in the messages themselves and
-remove it from the pr_fmt macro.
+Before
+92.291104: vm_unmapped_area: addr=0x755b155000 err=0 total_vm=0x15aaf0 flags=0x1 len=0x109000 lo=0x8000 hi=0x75eed48000 mask=0x0 ofs=0x4022
 
-While at it, use __func__ instead of hardcoding a function name in the
-last message.
+After
+68.584210: vm_unmapped_area: addr=0x74a4ca1000 err=0 total_vm=0x168ab1 flags=0x1 len=0x9000 lo=0x8000 hi=0x753d94b000 mask=0x0 ofs=0x0
 
-Link: http://lkml.kernel.org/r/20200409163234.22830-1-christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20200409094035.19457-1-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/prime_numbers.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/mmap.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/math/prime_numbers.c~lib-math-avoid-trailing-n-hidden-in-pr_fmt
-+++ a/lib/math/prime_numbers.c
-@@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-only
--#define pr_fmt(fmt) "prime numbers: " fmt "\n"
-+#define pr_fmt(fmt) "prime numbers: " fmt
+--- a/mm/mmap.c~mm-mmap-initialize-align_offset-explicitly-for-vm_unmapped_area
++++ a/mm/mmap.c
+@@ -2138,6 +2138,7 @@ arch_get_unmapped_area(struct file *filp
+ 	info.low_limit = mm->mmap_base;
+ 	info.high_limit = mmap_end;
+ 	info.align_mask = 0;
++	info.align_offset = 0;
+ 	return vm_unmapped_area(&info);
+ }
+ #endif
+@@ -2179,6 +2180,7 @@ arch_get_unmapped_area_topdown(struct fi
+ 	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
+ 	info.high_limit = arch_get_mmap_base(addr, mm->mmap_base);
+ 	info.align_mask = 0;
++	info.align_offset = 0;
+ 	addr = vm_unmapped_area(&info);
  
- #include <linux/module.h>
- #include <linux/mutex.h>
-@@ -253,7 +253,7 @@ static void dump_primes(void)
- 
- 	if (buf)
- 		bitmap_print_to_pagebuf(true, buf, p->primes, p->sz);
--	pr_info("primes.{last=%lu, .sz=%lu, .primes[]=...x%lx} = %s",
-+	pr_info("primes.{last=%lu, .sz=%lu, .primes[]=...x%lx} = %s\n",
- 		p->last, p->sz, p->primes[BITS_TO_LONGS(p->sz) - 1], buf);
- 
- 	rcu_read_unlock();
-@@ -273,7 +273,7 @@ static int selftest(unsigned long max)
- 		bool fast = is_prime_number(x);
- 
- 		if (slow != fast) {
--			pr_err("inconsistent result for is-prime(%lu): slow=%s, fast=%s!",
-+			pr_err("inconsistent result for is-prime(%lu): slow=%s, fast=%s!\n",
- 			       x, slow ? "yes" : "no", fast ? "yes" : "no");
- 			goto err;
- 		}
-@@ -282,14 +282,14 @@ static int selftest(unsigned long max)
- 			continue;
- 
- 		if (next_prime_number(last) != x) {
--			pr_err("incorrect result for next-prime(%lu): expected %lu, got %lu",
-+			pr_err("incorrect result for next-prime(%lu): expected %lu, got %lu\n",
- 			       last, x, next_prime_number(last));
- 			goto err;
- 		}
- 		last = x;
- 	}
- 
--	pr_info("selftest(%lu) passed, last prime was %lu", x, last);
-+	pr_info("%s(%lu) passed, last prime was %lu\n", __func__, x, last);
- 	return 0;
- 
- err:
+ 	/*
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
 
-lib-math-avoid-trailing-n-hidden-in-pr_fmt.patch
+mm-mmap-initialize-align_offset-explicitly-for-vm_unmapped_area.patch
