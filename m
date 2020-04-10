@@ -1,49 +1,43 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 04/35] docs: mm: slab.h: fix a broken
- cross-reference
-Date: Fri, 10 Apr 2020 14:32:25 -0700
-Message-ID: <20200410213225.MBzwpCFlZ%akpm@linux-foundation.org>
+Subject: [patch 05/35] mm/page_alloc.c: fix kernel-doc warning
+Date: Fri, 10 Apr 2020 14:32:29 -0700
+Message-ID: <20200410213229.jtKWzx7Se%akpm@linux-foundation.org>
 References: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46260 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46322 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726582AbgDJVc0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Apr 2020 17:32:26 -0400
+        id S1726582AbgDJVca (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Apr 2020 17:32:30 -0400
 In-Reply-To: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, corbet@lwn.net, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mchehab+huawei@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, rdunlap@infradead.org, torvalds@linux-foundation.org
 
-From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Subject: docs: mm: slab.h: fix a broken cross-reference
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm/page_alloc.c: fix kernel-doc warning
 
-There is a typo at the cross-reference link, causing this warning:
+Add description of function parameter 'mt' to fix kernel-doc warning:
 
-	./include/linux/slab.h:11: WARNING: undefined label: memory-allocation (if the link has no caption the label must precede a section header)
+../mm/page_alloc.c:3246: warning: Function parameter or member 'mt' not described in '__putback_isolated_page'
 
-Link: http://lkml.kernel.org/r/0aeac24235d356ebd935d11e147dcc6edbb6465c.1586359676.git.mchehab+huawei@kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/02998bd4-0b82-2f15-2570-f86130304d1e@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/slab.h~docs-mm-slabh-fix-a-broken-cross-reference
-+++ a/include/linux/slab.h
-@@ -501,7 +501,7 @@ static __always_inline void *kmalloc_lar
-  * :ref:`Documentation/core-api/mm-api.rst <mm-api-gfp-flags>`
+--- a/mm/page_alloc.c~mm-page_alloc-fix-kernel-doc-warning
++++ a/mm/page_alloc.c
+@@ -3224,6 +3224,7 @@ int __isolate_free_page(struct page *pag
+  * __putback_isolated_page - Return a now-isolated page back where we got it
+  * @page: Page that was isolated
+  * @order: Order of the isolated page
++ * @mt: The page's pageblock's migratetype
   *
-  * The recommended usage of the @flags is described at
-- * :ref:`Documentation/core-api/memory-allocation.rst <memory-allocation>`
-+ * :ref:`Documentation/core-api/memory-allocation.rst <memory_allocation>`
-  *
-  * Below is a brief outline of the most useful GFP flags
-  *
+  * This function is meant to return a page pulled from the free lists via
+  * __isolate_free_page back to the free lists they were pulled from.
 _
