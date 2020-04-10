@@ -1,328 +1,66 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 10/35] mm: hugetlb: optionally allocate gigantic
- hugepages using cma
-Date: Fri, 10 Apr 2020 14:32:45 -0700
-Message-ID: <20200410213245.0YJeT9fFx%akpm@linux-foundation.org>
+Subject: [patch 11/35] mm/mmap.c: initialize align_offset
+ explicitly for vm_unmapped_area
+Date: Fri, 10 Apr 2020 14:32:48 -0700
+Message-ID: <20200410213248.qLjye2jR5%akpm@linux-foundation.org>
 References: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46614 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726582AbgDJVcq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Apr 2020 17:32:46 -0400
+        id S1726582AbgDJVct (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Apr 2020 17:32:49 -0400
 In-Reply-To: <20200410143047.bf34a933ce1affdc042c7c80@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andreas.schaufler@gmx.de, aslan@fb.com, guro@fb.com, js1304@gmail.com, linux-mm@kvack.org, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, riel@surriel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bp@suse.de, jaewon31.kim@samsung.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, walken@google.com, willy@infradead.org
 
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: hugetlb: optionally allocate gigantic hugepages using cma
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: mm/mmap.c: initialize align_offset explicitly for vm_unmapped_area
 
-Commit 944d9fec8d7a ("hugetlb: add support for gigantic page allocation at
-runtime") has added the run-time allocation of gigantic pages.  However it
-actually works only at early stages of the system loading, when the
-majority of memory is free.  After some time the memory gets fragmented by
-non-movable pages, so the chances to find a contiguous 1 GB block are
-getting close to zero.  Even dropping caches manually doesn't help a lot.
+On passing requirement to vm_unmapped_area, arch_get_unmapped_area and
+arch_get_unmapped_area_topdown did not set align_offset.  Internally on
+both unmapped_area and unmapped_area_topdown, if info->align_mask is 0,
+then info->align_offset was meaningless.
 
-At large scale rebooting servers in order to allocate gigantic hugepages
-is quite expensive and complex.  At the same time keeping some constant
-percentage of memory in reserved hugepages even if the workload isn't
-using it is a big waste: not all workloads can benefit from using 1 GB
-pages.
+But commit df529cabb7a2 ("mm: mmap: add trace point of vm_unmapped_area")
+always prints info->align_offset even though it is uninitialized.  Fix
+this uninitialized value issue by setting it to 0 explicitly.
 
-The following solution can solve the problem:
-1) On boot time a dedicated cma area* is reserved. The size is passed
-   as a kernel argument.
-2) Run-time allocations of gigantic hugepages are performed using the
-   cma allocator and the dedicated cma area
+Before
+92.291104: vm_unmapped_area: addr=0x755b155000 err=0 total_vm=0x15aaf0 flags=0x1 len=0x109000 lo=0x8000 hi=0x75eed48000 mask=0x0 ofs=0x4022
 
-In this case gigantic hugepages can be allocated successfully with a high
-probability, however the memory isn't completely wasted if nobody is using
-1GB hugepages: it can be used for pagecache, anon memory, THPs, etc.
+After
+68.584210: vm_unmapped_area: addr=0x74a4ca1000 err=0 total_vm=0x168ab1 flags=0x1 len=0x9000 lo=0x8000 hi=0x753d94b000 mask=0x0 ofs=0x0
 
-* On a multi-node machine a per-node cma area is allocated on each node.
-  Following gigantic hugetlb allocation are using the first available
-  numa node if the mask isn't specified by a user.
-
-Usage:
-1) configure the kernel to allocate a cma area for hugetlb allocations:
-   pass hugetlb_cma=10G as a kernel argument
-
-2) allocate hugetlb pages as usual, e.g.
-   echo 10 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-
-If the option isn't enabled or the allocation of the cma area failed,
-the current behavior of the system is preserved.
-
-x86 and arm-64 are covered by this patch, other architectures can be
-trivially added later.
-
-The patch contains clean-ups and fixes proposed and implemented by Aslan
-Bakirov and Randy Dunlap.  It also contains ideas and suggestions proposed
-by Rik van Riel, Michal Hocko and Mike Kravetz.  Thanks!
-
-Link: http://lkml.kernel.org/r/20200407163840.92263-3-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Tested-by: Andreas Schaufler <andreas.schaufler@gmx.de>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@kernel.org>
-Cc: Aslan Bakirov <aslan@fb.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
+Link: http://lkml.kernel.org/r/20200409094035.19457-1-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    8 +
- arch/arm64/mm/init.c                            |    6 
- arch/x86/kernel/setup.c                         |    4 
- include/linux/hugetlb.h                         |   12 +
- mm/hugetlb.c                                    |  109 ++++++++++++++
- 5 files changed, 139 insertions(+)
+ mm/mmap.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/arm64/mm/init.c~mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma
-+++ a/arch/arm64/mm/init.c
-@@ -29,6 +29,7 @@
- #include <linux/mm.h>
- #include <linux/kexec.h>
- #include <linux/crash_dump.h>
-+#include <linux/hugetlb.h>
- 
- #include <asm/boot.h>
- #include <asm/fixmap.h>
-@@ -457,6 +458,11 @@ void __init arm64_memblock_init(void)
- 	high_memory = __va(memblock_end_of_DRAM() - 1) + 1;
- 
- 	dma_contiguous_reserve(arm64_dma32_phys_limit);
-+
-+#ifdef CONFIG_ARM64_4K_PAGES
-+	hugetlb_cma_reserve(PUD_SHIFT - PAGE_SHIFT);
-+#endif
-+
+--- a/mm/mmap.c~mm-mmap-initialize-align_offset-explicitly-for-vm_unmapped_area
++++ a/mm/mmap.c
+@@ -2123,6 +2123,7 @@ arch_get_unmapped_area(struct file *filp
+ 	info.low_limit = mm->mmap_base;
+ 	info.high_limit = mmap_end;
+ 	info.align_mask = 0;
++	info.align_offset = 0;
+ 	return vm_unmapped_area(&info);
  }
+ #endif
+@@ -2164,6 +2165,7 @@ arch_get_unmapped_area_topdown(struct fi
+ 	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
+ 	info.high_limit = arch_get_mmap_base(addr, mm->mmap_base);
+ 	info.align_mask = 0;
++	info.align_offset = 0;
+ 	addr = vm_unmapped_area(&info);
  
- void __init bootmem_init(void)
---- a/arch/x86/kernel/setup.c~mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma
-+++ a/arch/x86/kernel/setup.c
-@@ -16,6 +16,7 @@
- #include <linux/pci.h>
- #include <linux/root_dev.h>
- #include <linux/sfi.h>
-+#include <linux/hugetlb.h>
- #include <linux/tboot.h>
- #include <linux/usb/xhci-dbgp.h>
- 
-@@ -1157,6 +1158,9 @@ void __init setup_arch(char **cmdline_p)
- 	initmem_init();
- 	dma_contiguous_reserve(max_pfn_mapped << PAGE_SHIFT);
- 
-+	if (boot_cpu_has(X86_FEATURE_GBPAGES))
-+		hugetlb_cma_reserve(PUD_SHIFT - PAGE_SHIFT);
-+
  	/*
- 	 * Reserve memory for crash kernel after SRAT is parsed so that it
- 	 * won't consume hotpluggable memory.
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1475,6 +1475,14 @@
- 	hpet_mmap=	[X86, HPET_MMAP] Allow userspace to mmap HPET
- 			registers.  Default set by CONFIG_HPET_MMAP_DEFAULT.
- 
-+	hugetlb_cma=	[HW] The size of a cma area used for allocation
-+			of gigantic hugepages.
-+			Format: nn[KMGTPE]
-+
-+			Reserve a cma area of given size and allocate gigantic
-+			hugepages using the cma allocator. If enabled, the
-+			boot-time allocation of gigantic hugepages is skipped.
-+
- 	hugepages=	[HW,X86-32,IA-64] HugeTLB pages to allocate at boot.
- 	hugepagesz=	[HW,IA-64,PPC,X86-64] The size of the HugeTLB pages.
- 			On x86-64 and powerpc, this option can be specified
---- a/include/linux/hugetlb.h~mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma
-+++ a/include/linux/hugetlb.h
-@@ -895,4 +895,16 @@ static inline spinlock_t *huge_pte_lock(
- 	return ptl;
- }
- 
-+#if defined(CONFIG_HUGETLB_PAGE) && defined(CONFIG_CMA)
-+extern void __init hugetlb_cma_reserve(int order);
-+extern void __init hugetlb_cma_check(void);
-+#else
-+static inline __init void hugetlb_cma_reserve(int order)
-+{
-+}
-+static inline __init void hugetlb_cma_check(void)
-+{
-+}
-+#endif
-+
- #endif /* _LINUX_HUGETLB_H */
---- a/mm/hugetlb.c~mm-hugetlb-optionally-allocate-gigantic-hugepages-using-cma
-+++ a/mm/hugetlb.c
-@@ -28,6 +28,7 @@
- #include <linux/jhash.h>
- #include <linux/numa.h>
- #include <linux/llist.h>
-+#include <linux/cma.h>
- 
- #include <asm/page.h>
- #include <asm/pgtable.h>
-@@ -44,6 +45,9 @@
- int hugetlb_max_hstate __read_mostly;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
-+
-+static struct cma *hugetlb_cma[MAX_NUMNODES];
-+
- /*
-  * Minimum page order among possible hugepage sizes, set to a proper value
-  * at boot time.
-@@ -1228,6 +1232,14 @@ static void destroy_compound_gigantic_pa
- 
- static void free_gigantic_page(struct page *page, unsigned int order)
- {
-+	/*
-+	 * If the page isn't allocated using the cma allocator,
-+	 * cma_release() returns false.
-+	 */
-+	if (IS_ENABLED(CONFIG_CMA) &&
-+	    cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order))
-+		return;
-+
- 	free_contig_range(page_to_pfn(page), 1 << order);
- }
- 
-@@ -1237,6 +1249,21 @@ static struct page *alloc_gigantic_page(
- {
- 	unsigned long nr_pages = 1UL << huge_page_order(h);
- 
-+	if (IS_ENABLED(CONFIG_CMA)) {
-+		struct page *page;
-+		int node;
-+
-+		for_each_node_mask(node, *nodemask) {
-+			if (!hugetlb_cma[node])
-+				continue;
-+
-+			page = cma_alloc(hugetlb_cma[node], nr_pages,
-+					 huge_page_order(h), true);
-+			if (page)
-+				return page;
-+		}
-+	}
-+
- 	return alloc_contig_pages(nr_pages, gfp_mask, nid, nodemask);
- }
- 
-@@ -1281,8 +1308,14 @@ static void update_and_free_page(struct
- 	set_compound_page_dtor(page, NULL_COMPOUND_DTOR);
- 	set_page_refcounted(page);
- 	if (hstate_is_gigantic(h)) {
-+		/*
-+		 * Temporarily drop the hugetlb_lock, because
-+		 * we might block in free_gigantic_page().
-+		 */
-+		spin_unlock(&hugetlb_lock);
- 		destroy_compound_gigantic_page(page, huge_page_order(h));
- 		free_gigantic_page(page, huge_page_order(h));
-+		spin_lock(&hugetlb_lock);
- 	} else {
- 		__free_pages(page, huge_page_order(h));
- 	}
-@@ -2539,6 +2572,10 @@ static void __init hugetlb_hstate_alloc_
- 
- 	for (i = 0; i < h->max_huge_pages; ++i) {
- 		if (hstate_is_gigantic(h)) {
-+			if (IS_ENABLED(CONFIG_CMA) && hugetlb_cma[0]) {
-+				pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
-+				break;
-+			}
- 			if (!alloc_bootmem_huge_page(h))
- 				break;
- 		} else if (!alloc_pool_huge_page(h,
-@@ -3194,6 +3231,7 @@ static int __init hugetlb_init(void)
- 			default_hstate.max_huge_pages = default_hstate_max_huge_pages;
- 	}
- 
-+	hugetlb_cma_check();
- 	hugetlb_init_hstates();
- 	gather_bootmem_prealloc();
- 	report_hugepages();
-@@ -5506,3 +5544,74 @@ void move_hugetlb_state(struct page *old
- 		spin_unlock(&hugetlb_lock);
- 	}
- }
-+
-+#ifdef CONFIG_CMA
-+static unsigned long hugetlb_cma_size __initdata;
-+static bool cma_reserve_called __initdata;
-+
-+static int __init cmdline_parse_hugetlb_cma(char *p)
-+{
-+	hugetlb_cma_size = memparse(p, &p);
-+	return 0;
-+}
-+
-+early_param("hugetlb_cma", cmdline_parse_hugetlb_cma);
-+
-+void __init hugetlb_cma_reserve(int order)
-+{
-+	unsigned long size, reserved, per_node;
-+	int nid;
-+
-+	cma_reserve_called = true;
-+
-+	if (!hugetlb_cma_size)
-+		return;
-+
-+	if (hugetlb_cma_size < (PAGE_SIZE << order)) {
-+		pr_warn("hugetlb_cma: cma area should be at least %lu MiB\n",
-+			(PAGE_SIZE << order) / SZ_1M);
-+		return;
-+	}
-+
-+	/*
-+	 * If 3 GB area is requested on a machine with 4 numa nodes,
-+	 * let's allocate 1 GB on first three nodes and ignore the last one.
-+	 */
-+	per_node = DIV_ROUND_UP(hugetlb_cma_size, nr_online_nodes);
-+	pr_info("hugetlb_cma: reserve %lu MiB, up to %lu MiB per node\n",
-+		hugetlb_cma_size / SZ_1M, per_node / SZ_1M);
-+
-+	reserved = 0;
-+	for_each_node_state(nid, N_ONLINE) {
-+		int res;
-+
-+		size = min(per_node, hugetlb_cma_size - reserved);
-+		size = round_up(size, PAGE_SIZE << order);
-+
-+		res = cma_declare_contiguous_nid(0, size, 0, PAGE_SIZE << order,
-+						 0, false, "hugetlb",
-+						 &hugetlb_cma[nid], nid);
-+		if (res) {
-+			pr_warn("hugetlb_cma: reservation failed: err %d, node %d",
-+				res, nid);
-+			continue;
-+		}
-+
-+		reserved += size;
-+		pr_info("hugetlb_cma: reserved %lu MiB on node %d\n",
-+			size / SZ_1M, nid);
-+
-+		if (reserved >= hugetlb_cma_size)
-+			break;
-+	}
-+}
-+
-+void __init hugetlb_cma_check(void)
-+{
-+	if (!hugetlb_cma_size || cma_reserve_called)
-+		return;
-+
-+	pr_warn("hugetlb_cma: the option isn't supported by current arch\n");
-+}
-+
-+#endif /* CONFIG_CMA */
 _
