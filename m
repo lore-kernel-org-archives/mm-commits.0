@@ -1,68 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- mm-gup-fix-null-pointer-dereference-detected-by-coverity.patch removed from
- -mm tree
-Date: Sat, 11 Apr 2020 23:43:51 -0700
-Message-ID: <20200412064351.w3zOJQPsH%akpm@linux-foundation.org>
+Subject: [merged]
+ hfsplus-fix-crash-and-filesystem-corruption-when-deleting-files.patch
+ removed from -mm tree
+Date: Sat, 11 Apr 2020 23:44:28 -0700
+Message-ID: <20200412064428.XK8T3-R3P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58654 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58806 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725812AbgDLGnx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 12 Apr 2020 02:43:53 -0400
+        id S1725832AbgDLGoa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 12 Apr 2020 02:44:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ira.weiny@intel.com, miles.chen@mediatek.com, mm-commits@vger.kernel.org
+To: anton@tuxera.com, mm-commits@vger.kernel.org, simon@tuxera.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: fix null pointer dereference detected by coverity
+     Subject: hfsplus: fix crash and filesystem corruption when deleting files
 has been removed from the -mm tree.  Its filename was
-     mm-gup-fix-null-pointer-dereference-detected-by-coverity.patch
+     hfsplus-fix-crash-and-filesystem-corruption-when-deleting-files.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: mm/gup: fix null pointer dereference detected by coverity
+From: Simon Gander <simon@tuxera.com>
+Subject: hfsplus: fix crash and filesystem corruption when deleting files
 
-In fixup_user_fault(), it is possible that unlocked is NULL,
-so we should test unlocked before using it.
+When removing files containing extended attributes, the hfsplus driver may
+remove the wrong entries from the attributes b-tree, causing major
+filesystem damage and in some cases even kernel crashes.
 
-For example, in arch/arc/kernel/process.c, NULL is passed
-to fixup_user_fault().
+To remove a file, all its extended attributes have to be removed as well. 
+The driver does this by looking up all keys in the attributes b-tree with
+the cnid of the file.  Each of these entries then gets deleted using the
+key used for searching, which doesn't contain the attribute's name when it
+should.  Since the key doesn't contain the name, the deletion routine will
+not find the correct entry and instead remove the one in front of it.  If
+parent nodes have to be modified, these become corrupt as well.  This
+causes invalid links and unsorted entries that not even macOS's fsck_hfs
+is able to fix.
 
-SYSCALL_DEFINE3(arc_usr_cmpxchg, int *, uaddr, int, expected, int, new)
-{
-...
-	ret = fixup_user_fault(current, current->mm, (unsigned long) uaddr,
-			       FAULT_FLAG_WRITE, NULL);
-...
-}
+To fix this, modify the search key before an entry is deleted from the
+attributes b-tree by copying the found entry's key into the search key,
+therefore ensuring that the correct entry gets removed from the tree.
 
-Link: http://lkml.kernel.org/r/20200407095107.1988-1-miles.chen@mediatek.com
-Fixes: 4a9e1cda2748 ("mm: bring in additional flag for fixup_user_fault to signal unlock")
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20200327155541.1521-1-simon@tuxera.com
+Signed-off-by: Simon Gander <simon@tuxera.com>
+Reviewed-by: Anton Altaparmakov <anton@tuxera.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/hfsplus/attributes.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/gup.c~mm-gup-fix-null-pointer-dereference-detected-by-coverity
-+++ a/mm/gup.c
-@@ -1231,7 +1231,8 @@ retry:
- 	if (ret & VM_FAULT_RETRY) {
- 		down_read(&mm->mmap_sem);
- 		if (!(fault_flags & FAULT_FLAG_TRIED)) {
--			*unlocked = true;
-+			if (unlocked)
-+				*unlocked = true;
- 			fault_flags |= FAULT_FLAG_TRIED;
- 			goto retry;
- 		}
+--- a/fs/hfsplus/attributes.c~hfsplus-fix-crash-and-filesystem-corruption-when-deleting-files
++++ a/fs/hfsplus/attributes.c
+@@ -292,6 +292,10 @@ static int __hfsplus_delete_attr(struct
+ 		return -ENOENT;
+ 	}
+ 
++	/* Avoid btree corruption */
++	hfs_bnode_read(fd->bnode, fd->search_key,
++			fd->keyoffset, fd->keylength);
++
+ 	err = hfs_brec_remove(fd);
+ 	if (err)
+ 		return err;
 _
 
-Patches currently in -mm which might be from miles.chen@mediatek.com are
+Patches currently in -mm which might be from simon@tuxera.com are
