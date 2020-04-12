@@ -1,212 +1,545 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vma-introduce-vm_access_flags.patch removed
- from -mm tree
-Date: Sat, 11 Apr 2020 23:45:10 -0700
-Message-ID: <20200412064510.OQYZ7V4Ph%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial.patch
+ removed from -mm tree
+Date: Sat, 11 Apr 2020 23:45:13 -0700
+Message-ID: <20200412064513.qHcr5IYk1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59348 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59392 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726794AbgDLGpL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 12 Apr 2020 02:45:11 -0400
+        id S1726708AbgDLGpP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 12 Apr 2020 02:45:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, catalin.marinas@arm.com, dave.hansen@linux.intel.com, geert@linux-m68k.org, gregkh@linuxfoundation.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, mm-commits@vger.kernel.org, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, rspringer@google.com, tglx@linutronix.de, vbabka@suse.cz, ysato@users.sourceforge.jp
+To: anshuman.khandual@arm.com, anton.ivanov@cambridgegreys.com, bcain@codeaurora.org, chris@zankel.net, davem@davemloft.net, deanbo422@gmail.com, deller@gmx.de, fenghua.yu@intel.com, geert@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, ink@jurassic.park.msu.ru, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, jdike@addtoit.com, jonas@southpole.se, ley.foon.tan@intel.com, linux@armlinux.org.uk, mattst88@gmail.com, mm-commits@vger.kernel.org, monstr@monstr.eu, nickhu@andestech.com, paulburton@kernel.org, ralf@linux-mips.org, richard@nod.at, rth@twiddle.net, sammy@sammy.net, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, tony.luck@intel.com, tsbogend@alpha.franken.de
 
 
 The patch titled
-     Subject: mm/vma: introduce VM_ACCESS_FLAGS
+     Subject: mm/special: create generic fallbacks for pte_special() and pte_mkspecial()
 has been removed from the -mm tree.  Its filename was
-     mm-vma-introduce-vm_access_flags.patch
+     mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/vma: introduce VM_ACCESS_FLAGS
+Subject: mm/special: create generic fallbacks for pte_special() and pte_mkspecial()
 
-There are many places where all basic VMA access flags (read, write, exec)
-are initialized or checked against as a group.  One such example is during
-page fault.  Existing vma_is_accessible() wrapper already creates the
-notion of VMA accessibility as a group access permissions.  Hence lets
-just create VM_ACCESS_FLAGS (VM_READ|VM_WRITE|VM_EXEC) which will not only
-reduce code duplication but also extend the VMA accessibility concept in
-general.
+Currently there are many platforms that dont enable ARCH_HAS_PTE_SPECIAL
+but required to define quite similar fallback stubs for special page table
+entry helpers such as pte_special() and pte_mkspecial(), as they get build
+in generic MM without a config check.  This creates two generic fallback
+stub definitions for these helpers, eliminating much code duplication.
 
-Link: http://lkml.kernel.org/r/1583391014-8170-3-git-send-email-anshuman.khandual@arm.com
+mips platform has a special case where pte_special() and pte_mkspecial()
+visibility is wider than what ARCH_HAS_PTE_SPECIAL enablement requires. 
+This restricts those symbol visibility in order to avoid redefinitions
+which is now exposed through this new generic stubs and subsequent build
+failure.  arm platform set_pte_at() definition needs to be moved into a C
+file just to prevent a build failure.
+
+[anshuman.khandual@arm.com: use defined(CONFIG_ARCH_HAS_PTE_SPECIAL) in mips per Thomas]
+  Link: http://lkml.kernel.org/r/1583851924-21603-1-git-send-email-anshuman.khandual@arm.com
+Link: http://lkml.kernel.org/r/1583802551-15406-1-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Guo Ren <guoren@kernel.org>			[csky]
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>	[m68k]
+Acked-by: Stafford Horne <shorne@gmail.com>		[openrisc]
+Acked-by: Helge Deller <deller@gmx.de>			[parisc]
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Salter <msalter@redhat.com>
+Cc: Brian Cain <bcain@codeaurora.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Sam Creasey <sammy@sammy.net>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Burton <paulburton@kernel.org>
 Cc: Nick Hu <nickhu@andestech.com>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Vincent Chen <deanbo422@gmail.com>
 Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
 Cc: Guan Xuetao <gxt@pku.edu.cn>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Rob Springer <rspringer@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/fault.c                  |    2 +-
- arch/arm64/mm/fault.c                |    2 +-
- arch/nds32/mm/fault.c                |    2 +-
- arch/powerpc/mm/book3s64/pkeys.c     |    2 +-
- arch/s390/mm/fault.c                 |    2 +-
- arch/unicore32/mm/fault.c            |    2 +-
- arch/x86/mm/pkeys.c                  |    2 +-
- drivers/staging/gasket/gasket_core.c |    2 +-
- include/linux/mm.h                   |    6 +++++-
- mm/mmap.c                            |    2 +-
- mm/mprotect.c                        |    4 ++--
- 11 files changed, 16 insertions(+), 12 deletions(-)
+ arch/alpha/include/asm/pgtable.h         |    2 
+ arch/arm/include/asm/pgtable-2level.h    |    2 
+ arch/arm/include/asm/pgtable.h           |   15 -------
+ arch/arm/mm/mmu.c                        |   14 ++++++
+ arch/csky/include/asm/pgtable.h          |    3 -
+ arch/hexagon/include/asm/pgtable.h       |    2 
+ arch/ia64/include/asm/pgtable.h          |    2 
+ arch/m68k/include/asm/mcf_pgtable.h      |   10 ----
+ arch/m68k/include/asm/motorola_pgtable.h |    2 
+ arch/m68k/include/asm/sun3_pgtable.h     |    2 
+ arch/microblaze/include/asm/pgtable.h    |    4 -
+ arch/mips/include/asm/pgtable.h          |   44 ++++++++++++++-------
+ arch/nds32/include/asm/pgtable.h         |    9 ----
+ arch/nios2/include/asm/pgtable.h         |    3 -
+ arch/openrisc/include/asm/pgtable.h      |    2 
+ arch/parisc/include/asm/pgtable.h        |    2 
+ arch/sparc/include/asm/pgtable_32.h      |    7 ---
+ arch/um/include/asm/pgtable.h            |   10 ----
+ arch/unicore32/include/asm/pgtable.h     |    3 -
+ arch/xtensa/include/asm/pgtable.h        |    3 -
+ include/linux/mm.h                       |   12 +++++
+ 21 files changed, 58 insertions(+), 95 deletions(-)
 
---- a/arch/arm64/mm/fault.c~mm-vma-introduce-vm_access_flags
-+++ a/arch/arm64/mm/fault.c
-@@ -445,7 +445,7 @@ static int __kprobes do_page_fault(unsig
- 	const struct fault_info *inf;
- 	struct mm_struct *mm = current->mm;
- 	vm_fault_t fault, major = 0;
--	unsigned long vm_flags = VM_READ | VM_WRITE | VM_EXEC;
-+	unsigned long vm_flags = VM_ACCESS_FLAGS;
- 	unsigned int mm_flags = FAULT_FLAG_DEFAULT;
+--- a/arch/alpha/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/alpha/include/asm/pgtable.h
+@@ -268,7 +268,6 @@ extern inline void pud_clear(pud_t * pud
+ extern inline int pte_write(pte_t pte)		{ return !(pte_val(pte) & _PAGE_FOW); }
+ extern inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+ extern inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+-extern inline int pte_special(pte_t pte)	{ return 0; }
  
- 	if (kprobe_page_fault(regs, esr))
---- a/arch/arm/mm/fault.c~mm-vma-introduce-vm_access_flags
-+++ a/arch/arm/mm/fault.c
-@@ -189,7 +189,7 @@ void do_bad_area(unsigned long addr, uns
-  */
- static inline bool access_error(unsigned int fsr, struct vm_area_struct *vma)
- {
--	unsigned int mask = VM_READ | VM_WRITE | VM_EXEC;
-+	unsigned int mask = VM_ACCESS_FLAGS;
+ extern inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) |= _PAGE_FOW; return pte; }
+ extern inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~(__DIRTY_BITS); return pte; }
+@@ -276,7 +275,6 @@ extern inline pte_t pte_mkold(pte_t pte)
+ extern inline pte_t pte_mkwrite(pte_t pte)	{ pte_val(pte) &= ~_PAGE_FOW; return pte; }
+ extern inline pte_t pte_mkdirty(pte_t pte)	{ pte_val(pte) |= __DIRTY_BITS; return pte; }
+ extern inline pte_t pte_mkyoung(pte_t pte)	{ pte_val(pte) |= __ACCESS_BITS; return pte; }
+-extern inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
  
- 	if ((fsr & FSR_WRITE) && !(fsr & FSR_CM))
- 		mask = VM_WRITE;
---- a/arch/nds32/mm/fault.c~mm-vma-introduce-vm_access_flags
-+++ a/arch/nds32/mm/fault.c
-@@ -79,7 +79,7 @@ void do_page_fault(unsigned long entry,
- 	struct vm_area_struct *vma;
- 	int si_code;
- 	vm_fault_t fault;
--	unsigned int mask = VM_READ | VM_WRITE | VM_EXEC;
-+	unsigned int mask = VM_ACCESS_FLAGS;
- 	unsigned int flags = FAULT_FLAG_DEFAULT;
+ #define PAGE_DIR_OFFSET(tsk,address) pgd_offset((tsk),(address))
  
- 	error_code = error_code & (ITYPE_mskINST | ITYPE_mskETYPE);
---- a/arch/powerpc/mm/book3s64/pkeys.c~mm-vma-introduce-vm_access_flags
-+++ a/arch/powerpc/mm/book3s64/pkeys.c
-@@ -315,7 +315,7 @@ int __execute_only_pkey(struct mm_struct
- static inline bool vma_is_pkey_exec_only(struct vm_area_struct *vma)
- {
- 	/* Do this check first since the vm_flags should be hot */
--	if ((vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)) != VM_EXEC)
-+	if ((vma->vm_flags & VM_ACCESS_FLAGS) != VM_EXEC)
- 		return false;
+--- a/arch/arm/include/asm/pgtable-2level.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/arm/include/asm/pgtable-2level.h
+@@ -211,8 +211,6 @@ static inline pmd_t *pmd_offset(pud_t *p
+ #define pmd_addr_end(addr,end) (end)
  
- 	return (vma_pkey(vma) == vma->vm_mm->context.execute_only_pkey);
---- a/arch/s390/mm/fault.c~mm-vma-introduce-vm_access_flags
-+++ a/arch/s390/mm/fault.c
-@@ -580,7 +580,7 @@ void do_dat_exception(struct pt_regs *re
- 	int access;
- 	vm_fault_t fault;
+ #define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
+-#define pte_special(pte)	(0)
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
  
--	access = VM_READ | VM_EXEC | VM_WRITE;
-+	access = VM_ACCESS_FLAGS;
- 	fault = do_exception(regs, access);
- 	if (unlikely(fault))
- 		do_fault_error(regs, access, fault);
---- a/arch/unicore32/mm/fault.c~mm-vma-introduce-vm_access_flags
-+++ a/arch/unicore32/mm/fault.c
-@@ -149,7 +149,7 @@ void do_bad_area(unsigned long addr, uns
-  */
- static inline bool access_error(unsigned int fsr, struct vm_area_struct *vma)
- {
--	unsigned int mask = VM_READ | VM_WRITE | VM_EXEC;
-+	unsigned int mask = VM_ACCESS_FLAGS;
- 
- 	if (!(fsr ^ 0x12))	/* write? */
- 		mask = VM_WRITE;
---- a/arch/x86/mm/pkeys.c~mm-vma-introduce-vm_access_flags
-+++ a/arch/x86/mm/pkeys.c
-@@ -63,7 +63,7 @@ int __execute_only_pkey(struct mm_struct
- static inline bool vma_is_pkey_exec_only(struct vm_area_struct *vma)
- {
- 	/* Do this check first since the vm_flags should be hot */
--	if ((vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)) != VM_EXEC)
-+	if ((vma->vm_flags & VM_ACCESS_FLAGS) != VM_EXEC)
- 		return false;
- 	if (vma_pkey(vma) != vma->vm_mm->context.execute_only_pkey)
- 		return false;
---- a/drivers/staging/gasket/gasket_core.c~mm-vma-introduce-vm_access_flags
-+++ a/drivers/staging/gasket/gasket_core.c
-@@ -689,7 +689,7 @@ static bool gasket_mmap_has_permissions(
- 
- 	/* Make sure that no wrong flags are set. */
- 	requested_permissions =
--		(vma->vm_flags & (VM_WRITE | VM_READ | VM_EXEC));
-+		(vma->vm_flags & VM_ACCESS_FLAGS);
- 	if (requested_permissions & ~(bar_permissions)) {
- 		dev_dbg(gasket_dev->dev,
- 			"Attempting to map a region with requested permissions 0x%x, but region has permissions 0x%x.\n",
---- a/include/linux/mm.h~mm-vma-introduce-vm_access_flags
-+++ a/include/linux/mm.h
-@@ -369,6 +369,10 @@ extern unsigned int kobjsize(const void
- 
- #define VM_STACK_FLAGS	(VM_STACK | VM_STACK_DEFAULT_FLAGS | VM_ACCOUNT)
- 
-+/* VMA basic access permission flags */
-+#define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
-+
-+
  /*
-  * Special vmas that are non-mergable, non-mlock()able.
-  */
-@@ -646,7 +650,7 @@ static inline bool vma_is_foreign(struct
+  * We don't have huge page support for short descriptors, for the moment
+--- a/arch/arm/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/arm/include/asm/pgtable.h
+@@ -243,19 +243,8 @@ static inline void __sync_icache_dcache(
+ extern void __sync_icache_dcache(pte_t pteval);
+ #endif
  
- static inline bool vma_is_accessible(struct vm_area_struct *vma)
+-static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+-			      pte_t *ptep, pte_t pteval)
+-{
+-	unsigned long ext = 0;
+-
+-	if (addr < TASK_SIZE && pte_valid_user(pteval)) {
+-		if (!pte_special(pteval))
+-			__sync_icache_dcache(pteval);
+-		ext |= PTE_EXT_NG;
+-	}
+-
+-	set_pte_ext(ptep, pteval, ext);
+-}
++void set_pte_at(struct mm_struct *mm, unsigned long addr,
++		      pte_t *ptep, pte_t pteval);
+ 
+ static inline pte_t clear_pte_bit(pte_t pte, pgprot_t prot)
  {
--	return vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC);
-+	return vma->vm_flags & VM_ACCESS_FLAGS;
+--- a/arch/arm/mm/mmu.c~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/arm/mm/mmu.c
+@@ -1646,3 +1646,17 @@ void __init early_mm_init(const struct m
+ 	build_mem_type_table();
+ 	early_paging_init(mdesc);
+ }
++
++void set_pte_at(struct mm_struct *mm, unsigned long addr,
++			      pte_t *ptep, pte_t pteval)
++{
++	unsigned long ext = 0;
++
++	if (addr < TASK_SIZE && pte_valid_user(pteval)) {
++		if (!pte_special(pteval))
++			__sync_icache_dcache(pteval);
++		ext |= PTE_EXT_NG;
++	}
++
++	set_pte_ext(ptep, pteval, ext);
++}
+--- a/arch/csky/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/csky/include/asm/pgtable.h
+@@ -110,9 +110,6 @@ extern unsigned long empty_zero_page[PAG
+ extern void load_pgd(unsigned long pg_dir);
+ extern pte_t invalid_pte_table[PTRS_PER_PTE];
+ 
+-static inline int pte_special(pte_t pte) { return 0; }
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+-
+ static inline void set_pte(pte_t *p, pte_t pte)
+ {
+ 	*p = pte;
+--- a/arch/hexagon/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/hexagon/include/asm/pgtable.h
+@@ -158,8 +158,6 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD
+ 
+ /* Seems to be zero even in architectures where the zero page is firewalled? */
+ #define FIRST_USER_ADDRESS 0UL
+-#define pte_special(pte)	0
+-#define pte_mkspecial(pte)	(pte)
+ 
+ /*  HUGETLB not working currently  */
+ #ifdef CONFIG_HUGETLB_PAGE
+--- a/arch/ia64/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/ia64/include/asm/pgtable.h
+@@ -298,7 +298,6 @@ extern unsigned long VMALLOC_END;
+ #define pte_exec(pte)		((pte_val(pte) & _PAGE_AR_RX) != 0)
+ #define pte_dirty(pte)		((pte_val(pte) & _PAGE_D) != 0)
+ #define pte_young(pte)		((pte_val(pte) & _PAGE_A) != 0)
+-#define pte_special(pte)	0
+ 
+ /*
+  * Note: we convert AR_RWX to AR_RX and AR_RW to AR_R by clearing the 2nd bit in the
+@@ -311,7 +310,6 @@ extern unsigned long VMALLOC_END;
+ #define pte_mkclean(pte)	(__pte(pte_val(pte) & ~_PAGE_D))
+ #define pte_mkdirty(pte)	(__pte(pte_val(pte) | _PAGE_D))
+ #define pte_mkhuge(pte)		(__pte(pte_val(pte)))
+-#define pte_mkspecial(pte)	(pte)
+ 
+ /*
+  * Because ia64's Icache and Dcache is not coherent (on a cpu), we need to
+--- a/arch/m68k/include/asm/mcf_pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/m68k/include/asm/mcf_pgtable.h
+@@ -235,11 +235,6 @@ static inline int pte_young(pte_t pte)
+ 	return pte_val(pte) & CF_PAGE_ACCESSED;
  }
  
- #ifdef CONFIG_SHMEM
---- a/mm/mmap.c~mm-vma-introduce-vm_access_flags
-+++ a/mm/mmap.c
-@@ -1224,7 +1224,7 @@ static int anon_vma_compatible(struct vm
- 	return a->vm_end == b->vm_start &&
- 		mpol_equal(vma_policy(a), vma_policy(b)) &&
- 		a->vm_file == b->vm_file &&
--		!((a->vm_flags ^ b->vm_flags) & ~(VM_READ|VM_WRITE|VM_EXEC|VM_SOFTDIRTY)) &&
-+		!((a->vm_flags ^ b->vm_flags) & ~(VM_ACCESS_FLAGS | VM_SOFTDIRTY)) &&
- 		b->vm_pgoff == a->vm_pgoff + ((b->vm_start - a->vm_start) >> PAGE_SHIFT);
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
+-
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+ 	pte_val(pte) &= ~CF_PAGE_WRITABLE;
+@@ -312,11 +307,6 @@ static inline pte_t pte_mkcache(pte_t pt
+ 	return pte;
  }
  
---- a/mm/mprotect.c~mm-vma-introduce-vm_access_flags
-+++ a/mm/mprotect.c
-@@ -419,7 +419,7 @@ mprotect_fixup(struct vm_area_struct *vm
- 	 */
- 	if (arch_has_pfn_modify_check() &&
- 	    (vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
--	    (newflags & (VM_READ|VM_WRITE|VM_EXEC)) == 0) {
-+	    (newflags & VM_ACCESS_FLAGS) == 0) {
- 		pgprot_t new_pgprot = vm_get_page_prot(newflags);
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	return pte;
+-}
+-
+ #define swapper_pg_dir kernel_pg_dir
+ extern pgd_t kernel_pg_dir[PTRS_PER_PGD];
  
- 		error = walk_page_range(current->mm, start, end,
-@@ -598,7 +598,7 @@ static int do_mprotect_pkey(unsigned lon
- 		newflags |= (vma->vm_flags & ~mask_off_old_flags);
+--- a/arch/m68k/include/asm/motorola_pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/m68k/include/asm/motorola_pgtable.h
+@@ -174,7 +174,6 @@ static inline void pud_set(pud_t *pudp,
+ static inline int pte_write(pte_t pte)		{ return !(pte_val(pte) & _PAGE_RONLY); }
+ static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
  
- 		/* newflags >> 4 shift VM_MAY% in place of VM_% */
--		if ((newflags & ~(newflags >> 4)) & (VM_READ | VM_WRITE | VM_EXEC)) {
-+		if ((newflags & ~(newflags >> 4)) & VM_ACCESS_FLAGS) {
- 			error = -EACCES;
- 			goto out;
- 		}
+ static inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) |= _PAGE_RONLY; return pte; }
+ static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~_PAGE_DIRTY; return pte; }
+@@ -192,7 +191,6 @@ static inline pte_t pte_mkcache(pte_t pt
+ 	pte_val(pte) = (pte_val(pte) & _CACHEMASK040) | m68k_supervisor_cachemode;
+ 	return pte;
+ }
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+ 
+ #define PAGE_DIR_OFFSET(tsk,address) pgd_offset((tsk),(address))
+ 
+--- a/arch/m68k/include/asm/sun3_pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/m68k/include/asm/sun3_pgtable.h
+@@ -155,7 +155,6 @@ static inline void pmd_clear (pmd_t *pmd
+ static inline int pte_write(pte_t pte)		{ return pte_val(pte) & SUN3_PAGE_WRITEABLE; }
+ static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & SUN3_PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)		{ return pte_val(pte) & SUN3_PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) &= ~SUN3_PAGE_WRITEABLE; return pte; }
+ static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~SUN3_PAGE_MODIFIED; return pte; }
+@@ -168,7 +167,6 @@ static inline pte_t pte_mknocache(pte_t
+ //static inline pte_t pte_mkcache(pte_t pte)	{ pte_val(pte) &= SUN3_PAGE_NOCACHE; return pte; }
+ // until then, use:
+ static inline pte_t pte_mkcache(pte_t pte)	{ return pte; }
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+ 
+ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+ extern pgd_t kernel_pg_dir[PTRS_PER_PGD];
+--- a/arch/microblaze/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/microblaze/include/asm/pgtable.h
+@@ -77,10 +77,6 @@ extern pte_t *va_to_pte(unsigned long ad
+  * Undefined behaviour if not..
+  */
+ 
+-static inline int pte_special(pte_t pte)	{ return 0; }
+-
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+-
+ /* Start and end of the vmalloc area. */
+ /* Make sure to map the vmalloc area above the pinned kernel memory area
+    of 32Mb.  */
+--- a/arch/mips/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/mips/include/asm/pgtable.h
+@@ -270,6 +270,36 @@ cache_sync_done:
+ extern pgd_t swapper_pg_dir[];
+ 
+ /*
++ * Platform specific pte_special() and pte_mkspecial() definitions
++ * are required only when ARCH_HAS_PTE_SPECIAL is enabled.
++ */
++#if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
++#if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
++static inline int pte_special(pte_t pte)
++{
++	return pte.pte_low & _PAGE_SPECIAL;
++}
++
++static inline pte_t pte_mkspecial(pte_t pte)
++{
++	pte.pte_low |= _PAGE_SPECIAL;
++	return pte;
++}
++#else
++static inline int pte_special(pte_t pte)
++{
++	return pte_val(pte) & _PAGE_SPECIAL;
++}
++
++static inline pte_t pte_mkspecial(pte_t pte)
++{
++	pte_val(pte) |= _PAGE_SPECIAL;
++	return pte;
++}
++#endif
++#endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
++
++/*
+  * The following only work if pte_present() is true.
+  * Undefined behaviour if not..
+  */
+@@ -277,7 +307,6 @@ extern pgd_t swapper_pg_dir[];
+ static inline int pte_write(pte_t pte)	{ return pte.pte_low & _PAGE_WRITE; }
+ static inline int pte_dirty(pte_t pte)	{ return pte.pte_low & _PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)	{ return pte.pte_low & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return pte.pte_low & _PAGE_SPECIAL; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+@@ -338,17 +367,10 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	}
+ 	return pte;
+ }
+-
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	pte.pte_low |= _PAGE_SPECIAL;
+-	return pte;
+-}
+ #else
+ static inline int pte_write(pte_t pte)	{ return pte_val(pte) & _PAGE_WRITE; }
+ static inline int pte_dirty(pte_t pte)	{ return pte_val(pte) & _PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)	{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return pte_val(pte) & _PAGE_SPECIAL; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+@@ -392,12 +414,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	return pte;
+ }
+ 
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	pte_val(pte) |= _PAGE_SPECIAL;
+-	return pte;
+-}
+-
+ #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ static inline int pte_huge(pte_t pte)	{ return pte_val(pte) & _PAGE_HUGE; }
+ 
+--- a/arch/nds32/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/nds32/include/asm/pgtable.h
+@@ -286,15 +286,6 @@ PTE_BIT_FUNC(mkclean, &=~_PAGE_D);
+ PTE_BIT_FUNC(mkdirty, |=_PAGE_D);
+ PTE_BIT_FUNC(mkold, &=~_PAGE_YOUNG);
+ PTE_BIT_FUNC(mkyoung, |=_PAGE_YOUNG);
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
+-
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	return pte;
+-}
+ 
+ /*
+  * Mark the prot value as uncacheable and unbufferable.
+--- a/arch/nios2/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/nios2/include/asm/pgtable.h
+@@ -113,7 +113,6 @@ static inline int pte_dirty(pte_t pte)
+ 	{ return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)		\
+ 	{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ #define pgprot_noncached pgprot_noncached
+ 
+@@ -168,8 +167,6 @@ static inline pte_t pte_mkdirty(pte_t pt
+ 	return pte;
+ }
+ 
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+-
+ static inline pte_t pte_mkyoung(pte_t pte)
+ {
+ 	pte_val(pte) |= _PAGE_ACCESSED;
+--- a/arch/openrisc/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/openrisc/include/asm/pgtable.h
+@@ -236,8 +236,6 @@ static inline int pte_write(pte_t pte) {
+ static inline int pte_exec(pte_t pte)  { return pte_val(pte) & _PAGE_EXEC; }
+ static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return 0; }
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+--- a/arch/parisc/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/parisc/include/asm/pgtable.h
+@@ -377,7 +377,6 @@ static inline void pud_clear(pud_t *pud)
+ static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+ static inline int pte_write(pte_t pte)		{ return pte_val(pte) & _PAGE_WRITE; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~_PAGE_DIRTY; return pte; }
+ static inline pte_t pte_mkold(pte_t pte)	{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
+@@ -385,7 +384,6 @@ static inline pte_t pte_wrprotect(pte_t
+ static inline pte_t pte_mkdirty(pte_t pte)	{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
+ static inline pte_t pte_mkyoung(pte_t pte)	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+ static inline pte_t pte_mkwrite(pte_t pte)	{ pte_val(pte) |= _PAGE_WRITE; return pte; }
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+ 
+ /*
+  * Huge pte definitions.
+--- a/arch/sparc/include/asm/pgtable_32.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/sparc/include/asm/pgtable_32.h
+@@ -223,11 +223,6 @@ static inline int pte_young(pte_t pte)
+ 	return pte_val(pte) & SRMMU_REF;
+ }
+ 
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
+-
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+ 	return __pte(pte_val(pte) & ~SRMMU_WRITE);
+@@ -258,8 +253,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	return __pte(pte_val(pte) | SRMMU_REF);
+ }
+ 
+-#define pte_mkspecial(pte)    (pte)
+-
+ #define pfn_pte(pfn, prot)		mk_pte(pfn_to_page(pfn), prot)
+ 
+ static inline unsigned long pte_pfn(pte_t pte)
+--- a/arch/um/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/um/include/asm/pgtable.h
+@@ -167,11 +167,6 @@ static inline int pte_newprot(pte_t pte)
+ 	return(pte_present(pte) && (pte_get_bits(pte, _PAGE_NEWPROT)));
+ }
+ 
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
+-
+ /*
+  * =================================
+  * Flags setting section.
+@@ -247,11 +242,6 @@ static inline pte_t pte_mknewpage(pte_t
+ 	return(pte);
+ }
+ 
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	return(pte);
+-}
+-
+ static inline void set_pte(pte_t *pteptr, pte_t pteval)
+ {
+ 	pte_copy(*pteptr, pteval);
+--- a/arch/unicore32/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/unicore32/include/asm/pgtable.h
+@@ -177,7 +177,6 @@ extern struct page *empty_zero_page;
+ #define pte_dirty(pte)		(pte_val(pte) & PTE_DIRTY)
+ #define pte_young(pte)		(pte_val(pte) & PTE_YOUNG)
+ #define pte_exec(pte)		(pte_val(pte) & PTE_EXEC)
+-#define pte_special(pte)	(0)
+ 
+ #define PTE_BIT_FUNC(fn, op) \
+ static inline pte_t pte_##fn(pte_t pte) { pte_val(pte) op; return pte; }
+@@ -189,8 +188,6 @@ PTE_BIT_FUNC(mkdirty,   |= PTE_DIRTY);
+ PTE_BIT_FUNC(mkold,     &= ~PTE_YOUNG);
+ PTE_BIT_FUNC(mkyoung,   |= PTE_YOUNG);
+ 
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+-
+ /*
+  * Mark the prot value as uncacheable.
+  */
+--- a/arch/xtensa/include/asm/pgtable.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/arch/xtensa/include/asm/pgtable.h
+@@ -266,7 +266,6 @@ static inline void paging_init(void) { }
+ static inline int pte_write(pte_t pte) { return pte_val(pte) & _PAGE_WRITABLE; }
+ static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return 0; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)	
+ 	{ pte_val(pte) &= ~(_PAGE_WRITABLE | _PAGE_HW_WRITE); return pte; }
+@@ -280,8 +279,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+ static inline pte_t pte_mkwrite(pte_t pte)
+ 	{ pte_val(pte) |= _PAGE_WRITABLE; return pte; }
+-static inline pte_t pte_mkspecial(pte_t pte)
+-	{ return pte; }
+ 
+ #define pgprot_noncached(prot) (__pgprot(pgprot_val(prot) & ~_PAGE_CA_MASK))
+ 
+--- a/include/linux/mm.h~mm-special-create-generic-fallbacks-for-pte_special-and-pte_mkspecial
++++ a/include/linux/mm.h
+@@ -1927,6 +1927,18 @@ static inline void sync_mm_rss(struct mm
+ }
+ #endif
+ 
++#ifndef CONFIG_ARCH_HAS_PTE_SPECIAL
++static inline int pte_special(pte_t pte)
++{
++	return 0;
++}
++
++static inline pte_t pte_mkspecial(pte_t pte)
++{
++	return pte;
++}
++#endif
++
+ #ifndef CONFIG_ARCH_HAS_PTE_DEVMAP
+ static inline int pte_devmap(pte_t pte)
+ {
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
