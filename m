@@ -1,48 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-filesystemsc-downgrade-user-reachable-warn_once-to-pr_warn_once.patch
- removed from -mm tree
-Date: Sat, 11 Apr 2020 23:45:40 -0700
-Message-ID: <20200412064540.u8Tsg_LiU%akpm@linux-foundation.org>
+ docs-admin-guide-document-the-kernelmodprobe-sysctl.patch removed from -mm
+ tree
+Date: Sat, 11 Apr 2020 23:45:43 -0700
+Message-ID: <20200412064543.wJqOKU7uo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59886 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59928 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgDLGpm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 12 Apr 2020 02:45:42 -0400
+        id S1725907AbgDLGpp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 12 Apr 2020 02:45:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ast@kernel.org, ebiggers@google.com, gregkh@linuxfoundation.org, jeffv@google.com, jeyu@kernel.org, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, neilb@suse.com, stable@vger.kernel.org
+To: ast@kernel.org, ebiggers@google.com, gregkh@linuxfoundation.org, jeffv@google.com, jeyu@kernel.org, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, neilb@suse.com
 
 
 The patch titled
-     Subject: fs/filesystems.c: downgrade user-reachable WARN_ONCE() to pr_warn_once()
+     Subject: docs: admin-guide: document the kernel.modprobe sysctl
 has been removed from the -mm tree.  Its filename was
-     fs-filesystemsc-downgrade-user-reachable-warn_once-to-pr_warn_once.patch
+     docs-admin-guide-document-the-kernelmodprobe-sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Eric Biggers <ebiggers@google.com>
-Subject: fs/filesystems.c: downgrade user-reachable WARN_ONCE() to pr_warn_once()
+Subject: docs: admin-guide: document the kernel.modprobe sysctl
 
-After request_module(), nothing is stopping the module from being unloaded
-until someone takes a reference to it via try_get_module().
+Document the kernel.modprobe sysctl in the same place that all the other
+kernel.* sysctls are documented.  Make sure to mention how to use this
+sysctl to completely disable module autoloading, and how this sysctl
+relates to CONFIG_STATIC_USERMODEHELPER.
 
-The WARN_ONCE() in get_fs_type() is thus user-reachable, via userspace
-running 'rmmod' concurrently.
-
-Since WARN_ONCE() is for kernel bugs only, not for user-reachable
-situations, downgrade this warning to pr_warn_once().
-
-Keep it printed once only, since the intent of this warning is to detect a
-bug in modprobe at boot time.  Printing the warning more than once
-wouldn't really provide any useful extra information.
-
-Link: http://lkml.kernel.org/r/20200312202552.241885-3-ebiggers@kernel.org
-Fixes: 41124db869b7 ("fs: warn in case userspace lied about modprobe return")
+[ebiggers@google.com: v5]
+  Link: http://lkml.kernel.org/r/20200318230515.171692-4-ebiggers@kernel.org
+Link: http://lkml.kernel.org/r/20200312202552.241885-4-ebiggers@kernel.org
 Signed-off-by: Eric Biggers <ebiggers@google.com>
-Reviewed-by: Jessica Yu <jeyu@kernel.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Jeff Vander Stoep <jeffv@google.com>
@@ -50,26 +42,42 @@ Cc: Jessica Yu <jeyu@kernel.org>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: NeilBrown <neilb@suse.com>
-Cc: <stable@vger.kernel.org>		[4.13+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/filesystems.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/sysctl/kernel.rst |   21 ++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
---- a/fs/filesystems.c~fs-filesystemsc-downgrade-user-reachable-warn_once-to-pr_warn_once
-+++ a/fs/filesystems.c
-@@ -272,7 +272,9 @@ struct file_system_type *get_fs_type(con
- 	fs = __get_fs_type(name, len);
- 	if (!fs && (request_module("fs-%.*s", len, name) == 0)) {
- 		fs = __get_fs_type(name, len);
--		WARN_ONCE(!fs, "request_module fs-%.*s succeeded, but still no fs?\n", len, name);
-+		if (!fs)
-+			pr_warn_once("request_module fs-%.*s succeeded, but still no fs?\n",
-+				     len, name);
- 	}
+--- a/Documentation/admin-guide/sysctl/kernel.rst~docs-admin-guide-document-the-kernelmodprobe-sysctl
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -446,6 +446,27 @@ Notes:
+      successful IPC object allocation. If an IPC object allocation syscall
+      fails, it is undefined if the value remains unmodified or is reset to -1.
  
- 	if (dot && fs && !(fs->fs_flags & FS_HAS_SUBTYPE)) {
++modprobe:
++=========
++
++The path to the usermode helper for autoloading kernel modules, by
++default "/sbin/modprobe".  This binary is executed when the kernel
++requests a module.  For example, if userspace passes an unknown
++filesystem type to mount(), then the kernel will automatically request
++the corresponding filesystem module by executing this usermode helper.
++This usermode helper should insert the needed module into the kernel.
++
++This sysctl only affects module autoloading.  It has no effect on the
++ability to explicitly insert modules.
++
++If this sysctl is set to the empty string, then module autoloading is
++completely disabled.  The kernel will not try to execute a usermode
++helper at all, nor will it call the kernel_module_request LSM hook.
++
++If CONFIG_STATIC_USERMODEHELPER=y is set in the kernel configuration,
++then the configured static usermode helper overrides this sysctl,
++except that the empty string is still accepted to completely disable
++module autoloading as described above.
+ 
+ nmi_watchdog
+ ============
 _
 
 Patches currently in -mm which might be from ebiggers@google.com are
