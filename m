@@ -1,60 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-make-pcpu_drain_mutex-and-pcpu_drain-static.patch removed
- from -mm tree
-Date: Sat, 11 Apr 2020 23:44:41 -0700
-Message-ID: <20200412064441.LGH35WjLa%akpm@linux-foundation.org>
+ ocfs2-no-need-try-to-truncate-file-beyond-i_size.patch removed from -mm
+ tree
+Date: Sat, 11 Apr 2020 23:44:43 -0700
+Message-ID: <20200412064443.dAbp2Cd46%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58966 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725832AbgDLGol (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 12 Apr 2020 02:44:41 -0400
+        id S1725832AbgDLGop (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 12 Apr 2020 02:44:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hulkci@huawei.com, mm-commits@vger.kernel.org, yanaijie@huawei.com
+To: chge@linux.alibaba.com, gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: make pcpu_drain_mutex and pcpu_drain static
+     Subject: ocfs2: no need try to truncate file beyond i_size
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-make-pcpu_drain_mutex-and-pcpu_drain-static.patch
+     ocfs2-no-need-try-to-truncate-file-beyond-i_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jason Yan <yanaijie@huawei.com>
-Subject: mm/page_alloc: make pcpu_drain_mutex and pcpu_drain static
+From: Changwei Ge <chge@linux.alibaba.com>
+Subject: ocfs2: no need try to truncate file beyond i_size
 
-Fix the following sparse warning:
+Linux fallocate(2) with FALLOC_FL_PUNCH_HOLE mode set, its offset can
+exceed inode size.  Ocfs2 now does't allow that offset beyond inode size. 
+This restriction is not necessary and voilates fallocate(2) semantics.
 
-mm/page_alloc.c:106:1: warning: symbol 'pcpu_drain_mutex' was not
-declared. Should it be static?
-mm/page_alloc.c:107:1: warning: symbol '__pcpu_scope_pcpu_drain' was not
-declared. Should it be static?
+If fallocate(2) offset is beyond inode size, just return success and do
+nothing further.
 
-Link: http://lkml.kernel.org/r/20200407023925.46438-1-yanaijie@huawei.com
-Signed-off-by: Jason Yan <yanaijie@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
+Otherwise, ocfs2 will crash the kernel.
+
+kernel BUG at fs/ocfs2//alloc.c:7264!
+ ocfs2_truncate_inline+0x20f/0x360 [ocfs2]
+ ? ocfs2_read_blocks+0x2f3/0x5f0 [ocfs2]
+ ocfs2_remove_inode_range+0x23c/0xcb0 [ocfs2]
+ ? ocfs2_read_inode_block+0x10/0x20 [ocfs2]
+ ? ocfs2_allocate_extend_trans+0x1a0/0x1a0 [ocfs2]
+ __ocfs2_change_file_space+0x4a5/0x650 [ocfs2]
+ ocfs2_fallocate+0x83/0xa0 [ocfs2]
+ ? __audit_syscall_entry+0xb8/0x100
+ ? __sb_start_write+0x3b/0x70
+ vfs_fallocate+0x148/0x230
+ SyS_fallocate+0x48/0x80
+ do_syscall_64+0x79/0x170
+
+Link: http://lkml.kernel.org/r/20200407082754.17565-1-chge@linux.alibaba.com
+Signed-off-by: Changwei Ge <chge@linux.alibaba.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-make-pcpu_drain_mutex-and-pcpu_drain-static
-+++ a/mm/page_alloc.c
-@@ -103,8 +103,8 @@ struct pcpu_drain {
- 	struct zone *zone;
- 	struct work_struct work;
- };
--DEFINE_MUTEX(pcpu_drain_mutex);
--DEFINE_PER_CPU(struct pcpu_drain, pcpu_drain);
-+static DEFINE_MUTEX(pcpu_drain_mutex);
-+static DEFINE_PER_CPU(struct pcpu_drain, pcpu_drain);
+--- a/fs/ocfs2/alloc.c~ocfs2-no-need-try-to-truncate-file-beyond-i_size
++++ a/fs/ocfs2/alloc.c
+@@ -7402,6 +7402,10 @@ int ocfs2_truncate_inline(struct inode *
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)di_bh->b_data;
+ 	struct ocfs2_inline_data *idata = &di->id2.i_data;
  
- #ifdef CONFIG_GCC_PLUGIN_LATENT_ENTROPY
- volatile unsigned long latent_entropy __latent_entropy;
++	/* No need to punch hole beyond i_size. */
++	if (start >= i_size_read(inode))
++		return 0;
++
+ 	if (end > i_size_read(inode))
+ 		end = i_size_read(inode);
+ 
 _
 
-Patches currently in -mm which might be from yanaijie@huawei.com are
+Patches currently in -mm which might be from chge@linux.alibaba.com are
