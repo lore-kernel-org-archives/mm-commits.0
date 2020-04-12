@@ -1,79 +1,55 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch removed
- from -mm tree
-Date: Sat, 11 Apr 2020 23:44:31 -0700
-Message-ID: <20200412064431.OGZxycsHz%akpm@linux-foundation.org>
+ mm-slab_common-fix-a-typo-in-comment-eariler-earlier.patch removed from -mm
+ tree
+Date: Sat, 11 Apr 2020 23:44:34 -0700
+Message-ID: <20200412064434.8dup6QQna%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58838 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58870 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725832AbgDLGod (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 12 Apr 2020 02:44:33 -0400
+        id S1725832AbgDLGof (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 12 Apr 2020 02:44:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chrisdown.name, hannes@cmpxchg.org, kuba@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, hqjagain@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: do not high throttle allocators based on wraparound
+     Subject: mm, slab_common: fix a typo in comment "eariler"->"earlier"
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-do-not-high-throttle-allocators-based-on-wraparound.patch
+     mm-slab_common-fix-a-typo-in-comment-eariler-earlier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jakub Kicinski <kuba@kernel.org>
-Subject: mm, memcg: do not high throttle allocators based on wraparound
+From: Qiujun Huang <hqjagain@gmail.com>
+Subject: mm, slab_common: fix a typo in comment "eariler"->"earlier"
 
-If a cgroup violates its memory.high constraints, we may end up unduly
-penalising it.  For example, for the following hierarchy:
+There is a typo in comment, fix it.
+s/eariler/earlier/
 
-A:   max high, 20 usage
-A/B: 9 high, 10 usage
-A/C: max high, 10 usage
-
-We would end up doing the following calculation below when calculating
-high delay for A/B:
-
-A/B: 10 - 9 = 1...
-A:   20 - PAGE_COUNTER_MAX = 21, so set max_overage to 21.
-
-This gets worse with higher disparities in usage in the parent.
-
-I have no idea how this disappeared from the final version of the patch,
-but it is certainly Not Good(tm).  This wasn't obvious in testing because,
-for a simple cgroup hierarchy with only one child, the result is usually
-roughly the same.  It's only in more complex hierarchies that things go
-really awry (although still, the effects are limited to a maximum of 2
-seconds in schedule_timeout_killable at a maximum).
-
-[chris@chrisdown.name: changelog]
-Link: http://lkml.kernel.org/r/20200331152424.GA1019937@chrisdown.name
-Fixes: e26733e0d0ec ("mm, memcg: throttle allocators based on ancestral memory.high")
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-Signed-off-by: Chris Down <chris@chrisdown.name>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[5.4.x]
+Link: http://lkml.kernel.org/r/20200405160544.1246-1-hqjagain@gmail.com
+Signed-off-by: Qiujun Huang <hqjagain@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/slab_common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-do-not-high-throttle-allocators-based-on-wraparound
-+++ a/mm/memcontrol.c
-@@ -2336,6 +2336,9 @@ static unsigned long calculate_high_dela
- 		usage = page_counter_read(&memcg->memory);
- 		high = READ_ONCE(memcg->high);
- 
-+		if (usage <= high)
-+			continue;
-+
- 		/*
- 		 * Prevent division by 0 in overage calculation by acting as if
- 		 * it was a threshold of 1 page
+--- a/mm/slab_common.c~mm-slab_common-fix-a-typo-in-comment-eariler-earlier
++++ a/mm/slab_common.c
+@@ -731,7 +731,7 @@ static void kmemcg_rcufn(struct rcu_head
+ 	/*
+ 	 * We need to grab blocking locks.  Bounce to ->work.  The
+ 	 * work item shares the space with the RCU head and can't be
+-	 * initialized eariler.
++	 * initialized earlier.
+ 	 */
+ 	INIT_WORK(&s->memcg_params.work, kmemcg_workfn);
+ 	queue_work(memcg_kmem_cache_wq, &s->memcg_params.work);
 _
 
-Patches currently in -mm which might be from kuba@kernel.org are
+Patches currently in -mm which might be from hqjagain@gmail.com are
