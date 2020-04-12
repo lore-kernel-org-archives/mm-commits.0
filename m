@@ -1,222 +1,476 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-vm_insert_pages.patch removed from -mm
- tree
-Date: Sat, 11 Apr 2020 23:45:04 -0700
-Message-ID: <20200412064504._J7dlUvxJ%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-vma-define-a-default-value-for-vm_data_default_flags.patch removed from
+ -mm tree
+Date: Sat, 11 Apr 2020 23:45:07 -0700
+Message-ID: <20200412064507.NuocAVd9f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59248 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59274 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726104AbgDLGpE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 12 Apr 2020 02:45:04 -0400
+        id S1726104AbgDLGpJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 12 Apr 2020 02:45:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjunroy@google.com, davem@davemloft.net, edumazet@google.com, jgg@ziepe.ca, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, soheil@google.com, willy@infradead.org
+To: anshuman.khandual@arm.com, bcain@codeaurora.org, catalin.marinas@arm.com, chris@zankel.net, dalias@libc.org, davem@davemloft.net, geert@linux-m68k.org, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, James.Bottomley@HansenPartnership.com, jdike@addtoit.com, jonas@southpole.se, ley.foon.tan@intel.com, linux@armlinux.org.uk, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, paulburton@kernel.org, ralf@linux-mips.org, rth@twiddle.net, tglx@linutronix.de, tony.luck@intel.com, vbabka@suse.cz, vgupta@synopsys.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm/memory.c: add vm_insert_pages()
+     Subject: mm/vma: define a default value for VM_DATA_DEFAULT_FLAGS
 has been removed from the -mm tree.  Its filename was
-     mm-add-vm_insert_pages.patch
+     mm-vma-define-a-default-value-for-vm_data_default_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arjun Roy <arjunroy@google.com>
-Subject: mm/memory.c: add vm_insert_pages()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/vma: define a default value for VM_DATA_DEFAULT_FLAGS
 
-Add the ability to insert multiple pages at once to a user VM with lower
-PTE spinlock operations.
+There are many platforms with exact same value for VM_DATA_DEFAULT_FLAGS
+This creates a default value for VM_DATA_DEFAULT_FLAGS in line with the
+existing VM_STACK_DEFAULT_FLAGS.  While here, also define some more macros
+with standard VMA access flag combinations that are used frequently across
+many platforms.  Apart from simplification, this reduces code duplication
+as well.
 
-The intention of this patch-set is to reduce atomic ops for tcp zerocopy
-receives, which normally hits the same spinlock multiple times
-consecutively.
-
-[akpm@linux-foundation.org: pte_alloc() no longer takes the `addr' argument]
-[arjunroy@google.com: add missing page_count() check to vm_insert_pages()]
-  Link: http://lkml.kernel.org/r/20200214005929.104481-1-arjunroy.kdev@gmail.com
-[arjunroy@google.com: vm_insert_pages() checks if pte_index defined]
-  Link: http://lkml.kernel.org/r/20200228054714.204424-2-arjunroy.kdev@gmail.com
-Link: http://lkml.kernel.org/r/20200128025958.43490-2-arjunroy.kdev@gmail.com
-Signed-off-by: Arjun Roy <arjunroy@google.com>
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Soheil Hassas Yeganeh <soheil@google.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/1583391014-8170-2-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Brian Cain <bcain@codeaurora.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Nick Hu <nickhu@andestech.com>
+Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Guan Xuetao <gxt@pku.edu.cn>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 
- mm/memory.c        |  129 ++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 129 insertions(+), 2 deletions(-)
+ arch/alpha/include/asm/page.h      |    3 ---
+ arch/arc/include/asm/page.h        |    2 +-
+ arch/arm/include/asm/page.h        |    4 +---
+ arch/arm64/include/asm/page.h      |    4 +---
+ arch/c6x/include/asm/page.h        |    5 +----
+ arch/csky/include/asm/page.h       |    3 ---
+ arch/h8300/include/asm/page.h      |    2 --
+ arch/hexagon/include/asm/page.h    |    3 +--
+ arch/ia64/include/asm/page.h       |    5 +----
+ arch/m68k/include/asm/page.h       |    3 ---
+ arch/microblaze/include/asm/page.h |    2 --
+ arch/mips/include/asm/page.h       |    5 +----
+ arch/nds32/include/asm/page.h      |    3 ---
+ arch/nios2/include/asm/page.h      |    3 +--
+ arch/openrisc/include/asm/page.h   |    5 -----
+ arch/parisc/include/asm/page.h     |    3 ---
+ arch/powerpc/include/asm/page.h    |    9 ++-------
+ arch/powerpc/include/asm/page_64.h |    7 ++-----
+ arch/riscv/include/asm/page.h      |    3 +--
+ arch/s390/include/asm/page.h       |    3 +--
+ arch/sh/include/asm/page.h         |    3 ---
+ arch/sparc/include/asm/page_32.h   |    3 ---
+ arch/sparc/include/asm/page_64.h   |    3 ---
+ arch/unicore32/include/asm/page.h  |    3 ---
+ arch/x86/include/asm/page_types.h  |    4 +---
+ arch/x86/um/asm/vm-flags.h         |   10 ++--------
+ arch/xtensa/include/asm/page.h     |    3 ---
+ include/linux/mm.h                 |   14 ++++++++++++++
+ 28 files changed, 31 insertions(+), 89 deletions(-)
 
---- a/include/linux/mm.h~mm-add-vm_insert_pages
+--- a/arch/alpha/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/alpha/include/asm/page.h
+@@ -90,9 +90,6 @@ typedef struct page *pgtable_t;
+ #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+ #endif /* CONFIG_DISCONTIGMEM */
+ 
+-#define VM_DATA_DEFAULT_FLAGS		(VM_READ | VM_WRITE | VM_EXEC | \
+-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+ 
+--- a/arch/arc/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/arc/include/asm/page.h
+@@ -102,7 +102,7 @@ typedef pte_t * pgtable_t;
+ #define virt_addr_valid(kaddr)  pfn_valid(virt_to_pfn(kaddr))
+ 
+ /* Default Permissions for stack/heaps pages (Non Executable) */
+-#define VM_DATA_DEFAULT_FLAGS   (VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+ 
+ #define WANT_PAGE_VIRTUAL   1
+ 
+--- a/arch/arm64/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/arm64/include/asm/page.h
+@@ -36,9 +36,7 @@ extern int pfn_valid(unsigned long);
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
+-	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #include <asm-generic/getorder.h>
+ 
+--- a/arch/arm/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/arm/include/asm/page.h
+@@ -161,9 +161,7 @@ extern int pfn_valid(unsigned long);
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
+-	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #include <asm-generic/getorder.h>
+ 
+--- a/arch/c6x/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/c6x/include/asm/page.h
+@@ -2,10 +2,7 @@
+ #ifndef _ASM_C6X_PAGE_H
+ #define _ASM_C6X_PAGE_H
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(VM_READ | VM_WRITE | \
+-	((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
+-		 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #include <asm-generic/page.h>
+ 
+--- a/arch/csky/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/csky/include/asm/page.h
+@@ -85,9 +85,6 @@ extern unsigned long va_pa_offset;
+ 				 PHYS_OFFSET_OFFSET)
+ #define virt_to_page(x)	(mem_map + MAP_NR(x))
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #define pfn_to_kaddr(x)	__va(PFN_PHYS(x))
+ 
+ #include <asm-generic/memory_model.h>
+--- a/arch/h8300/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/h8300/include/asm/page.h
+@@ -6,8 +6,6 @@
+ #include <linux/types.h>
+ 
+ #define MAP_NR(addr) (((uintptr_t)(addr)-PAGE_OFFSET) >> PAGE_SHIFT)
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+ 
+ #ifndef __ASSEMBLY__
+ extern unsigned long rom_length;
+--- a/arch/hexagon/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/hexagon/include/asm/page.h
+@@ -93,8 +93,7 @@ struct page;
+ #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(__pa(kaddr)))
+ 
+ /* Default vm area behavior is non-executable.  */
+-#define VM_DATA_DEFAULT_FLAGS (VM_READ | VM_WRITE | \
+-				VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+ 
+ #define pfn_valid(pfn) ((pfn) < max_mapnr)
+ #define virt_addr_valid(kaddr) pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+--- a/arch/ia64/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/ia64/include/asm/page.h
+@@ -218,10 +218,7 @@ get_order (unsigned long size)
+ 
+ #define PAGE_OFFSET			RGN_BASE(RGN_KERNEL)
+ 
+-#define VM_DATA_DEFAULT_FLAGS		(VM_READ | VM_WRITE |					\
+-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |		\
+-					 (((current->personality & READ_IMPLIES_EXEC) != 0)	\
+-					  ? VM_EXEC : 0))
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #define GATE_ADDR		RGN_BASE(RGN_GATE)
+ 
+--- a/arch/m68k/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/m68k/include/asm/page.h
+@@ -65,9 +65,6 @@ extern unsigned long _ramend;
+ #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
+ #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/getorder.h>
+ 
+ #endif /* _M68K_PAGE_H */
+--- a/arch/microblaze/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/microblaze/include/asm/page.h
+@@ -194,8 +194,6 @@ extern int page_is_ram(unsigned long pfn
+ 
+ #ifdef CONFIG_MMU
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+ #endif /* CONFIG_MMU */
+ 
+ #endif /* __KERNEL__ */
+--- a/arch/mips/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/mips/include/asm/page.h
+@@ -253,10 +253,7 @@ extern bool __virt_addr_valid(const vola
+ #define virt_addr_valid(kaddr)						\
+ 	__virt_addr_valid((const volatile void *) (kaddr))
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(VM_READ | VM_WRITE | \
+-	 ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
+-	 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+--- a/arch/nds32/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/nds32/include/asm/page.h
+@@ -59,9 +59,6 @@ typedef struct page *pgtable_t;
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif
+--- a/arch/nios2/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/nios2/include/asm/page.h
+@@ -98,8 +98,7 @@ static inline bool pfn_valid(unsigned lo
+ # define virt_to_page(vaddr)	pfn_to_page(PFN_DOWN(virt_to_phys(vaddr)))
+ # define virt_addr_valid(vaddr)	pfn_valid(PFN_DOWN(virt_to_phys(vaddr)))
+ 
+-# define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++# define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+ 
+ #include <asm-generic/memory_model.h>
+ 
+--- a/arch/openrisc/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/openrisc/include/asm/page.h
+@@ -86,11 +86,6 @@ typedef struct page *pgtable_t;
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+-
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+-
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+ 
+--- a/arch/parisc/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/parisc/include/asm/page.h
+@@ -180,9 +180,6 @@ extern int npmem_ranges;
+ #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
+ #define virt_to_page(kaddr)     pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+ #include <asm/pdc.h>
+--- a/arch/powerpc/include/asm/page_64.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/powerpc/include/asm/page_64.h
+@@ -94,11 +94,8 @@ extern u64 ppc64_pft_size;
+  * stack by default, so in the absence of a PT_GNU_STACK program header
+  * we turn execute permission off.
+  */
+-#define VM_STACK_DEFAULT_FLAGS32	(VM_READ | VM_WRITE | VM_EXEC | \
+-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+-#define VM_STACK_DEFAULT_FLAGS64	(VM_READ | VM_WRITE | \
+-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_STACK_DEFAULT_FLAGS32	VM_DATA_FLAGS_EXEC
++#define VM_STACK_DEFAULT_FLAGS64	VM_DATA_FLAGS_NON_EXEC
+ 
+ #define VM_STACK_DEFAULT_FLAGS \
+ 	(is_32bit_task() ? \
+--- a/arch/powerpc/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/powerpc/include/asm/page.h
+@@ -240,13 +240,8 @@ static inline bool pfn_valid(unsigned lo
+  * and needs to be executable.  This means the whole heap ends
+  * up being executable.
+  */
+-#define VM_DATA_DEFAULT_FLAGS32 \
+-	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
+-				 VM_READ | VM_WRITE | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+-#define VM_DATA_DEFAULT_FLAGS64	(VM_READ | VM_WRITE | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS32	VM_DATA_FLAGS_TSK_EXEC
++#define VM_DATA_DEFAULT_FLAGS64	VM_DATA_FLAGS_NON_EXEC
+ 
+ #ifdef __powerpc64__
+ #include <asm/page_64.h>
+--- a/arch/riscv/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/riscv/include/asm/page.h
+@@ -137,8 +137,7 @@ extern phys_addr_t __phys_addr_symbol(un
+ 
+ #define virt_addr_valid(vaddr)	(pfn_valid(virt_to_pfn(vaddr)))
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+ 
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+--- a/arch/s390/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/s390/include/asm/page.h
+@@ -181,8 +181,7 @@ int arch_make_page_accessible(struct pag
+ 
+ #define virt_addr_valid(kaddr)	pfn_valid(virt_to_pfn(kaddr))
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+ 
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+--- a/arch/sh/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/sh/include/asm/page.h
+@@ -182,9 +182,6 @@ typedef struct page *pgtable_t;
+ #endif
+ #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+ 
+--- a/arch/sparc/include/asm/page_32.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/sparc/include/asm/page_32.h
+@@ -133,9 +133,6 @@ extern unsigned long pfn_base;
+ #define pfn_valid(pfn)		(((pfn) >= (pfn_base)) && (((pfn)-(pfn_base)) < max_mapnr))
+ #define virt_addr_valid(kaddr)	((((unsigned long)(kaddr)-PAGE_OFFSET)>>PAGE_SHIFT) < max_mapnr)
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+ 
+--- a/arch/sparc/include/asm/page_64.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/sparc/include/asm/page_64.h
+@@ -158,9 +158,6 @@ extern unsigned long PAGE_OFFSET;
+ 
+ #endif /* !(__ASSEMBLY__) */
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/getorder.h>
+ 
+ #endif /* _SPARC64_PAGE_H */
+--- a/arch/unicore32/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/unicore32/include/asm/page.h
+@@ -69,9 +69,6 @@ extern int pfn_valid(unsigned long);
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(VM_READ | VM_WRITE | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/getorder.h>
+ 
+ #endif
+--- a/arch/x86/include/asm/page_types.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/x86/include/asm/page_types.h
+@@ -35,9 +35,7 @@
+ 
+ #define PAGE_OFFSET		((unsigned long)__PAGE_OFFSET)
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0 ) | \
+-	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #define __PHYSICAL_START	ALIGN(CONFIG_PHYSICAL_START, \
+ 				      CONFIG_PHYSICAL_ALIGN)
+--- a/arch/x86/um/asm/vm-flags.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/x86/um/asm/vm-flags.h
+@@ -9,17 +9,11 @@
+ 
+ #ifdef CONFIG_X86_32
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(VM_READ | VM_WRITE | \
+-	((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0 ) | \
+-		 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #else
+ 
+-#define VM_DATA_DEFAULT_FLAGS (VM_READ | VM_WRITE | VM_EXEC | \
+-	VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-#define VM_STACK_DEFAULT_FLAGS (VM_GROWSDOWN | VM_READ | VM_WRITE | \
+-	VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_STACK_DEFAULT_FLAGS (VM_GROWSDOWN | VM_DATA_FLAGS_EXEC)
+ 
+ #endif
+ #endif
+--- a/arch/xtensa/include/asm/page.h~mm-vma-define-a-default-value-for-vm_data_default_flags
++++ a/arch/xtensa/include/asm/page.h
+@@ -203,8 +203,5 @@ static inline unsigned long ___pa(unsign
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/memory_model.h>
+ #endif /* _XTENSA_PAGE_H */
+--- a/include/linux/mm.h~mm-vma-define-a-default-value-for-vm_data_default_flags
 +++ a/include/linux/mm.h
-@@ -2689,6 +2689,8 @@ struct vm_area_struct *find_extend_vma(s
- int remap_pfn_range(struct vm_area_struct *, unsigned long addr,
- 			unsigned long pfn, unsigned long size, pgprot_t);
- int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
-+int vm_insert_pages(struct vm_area_struct *vma, unsigned long addr,
-+			struct page **pages, unsigned long *num);
- int vm_map_pages(struct vm_area_struct *vma, struct page **pages,
- 				unsigned long num);
- int vm_map_pages_zero(struct vm_area_struct *vma, struct page **pages,
---- a/mm/memory.c~mm-add-vm_insert_pages
-+++ a/mm/memory.c
-@@ -1419,8 +1419,7 @@ void zap_vma_ptes(struct vm_area_struct
- }
- EXPORT_SYMBOL_GPL(zap_vma_ptes);
+@@ -343,6 +343,20 @@ extern unsigned int kobjsize(const void
+ /* Bits set in the VMA until the stack is in its final location */
+ #define VM_STACK_INCOMPLETE_SETUP	(VM_RAND_READ | VM_SEQ_READ)
  
--pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
--			spinlock_t **ptl)
-+static pmd_t *walk_to_pmd(struct mm_struct *mm, unsigned long addr)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -1439,6 +1438,16 @@ pte_t *__get_locked_pte(struct mm_struct
- 		return NULL;
- 
- 	VM_BUG_ON(pmd_trans_huge(*pmd));
-+	return pmd;
-+}
++#define TASK_EXEC ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0)
 +
-+pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
-+			spinlock_t **ptl)
-+{
-+	pmd_t *pmd = walk_to_pmd(mm, addr);
++/* Common data flag combinations */
++#define VM_DATA_FLAGS_TSK_EXEC	(VM_READ | VM_WRITE | TASK_EXEC | \
++				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_FLAGS_NON_EXEC	(VM_READ | VM_WRITE | VM_MAYREAD | \
++				 VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_FLAGS_EXEC	(VM_READ | VM_WRITE | VM_EXEC | \
++				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
 +
-+	if (!pmd)
-+		return NULL;
- 	return pte_alloc_map_lock(mm, pmd, addr, ptl);
- }
- 
-@@ -1491,6 +1500,122 @@ out:
- 	return retval;
- }
- 
-+#ifdef pte_index
-+static int insert_page_in_batch_locked(struct mm_struct *mm, pmd_t *pmd,
-+			unsigned long addr, struct page *page, pgprot_t prot)
-+{
-+	int err;
++#ifndef VM_DATA_DEFAULT_FLAGS		/* arch can override this */
++#define VM_DATA_DEFAULT_FLAGS  VM_DATA_FLAGS_EXEC
++#endif
 +
-+	if (!page_count(page))
-+		return -EINVAL;
-+	err = validate_page_before_insert(page);
-+	return err ? err : insert_page_into_pte_locked(
-+		mm, pte_offset_map(pmd, addr), addr, page, prot);
-+}
-+
-+/* insert_pages() amortizes the cost of spinlock operations
-+ * when inserting pages in a loop. Arch *must* define pte_index.
-+ */
-+static int insert_pages(struct vm_area_struct *vma, unsigned long addr,
-+			struct page **pages, unsigned long *num, pgprot_t prot)
-+{
-+	pmd_t *pmd = NULL;
-+	spinlock_t *pte_lock = NULL;
-+	struct mm_struct *const mm = vma->vm_mm;
-+	unsigned long curr_page_idx = 0;
-+	unsigned long remaining_pages_total = *num;
-+	unsigned long pages_to_write_in_pmd;
-+	int ret;
-+more:
-+	ret = -EFAULT;
-+	pmd = walk_to_pmd(mm, addr);
-+	if (!pmd)
-+		goto out;
-+
-+	pages_to_write_in_pmd = min_t(unsigned long,
-+		remaining_pages_total, PTRS_PER_PTE - pte_index(addr));
-+
-+	/* Allocate the PTE if necessary; takes PMD lock once only. */
-+	ret = -ENOMEM;
-+	if (pte_alloc(mm, pmd))
-+		goto out;
-+	pte_lock = pte_lockptr(mm, pmd);
-+
-+	while (pages_to_write_in_pmd) {
-+		int pte_idx = 0;
-+		const int batch_size = min_t(int, pages_to_write_in_pmd, 8);
-+
-+		spin_lock(pte_lock);
-+		for (; pte_idx < batch_size; ++pte_idx) {
-+			int err = insert_page_in_batch_locked(mm, pmd,
-+				addr, pages[curr_page_idx], prot);
-+			if (unlikely(err)) {
-+				spin_unlock(pte_lock);
-+				ret = err;
-+				remaining_pages_total -= pte_idx;
-+				goto out;
-+			}
-+			addr += PAGE_SIZE;
-+			++curr_page_idx;
-+		}
-+		spin_unlock(pte_lock);
-+		pages_to_write_in_pmd -= batch_size;
-+		remaining_pages_total -= batch_size;
-+	}
-+	if (remaining_pages_total)
-+		goto more;
-+	ret = 0;
-+out:
-+	*num = remaining_pages_total;
-+	return ret;
-+}
-+#endif  /* ifdef pte_index */
-+
-+/**
-+ * vm_insert_pages - insert multiple pages into user vma, batching the pmd lock.
-+ * @vma: user vma to map to
-+ * @addr: target start user address of these pages
-+ * @pages: source kernel pages
-+ * @num: in: number of pages to map. out: number of pages that were *not*
-+ * mapped. (0 means all pages were successfully mapped).
-+ *
-+ * Preferred over vm_insert_page() when inserting multiple pages.
-+ *
-+ * In case of error, we may have mapped a subset of the provided
-+ * pages. It is the caller's responsibility to account for this case.
-+ *
-+ * The same restrictions apply as in vm_insert_page().
-+ */
-+int vm_insert_pages(struct vm_area_struct *vma, unsigned long addr,
-+			struct page **pages, unsigned long *num)
-+{
-+#ifdef pte_index
-+	const unsigned long end_addr = addr + (*num * PAGE_SIZE) - 1;
-+
-+	if (addr < vma->vm_start || end_addr >= vma->vm_end)
-+		return -EFAULT;
-+	if (!(vma->vm_flags & VM_MIXEDMAP)) {
-+		BUG_ON(down_read_trylock(&vma->vm_mm->mmap_sem));
-+		BUG_ON(vma->vm_flags & VM_PFNMAP);
-+		vma->vm_flags |= VM_MIXEDMAP;
-+	}
-+	/* Defer page refcount checking till we're about to map that page. */
-+	return insert_pages(vma, addr, pages, num, vma->vm_page_prot);
-+#else
-+	unsigned long idx = 0, pgcount = *num;
-+	int err;
-+
-+	for (; idx < pgcount; ++idx) {
-+		err = vm_insert_page(vma, addr + (PAGE_SIZE * idx), pages[idx]);
-+		if (err)
-+			break;
-+	}
-+	*num = pgcount - idx;
-+	return err;
-+#endif  /* ifdef pte_index */
-+}
-+EXPORT_SYMBOL(vm_insert_pages);
-+
- /**
-  * vm_insert_page - insert single page into user vma
-  * @vma: user vma to map to
+ #ifndef VM_STACK_DEFAULT_FLAGS		/* arch can override this */
+ #define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
+ #endif
 _
 
-Patches currently in -mm which might be from arjunroy@google.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
