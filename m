@@ -1,82 +1,126 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memremap-set-caching-mode-for-pci-p2pdma-memory-to-wc.patch removed from
- -mm tree
-Date: Sat, 11 Apr 2020 23:45:34 -0700
-Message-ID: <20200412064534.3qYPDPoHF%akpm@linux-foundation.org>
+ kmod-make-request_module-return-an-error-when-autoloading-is-disabled.patch
+ removed from -mm tree
+Date: Sat, 11 Apr 2020 23:45:37 -0700
+Message-ID: <20200412064537.g2j1XXAd_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59790 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59844 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725907AbgDLGpg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 12 Apr 2020 02:45:36 -0400
+        id S1725907AbgDLGpj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 12 Apr 2020 02:45:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@redhat.com, ebadger@gigaio.com, hch@lst.de, hpa@zytor.com, jgg@ziepe.ca, logang@deltatee.com, luto@kernel.org, mhocko@suse.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, tglx@linutronix.de, will@kernel.org
+To: ast@kernel.org, benh@debian.org, ebiggers@google.com, gregkh@linuxfoundation.org, jeffv@google.com, jeyu@kernel.org, josh@joshtriplett.org, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memremap: set caching mode for PCI P2PDMA memory to WC
+     Subject: kmod: make request_module() return an error when autoloading is disabled
 has been removed from the -mm tree.  Its filename was
-     mm-memremap-set-caching-mode-for-pci-p2pdma-memory-to-wc.patch
+     kmod-make-request_module-return-an-error-when-autoloading-is-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: mm/memremap: set caching mode for PCI P2PDMA memory to WC
+From: Eric Biggers <ebiggers@google.com>
+Subject: kmod: make request_module() return an error when autoloading is disabled
 
-PCI BAR IO memory should never be mapped as WB, however prior to this the
-PAT bits were set WB and it was typically overridden by MTRR registers set
-by the firmware.
+Patch series "module autoloading fixes and cleanups", v5.
 
-Set PCI P2PDMA memory to be UC as this is what it currently, typically,
-ends up being mapped as on x86 after the MTRR registers override the cache
-setting.
+This series fixes a bug where request_module() was reporting success to
+kernel code when module autoloading had been completely disabled via 'echo
+> /proc/sys/kernel/modprobe'.
 
-Future use-cases may need to generalize this by adding flags to select the
-caching type, as some P2PDMA cases may not want UC.  However, those
-use-cases are not upstream yet and this can be changed when they arrive.
+It also addresses the issues raised on the original thread
+(https://lkml.kernel.org/lkml/20200310223731.126894-1-ebiggers@kernel.org/T/#u)
+by documenting the modprobe sysctl, adding a self-test for the empty path
+case, and downgrading a user-reachable WARN_ONCE().
 
-Link: http://lkml.kernel.org/r/20200306170846.9333-8-logang@deltatee.com
-Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Eric Badger <ebadger@gigaio.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+
+This patch (of 4):
+
+It's long been possible to disable kernel module autoloading completely
+(while still allowing manual module insertion) by setting
+/proc/sys/kernel/modprobe to the empty string.  This can be preferable to
+setting it to a nonexistent file since it avoids the overhead of an
+attempted execve(), avoids potential deadlocks, and avoids the call to
+security_kernel_module_request() and thus on SELinux-based systems
+eliminates the need to write SELinux rules to dontaudit module_request.
+
+However, when module autoloading is disabled in this way, request_module()
+returns 0.  This is broken because callers expect 0 to mean that the
+module was successfully loaded.
+
+Apparently this was never noticed because this method of disabling module
+autoloading isn't used much, and also most callers don't use the return
+value of request_module() since it's always necessary to check whether the
+module registered its functionality or not anyway.  But improperly
+returning 0 can indeed confuse a few callers, for example get_fs_type() in
+fs/filesystems.c where it causes a WARNING to be hit:
+
+	if (!fs && (request_module("fs-%.*s", len, name) == 0)) {
+		fs = __get_fs_type(name, len);
+		WARN_ONCE(!fs, "request_module fs-%.*s succeeded, but still no fs?\n", len, name);
+	}
+
+This is easily reproduced with:
+
+	echo > /proc/sys/kernel/modprobe
+	mount -t NONEXISTENT none /
+
+It causes:
+
+	request_module fs-NONEXISTENT succeeded, but still no fs?
+	WARNING: CPU: 1 PID: 1106 at fs/filesystems.c:275 get_fs_type+0xd6/0xf0
+	[...]
+
+This should actually use pr_warn_once() rather than WARN_ONCE(), since
+it's also user-reachable if userspace immediately unloads the module. 
+Regardless, request_module() should correctly return an error when it
+fails.  So let's make it return -ENOENT, which matches the error when the
+modprobe binary doesn't exist.
+
+I've also sent patches to document and test this case.
+
+Link: http://lkml.kernel.org/r/20200310223731.126894-1-ebiggers@kernel.org
+Link: http://lkml.kernel.org/r/20200312202552.241885-1-ebiggers@kernel.org
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Acked-by: Luis Chamberlain <mcgrof@kernel.org>
+Reviewed-by: Jessica Yu <jeyu@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: Ben Hutchings <benh@debian.org>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memremap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/kmod.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memremap.c~mm-memremap-set-caching-mode-for-pci-p2pdma-memory-to-wc
-+++ a/mm/memremap.c
-@@ -217,7 +217,10 @@ void *memremap_pages(struct dev_pagemap
- 		}
- 		break;
- 	case MEMORY_DEVICE_DEVDAX:
-+		need_devmap_managed = false;
-+		break;
- 	case MEMORY_DEVICE_PCI_P2PDMA:
-+		params.pgprot = pgprot_noncached(params.pgprot);
- 		need_devmap_managed = false;
- 		break;
- 	default:
+--- a/kernel/kmod.c~kmod-make-request_module-return-an-error-when-autoloading-is-disabled
++++ a/kernel/kmod.c
+@@ -120,7 +120,7 @@ out:
+  * invoke it.
+  *
+  * If module auto-loading support is disabled then this function
+- * becomes a no-operation.
++ * simply returns -ENOENT.
+  */
+ int __request_module(bool wait, const char *fmt, ...)
+ {
+@@ -137,7 +137,7 @@ int __request_module(bool wait, const ch
+ 	WARN_ON_ONCE(wait && current_is_async());
+ 
+ 	if (!modprobe_path[0])
+-		return 0;
++		return -ENOENT;
+ 
+ 	va_start(args, fmt);
+ 	ret = vsnprintf(module_name, MODULE_NAME_LEN, fmt, args);
 _
 
-Patches currently in -mm which might be from logang@deltatee.com are
+Patches currently in -mm which might be from ebiggers@google.com are
