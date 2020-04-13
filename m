@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-disable-userfaultfd-wp-on-x86_32.patch
- added to -mm tree
-Date: Mon, 13 Apr 2020 13:01:14 -0700
-Message-ID: <20200413200114.wA3Wv6ffh%akpm@linux-foundation.org>
+Subject: + maintainers-add-an-entry-for-kfifo-fix.patch added to
+ -mm tree
+Date: Mon, 13 Apr 2020 13:08:32 -0700
+Message-ID: <20200413200832.4VvEFItXw%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33842 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39830 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388135AbgDMUBP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Apr 2020 16:01:15 -0400
+        id S2388207AbgDMUIf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Apr 2020 16:08:35 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hdanton@sina.com, lkp@intel.com, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org, peterx@redhat.com
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, bgolaszewski@baylibre.com, gregkh@linuxfoundation.org, joe@perches.com, linus.walleij@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/userfaultfd: disable userfaultfd-wp on x86_32
+     Subject: maintainers-add-an-entry-for-kfifo-fix
 has been added to the -mm tree.  Its filename is
-     mm-userfaultfd-disable-userfaultfd-wp-on-x86_32.patch
+     maintainers-add-an-entry-for-kfifo-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-userfaultfd-disable-userfaultfd-wp-on-x86_32.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-an-entry-for-kfifo-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-userfaultfd-disable-userfaultfd-wp-on-x86_32.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-an-entry-for-kfifo-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,39 +38,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/userfaultfd: disable userfaultfd-wp on x86_32
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: maintainers-add-an-entry-for-kfifo-fix
 
-Userfaultfd-wp is not yet working on 32bit hosts, but it's accidentally
-enabled previously.  Disable it.
+alphasort F: entries, per Joa
 
-Link: http://lkml.kernel.org/r/20200413141608.109211-1-peterx@redhat.com
-Fixes: 5a281062af1d ("userfaultfd: wp: add WP pagetable tracking to x86")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hdanton@sina.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    2 +-
+ MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/Kconfig~mm-userfaultfd-disable-userfaultfd-wp-on-x86_32
-+++ a/arch/x86/Kconfig
-@@ -150,7 +150,7 @@ config X86
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD if X86_64
--	select HAVE_ARCH_USERFAULTFD_WP		if USERFAULTFD
-+	select HAVE_ARCH_USERFAULTFD_WP         if X86_64 && USERFAULTFD
- 	select HAVE_ARCH_VMAP_STACK		if X86_64
- 	select HAVE_ARCH_WITHIN_STACK_FRAMES
- 	select HAVE_ASM_MODVERSIONS
+--- a/MAINTAINERS~maintainers-add-an-entry-for-kfifo-fix
++++ a/MAINTAINERS
+@@ -9415,8 +9415,8 @@ F:	security/keys/
+ KFIFO:
+ M:	Stefani Seibold <stefani@seibold.net>
+ S:	Maintained
+-F:	lib/kfifo.c
+ F:	include/linux/kfifo.h
++F:	lib/kfifo.c
+ F:	samples/kfifo/
+ 
+ KGDB / KDB /debug_core
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-userfaultfd-disable-userfaultfd-wp-on-x86_32.patch
+maintainers-add-an-entry-for-kfifo-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+mm-clarify-__gfp_memalloc-usage-update-checkpatch-fixes.patch
+linux-next-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
