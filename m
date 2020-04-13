@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- checkpatch-additional-maintainer-section-entry-ordering-checks.patch added
+Subject: + fat-improve-the-readahead-for-fat-entries.patch added
  to -mm tree
-Date: Mon, 13 Apr 2020 14:16:26 -0700
-Message-ID: <20200413211626.6VdqTmOs9%akpm@linux-foundation.org>
+Date: Mon, 13 Apr 2020 15:27:44 -0700
+Message-ID: <20200413222744.9friW67jT%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41352 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59962 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388812AbgDMVQ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Apr 2020 17:16:29 -0400
+        id S1727835AbgDMW1p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Apr 2020 18:27:45 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andy.shevchenko@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, hyeongseok.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: additional MAINTAINER section entry ordering checks
+     Subject: fat: improve the readahead for FAT entries
 has been added to the -mm tree.  Its filename is
-     checkpatch-additional-maintainer-section-entry-ordering-checks.patch
+     fat-improve-the-readahead-for-fat-entries.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-additional-maintainer-section-entry-ordering-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fat-improve-the-readahead-for-fat-entries.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-additional-maintainer-section-entry-ordering-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fat-improve-the-readahead-for-fat-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +38,174 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: additional MAINTAINER section entry ordering checks
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: improve the readahead for FAT entries
 
-There is a preferred order for the entries in MAINTAINERS sections.
+Current readahead for FAT entries is very simple but is having some flaws,
+so it is not working well for some environments.  This patch improves the
+readahead more or less.
 
-See:
+The key points of modification are,
 
-commit 3b50142d8528 ("MAINTAINERS: sort field names for all entries")
-and
-commit 6680125ea5a2 ("MAINTAINERS: list the section entries in the preferred order")
+  - make the readahead size tunable by using bdi->ra_pages
+  - care the bdi->io_pages to avoid the small size I/O request
+  - update readahead window before fully exhausting
 
-Add checkpatch tests to try to keep that ordering.
+With this patch, on slow USB connected 2TB hdd:
 
-Link: http://lkml.kernel.org/r/17677130b3ca62d79817e6a22546bad39d7e81b4.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+[before]
+383.18sec
+
+[after]
+51.03sec
+
+Link: http://lkml.kernel.org/r/87d08e1dlh.fsf@mail.parknet.co.jp
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Tested-by: hyeongseok.kim <hyeongseok.kim@lge.com>
+Reviewed-by: hyeongseok.kim <hyeongseok.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   45 ++++++++++++++++++++++++++++++++--------
- 1 file changed, 37 insertions(+), 8 deletions(-)
+ fs/fat/fatent.c |  103 +++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 75 insertions(+), 28 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-additional-maintainer-section-entry-ordering-checks
-+++ a/scripts/checkpatch.pl
-@@ -3060,14 +3060,43 @@ sub process {
- 			#print "is_start<$is_start> is_end<$is_end> length<$length>\n";
- 		}
+--- a/fs/fat/fatent.c~fat-improve-the-readahead-for-fat-entries
++++ a/fs/fat/fatent.c
+@@ -632,20 +632,80 @@ error:
+ }
+ EXPORT_SYMBOL_GPL(fat_free_clusters);
  
--# check for MAINTAINERS entries that don't have the right form
--		if ($realfile =~ /^MAINTAINERS$/ &&
--		    $rawline =~ /^\+[A-Z]:/ &&
--		    $rawline !~ /^\+[A-Z]:\t\S/) {
--			if (WARN("MAINTAINERS_STYLE",
--				 "MAINTAINERS entries use one tab after TYPE:\n" . $herecurr) &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/^(\+[A-Z]):\s*/$1:\t/;
-+# check MAINTAINERS entries
-+		if ($realfile =~ /^MAINTAINERS$/) {
-+# check MAINTAINERS entries for the right form
-+			if ($rawline =~ /^\+[A-Z]:/ &&
-+			    $rawline !~ /^\+[A-Z]:\t\S/) {
-+				if (WARN("MAINTAINERS_STYLE",
-+					 "MAINTAINERS entries use one tab after TYPE:\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/^(\+[A-Z]):\s*/$1:\t/;
-+				}
-+			}
-+# check MAINTAINERS entries for the right ordering too
-+			my $preferred_order = 'MRLSWQBCPTFXNK';
-+			if ($rawline =~ /^\+[A-Z]:/ &&
-+			    $prevrawline =~ /^[\+ ][A-Z]:/) {
-+				$rawline =~ /^\+([A-Z]):\s*(.*)/;
-+				my $cur = $1;
-+				my $curval = $2;
-+				$prevrawline =~ /^[\+ ]([A-Z]):\s*(.*)/;
-+				my $prev = $1;
-+				my $prevval = $2;
-+				my $curindex = index($preferred_order, $cur);
-+				my $previndex = index($preferred_order, $prev);
-+				if ($curindex < 0) {
-+					WARN("MAINTAINERS_STYLE",
-+					     "Unknown MAINTAINERS entry type: '$cur'\n" . $herecurr);
-+				} else {
-+					if ($previndex >= 0 && $curindex < $previndex) {
-+						WARN("MAINTAINERS_STYLE",
-+						     "Misordered MAINTAINERS entry - list '$cur:' before '$prev:'\n" . $hereprev);
-+					} elsif ((($prev eq 'F' && $cur eq 'F') ||
-+						  ($prev eq 'X' && $cur eq 'X')) &&
-+						 ($prevval cmp $curval) > 0) {
-+						WARN("MAINTAINERS_STYLE",
-+						     "Misordered MAINTAINERS entry - list file patterns in alphabetic order\n" . $hereprev);
-+					}
-+				}
- 			}
- 		}
+-/* 128kb is the whole sectors for FAT12 and FAT16 */
+-#define FAT_READA_SIZE		(128 * 1024)
++struct fatent_ra {
++	sector_t cur;
++	sector_t limit;
++
++	unsigned int ra_blocks;
++	sector_t ra_advance;
++	sector_t ra_next;
++	sector_t ra_limit;
++};
  
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-checkpatch-additional-maintainer-section-entry-ordering-checks.patch
+-static void fat_ent_reada(struct super_block *sb, struct fat_entry *fatent,
+-			  unsigned long reada_blocks)
++static void fat_ra_init(struct super_block *sb, struct fatent_ra *ra,
++			struct fat_entry *fatent, int ent_limit)
+ {
+-	const struct fatent_operations *ops = MSDOS_SB(sb)->fatent_ops;
+-	sector_t blocknr;
+-	int i, offset;
++	struct msdos_sb_info *sbi = MSDOS_SB(sb);
++	const struct fatent_operations *ops = sbi->fatent_ops;
++	sector_t blocknr, block_end;
++	int offset;
++	/*
++	 * This is the sequential read, so ra_pages * 2 (but try to
++	 * align the optimal hardware IO size).
++	 * [BTW, 128kb covers the whole sectors for FAT12 and FAT16]
++	 */
++	unsigned long ra_pages = sb->s_bdi->ra_pages;
++	unsigned int reada_blocks;
++
++	if (ra_pages > sb->s_bdi->io_pages)
++		ra_pages = rounddown(ra_pages, sb->s_bdi->io_pages);
++	reada_blocks = ra_pages << (PAGE_SHIFT - sb->s_blocksize_bits + 1);
+ 
++	/* Initialize the range for sequential read */
+ 	ops->ent_blocknr(sb, fatent->entry, &offset, &blocknr);
++	ops->ent_blocknr(sb, ent_limit - 1, &offset, &block_end);
++	ra->cur = 0;
++	ra->limit = (block_end + 1) - blocknr;
++
++	/* Advancing the window at half size */
++	ra->ra_blocks = reada_blocks >> 1;
++	ra->ra_advance = ra->cur;
++	ra->ra_next = ra->cur;
++	ra->ra_limit = ra->cur + min_t(sector_t, reada_blocks, ra->limit);
++}
+ 
+-	for (i = 0; i < reada_blocks; i++)
+-		sb_breadahead(sb, blocknr + i);
++/* Assuming to be called before reading a new block (increments ->cur). */
++static void fat_ent_reada(struct super_block *sb, struct fatent_ra *ra,
++			  struct fat_entry *fatent)
++{
++	if (ra->ra_next >= ra->ra_limit)
++		return;
++
++	if (ra->cur >= ra->ra_advance) {
++		struct msdos_sb_info *sbi = MSDOS_SB(sb);
++		const struct fatent_operations *ops = sbi->fatent_ops;
++		struct blk_plug plug;
++		sector_t blocknr, diff;
++		int offset;
++
++		ops->ent_blocknr(sb, fatent->entry, &offset, &blocknr);
++
++		diff = blocknr - ra->cur;
++		blk_start_plug(&plug);
++		/*
++		 * FIXME: we would want to directly use the bio with
++		 * pages to reduce the number of segments.
++		 */
++		for (; ra->ra_next < ra->ra_limit; ra->ra_next++)
++			sb_breadahead(sb, ra->ra_next + diff);
++		blk_finish_plug(&plug);
++
++		/* Advance the readahead window */
++		ra->ra_advance += ra->ra_blocks;
++		ra->ra_limit += min_t(sector_t,
++				      ra->ra_blocks, ra->limit - ra->ra_limit);
++	}
++	ra->cur++;
+ }
+ 
+ int fat_count_free_clusters(struct super_block *sb)
+@@ -653,27 +713,20 @@ int fat_count_free_clusters(struct super
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	const struct fatent_operations *ops = sbi->fatent_ops;
+ 	struct fat_entry fatent;
+-	unsigned long reada_blocks, reada_mask, cur_block;
++	struct fatent_ra fatent_ra;
+ 	int err = 0, free;
+ 
+ 	lock_fat(sbi);
+ 	if (sbi->free_clusters != -1 && sbi->free_clus_valid)
+ 		goto out;
+ 
+-	reada_blocks = FAT_READA_SIZE >> sb->s_blocksize_bits;
+-	reada_mask = reada_blocks - 1;
+-	cur_block = 0;
+-
+ 	free = 0;
+ 	fatent_init(&fatent);
+ 	fatent_set_entry(&fatent, FAT_START_ENT);
++	fat_ra_init(sb, &fatent_ra, &fatent, sbi->max_cluster);
+ 	while (fatent.entry < sbi->max_cluster) {
+ 		/* readahead of fat blocks */
+-		if ((cur_block & reada_mask) == 0) {
+-			unsigned long rest = sbi->fat_length - cur_block;
+-			fat_ent_reada(sb, &fatent, min(reada_blocks, rest));
+-		}
+-		cur_block++;
++		fat_ent_reada(sb, &fatent_ra, &fatent);
+ 
+ 		err = fat_ent_read_block(sb, &fatent);
+ 		if (err)
+@@ -707,9 +760,9 @@ int fat_trim_fs(struct inode *inode, str
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	const struct fatent_operations *ops = sbi->fatent_ops;
+ 	struct fat_entry fatent;
++	struct fatent_ra fatent_ra;
+ 	u64 ent_start, ent_end, minlen, trimmed = 0;
+ 	u32 free = 0;
+-	unsigned long reada_blocks, reada_mask, cur_block = 0;
+ 	int err = 0;
+ 
+ 	/*
+@@ -727,19 +780,13 @@ int fat_trim_fs(struct inode *inode, str
+ 	if (ent_end >= sbi->max_cluster)
+ 		ent_end = sbi->max_cluster - 1;
+ 
+-	reada_blocks = FAT_READA_SIZE >> sb->s_blocksize_bits;
+-	reada_mask = reada_blocks - 1;
