@@ -1,16 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+Subject: + csky-simplify-detection-of-memory-zone-boundaries.patch
  added to -mm tree
-Date: Mon, 13 Apr 2020 17:26:10 -0700
-Message-ID: <20200414002610.Ywdsv0Th3%akpm@linux-foundation.org>
+Date: Mon, 13 Apr 2020 17:26:15 -0700
+Message-ID: <20200414002615.oXpBhrH0E%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59176 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59390 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727878AbgDNA0N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Apr 2020 20:26:13 -0400
+        id S1727878AbgDNA0R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Apr 2020 20:26:17 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.ne
 
 
 The patch titled
-     Subject: arm64: simplify detection of memory zone boundaries for UMA configs
+     Subject: csky: simplify detection of memory zone boundaries
 has been added to the -mm tree.  Its filename is
-     arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+     csky-simplify-detection-of-memory-zone-boundaries.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/csky-simplify-detection-of-memory-zone-boundaries.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/csky-simplify-detection-of-memory-zone-boundaries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: arm64: simplify detection of memory zone boundaries for UMA configs
+Subject: csky: simplify detection of memory zone boundaries
 
 The free_area_init() function only requires the definition of maximal PFN
 for each of the supported zone rater than calculation of actual zone sizes
@@ -52,7 +51,7 @@ available to all architectures.
 Using this function instead of free_area_init_node() simplifies the zone
 detection.
 
-Link: http://lkml.kernel.org/r/20200412194859.12663-9-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200412194859.12663-10-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Brian Cain <bcain@codeaurora.org>
@@ -88,72 +87,88 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/init.c |   54 -----------------------------------------
- 1 file changed, 54 deletions(-)
+ arch/csky/kernel/setup.c |   26 +++++++++++---------------
+ 1 file changed, 11 insertions(+), 15 deletions(-)
 
---- a/arch/arm64/mm/init.c~arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs
-+++ a/arch/arm64/mm/init.c
-@@ -192,8 +192,6 @@ static phys_addr_t __init max_zone_phys(
- 	return min(offset + (1ULL << zone_bits), memblock_end_of_DRAM());
- }
+--- a/arch/csky/kernel/setup.c~csky-simplify-detection-of-memory-zone-boundaries
++++ a/arch/csky/kernel/setup.c
+@@ -26,7 +26,9 @@ struct screen_info screen_info = {
  
--#ifdef CONFIG_NUMA
--
- static void __init zone_sizes_init(unsigned long min, unsigned long max)
+ static void __init csky_memblock_init(void)
  {
- 	unsigned long max_zone_pfns[MAX_NR_ZONES]  = {0};
-@@ -209,58 +207,6 @@ static void __init zone_sizes_init(unsig
- 	free_area_init(max_zone_pfns);
- }
+-	unsigned long zone_size[MAX_NR_ZONES];
++	unsigned long lowmem_size = PFN_DOWN(LOWMEM_LIMIT - PHYS_OFFSET_OFFSET);
++	unsigned long sseg_size = PFN_DOWN(SSEG_SIZE - PHYS_OFFSET_OFFSET);
++	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
+ 	signed long size;
  
--#else
--
--static void __init zone_sizes_init(unsigned long min, unsigned long max)
--{
--	struct memblock_region *reg;
--	unsigned long zone_size[MAX_NR_ZONES], zhole_size[MAX_NR_ZONES];
--	unsigned long __maybe_unused max_dma, max_dma32;
--
+ 	memblock_reserve(__pa(_stext), _end - _stext);
+@@ -36,28 +38,22 @@ static void __init csky_memblock_init(vo
+ 
+ 	memblock_dump_all();
+ 
 -	memset(zone_size, 0, sizeof(zone_size));
 -
--	max_dma = max_dma32 = min;
--#ifdef CONFIG_ZONE_DMA
--	max_dma = max_dma32 = PFN_DOWN(arm64_dma_phys_limit);
--	zone_size[ZONE_DMA] = max_dma - min;
--#endif
--#ifdef CONFIG_ZONE_DMA32
--	max_dma32 = PFN_DOWN(arm64_dma32_phys_limit);
--	zone_size[ZONE_DMA32] = max_dma32 - max_dma;
--#endif
--	zone_size[ZONE_NORMAL] = max - max_dma32;
--
--	memcpy(zhole_size, zone_size, sizeof(zhole_size));
--
--	for_each_memblock(memory, reg) {
--		unsigned long start = memblock_region_memory_base_pfn(reg);
--		unsigned long end = memblock_region_memory_end_pfn(reg);
--
--#ifdef CONFIG_ZONE_DMA
--		if (start >= min && start < max_dma) {
--			unsigned long dma_end = min(end, max_dma);
--			zhole_size[ZONE_DMA] -= dma_end - start;
--			start = dma_end;
--		}
--#endif
--#ifdef CONFIG_ZONE_DMA32
--		if (start >= max_dma && start < max_dma32) {
--			unsigned long dma32_end = min(end, max_dma32);
--			zhole_size[ZONE_DMA32] -= dma32_end - start;
--			start = dma32_end;
--		}
--#endif
--		if (start >= max_dma32 && start < max) {
--			unsigned long normal_end = min(end, max);
--			zhole_size[ZONE_NORMAL] -= normal_end - start;
--		}
--	}
--
--	free_area_init_node(0, zone_size, min, zhole_size);
--}
--
--#endif /* CONFIG_NUMA */
+ 	min_low_pfn = PFN_UP(memblock_start_of_DRAM());
+ 	max_low_pfn = max_pfn = PFN_DOWN(memblock_end_of_DRAM());
+ 
+ 	size = max_pfn - min_low_pfn;
+ 
+-	if (size <= PFN_DOWN(SSEG_SIZE - PHYS_OFFSET_OFFSET))
+-		zone_size[ZONE_NORMAL] = size;
+-	else if (size < PFN_DOWN(LOWMEM_LIMIT - PHYS_OFFSET_OFFSET)) {
+-		zone_size[ZONE_NORMAL] =
+-				PFN_DOWN(SSEG_SIZE - PHYS_OFFSET_OFFSET);
+-		max_low_pfn = min_low_pfn + zone_size[ZONE_NORMAL];
+-	} else {
+-		zone_size[ZONE_NORMAL] =
+-				PFN_DOWN(LOWMEM_LIMIT - PHYS_OFFSET_OFFSET);
+-		max_low_pfn = min_low_pfn + zone_size[ZONE_NORMAL];
++	if (size >= lowmem_size) {
++		max_low_pfn = min_low_pfn + lowmem_size;
+ 		write_mmu_msa1(read_mmu_msa0() + SSEG_SIZE);
++	} else if (size > sseg_size) {
++		max_low_pfn = min_low_pfn + sseg_size;
+ 	}
+ 
++	max_zone_pfn[ZONE_NORMAL] = max_low_pfn;
++
+ #ifdef CONFIG_HIGHMEM
+-	zone_size[ZONE_HIGHMEM] = max_pfn - max_low_pfn;
++	max_zone_pfn[ZONE_HIGHMEM] = max_pfn;
+ 
+ 	highstart_pfn = max_low_pfn;
+ 	highend_pfn   = max_pfn;
+@@ -66,7 +62,7 @@ static void __init csky_memblock_init(vo
+ 
+ 	dma_contiguous_reserve(0);
+ 
+-	free_area_init_node(0, zone_size, min_low_pfn, NULL);
++	free_area_init(max_zone_pfn);
+ }
+ 
+ void __init setup_arch(char **cmdline_p)
+_
+
+Patches currently in -mm which might be from rppt@linux.ibm.com are
+
+mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
+mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
+mm-remove-config_have_memblock_node_map-option.patch
+mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
+mm-use-free_area_init-instead-of-free_area_init_nodes.patch
+alpha-simplify-detection-of-memory-zone-boundaries.patch
+arm-simplify-detection-of-memory-zone-boundaries.patch
+arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+csky-simplify-detection-of-memory-zone-boundaries.patch
+m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
+parisc-simplify-detection-of-memory-zone-boundaries.patch
+sparc32-simplify-detection-of-memory-zone-boundaries.patch
+unicore32-simplify-detection-of-memory-zone-boundaries.patch
+xtensa-simplify-detection-of-memory-zone-boundaries.patch
+mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
+mm-clean-up-free_area_init_node-and-its-helpers.patch
+mm-simplify-find_min_pfn_with_active_regions.patch
+docs-vm-update-memory-models-documentation.patch
