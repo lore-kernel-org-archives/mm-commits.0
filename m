@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-fix-a-typo-in-comment-attampt-attempt.patch
+Subject: +
+ mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
  added to -mm tree
-Date: Mon, 13 Apr 2020 16:07:21 -0700
-Message-ID: <20200413230721.at4eoi1hy%akpm@linux-foundation.org>
+Date: Mon, 13 Apr 2020 17:25:33 -0700
+Message-ID: <20200414002533.3IrQmSnQ0%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48628 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389929AbgDMXHW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Apr 2020 19:07:22 -0400
+        id S1727878AbgDNAZg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Apr 2020 20:25:36 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ethp@qq.com, mm-commits@vger.kernel.org
+To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, Hoan@os.amperecomputing.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, mattst88@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@kernel.org, rppt@linux.ibm.com, shorne@gmail.com, tony.luck@intel.com, tsbogend@alpha.franken.de, vgupta@synopsys.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm/memory: fix a typo in comment "attampt"->"attempt"
+     Subject: mm: memblock: replace dereferences of memblock_region.nid with API calls
 has been added to the -mm tree.  Its filename is
-     mm-memory-fix-a-typo-in-comment-attampt-attempt.patch
+     mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-fix-a-typo-in-comment-attampt-attempt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-fix-a-typo-in-comment-attampt-attempt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,49 +39,201 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ethon Paul <ethp@qq.com>
-Subject: mm/memory: fix a typo in comment "attampt"->"attempt"
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm: memblock: replace dereferences of memblock_region.nid with API calls
 
-There is a comment in typo, fix it.
+Patch series "mm: rework free_area_init*() funcitons".
 
-Link: http://lkml.kernel.org/r/20200411004043.14686-1-ethp@qq.com
-Signed-off-by: Ethon Paul <ethp@qq.com>
+After the discussion [1] about removal of CONFIG_NODES_SPAN_OTHER_NODES
+and CONFIG_HAVE_MEMBLOCK_NODE_MAP options, I took it a bit further and
+updated the node/zone initialization.  
+
+Since all architectures have memblock, it is possible to use only the
+newer version of free_area_init_node() that calculates the zone and node
+boundaries based on memblock node mapping and architectural limits on
+possible zone PFNs.  
+
+The architectures that still determined zone and hole sizes can be
+switched to the generic code and the old code that took those zone and
+hole sizes can be simply removed.
+
+And, since it all started from the removal of
+CONFIG_NODES_SPAN_OTHER_NODES, the memmap_init() is now updated to iterate
+over memblocks and so it does not need to perform early_pfn_to_nid() query
+for every PFN.
+
+[1] https://lore.kernel.org/lkml/1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com
+
+
+This patch (of 21):
+
+There are several places in the code that directly dereference
+memblock_region.nid despite this field being defined only when
+CONFIG_HAVE_MEMBLOCK_NODE_MAP=y.
+
+Replace these with calls to memblock_get_region_nid() to improve code
+robustness and to avoid possible breakage when
+CONFIG_HAVE_MEMBLOCK_NODE_MAP will be removed.
+
+Link: http://lkml.kernel.org/r/20200412194859.12663-1-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200412194859.12663-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Brian Cain <bcain@codeaurora.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
+Cc: Guan Xuetao <gxt@pku.edu.cn>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Hoan Tran <Hoan@os.amperecomputing.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nick Hu <nickhu@andestech.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/mm/numa.c |    9 ++++++---
+ arch/x86/mm/numa.c   |    6 ++++--
+ mm/memblock.c        |    8 +++++---
+ mm/page_alloc.c      |    4 ++--
+ 4 files changed, 17 insertions(+), 10 deletions(-)
 
---- a/mm/memory.c~mm-memory-fix-a-typo-in-comment-attampt-attempt
-+++ a/mm/memory.c
-@@ -2469,7 +2469,7 @@ static inline bool cow_user_page(struct
- 		}
+--- a/arch/arm64/mm/numa.c~mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls
++++ a/arch/arm64/mm/numa.c
+@@ -350,13 +350,16 @@ static int __init numa_register_nodes(vo
+ 	struct memblock_region *mblk;
  
- 		/*
--		 * The same page can be mapped back since last copy attampt.
-+		 * The same page can be mapped back since last copy attempt.
- 		 * Try to copy again under PTL.
- 		 */
- 		if (__copy_from_user_inatomic(kaddr, uaddr, PAGE_SIZE)) {
+ 	/* Check that valid nid is set to memblks */
+-	for_each_memblock(memory, mblk)
+-		if (mblk->nid == NUMA_NO_NODE || mblk->nid >= MAX_NUMNODES) {
++	for_each_memblock(memory, mblk) {
++		int mblk_nid = memblock_get_region_node(mblk);
++
++		if (mblk_nid == NUMA_NO_NODE || mblk_nid >= MAX_NUMNODES) {
+ 			pr_warn("Warning: invalid memblk node %d [mem %#010Lx-%#010Lx]\n",
+-				mblk->nid, mblk->base,
++				mblk_nid, mblk->base,
+ 				mblk->base + mblk->size - 1);
+ 			return -EINVAL;
+ 		}
++	}
+ 
+ 	/* Finally register nodes. */
+ 	for_each_node_mask(nid, numa_nodes_parsed) {
+--- a/arch/x86/mm/numa.c~mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls
++++ a/arch/x86/mm/numa.c
+@@ -517,8 +517,10 @@ static void __init numa_clear_kernel_nod
+ 	 *   reserve specific pages for Sandy Bridge graphics. ]
+ 	 */
+ 	for_each_memblock(reserved, mb_region) {
+-		if (mb_region->nid != MAX_NUMNODES)
+-			node_set(mb_region->nid, reserved_nodemask);
++		int nid = memblock_get_region_node(mb_region);
++
++		if (nid != MAX_NUMNODES)
++			node_set(nid, reserved_nodemask);
+ 	}
+ 
+ 	/*
+--- a/mm/memblock.c~mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls
++++ a/mm/memblock.c
+@@ -1207,13 +1207,15 @@ void __init_memblock __next_mem_pfn_rang
+ {
+ 	struct memblock_type *type = &memblock.memory;
+ 	struct memblock_region *r;
++	int r_nid;
+ 
+ 	while (++*idx < type->cnt) {
+ 		r = &type->regions[*idx];
++		r_nid = memblock_get_region_node(r);
+ 
+ 		if (PFN_UP(r->base) >= PFN_DOWN(r->base + r->size))
+ 			continue;
+-		if (nid == MAX_NUMNODES || nid == r->nid)
++		if (nid == MAX_NUMNODES || nid == r_nid)
+ 			break;
+ 	}
+ 	if (*idx >= type->cnt) {
+@@ -1226,7 +1228,7 @@ void __init_memblock __next_mem_pfn_rang
+ 	if (out_end_pfn)
+ 		*out_end_pfn = PFN_DOWN(r->base + r->size);
+ 	if (out_nid)
+-		*out_nid = r->nid;
++		*out_nid = r_nid;
+ }
+ 
+ /**
+@@ -1810,7 +1812,7 @@ int __init_memblock memblock_search_pfn_
+ 	*start_pfn = PFN_DOWN(type->regions[mid].base);
+ 	*end_pfn = PFN_DOWN(type->regions[mid].base + type->regions[mid].size);
+ 
+-	return type->regions[mid].nid;
++	return memblock_get_region_node(&type->regions[mid]);
+ }
+ #endif
+ 
+--- a/mm/page_alloc.c~mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls
++++ a/mm/page_alloc.c
+@@ -7208,7 +7208,7 @@ static void __init find_zone_movable_pfn
+ 			if (!memblock_is_hotpluggable(r))
+ 				continue;
+ 
+-			nid = r->nid;
++			nid = memblock_get_region_node(r);
+ 
+ 			usable_startpfn = PFN_DOWN(r->base);
+ 			zone_movable_pfn[nid] = zone_movable_pfn[nid] ?
+@@ -7229,7 +7229,7 @@ static void __init find_zone_movable_pfn
+ 			if (memblock_is_mirror(r))
+ 				continue;
+ 
+-			nid = r->nid;
++			nid = memblock_get_region_node(r);
+ 
+ 			usable_startpfn = memblock_region_memory_base_pfn(r);
+ 
 _
 
-Patches currently in -mm which might be from ethp@qq.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-memory_hotplug-fix-a-typo-in-comment-recoreded-recorded.patch
-mm-ksm-fix-a-typo-in-comment-alreaady-already.patch
-mm-ksm-fix-a-typo-in-comment-alreaady-already-v2.patch
-mm-mmap-fix-a-typo-in-comment-compatbility-compatibility.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2.patch
-mm-vmsan-fix-some-typos-in-comment.patch
-mm-compaction-fix-a-typo-in-comment-pessemistic-pessimistic.patch
-mm-memblock-fix-a-typo-in-comment-implict-implicit.patch
-mm-list_lru-fix-a-typo-in-comment-numbesr-numbers.patch
-mm-filemap-fix-a-typo-in-comment-unneccssary-unnecessary.patch
-mm-frontswap-fix-some-typos-in-frontswapc.patch
-mm-memcg-fix-some-typos-in-memcontrolc.patch
-mm-fix-a-typo-in-comment-strucure-structure.patch
-mm-slub-fix-a-typo-in-comment-disambiguiation-disambiguation.patch
-mm-sparse-fix-a-typo-in-comment-convienence-convenience.patch
-mm-page-writeback-fix-a-typo-in-comment-effictive-effective.patch
-mm-memory-fix-a-typo-in-comment-attampt-attempt.patch
+mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
+mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
+mm-remove-config_have_memblock_node_map-option.patch
+mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
+mm-use-free_area_init-instead-of-free_area_init_nodes.patch
+alpha-simplify-detection-of-memory-zone-boundaries.patch
+arm-simplify-detection-of-memory-zone-boundaries.patch
+arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+csky-simplify-detection-of-memory-zone-boundaries.patch
+m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
+parisc-simplify-detection-of-memory-zone-boundaries.patch
+sparc32-simplify-detection-of-memory-zone-boundaries.patch
+unicore32-simplify-detection-of-memory-zone-boundaries.patch
+xtensa-simplify-detection-of-memory-zone-boundaries.patch
+mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
+mm-clean-up-free_area_init_node-and-its-helpers.patch
+mm-simplify-find_min_pfn_with_active_regions.patch
+docs-vm-update-memory-models-documentation.patch
