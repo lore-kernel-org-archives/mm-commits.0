@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch added to -mm
- tree
-Date: Mon, 13 Apr 2020 17:40:30 -0700
-Message-ID: <20200414004030.Qj7ejq7OB%akpm@linux-foundation.org>
+ dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only.patch
+ added to -mm tree
+Date: Mon, 13 Apr 2020 17:52:48 -0700
+Message-ID: <20200414005248.a7HtAxYN8%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46436 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56658 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390520AbgDNAkb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Apr 2020 20:40:31 -0400
+        id S2390654AbgDNAww (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Apr 2020 20:52:52 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, rientjes@google.com
+To: corbet@lwn.net, gregkh@linuxfoundation.org, jbaron@akamai.com, mm-commits@vger.kernel.org, orson.zhai@unisoc.com, pmladek@suse.com, rdunlap@infradead.org, rostedt@goodmis.org, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: mm/page_alloc.c: bad_flags is not necessary for bad_page()
+     Subject: dynamic_debug: add an option to enable dynamic debug for modules only
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
+     dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,141 +39,191 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc.c: bad_flags is not necessary for bad_page()
+From: Orson Zhai <orson.zhai@unisoc.com>
+Subject: dynamic_debug: add an option to enable dynamic debug for modules only
 
-After commit 5b57b8f22709 ("mm/debug.c: always print flags in
-dump_page()"), page->flags is always printed for a bad page.  It is not
-necessary to have bad_flags any more.
+Instead of enabling dynamic debug globally with CONFIG_DYNAMIC_DEBUG,
+CONFIG_DYNAMIC_DEBUG_CORE will only enable core function of dynamic debug.
+With the DEBUG_MODULE defined for any modules, dynamic debug will be tied
+to them.
 
-Link: http://lkml.kernel.org/r/20200411220357.9636-3-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Suggested-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+This is useful for people who only want to enable dynamic debug for kernel
+modules without worrying about kernel image size and memory consumption
+increasing too much.
+
+Link: http://lkml.kernel.org/r/1586521984-5890-1-git-send-email-orson.unisoc@gmail.com
+Signed-off-by: Orson Zhai <orson.zhai@unisoc.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   34 ++++++++++------------------------
- 1 file changed, 10 insertions(+), 24 deletions(-)
+ Documentation/admin-guide/dynamic-debug-howto.rst |    7 ++++--
+ include/linux/dev_printk.h                        |    6 +++--
+ include/linux/dynamic_debug.h                     |    2 -
+ include/linux/printk.h                            |   14 +++++++-----
+ lib/Kconfig.debug                                 |   12 ++++++++++
+ lib/Makefile                                      |    2 -
+ lib/dynamic_debug.c                               |    9 ++++++-
+ 7 files changed, 39 insertions(+), 13 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-bad_flags-is-not-necessary-for-bad_page
-+++ a/mm/page_alloc.c
-@@ -607,8 +607,7 @@ static inline int __maybe_unused bad_ran
- }
- #endif
+--- a/Documentation/admin-guide/dynamic-debug-howto.rst~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/Documentation/admin-guide/dynamic-debug-howto.rst
+@@ -13,8 +13,11 @@ kernel code to obtain additional kernel
+ ``print_hex_dump_debug()``/``print_hex_dump_bytes()`` calls can be dynamically
+ enabled per-callsite.
  
--static void bad_page(struct page *page, const char *reason,
--		unsigned long bad_flags)
-+static void bad_page(struct page *page, const char *reason)
- {
- 	static unsigned long resume;
- 	static unsigned long nr_shown;
-@@ -637,10 +636,6 @@ static void bad_page(struct page *page,
- 	pr_alert("BUG: Bad page state in process %s  pfn:%05lx\n",
- 		current->comm, page_to_pfn(page));
- 	__dump_page(page, reason);
--	bad_flags &= page->flags;
--	if (bad_flags)
--		pr_alert("bad because of flags: %#lx(%pGp)\n",
--						bad_flags, &bad_flags);
- 	dump_page_owner(page);
+-If ``CONFIG_DYNAMIC_DEBUG`` is not set, ``print_hex_dump_debug()`` is just
+-shortcut for ``print_hex_dump(KERN_DEBUG)``.
++If ``CONFIG_DYNAMIC_DEBUG_CORE`` is set, only the modules with ``DEBUG_MODULE``
++defined will be tied into dynamic debug.
++
++If ``CONFIG_DYNAMIC_DEBUG`` or ``CONFIG_DYNAMIC_DEBUG_CORE`` is not set,
++``print_hex_dump_debug()`` is just shortcut for ``print_hex_dump(KERN_DEBUG)``.
  
- 	print_modules();
-@@ -1077,11 +1072,7 @@ static inline bool page_expected_state(s
+ For ``print_hex_dump_debug()``/``print_hex_dump_bytes()``, format string is
+ its ``prefix_str`` argument, if it is constant string; or ``hexdump``
+--- a/include/linux/dev_printk.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/include/linux/dev_printk.h
+@@ -109,7 +109,8 @@ void _dev_info(const struct device *dev,
+ #define dev_info(dev, fmt, ...)						\
+ 	_dev_info(dev, dev_fmt(fmt), ##__VA_ARGS__)
  
- static void free_pages_check_bad(struct page *page)
- {
--	const char *bad_reason;
--	unsigned long bad_flags;
--
--	bad_reason = NULL;
--	bad_flags = 0;
-+	const char *bad_reason = NULL;
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
+ #define dev_dbg(dev, fmt, ...)						\
+ 	dynamic_dev_dbg(dev, dev_fmt(fmt), ##__VA_ARGS__)
+ #elif defined(DEBUG)
+@@ -181,7 +182,8 @@ do {									\
+ 	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+ #define dev_info_ratelimited(dev, fmt, ...)				\
+ 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
+ /* descriptor check is first to prevent flooding with "callbacks suppressed" */
+ #define dev_dbg_ratelimited(dev, fmt, ...)				\
+ do {									\
+--- a/include/linux/dynamic_debug.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/include/linux/dynamic_debug.h
+@@ -48,7 +48,7 @@ struct _ddebug {
  
- 	if (unlikely(atomic_read(&page->_mapcount) != -1))
- 		bad_reason = "nonzero mapcount";
-@@ -1089,15 +1080,13 @@ static void free_pages_check_bad(struct
- 		bad_reason = "non-NULL mapping";
- 	if (unlikely(page_ref_count(page) != 0))
- 		bad_reason = "nonzero _refcount";
--	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_FREE)) {
-+	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_FREE))
- 		bad_reason = "PAGE_FLAGS_CHECK_AT_FREE flag(s) set";
--		bad_flags = PAGE_FLAGS_CHECK_AT_FREE;
--	}
- #ifdef CONFIG_MEMCG
- 	if (unlikely(page->mem_cgroup))
- 		bad_reason = "page still charged to cgroup";
- #endif
--	bad_page(page, bad_reason, bad_flags);
-+	bad_page(page, bad_reason);
- }
  
- static inline int free_pages_check(struct page *page)
-@@ -1128,7 +1117,7 @@ static int free_tail_pages_check(struct
- 	case 1:
- 		/* the first tail page: ->mapping may be compound_mapcount() */
- 		if (unlikely(compound_mapcount(page))) {
--			bad_page(page, "nonzero compound_mapcount", 0);
-+			bad_page(page, "nonzero compound_mapcount");
- 			goto out;
- 		}
- 		break;
-@@ -1140,17 +1129,17 @@ static int free_tail_pages_check(struct
- 		break;
- 	default:
- 		if (page->mapping != TAIL_MAPPING) {
--			bad_page(page, "corrupted mapping in tail page", 0);
-+			bad_page(page, "corrupted mapping in tail page");
- 			goto out;
- 		}
- 		break;
- 	}
- 	if (unlikely(!PageTail(page))) {
--		bad_page(page, "PageTail not set", 0);
-+		bad_page(page, "PageTail not set");
- 		goto out;
- 	}
- 	if (unlikely(compound_head(page) != head_page)) {
--		bad_page(page, "compound_head not consistent", 0);
-+		bad_page(page, "compound_head not consistent");
- 		goto out;
- 	}
- 	ret = 0;
-@@ -2094,7 +2083,6 @@ static inline void expand(struct zone *z
- static void check_new_page_bad(struct page *page)
- {
- 	const char *bad_reason = NULL;
--	unsigned long bad_flags = 0;
  
- 	if (unlikely(page->flags & __PG_HWPOISON)) {
- 		/* Don't complain about hwpoisoned pages */
-@@ -2107,15 +2095,13 @@ static void check_new_page_bad(struct pa
- 		bad_reason = "non-NULL mapping";
- 	if (unlikely(page_ref_count(page) != 0))
- 		bad_reason = "nonzero _refcount";
--	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_PREP)) {
-+	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_PREP))
- 		bad_reason = "PAGE_FLAGS_CHECK_AT_PREP flag set";
--		bad_flags = PAGE_FLAGS_CHECK_AT_PREP;
--	}
- #ifdef CONFIG_MEMCG
- 	if (unlikely(page->mem_cgroup))
- 		bad_reason = "page still charged to cgroup";
- #endif
--	bad_page(page, bad_reason, bad_flags);
-+	bad_page(page, bad_reason);
- }
- 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG_CORE)
+ int ddebug_add_module(struct _ddebug *tab, unsigned int n,
+ 				const char *modname);
+ extern int ddebug_remove_module(const char *mod_name);
+--- a/include/linux/printk.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/include/linux/printk.h
+@@ -286,8 +286,9 @@ extern int kptr_restrict;
  /*
+  * These can be used to print at the various log levels.
+  * All of these will print unconditionally, although note that pr_debug()
+- * and other debug macros are compiled out unless either DEBUG is defined
+- * or CONFIG_DYNAMIC_DEBUG is set.
++ * and other debug macros are compiled out unless either DEBUG is defined,
++ * CONFIG_DYNAMIC_DEBUG is set, or CONFIG_DYNAMIC_DEBUG_CORE is set when
++ * DEBUG_MODULE being defined for any modules.
+  */
+ #define pr_emerg(fmt, ...) \
+ 	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
+@@ -322,7 +323,8 @@ extern int kptr_restrict;
+ 
+ 
+ /* If you are writing a driver, please use dev_dbg instead */
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
+ #include <linux/dynamic_debug.h>
+ 
+ /* dynamic_pr_debug() uses pr_fmt() internally so we don't need it here */
+@@ -448,7 +450,8 @@ extern int kptr_restrict;
+ #endif
+ 
+ /* If you are writing a driver, please use dev_dbg instead */
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
+ /* descriptor check is first to prevent flooding with "callbacks suppressed" */
+ #define pr_debug_ratelimited(fmt, ...)					\
+ do {									\
+@@ -495,7 +498,8 @@ static inline void print_hex_dump_bytes(
+ 
+ #endif
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
+ #define print_hex_dump_debug(prefix_str, prefix_type, rowsize,	\
+ 			     groupsize, buf, len, ascii)	\
+ 	dynamic_hex_dump(prefix_str, prefix_type, rowsize,	\
+--- a/lib/dynamic_debug.c~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/lib/dynamic_debug.c
+@@ -1032,8 +1032,13 @@ static int __init dynamic_debug_init(voi
+ 	int verbose_bytes = 0;
+ 
+ 	if (&__start___verbose == &__stop___verbose) {
+-		pr_warn("_ddebug table is empty in a CONFIG_DYNAMIC_DEBUG build\n");
+-		return 1;
++		if (IS_ENABLED(CONFIG_DYNAMIC_DEBUG)) {
++			pr_warn("_ddebug table is empty in a CONFIG_DYNAMIC_DEBUG build\n");
++			return 1;
++		}
++		pr_info("Ignore empty _ddebug table in a CONFIG_DYNAMIC_DEBUG_CORE build\n");
++		ddebug_init_success = 1;
++		return 0;
+ 	}
+ 	iter = __start___verbose;
+ 	modname = iter->modname;
+--- a/lib/Kconfig.debug~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/lib/Kconfig.debug
+@@ -99,6 +99,7 @@ config DYNAMIC_DEBUG
+ 	default n
+ 	depends on PRINTK
+ 	depends on (DEBUG_FS || PROC_FS)
++	select DYNAMIC_DEBUG_CORE
+ 	help
+ 
+ 	  Compiles debug level messages into the kernel, which would not
+@@ -165,6 +166,17 @@ config DYNAMIC_DEBUG
+ 	  See Documentation/admin-guide/dynamic-debug-howto.rst for additional
+ 	  information.
+ 
++config DYNAMIC_DEBUG_CORE
++	bool "Enable core function of dynamic debug support"
++	depends on PRINTK
++	depends on (DEBUG_FS || PROC_FS)
++	help
++	  Enable core functional support of dynamic debug. It is useful
++	  when you want to tie dynamic debug to your kernel modules with
++	  DEBUG_MODULE defined for each of them, especially for the case
++	  of embedded system where the kernel image size is sensitive for
++	  people.
++
+ config SYMBOLIC_ERRNAME
+ 	bool "Support symbolic error names in printf"
+ 	default y if PRINTK
+--- a/lib/Makefile~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/lib/Makefile
+@@ -186,7 +186,7 @@ lib-$(CONFIG_GENERIC_BUG) += bug.o
+ 
+ obj-$(CONFIG_HAVE_ARCH_TRACEHOOK) += syscall.o
+ 
+-obj-$(CONFIG_DYNAMIC_DEBUG) += dynamic_debug.o
++obj-$(CONFIG_DYNAMIC_DEBUG_CORE) += dynamic_debug.o
+ obj-$(CONFIG_SYMBOLIC_ERRNAME) += errname.o
+ 
+ obj-$(CONFIG_NLATTR) += nlattr.o
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from orson.zhai@unisoc.com are
 
-mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
-mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
-mm-page_allocc-rename-free_pages_check_bad-to-check_free_page_bad.patch
-mm-page_allocc-rename-free_pages_check-to-check_free_page.patch
-mm-page_allocc-extract-check__page_bad-common-part-to-page_bad_reason.patch
+dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only.patch
