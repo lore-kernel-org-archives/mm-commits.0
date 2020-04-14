@@ -1,162 +1,58 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-remove-is_mem_section_removable.patch
- added to -mm tree
-Date: Mon, 13 Apr 2020 19:06:50 -0700
-Message-ID: <20200414020650.aUjq25bvC%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-clarify-__gfp_memalloc-usage-update.patch removed from -mm tree
+Date: Mon, 13 Apr 2020 19:13:35 -0700
+Message-ID: <20200414021335.6khgugFy0%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54002 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727867AbgDNCGx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Apr 2020 22:06:53 -0400
+        id S2403967AbgDNCNh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Apr 2020 22:13:37 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, richard.weiyang@gmail.com
+To: jhubbard@nvidia.com, joel@joelfernandes.org, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, neilb@suse.de, paulmck@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: mm/memory_hotplug: remove is_mem_section_removable()
-has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-remove-is_mem_section_removable.patch
+     Subject: mm-clarify-__gfp_memalloc-usage-update
+has been removed from the -mm tree.  Its filename was
+     mm-clarify-__gfp_memalloc-usage-update.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-remove-is_mem_section_removable.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-remove-is_mem_section_removable.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-clarify-__gfp_memalloc-usage.patch
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: remove is_mem_section_removable()
+From: Michal Hocko <mhocko@kernel.org>
+Subject: mm-clarify-__gfp_memalloc-usage-update
 
-Fortunately, all users of is_mem_section_removable() are gone.  Get rid of
-it, including some now unnecessary functions.
-
-Link: http://lkml.kernel.org/r/20200407135416.24093-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: http://lkml.kernel.org/r/20200406070137.GC19426@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Paul E. McKenney <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    7 --
- mm/memory_hotplug.c            |   75 -------------------------------
- 2 files changed, 82 deletions(-)
+ include/linux/gfp.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-remove-is_mem_section_removable
-+++ a/include/linux/memory_hotplug.h
-@@ -314,19 +314,12 @@ static inline void pgdat_resize_init(str
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
- 
--extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
- extern void try_offline_node(int nid);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern int remove_memory(int nid, u64 start, u64 size);
- extern void __remove_memory(int nid, u64 start, u64 size);
- 
- #else
--static inline bool is_mem_section_removable(unsigned long pfn,
--					unsigned long nr_pages)
--{
--	return false;
--}
--
- static inline void try_offline_node(int nid) {}
- 
- static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-is_mem_section_removable
-+++ a/mm/memory_hotplug.c
-@@ -1109,81 +1109,6 @@ EXPORT_SYMBOL_GPL(add_memory);
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-- * A free page on the buddy free lists (not the per-cpu lists) has PageBuddy
-- * set and the size of the free page is given by page_order(). Using this,
-- * the function determines if the pageblock contains only free pages.
-- * Due to buddy contraints, a free page at least the size of a pageblock will
-- * be located at the start of the pageblock
-- */
--static inline int pageblock_free(struct page *page)
--{
--	return PageBuddy(page) && page_order(page) >= pageblock_order;
--}
--
--/* Return the pfn of the start of the next active pageblock after a given pfn */
--static unsigned long next_active_pageblock(unsigned long pfn)
--{
--	struct page *page = pfn_to_page(pfn);
--
--	/* Ensure the starting page is pageblock-aligned */
--	BUG_ON(pfn & (pageblock_nr_pages - 1));
--
--	/* If the entire pageblock is free, move to the end of free page */
--	if (pageblock_free(page)) {
--		int order;
--		/* be careful. we don't have locks, page_order can be changed.*/
--		order = page_order(page);
--		if ((order < MAX_ORDER) && (order >= pageblock_order))
--			return pfn + (1 << order);
--	}
--
--	return pfn + pageblock_nr_pages;
--}
--
--static bool is_pageblock_removable_nolock(unsigned long pfn)
--{
--	struct page *page = pfn_to_page(pfn);
--	struct zone *zone;
--
--	/*
--	 * We have to be careful here because we are iterating over memory
--	 * sections which are not zone aware so we might end up outside of
--	 * the zone but still within the section.
--	 * We have to take care about the node as well. If the node is offline
--	 * its NODE_DATA will be NULL - see page_zone.
--	 */
--	if (!node_online(page_to_nid(page)))
--		return false;
--
--	zone = page_zone(page);
--	pfn = page_to_pfn(page);
--	if (!zone_spans_pfn(zone, pfn))
--		return false;
--
--	return !has_unmovable_pages(zone, page, MIGRATE_MOVABLE,
--				    MEMORY_OFFLINE);
--}
--
--/* Checks if this range of memory is likely to be hot-removable. */
--bool is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
--{
--	unsigned long end_pfn, pfn;
--
--	end_pfn = min(start_pfn + nr_pages,
--			zone_end_pfn(page_zone(pfn_to_page(start_pfn))));
--
--	/* Check the starting page of each pageblock within the range */
--	for (pfn = start_pfn; pfn < end_pfn; pfn = next_active_pageblock(pfn)) {
--		if (!is_pageblock_removable_nolock(pfn))
--			return false;
--		cond_resched();
--	}
--
--	/* All pageblocks in the memory block are likely to be hot-removable */
--	return true;
--}
+--- a/include/linux/gfp.h~mm-clarify-__gfp_memalloc-usage-update
++++ a/include/linux/gfp.h
+@@ -113,6 +113,8 @@ struct vm_area_struct;
+  * Users of this flag have to be extremely careful to not deplete the reserve
+  * completely and implement a throttling mechanism which controls the consumption
+  * of the reserve based on the amount of freed memory.
++ * Usage of a pre-allocated pool (e.g. mempool) should be always considered before
++ * using this flag.
+  *
+  * %__GFP_NOMEMALLOC is used to explicitly forbid access to emergency reserves.
+  * This takes precedence over the %__GFP_MEMALLOC flag if both are set.
+_
+
+Patches currently in -mm which might be from mhocko@kernel.org are
+
+mm-clarify-__gfp_memalloc-usage.patch
