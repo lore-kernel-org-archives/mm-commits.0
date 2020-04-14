@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
- added to -mm tree
-Date: Mon, 13 Apr 2020 17:26:47 -0700
-Message-ID: <20200414002647.-81Ysyrv3%akpm@linux-foundation.org>
+ mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch added
+ to -mm tree
+Date: Mon, 13 Apr 2020 17:26:51 -0700
+Message-ID: <20200414002651.O7ooCCHMw%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60992 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727914AbgDNA0u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Apr 2020 20:26:50 -0400
+        id S1727914AbgDNA0y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Apr 2020 20:26:54 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.ne
 
 
 The patch titled
-     Subject: mm: free_area_init: allow defining max_zone_pfn in descending order
+     Subject: mm: rename free_area_init_node() to free_area_init_memoryless_node()
 has been added to the -mm tree.  Its filename is
-     mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+     mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,17 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: free_area_init: allow defining max_zone_pfn in descending order
+Subject: mm: rename free_area_init_node() to free_area_init_memoryless_node()
 
-Some architectures (e.g.  ARC) have the ZONE_HIGHMEM zone below the
-ZONE_NORMAL.  Allowing free_area_init() parse max_zone_pfn array even it
-is sorted in descending order allows using free_area_init() on such
-architectures.
+free_area_init_node() is only used by x86 to initialize a memory-less
+nodes.  Make its name reflect this and drop all the function parameters
+except node ID as they are anyway zero.
 
-Add top -> down traversal of max_zone_pfn array in free_area_init() and
-use the latter in ARC node/zone initialization.
-
-Link: http://lkml.kernel.org/r/20200412194859.12663-18-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200412194859.12663-19-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Brian Cain <bcain@codeaurora.org>
@@ -86,135 +82,69 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/mm/init.c |   36 +++++++-----------------------------
- mm/page_alloc.c    |   24 +++++++++++++++++++-----
- 2 files changed, 26 insertions(+), 34 deletions(-)
+ arch/x86/mm/numa.c |    5 +----
+ include/linux/mm.h |    9 +++------
+ mm/page_alloc.c    |    7 ++-----
+ 3 files changed, 6 insertions(+), 15 deletions(-)
 
---- a/arch/arc/mm/init.c~mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order
-+++ a/arch/arc/mm/init.c
-@@ -63,11 +63,13 @@ void __init early_init_dt_add_memory_arc
+--- a/arch/x86/mm/numa.c~mm-rename-free_area_init_node-to-free_area_init_memoryless_node
++++ a/arch/x86/mm/numa.c
+@@ -737,12 +737,9 @@ void __init x86_numa_init(void)
  
- 		low_mem_sz = size;
- 		in_use = 1;
-+		memblock_add_node(base, size, 0);
- 	} else {
- #ifdef CONFIG_HIGHMEM
- 		high_mem_start = base;
- 		high_mem_sz = size;
- 		in_use = 1;
-+		memblock_add_node(base, size, 1);
- #endif
- 	}
- 
-@@ -83,8 +85,7 @@ void __init early_init_dt_add_memory_arc
-  */
- void __init setup_arch_memory(void)
+ static void __init init_memory_less_node(int nid)
  {
--	unsigned long zones_size[MAX_NR_ZONES];
--	unsigned long zones_holes[MAX_NR_ZONES];
-+	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
- 
- 	init_mm.start_code = (unsigned long)_text;
- 	init_mm.end_code = (unsigned long)_etext;
-@@ -115,7 +116,6 @@ void __init setup_arch_memory(void)
- 	 * the crash
- 	 */
- 
--	memblock_add_node(low_mem_start, low_mem_sz, 0);
- 	memblock_reserve(CONFIG_LINUX_LINK_BASE,
- 			 __pa(_end) - CONFIG_LINUX_LINK_BASE);
- 
-@@ -133,22 +133,7 @@ void __init setup_arch_memory(void)
- 	memblock_dump_all();
- 
- 	/*----------------- node/zones setup --------------------------*/
--	memset(zones_size, 0, sizeof(zones_size));
--	memset(zones_holes, 0, sizeof(zones_holes));
+-	unsigned long zones_size[MAX_NR_ZONES] = {0};
+-	unsigned long zholes_size[MAX_NR_ZONES] = {0};
 -
--	zones_size[ZONE_NORMAL] = max_low_pfn - min_low_pfn;
--	zones_holes[ZONE_NORMAL] = 0;
--
--	/*
--	 * We can't use the helper free_area_init(zones[]) because it uses
--	 * PAGE_OFFSET to compute the @min_low_pfn which would be wrong
--	 * when our kernel doesn't start at PAGE_OFFSET, i.e.
--	 * PAGE_OFFSET != CONFIG_LINUX_RAM_BASE
--	 */
--	free_area_init_node(0,			/* node-id */
--			    zones_size,		/* num pages per zone */
--			    min_low_pfn,	/* first pfn of node */
--			    zones_holes);	/* holes */
-+	max_zone_pfn[ZONE_NORMAL] = max_low_pfn;
+ 	/* Allocate and initialize node data. Memory-less node is now online.*/
+ 	alloc_node_data(nid);
+-	free_area_init_node(nid, zones_size, 0, zholes_size);
++	free_area_init_memoryless_node(nid);
  
- #ifdef CONFIG_HIGHMEM
  	/*
-@@ -168,20 +153,13 @@ void __init setup_arch_memory(void)
- 	min_high_pfn = PFN_DOWN(high_mem_start);
- 	max_high_pfn = PFN_DOWN(high_mem_start + high_mem_sz);
- 
--	zones_size[ZONE_NORMAL] = 0;
--	zones_holes[ZONE_NORMAL] = 0;
--
--	zones_size[ZONE_HIGHMEM] = max_high_pfn - min_high_pfn;
--	zones_holes[ZONE_HIGHMEM] = 0;
--
--	free_area_init_node(1,			/* node-id */
--			    zones_size,		/* num pages per zone */
--			    min_high_pfn,	/* first pfn of node */
--			    zones_holes);	/* holes */
-+	max_zone_pfn[ZONE_HIGHMEM] = max_high_pfn;
- 
- 	high_memory = (void *)(min_high_pfn << PAGE_SHIFT);
- 	kmap_init();
- #endif
-+
-+	free_area_init(max_zone_pfn);
+ 	 * All zonelists will be built later in start_kernel() after per cpu
+--- a/include/linux/mm.h~mm-rename-free_area_init_node-to-free_area_init_memoryless_node
++++ a/include/linux/mm.h
+@@ -2272,8 +2272,7 @@ static inline spinlock_t *pud_lock(struc
  }
  
+ extern void __init pagecache_init(void);
+-extern void __init free_area_init_node(int nid, unsigned long * zones_size,
+-		unsigned long zone_start_pfn, unsigned long *zholes_size);
++extern void __init free_area_init_memoryless_node(int nid);
+ extern void free_initmem(void);
+ 
  /*
---- a/mm/page_alloc.c~mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order
+@@ -2345,10 +2344,8 @@ static inline unsigned long get_num_phys
+ 
+ /*
+  * Using memblock node mappings, an architecture may initialise its
+- * zones, allocate the backing mem_map and account for memory holes in a more
+- * architecture independent manner. This is a substitute for creating the
+- * zone_sizes[] and zholes_size[] arrays and passing them to
+- * free_area_init_node()
++ * zones, allocate the backing mem_map and account for memory holes in an
++ * architecture independent manner.
+  *
+  * An architecture is expected to register range of page frames backed by
+  * physical memory with memblock_add[_node]() before calling
+--- a/mm/page_alloc.c~mm-rename-free_area_init_node-to-free_area_init_memoryless_node
 +++ a/mm/page_alloc.c
-@@ -7429,7 +7429,8 @@ static void check_for_memory(pg_data_t *
- void __init free_area_init(unsigned long *max_zone_pfn)
+@@ -6979,12 +6979,9 @@ static void __init __free_area_init_node
+ 	free_area_init_core(pgdat);
+ }
+ 
+-void __init free_area_init_node(int nid, unsigned long *zones_size,
+-				unsigned long node_start_pfn,
+-				unsigned long *zholes_size)
++void __init free_area_init_memoryless_node(int nid)
  {
- 	unsigned long start_pfn, end_pfn;
--	int i, nid;
-+	int i, nid, zone;
-+	bool descending = false;
+-	__free_area_init_node(nid, zones_size, node_start_pfn, zholes_size,
+-			      true);
++	__free_area_init_node(nid, NULL, 0, NULL, false);
+ }
  
- 	/* Record where the zone boundaries are */
- 	memset(arch_zone_lowest_possible_pfn, 0,
-@@ -7439,13 +7440,26 @@ void __init free_area_init(unsigned long
- 
- 	start_pfn = find_min_pfn_with_active_regions();
- 
-+	/*
-+	 * Some architecturs, e.g. ARC may have ZONE_HIGHMEM below
-+	 * ZONE_NORMAL. For such cases we allow max_zone_pfn sorted in the
-+	 * descending order
-+	 */
-+	if (MAX_NR_ZONES > 1 && max_zone_pfn[0] > max_zone_pfn[1])
-+		descending = true;
-+
- 	for (i = 0; i < MAX_NR_ZONES; i++) {
--		if (i == ZONE_MOVABLE)
-+		if (descending)
-+			zone = MAX_NR_ZONES - i - 1;
-+		else
-+			zone = i;
-+
-+		if (zone == ZONE_MOVABLE)
- 			continue;
- 
--		end_pfn = max(max_zone_pfn[i], start_pfn);
--		arch_zone_lowest_possible_pfn[i] = start_pfn;
--		arch_zone_highest_possible_pfn[i] = end_pfn;
-+		end_pfn = max(max_zone_pfn[zone], start_pfn);
-+		arch_zone_lowest_possible_pfn[zone] = start_pfn;
-+		arch_zone_highest_possible_pfn[zone] = end_pfn;
- 
- 		start_pfn = end_pfn;
- 	}
+ #if !defined(CONFIG_FLAT_NODE_MEM_MAP)
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
