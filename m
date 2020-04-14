@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- alpha-simplify-detection-of-memory-zone-boundaries.patch added to -mm tree
-Date: Mon, 13 Apr 2020 17:26:02 -0700
-Message-ID: <20200414002602.ZzmAzDt4m%akpm@linux-foundation.org>
+Subject: + arm-simplify-detection-of-memory-zone-boundaries.patch
+ added to -mm tree
+Date: Mon, 13 Apr 2020 17:26:06 -0700
+Message-ID: <20200414002606.h2xB9sx3T%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58758 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727878AbgDNA0F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Apr 2020 20:26:05 -0400
+        id S1727878AbgDNA0J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Apr 2020 20:26:09 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.ne
 
 
 The patch titled
-     Subject: alpha: simplify detection of memory zone boundaries
+     Subject: arm: simplify detection of memory zone boundaries
 has been added to the -mm tree.  Its filename is
-     alpha-simplify-detection-of-memory-zone-boundaries.patch
+     arm-simplify-detection-of-memory-zone-boundaries.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/alpha-simplify-detection-of-memory-zone-boundaries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-simplify-detection-of-memory-zone-boundaries.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/alpha-simplify-detection-of-memory-zone-boundaries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-simplify-detection-of-memory-zone-boundaries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: alpha: simplify detection of memory zone boundaries
+Subject: arm: simplify detection of memory zone boundaries
 
 free_area_init() only requires the definition of maximal PFN for each of
 the supported zone rater than calculation of actual zone sizes and the
@@ -51,7 +51,7 @@ available to all architectures.
 Using this function instead of free_area_init_node() simplifies the zone
 detection.
 
-Link: http://lkml.kernel.org/r/20200412194859.12663-7-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200412194859.12663-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Brian Cain <bcain@codeaurora.org>
@@ -87,44 +87,102 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/numa.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ arch/arm/mm/init.c |   66 ++++---------------------------------------
+ 1 file changed, 7 insertions(+), 59 deletions(-)
 
---- a/arch/alpha/mm/numa.c~alpha-simplify-detection-of-memory-zone-boundaries
-+++ a/arch/alpha/mm/numa.c
-@@ -202,8 +202,7 @@ setup_memory(void *kernel_end)
+--- a/arch/arm/mm/init.c~arm-simplify-detection-of-memory-zone-boundaries
++++ a/arch/arm/mm/init.c
+@@ -92,18 +92,6 @@ EXPORT_SYMBOL(arm_dma_zone_size);
+  */
+ phys_addr_t arm_dma_limit;
+ unsigned long arm_dma_pfn_limit;
+-
+-static void __init arm_adjust_dma_zone(unsigned long *size, unsigned long *hole,
+-	unsigned long dma_size)
+-{
+-	if (size[0] <= dma_size)
+-		return;
+-
+-	size[ZONE_NORMAL] = size[0] - dma_size;
+-	size[ZONE_DMA] = dma_size;
+-	hole[ZONE_NORMAL] = hole[0];
+-	hole[ZONE_DMA] = 0;
+-}
+ #endif
  
- void __init paging_init(void)
+ void __init setup_dma_zone(const struct machine_desc *mdesc)
+@@ -121,56 +109,16 @@ void __init setup_dma_zone(const struct
+ static void __init zone_sizes_init(unsigned long min, unsigned long max_low,
+ 	unsigned long max_high)
  {
--	unsigned int    nid;
--	unsigned long   zones_size[MAX_NR_ZONES] = {0, };
-+	unsigned long   max_zone_pfn[MAX_NR_ZONES] = {0, };
- 	unsigned long	dma_local_pfn;
+-	unsigned long zone_size[MAX_NR_ZONES], zhole_size[MAX_NR_ZONES];
+-	struct memblock_region *reg;
++	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
+ 
+-	/*
+-	 * initialise the zones.
+-	 */
+-	memset(zone_size, 0, sizeof(zone_size));
+-
+-	/*
+-	 * The memory size has already been determined.  If we need
+-	 * to do anything fancy with the allocation of this memory
+-	 * to the zones, now is the time to do it.
+-	 */
+-	zone_size[0] = max_low - min;
+-#ifdef CONFIG_HIGHMEM
+-	zone_size[ZONE_HIGHMEM] = max_high - max_low;
++#ifdef CONFIG_ZONE_DMA
++	max_zone_pfn[ZONE_DMA] = min(arm_dma_pfn_limit, max_low);
+ #endif
+-
+-	/*
+-	 * Calculate the size of the holes.
+-	 *  holes = node_size - sum(bank_sizes)
+-	 */
+-	memcpy(zhole_size, zone_size, sizeof(zhole_size));
+-	for_each_memblock(memory, reg) {
+-		unsigned long start = memblock_region_memory_base_pfn(reg);
+-		unsigned long end = memblock_region_memory_end_pfn(reg);
+-
+-		if (start < max_low) {
+-			unsigned long low_end = min(end, max_low);
+-			zhole_size[0] -= low_end - start;
+-		}
++	max_zone_pfn[ZONE_NORMAL] = max_low;
+ #ifdef CONFIG_HIGHMEM
+-		if (end > max_low) {
+-			unsigned long high_start = max(start, max_low);
+-			zhole_size[ZONE_HIGHMEM] -= end - high_start;
+-		}
++	max_zone_pfn[ZONE_HIGHMEM] = max_high;
+ #endif
+-	}
+-
+-#ifdef CONFIG_ZONE_DMA
+-	/*
+-	 * Adjust the sizes according to any special requirements for
+-	 * this machine type.
+-	 */
+-	if (arm_dma_zone_size)
+-		arm_adjust_dma_zone(zone_size, zhole_size,
+-			arm_dma_zone_size >> PAGE_SHIFT);
+-#endif
+-
+-	free_area_init_node(0, zone_size, min, zhole_size);
++	free_area_init(max_zone_pfn);
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_PFN_VALID
+@@ -306,7 +254,7 @@ void __init bootmem_init(void)
+ 	sparse_init();
  
  	/*
-@@ -215,19 +214,10 @@ void __init paging_init(void)
+-	 * Now free the memory - free_area_init_node needs
++	 * Now free the memory - free_area_init needs
+ 	 * the sparse mem_map arrays initialized by sparse_init()
+ 	 * for memmap_init_zone(), otherwise all PFNs are invalid.
  	 */
- 	dma_local_pfn = virt_to_phys((char *)MAX_DMA_ADDRESS) >> PAGE_SHIFT;
- 
--	for_each_online_node(nid) {
--		unsigned long start_pfn = NODE_DATA(nid)->node_start_pfn;
--		unsigned long end_pfn = start_pfn + NODE_DATA(nid)->node_present_pages;
-+	max_zone_pfn[ZONE_DMA] = dma_local_pfn;
-+	max_zone_pfn[ZONE_NORMAL] = max_pfn;
- 
--		if (dma_local_pfn >= end_pfn - start_pfn)
--			zones_size[ZONE_DMA] = end_pfn - start_pfn;
--		else {
--			zones_size[ZONE_DMA] = dma_local_pfn;
--			zones_size[ZONE_NORMAL] = (end_pfn - start_pfn) - dma_local_pfn;
--		}
--		node_set_state(nid, N_NORMAL_MEMORY);
--		free_area_init_node(nid, zones_size, start_pfn, NULL);
--	}
-+	free_area_init(max_zone_pfn);
- 
- 	/* Initialize the kernel's ZERO_PGE. */
- 	memset((void *)ZERO_PGE, 0, PAGE_SIZE);
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
