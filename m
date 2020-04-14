@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
+ mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
  added to -mm tree
-Date: Mon, 13 Apr 2020 17:25:33 -0700
-Message-ID: <20200414002533.3IrQmSnQ0%akpm@linux-foundation.org>
+Date: Mon, 13 Apr 2020 17:25:37 -0700
+Message-ID: <20200414002537.oabwKHaO2%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58006 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58074 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727878AbgDNAZg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Apr 2020 20:25:36 -0400
+        id S1727878AbgDNAZk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Apr 2020 20:25:40 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, Hoan@os.amperecomputing.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, mattst88@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@kernel.org, rppt@linux.ibm.com, shorne@gmail.com, tony.luck@intel.com, tsbogend@alpha.franken.de, vgupta@synopsys.com, ysato@users.sourceforge.jp
+To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, Hoan@os.amperecomputing.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, mattst88@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@linux.ibm.com, shorne@gmail.com, tony.luck@intel.com, tsbogend@alpha.franken.de, vgupta@synopsys.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm: memblock: replace dereferences of memblock_region.nid with API calls
+     Subject: mm: make early_pfn_to_nid() and related defintions close to each other
 has been added to the -mm tree.  Its filename is
-     mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
+     mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: memblock: replace dereferences of memblock_region.nid with API calls
+Subject: mm: make early_pfn_to_nid() and related defintions close to each other
 
-Patch series "mm: rework free_area_init*() funcitons".
+early_pfn_to_nid() and its helper __early_pfn_to_nid() are spread around
+include/linux/mm.h, include/linux/mmzone.h and mm/page_alloc.c.
 
-After the discussion [1] about removal of CONFIG_NODES_SPAN_OTHER_NODES
-and CONFIG_HAVE_MEMBLOCK_NODE_MAP options, I took it a bit further and
-updated the node/zone initialization.  
+Drop unused stub for __early_pfn_to_nid() and move its actual generic
+implementation close to its users.
 
-Since all architectures have memblock, it is possible to use only the
-newer version of free_area_init_node() that calculates the zone and node
-boundaries based on memblock node mapping and architectural limits on
-possible zone PFNs.  
-
-The architectures that still determined zone and hole sizes can be
-switched to the generic code and the old code that took those zone and
-hole sizes can be simply removed.
-
-And, since it all started from the removal of
-CONFIG_NODES_SPAN_OTHER_NODES, the memmap_init() is now updated to iterate
-over memblocks and so it does not need to perform early_pfn_to_nid() query
-for every PFN.
-
-[1] https://lore.kernel.org/lkml/1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com
-
-
-This patch (of 21):
-
-There are several places in the code that directly dereference
-memblock_region.nid despite this field being defined only when
-CONFIG_HAVE_MEMBLOCK_NODE_MAP=y.
-
-Replace these with calls to memblock_get_region_nid() to improve code
-robustness and to avoid possible breakage when
-CONFIG_HAVE_MEMBLOCK_NODE_MAP will be removed.
-
-Link: http://lkml.kernel.org/r/20200412194859.12663-1-rppt@kernel.org
-Link: http://lkml.kernel.org/r/20200412194859.12663-2-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200412194859.12663-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Brian Cain <bcain@codeaurora.org>
@@ -99,7 +71,6 @@ Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Simek <monstr@monstr.eu>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nick Hu <nickhu@andestech.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Richard Weinberger <richard@nod.at>
@@ -113,127 +84,103 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/numa.c |    9 ++++++---
- arch/x86/mm/numa.c   |    6 ++++--
- mm/memblock.c        |    8 +++++---
- mm/page_alloc.c      |    4 ++--
- 4 files changed, 17 insertions(+), 10 deletions(-)
+ include/linux/mm.h     |    4 +--
+ include/linux/mmzone.h |    9 ------
+ mm/page_alloc.c        |   51 +++++++++++++++++++--------------------
+ 3 files changed, 27 insertions(+), 37 deletions(-)
 
---- a/arch/arm64/mm/numa.c~mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls
-+++ a/arch/arm64/mm/numa.c
-@@ -350,13 +350,16 @@ static int __init numa_register_nodes(vo
- 	struct memblock_region *mblk;
+--- a/include/linux/mm.h~mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other
++++ a/include/linux/mm.h
+@@ -2388,9 +2388,9 @@ extern void sparse_memory_present_with_a
  
- 	/* Check that valid nid is set to memblks */
--	for_each_memblock(memory, mblk)
--		if (mblk->nid == NUMA_NO_NODE || mblk->nid >= MAX_NUMNODES) {
-+	for_each_memblock(memory, mblk) {
-+		int mblk_nid = memblock_get_region_node(mblk);
-+
-+		if (mblk_nid == NUMA_NO_NODE || mblk_nid >= MAX_NUMNODES) {
- 			pr_warn("Warning: invalid memblk node %d [mem %#010Lx-%#010Lx]\n",
--				mblk->nid, mblk->base,
-+				mblk_nid, mblk->base,
- 				mblk->base + mblk->size - 1);
- 			return -EINVAL;
- 		}
-+	}
- 
- 	/* Finally register nodes. */
- 	for_each_node_mask(nid, numa_nodes_parsed) {
---- a/arch/x86/mm/numa.c~mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls
-+++ a/arch/x86/mm/numa.c
-@@ -517,8 +517,10 @@ static void __init numa_clear_kernel_nod
- 	 *   reserve specific pages for Sandy Bridge graphics. ]
- 	 */
- 	for_each_memblock(reserved, mb_region) {
--		if (mb_region->nid != MAX_NUMNODES)
--			node_set(mb_region->nid, reserved_nodemask);
-+		int nid = memblock_get_region_node(mb_region);
-+
-+		if (nid != MAX_NUMNODES)
-+			node_set(nid, reserved_nodemask);
- 	}
- 
- 	/*
---- a/mm/memblock.c~mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls
-+++ a/mm/memblock.c
-@@ -1207,13 +1207,15 @@ void __init_memblock __next_mem_pfn_rang
+ #if !defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) && \
+     !defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID)
+-static inline int __early_pfn_to_nid(unsigned long pfn,
+-					struct mminit_pfnnid_cache *state)
++static inline int early_pfn_to_nid(unsigned long pfn)
  {
- 	struct memblock_type *type = &memblock.memory;
- 	struct memblock_region *r;
-+	int r_nid;
- 
- 	while (++*idx < type->cnt) {
- 		r = &type->regions[*idx];
-+		r_nid = memblock_get_region_node(r);
- 
- 		if (PFN_UP(r->base) >= PFN_DOWN(r->base + r->size))
- 			continue;
--		if (nid == MAX_NUMNODES || nid == r->nid)
-+		if (nid == MAX_NUMNODES || nid == r_nid)
- 			break;
- 	}
- 	if (*idx >= type->cnt) {
-@@ -1226,7 +1228,7 @@ void __init_memblock __next_mem_pfn_rang
- 	if (out_end_pfn)
- 		*out_end_pfn = PFN_DOWN(r->base + r->size);
- 	if (out_nid)
--		*out_nid = r->nid;
-+		*out_nid = r_nid;
++	BUILD_BUG_ON(IS_ENABLED(CONFIG_NUMA));
+ 	return 0;
  }
- 
- /**
-@@ -1810,7 +1812,7 @@ int __init_memblock memblock_search_pfn_
- 	*start_pfn = PFN_DOWN(type->regions[mid].base);
- 	*end_pfn = PFN_DOWN(type->regions[mid].base + type->regions[mid].size);
- 
--	return type->regions[mid].nid;
-+	return memblock_get_region_node(&type->regions[mid]);
- }
+ #else
+--- a/include/linux/mmzone.h~mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other
++++ a/include/linux/mmzone.h
+@@ -1078,15 +1078,6 @@ static inline struct zoneref *first_zone
+ #include <asm/sparsemem.h>
  #endif
  
---- a/mm/page_alloc.c~mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls
+-#if !defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) && \
+-	!defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
+-static inline unsigned long early_pfn_to_nid(unsigned long pfn)
+-{
+-	BUILD_BUG_ON(IS_ENABLED(CONFIG_NUMA));
+-	return 0;
+-}
+-#endif
+-
+ #ifdef CONFIG_FLATMEM
+ #define pfn_to_nid(pfn)		(0)
+ #endif
+--- a/mm/page_alloc.c~mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other
 +++ a/mm/page_alloc.c
-@@ -7208,7 +7208,7 @@ static void __init find_zone_movable_pfn
- 			if (!memblock_is_hotpluggable(r))
- 				continue;
+@@ -1504,6 +1504,31 @@ void __free_pages_core(struct page *page
  
--			nid = r->nid;
-+			nid = memblock_get_region_node(r);
+ static struct mminit_pfnnid_cache early_pfnnid_cache __meminitdata;
  
- 			usable_startpfn = PFN_DOWN(r->base);
- 			zone_movable_pfn[nid] = zone_movable_pfn[nid] ?
-@@ -7229,7 +7229,7 @@ static void __init find_zone_movable_pfn
- 			if (memblock_is_mirror(r))
- 				continue;
++#ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
++
++/*
++ * Required by SPARSEMEM. Given a PFN, return what node the PFN is on.
++ */
++int __meminit __early_pfn_to_nid(unsigned long pfn,
++					struct mminit_pfnnid_cache *state)
++{
++	unsigned long start_pfn, end_pfn;
++	int nid;
++
++	if (state->last_start <= pfn && pfn < state->last_end)
++		return state->last_nid;
++
++	nid = memblock_search_pfn_nid(pfn, &start_pfn, &end_pfn);
++	if (nid != NUMA_NO_NODE) {
++		state->last_start = start_pfn;
++		state->last_end = end_pfn;
++		state->last_nid = nid;
++	}
++
++	return nid;
++}
++#endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
++
+ int __meminit early_pfn_to_nid(unsigned long pfn)
+ {
+ 	static DEFINE_SPINLOCK(early_pfn_lock);
+@@ -6298,32 +6323,6 @@ void __meminit init_currently_empty_zone
+ 	zone->initialized = 1;
+ }
  
--			nid = r->nid;
-+			nid = memblock_get_region_node(r);
- 
- 			usable_startpfn = memblock_region_memory_base_pfn(r);
- 
-_
-
-Patches currently in -mm which might be from rppt@linux.ibm.com are
-
-mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
-mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
-mm-remove-config_have_memblock_node_map-option.patch
-mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
-mm-use-free_area_init-instead-of-free_area_init_nodes.patch
-alpha-simplify-detection-of-memory-zone-boundaries.patch
-arm-simplify-detection-of-memory-zone-boundaries.patch
-arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
-csky-simplify-detection-of-memory-zone-boundaries.patch
-m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
-parisc-simplify-detection-of-memory-zone-boundaries.patch
-sparc32-simplify-detection-of-memory-zone-boundaries.patch
-unicore32-simplify-detection-of-memory-zone-boundaries.patch
-xtensa-simplify-detection-of-memory-zone-boundaries.patch
-mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
-mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
-mm-clean-up-free_area_init_node-and-its-helpers.patch
-mm-simplify-find_min_pfn_with_active_regions.patch
-docs-vm-update-memory-models-documentation.patch
+-#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+-#ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
+-
+-/*
+- * Required by SPARSEMEM. Given a PFN, return what node the PFN is on.
+- */
+-int __meminit __early_pfn_to_nid(unsigned long pfn,
+-					struct mminit_pfnnid_cache *state)
+-{
+-	unsigned long start_pfn, end_pfn;
+-	int nid;
+-
+-	if (state->last_start <= pfn && pfn < state->last_end)
+-		return state->last_nid;
+-
+-	nid = memblock_search_pfn_nid(pfn, &start_pfn, &end_pfn);
+-	if (nid != NUMA_NO_NODE) {
+-		state->last_start = start_pfn;
+-		state->last_end = end_pfn;
+-		state->last_nid = nid;
+-	}
+-
+-	return nid;
+-}
+-#endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
