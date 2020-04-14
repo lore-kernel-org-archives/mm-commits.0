@@ -1,31 +1,33 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-gup-return-eintr-when-gup-is-interrupted-by-fatal-signals.patch added to
- -mm tree
-Date: Mon, 13 Apr 2020 18:09:59 -0700
-Message-ID: <20200414010959.LoTcVQvPX%akpm@linux-foundation.org>
+ =?US-ASCII?Q?squashfs-squashfs=5Ffsh-replace-zero-length-array-with-fle?=
+ =?US-ASCII?Q?xible-array-member.patch?= added to -mm tree
+Date: Mon, 13 Apr 2020 18:37:20 -0700
+Message-ID: <20200414013720.WNb7GO63h%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36788 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47506 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728066AbgDNBKB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Apr 2020 21:10:01 -0400
+        id S1728600AbgDNBhW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Apr 2020 21:37:22 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hdanton@sina.com, mhocko@suse.com, mm-commits@vger.kernel.org, peterx@redhat.com, torvalds@linux-foundation.org
+To: gustavo@embeddedor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, gup: return EINTR when gup is interrupted by fatal signals
+     Subject: fs/squashfs/squashfs_fs.h: replace zero-length array with flexible-array member
 has been added to the -mm tree.  Its filename is
-     mm-gup-return-eintr-when-gup-is-interrupted-by-fatal-signals.patch
+     squashfs-squashfs_fsh-replace-zero-length-array-with-flexible-array-member.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-return-eintr-when-gup-is-interrupted-by-fatal-signals.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/squashfs-squashfs_fsh-replace-zero-length-array-with-flexible-array-member.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-return-eintr-when-gup-is-interrupted-by-fatal-signals.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/squashfs-squashfs_fsh-replace-zero-length-array-with-flexible-array-member.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +41,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, gup: return EINTR when gup is interrupted by fatal signals
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: fs/squashfs/squashfs_fs.h: replace zero-length array with flexible-array member
 
-EINTR is the usual error code which other killable interfaces return. 
-This is the case for the other fatal_signal_pending break out from the
-same function.  Make the code consistent.
+The current codebase makes use of the zero-length array language extension
+to the C90 standard, but the preferred mechanism to declare
+variable-length types such as these ones is a flexible array member[1][2],
+introduced in C99:
 
-ERESTARTSYS is also quite confusing because the signal is fatal and so no
-restart will happen before returning to the userspace.
+struct foo {
+        int stuff;
+        struct boo array[];
+};
 
-Link: http://lkml.kernel.org/r/20200409071133.31734-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Hillf Danton <hdanton@sina.com>
+By making use of the mechanism above, we will get a compiler warning in
+case the flexible array does not occur last in the structure, which will
+help us prevent some kind of undefined behavior bugs from being
+inadvertently introduced[3] to the codebase from now on.
+
+Also, notice that dynamic memory allocations won't be affected by this
+change:
+
+"Flexible array members have incomplete type, and so the sizeof operator
+may not be applied.  As a quirk of the original implementation of
+zero-length arrays, sizeof evaluates to zero."[1]
+
+This issue was found with the help of Coccinelle.
+
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] https://github.com/KSPP/linux/issues/21
+[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+Link: http://lkml.kernel.org/r/20200309202602.GA9219@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/squashfs/squashfs_fs.h |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/gup.c~mm-gup-return-eintr-when-gup-is-interrupted-by-fatal-signals
-+++ a/mm/gup.c
-@@ -1088,7 +1088,7 @@ retry:
- 		 * potentially allocating memory.
- 		 */
- 		if (fatal_signal_pending(current)) {
--			ret = -ERESTARTSYS;
-+			ret = -EINTR;
- 			goto out;
- 		}
- 		cond_resched();
+--- a/fs/squashfs/squashfs_fs.h~squashfs-squashfs_fsh-replace-zero-length-array-with-flexible-array-member
++++ a/fs/squashfs/squashfs_fs.h
+@@ -262,7 +262,7 @@ struct squashfs_dir_index {
+ 	__le32			index;
+ 	__le32			start_block;
+ 	__le32			size;
+-	unsigned char		name[0];
++	unsigned char		name[];
+ };
+ 
+ struct squashfs_base_inode {
+@@ -327,7 +327,7 @@ struct squashfs_symlink_inode {
+ 	__le32			inode_number;
+ 	__le32			nlink;
+ 	__le32			symlink_size;
+-	char			symlink[0];
++	char			symlink[];
+ };
+ 
+ struct squashfs_reg_inode {
+@@ -341,7 +341,7 @@ struct squashfs_reg_inode {
+ 	__le32			fragment;
+ 	__le32			offset;
+ 	__le32			file_size;
+-	__le16			block_list[0];
++	__le16			block_list[];
+ };
+ 
+ struct squashfs_lreg_inode {
+@@ -358,7 +358,7 @@ struct squashfs_lreg_inode {
+ 	__le32			fragment;
+ 	__le32			offset;
+ 	__le32			xattr;
+-	__le16			block_list[0];
++	__le16			block_list[];
+ };
+ 
+ struct squashfs_dir_inode {
+@@ -389,7 +389,7 @@ struct squashfs_ldir_inode {
+ 	__le16			i_count;
+ 	__le16			offset;
+ 	__le32			xattr;
+-	struct squashfs_dir_index	index[0];
++	struct squashfs_dir_index	index[];
+ };
+ 
+ union squashfs_inode {
+@@ -410,7 +410,7 @@ struct squashfs_dir_entry {
+ 	__le16			inode_number;
+ 	__le16			type;
+ 	__le16			size;
+-	char			name[0];
++	char			name[];
+ };
+ 
+ struct squashfs_dir_header {
+@@ -428,12 +428,12 @@ struct squashfs_fragment_entry {
+ struct squashfs_xattr_entry {
+ 	__le16			type;
+ 	__le16			size;
+-	char			data[0];
++	char			data[];
+ };
+ 
+ struct squashfs_xattr_val {
+ 	__le32			vsize;
+-	char			value[0];
++	char			value[];
+ };
+ 
+ struct squashfs_xattr_id {
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from gustavo@embeddedor.com are
 
-mm-gup-return-eintr-when-gup-is-interrupted-by-fatal-signals.patch
-mm-clarify-__gfp_memalloc-usage.patch
+squashfs-squashfs_fsh-replace-zero-length-array-with-flexible-array-member.patch
