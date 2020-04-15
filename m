@@ -1,29 +1,27 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-fix-build-without-thp.patch added to -mm tree
-Date: Wed, 15 Apr 2020 11:41:46 -0700
-Message-ID: <20200415184146.hJEYWu8H5%akpm@linux-foundation.org>
-References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: + proc-handle-umounts-cleanly.patch added to -mm tree
+Date: Wed, 15 Apr 2020 14:49:24 -0700
+Message-ID: <20200415214924.cm1pcnIRr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43456 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43114 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1416845AbgDOSlr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 14:41:47 -0400
-In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
+        id S1731236AbgDOVt2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 17:49:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
+To: adobriyan@gmail.com, avagin@gmail.com, bernd.edlinger@hotmail.de, christian.brauner@ubuntu.com, ebiederm@xmission.com, gladkov.alexey@gmail.com, guro@fb.com, kent.overstreet@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm/shmem: fix build without THP
+     Subject: proc: handle umounts cleanly
 has been added to the -mm tree.  Its filename is
-     mm-shmem-fix-build-without-thp.patch
+     proc-handle-umounts-cleanly.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-fix-build-without-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-handle-umounts-cleanly.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-fix-build-without-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-handle-umounts-cleanly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,39 +35,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/shmem: fix build without THP
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: proc: handle umounts cleanly
 
-Some optimizers don't notice that shmem_punch_compound() is always true
-(PageTransCompound() being false) without CONFIG_TRANSPARENT_HUGEPAGE=3Dy:
-use IS_ENABLED to help them to avoid the BUILD_BUG inside HPAGE_PMD_NR.
+syzbot writes:
+> KASAN: use-after-free Read in dput (2)
+>
+> proc_fill_super: allocate dentry failed
+> ==================================================================
+> BUG: KASAN: use-after-free in fast_dput fs/dcache.c:727 [inline]
+> BUG: KASAN: use-after-free in dput+0x53e/0xdf0 fs/dcache.c:846
+> Read of size 4 at addr ffff88808a618cf0 by task syz-executor.0/8426
+>
+> CPU: 0 PID: 8426 Comm: syz-executor.0 Not tainted 5.6.0-next-20200412-syzkaller #0
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:77 [inline]
+>  dump_stack+0x188/0x20d lib/dump_stack.c:118
+>  print_address_description.constprop.0.cold+0xd3/0x315 mm/kasan/report.c:382
+>  __kasan_report.cold+0x35/0x4d mm/kasan/report.c:511
+>  kasan_report+0x33/0x50 mm/kasan/common.c:625
+>  fast_dput fs/dcache.c:727 [inline]
+>  dput+0x53e/0xdf0 fs/dcache.c:846
+>  proc_kill_sb+0x73/0xf0 fs/proc/root.c:195
+>  deactivate_locked_super+0x8c/0xf0 fs/super.c:335
+>  vfs_get_super+0x258/0x2d0 fs/super.c:1212
+>  vfs_get_tree+0x89/0x2f0 fs/super.c:1547
+>  do_new_mount fs/namespace.c:2813 [inline]
+>  do_mount+0x1306/0x1b30 fs/namespace.c:3138
+>  __do_sys_mount fs/namespace.c:3347 [inline]
+>  __se_sys_mount fs/namespace.c:3324 [inline]
+>  __x64_sys_mount+0x18f/0x230 fs/namespace.c:3324
+>  do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+>  entry_SYSCALL_64_after_hwframe+0x49/0xb3
+> RIP: 0033:0x45c889
+> Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+> RSP: 002b:00007ffc1930ec48 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+> RAX: ffffffffffffffda RBX: 0000000001324914 RCX: 000000000045c889
+> RDX: 0000000020000140 RSI: 0000000020000040 RDI: 0000000000000000
+> RBP: 000000000076bf00 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
+> R13: 0000000000000749 R14: 00000000004ca15a R15: 0000000000000013
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2004142339170.10035@eggly.anvils
-Fixes: 71725ed10c40 ("mm: huge tmpfs: try to split_huge_page() when punchin=
-g hole")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Looking at the code now that it the internal mount of proc is no longer
+used it is possible to unmount proc.  If proc is unmounted the fields of
+the pid namespace that were used for filesystem specific state are not
+reinitialized.
+
+Which means that proc_self and proc_thread_self can be pointers to already
+freed dentries.
+
+The reported user after free appears to be from mounting and unmounting
+proc followed by mounting proc again and using error injection to cause
+the new root dentry allocation to fail.  This in turn results in
+proc_kill_sb running with proc_self and proc_thread_self still retaining
+their values from the previous mount of proc.  Then calling dput on either
+proc_self of proc_thread_self will result in double put.  Which KASAN sees
+as a use after free.
+
+Solve this by always reinitializing the filesystem state stored in the
+struct pid_namespace, when proc is unmounted.
+
+Link: http://lkml.kernel.org/r/878siwioxj.fsf@x220.int.ebiederm.org
+Fixes: 69879c01a0c3 ("proc: Remove the now unnecessary internal mount of proc")
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Reported-by: syzbot+72868dd424eb66c6b95f@syzkaller.appspotmail.com
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Bernd Edlinger <bernd.edlinger@hotmail.de>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/root.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/shmem.c~mm-shmem-fix-build-without-thp
-+++ a/mm/shmem.c
-@@ -952,7 +952,7 @@ static void shmem_undo_range(struct inod
- 				VM_BUG_ON_PAGE(PageWriteback(page), page);
- 				if (shmem_punch_compound(page, start, end))
- 					truncate_inode_page(mapping, page);
--				else {
-+				else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
- 					/* Wipe the page and don't get stuck */
- 					clear_highpage(page);
- 					flush_dcache_page(page);
+--- a/fs/proc/root.c~proc-handle-umounts-cleanly
++++ a/fs/proc/root.c
+@@ -196,6 +196,13 @@ static void proc_kill_sb(struct super_bl
+ 	if (ns->proc_thread_self)
+ 		dput(ns->proc_thread_self);
+ 	kill_anon_super(sb);
++
++	/* Make the pid namespace safe for a new mount of proc */
++	ns->proc_self = NULL;
++	ns->proc_thread_self = NULL;
++	ns->pid_gid = GLOBAL_ROOT_GID;
++	ns->hide_pid = 0;
++
+ 	put_pid_ns(ns);
+ }
+ 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-mm-shmem-fix-build-without-thp.patch
+proc-handle-umounts-cleanly.patch
