@@ -1,27 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + proc-handle-umounts-cleanly.patch added to -mm tree
-Date: Wed, 15 Apr 2020 14:49:24 -0700
-Message-ID: <20200415214924.cm1pcnIRr%akpm@linux-foundation.org>
+Subject: +
+ mm-init-report-kasan-tag-information-stored-in-page-flags.patch added to
+ -mm tree
+Date: Wed, 15 Apr 2020 15:17:42 -0700
+Message-ID: <20200415221742.ehP2tfPhV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43114 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35610 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731236AbgDOVt2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 17:49:28 -0400
+        id S1731098AbgDOWRn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 18:17:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, avagin@gmail.com, bernd.edlinger@hotmail.de, christian.brauner@ubuntu.com, ebiederm@xmission.com, gladkov.alexey@gmail.com, guro@fb.com, kent.overstreet@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: aryabinin@virtuozzo.com, chunyan.zhang@unisoc.com, dvyukov@google.com, glider@google.com, jing.xia@unisoc.com, mm-commits@vger.kernel.org, orson.zhai@unisoc.com
 
 
 The patch titled
-     Subject: proc: handle umounts cleanly
+     Subject: mm/mm_init.c: report kasan-tag information stored in page->flags
 has been added to the -mm tree.  Its filename is
-     proc-handle-umounts-cleanly.patch
+     mm-init-report-kasan-tag-information-stored-in-page-flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-handle-umounts-cleanly.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-init-report-kasan-tag-information-stored-in-page-flags.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-handle-umounts-cleanly.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-init-report-kasan-tag-information-stored-in-page-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,104 +37,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: proc: handle umounts cleanly
+From: Jing Xia <jing.xia@unisoc.com>
+Subject: mm/mm_init.c: report kasan-tag information stored in page->flags
 
-syzbot writes:
-> KASAN: use-after-free Read in dput (2)
->
-> proc_fill_super: allocate dentry failed
-> ==================================================================
-> BUG: KASAN: use-after-free in fast_dput fs/dcache.c:727 [inline]
-> BUG: KASAN: use-after-free in dput+0x53e/0xdf0 fs/dcache.c:846
-> Read of size 4 at addr ffff88808a618cf0 by task syz-executor.0/8426
->
-> CPU: 0 PID: 8426 Comm: syz-executor.0 Not tainted 5.6.0-next-20200412-syzkaller #0
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-> Call Trace:
->  __dump_stack lib/dump_stack.c:77 [inline]
->  dump_stack+0x188/0x20d lib/dump_stack.c:118
->  print_address_description.constprop.0.cold+0xd3/0x315 mm/kasan/report.c:382
->  __kasan_report.cold+0x35/0x4d mm/kasan/report.c:511
->  kasan_report+0x33/0x50 mm/kasan/common.c:625
->  fast_dput fs/dcache.c:727 [inline]
->  dput+0x53e/0xdf0 fs/dcache.c:846
->  proc_kill_sb+0x73/0xf0 fs/proc/root.c:195
->  deactivate_locked_super+0x8c/0xf0 fs/super.c:335
->  vfs_get_super+0x258/0x2d0 fs/super.c:1212
->  vfs_get_tree+0x89/0x2f0 fs/super.c:1547
->  do_new_mount fs/namespace.c:2813 [inline]
->  do_mount+0x1306/0x1b30 fs/namespace.c:3138
->  __do_sys_mount fs/namespace.c:3347 [inline]
->  __se_sys_mount fs/namespace.c:3324 [inline]
->  __x64_sys_mount+0x18f/0x230 fs/namespace.c:3324
->  do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
->  entry_SYSCALL_64_after_hwframe+0x49/0xb3
-> RIP: 0033:0x45c889
-> Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-> RSP: 002b:00007ffc1930ec48 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-> RAX: ffffffffffffffda RBX: 0000000001324914 RCX: 000000000045c889
-> RDX: 0000000020000140 RSI: 0000000020000040 RDI: 0000000000000000
-> RBP: 000000000076bf00 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
-> R13: 0000000000000749 R14: 00000000004ca15a R15: 0000000000000013
+The pageflags_layout_usage shows incorrect message by means of
+mminit_loglevel when Kasan runs in the mode of software tag-based enabled
+with CONFIG_KASAN_SW_TAGS.  This patch corrects it and reports kasan-tag
+information.
 
-Looking at the code now that it the internal mount of proc is no longer
-used it is possible to unmount proc.  If proc is unmounted the fields of
-the pid namespace that were used for filesystem specific state are not
-reinitialized.
-
-Which means that proc_self and proc_thread_self can be pointers to already
-freed dentries.
-
-The reported user after free appears to be from mounting and unmounting
-proc followed by mounting proc again and using error injection to cause
-the new root dentry allocation to fail.  This in turn results in
-proc_kill_sb running with proc_self and proc_thread_self still retaining
-their values from the previous mount of proc.  Then calling dput on either
-proc_self of proc_thread_self will result in double put.  Which KASAN sees
-as a use after free.
-
-Solve this by always reinitializing the filesystem state stored in the
-struct pid_namespace, when proc is unmounted.
-
-Link: http://lkml.kernel.org/r/878siwioxj.fsf@x220.int.ebiederm.org
-Fixes: 69879c01a0c3 ("proc: Remove the now unnecessary internal mount of proc")
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Reported-by: syzbot+72868dd424eb66c6b95f@syzkaller.appspotmail.com
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Bernd Edlinger <bernd.edlinger@hotmail.de>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
+Link: http://lkml.kernel.org/r/1586929370-10838-1-git-send-email-jing.xia.mail@gmail.com
+Signed-off-by: Jing Xia <jing.xia@unisoc.com>
+Cc: Chunyan Zhang <chunyan.zhang@unisoc.com>
+Cc: Orson Zhai <orson.zhai@unisoc.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/root.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/mm_init.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
---- a/fs/proc/root.c~proc-handle-umounts-cleanly
-+++ a/fs/proc/root.c
-@@ -196,6 +196,13 @@ static void proc_kill_sb(struct super_bl
- 	if (ns->proc_thread_self)
- 		dput(ns->proc_thread_self);
- 	kill_anon_super(sb);
-+
-+	/* Make the pid namespace safe for a new mount of proc */
-+	ns->proc_self = NULL;
-+	ns->proc_thread_self = NULL;
-+	ns->pid_gid = GLOBAL_ROOT_GID;
-+	ns->hide_pid = 0;
-+
- 	put_pid_ns(ns);
- }
+--- a/mm/mm_init.c~mm-init-report-kasan-tag-information-stored-in-page-flags
++++ a/mm/mm_init.c
+@@ -67,26 +67,30 @@ void __init mminit_verify_pageflags_layo
+ 	unsigned long or_mask, add_mask;
  
+ 	shift = 8 * sizeof(unsigned long);
+-	width = shift - SECTIONS_WIDTH - NODES_WIDTH - ZONES_WIDTH - LAST_CPUPID_SHIFT;
++	width = shift - SECTIONS_WIDTH - NODES_WIDTH - ZONES_WIDTH
++		- LAST_CPUPID_SHIFT - KASAN_TAG_WIDTH;
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_widths",
+-		"Section %d Node %d Zone %d Lastcpupid %d Flags %d\n",
++		"Section %d Node %d Zone %d Lastcpupid %d Kasantag %d Flags %d\n",
+ 		SECTIONS_WIDTH,
+ 		NODES_WIDTH,
+ 		ZONES_WIDTH,
+ 		LAST_CPUPID_WIDTH,
++		KASAN_TAG_WIDTH,
+ 		NR_PAGEFLAGS);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_shifts",
+-		"Section %d Node %d Zone %d Lastcpupid %d\n",
++		"Section %d Node %d Zone %d Lastcpupid %d Kasantag %d\n",
+ 		SECTIONS_SHIFT,
+ 		NODES_SHIFT,
+ 		ZONES_SHIFT,
+-		LAST_CPUPID_SHIFT);
++		LAST_CPUPID_SHIFT,
++		KASAN_TAG_WIDTH);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_pgshifts",
+-		"Section %lu Node %lu Zone %lu Lastcpupid %lu\n",
++		"Section %lu Node %lu Zone %lu Lastcpupid %lu Kasantag %lu\n",
+ 		(unsigned long)SECTIONS_PGSHIFT,
+ 		(unsigned long)NODES_PGSHIFT,
+ 		(unsigned long)ZONES_PGSHIFT,
+-		(unsigned long)LAST_CPUPID_PGSHIFT);
++		(unsigned long)LAST_CPUPID_PGSHIFT,
++		(unsigned long)KASAN_TAG_PGSHIFT);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_nodezoneid",
+ 		"Node/Zone ID: %lu -> %lu\n",
+ 		(unsigned long)(ZONEID_PGOFF + ZONEID_SHIFT),
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from jing.xia@unisoc.com are
 
-proc-handle-umounts-cleanly.patch
+mm-init-report-kasan-tag-information-stored-in-page-flags.patch
