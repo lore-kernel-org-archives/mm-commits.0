@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack.patch
+Subject: + powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
  added to -mm tree
-Date: Tue, 14 Apr 2020 21:48:20 -0700
-Message-ID: <20200415044820.Quo8Sz8PR%akpm@linux-foundation.org>
+Date: Tue, 14 Apr 2020 21:48:23 -0700
+Message-ID: <20200415044823.8yGlZzgRj%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40616 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40706 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389635AbgDOEsY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 00:48:24 -0400
+        id S2389619AbgDOEs0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 00:48:26 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.
 
 
 The patch titled
-     Subject: arm64: use __vmalloc_node in arch_alloc_vmap_stack
+     Subject: powerpc: use __vmalloc_node in alloc_vm_stack
 has been added to the -mm tree.  Its filename is
-     arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack.patch
+     powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,11 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: arm64: use __vmalloc_node in arch_alloc_vmap_stack
+Subject: powerpc: use __vmalloc_node in alloc_vm_stack
 
-arch_alloc_vmap_stack can use a slightly higher level vmalloc function.
+alloc_vm_stack can use a slightly higher level vmalloc function.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-28-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-29-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -75,24 +75,23 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/vmap_stack.h |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/powerpc/kernel/irq.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/include/asm/vmap_stack.h~arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack
-+++ a/arch/arm64/include/asm/vmap_stack.h
-@@ -19,10 +19,8 @@ static inline unsigned long *arch_alloc_
- {
- 	BUILD_BUG_ON(!IS_ENABLED(CONFIG_VMAP_STACK));
+--- a/arch/powerpc/kernel/irq.c~powerpc-use-__vmalloc_node-in-alloc_vm_stack
++++ a/arch/powerpc/kernel/irq.c
+@@ -748,9 +748,8 @@ void do_IRQ(struct pt_regs *regs)
  
--	return __vmalloc_node_range(stack_size, THREAD_ALIGN,
--				    VMALLOC_START, VMALLOC_END,
--				    THREADINFO_GFP, PAGE_KERNEL, 0, node,
--				    __builtin_return_address(0));
-+	return __vmalloc_node(stack_size, THREAD_ALIGN, THREADINFO_GFP, node,
-+			__builtin_return_address(0));
+ static void *__init alloc_vm_stack(void)
+ {
+-	return __vmalloc_node_range(THREAD_SIZE, THREAD_ALIGN, VMALLOC_START,
+-				    VMALLOC_END, THREADINFO_GFP, PAGE_KERNEL,
+-				     0, NUMA_NO_NODE, (void*)_RET_IP_);
++	return __vmalloc_node(THREAD_SIZE, THREAD_ALIGN, THREADINFO_GFP,
++			      NUMA_NO_NODE, (void *)_RET_IP_);
  }
  
- #endif /* __ASM_VMAP_STACK_H */
+ static void __init vmap_irqstack_init(void)
 _
 
 Patches currently in -mm which might be from hch@lst.de are
