@@ -1,33 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- =?US-ASCII?Q?mm-remove-=5F=5Farch=5Fhas=5F5level=5Fhack-and-include-asm?=
- =?US-ASCII?Q?-generic-5level-fixuph.patch?= added to -mm tree
-Date: Tue, 14 Apr 2020 17:40:34 -0700
-Message-ID: <20200415004034.GaHKc6SvG%akpm@linux-foundation.org>
+Subject: + mm-move-readahead-prototypes-from-mmh.patch added to
+ -mm tree
+Date: Tue, 14 Apr 2020 18:17:22 -0700
+Message-ID: <20200415011722.rXP73SJzB%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42210 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50708 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733064AbgDOAki (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Apr 2020 20:40:38 -0400
+        id S2388394AbgDOBRY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Apr 2020 21:17:24 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, bcain@codeaurora.org, benh@kernel.crashing.org, catalin.marinas@arm.com, christophe.leroy@c-s.fr, dalias@libc.org, fenghua.yu@intel.com, geert+renesas@glider.be, gxt@pku.edu.cn, james.morse@arm.com, jonas@southpole.se, julien.thierry.kdev@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, maz@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, rppt@linux.ibm.com, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, suzuki.poulose@arm.com, tony.luck@intel.com, will@kernel.org, ysato@users.sourceforge.jp
+To: darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang25@huawei.com, hch@lst.de, jaegeuk@kernel.org, jhubbard@nvidia.com, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, william.kucharski@oracle.com, willy@infradead.org, xiyou.wangcong@gmail.com, yuchao0@huawei.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: mm: remove __ARCH_HAS_5LEVEL_HACK and include/asm-generic/5level-fixup.h
+     Subject: mm: move readahead prototypes from mm.h
 has been added to the -mm tree.  Its filename is
-     mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
+     mm-move-readahead-prototypes-from-mmh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-readahead-prototypes-from-mmh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-readahead-prototypes-from-mmh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,209 +38,171 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: remove __ARCH_HAS_5LEVEL_HACK and include/asm-generic/5level-fixup.h
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: move readahead prototypes from mm.h
 
-There are no architectures that use include/asm-generic/5level-fixup.h
-therefore it can be removed along with __ARCH_HAS_5LEVEL_HACK define and
-the code it surrounds
+Patch series "Change readahead API", v11.
 
-Link: http://lkml.kernel.org/r/20200414153455.21744-15-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Guan Xuetao <gxt@pku.edu.cn>
-Cc: James Morse <james.morse@arm.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Julien Thierry <julien.thierry.kdev@gmail.com>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+This series adds a readahead address_space operation to replace the
+readpages operation.  The key difference is that pages are added to the
+page cache as they are allocated (and then looked up by the filesystem)
+instead of passing them on a list to the readpages operation and having
+the filesystem add them to the page cache.  It's a net reduction in code
+for each implementation, more efficient than walking a list, and solves
+the direct-write vs buffered-read problem reported by yu kuai at
+http://lkml.kernel.org/r/20200116063601.39201-1-yukuai3@huawei.com
+
+The only unconverted filesystems are those which use fscache.  Their
+conversion is pending Dave Howells' rewrite which will make the conversion
+substantially easier.  This should be completed by the end of the year.
+
+I want to thank the reviewers/testers; Dave Chinner, John Hubbard, Eric
+Biggers, Johannes Thumshirn, Dave Sterba, Zi Yan, Christoph Hellwig and
+Miklos Szeredi have done a marvellous job of providing constructive
+criticism.
+
+These patches pass an xfstests run on ext4, xfs & btrfs with no
+regressions that I can tell (some of the tests seem a little flaky before
+and remain flaky afterwards).
+
+
+This patch (of 25):
+
+The readahead code is part of the page cache so should be found in the
+pagemap.h file.  force_page_cache_readahead is only used within mm, so
+move it to mm/internal.h instead.  Remove the parameter names where they
+add no value, and rename the ones which were actively misleading.
+
+Link: http://lkml.kernel.org/r/20200414150233.24495-1-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200414150233.24495-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Cc: Chao Yu <yuchao0@huawei.com>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Eric Biggers <ebiggers@google.com>
+Cc: Gao Xiang <gaoxiang25@huawei.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/5level-fixup.h |   58 ---------------------------
- include/linux/mm.h                 |    6 --
- mm/kasan/init.c                    |   11 -----
- mm/memory.c                        |    8 ---
- 4 files changed, 83 deletions(-)
+ block/blk-core.c        |    1 +
+ include/linux/mm.h      |   19 -------------------
+ include/linux/pagemap.h |    8 ++++++++
+ mm/fadvise.c            |    2 ++
+ mm/internal.h           |    2 ++
+ 5 files changed, 13 insertions(+), 19 deletions(-)
 
---- a/include/asm-generic/5level-fixup.h
-+++ /dev/null
-@@ -1,58 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _5LEVEL_FIXUP_H
--#define _5LEVEL_FIXUP_H
--
--#define __ARCH_HAS_5LEVEL_HACK
--#define __PAGETABLE_P4D_FOLDED 1
--
--#define P4D_SHIFT			PGDIR_SHIFT
--#define P4D_SIZE			PGDIR_SIZE
--#define P4D_MASK			PGDIR_MASK
--#define MAX_PTRS_PER_P4D		1
--#define PTRS_PER_P4D			1
--
--#define p4d_t				pgd_t
--
--#define pud_alloc(mm, p4d, address) \
--	((unlikely(pgd_none(*(p4d))) && __pud_alloc(mm, p4d, address)) ? \
--		NULL : pud_offset(p4d, address))
--
--#define p4d_alloc(mm, pgd, address)	(pgd)
--#define p4d_offset(pgd, start)		(pgd)
--
--#ifndef __ASSEMBLY__
--static inline int p4d_none(p4d_t p4d)
--{
--	return 0;
--}
--
--static inline int p4d_bad(p4d_t p4d)
--{
--	return 0;
--}
--
--static inline int p4d_present(p4d_t p4d)
--{
--	return 1;
--}
--#endif
--
--#define p4d_ERROR(p4d)			do { } while (0)
--#define p4d_clear(p4d)			pgd_clear(p4d)
--#define p4d_val(p4d)			pgd_val(p4d)
--#define p4d_populate(mm, p4d, pud)	pgd_populate(mm, p4d, pud)
--#define p4d_populate_safe(mm, p4d, pud)	pgd_populate(mm, p4d, pud)
--#define p4d_page(p4d)			pgd_page(p4d)
--#define p4d_page_vaddr(p4d)		pgd_page_vaddr(p4d)
--
--#define __p4d(x)			__pgd(x)
--#define set_p4d(p4dp, p4d)		set_pgd(p4dp, p4d)
--
--#undef p4d_free_tlb
--#define p4d_free_tlb(tlb, x, addr)	do { } while (0)
--#define p4d_free(mm, x)			do { } while (0)
--
--#undef  p4d_addr_end
--#define p4d_addr_end(addr, end)		(end)
--
--#endif
---- a/include/linux/mm.h~mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph
+--- a/block/blk-core.c~mm-move-readahead-prototypes-from-mmh
++++ a/block/blk-core.c
+@@ -20,6 +20,7 @@
+ #include <linux/blk-mq.h>
+ #include <linux/highmem.h>
+ #include <linux/mm.h>
++#include <linux/pagemap.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/string.h>
+ #include <linux/init.h>
+--- a/include/linux/mm.h~mm-move-readahead-prototypes-from-mmh
 +++ a/include/linux/mm.h
-@@ -2060,11 +2060,6 @@ int __pte_alloc_kernel(pmd_t *pmd);
+@@ -2601,25 +2601,6 @@ extern vm_fault_t filemap_page_mkwrite(s
+ int __must_check write_one_page(struct page *page);
+ void task_dirty_inc(struct task_struct *tsk);
  
- #if defined(CONFIG_MMU)
+-/* readahead.c */
+-#define VM_READAHEAD_PAGES	(SZ_128K / PAGE_SIZE)
+-
+-int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
+-			pgoff_t offset, unsigned long nr_to_read);
+-
+-void page_cache_sync_readahead(struct address_space *mapping,
+-			       struct file_ra_state *ra,
+-			       struct file *filp,
+-			       pgoff_t offset,
+-			       unsigned long size);
+-
+-void page_cache_async_readahead(struct address_space *mapping,
+-				struct file_ra_state *ra,
+-				struct file *filp,
+-				struct page *pg,
+-				pgoff_t offset,
+-				unsigned long size);
+-
+ extern unsigned long stack_guard_gap;
+ /* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
+ extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
+--- a/include/linux/pagemap.h~mm-move-readahead-prototypes-from-mmh
++++ a/include/linux/pagemap.h
+@@ -615,6 +615,14 @@ int replace_page_cache_page(struct page
+ void delete_from_page_cache_batch(struct address_space *mapping,
+ 				  struct pagevec *pvec);
  
--/*
-- * The following ifdef needed to get the 5level-fixup.h header to work.
-- * Remove it when 5level-fixup.h has been removed.
-- */
--#ifndef __ARCH_HAS_5LEVEL_HACK
- static inline p4d_t *p4d_alloc(struct mm_struct *mm, pgd_t *pgd,
- 		unsigned long address)
- {
-@@ -2078,7 +2073,6 @@ static inline pud_t *pud_alloc(struct mm
- 	return (unlikely(p4d_none(*p4d)) && __pud_alloc(mm, p4d, address)) ?
- 		NULL : pud_offset(p4d, address);
- }
--#endif /* !__ARCH_HAS_5LEVEL_HACK */
++#define VM_READAHEAD_PAGES	(SZ_128K / PAGE_SIZE)
++
++void page_cache_sync_readahead(struct address_space *, struct file_ra_state *,
++		struct file *, pgoff_t index, unsigned long req_count);
++void page_cache_async_readahead(struct address_space *, struct file_ra_state *,
++		struct file *, struct page *, pgoff_t index,
++		unsigned long req_count);
++
+ /*
+  * Like add_to_page_cache_locked, but used to add newly allocated pages:
+  * the page is new, so we can just run __SetPageLocked() against it.
+--- a/mm/fadvise.c~mm-move-readahead-prototypes-from-mmh
++++ a/mm/fadvise.c
+@@ -22,6 +22,8 @@
  
- static inline pmd_t *pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
- {
---- a/mm/kasan/init.c~mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph
-+++ a/mm/kasan/init.c
-@@ -250,20 +250,9 @@ int __ref kasan_populate_early_shadow(co
- 			 * 3,2 - level page tables where we don't have
- 			 * puds,pmds, so pgd_populate(), pud_populate()
- 			 * is noops.
--			 *
--			 * The ifndef is required to avoid build breakage.
--			 *
--			 * With 5level-fixup.h, pgd_populate() is not nop and
--			 * we reference kasan_early_shadow_p4d. It's not defined
--			 * unless 5-level paging enabled.
--			 *
--			 * The ifndef can be dropped once all KASAN-enabled
--			 * architectures will switch to pgtable-nop4d.h.
- 			 */
--#ifndef __ARCH_HAS_5LEVEL_HACK
- 			pgd_populate(&init_mm, pgd,
- 					lm_alias(kasan_early_shadow_p4d));
--#endif
- 			p4d = p4d_offset(pgd, addr);
- 			p4d_populate(&init_mm, p4d,
- 					lm_alias(kasan_early_shadow_pud));
---- a/mm/memory.c~mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph
-+++ a/mm/memory.c
-@@ -4434,19 +4434,11 @@ int __pud_alloc(struct mm_struct *mm, p4
- 	smp_wmb(); /* See comment in __pte_alloc */
+ #include <asm/unistd.h>
  
- 	spin_lock(&mm->page_table_lock);
--#ifndef __ARCH_HAS_5LEVEL_HACK
- 	if (!p4d_present(*p4d)) {
- 		mm_inc_nr_puds(mm);
- 		p4d_populate(mm, p4d, new);
- 	} else	/* Another has populated it */
- 		pud_free(mm, new);
--#else
--	if (!pgd_present(*p4d)) {
--		mm_inc_nr_puds(mm);
--		pgd_populate(mm, p4d, new);
--	} else	/* Another has populated it */
--		pud_free(mm, new);
--#endif /* __ARCH_HAS_5LEVEL_HACK */
- 	spin_unlock(&mm->page_table_lock);
- 	return 0;
- }
++#include "internal.h"
++
+ /*
+  * POSIX_FADV_WILLNEED could set PG_Referenced, and POSIX_FADV_NOREUSE could
+  * deactivate the pages and clear PG_Referenced.
+--- a/mm/internal.h~mm-move-readahead-prototypes-from-mmh
++++ a/mm/internal.h
+@@ -49,6 +49,8 @@ void unmap_page_range(struct mmu_gather
+ 			     unsigned long addr, unsigned long end,
+ 			     struct zap_details *details);
+ 
++int force_page_cache_readahead(struct address_space *, struct file *,
++		pgoff_t index, unsigned long nr_to_read);
+ extern unsigned int __do_page_cache_readahead(struct address_space *mapping,
+ 		struct file *filp, pgoff_t offset, unsigned long nr_to_read,
+ 		unsigned long lookahead_size);
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-h8300-remove-usage-of-__arch_use_5level_hack.patch
-arm-add-support-for-folded-p4d-page-tables.patch
-arm64-add-support-for-folded-p4d-page-tables.patch
-hexagon-remove-__arch_use_5level_hack.patch
-ia64-add-support-for-folded-p4d-page-tables.patch
-nios2-add-support-for-folded-p4d-page-tables.patch
-openrisc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables.patch
-sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
-sh-add-support-for-folded-p4d-page-tables.patch
-unicore32-remove-__arch_use_5level_hack.patch
-asm-generic-remove-pgtable-nop4d-hackh.patch
-mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
-mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
-mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
-mm-remove-config_have_memblock_node_map-option.patch
-mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
-mm-use-free_area_init-instead-of-free_area_init_nodes.patch
-alpha-simplify-detection-of-memory-zone-boundaries.patch
-arm-simplify-detection-of-memory-zone-boundaries.patch
-arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
-csky-simplify-detection-of-memory-zone-boundaries.patch
-m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
-parisc-simplify-detection-of-memory-zone-boundaries.patch
-sparc32-simplify-detection-of-memory-zone-boundaries.patch
-unicore32-simplify-detection-of-memory-zone-boundaries.patch
-xtensa-simplify-detection-of-memory-zone-boundaries.patch
-mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
-mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
-mm-clean-up-free_area_init_node-and-its-helpers.patch
-mm-simplify-find_min_pfn_with_active_regions.patch
-docs-vm-update-memory-models-documentation.patch
+mm-move-readahead-prototypes-from-mmh.patch
+mm-return-void-from-various-readahead-functions.patch
+mm-ignore-return-value-of-readpages.patch
+mm-move-readahead-nr_pages-check-into-read_pages.patch
+mm-add-new-readahead_control-api.patch
+mm-use-readahead_control-to-pass-arguments.patch
+mm-rename-various-offset-parameters-to-index.patch
+mm-rename-readahead-loop-variable-to-i.patch
+mm-remove-page_offset-from-readahead-loop.patch
+mm-put-readahead-pages-in-cache-earlier.patch
+mm-add-readahead-address-space-operation.patch
+mm-move-end_index-check-out-of-readahead-loop.patch
+mm-add-page_cache_readahead_unbounded.patch
+mm-document-why-we-dont-set-pagereadahead.patch
+mm-use-memalloc_nofs_save-in-readahead-path.patch
+fs-convert-mpage_readpages-to-mpage_readahead.patch
+btrfs-convert-from-readpages-to-readahead.patch
+erofs-convert-uncompressed-files-from-readpages-to-readahead.patch
+erofs-convert-compressed-files-from-readpages-to-readahead.patch
+ext4-convert-from-readpages-to-readahead.patch
+ext4-pass-the-inode-to-ext4_mpage_readpages.patch
+f2fs-convert-from-readpages-to-readahead.patch
+f2fs-pass-the-inode-to-f2fs_mpage_readpages.patch
+fuse-convert-from-readpages-to-readahead.patch
+iomap-convert-from-readpages-to-readahead.patch
