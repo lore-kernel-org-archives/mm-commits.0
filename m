@@ -1,14 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-__get_vm_area.patch added to -mm tree
-Date: Tue, 14 Apr 2020 21:47:01 -0700
-Message-ID: <20200415044701.FwaFP0Wsm%akpm@linux-foundation.org>
+Subject: + mm-unexport-unmap_kernel_range_noflush.patch added to
+ -mm tree
+Date: Tue, 14 Apr 2020 21:47:05 -0700
+Message-ID: <20200415044705.SXAhGVz0l%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38718 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38804 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393121AbgDOErD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 00:47:03 -0400
+        id S2393123AbgDOErI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 00:47:08 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -16,14 +17,14 @@ To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.
 
 
 The patch titled
-     Subject: mm: remove __get_vm_area
+     Subject: mm: unexport unmap_kernel_range_noflush
 has been added to the -mm tree.  Its filename is
-     mm-remove-__get_vm_area.patch
+     mm-unexport-unmap_kernel_range_noflush.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-__get_vm_area.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-unexport-unmap_kernel_range_noflush.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-__get_vm_area.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-unexport-unmap_kernel_range_noflush.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,11 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove __get_vm_area
+Subject: mm: unexport unmap_kernel_range_noflush
 
-Switch the two remaining callers to use __get_vm_area_caller instead.
+There are no modular users of this function.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-9-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-10-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -74,64 +75,19 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/pci_64.c |    3 ++-
- arch/sh/kernel/cpu/sh4/sq.c  |    3 ++-
- include/linux/vmalloc.h      |    2 --
- mm/vmalloc.c                 |    8 --------
- 4 files changed, 4 insertions(+), 12 deletions(-)
+ mm/vmalloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/arch/powerpc/kernel/pci_64.c~mm-remove-__get_vm_area
-+++ a/arch/powerpc/kernel/pci_64.c
-@@ -132,7 +132,8 @@ void __iomem *ioremap_phb(phys_addr_t pa
- 	 * address decoding but I'd rather not deal with those outside of the
- 	 * reserved 64K legacy region.
- 	 */
--	area = __get_vm_area(size, 0, PHB_IO_BASE, PHB_IO_END);
-+	area = __get_vm_area_caller(size, 0, PHB_IO_BASE, PHB_IO_END,
-+				    __builtin_return_address(0));
- 	if (!area)
- 		return NULL;
- 
---- a/arch/sh/kernel/cpu/sh4/sq.c~mm-remove-__get_vm_area
-+++ a/arch/sh/kernel/cpu/sh4/sq.c
-@@ -103,7 +103,8 @@ static int __sq_remap(struct sq_mapping
- #if defined(CONFIG_MMU)
- 	struct vm_struct *vma;
- 
--	vma = __get_vm_area(map->size, VM_ALLOC, map->sq_addr, SQ_ADDRMAX);
-+	vma = __get_vm_area_caller(map->size, VM_ALLOC, map->sq_addr,
-+			SQ_ADDRMAX, __builtin_return_address(0));
- 	if (!vma)
- 		return -ENOMEM;
- 
---- a/include/linux/vmalloc.h~mm-remove-__get_vm_area
-+++ a/include/linux/vmalloc.h
-@@ -161,8 +161,6 @@ static inline size_t get_vm_area_size(co
- extern struct vm_struct *get_vm_area(unsigned long size, unsigned long flags);
- extern struct vm_struct *get_vm_area_caller(unsigned long size,
- 					unsigned long flags, const void *caller);
--extern struct vm_struct *__get_vm_area(unsigned long size, unsigned long flags,
--					unsigned long start, unsigned long end);
- extern struct vm_struct *__get_vm_area_caller(unsigned long size,
- 					unsigned long flags,
- 					unsigned long start, unsigned long end,
---- a/mm/vmalloc.c~mm-remove-__get_vm_area
+--- a/mm/vmalloc.c~mm-unexport-unmap_kernel_range_noflush
 +++ a/mm/vmalloc.c
-@@ -2127,14 +2127,6 @@ static struct vm_struct *__get_vm_area_n
- 	return area;
+@@ -2029,7 +2029,6 @@ void unmap_kernel_range_noflush(unsigned
+ {
+ 	vunmap_page_range(addr, addr + size);
  }
+-EXPORT_SYMBOL_GPL(unmap_kernel_range_noflush);
  
--struct vm_struct *__get_vm_area(unsigned long size, unsigned long flags,
--				unsigned long start, unsigned long end)
--{
--	return __get_vm_area_node(size, 1, flags, start, end, NUMA_NO_NODE,
--				  GFP_KERNEL, __builtin_return_address(0));
--}
--EXPORT_SYMBOL_GPL(__get_vm_area);
--
- struct vm_struct *__get_vm_area_caller(unsigned long size, unsigned long flags,
- 				       unsigned long start, unsigned long end,
- 				       const void *caller)
+ /**
+  * unmap_kernel_range - unmap kernel VM area and flush cache and TLB
 _
 
 Patches currently in -mm which might be from hch@lst.de are
