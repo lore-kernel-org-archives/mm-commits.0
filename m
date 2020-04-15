@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-init-report-kasan-tag-information-stored-in-page-flags.patch added to
- -mm tree
-Date: Wed, 15 Apr 2020 15:17:42 -0700
-Message-ID: <20200415221742.ehP2tfPhV%akpm@linux-foundation.org>
+Subject: + vmalloc-fix-remap_vmalloc_range-bounds-checks.patch
+ added to -mm tree
+Date: Wed, 15 Apr 2020 15:56:53 -0700
+Message-ID: <20200415225653.AEv1sxuxJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35610 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40082 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731098AbgDOWRn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 18:17:43 -0400
+        id S1732701AbgDOW4z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 18:56:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, chunyan.zhang@unisoc.com, dvyukov@google.com, glider@google.com, jing.xia@unisoc.com, mm-commits@vger.kernel.org, orson.zhai@unisoc.com
+To: andriin@fb.com, ast@kernel.org, daniel@iogearbox.net, jannh@google.com, john.fastabend@gmail.com, kafai@fb.com, kpsingh@chromium.org, mm-commits@vger.kernel.org, songliubraving@fb.com, yhs@fb.com
 
 
 The patch titled
-     Subject: mm/mm_init.c: report kasan-tag information stored in page->flags
+     Subject: vmalloc: fix remap_vmalloc_range() bounds checks
 has been added to the -mm tree.  Its filename is
-     mm-init-report-kasan-tag-information-stored-in-page-flags.patch
+     vmalloc-fix-remap_vmalloc_range-bounds-checks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-init-report-kasan-tag-information-stored-in-page-flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmalloc-fix-remap_vmalloc_range-bounds-checks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-init-report-kasan-tag-information-stored-in-page-flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmalloc-fix-remap_vmalloc_range-bounds-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,68 +36,159 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jing Xia <jing.xia@unisoc.com>
-Subject: mm/mm_init.c: report kasan-tag information stored in page->flags
+From: Jann Horn <jannh@google.com>
+Subject: vmalloc: fix remap_vmalloc_range() bounds checks
 
-The pageflags_layout_usage shows incorrect message by means of
-mminit_loglevel when Kasan runs in the mode of software tag-based enabled
-with CONFIG_KASAN_SW_TAGS.  This patch corrects it and reports kasan-tag
-information.
+remap_vmalloc_range() has had various issues with the bounds checks it
+promises to perform ("This function checks that addr is a valid vmalloc'ed
+area, and that it is big enough to cover the vma") over time, e.g.:
 
-Link: http://lkml.kernel.org/r/1586929370-10838-1-git-send-email-jing.xia.mail@gmail.com
-Signed-off-by: Jing Xia <jing.xia@unisoc.com>
-Cc: Chunyan Zhang <chunyan.zhang@unisoc.com>
-Cc: Orson Zhai <orson.zhai@unisoc.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+ - not detecting pgoff<<PAGE_SHIFT overflow
+ - not detecting (pgoff<<PAGE_SHIFT)+usize overflow
+ - not checking whether addr and addr+(pgoff<<PAGE_SHIFT) are the same
+   vmalloc allocation
+ - comparing a potentially wildly out-of-bounds pointer with the end of the
+   vmalloc region
+
+In particular, since commit fc9702273e2e ("bpf: Add mmap() support for
+BPF_MAP_TYPE_ARRAY"), unprivileged users can cause kernel null pointer
+dereferences by calling mmap() on a BPF map with a size that is bigger
+than the distance from the start of the BPF map to the end of the address
+space.  This could theoretically be used as a kernel ASLR bypass, by using
+whether mmap() with a given offset oopses or returns an error code to
+perform a binary search over the possible address range.
+
+To allow remap_vmalloc_range_partial() to verify that addr and
+addr+(pgoff<<PAGE_SHIFT) are in the same vmalloc region, pass the offset
+to remap_vmalloc_range_partial() instead of adding it to the pointer in
+remap_vmalloc_range().
+
+In remap_vmalloc_range_partial(), fix the check against get_vm_area_size()
+by using size comparisons instead of pointer comparisons, and add checks
+for pgoff.
+
+Link: http://lkml.kernel.org/r/20200415222312.236431-1-jannh@google.com
+Cc: stable@vger.kernel.org
+Fixes: 833423143c3a ("[PATCH] mm: introduce remap_vmalloc_range()")
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Martin KaFai Lau <kafai@fb.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Yonghong Song <yhs@fb.com>
+Cc: Andrii Nakryiko <andriin@fb.com>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: KP Singh <kpsingh@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ fs/proc/vmcore.c         |    5 +++--
+ include/linux/vmalloc.h  |    2 +-
+ mm/vmalloc.c             |   16 +++++++++++++---
+ samples/vfio-mdev/mdpy.c |    2 +-
+ 4 files changed, 18 insertions(+), 7 deletions(-)
 
---- a/mm/mm_init.c~mm-init-report-kasan-tag-information-stored-in-page-flags
-+++ a/mm/mm_init.c
-@@ -67,26 +67,30 @@ void __init mminit_verify_pageflags_layo
- 	unsigned long or_mask, add_mask;
+--- a/fs/proc/vmcore.c~vmalloc-fix-remap_vmalloc_range-bounds-checks
++++ a/fs/proc/vmcore.c
+@@ -266,7 +266,8 @@ static int vmcoredd_mmap_dumps(struct vm
+ 		if (start < offset + dump->size) {
+ 			tsz = min(offset + (u64)dump->size - start, (u64)size);
+ 			buf = dump->buf + start - offset;
+-			if (remap_vmalloc_range_partial(vma, dst, buf, tsz)) {
++			if (remap_vmalloc_range_partial(vma, dst, buf, 0,
++							tsz)) {
+ 				ret = -EFAULT;
+ 				goto out_unlock;
+ 			}
+@@ -624,7 +625,7 @@ static int mmap_vmcore(struct file *file
+ 		tsz = min(elfcorebuf_sz + elfnotes_sz - (size_t)start, size);
+ 		kaddr = elfnotes_buf + start - elfcorebuf_sz - vmcoredd_orig_sz;
+ 		if (remap_vmalloc_range_partial(vma, vma->vm_start + len,
+-						kaddr, tsz))
++						kaddr, 0, tsz))
+ 			goto fail;
  
- 	shift = 8 * sizeof(unsigned long);
--	width = shift - SECTIONS_WIDTH - NODES_WIDTH - ZONES_WIDTH - LAST_CPUPID_SHIFT;
-+	width = shift - SECTIONS_WIDTH - NODES_WIDTH - ZONES_WIDTH
-+		- LAST_CPUPID_SHIFT - KASAN_TAG_WIDTH;
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_widths",
--		"Section %d Node %d Zone %d Lastcpupid %d Flags %d\n",
-+		"Section %d Node %d Zone %d Lastcpupid %d Kasantag %d Flags %d\n",
- 		SECTIONS_WIDTH,
- 		NODES_WIDTH,
- 		ZONES_WIDTH,
- 		LAST_CPUPID_WIDTH,
-+		KASAN_TAG_WIDTH,
- 		NR_PAGEFLAGS);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_shifts",
--		"Section %d Node %d Zone %d Lastcpupid %d\n",
-+		"Section %d Node %d Zone %d Lastcpupid %d Kasantag %d\n",
- 		SECTIONS_SHIFT,
- 		NODES_SHIFT,
- 		ZONES_SHIFT,
--		LAST_CPUPID_SHIFT);
-+		LAST_CPUPID_SHIFT,
-+		KASAN_TAG_WIDTH);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_pgshifts",
--		"Section %lu Node %lu Zone %lu Lastcpupid %lu\n",
-+		"Section %lu Node %lu Zone %lu Lastcpupid %lu Kasantag %lu\n",
- 		(unsigned long)SECTIONS_PGSHIFT,
- 		(unsigned long)NODES_PGSHIFT,
- 		(unsigned long)ZONES_PGSHIFT,
--		(unsigned long)LAST_CPUPID_PGSHIFT);
-+		(unsigned long)LAST_CPUPID_PGSHIFT,
-+		(unsigned long)KASAN_TAG_PGSHIFT);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_nodezoneid",
- 		"Node/Zone ID: %lu -> %lu\n",
- 		(unsigned long)(ZONEID_PGOFF + ZONEID_SHIFT),
+ 		size -= tsz;
+--- a/include/linux/vmalloc.h~vmalloc-fix-remap_vmalloc_range-bounds-checks
++++ a/include/linux/vmalloc.h
+@@ -137,7 +137,7 @@ extern void vunmap(const void *addr);
+ 
+ extern int remap_vmalloc_range_partial(struct vm_area_struct *vma,
+ 				       unsigned long uaddr, void *kaddr,
+-				       unsigned long size);
++				       unsigned long pgoff, unsigned long size);
+ 
+ extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
+ 							unsigned long pgoff);
+--- a/mm/vmalloc.c~vmalloc-fix-remap_vmalloc_range-bounds-checks
++++ a/mm/vmalloc.c
+@@ -34,6 +34,7 @@
+ #include <linux/llist.h>
+ #include <linux/bitops.h>
+ #include <linux/rbtree_augmented.h>
++#include <linux/overflow.h>
+ 
+ #include <linux/uaccess.h>
+ #include <asm/tlbflush.h>
+@@ -3054,6 +3055,7 @@ finished:
+  * @vma:		vma to cover
+  * @uaddr:		target user address to start at
+  * @kaddr:		virtual address of vmalloc kernel memory
++ * @pgoff:		offset from @kaddr to start at
+  * @size:		size of map area
+  *
+  * Returns:	0 for success, -Exxx on failure
+@@ -3066,9 +3068,15 @@ finished:
+  * Similar to remap_pfn_range() (see mm/memory.c)
+  */
+ int remap_vmalloc_range_partial(struct vm_area_struct *vma, unsigned long uaddr,
+-				void *kaddr, unsigned long size)
++				void *kaddr, unsigned long pgoff,
++				unsigned long size)
+ {
+ 	struct vm_struct *area;
++	unsigned long off;
++	unsigned long end_index;
++
++	if (check_shl_overflow(pgoff, PAGE_SHIFT, &off))
++		return -EINVAL;
+ 
+ 	size = PAGE_ALIGN(size);
+ 
+@@ -3082,8 +3090,10 @@ int remap_vmalloc_range_partial(struct v
+ 	if (!(area->flags & (VM_USERMAP | VM_DMA_COHERENT)))
+ 		return -EINVAL;
+ 
+-	if (kaddr + size > area->addr + get_vm_area_size(area))
++	if (check_add_overflow(size, off, &end_index) ||
++	    end_index > get_vm_area_size(area))
+ 		return -EINVAL;
++	kaddr += off;
+ 
+ 	do {
+ 		struct page *page = vmalloc_to_page(kaddr);
+@@ -3122,7 +3132,7 @@ int remap_vmalloc_range(struct vm_area_s
+ 						unsigned long pgoff)
+ {
+ 	return remap_vmalloc_range_partial(vma, vma->vm_start,
+-					   addr + (pgoff << PAGE_SHIFT),
++					   addr, pgoff,
+ 					   vma->vm_end - vma->vm_start);
+ }
+ EXPORT_SYMBOL(remap_vmalloc_range);
+--- a/samples/vfio-mdev/mdpy.c~vmalloc-fix-remap_vmalloc_range-bounds-checks
++++ a/samples/vfio-mdev/mdpy.c
+@@ -418,7 +418,7 @@ static int mdpy_mmap(struct mdev_device
+ 		return -EINVAL;
+ 
+ 	return remap_vmalloc_range_partial(vma, vma->vm_start,
+-					   mdev_state->memblk,
++					   mdev_state->memblk, 0,
+ 					   vma->vm_end - vma->vm_start);
+ }
+ 
 _
 
-Patches currently in -mm which might be from jing.xia@unisoc.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-mm-init-report-kasan-tag-information-stored-in-page-flags.patch
+vmalloc-fix-remap_vmalloc_range-bounds-checks.patch
