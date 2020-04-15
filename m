@@ -1,16 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-only-allow-page-table-mappings-for-built-in-zsmalloc.patch added to -mm
- tree
-Date: Tue, 14 Apr 2020 21:47:12 -0700
-Message-ID: <20200415044712.9C70fTDH4%akpm@linux-foundation.org>
+Subject: + mm-pass-addr-as-unsigned-long-to-vb_free.patch added to
+ -mm tree
+Date: Tue, 14 Apr 2020 21:47:16 -0700
+Message-ID: <20200415044716.wa_MC1RMQ%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38978 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39068 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393122AbgDOErP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 00:47:15 -0400
+        id S2393123AbgDOErT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 00:47:19 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.
 
 
 The patch titled
-     Subject: mm: only allow page table mappings for built-in zsmalloc
+     Subject: mm: pass addr as unsigned long to vb_free
 has been added to the -mm tree.  Its filename is
-     mm-only-allow-page-table-mappings-for-built-in-zsmalloc.patch
+     mm-pass-addr-as-unsigned-long-to-vb_free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-only-allow-page-table-mappings-for-built-in-zsmalloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pass-addr-as-unsigned-long-to-vb_free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-only-allow-page-table-mappings-for-built-in-zsmalloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pass-addr-as-unsigned-long-to-vb_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,19 +39,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: only allow page table mappings for built-in zsmalloc
+Subject: mm: pass addr as unsigned long to vb_free
 
-This allows to unexport map_vm_area and unmap_kernel_range, which are
-rather deep internal and should not be available to modules, as they for
-example allow fine grained control of mapping permissions, and also allow
-splitting the setup of a vmalloc area and the actual mapping and thus
-expose vmalloc internals.
+Ever use of addr in vb_free casts to unsigned long first, and the caller
+has an unsigned long version of the address available anyway.  Just pass
+that and avoid all the casts.
 
-zsmalloc is typically built-in and continues to work (just like the
-percpu-vm code using a similar patter), while modular zsmalloc also
-continues to work, but must use copies.
-
-Link: http://lkml.kernel.org/r/20200414131348.444715-12-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-13-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -84,39 +77,59 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig   |    2 +-
- mm/vmalloc.c |    2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ mm/vmalloc.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
---- a/mm/Kconfig~mm-only-allow-page-table-mappings-for-built-in-zsmalloc
-+++ a/mm/Kconfig
-@@ -707,7 +707,7 @@ config ZSMALLOC
- 
- config ZSMALLOC_PGTABLE_MAPPING
- 	bool "Use page table mapping to access object in zsmalloc"
--	depends on ZSMALLOC
-+	depends on ZSMALLOC=y
- 	help
- 	  By default, zsmalloc uses a copy-based object mapping method to
- 	  access allocations that span two pages. However, if a particular
---- a/mm/vmalloc.c~mm-only-allow-page-table-mappings-for-built-in-zsmalloc
+--- a/mm/vmalloc.c~mm-pass-addr-as-unsigned-long-to-vb_free
 +++ a/mm/vmalloc.c
-@@ -2046,7 +2046,6 @@ void unmap_kernel_range(unsigned long ad
- 	vunmap_page_range(addr, end);
- 	flush_tlb_kernel_range(addr, end);
+@@ -1664,7 +1664,7 @@ static void *vb_alloc(unsigned long size
+ 	return vaddr;
  }
--EXPORT_SYMBOL_GPL(unmap_kernel_range);
  
- int map_vm_area(struct vm_struct *area, pgprot_t prot, struct page **pages)
+-static void vb_free(const void *addr, unsigned long size)
++static void vb_free(unsigned long addr, unsigned long size)
  {
-@@ -2058,7 +2057,6 @@ int map_vm_area(struct vm_struct *area,
+ 	unsigned long offset;
+ 	unsigned long vb_idx;
+@@ -1674,24 +1674,22 @@ static void vb_free(const void *addr, un
+ 	BUG_ON(offset_in_page(size));
+ 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
  
- 	return err > 0 ? 0 : err;
- }
--EXPORT_SYMBOL_GPL(map_vm_area);
+-	flush_cache_vunmap((unsigned long)addr, (unsigned long)addr + size);
++	flush_cache_vunmap(addr, addr + size);
  
- static inline void setup_vmalloc_vm_locked(struct vm_struct *vm,
- 	struct vmap_area *va, unsigned long flags, const void *caller)
+ 	order = get_order(size);
+ 
+-	offset = (unsigned long)addr & (VMAP_BLOCK_SIZE - 1);
+-	offset >>= PAGE_SHIFT;
++	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
+ 
+-	vb_idx = addr_to_vb_idx((unsigned long)addr);
++	vb_idx = addr_to_vb_idx(addr);
+ 	rcu_read_lock();
+ 	vb = radix_tree_lookup(&vmap_block_tree, vb_idx);
+ 	rcu_read_unlock();
+ 	BUG_ON(!vb);
+ 
+-	vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
++	vunmap_page_range(addr, addr + size);
+ 
+ 	if (debug_pagealloc_enabled_static())
+-		flush_tlb_kernel_range((unsigned long)addr,
+-					(unsigned long)addr + size);
++		flush_tlb_kernel_range(addr, addr + size);
+ 
+ 	spin_lock(&vb->lock);
+ 
+@@ -1791,7 +1789,7 @@ void vm_unmap_ram(const void *mem, unsig
+ 
+ 	if (likely(count <= VMAP_MAX_ALLOC)) {
+ 		debug_check_no_locks_freed(mem, size);
+-		vb_free(mem, size);
++		vb_free(addr, size);
+ 		return;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
