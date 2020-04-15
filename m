@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + iomap-convert-from-readpages-to-readahead.patch added
- to -mm tree
-Date: Tue, 14 Apr 2020 18:18:40 -0700
-Message-ID: <20200415011840.RhndRrzLl%akpm@linux-foundation.org>
+Subject: +
+ mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
+ added to -mm tree
+Date: Tue, 14 Apr 2020 18:54:10 -0700
+Message-ID: <20200415015410.glIzXqR5d%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52164 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34564 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392471AbgDOBSn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Apr 2020 21:18:43 -0400
+        id S2387766AbgDOByL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Apr 2020 21:54:11 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang25@huawei.com, hch@lst.de, jaegeuk@kernel.org, jhubbard@nvidia.com, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, william.kucharski@oracle.com, willy@infradead.org, xiyou.wangcong@gmail.com, yuchao0@huawei.com, ziy@nvidia.com
+To: david@redhat.com, duanxiongchun@bytedance.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, ktkhai@virtuozzo.com, Markus.Elfring@web.de, mm-commits@vger.kernel.org, songmuchun@bytedance.com, stable@vger.kernel.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: iomap: convert from readpages to readahead
+     Subject: mm/ksm: fix NULL pointer dereference when KSM zero page is enabled
 has been added to the -mm tree.  Its filename is
-     iomap-convert-from-readpages-to-readahead.patch
+     mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/iomap-convert-from-readpages-to-readahead.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/iomap-convert-from-readpages-to-readahead.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,298 +39,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: iomap: convert from readpages to readahead
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/ksm: fix NULL pointer dereference when KSM zero page is enabled
 
-Use the new readahead operation in iomap.  Convert XFS and ZoneFS to use
-it.
+find_mergeable_vma can return NULL.  In this case, it leads to crash when
+we access vma->vm_mm(its offset is 0x40) later in write_protect_page.  And
+this case did happen on our server.  The following calltrace is captured
+in kernel 4.19 with the following patch applied and KSM zero page enabled
+on our server.
 
-Link: http://lkml.kernel.org/r/20200414150233.24495-26-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Cc: Chao Yu <yuchao0@huawei.com>
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Eric Biggers <ebiggers@google.com>
-Cc: Gao Xiang <gaoxiang25@huawei.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Zi Yan <ziy@nvidia.com>
+  commit e86c59b1b12d ("mm/ksm: improve deduplication of zero pages with colouring")
+
+So add a vma check to fix it.
+
+--------------------------------------------------------------------------
+  BUG: unable to handle kernel NULL pointer dereference at 0000000000000040
+  Oops: 0000 [#1] SMP NOPTI
+  CPU: 9 PID: 510 Comm: ksmd Kdump: loaded Tainted: G OE 4.19.36.bsk.9-amd64 #4.19.36.bsk.9
+  Hardware name: FOXCONN R-5111/GROOT, BIOS IC1B111F 08/17/2019
+  RIP: 0010:try_to_merge_one_page+0xc7/0x760
+  Code: 24 58 65 48 33 34 25 28 00 00 00 89 e8 0f 85 a3 06 00 00 48 83 c4
+        60 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 8b 46 08 a8 01 75 b8 <49>
+        8b 44 24 40 4c 8d 7c 24 20 b9 07 00 00 00 4c 89 e6 4c 89 ff 48
+  RSP: 0018:ffffadbdd9fffdb0 EFLAGS: 00010246
+  RAX: ffffda83ffd4be08 RBX: ffffda83ffd4be40 RCX: 0000002c6e800000
+  RDX: 0000000000000000 RSI: ffffda83ffd4be40 RDI: 0000000000000000
+  RBP: ffffa11939f02ec0 R08: 0000000094e1a447 R09: 00000000abe76577
+  R10: 0000000000000962 R11: 0000000000004e6a R12: 0000000000000000
+  R13: ffffda83b1e06380 R14: ffffa18f31f072c0 R15: ffffda83ffd4be40
+  FS: 0000000000000000(0000) GS:ffffa0da43b80000(0000) knlGS:0000000000000000
+  CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+  CR2: 0000000000000040 CR3: 0000002c77c0a003 CR4: 00000000007626e0
+  DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+  DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+  PKRU: 55555554
+  Call Trace:
+    ? follow_page_pte+0x36d/0x5e0
+    ksm_scan_thread+0x115e/0x1960
+    ? remove_wait_queue+0x60/0x60
+    kthread+0xf5/0x130
+    ? try_to_merge_with_ksm_page+0x90/0x90
+    ? kthread_create_worker_on_cpu+0x70/0x70
+    ret_from_fork+0x1f/0x30
+--------------------------------------------------------------------------
+
+Link: http://lkml.kernel.org/r/20200414132905.83819-1-songmuchun@bytedance.com
+Fixes: e86c59b1b12d ("mm/ksm: improve deduplication of zero pages with colouring")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Co-developed-by: Xiongchun Duan <duanxiongchun@bytedance.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
+Cc: Markus Elfring <Markus.Elfring@web.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/iomap/buffered-io.c |   92 +++++++++++++--------------------------
- fs/iomap/trace.h       |    2 
- fs/xfs/xfs_aops.c      |   13 ++---
- fs/zonefs/super.c      |    7 +-
- include/linux/iomap.h  |    3 -
- 5 files changed, 42 insertions(+), 75 deletions(-)
+ mm/ksm.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/fs/iomap/buffered-io.c~iomap-convert-from-readpages-to-readahead
-+++ a/fs/iomap/buffered-io.c
-@@ -214,9 +214,8 @@ iomap_read_end_io(struct bio *bio)
- struct iomap_readpage_ctx {
- 	struct page		*cur_page;
- 	bool			cur_page_in_bio;
--	bool			is_readahead;
- 	struct bio		*bio;
--	struct list_head	*pages;
-+	struct readahead_control *rac;
- };
+--- a/mm/ksm.c~mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled
++++ a/mm/ksm.c
+@@ -2112,8 +2112,11 @@ static void cmp_and_merge_page(struct pa
  
- static void
-@@ -308,7 +307,7 @@ iomap_readpage_actor(struct inode *inode
- 		if (ctx->bio)
- 			submit_bio(ctx->bio);
- 
--		if (ctx->is_readahead) /* same as readahead_gfp_mask */
-+		if (ctx->rac) /* same as readahead_gfp_mask */
- 			gfp |= __GFP_NORETRY | __GFP_NOWARN;
- 		ctx->bio = bio_alloc(gfp, min(BIO_MAX_PAGES, nr_vecs));
+ 		down_read(&mm->mmap_sem);
+ 		vma = find_mergeable_vma(mm, rmap_item->address);
+-		err = try_to_merge_one_page(vma, page,
+-					    ZERO_PAGE(rmap_item->address));
++		if (vma)
++			err = try_to_merge_one_page(vma, page,
++					ZERO_PAGE(rmap_item->address));
++		else
++			err = -EFAULT;
+ 		up_read(&mm->mmap_sem);
  		/*
-@@ -319,7 +318,7 @@ iomap_readpage_actor(struct inode *inode
- 		if (!ctx->bio)
- 			ctx->bio = bio_alloc(orig_gfp, 1);
- 		ctx->bio->bi_opf = REQ_OP_READ;
--		if (ctx->is_readahead)
-+		if (ctx->rac)
- 			ctx->bio->bi_opf |= REQ_RAHEAD;
- 		ctx->bio->bi_iter.bi_sector = sector;
- 		bio_set_dev(ctx->bio, iomap->bdev);
-@@ -375,36 +374,8 @@ iomap_readpage(struct page *page, const
- }
- EXPORT_SYMBOL_GPL(iomap_readpage);
- 
--static struct page *
--iomap_next_page(struct inode *inode, struct list_head *pages, loff_t pos,
--		loff_t length, loff_t *done)
--{
--	while (!list_empty(pages)) {
--		struct page *page = lru_to_page(pages);
--
--		if (page_offset(page) >= (u64)pos + length)
--			break;
--
--		list_del(&page->lru);
--		if (!add_to_page_cache_lru(page, inode->i_mapping, page->index,
--				GFP_NOFS))
--			return page;
--
--		/*
--		 * If we already have a page in the page cache at index we are
--		 * done.  Upper layers don't care if it is uptodate after the
--		 * readpages call itself as every page gets checked again once
--		 * actually needed.
--		 */
--		*done += PAGE_SIZE;
--		put_page(page);
--	}
--
--	return NULL;
--}
--
- static loff_t
--iomap_readpages_actor(struct inode *inode, loff_t pos, loff_t length,
-+iomap_readahead_actor(struct inode *inode, loff_t pos, loff_t length,
- 		void *data, struct iomap *iomap, struct iomap *srcmap)
- {
- 	struct iomap_readpage_ctx *ctx = data;
-@@ -418,10 +389,7 @@ iomap_readpages_actor(struct inode *inod
- 			ctx->cur_page = NULL;
- 		}
- 		if (!ctx->cur_page) {
--			ctx->cur_page = iomap_next_page(inode, ctx->pages,
--					pos, length, &done);
--			if (!ctx->cur_page)
--				break;
-+			ctx->cur_page = readahead_page(ctx->rac);
- 			ctx->cur_page_in_bio = false;
- 		}
- 		ret = iomap_readpage_actor(inode, pos + done, length - done,
-@@ -431,32 +399,43 @@ iomap_readpages_actor(struct inode *inod
- 	return done;
- }
- 
--int
--iomap_readpages(struct address_space *mapping, struct list_head *pages,
--		unsigned nr_pages, const struct iomap_ops *ops)
--{
-+/**
-+ * iomap_readahead - Attempt to read pages from a file.
-+ * @rac: Describes the pages to be read.
-+ * @ops: The operations vector for the filesystem.
-+ *
-+ * This function is for filesystems to call to implement their readahead
-+ * address_space operation.
-+ *
-+ * Context: The @ops callbacks may submit I/O (eg to read the addresses of
-+ * blocks from disc), and may wait for it.  The caller may be trying to
-+ * access a different page, and so sleeping excessively should be avoided.
-+ * It may allocate memory, but should avoid costly allocations.  This
-+ * function is called with memalloc_nofs set, so allocations will not cause
-+ * the filesystem to be reentered.
-+ */
-+void iomap_readahead(struct readahead_control *rac, const struct iomap_ops *ops)
-+{
-+	struct inode *inode = rac->mapping->host;
-+	loff_t pos = readahead_pos(rac);
-+	loff_t length = readahead_length(rac);
- 	struct iomap_readpage_ctx ctx = {
--		.pages		= pages,
--		.is_readahead	= true,
-+		.rac	= rac,
- 	};
--	loff_t pos = page_offset(list_entry(pages->prev, struct page, lru));
--	loff_t last = page_offset(list_entry(pages->next, struct page, lru));
--	loff_t length = last - pos + PAGE_SIZE, ret = 0;
- 
--	trace_iomap_readpages(mapping->host, nr_pages);
-+	trace_iomap_readahead(inode, readahead_count(rac));
- 
- 	while (length > 0) {
--		ret = iomap_apply(mapping->host, pos, length, 0, ops,
--				&ctx, iomap_readpages_actor);
-+		loff_t ret = iomap_apply(inode, pos, length, 0, ops,
-+				&ctx, iomap_readahead_actor);
- 		if (ret <= 0) {
- 			WARN_ON_ONCE(ret == 0);
--			goto done;
-+			break;
- 		}
- 		pos += ret;
- 		length -= ret;
- 	}
--	ret = 0;
--done:
-+
- 	if (ctx.bio)
- 		submit_bio(ctx.bio);
- 	if (ctx.cur_page) {
-@@ -464,15 +443,8 @@ done:
- 			unlock_page(ctx.cur_page);
- 		put_page(ctx.cur_page);
- 	}
--
--	/*
--	 * Check that we didn't lose a page due to the arcance calling
--	 * conventions..
--	 */
--	WARN_ON_ONCE(!ret && !list_empty(ctx.pages));
--	return ret;
- }
--EXPORT_SYMBOL_GPL(iomap_readpages);
-+EXPORT_SYMBOL_GPL(iomap_readahead);
- 
- /*
-  * iomap_is_partially_uptodate checks whether blocks within a page are
---- a/fs/iomap/trace.h~iomap-convert-from-readpages-to-readahead
-+++ a/fs/iomap/trace.h
-@@ -39,7 +39,7 @@ DEFINE_EVENT(iomap_readpage_class, name,
- 	TP_PROTO(struct inode *inode, int nr_pages), \
- 	TP_ARGS(inode, nr_pages))
- DEFINE_READPAGE_EVENT(iomap_readpage);
--DEFINE_READPAGE_EVENT(iomap_readpages);
-+DEFINE_READPAGE_EVENT(iomap_readahead);
- 
- DECLARE_EVENT_CLASS(iomap_range_class,
- 	TP_PROTO(struct inode *inode, unsigned long off, unsigned int len),
---- a/fs/xfs/xfs_aops.c~iomap-convert-from-readpages-to-readahead
-+++ a/fs/xfs/xfs_aops.c
-@@ -621,14 +621,11 @@ xfs_vm_readpage(
- 	return iomap_readpage(page, &xfs_read_iomap_ops);
- }
- 
--STATIC int
--xfs_vm_readpages(
--	struct file		*unused,
--	struct address_space	*mapping,
--	struct list_head	*pages,
--	unsigned		nr_pages)
-+STATIC void
-+xfs_vm_readahead(
-+	struct readahead_control	*rac)
- {
--	return iomap_readpages(mapping, pages, nr_pages, &xfs_read_iomap_ops);
-+	iomap_readahead(rac, &xfs_read_iomap_ops);
- }
- 
- static int
-@@ -644,7 +641,7 @@ xfs_iomap_swapfile_activate(
- 
- const struct address_space_operations xfs_address_space_operations = {
- 	.readpage		= xfs_vm_readpage,
--	.readpages		= xfs_vm_readpages,
-+	.readahead		= xfs_vm_readahead,
- 	.writepage		= xfs_vm_writepage,
- 	.writepages		= xfs_vm_writepages,
- 	.set_page_dirty		= iomap_set_page_dirty,
---- a/fs/zonefs/super.c~iomap-convert-from-readpages-to-readahead
-+++ a/fs/zonefs/super.c
-@@ -78,10 +78,9 @@ static int zonefs_readpage(struct file *
- 	return iomap_readpage(page, &zonefs_iomap_ops);
- }
- 
--static int zonefs_readpages(struct file *unused, struct address_space *mapping,
--			    struct list_head *pages, unsigned int nr_pages)
-+static void zonefs_readahead(struct readahead_control *rac)
- {
--	return iomap_readpages(mapping, pages, nr_pages, &zonefs_iomap_ops);
-+	iomap_readahead(rac, &zonefs_iomap_ops);
- }
- 
- /*
-@@ -128,7 +127,7 @@ static int zonefs_writepages(struct addr
- 
- static const struct address_space_operations zonefs_file_aops = {
- 	.readpage		= zonefs_readpage,
--	.readpages		= zonefs_readpages,
-+	.readahead		= zonefs_readahead,
- 	.writepage		= zonefs_writepage,
- 	.writepages		= zonefs_writepages,
- 	.set_page_dirty		= iomap_set_page_dirty,
---- a/include/linux/iomap.h~iomap-convert-from-readpages-to-readahead
-+++ a/include/linux/iomap.h
-@@ -155,8 +155,7 @@ loff_t iomap_apply(struct inode *inode,
- ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
- 		const struct iomap_ops *ops);
- int iomap_readpage(struct page *page, const struct iomap_ops *ops);
--int iomap_readpages(struct address_space *mapping, struct list_head *pages,
--		unsigned nr_pages, const struct iomap_ops *ops);
-+void iomap_readahead(struct readahead_control *, const struct iomap_ops *ops);
- int iomap_set_page_dirty(struct page *page);
- int iomap_is_partially_uptodate(struct page *page, unsigned long from,
- 		unsigned long count);
+ 		 * In case of failure, the page was not really empty, so we
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-move-readahead-prototypes-from-mmh.patch
-mm-return-void-from-various-readahead-functions.patch
-mm-ignore-return-value-of-readpages.patch
-mm-move-readahead-nr_pages-check-into-read_pages.patch
-mm-add-new-readahead_control-api.patch
-mm-use-readahead_control-to-pass-arguments.patch
-mm-rename-various-offset-parameters-to-index.patch
-mm-rename-readahead-loop-variable-to-i.patch
-mm-remove-page_offset-from-readahead-loop.patch
-mm-put-readahead-pages-in-cache-earlier.patch
-mm-add-readahead-address-space-operation.patch
-mm-move-end_index-check-out-of-readahead-loop.patch
-mm-add-page_cache_readahead_unbounded.patch
-mm-document-why-we-dont-set-pagereadahead.patch
-mm-use-memalloc_nofs_save-in-readahead-path.patch
-fs-convert-mpage_readpages-to-mpage_readahead.patch
-btrfs-convert-from-readpages-to-readahead.patch
-erofs-convert-uncompressed-files-from-readpages-to-readahead.patch
-erofs-convert-compressed-files-from-readpages-to-readahead.patch
-ext4-convert-from-readpages-to-readahead.patch
-ext4-pass-the-inode-to-ext4_mpage_readpages.patch
-f2fs-convert-from-readpages-to-readahead.patch
-f2fs-pass-the-inode-to-f2fs_mpage_readpages.patch
-fuse-convert-from-readpages-to-readahead.patch
-iomap-convert-from-readpages-to-readahead.patch
+mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
