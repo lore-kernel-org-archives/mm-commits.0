@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + f2fs-pass-the-inode-to-f2fs_mpage_readpages.patch added
- to -mm tree
-Date: Tue, 14 Apr 2020 18:18:34 -0700
-Message-ID: <20200415011834.YQUXhlTBy%akpm@linux-foundation.org>
+Subject: + fuse-convert-from-readpages-to-readahead.patch added to
+ -mm tree
+Date: Tue, 14 Apr 2020 18:18:37 -0700
+Message-ID: <20200415011837._F8QgJFmq%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51986 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52064 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2392465AbgDOBSg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Apr 2020 21:18:36 -0400
+        id S2392448AbgDOBSj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Apr 2020 21:18:39 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang2
 
 
 The patch titled
-     Subject: f2fs: pass the inode to f2fs_mpage_readpages
+     Subject: fuse: convert from readpages to readahead
 has been added to the -mm tree.  Its filename is
-     f2fs-pass-the-inode-to-f2fs_mpage_readpages.patch
+     fuse-convert-from-readpages-to-readahead.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/f2fs-pass-the-inode-to-f2fs_mpage_readpages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fuse-convert-from-readpages-to-readahead.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/f2fs-pass-the-inode-to-f2fs_mpage_readpages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fuse-convert-from-readpages-to-readahead.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,23 +39,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: f2fs: pass the inode to f2fs_mpage_readpages
+Subject: fuse: convert from readpages to readahead
 
-This function now only uses the mapping argument to look up the inode, and
-both callers already have the inode, so just pass the inode instead of the
-mapping.
+Implement the new readahead operation in fuse by using __readahead_batch()
+to fill the array of pages in fuse_args_pages directly.  This lets us
+inline fuse_readpages_fill() into fuse_readahead().
 
-Link: http://lkml.kernel.org/r/20200414150233.24495-24-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200414150233.24495-25-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Dave Chinner <dchinner@redhat.com>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Reviewed-by: Eric Biggers <ebiggers@google.com>
-Reviewed-by: Chao Yu <yuchao0@huawei.com>
-Acked-by: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Chao Yu <yuchao0@huawei.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Cong Wang <xiyou.wangcong@gmail.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Eric Biggers <ebiggers@google.com>
 Cc: Gao Xiang <gaoxiang25@huawei.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -64,43 +64,134 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/data.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/fuse/file.c |   99 ++++++++++++-----------------------------------
+ 1 file changed, 27 insertions(+), 72 deletions(-)
 
---- a/fs/f2fs/data.c~f2fs-pass-the-inode-to-f2fs_mpage_readpages
-+++ a/fs/f2fs/data.c
-@@ -2177,12 +2177,11 @@ out:
-  * use ->readpage() or do the necessary surgery to decouple ->readpages()
-  * from read-ahead.
-  */
--static int f2fs_mpage_readpages(struct address_space *mapping,
-+static int f2fs_mpage_readpages(struct inode *inode,
- 		struct readahead_control *rac, struct page *page)
+--- a/fs/fuse/file.c~fuse-convert-from-readpages-to-readahead
++++ a/fs/fuse/file.c
+@@ -915,84 +915,39 @@ static void fuse_send_readpages(struct f
+ 	fuse_readpages_end(fc, &ap->args, err);
+ }
+ 
+-struct fuse_fill_data {
+-	struct fuse_io_args *ia;
+-	struct file *file;
+-	struct inode *inode;
+-	unsigned int nr_pages;
+-	unsigned int max_pages;
+-};
+-
+-static int fuse_readpages_fill(void *_data, struct page *page)
++static void fuse_readahead(struct readahead_control *rac)
  {
- 	struct bio *bio = NULL;
- 	sector_t last_block_in_bio = 0;
+-	struct fuse_fill_data *data = _data;
+-	struct fuse_io_args *ia = data->ia;
+-	struct fuse_args_pages *ap = &ia->ap;
+-	struct inode *inode = data->inode;
++	struct inode *inode = rac->mapping->host;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
++	unsigned int i, max_pages, nr_pages = 0;
+ 
+-	fuse_wait_on_page_writeback(inode, page->index);
+-
+-	if (ap->num_pages &&
+-	    (ap->num_pages == fc->max_pages ||
+-	     (ap->num_pages + 1) * PAGE_SIZE > fc->max_read ||
+-	     ap->pages[ap->num_pages - 1]->index + 1 != page->index)) {
+-		data->max_pages = min_t(unsigned int, data->nr_pages,
+-					fc->max_pages);
+-		fuse_send_readpages(ia, data->file);
+-		data->ia = ia = fuse_io_alloc(NULL, data->max_pages);
+-		if (!ia) {
+-			unlock_page(page);
+-			return -ENOMEM;
+-		}
+-		ap = &ia->ap;
+-	}
+-
+-	if (WARN_ON(ap->num_pages >= data->max_pages)) {
+-		unlock_page(page);
+-		fuse_io_free(ia);
+-		return -EIO;
+-	}
+-
+-	get_page(page);
+-	ap->pages[ap->num_pages] = page;
+-	ap->descs[ap->num_pages].length = PAGE_SIZE;
+-	ap->num_pages++;
+-	data->nr_pages--;
+-	return 0;
+-}
+-
+-static int fuse_readpages(struct file *file, struct address_space *mapping,
+-			  struct list_head *pages, unsigned nr_pages)
+-{
 -	struct inode *inode = mapping->host;
- 	struct f2fs_map_blocks map;
- #ifdef CONFIG_F2FS_FS_COMPRESSION
- 	struct compress_ctx cc = {
-@@ -2294,7 +2293,7 @@ static int f2fs_read_data_page(struct fi
- 	if (f2fs_has_inline_data(inode))
- 		ret = f2fs_read_inline_data(inode, page);
- 	if (ret == -EAGAIN)
--		ret = f2fs_mpage_readpages(page_file_mapping(page), NULL, page);
-+		ret = f2fs_mpage_readpages(inode, NULL, page);
- 	return ret;
+-	struct fuse_conn *fc = get_fuse_conn(inode);
+-	struct fuse_fill_data data;
+-	int err;
+-
+-	err = -EIO;
+ 	if (is_bad_inode(inode))
+-		goto out;
++		return;
+ 
+-	data.file = file;
+-	data.inode = inode;
+-	data.nr_pages = nr_pages;
+-	data.max_pages = min_t(unsigned int, nr_pages, fc->max_pages);
+-;
+-	data.ia = fuse_io_alloc(NULL, data.max_pages);
+-	err = -ENOMEM;
+-	if (!data.ia)
+-		goto out;
++	max_pages = min(fc->max_pages, fc->max_read / PAGE_SIZE);
+ 
+-	err = read_cache_pages(mapping, pages, fuse_readpages_fill, &data);
+-	if (!err) {
+-		if (data.ia->ap.num_pages)
+-			fuse_send_readpages(data.ia, file);
+-		else
+-			fuse_io_free(data.ia);
++	for (;;) {
++		struct fuse_io_args *ia;
++		struct fuse_args_pages *ap;
++
++		nr_pages = readahead_count(rac) - nr_pages;
++		if (nr_pages > max_pages)
++			nr_pages = max_pages;
++		if (nr_pages == 0)
++			break;
++		ia = fuse_io_alloc(NULL, nr_pages);
++		if (!ia)
++			return;
++		ap = &ia->ap;
++		nr_pages = __readahead_batch(rac, ap->pages, nr_pages);
++		for (i = 0; i < nr_pages; i++) {
++			fuse_wait_on_page_writeback(inode,
++						    readahead_index(rac) + i);
++			ap->descs[i].length = PAGE_SIZE;
++		}
++		ap->num_pages = nr_pages;
++		fuse_send_readpages(ia, rac->file);
+ 	}
+-out:
+-	return err;
  }
  
-@@ -2311,7 +2310,7 @@ static void f2fs_readahead(struct readah
- 	if (f2fs_has_inline_data(inode))
- 		return;
+ static ssize_t fuse_cache_read_iter(struct kiocb *iocb, struct iov_iter *to)
+@@ -3373,10 +3328,10 @@ static const struct file_operations fuse
  
--	f2fs_mpage_readpages(rac->mapping, rac, NULL);
-+	f2fs_mpage_readpages(inode, rac, NULL);
- }
- 
- int f2fs_encrypt_one_page(struct f2fs_io_info *fio)
+ static const struct address_space_operations fuse_file_aops  = {
+ 	.readpage	= fuse_readpage,
++	.readahead	= fuse_readahead,
+ 	.writepage	= fuse_writepage,
+ 	.writepages	= fuse_writepages,
+ 	.launder_page	= fuse_launder_page,
+-	.readpages	= fuse_readpages,
+ 	.set_page_dirty	= __set_page_dirty_nobuffers,
+ 	.bmap		= fuse_bmap,
+ 	.direct_IO	= fuse_direct_IO,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
