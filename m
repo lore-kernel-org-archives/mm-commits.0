@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-readahead-prototypes-from-mmh.patch added to
- -mm tree
-Date: Tue, 14 Apr 2020 18:17:22 -0700
-Message-ID: <20200415011722.rXP73SJzB%akpm@linux-foundation.org>
+Subject: + mm-return-void-from-various-readahead-functions.patch
+ added to -mm tree
+Date: Tue, 14 Apr 2020 18:17:26 -0700
+Message-ID: <20200415011726.mjktEQkCX%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50708 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388394AbgDOBRY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Apr 2020 21:17:24 -0400
+        id S2389151AbgDOBR2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Apr 2020 21:17:28 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang2
 
 
 The patch titled
-     Subject: mm: move readahead prototypes from mm.h
+     Subject: mm: return void from various readahead functions
 has been added to the -mm tree.  Its filename is
-     mm-move-readahead-prototypes-from-mmh.patch
+     mm-return-void-from-various-readahead-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-readahead-prototypes-from-mmh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-return-void-from-various-readahead-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-readahead-prototypes-from-mmh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-return-void-from-various-readahead-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +39,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: move readahead prototypes from mm.h
+Subject: mm: return void from various readahead functions
 
-Patch series "Change readahead API", v11.
+ondemand_readahead has two callers, neither of which use the return value.
+That means that both ra_submit and __do_page_cache_readahead() can return
+void, and we don't need to worry that a present page in the readahead
+window causes us to return a smaller nr_pages than we ought to have.
 
-This series adds a readahead address_space operation to replace the
-readpages operation.  The key difference is that pages are added to the
-page cache as they are allocated (and then looked up by the filesystem)
-instead of passing them on a list to the readpages operation and having
-the filesystem add them to the page cache.  It's a net reduction in code
-for each implementation, more efficient than walking a list, and solves
-the direct-write vs buffered-read problem reported by yu kuai at
-http://lkml.kernel.org/r/20200116063601.39201-1-yukuai3@huawei.com
+Similarly, no caller uses the return value from
+force_page_cache_readahead().
 
-The only unconverted filesystems are those which use fscache.  Their
-conversion is pending Dave Howells' rewrite which will make the conversion
-substantially easier.  This should be completed by the end of the year.
-
-I want to thank the reviewers/testers; Dave Chinner, John Hubbard, Eric
-Biggers, Johannes Thumshirn, Dave Sterba, Zi Yan, Christoph Hellwig and
-Miklos Szeredi have done a marvellous job of providing constructive
-criticism.
-
-These patches pass an xfstests run on ext4, xfs & btrfs with no
-regressions that I can tell (some of the tests seem a little flaky before
-and remain flaky afterwards).
-
-
-This patch (of 25):
-
-The readahead code is part of the page cache so should be found in the
-pagemap.h file.  force_page_cache_readahead is only used within mm, so
-move it to mm/internal.h instead.  Remove the parameter names where they
-add no value, and rename the ones which were actively misleading.
-
-Link: http://lkml.kernel.org/r/20200414150233.24495-1-willy@infradead.org
-Link: http://lkml.kernel.org/r/20200414150233.24495-2-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200414150233.24495-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Dave Chinner <dchinner@redhat.com>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Cc: Chao Yu <yuchao0@huawei.com>
 Cc: Cong Wang <xiyou.wangcong@gmail.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Eric Biggers <ebiggers@google.com>
 Cc: Gao Xiang <gaoxiang25@huawei.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
@@ -93,90 +68,155 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-core.c        |    1 +
- include/linux/mm.h      |   19 -------------------
- include/linux/pagemap.h |    8 ++++++++
- mm/fadvise.c            |    2 ++
- mm/internal.h           |    2 ++
- 5 files changed, 13 insertions(+), 19 deletions(-)
+ mm/fadvise.c   |    4 ----
+ mm/internal.h  |   12 ++++++------
+ mm/readahead.c |   31 +++++++++++++------------------
+ 3 files changed, 19 insertions(+), 28 deletions(-)
 
---- a/block/blk-core.c~mm-move-readahead-prototypes-from-mmh
-+++ a/block/blk-core.c
-@@ -20,6 +20,7 @@
- #include <linux/blk-mq.h>
- #include <linux/highmem.h>
- #include <linux/mm.h>
-+#include <linux/pagemap.h>
- #include <linux/kernel_stat.h>
- #include <linux/string.h>
- #include <linux/init.h>
---- a/include/linux/mm.h~mm-move-readahead-prototypes-from-mmh
-+++ a/include/linux/mm.h
-@@ -2601,25 +2601,6 @@ extern vm_fault_t filemap_page_mkwrite(s
- int __must_check write_one_page(struct page *page);
- void task_dirty_inc(struct task_struct *tsk);
- 
--/* readahead.c */
--#define VM_READAHEAD_PAGES	(SZ_128K / PAGE_SIZE)
--
--int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
--			pgoff_t offset, unsigned long nr_to_read);
--
--void page_cache_sync_readahead(struct address_space *mapping,
--			       struct file_ra_state *ra,
--			       struct file *filp,
--			       pgoff_t offset,
--			       unsigned long size);
--
--void page_cache_async_readahead(struct address_space *mapping,
--				struct file_ra_state *ra,
--				struct file *filp,
--				struct page *pg,
--				pgoff_t offset,
--				unsigned long size);
--
- extern unsigned long stack_guard_gap;
- /* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
- extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
---- a/include/linux/pagemap.h~mm-move-readahead-prototypes-from-mmh
-+++ a/include/linux/pagemap.h
-@@ -615,6 +615,14 @@ int replace_page_cache_page(struct page
- void delete_from_page_cache_batch(struct address_space *mapping,
- 				  struct pagevec *pvec);
- 
-+#define VM_READAHEAD_PAGES	(SZ_128K / PAGE_SIZE)
-+
-+void page_cache_sync_readahead(struct address_space *, struct file_ra_state *,
-+		struct file *, pgoff_t index, unsigned long req_count);
-+void page_cache_async_readahead(struct address_space *, struct file_ra_state *,
-+		struct file *, struct page *, pgoff_t index,
-+		unsigned long req_count);
-+
- /*
-  * Like add_to_page_cache_locked, but used to add newly allocated pages:
-  * the page is new, so we can just run __SetPageLocked() against it.
---- a/mm/fadvise.c~mm-move-readahead-prototypes-from-mmh
+--- a/mm/fadvise.c~mm-return-void-from-various-readahead-functions
 +++ a/mm/fadvise.c
-@@ -22,6 +22,8 @@
+@@ -104,10 +104,6 @@ int generic_fadvise(struct file *file, l
+ 		if (!nrpages)
+ 			nrpages = ~0UL;
  
- #include <asm/unistd.h>
- 
-+#include "internal.h"
-+
- /*
-  * POSIX_FADV_WILLNEED could set PG_Referenced, and POSIX_FADV_NOREUSE could
-  * deactivate the pages and clear PG_Referenced.
---- a/mm/internal.h~mm-move-readahead-prototypes-from-mmh
+-		/*
+-		 * Ignore return value because fadvise() shall return
+-		 * success even if filesystem can't retrieve a hint,
+-		 */
+ 		force_page_cache_readahead(mapping, file, start_index, nrpages);
+ 		break;
+ 	case POSIX_FADV_NOREUSE:
+--- a/mm/internal.h~mm-return-void-from-various-readahead-functions
 +++ a/mm/internal.h
-@@ -49,6 +49,8 @@ void unmap_page_range(struct mmu_gather
+@@ -49,20 +49,20 @@ void unmap_page_range(struct mmu_gather
  			     unsigned long addr, unsigned long end,
  			     struct zap_details *details);
  
-+int force_page_cache_readahead(struct address_space *, struct file *,
-+		pgoff_t index, unsigned long nr_to_read);
- extern unsigned int __do_page_cache_readahead(struct address_space *mapping,
- 		struct file *filp, pgoff_t offset, unsigned long nr_to_read,
+-int force_page_cache_readahead(struct address_space *, struct file *,
++void force_page_cache_readahead(struct address_space *, struct file *,
+ 		pgoff_t index, unsigned long nr_to_read);
+-extern unsigned int __do_page_cache_readahead(struct address_space *mapping,
+-		struct file *filp, pgoff_t offset, unsigned long nr_to_read,
++void __do_page_cache_readahead(struct address_space *, struct file *,
++		pgoff_t index, unsigned long nr_to_read,
  		unsigned long lookahead_size);
+ 
+ /*
+  * Submit IO for the read-ahead request in file_ra_state.
+  */
+-static inline unsigned long ra_submit(struct file_ra_state *ra,
++static inline void ra_submit(struct file_ra_state *ra,
+ 		struct address_space *mapping, struct file *filp)
+ {
+-	return __do_page_cache_readahead(mapping, filp,
+-					ra->start, ra->size, ra->async_size);
++	__do_page_cache_readahead(mapping, filp,
++			ra->start, ra->size, ra->async_size);
+ }
+ 
+ /**
+--- a/mm/readahead.c~mm-return-void-from-various-readahead-functions
++++ a/mm/readahead.c
+@@ -149,10 +149,8 @@ out:
+  * the pages first, then submits them for I/O. This avoids the very bad
+  * behaviour which would occur if page allocations are causing VM writeback.
+  * We really don't want to intermingle reads and writes like that.
+- *
+- * Returns the number of pages requested, or the maximum amount of I/O allowed.
+  */
+-unsigned int __do_page_cache_readahead(struct address_space *mapping,
++void __do_page_cache_readahead(struct address_space *mapping,
+ 		struct file *filp, pgoff_t offset, unsigned long nr_to_read,
+ 		unsigned long lookahead_size)
+ {
+@@ -166,7 +164,7 @@ unsigned int __do_page_cache_readahead(s
+ 	gfp_t gfp_mask = readahead_gfp_mask(mapping);
+ 
+ 	if (isize == 0)
+-		goto out;
++		return;
+ 
+ 	end_index = ((isize - 1) >> PAGE_SHIFT);
+ 
+@@ -211,23 +209,21 @@ unsigned int __do_page_cache_readahead(s
+ 	if (nr_pages)
+ 		read_pages(mapping, filp, &page_pool, nr_pages, gfp_mask);
+ 	BUG_ON(!list_empty(&page_pool));
+-out:
+-	return nr_pages;
+ }
+ 
+ /*
+  * Chunk the readahead into 2 megabyte units, so that we don't pin too much
+  * memory at once.
+  */
+-int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
+-			       pgoff_t offset, unsigned long nr_to_read)
++void force_page_cache_readahead(struct address_space *mapping,
++		struct file *filp, pgoff_t offset, unsigned long nr_to_read)
+ {
+ 	struct backing_dev_info *bdi = inode_to_bdi(mapping->host);
+ 	struct file_ra_state *ra = &filp->f_ra;
+ 	unsigned long max_pages;
+ 
+ 	if (unlikely(!mapping->a_ops->readpage && !mapping->a_ops->readpages))
+-		return -EINVAL;
++		return;
+ 
+ 	/*
+ 	 * If the request exceeds the readahead window, allow the read to
+@@ -245,7 +241,6 @@ int force_page_cache_readahead(struct ad
+ 		offset += this_chunk;
+ 		nr_to_read -= this_chunk;
+ 	}
+-	return 0;
+ }
+ 
+ /*
+@@ -378,11 +373,10 @@ static int try_context_readahead(struct
+ /*
+  * A minimal readahead algorithm for trivial sequential/random reads.
+  */
+-static unsigned long
+-ondemand_readahead(struct address_space *mapping,
+-		   struct file_ra_state *ra, struct file *filp,
+-		   bool hit_readahead_marker, pgoff_t offset,
+-		   unsigned long req_size)
++static void ondemand_readahead(struct address_space *mapping,
++		struct file_ra_state *ra, struct file *filp,
++		bool hit_readahead_marker, pgoff_t offset,
++		unsigned long req_size)
+ {
+ 	struct backing_dev_info *bdi = inode_to_bdi(mapping->host);
+ 	unsigned long max_pages = ra->ra_pages;
+@@ -428,7 +422,7 @@ ondemand_readahead(struct address_space
+ 		rcu_read_unlock();
+ 
+ 		if (!start || start - offset > max_pages)
+-			return 0;
++			return;
+ 
+ 		ra->start = start;
+ 		ra->size = start - offset;	/* old async_size */
+@@ -464,7 +458,8 @@ ondemand_readahead(struct address_space
+ 	 * standalone, small random read
+ 	 * Read as is, and do not pollute the readahead state.
+ 	 */
+-	return __do_page_cache_readahead(mapping, filp, offset, req_size, 0);
++	__do_page_cache_readahead(mapping, filp, offset, req_size, 0);
++	return;
+ 
+ initial_readahead:
+ 	ra->start = offset;
+@@ -489,7 +484,7 @@ readit:
+ 		}
+ 	}
+ 
+-	return ra_submit(ra, mapping, filp);
++	ra_submit(ra, mapping, filp);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
