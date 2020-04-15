@@ -1,110 +1,34 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- slub-avoid-redzone-when-choosing-freepointer-location.patch added to -mm
- tree
-Date: Wed, 15 Apr 2020 11:12:52 -0700
-Message-ID: <20200415181252.jH-epdDtY%akpm@linux-foundation.org>
-References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
+Subject: Re: [External] Re: +
+ mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
+ added to -mm tree
+Date: Wed, 15 Apr 2020 11:32:48 -0700
+Message-ID: <20200415113248.1c17147d0991099d358b4bef@linux-foundation.org>
+References: <20200415015410.glIzXqR5d%akpm@linux-foundation.org>
+        <49e65ca7-03a2-9a82-9e1a-cf997320bcfd@virtuozzo.com>
+        <CAMZfGtWwE_9uSH9Vw+W2yJJhMo4BfWHx_PME+HD5h3r+A3zXeg@mail.gmail.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33848 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42026 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2406366AbgDOSMx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 14:12:53 -0400
-In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
+        id S1416781AbgDOScw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 14:32:52 -0400
+In-Reply-To: <CAMZfGtWwE_9uSH9Vw+W2yJJhMo4BfWHx_PME+HD5h3r+A3zXeg@mail.gmail.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, elver@google.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
+To: Muchun Song <songmuchun@bytedance.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>, david@redhat.com, Xiongchun duan <duanxiongchun@bytedance.com>, hughd@google.com, imbrenda@linux.vnet.ibm.com, Markus Elfring <Markus.Elfring@web.de>, mm-commits@vger.kernel.org, stable@vger.kernel.org, yang.shi@linux.alibaba.com
 
+On Wed, 15 Apr 2020 16:16:50 +0800 Muchun Song <songmuchun@bytedance.com> wrote:
 
-The patch titled
-     Subject: slub: avoid redzone when choosing freepointer location
-has been added to the -mm tree.  Its filename is
-     slub-avoid-redzone-when-choosing-freepointer-location.patch
+> > In case of vma is out of date, we also may consider to exit this function without
+> > calling unstable_tree_search_insert().
+> 
+> Yeah, I agree with you. Should I send another patch to fix this patch
+> or an upgraded
+> version(v4) of this patch.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-avoid-redzone-when-choosing-freepointer-location.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-avoid-redzone-when-choosing-freepointer-location.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: slub: avoid redzone when choosing freepointer location
-
-Marco Elver reported system crashes when booting with "slub_debug=Z".  The
-freepointer location (s->offset) was not taking into account that the
-"inuse" size that includes the redzone area should not be used by the
-freelist pointer.  Change the calculation to save the area of the object
-that an inline freepointer may be written into.
-
-Link: http://lkml.kernel.org/r/202004151054.BD695840@keescook
-Link: https://lore.kernel.org/linux-mm/20200415164726.GA234932@google.com
-Fixes: 3202fa62fb43 ("slub: relocate freelist pointer to middle of object")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Marco Elver <elver@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/slub.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
---- a/mm/slub.c~slub-avoid-redzone-when-choosing-freepointer-location
-+++ a/mm/slub.c
-@@ -3533,6 +3533,7 @@ static int calculate_sizes(struct kmem_c
- {
- 	slab_flags_t flags = s->flags;
- 	unsigned int size = s->object_size;
-+	unsigned int freepointer_area;
- 	unsigned int order;
- 
- 	/*
-@@ -3541,6 +3542,13 @@ static int calculate_sizes(struct kmem_c
- 	 * the possible location of the free pointer.
- 	 */
- 	size = ALIGN(size, sizeof(void *));
-+	/*
-+	 * This is the area of the object where a freepointer can be
-+	 * safely written. If redzoning adds more to the inuse size, we
-+	 * can't use that portion for writing the freepointer, so
-+	 * s->offset must be limited within this for the general case.
-+	 */
-+	freepointer_area = size;
- 
- #ifdef CONFIG_SLUB_DEBUG
- 	/*
-@@ -3582,13 +3590,13 @@ static int calculate_sizes(struct kmem_c
- 		 */
- 		s->offset = size;
- 		size += sizeof(void *);
--	} else if (size > sizeof(void *)) {
-+	} else if (freepointer_area > sizeof(void *)) {
- 		/*
- 		 * Store freelist pointer near middle of object to keep
- 		 * it away from the edges of the object to avoid small
- 		 * sized over/underflows from neighboring allocations.
- 		 */
--		s->offset = ALIGN(size / 2, sizeof(void *));
-+		s->offset = ALIGN(freepointer_area / 2, sizeof(void *));
- 	}
- 
- #ifdef CONFIG_SLUB_DEBUG
-_
-
-Patches currently in -mm which might be from keescook@chromium.org are
-
-slub-avoid-redzone-when-choosing-freepointer-location.patch
+Either is OK.
