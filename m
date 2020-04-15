@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-fault-modernize-printing-of-kernel-messages.patch
- added to -mm tree
-Date: Tue, 14 Apr 2020 17:40:15 -0700
-Message-ID: <20200415004015.G1cPkzim9%akpm@linux-foundation.org>
+Subject: +
+ sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch added to
+ -mm tree
+Date: Tue, 14 Apr 2020 17:40:18 -0700
+Message-ID: <20200415004018.SNkxVw-7x%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41920 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2407864AbgDOAkS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Apr 2020 20:40:18 -0400
+        id S1733064AbgDOAkV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Apr 2020 20:40:21 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +18,14 @@ To: arnd@arndb.de, bcain@codeaurora.org, benh@kernel.crashing.org, catalin.marin
 
 
 The patch titled
-     Subject: sh: fault: Modernize printing of kernel messages
+     Subject: sh: drop __pXd_offset() macros that duplicate pXd_index() ones
 has been added to the -mm tree.  Its filename is
-     sh-fault-modernize-printing-of-kernel-messages.patch
+     sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-fault-modernize-printing-of-kernel-messages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-fault-modernize-printing-of-kernel-messages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,16 +39,15 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: sh: fault: Modernize printing of kernel messages
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: sh: drop __pXd_offset() macros that duplicate pXd_index() ones
 
-  - Convert from printk() to pr_*(),
-  - Add missing continuations,
-  - Use "%llx" to format u64,
-  - Join multiple prints in show_fault_oops() into a single print.
+The __pXd_offset() macros are identical to the pXd_index() macros and
+there is no point to keep both of them.  All architectures define and use
+pXd_index() so let's keep only those to make mips consistent with the rest
+of the kernel.
 
-Link: http://lkml.kernel.org/r/20200414153455.21744-10-rppt@kernel.org
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Link: http://lkml.kernel.org/r/20200414153455.21744-11-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -55,6 +55,7 @@ Cc: Brian Cain <bcain@codeaurora.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@c-s.fr>
 Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: Guan Xuetao <gxt@pku.edu.cn>
 Cc: James Morse <james.morse@arm.com>
 Cc: Jonas Bonn <jonas@southpole.se>
@@ -74,87 +75,97 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/fault.c |   39 ++++++++++++++++++---------------------
- 1 file changed, 18 insertions(+), 21 deletions(-)
+ arch/sh/include/asm/pgtable_32.h |    5 ++---
+ arch/sh/include/asm/pgtable_64.h |    5 ++---
+ arch/sh/mm/init.c                |    6 +++---
+ 3 files changed, 7 insertions(+), 9 deletions(-)
 
---- a/arch/sh/mm/fault.c~sh-fault-modernize-printing-of-kernel-messages
-+++ a/arch/sh/mm/fault.c
-@@ -47,10 +47,10 @@ static void show_pte(struct mm_struct *m
- 			pgd = swapper_pg_dir;
- 	}
+--- a/arch/sh/include/asm/pgtable_32.h~sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones
++++ a/arch/sh/include/asm/pgtable_32.h
+@@ -407,13 +407,12 @@ static inline pte_t pte_modify(pte_t pte
+ /* to find an entry in a page-table-directory. */
+ #define pgd_index(address)	(((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
+ #define pgd_offset(mm, address)	((mm)->pgd + pgd_index(address))
+-#define __pgd_offset(address)	pgd_index(address)
  
--	printk(KERN_ALERT "pgd = %p\n", pgd);
-+	pr_alert("pgd = %p\n", pgd);
- 	pgd += pgd_index(addr);
--	printk(KERN_ALERT "[%08lx] *pgd=%0*Lx", addr,
--	       (u32)(sizeof(*pgd) * 2), (u64)pgd_val(*pgd));
-+	pr_alert("[%08lx] *pgd=%0*llx", addr, (u32)(sizeof(*pgd) * 2),
-+		 (u64)pgd_val(*pgd));
+ /* to find an entry in a kernel page-table-directory */
+ #define pgd_offset_k(address)	pgd_offset(&init_mm, address)
  
- 	do {
- 		pud_t *pud;
-@@ -61,33 +61,33 @@ static void show_pte(struct mm_struct *m
- 			break;
+-#define __pud_offset(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
+-#define __pmd_offset(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
++#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
++#define pmd_index(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
  
- 		if (pgd_bad(*pgd)) {
--			printk("(bad)");
-+			pr_cont("(bad)");
- 			break;
- 		}
+ /* Find an entry in the third-level page table.. */
+ #define pte_index(address)	((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
+--- a/arch/sh/include/asm/pgtable_64.h~sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones
++++ a/arch/sh/include/asm/pgtable_64.h
+@@ -46,14 +46,13 @@ static __inline__ void set_pte(pte_t *pt
  
- 		pud = pud_offset(pgd, addr);
- 		if (PTRS_PER_PUD != 1)
--			printk(", *pud=%0*Lx", (u32)(sizeof(*pud) * 2),
--			       (u64)pud_val(*pud));
-+			pr_cont(", *pud=%0*llx", (u32)(sizeof(*pud) * 2),
-+				(u64)pud_val(*pud));
+ /* To find an entry in a generic PGD. */
+ #define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
+-#define __pgd_offset(address) pgd_index(address)
+ #define pgd_offset(mm, address) ((mm)->pgd+pgd_index(address))
  
- 		if (pud_none(*pud))
- 			break;
+ /* To find an entry in a kernel PGD. */
+ #define pgd_offset_k(address) pgd_offset(&init_mm, address)
  
- 		if (pud_bad(*pud)) {
--			printk("(bad)");
-+			pr_cont("(bad)");
- 			break;
- 		}
+-#define __pud_offset(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
+-#define __pmd_offset(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
++#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
++/* #define pmd_index(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1)) */
  
- 		pmd = pmd_offset(pud, addr);
- 		if (PTRS_PER_PMD != 1)
--			printk(", *pmd=%0*Lx", (u32)(sizeof(*pmd) * 2),
--			       (u64)pmd_val(*pmd));
-+			pr_cont(", *pmd=%0*llx", (u32)(sizeof(*pmd) * 2),
-+				(u64)pmd_val(*pmd));
+ /*
+  * PMD level access routines. Same notes as above.
+--- a/arch/sh/mm/init.c~sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones
++++ a/arch/sh/mm/init.c
+@@ -172,9 +172,9 @@ void __init page_table_range_init(unsign
+ 	unsigned long vaddr;
  
- 		if (pmd_none(*pmd))
- 			break;
+ 	vaddr = start;
+-	i = __pgd_offset(vaddr);
+-	j = __pud_offset(vaddr);
+-	k = __pmd_offset(vaddr);
++	i = pgd_index(vaddr);
++	j = pud_index(vaddr);
++	k = pmd_index(vaddr);
+ 	pgd = pgd_base + i;
  
- 		if (pmd_bad(*pmd)) {
--			printk("(bad)");
-+			pr_cont("(bad)");
- 			break;
- 		}
- 
-@@ -96,11 +96,11 @@ static void show_pte(struct mm_struct *m
- 			break;
- 
- 		pte = pte_offset_kernel(pmd, addr);
--		printk(", *pte=%0*Lx", (u32)(sizeof(*pte) * 2),
--		       (u64)pte_val(*pte));
-+		pr_cont(", *pte=%0*llx", (u32)(sizeof(*pte) * 2),
-+			(u64)pte_val(*pte));
- 	} while (0);
- 
--	printk("\n");
-+	pr_cont("\n");
- }
- 
- static inline pmd_t *vmalloc_sync_one(pgd_t *pgd, unsigned long address)
-@@ -188,14 +188,11 @@ show_fault_oops(struct pt_regs *regs, un
- 	if (!oops_may_print())
- 		return;
- 
--	printk(KERN_ALERT "BUG: unable to handle kernel ");
--	if (address < PAGE_SIZE)
--		printk(KERN_CONT "NULL pointer dereference");
--	else
--		printk(KERN_CONT "paging request");
+ 	for ( ; (i < PTRS_PER_PGD) && (vaddr != end); pgd++, i++) {
+_
+
+Patches currently in -mm which might be from rppt@linux.ibm.com are
+
+h8300-remove-usage-of-__arch_use_5level_hack.patch
+arm-add-support-for-folded-p4d-page-tables.patch
+arm64-add-support-for-folded-p4d-page-tables.patch
+hexagon-remove-__arch_use_5level_hack.patch
+ia64-add-support-for-folded-p4d-page-tables.patch
+nios2-add-support-for-folded-p4d-page-tables.patch
+openrisc-add-support-for-folded-p4d-page-tables.patch
+powerpc-add-support-for-folded-p4d-page-tables.patch
+sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
+sh-add-support-for-folded-p4d-page-tables.patch
+unicore32-remove-__arch_use_5level_hack.patch
+asm-generic-remove-pgtable-nop4d-hackh.patch
+mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
+mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
+mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
+mm-remove-config_have_memblock_node_map-option.patch
+mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
+mm-use-free_area_init-instead-of-free_area_init_nodes.patch
+alpha-simplify-detection-of-memory-zone-boundaries.patch
+arm-simplify-detection-of-memory-zone-boundaries.patch
+arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+csky-simplify-detection-of-memory-zone-boundaries.patch
+m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
+parisc-simplify-detection-of-memory-zone-boundaries.patch
+sparc32-simplify-detection-of-memory-zone-boundaries.patch
+unicore32-simplify-detection-of-memory-zone-boundaries.patch
+xtensa-simplify-detection-of-memory-zone-boundaries.patch
+mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
+mm-clean-up-free_area_init_node-and-its-helpers.patch
+mm-simplify-find_min_pfn_with_active_regions.patch
+docs-vm-update-memory-models-documentation.patch
