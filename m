@@ -1,33 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- =?US-ASCII?Q?test=5Ffirmware-remove-unnecessary-test=5Ffw=5Fmutex-in-te?=
- =?US-ASCII?Q?st=5Fdev=5Fconfig=5Fshow=5Fxxx.patch?= added to -mm tree
-Date: Wed, 15 Apr 2020 10:44:32 -0700
-Message-ID: <20200415174432.s1yvVQuPF%akpm@linux-foundation.org>
+ slub-avoid-redzone-when-choosing-freepointer-location.patch added to -mm
+ tree
+Date: Wed, 15 Apr 2020 11:12:52 -0700
+Message-ID: <20200415181252.jH-epdDtY%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60750 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33848 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2411454AbgDORod (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 13:44:33 -0400
+        id S2406366AbgDOSMx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 14:12:53 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gregkh@linuxfoundation.org, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, scott.branden@broadcom.com
+To: cl@linux.com, elver@google.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: test_firmware: remove unnecessary test_fw_mutex in test_dev_config_show_xxx
+     Subject: slub: avoid redzone when choosing freepointer location
 has been added to the -mm tree.  Its filename is
-     test_firmware-remove-unnecessary-test_fw_mutex-in-test_dev_config_show_xxx.patch
+     slub-avoid-redzone-when-choosing-freepointer-location.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test_firmware-remove-unnecessary-test_fw_mutex-in-test_dev_config_show_xxx.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-avoid-redzone-when-choosing-freepointer-location.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test_firmware-remove-unnecessary-test_fw_mutex-in-test_dev_config_show_xxx.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-avoid-redzone-when-choosing-freepointer-location.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,64 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Scott Branden <scott.branden@broadcom.com>
-Subject: test_firmware: remove unnecessary test_fw_mutex in test_dev_config_show_xxx
+From: Kees Cook <keescook@chromium.org>
+Subject: slub: avoid redzone when choosing freepointer location
 
-Remove unnecessary use of test_fw_mutex in test_dev_config_show_xxx
-functions that show simple bool, int, and u8.
+Marco Elver reported system crashes when booting with "slub_debug=Z".  The
+freepointer location (s->offset) was not taking into account that the
+"inuse" size that includes the redzone area should not be used by the
+freelist pointer.  Change the calculation to save the area of the object
+that an inline freepointer may be written into.
 
-Link: http://lkml.kernel.org/r/20200415002517.4328-1-scott.branden@broadcom.com
-Signed-off-by: Scott Branden <scott.branden@broadcom.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: http://lkml.kernel.org/r/202004151054.BD695840@keescook
+Link: https://lore.kernel.org/linux-mm/20200415164726.GA234932@google.com
+Fixes: 3202fa62fb43 ("slub: relocate freelist pointer to middle of object")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Marco Elver <elver@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_firmware.c |   26 +++-----------------------
- 1 file changed, 3 insertions(+), 23 deletions(-)
+ mm/slub.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/lib/test_firmware.c~test_firmware-remove-unnecessary-test_fw_mutex-in-test_dev_config_show_xxx
-+++ a/lib/test_firmware.c
-@@ -310,27 +310,13 @@ static int test_dev_config_update_bool(c
- 	return ret;
- }
- 
--static ssize_t
--test_dev_config_show_bool(char *buf,
--			  bool config)
-+static ssize_t test_dev_config_show_bool(char *buf, bool val)
+--- a/mm/slub.c~slub-avoid-redzone-when-choosing-freepointer-location
++++ a/mm/slub.c
+@@ -3533,6 +3533,7 @@ static int calculate_sizes(struct kmem_c
  {
--	bool val;
--
--	mutex_lock(&test_fw_mutex);
--	val = config;
--	mutex_unlock(&test_fw_mutex);
--
- 	return snprintf(buf, PAGE_SIZE, "%d\n", val);
- }
+ 	slab_flags_t flags = s->flags;
+ 	unsigned int size = s->object_size;
++	unsigned int freepointer_area;
+ 	unsigned int order;
  
--static ssize_t test_dev_config_show_int(char *buf, int cfg)
-+static ssize_t test_dev_config_show_int(char *buf, int val)
- {
--	int val;
--
--	mutex_lock(&test_fw_mutex);
--	val = cfg;
--	mutex_unlock(&test_fw_mutex);
--
- 	return snprintf(buf, PAGE_SIZE, "%d\n", val);
- }
+ 	/*
+@@ -3541,6 +3542,13 @@ static int calculate_sizes(struct kmem_c
+ 	 * the possible location of the free pointer.
+ 	 */
+ 	size = ALIGN(size, sizeof(void *));
++	/*
++	 * This is the area of the object where a freepointer can be
++	 * safely written. If redzoning adds more to the inuse size, we
++	 * can't use that portion for writing the freepointer, so
++	 * s->offset must be limited within this for the general case.
++	 */
++	freepointer_area = size;
  
-@@ -354,14 +340,8 @@ static int test_dev_config_update_u8(con
- 	return size;
- }
+ #ifdef CONFIG_SLUB_DEBUG
+ 	/*
+@@ -3582,13 +3590,13 @@ static int calculate_sizes(struct kmem_c
+ 		 */
+ 		s->offset = size;
+ 		size += sizeof(void *);
+-	} else if (size > sizeof(void *)) {
++	} else if (freepointer_area > sizeof(void *)) {
+ 		/*
+ 		 * Store freelist pointer near middle of object to keep
+ 		 * it away from the edges of the object to avoid small
+ 		 * sized over/underflows from neighboring allocations.
+ 		 */
+-		s->offset = ALIGN(size / 2, sizeof(void *));
++		s->offset = ALIGN(freepointer_area / 2, sizeof(void *));
+ 	}
  
--static ssize_t test_dev_config_show_u8(char *buf, u8 cfg)
-+static ssize_t test_dev_config_show_u8(char *buf, u8 val)
- {
--	u8 val;
--
--	mutex_lock(&test_fw_mutex);
--	val = cfg;
--	mutex_unlock(&test_fw_mutex);
+ #ifdef CONFIG_SLUB_DEBUG
+_
+
+Patches currently in -mm which might be from keescook@chromium.org are
+
+slub-avoid-redzone-when-choosing-freepointer-location.patch
