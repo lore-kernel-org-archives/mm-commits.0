@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-both-instances-of-__vmalloc_node_flags.patch
- added to -mm tree
-Date: Tue, 14 Apr 2020 21:48:05 -0700
-Message-ID: <20200415044805.KR577Sk72%akpm@linux-foundation.org>
+Subject: + mm-remove-__vmalloc_node_flags_caller.patch added to
+ -mm tree
+Date: Tue, 14 Apr 2020 21:48:09 -0700
+Message-ID: <20200415044809.qOuUkja0Z%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40292 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40378 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393127AbgDOEsI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 00:48:08 -0400
+        id S2393127AbgDOEsM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 00:48:12 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.
 
 
 The patch titled
-     Subject: mm: remove both instances of __vmalloc_node_flags
+     Subject: mm: remove __vmalloc_node_flags_caller
 has been added to the -mm tree.  Its filename is
-     mm-remove-both-instances-of-__vmalloc_node_flags.patch
+     mm-remove-__vmalloc_node_flags_caller.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-both-instances-of-__vmalloc_node_flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-__vmalloc_node_flags_caller.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-both-instances-of-__vmalloc_node_flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-__vmalloc_node_flags_caller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +39,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove both instances of __vmalloc_node_flags
+Subject: mm: remove __vmalloc_node_flags_caller
 
-The real version just had a few callers that can open code it and remove
-one layer of indirection.  The nommu stub was public but only had a single
-caller, so remove it and avoid a CONFIG_MMU ifdef in vmalloc.h.
+Just use __vmalloc_node instead which gets and extra argument.  To be able
+to to use __vmalloc_node in all caller make it available outside of
+vmalloc and implement it in nommu.c.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-24-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-25-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -77,93 +77,97 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    9 ---------
- mm/nommu.c              |    3 ++-
- mm/vmalloc.c            |   20 ++++++--------------
- 3 files changed, 8 insertions(+), 24 deletions(-)
+ include/linux/vmalloc.h |    4 ++--
+ kernel/bpf/syscall.c    |    5 ++---
+ mm/nommu.c              |    4 ++--
+ mm/util.c               |    2 +-
+ mm/vmalloc.c            |   10 +---------
+ 5 files changed, 8 insertions(+), 17 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-remove-both-instances-of-__vmalloc_node_flags
+--- a/include/linux/vmalloc.h~mm-remove-__vmalloc_node_flags_caller
 +++ a/include/linux/vmalloc.h
-@@ -115,17 +115,8 @@ extern void *__vmalloc_node_range(unsign
+@@ -115,8 +115,8 @@ extern void *__vmalloc_node_range(unsign
  			unsigned long start, unsigned long end, gfp_t gfp_mask,
  			pgprot_t prot, unsigned long vm_flags, int node,
  			const void *caller);
--#ifndef CONFIG_MMU
--extern void *__vmalloc_node_flags(unsigned long size, int node, gfp_t flags);
--static inline void *__vmalloc_node_flags_caller(unsigned long size, int node,
--						gfp_t flags, void *caller)
--{
--	return __vmalloc_node_flags(size, node, flags);
--}
--#else
- extern void *__vmalloc_node_flags_caller(unsigned long size,
- 					 int node, gfp_t flags, void *caller);
--#endif
+-extern void *__vmalloc_node_flags_caller(unsigned long size,
+-					 int node, gfp_t flags, void *caller);
++void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
++		int node, const void *caller);
  
  extern void vfree(const void *addr);
  extern void vfree_atomic(const void *addr);
---- a/mm/nommu.c~mm-remove-both-instances-of-__vmalloc_node_flags
+--- a/kernel/bpf/syscall.c~mm-remove-__vmalloc_node_flags_caller
++++ a/kernel/bpf/syscall.c
+@@ -299,9 +299,8 @@ static void *__bpf_map_area_alloc(u64 si
+ 		return vmalloc_user_node_flags(size, numa_node, GFP_KERNEL |
+ 					       __GFP_RETRY_MAYFAIL | flags);
+ 	}
+-	return __vmalloc_node_flags_caller(size, numa_node,
+-					   GFP_KERNEL | __GFP_RETRY_MAYFAIL |
+-					   flags, __builtin_return_address(0));
++	return __vmalloc_node(size, 1, GFP_KERNEL | __GFP_RETRY_MAYFAIL | flags,
++			      numa_node, __builtin_return_address(0));
+ }
+ 
+ void *bpf_map_area_alloc(u64 size, int numa_node)
+--- a/mm/nommu.c~mm-remove-__vmalloc_node_flags_caller
 +++ a/mm/nommu.c
-@@ -150,7 +150,8 @@ void *__vmalloc(unsigned long size, gfp_
+@@ -150,8 +150,8 @@ void *__vmalloc(unsigned long size, gfp_
  }
  EXPORT_SYMBOL(__vmalloc);
  
--void *__vmalloc_node_flags(unsigned long size, int node, gfp_t flags)
-+void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags,
-+		void *caller)
+-void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags,
+-		void *caller)
++void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
++		int node, const void *caller)
  {
  	return __vmalloc(size, flags);
  }
---- a/mm/vmalloc.c~mm-remove-both-instances-of-__vmalloc_node_flags
+--- a/mm/util.c~mm-remove-__vmalloc_node_flags_caller
++++ a/mm/util.c
+@@ -580,7 +580,7 @@ void *kvmalloc_node(size_t size, gfp_t f
+ 	if (ret || size <= PAGE_SIZE)
+ 		return ret;
+ 
+-	return __vmalloc_node_flags_caller(size, node, flags,
++	return __vmalloc_node(size, 1, flags, node,
+ 			__builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(kvmalloc_node);
+--- a/mm/vmalloc.c~mm-remove-__vmalloc_node_flags_caller
 +++ a/mm/vmalloc.c
-@@ -2566,14 +2566,6 @@ void *__vmalloc(unsigned long size, gfp_
+@@ -2400,8 +2400,6 @@ void *vmap(struct page **pages, unsigned
+ }
+ EXPORT_SYMBOL(vmap);
+ 
+-static void *__vmalloc_node(unsigned long size, unsigned long align,
+-			    gfp_t gfp_mask, int node, const void *caller);
+ static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
+ 				 pgprot_t prot, int node)
+ {
+@@ -2552,7 +2550,7 @@ EXPORT_SYMBOL_GPL(__vmalloc_node_range);
+  *
+  * Return: pointer to the allocated memory or %NULL on error
+  */
+-static void *__vmalloc_node(unsigned long size, unsigned long align,
++void *__vmalloc_node(unsigned long size, unsigned long align,
+ 			    gfp_t gfp_mask, int node, const void *caller)
+ {
+ 	return __vmalloc_node_range(size, align, VMALLOC_START, VMALLOC_END,
+@@ -2566,12 +2564,6 @@ void *__vmalloc(unsigned long size, gfp_
  }
  EXPORT_SYMBOL(__vmalloc);
  
--static inline void *__vmalloc_node_flags(unsigned long size,
--					int node, gfp_t flags)
+-void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags,
+-				  void *caller)
 -{
--	return __vmalloc_node(size, 1, flags, node,
--				__builtin_return_address(0));
+-	return __vmalloc_node(size, 1, flags, node, caller);
 -}
 -
--
- void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags,
- 				  void *caller)
- {
-@@ -2594,8 +2586,8 @@ void *__vmalloc_node_flags_caller(unsign
-  */
- void *vmalloc(unsigned long size)
- {
--	return __vmalloc_node_flags(size, NUMA_NO_NODE,
--				    GFP_KERNEL);
-+	return __vmalloc_node(size, 1, GFP_KERNEL, NUMA_NO_NODE,
-+				__builtin_return_address(0));
- }
- EXPORT_SYMBOL(vmalloc);
- 
-@@ -2614,8 +2606,8 @@ EXPORT_SYMBOL(vmalloc);
-  */
- void *vzalloc(unsigned long size)
- {
--	return __vmalloc_node_flags(size, NUMA_NO_NODE,
--				GFP_KERNEL | __GFP_ZERO);
-+	return __vmalloc_node(size, 1, GFP_KERNEL | __GFP_ZERO, NUMA_NO_NODE,
-+				__builtin_return_address(0));
- }
- EXPORT_SYMBOL(vzalloc);
- 
-@@ -2670,8 +2662,8 @@ EXPORT_SYMBOL(vmalloc_node);
-  */
- void *vzalloc_node(unsigned long size, int node)
- {
--	return __vmalloc_node_flags(size, node,
--			 GFP_KERNEL | __GFP_ZERO);
-+	return __vmalloc_node(size, 1, GFP_KERNEL | __GFP_ZERO, node,
-+				__builtin_return_address(0));
- }
- EXPORT_SYMBOL(vzalloc_node);
- 
+ /**
+  * vmalloc - allocate virtually contiguous memory
+  * @size:    allocation size
 _
 
 Patches currently in -mm which might be from hch@lst.de are
