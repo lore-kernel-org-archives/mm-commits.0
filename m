@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-readahead_control-to-pass-arguments.patch added
- to -mm tree
-Date: Tue, 14 Apr 2020 18:17:38 -0700
-Message-ID: <20200415011738.fTsrpUZzW%akpm@linux-foundation.org>
+Subject: + mm-rename-readahead-loop-variable-to-i.patch added to
+ -mm tree
+Date: Tue, 14 Apr 2020 18:17:44 -0700
+Message-ID: <20200415011744.SMw3hY-7z%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50994 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51114 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389151AbgDOBRj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Apr 2020 21:17:39 -0400
+        id S2392437AbgDOBRq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Apr 2020 21:17:46 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang2
 
 
 The patch titled
-     Subject: mm: use readahead_control to pass arguments
+     Subject: mm: rename readahead loop variable to 'i'
 has been added to the -mm tree.  Its filename is
-     mm-use-readahead_control-to-pass-arguments.patch
+     mm-rename-readahead-loop-variable-to-i.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-readahead_control-to-pass-arguments.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-readahead-loop-variable-to-i.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-readahead_control-to-pass-arguments.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-readahead-loop-variable-to-i.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,22 +39,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use readahead_control to pass arguments
+Subject: mm: rename readahead loop variable to 'i'
 
-In this patch, only between __do_page_cache_readahead() and read_pages(),
-but it will be extended in upcoming patches.  The read_pages() function
-becomes aops centric, as this makes the most sense by the end of the
-patchset.
+Change the type of page_idx to unsigned long, and rename it -- it's just a
+loop counter, not a page index.
 
-Link: http://lkml.kernel.org/r/20200414150233.24495-7-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200414150233.24495-9-willy@infradead.org
+Suggested-by: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dave Chinner <dchinner@redhat.com>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Cc: Chao Yu <yuchao0@huawei.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Cong Wang <xiyou.wangcong@gmail.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Eric Biggers <ebiggers@google.com>
 Cc: Gao Xiang <gaoxiang25@huawei.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
@@ -65,103 +63,46 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   33 +++++++++++++++++++--------------
- 1 file changed, 19 insertions(+), 14 deletions(-)
+ mm/readahead.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/readahead.c~mm-use-readahead_control-to-pass-arguments
+--- a/mm/readahead.c~mm-rename-readahead-loop-variable-to-i
 +++ a/mm/readahead.c
-@@ -113,29 +113,32 @@ int read_cache_pages(struct address_spac
- 
- EXPORT_SYMBOL(read_cache_pages);
- 
--static void read_pages(struct address_space *mapping, struct file *filp,
--		struct list_head *pages, unsigned int nr_pages, gfp_t gfp)
-+static void read_pages(struct readahead_control *rac, struct list_head *pages,
-+		gfp_t gfp)
- {
-+	const struct address_space_operations *aops = rac->mapping->a_ops;
- 	struct blk_plug plug;
- 	unsigned page_idx;
- 
--	if (!nr_pages)
-+	if (!readahead_count(rac))
- 		return;
- 
- 	blk_start_plug(&plug);
- 
--	if (mapping->a_ops->readpages) {
--		mapping->a_ops->readpages(filp, mapping, pages, nr_pages);
-+	if (aops->readpages) {
-+		aops->readpages(rac->file, rac->mapping, pages,
-+				readahead_count(rac));
- 		/* Clean up the remaining pages */
- 		put_pages_list(pages);
- 		goto out;
- 	}
- 
--	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
-+	for (page_idx = 0; page_idx < readahead_count(rac); page_idx++) {
- 		struct page *page = lru_to_page(pages);
- 		list_del(&page->lru);
--		if (!add_to_page_cache_lru(page, mapping, page->index, gfp))
--			mapping->a_ops->readpage(filp, page);
-+		if (!add_to_page_cache_lru(page, rac->mapping, page->index,
-+				gfp))
-+			aops->readpage(rac->file, page);
- 		put_page(page);
- 	}
- 
-@@ -143,6 +146,7 @@ out:
- 	blk_finish_plug(&plug);
- 
- 	BUG_ON(!list_empty(pages));
-+	rac->_nr_pages = 0;
- }
- 
- /*
-@@ -160,9 +164,12 @@ void __do_page_cache_readahead(struct ad
+@@ -163,13 +163,13 @@ void __do_page_cache_readahead(struct ad
+ 	struct page *page;
  	unsigned long end_index;	/* The last page we want to read */
  	LIST_HEAD(page_pool);
- 	int page_idx;
--	unsigned int nr_pages = 0;
+-	int page_idx;
  	loff_t isize = i_size_read(inode);
  	gfp_t gfp_mask = readahead_gfp_mask(mapping);
-+	struct readahead_control rac = {
-+		.mapping = mapping,
-+		.file = filp,
-+	};
+ 	struct readahead_control rac = {
+ 		.mapping = mapping,
+ 		.file = filp,
+ 	};
++	unsigned long i;
  
  	if (isize == 0)
  		return;
-@@ -185,9 +192,7 @@ void __do_page_cache_readahead(struct ad
- 			 * contiguous pages before continuing with the next
- 			 * batch.
- 			 */
--			read_pages(mapping, filp, &page_pool, nr_pages,
--						gfp_mask);
--			nr_pages = 0;
-+			read_pages(&rac, &page_pool, gfp_mask);
- 			continue;
- 		}
- 
-@@ -198,7 +203,7 @@ void __do_page_cache_readahead(struct ad
- 		list_add(&page->lru, &page_pool);
- 		if (page_idx == nr_to_read - lookahead_size)
- 			SetPageReadahead(page);
--		nr_pages++;
-+		rac._nr_pages++;
- 	}
- 
+@@ -179,8 +179,8 @@ void __do_page_cache_readahead(struct ad
  	/*
-@@ -206,7 +211,7 @@ void __do_page_cache_readahead(struct ad
- 	 * uptodate then the caller will launch readpage again, and
- 	 * will then handle the error.
+ 	 * Preallocate as many pages as we will need.
  	 */
--	read_pages(mapping, filp, &page_pool, nr_pages, gfp_mask);
-+	read_pages(&rac, &page_pool, gfp_mask);
- }
+-	for (page_idx = 0; page_idx < nr_to_read; page_idx++) {
+-		pgoff_t page_offset = index + page_idx;
++	for (i = 0; i < nr_to_read; i++) {
++		pgoff_t page_offset = index + i;
  
- /*
+ 		if (page_offset > end_index)
+ 			break;
+@@ -201,7 +201,7 @@ void __do_page_cache_readahead(struct ad
+ 			break;
+ 		page->index = page_offset;
+ 		list_add(&page->lru, &page_pool);
+-		if (page_idx == nr_to_read - lookahead_size)
++		if (i == nr_to_read - lookahead_size)
+ 			SetPageReadahead(page);
+ 		rac._nr_pages++;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
