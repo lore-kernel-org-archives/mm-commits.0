@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-unexport-unmap_kernel_range_noflush.patch added to
- -mm tree
-Date: Tue, 14 Apr 2020 21:47:05 -0700
-Message-ID: <20200415044705.SXAhGVz0l%akpm@linux-foundation.org>
+Subject: +
+ mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping.patch
+ added to -mm tree
+Date: Tue, 14 Apr 2020 21:47:08 -0700
+Message-ID: <20200415044708.yFq_xujv7%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38804 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38888 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2393123AbgDOErI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 00:47:08 -0400
+        id S2393122AbgDOErM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 00:47:12 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +18,14 @@ To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.
 
 
 The patch titled
-     Subject: mm: unexport unmap_kernel_range_noflush
+     Subject: mm: rename CONFIG_PGTABLE_MAPPING to CONFIG_ZSMALLOC_PGTABLE_MAPPING
 has been added to the -mm tree.  Its filename is
-     mm-unexport-unmap_kernel_range_noflush.patch
+     mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-unexport-unmap_kernel_range_noflush.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-unexport-unmap_kernel_range_noflush.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: unexport unmap_kernel_range_noflush
+Subject: mm: rename CONFIG_PGTABLE_MAPPING to CONFIG_ZSMALLOC_PGTABLE_MAPPING
 
-There are no modular users of this function.
+Rename the Kconfig variable to clarify the scope.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-10-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-11-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@c-s.fr>
@@ -59,7 +61,6 @@ Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Laura Abbott <labbott@redhat.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Michael Kelley <mikelley@microsoft.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Robin Murphy <robin.murphy@arm.com>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
@@ -75,19 +76,83 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/arm/configs/omap2plus_defconfig |    2 +-
+ include/linux/zsmalloc.h             |    2 +-
+ mm/Kconfig                           |    2 +-
+ mm/zsmalloc.c                        |    8 ++++----
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/vmalloc.c~mm-unexport-unmap_kernel_range_noflush
-+++ a/mm/vmalloc.c
-@@ -2029,7 +2029,6 @@ void unmap_kernel_range_noflush(unsigned
- {
- 	vunmap_page_range(addr, addr + size);
- }
--EXPORT_SYMBOL_GPL(unmap_kernel_range_noflush);
+--- a/arch/arm/configs/omap2plus_defconfig~mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping
++++ a/arch/arm/configs/omap2plus_defconfig
+@@ -81,7 +81,7 @@ CONFIG_PARTITION_ADVANCED=y
+ CONFIG_BINFMT_MISC=y
+ CONFIG_CMA=y
+ CONFIG_ZSMALLOC=m
+-CONFIG_PGTABLE_MAPPING=y
++CONFIG_ZSMALLOC_PGTABLE_MAPPING=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+--- a/include/linux/zsmalloc.h~mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping
++++ a/include/linux/zsmalloc.h
+@@ -20,7 +20,7 @@
+  * zsmalloc mapping modes
+  *
+  * NOTE: These only make a difference when a mapped object spans pages.
+- * They also have no effect when PGTABLE_MAPPING is selected.
++ * They also have no effect when ZSMALLOC_PGTABLE_MAPPING is selected.
+  */
+ enum zs_mapmode {
+ 	ZS_MM_RW, /* normal read-write mapping */
+--- a/mm/Kconfig~mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping
++++ a/mm/Kconfig
+@@ -705,7 +705,7 @@ config ZSMALLOC
+ 	  returned by an alloc().  This handle must be mapped in order to
+ 	  access the allocated space.
  
- /**
-  * unmap_kernel_range - unmap kernel VM area and flush cache and TLB
+-config PGTABLE_MAPPING
++config ZSMALLOC_PGTABLE_MAPPING
+ 	bool "Use page table mapping to access object in zsmalloc"
+ 	depends on ZSMALLOC
+ 	help
+--- a/mm/zsmalloc.c~mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping
++++ a/mm/zsmalloc.c
+@@ -293,7 +293,7 @@ struct zspage {
+ };
+ 
+ struct mapping_area {
+-#ifdef CONFIG_PGTABLE_MAPPING
++#ifdef CONFIG_ZSMALLOC_PGTABLE_MAPPING
+ 	struct vm_struct *vm; /* vm area for mapping object that span pages */
+ #else
+ 	char *vm_buf; /* copy buffer for objects that span pages */
+@@ -1113,7 +1113,7 @@ static struct zspage *find_get_zspage(st
+ 	return zspage;
+ }
+ 
+-#ifdef CONFIG_PGTABLE_MAPPING
++#ifdef CONFIG_ZSMALLOC_PGTABLE_MAPPING
+ static inline int __zs_cpu_up(struct mapping_area *area)
+ {
+ 	/*
+@@ -1151,7 +1151,7 @@ static inline void __zs_unmap_object(str
+ 	unmap_kernel_range(addr, PAGE_SIZE * 2);
+ }
+ 
+-#else /* CONFIG_PGTABLE_MAPPING */
++#else /* CONFIG_ZSMALLOC_PGTABLE_MAPPING */
+ 
+ static inline int __zs_cpu_up(struct mapping_area *area)
+ {
+@@ -1233,7 +1233,7 @@ out:
+ 	pagefault_enable();
+ }
+ 
+-#endif /* CONFIG_PGTABLE_MAPPING */
++#endif /* CONFIG_ZSMALLOC_PGTABLE_MAPPING */
+ 
+ static int zs_cpu_prepare(unsigned int cpu)
+ {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
