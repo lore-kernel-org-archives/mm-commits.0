@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-enforce-that-vmap-cant-map-pages-executable.patch
- added to -mm tree
-Date: Tue, 14 Apr 2020 21:47:44 -0700
-Message-ID: <20200415044744.kcpUuBlDQ%akpm@linux-foundation.org>
+Subject: +
+ gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc.patch added to -mm
+ tree
+Date: Tue, 14 Apr 2020 21:47:48 -0700
+Message-ID: <20200415044748.A6SPV9ELr%akpm@linux-foundation.org>
 References: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39758 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39862 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389590AbgDOErr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 00:47:47 -0400
+        id S2393127AbgDOErv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 00:47:51 -0400
 In-Reply-To: <20200412004155.1a8f4e081b4e03ef5903abb5@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +18,14 @@ To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.
 
 
 The patch titled
-     Subject: mm: enforce that vmap can't map pages executable
+     Subject: gpu/drm: remove the powerpc hack in drm_legacy_sg_alloc
 has been added to the -mm tree.  Its filename is
-     mm-enforce-that-vmap-cant-map-pages-executable.patch
+     gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-enforce-that-vmap-cant-map-pages-executable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-enforce-that-vmap-cant-map-pages-executable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,21 +40,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: enforce that vmap can't map pages executable
+Subject: gpu/drm: remove the powerpc hack in drm_legacy_sg_alloc
 
-To help enforcing the W^X protection don't allow remapping existing pages
-as executable.
+The non-cached vmalloc mapping was initially added as a hack for the
+first-gen amigaone platform (6xx/book32s), isn't fully supported upstream,
+and which used the legacy radeon driver together with non-coherent DMA. 
+However this only ever worked reliably for DRI .
 
-x86 bits from Peter Zijlstra, arm64 bits from Mark Rutland.
+Remove the hack as it is the last user of __vmalloc passing a page
+protection flag other than PAGE_KERNEL and didn't do anything for other
+platforms with non-coherent DMA.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-20-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-21-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Mark Rutland <mark.rutland@arm.com>.
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@c-s.fr>
 Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: David Airlie <airlied@linux.ie>
 Cc: Gao Xiang <xiang@kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -61,6 +65,7 @@ Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Laura Abbott <labbott@redhat.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Michael Kelley <mikelley@microsoft.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
@@ -78,63 +83,36 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h     |    3 +++
- arch/x86/include/asm/pgtable_types.h |    6 ++++++
- include/asm-generic/pgtable.h        |    4 ++++
- mm/vmalloc.c                         |    2 +-
- 4 files changed, 14 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/drm_scatter.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-enforce-that-vmap-cant-map-pages-executable
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -415,6 +415,9 @@ static inline pmd_t pmd_mkdevmap(pmd_t p
- #define __pgprot_modify(prot,mask,bits) \
- 	__pgprot((pgprot_val(prot) & ~(mask)) | (bits))
+--- a/drivers/gpu/drm/drm_scatter.c~gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc
++++ a/drivers/gpu/drm/drm_scatter.c
+@@ -43,15 +43,6 @@
  
-+#define pgprot_nx(prot) \
-+	__pgprot_modify(prot, 0, PTE_PXN)
-+
- /*
-  * Mark the prot value as uncacheable and unbufferable.
-  */
---- a/arch/x86/include/asm/pgtable_types.h~mm-enforce-that-vmap-cant-map-pages-executable
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -282,6 +282,12 @@ typedef struct pgprot { pgprotval_t pgpr
+ #define DEBUG_SCATTER 0
  
- typedef struct { pgdval_t pgd; } pgd_t;
+-static inline void *drm_vmalloc_dma(unsigned long size)
+-{
+-#if defined(__powerpc__) && defined(CONFIG_NOT_COHERENT_CACHE)
+-	return __vmalloc(size, GFP_KERNEL, pgprot_noncached_wc(PAGE_KERNEL));
+-#else
+-	return vmalloc_32(size);
+-#endif
+-}
+-
+ static void drm_sg_cleanup(struct drm_sg_mem * entry)
+ {
+ 	struct page *page;
+@@ -126,7 +117,7 @@ int drm_legacy_sg_alloc(struct drm_devic
+ 		return -ENOMEM;
+ 	}
  
-+static inline pgprot_t pgprot_nx(pgprot_t prot)
-+{
-+	return __pgprot(pgprot_val(prot) | _PAGE_NX);
-+}
-+#define pgprot_nx pgprot_nx
-+
- #ifdef CONFIG_X86_PAE
- 
- /*
---- a/include/asm-generic/pgtable.h~mm-enforce-that-vmap-cant-map-pages-executable
-+++ a/include/asm-generic/pgtable.h
-@@ -491,6 +491,10 @@ static inline int arch_unmap_one(struct
- #define flush_tlb_fix_spurious_fault(vma, address) flush_tlb_page(vma, address)
- #endif
- 
-+#ifndef pgprot_nx
-+#define pgprot_nx(prot)	(prot)
-+#endif
-+
- #ifndef pgprot_noncached
- #define pgprot_noncached(prot)	(prot)
- #endif
---- a/mm/vmalloc.c~mm-enforce-that-vmap-cant-map-pages-executable
-+++ a/mm/vmalloc.c
-@@ -2390,7 +2390,7 @@ void *vmap(struct page **pages, unsigned
- 	if (!area)
- 		return NULL;
- 
--	if (map_kernel_range((unsigned long)area->addr, size, prot,
-+	if (map_kernel_range((unsigned long)area->addr, size, pgprot_nx(prot),
- 			pages) < 0) {
- 		vunmap(area->addr);
- 		return NULL;
+-	entry->virtual = drm_vmalloc_dma(pages << PAGE_SHIFT);
++	entry->virtual = vmalloc_32(pages << PAGE_SHIFT);
+ 	if (!entry->virtual) {
+ 		kfree(entry->busaddr);
+ 		kfree(entry->pagelist);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
