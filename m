@@ -1,31 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- =?US-ASCII?Q?mm-page=5Fallocc-only-tune-sysctl=5Flowmem=5Freserve=5Frat?=
- =?US-ASCII?Q?io-value-once-when-changing-it.patch?= added to -mm tree
-Date: Wed, 15 Apr 2020 20:52:20 -0700
-Message-ID: <20200416035220.lnv99pHhY%akpm@linux-foundation.org>
+Subject: + ipc-use-a-work-queue-to-free_ipc.patch added to -mm
+ tree
+Date: Wed, 15 Apr 2020 21:00:33 -0700
+Message-ID: <20200416040033.YQq9rYEXW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50732 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2403807AbgDPDwX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 23:52:23 -0400
+        id S1725298AbgDPEAf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Apr 2020 00:00:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com
+To: dave@stgolabs.net, gscrivan@redhat.com, longman@redhat.com, manfred@colorfullife.com, mm-commits@vger.kernel.org, paulmck@kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: only tune sysctl_lowmem_reserve_ratio value once when changing it
+     Subject: ipc/namespace.c: use a work queue to free_ipc
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-only-tune-sysctl_lowmem_reserve_ratio-value-once-when-changing-it.patch
+     ipc-use-a-work-queue-to-free_ipc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-only-tune-sysctl_lowmem_reserve_ratio-value-once-when-changing-it.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-use-a-work-queue-to-free_ipc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-only-tune-sysctl_lowmem_reserve_ratio-value-once-when-changing-it.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-use-a-work-queue-to-free_ipc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,97 +36,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/page_alloc.c: only tune sysctl_lowmem_reserve_ratio value once when changing it
+From: Giuseppe Scrivano <gscrivan@redhat.com>
+Subject: ipc/namespace.c: use a work queue to free_ipc
 
-Patch series "improvements about lowmem_reserve and /proc/zoneinfo", v2.
+the reason is to avoid a delay caused by the synchronize_rcu() call in
+kern_umount() when the mqueue mount is freed.
 
+the code:
 
-This patch (of 3):
-
-When people write to /proc/sys/vm/lowmem_reserve_ratio to change
-sysctl_lowmem_reserve_ratio[], setup_per_zone_lowmem_reserve() is called
-to recalculate all ->lowmem_reserve[] for each zone of all nodes as below:
-
-static void setup_per_zone_lowmem_reserve(void)
+\#define _GNU_SOURCE
+\#include <sched.h>
+\#include <error.h>
+\#include <errno.h>
+\#include <stdlib.h>
+int main()
 {
-...
-	for_each_online_pgdat(pgdat) {
-		for (j = 0; j < MAX_NR_ZONES; j++) {
-			...
-			while (idx) {
-				...
-				if (sysctl_lowmem_reserve_ratio[idx] < 1) {
-					sysctl_lowmem_reserve_ratio[idx] = 0;
-					lower_zone->lowmem_reserve[j] = 0;
-                                } else {
-				...
-			}
-		}
-	}
+  int i;
+  for (i  =3D 0; i < 1000; i++)
+    if (unshare (CLONE_NEWIPC) < 0)
+      error (EXIT_FAILURE, errno, "unshare");
 }
 
-Meanwhile, here, sysctl_lowmem_reserve_ratio[idx] will be tuned if its
-value is smaller than '1'.  As we know, sysctl_lowmem_reserve_ratio[] is
-set for zone without regarding to which node it belongs to.  That means
-the tuning will be done on all nodes, even though it has been done in the
-first node.
+gets from:
 
-And the tuning will be done too even when init_per_zone_wmark_min() calls
-setup_per_zone_lowmem_reserve(), where actually nobody tries to change
-sysctl_lowmem_reserve_ratio[].
+	Command being timed: "./ipc-namespace"
+	User time (seconds): 0.00
+	System time (seconds): 0.06
+	Percent of CPU this job got: 0%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:08.05
 
-So now move the tuning into lowmem_reserve_ratio_sysctl_handler(), to make
-code logic more reasonable.
+to:
 
-Link: http://lkml.kernel.org/r/20200402140113.3696-1-bhe@redhat.com
-Link: http://lkml.kernel.org/r/20200402140113.3696-2-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
+	Command being timed: "./ipc-namespace"
+	User time (seconds): 0.00
+	System time (seconds): 0.02
+	Percent of CPU this job got: 96%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.03
+
+Link: http://lkml.kernel.org/r/20200225145419.527994-1-gscrivan@redhat.com
+Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
+Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+Reviewed-by: Waiman Long <longman@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ include/linux/ipc_namespace.h |    2 ++
+ ipc/namespace.c               |   24 ++++++++++++++++++++++--
+ 2 files changed, 24 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-only-tune-sysctl_lowmem_reserve_ratio-value-once-when-changing-it
-+++ a/mm/page_alloc.c
-@@ -7702,8 +7702,7 @@ static void setup_per_zone_lowmem_reserv
- 				idx--;
- 				lower_zone = pgdat->node_zones + idx;
+--- a/include/linux/ipc_namespace.h~ipc-use-a-work-queue-to-free_ipc
++++ a/include/linux/ipc_namespace.h
+@@ -68,6 +68,8 @@ struct ipc_namespace {
+ 	struct user_namespace *user_ns;
+ 	struct ucounts *ucounts;
  
--				if (sysctl_lowmem_reserve_ratio[idx] < 1) {
--					sysctl_lowmem_reserve_ratio[idx] = 0;
-+				if (!sysctl_lowmem_reserve_ratio[idx]) {
- 					lower_zone->lowmem_reserve[j] = 0;
- 				} else {
- 					lower_zone->lowmem_reserve[j] =
-@@ -7968,7 +7967,15 @@ int sysctl_min_slab_ratio_sysctl_handler
- int lowmem_reserve_ratio_sysctl_handler(struct ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
++	struct llist_node mnt_llist;
++
+ 	struct ns_common ns;
+ } __randomize_layout;
+ 
+--- a/ipc/namespace.c~ipc-use-a-work-queue-to-free_ipc
++++ a/ipc/namespace.c
+@@ -117,6 +117,10 @@ void free_ipcs(struct ipc_namespace *ns,
+ 
+ static void free_ipc_ns(struct ipc_namespace *ns)
  {
-+	int i;
-+
- 	proc_dointvec_minmax(table, write, buffer, length, ppos);
-+
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		if (sysctl_lowmem_reserve_ratio[i] < 1)
-+			sysctl_lowmem_reserve_ratio[i] = 0;
-+	}
-+
- 	setup_per_zone_lowmem_reserve();
- 	return 0;
++	/* mq_put_mnt() waits for a grace period as kern_unmount()
++	 * uses synchronize_rcu().
++	 */
++	mq_put_mnt(ns);
+ 	sem_exit_ns(ns);
+ 	msg_exit_ns(ns);
+ 	shm_exit_ns(ns);
+@@ -127,6 +131,21 @@ static void free_ipc_ns(struct ipc_names
+ 	kfree(ns);
  }
+ 
++static LLIST_HEAD(free_ipc_list);
++static void free_ipc(struct work_struct *unused)
++{
++	struct llist_node *node = llist_del_all(&free_ipc_list);
++	struct ipc_namespace *n, *t;
++
++	llist_for_each_entry_safe(n, t, node, mnt_llist)
++		free_ipc_ns(n);
++}
++
++/*
++ * The work queue is used to avoid the cost of synchronize_rcu in kern_unmount.
++ */
++static DECLARE_WORK(free_ipc_work, free_ipc);
++
+ /*
+  * put_ipc_ns - drop a reference to an ipc namespace.
+  * @ns: the namespace to put
+@@ -148,8 +167,9 @@ void put_ipc_ns(struct ipc_namespace *ns
+ 	if (refcount_dec_and_lock(&ns->count, &mq_lock)) {
+ 		mq_clear_sbinfo(ns);
+ 		spin_unlock(&mq_lock);
+-		mq_put_mnt(ns);
+-		free_ipc_ns(ns);
++
++		if (llist_add(&ns->mnt_llist, &free_ipc_list))
++			schedule_work(&free_ipc_work);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from gscrivan@redhat.com are
 
-mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn.patch
-mm-remove-unused-free_bootmem_with_active_regions.patch
-mm-page_allocc-only-tune-sysctl_lowmem_reserve_ratio-value-once-when-changing-it.patch
-mm-page_allocc-clear-out-zone-lowmem_reserve-if-the-zone-is-empty.patch
-mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone.patch
+ipc-use-a-work-queue-to-free_ipc.patch
