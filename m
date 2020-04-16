@@ -1,29 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: +
- i915-gvt-kvm-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch added to
- -mm tree
-Date: Wed, 15 Apr 2020 17:51:10 -0700
-Message-ID: <20200416005110.ML5lOes_6%akpm@linux-foundation.org>
+Subject: + i915-gvt-remove-unused-xen-bits.patch added to -mm tree
+Date: Wed, 15 Apr 2020 17:51:13 -0700
+Message-ID: <20200416005113.F7T8h5yYm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40200 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405141AbgDPAvL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 20:51:11 -0400
+        id S2405141AbgDPAvQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 20:51:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexander.deucher@amd.com, axboe@kernel.dk, balbi@kernel.org, Felix.Kuehling@amd.com, hch@lst.de, jasowang@redhat.com, mm-commits@vger.kernel.org, mst@redhat.com, viro@zeniv.linux.org.uk, zhenyuw@linux.intel.com, zhi.a.wang@intel.com
 
 
 The patch titled
-     Subject: i915/gvt/kvm: a NULL ->mm does not mean a thread is a kthread
+     Subject: i915/gvt: remove unused xen bits
 has been added to the -mm tree.  Its filename is
-     i915-gvt-kvm-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+     i915-gvt-remove-unused-xen-bits.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/i915-gvt-kvm-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/i915-gvt-remove-unused-xen-bits.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/i915-gvt-kvm-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/i915-gvt-remove-unused-xen-bits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,12 +36,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: i915/gvt/kvm: a NULL ->mm does not mean a thread is a kthread
+Subject: i915/gvt: remove unused xen bits
 
-Use the proper API instead.
+No Xen support anywhere here.  Remove a dead declaration and an unused
+include.
 
-Link: http://lkml.kernel.org/r/20200404094101.672954-3-hch@lst.de
-Fixes: f440c8a572d7 ("drm/i915/gvt/kvmgt: read/write GPA via KVM API")
+Link: http://lkml.kernel.org/r/20200404094101.672954-4-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -57,20 +55,29 @@ Cc: Zhi Wang <zhi.a.wang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gvt/kvmgt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/i915/gvt/gvt.c       |    1 -
+ drivers/gpu/drm/i915/gvt/hypercall.h |    2 --
+ 2 files changed, 3 deletions(-)
 
---- a/drivers/gpu/drm/i915/gvt/kvmgt.c~i915-gvt-kvm-a-null-mm-does-not-mean-a-thread-is-a-kthread
-+++ a/drivers/gpu/drm/i915/gvt/kvmgt.c
-@@ -2037,7 +2037,7 @@ static int kvmgt_rw_gpa(unsigned long ha
- 	struct kvmgt_guest_info *info;
- 	struct kvm *kvm;
- 	int idx, ret;
--	bool kthread = current->mm == NULL;
-+	bool kthread = (current->flags & PF_KTHREAD);
+--- a/drivers/gpu/drm/i915/gvt/gvt.c~i915-gvt-remove-unused-xen-bits
++++ a/drivers/gpu/drm/i915/gvt/gvt.c
+@@ -31,7 +31,6 @@
+  */
  
- 	if (!handle_valid(handle))
- 		return -ESRCH;
+ #include <linux/types.h>
+-#include <xen/xen.h>
+ #include <linux/kthread.h>
+ 
+ #include "i915_drv.h"
+--- a/drivers/gpu/drm/i915/gvt/hypercall.h~i915-gvt-remove-unused-xen-bits
++++ a/drivers/gpu/drm/i915/gvt/hypercall.h
+@@ -79,6 +79,4 @@ struct intel_gvt_mpt {
+ 	bool (*is_valid_gfn)(unsigned long handle, unsigned long gfn);
+ };
+ 
+-extern struct intel_gvt_mpt xengt_mpt;
+-
+ #endif /* _GVT_HYPERCALL_H_ */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
