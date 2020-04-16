@@ -1,33 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + proc-pid-smaps-add-pmd-migration-entry-parsing.patch
+Subject: + mm-swap_state-fix-a-data-race-in-swapin_nr_pages.patch
  added to -mm tree
-Date: Wed, 15 Apr 2020 20:21:12 -0700
-Message-ID: <20200416032112.0hunZ5uUF%akpm@linux-foundation.org>
+Date: Wed, 15 Apr 2020 20:37:00 -0700
+Message-ID: <20200416033700.rNbpqwa1t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34096 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46056 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389846AbgDPDVQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 23:21:16 -0400
+        id S1729245AbgDPDhD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 23:37:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, adobriyan@gmail.com, jglisse@redhat.com, khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz, yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
+To: cai@lca.pw, elver@google.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: /proc/PID/smaps: Add PMD migration entry parsing
+     Subject: mm/swap_state: fix a data race in swapin_nr_pages
 has been added to the -mm tree.  Its filename is
-     proc-pid-smaps-add-pmd-migration-entry-parsing.patch
+     mm-swap_state-fix-a-data-race-in-swapin_nr_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-pid-smaps-add-pmd-migrati=
-on-entry-parsing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap_state-fix-a-data-race-in-swapin_nr_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-pid-smaps-add-pmd-migrati=
-on-entry-parsing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap_state-fix-a-data-race-in-swapin_nr_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,129 +30,100 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Huang Ying <ying.huang@intel.com>
-Subject: /proc/PID/smaps: Add PMD migration entry parsing
+From: Qian Cai <cai@lca.pw>
+Subject: mm/swap_state: fix a data race in swapin_nr_pages
 
-Now, when reading /proc/PID/smaps, the PMD migration entry in page table
-is simply ignored.  To improve the accuracy of /proc/PID/smaps, its
-parsing and processing is added.
+"prev_offset" is a static variable in swapin_nr_pages() that can be
+accessed concurrently with only mmap_sem held in read mode as noticed by
+KCSAN,
 
-To test the patch, we run pmbench to eat 400 MB memory in background, then
-run /usr/bin/migratepages and `cat /proc/PID/smaps` every second.  The
-issue as follows can be reproduced within 60 seconds.
+ BUG: KCSAN: data-race in swap_cluster_readahead / swap_cluster_readahead
 
-Before the patch, for the fully populated 400 MB anonymous VMA, some THP
-pages under migration may be lost as below.
+ write to 0xffffffff92763830 of 8 bytes by task 14795 on cpu 17:
+  swap_cluster_readahead+0x2a6/0x5e0
+  swapin_readahead+0x92/0x8dc
+  do_swap_page+0x49b/0xf20
+  __handle_mm_fault+0xcfb/0xd70
+  handle_mm_fault+0xfc/0x2f0
+  do_page_fault+0x263/0x715
+  page_fault+0x34/0x40
 
-7f3f6a7e5000-7f3f837e5000 rw-p 00000000 00:00 0
-Size:             409600 kB
-KernelPageSize:        4 kB
-MMUPageSize:           4 kB
-Rss:              407552 kB
-Pss:              407552 kB
-Shared_Clean:          0 kB
-Shared_Dirty:          0 kB
-Private_Clean:         0 kB
-Private_Dirty:    407552 kB
-Referenced:       301056 kB
-Anonymous:        407552 kB
-LazyFree:              0 kB
-AnonHugePages:    405504 kB
-ShmemPmdMapped:        0 kB
-FilePmdMapped:        0 kB
-Shared_Hugetlb:        0 kB
-Private_Hugetlb:       0 kB
-Swap:                  0 kB
-SwapPss:               0 kB
-Locked:                0 kB
-THPeligible:		1
-VmFlags: rd wr mr mw me ac
+ 1 lock held by (dnf)/14795:
+  #0: ffff897bd2e98858 (&mm->mmap_sem#2){++++}-{3:3}, at: do_page_fault+0x143/0x715
+  do_user_addr_fault at arch/x86/mm/fault.c:1405
+  (inlined by) do_page_fault at arch/x86/mm/fault.c:1535
+ irq event stamp: 83493
+ count_memcg_event_mm+0x1a6/0x270
+ count_memcg_event_mm+0x119/0x270
+ __do_softirq+0x365/0x589
+ irq_exit+0xa2/0xc0
 
-After the patch, it will be always,
+ read to 0xffffffff92763830 of 8 bytes by task 1 on cpu 22:
+  swap_cluster_readahead+0xfd/0x5e0
+  swapin_readahead+0x92/0x8dc
+  do_swap_page+0x49b/0xf20
+  __handle_mm_fault+0xcfb/0xd70
+  handle_mm_fault+0xfc/0x2f0
+  do_page_fault+0x263/0x715
+  page_fault+0x34/0x40
 
-7f3f6a7e5000-7f3f837e5000 rw-p 00000000 00:00 0
-Size:             409600 kB
-KernelPageSize:        4 kB
-MMUPageSize:           4 kB
-Rss:              409600 kB
-Pss:              409600 kB
-Shared_Clean:          0 kB
-Shared_Dirty:          0 kB
-Private_Clean:         0 kB
-Private_Dirty:    409600 kB
-Referenced:       294912 kB
-Anonymous:        409600 kB
-LazyFree:              0 kB
-AnonHugePages:    407552 kB
-ShmemPmdMapped:        0 kB
-FilePmdMapped:        0 kB
-Shared_Hugetlb:        0 kB
-Private_Hugetlb:       0 kB
-Swap:                  0 kB
-SwapPss:               0 kB
-Locked:                0 kB
-THPeligible:		1
-VmFlags: rd wr mr mw me ac
+ 1 lock held by systemd/1:
+  #0: ffff897c38f14858 (&mm->mmap_sem#2){++++}-{3:3}, at: do_page_fault+0x143/0x715
+ irq event stamp: 43530289
+ count_memcg_event_mm+0x1a6/0x270
+ count_memcg_event_mm+0x119/0x270
+ __do_softirq+0x365/0x589
+ irq_exit+0xa2/0xc0
 
-Link: http://lkml.kernel.org/r/20200403123059.1846960-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/20200402213748.2237-1-cai@lca.pw
+Signed-off-by: Qian Cai <cai@lca.pw>
+Cc: Marco Elver <elver@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/swap_state.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-pid-smaps-add-pmd-migration-entry-parsing
-+++ a/fs/proc/task_mmu.c
-@@ -546,10 +546,17 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 	struct mem_size_stats *mss =3D walk->private;
- 	struct vm_area_struct *vma =3D walk->vma;
- 	bool locked =3D !!(vma->vm_flags & VM_LOCKED);
--	struct page *page;
-+	struct page *page =3D NULL;
-=20
--	/* FOLL_DUMP will return -EFAULT on huge zero page */
--	page =3D follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
-+	if (pmd_present(*pmd)) {
-+		/* FOLL_DUMP will return -EFAULT on huge zero page */
-+		page =3D follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
-+	} else if (unlikely(thp_migration_supported() && is_swap_pmd(*pmd))) {
-+		swp_entry_t entry =3D pmd_to_swp_entry(*pmd);
-+
-+		if (is_migration_entry(entry))
-+			page =3D migration_entry_to_page(entry);
-+	}
- 	if (IS_ERR_OR_NULL(page))
- 		return;
- 	if (PageAnon(page))
-@@ -578,8 +585,7 @@ static int smaps_pte_range(pmd_t *pmd, u
-=20
- 	ptl =3D pmd_trans_huge_lock(pmd, vma);
- 	if (ptl) {
--		if (pmd_present(*pmd))
--			smaps_pmd_entry(pmd, addr, walk);
-+		smaps_pmd_entry(pmd, addr, walk);
- 		spin_unlock(ptl);
- 		goto out;
- 	}
+--- a/mm/swap_state.c~mm-swap_state-fix-a-data-race-in-swapin_nr_pages
++++ a/mm/swap_state.c
+@@ -509,10 +509,11 @@ static unsigned long swapin_nr_pages(uns
+ 		return 1;
+ 
+ 	hits = atomic_xchg(&swapin_readahead_hits, 0);
+-	pages = __swapin_nr_pages(prev_offset, offset, hits, max_pages,
++	pages = __swapin_nr_pages(READ_ONCE(prev_offset), offset, hits,
++				  max_pages,
+ 				  atomic_read(&last_readahead_pages));
+ 	if (!hits)
+-		prev_offset = offset;
++		WRITE_ONCE(prev_offset, offset);
+ 	atomic_set(&last_readahead_pages, pages);
+ 
+ 	return pages;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from cai@lca.pw are
 
-proc-pid-smaps-add-pmd-migration-entry-parsing.patch
+mm-swap_state-fix-a-data-race-in-swapin_nr_pages.patch
+mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races-v2.patch
+mm-swap_state-mark-various-intentional-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+mm-page_counter-fix-various-data-races-at-memsw.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-util-annotate-an-data-race-at-vm_committed_as.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+mm-annotate-a-data-race-in-page_zonenum.patch
+mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
