@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
+ mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4.patch
  added to -mm tree
-Date: Wed, 15 Apr 2020 17:55:01 -0700
-Message-ID: <20200416005501.EAIIQ1GzK%akpm@linux-foundation.org>
+Date: Wed, 15 Apr 2020 19:58:49 -0700
+Message-ID: <20200416025849.NFTGgkq1z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40994 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39490 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405346AbgDPAzD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 20:55:03 -0400
+        id S2388679AbgDPC6u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 22:58:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, daniel.m.jordan@oracle.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com
+To: david@redhat.com, duanxiongchun@bytedance.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, ktkhai@virtuozzo.com, Markus.Elfring@web.de, mm-commits@vger.kernel.org, songmuchun@bytedance.com, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mm: thp: don't need to drain lru cache when splitting and mlocking THP
+     Subject: mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4
 has been added to the -mm tree.  Its filename is
-     mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
+     mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,59 +37,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm: thp: don't need to drain lru cache when splitting and mlocking THP
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4
 
-Since commit 8f182270dfec ("mm/swap.c: flush lru pvecs on compound page
-arrival") THP would not stay in pagevec anymore.  So the optimization made
-by commit d965432234db ("thp: increase split_huge_page() success rate")
-doesn't make sense anymore, which tries to unpin munlocked THPs from
-pagevec by draining pagevec.
+if the vma is out of date, just exit
 
-Draining lru cache before isolating THP in mlock path is also unnecessary.
-b676b293fb48 ("mm, thp: fix mapped pages avoiding unevictable list on
-mlock") added it and 9a73f61bdb8a ("thp, mlock: do not mlock PTE-mapped
-file huge pages") accidentally carried it over after the above
-optimization went in.
-
-Link: http://lkml.kernel.org/r/1585946493-7531-1-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/20200416025034.29780-1-songmuchun@bytedance.com
+Fixes: e86c59b1b12d ("mm/ksm: improve deduplication of zero pages with colouring")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Co-developed-by: Xiongchun Duan <duanxiongchun@bytedance.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Markus Elfring <Markus.Elfring@web.de>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/ksm.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp
-+++ a/mm/huge_memory.c
-@@ -1582,7 +1582,6 @@ struct page *follow_trans_huge_pmd(struc
- 			goto skip_mlock;
- 		if (!trylock_page(page))
- 			goto skip_mlock;
--		lru_add_drain();
- 		if (page->mapping && !PageDoubleMap(page))
- 			mlock_vma_page(page);
- 		unlock_page(page);
-@@ -2784,7 +2783,6 @@ int split_huge_page_to_list(struct page
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
- 	int count, mapcount, extra_pins, ret;
--	bool mlocked;
- 	unsigned long flags;
- 	pgoff_t end;
- 
-@@ -2843,14 +2841,9 @@ int split_huge_page_to_list(struct page
- 		goto out_unlock;
- 	}
- 
--	mlocked = PageMlocked(head);
- 	unmap_page(head);
- 	VM_BUG_ON_PAGE(compound_mapcount(head), head);
- 
--	/* Make sure the page is not on per-CPU pagevec as it takes pin */
--	if (mlocked)
--		lru_add_drain();
+--- a/mm/ksm.c~mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4
++++ a/mm/ksm.c
+@@ -2116,7 +2116,11 @@ static void cmp_and_merge_page(struct pa
+ 			err = try_to_merge_one_page(vma, page,
+ 					ZERO_PAGE(rmap_item->address));
+ 		else
+-			err = -EFAULT;
++			/**
++			 * If the vma is out of date, we do not need to
++			 * continue.
++			 */
++			err = 0;
+ 		up_read(&mm->mmap_sem);
+ 		/*
+ 		 * In case of failure, the page was not really empty, so we
+_
+
+Patches currently in -mm which might be from songmuchun@bytedance.com are
+
+mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
+mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4.patch
