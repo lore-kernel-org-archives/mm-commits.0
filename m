@@ -1,31 +1,28 @@
 From: akpm@linux-foundation.org
 Subject: +
- =?US-ASCII?Q?mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-?=
- =?US-ASCII?Q?enabled-v4-fix.patch?= added to -mm tree
-Date: Wed, 15 Apr 2020 19:58:52 -0700
-Message-ID: <20200416025852.iDX-Zkfwj%akpm@linux-foundation.org>
+ ocfs2-add-missing-annotation-for-dlm_empty_lockres.patch added to -mm tree
+Date: Wed, 15 Apr 2020 20:02:20 -0700
+Message-ID: <20200416030220.8mHdZozlS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39526 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40028 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389318AbgDPC6y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 22:58:54 -0400
+        id S2389394AbgDPDCV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 23:02:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@redhat.com, duanxiongchun@bytedance.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, ktkhai@virtuozzo.com, Markus.Elfring@web.de, mm-commits@vger.kernel.org, songmuchun@bytedance.com, yang.shi@linux.alibaba.com
+To: akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com, jbi.octave@gmail.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
 
 
 The patch titled
-     Subject: mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix
+     Subject: ocfs2: add missing annotation for dlm_empty_lockres()
 has been added to the -mm tree.  Its filename is
-     mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix.patch
+     ocfs2-add-missing-annotation-for-dlm_empty_lockres.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-missing-annotation-for-dlm_empty_lockres.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-missing-annotation-for-dlm_empty_lockres.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +36,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix
+From: Jules Irenge <jbi.octave@gmail.com>
+Subject: ocfs2: add missing annotation for dlm_empty_lockres()
 
-add the conventional brakes, replace /** with /*
+Sparse reports a warning at dlm_empty_lockres()
 
-Cc: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Markus Elfring <Markus.Elfring@web.de>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+warning: context imbalance in dlm_purge_lockres() - unexpected unlock
+
+The root cause is the missing annotation at dlm_purge_lockres()
+
+Add the missing __must_hold(&dlm->spinlock)
+
+Link: http://lkml.kernel.org/r/20200403160505.2832-4-jbi.octave@gmail.com
+Signed-off-by: Jules Irenge <jbi.octave@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/ksm.c~mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix
-+++ a/mm/ksm.c
-@@ -2112,15 +2112,16 @@ static void cmp_and_merge_page(struct pa
- 
- 		down_read(&mm->mmap_sem);
- 		vma = find_mergeable_vma(mm, rmap_item->address);
--		if (vma)
-+		if (vma) {
- 			err = try_to_merge_one_page(vma, page,
- 					ZERO_PAGE(rmap_item->address));
--		else
--			/**
-+		} else {
-+			/*
- 			 * If the vma is out of date, we do not need to
- 			 * continue.
- 			 */
- 			err = 0;
-+		}
- 		up_read(&mm->mmap_sem);
- 		/*
- 		 * In case of failure, the page was not really empty, so we
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-add-missing-annotation-for-dlm_empty_lockres
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -2760,6 +2760,7 @@ leave:
+  * Returns: 1 if dlm->spinlock was dropped/retaken, 0 if never dropped
+  */
+ int dlm_empty_lockres(struct dlm_ctxt *dlm, struct dlm_lock_resource *res)
++	__must_hold(&dlm->spinlock)
+ {
+ 	int ret;
+ 	int lock_dropped = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jbi.octave@gmail.com are
 
-maintainers-add-an-entry-for-kfifo-fix.patch
-maintainers-add-an-entry-for-kfifo-fix-fix.patch
-mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract-fix.patch
-linux-next-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+ocfs2-add-missing-annotation-for-dlm_empty_lockres.patch
