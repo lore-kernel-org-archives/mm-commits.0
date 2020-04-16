@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + proc-rename-catch-function-argument.patch added to -mm
+Subject: +
+ mm-dump_page-do-not-crash-with-invalid-mapping-pointer.patch added to -mm
  tree
-Date: Wed, 15 Apr 2020 21:07:41 -0700
-Message-ID: <20200416040741.MspmCtvON%akpm@linux-foundation.org>
+Date: Wed, 15 Apr 2020 21:09:02 -0700
+Message-ID: <20200416040902.jjWRuAaYI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54568 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54728 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726409AbgDPEHm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Apr 2020 00:07:42 -0400
+        id S1726409AbgDPEJD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Apr 2020 00:09:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, ptesarik@suse.cz, vbabka@suse.cz, willy@infradead.org
 
 
 The patch titled
-     Subject: proc: rename "catch" function argument
+     Subject: mm, dump_page(): do not crash with invalid mapping pointer
 has been added to the -mm tree.  Its filename is
-     proc-rename-catch-function-argument.patch
+     mm-dump_page-do-not-crash-with-invalid-mapping-pointer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-rename-catch-function-argument.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dump_page-do-not-crash-with-invalid-mapping-pointer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-rename-catch-function-argument.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dump_page-do-not-crash-with-invalid-mapping-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,50 +37,161 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: rename "catch" function argument
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, dump_page(): do not crash with invalid mapping pointer
 
-"catch" is reserved keyword in C++, rename it to something both gcc and
-g++ accept.
+We have seen a following problem on a RPi4 with 1G RAM:
 
-Rename "ign" for symmetry.
+BUG: Bad page state in process systemd-hwdb  pfn:35601
+page:ffff7e0000d58040 refcount:15 mapcount:131221 mapping:efd8fe765bc80080 index:0x1 compound_mapcount: -32767
+Unable to handle kernel paging request at virtual address efd8fe765bc80080
+Mem abort info:
+  ESR = 0x96000004
+  Exception class = DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+Data abort info:
+  ISV = 0, ISS = 0x00000004
+  CM = 0, WnR = 0
+[efd8fe765bc80080] address between user and kernel address ranges
+Internal error: Oops: 96000004 [#1] SMP
+Modules linked in: btrfs libcrc32c xor xor_neon zlib_deflate raid6_pq mmc_block xhci_pci xhci_hcd usbcore sdhci_iproc sdhci_pltfm sdhci mmc_core clk_raspberrypi gpio_raspberrypi_exp pcie_brcmstb bcm2835_dma gpio_regulator phy_generic fixed sg scsi_mod efivarfs
+Supported: No, Unreleased kernel
+CPU: 3 PID: 408 Comm: systemd-hwdb Not tainted 5.3.18-8-default #1 SLE15-SP2 (unreleased)
+Hardware name: raspberrypi rpi/rpi, BIOS 2020.01 02/21/2020
+pstate: 40000085 (nZcv daIf -PAN -UAO)
+pc : __dump_page+0x268/0x368
+lr : __dump_page+0xc4/0x368
+sp : ffff000012563860
+x29: ffff000012563860 x28: ffff80003ddc4300
+x27: 0000000000000010 x26: 000000000000003f
+x25: ffff7e0000d58040 x24: 000000000000000f
+x23: efd8fe765bc80080 x22: 0000000000020095
+x21: efd8fe765bc80080 x20: ffff000010ede8b0
+x19: ffff7e0000d58040 x18: ffffffffffffffff
+x17: 0000000000000001 x16: 0000000000000007
+x15: ffff000011689708 x14: 3030386362353637
+x13: 6566386466653a67 x12: 6e697070616d2031
+x11: 32323133313a746e x10: 756f6370616d2035
+x9 : ffff00001168a840 x8 : ffff00001077a670
+x7 : 000000000000013d x6 : ffff0000118a43b5
+x5 : 0000000000000001 x4 : ffff80003dd9e2c8
+x3 : ffff80003dd9e2c8 x2 : 911c8d7c2f483500
+x1 : dead000000000100 x0 : efd8fe765bc80080
+Call trace:
+ __dump_page+0x268/0x368
+ bad_page+0xd4/0x168
+ check_new_page_bad+0x80/0xb8
+ rmqueue_bulk.constprop.26+0x4d8/0x788
+ get_page_from_freelist+0x4d4/0x1228
+ __alloc_pages_nodemask+0x134/0xe48
+ alloc_pages_vma+0x198/0x1c0
+ do_anonymous_page+0x1a4/0x4d8
+ __handle_mm_fault+0x4e8/0x560
+ handle_mm_fault+0x104/0x1e0
+ do_page_fault+0x1e8/0x4c0
+ do_translation_fault+0xb0/0xc0
+ do_mem_abort+0x50/0xb0
+ el0_da+0x24/0x28
+Code: f9401025 8b8018a0 9a851005 17ffffca (f94002a0)
+---[ end trace 703ac54becfd8094 ]---
 
-Link: http://lkml.kernel.org/r/20200331210905.GA31680@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Besides the underlying issue with page->mapping containing a bogus value for
+some reason, we can see that __dump_page() crashed by trying to read the
+pointer at mapping->host, turning a recoverable warning into full Oops.
+
+It can be expected that when page is reported as bad state for some reason, the
+pointers there should not be trusted blindly. So this patch treats all data in
+__dump_page() that depends on page->mapping as lava, using
+probe_kernel_read_strict(). Ideally this would include the dentry->d_parent
+recursively, but that would mean changing printk handler for %pd. Chances of
+reaching the dentry printing part with an initially bogus mapping pointer
+should be rather low, though.
+
+Also prefix printing mapping->a_ops with a description of what is being
+printed.  In case the value is bogus, %ps will print raw value instead of
+the symbol name and then it's not obvious at all that it's printing a_ops.
+
+Link: http://lkml.kernel.org/r/20200331165454.12263-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Petr Tesarik <ptesarik@suse.cz>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/debug.c |   56 +++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 50 insertions(+), 6 deletions(-)
 
---- a/fs/proc/array.c~proc-rename-catch-function-argument
-+++ a/fs/proc/array.c
-@@ -248,8 +248,8 @@ void render_sigset_t(struct seq_file *m,
- 	seq_putc(m, '\n');
- }
- 
--static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *ign,
--				    sigset_t *catch)
-+static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *sigign,
-+				    sigset_t *sigcatch)
- {
- 	struct k_sigaction *k;
- 	int i;
-@@ -257,9 +257,9 @@ static void collect_sigign_sigcatch(stru
- 	k = p->sighand->action;
- 	for (i = 1; i <= _NSIG; ++i, ++k) {
- 		if (k->sa.sa_handler == SIG_IGN)
--			sigaddset(ign, i);
-+			sigaddset(sigign, i);
- 		else if (k->sa.sa_handler != SIG_DFL)
--			sigaddset(catch, i);
-+			sigaddset(sigcatch, i);
+--- a/mm/debug.c~mm-dump_page-do-not-crash-with-invalid-mapping-pointer
++++ a/mm/debug.c
+@@ -110,13 +110,57 @@ void __dump_page(struct page *page, cons
+ 	else if (PageAnon(page))
+ 		type = "anon ";
+ 	else if (mapping) {
+-		if (mapping->host && mapping->host->i_dentry.first) {
+-			struct dentry *dentry;
+-			dentry = container_of(mapping->host->i_dentry.first, struct dentry, d_u.d_alias);
+-			pr_warn("%ps name:\"%pd\"\n", mapping->a_ops, dentry);
+-		} else
+-			pr_warn("%ps\n", mapping->a_ops);
++		const struct inode *host;
++		const struct address_space_operations *a_ops;
++		const struct hlist_node *dentry_first;
++		const struct dentry *dentry_ptr;
++		struct dentry dentry;
++
++		/*
++		 * mapping can be invalid pointer and we don't want to crash
++		 * accessing it, so probe everything depending on it carefully
++		 */
++		if (probe_kernel_read_strict(&host, &mapping->host,
++						sizeof(struct inode *)) ||
++		    probe_kernel_read_strict(&a_ops, &mapping->a_ops,
++				sizeof(struct address_space_operations *))) {
++			pr_warn("failed to read mapping->host or a_ops, mapping not a valid kernel address?\n");
++			goto out_mapping;
++		}
++
++		if (!host) {
++			pr_warn("mapping->a_ops:%ps\n", a_ops);
++			goto out_mapping;
++		}
++
++		if (probe_kernel_read_strict(&dentry_first,
++			&host->i_dentry.first, sizeof(struct hlist_node *))) {
++			pr_warn("mapping->a_ops:%ps with invalid mapping->host inode address %px\n",
++				a_ops, host);
++			goto out_mapping;
++		}
++
++		if (!dentry_first) {
++			pr_warn("mapping->a_ops:%ps\n", a_ops);
++			goto out_mapping;
++		}
++
++		dentry_ptr = container_of(dentry_first, struct dentry, d_u.d_alias);
++		if (probe_kernel_read_strict(&dentry, dentry_ptr,
++							sizeof(struct dentry))) {
++			pr_warn("mapping->aops:%ps with invalid mapping->host->i_dentry.first %px\n",
++				a_ops, dentry_ptr);
++		} else {
++			/*
++			 * if dentry is corrupted, the %pd handler may still
++			 * crash, but it's unlikely that we reach here with a
++			 * corrupted struct page
++			 */
++			pr_warn("mapping->aops:%ps dentry name:\"%pd\"\n",
++								a_ops, &dentry);
++		}
  	}
- }
++out_mapping:
+ 	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
  
+ 	pr_warn("%sflags: %#lx(%pGp)%s\n", type, page->flags, &page->flags,
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-ramfs-support-o_tmpfile.patch
-proc-rename-catch-function-argument.patch
+mm-dump_page-do-not-crash-with-invalid-mapping-pointer.patch
