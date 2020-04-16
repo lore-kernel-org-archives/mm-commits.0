@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-msg-add-missing-annotation-for-freeque.patch added
- to -mm tree
-Date: Wed, 15 Apr 2020 20:04:04 -0700
-Message-ID: <20200416030404.8akcDrLiK%akpm@linux-foundation.org>
+Subject: +
+ mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init.patch
+ added to -mm tree
+Date: Wed, 15 Apr 2020 20:11:54 -0700
+Message-ID: <20200416031154.Itbk-Om-C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40240 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52358 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388679AbgDPDEF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 23:04:05 -0400
+        id S2388679AbgDPDL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 23:11:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, boqun.feng@gmail.com, dave@stgolabs.net, jbi.octave@gmail.com, manfred@colorfullife.com, mm-commits@vger.kernel.org, natechancellor@gmail.com, shuaibinglu@126.com
+To: dan.j.williams@intel.com, daniel.m.jordan@oracle.com, david@redhat.com, jmorris@namei.org, ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, sashal@kernel.org, shile.zhang@linux.alibaba.com, stable@vger.kernel.org, vbabka@suse.cz, yiwei@redhat.com
 
 
 The patch titled
-     Subject: ipc/msg: add missing annotation for freeque()
+     Subject: mm/pagealloc.c: call touch_nmi_watchdog() on max order boundaries in deferred init
 has been added to the -mm tree.  Its filename is
-     ipc-msg-add-missing-annotation-for-freeque.patch
+     mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-msg-add-missing-annotation-for-freeque.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-msg-add-missing-annotation-for-freeque.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,46 +37,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jules Irenge <jbi.octave@gmail.com>
-Subject: ipc/msg: add missing annotation for freeque()
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: mm/pagealloc.c: call touch_nmi_watchdog() on max order boundaries in deferred init
 
-Sparse reports a warning at freeque()
+Patch series "initialize deferred pages with interrupts enabled", v4.
 
-warning: context imbalance in freeque() - unexpected unlock
+Keep interrupts enabled during deferred page initialization in order to
+make code more modular and allow jiffies to update.
 
-The root cause is the missing annotation at freeque()
+Original approach, and discussion can be found here:
+ http://lkml.kernel.org/r/20200311123848.118638-1-shile.zhang@linux.alibaba.com
 
-Add the missing __releases(RCU) annotation
-Add the missing __releases(&msq->q_perm) annotation
 
-Link: http://lkml.kernel.org/r/20200403160505.2832-2-jbi.octave@gmail.com
-Signed-off-by: Jules Irenge <jbi.octave@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Lu Shuaibing <shuaibinglu@126.com>
-Cc: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+This patch (of 3):
+
+deferred_init_memmap() disables interrupts the entire time, so it calls
+touch_nmi_watchdog() periodically to avoid soft lockup splats.  Soon it
+will run with interrupts enabled, at which point cond_resched() should be
+used instead.
+
+deferred_grow_zone() makes the same watchdog calls through code shared
+with deferred init but will continue to run with interrupts disabled, so
+it can't call cond_resched().
+
+Pull the watchdog calls up to these two places to allow the first to be
+changed later, independently of the second.  The frequency reduces from
+twice per pageblock (init and free) to once per max order block.
+
+Link: http://lkml.kernel.org/r/20200403140952.17177-2-pasha.tatashin@soleen.com
+Fixes: 3a2d7fa8a3d5 ("mm: disable interrupts while initializing deferred pages")
+Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Yiqian Wei <yiwei@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_alloc.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/ipc/msg.c~ipc-msg-add-missing-annotation-for-freeque
-+++ a/ipc/msg.c
-@@ -268,6 +268,8 @@ static void expunge_all(struct msg_queue
-  * before freeque() is called. msg_ids.rwsem remains locked on exit.
-  */
- static void freeque(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp)
-+	__releases(RCU)
-+	__releases(&msq->q_perm)
- {
- 	struct msg_msg *msg, *t;
- 	struct msg_queue *msq = container_of(ipcp, struct msg_queue, q_perm);
+--- a/mm/page_alloc.c~mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init
++++ a/mm/page_alloc.c
+@@ -1692,7 +1692,6 @@ static void __init deferred_free_pages(u
+ 		} else if (!(pfn & nr_pgmask)) {
+ 			deferred_free_range(pfn - nr_free, nr_free);
+ 			nr_free = 1;
+-			touch_nmi_watchdog();
+ 		} else {
+ 			nr_free++;
+ 		}
+@@ -1722,7 +1721,6 @@ static unsigned long  __init deferred_in
+ 			continue;
+ 		} else if (!page || !(pfn & nr_pgmask)) {
+ 			page = pfn_to_page(pfn);
+-			touch_nmi_watchdog();
+ 		} else {
+ 			page++;
+ 		}
+@@ -1862,8 +1860,10 @@ static int __init deferred_init_memmap(v
+ 	 * that we can avoid introducing any issues with the buddy
+ 	 * allocator.
+ 	 */
+-	while (spfn < epfn)
++	while (spfn < epfn) {
+ 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
++		touch_nmi_watchdog();
++	}
+ zone_empty:
+ 	pgdat_resize_unlock(pgdat, &flags);
+ 
+@@ -1947,6 +1947,7 @@ deferred_grow_zone(struct zone *zone, un
+ 		first_deferred_pfn = spfn;
+ 
+ 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
++		touch_nmi_watchdog();
+ 
+ 		/* We should only stop along section boundaries */
+ 		if ((first_deferred_pfn ^ spfn) < PAGES_PER_SECTION)
 _
 
-Patches currently in -mm which might be from jbi.octave@gmail.com are
+Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
 
-ocfs2-add-missing-annotation-for-dlm_empty_lockres.patch
-ipc-msg-add-missing-annotation-for-freeque.patch
+mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init.patch
