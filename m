@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch added to -mm
- tree
-Date: Wed, 15 Apr 2020 17:51:07 -0700
-Message-ID: <20200416005107.WicT7RuPU%akpm@linux-foundation.org>
+ i915-gvt-kvm-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch added to
+ -mm tree
+Date: Wed, 15 Apr 2020 17:51:10 -0700
+Message-ID: <20200416005110.ML5lOes_6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40160 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40200 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405058AbgDPAvK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Apr 2020 20:51:10 -0400
+        id S2405141AbgDPAvL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Apr 2020 20:51:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexander.deucher@amd.com, axboe@kernel.dk, balbi@kernel.org, Felix.Kuehling@amd.com, hch@lst.de, jasowang@redhat.com, mm-commits@vger.kernel.org, mst@redhat.com, viro@zeniv.linux.org.uk, zhenyuw@linux.intel.com, zhi.a.wang@intel.com
 
 
 The patch titled
-     Subject: amdgpu: a NULL ->mm does not mean a thread is a kthread
+     Subject: i915/gvt/kvm: a NULL ->mm does not mean a thread is a kthread
 has been added to the -mm tree.  Its filename is
-     amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+     i915-gvt-kvm-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/i915-gvt-kvm-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/i915-gvt-kvm-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,49 +38,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: amdgpu: a NULL ->mm does not mean a thread is a kthread
-
-Patch series "improve use_mm / unuse_mm".
-
-This series improves the use_mm / unuse_mm interface by better documenting
-the assumptions, and my taking the set_fs manipulations spread over the
-callers into the core API.
-
-
-This patch (of 6):
+Subject: i915/gvt/kvm: a NULL ->mm does not mean a thread is a kthread
 
 Use the proper API instead.
 
-Link: http://lkml.kernel.org/r/20200404094101.672954-1-hch@lst.de
-Link: http://lkml.kernel.org/r/20200404094101.672954-2-hch@lst.de
-Fixes: 70539bd795002 ("drm/amd: Update MEC HQD loading code for KFD")
+Link: http://lkml.kernel.org/r/20200404094101.672954-3-hch@lst.de
+Fixes: f440c8a572d7 ("drm/i915/gvt/kvmgt: read/write GPA via KVM API")
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
-Cc: Zhi Wang <zhi.a.wang@intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Felipe Balbi <balbi@kernel.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
+Cc: Zhi Wang <zhi.a.wang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h |    2 +-
+ drivers/gpu/drm/i915/gvt/kvmgt.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h~amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h
-@@ -190,7 +190,7 @@ uint8_t amdgpu_amdkfd_get_xgmi_hops_coun
- 			pagefault_disable();				\
- 			if ((mmptr) == current->mm) {			\
- 				valid = !get_user((dst), (wptr));	\
--			} else if (current->mm == NULL) {		\
-+			} else if (current->flags & PF_KTHREAD) {	\
- 				use_mm(mmptr);				\
- 				valid = !get_user((dst), (wptr));	\
- 				unuse_mm(mmptr);			\
+--- a/drivers/gpu/drm/i915/gvt/kvmgt.c~i915-gvt-kvm-a-null-mm-does-not-mean-a-thread-is-a-kthread
++++ a/drivers/gpu/drm/i915/gvt/kvmgt.c
+@@ -2037,7 +2037,7 @@ static int kvmgt_rw_gpa(unsigned long ha
+ 	struct kvmgt_guest_info *info;
+ 	struct kvm *kvm;
+ 	int idx, ret;
+-	bool kthread = current->mm == NULL;
++	bool kthread = (current->flags & PF_KTHREAD);
+ 
+ 	if (!handle_valid(handle))
+ 		return -ESRCH;
 _
 
 Patches currently in -mm which might be from hch@lst.de are
