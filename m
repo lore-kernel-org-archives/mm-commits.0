@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch added
- to -mm tree
-Date: Fri, 17 Apr 2020 16:07:02 -0700
-Message-ID: <20200417230702.12XIlhD3G%akpm@linux-foundation.org>
+Subject: +
+ kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch added to
+ -mm tree
+Date: Fri, 17 Apr 2020 16:07:05 -0700
+Message-ID: <20200417230705.9rskNzXCy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34800 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34852 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726036AbgDQXHE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 19:07:04 -0400
+        id S1726036AbgDQXHH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 19:07:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexander.deucher@amd.com, axboe@kernel.dk, balbi@kernel.org, Felix.Kuehling@amd.com, gregkh@linuxfoundation.org, hch@lst.de, jasowang@redhat.com, mm-commits@vger.kernel.org, mst@redhat.com, viro@zeniv.linux.org.uk, zhenyuw@linux.intel.com, zhi.a.wang@intel.com
 
 
 The patch titled
-     Subject: kernel: move use_mm/unuse_mm to kthread.c
+     Subject: kernel-better-document-the-use_mm-unuse_mm-api-contract-v2
 has been added to the -mm tree.  Its filename is
-     kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
+     kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,11 +38,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: kernel: move use_mm/unuse_mm to kthread.c
+Subject: kernel-better-document-the-use_mm-unuse_mm-api-contract-v2
 
-cover the newly merged use_mm/unuse_mm caller in vfio
+fix a comment typo, cover the newly merged use_mm/unuse_mm caller in vfio
 
-Link: http://lkml.kernel.org/r/20200416053158.586887-2-hch@lst.de
+Link: http://lkml.kernel.org/r/20200416053158.586887-3-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
 Cc: Alex Deucher <alexander.deucher@amd.com>
@@ -56,20 +57,41 @@ Cc: Zhi Wang <zhi.a.wang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vfio/vfio_iommu_type1.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/vfio/vfio_iommu_type1.c |    4 ++--
+ kernel/kthread.c                |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/vfio/vfio_iommu_type1.c~kernel-move-use_mm-unuse_mm-to-kthreadc-v2
+--- a/drivers/vfio/vfio_iommu_type1.c~kernel-better-document-the-use_mm-unuse_mm-api-contract-v2
 +++ a/drivers/vfio/vfio_iommu_type1.c
-@@ -27,7 +27,7 @@
- #include <linux/iommu.h>
- #include <linux/module.h>
- #include <linux/mm.h>
--#include <linux/mmu_context.h>
-+#include <linux/kthread.h>
- #include <linux/rbtree.h>
- #include <linux/sched/signal.h>
- #include <linux/sched/mm.h>
+@@ -2333,7 +2333,7 @@ static int vfio_iommu_type1_dma_rw_chunk
+ 		return -EPERM;
+ 
+ 	if (kthread)
+-		use_mm(mm);
++		kthread_use_mm(mm);
+ 	else if (current->mm != mm)
+ 		goto out;
+ 
+@@ -2351,7 +2351,7 @@ static int vfio_iommu_type1_dma_rw_chunk
+ 		*copied = __copy_from_user(data, (void __user *)vaddr,
+ 					   count) ? 0 : count;
+ 	if (kthread)
+-		unuse_mm(mm);
++		kthread_unuse_mm(mm);
+ out:
+ 	mmput(mm);
+ 	return *copied ? 0 : -EFAULT;
+--- a/kernel/kthread.c~kernel-better-document-the-use_mm-unuse_mm-api-contract-v2
++++ a/kernel/kthread.c
+@@ -1239,7 +1239,7 @@ void kthread_use_mm(struct mm_struct *mm
+ EXPORT_SYMBOL_GPL(kthread_use_mm);
+ 
+ /**
+- * kthread_use_mm - reverse the effect of kthread_use_mm()
++ * kthread_unuse_mm - reverse the effect of kthread_use_mm()
+  * @mm: address space to operate on
+  */
+ void kthread_unuse_mm(struct mm_struct *mm)
 _
 
 Patches currently in -mm which might be from hch@lst.de are
