@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + selftests-vm-pkeys-fix-pkey_disable_clear.patch added
- to -mm tree
-Date: Fri, 17 Apr 2020 16:30:30 -0700
-Message-ID: <20200417233030.zmE0HgR4u%akpm@linux-foundation.org>
+Subject: +
+ selftests-vm-pkeys-fix-assertion-in-pkey_disable_set-clear.patch added to
+ -mm tree
+Date: Fri, 17 Apr 2020 16:30:33 -0700
+Message-ID: <20200417233033.6ER4FjkEz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47952 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48028 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726036AbgDQXad (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 19:30:33 -0400
+        id S1726036AbgDQXaf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 19:30:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com, dave.hansen@intel.com, desnesn@linux.vnet.ibm.com, fweimer@redhat.com, linuxram@us.ibm.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: selftests/vm/pkeys: fix pkey_disable_clear()
+     Subject: selftests/vm/pkeys: fix assertion in pkey_disable_set/clear()
 has been added to the -mm tree.  Its filename is
-     selftests-vm-pkeys-fix-pkey_disable_clear.patch
+     selftests-vm-pkeys-fix-assertion-in-pkey_disable_set-clear.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-fix-pkey_disable_clear.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-fix-assertion-in-pkey_disable_set-clear.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-fix-pkey_disable_clear.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-fix-assertion-in-pkey_disable_set-clear.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,13 +38,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ram Pai <linuxram@us.ibm.com>
-Subject: selftests/vm/pkeys: fix pkey_disable_clear()
+Subject: selftests/vm/pkeys: fix assertion in pkey_disable_set/clear()
 
-Currently, pkey_disable_clear() sets the specified bits instead clearing
-them.  This has been dead code up to now because its only callers i.e. 
-pkey_access/write_allow() are also unused.
+In some cases, a pkey's bits need not necessarily change in a way that the
+value of the pkey register increases when performing a pkey_disable_set()
+or decreases when performing a pkey_disable_clear().
 
-Link: http://lkml.kernel.org/r/1f70bca60330a85dca42c3cd98212bb1cdf5a076.1585646528.git.sandipan@linux.ibm.com
+For example, on powerpc, if a pkey's current state is PKEY_DISABLE_ACCESS
+and we perform a pkey_write_disable() on it, the bits still remain the
+same.  We will observe something similar when the pkey's current state is
+0 and a pkey_access_enable() is performed on it.
+
+Either case would cause some assertions to fail.  This fixes the problem.
+
+Link: http://lkml.kernel.org/r/8240665131e43fc93eed4eea8194676c1ea39a7f.1585646528.git.sandipan@linux.ibm.com
 Signed-off-by: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Sandipan Das <sandipan@linux.ibm.com>
 Acked-by: Dave Hansen <dave.hansen@intel.com>
@@ -63,23 +71,23 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  tools/testing/selftests/vm/protection_keys.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-fix-pkey_disable_clear
+--- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-fix-assertion-in-pkey_disable_set-clear
 +++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -418,7 +418,7 @@ void pkey_disable_clear(int pkey, int fl
- 			pkey, pkey, pkey_rights);
- 	pkey_assert(pkey_rights >= 0);
- 
--	pkey_rights |= flags;
-+	pkey_rights &= ~flags;
- 
- 	ret = hw_pkey_set(pkey, pkey_rights, 0);
- 	shadow_pkey_reg = set_pkey_bits(shadow_pkey_reg, pkey, pkey_rights);
+@@ -400,7 +400,7 @@ void pkey_disable_set(int pkey, int flag
+ 	dprintf1("%s(%d) pkey_reg: 0x%016llx\n",
+ 		__func__, pkey, read_pkey_reg());
+ 	if (flags)
+-		pkey_assert(read_pkey_reg() > orig_pkey_reg);
++		pkey_assert(read_pkey_reg() >= orig_pkey_reg);
+ 	dprintf1("END<---%s(%d, 0x%x)\n", __func__,
+ 		pkey, flags);
+ }
 @@ -431,7 +431,7 @@ void pkey_disable_clear(int pkey, int fl
  	dprintf1("%s(%d) pkey_reg: 0x%016llx\n", __func__,
  			pkey, read_pkey_reg());
  	if (flags)
--		assert(read_pkey_reg() > orig_pkey_reg);
-+		assert(read_pkey_reg() < orig_pkey_reg);
+-		assert(read_pkey_reg() < orig_pkey_reg);
++		assert(read_pkey_reg() <= orig_pkey_reg);
  }
  
  void pkey_write_allow(int pkey)
