@@ -1,123 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-handle-umounts-cleanly.patch removed from
- -mm tree
-Date: Thu, 16 Apr 2020 20:39:09 -0700
-Message-ID: <20200417033909.VRoQ0bBsG%akpm@linux-foundation.org>
+Subject: + shmem-fix-possible-deadlocks-on-shmlock_user_lock.patch
+ added to -mm tree
+Date: Thu, 16 Apr 2020 20:55:57 -0700
+Message-ID: <20200417035557.hgbVU-p3H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49812 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725947AbgDQDjK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Apr 2020 23:39:10 -0400
+        id S1725294AbgDQDz6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Apr 2020 23:55:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, avagin@gmail.com, bernd.edlinger@hotmail.de, christian.brauner@ubuntu.com, ebiederm@xmission.com, gladkov.alexey@gmail.com, guro@fb.com, kent.overstreet@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: hughd@google.com, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: proc: handle umounts cleanly
-has been removed from the -mm tree.  Its filename was
-     proc-handle-umounts-cleanly.patch
+     Subject: shmem: fix possible deadlocks on shmlock_user_lock
+has been added to the -mm tree.  Its filename is
+     shmem-fix-possible-deadlocks-on-shmlock_user_lock.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/shmem-fix-possible-deadlocks-on-shmlock_user_lock.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-fix-possible-deadlocks-on-shmlock_user_lock.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: proc: handle umounts cleanly
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: fix possible deadlocks on shmlock_user_lock
 
-syzbot writes:
-> KASAN: use-after-free Read in dput (2)
->
-> proc_fill_super: allocate dentry failed
-> ==================================================================
-> BUG: KASAN: use-after-free in fast_dput fs/dcache.c:727 [inline]
-> BUG: KASAN: use-after-free in dput+0x53e/0xdf0 fs/dcache.c:846
-> Read of size 4 at addr ffff88808a618cf0 by task syz-executor.0/8426
->
-> CPU: 0 PID: 8426 Comm: syz-executor.0 Not tainted 5.6.0-next-20200412-syzkaller #0
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-> Call Trace:
->  __dump_stack lib/dump_stack.c:77 [inline]
->  dump_stack+0x188/0x20d lib/dump_stack.c:118
->  print_address_description.constprop.0.cold+0xd3/0x315 mm/kasan/report.c:382
->  __kasan_report.cold+0x35/0x4d mm/kasan/report.c:511
->  kasan_report+0x33/0x50 mm/kasan/common.c:625
->  fast_dput fs/dcache.c:727 [inline]
->  dput+0x53e/0xdf0 fs/dcache.c:846
->  proc_kill_sb+0x73/0xf0 fs/proc/root.c:195
->  deactivate_locked_super+0x8c/0xf0 fs/super.c:335
->  vfs_get_super+0x258/0x2d0 fs/super.c:1212
->  vfs_get_tree+0x89/0x2f0 fs/super.c:1547
->  do_new_mount fs/namespace.c:2813 [inline]
->  do_mount+0x1306/0x1b30 fs/namespace.c:3138
->  __do_sys_mount fs/namespace.c:3347 [inline]
->  __se_sys_mount fs/namespace.c:3324 [inline]
->  __x64_sys_mount+0x18f/0x230 fs/namespace.c:3324
->  do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
->  entry_SYSCALL_64_after_hwframe+0x49/0xb3
-> RIP: 0033:0x45c889
-> Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-> RSP: 002b:00007ffc1930ec48 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-> RAX: ffffffffffffffda RBX: 0000000001324914 RCX: 000000000045c889
-> RDX: 0000000020000140 RSI: 0000000020000040 RDI: 0000000000000000
-> RBP: 000000000076bf00 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
-> R13: 0000000000000749 R14: 00000000004ca15a R15: 0000000000000013
+Recent commit 71725ed10c40 ("mm: huge tmpfs: try to split_huge_page() when
+punching hole") has allowed syzkaller to probe deeper, uncovering a
+long-standing lockdep issue between the irq-unsafe shmlock_user_lock, the
+irq-safe xa_lock on mapping->i_pages, and shmem inode's info->lock which
+nests inside xa_lock (or tree_lock) since 4.8's shmem_uncharge().
 
-Looking at the code now that it the internal mount of proc is no longer
-used it is possible to unmount proc.  If proc is unmounted the fields of
-the pid namespace that were used for filesystem specific state are not
-reinitialized.
+user_shm_lock(), servicing SysV shmctl(SHM_LOCK), wants shmlock_user_lock
+while its caller shmem_lock() holds info->lock with interrupts disabled;
+but hugetlbfs_file_setup() calls user_shm_lock() with interrupts enabled,
+and might be interrupted by a writeback endio wanting xa_lock on i_pages. 
+This may not risk an actual deadlock, since shmem inodes do not take part
+in writeback accounting, but there are several easy ways to avoid it.
 
-Which means that proc_self and proc_thread_self can be pointers to already
-freed dentries.
+Requiring interrupts disabled for shmlock_user_lock would be easy, but
+it's a high-level global lock for which that seems inappropriate. 
+Instead, recall that the use of info->lock to guard info->flags in
+shmem_lock() dates from pre-3.1 days, when races with SHMEM_PAGEIN and
+SHMEM_TRUNCATE could occur: nowadays it serves no purpose, the only flag
+added or removed is VM_LOCKED itself, and calls to shmem_lock() an inode
+are already serialized by the caller.  Take info->lock out of the chain
+and the possibility of deadlock or lockdep warning goes away.
 
-The reported user after free appears to be from mounting and unmounting
-proc followed by mounting proc again and using error injection to cause
-the new root dentry allocation to fail.  This in turn results in
-proc_kill_sb running with proc_self and proc_thread_self still retaining
-their values from the previous mount of proc.  Then calling dput on either
-proc_self of proc_thread_self will result in double put.  Which KASAN sees
-as a use after free.
-
-Solve this by always reinitializing the filesystem state stored in the
-struct pid_namespace, when proc is unmounted.
-
-Link: http://lkml.kernel.org/r/878siwioxj.fsf@x220.int.ebiederm.org
-Fixes: 69879c01a0c3 ("proc: Remove the now unnecessary internal mount of proc")
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Reported-by: syzbot+72868dd424eb66c6b95f@syzkaller.appspotmail.com
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Bernd Edlinger <bernd.edlinger@hotmail.de>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2004161707410.16322@eggly.anvils
+Reported-by: syzbot+c8a8197c8852f566b9d9@syzkaller.appspotmail.com
+Link: https://lore.kernel.org/lkml/000000000000e5838c05a3152f53@google.com/
+Reported-by: syzbot+40b71e145e73f78f81ad@syzkaller.appspotmail.com
+Link: https://lore.kernel.org/lkml/0000000000003712b305a331d3b1@google.com/
+Fixes: 4595ef88d136 ("shmem: make shmem_inode_info::lock irq-safe")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Acked-by: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/root.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/shmem.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/fs/proc/root.c~proc-handle-umounts-cleanly
-+++ a/fs/proc/root.c
-@@ -196,6 +196,13 @@ static void proc_kill_sb(struct super_bl
- 	if (ns->proc_thread_self)
- 		dput(ns->proc_thread_self);
- 	kill_anon_super(sb);
-+
-+	/* Make the pid namespace safe for a new mount of proc */
-+	ns->proc_self = NULL;
-+	ns->proc_thread_self = NULL;
-+	ns->pid_gid = GLOBAL_ROOT_GID;
-+	ns->hide_pid = 0;
-+
- 	put_pid_ns(ns);
+--- a/mm/shmem.c~shmem-fix-possible-deadlocks-on-shmlock_user_lock
++++ a/mm/shmem.c
+@@ -2179,7 +2179,11 @@ int shmem_lock(struct file *file, int lo
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	int retval = -ENOMEM;
+ 
+-	spin_lock_irq(&info->lock);
++	/*
++	 * What serializes the accesses to info->flags?
++	 * ipc_lock_object() when called from shmctl_do_lock(),
++	 * no serialization needed when called from shm_destroy().
++	 */
+ 	if (lock && !(info->flags & VM_LOCKED)) {
+ 		if (!user_shm_lock(inode->i_size, user))
+ 			goto out_nomem;
+@@ -2194,7 +2198,6 @@ int shmem_lock(struct file *file, int lo
+ 	retval = 0;
+ 
+ out_nomem:
+-	spin_unlock_irq(&info->lock);
+ 	return retval;
  }
  
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from hughd@google.com are
+
+mm-shmem-fix-build-without-thp.patch
+shmem-fix-possible-deadlocks-on-shmlock_user_lock.patch
