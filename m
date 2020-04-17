@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- selftests-vm-pkeys-use-the-correct-page-size-on-powerpc.patch added to -mm
- tree
-Date: Fri, 17 Apr 2020 16:31:15 -0700
-Message-ID: <20200417233115.APHeAmw0z%akpm@linux-foundation.org>
+Subject: + selftests-vm-pkeys-fix-multilib-builds-for-x86.patch
+ added to -mm tree
+Date: Fri, 17 Apr 2020 16:31:18 -0700
+Message-ID: <20200417233118.aTu5-HA5S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48898 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726036AbgDQXbR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 19:31:17 -0400
+        id S1728187AbgDQXbV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 19:31:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com, dave.hansen@intel.com, desnesn@linux.vnet.ibm.com, fweimer@redhat.com, linuxram@us.ibm.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: pkeys: use the correct page size on powerpc
+     Subject: selftests: vm: pkeys: fix multilib builds for x86
 has been added to the -mm tree.  Its filename is
-     selftests-vm-pkeys-use-the-correct-page-size-on-powerpc.patch
+     selftests-vm-pkeys-fix-multilib-builds-for-x86.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-use-the-correct-page-size-on-powerpc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-fix-multilib-builds-for-x86.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-use-the-correct-page-size-on-powerpc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-fix-multilib-builds-for-x86.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,20 +37,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sandipan Das <sandipan@linux.ibm.com>
-Subject: selftests: vm: pkeys: use the correct page size on powerpc
+Subject: selftests: vm: pkeys: fix multilib builds for x86
 
-Both 4K and 64K pages are supported on powerpc.  Parts of the selftest
-code perform alignment computations based on the PAGE_SIZE macro which is
-currently hardcoded to 64K for powerpc.  This causes some test failures on
-kernels configured with 4K page size.
+This ensures that both 32-bit and 64-bit binaries are generated when this
+is built on a x86_64 system.  Most of the changes have been borrowed from
+tools/testing/selftests/x86/Makefile.
 
-In some cases, we need to enforce function alignment on page size.  Since
-this can only be done at build time, 64K is used as the alignment factor
-as that also ensures 4K alignment.
-
-Link: http://lkml.kernel.org/r/5dcdfbf3353acdc90f315172e800b49f5ca21299.1585646528.git.sandipan@linux.ibm.com
+Link: http://lkml.kernel.org/r/0326a442214d7a1b970d38296e63df3b217f5912.1585646528.git.sandipan@linux.ibm.com
 Signed-off-by: Sandipan Das <sandipan@linux.ibm.com>
 Acked-by: Dave Hansen <dave.hansen@intel.com>
+Tested-by: Dave Hansen <dave.hansen@intel.com>
 Cc: "Desnes A. Nunes do Rosario" <desnesn@linux.vnet.ibm.com>
 Cc: Florian Weimer <fweimer@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
@@ -65,36 +60,106 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/pkey-powerpc.h    |    2 +-
- tools/testing/selftests/vm/protection_keys.c |    5 +++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/Makefile |   74 +++++++++++++++++++++++++-
+ 1 file changed, 73 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/pkey-powerpc.h~selftests-vm-pkeys-use-the-correct-page-size-on-powerpc
-+++ a/tools/testing/selftests/vm/pkey-powerpc.h
-@@ -36,7 +36,7 @@
- 					     pkey-31 and exec-only key */
- #define PKEY_BITS_PER_PKEY	2
- #define HPAGE_SIZE		(1UL << 24)
--#define PAGE_SIZE		(1UL << 16)
-+#define PAGE_SIZE		sysconf(_SC_PAGESIZE)
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-pkeys-fix-multilib-builds-for-x86
++++ a/tools/testing/selftests/vm/Makefile
+@@ -14,7 +14,6 @@ TEST_GEN_FILES += map_fixed_noreplace
+ TEST_GEN_FILES += map_populate
+ TEST_GEN_FILES += mlock-random-test
+ TEST_GEN_FILES += mlock2-tests
+-TEST_GEN_FILES += protection_keys
+ TEST_GEN_FILES += mremap_dontunmap
+ TEST_GEN_FILES += on-fault-limit
+ TEST_GEN_FILES += thuge-gen
+@@ -22,6 +21,30 @@ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += userfaultfd
+ TEST_GEN_FILES += khugepaged
  
- static inline u32 pkey_bit_position(int pkey)
- {
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-use-the-correct-page-size-on-powerpc
-+++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -146,7 +146,12 @@ void abort_hooks(void)
-  * will then fault, which makes sure that the fault code handles
-  * execute-only memory properly.
-  */
-+#ifdef __powerpc64__
-+/* This way, both 4K and 64K alignment are maintained */
-+__attribute__((__aligned__(65536)))
-+#else
- __attribute__((__aligned__(PAGE_SIZE)))
-+#endif
- void lots_o_noops_around_write(int *write_to_me)
- {
- 	dprintf3("running %s()\n", __func__);
++ifeq ($(ARCH),x86_64)
++CAN_BUILD_I386 := $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_32bit_program.c -m32)
++CAN_BUILD_X86_64 := $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_64bit_program.c)
++CAN_BUILD_WITH_NOPIE := $(shell ./../x86/check_cc.sh $(CC) ../x86/trivial_program.c -no-pie)
++
++TARGETS := protection_keys
++BINARIES_32 := $(TARGETS:%=%_32)
++BINARIES_64 := $(TARGETS:%=%_64)
++
++ifeq ($(CAN_BUILD_WITH_NOPIE),1)
++CFLAGS += -no-pie
++endif
++
++ifeq ($(CAN_BUILD_I386),1)
++TEST_GEN_FILES += $(BINARIES_32)
++endif
++
++ifeq ($(CAN_BUILD_X86_64),1)
++TEST_GEN_FILES += $(BINARIES_64)
++endif
++else
++TEST_GEN_FILES += protection_keys
++endif
++
+ ifneq (,$(filter $(ARCH),arm64 ia64 mips64 parisc64 ppc64 riscv64 s390x sh64 sparc64 x86_64))
+ TEST_GEN_FILES += va_128TBswitch
+ TEST_GEN_FILES += virtual_address_range
+@@ -35,6 +58,55 @@ TEST_FILES := test_vmalloc.sh
+ KSFT_KHDR_INSTALL := 1
+ include ../lib.mk
+ 
++ifeq ($(ARCH),x86_64)
++BINARIES_32 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_32))
++BINARIES_64 := $(patsubst %,$(OUTPUT)/%,$(BINARIES_64))
++
++define gen-target-rule-32
++$(1) $(1)_32: $(OUTPUT)/$(1)_32
++.PHONY: $(1) $(1)_32
++endef
++
++define gen-target-rule-64
++$(1) $(1)_64: $(OUTPUT)/$(1)_64
++.PHONY: $(1) $(1)_64
++endef
++
++ifeq ($(CAN_BUILD_I386),1)
++$(BINARIES_32): CFLAGS += -m32
++$(BINARIES_32): LDLIBS += -lrt -ldl -lm
++$(BINARIES_32): %_32: %.c
++	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
++$(foreach t,$(TARGETS),$(eval $(call gen-target-rule-32,$(t))))
++endif
++
++ifeq ($(CAN_BUILD_X86_64),1)
++$(BINARIES_64): CFLAGS += -m64
++$(BINARIES_64): LDLIBS += -lrt -ldl
++$(BINARIES_64): %_64: %.c
++	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
++$(foreach t,$(TARGETS),$(eval $(call gen-target-rule-64,$(t))))
++endif
++
++# x86_64 users should be encouraged to install 32-bit libraries
++ifeq ($(CAN_BUILD_I386)$(CAN_BUILD_X86_64),01)
++all: warn_32bit_failure
++
++warn_32bit_failure:
++	@echo "Warning: you seem to have a broken 32-bit build" 2>&1;		\
++	echo  "environment. This will reduce test coverage of 64-bit" 2>&1;	\
++	echo  "kernels. If you are using a Debian-like distribution," 2>&1;	\
++	echo  "try:"; 2>&1;							\
++	echo  "";								\
++	echo  "  apt-get install gcc-multilib libc6-i386 libc6-dev-i386";	\
++	echo  "";								\
++	echo  "If you are using a Fedora-like distribution, try:";		\
++	echo  "";								\
++	echo  "  yum install glibc-devel.*i686";				\
++	exit 0;
++endif
++endif
++
+ $(OUTPUT)/userfaultfd: LDLIBS += -lpthread
+ 
+ $(OUTPUT)/mlock-random-test: LDLIBS += -lcap
 _
 
 Patches currently in -mm which might be from sandipan@linux.ibm.com are
