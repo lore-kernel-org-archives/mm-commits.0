@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-mremap_dontunmap-accounting-on-vma-merge.patch
- added to -mm tree
-Date: Fri, 17 Apr 2020 12:22:19 -0700
-Message-ID: <20200417192219.vHY_GEEvf%akpm@linux-foundation.org>
+Subject: + lib-test_lockupc-make-test_inode-static.patch added to
+ -mm tree
+Date: Fri, 17 Apr 2020 15:03:25 -0700
+Message-ID: <20200417220325.TGLMXKdwx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41494 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729702AbgDQTWV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 15:22:21 -0400
+        id S1726638AbgDQWD0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 18:03:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bgeffon@google.com, dvyukov@google.com, jsbarnes@google.com, kirill.shutemov@linux.intel.com, lokeshgidra@google.com, luto@amacapital.net, minchan@kernel.org, mm-commits@vger.kernel.org, sonnyrao@google.com, syzkaller@googlegroups.com, vbabka@suse.cz
+To: hulkci@huawei.com, mm-commits@vger.kernel.org, yanaijie@huawei.com
 
 
 The patch titled
-     Subject: mm: Fix MREMAP_DONTUNMAP accounting on VMA merge
+     Subject: lib/test_lockup.c: make test_inode static
 has been added to the -mm tree.  Its filename is
-     mm-fix-mremap_dontunmap-accounting-on-vma-merge.patch
+     lib-test_lockupc-make-test_inode-static.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-mremap_dontunmap-accounting-on-vma-merge.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_lockupc-make-test_inode-static.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-mremap_dontunmap-accounting-on-vma-merge.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_lockupc-make-test_inode-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,80 +36,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Brian Geffon <bgeffon@google.com>
-Subject: mm: Fix MREMAP_DONTUNMAP accounting on VMA merge
+From: Jason Yan <yanaijie@huawei.com>
+Subject: lib/test_lockup.c: make test_inode static
 
-When remapping a mapping where a portion of a VMA is remapped
-into another portion of the VMA it can cause the VMA to become
-split. During the copy_vma operation the VMA can actually
-be remerged if it's an anonymous VMA whose pages have not yet
-been faulted. This isn't normally a problem because at the end
-of the remap the original portion is unmapped causing it to
-become split again.
+Fix the following sparse warning:
 
-However, MREMAP_DONTUNMAP leaves that original portion in place which
-means that the VMA which was split and then remerged is not actually
-split at the end of the mremap. This patch fixes a bug where
-we don't detect that the VMAs got remerged and we end up
-putting back VM_ACCOUNT on the next mapping which is completely
-unreleated. When that next mapping is unmapped it results in
-incorrectly unaccounting for the memory which was never accounted,
-and eventually we will underflow on the memory comittment.
+lib/test_lockup.c:145:14: warning: symbol 'test_inode' was not declared.
+Should it be static?
 
-There is also another issue which is similar, we're currently
-accouting for the number of pages in the new_vma but that's wrong.
-We need to account for the length of the remap operation as that's
-all that is being added. If there was a mapping already at that
-location its comittment would have been adjusted as part of
-the munmap at the start of the mremap.
-
-A really simple repro can be seen in:
-https://gist.github.com/bgaff/e101ce99da7d9a8c60acc641d07f312c
-
-Link: http://lkml.kernel.org/r/20200417172556.217480-1-bgeffon@google.com
-Fixes: e346b3813067 ("mm/mremap: add MREMAP_DONTUNMAP to mremap()")
-Signed-off-by: Brian Geffon <bgeffon@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Sonny Rao <sonnyrao@google.com>
-Cc: Jesse Barnes <jsbarnes@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/20200417074021.46411-1-yanaijie@huawei.com
+Signed-off-by: Jason Yan <yanaijie@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ lib/test_lockup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mremap.c~mm-fix-mremap_dontunmap-accounting-on-vma-merge
-+++ a/mm/mremap.c
-@@ -413,9 +413,20 @@ static unsigned long move_vma(struct vm_
- 			/* Always put back VM_ACCOUNT since we won't unmap */
- 			vma->vm_flags |= VM_ACCOUNT;
+--- a/lib/test_lockup.c~lib-test_lockupc-make-test_inode-static
++++ a/lib/test_lockup.c
+@@ -142,7 +142,7 @@ module_param(reallocate_pages, bool, 040
+ MODULE_PARM_DESC(reallocate_pages, "free and allocate pages between iterations");
  
--			vm_acct_memory(vma_pages(new_vma));
-+			vm_acct_memory(new_len >> PAGE_SHIFT);
- 		}
- 
-+		/*
-+		 * VMAs can actually be merged back together in copy_vma
-+		 * calling merge_vma. This can happen with anonymous vmas
-+		 * which have not yet been faulted, so if we were to consider
-+		 * this VMA split we'll end up adding VM_ACCOUNT on the
-+		 * next VMA, which is completely unrelated if this VMA
-+		 * was re-merged.
-+		 */
-+		if (split && new_vma == vma)
-+			split = 0;
-+
- 		/* We always clear VM_LOCKED[ONFAULT] on the old vma */
- 		vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
- 
+ struct file *test_file;
+-struct inode *test_inode;
++static struct inode *test_inode;
+ static char test_file_path[256];
+ module_param_string(file_path, test_file_path, sizeof(test_file_path), 0400);
+ MODULE_PARM_DESC(file_path, "file path to test");
 _
 
-Patches currently in -mm which might be from bgeffon@google.com are
+Patches currently in -mm which might be from yanaijie@huawei.com are
 
-mm-fix-mremap_dontunmap-accounting-on-vma-merge.patch
+userc-make-uidhash_table-static.patch
+lib-test_lockupc-make-test_inode-static.patch
