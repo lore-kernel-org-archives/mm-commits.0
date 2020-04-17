@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-add-arch_hugetlb_valid_size.patch added to
+Subject: +
+ hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code.patch added to
  -mm tree
-Date: Fri, 17 Apr 2020 12:17:16 -0700
-Message-ID: <20200417191716.E7O-QQCvY%akpm@linux-foundation.org>
+Date: Fri, 17 Apr 2020 12:17:21 -0700
+Message-ID: <20200417191721.Ok9accc8i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39256 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728260AbgDQTRT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 15:17:19 -0400
+        id S1728260AbgDQTRY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 15:17:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: almasrymina@google.com, aou@eecs.berkeley.edu, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, christophe.leroy@c-s.fr, corbet@lwn.net, dave.hansen@linux.intel.com, davem@davemloft.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com, longpeng2@huawei.com, mike.kravetz@oracle.com, mingo@redhat.com, mm-commits@vger.kernel.org, nitesh@redhat.com, palmer@dabbelt.com, paul.walmsley@sifive.com, paulus@samba.org, peterx@redhat.com, rdunlap@infradead.org, tglx@linutronix.de, will@kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: add arch_hugetlb_valid_size
+     Subject: hugetlbfs: move hugepagesz= parsing to arch independent code
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-add-arch_hugetlb_valid_size.patch
+     hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-add-arch_hugetlb_valid_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-move-hugepagesz%3D-parsing-to-arch-independent-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-add-arch_hugetlb_valid_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-move-hugepagesz%3D-parsing-to-arch-independent-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,353 +38,258 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlbfs: add arch_hugetlb_valid_size
+Subject: hugetlbfs: move hugepagesz= parsing to arch independent code
 
-Patch series "Clean up hugetlb boot command line processing", v3.
+Now that architectures provide arch_hugetlb_valid_size(), parsing of
+"hugepagesz=" can be done in architecture independent code.  Create a
+single routine to handle hugepagesz= parsing and remove all arch specific
+routines.  We can also remove the interface hugetlb_bad_size() as this is
+no longer used outside arch independent code.
 
-Longpeng(Mike) reported a weird message from hugetlb command line processing
-and proposed a solution [1].  While the proposed patch does address the
-specific issue, there are other related issues in command line processing.
-As hugetlbfs evolved, updates to command line processing have been made to
-meet immediate needs and not necessarily in a coordinated manner.  The result
-is that some processing is done in arch specific code, some is done in arch
-independent code and coordination is problematic.  Semantics can vary between
-architectures.
+This also provides consistent behavior of hugetlbfs command line options. 
+The hugepagesz= option should only be specified once for a specific size,
+but some architectures allow multiple instances.  This appears to be more
+of an oversight when code was added by some architectures to set up ALL
+huge pages sizes.
 
-The patch series does the following:
-- Define arch specific arch_hugetlb_valid_size routine used to validate
-  passed huge page sizes.
-- Move hugepagesz= command line parsing out of arch specific code and into
-  an arch independent routine.
-- Clean up command line processing to follow desired semantics and
-  document those semantics.
-
-[1] https://lore.kernel.org/linux-mm/20200305033014.1152-1-longpeng2@huawei.com
-
-
-This patch (of 3):
-
-The architecture independent routine hugetlb_default_setup sets up the
-default huge pages size.  It has no way to verify if the passed value is
-valid, so it accepts it and attempts to validate at a later time.  This
-requires undocumented cooperation between the arch specific and arch
-independent code.
-
-For architectures that support more than one huge page size, provide a
-routine arch_hugetlb_valid_size to validate a huge page size. 
-hugetlb_default_setup can use this to validate passed values.
-
-arch_hugetlb_valid_size will also be used in a subsequent patch to move
-processing of the "hugepagesz=" in arch specific code to a common routine
-in arch independent code.
-
-Link: http://lkml.kernel.org/r/20200417185049.275845-2-mike.kravetz@oracle.com
+Link: http://lkml.kernel.org/r/20200417185049.275845-3-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Acked-by: Mina Almasry <almasrymina@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Longpeng <longpeng2@huawei.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Peter Xu <peterx@redhat.com>
 Cc: Nitesh Narayan Lal <nitesh@redhat.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/hugetlbpage.c   |   17 +++++++++++++----
- arch/powerpc/mm/hugetlbpage.c |   20 +++++++++++++-------
- arch/riscv/mm/hugetlbpage.c   |   26 +++++++++++++++++---------
- arch/s390/mm/hugetlbpage.c    |   16 ++++++++++++----
- arch/sparc/mm/init_64.c       |   24 ++++++++++++++++--------
- arch/x86/mm/hugetlbpage.c     |   17 +++++++++++++----
- include/linux/hugetlb.h       |    1 +
- mm/hugetlb.c                  |   21 ++++++++++++++++++---
- 8 files changed, 103 insertions(+), 39 deletions(-)
+ arch/arm64/mm/hugetlbpage.c   |   15 ---------------
+ arch/powerpc/mm/hugetlbpage.c |   15 ---------------
+ arch/riscv/mm/hugetlbpage.c   |   16 ----------------
+ arch/s390/mm/hugetlbpage.c    |   18 ------------------
+ arch/sparc/mm/init_64.c       |   22 ----------------------
+ arch/x86/mm/hugetlbpage.c     |   16 ----------------
+ include/linux/hugetlb.h       |    1 -
+ mm/hugetlb.c                  |   23 +++++++++++++++++------
+ 8 files changed, 17 insertions(+), 109 deletions(-)
 
---- a/arch/arm64/mm/hugetlbpage.c~hugetlbfs-add-arch_hugetlb_valid_size
+--- a/arch/arm64/mm/hugetlbpage.c~hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code
 +++ a/arch/arm64/mm/hugetlbpage.c
-@@ -471,17 +471,26 @@ static int __init hugetlbpage_init(void)
- }
- arch_initcall(hugetlbpage_init);
+@@ -485,18 +485,3 @@ bool __init arch_hugetlb_valid_size(unsi
  
+ 	return false;
+ }
+-
 -static __init int setup_hugepagesz(char *opt)
-+bool __init arch_hugetlb_valid_size(unsigned long size)
- {
+-{
 -	unsigned long ps = memparse(opt, &opt);
 -
--	switch (ps) {
-+	switch (size) {
- #ifdef CONFIG_ARM64_4K_PAGES
- 	case PUD_SIZE:
- #endif
- 	case CONT_PMD_SIZE:
- 	case PMD_SIZE:
- 	case CONT_PTE_SIZE:
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+static __init int setup_hugepagesz(char *opt)
-+{
-+	unsigned long ps = memparse(opt, &opt);
-+
-+	if (arch_hugetlb_valid_size(ps)) {
- 		add_huge_page_size(ps);
- 		return 1;
- 	}
---- a/arch/powerpc/mm/hugetlbpage.c~hugetlbfs-add-arch_hugetlb_valid_size
+-	if (arch_hugetlb_valid_size(ps)) {
+-		add_huge_page_size(ps);
+-		return 1;
+-	}
+-
+-	hugetlb_bad_size();
+-	pr_err("hugepagesz: Unsupported page size %lu K\n", ps >> 10);
+-	return 0;
+-}
+-__setup("hugepagesz=", setup_hugepagesz);
+--- a/arch/powerpc/mm/hugetlbpage.c~hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code
 +++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -562,7 +562,7 @@ unsigned long vma_mmu_pagesize(struct vm
- 	return vma_kernel_pagesize(vma);
- }
- 
--static int __init add_huge_page_size(unsigned long long size)
-+bool __init arch_hugetlb_valid_size(unsigned long size)
- {
- 	int shift = __ffs(size);
- 	int mmu_psize;
-@@ -570,20 +570,26 @@ static int __init add_huge_page_size(uns
- 	/* Check that it is a page size supported by the hardware and
- 	 * that it fits within pagetable and slice limits. */
- 	if (size <= PAGE_SIZE || !is_power_of_2(size))
--		return -EINVAL;
-+		return false;
- 
- 	mmu_psize = check_and_get_huge_psize(shift);
- 	if (mmu_psize < 0)
--		return -EINVAL;
-+		return false;
- 
- 	BUG_ON(mmu_psize_defs[mmu_psize].shift != shift);
- 
--	/* Return if huge page size has already been setup */
--	if (size_to_hstate(size))
--		return 0;
-+	return true;
-+}
- 
--	hugetlb_add_hstate(shift - PAGE_SHIFT);
-+static int __init add_huge_page_size(unsigned long long size)
-+{
-+	int shift = __ffs(size);
-+
-+	if (!arch_hugetlb_valid_size((unsigned long)size))
-+		return -EINVAL;
- 
-+	if (!size_to_hstate(size))
-+		hugetlb_add_hstate(shift - PAGE_SHIFT);
+@@ -593,21 +593,6 @@ static int __init add_huge_page_size(uns
  	return 0;
  }
  
---- a/arch/riscv/mm/hugetlbpage.c~hugetlbfs-add-arch_hugetlb_valid_size
+-static int __init hugepage_setup_sz(char *str)
+-{
+-	unsigned long long size;
+-
+-	size = memparse(str, &str);
+-
+-	if (add_huge_page_size(size) != 0) {
+-		hugetlb_bad_size();
+-		pr_err("Invalid huge page size specified(%llu)\n", size);
+-	}
+-
+-	return 1;
+-}
+-__setup("hugepagesz=", hugepage_setup_sz);
+-
+ static int __init hugetlbpage_init(void)
+ {
+ 	bool configured = false;
+--- a/arch/riscv/mm/hugetlbpage.c~hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code
 +++ a/arch/riscv/mm/hugetlbpage.c
-@@ -12,21 +12,29 @@ int pmd_huge(pmd_t pmd)
- 	return pmd_leaf(pmd);
+@@ -22,22 +22,6 @@ bool __init arch_hugetlb_valid_size(unsi
+ 		return false;
  }
  
-+bool __init arch_hugetlb_valid_size(unsigned long size)
-+{
-+	if (size == HPAGE_SIZE)
-+		return true;
-+	else if (IS_ENABLED(CONFIG_64BIT) && size == PUD_SIZE)
-+		return true;
-+	else
-+		return false;
-+}
-+
- static __init int setup_hugepagesz(char *opt)
+-static __init int setup_hugepagesz(char *opt)
+-{
+-	unsigned long ps = memparse(opt, &opt);
+-
+-	if (arch_hugetlb_valid_size(ps)) {
+-		hugetlb_add_hstate(ilog2(ps) - PAGE_SHIFT);
+-		return 1;
+-	}
+-
+-	hugetlb_bad_size();
+-	pr_err("hugepagesz: Unsupported page size %lu M\n", ps >> 20);
+-	return 0;
+-
+-}
+-__setup("hugepagesz=", setup_hugepagesz);
+-
+ #ifdef CONFIG_CONTIG_ALLOC
+ static __init int gigantic_pages_init(void)
  {
- 	unsigned long ps = memparse(opt, &opt);
+--- a/arch/s390/mm/hugetlbpage.c~hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code
++++ a/arch/s390/mm/hugetlbpage.c
+@@ -261,24 +261,6 @@ bool __init arch_hugetlb_valid_size(unsi
+ 		return false;
+ }
  
--	if (ps == HPAGE_SIZE) {
--		hugetlb_add_hstate(HPAGE_SHIFT - PAGE_SHIFT);
--	} else if (IS_ENABLED(CONFIG_64BIT) && ps == PUD_SIZE) {
--		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
+-static __init int setup_hugepagesz(char *opt)
+-{
+-	unsigned long size;
+-	char *string = opt;
+-
+-	size = memparse(opt, &opt);
+-	if (arch_hugetlb_valid_size(size)) {
+-		hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
 -	} else {
 -		hugetlb_bad_size();
--		pr_err("hugepagesz: Unsupported page size %lu M\n", ps >> 20);
+-		pr_err("hugepagesz= specifies an unsupported page size %s\n",
+-			string);
 -		return 0;
-+	if (arch_hugetlb_valid_size(ps)) {
-+		hugetlb_add_hstate(ilog2(ps) - PAGE_SHIFT);
-+		return 1;
- 	}
- 
+-	}
 -	return 1;
-+	hugetlb_bad_size();
-+	pr_err("hugepagesz: Unsupported page size %lu M\n", ps >> 20);
-+	return 0;
-+
- }
- __setup("hugepagesz=", setup_hugepagesz);
- 
---- a/arch/s390/mm/hugetlbpage.c~hugetlbfs-add-arch_hugetlb_valid_size
-+++ a/arch/s390/mm/hugetlbpage.c
-@@ -251,16 +251,24 @@ follow_huge_pud(struct mm_struct *mm, un
- 	return pud_page(*pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
- }
- 
-+bool __init arch_hugetlb_valid_size(unsigned long size)
-+{
-+	if (MACHINE_HAS_EDAT1 && size == PMD_SIZE)
-+		return true;
-+	else if (MACHINE_HAS_EDAT2 && size == PUD_SIZE)
-+		return true;
-+	else
-+		return false;
-+}
-+
- static __init int setup_hugepagesz(char *opt)
- {
- 	unsigned long size;
- 	char *string = opt;
- 
- 	size = memparse(opt, &opt);
--	if (MACHINE_HAS_EDAT1 && size == PMD_SIZE) {
--		hugetlb_add_hstate(PMD_SHIFT - PAGE_SHIFT);
--	} else if (MACHINE_HAS_EDAT2 && size == PUD_SIZE) {
--		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
-+	if (arch_hugetlb_valid_size(size)) {
-+		hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
- 	} else {
- 		hugetlb_bad_size();
- 		pr_err("hugepagesz= specifies an unsupported page size %s\n",
---- a/arch/sparc/mm/init_64.c~hugetlbfs-add-arch_hugetlb_valid_size
+-}
+-__setup("hugepagesz=", setup_hugepagesz);
+-
+ static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *file,
+ 		unsigned long addr, unsigned long len,
+ 		unsigned long pgoff, unsigned long flags)
+--- a/arch/sparc/mm/init_64.c~hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code
 +++ a/arch/sparc/mm/init_64.c
-@@ -360,16 +360,11 @@ static void __init pud_huge_patch(void)
- 	__asm__ __volatile__("flush %0" : : "r" (addr));
- }
+@@ -397,28 +397,6 @@ bool __init arch_hugetlb_valid_size(unsi
  
+ 	return true;
+ }
+-
 -static int __init setup_hugepagesz(char *string)
-+bool __init arch_hugetlb_valid_size(unsigned long size)
- {
+-{
 -	unsigned long long hugepage_size;
--	unsigned int hugepage_shift;
-+	unsigned int hugepage_shift = ilog2(size);
- 	unsigned short hv_pgsz_idx;
- 	unsigned int hv_pgsz_mask;
 -	int rc = 0;
 -
 -	hugepage_size = memparse(string, &string);
--	hugepage_shift = ilog2(hugepage_size);
+-
+-	if (!arch_hugetlb_valid_size((unsigned long)hugepage_size)) {
+-		hugetlb_bad_size();
+-		pr_err("hugepagesz=%llu not supported by MMU.\n",
+-			hugepage_size);
+-		goto out;
+-	}
+-
+-	add_huge_page_size(hugepage_size);
+-	rc = 1;
+-
+-out:
+-	return rc;
+-}
+-__setup("hugepagesz=", setup_hugepagesz);
+ #endif	/* CONFIG_HUGETLB_PAGE */
  
- 	switch (hugepage_shift) {
- 	case HPAGE_16GB_SHIFT:
-@@ -397,7 +392,20 @@ static int __init setup_hugepagesz(char
- 		hv_pgsz_mask = 0;
- 	}
- 
--	if ((hv_pgsz_mask & cpu_pgsz_mask) == 0U) {
-+	if ((hv_pgsz_mask & cpu_pgsz_mask) == 0U)
-+		return false;
-+
-+	return true;
-+}
-+
-+static int __init setup_hugepagesz(char *string)
-+{
-+	unsigned long long hugepage_size;
-+	int rc = 0;
-+
-+	hugepage_size = memparse(string, &string);
-+
-+	if (!arch_hugetlb_valid_size((unsigned long)hugepage_size)) {
- 		hugetlb_bad_size();
- 		pr_err("hugepagesz=%llu not supported by MMU.\n",
- 			hugepage_size);
---- a/arch/x86/mm/hugetlbpage.c~hugetlbfs-add-arch_hugetlb_valid_size
+ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *ptep)
+--- a/arch/x86/mm/hugetlbpage.c~hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code
 +++ a/arch/x86/mm/hugetlbpage.c
-@@ -181,13 +181,22 @@ get_unmapped_area:
- #endif /* CONFIG_HUGETLB_PAGE */
- 
- #ifdef CONFIG_X86_64
-+bool __init arch_hugetlb_valid_size(unsigned long size)
-+{
-+	if (size == PMD_SIZE)
-+		return true;
-+	else if (size == PUD_SIZE && boot_cpu_has(X86_FEATURE_GBPAGES))
-+		return true;
-+	else
-+		return false;
-+}
-+
- static __init int setup_hugepagesz(char *opt)
- {
- 	unsigned long ps = memparse(opt, &opt);
--	if (ps == PMD_SIZE) {
--		hugetlb_add_hstate(PMD_SHIFT - PAGE_SHIFT);
--	} else if (ps == PUD_SIZE && boot_cpu_has(X86_FEATURE_GBPAGES)) {
--		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
-+
-+	if (arch_hugetlb_valid_size(ps)) {
-+		hugetlb_add_hstate(ilog2(ps) - PAGE_SHIFT);
- 	} else {
- 		hugetlb_bad_size();
- 		printk(KERN_ERR "hugepagesz: Unsupported page size %lu M\n",
---- a/include/linux/hugetlb.h~hugetlbfs-add-arch_hugetlb_valid_size
-+++ a/include/linux/hugetlb.h
-@@ -521,6 +521,7 @@ int __init alloc_bootmem_huge_page(struc
- 
- void __init hugetlb_bad_size(void);
- void __init hugetlb_add_hstate(unsigned order);
-+bool __init arch_hugetlb_valid_size(unsigned long size);
- struct hstate *size_to_hstate(unsigned long size);
- 
- #ifndef HUGE_MAX_HSTATE
---- a/mm/hugetlb.c~hugetlbfs-add-arch_hugetlb_valid_size
-+++ a/mm/hugetlb.c
-@@ -3256,6 +3256,12 @@ static int __init hugetlb_init(void)
+@@ -191,22 +191,6 @@ bool __init arch_hugetlb_valid_size(unsi
+ 		return false;
  }
- subsys_initcall(hugetlb_init);
  
-+/* Overwritten by architectures with more huge page sizes */
-+bool __init __attribute((weak)) arch_hugetlb_valid_size(unsigned long size)
-+{
-+	return size == HPAGE_SIZE;
-+}
-+
- /* Should be called on processing a hugepagesz=... option */
- void __init hugetlb_bad_size(void)
+-static __init int setup_hugepagesz(char *opt)
+-{
+-	unsigned long ps = memparse(opt, &opt);
+-
+-	if (arch_hugetlb_valid_size(ps)) {
+-		hugetlb_add_hstate(ilog2(ps) - PAGE_SHIFT);
+-	} else {
+-		hugetlb_bad_size();
+-		printk(KERN_ERR "hugepagesz: Unsupported page size %lu M\n",
+-			ps >> 20);
+-		return 0;
+-	}
+-	return 1;
+-}
+-__setup("hugepagesz=", setup_hugepagesz);
+-
+ #ifdef CONFIG_CONTIG_ALLOC
+ static __init int gigantic_pages_init(void)
  {
-@@ -3331,12 +3337,21 @@ static int __init hugetlb_nrpages_setup(
+--- a/include/linux/hugetlb.h~hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code
++++ a/include/linux/hugetlb.h
+@@ -519,7 +519,6 @@ int huge_add_to_page_cache(struct page *
+ int __init __alloc_bootmem_huge_page(struct hstate *h);
+ int __init alloc_bootmem_huge_page(struct hstate *h);
+ 
+-void __init hugetlb_bad_size(void);
+ void __init hugetlb_add_hstate(unsigned order);
+ bool __init arch_hugetlb_valid_size(unsigned long size);
+ struct hstate *size_to_hstate(unsigned long size);
+--- a/mm/hugetlb.c~hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code
++++ a/mm/hugetlb.c
+@@ -3262,12 +3262,6 @@ bool __init __attribute((weak)) arch_hug
+ 	return size == HPAGE_SIZE;
+ }
+ 
+-/* Should be called on processing a hugepagesz=... option */
+-void __init hugetlb_bad_size(void)
+-{
+-	parsed_valid_hugepagesz = false;
+-}
+-
+ void __init hugetlb_add_hstate(unsigned int order)
+ {
+ 	struct hstate *h;
+@@ -3337,6 +3331,23 @@ static int __init hugetlb_nrpages_setup(
  }
  __setup("hugepages=", hugetlb_nrpages_setup);
  
--static int __init hugetlb_default_setup(char *s)
-+static int __init default_hugepagesz_setup(char *s)
- {
--	default_hstate_size = memparse(s, &s);
++static int __init hugepagesz_setup(char *s)
++{
 +	unsigned long size;
 +
 +	size = (unsigned long)memparse(s, NULL);
 +
 +	if (!arch_hugetlb_valid_size(size)) {
-+		pr_err("HugeTLB: unsupported default_hugepagesz %s\n", s);
++		parsed_valid_hugepagesz = false;
++		pr_err("HugeTLB: unsupported hugepagesz %s\n", s);
 +		return 0;
 +	}
 +
-+	default_hstate_size = size;
- 	return 1;
- }
--__setup("default_hugepagesz=", hugetlb_default_setup);
-+__setup("default_hugepagesz=", default_hugepagesz_setup);
- 
- static unsigned int cpuset_mems_nr(unsigned int *array)
++	hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
++	return 1;
++}
++__setup("hugepagesz=", hugepagesz_setup);
++
+ static int __init default_hugepagesz_setup(char *s)
  {
+ 	unsigned long size;
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
