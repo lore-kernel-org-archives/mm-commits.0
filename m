@@ -1,61 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m68k-drop-redundant-generic-y-=-hardirqh.patch
- removed from -mm tree
-Date: Thu, 16 Apr 2020 20:39:07 -0700
-Message-ID: <20200417033907.7oZv6oI-f%akpm@linux-foundation.org>
+Subject: [merged] proc-handle-umounts-cleanly.patch removed from
+ -mm tree
+Date: Thu, 16 Apr 2020 20:39:09 -0700
+Message-ID: <20200417033909.VRoQ0bBsG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49788 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725947AbgDQDjH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Apr 2020 23:39:07 -0400
+        id S1725947AbgDQDjK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Apr 2020 23:39:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, gerg@linux-m68k.org, masahiroy@kernel.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, avagin@gmail.com, bernd.edlinger@hotmail.de, christian.brauner@ubuntu.com, ebiederm@xmission.com, gladkov.alexey@gmail.com, guro@fb.com, kent.overstreet@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: m68k: drop redundant generic-y += hardirq.h
+     Subject: proc: handle umounts cleanly
 has been removed from the -mm tree.  Its filename was
-     m68k-drop-redundant-generic-y-=-hardirqh.patch
+     proc-handle-umounts-cleanly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: m68k: drop redundant generic-y += hardirq.h
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: proc: handle umounts cleanly
 
-The cleanup in commit 630f289b7114c0e6 ("asm-generic: make more
-kernel-space headers mandatory") did not take into account the recently
-added line for hardirq.h in commit acc45648b9aefa90 ("m68k: Switch to
-asm-generic/hardirq.h"), leading to the following message during the
-build:
+syzbot writes:
+> KASAN: use-after-free Read in dput (2)
+>
+> proc_fill_super: allocate dentry failed
+> ==================================================================
+> BUG: KASAN: use-after-free in fast_dput fs/dcache.c:727 [inline]
+> BUG: KASAN: use-after-free in dput+0x53e/0xdf0 fs/dcache.c:846
+> Read of size 4 at addr ffff88808a618cf0 by task syz-executor.0/8426
+>
+> CPU: 0 PID: 8426 Comm: syz-executor.0 Not tainted 5.6.0-next-20200412-syzkaller #0
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:77 [inline]
+>  dump_stack+0x188/0x20d lib/dump_stack.c:118
+>  print_address_description.constprop.0.cold+0xd3/0x315 mm/kasan/report.c:382
+>  __kasan_report.cold+0x35/0x4d mm/kasan/report.c:511
+>  kasan_report+0x33/0x50 mm/kasan/common.c:625
+>  fast_dput fs/dcache.c:727 [inline]
+>  dput+0x53e/0xdf0 fs/dcache.c:846
+>  proc_kill_sb+0x73/0xf0 fs/proc/root.c:195
+>  deactivate_locked_super+0x8c/0xf0 fs/super.c:335
+>  vfs_get_super+0x258/0x2d0 fs/super.c:1212
+>  vfs_get_tree+0x89/0x2f0 fs/super.c:1547
+>  do_new_mount fs/namespace.c:2813 [inline]
+>  do_mount+0x1306/0x1b30 fs/namespace.c:3138
+>  __do_sys_mount fs/namespace.c:3347 [inline]
+>  __se_sys_mount fs/namespace.c:3324 [inline]
+>  __x64_sys_mount+0x18f/0x230 fs/namespace.c:3324
+>  do_syscall_64+0xf6/0x7d0 arch/x86/entry/common.c:295
+>  entry_SYSCALL_64_after_hwframe+0x49/0xb3
+> RIP: 0033:0x45c889
+> Code: ad b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 7b b6 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+> RSP: 002b:00007ffc1930ec48 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+> RAX: ffffffffffffffda RBX: 0000000001324914 RCX: 000000000045c889
+> RDX: 0000000020000140 RSI: 0000000020000040 RDI: 0000000000000000
+> RBP: 000000000076bf00 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
+> R13: 0000000000000749 R14: 00000000004ca15a R15: 0000000000000013
 
-    scripts/Makefile.asm-generic:25: redundant generic-y found in arch/m68k/include/asm/Kbuild: hardirq.h
+Looking at the code now that it the internal mount of proc is no longer
+used it is possible to unmount proc.  If proc is unmounted the fields of
+the pid namespace that were used for filesystem specific state are not
+reinitialized.
 
-Fix this by dropping the now redundant line.
+Which means that proc_self and proc_thread_self can be pointers to already
+freed dentries.
 
-Link: http://lkml.kernel.org/r/20200413093552.25102-1-geert@linux-m68k.org
-Fixes: 630f289b7114c0e6 ("asm-generic: make more kernel-space headers mandatory")
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
+The reported user after free appears to be from mounting and unmounting
+proc followed by mounting proc again and using error injection to cause
+the new root dentry allocation to fail.  This in turn results in
+proc_kill_sb running with proc_self and proc_thread_self still retaining
+their values from the previous mount of proc.  Then calling dput on either
+proc_self of proc_thread_self will result in double put.  Which KASAN sees
+as a use after free.
+
+Solve this by always reinitializing the filesystem state stored in the
+struct pid_namespace, when proc is unmounted.
+
+Link: http://lkml.kernel.org/r/878siwioxj.fsf@x220.int.ebiederm.org
+Fixes: 69879c01a0c3 ("proc: Remove the now unnecessary internal mount of proc")
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Reported-by: syzbot+72868dd424eb66c6b95f@syzkaller.appspotmail.com
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Bernd Edlinger <bernd.edlinger@hotmail.de>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/Kbuild |    1 -
- 1 file changed, 1 deletion(-)
+ fs/proc/root.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/arch/m68k/include/asm/Kbuild~m68k-drop-redundant-generic-y-=-hardirqh
-+++ a/arch/m68k/include/asm/Kbuild
-@@ -1,7 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- generated-y += syscall_table.h
- generic-y += extable.h
--generic-y += hardirq.h
- generic-y += kvm_para.h
- generic-y += local64.h
- generic-y += mcs_spinlock.h
+--- a/fs/proc/root.c~proc-handle-umounts-cleanly
++++ a/fs/proc/root.c
+@@ -196,6 +196,13 @@ static void proc_kill_sb(struct super_bl
+ 	if (ns->proc_thread_self)
+ 		dput(ns->proc_thread_self);
+ 	kill_anon_super(sb);
++
++	/* Make the pid namespace safe for a new mount of proc */
++	ns->proc_self = NULL;
++	ns->proc_thread_self = NULL;
++	ns->pid_gid = GLOBAL_ROOT_GID;
++	ns->hide_pid = 0;
++
+ 	put_pid_ns(ns);
+ }
+ 
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
