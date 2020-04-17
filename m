@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- khugepaged-allow-to-collapse-pte-mapped-compound-pages.patch added to -mm
- tree
-Date: Thu, 16 Apr 2020 21:43:45 -0700
-Message-ID: <20200417044345.K43KBAOCY%akpm@linux-foundation.org>
+Subject: + thp-change-cow-semantics-for-anon-thp.patch added to
+ -mm tree
+Date: Thu, 16 Apr 2020 21:43:48 -0700
+Message-ID: <20200417044348.vFzsK40Dr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59170 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725900AbgDQEns (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 00:43:48 -0400
+        id S1725900AbgDQEnu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 00:43:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, william.kucharski@oracle.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: khugepaged: allow to collapse PTE-mapped compound pages
+     Subject: thp: change CoW semantics for anon-THP
 has been added to the -mm tree.  Its filename is
-     khugepaged-allow-to-collapse-pte-mapped-compound-pages.patch
+     thp-change-cow-semantics-for-anon-thp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-allow-to-collapse-pte-mapped-compound-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-change-cow-semantics-for-anon-thp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-allow-to-collapse-pte-mapped-compound-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-change-cow-semantics-for-anon-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,14 +37,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: allow to collapse PTE-mapped compound pages
+Subject: thp: change CoW semantics for anon-THP
 
-We can collapse PTE-mapped compound pages.  We only need to avoid handling
-them more than once: lock/unlock page only once if it's present in the PMD
-range multiple times as it handled on compound level.  The same goes for
-LRU isolation and putback.
+Currently we have different copy-on-write semantics for anon- and
+file-THP.  For anon-THP we try to allocate huge page on the write fault,
+but on file-THP we split PMD and allocate 4k page.
 
-Link: http://lkml.kernel.org/r/20200416160026.16538-7-kirill.shutemov@linux.intel.com
+Arguably, file-THP semantics is more desirable: we don't necessary want to
+unshare full PMD range from the parent on the first access.  This is the
+primary reason THP is unusable for some workloads, like Redis.
+
+The original THP refcounting didn't allow to have PTE-mapped compound
+pages, so we had no options, but to allocate huge page on CoW (with
+fallback to 512 4k pages).
+
+The current refcounting doesn't have such limitations and we can cut a lot
+of complex code out of fault path.
+
+khugepaged is now able to recover THP from such ranges if the
+configuration allows.
+
+Link: http://lkml.kernel.org/r/20200416160026.16538-8-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -58,225 +70,300 @@ Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   99 ++++++++++++++++++++++++++++++----------------
- 1 file changed, 65 insertions(+), 34 deletions(-)
+ mm/huge_memory.c |  250 ++++-----------------------------------------
+ 1 file changed, 25 insertions(+), 225 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-allow-to-collapse-pte-mapped-compound-pages
-+++ a/mm/khugepaged.c
-@@ -512,17 +512,30 @@ void __khugepaged_exit(struct mm_struct
- 
- static void release_pte_page(struct page *page)
- {
--	dec_node_page_state(page, NR_ISOLATED_ANON + page_is_file_lru(page));
-+	mod_node_page_state(page_pgdat(page),
-+			NR_ISOLATED_ANON + page_is_file_lru(page),
-+			-compound_nr(page));
- 	unlock_page(page);
- 	putback_lru_page(page);
+--- a/mm/huge_memory.c~thp-change-cow-semantics-for-anon-thp
++++ a/mm/huge_memory.c
+@@ -1255,263 +1255,63 @@ unlock:
+ 	spin_unlock(vmf->ptl);
  }
  
--static void release_pte_pages(pte_t *pte, pte_t *_pte)
-+static void release_pte_pages(pte_t *pte, pte_t *_pte,
-+		struct list_head *compound_pagelist)
- {
-+	struct page *page, *tmp;
-+
- 	while (--_pte >= pte) {
- 		pte_t pteval = *_pte;
--		if (!pte_none(pteval) && !is_zero_pfn(pte_pfn(pteval)))
--			release_pte_page(pte_page(pteval));
-+
-+		page = pte_page(pteval);
-+		if (!pte_none(pteval) && !is_zero_pfn(pte_pfn(pteval)) &&
-+				!PageCompound(page))
-+			release_pte_page(page);
-+	}
-+
-+	list_for_each_entry_safe(page, tmp, compound_pagelist, lru) {
-+		list_del(&page->lru);
-+		release_pte_page(page);
- 	}
- }
- 
-@@ -546,7 +559,8 @@ static bool is_refcount_suitable(struct
- 
- static int __collapse_huge_page_isolate(struct vm_area_struct *vma,
- 					unsigned long address,
--					pte_t *pte)
-+					pte_t *pte,
-+					struct list_head *compound_pagelist)
- {
- 	struct page *page = NULL;
- 	pte_t *_pte;
-@@ -576,13 +590,21 @@ static int __collapse_huge_page_isolate(
- 			goto out;
- 		}
- 
--		/* TODO: teach khugepaged to collapse THP mapped with pte */
-+		VM_BUG_ON_PAGE(!PageAnon(page), page);
-+
- 		if (PageCompound(page)) {
--			result = SCAN_PAGE_COMPOUND;
+-static vm_fault_t do_huge_pmd_wp_page_fallback(struct vm_fault *vmf,
+-			pmd_t orig_pmd, struct page *page)
+-{
+-	struct vm_area_struct *vma = vmf->vma;
+-	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+-	struct mem_cgroup *memcg;
+-	pgtable_t pgtable;
+-	pmd_t _pmd;
+-	int i;
+-	vm_fault_t ret = 0;
+-	struct page **pages;
+-	struct mmu_notifier_range range;
+-
+-	pages = kmalloc_array(HPAGE_PMD_NR, sizeof(struct page *),
+-			      GFP_KERNEL);
+-	if (unlikely(!pages)) {
+-		ret |= VM_FAULT_OOM;
+-		goto out;
+-	}
+-
+-	for (i = 0; i < HPAGE_PMD_NR; i++) {
+-		pages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE, vma,
+-					       vmf->address, page_to_nid(page));
+-		if (unlikely(!pages[i] ||
+-			     mem_cgroup_try_charge_delay(pages[i], vma->vm_mm,
+-				     GFP_KERNEL, &memcg, false))) {
+-			if (pages[i])
+-				put_page(pages[i]);
+-			while (--i >= 0) {
+-				memcg = (void *)page_private(pages[i]);
+-				set_page_private(pages[i], 0);
+-				mem_cgroup_cancel_charge(pages[i], memcg,
+-						false);
+-				put_page(pages[i]);
+-			}
+-			kfree(pages);
+-			ret |= VM_FAULT_OOM;
 -			goto out;
 -		}
-+			struct page *p;
-+			page = compound_head(page);
- 
--		VM_BUG_ON_PAGE(!PageAnon(page), page);
-+			/*
-+			 * Check if we have dealt with the compound page
-+			 * already
-+			 */
-+			list_for_each_entry(p, compound_pagelist, lru) {
-+				if (page == p)
-+					goto next;
-+			}
-+		}
- 
- 		/*
- 		 * We can do it before isolate_lru_page because the
-@@ -611,19 +633,15 @@ static int __collapse_huge_page_isolate(
- 			result = SCAN_PAGE_COUNT;
- 			goto out;
- 		}
--		if (pte_write(pteval)) {
--			writable = true;
--		} else {
--			if (PageSwapCache(page) &&
--			    !reuse_swap_page(page, NULL)) {
--				unlock_page(page);
--				result = SCAN_SWAP_CACHE_PAGE;
--				goto out;
--			}
-+		if (!pte_write(pteval) && PageSwapCache(page) &&
-+				!reuse_swap_page(page, NULL)) {
- 			/*
--			 * Page is not in the swap cache. It can be collapsed
--			 * into a THP.
-+			 * Page is in the swap cache and cannot be re-used.
-+			 * It cannot be collapsed into a THP.
- 			 */
-+			unlock_page(page);
-+			result = SCAN_SWAP_CACHE_PAGE;
-+			goto out;
- 		}
- 
- 		/*
-@@ -635,16 +653,23 @@ static int __collapse_huge_page_isolate(
- 			result = SCAN_DEL_PAGE_LRU;
- 			goto out;
- 		}
--		inc_node_page_state(page,
--				NR_ISOLATED_ANON + page_is_file_lru(page));
-+		mod_node_page_state(page_pgdat(page),
-+				NR_ISOLATED_ANON + page_is_file_lru(page),
-+				compound_nr(page));
- 		VM_BUG_ON_PAGE(!PageLocked(page), page);
- 		VM_BUG_ON_PAGE(PageLRU(page), page);
- 
-+		if (PageCompound(page))
-+			list_add_tail(&page->lru, compound_pagelist);
-+next:
- 		/* There should be enough young pte to collapse the page */
- 		if (pte_young(pteval) ||
- 		    page_is_young(page) || PageReferenced(page) ||
- 		    mmu_notifier_test_young(vma->vm_mm, address))
- 			referenced++;
-+
-+		if (pte_write(pteval))
-+			writable = true;
- 	}
- 	if (likely(writable)) {
- 		if (likely(referenced)) {
-@@ -658,7 +683,7 @@ static int __collapse_huge_page_isolate(
- 	}
- 
- out:
--	release_pte_pages(pte, _pte);
-+	release_pte_pages(pte, _pte, compound_pagelist);
- 	trace_mm_collapse_huge_page_isolate(page, none_or_zero,
- 					    referenced, writable, result);
- 	return 0;
-@@ -667,13 +692,14 @@ out:
- static void __collapse_huge_page_copy(pte_t *pte, struct page *page,
- 				      struct vm_area_struct *vma,
- 				      unsigned long address,
--				      spinlock_t *ptl)
-+				      spinlock_t *ptl,
-+				      struct list_head *compound_pagelist)
+-		set_page_private(pages[i], (unsigned long)memcg);
+-	}
+-
+-	for (i = 0; i < HPAGE_PMD_NR; i++) {
+-		copy_user_highpage(pages[i], page + i,
+-				   haddr + PAGE_SIZE * i, vma);
+-		__SetPageUptodate(pages[i]);
+-		cond_resched();
+-	}
+-
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+-				haddr, haddr + HPAGE_PMD_SIZE);
+-	mmu_notifier_invalidate_range_start(&range);
+-
+-	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+-	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd)))
+-		goto out_free_pages;
+-	VM_BUG_ON_PAGE(!PageHead(page), page);
+-
+-	/*
+-	 * Leave pmd empty until pte is filled note we must notify here as
+-	 * concurrent CPU thread might write to new page before the call to
+-	 * mmu_notifier_invalidate_range_end() happens which can lead to a
+-	 * device seeing memory write in different order than CPU.
+-	 *
+-	 * See Documentation/vm/mmu_notifier.rst
+-	 */
+-	pmdp_huge_clear_flush_notify(vma, haddr, vmf->pmd);
+-
+-	pgtable = pgtable_trans_huge_withdraw(vma->vm_mm, vmf->pmd);
+-	pmd_populate(vma->vm_mm, &_pmd, pgtable);
+-
+-	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
+-		pte_t entry;
+-		entry = mk_pte(pages[i], vma->vm_page_prot);
+-		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+-		memcg = (void *)page_private(pages[i]);
+-		set_page_private(pages[i], 0);
+-		page_add_new_anon_rmap(pages[i], vmf->vma, haddr, false);
+-		mem_cgroup_commit_charge(pages[i], memcg, false, false);
+-		lru_cache_add_active_or_unevictable(pages[i], vma);
+-		vmf->pte = pte_offset_map(&_pmd, haddr);
+-		VM_BUG_ON(!pte_none(*vmf->pte));
+-		set_pte_at(vma->vm_mm, haddr, vmf->pte, entry);
+-		pte_unmap(vmf->pte);
+-	}
+-	kfree(pages);
+-
+-	smp_wmb(); /* make pte visible before pmd */
+-	pmd_populate(vma->vm_mm, vmf->pmd, pgtable);
+-	page_remove_rmap(page, true);
+-	spin_unlock(vmf->ptl);
+-
+-	/*
+-	 * No need to double call mmu_notifier->invalidate_range() callback as
+-	 * the above pmdp_huge_clear_flush_notify() did already call it.
+-	 */
+-	mmu_notifier_invalidate_range_only_end(&range);
+-
+-	ret |= VM_FAULT_WRITE;
+-	put_page(page);
+-
+-out:
+-	return ret;
+-
+-out_free_pages:
+-	spin_unlock(vmf->ptl);
+-	mmu_notifier_invalidate_range_end(&range);
+-	for (i = 0; i < HPAGE_PMD_NR; i++) {
+-		memcg = (void *)page_private(pages[i]);
+-		set_page_private(pages[i], 0);
+-		mem_cgroup_cancel_charge(pages[i], memcg, false);
+-		put_page(pages[i]);
+-	}
+-	kfree(pages);
+-	goto out;
+-}
+-
+ vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf, pmd_t orig_pmd)
  {
-+	struct page *src_page, *tmp;
- 	pte_t *_pte;
- 	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
- 				_pte++, page++, address += PAGE_SIZE) {
- 		pte_t pteval = *_pte;
--		struct page *src_page;
+ 	struct vm_area_struct *vma = vmf->vma;
+-	struct page *page = NULL, *new_page;
+-	struct mem_cgroup *memcg;
++	struct page *page;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+-	struct mmu_notifier_range range;
+-	gfp_t huge_gfp;			/* for allocation and charge */
+-	vm_fault_t ret = 0;
  
- 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
- 			clear_user_highpage(page, address);
-@@ -693,7 +719,8 @@ static void __collapse_huge_page_copy(pt
- 		} else {
- 			src_page = pte_page(pteval);
- 			copy_user_highpage(page, src_page, address, vma);
--			release_pte_page(src_page);
-+			if (!PageCompound(src_page))
-+				release_pte_page(src_page);
- 			/*
- 			 * ptl mostly unnecessary, but preempt has to
- 			 * be disabled to update the per-cpu stats
-@@ -710,6 +737,11 @@ static void __collapse_huge_page_copy(pt
- 			free_page_and_swap_cache(src_page);
+ 	vmf->ptl = pmd_lockptr(vma->vm_mm, vmf->pmd);
+ 	VM_BUG_ON_VMA(!vma->anon_vma, vma);
++
+ 	if (is_huge_zero_pmd(orig_pmd))
+-		goto alloc;
++		goto fallback;
++
+ 	spin_lock(vmf->ptl);
+-	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd)))
+-		goto out_unlock;
++
++	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd))) {
++		spin_unlock(vmf->ptl);
++		return 0;
++	}
+ 
+ 	page = pmd_page(orig_pmd);
+ 	VM_BUG_ON_PAGE(!PageCompound(page) || !PageHead(page), page);
+-	/*
+-	 * We can only reuse the page if nobody else maps the huge page or it's
+-	 * part.
+-	 */
++
++	/* Lock page for reuse_swap_page() */
+ 	if (!trylock_page(page)) {
+ 		get_page(page);
+ 		spin_unlock(vmf->ptl);
+ 		lock_page(page);
+ 		spin_lock(vmf->ptl);
+ 		if (unlikely(!pmd_same(*vmf->pmd, orig_pmd))) {
++			spin_unlock(vmf->ptl);
+ 			unlock_page(page);
+ 			put_page(page);
+-			goto out_unlock;
++			return 0;
  		}
+ 		put_page(page);
  	}
 +
-+	list_for_each_entry_safe(src_page, tmp, compound_pagelist, lru) {
-+		list_del(&src_page->lru);
-+		release_pte_page(src_page);
-+	}
++	/*
++	 * We can only reuse the page if nobody else maps the huge page or it's
++	 * part.
++	 */
+ 	if (reuse_swap_page(page, NULL)) {
+ 		pmd_t entry;
+ 		entry = pmd_mkyoung(orig_pmd);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+-		if (pmdp_set_access_flags(vma, haddr, vmf->pmd, entry,  1))
++		if (pmdp_set_access_flags(vma, haddr, vmf->pmd, entry, 1))
+ 			update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+-		ret |= VM_FAULT_WRITE;
+ 		unlock_page(page);
+-		goto out_unlock;
+-	}
+-	unlock_page(page);
+-	get_page(page);
+-	spin_unlock(vmf->ptl);
+-alloc:
+-	if (__transparent_hugepage_enabled(vma) &&
+-	    !transparent_hugepage_debug_cow()) {
+-		huge_gfp = alloc_hugepage_direct_gfpmask(vma);
+-		new_page = alloc_hugepage_vma(huge_gfp, vma, haddr, HPAGE_PMD_ORDER);
+-	} else
+-		new_page = NULL;
+-
+-	if (likely(new_page)) {
+-		prep_transhuge_page(new_page);
+-	} else {
+-		if (!page) {
+-			split_huge_pmd(vma, vmf->pmd, vmf->address);
+-			ret |= VM_FAULT_FALLBACK;
+-		} else {
+-			ret = do_huge_pmd_wp_page_fallback(vmf, orig_pmd, page);
+-			if (ret & VM_FAULT_OOM) {
+-				split_huge_pmd(vma, vmf->pmd, vmf->address);
+-				ret |= VM_FAULT_FALLBACK;
+-			}
+-			put_page(page);
+-		}
+-		count_vm_event(THP_FAULT_FALLBACK);
+-		goto out;
+-	}
+-
+-	if (unlikely(mem_cgroup_try_charge_delay(new_page, vma->vm_mm,
+-					huge_gfp, &memcg, true))) {
+-		put_page(new_page);
+-		split_huge_pmd(vma, vmf->pmd, vmf->address);
+-		if (page)
+-			put_page(page);
+-		ret |= VM_FAULT_FALLBACK;
+-		count_vm_event(THP_FAULT_FALLBACK);
+-		count_vm_event(THP_FAULT_FALLBACK_CHARGE);
+-		goto out;
+-	}
+-
+-	count_vm_event(THP_FAULT_ALLOC);
+-	count_memcg_events(memcg, THP_FAULT_ALLOC, 1);
+-
+-	if (!page)
+-		clear_huge_page(new_page, vmf->address, HPAGE_PMD_NR);
+-	else
+-		copy_user_huge_page(new_page, page, vmf->address,
+-				    vma, HPAGE_PMD_NR);
+-	__SetPageUptodate(new_page);
+-
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+-				haddr, haddr + HPAGE_PMD_SIZE);
+-	mmu_notifier_invalidate_range_start(&range);
+-
+-	spin_lock(vmf->ptl);
+-	if (page)
+-		put_page(page);
+-	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd))) {
+ 		spin_unlock(vmf->ptl);
+-		mem_cgroup_cancel_charge(new_page, memcg, true);
+-		put_page(new_page);
+-		goto out_mn;
+-	} else {
+-		pmd_t entry;
+-		entry = mk_huge_pmd(new_page, vma->vm_page_prot);
+-		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+-		pmdp_huge_clear_flush_notify(vma, haddr, vmf->pmd);
+-		page_add_new_anon_rmap(new_page, vma, haddr, true);
+-		mem_cgroup_commit_charge(new_page, memcg, false, true);
+-		lru_cache_add_active_or_unevictable(new_page, vma);
+-		set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
+-		update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+-		if (!page) {
+-			add_mm_counter(vma->vm_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+-		} else {
+-			VM_BUG_ON_PAGE(!PageHead(page), page);
+-			page_remove_rmap(page, true);
+-			put_page(page);
+-		}
+-		ret |= VM_FAULT_WRITE;
++		return VM_FAULT_WRITE;
+ 	}
++
++	unlock_page(page);
+ 	spin_unlock(vmf->ptl);
+-out_mn:
+-	/*
+-	 * No need to double call mmu_notifier->invalidate_range() callback as
+-	 * the above pmdp_huge_clear_flush_notify() did already call it.
+-	 */
+-	mmu_notifier_invalidate_range_only_end(&range);
+-out:
+-	return ret;
+-out_unlock:
+-	spin_unlock(vmf->ptl);
+-	return ret;
++fallback:
++	__split_huge_pmd(vma, vmf->pmd, vmf->address, false, NULL);
++	return VM_FAULT_FALLBACK;
  }
  
- static void khugepaged_alloc_sleep(void)
-@@ -968,6 +1000,7 @@ static void collapse_huge_page(struct mm
- 				   struct page **hpage,
- 				   int node, int referenced, int unmapped)
- {
-+	LIST_HEAD(compound_pagelist);
- 	pmd_t *pmd, _pmd;
- 	pte_t *pte;
- 	pgtable_t pgtable;
-@@ -1068,7 +1101,8 @@ static void collapse_huge_page(struct mm
- 	mmu_notifier_invalidate_range_end(&range);
- 
- 	spin_lock(pte_ptl);
--	isolated = __collapse_huge_page_isolate(vma, address, pte);
-+	isolated = __collapse_huge_page_isolate(vma, address, pte,
-+			&compound_pagelist);
- 	spin_unlock(pte_ptl);
- 
- 	if (unlikely(!isolated)) {
-@@ -1093,7 +1127,8 @@ static void collapse_huge_page(struct mm
- 	 */
- 	anon_vma_unlock_write(vma->anon_vma);
- 
--	__collapse_huge_page_copy(pte, new_page, vma, address, pte_ptl);
-+	__collapse_huge_page_copy(pte, new_page, vma, address, pte_ptl,
-+			&compound_pagelist);
- 	pte_unmap(pte);
- 	__SetPageUptodate(new_page);
- 	pgtable = pmd_pgtable(_pmd);
-@@ -1212,11 +1247,7 @@ static int khugepaged_scan_pmd(struct mm
- 			goto out_unmap;
- 		}
- 
--		/* TODO: teach khugepaged to collapse THP mapped with pte */
--		if (PageCompound(page)) {
--			result = SCAN_PAGE_COMPOUND;
--			goto out_unmap;
--		}
-+		page = compound_head(page);
- 
- 		/*
- 		 * Record which node the original page is from and save this
+ /*
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
