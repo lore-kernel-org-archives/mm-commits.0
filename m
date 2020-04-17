@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-random.patch
+Subject: + selftests-vm-pkeys-use-the-correct-huge-page-size.patch
  added to -mm tree
-Date: Fri, 17 Apr 2020 16:30:36 -0700
-Message-ID: <20200417233036.6z-iSIzYe%akpm@linux-foundation.org>
+Date: Fri, 17 Apr 2020 16:30:39 -0700
+Message-ID: <20200417233039.gj_TEEK4a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48098 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48168 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726036AbgDQXai (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 19:30:38 -0400
+        id S1726036AbgDQXal (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 19:30:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com, dave.hansen@intel.com, desnesn@linux.vnet.ibm.com, fweimer@redhat.com, linuxram@us.ibm.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: selftests/vm/pkeys: fix alloc_random_pkey() to make it really random
+     Subject: selftests: vm: pkeys: use the correct huge page size
 has been added to the -mm tree.  Its filename is
-     selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-random.patch
+     selftests-vm-pkeys-use-the-correct-huge-page-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-random.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-use-the-correct-huge-page-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-random.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-use-the-correct-huge-page-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,20 +36,21 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ram Pai <linuxram@us.ibm.com>
-Subject: selftests/vm/pkeys: fix alloc_random_pkey() to make it really random
+From: Sandipan Das <sandipan@linux.ibm.com>
+Subject: selftests: vm: pkeys: use the correct huge page size
 
-alloc_random_pkey() was allocating the same pkey every time.  Not all
-pkeys were geting tested.  This fixes it.
+The huge page size can vary across architectures.  This will ensure that
+the correct huge page size is used when accessing the hugetlb controls
+under sysfs.  Instead of using a hardcoded page size (i.e.  2MB), this now
+uses the HPAGE_SIZE macro which is arch-specific.
 
-Link: http://lkml.kernel.org/r/0162f55816d4e783a0d6e49e554d0ab9a3c9a23b.1585646528.git.sandipan@linux.ibm.com
-Signed-off-by: Ram Pai <linuxram@us.ibm.com>
+Link: http://lkml.kernel.org/r/66882a5d6e45c73c3a52bc4aef9754e48afa4f88.1585646528.git.sandipan@linux.ibm.com
 Signed-off-by: Sandipan Das <sandipan@linux.ibm.com>
 Acked-by: Dave Hansen <dave.hansen@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Florian Weimer <fweimer@redhat.com>
 Cc: "Desnes A. Nunes do Rosario" <desnesn@linux.vnet.ibm.com>
+Cc: Florian Weimer <fweimer@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Cc: Thiago Jung Bauermann <bauerman@linux.ibm.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -60,48 +60,72 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/protection_keys.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/protection_keys.c |   23 +++++++++++------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-random
+--- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-use-the-correct-huge-page-size
 +++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -25,6 +25,7 @@
- #define __SANE_USERSPACE_TYPES__
- #include <errno.h>
- #include <linux/futex.h>
-+#include <time.h>
- #include <sys/time.h>
- #include <sys/syscall.h>
- #include <string.h>
-@@ -546,10 +547,10 @@ int alloc_random_pkey(void)
- 	int nr_alloced = 0;
- 	int random_index;
- 	memset(alloced_pkeys, 0, sizeof(alloced_pkeys));
-+	srand((unsigned int)time(NULL));
+@@ -739,12 +739,15 @@ void *malloc_pkey_anon_huge(long size, i
+ }
  
- 	/* allocate every possible key and make a note of which ones we got */
- 	max_nr_pkey_allocs = NR_PKEYS;
--	max_nr_pkey_allocs = 1;
- 	for (i = 0; i < max_nr_pkey_allocs; i++) {
- 		int new_pkey = alloc_pkey();
- 		if (new_pkey < 0)
+ int hugetlb_setup_ok;
++#define SYSFS_FMT_NR_HUGE_PAGES "/sys/kernel/mm/hugepages/hugepages-%ldkB/nr_hugepages"
+ #define GET_NR_HUGE_PAGES 10
+ void setup_hugetlbfs(void)
+ {
+ 	int err;
+ 	int fd;
+-	char buf[] = "123";
++	char buf[256];
++	long hpagesz_kb;
++	long hpagesz_mb;
+ 
+ 	if (geteuid() != 0) {
+ 		fprintf(stderr, "WARNING: not run as root, can not do hugetlb test\n");
+@@ -755,11 +758,16 @@ void setup_hugetlbfs(void)
+ 
+ 	/*
+ 	 * Now go make sure that we got the pages and that they
+-	 * are 2M pages.  Someone might have made 1G the default.
++	 * are PMD-level pages. Someone might have made PUD-level
++	 * pages the default.
+ 	 */
+-	fd = open("/sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages", O_RDONLY);
++	hpagesz_kb = HPAGE_SIZE / 1024;
++	hpagesz_mb = hpagesz_kb / 1024;
++	sprintf(buf, SYSFS_FMT_NR_HUGE_PAGES, hpagesz_kb);
++	fd = open(buf, O_RDONLY);
+ 	if (fd < 0) {
+-		perror("opening sysfs 2M hugetlb config");
++		fprintf(stderr, "opening sysfs %ldM hugetlb config: %s\n",
++			hpagesz_mb, strerror(errno));
+ 		return;
+ 	}
+ 
+@@ -767,13 +775,14 @@ void setup_hugetlbfs(void)
+ 	err = read(fd, buf, sizeof(buf)-1);
+ 	close(fd);
+ 	if (err <= 0) {
+-		perror("reading sysfs 2M hugetlb config");
++		fprintf(stderr, "reading sysfs %ldM hugetlb config: %s\n",
++			hpagesz_mb, strerror(errno));
+ 		return;
+ 	}
+ 
+ 	if (atoi(buf) != GET_NR_HUGE_PAGES) {
+-		fprintf(stderr, "could not confirm 2M pages, got: '%s' expected %d\n",
+-			buf, GET_NR_HUGE_PAGES);
++		fprintf(stderr, "could not confirm %ldM pages, got: '%s' expected %d\n",
++			hpagesz_mb, buf, GET_NR_HUGE_PAGES);
+ 		return;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from linuxram@us.ibm.com are
+Patches currently in -mm which might be from sandipan@linux.ibm.com are
 
-selftests-x86-pkeys-move-selftests-to-arch-neutral-directory.patch
-selftests-vm-pkeys-rename-all-references-to-pkru-to-a-generic-name.patch
-selftests-vm-pkeys-move-generic-definitions-to-header-file.patch
-selftests-vm-pkeys-fix-pkey_disable_clear.patch
-selftests-vm-pkeys-fix-assertion-in-pkey_disable_set-clear.patch
-selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-random.patch
-selftests-vm-pkeys-introduce-generic-pkey-abstractions.patch
-selftests-vm-pkeys-introduce-powerpc-support.patch
-selftests-vm-pkeys-fix-assertion-in-test_pkey_alloc_exhaust.patch
-selftests-vm-pkeys-improve-checks-to-determine-pkey-support.patch
-selftests-vm-pkeys-associate-key-on-a-mapped-page-and-detect-access-violation.patch
-selftests-vm-pkeys-associate-key-on-a-mapped-page-and-detect-write-violation.patch
-selftests-vm-pkeys-detect-write-violation-on-a-mapped-access-denied-key-page.patch
-selftests-vm-pkeys-introduce-a-sub-page-allocator.patch
-selftests-vm-pkeys-test-correct-behaviour-of-pkey-0.patch
-selftests-vm-pkeys-override-access-right-definitions-on-powerpc.patch
+selftests-vm-pkeys-use-sane-types-for-pkey-register.patch
+selftests-vm-pkeys-add-helpers-for-pkey-bits.patch
+selftests-vm-pkeys-use-the-correct-huge-page-size.patch
+selftests-vm-pkeys-use-the-correct-page-size-on-powerpc.patch
+selftests-vm-pkeys-fix-multilib-builds-for-x86.patch
