@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- selftests-vm-pkeys-test-correct-behaviour-of-pkey-0.patch added to -mm tree
-Date: Fri, 17 Apr 2020 16:31:09 -0700
-Message-ID: <20200417233109.0LuDbngNi%akpm@linux-foundation.org>
+ selftests-vm-pkeys-override-access-right-definitions-on-powerpc.patch added
+ to -mm tree
+Date: Fri, 17 Apr 2020 16:31:12 -0700
+Message-ID: <20200417233112.bFtuXRsWR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48824 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726036AbgDQXbL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 19:31:11 -0400
+        id S1726036AbgDQXbP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 19:31:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com, dave.hansen@intel.com, desnesn@linux.vnet.ibm.com, fweimer@redhat.com, linuxram@us.ibm.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: selftests/vm/pkeys: test correct behaviour of pkey-0
+     Subject: selftests/vm/pkeys: override access right definitions on powerpc
 has been added to the -mm tree.  Its filename is
-     selftests-vm-pkeys-test-correct-behaviour-of-pkey-0.patch
+     selftests-vm-pkeys-override-access-right-definitions-on-powerpc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-test-correct-behaviour-of-pkey-0.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-override-access-right-definitions-on-powerpc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-test-correct-behaviour-of-pkey-0.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-override-access-right-definitions-on-powerpc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,12 +38,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ram Pai <linuxram@us.ibm.com>
-Subject: selftests/vm/pkeys: test correct behaviour of pkey-0
+Subject: selftests/vm/pkeys: override access right definitions on powerpc
 
-Ensure that pkey-0 is allocated on start and that it can be attached
-dynamically in various modes, without failures.
+Some platforms hardcode the x86 values for PKEY_DISABLE_ACCESS
+and PKEY_DISABLE_WRITE such as those in:
+ /usr/include/bits/mman-shared.h.
 
-Link: http://lkml.kernel.org/r/9b7c54a9b4261894fe0c7e884c70b87214ff8fbb.1585646528.git.sandipan@linux.ibm.com
+This overrides the definitions with correct values for powerpc.
+
+Link: http://lkml.kernel.org/r/f6eb38cb3a1e12eb2cdc9da6300bc5a5dfba0db9.1585646528.git.sandipan@linux.ibm.com
 Signed-off-by: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Sandipan Das <sandipan@linux.ibm.com>
 Acked-by: Dave Hansen <dave.hansen@intel.com>
@@ -59,78 +63,27 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/protection_keys.c |   53 +++++++++++++++++
- 1 file changed, 53 insertions(+)
+ tools/testing/selftests/vm/pkey-powerpc.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-test-correct-behaviour-of-pkey-0
-+++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -964,6 +964,58 @@ __attribute__((noinline)) int read_ptr(i
- 	return *ptr;
- }
+--- a/tools/testing/selftests/vm/pkey-powerpc.h~selftests-vm-pkeys-override-access-right-definitions-on-powerpc
++++ a/tools/testing/selftests/vm/pkey-powerpc.h
+@@ -16,11 +16,13 @@
+ #define fpregs			fp_regs
+ #define si_pkey_offset		0x20
  
-+void test_pkey_alloc_free_attach_pkey0(int *ptr, u16 pkey)
-+{
-+	int i, err;
-+	int max_nr_pkey_allocs;
-+	int alloced_pkeys[NR_PKEYS];
-+	int nr_alloced = 0;
-+	long size;
-+
-+	pkey_assert(pkey_last_malloc_record);
-+	size = pkey_last_malloc_record->size;
-+	/*
-+	 * This is a bit of a hack.  But mprotect() requires
-+	 * huge-page-aligned sizes when operating on hugetlbfs.
-+	 * So, make sure that we use something that's a multiple
-+	 * of a huge page when we can.
-+	 */
-+	if (size >= HPAGE_SIZE)
-+		size = HPAGE_SIZE;
-+
-+	/* allocate every possible key and make sure key-0 never got allocated */
-+	max_nr_pkey_allocs = NR_PKEYS;
-+	for (i = 0; i < max_nr_pkey_allocs; i++) {
-+		int new_pkey = alloc_pkey();
-+		pkey_assert(new_pkey != 0);
-+
-+		if (new_pkey < 0)
-+			break;
-+		alloced_pkeys[nr_alloced++] = new_pkey;
-+	}
-+	/* free all the allocated keys */
-+	for (i = 0; i < nr_alloced; i++) {
-+		int free_ret;
-+
-+		if (!alloced_pkeys[i])
-+			continue;
-+		free_ret = sys_pkey_free(alloced_pkeys[i]);
-+		pkey_assert(!free_ret);
-+	}
-+
-+	/* attach key-0 in various modes */
-+	err = sys_mprotect_pkey(ptr, size, PROT_READ, 0);
-+	pkey_assert(!err);
-+	err = sys_mprotect_pkey(ptr, size, PROT_WRITE, 0);
-+	pkey_assert(!err);
-+	err = sys_mprotect_pkey(ptr, size, PROT_EXEC, 0);
-+	pkey_assert(!err);
-+	err = sys_mprotect_pkey(ptr, size, PROT_READ|PROT_WRITE, 0);
-+	pkey_assert(!err);
-+	err = sys_mprotect_pkey(ptr, size, PROT_READ|PROT_WRITE|PROT_EXEC, 0);
-+	pkey_assert(!err);
-+}
-+
- void test_read_of_write_disabled_region(int *ptr, u16 pkey)
- {
- 	int ptr_contents;
-@@ -1448,6 +1500,7 @@ void (*pkey_tests[])(int *ptr, u16 pkey)
- 	test_pkey_syscalls_on_non_allocated_pkey,
- 	test_pkey_syscalls_bad_args,
- 	test_pkey_alloc_exhaust,
-+	test_pkey_alloc_free_attach_pkey0,
- };
+-#ifndef PKEY_DISABLE_ACCESS
++#ifdef PKEY_DISABLE_ACCESS
++#undef PKEY_DISABLE_ACCESS
+ # define PKEY_DISABLE_ACCESS	0x3  /* disable read and write */
+ #endif
  
- void run_tests_once(void)
+-#ifndef PKEY_DISABLE_WRITE
++#ifdef PKEY_DISABLE_WRITE
++#undef PKEY_DISABLE_WRITE
+ # define PKEY_DISABLE_WRITE	0x2
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from linuxram@us.ibm.com are
