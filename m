@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- selftests-vm-pkeys-fix-assertion-in-test_pkey_alloc_exhaust.patch added to
+ selftests-vm-pkeys-improve-checks-to-determine-pkey-support.patch added to
  -mm tree
-Date: Fri, 17 Apr 2020 16:30:51 -0700
-Message-ID: <20200417233051.cVQjcwlNI%akpm@linux-foundation.org>
+Date: Fri, 17 Apr 2020 16:30:54 -0700
+Message-ID: <20200417233054.qZ-6WAKgF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48482 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48548 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726036AbgDQXax (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 19:30:53 -0400
+        id S1726036AbgDQXa5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 19:30:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com, dave.hansen@intel.com, desnesn@linux.vnet.ibm.com, fweimer@redhat.com, linuxram@us.ibm.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: selftests/vm/pkeys: fix assertion in test_pkey_alloc_exhaust()
+     Subject: selftests/vm/pkeys: improve checks to determine pkey support
 has been added to the -mm tree.  Its filename is
-     selftests-vm-pkeys-fix-assertion-in-test_pkey_alloc_exhaust.patch
+     selftests-vm-pkeys-improve-checks-to-determine-pkey-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-fix-assertion-in-test_pkey_alloc_exhaust.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-improve-checks-to-determine-pkey-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-fix-assertion-in-test_pkey_alloc_exhaust.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-improve-checks-to-determine-pkey-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,19 +38,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ram Pai <linuxram@us.ibm.com>
-Subject: selftests/vm/pkeys: fix assertion in test_pkey_alloc_exhaust()
+Subject: selftests/vm/pkeys: improve checks to determine pkey support
 
-Some pkeys which are valid on the hardware are reserved and not available
-for application use.  These keys cannot be allocated.
+For the pkeys subsystem to work, both the CPU and the kernel need to have
+support.  So, additionally check if the kernel supports pkeys apart from
+the CPU feature checks.
 
-test_pkey_alloc_exhaust() tries to account for these and has an assertion
-which validates if all available pkeys have been exahaustively allocated. 
-However, the expression that is currently used is only valid for x86.  On
-powerpc, a pkey is additionally reserved as compared to x86.  Hence, the
-assertion is made to use an arch-specific helper to get the correct count
-of reserved pkeys.
-
-Link: http://lkml.kernel.org/r/38b08d0318820ae46af3aa6048384fd8056c3df7.1585646528.git.sandipan@linux.ibm.com
+Link: http://lkml.kernel.org/r/8fb76c63ebdadcf068ecd2d23731032e195cd364.1585646528.git.sandipan@linux.ibm.com
 Signed-off-by: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Sandipan Das <sandipan@linux.ibm.com>
 Acked-by: Dave Hansen <dave.hansen@intel.com>
@@ -67,37 +61,107 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/protection_keys.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/pkey-helpers.h    |   30 +++++++++++++++++
+ tools/testing/selftests/vm/pkey-powerpc.h    |    3 +
+ tools/testing/selftests/vm/pkey-x86.h        |    2 -
+ tools/testing/selftests/vm/protection_keys.c |    7 ++-
+ 4 files changed, 37 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-fix-assertion-in-test_pkey_alloc_exhaust
+--- a/tools/testing/selftests/vm/pkey-helpers.h~selftests-vm-pkeys-improve-checks-to-determine-pkey-support
++++ a/tools/testing/selftests/vm/pkey-helpers.h
+@@ -76,6 +76,8 @@ extern void abort_hooks(void);
+ 
+ __attribute__((noinline)) int read_ptr(int *ptr);
+ void expected_pkey_fault(int pkey);
++int sys_pkey_alloc(unsigned long flags, unsigned long init_val);
++int sys_pkey_free(unsigned long pkey);
+ 
+ #if defined(__i386__) || defined(__x86_64__) /* arch */
+ #include "pkey-x86.h"
+@@ -186,4 +188,32 @@ static inline u32 *siginfo_get_pkey_ptr(
+ #endif
+ }
+ 
++static inline int kernel_has_pkeys(void)
++{
++	/* try allocating a key and see if it succeeds */
++	int ret = sys_pkey_alloc(0, 0);
++	if (ret <= 0) {
++		return 0;
++	}
++	sys_pkey_free(ret);
++	return 1;
++}
++
++static inline int is_pkeys_supported(void)
++{
++	/* check if the cpu supports pkeys */
++	if (!cpu_has_pkeys()) {
++		dprintf1("SKIP: %s: no CPU support\n", __func__);
++		return 0;
++	}
++
++	/* check if the kernel supports pkeys */
++	if (!kernel_has_pkeys()) {
++		dprintf1("SKIP: %s: no kernel support\n", __func__);
++		return 0;
++	}
++
++	return 1;
++}
++
+ #endif /* _PKEYS_HELPER_H */
+--- a/tools/testing/selftests/vm/pkey-powerpc.h~selftests-vm-pkeys-improve-checks-to-determine-pkey-support
++++ a/tools/testing/selftests/vm/pkey-powerpc.h
+@@ -63,8 +63,9 @@ static inline void __write_pkey_reg(u64
+ 			__func__, __read_pkey_reg(), pkey_reg);
+ }
+ 
+-static inline int cpu_has_pku(void)
++static inline int cpu_has_pkeys(void)
+ {
++	/* No simple way to determine this */
+ 	return 1;
+ }
+ 
+--- a/tools/testing/selftests/vm/pkey-x86.h~selftests-vm-pkeys-improve-checks-to-determine-pkey-support
++++ a/tools/testing/selftests/vm/pkey-x86.h
+@@ -97,7 +97,7 @@ static inline void __cpuid(unsigned int
+ #define X86_FEATURE_PKU        (1<<3) /* Protection Keys for Userspace */
+ #define X86_FEATURE_OSPKE      (1<<4) /* OS Protection Keys Enable */
+ 
+-static inline int cpu_has_pku(void)
++static inline int cpu_has_pkeys(void)
+ {
+ 	unsigned int eax;
+ 	unsigned int ebx;
+--- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-improve-checks-to-determine-pkey-support
 +++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -1153,6 +1153,7 @@ void test_pkey_alloc_exhaust(int *ptr, u
- 	dprintf3("%s()::%d\n", __func__, __LINE__);
+@@ -1378,7 +1378,7 @@ void test_mprotect_pkey_on_unsupported_c
+ 	int size = PAGE_SIZE;
+ 	int sret;
  
- 	/*
-+	 * On x86:
- 	 * There are 16 pkeys supported in hardware.  Three are
- 	 * allocated by the time we get here:
- 	 *   1. The default key (0)
-@@ -1160,8 +1161,16 @@ void test_pkey_alloc_exhaust(int *ptr, u
- 	 *   3. One allocated by the test code and passed in via
- 	 *      'pkey' to this function.
- 	 * Ensure that we can allocate at least another 13 (16-3).
-+	 *
-+	 * On powerpc:
-+	 * There are either 5, 28, 29 or 32 pkeys supported in
-+	 * hardware depending on the page size (4K or 64K) and
-+	 * platform (powernv or powervm). Four are allocated by
-+	 * the time we get here. These include pkey-0, pkey-1,
-+	 * exec-only pkey and the one allocated by the test code.
-+	 * Ensure that we can allocate the remaining.
- 	 */
--	pkey_assert(i >= NR_PKEYS-3);
-+	pkey_assert(i >= (NR_PKEYS - get_arch_reserved_keys() - 1));
+-	if (cpu_has_pku()) {
++	if (cpu_has_pkeys()) {
+ 		dprintf1("SKIP: %s: no CPU support\n", __func__);
+ 		return;
+ 	}
+@@ -1447,12 +1447,13 @@ void pkey_setup_shadow(void)
+ int main(void)
+ {
+ 	int nr_iterations = 22;
++	int pkeys_supported = is_pkeys_supported();
  
- 	for (i = 0; i < nr_allocated_pkeys; i++) {
- 		err = sys_pkey_free(allocated_pkeys[i]);
+ 	setup_handlers();
+ 
+-	printf("has pku: %d\n", cpu_has_pku());
++	printf("has pkeys: %d\n", pkeys_supported);
+ 
+-	if (!cpu_has_pku()) {
++	if (!pkeys_supported) {
+ 		int size = PAGE_SIZE;
+ 		int *ptr;
+ 
 _
 
 Patches currently in -mm which might be from linuxram@us.ibm.com are
