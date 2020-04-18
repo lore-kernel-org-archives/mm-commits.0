@@ -1,31 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- =?US-ASCII?Q?kernel-hung=5Ftaskc-introduce-sysctl-to-print-all-traces-wh?=
- =?US-ASCII?Q?en-a-hung-task-is-detected.patch?= added to -mm tree
-Date: Fri, 17 Apr 2020 17:50:48 -0700
-Message-ID: <20200418005048.7wyrd3WLf%akpm@linux-foundation.org>
+ mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch added to -mm
+ tree
+Date: Fri, 17 Apr 2020 18:12:27 -0700
+Message-ID: <20200418011227.6r9yDVp0K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54336 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33386 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725856AbgDRAut (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 20:50:49 -0400
+        id S1725298AbgDRBMb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 21:12:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gpiccoli@canonical.com, keescook@chromium.org, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp
+To: akpm@linux-foundation.org, cl@linux.com, dongli.zhang@oracle.com, iamjoonsoo.kim@lge.com, joe.jin@oracle.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: kernel/hung_task.c: introduce sysctl to print all traces when a hung task is detected
+     Subject: mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix
 has been added to the -mm tree.  Its filename is
-     kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected.patch
+     mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,161 +37,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Guilherme G. Piccoli" <gpiccoli@canonical.com>
-Subject: kernel/hung_task.c: introduce sysctl to print all traces when a hung task is detected
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix
 
-Commit 401c636a0eeb ("kernel/hung_task.c: show all hung tasks before
-panic") introduced a change in that we started to show all CPUs backtraces
-when a hung task is detected _and_ the sysctl/kernel parameter
-"hung_task_panic" is set.  The idea is good, because usually when
-observing deadlocks (that may lead to hung tasks), the culprit is another
-task holding a lock and not necessarily the task detected as hung.
+fix build with CONFIG_SLAB_DEBUG=n
 
-The problem with this approach is that dumping backtraces is a slightly
-expensive task, specially printing that on console (and specially in many
-CPU machines, as servers commonly found nowadays).  So, users that plan to
-collect a kdump to investigate the hung tasks and narrow down the deadlock
-definitely don't need the CPUs backtrace on dmesg/console, which will
-delay the panic and pollute the log (crash tool would easily grab all CPUs
-traces with 'bt -a' command).
-
-Also, there's the reciprocal scenario: some users may be interested in
-seeing the CPUs backtraces but not have the system panic when a hung task
-is detected.  The current approach hence is almost as embedding a policy
-in the kernel, by forcing the CPUs backtraces' dump (only) on
-hung_task_panic.
-
-This patch decouples the panic event on hung task from the CPUs backtraces
-dump, by creating (and documenting) a new sysctl called
-"hung_task_all_cpu_backtrace", analog to the approach taken on soft/hard
-lockups, that have both a panic and an "all_cpu_backtrace" sysctl to allow
-individual control.  The new mechanism for dumping the CPUs backtraces on
-hung task detection respects "hung_task_warnings" by not dumping the
-traces in case there's no warnings left.
-
-Link: http://lkml.kernel.org/r/20200327223646.20779-1-gpiccoli@canonical.com
-Signed-off-by: Guilherme G. Piccoli <gpiccoli@canonical.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dongli Zhang <dongli.zhang@oracle.com>
+Cc: Joe Jin <joe.jin@oracle.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |   14 ++++++++++++
- include/linux/sched/sysctl.h                |    7 ++++++
- kernel/hung_task.c                          |   20 ++++++++++++++++--
- kernel/sysctl.c                             |   11 +++++++++
- 4 files changed, 50 insertions(+), 2 deletions(-)
+ mm/slub.c |   37 +++++++++++++++++++++++++------------
+ 1 file changed, 25 insertions(+), 12 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -277,6 +277,20 @@ Path for the hotplug policy agent.
- Default value is "``/sbin/hotplug``".
- 
- 
-+hung_task_all_cpu_backtrace:
-+================
-+
-+If this option is set, the kernel will send an NMI to all CPUs to dump
-+their backtraces when a hung task is detected. This file shows up if
-+CONFIG_DETECT_HUNG_TASK and CONFIG_SMP are enabled.
-+
-+0: Won't show all CPUs backtraces when a hung task is detected.
-+This is the default behavior.
-+
-+1: Will non-maskably interrupt all CPUs and dump their backtraces when
-+a hung task is detected.
-+
-+
- hung_task_panic
- ===============
- 
---- a/include/linux/sched/sysctl.h~kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected
-+++ a/include/linux/sched/sysctl.h
-@@ -7,6 +7,13 @@
- struct ctl_table;
- 
- #ifdef CONFIG_DETECT_HUNG_TASK
-+
-+#ifdef CONFIG_SMP
-+extern unsigned int sysctl_hung_task_all_cpu_backtrace;
-+#else
-+#define sysctl_hung_task_all_cpu_backtrace 0
-+#endif /* CONFIG_SMP */
-+
- extern int	     sysctl_hung_task_check_count;
- extern unsigned int  sysctl_hung_task_panic;
- extern unsigned long sysctl_hung_task_timeout_secs;
---- a/kernel/hung_task.c~kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected
-+++ a/kernel/hung_task.c
-@@ -53,9 +53,18 @@ int __read_mostly sysctl_hung_task_warni
- static int __read_mostly did_panic;
- static bool hung_task_show_lock;
- static bool hung_task_call_panic;
-+static bool hung_task_show_all_bt;
- 
- static struct task_struct *watchdog_task;
- 
-+#ifdef CONFIG_SMP
-+/*
-+ * Should we dump all CPUs backtraces in a hung task event?
-+ * Defaults to 0, can be changed via sysctl.
-+ */
-+unsigned int __read_mostly sysctl_hung_task_all_cpu_backtrace;
-+#endif /* CONFIG_SMP */
-+
- /*
-  * Should we panic (and reboot, if panic_timeout= is set) when a
-  * hung task is detected:
-@@ -137,6 +146,9 @@ static void check_hung_task(struct task_
- 			" disables this message.\n");
- 		sched_show_task(t);
- 		hung_task_show_lock = true;
-+
-+		if (sysctl_hung_task_all_cpu_backtrace)
-+			hung_task_show_all_bt = true;
- 	}
- 
- 	touch_nmi_watchdog();
-@@ -245,10 +257,14 @@ static void check_hung_uninterruptible_t
- 	rcu_read_unlock();
- 	if (hung_task_show_lock)
- 		debug_show_all_locks();
--	if (hung_task_call_panic) {
-+
-+	if (hung_task_show_all_bt) {
-+		hung_task_show_all_bt = false;
- 		trigger_all_cpu_backtrace();
--		panic("hung_task: blocked tasks");
- 	}
-+
-+	if (hung_task_call_panic)
-+		panic("hung_task: blocked tasks");
+--- a/mm/slub.c~mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix
++++ a/mm/slub.c
+@@ -662,6 +662,20 @@ static void slab_fix(struct kmem_cache *
+ 	va_end(args);
  }
  
- static long hung_timeout_jiffies(unsigned long last_checked,
---- a/kernel/sysctl.c~kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected
-+++ a/kernel/sysctl.c
-@@ -1088,6 +1088,17 @@ static struct ctl_table kern_table[] = {
- 	},
- #endif
- #ifdef CONFIG_DETECT_HUNG_TASK
-+#ifdef CONFIG_SMP
-+	{
-+		.procname	= "hung_task_all_cpu_backtrace",
-+		.data		= &sysctl_hung_task_all_cpu_backtrace,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+#endif /* CONFIG_SMP */
- 	{
- 		.procname	= "hung_task_panic",
- 		.data		= &sysctl_hung_task_panic,
++static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
++			       void *freelist, void *nextfree)
++{
++	if ((s->flags & SLAB_CONSISTENCY_CHECKS) &&
++	    !check_valid_pointer(s, page, nextfree)) {
++		object_err(s, page, freelist, "Freechain corrupt");
++		freelist = NULL;
++		slab_fix(s, "Isolate corrupted freechain");
++		return true;
++	}
++
++	return false;
++}
++
+ static void print_trailer(struct kmem_cache *s, struct page *page, u8 *p)
+ {
+ 	unsigned int off;	/* Offset of last byte */
+@@ -1400,6 +1414,11 @@ static inline void inc_slabs_node(struct
+ static inline void dec_slabs_node(struct kmem_cache *s, int node,
+ 							int objects) {}
+ 
++static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
++			       void *freelist, void *nextfree)
++{
++	return false;
++}
+ #endif /* CONFIG_SLUB_DEBUG */
+ 
+ /*
+@@ -2083,19 +2102,13 @@ static void deactivate_slab(struct kmem_
+ 		void *prior;
+ 		unsigned long counters;
+ 
+-		if ((s->flags & SLAB_CONSISTENCY_CHECKS) &&
+-		    !check_valid_pointer(s, page, nextfree)) {
+-			/*
+-			 * If 'nextfree' is invalid, it is possible that
+-			 * the object at 'freelist' is already corrupted.
+-			 * Therefore, all objects starting at 'freelist'
+-			 * are isolated.
+-			 */
+-			object_err(s, page, freelist, "Freechain corrupt");
+-			freelist = NULL;
+-			slab_fix(s, "Isolate corrupted freechain");
++		/*
++		 * If 'nextfree' is invalid, it is possible that the object at
++		 * 'freelist' is already corrupted.  So isolate all objects
++		 * starting at 'freelist'.
++		 */
++		if (freelist_corrupted(s, page, freelist, nextfree))
+ 			break;
+-		}
+ 
+ 		do {
+ 			prior = page->freelist;
 _
 
-Patches currently in -mm which might be from gpiccoli@canonical.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected.patch
-panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
+maintainers-add-an-entry-for-kfifo-fix.patch
+maintainers-add-an-entry-for-kfifo-fix-fix.patch
+mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+linux-next-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
