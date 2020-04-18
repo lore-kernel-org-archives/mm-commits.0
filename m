@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case.patch added to -mm
- tree
-Date: Fri, 17 Apr 2020 17:14:48 -0700
-Message-ID: <20200418001448.cnOEiHR3U%akpm@linux-foundation.org>
+ panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch added to
+ -mm tree
+Date: Fri, 17 Apr 2020 17:47:02 -0700
+Message-ID: <20200418004702.WCmFSxCdS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41782 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725766AbgDRAOv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 20:14:51 -0400
+        id S1725856AbgDRArD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 20:47:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, tim.c.chen@linux.intel.com
+To: gpiccoli@canonical.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, rdunlap@infradead.org, tglx@linutronix.de, vbabka@suse.cz, willy@infradead.org, yzaikin@google.com
 
 
 The patch titled
-     Subject: mm/swapfile.c: remove the unnecessary goto for SSD case
+     Subject: panic: add sysctl to dump all CPUs backtraces on oops event
 has been added to the -mm tree.  Its filename is
-     mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case.patch
+     panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,59 +37,139 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/swapfile.c: remove the unnecessary goto for SSD case
+From: "Guilherme G. Piccoli" <gpiccoli@canonical.com>
+Subject: panic: add sysctl to dump all CPUs backtraces on oops event
 
-Now we can see there is redundant goto for SSD case.  In these two places,
-we can just let the code walk through to the correct tag instead of
-explicitly jump to it.
+Usually when the kernel reaches an oops condition, it's a point of no
+return; in case not enough debug information is available in the kernel
+splat, one of the last resorts would be to collect a kernel crash dump and
+analyze it.  The problem with this approach is that in order to collect
+the dump, a panic is required (to kexec-load the crash kernel).  When in
+an environment of multiple virtual machines, users may prefer to try
+living with the oops, at least until being able to properly shutdown their
+VMs / finish their important tasks.
 
-Let's remove them for better readability.
+This patch implements a way to collect a bit more debug details when an
+oops event is reached, by printing all the CPUs backtraces through the
+usage of NMIs (on architectures that support that).  The sysctl added (and
+documented) here was called "oops_all_cpu_backtrace", and when set will
+(as the name suggests) dump all CPUs backtraces.
 
-Link: http://lkml.kernel.org/r/20200328060520.31449-4-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Far from ideal, this may be the last option though for users that for some
+reason cannot panic on oops.  Most of times oopses are clear enough to
+indicate the kernel portion that must be investigated, but in virtual
+environments it's possible to observe hypervisor/KVM issues that could
+lead to oopses shown in other guests CPUs (like virtual APIC crashes). 
+This patch hence aims to help debug such complex issues without resorting
+to kdump.
+
+Link: http://lkml.kernel.org/r/20200327224116.21030-1-gpiccoli@canonical.com
+Signed-off-by: Guilherme G. Piccoli <gpiccoli@canonical.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ Documentation/admin-guide/sysctl/kernel.rst |   16 ++++++++++++++++
+ include/linux/kernel.h                      |    6 ++++++
+ kernel/panic.c                              |   11 +++++++++++
+ kernel/sysctl.c                             |   11 +++++++++++
+ 4 files changed, 44 insertions(+)
 
---- a/mm/swapfile.c~mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case
-+++ a/mm/swapfile.c
-@@ -759,9 +759,7 @@ static int scan_swap_map_slots(struct sw
+--- a/Documentation/admin-guide/sysctl/kernel.rst~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -555,6 +555,22 @@ rate for each task.
+ scanned for a given scan.
  
- 	/* SSD algorithm */
- 	if (si->cluster_info) {
--		if (scan_swap_map_try_ssd_cluster(si, &offset, &scan_base))
--			goto checks;
--		else
-+		if (!scan_swap_map_try_ssd_cluster(si, &offset, &scan_base))
- 			goto scan;
- 	} else if (unlikely(!si->cluster_nr--)) {
- 		if (si->pages - si->inuse_pages < SWAPFILE_CLUSTER) {
-@@ -869,8 +867,6 @@ checks:
- 	if (si->cluster_info) {
- 		if (scan_swap_map_try_ssd_cluster(si, &offset, &scan_base))
- 			goto checks;
--		else
--			goto done;
- 	} else if (si->cluster_nr && !si->swap_map[++offset]) {
- 		/* non-ssd case, still more slots in cluster? */
- 		--si->cluster_nr;
+ 
++oops_all_cpu_backtrace:
++================
++
++If this option is set, the kernel will send an NMI to all CPUs to dump
++their backtraces when an oops event occurs. It should be used as a last
++resort in case a panic cannot be triggered (to protect VMs running, for
++example) or kdump can't be collected. This file shows up if CONFIG_SMP
++is enabled.
++
++0: Won't show all CPUs backtraces when an oops is detected.
++This is the default behavior.
++
++1: Will non-maskably interrupt all CPUs and dump their backtraces when
++an oops event is detected.
++
++
+ osrelease, ostype & version
+ ===========================
+ 
+--- a/include/linux/kernel.h~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
++++ a/include/linux/kernel.h
+@@ -520,6 +520,12 @@ static inline u32 int_sqrt64(u64 x)
+ }
+ #endif
+ 
++#ifdef CONFIG_SMP
++extern unsigned int sysctl_oops_all_cpu_backtrace;
++#else
++#define sysctl_oops_all_cpu_backtrace 0
++#endif /* CONFIG_SMP */
++
+ extern void bust_spinlocks(int yes);
+ extern int oops_in_progress;		/* If set, an oops, panic(), BUG() or die() is in progress */
+ extern int panic_timeout;
+--- a/kernel/panic.c~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
++++ a/kernel/panic.c
+@@ -36,6 +36,14 @@
+ #define PANIC_TIMER_STEP 100
+ #define PANIC_BLINK_SPD 18
+ 
++#ifdef CONFIG_SMP
++/*
++ * Should we dump all CPUs backtraces in an oops event?
++ * Defaults to 0, can be changed via sysctl.
++ */
++unsigned int __read_mostly sysctl_oops_all_cpu_backtrace;
++#endif /* CONFIG_SMP */
++
+ int panic_on_oops = CONFIG_PANIC_ON_OOPS_VALUE;
+ static unsigned long tainted_mask =
+ 	IS_ENABLED(CONFIG_GCC_PLUGIN_RANDSTRUCT) ? (1 << TAINT_RANDSTRUCT) : 0;
+@@ -515,6 +523,9 @@ void oops_enter(void)
+ 	/* can't trust the integrity of the kernel anymore: */
+ 	debug_locks_off();
+ 	do_oops_enter_exit();
++
++	if (sysctl_oops_all_cpu_backtrace)
++		trigger_all_cpu_backtrace();
+ }
+ 
+ /*
+--- a/kernel/sysctl.c~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
++++ a/kernel/sysctl.c
+@@ -801,6 +801,17 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler	= proc_dointvec,
+ 	},
+ #endif
++#ifdef CONFIG_SMP
++	{
++		.procname	= "oops_all_cpu_backtrace",
++		.data		= &sysctl_oops_all_cpu_backtrace,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
++	},
++#endif /* CONFIG_SMP */
+ 	{
+ 		.procname	= "pid_max",
+ 		.data		= &pid_max,
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from gpiccoli@canonical.com are
 
-mm-swapfilec-offset-is-only-used-when-there-is-more-slots.patch
-mm-swapfilec-explicitly-show-ssd-non-ssd-is-handled-mutually-exclusive.patch
-mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case.patch
-mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
-mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
-mm-page_allocc-rename-free_pages_check_bad-to-check_free_page_bad.patch
-mm-page_allocc-rename-free_pages_check-to-check_free_page.patch
-mm-page_allocc-extract-check__page_bad-common-part-to-page_bad_reason.patch
-mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
-mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
-mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch
+panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
