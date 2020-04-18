@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + elfnote-mark-all-note-sections-shf_alloc.patch added to
+Subject: +
+ mm-swapfilec-remove-the-extra-check-in-scan_swap_map_slots.patch added to
  -mm tree
-Date: Sat, 18 Apr 2020 13:19:55 -0700
-Message-ID: <20200418201955.wltNE-2kB%akpm@linux-foundation.org>
+Date: Sat, 18 Apr 2020 15:13:07 -0700
+Message-ID: <20200418221307.HssgJydF6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55986 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728296AbgDRUT4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 18 Apr 2020 16:19:56 -0400
+        id S1726887AbgDRWNJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 18 Apr 2020 18:13:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ilie.halip@gmail.com, jeremy@goop.org, maskray@google.com, mm-commits@vger.kernel.org, natechancellor@gmail.com, ndesaulniers@google.com, tglx@linutronix.de, vincenzo.frascino@arm.com
+To: hughd@google.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
 
 
 The patch titled
-     Subject: elfnote: mark all .note sections SHF_ALLOC
+     Subject: mm/swapfile.c: remove the extra check in scan_swap_map_slots()
 has been added to the -mm tree.  Its filename is
-     elfnote-mark-all-note-sections-shf_alloc.patch
+     mm-swapfilec-remove-the-extra-check-in-scan_swap_map_slots.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/elfnote-mark-all-note-sections-shf_alloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-remove-the-extra-check-in-scan_swap_map_slots.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/elfnote-mark-all-note-sections-shf_alloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-remove-the-extra-check-in-scan_swap_map_slots.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,57 +37,28 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: elfnote: mark all .note sections SHF_ALLOC
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/swapfile.c: remove the extra check in scan_swap_map_slots()
 
-ELFNOTE_START allows callers to specify flags for .pushsection assembler
-directives.  All callsites but ELF_NOTE use "a" for SHF_ALLOC.  For vdso's
-that explicitly use ELF_NOTE_START and BUILD_SALT, the same section is
-specified twice after preprocessing, once with "a" flag, once without. 
-Example:
+scan_swap_map_slots() is only called by scan_swap_map() and
+get_swap_pages().  Both ensure nr would not exceed SWAP_BATCH.
 
-.pushsection .note.Linux, "a", @note ;
-.pushsection .note.Linux, "", @note ;
+Just remove it.
 
-While GNU as allows this ordering, it warns for the opposite ordering,
-making these directives position dependent.  We'd prefer not to precisely
-match this behavior in Clang's integrated assembler.  Instead, the non
-__ASSEMBLY__ definition of ELF_NOTE uses
-__attribute__((section(".note.Linux"))) which is created with SHF_ALLOC,
-so let's make the __ASSEMBLY__ definition of ELF_NOTE consistent with C
-and just always use "a" flag.
-
-This allows Clang to assemble a working mainline (5.6) kernel via:
-$ make CC=clang AS=clang
-
-Link: https://github.com/ClangBuiltLinux/linux/issues/913
-Link: http://lkml.kernel.org/r/20200325231250.99205-1-ndesaulniers@google.com
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Debugged-by: Ilie Halip <ilie.halip@gmail.com>
-Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
-Reviewed-by: Fangrui Song <maskray@google.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: http://lkml.kernel.org/r/20200325220309.9803-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/elfnote.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/include/linux/elfnote.h~elfnote-mark-all-note-sections-shf_alloc
-+++ a/include/linux/elfnote.h
-@@ -54,7 +54,7 @@
- .popsection				;
+--- a/mm/swapfile.c~mm-swapfilec-remove-the-extra-check-in-scan_swap_map_slots
++++ a/mm/swapfile.c
+@@ -740,9 +740,6 @@ static int scan_swap_map_slots(struct sw
+ 	int latency_ration = LATENCY_LIMIT;
+ 	int n_ret = 0;
  
- #define ELFNOTE(name, type, desc)		\
--	ELFNOTE_START(name, type, "")		\
-+	ELFNOTE_START(name, type, "a")		\
- 		desc			;	\
- 	ELFNOTE_END
- 
-_
-
-Patches currently in -mm which might be from ndesaulniers@google.com are
-
-elfnote-mark-all-note-sections-shf_alloc.patch
+-	if (nr > SWAP_BATCH)
+-		nr = SWAP_BATCH;
