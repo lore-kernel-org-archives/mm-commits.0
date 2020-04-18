@@ -1,28 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
- added to -mm tree
-Date: Fri, 17 Apr 2020 17:05:57 -0700
-Message-ID: <20200418000557.ZitIfToUC%akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?mm-rename-gfpflags=5Fto=5Fmigratetype-to-gfp=5Fmigratetype-f?=
+ =?US-ASCII?Q?or-same-convention.patch?= added to -mm tree
+Date: Fri, 17 Apr 2020 17:07:47 -0700
+Message-ID: <20200418000747.i5mQjaN0Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35450 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36036 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725985AbgDRAF7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 20:05:59 -0400
+        id S1725985AbgDRAHt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 20:07:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, hpa@zytor.com, linux@armlinux.org.uk, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tsbogend@alpha.franken.de, vgupta@synopsys.com, will@kernel.org
+To: mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, richard.weiyang@gmail.com
 
 
 The patch titled
-     Subject: mm/thp: rename pmd_mknotpresent() to pmd_mknotvalid()
+     Subject: mm: rename gfpflags_to_migratetype to gfp_migratetype for same convention
 has been added to the -mm tree.  Its filename is
-     mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+     mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,142 +39,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/thp: rename pmd_mknotpresent() to pmd_mknotvalid()
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm: rename gfpflags_to_migratetype to gfp_migratetype for same convention
 
-pmd_present() is expected to test positive after pmdp_mknotpresent() as
-the PMD entry still points to a valid huge page in memory. 
-pmdp_mknotpresent() implies that given PMD entry is just invalidated from
-MMU perspective while still holding on to pmd_page() referred valid huge
-page thus also clearing pmd_present() test.  This creates the following
-situation which is counter intuitive.
+Pageblock migrate type is encoded in GFP flags, just as zone_type and
+zonelist.
 
-[pmd_present(pmd_mknotpresent(pmd)) = true]
+Currently we use gfp_zone() and gfp_zonelist() to extract related
+information, it would be proper to use the same naming convention for
+migrate type.
 
-This renames pmd_mknotpresent() as pmd_mknotvalid() reflecting the
-helper's functionality more accurately while changing the above mentioned
-situation as follows.  This does not create any functional change.
-
-[pmd_present(pmd_mknotvalid(pmd)) = true]
-
-This is not applicable for platforms that define own pmdp_invalidate() via
-__HAVE_ARCH_PMDP_INVALIDATE.  Suggestion for renaming came during a
-previous discussion here.
-
-https://patchwork.kernel.org/patch/11019637/
-
-Link: http://lkml.kernel.org/r/1584680057-13753-3-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
+Link: http://lkml.kernel.org/r/20200329080823.7735-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/hugepage.h       |    2 +-
- arch/arm/include/asm/pgtable-3level.h |    2 +-
- arch/arm64/include/asm/pgtable.h      |    2 +-
- arch/mips/include/asm/pgtable.h       |    2 +-
- arch/x86/include/asm/pgtable.h        |    2 +-
- arch/x86/mm/kmmio.c                   |    2 +-
- mm/pgtable-generic.c                  |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/gfp.h |    2 +-
+ mm/compaction.c     |    2 +-
+ mm/page_alloc.c     |    4 ++--
+ mm/page_owner.c     |    7 +++----
+ 4 files changed, 7 insertions(+), 8 deletions(-)
 
---- a/arch/arc/include/asm/hugepage.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/arc/include/asm/hugepage.h
-@@ -26,7 +26,7 @@ static inline pmd_t pte_pmd(pte_t pte)
- #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
- #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
- #define pmd_mkhuge(pmd)		pte_pmd(pte_mkhuge(pmd_pte(pmd)))
--#define pmd_mknotpresent(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
-+#define pmd_mknotvalid(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
- #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+--- a/include/linux/gfp.h~mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention
++++ a/include/linux/gfp.h
+@@ -312,7 +312,7 @@ struct vm_area_struct;
+ #define GFP_MOVABLE_MASK (__GFP_RECLAIMABLE|__GFP_MOVABLE)
+ #define GFP_MOVABLE_SHIFT 3
  
- #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
---- a/arch/arm64/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -371,7 +371,7 @@ static inline int pmd_protnone(pmd_t pmd
- #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
- #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
- #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
--#define pmd_mknotpresent(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
-+#define pmd_mknotvalid(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
- 
- #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
- 
---- a/arch/arm/include/asm/pgtable-3level.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/arm/include/asm/pgtable-3level.h
-@@ -221,7 +221,7 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
- #define pmdp_establish generic_pmdp_establish
- 
- /* represent a notpresent pmd by faulting entry, this is used by pmdp_invalidate */
--static inline pmd_t pmd_mknotpresent(pmd_t pmd)
-+static inline pmd_t pmd_mknotvalid(pmd_t pmd)
+-static inline int gfpflags_to_migratetype(const gfp_t gfp_flags)
++static inline int gfp_migratetype(const gfp_t gfp_flags)
  {
- 	return __pmd(pmd_val(pmd) & ~L_PMD_SECT_VALID);
- }
---- a/arch/mips/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -631,7 +631,7 @@ static inline pmd_t pmd_modify(pmd_t pmd
- 	return pmd;
- }
+ 	VM_WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
+ 	BUILD_BUG_ON((1UL << GFP_MOVABLE_SHIFT) != ___GFP_MOVABLE);
+--- a/mm/compaction.c~mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention
++++ a/mm/compaction.c
+@@ -2098,7 +2098,7 @@ compact_zone(struct compact_control *cc,
+ 	INIT_LIST_HEAD(&cc->freepages);
+ 	INIT_LIST_HEAD(&cc->migratepages);
  
--static inline pmd_t pmd_mknotpresent(pmd_t pmd)
-+static inline pmd_t pmd_mknotvalid(pmd_t pmd)
- {
- 	pmd_val(pmd) &= ~(_PAGE_PRESENT | _PAGE_VALID | _PAGE_DIRTY);
+-	cc->migratetype = gfpflags_to_migratetype(cc->gfp_mask);
++	cc->migratetype = gfp_migratetype(cc->gfp_mask);
+ 	ret = compaction_suitable(cc->zone, cc->order, cc->alloc_flags,
+ 							cc->highest_zoneidx);
+ 	/* Compaction is likely to fail */
+--- a/mm/page_alloc.c~mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention
++++ a/mm/page_alloc.c
+@@ -4272,7 +4272,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 		alloc_flags |= ALLOC_HARDER;
  
---- a/arch/x86/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -624,7 +624,7 @@ static inline pud_t pfn_pud(unsigned lon
- 	return __pud(pfn | check_pgprot(pgprot));
- }
+ #ifdef CONFIG_CMA
+-	if (gfpflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
++	if (gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+ 		alloc_flags |= ALLOC_CMA;
+ #endif
+ 	return alloc_flags;
+@@ -4722,7 +4722,7 @@ static inline bool prepare_alloc_pages(g
+ 	ac->highest_zoneidx = gfp_zone(gfp_mask);
+ 	ac->zonelist = node_zonelist(preferred_nid, gfp_mask);
+ 	ac->nodemask = nodemask;
+-	ac->migratetype = gfpflags_to_migratetype(gfp_mask);
++	ac->migratetype = gfp_migratetype(gfp_mask);
  
--static inline pmd_t pmd_mknotpresent(pmd_t pmd)
-+static inline pmd_t pmd_mknotvalid(pmd_t pmd)
- {
- 	return pfn_pmd(pmd_pfn(pmd),
- 		      __pgprot(pmd_flags(pmd) & ~(_PAGE_PRESENT|_PAGE_PROTNONE)));
---- a/arch/x86/mm/kmmio.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/x86/mm/kmmio.c
-@@ -130,7 +130,7 @@ static void clear_pmd_presence(pmd_t *pm
- 	pmdval_t v = pmd_val(*pmd);
- 	if (clear) {
- 		*old = v;
--		new_pmd = pmd_mknotpresent(*pmd);
-+		new_pmd = pmd_mknotvalid(*pmd);
- 	} else {
- 		/* Presume this has been called with clear==true previously */
- 		new_pmd = __pmd(*old);
---- a/mm/pgtable-generic.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/mm/pgtable-generic.c
-@@ -194,7 +194,7 @@ pgtable_t pgtable_trans_huge_withdraw(st
- pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 		     pmd_t *pmdp)
- {
--	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mknotpresent(*pmdp));
-+	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mknotvalid(*pmdp));
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return old;
- }
+ 	if (cpusets_enabled()) {
+ 		*alloc_mask |= __GFP_HARDWALL;
+--- a/mm/page_owner.c~mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention
++++ a/mm/page_owner.c
+@@ -312,8 +312,7 @@ void pagetypeinfo_showmixedcount_print(s
+ 				continue;
+ 
+ 			page_owner = get_page_owner(page_ext);
+-			page_mt = gfpflags_to_migratetype(
+-					page_owner->gfp_mask);
++			page_mt = gfp_migratetype(page_owner->gfp_mask);
+ 			if (pageblock_mt != page_mt) {
+ 				if (is_migrate_cma(pageblock_mt))
+ 					count[MIGRATE_MOVABLE]++;
+@@ -359,7 +358,7 @@ print_page_owner(char __user *buf, size_
+ 
+ 	/* Print information relevant to grouping pages by mobility */
+ 	pageblock_mt = get_pageblock_migratetype(page);
+-	page_mt  = gfpflags_to_migratetype(page_owner->gfp_mask);
++	page_mt  = gfp_migratetype(page_owner->gfp_mask);
+ 	ret += snprintf(kbuf + ret, count - ret,
+ 			"PFN %lu type %s Block %lu type %s Flags %#lx(%pGp)\n",
+ 			pfn,
+@@ -416,7 +415,7 @@ void __dump_page_owner(struct page *page
+ 
+ 	page_owner = get_page_owner(page_ext);
+ 	gfp_mask = page_owner->gfp_mask;
+-	mt = gfpflags_to_migratetype(gfp_mask);
++	mt = gfp_migratetype(gfp_mask);
+ 
+ 	if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags)) {
+ 		pr_alert("page_owner info is not present (never set?)\n");
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-debug-add-tests-validating-architecture-page-table-helpers.patch
-powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
-mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
+mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
+mm-page_allocc-rename-free_pages_check_bad-to-check_free_page_bad.patch
+mm-page_allocc-rename-free_pages_check-to-check_free_page.patch
+mm-page_allocc-extract-check__page_bad-common-part-to-page_bad_reason.patch
+mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
+mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
+mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch
