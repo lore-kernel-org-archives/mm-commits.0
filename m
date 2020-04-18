@@ -1,29 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch added to
- -mm tree
-Date: Fri, 17 Apr 2020 17:47:02 -0700
-Message-ID: <20200418004702.WCmFSxCdS%akpm@linux-foundation.org>
+ =?US-ASCII?Q?kernel-hung=5Ftaskc-introduce-sysctl-to-print-all-traces-wh?=
+ =?US-ASCII?Q?en-a-hung-task-is-detected.patch?= added to -mm tree
+Date: Fri, 17 Apr 2020 17:50:48 -0700
+Message-ID: <20200418005048.7wyrd3WLf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53254 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54336 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725856AbgDRArD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 20:47:03 -0400
+        id S1725856AbgDRAut (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 20:50:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gpiccoli@canonical.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, rdunlap@infradead.org, tglx@linutronix.de, vbabka@suse.cz, willy@infradead.org, yzaikin@google.com
+To: gpiccoli@canonical.com, keescook@chromium.org, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp
 
 
 The patch titled
-     Subject: panic: add sysctl to dump all CPUs backtraces on oops event
+     Subject: kernel/hung_task.c: introduce sysctl to print all traces when a hung task is detected
 has been added to the -mm tree.  Its filename is
-     panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
+     kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,126 +40,147 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Guilherme G. Piccoli" <gpiccoli@canonical.com>
-Subject: panic: add sysctl to dump all CPUs backtraces on oops event
+Subject: kernel/hung_task.c: introduce sysctl to print all traces when a hung task is detected
 
-Usually when the kernel reaches an oops condition, it's a point of no
-return; in case not enough debug information is available in the kernel
-splat, one of the last resorts would be to collect a kernel crash dump and
-analyze it.  The problem with this approach is that in order to collect
-the dump, a panic is required (to kexec-load the crash kernel).  When in
-an environment of multiple virtual machines, users may prefer to try
-living with the oops, at least until being able to properly shutdown their
-VMs / finish their important tasks.
+Commit 401c636a0eeb ("kernel/hung_task.c: show all hung tasks before
+panic") introduced a change in that we started to show all CPUs backtraces
+when a hung task is detected _and_ the sysctl/kernel parameter
+"hung_task_panic" is set.  The idea is good, because usually when
+observing deadlocks (that may lead to hung tasks), the culprit is another
+task holding a lock and not necessarily the task detected as hung.
 
-This patch implements a way to collect a bit more debug details when an
-oops event is reached, by printing all the CPUs backtraces through the
-usage of NMIs (on architectures that support that).  The sysctl added (and
-documented) here was called "oops_all_cpu_backtrace", and when set will
-(as the name suggests) dump all CPUs backtraces.
+The problem with this approach is that dumping backtraces is a slightly
+expensive task, specially printing that on console (and specially in many
+CPU machines, as servers commonly found nowadays).  So, users that plan to
+collect a kdump to investigate the hung tasks and narrow down the deadlock
+definitely don't need the CPUs backtrace on dmesg/console, which will
+delay the panic and pollute the log (crash tool would easily grab all CPUs
+traces with 'bt -a' command).
 
-Far from ideal, this may be the last option though for users that for some
-reason cannot panic on oops.  Most of times oopses are clear enough to
-indicate the kernel portion that must be investigated, but in virtual
-environments it's possible to observe hypervisor/KVM issues that could
-lead to oopses shown in other guests CPUs (like virtual APIC crashes). 
-This patch hence aims to help debug such complex issues without resorting
-to kdump.
+Also, there's the reciprocal scenario: some users may be interested in
+seeing the CPUs backtraces but not have the system panic when a hung task
+is detected.  The current approach hence is almost as embedding a policy
+in the kernel, by forcing the CPUs backtraces' dump (only) on
+hung_task_panic.
 
-Link: http://lkml.kernel.org/r/20200327224116.21030-1-gpiccoli@canonical.com
+This patch decouples the panic event on hung task from the CPUs backtraces
+dump, by creating (and documenting) a new sysctl called
+"hung_task_all_cpu_backtrace", analog to the approach taken on soft/hard
+lockups, that have both a panic and an "all_cpu_backtrace" sysctl to allow
+individual control.  The new mechanism for dumping the CPUs backtraces on
+hung task detection respects "hung_task_warnings" by not dumping the
+traces in case there's no warnings left.
+
+Link: http://lkml.kernel.org/r/20200327223646.20779-1-gpiccoli@canonical.com
 Signed-off-by: Guilherme G. Piccoli <gpiccoli@canonical.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |   16 ++++++++++++++++
- include/linux/kernel.h                      |    6 ++++++
- kernel/panic.c                              |   11 +++++++++++
- kernel/sysctl.c                             |   11 +++++++++++
- 4 files changed, 44 insertions(+)
+ Documentation/admin-guide/sysctl/kernel.rst |   14 ++++++++++++
+ include/linux/sched/sysctl.h                |    7 ++++++
+ kernel/hung_task.c                          |   20 ++++++++++++++++--
+ kernel/sysctl.c                             |   11 +++++++++
+ 4 files changed, 50 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
+--- a/Documentation/admin-guide/sysctl/kernel.rst~kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected
 +++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -555,6 +555,22 @@ rate for each task.
- scanned for a given scan.
+@@ -277,6 +277,20 @@ Path for the hotplug policy agent.
+ Default value is "``/sbin/hotplug``".
  
  
-+oops_all_cpu_backtrace:
++hung_task_all_cpu_backtrace:
 +================
 +
 +If this option is set, the kernel will send an NMI to all CPUs to dump
-+their backtraces when an oops event occurs. It should be used as a last
-+resort in case a panic cannot be triggered (to protect VMs running, for
-+example) or kdump can't be collected. This file shows up if CONFIG_SMP
-+is enabled.
++their backtraces when a hung task is detected. This file shows up if
++CONFIG_DETECT_HUNG_TASK and CONFIG_SMP are enabled.
 +
-+0: Won't show all CPUs backtraces when an oops is detected.
++0: Won't show all CPUs backtraces when a hung task is detected.
 +This is the default behavior.
 +
 +1: Will non-maskably interrupt all CPUs and dump their backtraces when
-+an oops event is detected.
++a hung task is detected.
 +
 +
- osrelease, ostype & version
- ===========================
+ hung_task_panic
+ ===============
  
---- a/include/linux/kernel.h~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
-+++ a/include/linux/kernel.h
-@@ -520,6 +520,12 @@ static inline u32 int_sqrt64(u64 x)
- }
- #endif
+--- a/include/linux/sched/sysctl.h~kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected
++++ a/include/linux/sched/sysctl.h
+@@ -7,6 +7,13 @@
+ struct ctl_table;
  
+ #ifdef CONFIG_DETECT_HUNG_TASK
++
 +#ifdef CONFIG_SMP
-+extern unsigned int sysctl_oops_all_cpu_backtrace;
++extern unsigned int sysctl_hung_task_all_cpu_backtrace;
 +#else
-+#define sysctl_oops_all_cpu_backtrace 0
++#define sysctl_hung_task_all_cpu_backtrace 0
 +#endif /* CONFIG_SMP */
 +
- extern void bust_spinlocks(int yes);
- extern int oops_in_progress;		/* If set, an oops, panic(), BUG() or die() is in progress */
- extern int panic_timeout;
---- a/kernel/panic.c~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
-+++ a/kernel/panic.c
-@@ -36,6 +36,14 @@
- #define PANIC_TIMER_STEP 100
- #define PANIC_BLINK_SPD 18
+ extern int	     sysctl_hung_task_check_count;
+ extern unsigned int  sysctl_hung_task_panic;
+ extern unsigned long sysctl_hung_task_timeout_secs;
+--- a/kernel/hung_task.c~kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected
++++ a/kernel/hung_task.c
+@@ -53,9 +53,18 @@ int __read_mostly sysctl_hung_task_warni
+ static int __read_mostly did_panic;
+ static bool hung_task_show_lock;
+ static bool hung_task_call_panic;
++static bool hung_task_show_all_bt;
+ 
+ static struct task_struct *watchdog_task;
  
 +#ifdef CONFIG_SMP
 +/*
-+ * Should we dump all CPUs backtraces in an oops event?
++ * Should we dump all CPUs backtraces in a hung task event?
 + * Defaults to 0, can be changed via sysctl.
 + */
-+unsigned int __read_mostly sysctl_oops_all_cpu_backtrace;
++unsigned int __read_mostly sysctl_hung_task_all_cpu_backtrace;
 +#endif /* CONFIG_SMP */
 +
- int panic_on_oops = CONFIG_PANIC_ON_OOPS_VALUE;
- static unsigned long tainted_mask =
- 	IS_ENABLED(CONFIG_GCC_PLUGIN_RANDSTRUCT) ? (1 << TAINT_RANDSTRUCT) : 0;
-@@ -515,6 +523,9 @@ void oops_enter(void)
- 	/* can't trust the integrity of the kernel anymore: */
- 	debug_locks_off();
- 	do_oops_enter_exit();
+ /*
+  * Should we panic (and reboot, if panic_timeout= is set) when a
+  * hung task is detected:
+@@ -137,6 +146,9 @@ static void check_hung_task(struct task_
+ 			" disables this message.\n");
+ 		sched_show_task(t);
+ 		hung_task_show_lock = true;
 +
-+	if (sysctl_oops_all_cpu_backtrace)
-+		trigger_all_cpu_backtrace();
++		if (sysctl_hung_task_all_cpu_backtrace)
++			hung_task_show_all_bt = true;
+ 	}
+ 
+ 	touch_nmi_watchdog();
+@@ -245,10 +257,14 @@ static void check_hung_uninterruptible_t
+ 	rcu_read_unlock();
+ 	if (hung_task_show_lock)
+ 		debug_show_all_locks();
+-	if (hung_task_call_panic) {
++
++	if (hung_task_show_all_bt) {
++		hung_task_show_all_bt = false;
+ 		trigger_all_cpu_backtrace();
+-		panic("hung_task: blocked tasks");
+ 	}
++
++	if (hung_task_call_panic)
++		panic("hung_task: blocked tasks");
  }
  
- /*
---- a/kernel/sysctl.c~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
+ static long hung_timeout_jiffies(unsigned long last_checked,
+--- a/kernel/sysctl.c~kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected
 +++ a/kernel/sysctl.c
-@@ -801,6 +801,17 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= proc_dointvec,
+@@ -1088,6 +1088,17 @@ static struct ctl_table kern_table[] = {
  	},
  #endif
+ #ifdef CONFIG_DETECT_HUNG_TASK
 +#ifdef CONFIG_SMP
 +	{
-+		.procname	= "oops_all_cpu_backtrace",
-+		.data		= &sysctl_oops_all_cpu_backtrace,
++		.procname	= "hung_task_all_cpu_backtrace",
++		.data		= &sysctl_hung_task_all_cpu_backtrace,
 +		.maxlen		= sizeof(int),
 +		.mode		= 0644,
 +		.proc_handler	= proc_dointvec_minmax,
@@ -166,10 +189,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	},
 +#endif /* CONFIG_SMP */
  	{
- 		.procname	= "pid_max",
- 		.data		= &pid_max,
+ 		.procname	= "hung_task_panic",
+ 		.data		= &sysctl_hung_task_panic,
 _
 
 Patches currently in -mm which might be from gpiccoli@canonical.com are
 
+kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected.patch
 panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
