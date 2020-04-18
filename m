@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-replace-zero-length-array-with-flexible-array-member-fix.patch added to
+ mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch added to
  -mm tree
-Date: Fri, 17 Apr 2020 19:42:40 -0700
-Message-ID: <20200418024240.bnuKdRGNp%akpm@linux-foundation.org>
+Date: Fri, 17 Apr 2020 20:30:28 -0700
+Message-ID: <20200418033028.7UExnekS3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53266 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38804 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725320AbgDRCml (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 22:42:41 -0400
+        id S1725320AbgDRDa3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 23:30:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhe@redhat.com, cai@lca.pw, chenqiwu@xiaomi.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, richard.weiyang@gmail.com, willy@infradead.org, yang.shi@linux.alibaba.com
+To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org, peterz@infradead.org
 
 
 The patch titled
-     Subject: mm-replace-zero-length-array-with-flexible-array-member-fix
+     Subject: mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix
 has been added to the -mm tree.  Its filename is
-     mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+     mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,38 +38,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-replace-zero-length-array-with-flexible-array-member-fix
+Subject: mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix
 
-fix build:
+add missing `node' arg
 
-./include/linux/mmzone.h:1143:16: error: flexible array member in a struct with no named members
-
-Cc: Baoquan He <bhe@redhat.com>
-Cc: chenqiwu <chenqiwu@xiaomi.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_vmalloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/mmzone.h~mm-replace-zero-length-array-with-flexible-array-member-fix
-+++ a/include/linux/mmzone.h
-@@ -1140,7 +1140,7 @@ struct mem_section_usage {
- 	DECLARE_BITMAP(subsection_map, SUBSECTIONS_PER_SECTION);
- #endif
- 	/* See declaration of similar field in struct zone */
--	unsigned long pageblock_flags[];
-+	unsigned long pageblock_flags[0];
- };
+--- a/lib/test_vmalloc.c~mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix
++++ a/lib/test_vmalloc.c
+@@ -91,7 +91,7 @@ static int random_size_align_alloc_test(
+ 		 */
+ 		size = ((rnd % 10) + 1) * PAGE_SIZE;
  
- void subsection_map_init(unsigned long pfn, unsigned long nr_pages);
+-		ptr = __vmalloc_node(size, align, GFP_KERNEL | __GFP_ZERO,
++		ptr = __vmalloc_node(size, align, GFP_KERNEL | __GFP_ZERO, 0,
+ 				__builtin_return_address(0));
+ 		if (!ptr)
+ 			return -1;
+@@ -114,7 +114,7 @@ static int align_shift_alloc_test(void)
+ 	for (i = 0; i < BITS_PER_LONG; i++) {
+ 		align = ((unsigned long) 1) << i;
+ 
+-		ptr = __vmalloc_node(PAGE_SIZE, align, GFP_KERNEL | __GFP_ZERO,
++		ptr = __vmalloc_node(PAGE_SIZE, align, GFP_KERNEL|__GFP_ZERO, 0,
+ 				__builtin_return_address(0));
+ 		if (!ptr)
+ 			return -1;
+@@ -132,7 +132,7 @@ static int fix_align_alloc_test(void)
+ 
+ 	for (i = 0; i < test_loop_count; i++) {
+ 		ptr = __vmalloc_node(5 * PAGE_SIZE, THREAD_ALIGN << 1,
+-				GFP_KERNEL | __GFP_ZERO,
++				GFP_KERNEL | __GFP_ZERO, 0,
+ 				__builtin_return_address(0));
+ 		if (!ptr)
+ 			return -1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +90,7 @@ drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
 mm.patch
 mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
 memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
 mm-replace-zero-length-array-with-flexible-array-member-fix.patch
 mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
 linux-next-fix.patch
