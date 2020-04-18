@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_allocc-use-node_mask_none-in-build_zonelists.patch added to -mm
- tree
-Date: Fri, 17 Apr 2020 17:01:08 -0700
-Message-ID: <20200418000108.jhXiJndOe%akpm@linux-foundation.org>
+Subject: + powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
+ added to -mm tree
+Date: Fri, 17 Apr 2020 17:05:53 -0700
+Message-ID: <20200418000553.kE99gOzSv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34234 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35374 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725985AbgDRABJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Apr 2020 20:01:09 -0400
+        id S1725985AbgDRAFz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Apr 2020 20:05:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@redhat.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, richard.weiyang@gmail.com
+To: anshuman.khandual@arm.com, benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, hpa@zytor.com, linux@armlinux.org.uk, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tsbogend@alpha.franken.de, vgupta@synopsys.com, will@kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: use NODE_MASK_NONE in build_zonelists()
+     Subject: powerpc/mm: drop platform defined pmd_mknotpresent()
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
+     powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,49 +36,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc.c: use NODE_MASK_NONE in build_zonelists()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: powerpc/mm: drop platform defined pmd_mknotpresent()
 
-Slightly simplify the code by initializing user_mask with NODE_MASK_NONE,
-instead of later calling nodes_clear().  This saves a line of code.
+Patch series "mm/thp: Rename pmd_mknotpresent() as pmd_mknotvalid()".
 
-Link: http://lkml.kernel.org/r/20200330220840.21228-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+This series renames pmd_mknotpresent() as pmd_mknotvalid().  Before that
+it drops an existing pmd_mknotpresent() definition from powerpc platform
+which was never required as it defines it's pmdp_invalidate() through
+subscribing __HAVE_ARCH_PMDP_INVALIDATE.  This does not create any
+functional change.
+
+This rename was suggested by Catalin during a previous discussion while we
+were trying to change the THP helpers on arm64 platform for migration.
+
+https://patchwork.kernel.org/patch/11019637/
+
+
+This patch (of 2):
+
+Platform needs to define pmd_mknotpresent() for generic pmdp_invalidate()
+only when __HAVE_ARCH_PMDP_INVALIDATE is not subscribed.  Otherwise
+platform specific pmd_mknotpresent() is not required.  Hence just drop it.
+
+Link: http://lkml.kernel.org/r/1584680057-13753-1-git-send-email-anshuman.khandual@arm.com
+Link: http://lkml.kernel.org/r/1584680057-13753-2-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-use-node_mask_none-in-build_zonelists
-+++ a/mm/page_alloc.c
-@@ -5676,14 +5676,13 @@ static void build_zonelists(pg_data_t *p
- {
- 	static int node_order[MAX_NUMNODES];
- 	int node, load, nr_nodes = 0;
--	nodemask_t used_mask;
-+	nodemask_t used_mask = NODE_MASK_NONE;
- 	int local_node, prev_node;
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-drop-platform-defined-pmd_mknotpresent
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1174,10 +1174,6 @@ static inline int pmd_large(pmd_t pmd)
+ 	return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
+ }
  
- 	/* NUMA-aware ordering of nodes */
- 	local_node = pgdat->node_id;
- 	load = nr_online_nodes;
- 	prev_node = local_node;
--	nodes_clear(used_mask);
- 
- 	memset(node_order, 0, sizeof(node_order));
- 	while ((node = find_next_best_node(local_node, &used_mask)) >= 0) {
+-static inline pmd_t pmd_mknotpresent(pmd_t pmd)
+-{
+-	return __pmd(pmd_val(pmd) & ~_PAGE_PRESENT);
+-}
+ /*
+  * For radix we should always find H_PAGE_HASHPTE zero. Hence
+  * the below will work for radix too
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
-mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
-mm-page_allocc-rename-free_pages_check_bad-to-check_free_page_bad.patch
-mm-page_allocc-rename-free_pages_check-to-check_free_page.patch
-mm-page_allocc-extract-check__page_bad-common-part-to-page_bad_reason.patch
-mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
-mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
+mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
