@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-swapfilec-found_free-could-be-represented-by-tmp-max.patch added to -mm
- tree
-Date: Sat, 18 Apr 2020 20:56:03 -0700
-Message-ID: <20200419035603.yTnFp9Bbe%akpm@linux-foundation.org>
+Subject: + mm-swapfilec-tmp-is-always-smaller-than-max.patch added
+ to -mm tree
+Date: Sat, 18 Apr 2020 20:56:06 -0700
+Message-ID: <20200419035606.4G90ppr5W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43350 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725819AbgDSD4F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 18 Apr 2020 23:56:05 -0400
+        id S1725819AbgDSD4H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 18 Apr 2020 23:56:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hughd@google.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, tim.c.chen@linux.intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm/swapfile.c: found_free could be represented by (tmp < max)
+     Subject: mm/swapfile.c: tmp is always smaller than max
 has been added to the -mm tree.  Its filename is
-     mm-swapfilec-found_free-could-be-represented-by-tmp-max.patch
+     mm-swapfilec-tmp-is-always-smaller-than-max.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-found_free-could-be-represented-by-tmp-max.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-tmp-is-always-smaller-than-max.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-found_free-could-be-represented-by-tmp-max.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-tmp-is-always-smaller-than-max.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,12 +37,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/swapfile.c: found_free could be represented by (tmp < max)
+Subject: mm/swapfile.c: tmp is always smaller than max
 
-This is not necessary to use the variable found_free to record the status.
-Just check tmp and max is enough.
+If tmp is bigger or equal to max, we would jump to new_cluster.
 
-Link: http://lkml.kernel.org/r/20200419013921.14390-1-richard.weiyang@gmail.com
+Return true directly.
+
+Link: http://lkml.kernel.org/r/20200419013921.14390-2-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Huang Ying <ying.huang@intel.com>
@@ -52,50 +52,17 @@ Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swapfilec-found_free-could-be-represented-by-tmp-max
+--- a/mm/swapfile.c~mm-swapfilec-tmp-is-always-smaller-than-max
 +++ a/mm/swapfile.c
-@@ -601,7 +601,6 @@ static bool scan_swap_map_try_ssd_cluste
- {
- 	struct percpu_cluster *cluster;
- 	struct swap_cluster_info *ci;
--	bool found_free;
- 	unsigned long tmp, max;
- 
- new_cluster:
-@@ -623,8 +622,6 @@ new_cluster:
- 			return false;
- 	}
- 
--	found_free = false;
--
- 	/*
- 	 * Other CPUs can use our cluster if they can't find a free cluster,
- 	 * check if there is still free entry in the cluster
-@@ -638,21 +635,19 @@ new_cluster:
- 	}
- 	ci = lock_cluster(si, tmp);
- 	while (tmp < max) {
--		if (!si->swap_map[tmp]) {
--			found_free = true;
-+		if (!si->swap_map[tmp])
- 			break;
--		}
- 		tmp++;
- 	}
- 	unlock_cluster(ci);
--	if (!found_free) {
-+	if (tmp >= max) {
- 		cluster_set_null(&cluster->index);
- 		goto new_cluster;
- 	}
+@@ -647,7 +647,7 @@ new_cluster:
  	cluster->next = tmp + 1;
  	*offset = tmp;
  	*scan_base = tmp;
--	return found_free;
-+	return tmp < max;
+-	return tmp < max;
++	return true;
  }
  
  static void __del_from_avail_list(struct swap_info_struct *p)
