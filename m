@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swapfilec-tmp-is-always-smaller-than-max.patch added
- to -mm tree
-Date: Sat, 18 Apr 2020 20:56:06 -0700
-Message-ID: <20200419035606.4G90ppr5W%akpm@linux-foundation.org>
+Subject: +
+ mm-swapfilec-compare-tmp-and-max-after-trying-to-iterate-on-swap_map.patch
+ added to -mm tree
+Date: Sat, 18 Apr 2020 20:56:08 -0700
+Message-ID: <20200419035608.ipEbO2TUn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43394 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43424 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725819AbgDSD4H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 18 Apr 2020 23:56:07 -0400
+        id S1725819AbgDSD4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 18 Apr 2020 23:56:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hughd@google.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, tim.c.chen@linux.intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm/swapfile.c: tmp is always smaller than max
+     Subject: mm/swapfile.c: compare tmp and max after trying to iterate on swap_map
 has been added to the -mm tree.  Its filename is
-     mm-swapfilec-tmp-is-always-smaller-than-max.patch
+     mm-swapfilec-compare-tmp-and-max-after-trying-to-iterate-on-swap_map.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-tmp-is-always-smaller-than-max.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-compare-tmp-and-max-after-trying-to-iterate-on-swap_map.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-tmp-is-always-smaller-than-max.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-compare-tmp-and-max-after-trying-to-iterate-on-swap_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,13 +38,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/swapfile.c: tmp is always smaller than max
+Subject: mm/swapfile.c: compare tmp and max after trying to iterate on swap_map
 
-If tmp is bigger or equal to max, we would jump to new_cluster.
+There are two duplicate code to handle the case when there is no
+available swap entry. Just let the code go through and do the check at
+second place.
 
-Return true directly.
+No functional change is expected.
 
-Link: http://lkml.kernel.org/r/20200419013921.14390-2-richard.weiyang@gmail.com
+Link: http://lkml.kernel.org/r/20200419013921.14390-3-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Huang Ying <ying.huang@intel.com>
@@ -52,20 +55,22 @@ Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfilec-tmp-is-always-smaller-than-max
+--- a/mm/swapfile.c~mm-swapfilec-compare-tmp-and-max-after-trying-to-iterate-on-swap_map
 +++ a/mm/swapfile.c
-@@ -647,7 +647,7 @@ new_cluster:
- 	cluster->next = tmp + 1;
- 	*offset = tmp;
- 	*scan_base = tmp;
--	return tmp < max;
-+	return true;
- }
- 
- static void __del_from_avail_list(struct swap_info_struct *p)
+@@ -629,10 +629,6 @@ new_cluster:
+ 	tmp = cluster->next;
+ 	max = min_t(unsigned long, si->max,
+ 		    (cluster_next(&cluster->index) + 1) * SWAPFILE_CLUSTER);
+-	if (tmp >= max) {
+-		cluster_set_null(&cluster->index);
+-		goto new_cluster;
+-	}
+ 	ci = lock_cluster(si, tmp);
+ 	while (tmp < max) {
+ 		if (!si->swap_map[tmp])
 _
 
 Patches currently in -mm which might be from richard.weiyang@gmail.com are
