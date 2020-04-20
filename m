@@ -2,17 +2,17 @@ From: akpm@linux-foundation.org
 Subject: +
  fs-binfmt_elfc-allocate-initialized-memory-in-fill_thread_core_info.patch
  added to -mm tree
-Date: Mon, 20 Apr 2020 15:32:12 -0700
-Message-ID: <20200420223212.RZTy0_4tb%akpm@linux-foundation.org>
+Date: Mon, 20 Apr 2020 15:34:21 -0700
+Message-ID: <20200420223421.T8-AeZhcC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50082 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725918AbgDTWcN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 18:32:13 -0400
+        id S1726181AbgDTWeX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 18:34:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glider@google.com, mm-commits@vger.kernel.org, sunhaoyl@outlook.com
+To: adobriyan@gmail.com, glider@google.com, keescook@chromium.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, sunhaoyl@outlook.com
 
 
 The patch titled
@@ -48,6 +48,9 @@ Link: http://lkml.kernel.org/r/20200419100848.63472-1-glider@google.com
 Link: https://github.com/google/kmsan/issues/76
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Reported-by: sam <sunhaoyl@outlook.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
