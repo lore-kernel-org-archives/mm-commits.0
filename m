@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + c6x-add-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:11:06 -0700
-Message-ID: <20200420231106.bGC_TJrWm%akpm@linux-foundation.org>
+Subject: + csky-add-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:11:08 -0700
+Message-ID: <20200420231108.LQnwcPuQ1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38720 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38746 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726362AbgDTXLH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:11:07 -0400
+        id S1726362AbgDTXLJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, jacquiot.aurelien@gmail.com, mm-commits@vger.kernel.org, msalter@redhat.com
+To: dima@arista.com, guoren@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: c6x: add show_stack_loglvl()
+     Subject: csky: add show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     c6x-add-show_stack_loglvl.patch
+     csky-add-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/c6x-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/csky-add-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/c6x-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/csky-add-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,7 +36,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: c6x: add show_stack_loglvl()
+Subject: csky: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -58,70 +58,57 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-12-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-13-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Aurelien Jacquiot <jacquiot.aurelien@gmail.com>
-Cc: Mark Salter <msalter@redhat.com>
+Cc: Guo Ren <guoren@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/c6x/kernel/traps.c |   21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ arch/csky/kernel/dumpstack.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/arch/c6x/kernel/traps.c~c6x-add-show_stack_loglvl
-+++ a/arch/c6x/kernel/traps.c
-@@ -344,12 +344,13 @@ asmlinkage int process_exception(struct
+--- a/arch/csky/kernel/dumpstack.c~csky-add-show_stack_loglvl
++++ a/arch/csky/kernel/dumpstack.c
+@@ -5,7 +5,7 @@
  
- static int kstack_depth_to_print = 48;
+ int kstack_depth_to_print = 48;
  
--static void show_trace(unsigned long *stack, unsigned long *endstack)
-+static void show_trace(unsigned long *stack, unsigned long *endstack,
-+		       const char *loglvl)
+-void show_trace(unsigned long *stack)
++static void show_trace(unsigned long *stack, const char *loglvl)
  {
- 	unsigned long addr;
- 	int i;
+ 	unsigned long *stack_end;
+ 	unsigned long *stack_start;
+@@ -17,7 +17,7 @@ void show_trace(unsigned long *stack)
+ 	stack_end = (unsigned long *) (addr + THREAD_SIZE);
  
--	pr_debug("Call trace:");
-+	printk("%sCall trace:", loglvl);
- 	i = 0;
- 	while (stack + 1 <= endstack) {
- 		addr = *stack++;
-@@ -364,16 +365,17 @@ static void show_trace(unsigned long *st
- 		if (__kernel_text_address(addr)) {
- #ifndef CONFIG_KALLSYMS
- 			if (i % 5 == 0)
--				pr_debug("\n	    ");
-+				printk("%s\n	    ", loglvl);
- #endif
--			pr_debug(" [<%08lx>] %pS\n", addr, (void *)addr);
-+			printk("%s [<%08lx>] %pS\n", loglvl, addr, (void *)addr);
- 			i++;
- 		}
- 	}
--	pr_debug("\n");
-+	printk("%s\n", loglvl);
+ 	fp = stack;
+-	pr_info("\nCall Trace:");
++	printk("%s\nCall Trace:", loglvl);
+ 
+ 	while (fp > stack_start && fp < stack_end) {
+ #ifdef CONFIG_STACKTRACE
+@@ -32,7 +32,8 @@ void show_trace(unsigned long *stack)
+ 	pr_cont("\n");
  }
  
 -void show_stack(struct task_struct *task, unsigned long *stack)
 +void show_stack_loglvl(struct task_struct *task, unsigned long *stack,
 +		const char *loglvl)
  {
- 	unsigned long *p, *endstack;
- 	int i;
-@@ -398,7 +400,12 @@ void show_stack(struct task_struct *task
- 		pr_cont(" %08lx", *p++);
+ 	if (!stack) {
+ 		if (task)
+@@ -45,5 +46,10 @@ void show_stack(struct task_struct *task
+ #endif
  	}
- 	pr_cont("\n");
--	show_trace(stack, endstack);
-+	show_trace(stack, endstack, loglvl);
+ 
+-	show_trace(stack);
++	show_trace(stack, loglvl);
 +}
 +
 +void show_stack(struct task_struct *task, unsigned long *stack)
 +{
-+	show_stack_loglvl(task, stack, KERN_DEBUG);
++	show_stack_loglvl(task, stack, KERN_INFO);
  }
- 
- int is_valid_bugaddr(unsigned long addr)
 _
 
 Patches currently in -mm which might be from dima@arista.com are
