@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + microblaze-add-loglvl-to-microblaze_unwind_inner.patch
- added to -mm tree
-Date: Mon, 20 Apr 2020 16:11:21 -0700
-Message-ID: <20200420231121.YMp6H-Q0N%akpm@linux-foundation.org>
+Subject: + microblaze-add-loglvl-to-microblaze_unwind.patch added
+ to -mm tree
+Date: Mon, 20 Apr 2020 16:11:23 -0700
+Message-ID: <20200420231123.cFf4cdXTu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38876 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38896 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726362AbgDTXLW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:11:22 -0400
+        id S1726362AbgDTXL0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:11:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dima@arista.com, mm-commits@vger.kernel.org, monstr@monstr.eu
 
 
 The patch titled
-     Subject: microblaze: add loglvl to microblaze_unwind_inner()
+     Subject: microblaze: add loglvl to microblaze_unwind()
 has been added to the -mm tree.  Its filename is
-     microblaze-add-loglvl-to-microblaze_unwind_inner.patch
+     microblaze-add-loglvl-to-microblaze_unwind.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-add-loglvl-to-microblaze_unwind_inner.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-add-loglvl-to-microblaze_unwind.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-add-loglvl-to-microblaze_unwind_inner.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-add-loglvl-to-microblaze_unwind.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,7 +37,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: microblaze: add loglvl to microblaze_unwind_inner()
+Subject: microblaze: add loglvl to microblaze_unwind()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -54,145 +54,80 @@ Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
 approach than introducing more printk buffers.  Also, it will consolidate
 printings with headers.
 
-Add log level argument to microblaze_unwind_inner() as a preparation for
-introducing show_stack_loglvl().
+Add log level parameter to microblaze_unwind() as a preparation to add
+show_stack_loglvl().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-19-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-20-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
 Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/unwind.c |   38 ++++++++++++++++++------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ arch/microblaze/include/asm/unwind.h |    3 ++-
+ arch/microblaze/kernel/stacktrace.c  |    4 ++--
+ arch/microblaze/kernel/traps.c       |    2 +-
+ arch/microblaze/kernel/unwind.c      |    6 +++---
+ 4 files changed, 8 insertions(+), 7 deletions(-)
 
---- a/arch/microblaze/kernel/unwind.c~microblaze-add-loglvl-to-microblaze_unwind_inner
+--- a/arch/microblaze/include/asm/unwind.h~microblaze-add-loglvl-to-microblaze_unwind
++++ a/arch/microblaze/include/asm/unwind.h
+@@ -20,7 +20,8 @@ extern struct trap_handler_info microbla
+ extern const char _hw_exception_handler;
+ extern const char ex_handler_unhandled;
+ 
+-void microblaze_unwind(struct task_struct *task, struct stack_trace *trace);
++void microblaze_unwind(struct task_struct *task, struct stack_trace *trace,
++		       const char *loglvl);
+ 
+ #endif	/* __MICROBLAZE_UNWIND_H */
+ 
+--- a/arch/microblaze/kernel/stacktrace.c~microblaze-add-loglvl-to-microblaze_unwind
++++ a/arch/microblaze/kernel/stacktrace.c
+@@ -20,12 +20,12 @@ void save_stack_trace(struct stack_trace
+ {
+ 	/* Exclude our helper functions from the trace*/
+ 	trace->skip += 2;
+-	microblaze_unwind(NULL, trace);
++	microblaze_unwind(NULL, trace, "");
+ }
+ EXPORT_SYMBOL_GPL(save_stack_trace);
+ 
+ void save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)
+ {
+-	microblaze_unwind(tsk, trace);
++	microblaze_unwind(tsk, trace, "");
+ }
+ EXPORT_SYMBOL_GPL(save_stack_trace_tsk);
+--- a/arch/microblaze/kernel/traps.c~microblaze-add-loglvl-to-microblaze_unwind
++++ a/arch/microblaze/kernel/traps.c
+@@ -68,7 +68,7 @@ void show_stack(struct task_struct *task
+ 	print_hex_dump(KERN_INFO, "", DUMP_PREFIX_ADDRESS, 32, 4, (void *)fp,
+ 		       words_to_show << 2, 0);
+ 	pr_info("\n\nCall Trace:\n");
+-	microblaze_unwind(task, NULL);
++	microblaze_unwind(task, NULL, KERN_INFO);
+ 	pr_info("\n");
+ 
+ 	if (!task)
+--- a/arch/microblaze/kernel/unwind.c~microblaze-add-loglvl-to-microblaze_unwind
 +++ a/arch/microblaze/kernel/unwind.c
-@@ -154,7 +154,8 @@ static int lookup_prev_stack_frame(unsig
- static void microblaze_unwind_inner(struct task_struct *task,
- 				    unsigned long pc, unsigned long fp,
- 				    unsigned long leaf_return,
--				    struct stack_trace *trace);
-+				    struct stack_trace *trace,
-+				    const char *loglvl);
- 
- /**
-  * unwind_trap - Unwind through a system trap, that stored previous state
-@@ -162,16 +163,18 @@ static void microblaze_unwind_inner(stru
-  */
- #ifdef CONFIG_MMU
- static inline void unwind_trap(struct task_struct *task, unsigned long pc,
--				unsigned long fp, struct stack_trace *trace)
-+				unsigned long fp, struct stack_trace *trace,
-+				const char *loglvl)
- {
- 	/* To be implemented */
- }
- #else
- static inline void unwind_trap(struct task_struct *task, unsigned long pc,
--				unsigned long fp, struct stack_trace *trace)
-+				unsigned long fp, struct stack_trace *trace,
-+				const char *loglvl)
- {
- 	const struct pt_regs *regs = (const struct pt_regs *) fp;
--	microblaze_unwind_inner(task, regs->pc, regs->r1, regs->r15, trace);
-+	microblaze_unwind_inner(task, regs->pc, regs->r1, regs->r15, trace, loglvl);
- }
- #endif
- 
-@@ -184,11 +187,13 @@ static inline void unwind_trap(struct ta
-  *				  the caller's return address.
+@@ -287,11 +287,11 @@ static void microblaze_unwind_inner(stru
+  * @task  : Task whose stack we are to unwind (NULL == current)
   * @trace : Where to store stack backtrace (PC values).
   *	    NULL == print backtrace to kernel log
 + * @loglvl : Used for printk log level if (trace == NULL).
   */
- static void microblaze_unwind_inner(struct task_struct *task,
- 			     unsigned long pc, unsigned long fp,
- 			     unsigned long leaf_return,
--			     struct stack_trace *trace)
-+			     struct stack_trace *trace,
-+			     const char *loglvl)
+-void microblaze_unwind(struct task_struct *task, struct stack_trace *trace)
++void microblaze_unwind(struct task_struct *task, struct stack_trace *trace,
++		       const char *loglvl)
  {
- 	int ofs = 0;
- 
-@@ -214,11 +219,11 @@ static void microblaze_unwind_inner(stru
- 			const struct pt_regs *regs =
- 				(const struct pt_regs *) fp;
- #endif
--			pr_info("HW EXCEPTION\n");
-+			printk("%sHW EXCEPTION\n", loglvl);
- #ifndef CONFIG_MMU
- 			microblaze_unwind_inner(task, regs->r17 - 4,
- 						fp + EX_HANDLER_STACK_SIZ,
--						regs->r15, trace);
-+						regs->r15, trace, loglvl);
- #endif
- 			return;
- 		}
-@@ -228,8 +233,8 @@ static void microblaze_unwind_inner(stru
- 			if ((return_to >= handler->start_addr)
- 			    && (return_to <= handler->end_addr)) {
- 				if (!trace)
--					pr_info("%s\n", handler->trap_name);
--				unwind_trap(task, pc, fp, trace);
-+					printk("%s%s\n", loglvl, handler->trap_name);
-+				unwind_trap(task, pc, fp, trace, loglvl);
- 				return;
- 			}
- 		}
-@@ -248,13 +253,13 @@ static void microblaze_unwind_inner(stru
- 		} else {
- 			/* Have we reached userland? */
- 			if (unlikely(pc == task_pt_regs(task)->pc)) {
--				pr_info("[<%p>] PID %lu [%s]\n",
--					(void *) pc,
-+				printk("%s[<%p>] PID %lu [%s]\n",
-+					loglvl, (void *) pc,
- 					(unsigned long) task->pid,
- 					task->comm);
- 				break;
- 			} else
--				print_ip_sym(KERN_INFO, pc);
-+				print_ip_sym(loglvl, pc);
- 		}
- 
- 		/* Stop when we reach anything not part of the kernel */
-@@ -285,11 +290,13 @@ static void microblaze_unwind_inner(stru
-  */
- void microblaze_unwind(struct task_struct *task, struct stack_trace *trace)
- {
-+	const char *loglvl = KERN_INFO;
-+
+-	const char *loglvl = KERN_INFO;
+-
  	if (task) {
  		if (task == current) {
  			const struct pt_regs *regs = task_pt_regs(task);
- 			microblaze_unwind_inner(task, regs->pc, regs->r1,
--						regs->r15, trace);
-+						regs->r15, trace, loglvl);
- 		} else {
- 			struct thread_info *thread_info =
- 				(struct thread_info *)(task->stack);
-@@ -299,7 +306,8 @@ void microblaze_unwind(struct task_struc
- 			microblaze_unwind_inner(task,
- 						(unsigned long) &_switch_to,
- 						cpu_context->r1,
--						cpu_context->r15, trace);
-+						cpu_context->r15,
-+						trace, loglvl);
- 		}
- 	} else {
- 		unsigned long pc, fp;
-@@ -314,7 +322,7 @@ void microblaze_unwind(struct task_struc
- 		);
- 
- 		/* Since we are not a leaf function, use leaf_return = 0 */
--		microblaze_unwind_inner(current, pc, fp, 0, trace);
-+		microblaze_unwind_inner(current, pc, fp, 0, trace, loglvl);
- 	}
- }
- 
 _
 
 Patches currently in -mm which might be from dima@arista.com are
