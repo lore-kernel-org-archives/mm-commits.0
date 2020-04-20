@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-swapfilec-found_free-could-be-represented-by-tmp-max.patch removed from
- -mm tree
-Date: Mon, 20 Apr 2020 15:10:21 -0700
-Message-ID: <20200420221021.JVXJZZg4l%akpm@linux-foundation.org>
+ mm-swapfilec-tmp-is-always-smaller-than-max.patch removed from -mm tree
+Date: Mon, 20 Apr 2020 15:10:24 -0700
+Message-ID: <20200420221024.qd1P1GqWy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34040 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34074 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725774AbgDTWKW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 18:10:22 -0400
+        id S1725774AbgDTWKZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 18:10:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hughd@google.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, tim.c.chen@linux.intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm/swapfile.c: found_free could be represented by (tmp < max)
+     Subject: mm/swapfile.c: tmp is always smaller than max
 has been removed from the -mm tree.  Its filename was
-     mm-swapfilec-found_free-could-be-represented-by-tmp-max.patch
+     mm-swapfilec-tmp-is-always-smaller-than-max.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/swapfile.c: found_free could be represented by (tmp < max)
+Subject: mm/swapfile.c: tmp is always smaller than max
 
-This is not necessary to use the variable found_free to record the status.
-Just check tmp and max is enough.
+If tmp is bigger or equal to max, we would jump to new_cluster.
 
-Link: http://lkml.kernel.org/r/20200419013921.14390-1-richard.weiyang@gmail.com
+Return true directly.
+
+Link: http://lkml.kernel.org/r/20200419013921.14390-2-richard.weiyang@gmail.com
 Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Huang Ying <ying.huang@intel.com>
@@ -38,50 +38,17 @@ Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swapfilec-found_free-could-be-represented-by-tmp-max
+--- a/mm/swapfile.c~mm-swapfilec-tmp-is-always-smaller-than-max
 +++ a/mm/swapfile.c
-@@ -601,7 +601,6 @@ static bool scan_swap_map_try_ssd_cluste
- {
- 	struct percpu_cluster *cluster;
- 	struct swap_cluster_info *ci;
--	bool found_free;
- 	unsigned long tmp, max;
- 
- new_cluster:
-@@ -623,8 +622,6 @@ new_cluster:
- 			return false;
- 	}
- 
--	found_free = false;
--
- 	/*
- 	 * Other CPUs can use our cluster if they can't find a free cluster,
- 	 * check if there is still free entry in the cluster
-@@ -638,21 +635,19 @@ new_cluster:
- 	}
- 	ci = lock_cluster(si, tmp);
- 	while (tmp < max) {
--		if (!si->swap_map[tmp]) {
--			found_free = true;
-+		if (!si->swap_map[tmp])
- 			break;
--		}
- 		tmp++;
- 	}
- 	unlock_cluster(ci);
--	if (!found_free) {
-+	if (tmp >= max) {
- 		cluster_set_null(&cluster->index);
- 		goto new_cluster;
- 	}
+@@ -647,7 +647,7 @@ new_cluster:
  	cluster->next = tmp + 1;
  	*offset = tmp;
  	*scan_base = tmp;
--	return found_free;
-+	return tmp < max;
+-	return tmp < max;
++	return true;
  }
  
  static void __del_from_avail_list(struct swap_info_struct *p)
@@ -94,7 +61,6 @@ mm-swapfilec-explicitly-show-ssd-non-ssd-is-handled-mutually-exclusive.patch
 mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case.patch
 mm-swapfilec-simplify-the-calculation-of-n_goal.patch
 mm-swapfilec-remove-the-extra-check-in-scan_swap_map_slots.patch
-mm-swapfilec-tmp-is-always-smaller-than-max.patch
 mm-swapfilec-compare-tmp-and-max-after-trying-to-iterate-on-swap_map.patch
 mm-swapfilec-move-new_cluster-to-check-free_clusters-directly.patch
 mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
