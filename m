@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-add-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:11:17 -0700
-Message-ID: <20200420231117.3qKRC_x65%akpm@linux-foundation.org>
+Subject: + m68k-add-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:11:19 -0700
+Message-ID: <20200420231119.T23fbX3Ut%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38832 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38852 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726362AbgDTXLS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:11:18 -0400
+        id S1726362AbgDTXLU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:11:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, fenghua.yu@intel.com, mm-commits@vger.kernel.org, tony.luck@intel.com
+To: dima@arista.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: add show_stack_loglvl()
+     Subject: m68k: add show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     ia64-add-show_stack_loglvl.patch
+     m68k-add-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ia64-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m68k-add-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-add-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,7 +36,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: ia64: add show_stack_loglvl()
+Subject: m68k: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -58,48 +58,66 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-17-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-18-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/process.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ arch/m68k/kernel/traps.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---- a/arch/ia64/kernel/process.c~ia64-add-show_stack_loglvl
-+++ a/arch/ia64/kernel/process.c
-@@ -85,19 +85,26 @@ ia64_do_show_stack (struct unw_frame_inf
- }
+--- a/arch/m68k/kernel/traps.c~m68k-add-show_stack_loglvl
++++ a/arch/m68k/kernel/traps.c
+@@ -811,13 +811,13 @@ asmlinkage void buserr_c(struct frame *f
  
- void
--show_stack (struct task_struct *task, unsigned long *sp)
-+show_stack_loglvl (struct task_struct *task, unsigned long *sp,
-+		   const char *loglvl)
+ static int kstack_depth_to_print = 48;
+ 
+-void show_trace(unsigned long *stack)
++static void show_trace(unsigned long *stack, const char *loglvl)
  {
- 	if (!task)
--		unw_init_running(ia64_do_show_stack, (void *)KERN_DEFAULT);
-+		unw_init_running(ia64_do_show_stack, (void *)loglvl);
- 	else {
- 		struct unw_frame_info info;
+ 	unsigned long *endstack;
+ 	unsigned long addr;
+ 	int i;
  
- 		unw_init_from_blocked_task(&info, task);
--		ia64_do_show_stack(&info, (void *)KERN_DEFAULT);
-+		ia64_do_show_stack(&info, (void *)loglvl);
- 	}
+-	pr_info("Call Trace:");
++	printk("%sCall Trace:", loglvl);
+ 	addr = (unsigned long)stack + THREAD_SIZE - 1;
+ 	endstack = (unsigned long *)(addr & -THREAD_SIZE);
+ 	i = 0;
+@@ -935,7 +935,8 @@ void show_registers(struct pt_regs *regs
+ 	pr_cont("\n");
  }
  
- void
-+show_stack (struct task_struct *task, unsigned long *sp)
-+{
-+	show_stack_loglvl(task, sp, KERN_DEFAULT);
+-void show_stack(struct task_struct *task, unsigned long *stack)
++void show_stack_loglvl(struct task_struct *task, unsigned long *stack,
++		       const char *loglvl)
+ {
+ 	unsigned long *p;
+ 	unsigned long *endstack;
+@@ -949,7 +950,7 @@ void show_stack(struct task_struct *task
+ 	}
+ 	endstack = (unsigned long *)(((unsigned long)stack + THREAD_SIZE - 1) & -THREAD_SIZE);
+ 
+-	pr_info("Stack from %08lx:", (unsigned long)stack);
++	printk("%sStack from %08lx:", loglvl, (unsigned long)stack);
+ 	p = stack;
+ 	for (i = 0; i < kstack_depth_to_print; i++) {
+ 		if (p + 1 > endstack)
+@@ -959,7 +960,12 @@ void show_stack(struct task_struct *task
+ 		pr_cont(" %08lx", *p++);
+ 	}
+ 	pr_cont("\n");
+-	show_trace(stack);
++	show_trace(stack, loglvl);
 +}
 +
-+void
- show_regs (struct pt_regs *regs)
- {
- 	unsigned long ip = regs->cr_iip + ia64_psr(regs)->ri;
++void show_stack(struct task_struct *task, unsigned long *stack)
++{
++	show_stack_loglvl(task, stack, KERN_INFO);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from dima@arista.com are
