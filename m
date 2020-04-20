@@ -1,27 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + sysrq-use-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:14:03 -0700
-Message-ID: <20200420231403.ByDslwZ14%akpm@linux-foundation.org>
+Subject: +
+ x86-amd_gart-print-stacktrace-for-a-leak-with-kern_err.patch added to -mm
+ tree
+Date: Mon, 20 Apr 2020 16:14:06 -0700
+Message-ID: <20200420231406.ULewQM4uA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39788 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726089AbgDTXOG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:14:06 -0400
+        id S1726089AbgDTXOH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:14:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, gregkh@linuxfoundation.org, jslaby@suse.com, mm-commits@vger.kernel.org
+To: bp@alien8.de, dima@arista.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: sysrq: use show_stack_loglvl()
+     Subject: x86/amd_gart: print stacktrace for a leak with KERN_ERR
 has been added to the -mm tree.  Its filename is
-     sysrq-use-show_stack_loglvl.patch
+     x86-amd_gart-print-stacktrace-for-a-leak-with-kern_err.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysrq-use-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-amd_gart-print-stacktrace-for-a-leak-with-kern_err.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysrq-use-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-amd_gart-print-stacktrace-for-a-leak-with-kern_err.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,43 +38,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: sysrq: use show_stack_loglvl()
+Subject: x86/amd_gart: print stacktrace for a leak with KERN_ERR
 
-Show the stack trace on a CPU with the same log level as "CPU%d" header.
+It's under CONFIG_IOMMU_LEAK option which is enabled by debug config. 
+Likely the backtrace is worth to be seen - so aligning with log level of
+error message in iommu_full().
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-45-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-46-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c         |    2 +-
- include/linux/sched/debug.h |    2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ arch/x86/kernel/amd_gart_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/tty/sysrq.c~sysrq-use-show_stack_loglvl
-+++ a/drivers/tty/sysrq.c
-@@ -232,7 +232,7 @@ static void showacpu(void *dummy)
+--- a/arch/x86/kernel/amd_gart_64.c~x86-amd_gart-print-stacktrace-for-a-leak-with-kern_err
++++ a/arch/x86/kernel/amd_gart_64.c
+@@ -159,7 +159,7 @@ static void dump_leak(void)
+ 		return;
+ 	dump = 1;
  
- 	raw_spin_lock_irqsave(&show_lock, flags);
- 	pr_info("CPU%d:\n", smp_processor_id());
 -	show_stack(NULL, NULL);
-+	show_stack_loglvl(NULL, NULL, KERN_INFO);
- 	raw_spin_unlock_irqrestore(&show_lock, flags);
++	show_stack_loglvl(NULL, NULL, KERN_ERR);
+ 	debug_dma_dump_mappings(NULL);
  }
- 
---- a/include/linux/sched/debug.h~sysrq-use-show_stack_loglvl
-+++ a/include/linux/sched/debug.h
-@@ -31,6 +31,8 @@ extern void show_regs(struct pt_regs *);
-  * trace (or NULL if the entire call-chain of the task should be shown).
-  */
- extern void show_stack(struct task_struct *task, unsigned long *sp);
-+extern void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
-+			      const char *loglvl);
- 
- extern void sched_show_task(struct task_struct *p);
- 
+ #endif
 _
 
 Patches currently in -mm which might be from dima@arista.com are
