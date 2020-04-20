@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-add-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:12:59 -0700
-Message-ID: <20200420231259.WYs9pJjC1%akpm@linux-foundation.org>
+Subject: + riscv-add-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:13:01 -0700
+Message-ID: <20200420231301.ehxFQy7GV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39294 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39328 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726089AbgDTXNA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:13:00 -0400
+        id S1726089AbgDTXNW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:13:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, dima@arista.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org
+To: aou@eecs.berkeley.edu, dima@arista.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com
 
 
 The patch titled
-     Subject: powerpc: add show_stack_loglvl()
+     Subject: riscv: add show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     powerpc-add-show_stack_loglvl.patch
+     riscv-add-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/riscv-add-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/riscv-add-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,7 +36,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: powerpc: add show_stack_loglvl()
+Subject: riscv: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -58,72 +58,46 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-27-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-28-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/process.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ arch/riscv/kernel/stacktrace.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
---- a/arch/powerpc/kernel/process.c~powerpc-add-show_stack_loglvl
-+++ a/arch/powerpc/kernel/process.c
-@@ -2068,7 +2068,8 @@ unsigned long get_wchan(struct task_stru
+--- a/arch/riscv/kernel/stacktrace.c~riscv-add-show_stack_loglvl
++++ a/arch/riscv/kernel/stacktrace.c
+@@ -99,16 +99,23 @@ static void notrace walk_stackframe(stru
  
- static int kstack_depth_to_print = CONFIG_PRINT_STACK_DEPTH;
- 
--void show_stack(struct task_struct *tsk, unsigned long *stack)
-+void show_stack_loglvl(struct task_struct *tsk, unsigned long *stack,
-+		       const char *loglvl)
+ static bool print_trace_address(unsigned long pc, void *arg)
  {
- 	unsigned long sp, ip, lr, newsp;
- 	int count = 0;
-@@ -2093,7 +2094,7 @@ void show_stack(struct task_struct *tsk,
- 	}
- 
- 	lr = 0;
--	printk("Call Trace:\n");
-+	printk("%sCall Trace:\n", loglvl);
- 	do {
- 		if (!validate_sp(sp, tsk, STACK_FRAME_OVERHEAD))
- 			break;
-@@ -2102,7 +2103,8 @@ void show_stack(struct task_struct *tsk,
- 		newsp = stack[0];
- 		ip = stack[STACK_FRAME_LR_SAVE];
- 		if (!firstframe || ip != lr) {
--			printk("["REG"] ["REG"] %pS", sp, ip, (void *)ip);
-+			printk("%s["REG"] ["REG"] %pS",
-+				loglvl, sp, ip, (void *)ip);
- #ifdef CONFIG_FUNCTION_GRAPH_TRACER
- 			ret_addr = ftrace_graph_ret_addr(current,
- 						&ftrace_idx, ip, stack);
-@@ -2124,8 +2126,9 @@ void show_stack(struct task_struct *tsk,
- 			struct pt_regs *regs = (struct pt_regs *)
- 				(sp + STACK_FRAME_OVERHEAD);
- 			lr = regs->link;
--			printk("--- interrupt: %lx at %pS\n    LR = %pS\n",
--			       regs->trap, (void *)regs->nip, (void *)lr);
-+			printk("%s--- interrupt: %lx at %pS\n    LR = %pS\n",
-+			       loglvl, regs->trap,
-+			       (void *)regs->nip, (void *)lr);
- 			firstframe = 1;
- 		}
- 
-@@ -2135,6 +2138,11 @@ void show_stack(struct task_struct *tsk,
- 	put_task_stack(tsk);
+-	print_ip_sym(KERN_DEFAULT, pc);
++	const char *loglvl = arg;
++
++	print_ip_sym(loglvl, pc);
+ 	return false;
  }
  
-+void show_stack(struct task_struct *tsk, unsigned long *stack)
+-void show_stack(struct task_struct *task, unsigned long *sp)
++void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
++		       const char *loglvl)
+ {
+ 	pr_cont("Call Trace:\n");
+-	walk_stackframe(task, NULL, print_trace_address, NULL);
++	walk_stackframe(task, NULL, print_trace_address, (void *)loglvl);
+ }
+ 
++void show_stack(struct task_struct *task, unsigned long *sp)
 +{
-+	show_stack_loglvl(tsk, stack, KERN_DEFAULT);
++	show_stack_loglvl(task, sp, KERN_DEFAULT);
 +}
-+
- #ifdef CONFIG_PPC64
- /* Called with hard IRQs off */
- void notrace __ppc64_runlatch_on(void)
+ 
+ static bool save_wchan(unsigned long pc, void *arg)
+ {
 _
 
 Patches currently in -mm which might be from dima@arista.com are
