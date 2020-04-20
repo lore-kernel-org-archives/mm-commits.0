@@ -1,27 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + power-use-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:14:08 -0700
-Message-ID: <20200420231408.Y-LJF5RPG%akpm@linux-foundation.org>
+Subject: + kdb-dont-play-with-console_loglevel.patch added to -mm
+ tree
+Date: Mon, 20 Apr 2020 16:14:10 -0700
+Message-ID: <20200420231410.Dlw0P9DMD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39838 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39862 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726089AbgDTXOJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:14:09 -0400
+        id S1726089AbgDTXOL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:14:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, gregkh@linuxfoundation.org, len.brown@intel.com, mm-commits@vger.kernel.org, pavel@ucw.cz, rafael.j.wysocki@intel.com
+To: daniel.thompson@linaro.org, dianders@chromium.org, dima@arista.com, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: power: use show_stack_loglvl()
+     Subject: kdb: don't play with console_loglevel
 has been added to the -mm tree.  Its filename is
-     power-use-show_stack_loglvl.patch
+     kdb-dont-play-with-console_loglevel.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/power-use-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kdb-dont-play-with-console_loglevel.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/power-use-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kdb-dont-play-with-console_loglevel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,33 +37,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: power: use show_stack_loglvl()
+Subject: kdb: don't play with console_loglevel
 
-Aligning with other watchdog messages just before panic - use KERN_EMERG.
+Print the stack trace with KERN_EMERG - it should be always visible.
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-47-dima@arista.com
+Playing with console_loglevel is a bad idea as there may be more messages
+printed than wanted.  Also the stack trace might be not printed at all if
+printk() was deferred and console_loglevel was raised back before the
+trace got flushed.
+
+Unfortunately, after rebasing on commit 2277b492582d ("kdb: Fix stack
+crawling on 'running' CPUs that aren't the master"), kdb_show_stack() uses
+now kdb_dump_stack_on_cpu(), which for now won't be converted as it uses
+dump_stack() instead of show_stack().
+
+Convert for now the branch that uses show_stack() and remove
+console_loglevel exercise from that case.
+
+Link: http://lkml.kernel.org/r/20200418201944.482088-48-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Pavel Machek <pavel@ucw.cz>
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Acked-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/debug/kdb/kdb_bt.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/drivers/base/power/main.c~power-use-show_stack_loglvl
-+++ a/drivers/base/power/main.c
-@@ -519,7 +519,7 @@ static void dpm_watchdog_handler(struct
- 	struct dpm_watchdog *wd = from_timer(wd, t, timer);
+--- a/kernel/debug/kdb/kdb_bt.c~kdb-dont-play-with-console_loglevel
++++ a/kernel/debug/kdb/kdb_bt.c
+@@ -21,17 +21,18 @@
  
- 	dev_emerg(wd->dev, "**** DPM device timeout ****\n");
--	show_stack(wd->tsk, NULL);
-+	show_stack_loglvl(wd->tsk, NULL, KERN_EMERG);
- 	panic("%s %s: unrecoverable failure\n",
- 		dev_driver_string(wd->dev), dev_name(wd->dev));
+ static void kdb_show_stack(struct task_struct *p, void *addr)
+ {
+-	int old_lvl = console_loglevel;
+-
+-	console_loglevel = CONSOLE_LOGLEVEL_MOTORMOUTH;
+ 	kdb_trap_printk++;
+ 
+-	if (!addr && kdb_task_has_cpu(p))
++	if (!addr && kdb_task_has_cpu(p)) {
++		int old_lvl = console_loglevel;
++
++		console_loglevel = CONSOLE_LOGLEVEL_MOTORMOUTH;
+ 		kdb_dump_stack_on_cpu(kdb_process_cpu(p));
+-	else
+-		show_stack(p, addr);
++		console_loglevel = old_lvl;
++	} else {
++		show_stack_loglvl(p, addr, KERN_EMERG);
++	}
+ 
+-	console_loglevel = old_lvl;
+ 	kdb_trap_printk--;
  }
+ 
 _
 
 Patches currently in -mm which might be from dima@arista.com are
