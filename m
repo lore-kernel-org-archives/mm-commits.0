@@ -1,27 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + unicore32-add-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:13:52 -0700
-Message-ID: <20200420231352.htMmzxp78%akpm@linux-foundation.org>
+Subject: + x86-add-missing-const-qualifiers-for-log_lvl.patch
+ added to -mm tree
+Date: Mon, 20 Apr 2020 16:13:54 -0700
+Message-ID: <20200420231354.WbsbsaUSH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39594 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39652 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726089AbgDTXNy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:13:54 -0400
+        id S1726089AbgDTXN4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:13:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, gxt@pku.edu.cn, mm-commits@vger.kernel.org
+To: bp@alien8.de, dima@arista.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: unicore32: add show_stack_loglvl()
+     Subject: x86: add missing const qualifiers for log_lvl
 has been added to the -mm tree.  Its filename is
-     unicore32-add-show_stack_loglvl.patch
+     x86-add-missing-const-qualifiers-for-log_lvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/unicore32-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-missing-const-qualifiers-for-log_lvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/unicore32-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-missing-const-qualifiers-for-log_lvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,7 +37,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: unicore32: add show_stack_loglvl()
+Subject: x86: add missing const qualifiers for log_lvl
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -53,89 +54,64 @@ Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
 approach than introducing more printk buffers.  Also, it will consolidate
 printings with headers.
 
-Introduce show_stack_loglvl(), that eventually will substitute
-show_stack().
+Keep log_lvl const show_trace_log_lvl() and printk_stack_address() as the
+new generic show_stack_loglvl() wants to have a proper const qualifier.
 
-As a nice side-effect - print backtrace in __die() with the same log level
-as the rest of function.
+And gcc rightfully produces warnings in case it's not keept:
+arch/x86/kernel/dumpstack.c: In function `show_stack':
+arch/x86/kernel/dumpstack.c:294:37: warning: passing argument 4 of `show_trace_log_lv ' discards `const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  294 |  show_trace_log_lvl(task, NULL, sp, loglvl);
+      |                                     ^~~~~~
+arch/x86/kernel/dumpstack.c:163:32: note: expected `char *' but argument is of type `const char *'
+  163 |    unsigned long *stack, char *log_lvl)
+      |                          ~~~~~~^~~~~~~
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-40-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-41-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Guan Xuetao <gxt@pku.edu.cn>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/kernel/traps.c |   27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ arch/x86/include/asm/stacktrace.h |    2 +-
+ arch/x86/kernel/dumpstack.c       |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/unicore32/kernel/traps.c~unicore32-add-show_stack_loglvl
-+++ a/arch/unicore32/kernel/traps.c
-@@ -135,12 +135,13 @@ static void dump_instr(const char *lvl,
- 	set_fs(fs);
+--- a/arch/x86/include/asm/stacktrace.h~x86-add-missing-const-qualifiers-for-log_lvl
++++ a/arch/x86/include/asm/stacktrace.h
+@@ -87,7 +87,7 @@ get_stack_pointer(struct task_struct *ta
  }
  
--static void dump_backtrace(struct pt_regs *regs, struct task_struct *tsk)
-+static void dump_backtrace(struct pt_regs *regs, struct task_struct *tsk,
-+			   const char *loglvl)
- {
- 	unsigned int fp;
- 	int ok = 1;
+ void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
+-			unsigned long *stack, char *log_lvl);
++			unsigned long *stack, const char *log_lvl);
  
--	printk(KERN_DEFAULT "Backtrace: ");
-+	printk("%sBacktrace: ", loglvl);
- 
- 	if (!tsk)
- 		tsk = current;
-@@ -153,25 +154,31 @@ static void dump_backtrace(struct pt_reg
- 		asm("mov %0, fp" : "=r" (fp) : : "cc");
- 
- 	if (!fp) {
--		printk("no frame pointer");
-+		printk("%sno frame pointer", loglvl);
- 		ok = 0;
- 	} else if (verify_stack(fp)) {
--		printk("invalid frame pointer 0x%08x", fp);
-+		printk("%sinvalid frame pointer 0x%08x", loglvl, fp);
- 		ok = 0;
- 	} else if (fp < (unsigned long)end_of_stack(tsk))
--		printk("frame pointer underflow");
--	printk("\n");
-+		printk("%sframe pointer underflow", loglvl);
-+	printk("%s\n", loglvl);
- 
- 	if (ok)
--		c_backtrace(fp, KERN_DEFAULT);
-+		c_backtrace(fp, loglvl);
+ /* The form of the top of the frame on the stack */
+ struct stack_frame {
+--- a/arch/x86/kernel/dumpstack.c~x86-add-missing-const-qualifiers-for-log_lvl
++++ a/arch/x86/kernel/dumpstack.c
+@@ -65,7 +65,7 @@ bool in_entry_stack(unsigned long *stack
  }
  
--void show_stack(struct task_struct *tsk, unsigned long *sp)
-+void show_stack_loglvl(struct task_struct *tsk, unsigned long *sp,
-+		       const char *loglvl)
+ static void printk_stack_address(unsigned long address, int reliable,
+-				 char *log_lvl)
++				 const char *log_lvl)
  {
--	dump_backtrace(NULL, tsk);
-+	dump_backtrace(NULL, tsk, loglvl);
- 	barrier();
+ 	touch_nmi_watchdog();
+ 	printk("%s %s%pB\n", log_lvl, reliable ? "" : "? ", (void *)address);
+@@ -160,7 +160,7 @@ static void show_regs_if_on_stack(struct
  }
  
-+void show_stack(struct task_struct *tsk, unsigned long *sp)
-+{
-+	show_stack_loglvl(tsk, sp, KERN_DEFAULT)
-+}
-+
- static int __die(const char *str, int err, struct thread_info *thread,
- 		struct pt_regs *regs)
+ void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
+-			unsigned long *stack, char *log_lvl)
++			unsigned long *stack, const char *log_lvl)
  {
-@@ -196,7 +203,7 @@ static int __die(const char *str, int er
- 	if (!user_mode(regs) || in_interrupt()) {
- 		dump_mem(KERN_EMERG, "Stack: ", regs->UCreg_sp,
- 			 THREAD_SIZE + (unsigned long)task_stack_page(tsk));
--		dump_backtrace(regs, tsk);
-+		dump_backtrace(regs, tsk, KERN_EMERG);
- 		dump_instr(KERN_EMERG, regs);
- 	}
- 
+ 	struct unwind_state state;
+ 	struct stack_info stack_info = {0};
 _
 
 Patches currently in -mm which might be from dima@arista.com are
