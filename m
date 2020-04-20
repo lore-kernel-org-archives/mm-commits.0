@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + x86-add-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:13:57 -0700
-Message-ID: <20200420231357.ImC7Bjgr-%akpm@linux-foundation.org>
+Subject: + sysrq-use-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:14:03 -0700
+Message-ID: <20200420231403.ByDslwZ14%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39710 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39788 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726089AbgDTXN7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:13:59 -0400
+        id S1726089AbgDTXOG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:14:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@alien8.de, dima@arista.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: dima@arista.com, gregkh@linuxfoundation.org, jslaby@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: add show_stack_loglvl()
+     Subject: sysrq: use show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     x86-add-show_stack_loglvl.patch
+     sysrq-use-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysrq-use-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysrq-use-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,66 +36,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: x86: add show_stack_loglvl()
+Subject: sysrq: use show_stack_loglvl()
 
-Currently, the log-level of show_stack() depends on a platform
-realization.  It creates situations where the headers are printed with
-lower log level or higher than the stacktrace (depending on a platform or
-user).
+Show the stack trace on a CPU with the same log level as "CPU%d" header.
 
-Furthermore, it forces the logic decision from user to an architecture
-side.  In result, some users as sysrq/kdb/etc are doing tricks with
-temporary rising console_loglevel while printing their messages.  And in
-result it not only may print unwanted messages from other CPUs, but also
-omit printing at all in the unlucky case where the printk() was deferred.
-
-Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
-approach than introducing more printk buffers.  Also, it will consolidate
-printings with headers.
-
-Introduce show_stack_loglvl(), that eventually will substitute
-show_stack().
-
-[1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
-
-Link: http://lkml.kernel.org/r/20200418201944.482088-42-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-45-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/dumpstack.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/tty/sysrq.c         |    2 +-
+ include/linux/sched/debug.h |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/x86/kernel/dumpstack.c~x86-add-show_stack_loglvl
-+++ a/arch/x86/kernel/dumpstack.c
-@@ -279,7 +279,8 @@ next:
- 	}
+--- a/drivers/tty/sysrq.c~sysrq-use-show_stack_loglvl
++++ a/drivers/tty/sysrq.c
+@@ -232,7 +232,7 @@ static void showacpu(void *dummy)
+ 
+ 	raw_spin_lock_irqsave(&show_lock, flags);
+ 	pr_info("CPU%d:\n", smp_processor_id());
+-	show_stack(NULL, NULL);
++	show_stack_loglvl(NULL, NULL, KERN_INFO);
+ 	raw_spin_unlock_irqrestore(&show_lock, flags);
  }
  
--void show_stack(struct task_struct *task, unsigned long *sp)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
-+		       const char *loglvl)
- {
- 	task = task ? : current;
+--- a/include/linux/sched/debug.h~sysrq-use-show_stack_loglvl
++++ a/include/linux/sched/debug.h
+@@ -31,6 +31,8 @@ extern void show_regs(struct pt_regs *);
+  * trace (or NULL if the entire call-chain of the task should be shown).
+  */
+ extern void show_stack(struct task_struct *task, unsigned long *sp);
++extern void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
++			      const char *loglvl);
  
-@@ -290,7 +291,12 @@ void show_stack(struct task_struct *task
- 	if (!sp && task == current)
- 		sp = get_stack_pointer(current, NULL);
+ extern void sched_show_task(struct task_struct *p);
  
--	show_trace_log_lvl(task, NULL, sp, KERN_DEFAULT);
-+	show_trace_log_lvl(task, NULL, sp, loglvl);
-+}
-+
-+void show_stack(struct task_struct *task, unsigned long *sp)
-+{
-+	show_stack_loglvl(task, sp, KERN_DEFAULT);
- }
- 
- void show_stack_regs(struct pt_regs *regs)
 _
 
 Patches currently in -mm which might be from dima@arista.com are
