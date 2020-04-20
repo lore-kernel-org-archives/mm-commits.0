@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-add-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:12:57 -0700
-Message-ID: <20200420231257.Io294BuNc%akpm@linux-foundation.org>
+Subject: + powerpc-add-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:12:59 -0700
+Message-ID: <20200420231259.WYs9pJjC1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39266 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39294 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726006AbgDTXNA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726089AbgDTXNA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 20 Apr 2020 19:13:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, dima@arista.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, dima@arista.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org
 
 
 The patch titled
-     Subject: parisc: add show_stack_loglvl()
+     Subject: powerpc: add show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     parisc-add-show_stack_loglvl.patch
+     powerpc-add-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/parisc-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/parisc-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,7 +36,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: parisc: add show_stack_loglvl()
+Subject: powerpc: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -58,97 +58,72 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-26-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-27-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/traps.c |   28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ arch/powerpc/kernel/process.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
---- a/arch/parisc/kernel/traps.c~parisc-add-show_stack_loglvl
-+++ a/arch/parisc/kernel/traps.c
-@@ -49,7 +49,7 @@
- #include "../math-emu/math-emu.h"	/* for handle_fpe() */
+--- a/arch/powerpc/kernel/process.c~powerpc-add-show_stack_loglvl
++++ a/arch/powerpc/kernel/process.c
+@@ -2068,7 +2068,8 @@ unsigned long get_wchan(struct task_stru
  
- static void parisc_show_stack(struct task_struct *task,
--	struct pt_regs *regs);
-+	struct pt_regs *regs, const char *loglvl);
+ static int kstack_depth_to_print = CONFIG_PRINT_STACK_DEPTH;
  
- static int printbinary(char *buf, unsigned long x, int nbits)
+-void show_stack(struct task_struct *tsk, unsigned long *stack)
++void show_stack_loglvl(struct task_struct *tsk, unsigned long *stack,
++		       const char *loglvl)
  {
-@@ -155,7 +155,7 @@ void show_regs(struct pt_regs *regs)
- 		printk("%s IAOQ[1]: %pS\n", level, (void *) regs->iaoq[1]);
- 		printk("%s RP(r2): %pS\n", level, (void *) regs->gr[2]);
- 
--		parisc_show_stack(current, regs);
-+		parisc_show_stack(current, regs, KERN_DEFAULT);
+ 	unsigned long sp, ip, lr, newsp;
+ 	int count = 0;
+@@ -2093,7 +2094,7 @@ void show_stack(struct task_struct *tsk,
  	}
- }
  
-@@ -170,37 +170,43 @@ static DEFINE_RATELIMIT_STATE(_hppa_rs,
- }
- 
- 
--static void do_show_stack(struct unwind_frame_info *info)
-+static void do_show_stack(struct unwind_frame_info *info, const char *loglvl)
- {
- 	int i = 1;
- 
--	printk(KERN_CRIT "Backtrace:\n");
-+	printk("%sBacktrace:\n", loglvl);
- 	while (i <= MAX_UNWIND_ENTRIES) {
- 		if (unwind_once(info) < 0 || info->ip == 0)
+ 	lr = 0;
+-	printk("Call Trace:\n");
++	printk("%sCall Trace:\n", loglvl);
+ 	do {
+ 		if (!validate_sp(sp, tsk, STACK_FRAME_OVERHEAD))
  			break;
- 
- 		if (__kernel_text_address(info->ip)) {
--			printk(KERN_CRIT " [<" RFMT ">] %pS\n",
--				info->ip, (void *) info->ip);
-+			printk("%s [<" RFMT ">] %pS\n",
-+				loglvl, info->ip, (void *) info->ip);
- 			i++;
+@@ -2102,7 +2103,8 @@ void show_stack(struct task_struct *tsk,
+ 		newsp = stack[0];
+ 		ip = stack[STACK_FRAME_LR_SAVE];
+ 		if (!firstframe || ip != lr) {
+-			printk("["REG"] ["REG"] %pS", sp, ip, (void *)ip);
++			printk("%s["REG"] ["REG"] %pS",
++				loglvl, sp, ip, (void *)ip);
+ #ifdef CONFIG_FUNCTION_GRAPH_TRACER
+ 			ret_addr = ftrace_graph_ret_addr(current,
+ 						&ftrace_idx, ip, stack);
+@@ -2124,8 +2126,9 @@ void show_stack(struct task_struct *tsk,
+ 			struct pt_regs *regs = (struct pt_regs *)
+ 				(sp + STACK_FRAME_OVERHEAD);
+ 			lr = regs->link;
+-			printk("--- interrupt: %lx at %pS\n    LR = %pS\n",
+-			       regs->trap, (void *)regs->nip, (void *)lr);
++			printk("%s--- interrupt: %lx at %pS\n    LR = %pS\n",
++			       loglvl, regs->trap,
++			       (void *)regs->nip, (void *)lr);
+ 			firstframe = 1;
  		}
- 	}
--	printk(KERN_CRIT "\n");
-+	printk("%s\n", loglvl);
+ 
+@@ -2135,6 +2138,11 @@ void show_stack(struct task_struct *tsk,
+ 	put_task_stack(tsk);
  }
  
- static void parisc_show_stack(struct task_struct *task,
--	struct pt_regs *regs)
-+	struct pt_regs *regs, const char *loglvl)
- {
- 	struct unwind_frame_info info;
- 
- 	unwind_frame_init_task(&info, task, regs);
- 
--	do_show_stack(&info);
-+	do_show_stack(&info, loglvl);
++void show_stack(struct task_struct *tsk, unsigned long *stack)
++{
++	show_stack_loglvl(tsk, stack, KERN_DEFAULT);
 +}
 +
-+void show_stack_loglvl(struct task_struct *t, unsigned long *sp,
-+		       const char *loglvl)
-+{
-+	parisc_show_stack(t, NULL, loglvl);
- }
- 
- void show_stack(struct task_struct *t, unsigned long *sp)
- {
--	parisc_show_stack(t, NULL);
-+	show_stack_loglvl(t, sp, KERN_CRIT)
- }
- 
- int is_valid_bugaddr(unsigned long iaoq)
-@@ -446,7 +452,7 @@ void parisc_terminate(char *msg, struct
- 		/* show_stack(NULL, (unsigned long *)regs->gr[30]); */
- 		struct unwind_frame_info info;
- 		unwind_frame_init(&info, current, regs);
--		do_show_stack(&info);
-+		do_show_stack(&info, KERN_CRIT);
- 	}
- 
- 	printk("\n");
+ #ifdef CONFIG_PPC64
+ /* Called with hard IRQs off */
+ void notrace __ppc64_runlatch_on(void)
 _
 
 Patches currently in -mm which might be from dima@arista.com are
