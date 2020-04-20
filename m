@@ -1,31 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- =?US-ASCII?Q?mm-memmap=5Finit-iterate-over-memblock-regions-rather-that-?=
- =?US-ASCII?Q?check-each-pfn-fix.patch?= added to -mm tree
-Date: Mon, 20 Apr 2020 13:32:28 -0700
-Message-ID: <20200420203228.vgvKyrDKe%akpm@linux-foundation.org>
+Subject: + mm-remove-__vmalloc_node_flags_caller-fix.patch added
+ to -mm tree
+Date: Mon, 20 Apr 2020 14:36:41 -0700
+Message-ID: <20200420213641.0-O3V52fQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45202 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51398 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725774AbgDTUca (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 16:32:30 -0400
+        id S1726017AbgDTVgm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 17:36:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, cai@lca.pw, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix
+     Subject: mm-remove-__vmalloc_node_flags_caller-fix
 has been added to the -mm tree.  Its filename is
-     mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix.patch
+     mm-remove-__vmalloc_node_flags_caller-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-__vmalloc_node_flags_caller-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-__vmalloc_node_flags_caller-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +36,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-remove-__vmalloc_node_flags_caller-fix
 
-fix a compilation warning from Clang
+fix nommu build
 
-mm/page_alloc.c:5917:39: warning: unused function 'next_pfn' [-Wunused-function]
-static inline __meminit unsigned long next_pfn(unsigned long pfn)
-
-Link: http://lkml.kernel.org/r/CF6E407F-17DC-427C-8203-21979FB882EF@lca.pw
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ mm/nommu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix
-+++ a/mm/page_alloc.c
-@@ -5940,23 +5940,6 @@ overlap_memmap_init(unsigned long zone,
- 	return false;
+--- a/mm/nommu.c~mm-remove-__vmalloc_node_flags_caller-fix
++++ a/mm/nommu.c
+@@ -153,7 +153,7 @@ EXPORT_SYMBOL(__vmalloc);
+ void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
+ 		int node, const void *caller)
+ {
+-	return __vmalloc(size, flags);
++	return __vmalloc(size, gfp_mask);
  }
  
--#ifdef CONFIG_SPARSEMEM
--/* Skip PFNs that belong to non-present sections */
--static inline __meminit unsigned long next_pfn(unsigned long pfn)
--{
--	const unsigned long section_nr = pfn_to_section_nr(++pfn);
--
--	if (present_section_nr(section_nr))
--		return pfn;
--	return section_nr_to_pfn(next_present_section_nr(section_nr));
--}
--#else
--static inline __meminit unsigned long next_pfn(unsigned long pfn)
--{
--	return pfn++;
--}
--#endif
+ static void *__vmalloc_user_flags(unsigned long size, gfp_t flags)
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+maintainers-add-an-entry-for-kfifo-fix.patch
+maintainers-add-an-entry-for-kfifo-fix-fix.patch
+mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+linux-next-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
