@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mips-add-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:11:29 -0700
-Message-ID: <20200420231129.SBN3IK1Z_%akpm@linux-foundation.org>
+Subject: + nds32-add-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:11:31 -0700
+Message-ID: <20200420231131.iuweT9wxZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38942 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726362AbgDTXLb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:11:31 -0400
+        id S1726362AbgDTXLc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:11:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, jhogan@kernel.org, mm-commits@vger.kernel.org, paulburton@kernel.org, ralf@linux-mips.org
+To: deanbo422@gmail.com, dima@arista.com, green.hu@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: add show_stack_loglvl()
+     Subject: nds32: add show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     mips-add-show_stack_loglvl.patch
+     nds32-add-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mips-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nds32-add-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mips-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nds32-add-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,7 +36,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: mips: add show_stack_loglvl()
+Subject: nds32: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -58,141 +58,80 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-22-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-23-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: James Hogan <jhogan@kernel.org>
-Cc: Paul Burton <paulburton@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Vincent Chen <deanbo422@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/traps.c |   41 +++++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 17 deletions(-)
+ arch/nds32/kernel/traps.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
---- a/arch/mips/kernel/traps.c~mips-add-show_stack_loglvl
-+++ a/arch/mips/kernel/traps.c
-@@ -106,26 +106,26 @@ void (*board_bind_eic_interrupt)(int irq
- void (*board_ebase_setup)(void);
- void(*board_cache_error_setup)(void);
- 
--static void show_raw_backtrace(unsigned long reg29)
-+static void show_raw_backtrace(unsigned long reg29, const char *loglvl)
- {
- 	unsigned long *sp = (unsigned long *)(reg29 & ~3);
- 	unsigned long addr;
- 
--	printk("Call Trace:");
-+	printk("%sCall Trace:", loglvl);
- #ifdef CONFIG_KALLSYMS
--	printk("\n");
-+	printk("%s\n", loglvl);
- #endif
- 	while (!kstack_end(sp)) {
- 		unsigned long __user *p =
- 			(unsigned long __user *)(unsigned long)sp++;
- 		if (__get_user(addr, p)) {
--			printk(" (Bad stack address)");
-+			printk("%s (Bad stack address)", loglvl);
- 			break;
- 		}
- 		if (__kernel_text_address(addr))
--			print_ip_sym(KERN_DEFAULT, addr);
-+			print_ip_sym(loglvl, addr);
- 	}
--	printk("\n");
-+	printk("%s\n", loglvl);
+--- a/arch/nds32/kernel/traps.c~nds32-add-show_stack_loglvl
++++ a/arch/nds32/kernel/traps.c
+@@ -97,18 +97,19 @@ static void dump_instr(struct pt_regs *r
  }
  
- #ifdef CONFIG_KALLSYMS
-@@ -138,7 +138,8 @@ static int __init set_raw_show_trace(cha
- __setup("raw_show_trace", set_raw_show_trace);
- #endif
- 
--static void show_backtrace(struct task_struct *task, const struct pt_regs *regs)
-+static void show_backtrace(struct task_struct *task, const struct pt_regs *regs,
-+			   const char *loglvl)
+ #define LOOP_TIMES (100)
+-static void __dump(struct task_struct *tsk, unsigned long *base_reg)
++static void __dump(struct task_struct *tsk, unsigned long *base_reg,
++		   const char *loglvl)
  {
- 	unsigned long sp = regs->regs[29];
- 	unsigned long ra = regs->regs[31];
-@@ -148,12 +149,12 @@ static void show_backtrace(struct task_s
- 		task = current;
- 
- 	if (raw_show_trace || user_mode(regs) || !__kernel_text_address(pc)) {
--		show_raw_backtrace(sp);
-+		show_raw_backtrace(sp, loglvl);
- 		return;
- 	}
--	printk("Call Trace:\n");
+ 	unsigned long ret_addr;
+ 	int cnt = LOOP_TIMES, graph = 0;
+-	pr_emerg("Call Trace:\n");
 +	printk("%sCall Trace:\n", loglvl);
- 	do {
--		print_ip_sym(KERN_DEFAULT, pc);
-+		print_ip_sym(loglvl, pc);
- 		pc = unwind_stack(task, &sp, pc, &ra);
- 	} while (pc);
- 	pr_cont("\n");
-@@ -164,19 +165,19 @@ static void show_backtrace(struct task_s
-  * with at least a bit of error checking ...
-  */
- static void show_stacktrace(struct task_struct *task,
--	const struct pt_regs *regs)
-+	const struct pt_regs *regs, const char *loglvl)
- {
- 	const int field = 2 * sizeof(unsigned long);
- 	long stackdata;
- 	int i;
- 	unsigned long __user *sp = (unsigned long __user *)regs->regs[29];
+ 	if (!IS_ENABLED(CONFIG_FRAME_POINTER)) {
+ 		while (!kstack_end(base_reg)) {
+ 			ret_addr = *base_reg++;
+ 			if (__kernel_text_address(ret_addr)) {
+ 				ret_addr = ftrace_graph_ret_addr(
+ 						tsk, &graph, ret_addr, NULL);
+-				print_ip_sym(KERN_EMERG, ret_addr);
++				print_ip_sym(loglvl, ret_addr);
+ 			}
+ 			if (--cnt < 0)
+ 				break;
+@@ -124,17 +125,18 @@ static void __dump(struct task_struct *t
  
--	printk("Stack :");
-+	printk("%sStack :", loglvl);
- 	i = 0;
- 	while ((unsigned long) sp & (PAGE_SIZE - 1)) {
- 		if (i && ((i % (64 / field)) == 0)) {
- 			pr_cont("\n");
--			printk("       ");
-+			printk("%s       ", loglvl);
+ 				ret_addr = ftrace_graph_ret_addr(
+ 						tsk, &graph, ret_addr, NULL);
+-				print_ip_sym(KERN_EMERG, ret_addr);
++				print_ip_sym(loglvl, ret_addr);
+ 			}
+ 			if (--cnt < 0)
+ 				break;
+ 			base_reg = (unsigned long *)next_fp;
  		}
- 		if (i > 39) {
- 			pr_cont(" ...");
-@@ -192,10 +193,11 @@ static void show_stacktrace(struct task_
- 		i++;
  	}
- 	pr_cont("\n");
--	show_backtrace(task, regs);
-+	show_backtrace(task, regs, loglvl);
+-	pr_emerg("\n");
++	printk("%s\n", loglvl);
  }
  
--void show_stack(struct task_struct *task, unsigned long *sp)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
+-void show_stack(struct task_struct *tsk, unsigned long *sp)
++void show_stack_loglvl(struct task_struct *tsk, unsigned long *sp,
 +		       const char *loglvl)
  {
- 	struct pt_regs regs;
- 	mm_segment_t old_fs = get_fs();
-@@ -219,10 +221,15 @@ void show_stack(struct task_struct *task
- 	 * the stack in the kernel (not user) address space.
- 	 */
- 	set_fs(KERNEL_DS);
--	show_stacktrace(task, &regs);
-+	show_stacktrace(task, &regs, loglvl);
- 	set_fs(old_fs);
+ 	unsigned long *base_reg;
+ 
+@@ -151,10 +153,15 @@ void show_stack(struct task_struct *tsk,
+ 		else
+ 			__asm__ __volatile__("\tori\t%0, $fp, #0\n":"=r"(base_reg));
+ 	}
+-	__dump(tsk, base_reg);
++	__dump(tsk, base_reg, loglvl);
+ 	barrier();
  }
  
-+void show_stack(struct task_struct *task, unsigned long *sp)
++void show_stack(struct task_struct *tsk, unsigned long *sp)
 +{
-+	show_stack_loglvl(task, sp, KERN_DEFAULT)
++	show_stack_loglvl(tsk, sp, KERN_EMERG);
 +}
 +
- static void show_code(unsigned int __user *pc)
- {
- 	long i;
-@@ -371,7 +378,7 @@ void show_registers(struct pt_regs *regs
- 	if (!user_mode(regs))
- 		/* Necessary for getting the correct stack content */
- 		set_fs(KERNEL_DS);
--	show_stacktrace(current, regs);
-+	show_stacktrace(current, regs, KERN_DEFAULT);
- 	show_code((unsigned int __user *) regs->cp0_epc);
- 	printk("\n");
- 	set_fs(old_fs);
+ DEFINE_SPINLOCK(die_lock);
+ 
+ /*
 _
 
 Patches currently in -mm which might be from dima@arista.com are
