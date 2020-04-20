@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-add-loglvl-to-show_trace.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:13:59 -0700
-Message-ID: <20200420231359.GjYrUZR2f%akpm@linux-foundation.org>
+Subject: + xtensa-add-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:14:01 -0700
+Message-ID: <20200420231401.fyB88y1ML%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39742 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39766 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726089AbgDTXOA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:14:00 -0400
+        id S1726089AbgDTXOC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:14:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: chris@zankel.net, dima@arista.com, jcmvbkbc@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: add loglvl to show_trace()
+     Subject: xtensa: add show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     xtensa-add-loglvl-to-show_trace.patch
+     xtensa-add-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xtensa-add-loglvl-to-show_trace.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/xtensa-add-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xtensa-add-loglvl-to-show_trace.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/xtensa-add-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,7 +36,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: xtensa: add loglvl to show_trace()
+Subject: xtensa: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -53,56 +53,50 @@ Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
 approach than introducing more printk buffers.  Also, it will consolidate
 printings with headers.
 
-Add log level argument to show_trace() as a preparation for introducing
-show_stack_loglvl().
+Introduce show_stack_loglvl(), that eventually will substitute
+show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-43-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-44-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/traps.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ arch/xtensa/kernel/traps.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/arch/xtensa/kernel/traps.c~xtensa-add-loglvl-to-show_trace
+--- a/arch/xtensa/kernel/traps.c~xtensa-add-show_stack_loglvl
 +++ a/arch/xtensa/kernel/traps.c
-@@ -479,18 +479,22 @@ void show_regs(struct pt_regs * regs)
+@@ -501,7 +501,8 @@ static void show_trace(struct task_struc
+ #define STACK_DUMP_LINE_SIZE 32
+ static size_t kstack_depth_to_print = CONFIG_PRINT_STACK_DEPTH;
  
- static int show_trace_cb(struct stackframe *frame, void *data)
- {
-+	const char *loglvl = data;
-+
- 	if (kernel_text_address(frame->pc))
--		pr_cont(" [<%08lx>] %pB\n", frame->pc, (void *)frame->pc);
-+		printk("%s [<%08lx>] %pB\n",
-+			loglvl, frame->pc, (void *)frame->pc);
- 	return 0;
- }
- 
--void show_trace(struct task_struct *task, unsigned long *sp)
-+static void show_trace(struct task_struct *task, unsigned long *sp,
+-void show_stack(struct task_struct *task, unsigned long *sp)
++void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
 +		       const char *loglvl)
  {
- 	if (!sp)
- 		sp = stack_pointer(task);
+ 	size_t len;
  
--	pr_info("Call Trace:\n");
--	walk_stackframe(sp, show_trace_cb, NULL);
-+	printk("%sCall Trace:\n", loglvl);
-+	walk_stackframe(sp, show_trace_cb, (void *)loglvl);
- }
+@@ -511,11 +512,16 @@ void show_stack(struct task_struct *task
+ 	len = min((-(size_t)sp) & (THREAD_SIZE - STACK_DUMP_ENTRY_SIZE),
+ 		  kstack_depth_to_print * STACK_DUMP_ENTRY_SIZE);
  
- #define STACK_DUMP_ENTRY_SIZE 4
-@@ -511,7 +515,7 @@ void show_stack(struct task_struct *task
- 	print_hex_dump(KERN_INFO, " ", DUMP_PREFIX_NONE,
+-	pr_info("Stack:\n");
+-	print_hex_dump(KERN_INFO, " ", DUMP_PREFIX_NONE,
++	printk("%sStack:\n", loglvl);
++	print_hex_dump(loglvl, " ", DUMP_PREFIX_NONE,
  		       STACK_DUMP_LINE_SIZE, STACK_DUMP_ENTRY_SIZE,
  		       sp, len, false);
--	show_trace(task, sp);
-+	show_trace(task, stack, KERN_INFO);
+-	show_trace(task, stack, KERN_INFO);
++	show_trace(task, stack, loglvl);
++}
++
++void show_stack(struct task_struct *task, unsigned long *sp)
++{
++	show_stack_loglvl(task, sp, KERN_INFO);
  }
  
  DEFINE_SPINLOCK(die_lock);
