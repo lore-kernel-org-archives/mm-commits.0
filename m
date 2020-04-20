@@ -1,27 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + arc-add-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:10:44 -0700
-Message-ID: <20200420231044.pcqcIWHeM%akpm@linux-foundation.org>
+Subject: + arm-asm-add-loglvl-to-c_backtrace.patch added to -mm
+ tree
+Date: Mon, 20 Apr 2020 16:10:47 -0700
+Message-ID: <20200420231047.IAh1-C3EK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38460 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38552 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726381AbgDTXKp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:10:45 -0400
+        id S1726381AbgDTXKt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:10:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, mm-commits@vger.kernel.org, vgupta@synopsys.com
+To: dima@arista.com, linux@armlinux.org.uk, mm-commits@vger.kernel.org, will@kernel.org
 
 
 The patch titled
-     Subject: arc: add show_stack_loglvl()
+     Subject: arm/asm: add loglvl to c_backtrace()
 has been added to the -mm tree.  Its filename is
-     arc-add-show_stack_loglvl.patch
+     arm-asm-add-loglvl-to-c_backtrace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arc-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-asm-add-loglvl-to-c_backtrace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arc-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-asm-add-loglvl-to-c_backtrace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,7 +37,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: arc: add show_stack_loglvl()
+Subject: arm/asm: add loglvl to c_backtrace()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -53,91 +54,220 @@ Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
 approach than introducing more printk buffers.  Also, it will consolidate
 printings with headers.
 
-Introduce show_stack_loglvl(), that eventually will substitute
-show_stack().
-
-As a good side-effect header "Stack Trace:" is now printed with the same
-log level as the rest of backtrace.
+Add log level argument to c_backtrace() as a preparation for introducing
+show_stack_loglvl().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-4-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-5-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/bug.h     |    3 ++-
- arch/arc/kernel/stacktrace.c   |   21 +++++++++++++++------
- arch/arc/kernel/troubleshoot.c |    2 +-
- 3 files changed, 18 insertions(+), 8 deletions(-)
+ arch/arm/include/asm/bug.h     |    3 ++-
+ arch/arm/include/asm/traps.h   |    3 ++-
+ arch/arm/kernel/traps.c        |    9 +++++----
+ arch/arm/kernel/unwind.c       |    2 +-
+ arch/arm/lib/backtrace-clang.S |    9 +++++++--
+ arch/arm/lib/backtrace.S       |   14 ++++++++++----
+ 6 files changed, 27 insertions(+), 13 deletions(-)
 
---- a/arch/arc/include/asm/bug.h~arc-add-show_stack_loglvl
-+++ a/arch/arc/include/asm/bug.h
-@@ -13,7 +13,8 @@
- struct task_struct;
+--- a/arch/arm/include/asm/bug.h~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/include/asm/bug.h
+@@ -82,7 +82,8 @@ void hook_ifault_code(int nr, int (*fn)(
+ 				       struct pt_regs *),
+ 		     int sig, int code, const char *name);
  
- void show_regs(struct pt_regs *regs);
--void show_stacktrace(struct task_struct *tsk, struct pt_regs *regs);
-+void show_stacktrace(struct task_struct *tsk, struct pt_regs *regs,
-+		     const char *loglvl);
- void show_kernel_fault_diag(const char *str, struct pt_regs *regs,
- 			    unsigned long address);
- void die(const char *str, struct pt_regs *regs, unsigned long address);
---- a/arch/arc/kernel/stacktrace.c~arc-add-show_stack_loglvl
-+++ a/arch/arc/kernel/stacktrace.c
-@@ -158,9 +158,11 @@ arc_unwind_core(struct task_struct *tsk,
- /* Call-back which plugs into unwinding core to dump the stack in
-  * case of panic/OOPs/BUG etc
-  */
--static int __print_sym(unsigned int address, void *unused)
-+static int __print_sym(unsigned int address, void *arg)
+-extern asmlinkage void c_backtrace(unsigned long fp, int pmode);
++extern asmlinkage void c_backtrace(unsigned long fp, int pmode,
++				   const char *loglvl);
+ 
+ struct mm_struct;
+ void show_pte(const char *lvl, struct mm_struct *mm, unsigned long addr);
+--- a/arch/arm/include/asm/traps.h~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/include/asm/traps.h
+@@ -29,7 +29,8 @@ static inline int __in_irqentry_text(uns
+ }
+ 
+ extern void __init early_trap_init(void *);
+-extern void dump_backtrace_entry(unsigned long where, unsigned long from, unsigned long frame);
++extern void dump_backtrace_entry(unsigned long where, unsigned long from,
++				 unsigned long frame, const char *loglvl);
+ extern void ptrace_break(struct pt_regs *regs);
+ 
+ extern void *vectors_page;
+--- a/arch/arm/kernel/traps.c~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/kernel/traps.c
+@@ -62,7 +62,8 @@ __setup("user_debug=", user_debug_setup)
+ 
+ static void dump_mem(const char *, const char *, unsigned long, unsigned long);
+ 
+-void dump_backtrace_entry(unsigned long where, unsigned long from, unsigned long frame)
++void dump_backtrace_entry(unsigned long where, unsigned long from,
++			  unsigned long frame, const char *loglvl)
  {
--	printk("  %pS\n", (void *)address);
-+	const char *loglvl = arg;
-+
-+	printk("%s  %pS\n", loglvl, (void *)address);
- 	return 0;
+ 	unsigned long end = frame + 4 + sizeof(struct pt_regs);
+ 
+@@ -76,7 +77,7 @@ void dump_backtrace_entry(unsigned long
+ 		dump_mem("", "Exception stack", frame + 4, end);
  }
  
-@@ -217,17 +219,24 @@ static int __get_first_nonsched(unsigned
-  *-------------------------------------------------------------------------
-  */
- 
--noinline void show_stacktrace(struct task_struct *tsk, struct pt_regs *regs)
-+noinline void show_stacktrace(struct task_struct *tsk, struct pt_regs *regs,
-+			      const char *loglvl)
+-void dump_backtrace_stm(u32 *stack, u32 instruction)
++void dump_backtrace_stm(u32 *stack, u32 instruction, const char *loglvl)
  {
--	pr_info("\nStack Trace:\n");
--	arc_unwind_core(tsk, regs, __print_sym, NULL);
-+	printk("%s\nStack Trace:\n", loglvl);
-+	arc_unwind_core(tsk, regs, __print_sym, (void *)loglvl);
- }
- EXPORT_SYMBOL(show_stacktrace);
+ 	char str[80], *p;
+ 	unsigned int x;
+@@ -238,7 +239,7 @@ static void dump_backtrace(struct pt_reg
+ 	pr_cont("\n");
  
- /* Expected by sched Code */
-+void show_stack_loglvl(struct task_struct *tsk, unsigned long *sp,
-+			const char *loglvl)
-+{
-+	show_stacktrace(tsk, NULL, loglvl);
-+}
-+
- void show_stack(struct task_struct *tsk, unsigned long *sp)
- {
--	show_stacktrace(tsk, NULL);
-+	show_stack_loglvl(tsk, sp, KERN_DEFAULT);
+ 	if (ok)
+-		c_backtrace(fp, mode);
++		c_backtrace(fp, mode, NULL);
+ }
+ #endif
+ 
+@@ -666,7 +667,7 @@ asmlinkage int arm_syscall(int no, struc
+ 		dump_instr("", regs);
+ 		if (user_mode(regs)) {
+ 			__show_regs(regs);
+-			c_backtrace(frame_pointer(regs), processor_mode(regs));
++			c_backtrace(frame_pointer(regs), processor_mode(regs), NULL);
+ 		}
+ 	}
+ #endif
+--- a/arch/arm/kernel/unwind.c~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/kernel/unwind.c
+@@ -493,7 +493,7 @@ void unwind_backtrace(struct pt_regs *re
+ 		urc = unwind_frame(&frame);
+ 		if (urc < 0)
+ 			break;
+-		dump_backtrace_entry(where, frame.pc, frame.sp - 4);
++		dump_backtrace_entry(where, frame.pc, frame.sp - 4, NULL);
+ 	}
  }
  
- /* Another API expected by schedular, shows up in "ps" as Wait Channel
---- a/arch/arc/kernel/troubleshoot.c~arc-add-show_stack_loglvl
-+++ a/arch/arc/kernel/troubleshoot.c
-@@ -242,5 +242,5 @@ void show_kernel_fault_diag(const char *
+--- a/arch/arm/lib/backtrace-clang.S~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/lib/backtrace-clang.S
+@@ -17,6 +17,7 @@
+ #define sv_pc	r6
+ #define mask	r7
+ #define sv_lr	r8
++#define loglvl	r9
  
- 	/* Show stack trace if this Fatality happened in kernel mode */
- 	if (!user_mode(regs))
--		show_stacktrace(current, regs);
-+		show_stacktrace(current, regs, KERN_DEFAULT);
- }
+ ENTRY(c_backtrace)
+ 
+@@ -99,6 +100,7 @@ ENDPROC(c_backtrace)
+ 						@ to ensure 8 byte alignment
+ 		movs	frame, r0		@ if frame pointer is zero
+ 		beq	no_frame		@ we have no stack frames
++		mov	loglvl, r2
+ 		tst	r1, #0x10		@ 26 or 32-bit mode?
+ 		moveq	mask, #0xfc000003
+ 		movne	mask, #0		@ mask for 32-bit
+@@ -167,6 +169,7 @@ finished_setup:
+ 		mov	r1, sv_lr
+ 		mov	r2, frame
+ 		bic	r1, r1, mask		@ mask PC/LR for the mode
++		mov	r3, loglvl
+ 		bl	dump_backtrace_entry
+ 
+ /*
+@@ -183,6 +186,7 @@ finished_setup:
+ 		ldr	r0, [frame]		@ locals are stored in
+ 						@ the preceding frame
+ 		subeq	r0, r0, #4
++		mov	r2, loglvl
+ 		bleq	dump_backtrace_stm	@ dump saved registers
+ 
+ /*
+@@ -196,7 +200,8 @@ finished_setup:
+ 		bhi	for_each_frame
+ 
+ 1006:		adr	r0, .Lbad
+-		mov	r1, frame
++		mov	r1, loglvl
++		mov	r2, frame
+ 		bl	printk
+ no_frame:	ldmfd	sp!, {r4 - r9, fp, pc}
+ ENDPROC(c_backtrace)
+@@ -209,7 +214,7 @@ ENDPROC(c_backtrace)
+ 		.long   1005b, 1006b
+ 		.popsection
+ 
+-.Lbad:		.asciz	"Backtrace aborted due to bad frame pointer <%p>\n"
++.Lbad:		.asciz	"%sBacktrace aborted due to bad frame pointer <%p>\n"
+ 		.align
+ .Lopcode:	.word	0xe92d4800 >> 11	@ stmfd sp!, {... fp, lr}
+ 		.word	0x0b000000		@ bl if these bits are set
+--- a/arch/arm/lib/backtrace.S~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/lib/backtrace.S
+@@ -18,6 +18,7 @@
+ #define sv_pc	r6
+ #define mask	r7
+ #define offset	r8
++#define loglvl	r9
+ 
+ ENTRY(c_backtrace)
+ 
+@@ -25,9 +26,10 @@ ENTRY(c_backtrace)
+ 		ret	lr
+ ENDPROC(c_backtrace)
+ #else
+-		stmfd	sp!, {r4 - r8, lr}	@ Save an extra register so we have a location...
++		stmfd	sp!, {r4 - r9, lr}	@ Save an extra register so we have a location...
+ 		movs	frame, r0		@ if frame pointer is zero
+ 		beq	no_frame		@ we have no stack frames
++		mov	loglvl, r2
+ 
+ 		tst	r1, #0x10		@ 26 or 32-bit mode?
+  ARM(		moveq	mask, #0xfc000003	)
+@@ -73,6 +75,7 @@ for_each_frame:	tst	frame, mask		@ Check
+ 		ldr	r1, [frame, #-4]	@ get saved lr
+ 		mov	r2, frame
+ 		bic	r1, r1, mask		@ mask PC/LR for the mode
++		mov	r3, loglvl
+ 		bl	dump_backtrace_entry
+ 
+ 		ldr	r1, [sv_pc, #-4]	@ if stmfd sp!, {args} exists,
+@@ -80,12 +83,14 @@ for_each_frame:	tst	frame, mask		@ Check
+ 		teq	r3, r1, lsr #11
+ 		ldreq	r0, [frame, #-8]	@ get sp
+ 		subeq	r0, r0, #4		@ point at the last arg
++		mov	r2, loglvl
+ 		bleq	dump_backtrace_stm	@ dump saved registers
+ 
+ 1004:		ldr	r1, [sv_pc, #0]		@ if stmfd sp!, {..., fp, ip, lr, pc}
+ 		ldr	r3, .Ldsi		@ instruction exists,
+ 		teq	r3, r1, lsr #11
+ 		subeq	r0, frame, #16
++		mov	r2, loglvl
+ 		bleq	dump_backtrace_stm	@ dump saved registers
+ 
+ 		teq	sv_fp, #0		@ zero saved fp means
+@@ -96,9 +101,10 @@ for_each_frame:	tst	frame, mask		@ Check
+ 		bhi	for_each_frame
+ 
+ 1006:		adr	r0, .Lbad
+-		mov	r1, frame
++		mov	r1, loglvl
++		mov	r2, frame
+ 		bl	printk
+-no_frame:	ldmfd	sp!, {r4 - r8, pc}
++no_frame:	ldmfd	sp!, {r4 - r9, pc}
+ ENDPROC(c_backtrace)
+ 		
+ 		.pushsection __ex_table,"a"
+@@ -109,7 +115,7 @@ ENDPROC(c_backtrace)
+ 		.long	1004b, 1006b
+ 		.popsection
+ 
+-.Lbad:		.asciz	"Backtrace aborted due to bad frame pointer <%p>\n"
++.Lbad:		.asciz	"%sBacktrace aborted due to bad frame pointer <%p>\n"
+ 		.align
+ .Ldsi:		.word	0xe92dd800 >> 11	@ stmfd sp!, {... fp, ip, lr, pc}
+ 		.word	0xe92d0000 >> 11	@ stmfd sp!, {}
 _
 
 Patches currently in -mm which might be from dima@arista.com are
