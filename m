@@ -1,28 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + unicore32-add-loglvl-to-c_backtrace.patch added to -mm
- tree
-Date: Mon, 20 Apr 2020 16:13:49 -0700
-Message-ID: <20200420231349.Tni2OHUKW%akpm@linux-foundation.org>
+Subject: + unicore32-add-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:13:52 -0700
+Message-ID: <20200420231352.htMmzxp78%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39574 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726089AbgDTXNw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:13:52 -0400
+        id S1726089AbgDTXNy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:13:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dima@arista.com, gxt@pku.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: unicore32: add loglvl to c_backtrace()
+     Subject: unicore32: add show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     unicore32-add-loglvl-to-c_backtrace.patch
+     unicore32-add-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/unicore32-add-loglvl-to-c_backtrace.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/unicore32-add-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/unicore32-add-loglvl-to-c_backtrace.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/unicore32-add-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,7 +36,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: unicore32: add loglvl to c_backtrace()
+Subject: unicore32: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -54,118 +53,89 @@ Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
 approach than introducing more printk buffers.  Also, it will consolidate
 printings with headers.
 
-Add log level parameter to c_backtrace() as a preparation for introducing
-show_stack_loglvl()
+Introduce show_stack_loglvl(), that eventually will substitute
+show_stack().
+
+As a nice side-effect - print backtrace in __die() with the same log level
+as the rest of function.
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-39-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-40-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
 Cc: Guan Xuetao <gxt@pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/kernel/setup.h  |    2 +-
- arch/unicore32/kernel/traps.c  |    2 +-
- arch/unicore32/lib/backtrace.S |   24 ++++++++++++++++--------
- 3 files changed, 18 insertions(+), 10 deletions(-)
+ arch/unicore32/kernel/traps.c |   27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
---- a/arch/unicore32/kernel/setup.h~unicore32-add-loglvl-to-c_backtrace
-+++ a/arch/unicore32/kernel/setup.h
-@@ -29,7 +29,7 @@ extern void kernel_thread_helper(void);
- extern void __init early_signal_init(void);
- 
- extern asmlinkage void __backtrace(void);
--extern asmlinkage void c_backtrace(unsigned long fp);
-+extern asmlinkage void c_backtrace(unsigned long fp, const char *loglvl);
- 
- extern void __show_regs(struct pt_regs *);
- 
---- a/arch/unicore32/kernel/traps.c~unicore32-add-loglvl-to-c_backtrace
+--- a/arch/unicore32/kernel/traps.c~unicore32-add-show_stack_loglvl
 +++ a/arch/unicore32/kernel/traps.c
-@@ -163,7 +163,7 @@ static void dump_backtrace(struct pt_reg
- 	printk("\n");
- 
- 	if (ok)
--		c_backtrace(fp);
-+		c_backtrace(fp, KERN_DEFAULT);
+@@ -135,12 +135,13 @@ static void dump_instr(const char *lvl,
+ 	set_fs(fs);
  }
  
- void show_stack(struct task_struct *tsk, unsigned long *sp)
---- a/arch/unicore32/lib/backtrace.S~unicore32-add-loglvl-to-c_backtrace
-+++ a/arch/unicore32/lib/backtrace.S
-@@ -16,6 +16,7 @@
- #define sv_fp	v5
- #define sv_pc	v6
- #define offset	v8
-+#define loglvl	v9
+-static void dump_backtrace(struct pt_regs *regs, struct task_struct *tsk)
++static void dump_backtrace(struct pt_regs *regs, struct task_struct *tsk,
++			   const char *loglvl)
+ {
+ 	unsigned int fp;
+ 	int ok = 1;
  
- ENTRY(__backtrace)
- 		mov	r0, fp
-@@ -27,10 +28,11 @@ ENTRY(c_backtrace)
- ENDPROC(__backtrace)
- ENDPROC(c_backtrace)
- #else
--		stm.w	(v4 - v8, lr), [sp-]	@ Save an extra register
-+		stm.w	(v4 - v10, lr), [sp-]	@ Save an extra register
- 						@ so we have a location...
- 		mov.a	frame, r0		@ if frame pointer is zero
- 		beq	no_frame		@ we have no stack frames
-+		mov	loglvl, r1
+-	printk(KERN_DEFAULT "Backtrace: ");
++	printk("%sBacktrace: ", loglvl);
  
- 1:		stm.w	(pc), [sp-]		@ calculate offset of PC stored
- 		ldw.w	r0, [sp]+, #4		@ by stmfd for this CPU
-@@ -95,9 +97,10 @@ for_each_frame:
- 		bua	for_each_frame
+ 	if (!tsk)
+ 		tsk = current;
+@@ -153,25 +154,31 @@ static void dump_backtrace(struct pt_reg
+ 		asm("mov %0, fp" : "=r" (fp) : : "cc");
  
- 1006:		adr	r0, .Lbad
--		mov	r1, frame
-+		mov	r1, loglvl
-+		mov	r2, frame
- 		b.l	printk
--no_frame:	ldm.w	(v4 - v8, pc), [sp]+
-+no_frame:	ldm.w	(v4 - v10, pc), [sp]+
- ENDPROC(__backtrace)
- ENDPROC(c_backtrace)
+ 	if (!fp) {
+-		printk("no frame pointer");
++		printk("%sno frame pointer", loglvl);
+ 		ok = 0;
+ 	} else if (verify_stack(fp)) {
+-		printk("invalid frame pointer 0x%08x", fp);
++		printk("%sinvalid frame pointer 0x%08x", loglvl, fp);
+ 		ok = 0;
+ 	} else if (fp < (unsigned long)end_of_stack(tsk))
+-		printk("frame pointer underflow");
+-	printk("\n");
++		printk("%sframe pointer underflow", loglvl);
++	printk("%s\n", loglvl);
  
-@@ -128,8 +131,11 @@ ENDPROC(c_backtrace)
- 		add	v7, v7, #1
- 		cxor.a	v7, #6
- 		cmoveq	v7, #1
--		cmoveq	r1, #'\n'
--		cmovne	r1, #' '
-+		bne	201f
-+		adr	r0, .Lcr
-+		mov	r1, loglvl
-+		b.l	printk
-+201:
- 		ldw.w	r3, [stack]+, #-4
- 		mov	r2, reg
- 		csub.a	r2, #8
-@@ -141,18 +147,20 @@ ENDPROC(c_backtrace)
- 		add	r2, r2, #0x10		@ so r2 need add 16
- 201:
- 		adr	r0, .Lfp
-+		mov	r1, loglvl
- 		b.l	printk
- 2:		sub.a	reg, reg, #1
- 		bns	1b
- 		cxor.a	v7, #0
- 		beq	201f
- 		adr	r0, .Lcr
-+		mov	r1, loglvl
- 		b.l	printk
- 201:		ldm.w	(instr, reg, stack, v7, pc), [sp]+
+ 	if (ok)
+-		c_backtrace(fp, KERN_DEFAULT);
++		c_backtrace(fp, loglvl);
+ }
  
--.Lfp:		.asciz	"%cr%d:%08x"
--.Lcr:		.asciz	"\n"
--.Lbad:		.asciz	"Backtrace aborted due to bad frame pointer <%p>\n"
-+.Lfp:		.asciz	"%sr%d:%08x "
-+.Lcr:		.asciz	"%s\n"
-+.Lbad:		.asciz	"%sBacktrace aborted due to bad frame pointer <%p>\n"
- 		.align
- .Ldsi:		.word	0x92eec000 >> 14	@ stm.w sp, (... fp, ip, lr, pc)
- 		.word	0x92e10000 >> 14	@ stm.w sp, ()
+-void show_stack(struct task_struct *tsk, unsigned long *sp)
++void show_stack_loglvl(struct task_struct *tsk, unsigned long *sp,
++		       const char *loglvl)
+ {
+-	dump_backtrace(NULL, tsk);
++	dump_backtrace(NULL, tsk, loglvl);
+ 	barrier();
+ }
+ 
++void show_stack(struct task_struct *tsk, unsigned long *sp)
++{
++	show_stack_loglvl(tsk, sp, KERN_DEFAULT)
++}
++
+ static int __die(const char *str, int err, struct thread_info *thread,
+ 		struct pt_regs *regs)
+ {
+@@ -196,7 +203,7 @@ static int __die(const char *str, int er
+ 	if (!user_mode(regs) || in_interrupt()) {
+ 		dump_mem(KERN_EMERG, "Stack: ", regs->UCreg_sp,
+ 			 THREAD_SIZE + (unsigned long)task_stack_page(tsk));
+-		dump_backtrace(regs, tsk);
++		dump_backtrace(regs, tsk, KERN_EMERG);
+ 		dump_instr(KERN_EMERG, regs);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from dima@arista.com are
