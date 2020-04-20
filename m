@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + nios2-add-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:11:33 -0700
-Message-ID: <20200420231133.nvu1nhlxO%akpm@linux-foundation.org>
+Subject: + openrisc-add-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:11:35 -0700
+Message-ID: <20200420231135.CIi3bieow%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39000 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39236 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726362AbgDTXLe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:11:34 -0400
+        id S1726006AbgDTXM5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:12:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, lftan@altera.com, mm-commits@vger.kernel.org
+To: dima@arista.com, jonas@southpole.se, mm-commits@vger.kernel.org, shorne@gmail.com, stefan.kristiansson@saunalahti.fi
 
 
 The patch titled
-     Subject: nios2: add show_stack_loglvl()
+     Subject: openrisc: add show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     nios2-add-show_stack_loglvl.patch
+     openrisc-add-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nios2-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/openrisc-add-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nios2-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/openrisc-add-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,7 +36,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: nios2: add show_stack_loglvl()
+Subject: openrisc: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -58,74 +58,50 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-24-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-25-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Ley Foon Tan <lftan@altera.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nios2/kernel/traps.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ arch/openrisc/kernel/traps.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
---- a/arch/nios2/kernel/traps.c~nios2-add-show_stack_loglvl
-+++ a/arch/nios2/kernel/traps.c
-@@ -52,12 +52,14 @@ void _exception(int signo, struct pt_reg
+--- a/arch/openrisc/kernel/traps.c~openrisc-add-show_stack_loglvl
++++ a/arch/openrisc/kernel/traps.c
+@@ -41,18 +41,26 @@ unsigned long __user *lwa_addr;
+ 
+ void print_trace(void *data, unsigned long addr, int reliable)
+ {
+-	pr_emerg("[<%p>] %s%pS\n", (void *) addr, reliable ? "" : "? ",
++	const char *loglvl = data;
++
++	printk("%s[<%p>] %s%pS\n", loglvl, (void *) addr, reliable ? "" : "? ",
+ 	       (void *) addr);
  }
  
- /*
-- * The show_stack is an external API which we do not use ourselves.
-+ * The show_stack(), show_stack_loglvl() are external API
-+ * which we do not use ourselves.
-  */
- 
- int kstack_depth_to_print = 48;
- 
--void show_stack(struct task_struct *task, unsigned long *stack)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *stack,
-+		       const char *loglvl)
+ /* displays a short stack trace */
+-void show_stack(struct task_struct *task, unsigned long *esp)
++void show_stack_loglvl(struct task_struct *task, unsigned long *esp,
++		const char *loglvl)
  {
- 	unsigned long *endstack, addr;
- 	int i;
-@@ -72,16 +74,16 @@ void show_stack(struct task_struct *task
- 	addr = (unsigned long) stack;
- 	endstack = (unsigned long *) PAGE_ALIGN(addr);
+ 	if (esp == NULL)
+ 		esp = (unsigned long *)&esp;
  
--	pr_emerg("Stack from %08lx:", (unsigned long)stack);
-+	printk("%sStack from %08lx:", loglvl, (unsigned long)stack);
- 	for (i = 0; i < kstack_depth_to_print; i++) {
- 		if (stack + 1 > endstack)
- 			break;
- 		if (i % 8 == 0)
--			pr_emerg("\n       ");
--		pr_emerg(" %08lx", *stack++);
-+			printk("%s\n       ", loglvl);
-+		printk("%s %08lx", loglvl, *stack++);
- 	}
- 
--	pr_emerg("\nCall Trace:");
-+	printk("%s\nCall Trace:", loglvl);
- 	i = 0;
- 	while (stack + 1 <= endstack) {
- 		addr = *stack++;
-@@ -97,11 +99,16 @@ void show_stack(struct task_struct *task
- 		     (addr <= (unsigned long) _etext))) {
- 			if (i % 4 == 0)
- 				pr_emerg("\n       ");
--			pr_emerg(" [<%08lx>]", addr);
-+			printk("%s [<%08lx>]", loglvl, addr);
- 			i++;
- 		}
- 	}
--	pr_emerg("\n");
-+	printk("%s\n", loglvl);
+-	pr_emerg("Call trace:\n");
+-	unwind_stack(NULL, esp, print_trace);
++	printk("%sCall trace:\n", loglvl);
++	unwind_stack((void *)loglvl, esp, print_trace);
 +}
 +
-+void show_stack(struct task_struct *task, unsigned long *stack)
++void show_stack(struct task_struct *task, unsigned long *esp)
 +{
-+	show_stack_loglvl(task, stack, KERN_EMERG);
++	show_stack_loglvl(task, esp, KERN_EMERG);
  }
  
- void __init trap_init(void)
+ void show_registers(struct pt_regs *regs)
 _
 
 Patches currently in -mm which might be from dima@arista.com are
