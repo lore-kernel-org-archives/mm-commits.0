@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-add-show_stack_loglvl.patch added to -mm tree
-Date: Mon, 20 Apr 2020 16:14:01 -0700
-Message-ID: <20200420231401.fyB88y1ML%akpm@linux-foundation.org>
+Subject: + x86-add-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:13:57 -0700
+Message-ID: <20200420231357.ImC7Bjgr-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39766 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39710 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726089AbgDTXOC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:14:02 -0400
+        id S1726089AbgDTXN7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:13:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@zankel.net, dima@arista.com, jcmvbkbc@gmail.com, mm-commits@vger.kernel.org
+To: bp@alien8.de, dima@arista.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: xtensa: add show_stack_loglvl()
+     Subject: x86: add show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     xtensa-add-show_stack_loglvl.patch
+     x86-add-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xtensa-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xtensa-add-show_stack_loglvl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,7 +36,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: xtensa: add show_stack_loglvl()
+Subject: x86: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -58,48 +58,44 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-44-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-42-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/traps.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ arch/x86/kernel/dumpstack.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/arch/xtensa/kernel/traps.c~xtensa-add-show_stack_loglvl
-+++ a/arch/xtensa/kernel/traps.c
-@@ -501,7 +501,8 @@ static void show_trace(struct task_struc
- #define STACK_DUMP_LINE_SIZE 32
- static size_t kstack_depth_to_print = CONFIG_PRINT_STACK_DEPTH;
+--- a/arch/x86/kernel/dumpstack.c~x86-add-show_stack_loglvl
++++ a/arch/x86/kernel/dumpstack.c
+@@ -279,7 +279,8 @@ next:
+ 	}
+ }
  
 -void show_stack(struct task_struct *task, unsigned long *sp)
 +void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
 +		       const char *loglvl)
  {
- 	size_t len;
+ 	task = task ? : current;
  
-@@ -511,11 +512,16 @@ void show_stack(struct task_struct *task
- 	len = min((-(size_t)sp) & (THREAD_SIZE - STACK_DUMP_ENTRY_SIZE),
- 		  kstack_depth_to_print * STACK_DUMP_ENTRY_SIZE);
+@@ -290,7 +291,12 @@ void show_stack(struct task_struct *task
+ 	if (!sp && task == current)
+ 		sp = get_stack_pointer(current, NULL);
  
--	pr_info("Stack:\n");
--	print_hex_dump(KERN_INFO, " ", DUMP_PREFIX_NONE,
-+	printk("%sStack:\n", loglvl);
-+	print_hex_dump(loglvl, " ", DUMP_PREFIX_NONE,
- 		       STACK_DUMP_LINE_SIZE, STACK_DUMP_ENTRY_SIZE,
- 		       sp, len, false);
--	show_trace(task, stack, KERN_INFO);
-+	show_trace(task, stack, loglvl);
+-	show_trace_log_lvl(task, NULL, sp, KERN_DEFAULT);
++	show_trace_log_lvl(task, NULL, sp, loglvl);
 +}
 +
 +void show_stack(struct task_struct *task, unsigned long *sp)
 +{
-+	show_stack_loglvl(task, sp, KERN_INFO);
++	show_stack_loglvl(task, sp, KERN_DEFAULT);
  }
  
- DEFINE_SPINLOCK(die_lock);
+ void show_stack_regs(struct pt_regs *regs)
 _
 
 Patches currently in -mm which might be from dima@arista.com are
