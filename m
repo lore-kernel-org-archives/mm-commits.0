@@ -1,28 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + sched-print-stack-trace-with-kern_info.patch added to
- -mm tree
-Date: Mon, 20 Apr 2020 16:14:12 -0700
-Message-ID: <20200420231412.JIHKEAtlx%akpm@linux-foundation.org>
+Subject: + kernel-use-show_stack_loglvl.patch added to -mm tree
+Date: Mon, 20 Apr 2020 16:14:15 -0700
+Message-ID: <20200420231415.j27Nvn21z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39886 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727820AbgDTXOO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 19:14:14 -0400
+        id S1726487AbgDTXOQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 19:14:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bsegall@google.com, dietmar.eggemann@arm.com, dima@arista.com, juri.lelli@redhat.com, mgorman@suse.de, mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org, rostedt@goodmis.org, vincent.guittot@linaro.org
+To: dima@arista.com, mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org, will@kernel.org
 
 
 The patch titled
-     Subject: sched: print stack trace with KERN_INFO
+     Subject: kernel: use show_stack_loglvl()
 has been added to the -mm tree.  Its filename is
-     sched-print-stack-trace-with-kern_info.patch
+     kernel-use-show_stack_loglvl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sched-print-stack-trace-with-kern_info.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-use-show_stack_loglvl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sched-print-stack-trace-with-kern_info.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-use-show_stack_loglvl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,38 +36,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: sched: print stack trace with KERN_INFO
+Subject: kernel: use show_stack_loglvl()
 
-Aligning with other messages printed in sched_show_task() - use KERN_INFO
-to print the backtrace.
+Align the last users of show_stack() by KERN_DEFAULT as the surrounding
+headers/messages.
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-49-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-50-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/locking/rtmutex-debug.c |    2 +-
+ lib/dump_stack.c               |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/sched/core.c~sched-print-stack-trace-with-kern_info
-+++ a/kernel/sched/core.c
-@@ -6005,7 +6005,7 @@ void sched_show_task(struct task_struct
- 		(unsigned long)task_thread_info(p)->flags);
+--- a/kernel/locking/rtmutex-debug.c~kernel-use-show_stack_loglvl
++++ a/kernel/locking/rtmutex-debug.c
+@@ -125,7 +125,7 @@ void debug_rt_mutex_print_deadlock(struc
  
- 	print_worker_info(KERN_INFO, p);
--	show_stack(p, NULL);
-+	show_stack_loglvl(p, NULL, KERN_INFO);
- 	put_task_stack(p);
+ 	printk("\n%s/%d's [blocked] stackdump:\n\n",
+ 		task->comm, task_pid_nr(task));
+-	show_stack(task, NULL);
++	show_stack_loglvl(task, NULL, KERN_DEFAULT);
+ 	printk("\n%s/%d's [current] stackdump:\n\n",
+ 		current->comm, task_pid_nr(current));
+ 	dump_stack();
+--- a/lib/dump_stack.c~kernel-use-show_stack_loglvl
++++ a/lib/dump_stack.c
+@@ -74,7 +74,7 @@ void show_regs_print_info(const char *lo
+ static void __dump_stack(void)
+ {
+ 	dump_stack_print_info(KERN_DEFAULT);
+-	show_stack(NULL, NULL);
++	show_stack_loglvl(NULL, NULL, KERN_DEFAULT);
  }
- EXPORT_SYMBOL_GPL(sched_show_task);
+ 
+ /**
 _
 
 Patches currently in -mm which might be from dima@arista.com are
