@@ -1,86 +1,84 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- =?US-ASCII?Q?mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-?=
- =?US-ASCII?Q?enabled-v4-fix.patch?= removed from -mm tree
-Date: Mon, 20 Apr 2020 18:08:44 -0700
-Message-ID: <20200421010844.0W35tGi0O%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Mon, 20 Apr 2020 18:13:10 -0700
+Message-ID: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60860 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34696 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725958AbgDUBIr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 21:08:47 -0400
+        id S1726079AbgDUBNL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 21:13:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@redhat.com, duanxiongchun@bytedance.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, ktkhai@virtuozzo.com, Markus.Elfring@web.de, mm-commits@vger.kernel.org, songmuchun@bytedance.com, yang.shi@linux.alibaba.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, linux-mm@kvack.org
 
 
-The patch titled
-     Subject: mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix
-has been removed from the -mm tree.  Its filename was
-     mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix.patch
+15 fixes, based on ae83d0b416db002fe95601e7f97f64b59514d936:
 
-This patch was dropped because it was folded into mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix
+    Masahiro Yamada <masahiroy@kernel.org>:
+      sh: fix build error in mm/init.c
 
-add the conventional brakes, replace /** with /*
+    Kees Cook <keescook@chromium.org>:
+      slub: avoid redzone when choosing freepointer location
 
-Cc: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Markus Elfring <Markus.Elfring@web.de>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+    Peter Xu <peterx@redhat.com>:
+      mm/userfaultfd: disable userfaultfd-wp on x86_32
 
- mm/ksm.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+    Bartosz Golaszewski <bgolaszewski@baylibre.com>:
+      MAINTAINERS: add an entry for kfifo
 
---- a/mm/ksm.c~mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled-v4-fix
-+++ a/mm/ksm.c
-@@ -2112,15 +2112,16 @@ static void cmp_and_merge_page(struct pa
- 
- 		down_read(&mm->mmap_sem);
- 		vma = find_mergeable_vma(mm, rmap_item->address);
--		if (vma)
-+		if (vma) {
- 			err = try_to_merge_one_page(vma, page,
- 					ZERO_PAGE(rmap_item->address));
--		else
--			/**
-+		} else {
-+			/*
- 			 * If the vma is out of date, we do not need to
- 			 * continue.
- 			 */
- 			err = 0;
-+		}
- 		up_read(&mm->mmap_sem);
- 		/*
- 		 * In case of failure, the page was not really empty, so we
-_
+    Longpeng <longpeng2@huawei.com>:
+      mm/hugetlb: fix a addressing exception caused by huge_pte_offset
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+    Michal Hocko <mhocko@suse.com>:
+      mm, gup: return EINTR when gup is interrupted by fatal signals
 
-mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
-mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-linux-next-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+    Christophe JAILLET <christophe.jaillet@wanadoo.fr>:
+      checkpatch: fix a typo in the regex for $allocFunctions
+
+    George Burgess IV <gbiv@google.com>:
+      tools/build: tweak unused value workaround
+
+    Muchun Song <songmuchun@bytedance.com>:
+      mm/ksm: fix NULL pointer dereference when KSM zero page is enabled
+
+    Hugh Dickins <hughd@google.com>:
+      mm/shmem: fix build without THP
+
+    Jann Horn <jannh@google.com>:
+      vmalloc: fix remap_vmalloc_range() bounds checks
+
+    Hugh Dickins <hughd@google.com>:
+      shmem: fix possible deadlocks on shmlock_user_lock
+
+    Yang Shi <yang.shi@linux.alibaba.com>:
+      mm: shmem: disable interrupt when acquiring info->lock in userfaultfd_copy path
+
+    Sudip Mukherjee <sudipm.mukherjee@gmail.com>:
+      coredump: fix null pointer dereference on coredump
+
+    Lucas Stach <l.stach@pengutronix.de>:
+      tools/vm: fix cross-compile build
+
+ MAINTAINERS                                      |    7 +++++++
+ arch/sh/mm/init.c                                |    2 +-
+ arch/x86/Kconfig                                 |    2 +-
+ fs/coredump.c                                    |    2 ++
+ fs/proc/vmcore.c                                 |    5 +++--
+ include/linux/vmalloc.h                          |    2 +-
+ mm/gup.c                                         |    2 +-
+ mm/hugetlb.c                                     |   14 ++++++++------
+ mm/ksm.c                                         |   12 ++++++++++--
+ mm/shmem.c                                       |   13 ++++++++-----
+ mm/slub.c                                        |   12 ++++++++++--
+ mm/vmalloc.c                                     |   16 +++++++++++++---
+ samples/vfio-mdev/mdpy.c                         |    2 +-
+ scripts/checkpatch.pl                            |    2 +-
+ tools/build/feature/test-sync-compare-and-swap.c |    2 +-
+ tools/vm/Makefile                                |    2 ++
+ 16 files changed, 70 insertions(+), 27 deletions(-)
