@@ -1,169 +1,81 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 11/15] vmalloc: fix remap_vmalloc_range() bounds
- checks
-Date: Mon, 20 Apr 2020 18:14:11 -0700
-Message-ID: <20200421011411.wv-y4-aOQ%akpm@linux-foundation.org>
+Subject: [patch 12/15] shmem: fix possible deadlocks on
+ shmlock_user_lock
+Date: Mon, 20 Apr 2020 18:14:14 -0700
+Message-ID: <20200421011414.R2zEkJGM2%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35738 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35792 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726161AbgDUBOM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Apr 2020 21:14:12 -0400
+        id S1726121AbgDUBOP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Apr 2020 21:14:15 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriin@fb.com, ast@kernel.org, daniel@iogearbox.net, jannh@google.com, john.fastabend@gmail.com, kafai@fb.com, kpsingh@chromium.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, songliubraving@fb.com, torvalds@linux-foundation.org, yhs@fb.com
+To: akpm@linux-foundation.org, hughd@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yang.shi@linux.alibaba.com
 
-From: Jann Horn <jannh@google.com>
-Subject: vmalloc: fix remap_vmalloc_range() bounds checks
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: fix possible deadlocks on shmlock_user_lock
 
-remap_vmalloc_range() has had various issues with the bounds checks it
-promises to perform ("This function checks that addr is a valid vmalloc'ed
-area, and that it is big enough to cover the vma") over time, e.g.:
+Recent commit 71725ed10c40 ("mm: huge tmpfs: try to split_huge_page() when
+punching hole") has allowed syzkaller to probe deeper, uncovering a
+long-standing lockdep issue between the irq-unsafe shmlock_user_lock, the
+irq-safe xa_lock on mapping->i_pages, and shmem inode's info->lock which
+nests inside xa_lock (or tree_lock) since 4.8's shmem_uncharge().
 
- - not detecting pgoff<<PAGE_SHIFT overflow
- - not detecting (pgoff<<PAGE_SHIFT)+usize overflow
- - not checking whether addr and addr+(pgoff<<PAGE_SHIFT) are the same
-   vmalloc allocation
- - comparing a potentially wildly out-of-bounds pointer with the end of the
-   vmalloc region
+user_shm_lock(), servicing SysV shmctl(SHM_LOCK), wants shmlock_user_lock
+while its caller shmem_lock() holds info->lock with interrupts disabled;
+but hugetlbfs_file_setup() calls user_shm_lock() with interrupts enabled,
+and might be interrupted by a writeback endio wanting xa_lock on i_pages. 
+This may not risk an actual deadlock, since shmem inodes do not take part
+in writeback accounting, but there are several easy ways to avoid it.
 
-In particular, since commit fc9702273e2e ("bpf: Add mmap() support for
-BPF_MAP_TYPE_ARRAY"), unprivileged users can cause kernel null pointer
-dereferences by calling mmap() on a BPF map with a size that is bigger
-than the distance from the start of the BPF map to the end of the address
-space.  This could theoretically be used as a kernel ASLR bypass, by using
-whether mmap() with a given offset oopses or returns an error code to
-perform a binary search over the possible address range.
+Requiring interrupts disabled for shmlock_user_lock would be easy, but
+it's a high-level global lock for which that seems inappropriate. 
+Instead, recall that the use of info->lock to guard info->flags in
+shmem_lock() dates from pre-3.1 days, when races with SHMEM_PAGEIN and
+SHMEM_TRUNCATE could occur: nowadays it serves no purpose, the only flag
+added or removed is VM_LOCKED itself, and calls to shmem_lock() an inode
+are already serialized by the caller.  Take info->lock out of the chain
+and the possibility of deadlock or lockdep warning goes away.
 
-To allow remap_vmalloc_range_partial() to verify that addr and
-addr+(pgoff<<PAGE_SHIFT) are in the same vmalloc region, pass the offset
-to remap_vmalloc_range_partial() instead of adding it to the pointer in
-remap_vmalloc_range().
-
-In remap_vmalloc_range_partial(), fix the check against get_vm_area_size()
-by using size comparisons instead of pointer comparisons, and add checks
-for pgoff.
-
-Link: http://lkml.kernel.org/r/20200415222312.236431-1-jannh@google.com
-Cc: stable@vger.kernel.org
-Fixes: 833423143c3a ("[PATCH] mm: introduce remap_vmalloc_range()")
-Signed-off-by: Jann Horn <jannh@google.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Martin KaFai Lau <kafai@fb.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Yonghong Song <yhs@fb.com>
-Cc: Andrii Nakryiko <andriin@fb.com>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@chromium.org>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2004161707410.16322@eggly.anvils
+Reported-by: syzbot+c8a8197c8852f566b9d9@syzkaller.appspotmail.com
+Link: https://lore.kernel.org/lkml/000000000000e5838c05a3152f53@google.com/
+Reported-by: syzbot+40b71e145e73f78f81ad@syzkaller.appspotmail.com
+Link: https://lore.kernel.org/lkml/0000000000003712b305a331d3b1@google.com/
+Fixes: 4595ef88d136 ("shmem: make shmem_inode_info::lock irq-safe")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Acked-by: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c         |    5 +++--
- include/linux/vmalloc.h  |    2 +-
- mm/vmalloc.c             |   16 +++++++++++++---
- samples/vfio-mdev/mdpy.c |    2 +-
- 4 files changed, 18 insertions(+), 7 deletions(-)
+ mm/shmem.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/fs/proc/vmcore.c~vmalloc-fix-remap_vmalloc_range-bounds-checks
-+++ a/fs/proc/vmcore.c
-@@ -266,7 +266,8 @@ static int vmcoredd_mmap_dumps(struct vm
- 		if (start < offset + dump->size) {
- 			tsz = min(offset + (u64)dump->size - start, (u64)size);
- 			buf = dump->buf + start - offset;
--			if (remap_vmalloc_range_partial(vma, dst, buf, tsz)) {
-+			if (remap_vmalloc_range_partial(vma, dst, buf, 0,
-+							tsz)) {
- 				ret = -EFAULT;
- 				goto out_unlock;
- 			}
-@@ -624,7 +625,7 @@ static int mmap_vmcore(struct file *file
- 		tsz = min(elfcorebuf_sz + elfnotes_sz - (size_t)start, size);
- 		kaddr = elfnotes_buf + start - elfcorebuf_sz - vmcoredd_orig_sz;
- 		if (remap_vmalloc_range_partial(vma, vma->vm_start + len,
--						kaddr, tsz))
-+						kaddr, 0, tsz))
- 			goto fail;
+--- a/mm/shmem.c~shmem-fix-possible-deadlocks-on-shmlock_user_lock
++++ a/mm/shmem.c
+@@ -2179,7 +2179,11 @@ int shmem_lock(struct file *file, int lo
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	int retval = -ENOMEM;
  
- 		size -= tsz;
---- a/include/linux/vmalloc.h~vmalloc-fix-remap_vmalloc_range-bounds-checks
-+++ a/include/linux/vmalloc.h
-@@ -137,7 +137,7 @@ extern void vunmap(const void *addr);
+-	spin_lock_irq(&info->lock);
++	/*
++	 * What serializes the accesses to info->flags?
++	 * ipc_lock_object() when called from shmctl_do_lock(),
++	 * no serialization needed when called from shm_destroy().
++	 */
+ 	if (lock && !(info->flags & VM_LOCKED)) {
+ 		if (!user_shm_lock(inode->i_size, user))
+ 			goto out_nomem;
+@@ -2194,7 +2198,6 @@ int shmem_lock(struct file *file, int lo
+ 	retval = 0;
  
- extern int remap_vmalloc_range_partial(struct vm_area_struct *vma,
- 				       unsigned long uaddr, void *kaddr,
--				       unsigned long size);
-+				       unsigned long pgoff, unsigned long size);
- 
- extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
- 							unsigned long pgoff);
---- a/mm/vmalloc.c~vmalloc-fix-remap_vmalloc_range-bounds-checks
-+++ a/mm/vmalloc.c
-@@ -34,6 +34,7 @@
- #include <linux/llist.h>
- #include <linux/bitops.h>
- #include <linux/rbtree_augmented.h>
-+#include <linux/overflow.h>
- 
- #include <linux/uaccess.h>
- #include <asm/tlbflush.h>
-@@ -3054,6 +3055,7 @@ finished:
-  * @vma:		vma to cover
-  * @uaddr:		target user address to start at
-  * @kaddr:		virtual address of vmalloc kernel memory
-+ * @pgoff:		offset from @kaddr to start at
-  * @size:		size of map area
-  *
-  * Returns:	0 for success, -Exxx on failure
-@@ -3066,9 +3068,15 @@ finished:
-  * Similar to remap_pfn_range() (see mm/memory.c)
-  */
- int remap_vmalloc_range_partial(struct vm_area_struct *vma, unsigned long uaddr,
--				void *kaddr, unsigned long size)
-+				void *kaddr, unsigned long pgoff,
-+				unsigned long size)
- {
- 	struct vm_struct *area;
-+	unsigned long off;
-+	unsigned long end_index;
-+
-+	if (check_shl_overflow(pgoff, PAGE_SHIFT, &off))
-+		return -EINVAL;
- 
- 	size = PAGE_ALIGN(size);
- 
-@@ -3082,8 +3090,10 @@ int remap_vmalloc_range_partial(struct v
- 	if (!(area->flags & (VM_USERMAP | VM_DMA_COHERENT)))
- 		return -EINVAL;
- 
--	if (kaddr + size > area->addr + get_vm_area_size(area))
-+	if (check_add_overflow(size, off, &end_index) ||
-+	    end_index > get_vm_area_size(area))
- 		return -EINVAL;
-+	kaddr += off;
- 
- 	do {
- 		struct page *page = vmalloc_to_page(kaddr);
-@@ -3122,7 +3132,7 @@ int remap_vmalloc_range(struct vm_area_s
- 						unsigned long pgoff)
- {
- 	return remap_vmalloc_range_partial(vma, vma->vm_start,
--					   addr + (pgoff << PAGE_SHIFT),
-+					   addr, pgoff,
- 					   vma->vm_end - vma->vm_start);
- }
- EXPORT_SYMBOL(remap_vmalloc_range);
---- a/samples/vfio-mdev/mdpy.c~vmalloc-fix-remap_vmalloc_range-bounds-checks
-+++ a/samples/vfio-mdev/mdpy.c
-@@ -418,7 +418,7 @@ static int mdpy_mmap(struct mdev_device
- 		return -EINVAL;
- 
- 	return remap_vmalloc_range_partial(vma, vma->vm_start,
--					   mdev_state->memblk,
-+					   mdev_state->memblk, 0,
- 					   vma->vm_end - vma->vm_start);
+ out_nomem:
+-	spin_unlock_irq(&info->lock);
+ 	return retval;
  }
  
 _
