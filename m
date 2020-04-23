@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-support-vector-address-ranges-for-process_madvise.patch added to -mm
+ mm-support-vector-address-ranges-for-process_madvise-fix.patch added to -mm
  tree
-Date: Thu, 23 Apr 2020 15:44:20 -0700
-Message-ID: <20200423224420.KZLkNkOTO%akpm@linux-foundation.org>
+Date: Thu, 23 Apr 2020 15:44:23 -0700
+Message-ID: <20200423224423.qb8oLW8UR%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60164 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60236 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726062AbgDWWoW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 18:44:22 -0400
+        id S1726062AbgDWWo0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 18:44:26 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: arjunroy@google.com, bgeffon@google.com, dancol@google.com, hannes@cmpxchg.o
 
 
 The patch titled
-     Subject: mm: support vector address ranges for process_madvise
+     Subject: mm: support compat_sys_process_madvise
 has been added to the -mm tree.  Its filename is
-     mm-support-vector-address-ranges-for-process_madvise.patch
+     mm-support-vector-address-ranges-for-process_madvise-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-vector-address-ranges-for-process_madvise.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-vector-address-ranges-for-process_madvise.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,187 +40,247 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: support vector address ranges for process_madvise
+Subject: mm: support compat_sys_process_madvise
 
-This patch extends a) process_madvise(2) support vector address ranges in
-a system call and then b) support the vector address ranges to local
-process as well as external process.
+This patch supports compat syscall for process_madvise
 
-Android app has thousands of vmas due to zygote so it's totally waste of
-CPU and power if we should call the syscall one by one for each vma. 
-(With testing 2000-vma syscall vs 1-vector syscall, it showed 15%
-performance improvement.  I think it would be bigger in real practice
-because the testing ran very cache friendly environment).
-
-Another potential use case for the vector range is to amortize the cost of
-TLB shootdowns for multiple ranges when using MADV_DONTNEED; this could
-benefit users like TCP receive zerocopy and malloc implementations.  In
-future, we could find more usecases for other advises so let's make it
-happens as API since we introduce a new syscall at this moment.  With
-that, existing madvise(2) user could replace it with process_madvise(2)
-with their own pid if they want to have batch address ranges support
-feature.
-
-So finally, the API is as follows,
-
-  ssize_t process_madvise(idtype_t idtype, id_t id,
-		const struct iovec *iovec, unsigned long vlen,
-                int advice, unsigned long flags);
-
-DESCRIPTION
-  The process_madvise() system call is used to give advice or directions
-  to the kernel about the address ranges from external process as well as
-  local process. It provides the advice to address ranges of process
-  described by iovec and vlen. The goal of such advice is to improve system
-  or application performance.
-
-  The idtype and id arguments select the target process to be advised as
-  follows:
-
-    idtype == P_PID
-      select the process whose process ID matches id
-
-    idtype == P_PIDFD
-      select the process referred to by the PID file descriptor
-      specified in id. (See pidofd_open(2) for further information)
-
-  The pointer iovec points to an array of iovec structures, defined in
-  <sys/uio.h> as:
-
-    struct iovec {
-    	void *iov_base;		/* starting address */
-	size_t iov_len;		/* number of bytes to be advised */
-    };
-
-  The iovec describes address ranges beginning at address(iov_base)
-  and with size length of bytes(iov_len).
-
-  The vlen represents the number of elements in iovec.
-
-  The advice is indicated in the advice argument, which is one of the
-  following at this moment if the target process specified by idtype and
-  id is external.
-
-    MADV_COLD
-    MADV_PAGEOUT
-    MADV_MERGEABLE
-    MADV_UNMERGEABLE
-
-  Permission to provide a hint to external process is governed by a
-  ptrace access mode PTRACE_MODE_ATTACH_FSCREDS check; see ptrace(2).
-
-  The process_madvise supports every advice madvise(2) has if target
-  process is in same thread group with calling process so user could
-  use process_madvise(2) to extend existing madvise(2) to support
-  vector address ranges.
-
-RETURN VALUE
-  On success, process_madvise() returns the number of bytes advised.
-  This return value may be less than the total number of requested
-  bytes, if an error occurred. The caller should check return value
-  to determine whether a partial advice occurred.
-
-Link: http://lkml.kernel.org/r/20200423145215.72666-2-minchan@kernel.org
+Link: http://lkml.kernel.org/r/20200423195835.GA46847@google.com
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Arjun Roy <arjunroy@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Cc: Daniel Colascione <dancol@google.com>
-Cc: Sonny Rao <sonnyrao@google.com>
 Cc: Brian Geffon <bgeffon@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: John Dias <joaodias@google.com>
+Cc: Daniel Colascione <dancol@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: SeongJae Park <sj38.park@gmail.com>
-Cc: Oleksandr Natalenko <oleksandr@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sandeep Patil <sspatil@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Dias <joaodias@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oleksandr Natalenko <oleksandr@redhat.com>
+Cc: Sandeep Patil <sspatil@google.com>
+Cc: SeongJae Park <sj38.park@gmail.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tim Murray <timmurray@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   47 ++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 40 insertions(+), 7 deletions(-)
+ arch/arm64/include/asm/unistd32.h         |    2 
+ arch/mips/kernel/syscalls/syscall_n32.tbl |    2 
+ arch/parisc/kernel/syscalls/syscall.tbl   |    2 
+ arch/powerpc/kernel/syscalls/syscall.tbl  |    2 
+ arch/s390/kernel/syscalls/syscall.tbl     |    2 
+ arch/sparc/kernel/syscalls/syscall.tbl    |    2 
+ arch/x86/entry/syscalls/syscall_32.tbl    |    2 
+ arch/x86/entry/syscalls/syscall_64.tbl    |    3 -
+ include/linux/compat.h                    |    3 +
+ include/uapi/asm-generic/unistd.h         |    3 -
+ kernel/sys_ni.c                           |    1 
+ mm/madvise.c                              |   60 +++++++++++++++-----
+ 12 files changed, 60 insertions(+), 24 deletions(-)
 
---- a/mm/madvise.c~mm-support-vector-address-ranges-for-process_madvise
+--- a/arch/arm64/include/asm/unistd32.h~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -884,7 +884,7 @@ __SYSCALL(__NR_openat2, sys_openat2)
+ #define __NR_pidfd_getfd 438
+ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_getfd)
+ #define __NR_process_madvise 439
+-__SYSCALL(__NR_process_madvise, sys_process_madvise)
++__SYSCALL(__NR_process_madvise, compat_sys_process_madvise)
+ 
+ /*
+  * Please add new compat syscalls above this comment and update
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -376,4 +376,4 @@
+ 435	n32	clone3				__sys_clone3
+ 437	n32	openat2				sys_openat2
+ 438	n32	pidfd_getfd			sys_pidfd_getfd
+-439	n32	process_madvise			sys_process_madvise
++439	n32	process_madvise			compat_sys_process_madvise
+--- a/arch/parisc/kernel/syscalls/syscall.tbl~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -435,4 +435,4 @@
+ 435	common	clone3				sys_clone3_wrapper
+ 437	common	openat2				sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+-439	common	process_madvise			sys_process_madvise
++439	common	process_madvise			sys_process_madvise		compat_sys_process_madvise
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -527,4 +527,4 @@
+ 435	spu	clone3				sys_ni_syscall
+ 437	common	openat2				sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+-439	common	process_madvise			sys_process_madvise
++439	common	process_madvise			sys_process_madvise		compat_sys_process_madvise
+--- a/arch/s390/kernel/syscalls/syscall.tbl~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/arch/s390/kernel/syscalls/syscall.tbl
+@@ -440,4 +440,4 @@
+ 435  common	clone3			sys_clone3			sys_clone3
+ 437  common	openat2			sys_openat2			sys_openat2
+ 438  common	pidfd_getfd		sys_pidfd_getfd			sys_pidfd_getfd
+-439  common	process_madvise		sys_process_madvise		sys_process_madvise
++439  common	process_madvise		sys_process_madvise		compat_sys_process_madvise
+--- a/arch/sparc/kernel/syscalls/syscall.tbl~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -483,4 +483,4 @@
+ # 435 reserved for clone3
+ 437	common	openat2			sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+-439	common	process_madvise			sys_process_madvise
++439	common	process_madvise			sys_process_madvise		compat_sys_process_madvise
+--- a/arch/x86/entry/syscalls/syscall_32.tbl~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -442,4 +442,4 @@
+ 435	i386	clone3			sys_clone3
+ 437	i386	openat2			sys_openat2
+ 438	i386	pidfd_getfd		sys_pidfd_getfd
+-439	i386	process_madvise		sys_process_madvise
++439	i386	process_madvise		sys_process_madvise		compat_sys_process_madvise
+--- a/arch/x86/entry/syscalls/syscall_64.tbl~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -359,7 +359,7 @@
+ 435	common	clone3			sys_clone3
+ 437	common	openat2			sys_openat2
+ 438	common	pidfd_getfd		sys_pidfd_getfd
+-439	common	process_madvise		sys_process_madvise
++439	64	process_madvise		sys_process_madvise
+ 
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+@@ -403,3 +403,4 @@
+ 545	x32	execveat		compat_sys_execveat
+ 546	x32	preadv2			compat_sys_preadv64v2
+ 547	x32	pwritev2		compat_sys_pwritev64v2
++548	x32	process_madvise		compat_sys_process_madvise
+--- a/include/linux/compat.h~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/include/linux/compat.h
+@@ -820,6 +820,9 @@ asmlinkage long compat_sys_pwritev64v2(u
+ 		unsigned long vlen, loff_t pos, rwf_t flags);
+ #endif
+ 
++asmlinkage ssize_t compat_sys_process_madvise(int which,
++		compat_pid_t upid, const struct compat_iovec __user *vec,
++		unsigned long vlen, int behavior, unsigned long flags);
+ 
+ /*
+  * Deprecated system calls which are still defined in
+--- a/include/uapi/asm-generic/unistd.h~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/include/uapi/asm-generic/unistd.h
+@@ -856,7 +856,8 @@ __SYSCALL(__NR_openat2, sys_openat2)
+ #define __NR_pidfd_getfd 438
+ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_getfd)
+ #define __NR_process_madvise 439
+-__SYSCALL(__NR_process_madvise, sys_process_madvise)
++__SC_COMP(__NR_process_madvise, sys_process_madvise, \
++		compat_sys_process_madvise)
+ 
+ #undef __NR_syscalls
+ #define __NR_syscalls 440
+--- a/kernel/sys_ni.c~mm-support-vector-address-ranges-for-process_madvise-fix
++++ a/kernel/sys_ni.c
+@@ -281,6 +281,7 @@ COND_SYSCALL(munlockall);
+ COND_SYSCALL(mincore);
+ COND_SYSCALL(madvise);
+ COND_SYSCALL(process_madvise);
++COND_SYSCALL_COMPAT(process_madvise);
+ COND_SYSCALL(remap_file_pages);
+ COND_SYSCALL(mbind);
+ COND_SYSCALL_COMPAT(mbind);
+--- a/mm/madvise.c~mm-support-vector-address-ranges-for-process_madvise-fix
 +++ a/mm/madvise.c
-@@ -1195,20 +1195,39 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+@@ -1195,7 +1195,7 @@ SYSCALL_DEFINE3(madvise, unsigned long,
  	return do_madvise(current, current->mm, start, len_in, behavior);
  }
  
--SYSCALL_DEFINE6(process_madvise, int, which, pid_t, upid, unsigned long, start,
--		size_t, len_in, int, behavior, unsigned long, flags)
-+static int do_process_madvise(struct task_struct *target_task,
-+		struct mm_struct *mm, struct iov_iter *iter, int behavior)
+-static int do_process_madvise(struct task_struct *target_task,
++static int process_madvise_vec(struct task_struct *target_task,
+ 		struct mm_struct *mm, struct iov_iter *iter, int behavior)
  {
--	int ret;
-+	struct iovec iovec;
-+	int ret = 0;
-+
-+	while (iov_iter_count(iter)) {
-+		iovec = iov_iter_iovec(iter);
-+		ret = do_madvise(target_task, mm, (unsigned long)iovec.iov_base,
-+					iovec.iov_len, behavior);
-+		if (ret < 0)
-+			break;
-+		iov_iter_advance(iter, iovec.iov_len);
-+	}
-+
-+	return ret;
-+}
+ 	struct iovec iovec;
+@@ -1213,17 +1213,14 @@ static int do_process_madvise(struct tas
+ 	return ret;
+ }
+ 
+-SYSCALL_DEFINE6(process_madvise, int, which, pid_t, upid,
+-		const struct iovec __user *, vec, unsigned long, vlen,
+-		int, behavior, unsigned long, flags)
++ssize_t do_process_madvise(int which, pid_t upid, struct iov_iter *iter,
++				int behavior, unsigned long flags)
+ {
+ 	ssize_t ret;
+ 	struct pid *pid;
+ 	struct task_struct *task;
+ 	struct mm_struct *mm;
+-	struct iovec iovstack[UIO_FASTIOV];
+-	struct iovec *iov = iovstack;
+-	struct iov_iter iter;
++	size_t total_len = iov_iter_count(iter);
+ 
+ 	if (flags != 0)
+ 		return -EINVAL;
+@@ -1267,15 +1264,10 @@ SYSCALL_DEFINE6(process_madvise, int, wh
+ 		goto release_task;
+ 	}
+ 
+-	ret = import_iovec(READ, vec, vlen, ARRAY_SIZE(iovstack), &iov, &iter);
+-	if (ret >= 0) {
+-		size_t total_len = iov_iter_count(&iter);
++	ret = process_madvise_vec(task, mm, iter, behavior);
++	if (ret >= 0)
++		ret = total_len - iov_iter_count(iter);
+ 
+-		ret = do_process_madvise(task, mm, &iter, behavior);
+-		if (ret >= 0)
+-			ret = total_len - iov_iter_count(&iter);
+-		kfree(iov);
+-	}
+ 	mmput(mm);
+ release_task:
+ 	put_task_struct(task);
+@@ -1283,3 +1275,41 @@ put_pid:
+ 	put_pid(pid);
+ 	return ret;
+ }
 +
 +SYSCALL_DEFINE6(process_madvise, int, which, pid_t, upid,
 +		const struct iovec __user *, vec, unsigned long, vlen,
 +		int, behavior, unsigned long, flags)
 +{
 +	ssize_t ret;
- 	struct pid *pid;
- 	struct task_struct *task;
- 	struct mm_struct *mm;
 +	struct iovec iovstack[UIO_FASTIOV];
 +	struct iovec *iov = iovstack;
 +	struct iov_iter iter;
- 
- 	if (flags != 0)
- 		return -EINVAL;
- 
--	if (!process_madvise_behavior_valid(behavior))
--		return -EINVAL;
--
- 	switch (which) {
- 	case P_PID:
- 		if (upid <= 0)
-@@ -1236,13 +1255,27 @@ SYSCALL_DEFINE6(process_madvise, int, wh
- 		goto put_pid;
- 	}
- 
-+	if (task->mm != current->mm &&
-+			!process_madvise_behavior_valid(behavior)) {
-+		ret = -EINVAL;
-+		goto release_task;
-+	}
 +
- 	mm = mm_access(task, PTRACE_MODE_ATTACH_FSCREDS);
- 	if (IS_ERR_OR_NULL(mm)) {
- 		ret = IS_ERR(mm) ? PTR_ERR(mm) : -ESRCH;
- 		goto release_task;
- 	}
- 
--	ret = do_madvise(task, mm, start, len_in, behavior);
 +	ret = import_iovec(READ, vec, vlen, ARRAY_SIZE(iovstack), &iov, &iter);
 +	if (ret >= 0) {
-+		size_t total_len = iov_iter_count(&iter);
-+
-+		ret = do_process_madvise(task, mm, &iter, behavior);
-+		if (ret >= 0)
-+			ret = total_len - iov_iter_count(&iter);
++		ret = do_process_madvise(which, upid, &iter, behavior, flags);
 +		kfree(iov);
 +	}
- 	mmput(mm);
- release_task:
- 	put_task_struct(task);
++	return ret;
++}
++
++#ifdef CONFIG_COMPAT
++COMPAT_SYSCALL_DEFINE6(process_madvise, int, which, compat_pid_t, upid,
++		const struct compat_iovec __user *, vec, unsigned long, vlen,
++		int, behavior, unsigned long, flags)
++
++{
++	ssize_t ret;
++	struct iovec iovstack[UIO_FASTIOV];
++	struct iovec *iov = iovstack;
++	struct iov_iter iter;
++
++	ret = compat_import_iovec(READ, vec, vlen, ARRAY_SIZE(iovstack),
++				&iov, &iter);
++	if (ret >= 0) {
++		ret = do_process_madvise(which, upid, &iter, behavior, flags);
++		kfree(iov);
++	}
++	return ret;
++}
++#endif
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
