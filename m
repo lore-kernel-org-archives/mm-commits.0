@@ -1,35 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- slub-remove-userspace-notifier-for-cache-add-remove.patch added to -mm tree
-Date: Thu, 23 Apr 2020 16:32:31 -0700
-Message-ID: <20200423233231.lApGtty1c%akpm@linux-foundation.org>
+Subject: + ocfs2-mount-shared-volume-without-ha-stack.patch added
+ to -mm tree
+Date: Thu, 23 Apr 2020 16:35:13 -0700
+Message-ID: <20200423233513.KgKk_aoZ1%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37090 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726071AbgDWXcc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 19:32:32 -0400
+        id S1727065AbgDWXfP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 19:35:15 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, iamjoonsoo.kim@lge.com, mkoutny@suse.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, vbabka@suse.cz
+To: gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
 
 
 The patch titled
-     Subject: slub: Remove userspace notifier for cache add/remove
+     Subject: ocfs2: mount shared volume without ha stack
 has been added to the -mm tree.  Its filename is
-     slub-remove-userspace-notifier-for-cache-add-remove.patch
+     ocfs2-mount-shared-volume-without-ha-stack.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-remove-userspace-notifier=
--for-cache-add-remove.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-mount-shared-volume-without-ha-stack.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-remove-userspace-notifier=
--for-cache-add-remove.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-mount-shared-volume-without-ha-stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,91 +32,210 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Christoph Lameter <cl@linux.com>
-Subject: slub: Remove userspace notifier for cache add/remove
+From: Gang He <ghe@suse.com>
+Subject: ocfs2: mount shared volume without ha stack
 
-I came across some unnecessary uevents once again which reminded me this.=
-=20
-The patch seems to be lost in the leaves of the original discussion [1],
-so resending.
+Usually we create and use a ocfs2 shared volume on the top of ha stack. 
+For pcmk based ha stack, which includes DLM, corosync and pacemaker
+services.
 
-[1] https://lore.kernel.org/r/alpine.DEB.2.21.2001281813130.745@www.lameter=
-.com
+The customers complained they could not mount existent ocfs2 volume in the
+single node without ha stack, e.g.  single node backup/restore scenario.
 
-Kmem caches are internal kernel structures so it is strange that userspace
-notifiers would be needed.  And I am not aware of any use of these
-notifiers.  These notifiers may just exist because in the initial slub
-release the sysfs code was copied from another subsystem.
+Like this case, the customers just want to access the data from the
+existent ocfs2 volume quickly, but do not want to restart or setup ha
+stack.
 
-Link: http://lkml.kernel.org/r/20200423115721.19821-1-mkoutny@suse.com
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Koutn=C3=BD <mkoutny@suse.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Then, I'd like to add a mount option "nocluster", if the users use this
+option to mount a ocfs2 shared volume, the whole mount will not depend on
+the ha related services.  the command will mount the existent ocfs2 volume
+directly (like local mount), for avoiding setup the ha stack.
+
+Link: http://lkml.kernel.org/r/20200423053300.22661-1-ghe@suse.com
+Signed-off-by: Gang He <ghe@suse.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ fs/ocfs2/ocfs2.h    |    4 ++-
+ fs/ocfs2/slot_map.c |   46 ++++++++++++++++++++++++------------------
+ fs/ocfs2/super.c    |   21 +++++++++++++++++++
+ 3 files changed, 51 insertions(+), 20 deletions(-)
 
---- a/mm/slub.c~slub-remove-userspace-notifier-for-cache-add-remove
-+++ a/mm/slub.c
-@@ -5700,19 +5700,6 @@ static struct kobj_type slab_ktype =3D {
- 	.release =3D kmem_cache_release,
+--- a/fs/ocfs2/ocfs2.h~ocfs2-mount-shared-volume-without-ha-stack
++++ a/fs/ocfs2/ocfs2.h
+@@ -279,6 +279,7 @@ enum ocfs2_mount_options
+ 	OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT = 1 << 15,  /* Journal Async Commit */
+ 	OCFS2_MOUNT_ERRORS_CONT = 1 << 16, /* Return EIO to the calling process on error */
+ 	OCFS2_MOUNT_ERRORS_ROFS = 1 << 17, /* Change filesystem to read-only on error */
++	OCFS2_MOUNT_NOCLUSTER = 1 << 18, /* No cluster aware filesystem mount */
  };
-=20
--static int uevent_filter(struct kset *kset, struct kobject *kobj)
--{
--	struct kobj_type *ktype =3D get_ktype(kobj);
--
--	if (ktype =3D=3D &slab_ktype)
--		return 1;
--	return 0;
--}
--
--static const struct kset_uevent_ops slab_uevent_ops =3D {
--	.filter =3D uevent_filter,
--};
--
- static struct kset *slab_kset;
-=20
- static inline struct kset *cache_kset(struct kmem_cache *s)
-@@ -5780,7 +5767,6 @@ static void sysfs_slab_remove_workfn(str
- #ifdef CONFIG_MEMCG
- 	kset_unregister(s->memcg_kset);
- #endif
--	kobject_uevent(&s->kobj, KOBJ_REMOVE);
- out:
- 	kobject_put(&s->kobj);
+ 
+ #define OCFS2_OSB_SOFT_RO	0x0001
+@@ -673,7 +674,8 @@ static inline int ocfs2_cluster_o2cb_glo
+ 
+ static inline int ocfs2_mount_local(struct ocfs2_super *osb)
+ {
+-	return (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_LOCAL_MOUNT);
++	return ((osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_LOCAL_MOUNT)
++		|| (osb->s_mount_opt & OCFS2_MOUNT_NOCLUSTER));
  }
-@@ -5838,7 +5824,6 @@ static int sysfs_slab_add(struct kmem_ca
+ 
+ static inline int ocfs2_uses_extended_slot_map(struct ocfs2_super *osb)
+--- a/fs/ocfs2/slot_map.c~ocfs2-mount-shared-volume-without-ha-stack
++++ a/fs/ocfs2/slot_map.c
+@@ -254,14 +254,16 @@ static int __ocfs2_find_empty_slot(struc
+ 	int i, ret = -ENOSPC;
+ 
+ 	if ((preferred >= 0) && (preferred < si->si_num_slots)) {
+-		if (!si->si_slots[preferred].sl_valid) {
++		if (!si->si_slots[preferred].sl_valid ||
++		    !si->si_slots[preferred].sl_node_num) {
+ 			ret = preferred;
+ 			goto out;
+ 		}
  	}
- #endif
-=20
--	kobject_uevent(&s->kobj, KOBJ_ADD);
- 	if (!unmergeable) {
- 		/* Setup first alias */
- 		sysfs_slab_alias(s, s->name);
-@@ -5919,7 +5904,7 @@ static int __init slab_sysfs_init(void)
-=20
- 	mutex_lock(&slab_mutex);
-=20
--	slab_kset =3D kset_create_and_add("slab", &slab_uevent_ops, kernel_kobj);
-+	slab_kset =3D kset_create_and_add("slab", NULL, kernel_kobj);
- 	if (!slab_kset) {
- 		mutex_unlock(&slab_mutex);
- 		pr_err("Cannot register slab subsystem.\n");
+ 
+ 	for(i = 0; i < si->si_num_slots; i++) {
+-		if (!si->si_slots[i].sl_valid) {
++		if (!si->si_slots[i].sl_valid ||
++		    !si->si_slots[i].sl_node_num) {
+ 			ret = i;
+ 			break;
+ 		}
+@@ -456,24 +458,30 @@ int ocfs2_find_slot(struct ocfs2_super *
+ 	spin_lock(&osb->osb_lock);
+ 	ocfs2_update_slot_info(si);
+ 
+-	/* search for ourselves first and take the slot if it already
+-	 * exists. Perhaps we need to mark this in a variable for our
+-	 * own journal recovery? Possibly not, though we certainly
+-	 * need to warn to the user */
+-	slot = __ocfs2_node_num_to_slot(si, osb->node_num);
+-	if (slot < 0) {
+-		/* if no slot yet, then just take 1st available
+-		 * one. */
+-		slot = __ocfs2_find_empty_slot(si, osb->preferred_slot);
++	if (ocfs2_mount_local(osb))
++		/* use slot 0 directly in local mode */
++		slot = 0;
++	else {
++		/* search for ourselves first and take the slot if it already
++		 * exists. Perhaps we need to mark this in a variable for our
++		 * own journal recovery? Possibly not, though we certainly
++		 * need to warn to the user */
++		slot = __ocfs2_node_num_to_slot(si, osb->node_num);
+ 		if (slot < 0) {
+-			spin_unlock(&osb->osb_lock);
+-			mlog(ML_ERROR, "no free slots available!\n");
+-			status = -EINVAL;
+-			goto bail;
+-		}
+-	} else
+-		printk(KERN_INFO "ocfs2: Slot %d on device (%s) was already "
+-		       "allocated to this node!\n", slot, osb->dev_str);
++			/* if no slot yet, then just take 1st available
++			 * one. */
++			slot = __ocfs2_find_empty_slot(si, osb->preferred_slot);
++			if (slot < 0) {
++				spin_unlock(&osb->osb_lock);
++				mlog(ML_ERROR, "no free slots available!\n");
++				status = -EINVAL;
++				goto bail;
++			}
++		} else
++			printk(KERN_INFO "ocfs2: Slot %d on device (%s) was "
++			       "already allocated to this node!\n",
++			       slot, osb->dev_str);
++	}
+ 
+ 	ocfs2_set_slot(si, slot, osb->node_num);
+ 	osb->slot_num = slot;
+--- a/fs/ocfs2/super.c~ocfs2-mount-shared-volume-without-ha-stack
++++ a/fs/ocfs2/super.c
+@@ -175,6 +175,7 @@ enum {
+ 	Opt_dir_resv_level,
+ 	Opt_journal_async_commit,
+ 	Opt_err_cont,
++	Opt_nocluster,
+ 	Opt_err,
+ };
+ 
+@@ -208,6 +209,7 @@ static const match_table_t tokens = {
+ 	{Opt_dir_resv_level, "dir_resv_level=%u"},
+ 	{Opt_journal_async_commit, "journal_async_commit"},
+ 	{Opt_err_cont, "errors=continue"},
++	{Opt_nocluster, "nocluster"},
+ 	{Opt_err, NULL}
+ };
+ 
+@@ -619,6 +621,13 @@ static int ocfs2_remount(struct super_bl
+ 		goto out;
+ 	}
+ 
++	tmp = OCFS2_MOUNT_NOCLUSTER;
++	if ((osb->s_mount_opt & tmp) != (parsed_options.mount_opt & tmp)) {
++		ret = -EINVAL;
++		mlog(ML_ERROR, "Cannot change nocluster option on remount\n");
++		goto out;
++	}
++
+ 	tmp = OCFS2_MOUNT_HB_LOCAL | OCFS2_MOUNT_HB_GLOBAL |
+ 		OCFS2_MOUNT_HB_NONE;
+ 	if ((osb->s_mount_opt & tmp) != (parsed_options.mount_opt & tmp)) {
+@@ -859,6 +868,7 @@ static int ocfs2_verify_userspace_stack(
+ 	}
+ 
+ 	if (ocfs2_userspace_stack(osb) &&
++	    !(osb->s_mount_opt & OCFS2_MOUNT_NOCLUSTER) &&
+ 	    strncmp(osb->osb_cluster_stack, mopt->cluster_stack,
+ 		    OCFS2_STACK_LABEL_LEN)) {
+ 		mlog(ML_ERROR,
+@@ -1139,6 +1149,11 @@ static int ocfs2_fill_super(struct super
+ 	       osb->s_mount_opt & OCFS2_MOUNT_DATA_WRITEBACK ? "writeback" :
+ 	       "ordered");
+ 
++	if ((osb->s_mount_opt & OCFS2_MOUNT_NOCLUSTER) &&
++	   !(osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_LOCAL_MOUNT))
++		printk(KERN_NOTICE "ocfs2: The shared device (%s) is mounted "
++		       "without cluster aware mode.\n", osb->dev_str);
++
+ 	atomic_set(&osb->vol_state, VOLUME_MOUNTED);
+ 	wake_up(&osb->osb_mount_event);
+ 
+@@ -1445,6 +1460,9 @@ static int ocfs2_parse_options(struct su
+ 		case Opt_journal_async_commit:
+ 			mopt->mount_opt |= OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT;
+ 			break;
++		case Opt_nocluster:
++			mopt->mount_opt |= OCFS2_MOUNT_NOCLUSTER;
++			break;
+ 		default:
+ 			mlog(ML_ERROR,
+ 			     "Unrecognized mount option \"%s\" "
+@@ -1556,6 +1574,9 @@ static int ocfs2_show_options(struct seq
+ 	if (opts & OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT)
+ 		seq_printf(s, ",journal_async_commit");
+ 
++	if (opts & OCFS2_MOUNT_NOCLUSTER)
++		seq_printf(s, ",nocluster");
++
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from ghe@suse.com are
 
-slub-remove-userspace-notifier-for-cache-add-remove.patch
+ocfs2-mount-shared-volume-without-ha-stack.patch
