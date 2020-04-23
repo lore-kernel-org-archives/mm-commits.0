@@ -1,140 +1,298 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?squashfs-squashfs=5Ffsh-replace-zero-length-array-with-fle?=
- =?US-ASCII?Q?xible-array-member.patch?= removed from -mm tree
-Date: Thu, 23 Apr 2020 12:52:05 -0700
-Message-ID: <20200423195205.N851MInTd%akpm@linux-foundation.org>
+ proc-rename-struct-proc_fs_info-to-proc_fs_opts.patch removed from -mm tree
+Date: Thu, 23 Apr 2020 12:52:08 -0700
+Message-ID: <20200423195208.CRkOAE8o6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55914 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55954 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726121AbgDWTwG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 15:52:06 -0400
+        id S1726121AbgDWTwK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 15:52:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gustavo@embeddedor.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, akinobu.mita@gmail.com, akpm@linux-foundation.org, bfields@fieldses.org, corbet@lwn.net, danielmicay@gmail.com, dhowells@redhat.com, ebiederm@xmission.com, gladkov.alexey@gmail.com, gregkh@linuxfoundation.org, jlayton@poochiereds.net, keescook@chromium.org, ldv@altlinux.org, luto@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com, tixxdz@gmail.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: fs/squashfs/squashfs_fs.h: replace zero-length array with flexible-array member
+     Subject: proc: rename struct proc_fs_info to proc_fs_opts
 has been removed from the -mm tree.  Its filename was
-     squashfs-squashfs_fsh-replace-zero-length-array-with-flexible-array-member.patch
+     proc-rename-struct-proc_fs_info-to-proc_fs_opts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: fs/squashfs/squashfs_fs.h: replace zero-length array with flexible-array member
+From: Alexey Gladkov <gladkov.alexey@gmail.com>
+Subject: proc: rename struct proc_fs_info to proc_fs_opts
 
-The current codebase makes use of the zero-length array language extension
-to the C90 standard, but the preferred mechanism to declare
-variable-length types such as these ones is a flexible array member[1][2],
-introduced in C99:
+Patch series "proc: modernize proc to support multiple private instances", v12.
 
-struct foo {
-        int stuff;
-        struct boo array[];
-};
+Preface:
+--------
 
-By making use of the mechanism above, we will get a compiler warning in
-case the flexible array does not occur last in the structure, which will
-help us prevent some kind of undefined behavior bugs from being
-inadvertently introduced[3] to the codebase from now on.
+This is patch set v12 to modernize procfs and make it able to support
+multiple private instances per the same pid namespace.
 
-Also, notice that dynamic memory allocations won't be affected by this
-change:
+Procfs modernization:
+---------------------
 
-"Flexible array members have incomplete type, and so the sizeof operator
-may not be applied.  As a quirk of the original implementation of
-zero-length arrays, sizeof evaluates to zero."[1]
+Historically procfs was always tied to pid namespaces, during pid
+namespace creation we internally create a procfs mount for it.  However,
+this has the effect that all new procfs mounts are just a mirror of the
+internal one, any change, any mount option update, any new future
+introduction will propagate to all other procfs mounts that are in the
+same pid namespace.
 
-This issue was found with the help of Coccinelle.
+This may have solved several use cases in that time.  However today we
+face new requirements, and making procfs able to support new private
+instances inside same pid namespace seems a major point.  If we want to to
+introduce new features and security mechanisms we have to make sure first
+that we do not break existing usecases.  Supporting private procfs
+instances will allow to support new features and behaviour without
+propagating it to all other procfs mounts.
 
-[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-[2] https://github.com/KSPP/linux/issues/21
-[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+Today procfs is more of a burden especially to some Embedded, IoT,
+sandbox, container use cases.  In user space we are over-mounting null or
+inaccessible files on top to hide files and information.  If we want to
+hide pids we have to create PID namespaces otherwise mount options
+propagate to all other proc mounts, changing a mount option value in one
+mount will propagate to all other proc mounts.  If we want to introduce
+new features, then they will propagate to all other mounts too, resulting
+either maybe new useful functionality or maybe breaking stuff.  We have
+also to note that userspace should not workaround procfs, the kernel
+should just provide a sane simple interface.
 
-Link: http://lkml.kernel.org/r/20200309202602.GA9219@embeddedor
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+In this regard several developers and maintainers pointed out that there
+are problems with procfs and it has to be modernized:
+
+"Here's another one: split up and modernize /proc." by Andy Lutomirski [1]
+
+Discussion about kernel pointer leaks:
+
+"And yes, as Kees and Daniel mentioned, it's definitely not just dmesg. 
+In fact, the primary things tend to be /proc and /sys, not dmesg itself."
+By Linus Torvalds [2]
+
+Lot of other areas in the kernel and filesystems have been updated to be
+able to support private instances, devpts is one major example [3].
+
+Which will be used for:
+
+1) Embedded systems and IoT: usually we have one supervisor for apps,
+   we have some lightweight sandbox support, however if we create pid
+   namespaces we have to manage all the processes inside too, where our
+   goal is to be able to run a bunch of apps each one inside its own mount
+   namespace, maybe use network namespaces for vlans setups, but right now
+   we only want mount namespaces, without all the other complexity.  We
+   want procfs to behave more like a real file system, and block access to
+   inodes that belong to other users.  The 'hidepid=' will not work since
+   it is a shared mount option.
+
+2) Containers, sandboxes and Private instances of file systems - devpts
+   case Historically, lot of file systems inside Linux kernel view when
+   instantiated were just a mirror of an already created and mounted
+   filesystem.  This was the case of devpts filesystem, it seems at that
+   time the requirements were to optimize things and reuse the same
+   memory, etc.  This design used to work but not anymore with today's
+   containers, IoT, hostile environments and all the privacy challenges
+   that Linux faces.
+
+   In that regard, devpts was updated so that each new mounts is a total
+   independent file system by the following patches:
+
+   "devpts: Make each mount of devpts an independent filesystem" by
+   Eric W.  Biederman [3] [4]
+
+3) Linux Security Modules have multiple ptrace paths inside some
+   subsystems, however inside procfs, the implementation does not
+   guarantee that the ptrace() check which triggers the
+   security_ptrace_check() hook will always run.  We have the 'hidepid'
+   mount option that can be used to force the ptrace_may_access() check
+   inside has_pid_permissions() to run.  The problem is that 'hidepid' is
+   per pid namespace and not attached to the mount point, any remount or
+   modification of 'hidepid' will propagate to all other procfs mounts.
+
+   This also does not allow to support Yama LSM easily in desktop and
+   user sessions.  Yama ptrace scope which restricts ptrace and some other
+   syscalls to be allowed only on inferiors, can be updated to have a
+   per-task context, where the context will be inherited during fork(),
+   clone() and preserved across execve().  If we support multiple private
+   procfs instances, then we may force the ptrace_may_access() on
+   /proc/<pids>/ to always run inside that new procfs instances.  This
+   will allow to specifiy on user sessions if we should populate procfs
+   with pids that the user can ptrace or not.
+
+   By using Yama ptrace scope, some restricted users will only be able
+   to see inferiors inside /proc, they won't even be able to see their
+   other processes.  Some software like Chromium, Firefox's crash handler,
+   Wine and others are already using Yama to restrict which processes can
+   be ptracable.  With this change this will give the possibility to
+   restrict /proc/<pids>/ but more importantly this will give desktop
+   users a generic and usuable way to specifiy which users should see all
+   processes and which user can not.
+
+   Side notes:
+
+   * This covers the lack of seccomp where it is not able to parse
+     arguments, it is easy to install a seccomp filter on direct syscalls
+     that operate on pids, however /proc/<pid>/ is a Linux ABI using
+     filesystem syscalls.  With this change all LSMs should be able to
+     analyze open/read/write/close...  on /proc/<pid>/
+
+4) This will allow to implement new features either in kernel or
+   userspace without having to worry about procfs.  In containers,
+   sandboxes, etc we have workarounds to hide some /proc inodes, this
+   should be supported natively without doing extra complex work, the
+   kernel should be able to support sane options that work with today and
+   future Linux use cases.
+
+5) Creation of new superblock with all procfs options for each procfs
+   mount will fix the ignoring of mount options.  The problem is that the
+   second mount of procfs in the same pid namespace ignores the mount
+   options.  The mount options are ignored without error until procfs is
+   remounted.
+
+Before:
+
+# grep ^proc /proc/mounts
+proc /proc proc rw,relatime,hidepid=2 0 0
+
+# strace -e mount mount -o hidepid=1 -t proc proc /tmp/proc
+mount("proc", "/tmp/proc", "proc", 0, "hidepid=1") = 0
++++ exited with 0 +++
+
+# grep ^proc /proc/mounts
+proc /proc proc rw,relatime,hidepid=2 0 0
+proc /tmp/proc proc rw,relatime,hidepid=2 0 0
+
+# mount -o remount,hidepid=1 -t proc proc /tmp/proc
+
+# grep ^proc /proc/mounts
+proc /proc proc rw,relatime,hidepid=1 0 0
+proc /tmp/proc proc rw,relatime,hidepid=1 0 0
+
+After:
+
+# grep ^proc /proc/mounts
+proc /proc proc rw,relatime,hidepid=ptraceable 0 0
+
+# mount -o hidepid=invisible -t proc proc /tmp/proc
+
+# grep ^proc /proc/mounts
+proc /proc proc rw,relatime,hidepid=ptraceable 0 0
+proc /tmp/proc proc rw,relatime,hidepid=invisible 0 0
+
+
+Introduced changes:
+-------------------
+
+Each mount of procfs creates a separate procfs instance with its own mount
+options.
+
+This series adds few new mount options:
+
+* New 'hidepid=ptraceable' or 'hidepid=4' mount option to show only
+  ptraceable processes in the procfs.  This allows to support lightweight
+  sandboxes in Embedded Linux, also solves the case for LSM where now with
+  this mount option, we make sure that they have a ptrace path in procfs.
+
+* 'subset=pid' that allows to hide non-pid inodes from procfs.  It can
+  be used in containers and sandboxes, as these are already trying to hide
+  and block access to procfs inodes anyway.
+
+
+References:
+-----------
+[1] https://lists.linuxfoundation.org/pipermail/ksummit-discuss/2017-January/004215.html
+[2] http://www.openwall.com/lists/kernel-hardening/2017/10/05/5
+[3] https://lwn.net/Articles/689539/
+[4] http://lxr.free-electrons.com/source/Documentation/filesystems/devpts.txt?v=3.14
+[5] https://lkml.org/lkml/2017/5/2/407
+[6] https://lkml.org/lkml/2017/5/3/357
+[7] https://lkml.org/lkml/2018/5/11/505
+
+
+This patch (of 7):
+
+Rename struct proc_fs_info to proc_fs_opts.
+
+Link: http://lkml.kernel.org/r/20200419141057.621356-1-gladkov.alexey@gmail.com
+Link: http://lkml.kernel.org/r/20200419141057.621356-2-gladkov.alexey@gmail.com
+Signed-off-by: Alexey Gladkov <gladkov.alexey@gmail.com>
+Reviewed-by: Alexey Dobriyan <adobriyan@gmail.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Djalal Harouni <tixxdz@gmail.com>
+Cc: "Dmitry V . Levin" <ldv@altlinux.org>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: "J . Bruce Fields" <bfields@fieldses.org>
+Cc: Jeff Layton <jlayton@poochiereds.net>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/squashfs_fs.h |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/proc_namespace.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/fs/squashfs/squashfs_fs.h~squashfs-squashfs_fsh-replace-zero-length-array-with-flexible-array-member
-+++ a/fs/squashfs/squashfs_fs.h
-@@ -262,7 +262,7 @@ struct squashfs_dir_index {
- 	__le32			index;
- 	__le32			start_block;
- 	__le32			size;
--	unsigned char		name[0];
-+	unsigned char		name[];
+--- a/fs/proc_namespace.c~proc-rename-struct-proc_fs_info-to-proc_fs_opts
++++ a/fs/proc_namespace.c
+@@ -37,23 +37,23 @@ static __poll_t mounts_poll(struct file
+ 	return res;
+ }
+ 
+-struct proc_fs_info {
++struct proc_fs_opts {
+ 	int flag;
+ 	const char *str;
  };
  
- struct squashfs_base_inode {
-@@ -327,7 +327,7 @@ struct squashfs_symlink_inode {
- 	__le32			inode_number;
- 	__le32			nlink;
- 	__le32			symlink_size;
--	char			symlink[0];
-+	char			symlink[];
- };
+ static int show_sb_opts(struct seq_file *m, struct super_block *sb)
+ {
+-	static const struct proc_fs_info fs_info[] = {
++	static const struct proc_fs_opts fs_opts[] = {
+ 		{ SB_SYNCHRONOUS, ",sync" },
+ 		{ SB_DIRSYNC, ",dirsync" },
+ 		{ SB_MANDLOCK, ",mand" },
+ 		{ SB_LAZYTIME, ",lazytime" },
+ 		{ 0, NULL }
+ 	};
+-	const struct proc_fs_info *fs_infop;
++	const struct proc_fs_opts *fs_infop;
  
- struct squashfs_reg_inode {
-@@ -341,7 +341,7 @@ struct squashfs_reg_inode {
- 	__le32			fragment;
- 	__le32			offset;
- 	__le32			file_size;
--	__le16			block_list[0];
-+	__le16			block_list[];
- };
+-	for (fs_infop = fs_info; fs_infop->flag; fs_infop++) {
++	for (fs_infop = fs_opts; fs_infop->flag; fs_infop++) {
+ 		if (sb->s_flags & fs_infop->flag)
+ 			seq_puts(m, fs_infop->str);
+ 	}
+@@ -63,7 +63,7 @@ static int show_sb_opts(struct seq_file
  
- struct squashfs_lreg_inode {
-@@ -358,7 +358,7 @@ struct squashfs_lreg_inode {
- 	__le32			fragment;
- 	__le32			offset;
- 	__le32			xattr;
--	__le16			block_list[0];
-+	__le16			block_list[];
- };
+ static void show_mnt_opts(struct seq_file *m, struct vfsmount *mnt)
+ {
+-	static const struct proc_fs_info mnt_info[] = {
++	static const struct proc_fs_opts mnt_opts[] = {
+ 		{ MNT_NOSUID, ",nosuid" },
+ 		{ MNT_NODEV, ",nodev" },
+ 		{ MNT_NOEXEC, ",noexec" },
+@@ -72,9 +72,9 @@ static void show_mnt_opts(struct seq_fil
+ 		{ MNT_RELATIME, ",relatime" },
+ 		{ 0, NULL }
+ 	};
+-	const struct proc_fs_info *fs_infop;
++	const struct proc_fs_opts *fs_infop;
  
- struct squashfs_dir_inode {
-@@ -389,7 +389,7 @@ struct squashfs_ldir_inode {
- 	__le16			i_count;
- 	__le16			offset;
- 	__le32			xattr;
--	struct squashfs_dir_index	index[0];
-+	struct squashfs_dir_index	index[];
- };
- 
- union squashfs_inode {
-@@ -410,7 +410,7 @@ struct squashfs_dir_entry {
- 	__le16			inode_number;
- 	__le16			type;
- 	__le16			size;
--	char			name[0];
-+	char			name[];
- };
- 
- struct squashfs_dir_header {
-@@ -428,12 +428,12 @@ struct squashfs_fragment_entry {
- struct squashfs_xattr_entry {
- 	__le16			type;
- 	__le16			size;
--	char			data[0];
-+	char			data[];
- };
- 
- struct squashfs_xattr_val {
- 	__le32			vsize;
--	char			value[0];
-+	char			value[];
- };
- 
- struct squashfs_xattr_id {
+-	for (fs_infop = mnt_info; fs_infop->flag; fs_infop++) {
++	for (fs_infop = mnt_opts; fs_infop->flag; fs_infop++) {
+ 		if (mnt->mnt_flags & fs_infop->flag)
+ 			seq_puts(m, fs_infop->str);
+ 	}
 _
 
-Patches currently in -mm which might be from gustavo@embeddedor.com are
+Patches currently in -mm which might be from gladkov.alexey@gmail.com are
