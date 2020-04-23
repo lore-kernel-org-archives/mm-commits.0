@@ -1,106 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Wed, 22 Apr 2020 17:31:14 -0700
-Message-ID: <20200423003114.k4yXE3j27%akpm@linux-foundation.org>
+Subject: [merged] sh-fix-build-error-in-mm-initc.patch removed
+ from -mm tree
+Date: Thu, 23 Apr 2020 12:51:24 -0700
+Message-ID: <20200423195124.wZkiIZIc2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42000 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725846AbgDWAbQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 22 Apr 2020 20:31:16 -0400
+        id S1728030AbgDWTv0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 15:51:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: dalias@libc.org, geert+renesas@glider.be, linux@roeck-us.net, logang@deltatee.com, masahiroy@kernel.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: sh: fix build error in mm/init.c
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     sh-fix-build-error-in-mm-initc.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Masahiro Yamada <masahiroy@kernel.org>
+Subject: sh: fix build error in mm/init.c
 
+The closing parenthesis is missing.
+
+Link: http://lkml.kernel.org/r/20200413014743.16353-1-masahiroy@kernel.org
+Fixes: bfeb022f8fe4 ("mm/memory_hotplug: add pgprot_t to mhp_params")
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/svm/svm.c    |    3 ---
- arch/x86/kvm/vmx/nested.c |   25 -------------------------
- 2 files changed, 28 deletions(-)
+ arch/sh/mm/init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kvm/svm/svm.c~linux-next-git-rejects
-+++ a/arch/x86/kvm/svm/svm.c
-@@ -3299,8 +3299,6 @@ static void svm_cancel_injection(struct
- 	svm_complete_interrupts(svm);
- }
+--- a/arch/sh/mm/init.c~sh-fix-build-error-in-mm-initc
++++ a/arch/sh/mm/init.c
+@@ -412,7 +412,7 @@ int arch_add_memory(int nid, u64 start,
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	int ret;
  
--<<<<<<< HEAD
--=======
- static enum exit_fastpath_completion svm_exit_handlers_fastpath(struct kvm_vcpu *vcpu)
- {
- 	if (!is_guest_mode(vcpu) &&
-@@ -3311,7 +3309,6 @@ static enum exit_fastpath_completion svm
- 	return EXIT_FASTPATH_NONE;
- }
+-	if (WARN_ON_ONCE(params->pgprot.pgprot != PAGE_KERNEL.pgprot)
++	if (WARN_ON_ONCE(params->pgprot.pgprot != PAGE_KERNEL.pgprot))
+ 		return -EINVAL;
  
-->>>>>>> linux-next/akpm-base
- void __svm_vcpu_run(unsigned long vmcb_pa, unsigned long *regs);
- 
- static enum exit_fastpath_completion svm_vcpu_run(struct kvm_vcpu *vcpu)
---- a/arch/x86/kvm/vmx/nested.c~linux-next-git-rejects
-+++ a/arch/x86/kvm/vmx/nested.c
-@@ -5609,31 +5609,6 @@ static bool nested_vmx_exit_handled_vmcs
- }
- 
- static bool nested_vmx_exit_handled_mtf(struct vmcs12 *vmcs12)
--<<<<<<< HEAD
--{
--	u32 entry_intr_info = vmcs12->vm_entry_intr_info_field;
--
--	if (nested_cpu_has_mtf(vmcs12))
--		return true;
--
--	/*
--	 * An MTF VM-exit may be injected into the guest by setting the
--	 * interruption-type to 7 (other event) and the vector field to 0. Such
--	 * is the case regardless of the 'monitor trap flag' VM-execution
--	 * control.
--	 */
--	return entry_intr_info == (INTR_INFO_VALID_MASK
--				   | INTR_TYPE_OTHER_EVENT);
--}
--
--/*
-- * Return true if we should exit from L2 to L1 to handle an exit, or false if we
-- * should handle it ourselves in L0 (and then continue L2). Only call this
-- * when in is_guest_mode (L2).
-- */
--bool nested_vmx_exit_reflected(struct kvm_vcpu *vcpu, u32 exit_reason)
--=======
-->>>>>>> linux-next/akpm-base
- {
- 	u32 entry_intr_info = vmcs12->vm_entry_intr_info_field;
- 
+ 	/* We only have ZONE_NORMAL, so this is easy.. */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+Patches currently in -mm which might be from masahiroy@kernel.org are
