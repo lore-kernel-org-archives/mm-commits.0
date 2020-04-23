@@ -1,62 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-gup-return-eintr-when-gup-is-interrupted-by-fatal-signals.patch removed
- from -mm tree
-Date: Thu, 23 Apr 2020 12:51:39 -0700
-Message-ID: <20200423195139.Tn1oU5HKH%akpm@linux-foundation.org>
+ checkpatch-fix-a-typo-in-the-regex-for-allocfunctions.patch removed from
+ -mm tree
+Date: Thu, 23 Apr 2020 12:51:41 -0700
+Message-ID: <20200423195141.Lo5ML2TC9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55546 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728122AbgDWTvk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 15:51:40 -0400
+        id S1726121AbgDWTvm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 15:51:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hdanton@sina.com, mhocko@suse.com, mm-commits@vger.kernel.org, peterx@redhat.com, torvalds@linux-foundation.org
+To: christophe.jaillet@wanadoo.fr, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, gup: return EINTR when gup is interrupted by fatal signals
+     Subject: checkpatch: fix a typo in the regex for $allocFunctions
 has been removed from the -mm tree.  Its filename was
-     mm-gup-return-eintr-when-gup-is-interrupted-by-fatal-signals.patch
+     checkpatch-fix-a-typo-in-the-regex-for-allocfunctions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, gup: return EINTR when gup is interrupted by fatal signals
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: checkpatch: fix a typo in the regex for $allocFunctions
 
-EINTR is the usual error code which other killable interfaces return. 
-This is the case for the other fatal_signal_pending break out from the
-same function.  Make the code consistent.
+Here, we look for function such as 'netdev_alloc_skb_ip_align', so a '_'
+is missing in the regex.
 
-ERESTARTSYS is also quite confusing because the signal is fatal and so no
-restart will happen before returning to the userspace.
+To make sure:
+   grep -r --include=*.c skbip_a * | wc   ==>   0 results
+   grep -r --include=*.c skb_ip_a * | wc  ==> 112 results
 
-Link: http://lkml.kernel.org/r/20200409071133.31734-1-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Hillf Danton <hdanton@sina.com>
+Link: http://lkml.kernel.org/r/20200407190029.892-1-christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
+ scripts/checkpatch.pl |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-return-eintr-when-gup-is-interrupted-by-fatal-signals
-+++ a/mm/gup.c
-@@ -1088,7 +1088,7 @@ retry:
- 		 * potentially allocating memory.
- 		 */
- 		if (fatal_signal_pending(current)) {
--			ret = -ERESTARTSYS;
-+			ret = -EINTR;
- 			goto out;
- 		}
- 		cond_resched();
+--- a/scripts/checkpatch.pl~checkpatch-fix-a-typo-in-the-regex-for-allocfunctions
++++ a/scripts/checkpatch.pl
+@@ -479,7 +479,7 @@ our $allocFunctions = qr{(?x:
+ 		(?:kv|k|v)[czm]alloc(?:_node|_array)? |
+ 		kstrdup(?:_const)? |
+ 		kmemdup(?:_nul)?) |
+-	(?:\w+)?alloc_skb(?:ip_align)? |
++	(?:\w+)?alloc_skb(?:_ip_align)? |
+ 				# dev_alloc_skb/netdev_alloc_skb, et al
+ 	dma_alloc_coherent
+ )};
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
-mm-clarify-__gfp_memalloc-usage.patch
+lib-math-avoid-trailing-n-hidden-in-pr_fmt.patch
