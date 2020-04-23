@@ -1,104 +1,127 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged]
- memcg-optimize-memorynuma_stat-like-memorystat-fix.patch removed from -mm
- tree
-Date: Thu, 23 Apr 2020 16:09:06 -0700
-Message-ID: <20200423230906.J31-SA-IQ%akpm@linux-foundation.org>
+Subject: +
+ slub-remove-userspace-notifier-for-cache-add-remove.patch added to -mm tree
+Date: Thu, 23 Apr 2020 16:32:31 -0700
+Message-ID: <20200423233231.lApGtty1c%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44808 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37090 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729041AbgDWXJI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 19:09:08 -0400
+        id S1726071AbgDWXcc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 19:32:32 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com
+To: cl@linux.com, iamjoonsoo.kim@lge.com, mkoutny@suse.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: memcg-optimize-memorynuma_stat-like-memorystat-fix
-has been removed from the -mm tree.  Its filename was
-     memcg-optimize-memorynuma_stat-like-memorystat-fix.patch
+     Subject: slub: Remove userspace notifier for cache add/remove
+has been added to the -mm tree.  Its filename is
+     slub-remove-userspace-notifier-for-cache-add-remove.patch
 
-This patch was dropped because it was folded into memcg-optimize-memorynuma_stat-like-memorystat.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-remove-userspace-notifier=
+-for-cache-add-remove.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-remove-userspace-notifier=
+-for-cache-add-remove.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-optimize-memorynuma_stat-like-memorystat-fix
+=46rom: Christoph Lameter <cl@linux.com>
+Subject: slub: Remove userspace notifier for cache add/remove
 
-avoid forcing out-of-line code generation
+I came across some unnecessary uevents once again which reminded me this.=
+=20
+The patch seems to be lost in the leaves of the original discussion [1],
+so resending.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+[1] https://lore.kernel.org/r/alpine.DEB.2.21.2001281813130.745@www.lameter=
+.com
+
+Kmem caches are internal kernel structures so it is strange that userspace
+notifiers would be needed.  And I am not aware of any use of these
+notifiers.  These notifiers may just exist because in the initial slub
+release the sysfs code was copied from another subsystem.
+
+Link: http://lkml.kernel.org/r/20200423115721.19821-1-mkoutny@suse.com
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Koutn=C3=BD <mkoutny@suse.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ mm/slub.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
---- a/mm/memcontrol.c~memcg-optimize-memorynuma_stat-like-memorystat-fix
-+++ a/mm/memcontrol.c
-@@ -3693,17 +3693,16 @@ static unsigned long mem_cgroup_node_nr_
- 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 	unsigned long nr = 0;
- 	enum lru_list lru;
--	unsigned long (*page_state)(struct lruvec *lruvec,
--				    enum node_stat_item idx);
- 
- 	VM_BUG_ON((unsigned)nid >= nr_node_ids);
- 
--	page_state = tree ? lruvec_page_state : lruvec_page_state_local;
+--- a/mm/slub.c~slub-remove-userspace-notifier-for-cache-add-remove
++++ a/mm/slub.c
+@@ -5700,19 +5700,6 @@ static struct kobj_type slab_ktype =3D {
+ 	.release =3D kmem_cache_release,
+ };
+=20
+-static int uevent_filter(struct kset *kset, struct kobject *kobj)
+-{
+-	struct kobj_type *ktype =3D get_ktype(kobj);
 -
- 	for_each_lru(lru) {
- 		if (!(BIT(lru) & lru_mask))
- 			continue;
--		nr += page_state(lruvec, NR_LRU_BASE + lru);
-+		if (tree)
-+			nr += lruvec_page_state(lruvec, NR_LRU_BASE + lru);
-+		else
-+			nr += lruvec_page_state_local(lruvec, NR_LRU_BASE + lru);
- 	}
- 	return nr;
- }
-@@ -3714,14 +3713,14 @@ static unsigned long mem_cgroup_nr_lru_p
- {
- 	unsigned long nr = 0;
- 	enum lru_list lru;
--	unsigned long (*page_state)(struct mem_cgroup *memcg, int idx);
+-	if (ktype =3D=3D &slab_ktype)
+-		return 1;
+-	return 0;
+-}
 -
--	page_state = tree ? memcg_page_state : memcg_page_state_local;
- 
- 	for_each_lru(lru) {
- 		if (!(BIT(lru) & lru_mask))
- 			continue;
--		nr += page_state(memcg, NR_LRU_BASE + lru);
-+		if (tree)
-+			nr += memcg_page_state(memcg, NR_LRU_BASE + lru);
-+		else
-+			nr += memcg_page_state_local(memcg, NR_LRU_BASE + lru);
- 	}
- 	return nr;
+-static const struct kset_uevent_ops slab_uevent_ops =3D {
+-	.filter =3D uevent_filter,
+-};
+-
+ static struct kset *slab_kset;
+=20
+ static inline struct kset *cache_kset(struct kmem_cache *s)
+@@ -5780,7 +5767,6 @@ static void sysfs_slab_remove_workfn(str
+ #ifdef CONFIG_MEMCG
+ 	kset_unregister(s->memcg_kset);
+ #endif
+-	kobject_uevent(&s->kobj, KOBJ_REMOVE);
+ out:
+ 	kobject_put(&s->kobj);
  }
+@@ -5838,7 +5824,6 @@ static int sysfs_slab_add(struct kmem_ca
+ 	}
+ #endif
+=20
+-	kobject_uevent(&s->kobj, KOBJ_ADD);
+ 	if (!unmergeable) {
+ 		/* Setup first alias */
+ 		sysfs_slab_alias(s, s->name);
+@@ -5919,7 +5904,7 @@ static int __init slab_sysfs_init(void)
+=20
+ 	mutex_lock(&slab_mutex);
+=20
+-	slab_kset =3D kset_create_and_add("slab", &slab_uevent_ops, kernel_kobj);
++	slab_kset =3D kset_create_and_add("slab", NULL, kernel_kobj);
+ 	if (!slab_kset) {
+ 		mutex_unlock(&slab_mutex);
+ 		pr_err("Cannot register slab subsystem.\n");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cl@linux.com are
 
-mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-memcg-optimize-memorynuma_stat-like-memorystat.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+slub-remove-userspace-notifier-for-cache-add-remove.patch
