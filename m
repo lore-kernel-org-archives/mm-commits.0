@@ -1,57 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tools-vm-fix-cross-compile-build.patch removed
- from -mm tree
-Date: Thu, 23 Apr 2020 12:52:02 -0700
-Message-ID: <20200423195202.eb2XQdOc8%akpm@linux-foundation.org>
+Subject: [merged]
+ =?US-ASCII?Q?squashfs-squashfs=5Ffsh-replace-zero-length-array-with-fle?=
+ =?US-ASCII?Q?xible-array-member.patch?= removed from -mm tree
+Date: Thu, 23 Apr 2020 12:52:05 -0700
+Message-ID: <20200423195205.N851MInTd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55868 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55914 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726671AbgDWTwD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 15:52:03 -0400
+        id S1726121AbgDWTwG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 15:52:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: l.stach@pengutronix.de, martin@martingkelly.com, mm-commits@vger.kernel.org, stable@vger.kernel.org
+To: gustavo@embeddedor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm: fix cross-compile build
+     Subject: fs/squashfs/squashfs_fs.h: replace zero-length array with flexible-array member
 has been removed from the -mm tree.  Its filename was
-     tools-vm-fix-cross-compile-build.patch
+     squashfs-squashfs_fsh-replace-zero-length-array-with-flexible-array-member.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: tools/vm: fix cross-compile build
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: fs/squashfs/squashfs_fs.h: replace zero-length array with flexible-array member
 
-7ed1c1901fe5 (tools: fix cross-compile var clobbering) moved the setup of
-the CC variable to tools/scripts/Makefile.include to make the behavior
-consistent across all the tools Makefiles.  As the vm tools missed the
-include we end up with the wrong CC in a cross-compiling evironment.
+The current codebase makes use of the zero-length array language extension
+to the C90 standard, but the preferred mechanism to declare
+variable-length types such as these ones is a flexible array member[1][2],
+introduced in C99:
 
-Link: http://lkml.kernel.org/r/20200416104748.25243-1-l.stach@pengutronix.de
-Fixes: 7ed1c1901fe5 (tools: fix cross-compile var clobbering)
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Cc: Martin Kelly <martin@martingkelly.com>
-Cc: <stable@vger.kernel.org>
+struct foo {
+        int stuff;
+        struct boo array[];
+};
+
+By making use of the mechanism above, we will get a compiler warning in
+case the flexible array does not occur last in the structure, which will
+help us prevent some kind of undefined behavior bugs from being
+inadvertently introduced[3] to the codebase from now on.
+
+Also, notice that dynamic memory allocations won't be affected by this
+change:
+
+"Flexible array members have incomplete type, and so the sizeof operator
+may not be applied.  As a quirk of the original implementation of
+zero-length arrays, sizeof evaluates to zero."[1]
+
+This issue was found with the help of Coccinelle.
+
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] https://github.com/KSPP/linux/issues/21
+[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+Link: http://lkml.kernel.org/r/20200309202602.GA9219@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/squashfs/squashfs_fs.h |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/tools/vm/Makefile~tools-vm-fix-cross-compile-build
-+++ a/tools/vm/Makefile
-@@ -1,6 +1,8 @@
- # SPDX-License-Identifier: GPL-2.0
- # Makefile for vm tools
- #
-+include ../scripts/Makefile.include
-+
- TARGETS=page-types slabinfo page_owner_sort
+--- a/fs/squashfs/squashfs_fs.h~squashfs-squashfs_fsh-replace-zero-length-array-with-flexible-array-member
++++ a/fs/squashfs/squashfs_fs.h
+@@ -262,7 +262,7 @@ struct squashfs_dir_index {
+ 	__le32			index;
+ 	__le32			start_block;
+ 	__le32			size;
+-	unsigned char		name[0];
++	unsigned char		name[];
+ };
  
- LIB_DIR = ../lib/api
+ struct squashfs_base_inode {
+@@ -327,7 +327,7 @@ struct squashfs_symlink_inode {
+ 	__le32			inode_number;
+ 	__le32			nlink;
+ 	__le32			symlink_size;
+-	char			symlink[0];
++	char			symlink[];
+ };
+ 
+ struct squashfs_reg_inode {
+@@ -341,7 +341,7 @@ struct squashfs_reg_inode {
+ 	__le32			fragment;
+ 	__le32			offset;
+ 	__le32			file_size;
+-	__le16			block_list[0];
++	__le16			block_list[];
+ };
+ 
+ struct squashfs_lreg_inode {
+@@ -358,7 +358,7 @@ struct squashfs_lreg_inode {
+ 	__le32			fragment;
+ 	__le32			offset;
+ 	__le32			xattr;
+-	__le16			block_list[0];
++	__le16			block_list[];
+ };
+ 
+ struct squashfs_dir_inode {
+@@ -389,7 +389,7 @@ struct squashfs_ldir_inode {
+ 	__le16			i_count;
+ 	__le16			offset;
+ 	__le32			xattr;
+-	struct squashfs_dir_index	index[0];
++	struct squashfs_dir_index	index[];
+ };
+ 
+ union squashfs_inode {
+@@ -410,7 +410,7 @@ struct squashfs_dir_entry {
+ 	__le16			inode_number;
+ 	__le16			type;
+ 	__le16			size;
+-	char			name[0];
++	char			name[];
+ };
+ 
+ struct squashfs_dir_header {
+@@ -428,12 +428,12 @@ struct squashfs_fragment_entry {
+ struct squashfs_xattr_entry {
+ 	__le16			type;
+ 	__le16			size;
+-	char			data[0];
++	char			data[];
+ };
+ 
+ struct squashfs_xattr_val {
+ 	__le32			vsize;
+-	char			value[0];
++	char			value[];
+ };
+ 
+ struct squashfs_xattr_id {
 _
 
-Patches currently in -mm which might be from l.stach@pengutronix.de are
+Patches currently in -mm which might be from gustavo@embeddedor.com are
