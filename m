@@ -1,58 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-userfaultfd-disable-userfaultfd-wp-on-x86_32.patch removed from -mm tree
-Date: Thu, 23 Apr 2020 12:51:30 -0700
-Message-ID: <20200423195130.L_KM0T5CV%akpm@linux-foundation.org>
+ slub-avoid-redzone-when-choosing-freepointer-location.patch removed from
+ -mm tree
+Date: Thu, 23 Apr 2020 12:51:27 -0700
+Message-ID: <20200423195127.zgcnkj1Zb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55452 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55368 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726399AbgDWTvb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 15:51:31 -0400
+        id S1726121AbgDWTv2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 15:51:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hdanton@sina.com, lkp@intel.com, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org, peterx@redhat.com
+To: cl@linux.com, elver@google.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: mm/userfaultfd: disable userfaultfd-wp on x86_32
+     Subject: slub: avoid redzone when choosing freepointer location
 has been removed from the -mm tree.  Its filename was
-     mm-userfaultfd-disable-userfaultfd-wp-on-x86_32.patch
+     slub-avoid-redzone-when-choosing-freepointer-location.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/userfaultfd: disable userfaultfd-wp on x86_32
+From: Kees Cook <keescook@chromium.org>
+Subject: slub: avoid redzone when choosing freepointer location
 
-Userfaultfd-wp is not yet working on 32bit hosts, but it's accidentally
-enabled previously.  Disable it.
+Marco Elver reported system crashes when booting with "slub_debug=Z".  The
+freepointer location (s->offset) was not taking into account that the
+"inuse" size that includes the redzone area should not be used by the
+freelist pointer.  Change the calculation to save the area of the object
+that an inline freepointer may be written into.
 
-Link: http://lkml.kernel.org/r/20200413141608.109211-1-peterx@redhat.com
-Fixes: 5a281062af1d ("userfaultfd: wp: add WP pagetable tracking to x86")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <hdanton@sina.com>
+Link: http://lkml.kernel.org/r/202004151054.BD695840@keescook
+Link: https://lore.kernel.org/linux-mm/20200415164726.GA234932@google.com
+Fixes: 3202fa62fb43 ("slub: relocate freelist pointer to middle of object")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Marco Elver <elver@google.com>
+Tested-by: Marco Elver <elver@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/arch/x86/Kconfig~mm-userfaultfd-disable-userfaultfd-wp-on-x86_32
-+++ a/arch/x86/Kconfig
-@@ -149,7 +149,7 @@ config X86
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD if X86_64
--	select HAVE_ARCH_USERFAULTFD_WP		if USERFAULTFD
-+	select HAVE_ARCH_USERFAULTFD_WP         if X86_64 && USERFAULTFD
- 	select HAVE_ARCH_VMAP_STACK		if X86_64
- 	select HAVE_ARCH_WITHIN_STACK_FRAMES
- 	select HAVE_ASM_MODVERSIONS
+--- a/mm/slub.c~slub-avoid-redzone-when-choosing-freepointer-location
++++ a/mm/slub.c
+@@ -3533,6 +3533,7 @@ static int calculate_sizes(struct kmem_c
+ {
+ 	slab_flags_t flags = s->flags;
+ 	unsigned int size = s->object_size;
++	unsigned int freepointer_area;
+ 	unsigned int order;
+ 
+ 	/*
+@@ -3541,6 +3542,13 @@ static int calculate_sizes(struct kmem_c
+ 	 * the possible location of the free pointer.
+ 	 */
+ 	size = ALIGN(size, sizeof(void *));
++	/*
++	 * This is the area of the object where a freepointer can be
++	 * safely written. If redzoning adds more to the inuse size, we
++	 * can't use that portion for writing the freepointer, so
++	 * s->offset must be limited within this for the general case.
++	 */
++	freepointer_area = size;
+ 
+ #ifdef CONFIG_SLUB_DEBUG
+ 	/*
+@@ -3582,13 +3590,13 @@ static int calculate_sizes(struct kmem_c
+ 		 */
+ 		s->offset = size;
+ 		size += sizeof(void *);
+-	} else if (size > sizeof(void *)) {
++	} else if (freepointer_area > sizeof(void *)) {
+ 		/*
+ 		 * Store freelist pointer near middle of object to keep
+ 		 * it away from the edges of the object to avoid small
+ 		 * sized over/underflows from neighboring allocations.
+ 		 */
+-		s->offset = ALIGN(size / 2, sizeof(void *));
++		s->offset = ALIGN(freepointer_area / 2, sizeof(void *));
+ 	}
+ 
+ #ifdef CONFIG_SLUB_DEBUG
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from keescook@chromium.org are
