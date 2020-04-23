@@ -1,113 +1,178 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
- removed from -mm tree
-Date: Thu, 23 Apr 2020 12:51:45 -0700
-Message-ID: <20200423195145.fshrZ5LhU%akpm__26080.9346729488$1587671515$gmane$org@linux-foundation.org>
+ vmalloc-fix-remap_vmalloc_range-bounds-checks.patch removed from -mm tree
+Date: Thu, 23 Apr 2020 12:51:50 -0700
+Message-ID: <20200423195150.6vMWrlmiO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55626 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55708 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726121AbgDWTvr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 15:51:47 -0400
+        id S1726121AbgDWTvw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 15:51:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@redhat.com, duanxiongchun@bytedance.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, ktkhai@virtuozzo.com, Markus.Elfring@web.de, mm-commits@vger.kernel.org, songmuchun@bytedance.com, stable@vger.kernel.org, yang.shi@linux.alibaba.com
+To: andriin@fb.com, ast@kernel.org, daniel@iogearbox.net, jannh@google.com, john.fastabend@gmail.com, kafai@fb.com, kpsingh@chromium.org, mm-commits@vger.kernel.org, songliubraving@fb.com, yhs@fb.com
 
 
 The patch titled
-     Subject: mm/ksm: fix NULL pointer dereference when KSM zero page is enabled
+     Subject: vmalloc: fix remap_vmalloc_range() bounds checks
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled.patch
+     vmalloc-fix-remap_vmalloc_range-bounds-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/ksm: fix NULL pointer dereference when KSM zero page is enabled
+From: Jann Horn <jannh@google.com>
+Subject: vmalloc: fix remap_vmalloc_range() bounds checks
 
-find_mergeable_vma() can return NULL.  In this case, it leads to a crash
-when we access vm_mm(its offset is 0x40) later in write_protect_page.  And
-this case did happen on our server.  The following call trace is captured
-in kernel 4.19 with the following patch applied and KSM zero page enabled
-on our server.
+remap_vmalloc_range() has had various issues with the bounds checks it
+promises to perform ("This function checks that addr is a valid vmalloc'ed
+area, and that it is big enough to cover the vma") over time, e.g.:
 
-  commit e86c59b1b12d ("mm/ksm: improve deduplication of zero pages with colouring")
+ - not detecting pgoff<<PAGE_SHIFT overflow
+ - not detecting (pgoff<<PAGE_SHIFT)+usize overflow
+ - not checking whether addr and addr+(pgoff<<PAGE_SHIFT) are the same
+   vmalloc allocation
+ - comparing a potentially wildly out-of-bounds pointer with the end of the
+   vmalloc region
 
-So add a vma check to fix it.
+In particular, since commit fc9702273e2e ("bpf: Add mmap() support for
+BPF_MAP_TYPE_ARRAY"), unprivileged users can cause kernel null pointer
+dereferences by calling mmap() on a BPF map with a size that is bigger
+than the distance from the start of the BPF map to the end of the address
+space.  This could theoretically be used as a kernel ASLR bypass, by using
+whether mmap() with a given offset oopses or returns an error code to
+perform a binary search over the possible address range.
 
---------------------------------------------------------------------------
-  BUG: unable to handle kernel NULL pointer dereference at 0000000000000040
-  Oops: 0000 [#1] SMP NOPTI
-  CPU: 9 PID: 510 Comm: ksmd Kdump: loaded Tainted: G OE 4.19.36.bsk.9-amd64 #4.19.36.bsk.9
-  RIP: 0010:try_to_merge_one_page+0xc7/0x760
-  Code: 24 58 65 48 33 34 25 28 00 00 00 89 e8 0f 85 a3 06 00 00 48 83 c4
-        60 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 8b 46 08 a8 01 75 b8 <49>
-        8b 44 24 40 4c 8d 7c 24 20 b9 07 00 00 00 4c 89 e6 4c 89 ff 48
-  RSP: 0018:ffffadbdd9fffdb0 EFLAGS: 00010246
-  RAX: ffffda83ffd4be08 RBX: ffffda83ffd4be40 RCX: 0000002c6e800000
-  RDX: 0000000000000000 RSI: ffffda83ffd4be40 RDI: 0000000000000000
-  RBP: ffffa11939f02ec0 R08: 0000000094e1a447 R09: 00000000abe76577
-  R10: 0000000000000962 R11: 0000000000004e6a R12: 0000000000000000
-  R13: ffffda83b1e06380 R14: ffffa18f31f072c0 R15: ffffda83ffd4be40
-  FS: 0000000000000000(0000) GS:ffffa0da43b80000(0000) knlGS:0000000000000000
-  CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  CR2: 0000000000000040 CR3: 0000002c77c0a003 CR4: 00000000007626e0
-  DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-  DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-  PKRU: 55555554
-  Call Trace:
-    ? follow_page_pte+0x36d/0x5e0
-    ksm_scan_thread+0x115e/0x1960
-    ? remove_wait_queue+0x60/0x60
-    kthread+0xf5/0x130
-    ? try_to_merge_with_ksm_page+0x90/0x90
-    ? kthread_create_worker_on_cpu+0x70/0x70
-    ret_from_fork+0x1f/0x30
---------------------------------------------------------------------------
+To allow remap_vmalloc_range_partial() to verify that addr and
+addr+(pgoff<<PAGE_SHIFT) are in the same vmalloc region, pass the offset
+to remap_vmalloc_range_partial() instead of adding it to the pointer in
+remap_vmalloc_range().
 
-[songmuchun@bytedance.com: if the vma is out of date, just exit]
-  Link: http://lkml.kernel.org/r/20200416025034.29780-1-songmuchun@bytedance.com
-[akpm@linux-foundation.org: add the conventional braces, replace /** with /*]
-Link: http://lkml.kernel.org/r/20200416025034.29780-1-songmuchun@bytedance.com
-Link: http://lkml.kernel.org/r/20200414132905.83819-1-songmuchun@bytedance.com
-Fixes: e86c59b1b12d ("mm/ksm: improve deduplication of zero pages with colouring")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Co-developed-by: Xiongchun Duan <duanxiongchun@bytedance.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Claudio Imbrenda <imbrenda@linux.vnet.ibm.com>
-Cc: Markus Elfring <Markus.Elfring@web.de>
-Cc: <stable@vger.kernel.org>
+In remap_vmalloc_range_partial(), fix the check against get_vm_area_size()
+by using size comparisons instead of pointer comparisons, and add checks
+for pgoff.
+
+Link: http://lkml.kernel.org/r/20200415222312.236431-1-jannh@google.com
+Cc: stable@vger.kernel.org
+Fixes: 833423143c3a ("[PATCH] mm: introduce remap_vmalloc_range()")
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Martin KaFai Lau <kafai@fb.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Yonghong Song <yhs@fb.com>
+Cc: Andrii Nakryiko <andriin@fb.com>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: KP Singh <kpsingh@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ fs/proc/vmcore.c         |    5 +++--
+ include/linux/vmalloc.h  |    2 +-
+ mm/vmalloc.c             |   16 +++++++++++++---
+ samples/vfio-mdev/mdpy.c |    2 +-
+ 4 files changed, 18 insertions(+), 7 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-fix-null-pointer-dereference-when-ksm-zero-page-is-enabled
-+++ a/mm/ksm.c
-@@ -2112,8 +2112,16 @@ static void cmp_and_merge_page(struct pa
+--- a/fs/proc/vmcore.c~vmalloc-fix-remap_vmalloc_range-bounds-checks
++++ a/fs/proc/vmcore.c
+@@ -266,7 +266,8 @@ static int vmcoredd_mmap_dumps(struct vm
+ 		if (start < offset + dump->size) {
+ 			tsz = min(offset + (u64)dump->size - start, (u64)size);
+ 			buf = dump->buf + start - offset;
+-			if (remap_vmalloc_range_partial(vma, dst, buf, tsz)) {
++			if (remap_vmalloc_range_partial(vma, dst, buf, 0,
++							tsz)) {
+ 				ret = -EFAULT;
+ 				goto out_unlock;
+ 			}
+@@ -624,7 +625,7 @@ static int mmap_vmcore(struct file *file
+ 		tsz = min(elfcorebuf_sz + elfnotes_sz - (size_t)start, size);
+ 		kaddr = elfnotes_buf + start - elfcorebuf_sz - vmcoredd_orig_sz;
+ 		if (remap_vmalloc_range_partial(vma, vma->vm_start + len,
+-						kaddr, tsz))
++						kaddr, 0, tsz))
+ 			goto fail;
  
- 		down_read(&mm->mmap_sem);
- 		vma = find_mergeable_vma(mm, rmap_item->address);
--		err = try_to_merge_one_page(vma, page,
--					    ZERO_PAGE(rmap_item->address));
-+		if (vma) {
-+			err = try_to_merge_one_page(vma, page,
-+					ZERO_PAGE(rmap_item->address));
-+		} else {
-+			/*
-+			 * If the vma is out of date, we do not need to
-+			 * continue.
-+			 */
-+			err = 0;
-+		}
- 		up_read(&mm->mmap_sem);
- 		/*
- 		 * In case of failure, the page was not really empty, so we
+ 		size -= tsz;
+--- a/include/linux/vmalloc.h~vmalloc-fix-remap_vmalloc_range-bounds-checks
++++ a/include/linux/vmalloc.h
+@@ -137,7 +137,7 @@ extern void vunmap(const void *addr);
+ 
+ extern int remap_vmalloc_range_partial(struct vm_area_struct *vma,
+ 				       unsigned long uaddr, void *kaddr,
+-				       unsigned long size);
++				       unsigned long pgoff, unsigned long size);
+ 
+ extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
+ 							unsigned long pgoff);
+--- a/mm/vmalloc.c~vmalloc-fix-remap_vmalloc_range-bounds-checks
++++ a/mm/vmalloc.c
+@@ -34,6 +34,7 @@
+ #include <linux/llist.h>
+ #include <linux/bitops.h>
+ #include <linux/rbtree_augmented.h>
++#include <linux/overflow.h>
+ 
+ #include <linux/uaccess.h>
+ #include <asm/tlbflush.h>
+@@ -3054,6 +3055,7 @@ finished:
+  * @vma:		vma to cover
+  * @uaddr:		target user address to start at
+  * @kaddr:		virtual address of vmalloc kernel memory
++ * @pgoff:		offset from @kaddr to start at
+  * @size:		size of map area
+  *
+  * Returns:	0 for success, -Exxx on failure
+@@ -3066,9 +3068,15 @@ finished:
+  * Similar to remap_pfn_range() (see mm/memory.c)
+  */
+ int remap_vmalloc_range_partial(struct vm_area_struct *vma, unsigned long uaddr,
+-				void *kaddr, unsigned long size)
++				void *kaddr, unsigned long pgoff,
++				unsigned long size)
+ {
+ 	struct vm_struct *area;
++	unsigned long off;
++	unsigned long end_index;
++
++	if (check_shl_overflow(pgoff, PAGE_SHIFT, &off))
++		return -EINVAL;
+ 
+ 	size = PAGE_ALIGN(size);
+ 
+@@ -3082,8 +3090,10 @@ int remap_vmalloc_range_partial(struct v
+ 	if (!(area->flags & (VM_USERMAP | VM_DMA_COHERENT)))
+ 		return -EINVAL;
+ 
+-	if (kaddr + size > area->addr + get_vm_area_size(area))
++	if (check_add_overflow(size, off, &end_index) ||
++	    end_index > get_vm_area_size(area))
+ 		return -EINVAL;
++	kaddr += off;
+ 
+ 	do {
+ 		struct page *page = vmalloc_to_page(kaddr);
+@@ -3122,7 +3132,7 @@ int remap_vmalloc_range(struct vm_area_s
+ 						unsigned long pgoff)
+ {
+ 	return remap_vmalloc_range_partial(vma, vma->vm_start,
+-					   addr + (pgoff << PAGE_SHIFT),
++					   addr, pgoff,
+ 					   vma->vm_end - vma->vm_start);
+ }
+ EXPORT_SYMBOL(remap_vmalloc_range);
+--- a/samples/vfio-mdev/mdpy.c~vmalloc-fix-remap_vmalloc_range-bounds-checks
++++ a/samples/vfio-mdev/mdpy.c
+@@ -418,7 +418,7 @@ static int mdpy_mmap(struct mdev_device
+ 		return -EINVAL;
+ 
+ 	return remap_vmalloc_range_partial(vma, vma->vm_start,
+-					   mdev_state->memblk,
++					   mdev_state->memblk, 0,
+ 					   vma->vm_end - vma->vm_start);
+ }
+ 
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from jannh@google.com are
