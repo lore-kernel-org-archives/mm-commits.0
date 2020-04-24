@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- twist-add-option-for-selecting-twist-options-for-syzkallers-testing.patch
- added to -mm tree
-Date: Thu, 23 Apr 2020 20:24:18 -0700
-Message-ID: <20200424032418.1Ld7t4E2e%akpm@linux-foundation.org>
+ eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch added to
+ -mm tree
+Date: Thu, 23 Apr 2020 20:32:13 -0700
+Message-ID: <20200424033213.WRxjDVHj1%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38604 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725884AbgDXDYU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 23:24:20 -0400
+        id S1725888AbgDXDcO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 23:32:14 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, arnd@arndb.de, dvyukov@google.com, gregkh@linuxfoundation.org, jslaby@suse.com, mjg59@google.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, peterz@infradead.org, pmladek@suse.com, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, tytso@mit.edu, viro@zeniv.linux.org.uk
+To: jbaron@akamai.com, khazhy@google.com, mm-commits@vger.kernel.org, r@hev.cc, rpenyaev@suse.de, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: twist: add option for selecting twist options for syzkaller's testing
+     Subject: eventpoll: fix missing wakeup for ovflist in ep_poll_callback
 has been added to the -mm tree.  Its filename is
-     twist-add-option-for-selecting-twist-options-for-syzkallers-testing.patch
+     eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/twist-add-option-for-selecting-twist-options-for-syzkallers-testing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/twist-add-option-for-selecting-twist-options-for-syzkallers-testing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: twist: add option for selecting twist options for syzkaller's testing
+From: Khazhismel Kumykov <khazhy@google.com>
+Subject: eventpoll: fix missing wakeup for ovflist in ep_poll_callback
 
-When a kernel developer adds a kernel config option, they will not go and
-update configs on all external testing systems.  This problem is also
-common for "enable all boot tests that can run on this kernel", or
-"configure a 'standard' debug build".  Currently doing these things
-require all of expertise, sacred knowledge, checking all configs
-one-by-one as well as checking every new kernel patch and that needs to be
-done by everybody doing any kernel testing.
+In the event that we add to ovflist, before 339ddb53d373 we would be woken
+up by ep_scan_ready_list, and did no wakeup in ep_poll_callback.  With
+that wakeup removed, if we add to ovflist here, we may never wake up. 
+Rather than adding back the ep_scan_ready_list wakeup - which was
+resulting un uncessary wakeups, trigger a wake-up in ep_poll_callback.
 
-In order to reduce the burden of maintaining kernel config options, this
-patch introduces a kernel config option which will select twist options
-when building kernels for syzkaller's testing.
+We noticed that one of our workloads was missing wakeups starting with
+339ddb53d373 and upon manual inspection, this wakeup seemed missing to me.
+With this patch added, we no longer see missing wakeups.  I haven't yet
+tried to make a small reproducer, but the existing kselftests in
+filesystem/epoll passed for me with this patch.
 
-Link: http://lkml.kernel.org/r/20200421131951.4948-3-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/20200424025057.118641-1-khazhy@google.com
+Fixes: 339ddb53d373 ("fs/epoll: remove unnecessary wakeups of nested epoll")
+Signed-off-by: Khazhismel Kumykov <khazhy@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.com>
-Cc: Matthew Garrett <mjg59@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Theodore Y . Ts'o" <tytso@mit.edu>
+Cc: Roman Penyaev <rpenyaev@suse.de>
+Cc: Heiher <r@hev.cc>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.twist |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/eventpoll.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/Kconfig.twist~twist-add-option-for-selecting-twist-options-for-syzkallers-testing
-+++ a/lib/Kconfig.twist
-@@ -10,6 +10,12 @@ menuconfig TWIST_KERNEL_BEHAVIOR
+--- a/fs/eventpoll.c~eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback
++++ a/fs/eventpoll.c
+@@ -1240,7 +1240,7 @@ static int ep_poll_callback(wait_queue_e
+ 		if (epi->next == EP_UNACTIVE_PTR &&
+ 		    chain_epi_lockless(epi))
+ 			ep_pm_stay_awake_rcu(epi);
+-		goto out_unlock;
++		goto out_wakeup_unlock;
+ 	}
  
- if TWIST_KERNEL_BEHAVIOR
+ 	/* If this file is already in the ready list we exit soon */
+@@ -1249,6 +1249,7 @@ static int ep_poll_callback(wait_queue_e
+ 		ep_pm_stay_awake_rcu(epi);
+ 	}
  
-+config TWIST_FOR_SYZKALLER_TESTING
-+       bool "Select all twist options suitable for syzkaller testing"
-+       select TWIST_DISABLE_KBD_K_SPEC_HANDLER
-+       help
-+	 Say N unless you are building kernels for syzkaller's testing.
-+
- config TWIST_DISABLE_KBD_K_SPEC_HANDLER
-        bool "Disable k_spec() function in drivers/tty/vt/keyboard.c"
-        help
++out_wakeup_unlock:
+ 	/*
+ 	 * Wake up ( if active ) both the eventpoll wait list and the ->poll()
+ 	 * wait list.
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from khazhy@google.com are
 
-info-task-hung-in-generic_file_write_iter.patch
-info-task-hung-in-generic_file_write-fix.patch
-add-kernel-config-option-for-twisting-kernel-behavior.patch
-twist-allow-disabling-k_spec-function-in-drivers-tty-vt-keyboardc.patch
-twist-add-option-for-selecting-twist-options-for-syzkallers-testing.patch
+eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch
