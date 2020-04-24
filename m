@@ -1,94 +1,182 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch added to
- -mm tree
-Date: Thu, 23 Apr 2020 20:32:13 -0700
-Message-ID: <20200424033213.WRxjDVHj1%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Thu, 23 Apr 2020 20:49:12 -0700
+Message-ID: <20200424034912.NEyjGtsH3%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41826 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48930 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725888AbgDXDcO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 23:32:14 -0400
+        id S1725823AbgDXDtP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 23:49:15 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbaron@akamai.com, khazhy@google.com, mm-commits@vger.kernel.org, r@hev.cc, rpenyaev@suse.de, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: eventpoll: fix missing wakeup for ovflist in ep_poll_callback
-has been added to the -mm tree.  Its filename is
-     eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch
+     Subject: linux-next-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Khazhismel Kumykov <khazhy@google.com>
-Subject: eventpoll: fix missing wakeup for ovflist in ep_poll_callback
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-In the event that we add to ovflist, before 339ddb53d373 we would be woken
-up by ep_scan_ready_list, and did no wakeup in ep_poll_callback.  With
-that wakeup removed, if we add to ovflist here, we may never wake up. 
-Rather than adding back the ep_scan_ready_list wakeup - which was
-resulting un uncessary wakeups, trigger a wake-up in ep_poll_callback.
-
-We noticed that one of our workloads was missing wakeups starting with
-339ddb53d373 and upon manual inspection, this wakeup seemed missing to me.
-With this patch added, we no longer see missing wakeups.  I haven't yet
-tried to make a small reproducer, but the existing kselftests in
-filesystem/epoll passed for me with this patch.
-
-Link: http://lkml.kernel.org/r/20200424025057.118641-1-khazhy@google.com
-Fixes: 339ddb53d373 ("fs/epoll: remove unnecessary wakeups of nested epoll")
-Signed-off-by: Khazhismel Kumykov <khazhy@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Roman Penyaev <rpenyaev@suse.de>
-Cc: Heiher <r@hev.cc>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/printk.h |  101 +++++++++++++++++++++++++++++++++------
+ 1 file changed, 88 insertions(+), 13 deletions(-)
 
---- a/fs/eventpoll.c~eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback
-+++ a/fs/eventpoll.c
-@@ -1240,7 +1240,7 @@ static int ep_poll_callback(wait_queue_e
- 		if (epi->next == EP_UNACTIVE_PTR &&
- 		    chain_epi_lockless(epi))
- 			ep_pm_stay_awake_rcu(epi);
--		goto out_unlock;
-+		goto out_wakeup_unlock;
- 	}
+--- a/include/linux/printk.h~linux-next-rejects
++++ a/include/linux/printk.h
+@@ -279,40 +279,115 @@ static inline void printk_safe_flush_on_
  
- 	/* If this file is already in the ready list we exit soon */
-@@ -1249,6 +1249,7 @@ static int ep_poll_callback(wait_queue_e
- 		ep_pm_stay_awake_rcu(epi);
- 	}
+ extern int kptr_restrict;
  
-+out_wakeup_unlock:
- 	/*
- 	 * Wake up ( if active ) both the eventpoll wait list and the ->poll()
- 	 * wait list.
++/**
++ * pr_fmt - used by the pr_*() macros to generate the printk format string
++ * @fmt: format string passed from a pr_*() macro
++ *
++ * This macro can be used to generate a unified format string for pr_*()
++ * macros. A common use is to prefix all pr_*() messages in a file with a common
++ * string. For example, defining this at the top of a source file:
++ *
++ *        #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++ *
++ * would prefix all pr_info, pr_emerg... messages in the file with the module
++ * name.
++ */
+ #ifndef pr_fmt
+ #define pr_fmt(fmt) fmt
+ #endif
+ 
+-/*
+- * These can be used to print at the various log levels.
+- * All of these will print unconditionally, although note that pr_debug()
+- * and other debug macros are compiled out unless either DEBUG is defined,
+- * CONFIG_DYNAMIC_DEBUG is set, or CONFIG_DYNAMIC_DEBUG_CORE is set when
+- * DYNAMIC_DEBUG_MODULE being defined for any modules.
++/**
++ * pr_emerg - Print an emergency-level message
++ * @fmt: format string
++ * @...: arguments for the format string
++ *
++ * This macro expands to a printk with KERN_EMERG loglevel. It uses pr_fmt() to
++ * generate the format string.
++ */
++ #define pr_emerg(fmt, ...) \
++ 	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
++/**
++ * pr_alert - Print an alert-level message
++ * @fmt: format string
++ * @...: arguments for the format string
++ *
++ * This macro expands to a printk with KERN_ALERT loglevel. It uses pr_fmt() to
++ * generate the format string.
+  */
+-#define pr_emerg(fmt, ...) \
+-	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
+ #define pr_alert(fmt, ...) \
+ 	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
++/**
++ * pr_crit - Print a critical-level message
++ * @fmt: format string
++ * @...: arguments for the format string
++ *
++ * This macro expands to a printk with KERN_CRIT loglevel. It uses pr_fmt() to
++ * generate the format string.
++ */
+ #define pr_crit(fmt, ...) \
+ 	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
++/**
++ * pr_err - Print an error-level message
++ * @fmt: format string
++ * @...: arguments for the format string
++ *
++ * This macro expands to a printk with KERN_ERR loglevel. It uses pr_fmt() to
++ * generate the format string.
++ */
+ #define pr_err(fmt, ...) \
+ 	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
++/**
++ * pr_warn - Print a warning-level message
++ * @fmt: format string
++ * @...: arguments for the format string
++ *
++ * This macro expands to a printk with KERN_WARNING loglevel. It uses pr_fmt()
++ * to generate the format string.
++ */
+ #define pr_warn(fmt, ...) \
+ 	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
++/**
++ * pr_notice - Print a notice-level message
++ * @fmt: format string
++ * @...: arguments for the format string
++ *
++ * This macro expands to a printk with KERN_NOTICE loglevel. It uses pr_fmt() to
++ * generate the format string.
++ */
+ #define pr_notice(fmt, ...) \
+ 	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
++/**
++ * pr_info - Print an info-level message
++ * @fmt: format string
++ * @...: arguments for the format string
++ *
++ * This macro expands to a printk with KERN_INFO loglevel. It uses pr_fmt() to
++ * generate the format string.
++ */
+ #define pr_info(fmt, ...) \
+ 	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+-/*
+- * Like KERN_CONT, pr_cont() should only be used when continuing
+- * a line with no newline ('\n') enclosed. Otherwise it defaults
+- * back to KERN_DEFAULT.
++/**
++ * pr_cont - Continues a previous log message in the same line.
++ * @fmt: format string
++ * @...: arguments for the format string
++ *
++ * This macro expands to a printk with KERN_CONT loglevel. It should only be
++ * used when continuing a log message with no newline ('\n') enclosed. Otherwise
++ * it defaults back to KERN_DEFAULT loglevel.
+  */
+ #define pr_cont(fmt, ...) \
+ 	printk(KERN_CONT fmt, ##__VA_ARGS__)
+ 
+-/* pr_devel() should produce zero code unless DEBUG is defined */
++/**
++ * pr_devel - Print a debug-level message conditionally
++ * @fmt: format string
++ * @...: arguments for the format string
++ *
++ * This macro expands to a printk with KERN_DEBUG loglevel if DEBUG is
++ * defined. Otherwise it does nothing.
++ *
++ * It uses pr_fmt() to generate the format string.
++ */
+ #ifdef DEBUG
+ #define pr_devel(fmt, ...) \
+ 	printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
 _
 
-Patches currently in -mm which might be from khazhy@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch
+mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes.patch
+linux-next-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
