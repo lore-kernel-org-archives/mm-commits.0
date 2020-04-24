@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch added
- to -mm tree
-Date: Thu, 23 Apr 2020 18:20:38 -0700
-Message-ID: <20200424012038.5UKwgNu56%akpm@linux-foundation.org>
+ mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch added to -mm tree
+Date: Thu, 23 Apr 2020 18:40:03 -0700
+Message-ID: <20200424014003.FiRFd-Ud2%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43578 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725888AbgDXBUk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 21:20:40 -0400
+        id S1726152AbgDXBkF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 21:40:05 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haren@linux.ibm.com, hch@lst.de, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: anshuman.khandual@arm.com, catalin.marinas@arm.com, mm-commits@vger.kernel.org, will@kernel.org
 
 
 The patch titled
-     Subject: powerpc/vas: fix up for {un}use_mm() rename
+     Subject: mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
 has been added to the -mm tree.  Its filename is
-     kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
+     mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +38,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: powerpc/vas: fix up for {un}use_mm() rename
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
 
-Link: http://lkml.kernel.org/r/20200422163935.5aa93ba5@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Haren Myneni <haren@linux.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+chang pmd_mknotvalid() to pmd_mkinvalid() per Will
+
+Link: http://lkml.kernel.org/r/1587520326-10099-3-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/powernv/vas-fault.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arc/include/asm/hugepage.h       |    2 +-
+ arch/arm/include/asm/pgtable-3level.h |    2 +-
+ arch/arm64/include/asm/pgtable.h      |    2 +-
+ arch/mips/include/asm/pgtable.h       |    2 +-
+ arch/x86/include/asm/pgtable.h        |    2 +-
+ arch/x86/mm/kmmio.c                   |    2 +-
+ mm/pgtable-generic.c                  |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/arch/powerpc/platforms/powernv/vas-fault.c~kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix
-+++ a/arch/powerpc/platforms/powernv/vas-fault.c
-@@ -127,7 +127,7 @@ static void update_csb(struct vas_window
- 		return;
- 	}
+--- a/arch/arc/include/asm/hugepage.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/arc/include/asm/hugepage.h
+@@ -26,7 +26,7 @@ static inline pmd_t pte_pmd(pte_t pte)
+ #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
+ #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
+ #define pmd_mkhuge(pmd)		pte_pmd(pte_mkhuge(pmd_pte(pmd)))
+-#define pmd_mknotvalid(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
++#define pmd_mkinvalid(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
+ #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
  
--	use_mm(window->mm);
-+	kthread_use_mm(window->mm);
- 	rc = copy_to_user(csb_addr, &csb, sizeof(csb));
- 	/*
- 	 * User space polls on csb.flags (first byte). So add barrier
-@@ -139,7 +139,7 @@ static void update_csb(struct vas_window
- 		smp_mb();
- 		rc = copy_to_user(csb_addr, &csb, sizeof(u8));
- 	}
--	unuse_mm(window->mm);
-+	kthread_unuse_mm(window->mm);
- 	put_task_struct(tsk);
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
+--- a/arch/arm64/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -371,7 +371,7 @@ static inline int pmd_protnone(pmd_t pmd
+ #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+ #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
+ #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
+-#define pmd_mknotvalid(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
++#define pmd_mkinvalid(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
  
- 	/* Success */
+ #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
+ 
+--- a/arch/arm/include/asm/pgtable-3level.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -221,7 +221,7 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
+ #define pmdp_establish generic_pmdp_establish
+ 
+ /* represent a notpresent pmd by faulting entry, this is used by pmdp_invalidate */
+-static inline pmd_t pmd_mknotvalid(pmd_t pmd)
++static inline pmd_t pmd_mkinvalid(pmd_t pmd)
+ {
+ 	return __pmd(pmd_val(pmd) & ~L_PMD_SECT_VALID);
+ }
+--- a/arch/mips/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/mips/include/asm/pgtable.h
+@@ -631,7 +631,7 @@ static inline pmd_t pmd_modify(pmd_t pmd
+ 	return pmd;
+ }
+ 
+-static inline pmd_t pmd_mknotvalid(pmd_t pmd)
++static inline pmd_t pmd_mkinvalid(pmd_t pmd)
+ {
+ 	pmd_val(pmd) &= ~(_PAGE_PRESENT | _PAGE_VALID | _PAGE_DIRTY);
+ 
+--- a/arch/x86/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/x86/include/asm/pgtable.h
+@@ -624,7 +624,7 @@ static inline pud_t pfn_pud(unsigned lon
+ 	return __pud(pfn | check_pgprot(pgprot));
+ }
+ 
+-static inline pmd_t pmd_mknotvalid(pmd_t pmd)
++static inline pmd_t pmd_mkinvalid(pmd_t pmd)
+ {
+ 	return pfn_pmd(pmd_pfn(pmd),
+ 		      __pgprot(pmd_flags(pmd) & ~(_PAGE_PRESENT|_PAGE_PROTNONE)));
+--- a/arch/x86/mm/kmmio.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/x86/mm/kmmio.c
+@@ -130,7 +130,7 @@ static void clear_pmd_presence(pmd_t *pm
+ 	pmdval_t v = pmd_val(*pmd);
+ 	if (clear) {
+ 		*old = v;
+-		new_pmd = pmd_mknotvalid(*pmd);
++		new_pmd = pmd_mkinvalid(*pmd);
+ 	} else {
+ 		/* Presume this has been called with clear==true previously */
+ 		new_pmd = __pmd(*old);
+--- a/mm/pgtable-generic.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/mm/pgtable-generic.c
+@@ -194,7 +194,7 @@ pgtable_t pgtable_trans_huge_withdraw(st
+ pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 		     pmd_t *pmdp)
+ {
+-	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mknotvalid(*pmdp));
++	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mkinvalid(*pmdp));
+ 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return old;
+ }
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
+powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
+mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch
+x86-mm-define-mm_p4d_folded.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v17.patch
