@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-mm-add-page-soft-dirty-tracking.patch added to -mm
- tree
-Date: Thu, 23 Apr 2020 20:51:51 -0700
-Message-ID: <20200424035151.NcKvMttTU%akpm@linux-foundation.org>
+Subject: +
+ mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch added to
+ -mm tree
+Date: Fri, 24 Apr 2020 16:36:50 -0700
+Message-ID: <20200424233650.rSEYsmw2T%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49912 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46994 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725823AbgDXDvx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 23:51:53 -0400
+        id S1725874AbgDXXgw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Apr 2020 19:36:52 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, dansilsby@gmail.com, dkorotin@wavecomp.com, geert@linux-m68k.org, gorcunov@gmail.com, jiaxun.yang@flygoat.com, koct9i@gmail.com, lixuefeng@loongson.cn, mm-commits@vger.kernel.org, paul@crapouillou.net, paulburton@kernel.org, ralf@linux-mips.org, rppt@linux.ibm.com, steven.price@arm.com, sunguoyun@loongson.cn, tsbogend@alpha.franken.de, xemul@openvz.org, yangtiezhu@loongson.cn
+To: anshuman.khandual@arm.com, bhe@redhat.com, david@redhat.com, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pankaj.gupta.linux@gmail.com, rppt@linux.ibm.com
 
 
 The patch titled
-     Subject: mips/mm: add page soft dirty tracking
+     Subject: mm/memory_hotplug: set node_start_pfn of hotadded pgdat to 0
 has been added to the -mm tree.  Its filename is
-     mips-mm-add-page-soft-dirty-tracking.patch
+     mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mips-mm-add-page-soft-dirty-tracking.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mips-mm-add-page-soft-dirty-tracking.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,181 +39,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guoyun Sun <sunguoyun@loongson.cn>
-Subject: mips/mm: add page soft dirty tracking
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug: set node_start_pfn of hotadded pgdat to 0
 
-User space checkpoint and restart tool (CRIU) needs the page's change to
-be soft tracked.  This allows to do a pre checkpoint and then dump only
-touched pages.
+Patch series "mm/memory_hotplug: handle memblocks only with
+CONFIG_ARCH_KEEP_MEMBLOCK", v1.
 
-Link: http://lkml.kernel.org/r/1587460527-13986-1-git-send-email-sunguoyun@loongson.cn
-Signed-off-by: Guoyun Sun <sunguoyun@loongson.cn>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Paul Burton <paulburton@kernel.org>
-Cc: Daniel Silsby <dansilsby@gmail.com>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: Paul Cercueil <paul@crapouillou.net>
-Cc: Dmitry Korotin <dkorotin@wavecomp.com>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+A hotadded node/pgdat will span no pages at all, until memory is moved to
+the zone/node via move_pfn_range_to_zone() -> resize_pgdat_range - e.g.,
+when onlining memory blocks.  We don't have to initialize the
+node_start_pfn to the memory we are adding.
+
+
+This patch (of 2):
+
+Especially, there is an inconsistency:
+- Hotplugging memory to a memory-less node with cpus: node_start_pf ==  0
+- Offlining and removing last memory from a node: node_start_pfn == 0
+- Hotplugging memory to a memory-less node without cpus: node_start_pfn != 0
+
+As soon as memory is onlined, node_start_pfn is overwritten with the
+actual start.  E.g., when adding two DIMMs but only onlining one of both,
+only that DIMM (with online memory blocks) is spanned by the node.
+
+Currently, the validity of node_start_pfn really is linked to
+node_spanned_pages != 0.  With node_spanned_pages == 0 (e.g., before
+onlining memory), it has no meaning.
+
+So let's stop setting node_start_pfn, just to be overwritten via
+move_pfn_range_to_zone().  This avoids confusion when looking at the code,
+wondering which magic will be performed with the node_start_pfn in this
+function, when hotadding a pgdat.
+
+Link: http://lkml.kernel.org/r/20200422155353.25381-1-david@redhat.com
+Link: http://lkml.kernel.org/r/20200422155353.25381-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Guoyun Sun <sunguoyun@loongson.cn>
-Cc: TieZhu Yang <yangtiezhu@loongson.cn>
-Cc: Xuefeng Li <lixuefeng@loongson.cn>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig                    |    1 
- arch/mips/include/asm/pgtable-bits.h |    8 +++-
- arch/mips/include/asm/pgtable.h      |   48 +++++++++++++++++++++++--
- 3 files changed, 53 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- a/arch/mips/include/asm/pgtable-bits.h~mips-mm-add-page-soft-dirty-tracking
-+++ a/arch/mips/include/asm/pgtable-bits.h
-@@ -55,6 +55,7 @@ enum pgtable_bits {
- #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
- 	_PAGE_SPECIAL_SHIFT,
- #endif
-+	_PAGE_SOFT_DIRTY_SHIFT,
- };
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0
++++ a/mm/memory_hotplug.c
+@@ -862,10 +862,9 @@ static void reset_node_present_pages(pg_
+ }
  
- /*
-@@ -84,6 +85,7 @@ enum pgtable_bits {
- #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
- 	_PAGE_SPECIAL_SHIFT,
- #endif
-+	_PAGE_SOFT_DIRTY_SHIFT,
- };
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+-static pg_data_t __ref *hotadd_new_pgdat(int nid, u64 start)
++static pg_data_t __ref *hotadd_new_pgdat(int nid)
+ {
+ 	struct pglist_data *pgdat;
+-	unsigned long start_pfn = PFN_DOWN(start);
  
- #elif defined(CONFIG_CPU_R3K_TLB)
-@@ -99,6 +101,7 @@ enum pgtable_bits {
- #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
- 	_PAGE_SPECIAL_SHIFT,
- #endif
-+	_PAGE_SOFT_DIRTY_SHIFT,
+ 	pgdat = NODE_DATA(nid);
+ 	if (!pgdat) {
+@@ -895,9 +894,8 @@ static pg_data_t __ref *hotadd_new_pgdat
+ 	}
  
- 	/* Used by TLB hardware (placed in EntryLo) */
- 	_PAGE_GLOBAL_SHIFT = 8,
-@@ -125,7 +128,7 @@ enum pgtable_bits {
- #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
- 	_PAGE_SPECIAL_SHIFT,
- #endif
+ 	/* we can use NODE_DATA(nid) from here */
 -
-+	_PAGE_SOFT_DIRTY_SHIFT,
- 	/* Used by TLB hardware (placed in EntryLo*) */
- #if defined(CONFIG_CPU_HAS_RIXI)
- 	_PAGE_NO_EXEC_SHIFT,
-@@ -152,6 +155,7 @@ enum pgtable_bits {
- #else
- # define _PAGE_SPECIAL		0
- #endif
-+#define _PAGE_SOFT_DIRTY	(1 << _PAGE_SOFT_DIRTY_SHIFT)
+ 	pgdat->node_id = nid;
+-	pgdat->node_start_pfn = start_pfn;
++	pgdat->node_start_pfn = 0;
  
- /* Used by TLB hardware (placed in EntryLo*) */
- #if defined(CONFIG_XPA)
-@@ -269,6 +273,6 @@ static inline uint64_t pte_to_entrylo(un
- #define __WRITEABLE	(_PAGE_SILENT_WRITE | _PAGE_WRITE | _PAGE_MODIFIED)
- 
- #define _PAGE_CHG_MASK	(_PAGE_ACCESSED | _PAGE_MODIFIED |	\
--			 _PFN_MASK | _CACHE_MASK)
-+			 _PAGE_SOFT_DIRTY | _PFN_MASK | _CACHE_MASK)
- 
- #endif /* _ASM_PGTABLE_BITS_H */
---- a/arch/mips/include/asm/pgtable.h~mips-mm-add-page-soft-dirty-tracking
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -400,7 +400,7 @@ static inline pte_t pte_mkwrite(pte_t pt
- 
- static inline pte_t pte_mkdirty(pte_t pte)
+ 	/* init node's zones as empty zones, we don't have any present pages.*/
+ 	free_area_init_core_hotplug(nid);
+@@ -932,7 +930,6 @@ static void rollback_node_hotadd(int nid
+ /**
+  * try_online_node - online a node if offlined
+  * @nid: the node ID
+- * @start: start addr of the node
+  * @set_node_online: Whether we want to online the node
+  * called by cpu_up() to online a node without onlined memory.
+  *
+@@ -941,7 +938,7 @@ static void rollback_node_hotadd(int nid
+  * 0 -> the node is already online
+  * -ENOMEM -> the node could not be allocated
+  */
+-static int __try_online_node(int nid, u64 start, bool set_node_online)
++static int __try_online_node(int nid, bool set_node_online)
  {
--	pte_val(pte) |= _PAGE_MODIFIED;
-+	pte_val(pte) |= _PAGE_MODIFIED | _PAGE_SOFT_DIRTY;
- 	if (pte_val(pte) & _PAGE_WRITE)
- 		pte_val(pte) |= _PAGE_SILENT_WRITE;
- 	return pte;
-@@ -423,6 +423,30 @@ static inline pte_t pte_mkhuge(pte_t pte
- 	return pte;
+ 	pg_data_t *pgdat;
+ 	int ret = 1;
+@@ -949,7 +946,7 @@ static int __try_online_node(int nid, u6
+ 	if (node_online(nid))
+ 		return 0;
+ 
+-	pgdat = hotadd_new_pgdat(nid, start);
++	pgdat = hotadd_new_pgdat(nid);
+ 	if (!pgdat) {
+ 		pr_err("Cannot online node %d due to NULL pgdat\n", nid);
+ 		ret = -ENOMEM;
+@@ -973,7 +970,7 @@ int try_online_node(int nid)
+ 	int ret;
+ 
+ 	mem_hotplug_begin();
+-	ret =  __try_online_node(nid, 0, true);
++	ret =  __try_online_node(nid, true);
+ 	mem_hotplug_done();
+ 	return ret;
  }
- #endif /* CONFIG_MIPS_HUGE_TLB_SUPPORT */
-+
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
-+static inline bool pte_soft_dirty(pte_t pte)
-+{
-+	return pte_val(pte) & _PAGE_SOFT_DIRTY;
-+}
-+#define pte_swp_soft_dirty pte_soft_dirty
-+
-+static inline pte_t pte_mksoft_dirty(pte_t pte)
-+{
-+	pte_val(pte) |= _PAGE_SOFT_DIRTY;
-+	return pte;
-+}
-+#define pte_swp_mksoft_dirty pte_mksoft_dirty
-+
-+static inline pte_t pte_clear_soft_dirty(pte_t pte)
-+{
-+	pte_val(pte) &= ~(_PAGE_SOFT_DIRTY);
-+	return pte;
-+}
-+#define pte_swp_clear_soft_dirty pte_clear_soft_dirty
-+
-+#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
-+
- #endif
+@@ -1032,7 +1029,7 @@ int __ref add_memory_resource(int nid, s
+ 	 */
+ 	memblock_add_node(start, size, nid);
  
- /*
-@@ -576,7 +600,7 @@ static inline pmd_t pmd_mkclean(pmd_t pm
- 
- static inline pmd_t pmd_mkdirty(pmd_t pmd)
- {
--	pmd_val(pmd) |= _PAGE_MODIFIED;
-+	pmd_val(pmd) |= _PAGE_MODIFIED | _PAGE_SOFT_DIRTY;
- 	if (pmd_val(pmd) & _PAGE_WRITE)
- 		pmd_val(pmd) |= _PAGE_SILENT_WRITE;
- 
-@@ -605,6 +629,26 @@ static inline pmd_t pmd_mkyoung(pmd_t pm
- 	return pmd;
- }
- 
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
-+static inline int pmd_soft_dirty(pmd_t pmd)
-+{
-+	return !!(pmd_val(pmd) & _PAGE_SOFT_DIRTY);
-+}
-+
-+static inline pmd_t pmd_mksoft_dirty(pmd_t pmd)
-+{
-+	pmd_val(pmd) |= _PAGE_SOFT_DIRTY;
-+	return pmd;
-+}
-+
-+static inline pmd_t pmd_clear_soft_dirty(pmd_t pmd)
-+{
-+	pmd_val(pmd) &= ~(_PAGE_SOFT_DIRTY);
-+	return pmd;
-+}
-+
-+#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
-+
- /* Extern to avoid header file madness */
- extern pmd_t mk_pmd(struct page *page, pgprot_t prot);
- 
---- a/arch/mips/Kconfig~mips-mm-add-page-soft-dirty-tracking
-+++ a/arch/mips/Kconfig
-@@ -495,6 +495,7 @@ config MACH_LOONGSON64
- 	select COMMON_CLK
- 	select USE_OF
- 	select BUILTIN_DTB
-+	select HAVE_ARCH_SOFT_DIRTY
- 	help
- 	  This enables the support of Loongson-2/3 family of machines.
- 
+-	ret = __try_online_node(nid, start, false);
++	ret = __try_online_node(nid, false);
+ 	if (ret < 0)
+ 		goto error;
+ 	new_node = ret;
 _
 
-Patches currently in -mm which might be from sunguoyun@loongson.cn are
+Patches currently in -mm which might be from david@redhat.com are
 
-mips-mm-add-page-soft-dirty-tracking.patch
+mm-page_alloc-fix-watchdog-soft-lockups-during-set_zone_contiguous.patch
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
+powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable.patch
+mm-memory_hotplug-remove-is_mem_section_removable.patch
+mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
+mm-memory_hotplug-handle-memblocks-only-with-config_arch_keep_memblock.patch
