@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
- added to -mm tree
-Date: Thu, 23 Apr 2020 19:06:47 -0700
-Message-ID: <20200424020647.p5CpR1zfR%akpm@linux-foundation.org>
+ exec-simplify-the-copy_strings_kernel-calling-convention.patch added to -mm
+ tree
+Date: Thu, 23 Apr 2020 19:06:50 -0700
+Message-ID: <20200424020650.IYj59oEyn%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34422 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34464 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725884AbgDXCGu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 22:06:50 -0400
+        id S1725884AbgDXCGx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 22:06:53 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: arnd@arndb.de, benh@kernel.crashing.org, ebiederm@xmission.com, hch@lst.de, 
 
 
 The patch titled
-     Subject: binfmt_elf_fdpic: remove the set_fs(KERNEL_DS) in elf_fdpic_core_dump
+     Subject: exec: simplify the copy_strings_kernel calling convention
 has been added to the -mm tree.  Its filename is
-     binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
+     exec-simplify-the-copy_strings_kernel-calling-convention.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-simplify-the-copy_strings_kernel-calling-convention.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-simplify-the-copy_strings_kernel-calling-convention.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,15 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: binfmt_elf_fdpic: remove the set_fs(KERNEL_DS) in elf_fdpic_core_dump
+Subject: exec: simplify the copy_strings_kernel calling convention
 
-There is no logic in elf_fdpic_core_dump itself, or in the various arch
-helpers called from it which use uaccess routines on kernel pointers
-except for the file writes thate are nicely encapsulated by using
-__kernel_write in dump_emit.
+copy_strings_kernel is always used with a single argument, adjust the
+calling convention to that.
 
-Link: http://lkml.kernel.org/r/20200421154204.252921-6-hch@lst.de Signed-off-by:
-Christoph Hellwig <hch@lst.de>
+Link: http://lkml.kernel.org/r/20200421154204.252921-7-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -59,116 +57,128 @@ Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   31 ++++++++++++-------------------
- 1 file changed, 12 insertions(+), 19 deletions(-)
+ fs/binfmt_em86.c        |    6 +++---
+ fs/binfmt_misc.c        |    4 ++--
+ fs/binfmt_script.c      |    6 +++---
+ fs/exec.c               |   13 ++++++-------
+ include/linux/binfmts.h |    3 +--
+ 5 files changed, 15 insertions(+), 17 deletions(-)
 
---- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1549,7 +1549,6 @@ static int elf_fdpic_core_dump(struct co
+--- a/fs/binfmt_em86.c~exec-simplify-the-copy_strings_kernel-calling-convention
++++ a/fs/binfmt_em86.c
+@@ -68,15 +68,15 @@ static int load_em86(struct linux_binprm
+ 	 * user environment and arguments are stored.
+ 	 */
+ 	remove_arg_zero(bprm);
+-	retval = copy_strings_kernel(1, &bprm->filename, bprm);
++	retval = copy_string_kernel(bprm->filename, bprm);
+ 	if (retval < 0) return retval; 
+ 	bprm->argc++;
+ 	if (i_arg) {
+-		retval = copy_strings_kernel(1, &i_arg, bprm);
++		retval = copy_string_kernel(i_arg, bprm);
+ 		if (retval < 0) return retval; 
+ 		bprm->argc++;
+ 	}
+-	retval = copy_strings_kernel(1, &i_name, bprm);
++	retval = copy_string_kernel(i_name, bprm);
+ 	if (retval < 0)	return retval;
+ 	bprm->argc++;
+ 
+--- a/fs/binfmt_misc.c~exec-simplify-the-copy_strings_kernel-calling-convention
++++ a/fs/binfmt_misc.c
+@@ -190,13 +190,13 @@ static int load_misc_binary(struct linux
+ 		bprm->file = NULL;
+ 	}
+ 	/* make argv[1] be the path to the binary */
+-	retval = copy_strings_kernel(1, &bprm->interp, bprm);
++	retval = copy_string_kernel(bprm->interp, bprm);
+ 	if (retval < 0)
+ 		goto error;
+ 	bprm->argc++;
+ 
+ 	/* add the interp as argv[0] */
+-	retval = copy_strings_kernel(1, &fmt->interpreter, bprm);
++	retval = copy_string_kernel(fmt->interpreter, bprm);
+ 	if (retval < 0)
+ 		goto error;
+ 	bprm->argc++;
+--- a/fs/binfmt_script.c~exec-simplify-the-copy_strings_kernel-calling-convention
++++ a/fs/binfmt_script.c
+@@ -117,17 +117,17 @@ static int load_script(struct linux_binp
+ 	retval = remove_arg_zero(bprm);
+ 	if (retval)
+ 		return retval;
+-	retval = copy_strings_kernel(1, &bprm->interp, bprm);
++	retval = copy_string_kernel(bprm->interp, bprm);
+ 	if (retval < 0)
+ 		return retval;
+ 	bprm->argc++;
+ 	if (i_arg) {
+-		retval = copy_strings_kernel(1, &i_arg, bprm);
++		retval = copy_string_kernel(i_arg, bprm);
+ 		if (retval < 0)
+ 			return retval;
+ 		bprm->argc++;
+ 	}
+-	retval = copy_strings_kernel(1, &i_name, bprm);
++	retval = copy_string_kernel(i_name, bprm);
+ 	if (retval)
+ 		return retval;
+ 	bprm->argc++;
+--- a/fs/exec.c~exec-simplify-the-copy_strings_kernel-calling-convention
++++ a/fs/exec.c
+@@ -588,24 +588,23 @@ out:
+ }
+ 
+ /*
+- * Like copy_strings, but get argv and its values from kernel memory.
++ * Copy and argument/environment string from the kernel to the processes stack.
+  */
+-int copy_strings_kernel(int argc, const char *const *__argv,
+-			struct linux_binprm *bprm)
++int copy_string_kernel(const char *arg, struct linux_binprm *bprm)
  {
- #define	NUM_NOTES	6
- 	int has_dumped = 0;
--	mm_segment_t fs;
- 	int segs;
- 	int i;
- 	struct vm_area_struct *vma;
-@@ -1678,9 +1677,6 @@ static int elf_fdpic_core_dump(struct co
- 			  "LINUX", ELF_CORE_XFPREG_TYPE, sizeof(*xfpu), xfpu);
- #endif
+ 	int r;
+ 	mm_segment_t oldfs = get_fs();
+ 	struct user_arg_ptr argv = {
+-		.ptr.native = (const char __user *const  __user *)__argv,
++		.ptr.native = (const char __user *const  __user *)&arg,
+ 	};
  
--	fs = get_fs();
--	set_fs(KERNEL_DS);
--
- 	offset += sizeof(*elf);				/* Elf header */
- 	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
+ 	set_fs(KERNEL_DS);
+-	r = copy_strings(argc, argv, bprm);
++	r = copy_strings(1, argv, bprm);
+ 	set_fs(oldfs);
  
-@@ -1695,7 +1691,7 @@ static int elf_fdpic_core_dump(struct co
+ 	return r;
+ }
+-EXPORT_SYMBOL(copy_strings_kernel);
++EXPORT_SYMBOL(copy_string_kernel);
  
- 		phdr4note = kmalloc(sizeof(*phdr4note), GFP_KERNEL);
- 		if (!phdr4note)
--			goto end_coredump;
-+			goto cleanup;
+ #ifdef CONFIG_MMU
  
- 		fill_elf_note_phdr(phdr4note, sz, offset);
- 		offset += sz;
-@@ -1711,17 +1707,17 @@ static int elf_fdpic_core_dump(struct co
- 	if (e_phnum == PN_XNUM) {
- 		shdr4extnum = kmalloc(sizeof(*shdr4extnum), GFP_KERNEL);
- 		if (!shdr4extnum)
--			goto end_coredump;
-+			goto cleanup;
- 		fill_extnum_info(elf, shdr4extnum, e_shoff, segs);
- 	}
+@@ -1863,7 +1862,7 @@ static int __do_execve_file(int fd, stru
+ 	if (retval < 0)
+ 		goto out;
  
- 	offset = dataoff;
+-	retval = copy_strings_kernel(1, &bprm->filename, bprm);
++	retval = copy_string_kernel(bprm->filename, bprm);
+ 	if (retval < 0)
+ 		goto out;
  
- 	if (!dump_emit(cprm, elf, sizeof(*elf)))
--		goto end_coredump;
-+		goto cleanup;
- 
- 	if (!dump_emit(cprm, phdr4note, sizeof(*phdr4note)))
--		goto end_coredump;
-+		goto cleanup;
- 
- 	/* write program headers for segments dump */
- 	for (vma = current->mm->mmap; vma; vma = vma->vm_next) {
-@@ -1745,16 +1741,16 @@ static int elf_fdpic_core_dump(struct co
- 		phdr.p_align = ELF_EXEC_PAGESIZE;
- 
- 		if (!dump_emit(cprm, &phdr, sizeof(phdr)))
--			goto end_coredump;
-+			goto cleanup;
- 	}
- 
- 	if (!elf_core_write_extra_phdrs(cprm, offset))
--		goto end_coredump;
-+		goto cleanup;
- 
-  	/* write out the notes section */
- 	for (i = 0; i < numnote; i++)
- 		if (!writenote(notes + i, cprm))
--			goto end_coredump;
-+			goto cleanup;
- 
- 	/* write out the thread status notes section */
- 	list_for_each(t, &thread_list) {
-@@ -1763,21 +1759,21 @@ static int elf_fdpic_core_dump(struct co
- 
- 		for (i = 0; i < tmp->num_notes; i++)
- 			if (!writenote(&tmp->notes[i], cprm))
--				goto end_coredump;
-+				goto cleanup;
- 	}
- 
- 	if (!dump_skip(cprm, dataoff - cprm->pos))
--		goto end_coredump;
-+		goto cleanup;
- 
- 	if (!elf_fdpic_dump_segments(cprm))
--		goto end_coredump;
-+		goto cleanup;
- 
- 	if (!elf_core_write_extra_data(cprm))
--		goto end_coredump;
-+		goto cleanup;
- 
- 	if (e_phnum == PN_XNUM) {
- 		if (!dump_emit(cprm, shdr4extnum, sizeof(*shdr4extnum)))
--			goto end_coredump;
-+			goto cleanup;
- 	}
- 
- 	if (cprm->file->f_pos != offset) {
-@@ -1787,9 +1783,6 @@ static int elf_fdpic_core_dump(struct co
- 		       cprm->file->f_pos, offset);
- 	}
- 
--end_coredump:
--	set_fs(fs);
--
- cleanup:
- 	while (!list_empty(&thread_list)) {
- 		struct list_head *tmp = thread_list.next;
+--- a/include/linux/binfmts.h~exec-simplify-the-copy_strings_kernel-calling-convention
++++ a/include/linux/binfmts.h
+@@ -144,8 +144,7 @@ extern int setup_arg_pages(struct linux_
+ extern int transfer_args_to_stack(struct linux_binprm *bprm,
+ 				  unsigned long *sp_location);
+ extern int bprm_change_interp(const char *interp, struct linux_binprm *bprm);
+-extern int copy_strings_kernel(int argc, const char *const *argv,
+-			       struct linux_binprm *bprm);
++int copy_string_kernel(const char *arg, struct linux_binprm *bprm);
+ extern void install_exec_creds(struct linux_binprm *bprm);
+ extern void set_binfmt(struct linux_binfmt *new);
+ extern ssize_t read_code(struct file *, unsigned long, loff_t, size_t);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
