@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + exec-open-code-copy_string_kernel.patch added to -mm
+Subject: +
+ add-kernel-config-option-for-twisting-kernel-behavior.patch added to -mm
  tree
-Date: Thu, 23 Apr 2020 19:06:53 -0700
-Message-ID: <20200424020653.0UkAvl8TI%akpm@linux-foundation.org>
+Date: Thu, 23 Apr 2020 20:24:12 -0700
+Message-ID: <20200424032412.NWp8IKnFW%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34496 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725884AbgDXCG4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Apr 2020 22:06:56 -0400
+        id S1725884AbgDXDYP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Apr 2020 23:24:15 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, benh@kernel.crashing.org, ebiederm@xmission.com, hch@lst.de, jk@ozlabs.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, viro@zeniv.linux.org.uk
+To: ak@linux.intel.com, arnd@arndb.de, dvyukov@google.com, gregkh@linuxfoundation.org, jslaby@suse.com, mjg59@google.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, peterz@infradead.org, pmladek@suse.com, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, tytso@mit.edu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: exec: open code copy_string_kernel
+     Subject: add kernel config option for twisting kernel behavior.
 has been added to the -mm tree.  Its filename is
-     exec-open-code-copy_string_kernel.patch
+     add-kernel-config-option-for-twisting-kernel-behavior.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-open-code-copy_string_kernel.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/add-kernel-config-option-for-twisting-kernel-behavior.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-open-code-copy_string_kernel.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/add-kernel-config-option-for-twisting-kernel-behavior.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,127 +39,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: exec: open code copy_string_kernel
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: add kernel config option for twisting kernel behavior.
 
-Currently copy_string_kernel is just a wrapper around copy_strings that
-simplifies the calling conventions and uses set_fs to allow passing a
-kernel pointer.  But due to the fact the we only need to handle a single
-kernel argument pointer, the logic can be sigificantly simplified while
-getting rid of the set_fs.
+Existing kernel config options are defined based on "whether you want to
+enable this module/feature or not". And such granularity is sometimes
+too rough-grained for fuzzing tools which try to find bugs inside each
+module/feature.
 
-Link: http://lkml.kernel.org/r/20200421154204.252921-8-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+While syzkaller (one of fuzzing tools) is finding many bugs, sometimes
+syzkaller examines stupid operations. Some examples of such operations
+are: changing console loglevel which in turn makes it impossible to get
+kernel messages when a crash happens, freezing filesystems which in turn
+causes khungtaskd to needlessly complain, programmatically sending
+Ctrl-Alt-Del which in turn causes the system to needlessly reboot.
+Currently we prevent syzkaller from examining stupid operations by
+blacklisting syscall arguments and/or disabling whole functionality
+using existing kernel config options. But such approach is difficult to
+maintain and needlessly prevents fuzzers from testing kernel code. [1]
+
+We want fuzzers to test as much coverage as possible while we want
+fuzzers not to try stupid operations. To achieve this goal, we want
+cooperation from kernel side, and build-time branching (i.e. kernel
+config options) will be the simplest and the most reliable.
+
+Therefore, this patch introduces a kernel config option which allows
+selecting fine-grained kernel config options for twisting kernel's
+behavior. Each fine-grained kernel config option will be added by future
+patches. For ease of management, grouping kernel config options for
+allowing e.g. syzkaller to select all fine-grained kernel config options
+which e.g. syzkaller wants would be added by future patches.
+
+[1] https://lkml.kernel.org/r/CACT4Y+a6KExbggs4mg8pvoD554PcDqQNW4sM15X-tc=YONCzYw@mail.gmail.com
+
+Link: http://lkml.kernel.org/r/20200421131951.4948-1-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Matthew Garrett <mjg59@google.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: "Theodore Y . Ts'o" <tytso@mit.edu>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Jeremy Kerr <jk@ozlabs.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jiri Slaby <jslaby@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   45 +++++++++++++++++++++++++++++++++++----------
- 1 file changed, 35 insertions(+), 10 deletions(-)
+ lib/Kconfig.debug |    2 ++
+ lib/Kconfig.twist |   13 +++++++++++++
+ 2 files changed, 15 insertions(+)
 
---- a/fs/exec.c~exec-open-code-copy_string_kernel
-+++ a/fs/exec.c
-@@ -592,17 +592,42 @@ out:
-  */
- int copy_string_kernel(const char *arg, struct linux_binprm *bprm)
- {
--	int r;
--	mm_segment_t oldfs = get_fs();
--	struct user_arg_ptr argv = {
--		.ptr.native = (const char __user *const  __user *)&arg,
--	};
--
--	set_fs(KERNEL_DS);
--	r = copy_strings(1, argv, bprm);
--	set_fs(oldfs);
-+	int len = strnlen(arg, MAX_ARG_STRLEN) + 1 /* terminating NUL */;
-+	unsigned long pos = bprm->p;
+--- a/lib/Kconfig.debug~add-kernel-config-option-for-twisting-kernel-behavior
++++ a/lib/Kconfig.debug
+@@ -2277,4 +2277,6 @@ config HYPERV_TESTING
  
--	return r;
-+	if (len == 0)
-+		return -EFAULT;
-+	if (!valid_arg_len(bprm, len))
-+		return -E2BIG;
-+
-+	/* We're going to work our way backwards. */
-+	arg += len;
-+	bprm->p -= len;
-+	if (IS_ENABLED(CONFIG_MMU) && bprm->p < bprm->argmin)
-+		return -E2BIG;
-+
-+	while (len > 0) {
-+		unsigned int bytes_to_copy = min_t(unsigned int, len,
-+				min_not_zero(offset_in_page(pos), PAGE_SIZE));
-+		struct page *page;
-+		char *kaddr;
-+
-+		pos -= bytes_to_copy;
-+		arg -= bytes_to_copy;
-+		len -= bytes_to_copy;
-+
-+		page = get_arg_page(bprm, pos, 1);
-+		if (!page)
-+			return -E2BIG;
-+		kaddr = kmap_atomic(page);
-+		flush_arg_page(bprm, pos & PAGE_MASK, page);
-+		memcpy(kaddr + offset_in_page(pos), arg, bytes_to_copy);
-+		flush_kernel_dcache_page(page);
-+		kunmap_atomic(kaddr);
-+		put_arg_page(page);
-+	}
-+
-+	return 0;
- }
- EXPORT_SYMBOL(copy_string_kernel);
+ endmenu # "Kernel Testing and Coverage"
  
++source "lib/Kconfig.twist"
++
+ endmenu # Kernel hacking
+--- /dev/null
++++ a/lib/Kconfig.twist
+@@ -0,0 +1,13 @@
++menuconfig TWIST_KERNEL_BEHAVIOR
++	bool "Twist kernel behavior"
++	help
++	  Saying Y here allows modifying kernel behavior via kernel
++	  config options which will become visible by selecting this
++	  config option. Since these kernel config options are intended
++	  for helping e.g. fuzz testing, behavior twisted by this kernel
++	  option might be unstable. Userspace applications should not
++	  count on this option being selected.
++
++if TWIST_KERNEL_BEHAVIOR
++
++endif # TWIST_KERNEL_BEHAVIOR
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-x86-hyperv-use-vmalloc_exec-for-the-hypercall-page.patch
-x86-fix-vmap-arguments-in-map_irq_stack.patch
-staging-android-ion-use-vmap-instead-of-vm_map_ram.patch
-staging-media-ipu3-use-vmap-instead-of-reimplementing-it.patch
-dma-mapping-use-vmap-insted-of-reimplementing-it.patch
-powerpc-add-an-ioremap_phb-helper.patch
-powerpc-remove-__ioremap_at-and-__iounmap_at.patch
-mm-remove-__get_vm_area.patch
-mm-unexport-unmap_kernel_range_noflush.patch
-mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping.patch
-mm-only-allow-page-table-mappings-for-built-in-zsmalloc.patch
-mm-pass-addr-as-unsigned-long-to-vb_free.patch
-mm-remove-vmap_page_range_noflush-and-vunmap_page_range.patch
-mm-rename-vmap_page_range-to-map_kernel_range.patch
-mm-dont-return-the-number-of-pages-from-map_kernel_range_noflush.patch
-mm-remove-map_vm_range.patch
-mm-remove-unmap_vmap_area.patch
-mm-remove-the-prot-argument-from-vm_map_ram.patch
-mm-enforce-that-vmap-cant-map-pages-executable.patch
-gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc.patch
-mm-remove-the-pgprot-argument-to-__vmalloc.patch
-mm-remove-the-prot-argument-to-__vmalloc_node.patch
-mm-remove-both-instances-of-__vmalloc_node_flags.patch
-mm-remove-__vmalloc_node_flags_caller.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
-mm-remove-vmalloc_user_node_flags.patch
-arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack.patch
-powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
-s390-use-__vmalloc_node-in-stack_alloc.patch
-powerpc-spufs-simplify-spufs-core-dumping.patch
-binfmt_elf-remove-the-set_fskernel_ds-in-elf_core_dump.patch
-binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
-exec-simplify-the-copy_strings_kernel-calling-convention.patch
-exec-open-code-copy_string_kernel.patch
-amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
-i915-gvt-remove-unused-xen-bits.patch
-kernel-move-use_mm-unuse_mm-to-kthreadc.patch
-kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
-kernel-set-user_ds-in-kthread_use_mm.patch
+info-task-hung-in-generic_file_write_iter.patch
+info-task-hung-in-generic_file_write-fix.patch
+add-kernel-config-option-for-twisting-kernel-behavior.patch
+twist-allow-disabling-k_spec-function-in-drivers-tty-vt-keyboardc.patch
+twist-add-option-for-selecting-twist-options-for-syzkallers-testing.patch
