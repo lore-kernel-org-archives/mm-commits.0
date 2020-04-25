@@ -1,31 +1,27 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch added to
- -mm tree
-Date: Fri, 24 Apr 2020 16:36:50 -0700
-Message-ID: <20200424233650.rSEYsmw2T%akpm@linux-foundation.org>
-References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Sat, 25 Apr 2020 15:55:19 -0700
+Message-ID: <20200425225519.RFookTy27%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46994 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50848 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725874AbgDXXgw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Apr 2020 19:36:52 -0400
-In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
+        id S1726232AbgDYWzV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 25 Apr 2020 18:55:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, bhe@redhat.com, david@redhat.com, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pankaj.gupta.linux@gmail.com, rppt@linux.ibm.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: set node_start_pfn of hotadded pgdat to 0
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,131 +35,157 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: set node_start_pfn of hotadded pgdat to 0
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Patch series "mm/memory_hotplug: handle memblocks only with
-CONFIG_ARCH_KEEP_MEMBLOCK", v1.
-
-A hotadded node/pgdat will span no pages at all, until memory is moved to
-the zone/node via move_pfn_range_to_zone() -> resize_pgdat_range - e.g.,
-when onlining memory blocks.  We don't have to initialize the
-node_start_pfn to the memory we are adding.
-
-
-This patch (of 2):
-
-Especially, there is an inconsistency:
-- Hotplugging memory to a memory-less node with cpus: node_start_pf ==  0
-- Offlining and removing last memory from a node: node_start_pfn == 0
-- Hotplugging memory to a memory-less node without cpus: node_start_pfn != 0
-
-As soon as memory is onlined, node_start_pfn is overwritten with the
-actual start.  E.g., when adding two DIMMs but only onlining one of both,
-only that DIMM (with online memory blocks) is spanned by the node.
-
-Currently, the validity of node_start_pfn really is linked to
-node_spanned_pages != 0.  With node_spanned_pages == 0 (e.g., before
-onlining memory), it has no meaning.
-
-So let's stop setting node_start_pfn, just to be overwritten via
-move_pfn_range_to_zone().  This avoids confusion when looking at the code,
-wondering which magic will be performed with the node_start_pfn in this
-function, when hotadding a pgdat.
-
-Link: http://lkml.kernel.org/r/20200422155353.25381-1-david@redhat.com
-Link: http://lkml.kernel.org/r/20200422155353.25381-2-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c  |    3 -
+ drivers/gpu/drm/i915/display/intel_display_power.c |   24 -----------
+ drivers/gpu/drm/tidss/tidss_encoder.c              |   14 ------
+ 3 files changed, 41 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0
-+++ a/mm/memory_hotplug.c
-@@ -862,10 +862,9 @@ static void reset_node_present_pages(pg_
- }
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -4748,8 +4748,6 @@ amdgpu_dm_connector_late_register(struct
+ 	struct amdgpu_dm_connector *amdgpu_dm_connector =
+ 		to_amdgpu_dm_connector(connector);
+ 	int r;
+-<<<<<<< HEAD
+-=======
  
- /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
--static pg_data_t __ref *hotadd_new_pgdat(int nid, u64 start)
-+static pg_data_t __ref *hotadd_new_pgdat(int nid)
+ 	if ((connector->connector_type == DRM_MODE_CONNECTOR_DisplayPort) ||
+ 	    (connector->connector_type == DRM_MODE_CONNECTOR_eDP)) {
+@@ -4758,7 +4756,6 @@ amdgpu_dm_connector_late_register(struct
+ 		if (r)
+ 			return r;
+ 	}
+->>>>>>> linux-next/akpm-base
+ 
+ 	if ((connector->connector_type == DRM_MODE_CONNECTOR_DisplayPort) ||
+ 	    (connector->connector_type == DRM_MODE_CONNECTOR_eDP)) {
+--- a/drivers/gpu/drm/i915/display/intel_display_power.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/display/intel_display_power.c
+@@ -4188,11 +4188,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX D TBT1",
+ 		.domains = TGL_AUX_D_TBT1_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+@@ -4203,11 +4199,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX E TBT2",
+ 		.domains = TGL_AUX_E_TBT2_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+@@ -4218,11 +4210,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX F TBT3",
+ 		.domains = TGL_AUX_F_TBT3_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+@@ -4233,11 +4221,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX G TBT4",
+ 		.domains = TGL_AUX_G_TBT4_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+@@ -4248,11 +4232,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX H TBT5",
+ 		.domains = TGL_AUX_H_TBT5_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+@@ -4263,11 +4243,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX I TBT6",
+ 		.domains = TGL_AUX_I_TBT6_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+--- a/drivers/gpu/drm/tidss/tidss_encoder.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/tidss/tidss_encoder.c
+@@ -66,13 +66,6 @@ static const struct drm_encoder_helper_f
+ 	.atomic_check = tidss_encoder_atomic_check,
+ };
+ 
+-<<<<<<< HEAD
+-static const struct drm_encoder_funcs encoder_funcs = {
+-	.destroy = tidss_encoder_destroy,
+-};
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ struct drm_encoder *tidss_encoder_create(struct tidss_device *tidss,
+ 					 u32 encoder_type, u32 possible_crtcs)
  {
- 	struct pglist_data *pgdat;
--	unsigned long start_pfn = PFN_DOWN(start);
+@@ -85,15 +78,8 @@ struct drm_encoder *tidss_encoder_create
  
- 	pgdat = NODE_DATA(nid);
- 	if (!pgdat) {
-@@ -895,9 +894,8 @@ static pg_data_t __ref *hotadd_new_pgdat
+ 	enc->possible_crtcs = possible_crtcs;
+ 
+-<<<<<<< HEAD
+-	ret = drm_encoder_init(&tidss->ddev, enc, &encoder_funcs,
+-			       encoder_type, NULL);
+-	if (ret < 0) {
+-		kfree(enc);
+-=======
+ 	ret = drm_simple_encoder_init(&tidss->ddev, enc, encoder_type);
+ 	if (ret < 0)
+->>>>>>> linux-next/akpm-base
+ 		return ERR_PTR(ret);
  	}
  
- 	/* we can use NODE_DATA(nid) from here */
--
- 	pgdat->node_id = nid;
--	pgdat->node_start_pfn = start_pfn;
-+	pgdat->node_start_pfn = 0;
- 
- 	/* init node's zones as empty zones, we don't have any present pages.*/
- 	free_area_init_core_hotplug(nid);
-@@ -932,7 +930,6 @@ static void rollback_node_hotadd(int nid
- /**
-  * try_online_node - online a node if offlined
-  * @nid: the node ID
-- * @start: start addr of the node
-  * @set_node_online: Whether we want to online the node
-  * called by cpu_up() to online a node without onlined memory.
-  *
-@@ -941,7 +938,7 @@ static void rollback_node_hotadd(int nid
-  * 0 -> the node is already online
-  * -ENOMEM -> the node could not be allocated
-  */
--static int __try_online_node(int nid, u64 start, bool set_node_online)
-+static int __try_online_node(int nid, bool set_node_online)
- {
- 	pg_data_t *pgdat;
- 	int ret = 1;
-@@ -949,7 +946,7 @@ static int __try_online_node(int nid, u6
- 	if (node_online(nid))
- 		return 0;
- 
--	pgdat = hotadd_new_pgdat(nid, start);
-+	pgdat = hotadd_new_pgdat(nid);
- 	if (!pgdat) {
- 		pr_err("Cannot online node %d due to NULL pgdat\n", nid);
- 		ret = -ENOMEM;
-@@ -973,7 +970,7 @@ int try_online_node(int nid)
- 	int ret;
- 
- 	mem_hotplug_begin();
--	ret =  __try_online_node(nid, 0, true);
-+	ret =  __try_online_node(nid, true);
- 	mem_hotplug_done();
- 	return ret;
- }
-@@ -1032,7 +1029,7 @@ int __ref add_memory_resource(int nid, s
- 	 */
- 	memblock_add_node(start, size, nid);
- 
--	ret = __try_online_node(nid, start, false);
-+	ret = __try_online_node(nid, false);
- 	if (ret < 0)
- 		goto error;
- 	new_node = ret;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-fix-watchdog-soft-lockups-during-set_zone_contiguous.patch
-drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
-powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable.patch
-mm-memory_hotplug-remove-is_mem_section_removable.patch
-mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
-mm-memory_hotplug-handle-memblocks-only-with-config_arch_keep_memblock.patch
+mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes.patch
+linux-next-fix.patch
+linux-next-git-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
