@@ -2,17 +2,17 @@ From: akpm@linux-foundation.org
 Subject: +
  mm-vmscan-count-layzfree-pages-and-fix-nr_isolated_-mismatch.patch added to
  -mm tree
-Date: Sat, 25 Apr 2020 20:04:01 -0700
-Message-ID: <20200426030401.QEQH841FI%akpm@linux-foundation.org>
+Date: Sat, 25 Apr 2020 20:04:40 -0700
+Message-ID: <20200426030440.r7jzhNvoi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59926 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60352 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726090AbgDZDEE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 25 Apr 2020 23:04:04 -0400
+        id S1726100AbgDZDEn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 25 Apr 2020 23:04:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaewon31.kim@samsung.com, minchan@kernel.org, mm-commits@vger.kernel.org, ytk.lee@samsung.com
+To: hannes@cmpxchg.org, jaewon31.kim@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org, shli@fb.com, ytk.lee@samsung.com
 
 
 The patch titled
@@ -82,6 +82,11 @@ Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
 Reported-by: Yong-Taek Lee <ytk.lee@samsung.com>
 Suggested-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Shaohua Li <shli@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
