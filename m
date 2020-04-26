@@ -1,27 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects-fix.patch added to -mm tree
-Date: Sat, 25 Apr 2020 23:53:39 -0700
-Message-ID: <20200426065339.j6aIMJyZ9%akpm@linux-foundation.org>
+Subject: + mm-pass-task-and-mm-to-do_madvise-fix-fix-fix.patch
+ added to -mm tree
+Date: Sat, 25 Apr 2020 23:54:07 -0700
+Message-ID: <20200426065407.uRUZ4F2dw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55694 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55886 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725864AbgDZGxk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 26 Apr 2020 02:53:40 -0400
+        id S1725864AbgDZGyJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 26 Apr 2020 02:54:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@kernel.dk, jannh@google.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects-fix
+     Subject: mm-pass-task-and-mm-to-do_madvise-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects-fix.patch
+     mm-pass-task-and-mm-to-do_madvise-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pass-task-and-mm-to-do_madvise-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pass-task-and-mm-to-do_madvise-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,25 +37,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects-fix
+Subject: mm-pass-task-and-mm-to-do_madvise-fix-fix-fix
 
+whoops
+
+Cc: Jann Horn <jannh@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/tidss/tidss_encoder.c |    2 +-
+ mm/madvise.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/tidss/tidss_encoder.c~linux-next-git-rejects-fix
-+++ a/drivers/gpu/drm/tidss/tidss_encoder.c
-@@ -79,7 +79,7 @@ struct drm_encoder *tidss_encoder_create
- 	enc->possible_crtcs = possible_crtcs;
- 
- 	ret = drm_simple_encoder_init(&tidss->ddev, enc, encoder_type);
--	if (ret < 0)
-+	if (ret < 0) {
- 		return ERR_PTR(ret);
- 	}
- 
+--- a/mm/madvise.c~mm-pass-task-and-mm-to-do_madvise-fix-fix-fix
++++ a/mm/madvise.c
+@@ -1143,7 +1143,7 @@ int do_madvise(struct task_struct *targe
+ 		 * model.
+ 		 */
+ 		if (!mmget_still_valid(mm)) {
+-			up_write(mm->mmap_sem);
++			up_write(&mm->mmap_sem);
+ 			return -EINTR;
+ 		}
+ 	} else {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
