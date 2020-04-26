@@ -1,108 +1,197 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch added to -mm
- tree
-Date: Sat, 25 Apr 2020 18:06:12 -0700
-Message-ID: <20200426010612.41jaMSYBW%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Sat, 25 Apr 2020 18:09:38 -0700
+Message-ID: <20200426010938.RoAeKoGN-%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41350 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42980 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725962AbgDZBGO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 25 Apr 2020 21:06:14 -0400
+        id S1725962AbgDZBJj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 25 Apr 2020 21:09:39 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, will@kernel.org, zong.li@sifive.com
+To: akpm@linux-foundation.org, bp@alien8.de, hpa@zytor.com, mingo@redhat.com, mjg59@google.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, rminnich@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: arm64: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
-has been added to the -mm tree.  Its filename is
-     arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
+     Subject: initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into initrdmem=-option-to-specify-initrd-physical-address.patch
 
 ------------------------------------------------------
-From: Zong Li <zong.li@sifive.com>
-Subject: arm64: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes
 
-Extract DEBUG_WX to mm/Kconfig.debug for shared use.  Change to use
-ARCH_HAS_DEBUG_WX instead of DEBUG_WX defined by arch port.
-
-Link: http://lkml.kernel.org/r/e19709e7576f65e303245fe520cad5f7bae72763.1587455584.git.zong.li@sifive.com
-Signed-off-by: Zong Li <zong.li@sifive.com>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+
+WARNING: 'adddress' may be misspelled - perhaps 'address'?
+#64: FILE: Documentation/admin-guide/kernel-parameters.txt:1717:
++    initrdmem=    [KNL] Specify a physical adddress and size from which
+
+WARNING: please, no spaces at the start of a line
+#82: FILE: arch/x86/kernel/setup.c:240:
++    if (ramdisk_image == 0) {$
+
+WARNING: braces {} are not necessary for single statement blocks
+#82: FILE: arch/x86/kernel/setup.c:240:
++    if (ramdisk_image == 0) {
++        ramdisk_image = phys_initrd_start;
++    }
+
+ERROR: code indent should use tabs where possible
+#83: FILE: arch/x86/kernel/setup.c:241:
++        ramdisk_image = phys_initrd_start;$
+
+WARNING: please, no spaces at the start of a line
+#83: FILE: arch/x86/kernel/setup.c:241:
++        ramdisk_image = phys_initrd_start;$
+
+WARNING: please, no spaces at the start of a line
+#84: FILE: arch/x86/kernel/setup.c:242:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#92: FILE: arch/x86/kernel/setup.c:251:
++    if (ramdisk_size == 0) {$
+
+WARNING: braces {} are not necessary for single statement blocks
+#92: FILE: arch/x86/kernel/setup.c:251:
++    if (ramdisk_size == 0) {
++        ramdisk_size = phys_initrd_size;
++    }
+
+ERROR: code indent should use tabs where possible
+#93: FILE: arch/x86/kernel/setup.c:252:
++        ramdisk_size = phys_initrd_size;$
+
+WARNING: please, no spaces at the start of a line
+#93: FILE: arch/x86/kernel/setup.c:252:
++        ramdisk_size = phys_initrd_size;$
+
+WARNING: please, no spaces at the start of a line
+#94: FILE: arch/x86/kernel/setup.c:253:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#124: FILE: init/do_mounts_initrd.c:55:
++    return early_initrdmem(p);$
+
+WARNING: Missing Signed-off-by: line by nominal patch author 'ron minnich <rminnich@gmail.com>'
+
+total: 2 errors, 11 warnings, 56 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/initrdmem=-option-to-specify-initrd-physical-address.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: H. Peter Anvin (Intel) <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Matthew Garrett <mjg59@google.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Ronald G. Minnich <rminnich@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig       |    1 +
- arch/arm64/Kconfig.debug |   29 -----------------------------
- 2 files changed, 1 insertion(+), 29 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |   12 ++++++------
+ arch/x86/kernel/setup.c                         |   12 ++++++------
+ init/do_mounts_initrd.c                         |    2 +-
+ 3 files changed, 13 insertions(+), 13 deletions(-)
 
---- a/arch/arm64/Kconfig~arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined
-+++ a/arch/arm64/Kconfig
-@@ -9,6 +9,7 @@ config ARM64
- 	select ACPI_MCFG if (ACPI && PCI)
- 	select ACPI_SPCR_TABLE if ACPI
- 	select ACPI_PPTT if ACPI
-+	select ARCH_HAS_DEBUG_WX
- 	select ARCH_HAS_DEBUG_VIRTUAL
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_DMA_PREP_COHERENT
---- a/arch/arm64/Kconfig.debug~arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined
-+++ a/arch/arm64/Kconfig.debug
-@@ -23,35 +23,6 @@ config ARM64_RANDOMIZE_TEXT_OFFSET
- 	  of TEXT_OFFSET and platforms must not require a specific
- 	  value.
+--- a/arch/x86/kernel/setup.c~initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes
++++ a/arch/x86/kernel/setup.c
+@@ -237,9 +237,9 @@ static u64 __init get_ramdisk_image(void
  
--config DEBUG_WX
--	bool "Warn on W+X mappings at boot"
--	select PTDUMP_CORE
--	---help---
--	  Generate a warning if any W+X mappings are found at boot.
--
--	  This is useful for discovering cases where the kernel is leaving
--	  W+X mappings after applying NX, as such mappings are a security risk.
--	  This check also includes UXN, which should be set on all kernel
--	  mappings.
--
--	  Look for a message in dmesg output like this:
--
--	    arm64/mm: Checked W+X mappings: passed, no W+X pages found.
--
--	  or like this, if the check failed:
--
--	    arm64/mm: Checked W+X mappings: FAILED, <N> W+X pages found.
--
--	  Note that even if the check fails, your kernel is possibly
--	  still fine, as W+X mappings are not a security hole in
--	  themselves, what they do is that they make the exploitation
--	  of other unfixed kernel bugs easier.
--
--	  There is no runtime or memory usage effect of this option
--	  once the kernel has booted up - it's a one time check.
--
--	  If in doubt, say "Y".
+ 	ramdisk_image |= (u64)boot_params.ext_ramdisk_image << 32;
+ 
+-    if (ramdisk_image == 0) {
+-        ramdisk_image = phys_initrd_start;
+-    }
++	if (ramdisk_image == 0)
++		ramdisk_image = phys_initrd_start;
++
+ 	return ramdisk_image;
+ }
+ static u64 __init get_ramdisk_size(void)
+@@ -248,9 +248,9 @@ static u64 __init get_ramdisk_size(void)
+ 
+ 	ramdisk_size |= (u64)boot_params.ext_ramdisk_size << 32;
+ 
+-    if (ramdisk_size == 0) {
+-        ramdisk_size = phys_initrd_size;
+-    }
++	if (ramdisk_size == 0)
++		ramdisk_size = phys_initrd_size;
++
+ 	return ramdisk_size;
+ }
+ 
+--- a/Documentation/admin-guide/kernel-parameters.txt~initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1762,12 +1762,12 @@
+ 
+ 	initrd=		[BOOT] Specify the location of the initial ramdisk
+ 
+-    initrdmem=    [KNL] Specify a physical adddress and size from which
+-            to load the initrd. If an initrd is compiled in or
+-            specified in the bootparams, it takes priority
+-            over this setting.
+-            Format: ss[KMG],nn[KMG]
+-            Default is 0, 0
++	initrdmem=	[KNL] Specify a physical address and size from which to
++			load the initrd. If an initrd is compiled in or
++			specified in the bootparams, it takes priority over this
++			setting.
++			Format: ss[KMG],nn[KMG]
++			Default is 0, 0
+ 
+ 	init_on_alloc=	[MM] Fill newly allocated pages and heap objects with
+ 			zeroes.
+--- a/init/do_mounts_initrd.c~initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes
++++ a/init/do_mounts_initrd.c
+@@ -52,7 +52,7 @@ early_param("initrdmem", early_initrdmem
+  */
+ static int __init early_initrd(char *p)
+ {
+-    return early_initrdmem(p);
++	return early_initrdmem(p);
+ }
+ early_param("initrd", early_initrd);
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+initrdmem=-option-to-specify-initrd-physical-address.patch
+linux-next-fix.patch
+linux-next-git-rejects.patch
+mm-pass-task-and-mm-to-do_madvise-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
