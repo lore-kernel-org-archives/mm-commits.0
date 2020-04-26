@@ -1,31 +1,29 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4.patch
- added to -mm tree
-Date: Sat, 25 Apr 2020 17:41:25 -0700
-Message-ID: <20200426004125.1bhIymrmK%akpm@linux-foundation.org>
+Subject: + checkpatch-test-git_dir-changes.patch added to -mm tree
+Date: Sat, 25 Apr 2020 17:48:49 -0700
+Message-ID: <20200426004849.RQUShjn30%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55968 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725962AbgDZAl0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 25 Apr 2020 20:41:26 -0400
+        id S1725962AbgDZAsu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 25 Apr 2020 20:48:50 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, danielmicay@gmail.com, davidgow@google.com, dja@axtens.net, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4
+     Subject: checkpatch: test $GIT_DIR changes
 has been added to the -mm tree.  Its filename is
-     kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4.patch
+     checkpatch-test-git_dir-changes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-test-git_dir-changes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-test-git_dir-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +37,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Axtens <dja@axtens.net>
-Subject: kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: test $GIT_DIR changes
 
-drop patch 3
+Link: http://lkml.kernel.org/r/318ca0e0c755cc31c288d7f8769817da4dc60bda.camel@perches.com
 
-Link: http://lkml.kernel.org/r/20200424145521.8203-2-dja@axtens.net
-Fixes: 0c96350a2d2f ("lib/test_kasan.c: add tests for several string/memory API functions")
-Signed-off-by: Daniel Axtens <dja@axtens.net>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Tested-by: David Gow <davidgow@google.com>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/lib/test_kasan.c~kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4
-+++ a/lib/test_kasan.c
-@@ -645,6 +645,7 @@ static noinline void __init kasan_memcmp
- 	if (!ptr)
- 		return;
+--- a/scripts/checkpatch.pl~checkpatch-test-git_dir-changes
++++ a/scripts/checkpatch.pl
+@@ -43,6 +43,8 @@ my $list_types = 0;
+ my $fix = 0;
+ my $fix_inplace = 0;
+ my $root;
++my $gitroot = $ENV{'GIT_DIR'};
++$gitroot = ".git" if !defined($gitroot);
+ my %debug;
+ my %camelcase = ();
+ my %use_type = ();
+@@ -897,7 +899,7 @@ sub is_maintained_obsolete {
+ sub is_SPDX_License_valid {
+ 	my ($license) = @_;
  
-+	memset(arr, 0, sizeof(arr));
- 	kasan_int_result = memcmp(ptr, arr, size + 1);
- 	kfree(ptr);
- }
+-	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$root/.git"));
++	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$gitroot"));
+ 
+ 	my $root_path = abs_path($root);
+ 	my $status = `cd "$root_path"; echo "$license" | python scripts/spdxcheck.py -`;
+@@ -915,7 +917,7 @@ sub seed_camelcase_includes {
+ 
+ 	$camelcase_seeded = 1;
+ 
+-	if (-e ".git") {
++	if (-e "$gitroot") {
+ 		my $git_last_include_commit = `${git_command} log --no-merges --pretty=format:"%h%n" -1 -- include`;
+ 		chomp $git_last_include_commit;
+ 		$camelcase_cache = ".checkpatch-camelcase.git.$git_last_include_commit";
+@@ -943,7 +945,7 @@ sub seed_camelcase_includes {
+ 		return;
+ 	}
+ 
+-	if (-e ".git") {
++	if (-e "$gitroot") {
+ 		$files = `${git_command} ls-files "include/*.h"`;
+ 		@include_files = split('\n', $files);
+ 	}
+@@ -966,7 +968,7 @@ sub seed_camelcase_includes {
+ sub git_commit_info {
+ 	my ($commit, $id, $desc) = @_;
+ 
+-	return ($id, $desc) if ((which("git") eq "") || !(-e ".git"));
++	return ($id, $desc) if ((which("git") eq "") || !(-e "$gitroot"));
+ 
+ 	my $output = `${git_command} log --no-color --format='%H %s' -1 $commit 2>&1`;
+ 	$output =~ s/^\s*//gm;
+@@ -1005,7 +1007,7 @@ my $fixlinenr = -1;
+ 
+ # If input is git commits, extract all commits from the commit expressions.
+ # For example, HEAD-3 means we need check 'HEAD, HEAD~1, HEAD~2'.
+-die "$P: No git repository found\n" if ($git && !-e ".git");
++die "$P: No git repository found\n" if ($git && !-e "$gitroot");
+ 
+ if ($git) {
+ 	my @commits = ();
 _
 
-Patches currently in -mm which might be from dja@axtens.net are
+Patches currently in -mm which might be from joe@perches.com are
 
-kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source.patch
-kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4.patch
-stringh-fix-incompatibility-between-fortify_source-and-kasan.patch
+checkpatch-test-git_dir-changes.patch
+checkpatch-additional-maintainer-section-entry-ordering-checks.patch
+checkpatch-look-for-c99-comments-in-ctx_locate_comment.patch
+fs-seq_filec-seq_read-update-pr_info_ratelimited.patch
