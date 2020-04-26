@@ -1,29 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-support-debug_wx-fix.patch added to -mm tree
-Date: Sat, 25 Apr 2020 18:06:06 -0700
-Message-ID: <20200426010606.nSeK4wmZz%akpm@linux-foundation.org>
+Subject: +
+ x86-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch added to -mm
+ tree
+Date: Sat, 25 Apr 2020 18:06:09 -0700
+Message-ID: <20200426010609.6tYCYj_m6%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41238 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41294 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725962AbgDZBGI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 25 Apr 2020 21:06:08 -0400
+        id S1725962AbgDZBGM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 25 Apr 2020 21:06:12 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, will@kernel.org, zong.li@sifive.com
+To: bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: riscv-support-debug_wx-fix
+     Subject: x86: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
 has been added to the -mm tree.  Its filename is
-     riscv-support-debug_wx-fix.patch
+     x86-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/riscv-support-debug_wx-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/riscv-support-debug_wx-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,11 +39,14 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: riscv-support-debug_wx-fix
+From: Zong Li <zong.li@sifive.com>
+Subject: x86: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
 
-replace macros with C
+Extract DEBUG_WX to mm/Kconfig.debug for shared use.  Change to use
+ARCH_HAS_DEBUG_WX instead of DEBUG_WX defined by arch port.
 
+Link: http://lkml.kernel.org/r/430736828d149df3f5b462d291e845ec690e0141.1587455584.git.zong.li@sifive.com
+Signed-off-by: Zong Li <zong.li@sifive.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -50,50 +55,52 @@ Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
-Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/ptdump.h |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ arch/x86/Kconfig       |    1 +
+ arch/x86/Kconfig.debug |   27 ---------------------------
+ 2 files changed, 1 insertion(+), 27 deletions(-)
 
---- a/arch/riscv/include/asm/ptdump.h~riscv-support-debug_wx-fix
-+++ a/arch/riscv/include/asm/ptdump.h
-@@ -9,9 +9,14 @@
- void ptdump_check_wx(void);
+--- a/arch/x86/Kconfig~x86-mm-use-arch_has_debug_wx-instead-of-arch-defined
++++ a/arch/x86/Kconfig
+@@ -80,6 +80,7 @@ config X86
+ 	select ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
+ 	select ARCH_HAS_SYSCALL_WRAPPER
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
++	select ARCH_HAS_DEBUG_WX
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+--- a/arch/x86/Kconfig.debug~x86-mm-use-arch_has_debug_wx-instead-of-arch-defined
++++ a/arch/x86/Kconfig.debug
+@@ -72,33 +72,6 @@ config EFI_PGT_DUMP
+ 	  issues with the mapping of the EFI runtime regions into that
+ 	  table.
  
- #ifdef CONFIG_DEBUG_WX
--#define debug_checkwx() ptdump_check_wx()
-+static inline void debug_checkwx(void)
-+{
-+	ptdump_check_wx();
-+}
- #else
--#define debug_checkwx() do { } while (0)
-+static inline void debug_checkwx(void)
-+{
-+}
- #endif
- 
- #endif /* _ASM_RISCV_PTDUMP_H */
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-initrdmem=-option-to-specify-initrd-physical-address-checkpatch-fixes.patch
-linux-next-fix.patch
-linux-next-git-rejects.patch
-mm-pass-task-and-mm-to-do_madvise-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+-config DEBUG_WX
+-	bool "Warn on W+X mappings at boot"
+-	select PTDUMP_CORE
+-	---help---
+-	  Generate a warning if any W+X mappings are found at boot.
+-
+-	  This is useful for discovering cases where the kernel is leaving
+-	  W+X mappings after applying NX, as such mappings are a security risk.
+-
+-	  Look for a message in dmesg output like this:
+-
+-	    x86/mm: Checked W+X mappings: passed, no W+X pages found.
+-
+-	  or like this, if the check failed:
+-
+-	    x86/mm: Checked W+X mappings: FAILED, <N> W+X pages found.
+-
+-	  Note that even if the check fails, your kernel is possibly
+-	  still fine, as W+X mappings are not a security hole in
+-	  themselves, what they do is that they make the exploitation
+-	  of other unfixed kernel bugs easier.
+-
+-	  There is no runtime or memory usage effect of this option
+-	  once the kernel has booted up - it's a one time check.
+-
+-	  If in doubt, say "Y".
