@@ -1,29 +1,29 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-test-git_dir-changes.patch added to -mm tree
-Date: Sat, 25 Apr 2020 17:48:49 -0700
-Message-ID: <20200426004849.RQUShjn30%akpm@linux-foundation.org>
+Subject: + mm-add-debug_wx-support.patch added to -mm tree
+Date: Sat, 25 Apr 2020 18:06:00 -0700
+Message-ID: <20200426010600.bYaJShBi_%akpm@linux-foundation.org>
 References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60492 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41108 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725962AbgDZAsu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 25 Apr 2020 20:48:50 -0400
+        id S1725962AbgDZBGD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 25 Apr 2020 21:06:03 -0400
 In-Reply-To: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: checkpatch: test $GIT_DIR changes
+     Subject: mm: add DEBUG_WX support
 has been added to the -mm tree.  Its filename is
-     checkpatch-test-git_dir-changes.patch
+     mm-add-debug_wx-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-test-git_dir-changes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-debug_wx-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-test-git_dir-changes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-debug_wx-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,78 +37,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: test $GIT_DIR changes
+From: Zong Li <zong.li@sifive.com>
+Subject: mm: add DEBUG_WX support
 
-Link: http://lkml.kernel.org/r/318ca0e0c755cc31c288d7f8769817da4dc60bda.camel@perches.com
+Patch series "Extract DEBUG_WX to shared use".
 
+Some architectures support DEBUG_WX function, it's verbatim from each
+others, so extract to mm/Kconfig.debug for shared use.
+
+PPC and ARM ports don't support generic page dumper yet, so we only
+refine x86 and arm64 port in this patch series.
+
+For RISC-V port, the DEBUG_WX support depends on other patches which
+be merged already:
+  - RISC-V page table dumper
+  - Support strict kernel memory permissions for security
+
+
+This patch (of 4):
+
+Some architectures support DEBUG_WX function, it's verbatim from each
+others.  Extract to mm/Kconfig.debug for shared use.
+
+Link: http://lkml.kernel.org/r/cover.1587455584.git.zong.li@sifive.com
+Link: http://lkml.kernel.org/r/23980cd0f0e5d79e24a92169116407c75bcc650d.1587455584.git.zong.li@sifive.com
+Signed-off-by: Zong Li <zong.li@sifive.com>
+Suggested-by: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/Kconfig.debug |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
---- a/scripts/checkpatch.pl~checkpatch-test-git_dir-changes
-+++ a/scripts/checkpatch.pl
-@@ -43,6 +43,8 @@ my $list_types = 0;
- my $fix = 0;
- my $fix_inplace = 0;
- my $root;
-+my $gitroot = $ENV{'GIT_DIR'};
-+$gitroot = ".git" if !defined($gitroot);
- my %debug;
- my %camelcase = ();
- my %use_type = ();
-@@ -897,7 +899,7 @@ sub is_maintained_obsolete {
- sub is_SPDX_License_valid {
- 	my ($license) = @_;
+--- a/mm/Kconfig.debug~mm-add-debug_wx-support
++++ a/mm/Kconfig.debug
+@@ -118,6 +118,39 @@ config DEBUG_RODATA_TEST
+     ---help---
+       This option enables a testcase for the setting rodata read-only.
  
--	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$root/.git"));
-+	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$gitroot"));
++config ARCH_HAS_DEBUG_WX
++	bool
++
++config DEBUG_WX
++	bool "Warn on W+X mappings at boot"
++	depends on ARCH_HAS_DEBUG_WX
++	select PTDUMP_CORE
++	help
++	  Generate a warning if any W+X mappings are found at boot.
++
++	  This is useful for discovering cases where the kernel is leaving
++	  W+X mappings after applying NX, as such mappings are a security risk.
++	  This check also includes UXN, which should be set on all kernel
++	  mappings.
++
++	  Look for a message in dmesg output like this:
++
++	    <arch>/mm: Checked W+X mappings: passed, no W+X pages found.
++
++	  or like this, if the check failed:
++
++	    <arch>/mm: Checked W+X mappings: failed, <N> W+X pages found.
++
++	  Note that even if the check fails, your kernel is possibly
++	  still fine, as W+X mappings are not a security hole in
++	  themselves, what they do is that they make the exploitation
++	  of other unfixed kernel bugs easier.
++
++	  There is no runtime or memory usage effect of this option
++	  once the kernel has booted up - it's a one time check.
++
++	  If in doubt, say "Y".
++
+ config GENERIC_PTDUMP
+ 	bool
  
- 	my $root_path = abs_path($root);
- 	my $status = `cd "$root_path"; echo "$license" | python scripts/spdxcheck.py -`;
-@@ -915,7 +917,7 @@ sub seed_camelcase_includes {
- 
- 	$camelcase_seeded = 1;
- 
--	if (-e ".git") {
-+	if (-e "$gitroot") {
- 		my $git_last_include_commit = `${git_command} log --no-merges --pretty=format:"%h%n" -1 -- include`;
- 		chomp $git_last_include_commit;
- 		$camelcase_cache = ".checkpatch-camelcase.git.$git_last_include_commit";
-@@ -943,7 +945,7 @@ sub seed_camelcase_includes {
- 		return;
- 	}
- 
--	if (-e ".git") {
-+	if (-e "$gitroot") {
- 		$files = `${git_command} ls-files "include/*.h"`;
- 		@include_files = split('\n', $files);
- 	}
-@@ -966,7 +968,7 @@ sub seed_camelcase_includes {
- sub git_commit_info {
- 	my ($commit, $id, $desc) = @_;
- 
--	return ($id, $desc) if ((which("git") eq "") || !(-e ".git"));
-+	return ($id, $desc) if ((which("git") eq "") || !(-e "$gitroot"));
- 
- 	my $output = `${git_command} log --no-color --format='%H %s' -1 $commit 2>&1`;
- 	$output =~ s/^\s*//gm;
-@@ -1005,7 +1007,7 @@ my $fixlinenr = -1;
- 
- # If input is git commits, extract all commits from the commit expressions.
- # For example, HEAD-3 means we need check 'HEAD, HEAD~1, HEAD~2'.
--die "$P: No git repository found\n" if ($git && !-e ".git");
-+die "$P: No git repository found\n" if ($git && !-e "$gitroot");
- 
- if ($git) {
- 	my @commits = ();
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from zong.li@sifive.com are
 
-checkpatch-test-git_dir-changes.patch
-checkpatch-additional-maintainer-section-entry-ordering-checks.patch
-checkpatch-look-for-c99-comments-in-ctx_locate_comment.patch
-fs-seq_filec-seq_read-update-pr_info_ratelimited.patch
+mm-add-debug_wx-support.patch
+riscv-support-debug_wx.patch
+x86-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
+arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
