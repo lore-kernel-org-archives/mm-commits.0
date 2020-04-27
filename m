@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-sysctl-support-handling-command-line-aliases.patch added to -mm tree
-Date: Mon, 27 Apr 2020 11:33:52 -0700
-Message-ID: <20200427183352.5U6IW36Bq%akpm@linux-foundation.org>
+ kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
+ added to -mm tree
+Date: Mon, 27 Apr 2020 11:33:56 -0700
+Message-ID: <20200427183356.i_yj2Ffjr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48400 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48474 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726420AbgD0Sdy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 27 Apr 2020 14:33:54 -0400
+        id S1726420AbgD0Sd6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Apr 2020 14:33:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, christian.brauner@ubuntu.com, ebiederm@xmission.com, gpiccoli@canonical.com, gregkh@linuxfoundation.org, ivan.teterevkov@nutanix.com, keescook@chromium.org, mcgrof@kernel.org, mhiramat@kernel.org, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, tglx@linutronix.de, vbabka@suse.cz, willy@infradead.org, yzaikin@google.com
 
 
 The patch titled
-     Subject: kernel/sysctl: support handling command line aliases
+     Subject: kernel/hung_task convert hung_task_panic boot parameter to sysctl
 has been added to the -mm tree.  Its filename is
-     kernel-sysctl-support-handling-command-line-aliases.patch
+     kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-sysctl-support-handling-command-line-aliases.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-sysctl-support-handling-command-line-aliases.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,22 +38,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: kernel/sysctl: support handling command line aliases
+Subject: kernel/hung_task convert hung_task_panic boot parameter to sysctl
 
-We can now handle sysctl parameters on kernel command line, but
-historically some parameters introduced their own command line equivalent,
-which we don't want to remove for compatibility reasons.  We can however
-convert them to the generic infrastructure with a table translating the
-legacy command line parameters to their sysctl names, and removing the
-one-off param handlers.
+We can now handle sysctl parameters on kernel command line and have
+infrastructure to convert legacy command line options that duplicate
+sysctl to become a sysctl alias.
 
-This patch adds the support and makes the first conversion to demonstrate
-it, on the (deprecated) numa_zonelist_order parameter.
+This patch converts the hung_task_panic parameter.  Note that the sysctl
+handler is more strict and allows only 0 and 1, while the legacy parameter
+allowed any non-zero value.  But there is little reason anyone would not
+be using 1.
 
-Link: http://lkml.kernel.org/r/20200427180433.7029-3-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20200427180433.7029-4-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
-Acked-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Christian Brauner <christian.brauner@ubuntu.com>
@@ -62,6 +61,7 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "Guilherme G . Piccoli" <gpiccoli@canonical.com>
 Cc: Iurii Zaikin <yzaikin@google.com>
 Cc: Ivan Teterevkov <ivan.teterevkov@nutanix.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -69,87 +69,44 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |   48 ++++++++++++++++++++++++++++++++++------
- mm/page_alloc.c       |    9 -------
- 2 files changed, 41 insertions(+), 16 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    2 +-
+ fs/proc/proc_sysctl.c                           |    1 +
+ kernel/hung_task.c                              |   10 ----------
+ 3 files changed, 2 insertions(+), 11 deletions(-)
 
---- a/fs/proc/proc_sysctl.c~kernel-sysctl-support-handling-command-line-aliases
+--- a/Documentation/admin-guide/kernel-parameters.txt~kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1505,7 +1505,7 @@
+ 			[KNL] Should the hung task detector generate panics.
+ 			Format: <integer>
+ 
+-			A nonzero value instructs the kernel to panic when a
++			A value of 1 instructs the kernel to panic when a
+ 			hung task is detected. The default value is controlled
+ 			by the CONFIG_BOOTPARAM_HUNG_TASK_PANIC build-time
+ 			option. The value selected by this boot parameter can
+--- a/fs/proc/proc_sysctl.c~kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl
 +++ a/fs/proc/proc_sysctl.c
-@@ -1694,6 +1694,37 @@ int __init proc_sys_init(void)
- 	return sysctl_init();
- }
+@@ -1710,6 +1710,7 @@ struct sysctl_alias {
+  */
+ static const struct sysctl_alias sysctl_aliases[] = {
+ 	{"numa_zonelist_order",		"vm.numa_zonelist_order" },
++	{"hung_task_panic",		"kernel.hung_task_panic" },
+ 	{ }
+ };
  
-+struct sysctl_alias {
-+	const char *kernel_param;
-+	const char *sysctl_param;
-+};
-+
-+/*
-+ * Historically some settings had both sysctl and a command line parameter.
-+ * With the generic sysctl. parameter support, we can handle them at a single
-+ * place and only keep the historical name for compatibility. This is not meant
-+ * to add brand new aliases. When adding existing aliases, consider whether
-+ * the possibly different moment of changing the value (e.g. from early_param
-+ * to the moment do_sysctl_args() is called) is an issue for the specific
-+ * parameter.
-+ */
-+static const struct sysctl_alias sysctl_aliases[] = {
-+	{"numa_zonelist_order",		"vm.numa_zonelist_order" },
-+	{ }
-+};
-+
-+static const char *sysctl_find_alias(char *param)
-+{
-+	const struct sysctl_alias *alias;
-+
-+	for (alias = &sysctl_aliases[0]; alias->kernel_param != NULL; alias++) {
-+		if (strcmp(alias->kernel_param, param) == 0)
-+			return alias->sysctl_param;
-+	}
-+
-+	return NULL;
-+}
-+
- /* Set sysctl value passed on kernel command line. */
- static int process_sysctl_arg(char *param, char *val,
- 			       const char *unused, void *arg)
-@@ -1707,15 +1738,18 @@ static int process_sysctl_arg(char *para
- 	loff_t pos = 0;
- 	ssize_t wret;
+--- a/kernel/hung_task.c~kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl
++++ a/kernel/hung_task.c
+@@ -63,16 +63,6 @@ static struct task_struct *watchdog_task
+ unsigned int __read_mostly sysctl_hung_task_panic =
+ 				CONFIG_BOOTPARAM_HUNG_TASK_PANIC_VALUE;
  
--	if (strncmp(param, "sysctl", sizeof("sysctl") - 1))
--		return 0;
--
--	param += sizeof("sysctl") - 1;
-+	if (strncmp(param, "sysctl", sizeof("sysctl") - 1) == 0) {
-+		param += sizeof("sysctl") - 1;
- 
--	if (param[0] != '/' && param[0] != '.')
--		return 0;
-+		if (param[0] != '/' && param[0] != '.')
-+			return 0;
- 
--	param++;
-+		param++;
-+	} else {
-+		param = (char *) sysctl_find_alias(param);
-+		if (!param)
-+			return 0;
-+	}
- 
- 	/*
- 	 * To set sysctl options, we use a temporary mount of proc, look up the
---- a/mm/page_alloc.c~kernel-sysctl-support-handling-command-line-aliases
-+++ a/mm/page_alloc.c
-@@ -5527,15 +5527,6 @@ static int __parse_numa_zonelist_order(c
- 	return 0;
- }
- 
--static __init int setup_numa_zonelist_order(char *s)
+-static int __init hung_task_panic_setup(char *str)
 -{
--	if (!s)
--		return 0;
+-	int rc = kstrtouint(str, 0, &sysctl_hung_task_panic);
 -
--	return __parse_numa_zonelist_order(s);
+-	if (rc)
+-		return rc;
+-	return 1;
 -}
--early_param("numa_zonelist_order", setup_numa_zonelist_order);
+-__setup("hung_task_panic=", hung_task_panic_setup);
