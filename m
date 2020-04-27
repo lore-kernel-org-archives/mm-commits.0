@@ -1,94 +1,200 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: mmotm 2020-04-26-00-15 uploaded (mm/madvise.c)
-Date: Mon, 27 Apr 2020 13:50:53 -0700
-Message-ID: <20200427135053.a125f84c62e2857e3dcdce4f@linux-foundation.org>
-References: <20200426071602.ZmQ_9C0ql%akpm@linux-foundation.org>
-        <bec3b7bd-0829-b430-be1a-f61da01ac4ac@infradead.org>
-        <39bcdbb6-cac8-aa3b-c543-041f9c28c730@infradead.org>
+From: akpm@linux-foundation.org
+Subject: [failures] mips-mm-add-page-soft-dirty-tracking.patch
+ removed from -mm tree
+Date: Mon, 27 Apr 2020 13:57:45 -0700
+Message-ID: <20200427205745.Vbezjw4b0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54884 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56222 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726825AbgD0Uu4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 27 Apr 2020 16:50:56 -0400
-In-Reply-To: <39bcdbb6-cac8-aa3b-c543-041f9c28c730@infradead.org>
+        id S1726420AbgD0U5s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Apr 2020 16:57:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: broonie@kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, Minchan Kim <minchan@kernel.org>
+To: anshuman.khandual@arm.com, dansilsby@gmail.com, dkorotin@wavecomp.com, geert@linux-m68k.org, gorcunov@gmail.com, jiaxun.yang@flygoat.com, koct9i@gmail.com, lixuefeng@loongson.cn, mm-commits@vger.kernel.org, paul@crapouillou.net, paulburton@kernel.org, ralf@linux-mips.org, rppt@linux.ibm.com, steven.price@arm.com, sunguoyun@loongson.cn, tsbogend@alpha.franken.de, xemul@openvz.org, yangtiezhu@loongson.cn
 
-On Sun, 26 Apr 2020 15:48:35 -0700 Randy Dunlap <rdunlap@infradead.org> wrote:
 
-> On 4/26/20 10:26 AM, Randy Dunlap wrote:
-> > On 4/26/20 12:16 AM, akpm@linux-foundation.org wrote:
-> >> The mm-of-the-moment snapshot 2020-04-26-00-15 has been uploaded to
-> >>
-> >>    http://www.ozlabs.org/~akpm/mmotm/
-> >>
-> >> mmotm-readme.txt says
-> >>
-> >> README for mm-of-the-moment:
-> >>
-> >> http://www.ozlabs.org/~akpm/mmotm/
-> >>
-> >> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> >> more than once a week.
-> >>
-> >> You will need quilt to apply these patches to the latest Linus release (5.x
-> >> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-> >> http://ozlabs.org/~akpm/mmotm/series
-> >>
-> >> The file broken-out.tar.gz contains two datestamp files: .DATE and
-> >> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-> >> followed by the base kernel version against which this patch series is to
-> >> be applied.
-> > 
-> > Hi,
-> > I'm seeing lots of build failures in mm/madvise.c.
-> > 
-> > Is Minchin's patch only partially applied or is it just missing some pieces?
-> > 
-> > a.  mm/madvise.c needs to #include <linux/uio.h>
-> > 
-> > b.  looks like the sys_process_madvise() prototype in <linux/syscalls.h>
-> > has not been updated:
-> > 
-> > In file included from ../mm/madvise.c:11:0:
-> > ../include/linux/syscalls.h:239:18: error: conflicting types for ‘sys_process_madvise’
-> >   asmlinkage long sys##name(__MAP(x,__SC_DECL,__VA_ARGS__)) \
-> >                   ^
-> > ../include/linux/syscalls.h:225:2: note: in expansion of macro ‘__SYSCALL_DEFINEx’
-> >   __SYSCALL_DEFINEx(x, sname, __VA_ARGS__)
-> >   ^~~~~~~~~~~~~~~~~
-> > ../include/linux/syscalls.h:219:36: note: in expansion of macro ‘SYSCALL_DEFINEx’
-> >  #define SYSCALL_DEFINE6(name, ...) SYSCALL_DEFINEx(6, _##name, __VA_ARGS__)
-> >                                     ^~~~~~~~~~~~~~~
-> > ../mm/madvise.c:1295:1: note: in expansion of macro ‘SYSCALL_DEFINE6’
-> >  SYSCALL_DEFINE6(process_madvise, int, which, pid_t, upid,
-> >  ^~~~~~~~~~~~~~~
-> > In file included from ../mm/madvise.c:11:0:
-> > ../include/linux/syscalls.h:880:17: note: previous declaration of ‘sys_process_madvise’ was here
-> >  asmlinkage long sys_process_madvise(int which, pid_t pid, unsigned long start,
-> >                  ^~~~~~~~~~~~~~~~~~~
-> 
-> I had to add 2 small patches to have clean madvise.c builds:
-> 
+The patch titled
+     Subject: mips/mm: add page soft dirty tracking
+has been removed from the -mm tree.  Its filename was
+     mips-mm-add-page-soft-dirty-tracking.patch
 
-hm, not sure why these weren't noticed sooner, thanks.
+This patch was dropped because it had testing failures
 
-This patchset is looking a bit tired now.
+------------------------------------------------------
+From: Guoyun Sun <sunguoyun@loongson.cn>
+Subject: mips/mm: add page soft dirty tracking
 
-Things to be addressed (might be out of date):
+User space checkpoint and restart tool (CRIU) needs the page's change to
+be soft tracked.  This allows to do a pre checkpoint and then dump only
+touched pages.
 
-- http://lkml.kernel.org/r/293bcd25-934f-dd57-3314-bbcf00833e51@redhat.com
+Link: http://lkml.kernel.org/r/1587460527-13986-1-git-send-email-sunguoyun@loongson.cn
+Signed-off-by: Guoyun Sun <sunguoyun@loongson.cn>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Daniel Silsby <dansilsby@gmail.com>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: Paul Cercueil <paul@crapouillou.net>
+Cc: Dmitry Korotin <dkorotin@wavecomp.com>
+Cc: Steven Price <steven.price@arm.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Guoyun Sun <sunguoyun@loongson.cn>
+Cc: TieZhu Yang <yangtiezhu@loongson.cn>
+Cc: Xuefeng Li <lixuefeng@loongson.cn>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-- http://lkml.kernel.org/r/2a767d50-4034-da8c-c40c-280e0dda910e@suse.cz
-  (I did this)
+ arch/mips/Kconfig                    |    1 
+ arch/mips/include/asm/pgtable-bits.h |    8 +++-
+ arch/mips/include/asm/pgtable.h      |   48 +++++++++++++++++++++++--
+ 3 files changed, 53 insertions(+), 4 deletions(-)
 
-- http://lkml.kernel.org/r/20200310222008.GB72963@google.com
+--- a/arch/mips/include/asm/pgtable-bits.h~mips-mm-add-page-soft-dirty-tracking
++++ a/arch/mips/include/asm/pgtable-bits.h
+@@ -55,6 +55,7 @@ enum pgtable_bits {
+ #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
+ 	_PAGE_SPECIAL_SHIFT,
+ #endif
++	_PAGE_SOFT_DIRTY_SHIFT,
+ };
+ 
+ /*
+@@ -84,6 +85,7 @@ enum pgtable_bits {
+ #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
+ 	_PAGE_SPECIAL_SHIFT,
+ #endif
++	_PAGE_SOFT_DIRTY_SHIFT,
+ };
+ 
+ #elif defined(CONFIG_CPU_R3K_TLB)
+@@ -99,6 +101,7 @@ enum pgtable_bits {
+ #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
+ 	_PAGE_SPECIAL_SHIFT,
+ #endif
++	_PAGE_SOFT_DIRTY_SHIFT,
+ 
+ 	/* Used by TLB hardware (placed in EntryLo) */
+ 	_PAGE_GLOBAL_SHIFT = 8,
+@@ -125,7 +128,7 @@ enum pgtable_bits {
+ #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
+ 	_PAGE_SPECIAL_SHIFT,
+ #endif
+-
++	_PAGE_SOFT_DIRTY_SHIFT,
+ 	/* Used by TLB hardware (placed in EntryLo*) */
+ #if defined(CONFIG_CPU_HAS_RIXI)
+ 	_PAGE_NO_EXEC_SHIFT,
+@@ -152,6 +155,7 @@ enum pgtable_bits {
+ #else
+ # define _PAGE_SPECIAL		0
+ #endif
++#define _PAGE_SOFT_DIRTY	(1 << _PAGE_SOFT_DIRTY_SHIFT)
+ 
+ /* Used by TLB hardware (placed in EntryLo*) */
+ #if defined(CONFIG_XPA)
+@@ -269,6 +273,6 @@ static inline uint64_t pte_to_entrylo(un
+ #define __WRITEABLE	(_PAGE_SILENT_WRITE | _PAGE_WRITE | _PAGE_MODIFIED)
+ 
+ #define _PAGE_CHG_MASK	(_PAGE_ACCESSED | _PAGE_MODIFIED |	\
+-			 _PFN_MASK | _CACHE_MASK)
++			 _PAGE_SOFT_DIRTY | _PFN_MASK | _CACHE_MASK)
+ 
+ #endif /* _ASM_PGTABLE_BITS_H */
+--- a/arch/mips/include/asm/pgtable.h~mips-mm-add-page-soft-dirty-tracking
++++ a/arch/mips/include/asm/pgtable.h
+@@ -400,7 +400,7 @@ static inline pte_t pte_mkwrite(pte_t pt
+ 
+ static inline pte_t pte_mkdirty(pte_t pte)
+ {
+-	pte_val(pte) |= _PAGE_MODIFIED;
++	pte_val(pte) |= _PAGE_MODIFIED | _PAGE_SOFT_DIRTY;
+ 	if (pte_val(pte) & _PAGE_WRITE)
+ 		pte_val(pte) |= _PAGE_SILENT_WRITE;
+ 	return pte;
+@@ -423,6 +423,30 @@ static inline pte_t pte_mkhuge(pte_t pte
+ 	return pte;
+ }
+ #endif /* CONFIG_MIPS_HUGE_TLB_SUPPORT */
++
++#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
++static inline bool pte_soft_dirty(pte_t pte)
++{
++	return pte_val(pte) & _PAGE_SOFT_DIRTY;
++}
++#define pte_swp_soft_dirty pte_soft_dirty
++
++static inline pte_t pte_mksoft_dirty(pte_t pte)
++{
++	pte_val(pte) |= _PAGE_SOFT_DIRTY;
++	return pte;
++}
++#define pte_swp_mksoft_dirty pte_mksoft_dirty
++
++static inline pte_t pte_clear_soft_dirty(pte_t pte)
++{
++	pte_val(pte) &= ~(_PAGE_SOFT_DIRTY);
++	return pte;
++}
++#define pte_swp_clear_soft_dirty pte_clear_soft_dirty
++
++#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
++
+ #endif
+ 
+ /*
+@@ -576,7 +600,7 @@ static inline pmd_t pmd_mkclean(pmd_t pm
+ 
+ static inline pmd_t pmd_mkdirty(pmd_t pmd)
+ {
+-	pmd_val(pmd) |= _PAGE_MODIFIED;
++	pmd_val(pmd) |= _PAGE_MODIFIED | _PAGE_SOFT_DIRTY;
+ 	if (pmd_val(pmd) & _PAGE_WRITE)
+ 		pmd_val(pmd) |= _PAGE_SILENT_WRITE;
+ 
+@@ -605,6 +629,26 @@ static inline pmd_t pmd_mkyoung(pmd_t pm
+ 	return pmd;
+ }
+ 
++#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
++static inline int pmd_soft_dirty(pmd_t pmd)
++{
++	return !!(pmd_val(pmd) & _PAGE_SOFT_DIRTY);
++}
++
++static inline pmd_t pmd_mksoft_dirty(pmd_t pmd)
++{
++	pmd_val(pmd) |= _PAGE_SOFT_DIRTY;
++	return pmd;
++}
++
++static inline pmd_t pmd_clear_soft_dirty(pmd_t pmd)
++{
++	pmd_val(pmd) &= ~(_PAGE_SOFT_DIRTY);
++	return pmd;
++}
++
++#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
++
+ /* Extern to avoid header file madness */
+ extern pmd_t mk_pmd(struct page *page, pgprot_t prot);
+ 
+--- a/arch/mips/Kconfig~mips-mm-add-page-soft-dirty-tracking
++++ a/arch/mips/Kconfig
+@@ -494,6 +494,7 @@ config MACH_LOONGSON64
+ 	select COMMON_CLK
+ 	select USE_OF
+ 	select BUILTIN_DTB
++	select HAVE_ARCH_SOFT_DIRTY
+ 	help
+ 	  This enables the support of Loongson-2/3 family of machines.
+ 
+_
 
-- issues arising from the review of
-  http://lkml.kernel.org/r/20200302193630.68771-8-minchan@kernel.org
+Patches currently in -mm which might be from sunguoyun@loongson.cn are
