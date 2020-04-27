@@ -1,200 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [failures] mips-mm-add-page-soft-dirty-tracking.patch
- removed from -mm tree
-Date: Mon, 27 Apr 2020 13:57:45 -0700
-Message-ID: <20200427205745.Vbezjw4b0%akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?rapidio-avoid-data-race-between-file-operation-callbacks-?=
+ =?US-ASCII?Q?and-mport=5Fcdev=5Fadd.patch?= added to -mm tree
+Date: Mon, 27 Apr 2020 14:03:22 -0700
+Message-ID: <20200427210322.7Ifw5a0zn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56222 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57358 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726420AbgD0U5s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 27 Apr 2020 16:57:48 -0400
+        id S1726773AbgD0VDY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Apr 2020 17:03:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, dansilsby@gmail.com, dkorotin@wavecomp.com, geert@linux-m68k.org, gorcunov@gmail.com, jiaxun.yang@flygoat.com, koct9i@gmail.com, lixuefeng@loongson.cn, mm-commits@vger.kernel.org, paul@crapouillou.net, paulburton@kernel.org, ralf@linux-mips.org, rppt@linux.ibm.com, steven.price@arm.com, sunguoyun@loongson.cn, tsbogend@alpha.franken.de, xemul@openvz.org, yangtiezhu@loongson.cn
+To: alex.bou9@gmail.com, allison@lohutok.net, andrianov@ispras.ru, dan.carpenter@oracle.com, hubcap@omnibond.com, ira.weiny@intel.com, madhuparnabhowmik10@gmail.com, mm-commits@vger.kernel.org, mporter@kernel.crashing.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mips/mm: add page soft dirty tracking
-has been removed from the -mm tree.  Its filename was
-     mips-mm-add-page-soft-dirty-tracking.patch
+     Subject: rapidio: avoid data race between file operation callbacks and mport_cdev_add().
+has been added to the -mm tree.  Its filename is
+     rapidio-avoid-data-race-between-file-operation-callbacks-and-mport_cdev_add.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-avoid-data-race-between-file-operation-callbacks-and-mport_cdev_add.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-avoid-data-race-between-file-operation-callbacks-and-mport_cdev_add.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Guoyun Sun <sunguoyun@loongson.cn>
-Subject: mips/mm: add page soft dirty tracking
+From: Madhuparna Bhowmik <madhuparnabhowmik10@gmail.com>
+Subject: rapidio: avoid data race between file operation callbacks and mport_cdev_add().
 
-User space checkpoint and restart tool (CRIU) needs the page's change to
-be soft tracked.  This allows to do a pre checkpoint and then dump only
-touched pages.
+Fields of md(mport_dev) are set after cdev_device_add().  However, the
+file operation callbacks can be called after cdev_device_add() and
+therefore accesses to fields of md in the callbacks can race with the rest
+of the mport_cdev_add() function.
 
-Link: http://lkml.kernel.org/r/1587460527-13986-1-git-send-email-sunguoyun@loongson.cn
-Signed-off-by: Guoyun Sun <sunguoyun@loongson.cn>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Paul Burton <paulburton@kernel.org>
-Cc: Daniel Silsby <dansilsby@gmail.com>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: Paul Cercueil <paul@crapouillou.net>
-Cc: Dmitry Korotin <dkorotin@wavecomp.com>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Guoyun Sun <sunguoyun@loongson.cn>
-Cc: TieZhu Yang <yangtiezhu@loongson.cn>
-Cc: Xuefeng Li <lixuefeng@loongson.cn>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+One such example is INIT_LIST_HEAD(&md->portwrites) in mport_cdev_add(),
+the list is initialised after cdev_device_add().  This can race with
+list_add_tail(&pw_filter->md_node,&md->portwrites) in
+rio_mport_add_pw_filter() which is called by unlocked_ioctl.
+
+To avoid such data races use cdev_device_add() after initializing md.
+
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Link: http://lkml.kernel.org/r/20200426112950.1803-1-madhuparnabhowmik10@gmail.com
+Signed-off-by: Madhuparna Bhowmik <madhuparnabhowmik10@gmail.com>
+Acked-by: Alexandre Bounine <alex.bou9@gmail.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mike Marshall <hubcap@omnibond.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Allison Randal <allison@lohutok.net>
+Cc: Pavel Andrianov <andrianov@ispras.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig                    |    1 
- arch/mips/include/asm/pgtable-bits.h |    8 +++-
- arch/mips/include/asm/pgtable.h      |   48 +++++++++++++++++++++++--
- 3 files changed, 53 insertions(+), 4 deletions(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/arch/mips/include/asm/pgtable-bits.h~mips-mm-add-page-soft-dirty-tracking
-+++ a/arch/mips/include/asm/pgtable-bits.h
-@@ -55,6 +55,7 @@ enum pgtable_bits {
- #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
- 	_PAGE_SPECIAL_SHIFT,
- #endif
-+	_PAGE_SOFT_DIRTY_SHIFT,
- };
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-avoid-data-race-between-file-operation-callbacks-and-mport_cdev_add
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -2379,13 +2379,6 @@ static struct mport_dev *mport_cdev_add(
+ 	cdev_init(&md->cdev, &mport_fops);
+ 	md->cdev.owner = THIS_MODULE;
  
- /*
-@@ -84,6 +85,7 @@ enum pgtable_bits {
- #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
- 	_PAGE_SPECIAL_SHIFT,
- #endif
-+	_PAGE_SOFT_DIRTY_SHIFT,
- };
- 
- #elif defined(CONFIG_CPU_R3K_TLB)
-@@ -99,6 +101,7 @@ enum pgtable_bits {
- #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
- 	_PAGE_SPECIAL_SHIFT,
- #endif
-+	_PAGE_SOFT_DIRTY_SHIFT,
- 
- 	/* Used by TLB hardware (placed in EntryLo) */
- 	_PAGE_GLOBAL_SHIFT = 8,
-@@ -125,7 +128,7 @@ enum pgtable_bits {
- #if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
- 	_PAGE_SPECIAL_SHIFT,
- #endif
--
-+	_PAGE_SOFT_DIRTY_SHIFT,
- 	/* Used by TLB hardware (placed in EntryLo*) */
- #if defined(CONFIG_CPU_HAS_RIXI)
- 	_PAGE_NO_EXEC_SHIFT,
-@@ -152,6 +155,7 @@ enum pgtable_bits {
- #else
- # define _PAGE_SPECIAL		0
- #endif
-+#define _PAGE_SOFT_DIRTY	(1 << _PAGE_SOFT_DIRTY_SHIFT)
- 
- /* Used by TLB hardware (placed in EntryLo*) */
- #if defined(CONFIG_XPA)
-@@ -269,6 +273,6 @@ static inline uint64_t pte_to_entrylo(un
- #define __WRITEABLE	(_PAGE_SILENT_WRITE | _PAGE_WRITE | _PAGE_MODIFIED)
- 
- #define _PAGE_CHG_MASK	(_PAGE_ACCESSED | _PAGE_MODIFIED |	\
--			 _PFN_MASK | _CACHE_MASK)
-+			 _PAGE_SOFT_DIRTY | _PFN_MASK | _CACHE_MASK)
- 
- #endif /* _ASM_PGTABLE_BITS_H */
---- a/arch/mips/include/asm/pgtable.h~mips-mm-add-page-soft-dirty-tracking
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -400,7 +400,7 @@ static inline pte_t pte_mkwrite(pte_t pt
- 
- static inline pte_t pte_mkdirty(pte_t pte)
- {
--	pte_val(pte) |= _PAGE_MODIFIED;
-+	pte_val(pte) |= _PAGE_MODIFIED | _PAGE_SOFT_DIRTY;
- 	if (pte_val(pte) & _PAGE_WRITE)
- 		pte_val(pte) |= _PAGE_SILENT_WRITE;
- 	return pte;
-@@ -423,6 +423,30 @@ static inline pte_t pte_mkhuge(pte_t pte
- 	return pte;
- }
- #endif /* CONFIG_MIPS_HUGE_TLB_SUPPORT */
-+
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
-+static inline bool pte_soft_dirty(pte_t pte)
-+{
-+	return pte_val(pte) & _PAGE_SOFT_DIRTY;
-+}
-+#define pte_swp_soft_dirty pte_soft_dirty
-+
-+static inline pte_t pte_mksoft_dirty(pte_t pte)
-+{
-+	pte_val(pte) |= _PAGE_SOFT_DIRTY;
-+	return pte;
-+}
-+#define pte_swp_mksoft_dirty pte_mksoft_dirty
-+
-+static inline pte_t pte_clear_soft_dirty(pte_t pte)
-+{
-+	pte_val(pte) &= ~(_PAGE_SOFT_DIRTY);
-+	return pte;
-+}
-+#define pte_swp_clear_soft_dirty pte_clear_soft_dirty
-+
-+#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
-+
- #endif
- 
- /*
-@@ -576,7 +600,7 @@ static inline pmd_t pmd_mkclean(pmd_t pm
- 
- static inline pmd_t pmd_mkdirty(pmd_t pmd)
- {
--	pmd_val(pmd) |= _PAGE_MODIFIED;
-+	pmd_val(pmd) |= _PAGE_MODIFIED | _PAGE_SOFT_DIRTY;
- 	if (pmd_val(pmd) & _PAGE_WRITE)
- 		pmd_val(pmd) |= _PAGE_SILENT_WRITE;
- 
-@@ -605,6 +629,26 @@ static inline pmd_t pmd_mkyoung(pmd_t pm
- 	return pmd;
- }
- 
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
-+static inline int pmd_soft_dirty(pmd_t pmd)
-+{
-+	return !!(pmd_val(pmd) & _PAGE_SOFT_DIRTY);
-+}
-+
-+static inline pmd_t pmd_mksoft_dirty(pmd_t pmd)
-+{
-+	pmd_val(pmd) |= _PAGE_SOFT_DIRTY;
-+	return pmd;
-+}
-+
-+static inline pmd_t pmd_clear_soft_dirty(pmd_t pmd)
-+{
-+	pmd_val(pmd) &= ~(_PAGE_SOFT_DIRTY);
-+	return pmd;
-+}
-+
-+#endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
-+
- /* Extern to avoid header file madness */
- extern pmd_t mk_pmd(struct page *page, pgprot_t prot);
- 
---- a/arch/mips/Kconfig~mips-mm-add-page-soft-dirty-tracking
-+++ a/arch/mips/Kconfig
-@@ -494,6 +494,7 @@ config MACH_LOONGSON64
- 	select COMMON_CLK
- 	select USE_OF
- 	select BUILTIN_DTB
-+	select HAVE_ARCH_SOFT_DIRTY
- 	help
- 	  This enables the support of Loongson-2/3 family of machines.
- 
-_
-
-Patches currently in -mm which might be from sunguoyun@loongson.cn are
+-	ret = cdev_device_add(&md->cdev, &md->dev);
+-	if (ret) {
+-		rmcd_error("Failed to register mport %d (err=%d)",
+-		       mport->id, ret);
+-		goto err_cdev;
+-	}
