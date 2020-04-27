@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-gdb-repair-rb_first-and-rb_last.patch added to
- -mm tree
-Date: Mon, 27 Apr 2020 13:10:43 -0700
-Message-ID: <20200427201043.y4OL2k0N_%akpm@linux-foundation.org>
+Subject: +
+ hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code-fix.patch added
+ to -mm tree
+Date: Mon, 27 Apr 2020 13:16:06 -0700
+Message-ID: <20200427201606.S0fAwtr_y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33700 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36490 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726205AbgD0UKp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 27 Apr 2020 16:10:45 -0400
+        id S1726285AbgD0UQH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Apr 2020 16:16:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aymeric.agon@yandex.com, dianders@chromium.org, jan.kiszka@siemens.com, jason.wessel@windriver.com, kbingham@kernel.org, liuyun01@kylinos.cn, mm-commits@vger.kernel.org, n.borisov.lkml@gmail.com, swboyd@chromium.org
+To: mike.kravetz@oracle.com, mm-commits@vger.kernel.org, sandipan.osd@gmail.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: scripts/gdb: repair rb_first() and rb_last()
+     Subject: hugetlbfs: fix changes to command line processing
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-repair-rb_first-and-rb_last.patch
+     hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-repair-rb_first-and-rb_last.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-move-hugepagesz%3D-parsing-to-arch-independent-code-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-repair-rb_first-and-rb_last.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-move-hugepagesz%3D-parsing-to-arch-independent-code-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,54 +37,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aymeric Agon-Rambosson <aymeric.agon@yandex.com>
-Subject: scripts/gdb: repair rb_first() and rb_last()
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlbfs: fix changes to command line processing
 
-The current implementations of the rb_first() and rb_last() gdb functions
-have a variable that references itself in its instanciation, which causes
-the function to throw an error if a specific condition on the argument is
-met.  The original author rather intended to reference the argument and
-made a typo.  Referring the argument instead makes the function work as
-intended.
+Previously, a check for hugepages_supported was added before processing
+hugetlb command line parameters.  On some architectures such as powerpc,
+hugepages_supported() is not set to true until after command line
+processing.  Therefore, no hugetlb command line parameters would be
+accepted.
 
-Link: http://lkml.kernel.org/r/20200427051029.354840-1-aymeric.agon@yandex.com
-Signed-off-by: Aymeric Agon-Rambosson <aymeric.agon@yandex.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Stephen Boyd <swboyd@chromium.org>
-Cc: Douglas Anderson <dianders@chromium.org>
-Cc: Nikolay Borisov <n.borisov.lkml@gmail.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Jackie Liu <liuyun01@kylinos.cn>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Remove the additional checks for hugepages_supported.  In hugetlb_init,
+print a warning if !hugepages_supported and command line parameters were
+specified.
+
+Link: http://lkml.kernel.org/r/b1f04f9f-fa46-c2a0-7693-4a0679d2a1ee@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Sandipan Das <sandipan.osd@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/rbtree.py |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
 
---- a/scripts/gdb/linux/rbtree.py~scripts-gdb-repair-rb_first-and-rb_last
-+++ a/scripts/gdb/linux/rbtree.py
-@@ -12,7 +12,7 @@ rb_node_type = utils.CachedType("struct
+--- a/mm/hugetlb.c~hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code-fix
++++ a/mm/hugetlb.c
+@@ -3212,8 +3212,11 @@ static int __init hugetlb_init(void)
+ {
+ 	int i;
  
- def rb_first(root):
-     if root.type == rb_root_type.get_type():
--        node = node.address.cast(rb_root_type.get_type().pointer())
-+        node = root.address.cast(rb_root_type.get_type().pointer())
-     elif root.type != rb_root_type.get_type().pointer():
-         raise gdb.GdbError("Must be struct rb_root not {}".format(root.type))
+-	if (!hugepages_supported())
++	if (!hugepages_supported()) {
++		if (hugetlb_max_hstate || default_hstate_max_huge_pages)
++			pr_warn("HugeTLB: huge pages not supported, ignoring associated command-line parameters\n");
+ 		return 0;
++	}
  
-@@ -28,7 +28,7 @@ def rb_first(root):
+ 	/*
+ 	 * Make sure HPAGE_SIZE (HUGETLB_PAGE_ORDER) hstate exists.  Some
+@@ -3315,11 +3318,6 @@ static int __init hugepages_setup(char *
+ 	unsigned long *mhp;
+ 	static unsigned long *last_mhp;
  
- def rb_last(root):
-     if root.type == rb_root_type.get_type():
--        node = node.address.cast(rb_root_type.get_type().pointer())
-+        node = root.address.cast(rb_root_type.get_type().pointer())
-     elif root.type != rb_root_type.get_type().pointer():
-         raise gdb.GdbError("Must be struct rb_root not {}".format(root.type))
+-	if (!hugepages_supported()) {
+-		pr_warn("HugeTLB: huge pages not supported, ignoring hugepages = %s\n", s);
+-		return 0;
+-	}
+-
+ 	if (!parsed_valid_hugepagesz) {
+ 		pr_warn("HugeTLB: hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
+ 		parsed_valid_hugepagesz = true;
+@@ -3372,11 +3370,6 @@ static int __init hugepagesz_setup(char
+ 	struct hstate *h;
  
-_
-
-Patches currently in -mm which might be from aymeric.agon@yandex.com are
-
-scripts-gdb-repair-rb_first-and-rb_last.patch
+ 	parsed_valid_hugepagesz = false;
+-	if (!hugepages_supported()) {
+-		pr_warn("HugeTLB: huge pages not supported, ignoring hugepagesz = %s\n", s);
+-		return 0;
+-	}
+-
+ 	size = (unsigned long)memparse(s, NULL);
+ 
+ 	if (!arch_hugetlb_valid_size(size)) {
+@@ -3424,11 +3417,6 @@ static int __init default_hugepagesz_set
+ 	unsigned long size;
+ 
+ 	parsed_valid_hugepagesz = false;
+-	if (!hugepages_supported()) {
+-		pr_warn("HugeTLB: huge pages not supported, ignoring default_hugepagesz = %s\n", s);
+-		return 0;
+-	}
