@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
+ tools-testing-selftests-sysctl-sysctlsh-support-config_test_sysctl=y.patch
  added to -mm tree
-Date: Mon, 27 Apr 2020 11:33:56 -0700
-Message-ID: <20200427183356.i_yj2Ffjr%akpm@linux-foundation.org>
+Date: Mon, 27 Apr 2020 11:33:59 -0700
+Message-ID: <20200427183359._QNabr0nj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48474 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48542 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726420AbgD0Sd6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 27 Apr 2020 14:33:58 -0400
+        id S1726420AbgD0SeB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Apr 2020 14:34:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, christian.brauner@ubuntu.com, ebiederm@xmission.com, gpiccoli@canonical.com, gregkh@linuxfoundation.org, ivan.teterevkov@nutanix.com, keescook@chromium.org, mcgrof@kernel.org, mhiramat@kernel.org, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, tglx@linutronix.de, vbabka@suse.cz, willy@infradead.org, yzaikin@google.com
 
 
 The patch titled
-     Subject: kernel/hung_task convert hung_task_panic boot parameter to sysctl
+     Subject: tools/testing/selftests/sysctl/sysctl.sh: support CONFIG_TEST_SYSCTL=y
 has been added to the -mm tree.  Its filename is
-     kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
+     tools-testing-selftests-sysctl-sysctlsh-support-config_test_sysctl=y.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-testing-selftests-sysctl-sysctlsh-support-config_test_sysctl%3Dy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-testing-selftests-sysctl-sysctlsh-support-config_test_sysctl%3Dy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,21 +38,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: kernel/hung_task convert hung_task_panic boot parameter to sysctl
+Subject: tools/testing/selftests/sysctl/sysctl.sh: support CONFIG_TEST_SYSCTL=y
 
-We can now handle sysctl parameters on kernel command line and have
-infrastructure to convert legacy command line options that duplicate
-sysctl to become a sysctl alias.
+The testing script recommends CONFIG_TEST_SYSCTL=y, but actually only
+works with CONFIG_TEST_SYSCTL=m.  Testing of sysctl setting via boot param
+however requires the test to be built-in, so make sure the test script
+supports it.
 
-This patch converts the hung_task_panic parameter.  Note that the sysctl
-handler is more strict and allows only 0 and 1, while the legacy parameter
-allowed any non-zero value.  But there is little reason anyone would not
-be using 1.
-
-Link: http://lkml.kernel.org/r/20200427180433.7029-4-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20200427180433.7029-5-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -61,52 +55,50 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "Guilherme G . Piccoli" <gpiccoli@canonical.com>
 Cc: Iurii Zaikin <yzaikin@google.com>
 Cc: Ivan Teterevkov <ivan.teterevkov@nutanix.com>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    2 +-
- fs/proc/proc_sysctl.c                           |    1 +
- kernel/hung_task.c                              |   10 ----------
- 3 files changed, 2 insertions(+), 11 deletions(-)
+ tools/testing/selftests/sysctl/sysctl.sh |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1505,7 +1505,7 @@
- 			[KNL] Should the hung task detector generate panics.
- 			Format: <integer>
+--- a/tools/testing/selftests/sysctl/sysctl.sh~tools-testing-selftests-sysctl-sysctlsh-support-config_test_sysctl=y
++++ a/tools/testing/selftests/sysctl/sysctl.sh
+@@ -42,7 +42,7 @@ ALL_TESTS="$ALL_TESTS 0006:50:1:bitmap_0
  
--			A nonzero value instructs the kernel to panic when a
-+			A value of 1 instructs the kernel to panic when a
- 			hung task is detected. The default value is controlled
- 			by the CONFIG_BOOTPARAM_HUNG_TASK_PANIC build-time
- 			option. The value selected by this boot parameter can
---- a/fs/proc/proc_sysctl.c~kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl
-+++ a/fs/proc/proc_sysctl.c
-@@ -1710,6 +1710,7 @@ struct sysctl_alias {
-  */
- static const struct sysctl_alias sysctl_aliases[] = {
- 	{"numa_zonelist_order",		"vm.numa_zonelist_order" },
-+	{"hung_task_panic",		"kernel.hung_task_panic" },
- 	{ }
- };
+ test_modprobe()
+ {
+-       if [ ! -d $DIR ]; then
++       if [ ! -d $SYSCTL ]; then
+                echo "$0: $DIR not present" >&2
+                echo "You must have the following enabled in your kernel:" >&2
+                cat $TEST_DIR/config >&2
+@@ -122,9 +122,9 @@ test_reqs()
  
---- a/kernel/hung_task.c~kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl
-+++ a/kernel/hung_task.c
-@@ -63,16 +63,6 @@ static struct task_struct *watchdog_task
- unsigned int __read_mostly sysctl_hung_task_panic =
- 				CONFIG_BOOTPARAM_HUNG_TASK_PANIC_VALUE;
- 
--static int __init hung_task_panic_setup(char *str)
--{
--	int rc = kstrtouint(str, 0, &sysctl_hung_task_panic);
--
--	if (rc)
--		return rc;
--	return 1;
--}
--__setup("hung_task_panic=", hung_task_panic_setup);
+ function load_req_mod()
+ {
+-	if [ ! -d $DIR ]; then
++	if [ ! -d $DIR -a ! -d $SYSCTL ]; then
+ 		if ! modprobe -q -n $TEST_DRIVER; then
+-			echo "$0: module $TEST_DRIVER not found [SKIP]"
++			echo "$0: module $TEST_DRIVER not found and not built-in [SKIP]"
+ 			exit $ksft_skip
+ 		fi
+ 		modprobe $TEST_DRIVER
+_
+
+Patches currently in -mm which might be from vbabka@suse.cz are
+
+usercopy-mark-dma-kmalloc-caches-as-usercopy-caches.patch
+mm-dump_page-do-not-crash-with-invalid-mapping-pointer.patch
+kernel-sysctl-support-setting-sysctl-parameters-from-kernel-command-line.patch
+kernel-sysctl-support-handling-command-line-aliases.patch
+kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
+tools-testing-selftests-sysctl-sysctlsh-support-config_test_sysctl=y.patch
+lib-test_sysctl-support-testing-of-sysctl-boot-parameter.patch
