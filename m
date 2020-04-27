@@ -1,28 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mm-gupc-updating-the-documentation-fix.patch added to
- -mm tree
-Date: Mon, 27 Apr 2020 12:26:51 -0700
-Message-ID: <20200427192651.BHBqOBoqF%akpm@linux-foundation.org>
+Subject: + mm-add-debug_wx-support-fix.patch added to -mm tree
+Date: Mon, 27 Apr 2020 12:42:45 -0700
+Message-ID: <20200427194245.oxRJKj3fn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43938 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51490 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726315AbgD0T0w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 27 Apr 2020 15:26:52 -0400
+        id S1725919AbgD0Tmq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Apr 2020 15:42:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jrdr.linux@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: mm-gupc-updating-the-documentation-fix
+     Subject: mm-add-debug_wx-support-fix
 has been added to the -mm tree.  Its filename is
-     mm-gupc-updating-the-documentation-fix.patch
+     mm-add-debug_wx-support-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gupc-updating-the-documentation-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-debug_wx-support-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gupc-updating-the-documentation-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-debug_wx-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,28 +36,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-gupc-updating-the-documentation-fix
+Subject: mm-add-debug_wx-support-fix
 
-s@/*@/**@
+reword text, per Will Deacon & Zong Li
 
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zong Li <zong.li@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig.debug |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gupc-updating-the-documentation-fix
-+++ a/mm/gup.c
-@@ -722,7 +722,7 @@ static struct page *follow_p4d_mask(stru
- 	return follow_pud_mask(vma, address, p4d, flags, ctx);
- }
+--- a/mm/Kconfig.debug~mm-add-debug_wx-support-fix
++++ a/mm/Kconfig.debug
+@@ -128,8 +128,8 @@ config DEBUG_WX
+ 	help
+ 	  Generate a warning if any W+X mappings are found at boot.
  
--/*
-+/**
-  * follow_page_mask - look up a page descriptor from a user-virtual address
-  * @vma: vm_area_struct mapping @address
-  * @address: virtual address to look up
+-	  This is useful for discovering cases where the kernel is leaving
+-	  W+X mappings after applying NX, as such mappings are a security risk.
++	  This is useful for discovering cases where the kernel is leaving W+X
++	  mappings after applying NX, as such mappings are a security risk.
+ 	  This check also includes UXN, which should be set on all kernel
+ 	  mappings.
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,3 +84,4 @@ linux-next-git-rejects-fix.patch
 mm-pass-task-and-mm-to-do_madvise-fix-fix.patch
 mm-pass-task-and-mm-to-do_madvise-fix-fix-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
+mm-add-debug_wx-support-fix.patch
