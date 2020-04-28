@@ -1,152 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- initrdmem=-option-to-specify-initrd-physical-address.patch removed from -mm
- tree
-Date: Tue, 28 Apr 2020 14:28:19 -0700
-Message-ID: <20200428212819.JHyBE-RUr%akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-?=
+ =?US-ASCII?Q?protection.patch?= added to -mm tree
+Date: Tue, 28 Apr 2020 15:33:44 -0700
+Message-ID: <20200428223344.SuChNhuXM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42404 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726357AbgD1V2U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Apr 2020 17:28:20 -0400
+        id S1726903AbgD1Wdq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 28 Apr 2020 18:33:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@alien8.de, hpa@zytor.com, mingo@redhat.com, mjg59@google.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, rminnich@gmail.com, tglx@linutronix.de
+To: chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org, laoar.shao@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: initrdmem= option to specify initrd physical address
-has been removed from the -mm tree.  Its filename was
-     initrdmem=-option-to-specify-initrd-physical-address.patch
+     Subject: mm, memcg: avoid stale protection values when cgroup is above protection
+has been added to the -mm tree.  Its filename is
+     mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: ron minnich <rminnich@gmail.com>
-Subject: initrdmem= option to specify initrd physical address
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm, memcg: avoid stale protection values when cgroup is above protection
 
-This patch adds the initrdmem option:
+Patch series "mm: memcontrol: memory.{low,min} reclaim fix & cleanup".
 
-initrdmem=ss[KMG],nn[KMG]
+This series contains a fix for a edge case in my earlier protection
+calculation patches, and a patch to make the area overall a little more
+robust to hopefully help avoid this in future.
 
-which is used to specify the physical address of the initrd, almost always
-an address in FLASH.  It also adds code for x86 to use the existing
-phys_init_start and phys_init_size variables in the kernel.  This is
-useful in cases where we wish to place a kernel and initrd in FLASH, but
-there is no firmware file system structure in the FLASH.
 
-One such situation occurs when we have reclaimed unused FLASH space on
-UEFI systems by, e.g., taking it from the Management Engine.  For example,
-on many systems, the ME is given half the FLASH part; not only is 2.75M of
-an 8M part unused; but 10.75M of a 16M part is unused.  We can use this
-space to contain an initrd, but need to tell Linux where it is.
+This patch (of 2):
 
-This space is "raw": due to, e.g., UEFI limitations: it can not be added
-to UEFI firmware volumes without rebuilding UEFI from source or writing a
-UEFI device driver.  We can reference it only as a physical address and
-size.
+A cgroup can have both memory protection and a memory limit to isolate it
+from its siblings in both directions - for example, to prevent it from
+being shrunk below 2G under high pressure from outside, but also from
+growing beyond 4G under low pressure.
 
-At the same time, should we netboot a kernel or load it from GRUB or
-syslinux, we want to have the option of not using the physical address
-specification.  Then, should we wish, it is easy to boot the kernel and
-provide an initrd; or boot the the kernel and let it use the initrd in
-FLASH.  In practice this has proven to be very helpful as we integrate
-Linux into FLASH on x86.
+Commit 9783aa9917f8 ("mm, memcg: proportional memory.{low,min} reclaim")
+implemented proportional scan pressure so that multiple siblings in excess
+of their protection settings don't get reclaimed equally but instead in
+accordance to their unprotected portion.
 
-Hence, the most flexible and convenient path is to enable the initrdmem
-command line flag in a way that it is the last choice tried.
+During limit reclaim, this proportionality shouldn't apply of course:
+there is no competition, all pressure is from within the cgroup and should
+be applied as such.  Reclaim should operate at full efficiency.
 
-For example, on the DigitalLoggers Atomic Pi, we burn an image into FLASH
-with a built-in command line which includes:
+However, mem_cgroup_protected() never expected anybody to look at the
+effective protection values when it indicated that the cgroup is above its
+protection.  As a result, a query during limit reclaim may return stale
+protection values that were calculated by a previous reclaim cycle in
+which the cgroup did have siblings.
 
-initrdmem=0xff968000,0x200000
-which specifies a location and size.
+When this happens, reclaim is unnecessarily hesitant and potentially slow
+to meet the desired limit.  In theory this could lead to premature OOM
+kills, although it's not obvious this has occurred in practice.
 
-[akpm@linux-foundation.org: coding style fixes]
-Link: http://lkml.kernel.org/r/CAP6exYLK11rhreX=6QPyDQmW7wPHsKNEFtXE47pjx41xS6O7-A@mail.gmail.com
-Signed-off-by: Ronald G. Minnich <rminnich@gmail.com>
-Reviewed-by: H. Peter Anvin (Intel) <hpa@zytor.com>
-Cc: Matthew Garrett <mjg59@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+[hannes@cmpxchg.org: rework code comment]
+[hannes@cmpxchg.org: changelog]
+[chris@chrisdown.name: fix store tear]
+[chris@chrisdown.name: retitle]
+Link: http://lkml.kernel.org/r/cover.1588092152.git.chris@chrisdown.name
+Link: http://lkml.kernel.org/r/d454fca5d6b38b74d8dc35141e8519b02089a698.1588092152.git.chris@chrisdown.name
+Fixes: 9783aa9917f8 ("mm, memcg: proportional memory.{low,min} reclaim")
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Signed-off-by: Chris Down <chris@chrisdown.name>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    7 +++++++
- arch/x86/kernel/setup.c                         |    6 ++++++
- init/do_mounts_initrd.c                         |   13 ++++++++++++-
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/arch/x86/kernel/setup.c~initrdmem=-option-to-specify-initrd-physical-address
-+++ a/arch/x86/kernel/setup.c
-@@ -237,6 +237,9 @@ static u64 __init get_ramdisk_image(void
+--- a/mm/memcontrol.c~mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection
++++ a/mm/memcontrol.c
+@@ -6392,8 +6392,19 @@ enum mem_cgroup_protection mem_cgroup_pr
  
- 	ramdisk_image |= (u64)boot_params.ext_ramdisk_image << 32;
+ 	if (!root)
+ 		root = root_mem_cgroup;
+-	if (memcg == root)
++	if (memcg == root) {
++		/*
++		 * The cgroup is the reclaim root in this reclaim
++		 * cycle, and therefore not protected. But it may have
++		 * stale effective protection values from previous
++		 * cycles in which it was not the reclaim root - for
++		 * example, global reclaim followed by limit reclaim.
++		 * Reset these values for mem_cgroup_protection().
++		 */
++		WRITE_ONCE(memcg->memory.emin, 0);
++		WRITE_ONCE(memcg->memory.elow, 0);
+ 		return MEMCG_PROT_NONE;
++	}
  
-+	if (ramdisk_image == 0)
-+		ramdisk_image = phys_initrd_start;
-+
- 	return ramdisk_image;
- }
- static u64 __init get_ramdisk_size(void)
-@@ -245,6 +248,9 @@ static u64 __init get_ramdisk_size(void)
- 
- 	ramdisk_size |= (u64)boot_params.ext_ramdisk_size << 32;
- 
-+	if (ramdisk_size == 0)
-+		ramdisk_size = phys_initrd_size;
-+
- 	return ramdisk_size;
- }
- 
---- a/Documentation/admin-guide/kernel-parameters.txt~initrdmem=-option-to-specify-initrd-physical-address
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1762,6 +1762,13 @@
- 
- 	initrd=		[BOOT] Specify the location of the initial ramdisk
- 
-+	initrdmem=	[KNL] Specify a physical address and size from which to
-+			load the initrd. If an initrd is compiled in or
-+			specified in the bootparams, it takes priority over this
-+			setting.
-+			Format: ss[KMG],nn[KMG]
-+			Default is 0, 0
-+
- 	init_on_alloc=	[MM] Fill newly allocated pages and heap objects with
- 			zeroes.
- 			Format: 0 | 1
---- a/init/do_mounts_initrd.c~initrdmem=-option-to-specify-initrd-physical-address
-+++ a/init/do_mounts_initrd.c
-@@ -28,7 +28,7 @@ static int __init no_initrd(char *str)
- 
- __setup("noinitrd", no_initrd);
- 
--static int __init early_initrd(char *p)
-+static int __init early_initrdmem(char *p)
- {
- 	phys_addr_t start;
- 	unsigned long size;
-@@ -43,6 +43,17 @@ static int __init early_initrd(char *p)
- 	}
- 	return 0;
- }
-+early_param("initrdmem", early_initrdmem);
-+
-+/*
-+ * This is here as the initrd keyword has been in use since 11/2018
-+ * on ARM, PowerPC, and MIPS.
-+ * It should not be; it is reserved for bootloaders.
-+ */
-+static int __init early_initrd(char *p)
-+{
-+	return early_initrdmem(p);
-+}
- early_param("initrd", early_initrd);
- 
- static int init_linuxrc(struct subprocess_info *info, struct cred *new)
+ 	usage = page_counter_read(&memcg->memory);
+ 	if (!usage)
 _
 
-Patches currently in -mm which might be from rminnich@gmail.com are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
+
+mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc.patch
+mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection.patch
