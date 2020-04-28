@@ -1,66 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects-fix.patch removed from
- -mm tree
-Date: Tue, 28 Apr 2020 14:27:58 -0700
-Message-ID: <20200428212758._RAvCHrhg%akpm@linux-foundation.org>
+Subject: [merged]
+ initrdmem=-option-to-specify-initrd-physical-address.patch removed from -mm
+ tree
+Date: Tue, 28 Apr 2020 14:28:19 -0700
+Message-ID: <20200428212819.JHyBE-RUr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42340 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42404 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726483AbgD1V17 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Apr 2020 17:27:59 -0400
+        id S1726357AbgD1V2U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 28 Apr 2020 17:28:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: bp@alien8.de, hpa@zytor.com, mingo@redhat.com, mjg59@google.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, rminnich@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: linux-next-git-rejects-fix
+     Subject: initrdmem= option to specify initrd physical address
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects-fix.patch
+     initrdmem=-option-to-specify-initrd-physical-address.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects-fix
+From: ron minnich <rminnich@gmail.com>
+Subject: initrdmem= option to specify initrd physical address
 
+This patch adds the initrdmem option:
+
+initrdmem=ss[KMG],nn[KMG]
+
+which is used to specify the physical address of the initrd, almost always
+an address in FLASH.  It also adds code for x86 to use the existing
+phys_init_start and phys_init_size variables in the kernel.  This is
+useful in cases where we wish to place a kernel and initrd in FLASH, but
+there is no firmware file system structure in the FLASH.
+
+One such situation occurs when we have reclaimed unused FLASH space on
+UEFI systems by, e.g., taking it from the Management Engine.  For example,
+on many systems, the ME is given half the FLASH part; not only is 2.75M of
+an 8M part unused; but 10.75M of a 16M part is unused.  We can use this
+space to contain an initrd, but need to tell Linux where it is.
+
+This space is "raw": due to, e.g., UEFI limitations: it can not be added
+to UEFI firmware volumes without rebuilding UEFI from source or writing a
+UEFI device driver.  We can reference it only as a physical address and
+size.
+
+At the same time, should we netboot a kernel or load it from GRUB or
+syslinux, we want to have the option of not using the physical address
+specification.  Then, should we wish, it is easy to boot the kernel and
+provide an initrd; or boot the the kernel and let it use the initrd in
+FLASH.  In practice this has proven to be very helpful as we integrate
+Linux into FLASH on x86.
+
+Hence, the most flexible and convenient path is to enable the initrdmem
+command line flag in a way that it is the last choice tried.
+
+For example, on the DigitalLoggers Atomic Pi, we burn an image into FLASH
+with a built-in command line which includes:
+
+initrdmem=0xff968000,0x200000
+which specifies a location and size.
+
+[akpm@linux-foundation.org: coding style fixes]
+Link: http://lkml.kernel.org/r/CAP6exYLK11rhreX=6QPyDQmW7wPHsKNEFtXE47pjx41xS6O7-A@mail.gmail.com
+Signed-off-by: Ronald G. Minnich <rminnich@gmail.com>
+Reviewed-by: H. Peter Anvin (Intel) <hpa@zytor.com>
+Cc: Matthew Garrett <mjg59@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/tidss/tidss_encoder.c |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/admin-guide/kernel-parameters.txt |    7 +++++++
+ arch/x86/kernel/setup.c                         |    6 ++++++
+ init/do_mounts_initrd.c                         |   13 ++++++++++++-
+ 3 files changed, 25 insertions(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/tidss/tidss_encoder.c~linux-next-git-rejects-fix
-+++ a/drivers/gpu/drm/tidss/tidss_encoder.c
-@@ -81,7 +81,6 @@ struct drm_encoder *tidss_encoder_create
- 	ret = drm_simple_encoder_init(&tidss->ddev, enc, encoder_type);
- 	if (ret < 0)
- 		return ERR_PTR(ret);
--	}
+--- a/arch/x86/kernel/setup.c~initrdmem=-option-to-specify-initrd-physical-address
++++ a/arch/x86/kernel/setup.c
+@@ -237,6 +237,9 @@ static u64 __init get_ramdisk_image(void
  
- 	drm_encoder_helper_add(enc, &encoder_helper_funcs);
+ 	ramdisk_image |= (u64)boot_params.ext_ramdisk_image << 32;
  
++	if (ramdisk_image == 0)
++		ramdisk_image = phys_initrd_start;
++
+ 	return ramdisk_image;
+ }
+ static u64 __init get_ramdisk_size(void)
+@@ -245,6 +248,9 @@ static u64 __init get_ramdisk_size(void)
+ 
+ 	ramdisk_size |= (u64)boot_params.ext_ramdisk_size << 32;
+ 
++	if (ramdisk_size == 0)
++		ramdisk_size = phys_initrd_size;
++
+ 	return ramdisk_size;
+ }
+ 
+--- a/Documentation/admin-guide/kernel-parameters.txt~initrdmem=-option-to-specify-initrd-physical-address
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1762,6 +1762,13 @@
+ 
+ 	initrd=		[BOOT] Specify the location of the initial ramdisk
+ 
++	initrdmem=	[KNL] Specify a physical address and size from which to
++			load the initrd. If an initrd is compiled in or
++			specified in the bootparams, it takes priority over this
++			setting.
++			Format: ss[KMG],nn[KMG]
++			Default is 0, 0
++
+ 	init_on_alloc=	[MM] Fill newly allocated pages and heap objects with
+ 			zeroes.
+ 			Format: 0 | 1
+--- a/init/do_mounts_initrd.c~initrdmem=-option-to-specify-initrd-physical-address
++++ a/init/do_mounts_initrd.c
+@@ -28,7 +28,7 @@ static int __init no_initrd(char *str)
+ 
+ __setup("noinitrd", no_initrd);
+ 
+-static int __init early_initrd(char *p)
++static int __init early_initrdmem(char *p)
+ {
+ 	phys_addr_t start;
+ 	unsigned long size;
+@@ -43,6 +43,17 @@ static int __init early_initrd(char *p)
+ 	}
+ 	return 0;
+ }
++early_param("initrdmem", early_initrdmem);
++
++/*
++ * This is here as the initrd keyword has been in use since 11/2018
++ * on ARM, PowerPC, and MIPS.
++ * It should not be; it is reserved for bootloaders.
++ */
++static int __init early_initrd(char *p)
++{
++	return early_initrdmem(p);
++}
+ early_param("initrd", early_initrd);
+ 
+ static int init_linuxrc(struct subprocess_info *info, struct cred *new)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-add-debug_wx-support-fixpatch-added-to-mm-tree.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-fix.patch
-mm-pass-task-and-mm-to-do_madvise-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise-fix-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+Patches currently in -mm which might be from rminnich@gmail.com are
