@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
- added to -mm tree
-Date: Tue, 28 Apr 2020 15:33:47 -0700
-Message-ID: <20200428223347.Txg01ECoY%akpm@linux-foundation.org>
+ vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs.patch added to
+ -mm tree
+Date: Tue, 28 Apr 2020 16:49:39 -0700
+Message-ID: <20200428234939.tIPIjiK9b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36812 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51788 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725934AbgD1Wdt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Apr 2020 18:33:49 -0400
+        id S1726042AbgD1Xtm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 28 Apr 2020 19:49:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org, laoar.shao@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: andres@anarazel.de, david@fromorbit.com, dhowells@redhat.com, hch@infradead.org, jack@suse.cz, jlayton@kernel.org, jlayton@redhat.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, willy@infradead.org
 
 
 The patch titled
-     Subject: mm, memcg: decouple e{low,min} state mutations from protection checks
+     Subject: vfs: track per-sb writeback errors and report them to syncfs
 has been added to the -mm tree.  Its filename is
-     mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
+     vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,226 +37,192 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Down <chris@chrisdown.name>
-Subject: mm, memcg: decouple e{low,min} state mutations from protection checks
+From: Jeff Layton <jlayton@redhat.com>
+Subject: vfs: track per-sb writeback errors and report them to syncfs
 
-mem_cgroup_protected currently is both used to set effective low and min
-and return a mem_cgroup_protection based on the result.  As a user, this
-can be a little unexpected: it appears to be a simple predicate function,
-if not for the big warning in the comment above about the order in which
-it must be executed.
+Patch series "vfs: have syncfs() return error when there are writeback
+errors", v6.
 
-This change makes it so that we separate the state mutations from the
-actual protection checks, which makes it more obvious where we need to be
-careful mutating internal state, and where we are simply checking and
-don't need to worry about that.
+Currently, syncfs does not return errors when one of the inodes fails to
+be written back. It will return errors based on the legacy AS_EIO and
+AS_ENOSPC flags when syncing out the block device fails, but that's not
+particularly helpful for filesystems that aren't backed by a blockdev.
+It's also possible for a stray sync to lose those errors.
 
-Link: http://lkml.kernel.org/r/51ffacb736bb02ecc09c828ebe8f4ec7fda68c48.1588092152.git.chris@chrisdown.name
-Signed-off-by: Chris Down <chris@chrisdown.name>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
+The basic idea is to track writeback errors at the superblock level,
+so that we can quickly and easily check whether something bad happened
+without having to fsync each file individually. syncfs is then changed
+to reliably report writeback errors, and a new ioctl is added to allow
+userland to get at the current errseq_t value w/o having to sync out
+anything.
+
+
+This patch (of 2):
+
+Usually we suggest that applications call fsync when they want to ensure
+that all data written to the file has made it to the backing store, but
+that can be inefficient when there are a lot of open files.
+
+Calling syncfs on the filesystem can be more efficient in some situations,
+but the error reporting doesn't currently work the way most people expect.
+If a single inode on a filesystem reports a writeback error, syncfs won't
+necessarily return an error.  syncfs only returns an error if
+__sync_blockdev fails, and on some filesystems that's a no-op.
+
+It would be better if syncfs reported an error if there were any writeback
+failures.  Then applications could call syncfs to see if there are any
+errors on any open files, and could then call fsync on all of the other
+descriptors to figure out which one failed.
+
+This patch adds a new errseq_t to struct super_block, and has
+mapping_set_error also record writeback errors there.
+
+To report those errors, we also need to keep an errseq_t in struct file to
+act as a cursor.  This patch adds a dedicated field for that purpose,
+which slots nicely into 4 bytes of padding at the end of struct file on
+x86_64.
+
+An earlier version of this patch used an O_PATH file descriptor to cue the
+kernel that the open file should track the superblock error and not the
+inode's writeback error.
+
+I think that API is just too weird though.  This is simpler and should
+make syncfs error reporting "just work" even if someone is multiplexing
+fsync and syncfs on the same fds.
+
+Link: http://lkml.kernel.org/r/20200428135155.19223-1-jlayton@kernel.org
+Link: http://lkml.kernel.org/r/20200428135155.19223-2-jlayton@kernel.org
+Signed-off-by: Jeff Layton <jlayton@kernel.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Andres Freund <andres@anarazel.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   48 ++++++++++++++++++++++++++---------
- mm/memcontrol.c            |   30 +++++----------------
- mm/vmscan.c                |   17 ++----------
- 3 files changed, 49 insertions(+), 46 deletions(-)
+ drivers/dax/device.c    |    1 +
+ fs/file_table.c         |    1 +
+ fs/open.c               |    3 +--
+ fs/sync.c               |    6 ++++--
+ include/linux/fs.h      |   16 ++++++++++++++++
+ include/linux/pagemap.h |    5 ++++-
+ 6 files changed, 27 insertions(+), 5 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-decouple-elowmin-state-mutations-from-protection-checks
-+++ a/include/linux/memcontrol.h
-@@ -50,12 +50,6 @@ enum memcg_memory_event {
- 	MEMCG_NR_MEMORY_EVENTS,
- };
+--- a/drivers/dax/device.c~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/drivers/dax/device.c
+@@ -377,6 +377,7 @@ static int dax_open(struct inode *inode,
+ 	inode->i_mapping->a_ops = &dev_dax_aops;
+ 	filp->f_mapping = inode->i_mapping;
+ 	filp->f_wb_err = filemap_sample_wb_err(filp->f_mapping);
++	filp->f_sb_err = file_sample_sb_err(filp);
+ 	filp->private_data = dev_dax;
+ 	inode->i_flags = S_DAX;
  
--enum mem_cgroup_protection {
--	MEMCG_PROT_NONE,
--	MEMCG_PROT_LOW,
--	MEMCG_PROT_MIN,
--};
+--- a/fs/file_table.c~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/fs/file_table.c
+@@ -198,6 +198,7 @@ static struct file *alloc_file(const str
+ 	file->f_inode = path->dentry->d_inode;
+ 	file->f_mapping = path->dentry->d_inode->i_mapping;
+ 	file->f_wb_err = filemap_sample_wb_err(file->f_mapping);
++	file->f_sb_err = file_sample_sb_err(file);
+ 	if ((file->f_mode & FMODE_READ) &&
+ 	     likely(fop->read || fop->read_iter))
+ 		file->f_mode |= FMODE_CAN_READ;
+--- a/fs/open.c~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/fs/open.c
+@@ -743,9 +743,8 @@ static int do_dentry_open(struct file *f
+ 	path_get(&f->f_path);
+ 	f->f_inode = inode;
+ 	f->f_mapping = inode->i_mapping;
 -
- struct mem_cgroup_reclaim_cookie {
- 	pg_data_t *pgdat;
- 	unsigned int generation;
-@@ -357,8 +351,26 @@ static inline unsigned long mem_cgroup_p
- 		   READ_ONCE(memcg->memory.elow));
- }
+-	/* Ensure that we skip any errors that predate opening of the file */
+ 	f->f_wb_err = filemap_sample_wb_err(f->f_mapping);
++	f->f_sb_err = file_sample_sb_err(f);
  
--enum mem_cgroup_protection mem_cgroup_protected(struct mem_cgroup *root,
--						struct mem_cgroup *memcg);
-+void mem_cgroup_calculate_protection(struct mem_cgroup *root,
-+				     struct mem_cgroup *memcg);
-+
-+static inline bool mem_cgroup_below_low(struct mem_cgroup *memcg)
-+{
-+	if (mem_cgroup_disabled())
-+		return false;
-+
-+	return READ_ONCE(memcg->memory.elow) >=
-+		page_counter_read(&memcg->memory);
-+}
-+
-+static inline bool mem_cgroup_below_min(struct mem_cgroup *memcg)
-+{
-+	if (mem_cgroup_disabled())
-+		return false;
-+
-+	return READ_ONCE(memcg->memory.emin) >=
-+		page_counter_read(&memcg->memory);
-+}
- 
- int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
- 			  gfp_t gfp_mask, struct mem_cgroup **memcgp,
-@@ -838,13 +850,27 @@ static inline void memcg_memory_event_mm
- static inline unsigned long mem_cgroup_protection(struct mem_cgroup *memcg,
- 						  bool in_low_reclaim)
+ 	if (unlikely(f->f_flags & O_PATH)) {
+ 		f->f_mode = FMODE_PATH | FMODE_OPENED;
+--- a/fs/sync.c~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/fs/sync.c
+@@ -161,7 +161,7 @@ SYSCALL_DEFINE1(syncfs, int, fd)
  {
-+
-+
-+static inline void mem_cgroup_calculate_protection(struct mem_cgroup *root,
-+						   struct mem_cgroup *memcg);
-+{
-+}
-+
-+static inline void mem_cgroup_protection(struct mem_cgroup *memcg,
-+					 bool in_low_reclaim)
-+{
- 	return 0;
- }
+ 	struct fd f = fdget(fd);
+ 	struct super_block *sb;
+-	int ret;
++	int ret, ret2;
  
--static inline enum mem_cgroup_protection mem_cgroup_protected(
--	struct mem_cgroup *root, struct mem_cgroup *memcg)
-+static inline bool mem_cgroup_below_low(struct mem_cgroup *memcg)
-+{
-+	return false;
-+}
-+
-+static inline bool mem_cgroup_below_min(struct mem_cgroup *memcg)
- {
--	return MEMCG_PROT_NONE;
-+	return false;
- }
+ 	if (!f.file)
+ 		return -EBADF;
+@@ -171,8 +171,10 @@ SYSCALL_DEFINE1(syncfs, int, fd)
+ 	ret = sync_filesystem(sb);
+ 	up_read(&sb->s_umount);
  
- static inline int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
---- a/mm/memcontrol.c~mm-memcg-decouple-elowmin-state-mutations-from-protection-checks
-+++ a/mm/memcontrol.c
-@@ -6368,27 +6368,21 @@ static unsigned long effective_protectio
++	ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
++
+ 	fdput(f);
+-	return ret;
++	return ret ? ret : ret2;
  }
  
  /**
-- * mem_cgroup_protected - check if memory consumption is in the normal range
-+ * mem_cgroup_calculate_protection - calculate and cache effective low and min
-  * @root: the top ancestor of the sub-tree being checked
-  * @memcg: the memory cgroup to check
-  *
-  * WARNING: This function is not stateless! It can only be used as part
-  *          of a top-down tree iteration, not for isolated queries.
-- *
-- * Returns one of the following:
-- *   MEMCG_PROT_NONE: cgroup memory is not protected
-- *   MEMCG_PROT_LOW: cgroup memory is protected as long there is
-- *     an unprotected supply of reclaimable memory from other cgroups.
-- *   MEMCG_PROT_MIN: cgroup memory is protected
-  */
--enum mem_cgroup_protection mem_cgroup_protected(struct mem_cgroup *root,
--						struct mem_cgroup *memcg)
-+void mem_cgroup_calculate_protection(struct mem_cgroup *root,
-+				     struct mem_cgroup *memcg)
- {
- 	unsigned long usage, parent_usage;
- 	struct mem_cgroup *parent;
+--- a/include/linux/fs.h~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/include/linux/fs.h
+@@ -976,6 +976,7 @@ struct file {
+ #endif /* #ifdef CONFIG_EPOLL */
+ 	struct address_space	*f_mapping;
+ 	errseq_t		f_wb_err;
++	errseq_t		f_sb_err; /* for syncfs */
+ } __randomize_layout
+   __attribute__((aligned(4)));	/* lest something weird decides that 2 is OK */
  
- 	if (mem_cgroup_disabled())
--		return MEMCG_PROT_NONE;
-+		return;
+@@ -1520,6 +1521,9 @@ struct super_block {
+ 	/* Being remounted read-only */
+ 	int s_readonly_remount;
  
- 	if (!root)
- 		root = root_mem_cgroup;
-@@ -6403,22 +6397,22 @@ enum mem_cgroup_protection mem_cgroup_pr
- 		 */
- 		WRITE_ONCE(memcg->memory.emin, 0);
- 		WRITE_ONCE(memcg->memory.elow, 0);
--		return MEMCG_PROT_NONE;
-+		return;
- 	}
- 
- 	usage = page_counter_read(&memcg->memory);
- 	if (!usage)
--		return MEMCG_PROT_NONE;
-+		return;
- 
- 	parent = parent_mem_cgroup(memcg);
- 	/* No parent means a non-hierarchical mode on v1 memcg */
- 	if (!parent)
--		return MEMCG_PROT_NONE;
-+		return;
- 
- 	if (parent == root) {
- 		memcg->memory.emin = READ_ONCE(memcg->memory.min);
- 		memcg->memory.elow = memcg->memory.low;
--		goto out;
-+		return;
- 	}
- 
- 	parent_usage = page_counter_read(&parent->memory);
-@@ -6431,14 +6425,6 @@ enum mem_cgroup_protection mem_cgroup_pr
- 	WRITE_ONCE(memcg->memory.elow, effective_protection(usage, parent_usage,
- 			memcg->memory.low, READ_ONCE(parent->memory.elow),
- 			atomic_long_read(&parent->memory.children_low_usage)));
--
--out:
--	if (usage <= memcg->memory.emin)
--		return MEMCG_PROT_MIN;
--	else if (usage <= memcg->memory.elow)
--		return MEMCG_PROT_LOW;
--	else
--		return MEMCG_PROT_NONE;
++	/* per-sb errseq_t for reporting writeback errors via syncfs */
++	errseq_t s_wb_err;
++
+ 	/* AIO completions deferred from interrupt context */
+ 	struct workqueue_struct *s_dio_done_wq;
+ 	struct hlist_head s_pins;
+@@ -2827,6 +2831,18 @@ static inline errseq_t filemap_sample_wb
+ 	return errseq_sample(&mapping->wb_err);
  }
  
- /**
---- a/mm/vmscan.c~mm-memcg-decouple-elowmin-state-mutations-from-protection-checks
-+++ a/mm/vmscan.c
-@@ -2634,14 +2634,15 @@ static void shrink_node_memcgs(pg_data_t
- 		unsigned long reclaimed;
- 		unsigned long scanned;
- 
--		switch (mem_cgroup_protected(target_memcg, memcg)) {
--		case MEMCG_PROT_MIN:
-+		mem_cgroup_calculate_protection(target_memcg, memcg);
++/**
++ * file_sample_sb_err - sample the current errseq_t to test for later errors
++ * @mapping: mapping to be sampled
++ *
++ * Grab the most current superblock-level errseq_t value for the given
++ * struct file.
++ */
++static inline errseq_t file_sample_sb_err(struct file *file)
++{
++	return errseq_sample(&file->f_path.dentry->d_sb->s_wb_err);
++}
 +
-+		if (mem_cgroup_below_min(memcg)) {
- 			/*
- 			 * Hard protection.
- 			 * If there is no reclaimable memory, OOM.
- 			 */
- 			continue;
--		case MEMCG_PROT_LOW:
-+		} else if (mem_cgroup_below_low(memcg)) {
- 			/*
- 			 * Soft protection.
- 			 * Respect the protection only as long as
-@@ -2653,16 +2654,6 @@ static void shrink_node_memcgs(pg_data_t
- 				continue;
- 			}
- 			memcg_memory_event(memcg, MEMCG_LOW);
--			break;
--		case MEMCG_PROT_NONE:
--			/*
--			 * All protection thresholds breached. We may
--			 * still choose to vary the scan pressure
--			 * applied based on by how much the cgroup in
--			 * question has exceeded its protection
--			 * thresholds (see get_scan_count).
--			 */
--			break;
- 		}
+ static inline int filemap_nr_thps(struct address_space *mapping)
+ {
+ #ifdef CONFIG_READ_ONLY_THP_FOR_FS
+--- a/include/linux/pagemap.h~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/include/linux/pagemap.h
+@@ -51,7 +51,10 @@ static inline void mapping_set_error(str
+ 		return;
  
- 		reclaimed = sc->nr_reclaimed;
+ 	/* Record in wb_err for checkers using errseq_t based tracking */
+-	filemap_set_wb_err(mapping, error);
++	__filemap_set_wb_err(mapping, error);
++
++	/* Record it in superblock */
++	errseq_set(&mapping->host->i_sb->s_wb_err, error);
+ 
+ 	/* Record it in flags for now, for legacy callers */
+ 	if (error == -ENOSPC)
 _
 
-Patches currently in -mm which might be from chris@chrisdown.name are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
-mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
+vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs.patch
+buffer-record-blockdev-write-errors-in-super_block-that-it-backs.patch
