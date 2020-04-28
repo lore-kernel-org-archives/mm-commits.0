@@ -1,190 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Tue, 28 Apr 2020 14:27:39 -0700
-Message-ID: <20200428212739.Kfeb9I7Xh%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Tue, 28 Apr 2020 14:27:51 -0700
+Message-ID: <20200428212751.NUcjqQ7PM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42208 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42302 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726256AbgD1V1l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Apr 2020 17:27:41 -0400
+        id S1726256AbgD1V1y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 28 Apr 2020 17:27:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects-2
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/Kconfig     |    2 
- include/linux/printk.h |   97 ++++++++++++++++++++++++++++++++++-----
- 2 files changed, 88 insertions(+), 11 deletions(-)
+ drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c  |    3 -
+ drivers/gpu/drm/i915/display/intel_display_power.c |   24 -----------
+ drivers/gpu/drm/tidss/tidss_encoder.c              |   14 ------
+ drivers/staging/vt6656/main_usb.c                  |    6 --
+ include/linux/vermagic.h                           |    3 -
+ sound/soc/soc-dapm.c                               |    8 ---
+ 6 files changed, 58 deletions(-)
 
---- a/arch/riscv/Kconfig~linux-next-rejects
-+++ a/arch/riscv/Kconfig
-@@ -30,6 +30,8 @@ config RISCV
- 	select GENERIC_IOREMAP
- 	select GENERIC_PTDUMP if MMU
- 	select HAVE_ARCH_AUDITSYSCALL
-+	select HAVE_ARCH_KGDB
-+	select HAVE_ARCH_KGDB_QXFER_PKT
- 	select HAVE_ARCH_SECCOMP_FILTER
- 	select HAVE_ASM_MODVERSIONS
- 	select HAVE_DMA_CONTIGUOUS if MMU
---- a/include/linux/printk.h~linux-next-rejects
-+++ a/include/linux/printk.h
-@@ -279,40 +279,115 @@ static inline void printk_safe_flush_on_
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -4748,8 +4748,6 @@ amdgpu_dm_connector_late_register(struct
+ 	struct amdgpu_dm_connector *amdgpu_dm_connector =
+ 		to_amdgpu_dm_connector(connector);
+ 	int r;
+-<<<<<<< HEAD
+-=======
  
- extern int kptr_restrict;
+ 	if ((connector->connector_type == DRM_MODE_CONNECTOR_DisplayPort) ||
+ 	    (connector->connector_type == DRM_MODE_CONNECTOR_eDP)) {
+@@ -4758,7 +4756,6 @@ amdgpu_dm_connector_late_register(struct
+ 		if (r)
+ 			return r;
+ 	}
+->>>>>>> linux-next/akpm-base
  
-+/**
-+ * pr_fmt - used by the pr_*() macros to generate the printk format string
-+ * @fmt: format string passed from a pr_*() macro
-+ *
-+ * This macro can be used to generate a unified format string for pr_*()
-+ * macros. A common use is to prefix all pr_*() messages in a file with a common
-+ * string. For example, defining this at the top of a source file:
-+ *
-+ *        #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+ *
-+ * would prefix all pr_info, pr_emerg... messages in the file with the module
-+ * name.
-+ */
- #ifndef pr_fmt
- #define pr_fmt(fmt) fmt
+ 	if ((connector->connector_type == DRM_MODE_CONNECTOR_DisplayPort) ||
+ 	    (connector->connector_type == DRM_MODE_CONNECTOR_eDP)) {
+--- a/drivers/gpu/drm/i915/display/intel_display_power.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/display/intel_display_power.c
+@@ -4188,11 +4188,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX D TBT1",
+ 		.domains = TGL_AUX_D_TBT1_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+@@ -4203,11 +4199,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX E TBT2",
+ 		.domains = TGL_AUX_E_TBT2_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+@@ -4218,11 +4210,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX F TBT3",
+ 		.domains = TGL_AUX_F_TBT3_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+@@ -4233,11 +4221,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX G TBT4",
+ 		.domains = TGL_AUX_G_TBT4_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+@@ -4248,11 +4232,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX H TBT5",
+ 		.domains = TGL_AUX_H_TBT5_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+@@ -4263,11 +4243,7 @@ static const struct i915_power_well_desc
+ 	{
+ 		.name = "AUX I TBT6",
+ 		.domains = TGL_AUX_I_TBT6_IO_POWER_DOMAINS,
+-<<<<<<< HEAD
+-		.ops = &icl_tc_phy_aux_power_well_ops,
+-=======
+ 		.ops = &icl_aux_power_well_ops,
+->>>>>>> linux-next/akpm-base
+ 		.id = DISP_PW_ID_NONE,
+ 		{
+ 			.hsw.regs = &icl_aux_power_well_regs,
+--- a/drivers/gpu/drm/tidss/tidss_encoder.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/tidss/tidss_encoder.c
+@@ -66,13 +66,6 @@ static const struct drm_encoder_helper_f
+ 	.atomic_check = tidss_encoder_atomic_check,
+ };
+ 
+-<<<<<<< HEAD
+-static const struct drm_encoder_funcs encoder_funcs = {
+-	.destroy = tidss_encoder_destroy,
+-};
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ struct drm_encoder *tidss_encoder_create(struct tidss_device *tidss,
+ 					 u32 encoder_type, u32 possible_crtcs)
+ {
+@@ -85,15 +78,8 @@ struct drm_encoder *tidss_encoder_create
+ 
+ 	enc->possible_crtcs = possible_crtcs;
+ 
+-<<<<<<< HEAD
+-	ret = drm_encoder_init(&tidss->ddev, enc, &encoder_funcs,
+-			       encoder_type, NULL);
+-	if (ret < 0) {
+-		kfree(enc);
+-=======
+ 	ret = drm_simple_encoder_init(&tidss->ddev, enc, encoder_type);
+ 	if (ret < 0)
+->>>>>>> linux-next/akpm-base
+ 		return ERR_PTR(ret);
+ 	}
+ 
+--- a/drivers/staging/vt6656/main_usb.c~linux-next-git-rejects
++++ a/drivers/staging/vt6656/main_usb.c
+@@ -740,14 +740,8 @@ static void vnt_bss_info_changed(struct
+ 		       BSS_CHANGED_ERP_SLOT))
+ 		vnt_set_bss_mode(priv);
+ 
+-<<<<<<< HEAD
+-	if (changed & BSS_CHANGED_TXPOWER)
+-		vnt_rf_setpower(priv, priv->current_rate,
+-				conf->chandef.chan->hw_value);
+-=======
+ 	if (changed & (BSS_CHANGED_TXPOWER | BSS_CHANGED_BANDWIDTH))
+ 		vnt_rf_setpower(priv, conf->chandef.chan);
+->>>>>>> linux-next/akpm-base
+ 
+ 	if (changed & BSS_CHANGED_BEACON_ENABLED) {
+ 		dev_dbg(&priv->usb->dev,
+--- a/include/linux/vermagic.h~linux-next-git-rejects
++++ a/include/linux/vermagic.h
+@@ -2,13 +2,10 @@
+ #ifndef _LINUX_VERMAGIC_H
+ #define _LINUX_VERMAGIC_H
+ 
+-<<<<<<< HEAD
+-=======
+ #ifndef INCLUDE_VERMAGIC
+ #error "This header can be included from kernel/module.c or *.mod.c only"
  #endif
  
--/*
-- * These can be used to print at the various log levels.
-- * All of these will print unconditionally, although note that pr_debug()
-- * and other debug macros are compiled out unless either DEBUG is defined,
-- * CONFIG_DYNAMIC_DEBUG is set, or CONFIG_DYNAMIC_DEBUG_CORE is set when
-- * DYNAMIC_DEBUG_MODULE being defined for any modules.
-+/**
-+ * pr_emerg - Print an emergency-level message
-+ * @fmt: format string
-+ * @...: arguments for the format string
-+ *
-+ * This macro expands to a printk with KERN_EMERG loglevel. It uses pr_fmt() to
-+ * generate the format string.
-  */
- #define pr_emerg(fmt, ...) \
- 	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-+/**
-+ * pr_alert - Print an alert-level message
-+ * @fmt: format string
-+ * @...: arguments for the format string
-+ *
-+ * This macro expands to a printk with KERN_ALERT loglevel. It uses pr_fmt() to
-+ * generate the format string.
-+ */
- #define pr_alert(fmt, ...) \
- 	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-+/**
-+ * pr_crit - Print a critical-level message
-+ * @fmt: format string
-+ * @...: arguments for the format string
-+ *
-+ * This macro expands to a printk with KERN_CRIT loglevel. It uses pr_fmt() to
-+ * generate the format string.
-+ */
- #define pr_crit(fmt, ...) \
- 	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-+/**
-+ * pr_err - Print an error-level message
-+ * @fmt: format string
-+ * @...: arguments for the format string
-+ *
-+ * This macro expands to a printk with KERN_ERR loglevel. It uses pr_fmt() to
-+ * generate the format string.
-+ */
- #define pr_err(fmt, ...) \
- 	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-+/**
-+ * pr_warn - Print a warning-level message
-+ * @fmt: format string
-+ * @...: arguments for the format string
-+ *
-+ * This macro expands to a printk with KERN_WARNING loglevel. It uses pr_fmt()
-+ * to generate the format string.
-+ */
- #define pr_warn(fmt, ...) \
- 	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-+/**
-+ * pr_notice - Print a notice-level message
-+ * @fmt: format string
-+ * @...: arguments for the format string
-+ *
-+ * This macro expands to a printk with KERN_NOTICE loglevel. It uses pr_fmt() to
-+ * generate the format string.
-+ */
- #define pr_notice(fmt, ...) \
- 	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-+/**
-+ * pr_info - Print an info-level message
-+ * @fmt: format string
-+ * @...: arguments for the format string
-+ *
-+ * This macro expands to a printk with KERN_INFO loglevel. It uses pr_fmt() to
-+ * generate the format string.
-+ */
- #define pr_info(fmt, ...) \
- 	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
--/*
-- * Like KERN_CONT, pr_cont() should only be used when continuing
-- * a line with no newline ('\n') enclosed. Otherwise it defaults
-- * back to KERN_DEFAULT.
-+/**
-+ * pr_cont - Continues a previous log message in the same line.
-+ * @fmt: format string
-+ * @...: arguments for the format string
-+ *
-+ * This macro expands to a printk with KERN_CONT loglevel. It should only be
-+ * used when continuing a log message with no newline ('\n') enclosed. Otherwise
-+ * it defaults back to KERN_DEFAULT loglevel.
-  */
- #define pr_cont(fmt, ...) \
- 	printk(KERN_CONT fmt, ##__VA_ARGS__)
+->>>>>>> linux-next/akpm-base
+ #include <generated/utsrelease.h>
+ #include <asm/vermagic.h>
  
--/* pr_devel() should produce zero code unless DEBUG is defined */
-+/**
-+ * pr_devel - Print a debug-level message conditionally
-+ * @fmt: format string
-+ * @...: arguments for the format string
-+ *
-+ * This macro expands to a printk with KERN_DEBUG loglevel if DEBUG is
-+ * defined. Otherwise it does nothing.
-+ *
-+ * It uses pr_fmt() to generate the format string.
-+ */
- #ifdef DEBUG
- #define pr_devel(fmt, ...) \
- 	printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+--- a/sound/soc/soc-dapm.c~linux-next-git-rejects
++++ a/sound/soc/soc-dapm.c
+@@ -4427,19 +4427,11 @@ void snd_soc_dapm_connect_dai_link_widge
+ 		if (rtd->num_cpus == 1) {
+ 			for_each_rtd_codec_dais(rtd, i, codec_dai)
+ 				dapm_connect_dai_pair(card, rtd, codec_dai,
+-<<<<<<< HEAD
+-						      rtd->cpu_dais[0]);
+-		} else if (rtd->num_codecs == rtd->num_cpus) {
+-			for_each_rtd_codec_dais(rtd, i, codec_dai)
+-				dapm_connect_dai_pair(card, rtd, codec_dai,
+-						      rtd->cpu_dais[i]);
+-=======
+ 						      asoc_rtd_to_cpu(rtd, 0));
+ 		} else if (rtd->num_codecs == rtd->num_cpus) {
+ 			for_each_rtd_codec_dais(rtd, i, codec_dai)
+ 				dapm_connect_dai_pair(card, rtd, codec_dai,
+ 						      asoc_rtd_to_cpu(rtd, i));
+->>>>>>> linux-next/akpm-base
+ 		} else {
+ 			dev_err(card->dev,
+ 				"N cpus to M codecs link is not supported yet\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -205,7 +238,6 @@ mm-replace-zero-length-array-with-flexible-array-member-fix.patch
 mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
 linux-next-rejects.patch
 linux-next-fix.patch
-linux-next-git-rejects.patch
 linux-next-git-rejects-fix.patch
 mm-pass-task-and-mm-to-do_madvise-fix-fix.patch
 mm-pass-task-and-mm-to-do_madvise-fix-fix-fix.patch
