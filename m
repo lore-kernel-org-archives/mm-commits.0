@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscanc-change-prototype-for-shrink_page_list.patch
- added to -mm tree
-Date: Wed, 29 Apr 2020 15:31:05 -0700
-Message-ID: <20200429223105.dztkRFoIj%akpm@linux-foundation.org>
+Subject: + mm-slub-fix-stack-overruns-with-slub_stats.patch added
+ to -mm tree
+Date: Wed, 29 Apr 2020 16:37:36 -0700
+Message-ID: <20200429233736.kRp2qqAtH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37676 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43016 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726481AbgD2WbH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 29 Apr 2020 18:31:07 -0400
+        id S1726481AbgD2Xhh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 29 Apr 2020 19:37:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.sahrawat@samsung.com, maninder1.s@samsung.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, v.narang@samsung.com, vbabka@suse.cz
+To: cai@lca.pw, cl@linux.com, glauber@scylladb.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: mm/vmscan.c: change prototype for shrink_page_list
+     Subject: mm/slub: fix stack overruns with SLUB_STATS
 has been added to the -mm tree.  Its filename is
-     mm-vmscanc-change-prototype-for-shrink_page_list.patch
+     mm-slub-fix-stack-overruns-with-slub_stats.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscanc-change-prototype-for-shrink_page_list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-stack-overruns-with-slub_stats.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscanc-change-prototype-for-shrink_page_list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-stack-overruns-with-slub_stats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,116 +36,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Maninder Singh <maninder1.s@samsung.com>
-Subject: mm/vmscan.c: change prototype for shrink_page_list
+From: Qian Cai <cai@lca.pw>
+Subject: mm/slub: fix stack overruns with SLUB_STATS
 
-commit 3c710c1ad11b ("mm, vmscan extract shrink_page_list reclaim counters
-into a struct") changed data type for the function, so changing return
-type for funciton and its caller.
+There is no need to copy SLUB_STATS items from root memcg cache to new
+memcg cache copies.  Doing so could result in stack overruns because the
+store function only accepts 0 to clear the stat and returns an error for
+everything else while the show method would print out the whole stat. 
+Then, the mismatch of the lengths returns from show and store methods
+happens in memcg_propagate_slab_attrs(),
 
-Link: http://lkml.kernel.org/r/1588168259-25604-1-git-send-email-maninder1.s@samsung.com
-Signed-off-by: Vaneet Narang <v.narang@samsung.com>
-Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Amit Sahrawat <a.sahrawat@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+else if (root_cache->max_attr_size < ARRAY_SIZE(mbuf))
+	buf = mbuf;
+
+max_attr_size is only 2 from slab_attr_store(), then, it uses mbuf[64] in
+show_stat() later where a bounch of sprintf() would overrun the stack
+variable.  Fix it by always allocating a page of buffer to be used in
+show_stat() if SLUB_STATS=y which should only be used for debug purpose.
+
+ # echo 1 > /sys/kernel/slab/fs_cache/shrink
+ BUG: KASAN: stack-out-of-bounds in number+0x421/0x6e0
+ Write of size 1 at addr ffffc900256cfde0 by task kworker/76:0/53251
+
+ Hardware name: HPE ProLiant DL385 Gen10/ProLiant DL385 Gen10, BIOS A40 07/10/2019
+ Workqueue: memcg_kmem_cache memcg_kmem_cache_create_func
+ Call Trace:
+  dump_stack+0xa7/0xea
+  print_address_description.constprop.5.cold.7+0x64/0x384
+  __kasan_report.cold.8+0x76/0xda
+  kasan_report+0x41/0x60
+  __asan_store1+0x6d/0x70
+  number+0x421/0x6e0
+  vsnprintf+0x451/0x8e0
+  sprintf+0x9e/0xd0
+  show_stat+0x124/0x1d0
+  alloc_slowpath_show+0x13/0x20
+  __kmem_cache_create+0x47a/0x6b0
+
+ addr ffffc900256cfde0 is located in stack of task kworker/76:0/53251 at offset 0 in frame:
+  process_one_work+0x0/0xb90
+
+ this frame has 1 object:
+  [32, 72) 'lockdep_map'
+
+ Memory state around the buggy address:
+  ffffc900256cfc80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  ffffc900256cfd00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ >ffffc900256cfd80: 00 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1
+                                                        ^
+  ffffc900256cfe00: 00 00 00 00 00 f2 f2 f2 00 00 00 00 00 00 00 00
+  ffffc900256cfe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ==================================================================
+ Kernel panic - not syncing: stack-protector: Kernel stack is corrupted in: __kmem_cache_create+0x6ac/0x6b0
+ Workqueue: memcg_kmem_cache memcg_kmem_cache_create_func
+ Call Trace:
+  dump_stack+0xa7/0xea
+  panic+0x23e/0x452
+  __stack_chk_fail+0x22/0x30
+  __kmem_cache_create+0x6ac/0x6b0
+
+Link: http://lkml.kernel.org/r/20200429222356.4322-1-cai@lca.pw
+Fixes: 107dab5c92d5 ("slub: slub-specific propagation changes")
+Signed-off-by: Qian Cai <cai@lca.pw>
+Cc: Glauber Costa <glauber@scylladb.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    2 +-
- mm/page_alloc.c |    2 +-
- mm/vmscan.c     |   24 ++++++++++++------------
- 3 files changed, 14 insertions(+), 14 deletions(-)
+ mm/slub.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-vmscanc-change-prototype-for-shrink_page_list
-+++ a/mm/internal.h
-@@ -538,7 +538,7 @@ extern unsigned long  __must_check vm_mm
-         unsigned long, unsigned long);
- 
- extern void set_pageblock_order(void);
--unsigned long reclaim_clean_pages_from_list(struct zone *zone,
-+unsigned int reclaim_clean_pages_from_list(struct zone *zone,
- 					    struct list_head *page_list);
- /* The ALLOC_WMARK bits are used as an index to zone->watermark */
- #define ALLOC_WMARK_MIN		WMARK_MIN
---- a/mm/page_alloc.c~mm-vmscanc-change-prototype-for-shrink_page_list
-+++ a/mm/page_alloc.c
-@@ -8290,7 +8290,7 @@ static int __alloc_contig_migrate_range(
- 					unsigned long start, unsigned long end)
- {
- 	/* This function is based on compact_zone() from compaction.c. */
--	unsigned long nr_reclaimed;
-+	unsigned int nr_reclaimed;
- 	unsigned long pfn = start;
- 	unsigned int tries = 0;
- 	int ret = 0;
---- a/mm/vmscan.c~mm-vmscanc-change-prototype-for-shrink_page_list
-+++ a/mm/vmscan.c
-@@ -1066,17 +1066,17 @@ static void page_check_dirty_writeback(s
- /*
-  * shrink_page_list() returns the number of reclaimed pages
-  */
--static unsigned long shrink_page_list(struct list_head *page_list,
--				      struct pglist_data *pgdat,
--				      struct scan_control *sc,
--				      enum ttu_flags ttu_flags,
--				      struct reclaim_stat *stat,
--				      bool ignore_references)
-+static unsigned int shrink_page_list(struct list_head *page_list,
-+				     struct pglist_data *pgdat,
-+				     struct scan_control *sc,
-+				     enum ttu_flags ttu_flags,
-+				     struct reclaim_stat *stat,
-+				     bool ignore_references)
- {
- 	LIST_HEAD(ret_pages);
- 	LIST_HEAD(free_pages);
--	unsigned nr_reclaimed = 0;
--	unsigned pgactivate = 0;
-+	unsigned int nr_reclaimed = 0;
-+	unsigned int pgactivate = 0;
- 
- 	memset(stat, 0, sizeof(*stat));
- 	cond_resched();
-@@ -1487,7 +1487,7 @@ keep:
- 	return nr_reclaimed;
- }
- 
--unsigned long reclaim_clean_pages_from_list(struct zone *zone,
-+unsigned int reclaim_clean_pages_from_list(struct zone *zone,
- 					    struct list_head *page_list)
- {
- 	struct scan_control sc = {
-@@ -1496,7 +1496,7 @@ unsigned long reclaim_clean_pages_from_l
- 		.may_unmap = 1,
- 	};
- 	struct reclaim_stat stat;
--	unsigned long nr_reclaimed;
-+	unsigned int nr_reclaimed;
- 	struct page *page, *next;
- 	LIST_HEAD(clean_pages);
- 
-@@ -1911,7 +1911,7 @@ shrink_inactive_list(unsigned long nr_to
- {
- 	LIST_HEAD(page_list);
- 	unsigned long nr_scanned;
--	unsigned long nr_reclaimed = 0;
-+	unsigned int nr_reclaimed = 0;
- 	unsigned long nr_taken;
- 	struct reclaim_stat stat;
- 	int file = is_file_lru(lru);
-@@ -2107,7 +2107,7 @@ static void shrink_active_list(unsigned
- unsigned long reclaim_pages(struct list_head *page_list)
- {
- 	int nid = NUMA_NO_NODE;
--	unsigned long nr_reclaimed = 0;
-+	unsigned int nr_reclaimed = 0;
- 	LIST_HEAD(node_page_list);
- 	struct reclaim_stat dummy_stat;
- 	struct page *page;
+--- a/mm/slub.c~mm-slub-fix-stack-overruns-with-slub_stats
++++ a/mm/slub.c
+@@ -5691,7 +5691,8 @@ static void memcg_propagate_slab_attrs(s
+ 		 */
+ 		if (buffer)
+ 			buf = buffer;
+-		else if (root_cache->max_attr_size < ARRAY_SIZE(mbuf))
++		else if (root_cache->max_attr_size < ARRAY_SIZE(mbuf) &&
++			 !IS_ENABLED(CONFIG_SLUB_STATS))
+ 			buf = mbuf;
+ 		else {
+ 			buffer = (char *) get_zeroed_page(GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from maninder1.s@samsung.com are
+Patches currently in -mm which might be from cai@lca.pw are
 
-mm-vmscanc-change-prototype-for-shrink_page_list.patch
+mm-slub-fix-stack-overruns-with-slub_stats.patch
+mm-swap_state-fix-a-data-race-in-swapin_nr_pages.patch
+mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix.patch
+mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races-v2.patch
+mm-swap_state-mark-various-intentional-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+mm-page_counter-fix-various-data-races-at-memsw.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-util-annotate-an-data-race-at-vm_committed_as.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+mm-annotate-a-data-race-in-page_zonenum.patch
+mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
