@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + tools-vm-page_owner_sort-filter-out-unneeded-line.patch
+Subject: +
+ mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
  added to -mm tree
-Date: Wed, 29 Apr 2020 18:27:03 -0700
-Message-ID: <20200430012703.kgm4aBfWF%akpm@linux-foundation.org>
+Date: Wed, 29 Apr 2020 18:51:49 -0700
+Message-ID: <20200430015149.JTw5qwiaE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54556 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37082 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726309AbgD3B1F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 29 Apr 2020 21:27:05 -0400
+        id S1726282AbgD3Bvu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 29 Apr 2020 21:51:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ch0.han@lge.com, corbet@lwn.net, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, vbabka@suse.cz
+To: hulkci@huawei.com, minchan@kernel.org, mm-commits@vger.kernel.org, zhengbin13@huawei.com
 
 
 The patch titled
-     Subject: tools/vm/page_owner_sort.c: filter out unneeded line
+     Subject: mm/madvise: make function 'do_process_madvise' static
 has been added to the -mm tree.  Its filename is
-     tools-vm-page_owner_sort-filter-out-unneeded-line.patch
+     mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sort-filter-out-unneeded-line.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sort-filter-out-unneeded-line.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,62 +37,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Changhee Han <ch0.han@lge.com>
-Subject: tools/vm/page_owner_sort.c: filter out unneeded line
+From: Zheng Bin <zhengbin13@huawei.com>
+Subject: mm/madvise: make function 'do_process_madvise' static
 
-To see a sorted result from page_owner, there must be a tiresome
-preprocessing step before running page_owner_sort.  This patch simply
-filters out lines which start with "PFN" while reading the page owner
-report.
+Fix sparse warnings:
 
-Link: http://lkml.kernel.org/r/20200429052940.16968-1-ch0.han@lge.com
-Signed-off-by: Changhee Han <ch0.han@lge.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+mm/madvise.c:1233:9: warning: symbol 'do_process_madvise' was not declared. Should it be static?
+
+Link: http://lkml.kernel.org/r/20200429014030.41147-1-zhengbin13@huawei.com
+Signed-off-by: Zheng Bin <zhengbin13@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_owner.rst |    3 +--
- tools/vm/page_owner_sort.c      |    5 +++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/madvise.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/vm/page_owner.rst~tools-vm-page_owner_sort-filter-out-unneeded-line
-+++ a/Documentation/vm/page_owner.rst
-@@ -83,8 +83,7 @@ Usage
- 4) Analyze information from page owner::
+--- a/mm/madvise.c~mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix
++++ a/mm/madvise.c
+@@ -1230,8 +1230,8 @@ static int process_madvise_vec(struct ta
+ 	return ret;
+ }
  
- 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
--	grep -v ^PFN page_owner_full.txt > page_owner.txt
--	./page_owner_sort page_owner.txt sorted_page_owner.txt
-+	./page_owner_sort page_owner_full.txt sorted_page_owner.txt
- 
-    See the result about who allocated each page
-    in the ``sorted_page_owner.txt``.
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sort-filter-out-unneeded-line
-+++ a/tools/vm/page_owner_sort.c
-@@ -4,8 +4,7 @@
-  *
-  * Example use:
-  * cat /sys/kernel/debug/page_owner > page_owner_full.txt
-- * grep -v ^PFN page_owner_full.txt > page_owner.txt
-- * ./page_owner_sort page_owner.txt sorted_page_owner.txt
-+ * ./page_owner_sort page_owner_full.txt sorted_page_owner.txt
-  *
-  * See Documentation/vm/page_owner.rst
- */
-@@ -38,6 +37,8 @@ int read_block(char *buf, int buf_size,
- 	while (buf_end - curr > 1 && fgets(curr, buf_end - curr, fin)) {
- 		if (*curr == '\n') /* empty line */
- 			return curr - buf;
-+		if (!strncmp(curr, "PFN", 3))
-+			continue;
- 		curr += strlen(curr);
- 	}
- 
+-ssize_t do_process_madvise(int which, pid_t upid, struct iov_iter *iter,
+-				int behavior, unsigned long flags)
++static ssize_t do_process_madvise(int which, pid_t upid, struct iov_iter *iter,
++				       int behavior, unsigned long flags)
+ {
+ 	ssize_t ret;
+ 	struct pid *pid;
 _
 
-Patches currently in -mm which might be from ch0.han@lge.com are
+Patches currently in -mm which might be from zhengbin13@huawei.com are
 
-tools-vm-page_owner_sort-filter-out-unneeded-line.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
