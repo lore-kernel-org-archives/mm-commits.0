@@ -1,83 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: + xarrayh-correct-return-code-for-xa_store_bhirq.patch
- added to -mm tree
-Date: Thu, 30 Apr 2020 15:08:11 -0700
-Message-ID: <20200430220811.6U1jlM0yz%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-khugepaged-add-exceed_max_ptes_-helpers.patch removed from -mm tree
+Date: Thu, 30 Apr 2020 16:03:19 -0700
+Message-ID: <20200430230319.HSo7P4YzP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55540 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47432 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726960AbgD3WIM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Apr 2020 18:08:12 -0400
+        id S1727074AbgD3XDV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Apr 2020 19:03:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, mm-commits@vger.kernel.org, willy@infradead.org
+To: aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: xarray.h: correct return code documentation for xa_store_{bh,irq}()
-has been added to the -mm tree.  Its filename is
-     xarrayh-correct-return-code-for-xa_store_bhirq.patch
+     Subject: mm: khugepaged: add exceed_max_ptes_* helpers
+has been removed from the -mm tree.  Its filename was
+     mm-khugepaged-add-exceed_max_ptes_-helpers.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xarrayh-correct-return-code-for-xa_store_bhirq.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xarrayh-correct-return-code-for-xa_store_bhirq.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: xarray.h: correct return code documentation for xa_store_{bh,irq}()
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm: khugepaged: add exceed_max_ptes_* helpers
 
-__xa_store() and xa_store() document that the functions can fail, and that
-the return code can be an xa_err() encoded error code.
+The max_ptes_{swap|none|shared} are defined to tune the behavior of
+khugepaged.  The are checked at a couple of places with open coding. 
+Replace the opencoding to exceed_pax_ptes_{swap|none_shared} helpers to
+improve the readability.
 
-xa_store_bh() and xa_store_irq() do not document that the functions can
-fail and that they can also return xa_err() encoded error codes.
-
-Thus: Update the documentation.
-
-Link: http://lkml.kernel.org/r/20200430111424.16634-1-manfred@colorfullife.com
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: http://lkml.kernel.org/r/1588200982-69492-1-git-send-email-yang.shi@linux.alibaba.com
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/xarray.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
 
---- a/include/linux/xarray.h~xarrayh-correct-return-code-for-xa_store_bhirq
-+++ a/include/linux/xarray.h
-@@ -576,7 +576,7 @@ void __xa_clear_mark(struct xarray *, un
-  *
-  * Context: Any context.  Takes and releases the xa_lock while
-  * disabling softirqs.
-- * Return: The entry which used to be at this index.
-+ * Return: The old entry at this index or xa_err() if an error happened.
-  */
- static inline void *xa_store_bh(struct xarray *xa, unsigned long index,
- 		void *entry, gfp_t gfp)
-@@ -602,7 +602,7 @@ static inline void *xa_store_bh(struct x
-  *
-  * Context: Process context.  Takes and releases the xa_lock while
-  * disabling interrupts.
-- * Return: The entry which used to be at this index.
-+ * Return: The old entry at this index or xa_err() if an error happened.
-  */
- static inline void *xa_store_irq(struct xarray *xa, unsigned long index,
- 		void *entry, gfp_t gfp)
+--- a/mm/khugepaged.c~mm-khugepaged-add-exceed_max_ptes_-helpers
++++ a/mm/khugepaged.c
+@@ -339,6 +339,21 @@ struct attribute_group khugepaged_attr_g
+ };
+ #endif /* CONFIG_SYSFS */
+ 
++static inline bool exceed_max_ptes_none(unsigned int *nr_ptes)
++{
++	return (++(*nr_ptes) > khugepaged_max_ptes_none);
++}
++
++static inline bool exceed_max_ptes_swap(unsigned int *nr_ptes)
++{
++	return (++(*nr_ptes) > khugepaged_max_ptes_swap);
++}
++
++static inline bool exceed_max_ptes_shared(unsigned int *nr_ptes)
++{
++	return (++(*nr_ptes) > khugepaged_max_ptes_shared);
++}
++
+ int hugepage_madvise(struct vm_area_struct *vma,
+ 		     unsigned long *vm_flags, int advice)
+ {
+@@ -604,7 +619,7 @@ static int __collapse_huge_page_isolate(
+ 		if (pte_none(pteval) || (pte_present(pteval) &&
+ 				is_zero_pfn(pte_pfn(pteval)))) {
+ 			if (!userfaultfd_armed(vma) &&
+-			    ++none_or_zero <= khugepaged_max_ptes_none) {
++			    !exceed_max_ptes_none(&none_or_zero)) {
+ 				continue;
+ 			} else {
+ 				result = SCAN_EXCEED_NONE_PTE;
+@@ -624,7 +639,7 @@ static int __collapse_huge_page_isolate(
+ 		VM_BUG_ON_PAGE(!PageAnon(page), page);
+ 
+ 		if (page_mapcount(page) > 1 &&
+-				++shared > khugepaged_max_ptes_shared) {
++				exceed_max_ptes_shared(&shared)) {
+ 			result = SCAN_EXCEED_SHARED_PTE;
+ 			goto out;
+ 		}
+@@ -1234,7 +1249,7 @@ static int khugepaged_scan_pmd(struct mm
+ 	     _pte++, _address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+ 		if (is_swap_pte(pteval)) {
+-			if (++unmapped <= khugepaged_max_ptes_swap) {
++			if (!exceed_max_ptes_swap(&unmapped)) {
+ 				/*
+ 				 * Always be strict with uffd-wp
+ 				 * enabled swap entries.  Please see
+@@ -1252,7 +1267,7 @@ static int khugepaged_scan_pmd(struct mm
+ 		}
+ 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
+ 			if (!userfaultfd_armed(vma) &&
+-			    ++none_or_zero <= khugepaged_max_ptes_none) {
++			    !exceed_max_ptes_none(&none_or_zero)) {
+ 				continue;
+ 			} else {
+ 				result = SCAN_EXCEED_NONE_PTE;
+@@ -1286,7 +1301,7 @@ static int khugepaged_scan_pmd(struct mm
+ 		}
+ 
+ 		if (page_mapcount(page) > 1 &&
+-				++shared > khugepaged_max_ptes_shared) {
++				exceed_max_ptes_shared(&shared)) {
+ 			result = SCAN_EXCEED_SHARED_PTE;
+ 			goto out_unmap;
+ 		}
+@@ -1961,7 +1976,7 @@ static void khugepaged_scan_file(struct
+ 			continue;
+ 
+ 		if (xa_is_value(page)) {
+-			if (++swap > khugepaged_max_ptes_swap) {
++			if (exceed_max_ptes_swap(&swap)) {
+ 				result = SCAN_EXCEED_SWAP_PTE;
+ 				break;
+ 			}
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
 
-xarrayh-correct-return-code-for-xa_store_bhirq.patch
+mm-khugepaged-dont-have-to-put-being-freed-page-back-to-lru.patch
+mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
