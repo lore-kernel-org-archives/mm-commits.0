@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix.patch
+Subject: + tools-vm-page_owner_sort-filter-out-unneeded-line.patch
  added to -mm tree
-Date: Wed, 29 Apr 2020 18:09:47 -0700
-Message-ID: <20200430010947.ADT4hH_4f%akpm@linux-foundation.org>
+Date: Wed, 29 Apr 2020 18:27:03 -0700
+Message-ID: <20200430012703.kgm4aBfWF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43584 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54556 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726284AbgD3BJs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 29 Apr 2020 21:09:48 -0400
+        id S1726309AbgD3B1F (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 29 Apr 2020 21:27:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chrisdown.name, lkp@intel.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, ch0.han@lge.com, corbet@lwn.net, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix
+     Subject: tools/vm/page_owner_sort.c: filter out unneeded line
 has been added to the -mm tree.  Its filename is
-     mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix.patch
+     tools-vm-page_owner_sort-filter-out-unneeded-line.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sort-filter-out-unneeded-line.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sort-filter-out-unneeded-line.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,26 +36,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Down <chris@chrisdown.name>
-Subject: mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix
+From: Changhee Han <ch0.han@lge.com>
+Subject: tools/vm/page_owner_sort.c: filter out unneeded line
 
-CONFIG_MEMCG=n build fixes
+To see a sorted result from page_owner, there must be a tiresome
+preprocessing step before running page_owner_sort.  This patch simply
+filters out lines which start with "PFN" while reading the page owner
+report.
 
-Reported-by: kbuild test robot <lkp@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/20200429052940.16968-1-ch0.han@lge.com
+Signed-off-by: Changhee Han <ch0.han@lge.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ Documentation/vm/page_owner.rst |    3 +--
+ tools/vm/page_owner_sort.c      |    5 +++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix
-+++ a/include/linux/memcontrol.h
-@@ -847,17 +847,12 @@ static inline void memcg_memory_event_mm
- {
- }
+--- a/Documentation/vm/page_owner.rst~tools-vm-page_owner_sort-filter-out-unneeded-line
++++ a/Documentation/vm/page_owner.rst
+@@ -83,8 +83,7 @@ Usage
+ 4) Analyze information from page owner::
  
--static inline unsigned long mem_cgroup_protection(struct mem_cgroup *memcg,
--						  bool in_low_reclaim)
--{
--
+ 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
+-	grep -v ^PFN page_owner_full.txt > page_owner.txt
+-	./page_owner_sort page_owner.txt sorted_page_owner.txt
++	./page_owner_sort page_owner_full.txt sorted_page_owner.txt
+ 
+    See the result about who allocated each page
+    in the ``sorted_page_owner.txt``.
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sort-filter-out-unneeded-line
++++ a/tools/vm/page_owner_sort.c
+@@ -4,8 +4,7 @@
+  *
+  * Example use:
+  * cat /sys/kernel/debug/page_owner > page_owner_full.txt
+- * grep -v ^PFN page_owner_full.txt > page_owner.txt
+- * ./page_owner_sort page_owner.txt sorted_page_owner.txt
++ * ./page_owner_sort page_owner_full.txt sorted_page_owner.txt
+  *
+  * See Documentation/vm/page_owner.rst
+ */
+@@ -38,6 +37,8 @@ int read_block(char *buf, int buf_size,
+ 	while (buf_end - curr > 1 && fgets(curr, buf_end - curr, fin)) {
+ 		if (*curr == '\n') /* empty line */
+ 			return curr - buf;
++		if (!strncmp(curr, "PFN", 3))
++			continue;
+ 		curr += strlen(curr);
+ 	}
+ 
+_
+
+Patches currently in -mm which might be from ch0.han@lge.com are
+
+tools-vm-page_owner_sort-filter-out-unneeded-line.patch
