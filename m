@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
+ mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix.patch
  added to -mm tree
-Date: Wed, 29 Apr 2020 18:51:49 -0700
-Message-ID: <20200430015149.JTw5qwiaE%akpm@linux-foundation.org>
+Date: Wed, 29 Apr 2020 18:56:00 -0700
+Message-ID: <20200430015600.3ZaJEU0f4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37082 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726282AbgD3Bvu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 29 Apr 2020 21:51:50 -0400
+        id S1726180AbgD3B4B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 29 Apr 2020 21:56:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hulkci@huawei.com, minchan@kernel.org, mm-commits@vger.kernel.org, zhengbin13@huawei.com
+To: minchan@kernel.org, mm-commits@vger.kernel.org, natechancellor@gmail.com
 
 
 The patch titled
-     Subject: mm/madvise: make function 'do_process_madvise' static
+     Subject: mm: fix s390 compat build error
 has been added to the -mm tree.  Its filename is
-     mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
+     mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,38 +37,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zheng Bin <zhengbin13@huawei.com>
-Subject: mm/madvise: make function 'do_process_madvise' static
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: fix s390 compat build error
 
-Fix sparse warnings:
+Nathan reported build error with sys_compat_process_madvise.
+This patch should fix it.
 
-mm/madvise.c:1233:9: warning: symbol 'do_process_madvise' was not declared. Should it be static?
-
-Link: http://lkml.kernel.org/r/20200429014030.41147-1-zhengbin13@huawei.com
-Signed-off-by: Zheng Bin <zhengbin13@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: http://lkml.kernel.org/r/20200429012421.GA132200@google.com
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Nathan Chancellor <natechancellor@gmail.com>
+Tested-by: Nathan Chancellor <natechancellor@gmail.com>	[build]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/compat.h |    5 +++--
+ mm/madvise.c           |    9 ++++++---
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
---- a/mm/madvise.c~mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix
+--- a/include/linux/compat.h~mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix
++++ a/include/linux/compat.h
+@@ -820,9 +820,10 @@ asmlinkage long compat_sys_pwritev64v2(u
+ 		unsigned long vlen, loff_t pos, rwf_t flags);
+ #endif
+ 
+-asmlinkage ssize_t compat_sys_process_madvise(int which,
++asmlinkage ssize_t compat_sys_process_madvise(compat_int_t which,
+ 		compat_pid_t upid, const struct compat_iovec __user *vec,
+-		unsigned long vlen, int behavior, unsigned long flags);
++		compat_ulong_t vlen, compat_int_t behavior,
++		compat_ulong_t flags);
+ 
+ /*
+  * Deprecated system calls which are still defined in
+--- a/mm/madvise.c~mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix
 +++ a/mm/madvise.c
-@@ -1230,8 +1230,8 @@ static int process_madvise_vec(struct ta
- 	return ret;
+@@ -1311,9 +1311,12 @@ SYSCALL_DEFINE6(process_madvise, int, wh
  }
  
--ssize_t do_process_madvise(int which, pid_t upid, struct iov_iter *iter,
--				int behavior, unsigned long flags)
-+static ssize_t do_process_madvise(int which, pid_t upid, struct iov_iter *iter,
-+				       int behavior, unsigned long flags)
+ #ifdef CONFIG_COMPAT
+-COMPAT_SYSCALL_DEFINE6(process_madvise, int, which, compat_pid_t, upid,
+-		const struct compat_iovec __user *, vec, unsigned long, vlen,
+-		int, behavior, unsigned long, flags)
++COMPAT_SYSCALL_DEFINE6(process_madvise, compat_int_t, which,
++			compat_pid_t, upid,
++			const struct compat_iovec __user *, vec,
++			compat_ulong_t, vlen,
++			compat_int_t, behavior,
++			compat_ulong_t, flags)
+ 
  {
  	ssize_t ret;
- 	struct pid *pid;
 _
 
-Patches currently in -mm which might be from zhengbin13@huawei.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api.patch
+mm-introduce-external-memory-hinting-api-fix.patch
+mm-check-fatal-signal-pending-of-target-process.patch
+pid-move-pidfd_get_pid-function-to-pidc.patch
+mm-support-both-pid-and-pidfd-for-process_madvise.patch
+mm-support-vector-address-ranges-for-process_madvise.patch
+mm-support-vector-address-ranges-for-process_madvise-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix.patch
