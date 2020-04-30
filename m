@@ -1,28 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mm-khugepaged-add-exceed_max_ptes_-helpers.patch added
- to -mm tree
-Date: Wed, 29 Apr 2020 16:59:18 -0700
-Message-ID: <20200429235918.jv8tXUZ2i%akpm@linux-foundation.org>
+Subject: + khugepaged-add-self-test-fix-2.patch added to -mm tree
+Date: Wed, 29 Apr 2020 17:41:27 -0700
+Message-ID: <20200430004127.XgIvUphyn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54872 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726511AbgD2X7U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 29 Apr 2020 19:59:20 -0400
+        id S1726309AbgD3Al3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 29 Apr 2020 20:41:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com
+To: aneesh.kumar@linux.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: khugepaged: add exceed_max_ptes_* helpers
+     Subject: khugepaged: replace the usage of system(3) in the test
 has been added to the -mm tree.  Its filename is
-     mm-khugepaged-add-exceed_max_ptes_-helpers.patch
+     khugepaged-add-self-test-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-add-exceed_max_ptes_-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-add-self-test-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-add-exceed_max_ptes_-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-add-self-test-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,107 +35,169 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm: khugepaged: add exceed_max_ptes_* helpers
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: khugepaged: replace the usage of system(3) in the test
 
-The max_ptes_{swap|none|shared} are defined to tune the behavior of
-khugepaged.  The are checked at a couple of places with open coding. 
-Replace the opencoding to exceed_pax_ptes_{swap|none_shared} helpers to
-improve the readability.
+Some glibc version doesn't use CLONE_VM | CLONE_VFORK for system(3)
+implementation and on such system, we find the test case fails.  This is
+due to fork() marking all the parent page table pages read-only to do a
+COW.
 
-Link: http://lkml.kernel.org/r/1588200982-69492-1-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Avoid the usage of system(3) in the test.
+
+Link: http://lkml.kernel.org/r/20200429110727.89388-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   27 +++++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
+ tools/testing/selftests/vm/khugepaged.c |  105 ++++++++++++++++------
+ 1 file changed, 77 insertions(+), 28 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-add-exceed_max_ptes_-helpers
-+++ a/mm/khugepaged.c
-@@ -339,6 +339,21 @@ struct attribute_group khugepaged_attr_g
- };
- #endif /* CONFIG_SYSFS */
+--- a/tools/testing/selftests/vm/khugepaged.c~khugepaged-add-self-test-fix-2
++++ a/tools/testing/selftests/vm/khugepaged.c
+@@ -21,6 +21,7 @@ static unsigned long page_size;
+ static int hpage_pmd_nr;
  
-+static inline bool exceed_max_ptes_none(unsigned int *nr_ptes)
-+{
-+	return (++(*nr_ptes) > khugepaged_max_ptes_none);
-+}
-+
-+static inline bool exceed_max_ptes_swap(unsigned int *nr_ptes)
-+{
-+	return (++(*nr_ptes) > khugepaged_max_ptes_swap);
-+}
-+
-+static inline bool exceed_max_ptes_shared(unsigned int *nr_ptes)
-+{
-+	return (++(*nr_ptes) > khugepaged_max_ptes_shared);
-+}
-+
- int hugepage_madvise(struct vm_area_struct *vma,
- 		     unsigned long *vm_flags, int advice)
+ #define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
++#define PID_SMAPS "/proc/self/smaps"
+ 
+ enum thp_enabled {
+ 	THP_ALWAYS,
+@@ -330,56 +331,104 @@ static void adjust_settings(void)
+ 	success("OK");
+ }
+ 
+-#define CHECK_HUGE_FMT "sed -ne " \
+-	"'/^%lx/,/^AnonHugePages/{/^AnonHugePages:\\s*%ld kB/ q1}' " \
+-	"/proc/%d/smaps"
++#define MAX_LINE_LENGTH 500
+ 
+-static bool check_huge(void *p)
++static bool check_for_pattern(FILE *fp, char *pattern, char *buf)
  {
-@@ -604,7 +619,7 @@ static int __collapse_huge_page_isolate(
- 		if (pte_none(pteval) || (pte_present(pteval) &&
- 				is_zero_pfn(pte_pfn(pteval)))) {
- 			if (!userfaultfd_armed(vma) &&
--			    ++none_or_zero <= khugepaged_max_ptes_none) {
-+			    !exceed_max_ptes_none(&none_or_zero)) {
- 				continue;
- 			} else {
- 				result = SCAN_EXCEED_NONE_PTE;
-@@ -624,7 +639,7 @@ static int __collapse_huge_page_isolate(
- 		VM_BUG_ON_PAGE(!PageAnon(page), page);
+-	char *cmd;
++	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
++		if (!strncmp(buf, pattern, strlen(pattern)))
++			return true;
++	}
++	return false;
++}
++
++static bool check_huge(char *addr)
++{
++	bool thp = false;
+ 	int ret;
++	FILE *fp;
++	char buffer[MAX_LINE_LENGTH];
++	char addr_pattern[MAX_LINE_LENGTH];
  
- 		if (page_mapcount(page) > 1 &&
--				++shared > khugepaged_max_ptes_shared) {
-+				exceed_max_ptes_shared(&shared)) {
- 			result = SCAN_EXCEED_SHARED_PTE;
- 			goto out;
- 		}
-@@ -1234,7 +1249,7 @@ static int khugepaged_scan_pmd(struct mm
- 	     _pte++, _address += PAGE_SIZE) {
- 		pte_t pteval = *_pte;
- 		if (is_swap_pte(pteval)) {
--			if (++unmapped <= khugepaged_max_ptes_swap) {
-+			if (!exceed_max_ptes_swap(&unmapped)) {
- 				/*
- 				 * Always be strict with uffd-wp
- 				 * enabled swap entries.  Please see
-@@ -1252,7 +1267,7 @@ static int khugepaged_scan_pmd(struct mm
- 		}
- 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
- 			if (!userfaultfd_armed(vma) &&
--			    ++none_or_zero <= khugepaged_max_ptes_none) {
-+			    !exceed_max_ptes_none(&none_or_zero)) {
- 				continue;
- 			} else {
- 				result = SCAN_EXCEED_NONE_PTE;
-@@ -1286,7 +1301,7 @@ static int khugepaged_scan_pmd(struct mm
- 		}
+-	ret = asprintf(&cmd, CHECK_HUGE_FMT,
+-			(unsigned long)p, hpage_pmd_size >> 10, getpid());
+-	if (ret < 0) {
+-		perror("asprintf(CHECK_FMT)");
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08llx-", addr);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++
++	fp = fopen(PID_SMAPS, "r");
++	if (!fp) {
++		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
+ 		exit(EXIT_FAILURE);
+ 	}
++	if (!check_for_pattern(fp, addr_pattern, buffer))
++		goto err_out;
  
- 		if (page_mapcount(page) > 1 &&
--				++shared > khugepaged_max_ptes_shared) {
-+				exceed_max_ptes_shared(&shared)) {
- 			result = SCAN_EXCEED_SHARED_PTE;
- 			goto out_unmap;
- 		}
-@@ -1961,7 +1976,7 @@ static void khugepaged_scan_file(struct
- 			continue;
+-	ret = system(cmd);
+-	free(cmd);
+-	if (ret < 0 || !WIFEXITED(ret)) {
+-		perror("system(check_huge)");
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "AnonHugePages:%10lld kB", hpage_pmd_size >> 10);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
+ 		exit(EXIT_FAILURE);
+ 	}
++	/*
++	 * Fetch the AnonHugePages: in the same block and check whether it got
++	 * the expected number of hugeepages next.
++	 */
++	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
++		goto err_out;
++
++	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
++		goto err_out;
  
- 		if (xa_is_value(page)) {
--			if (++swap > khugepaged_max_ptes_swap) {
-+			if (exceed_max_ptes_swap(&swap)) {
- 				result = SCAN_EXCEED_SWAP_PTE;
- 				break;
- 			}
+-	return WEXITSTATUS(ret);
++	thp = true;
++err_out:
++	fclose(fp);
++	return thp;
+ }
+ 
+-#define CHECK_SWAP_FMT "sed -ne " \
+-	"'/^%lx/,/^Swap:/{/^Swap:\\s*%ld kB/ q1}' " \
+-	"/proc/%d/smaps"
+ 
+-static bool check_swap(void *p, unsigned long size)
++static bool check_swap(void *addr, unsigned long size)
+ {
+-	char *cmd;
++	bool swap = false;
+ 	int ret;
++	FILE *fp;
++	char buffer[MAX_LINE_LENGTH];
++	char addr_pattern[MAX_LINE_LENGTH];
+ 
+-	ret = asprintf(&cmd, CHECK_SWAP_FMT,
+-			(unsigned long)p, size >> 10, getpid());
+-	if (ret < 0) {
+-		perror("asprintf(CHECK_SWAP)");
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08llx-", addr);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++
++	fp = fopen(PID_SMAPS, "r");
++	if (!fp) {
++		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
+ 		exit(EXIT_FAILURE);
+ 	}
++	if (!check_for_pattern(fp, addr_pattern, buffer))
++		goto err_out;
+ 
+-	ret = system(cmd);
+-	free(cmd);
+-	if (ret < 0 || !WIFEXITED(ret)) {
+-		perror("system(check_swap)");
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "Swap:%19lld kB", size >> 10);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
+ 		exit(EXIT_FAILURE);
+ 	}
++	/*
++	 * Fetch the Swap: in the same block and check whether it got
++	 * the expected number of hugeepages next.
++	 */
++	if (!check_for_pattern(fp, "Swap:", buffer))
++		goto err_out;
++
++	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
++		goto err_out;
+ 
+-	return WEXITSTATUS(ret);
++	swap = true;
++err_out:
++	fclose(fp);
++	return swap;
+ }
+ 
+ static void *alloc_mapping(void)
 _
 
-Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-mm-khugepaged-add-exceed_max_ptes_-helpers.patch
-mm-khugepaged-dont-have-to-put-being-freed-page-back-to-lru.patch
-mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
+khugepaged-add-self-test-fix-2.patch
