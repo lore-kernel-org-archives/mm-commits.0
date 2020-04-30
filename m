@@ -1,29 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-khugepaged-dont-have-to-put-being-freed-page-back-to-lru.patch added to
- -mm tree
-Date: Thu, 30 Apr 2020 14:14:34 -0700
-Message-ID: <20200430211434.yPqsBu00P%akpm@linux-foundation.org>
+Subject: + arch-kmap-remove-bug_on.patch added to -mm tree
+Date: Thu, 30 Apr 2020 14:20:33 -0700
+Message-ID: <20200430212033.nKxeQTDBS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36966 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39174 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726427AbgD3VOf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Apr 2020 17:14:35 -0400
+        id S1726447AbgD3VUg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Apr 2020 17:20:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com
+To: airlied@linux.ie, benh@kernel.crashing.org, bp@alien8.de, chris@zankel.net, christian.koenig@amd.com, dan.j.williams@intel.com, daniel@ffwll.ch, dave.hansen@linux.intel.com, davem@davemloft.net, deller@gmx.de, hpa@zytor.com, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, paulus@samba.org, peterz@infradead.org, ray.huang@amd.com, tglx@linutronix.de, thellstrom@vmware.com, tsbogend@alpha.franken.de
 
 
 The patch titled
-     Subject: mm: khugepaged: don't have to put being freed page back to lru
+     Subject: arch/kmap: remove BUG_ON()
 has been added to the -mm tree.  Its filename is
-     mm-khugepaged-dont-have-to-put-being-freed-page-back-to-lru.patch
+     arch-kmap-remove-bug_on.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-dont-have-to-put-being-freed-page-back-to-lru.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-kmap-remove-bug_on.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-dont-have-to-put-being-freed-page-back-to-lru.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-kmap-remove-bug_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,77 +35,221 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm: khugepaged: don't have to put being freed page back to lru
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: arch/kmap: remove BUG_ON()
 
-When khugepaged successfully isolated and copied data from old page to
-collapsed THP, the old page is about to be freed if its last mapcount is
-gone.  So putting the page back to lru sounds not that productive in this
-case since the page might be isolated by vmscan but it can't be reclaimed
-by vmscan since it can't be unmapped by try_to_unmap() at all.
+Patch series "Remove duplicated kmap code", v1.
 
-Actually if khugepaged is the last user of this page so it can be freed
-directly.  So, clearing active and unevictable flags, unlocking and
-dropping refcount from isolate instead of calling putback_lru_page().
+The kmap infrastructure has been copied almost verbatim to every
+architecture.  This series consolidates obvious duplicated code by
+defining core functions which call into the architectures only when
+needed.
 
-Link: http://lkml.kernel.org/r/1588279279-61908-2-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Some of the k[un]map_atomic() implementations have some similarities but
+the similarities were not sufficient to warrant further changes.
+
+In addition we remove a duplicate implementation of kmap() in DRM.
+
+
+This patch (of 10):
+
+Replace the use of BUG_ON(in_interrupt()) in the kmap() and kunmap() in
+favor of might_sleep().
+
+Besides the benefits of might_sleep(), this normalizes the implementations
+such that they can be made generic in subsequent patches.
+
+Link: http://lkml.kernel.org/r/20200430203845.582900-1-ira.weiny@intel.com
+Link: http://lkml.kernel.org/r/20200430203845.582900-2-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Christian Koenig <christian.koenig@amd.com>
+Cc: Huang Rui <ray.huang@amd.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>,
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ arch/arc/include/asm/highmem.h        |    2 +-
+ arch/arc/mm/highmem.c                 |    2 +-
+ arch/arm/mm/highmem.c                 |    2 +-
+ arch/csky/mm/highmem.c                |    2 +-
+ arch/microblaze/include/asm/highmem.h |    2 +-
+ arch/mips/mm/highmem.c                |    2 +-
+ arch/nds32/mm/highmem.c               |    2 +-
+ arch/powerpc/include/asm/highmem.h    |    2 +-
+ arch/sparc/include/asm/highmem.h      |    4 ++--
+ arch/x86/mm/highmem_32.c              |    3 +--
+ arch/xtensa/include/asm/highmem.h     |    4 ++--
+ 11 files changed, 13 insertions(+), 14 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-dont-have-to-put-being-freed-page-back-to-lru
-+++ a/mm/khugepaged.c
-@@ -559,10 +559,18 @@ void __khugepaged_exit(struct mm_struct
- static void release_pte_page(struct page *page)
- {
- 	mod_node_page_state(page_pgdat(page),
--			NR_ISOLATED_ANON + page_is_file_lru(page),
--			-compound_nr(page));
--	unlock_page(page);
--	putback_lru_page(page);
-+		NR_ISOLATED_ANON + page_is_file_lru(page), -compound_nr(page));
-+
-+	if (total_mapcount(page)) {
-+		unlock_page(page);
-+		putback_lru_page(page);
-+	} else {
-+		ClearPageActive(page);
-+		ClearPageUnevictable(page);
-+		unlock_page(page);
-+		/* Drop refcount from isolate */
-+		put_page(page);
-+	}
- }
+--- a/arch/arc/include/asm/highmem.h~arch-kmap-remove-bug_on
++++ a/arch/arc/include/asm/highmem.h
+@@ -45,7 +45,7 @@ static inline void flush_cache_kmaps(voi
  
- static void release_pte_pages(pte_t *pte, pte_t *_pte,
-@@ -771,8 +779,6 @@ static void __collapse_huge_page_copy(pt
- 		} else {
- 			src_page = pte_page(pteval);
- 			copy_user_highpage(page, src_page, address, vma);
--			if (!PageCompound(src_page))
--				release_pte_page(src_page);
- 			/*
- 			 * ptl mostly unnecessary, but preempt has to
- 			 * be disabled to update the per-cpu stats
-@@ -786,6 +792,8 @@ static void __collapse_huge_page_copy(pt
- 			pte_clear(vma->vm_mm, address, _pte);
- 			page_remove_rmap(src_page, false);
- 			spin_unlock(ptl);
-+			if (!PageCompound(src_page))
-+				release_pte_page(src_page);
- 			free_page_and_swap_cache(src_page);
- 		}
- 	}
+ static inline void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/arc/mm/highmem.c~arch-kmap-remove-bug_on
++++ a/arch/arc/mm/highmem.c
+@@ -51,7 +51,7 @@ static pte_t * fixmap_page_table;
+ 
+ void *kmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 
+--- a/arch/arm/mm/highmem.c~arch-kmap-remove-bug_on
++++ a/arch/arm/mm/highmem.c
+@@ -42,7 +42,7 @@ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/csky/mm/highmem.c~arch-kmap-remove-bug_on
++++ a/arch/csky/mm/highmem.c
+@@ -29,7 +29,7 @@ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/microblaze/include/asm/highmem.h~arch-kmap-remove-bug_on
++++ a/arch/microblaze/include/asm/highmem.h
+@@ -66,7 +66,7 @@ static inline void *kmap(struct page *pa
+ 
+ static inline void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/mips/mm/highmem.c~arch-kmap-remove-bug_on
++++ a/arch/mips/mm/highmem.c
+@@ -28,7 +28,7 @@ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/nds32/mm/highmem.c~arch-kmap-remove-bug_on
++++ a/arch/nds32/mm/highmem.c
+@@ -24,7 +24,7 @@ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/powerpc/include/asm/highmem.h~arch-kmap-remove-bug_on
++++ a/arch/powerpc/include/asm/highmem.h
+@@ -74,7 +74,7 @@ static inline void *kmap(struct page *pa
+ 
+ static inline void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/sparc/include/asm/highmem.h~arch-kmap-remove-bug_on
++++ a/arch/sparc/include/asm/highmem.h
+@@ -55,7 +55,7 @@ void kunmap_high(struct page *page);
+ 
+ static inline void *kmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 	return kmap_high(page);
+@@ -63,7 +63,7 @@ static inline void *kmap(struct page *pa
+ 
+ static inline void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/x86/mm/highmem_32.c~arch-kmap-remove-bug_on
++++ a/arch/x86/mm/highmem_32.c
+@@ -15,8 +15,7 @@ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+ {
+-	if (in_interrupt())
+-		BUG();
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/xtensa/include/asm/highmem.h~arch-kmap-remove-bug_on
++++ a/arch/xtensa/include/asm/highmem.h
+@@ -73,7 +73,7 @@ static inline void *kmap(struct page *pa
+ 	 */
+ 	BUILD_BUG_ON(PKMAP_BASE <
+ 		     TLBTEMP_BASE_1 + TLBTEMP_SIZE);
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 	return kmap_high(page);
+@@ -81,7 +81,7 @@ static inline void *kmap(struct page *pa
+ 
+ static inline void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
 _
 
-Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+Patches currently in -mm which might be from ira.weiny@intel.com are
 
-mm-khugepaged-add-exceed_max_ptes_-helpers.patch
-mm-khugepaged-dont-have-to-put-being-freed-page-back-to-lru.patch
-mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
+arch-kmap-remove-bug_on.patch
+arch-xtensa-move-kmap-build-bug-out-of-the-way.patch
+arch-kmap-remove-redundant-arch-specific-kmaps.patch
+arch-kunmap-remove-duplicate-kunmap-implementations.patch
+arch-kmap_atomic-consolidate-duplicate-code.patch
+arch-kunmap_atomic-consolidate-duplicate-code.patch
+arch-kmap-ensure-kmap_prot-visibility.patch
+arch-kmap-dont-hard-code-kmap_prot-values.patch
+arch-kmap-define-kmap_atomic_prot-for-all-archs.patch
+drm-remove-drm-specific-kmap_atomic-code.patch
