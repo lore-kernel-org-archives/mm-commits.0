@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + khugepaged-add-self-test-fix-2-fix.patch added to -mm
- tree
-Date: Wed, 29 Apr 2020 17:41:29 -0700
-Message-ID: <20200430004129.K01skEyjI%akpm@linux-foundation.org>
+Subject: +
+ mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix.patch
+ added to -mm tree
+Date: Wed, 29 Apr 2020 18:02:02 -0700
+Message-ID: <20200430010202.kgzA8ArbO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46972 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726309AbgD3Ala (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 29 Apr 2020 20:41:30 -0400
+        id S1726309AbgD3BCD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 29 Apr 2020 21:02:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, kirill@shutemov.name, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org, laoar.shao@gmail.com, lkp@intel.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged-add-self-test-fix-2-fix
+     Subject: mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix
 has been added to the -mm tree.  Its filename is
-     khugepaged-add-self-test-fix-2-fix.patch
+     mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-add-self-test-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-add-self-test-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,73 +37,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: khugepaged-add-self-test-fix-2-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix
 
-fixup for issues I've noticed.
+remove stray semicolon, half-written function
 
-Link: http://lkml.kernel.org/r/20200429124816.jp272trghrzxx5j5@box
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/khugepaged.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ include/linux/memcontrol.h |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/tools/testing/selftests/vm/khugepaged.c~khugepaged-add-self-test-fix-2-fix
-+++ a/tools/testing/selftests/vm/khugepaged.c
-@@ -342,7 +342,7 @@ static bool check_for_pattern(FILE *fp,
- 	return false;
+--- a/include/linux/memcontrol.h~mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix
++++ a/include/linux/memcontrol.h
+@@ -847,13 +847,8 @@ static inline void memcg_memory_event_mm
+ {
  }
  
--static bool check_huge(char *addr)
-+static bool check_huge(void *addr)
+-static inline unsigned long mem_cgroup_protection(struct mem_cgroup *memcg,
+-						  bool in_low_reclaim)
+-{
+-
+-
+ static inline void mem_cgroup_calculate_protection(struct mem_cgroup *root,
+-						   struct mem_cgroup *memcg);
++						   struct mem_cgroup *memcg)
  {
- 	bool thp = false;
- 	int ret;
-@@ -350,7 +350,8 @@ static bool check_huge(char *addr)
- 	char buffer[MAX_LINE_LENGTH];
- 	char addr_pattern[MAX_LINE_LENGTH];
+ }
  
--	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08llx-", addr);
-+	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08lx-",
-+		       (unsigned long) addr);
- 	if (ret >= MAX_LINE_LENGTH) {
- 		printf("%s: Pattern is too long\n", __func__);
- 		exit(EXIT_FAILURE);
-@@ -365,7 +366,8 @@ static bool check_huge(char *addr)
- 	if (!check_for_pattern(fp, addr_pattern, buffer))
- 		goto err_out;
- 
--	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "AnonHugePages:%10lld kB", hpage_pmd_size >> 10);
-+	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "AnonHugePages:%10ld kB",
-+		       hpage_pmd_size >> 10);
- 	if (ret >= MAX_LINE_LENGTH) {
- 		printf("%s: Pattern is too long\n", __func__);
- 		exit(EXIT_FAILURE);
-@@ -395,7 +397,8 @@ static bool check_swap(void *addr, unsig
- 	char buffer[MAX_LINE_LENGTH];
- 	char addr_pattern[MAX_LINE_LENGTH];
- 
--	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08llx-", addr);
-+	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08lx-",
-+		       (unsigned long) addr);
- 	if (ret >= MAX_LINE_LENGTH) {
- 		printf("%s: Pattern is too long\n", __func__);
- 		exit(EXIT_FAILURE);
-@@ -410,7 +413,8 @@ static bool check_swap(void *addr, unsig
- 	if (!check_for_pattern(fp, addr_pattern, buffer))
- 		goto err_out;
- 
--	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "Swap:%19lld kB", size >> 10);
-+	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "Swap:%19ld kB",
-+		       size >> 10);
- 	if (ret >= MAX_LINE_LENGTH) {
- 		printf("%s: Pattern is too long\n", __func__);
- 		exit(EXIT_FAILURE);
 _
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-khugepaged-add-self-test-fix-2-fix.patch
-mm-filemap-fix-a-data-race-in-filemap_fault.patch
+mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-gupc-updating-the-documentation-fix.patch
+mm-memcg-decouple-elowmin-state-mutations-from-protection-checks-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-add-debug_wx-support-fixpatch-added-to-mm-tree.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-fix.patch
+mm-pass-task-and-mm-to-do_madvise-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
