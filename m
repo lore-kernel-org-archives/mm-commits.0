@@ -1,29 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch added to -mm
- tree
-Date: Fri, 01 May 2020 14:38:03 -0700
-Message-ID: <20200501213803.2JtEeyo8r%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-vmscan-remove-unnecessary-argument-description-of-isolate?=
+ =?US-ASCII?Q?=5Flru=5Fpages.patch?= added to -mm tree
+Date: Fri, 01 May 2020 14:42:02 -0700
+Message-ID: <20200501214202.qyUPx-T_-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47692 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48686 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726483AbgEAViE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 May 2020 17:38:04 -0400
+        id S1726366AbgEAVmD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 May 2020 17:42:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
+To: akpm@linux-foundation.org, chenqiwu@xiaomi.com, mm-commits@vger.kernel.org, qiwuchen55@gmail.com
 
 
 The patch titled
-     Subject: mm-slub-add-panic_on_error-to-the-debug-facilities-fix
+     Subject: mm/vmscan: remove unnecessary argument description of isolate_lru_pages()
 has been added to the -mm tree.  Its filename is
-     mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+     mm-vmscan-remove-unnecessary-argument-description-of-isolate_lru_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-unnecessary-argument-description-of-isolate_lru_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-unnecessary-argument-description-of-isolate_lru_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,57 +39,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slub-add-panic_on_error-to-the-debug-facilities-fix
+From: Qiwu Chen <qiwuchen55@gmail.com>
+Subject: mm/vmscan: remove unnecessary argument description of isolate_lru_pages()
 
-s/toggle/enable/ in docs
+Since commit a9e7c39fa9fd9 ("mm/vmscan.c: remove 7th argument of
+isolate_lru_pages()"), the explanation of 'mode' argument has been
+unnecessary.  Let's remove it.
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Rafael Aquini <aquini@redhat.com>
+Link: http://lkml.kernel.org/r/20200501090346.2894-1-chenqiwu@xiaomi.com
+Signed-off-by: Qiwu Chen <chenqiwu@xiaomi.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/Documentation/vm/slub.rst~mm-slub-add-panic_on_error-to-the-debug-facilities-fix
-+++ a/Documentation/vm/slub.rst
-@@ -49,12 +49,12 @@ Possible debug options are::
- 	P		Poisoning (object and padding)
- 	U		User tracking (free and alloc)
- 	T		Trace (please only use on single slabs)
--	A		Toggle failslab filter mark for the cache
-+	A		Enable failslab filter mark for the cache
- 	O		Switch debugging off for caches that would have
- 			caused higher minimum slab orders
- 	-		Switch all debugging off (useful if the kernel is
- 			configured with CONFIG_SLUB_DEBUG_ON)
--	C		Toggle panic on error (crash) to allow for post-mortem
-+	C		Enable panic on error (crash) to allow for post-mortem
- 			analysis of a coredump taken at the error-spotting time
- 
- F.e. in order to boot just with sanity checks and red zoning one would specify::
+--- a/mm/vmscan.c~mm-vmscan-remove-unnecessary-argument-description-of-isolate_lru_pages
++++ a/mm/vmscan.c
+@@ -1625,7 +1625,6 @@ static __always_inline void update_lru_s
+  * @dst:	The temp list to put pages on to.
+  * @nr_scanned:	The number of pages that were scanned.
+  * @sc:		The scan_control struct for this reclaim session
+- * @mode:	One of the LRU isolation modes
+  * @lru:	LRU list id for isolating
+  *
+  * returns how many pages were moved onto *@dst.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from qiwuchen55@gmail.com are
 
-mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-add-debug_wx-support-fixpatch-added-to-mm-tree.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-vmscan-remove-unnecessary-argument-description-of-isolate_lru_pages.patch
