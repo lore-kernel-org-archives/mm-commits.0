@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-update-the-comment-of-should_continue_reclaim.patch added to -mm
- tree
-Date: Fri, 01 May 2020 14:55:17 -0700
-Message-ID: <20200501215517.nBHXFiLOI%akpm@linux-foundation.org>
+ mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch added
+ to -mm tree
+Date: Fri, 01 May 2020 15:49:29 -0700
+Message-ID: <20200501224929.ScPsuCOxj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53930 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726045AbgEAVzS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 May 2020 17:55:18 -0400
+        id S1726045AbgEAWta (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 May 2020 18:49:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chenqiwu@xiaomi.com, mm-commits@vger.kernel.org, qiwuchen55@gmail.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
 
 
 The patch titled
-     Subject: mm/vmscan: update the comment of should_continue_reclaim()
+     Subject: mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-update-the-comment-of-should_continue_reclaim.patch
+     mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-update-the-comment-of-should_continue_reclaim.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-update-the-comment-of-should_continue_reclaim.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,35 +37,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qiwu Chen <qiwuchen55@gmail.com>
-Subject: mm/vmscan: update the comment of should_continue_reclaim()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix
 
-try_to_compact_zone() has been replaced by try_to_compact_pages(), which
-is necessary to be updated in the comment of should_continue_reclaim().
+tweak capitalization in comments
 
-Link: http://lkml.kernel.org/r/20200501034907.22991-1-chenqiwu@xiaomi.com
-Signed-off-by: Qiwu Chen <chenqiwu@xiaomi.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-update-the-comment-of-should_continue_reclaim
-+++ a/mm/vmscan.c
-@@ -2577,7 +2577,7 @@ static bool in_reclaim_compaction(struct
-  * Reclaim/compaction is used for high-order allocation requests. It reclaims
-  * order-0 pages before compacting the zone. should_continue_reclaim() returns
-  * true if more pages should be reclaimed such that when the page allocator
-- * calls try_to_compact_zone() that it will have enough free pages to succeed.
-+ * calls try_to_compact_pages() that it will have enough free pages to succeed.
-  * It will give up earlier than that if there is difficulty reclaiming pages.
-  */
- static inline bool should_continue_reclaim(struct pglist_data *pgdat,
+--- a/include/linux/swap.h~mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix
++++ a/include/linux/swap.h
+@@ -187,12 +187,12 @@ enum {
+ #define SWAP_HAS_CACHE	0x40	/* Flag page is cached, in first swap_map */
+ #define COUNT_CONTINUED	0x80	/* Flag swap_map continuation for full count */
+ 
+-/* Special Value in first swap_map */
++/* Special value in first swap_map */
+ #define SWAP_MAP_MAX	0x3e	/* Max count */
+ #define SWAP_MAP_BAD	0x3f	/* Note page is bad */
+ #define SWAP_MAP_SHMEM	0xbf	/* Owned by shmem/tmpfs */
+ 
+-/* Special Value in each swap_map continuation */
++/* Special value in each swap_map continuation */
+ #define SWAP_CONT_MAX	0x7f	/* Max count */
+ 
+ /*
 _
 
-Patches currently in -mm which might be from qiwuchen55@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-remove-unnecessary-argument-description-of-isolate_lru_pages.patch
-mm-vmscan-update-the-comment-of-should_continue_reclaim.patch
+mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+mm-gupc-updating-the-documentation-fix.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-add-debug_wx-support-fixpatch-added-to-mm-tree.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
