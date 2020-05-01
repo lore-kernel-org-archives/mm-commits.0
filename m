@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable.patch added to
- -mm tree
-Date: Fri, 01 May 2020 15:49:27 -0700
-Message-ID: <20200501224927.jp06yYxk5%akpm@linux-foundation.org>
+Subject: + ubsan-disable-ubsan_alignment-under-compile_test.patch
+ added to -mm tree
+Date: Fri, 01 May 2020 16:00:49 -0700
+Message-ID: <20200501230049.UYBQXc915%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44710 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51762 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726045AbgEAWt2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 May 2020 18:49:28 -0400
+        id S1726045AbgEAXAu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 May 2020 19:00:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
+To: aryabinin@virtuozzo.com, jpoimboe@redhat.com, keescook@chromium.org, mm-commits@vger.kernel.org, peterz@infradead.org, rdunlap@infradead.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm/swapfile.c: classify SWAP_MAP_XXX to make it more readable
+     Subject: ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST
 has been added to the -mm tree.  Its filename is
-     mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable.patch
+     ubsan-disable-ubsan_alignment-under-compile_test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ubsan-disable-ubsan_alignment-under-compile_test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ubsan-disable-ubsan_alignment-under-compile_test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,76 +36,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/swapfile.c: classify SWAP_MAP_XXX to make it more readable
+From: Kees Cook <keescook@chromium.org>
+Subject: ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST
 
-swap_info_struct->swap_map[] encodes some flag and count. And to
-do some condition check, it also introduces some special values.
+The documentation for UBSAN_ALIGNMENT already mentions that it should not
+be used on all*config builds (and for efficient-unaligned-access
+architectures), so just refactor the Kconfig to correctly implement this
+so randconfigs will stop creating insane images that freak out objtool
+under CONFIG_UBSAN_TRAP (due to the false positives producing functions
+that never return, etc).
 
-Currently those macros are defined with some magic order, which makes
-audience hard to understand the exact meaning.
-
-This patch split those macros into three categories:
-
-    flag
-    special value for first swap_map
-    special value for continued swap_map
-
-May this help audiences a little.
-
-Link: http://lkml.kernel.org/r/20200501015259.32237-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/202005011433.C42EA3E2D@keescook
+Fixes: 0887a7ebc977 ("ubsan: add trap instrumentation option")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+  Link: https://lore.kernel.org/linux-next/202004231224.D6B3B650@keescook/
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ lib/Kconfig.ubsan                                   |   15 ++++------
+ tools/testing/selftests/wireguard/qemu/debug.config |    1 
+ 2 files changed, 6 insertions(+), 10 deletions(-)
 
---- a/include/linux/swap.h~mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable
-+++ a/include/linux/swap.h
-@@ -183,12 +183,17 @@ enum {
- #define SWAP_CLUSTER_MAX 32UL
- #define COMPACT_CLUSTER_MAX SWAP_CLUSTER_MAX
+--- a/lib/Kconfig.ubsan~ubsan-disable-ubsan_alignment-under-compile_test
++++ a/lib/Kconfig.ubsan
+@@ -60,18 +60,15 @@ config UBSAN_SANITIZE_ALL
+ 	  Enabling this option will get kernel image size increased
+ 	  significantly.
  
--#define SWAP_MAP_MAX	0x3e	/* Max duplication count, in first swap_map */
--#define SWAP_MAP_BAD	0x3f	/* Note pageblock is bad, in first swap_map */
-+/* Bit flag in swap_map */
- #define SWAP_HAS_CACHE	0x40	/* Flag page is cached, in first swap_map */
--#define SWAP_CONT_MAX	0x7f	/* Max count, in each swap_map continuation */
--#define COUNT_CONTINUED	0x80	/* See swap_map continuation for full count */
--#define SWAP_MAP_SHMEM	0xbf	/* Owned by shmem/tmpfs, in first swap_map */
-+#define COUNT_CONTINUED	0x80	/* Flag swap_map continuation for full count */
-+
-+/* Special Value in first swap_map */
-+#define SWAP_MAP_MAX	0x3e	/* Max count */
-+#define SWAP_MAP_BAD	0x3f	/* Note page is bad */
-+#define SWAP_MAP_SHMEM	0xbf	/* Owned by shmem/tmpfs */
-+
-+/* Special Value in each swap_map continuation */
-+#define SWAP_CONT_MAX	0x7f	/* Max count */
+-config UBSAN_NO_ALIGNMENT
+-	bool "Disable checking of pointers alignment"
+-	default y if HAVE_EFFICIENT_UNALIGNED_ACCESS
++config UBSAN_ALIGNMENT
++	bool "Enable checks for pointers alignment"
++	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
++	depends on !X86 || !COMPILE_TEST
+ 	help
+-	  This option disables the check of unaligned memory accesses.
+-	  This option should be used when building allmodconfig.
+-	  Disabling this option on architectures that support unaligned
++	  This option enables the check of unaligned memory accesses.
++	  Enabling this option on architectures that support unaligned
+ 	  accesses may produce a lot of false positives.
  
- /*
-  * We use this to track usage of a cluster. A cluster is a block of swap disk
-_
-
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
-
-mm-swapfilec-offset-is-only-used-when-there-is-more-slots.patch
-mm-swapfilec-explicitly-show-ssd-non-ssd-is-handled-mutually-exclusive.patch
-mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case.patch
-mm-swapfilec-simplify-the-calculation-of-n_goal.patch
-mm-swapfilec-remove-the-extra-check-in-scan_swap_map_slots.patch
-mm-swapfilec-found_free-could-be-represented-by-tmp-max.patch
-mm-swapfilec-tmp-is-always-smaller-than-max.patch
-mm-swapfilec-omit-a-duplicate-code-by-compare-tmp-and-max-first.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable.patch
-mm-swapfilec-__swap_entry_free-always-free-1-entry.patch
-mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
-mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
-mm-page_allocc-rename-free_pages_check_bad-to-check_free_page_bad.patch
-mm-page_allocc-rename-free_pages_check-to-check_free_page.patch
-mm-page_allocc-extract-check__page_bad-common-part-to-page_bad_reason.patch
-mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
-mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
-mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch
+-config UBSAN_ALIGNMENT
+-	def_bool !UBSAN_NO_ALIGNMENT
