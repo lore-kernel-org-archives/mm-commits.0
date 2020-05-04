@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-kmap-remove-duplicate-kmap-code.patch added to
- -mm tree
-Date: Mon, 04 May 2020 15:19:52 -0700
-Message-ID: <20200504221952.mxiAzJBjj%akpm@linux-foundation.org>
+Subject: +
+ mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
+ added to -mm tree
+Date: Mon, 04 May 2020 15:35:56 -0700
+Message-ID: <20200504223556.dXpyg4MOC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35692 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726930AbgEDWTx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 May 2020 18:19:53 -0400
+        id S1726419AbgEDWf6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 May 2020 18:35:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
+To: anshuman.khandual@arm.com, cai@lca.pw, catalin.marinas@arm.com, christophe.leroy@c-s.fr, gerald.schaefer@de.ibm.com, mingo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parisc/kmap: remove duplicate kmap code
+     Subject: mm-debug-add-tests-validating-architecture-page-table-helpers-v18
 has been added to the -mm tree.  Its filename is
-     parisc-kmap-remove-duplicate-kmap-code.patch
+     mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/parisc-kmap-remove-duplicate-kmap-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/parisc-kmap-remove-duplicate-kmap-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,121 +37,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: parisc/kmap: remove duplicate kmap code
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm-debug-add-tests-validating-architecture-page-table-helpers-v18
 
-parisc reimplements the kmap calls except to flush it's dcache.  This is
-arguably an abuse of kmap but regardless it is messy and confusing.
-
-Remove the duplicate code and have parisc define ARCH_HAS_FLUSH_ON_KUNMAP
-for a kunmap_flush_on_unmap() architecture specific call to flush the
-cache.
-
-Link: http://lkml.kernel.org/r/20200504052415.984585-3-ira.weiny@intel.com
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
+Link: http://lkml.kernel.org/r/1588564865-31160-3-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/cacheflush.h |   28 +------------------------
- include/linux/highmem.h              |   10 ++++++--
- 2 files changed, 9 insertions(+), 29 deletions(-)
+ lib/Kconfig.debug |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/arch/parisc/include/asm/cacheflush.h~parisc-kmap-remove-duplicate-kmap-code
-+++ a/arch/parisc/include/asm/cacheflush.h
-@@ -100,35 +100,11 @@ flush_anon_page(struct vm_area_struct *v
- 	}
- }
+--- a/lib/Kconfig.debug~mm-debug-add-tests-validating-architecture-page-table-helpers-v18
++++ a/lib/Kconfig.debug
+@@ -697,9 +697,8 @@ config DEBUG_VM_PGFLAGS
+ config DEBUG_VM_PGTABLE
+ 	bool "Debug arch page table for semantics compliance"
+ 	depends on MMU
+-	depends on !IA64 && !ARM
+-	depends on ARCH_HAS_DEBUG_VM_PGTABLE || EXPERT
+-	default y if ARCH_HAS_DEBUG_VM_PGTABLE && DEBUG_VM
++	depends on ARCH_HAS_DEBUG_VM_PGTABLE
++	default y if DEBUG_VM
+ 	help
+ 	  This option provides a debug method which can be used to test
+ 	  architecture page table helper functions on various platforms in
+@@ -707,9 +706,7 @@ config DEBUG_VM_PGTABLE
+ 	  will help architecture code in making sure that any changes or
+ 	  new additions of these helpers still conform to expected
+ 	  semantics of the generic MM. Platforms will have to opt in for
+-	  this through ARCH_HAS_DEBUG_VM_PGTABLE. Although it can also be
+-	  enabled through EXPERT without requiring code change. This test
+-	  is disabled on IA64 and ARM platforms where it fails to build.
++	  this through ARCH_HAS_DEBUG_VM_PGTABLE.
  
--#include <asm/kmap_types.h>
--
--#define ARCH_HAS_KMAP
--
--static inline void *kmap(struct page *page)
--{
--	might_sleep();
--	return page_address(page);
--}
--
--static inline void kunmap(struct page *page)
--{
--	flush_kernel_dcache_page_addr(page_address(page));
--}
--
--static inline void *kmap_atomic(struct page *page)
--{
--	preempt_disable();
--	pagefault_disable();
--	return page_address(page);
--}
--
--static inline void kunmap_atomic_high(void *addr)
-+#define ARCH_HAS_FLUSH_ON_KUNMAP
-+static inline void kunmap_flush_on_unmap(void *addr)
- {
- 	flush_kernel_dcache_page_addr(addr);
- }
- 
--#define kmap_atomic_prot(page, prot)	kmap_atomic(page)
--#define kmap_atomic_pfn(pfn)	kmap_atomic(pfn_to_page(pfn))
--
- #endif /* _PARISC_CACHEFLUSH_H */
- 
---- a/include/linux/highmem.h~parisc-kmap-remove-duplicate-kmap-code
-+++ a/include/linux/highmem.h
-@@ -129,7 +129,6 @@ static inline struct page *kmap_to_page(
- 
- static inline unsigned long totalhigh_pages(void) { return 0UL; }
- 
--#ifndef ARCH_HAS_KMAP
- static inline void *kmap(struct page *page)
- {
- 	might_sleep();
-@@ -138,6 +137,9 @@ static inline void *kmap(struct page *pa
- 
- static inline void kunmap(struct page *page)
- {
-+#ifdef ARCH_HAS_FLUSH_ON_KUNMAP
-+	kunmap_flush_on_unmap(page_address(page));
-+#endif
- }
- 
- static inline void *kmap_atomic(struct page *page)
-@@ -150,14 +152,16 @@ static inline void *kmap_atomic(struct p
- 
- static inline void kunmap_atomic_high(void *addr)
- {
--	/* Nothing to do in the CONFIG_HIGHMEM=n case as kunmap_atomic()
-+	/* Mostly nothing to do in the CONFIG_HIGHMEM=n case as kunmap_atomic()
- 	 * handles re-enabling faults + preemption */
-+#ifdef ARCH_HAS_FLUSH_ON_KUNMAP
-+	kunmap_flush_on_unmap(addr);
-+#endif
- }
- 
- #define kmap_atomic_pfn(pfn)	kmap_atomic(pfn_to_page(pfn))
- 
- #define kmap_flush_unused()	do {} while(0)
--#endif
- 
- #endif /* CONFIG_HIGHMEM */
+ 	  If unsure, say N.
  
 _
 
-Patches currently in -mm which might be from ira.weiny@intel.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-arch-kmap-remove-bug_on.patch
-arch-xtensa-move-kmap-build-bug-out-of-the-way.patch
-arch-kmap-remove-redundant-arch-specific-kmaps.patch
-arch-kunmap-remove-duplicate-kunmap-implementations.patch
-x86powerpcmicroblaze-kmap-move-preempt-disable.patch
-arch-kmap_atomic-consolidate-duplicate-code.patch
-arch-kunmap_atomic-consolidate-duplicate-code.patch
-arch-kmap-ensure-kmap_prot-visibility.patch
-arch-kmap-dont-hard-code-kmap_prot-values.patch
-arch-kmap-define-kmap_atomic_prot-for-all-archs.patch
-drm-remove-drm-specific-kmap_atomic-code.patch
-kmap-remove-kmap_atomic_to_page.patch
-parisc-kmap-remove-duplicate-kmap-code.patch
+powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
+mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch
+x86-mm-define-mm_p4d_folded.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v17.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
