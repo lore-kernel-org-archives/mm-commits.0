@@ -1,27 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + kmap-remove-kmap_atomic_to_page.patch added to -mm tree
-Date: Mon, 04 May 2020 15:19:49 -0700
-Message-ID: <20200504221949.f3B4v9oq2%akpm@linux-foundation.org>
+Subject: + parisc-kmap-remove-duplicate-kmap-code.patch added to
+ -mm tree
+Date: Mon, 04 May 2020 15:19:52 -0700
+Message-ID: <20200504221952.mxiAzJBjj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35656 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35692 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726930AbgEDWTv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 May 2020 18:19:51 -0400
+        id S1726930AbgEDWTx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 May 2020 18:19:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: deller@gmx.de, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: kmap: remove kmap_atomic_to_page()
+     Subject: parisc/kmap: remove duplicate kmap code
 has been added to the -mm tree.  Its filename is
-     kmap-remove-kmap_atomic_to_page.patch
+     parisc-kmap-remove-duplicate-kmap-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmap-remove-kmap_atomic_to_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/parisc-kmap-remove-duplicate-kmap-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmap-remove-kmap_atomic_to_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/parisc-kmap-remove-duplicate-kmap-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,20 +37,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ira Weiny <ira.weiny@intel.com>
-Subject: kmap: remove kmap_atomic_to_page()
+Subject: parisc/kmap: remove duplicate kmap code
 
-Patch series "kmap cleanup 2".
+parisc reimplements the kmap calls except to flush it's dcache.  This is
+arguably an abuse of kmap but regardless it is messy and confusing.
 
-Continue the kmap clean up with 2 follow on patches.
+Remove the duplicate code and have parisc define ARCH_HAS_FLUSH_ON_KUNMAP
+for a kunmap_flush_on_unmap() architecture specific call to flush the
+cache.
 
-
-This patch (of 2):
-
-kmap_atomic_to_page() has no callers and is only defined on 1 arch and
-declared on another.  Remove it.
-
-Link: http://lkml.kernel.org/r/20200504052415.984585-2-ira.weiny@intel.com
-Link: http://lkml.kernel.org/r/20200504052415.984585-1-ira.weiny@intel.com
+Link: http://lkml.kernel.org/r/20200504052415.984585-3-ira.weiny@intel.com
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
@@ -57,53 +54,89 @@ Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/include/asm/highmem.h  |    1 -
- arch/csky/mm/highmem.c           |   13 -------------
- arch/nds32/include/asm/highmem.h |    1 -
- 3 files changed, 15 deletions(-)
+ arch/parisc/include/asm/cacheflush.h |   28 +------------------------
+ include/linux/highmem.h              |   10 ++++++--
+ 2 files changed, 9 insertions(+), 29 deletions(-)
 
---- a/arch/csky/include/asm/highmem.h~kmap-remove-kmap_atomic_to_page
-+++ a/arch/csky/include/asm/highmem.h
-@@ -33,7 +33,6 @@ extern pte_t *pkmap_page_table;
- #define ARCH_HAS_KMAP_FLUSH_TLB
- extern void kmap_flush_tlb(unsigned long addr);
- extern void *kmap_atomic_pfn(unsigned long pfn);
--extern struct page *kmap_atomic_to_page(void *ptr);
- 
- #define flush_cache_kmaps() do {} while (0)
- 
---- a/arch/csky/mm/highmem.c~kmap-remove-kmap_atomic_to_page
-+++ a/arch/csky/mm/highmem.c
-@@ -81,19 +81,6 @@ void *kmap_atomic_pfn(unsigned long pfn)
- 	return (void *) vaddr;
+--- a/arch/parisc/include/asm/cacheflush.h~parisc-kmap-remove-duplicate-kmap-code
++++ a/arch/parisc/include/asm/cacheflush.h
+@@ -100,35 +100,11 @@ flush_anon_page(struct vm_area_struct *v
+ 	}
  }
  
--struct page *kmap_atomic_to_page(void *ptr)
+-#include <asm/kmap_types.h>
+-
+-#define ARCH_HAS_KMAP
+-
+-static inline void *kmap(struct page *page)
 -{
--	unsigned long idx, vaddr = (unsigned long)ptr;
--	pte_t *pte;
--
--	if (vaddr < FIXADDR_START)
--		return virt_to_page(ptr);
--
--	idx = virt_to_fix(vaddr);
--	pte = kmap_pte - (idx - FIX_KMAP_BEGIN);
--	return pte_page(*pte);
+-	might_sleep();
+-	return page_address(page);
 -}
 -
- static void __init kmap_pages_init(void)
+-static inline void kunmap(struct page *page)
+-{
+-	flush_kernel_dcache_page_addr(page_address(page));
+-}
+-
+-static inline void *kmap_atomic(struct page *page)
+-{
+-	preempt_disable();
+-	pagefault_disable();
+-	return page_address(page);
+-}
+-
+-static inline void kunmap_atomic_high(void *addr)
++#define ARCH_HAS_FLUSH_ON_KUNMAP
++static inline void kunmap_flush_on_unmap(void *addr)
  {
- 	unsigned long vaddr;
---- a/arch/nds32/include/asm/highmem.h~kmap-remove-kmap_atomic_to_page
-+++ a/arch/nds32/include/asm/highmem.h
-@@ -52,7 +52,6 @@ extern void kmap_init(void);
-  */
- #ifdef CONFIG_HIGHMEM
- extern void *kmap_atomic_pfn(unsigned long pfn);
--extern struct page *kmap_atomic_to_page(void *ptr);
- #endif
+ 	flush_kernel_dcache_page_addr(addr);
+ }
  
- #endif
+-#define kmap_atomic_prot(page, prot)	kmap_atomic(page)
+-#define kmap_atomic_pfn(pfn)	kmap_atomic(pfn_to_page(pfn))
+-
+ #endif /* _PARISC_CACHEFLUSH_H */
+ 
+--- a/include/linux/highmem.h~parisc-kmap-remove-duplicate-kmap-code
++++ a/include/linux/highmem.h
+@@ -129,7 +129,6 @@ static inline struct page *kmap_to_page(
+ 
+ static inline unsigned long totalhigh_pages(void) { return 0UL; }
+ 
+-#ifndef ARCH_HAS_KMAP
+ static inline void *kmap(struct page *page)
+ {
+ 	might_sleep();
+@@ -138,6 +137,9 @@ static inline void *kmap(struct page *pa
+ 
+ static inline void kunmap(struct page *page)
+ {
++#ifdef ARCH_HAS_FLUSH_ON_KUNMAP
++	kunmap_flush_on_unmap(page_address(page));
++#endif
+ }
+ 
+ static inline void *kmap_atomic(struct page *page)
+@@ -150,14 +152,16 @@ static inline void *kmap_atomic(struct p
+ 
+ static inline void kunmap_atomic_high(void *addr)
+ {
+-	/* Nothing to do in the CONFIG_HIGHMEM=n case as kunmap_atomic()
++	/* Mostly nothing to do in the CONFIG_HIGHMEM=n case as kunmap_atomic()
+ 	 * handles re-enabling faults + preemption */
++#ifdef ARCH_HAS_FLUSH_ON_KUNMAP
++	kunmap_flush_on_unmap(addr);
++#endif
+ }
+ 
+ #define kmap_atomic_pfn(pfn)	kmap_atomic(pfn_to_page(pfn))
+ 
+ #define kmap_flush_unused()	do {} while(0)
+-#endif
+ 
+ #endif /* CONFIG_HIGHMEM */
+ 
 _
 
 Patches currently in -mm which might be from ira.weiny@intel.com are
