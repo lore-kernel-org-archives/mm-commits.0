@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + ubsan-disable-ubsan_alignment-under-compile_test.patch
- added to -mm tree
-Date: Fri, 01 May 2020 16:00:49 -0700
-Message-ID: <20200501230049.UYBQXc915%akpm@linux-foundation.org>
+Subject: +
+ slub-limit-count-of-partial-slabs-scanned-to-gather-statistics.patch added
+ to -mm tree
+Date: Mon, 04 May 2020 12:57:30 -0700
+Message-ID: <20200504195730.3XXBIk2n_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51762 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52506 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726045AbgEAXAu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 May 2020 19:00:50 -0400
+        id S1726111AbgEDT5d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 May 2020 15:57:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, jpoimboe@redhat.com, keescook@chromium.org, mm-commits@vger.kernel.org, peterz@infradead.org, rdunlap@infradead.org, sfr@canb.auug.org.au
+To: cl@linux.com, iamjoonsoo.kim@lge.com, khlebnikov@yandex-team.ru, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST
+     Subject: slub: limit count of partial slabs scanned to gather statistics
 has been added to the -mm tree.  Its filename is
-     ubsan-disable-ubsan_alignment-under-compile_test.patch
+     slub-limit-count-of-partial-slabs-scanned-to-gather-statistics.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ubsan-disable-ubsan_alignment-under-compile_test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-limit-count-of-partial-slabs-scanned-to-gather-statistics.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ubsan-disable-ubsan_alignment-under-compile_test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-limit-count-of-partial-slabs-scanned-to-gather-statistics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,52 +37,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: slub: limit count of partial slabs scanned to gather statistics
 
-The documentation for UBSAN_ALIGNMENT already mentions that it should not
-be used on all*config builds (and for efficient-unaligned-access
-architectures), so just refactor the Kconfig to correctly implement this
-so randconfigs will stop creating insane images that freak out objtool
-under CONFIG_UBSAN_TRAP (due to the false positives producing functions
-that never return, etc).
+To get exact count of free and used objects slub have to scan list of
+partial slabs.  This may take at long time.  Scanning holds spinlock and
+blocks allocations which move partial slabs to per-cpu lists and back.
 
-Link: http://lkml.kernel.org/r/202005011433.C42EA3E2D@keescook
-Fixes: 0887a7ebc977 ("ubsan: add trap instrumentation option")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-  Link: https://lore.kernel.org/linux-next/202004231224.D6B3B650@keescook/
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Example found in the wild:
+
+# cat /sys/kernel/slab/dentry/partial
+14478538 N0=7329569 N1=7148969
+# time cat /sys/kernel/slab/dentry/objects
+286225471 N0=136967768 N1=149257703
+
+real	0m1.722s
+user	0m0.001s
+sys	0m1.721s
+
+The same problem in slab was addressed in commit f728b0a5d72a ("mm, slab:
+faster active and free stats") by adding more kmem cache statistics.  For
+slub same approach requires atomic op on fast path when object frees.
+
+Let's simply limit count of scanned slabs and print warning.  Limit set in
+/sys/module/slub/parameters/max_partial_to_count.  Default is 10000 which
+should be enough for most sane cases.
+
+Return linear approximation if list of partials is longer than limit. 
+Nobody should notice difference.
+
+Link: http://lkml.kernel.org/r/158860845968.33385.4165926113074799048.stgit@buzz
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan                                   |   15 ++++------
- tools/testing/selftests/wireguard/qemu/debug.config |    1 
- 2 files changed, 6 insertions(+), 10 deletions(-)
+ mm/slub.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
---- a/lib/Kconfig.ubsan~ubsan-disable-ubsan_alignment-under-compile_test
-+++ a/lib/Kconfig.ubsan
-@@ -60,18 +60,15 @@ config UBSAN_SANITIZE_ALL
- 	  Enabling this option will get kernel image size increased
- 	  significantly.
+--- a/mm/slub.c~slub-limit-count-of-partial-slabs-scanned-to-gather-statistics
++++ a/mm/slub.c
+@@ -2451,16 +2451,29 @@ static inline unsigned long node_nr_objs
+ #endif /* CONFIG_SLUB_DEBUG */
  
--config UBSAN_NO_ALIGNMENT
--	bool "Disable checking of pointers alignment"
--	default y if HAVE_EFFICIENT_UNALIGNED_ACCESS
-+config UBSAN_ALIGNMENT
-+	bool "Enable checks for pointers alignment"
-+	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
-+	depends on !X86 || !COMPILE_TEST
- 	help
--	  This option disables the check of unaligned memory accesses.
--	  This option should be used when building allmodconfig.
--	  Disabling this option on architectures that support unaligned
-+	  This option enables the check of unaligned memory accesses.
-+	  Enabling this option on architectures that support unaligned
- 	  accesses may produce a lot of false positives.
+ #if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
++
++static unsigned long max_partial_to_count __read_mostly = 10000;
++module_param(max_partial_to_count, ulong, 0644);
++
+ static unsigned long count_partial(struct kmem_cache_node *n,
+ 					int (*get_count)(struct page *))
+ {
++	unsigned long counted = 0;
+ 	unsigned long flags;
+ 	unsigned long x = 0;
+ 	struct page *page;
  
--config UBSAN_ALIGNMENT
--	def_bool !UBSAN_NO_ALIGNMENT
+ 	spin_lock_irqsave(&n->list_lock, flags);
+-	list_for_each_entry(page, &n->partial, slab_list)
++	list_for_each_entry(page, &n->partial, slab_list) {
+ 		x += get_count(page);
++
++		if (++counted > max_partial_to_count) {
++			pr_warn_once("SLUB: too much partial slabs to count all objects, increase max_partial_to_count.\n");
++			/* Approximate total count of objects */
++			x = mult_frac(x, n->nr_partial, counted);
++			break;
++		}
++	}
+ 	spin_unlock_irqrestore(&n->list_lock, flags);
+ 	return x;
+ }
+_
+
+Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+
+kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+slub-limit-count-of-partial-slabs-scanned-to-gather-statistics.patch
