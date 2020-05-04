@@ -1,28 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mm-limit-boost_watermark-on-small-zones.patch added to
- -mm tree
-Date: Mon, 04 May 2020 13:37:14 -0700
-Message-ID: <20200504203714.NGTXlsFfU%akpm@linux-foundation.org>
+Subject: + arch-kmap-remove-bug_on.patch added to -mm tree
+Date: Mon, 04 May 2020 15:08:53 -0700
+Message-ID: <20200504220853.xPW1wQ3LA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47928 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54804 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726111AbgEDUhP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 May 2020 16:37:15 -0400
+        id S1726453AbgEDWI4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 May 2020 18:08:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: henry.willard@oracle.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, vbabka@suse.cz
+To: benh@kernel.crashing.org, bp@alien8.de, chris@zankel.net, christian.koenig@amd.com, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, dave.hansen@linux.intel.com, davem@davemloft.net, deller@gmx.de, hch@lst.de, hpa@zytor.com, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, paulus@samba.org, peterz@infradead.org, ray.huang@amd.com, tglx@linutronix.de, tsbogend@alpha.franken.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm: Limit boost_watermark on small zones.
+     Subject: arch/kmap: remove BUG_ON()
 has been added to the -mm tree.  Its filename is
-     mm-limit-boost_watermark-on-small-zones.patch
+     arch-kmap-remove-bug_on.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-limit-boost_watermark-on-small-zones.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-kmap-remove-bug_on.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-limit-boost_watermark-on-small-zones.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-kmap-remove-bug_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,66 +35,225 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Henry Willard <henry.willard@oracle.com>
-Subject: mm: Limit boost_watermark on small zones.
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: arch/kmap: remove BUG_ON()
 
-Commit 1c30844d2dfe ("mm: reclaim small amounts of memory when an external
-fragmentation event occurs") adds a boost_watermark() function which
-increases the min watermark in a zone by at least pageblock_nr_pages or
-the number of pages in a page block. On Arm64, with 64K pages and 512M
-huge pages, this is 8192 pages or 512M. It does this regardless of the
-number of managed pages managed in the zone or the likelihood of success.
-This can put the zone immediately under water in terms of allocating pages
-from the zone, and can cause a small machine to fail immediately due to
-OoM. Unlike set_recommended_min_free_kbytes(), which substantially
-increases min_free_kbytes and is tied to THP, boost_watermark() can be
-called even if THP is not active. The problem is most likely to appear
-on architectures such as Arm64 where pageblock_nr_pages is very large.
+Patch series "Remove duplicated kmap code", v2.
 
-It is desirable to run the kdump capture kernel in as small a space as
-possible to avoid wasting memory. In some architectures, such as Arm64,
-there are restrictions on where the capture kernel can run, and therefore,
-the space available. A capture kernel running in 768M can fail due to OoM
-immediately after boost_watermark() sets the min in zone DMA32, where
-most of the memory is, to 512M. It fails even though there is over 500M of
-free memory. With boost_watermark() suppressed, the capture kernel can run
-successfully in 448M.
+The kmap infrastructure has been copied almost verbatim to every
+architecture.  This series consolidates obvious duplicated code by
+defining core functions which call into the architectures only when
+needed.
 
-This patch limits boost_watermark() to boosting a zone's min watermark only
-when there are enough pages that the boost will produce positive results.
-In this case that is estimated to be four times as many pages as
-pageblock_nr_pages.
+Some of the k[un]map_atomic() implementations have some similarities but
+the similarities were not sufficient to warrant further changes.
 
-Link: http://lkml.kernel.org/r/1588294148-6586-1-git-send-email-henry.willard@oracle.com
-Fixes: 1c30844d2dfe ("mm: reclaim small amounts of memory when an external fragmentation event occurs")
-Signed-off-by: Henry Willard <henry.willard@oracle.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+In addition we remove a duplicate implementation of kmap() in DRM.
+
+
+This patch (of 11):
+
+Replace the use of BUG_ON(in_interrupt()) in the kmap() and kunmap() in
+favor of might_sleep().
+
+Besides the benefits of might_sleep(), this normalizes the implementations
+such that they can be made generic in subsequent patches.
+
+Link: http://lkml.kernel.org/r/20200504010912.982044-2-ira.weiny@intel.com
+Link: http://lkml.kernel.org/r/20200504010912.982044-1-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Christian Koenig <christian.koenig@amd.com>
+Cc: Huang Rui <ray.huang@amd.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/arc/include/asm/highmem.h        |    2 +-
+ arch/arc/mm/highmem.c                 |    2 +-
+ arch/arm/mm/highmem.c                 |    2 +-
+ arch/csky/mm/highmem.c                |    2 +-
+ arch/microblaze/include/asm/highmem.h |    2 +-
+ arch/mips/mm/highmem.c                |    2 +-
+ arch/nds32/mm/highmem.c               |    2 +-
+ arch/powerpc/include/asm/highmem.h    |    2 +-
+ arch/sparc/include/asm/highmem.h      |    4 ++--
+ arch/x86/mm/highmem_32.c              |    3 +--
+ arch/xtensa/include/asm/highmem.h     |    4 ++--
+ 11 files changed, 13 insertions(+), 14 deletions(-)
 
---- a/mm/page_alloc.c~mm-limit-boost_watermark-on-small-zones
-+++ a/mm/page_alloc.c
-@@ -2401,6 +2401,14 @@ static inline void boost_watermark(struc
+--- a/arch/arc/include/asm/highmem.h~arch-kmap-remove-bug_on
++++ a/arch/arc/include/asm/highmem.h
+@@ -45,7 +45,7 @@ static inline void flush_cache_kmaps(voi
  
- 	if (!watermark_boost_factor)
+ static inline void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
  		return;
-+	/*
-+	 * Don't bother in zones that are unlikely to produce results.
-+	 * On small machines, including kdump capture kernels running
-+	 * in a small area, boosting the watermark can cause an out of
-+	 * memory situation immediately.
-+	 */
-+	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
-+		return;
+ 	kunmap_high(page);
+--- a/arch/arc/mm/highmem.c~arch-kmap-remove-bug_on
++++ a/arch/arc/mm/highmem.c
+@@ -51,7 +51,7 @@ static pte_t * fixmap_page_table;
  
- 	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
- 			watermark_boost_factor, 10000);
+ void *kmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 
+--- a/arch/arm/mm/highmem.c~arch-kmap-remove-bug_on
++++ a/arch/arm/mm/highmem.c
+@@ -42,7 +42,7 @@ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/csky/mm/highmem.c~arch-kmap-remove-bug_on
++++ a/arch/csky/mm/highmem.c
+@@ -29,7 +29,7 @@ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/microblaze/include/asm/highmem.h~arch-kmap-remove-bug_on
++++ a/arch/microblaze/include/asm/highmem.h
+@@ -66,7 +66,7 @@ static inline void *kmap(struct page *pa
+ 
+ static inline void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/mips/mm/highmem.c~arch-kmap-remove-bug_on
++++ a/arch/mips/mm/highmem.c
+@@ -28,7 +28,7 @@ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/nds32/mm/highmem.c~arch-kmap-remove-bug_on
++++ a/arch/nds32/mm/highmem.c
+@@ -24,7 +24,7 @@ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/powerpc/include/asm/highmem.h~arch-kmap-remove-bug_on
++++ a/arch/powerpc/include/asm/highmem.h
+@@ -74,7 +74,7 @@ static inline void *kmap(struct page *pa
+ 
+ static inline void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/sparc/include/asm/highmem.h~arch-kmap-remove-bug_on
++++ a/arch/sparc/include/asm/highmem.h
+@@ -55,7 +55,7 @@ void kunmap_high(struct page *page);
+ 
+ static inline void *kmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 	return kmap_high(page);
+@@ -63,7 +63,7 @@ static inline void *kmap(struct page *pa
+ 
+ static inline void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/x86/mm/highmem_32.c~arch-kmap-remove-bug_on
++++ a/arch/x86/mm/highmem_32.c
+@@ -15,8 +15,7 @@ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+ {
+-	if (in_interrupt())
+-		BUG();
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
+--- a/arch/xtensa/include/asm/highmem.h~arch-kmap-remove-bug_on
++++ a/arch/xtensa/include/asm/highmem.h
+@@ -73,7 +73,7 @@ static inline void *kmap(struct page *pa
+ 	 */
+ 	BUILD_BUG_ON(PKMAP_BASE <
+ 		     TLBTEMP_BASE_1 + TLBTEMP_SIZE);
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
+ 	return kmap_high(page);
+@@ -81,7 +81,7 @@ static inline void *kmap(struct page *pa
+ 
+ static inline void kunmap(struct page *page)
+ {
+-	BUG_ON(in_interrupt());
++	might_sleep();
+ 	if (!PageHighMem(page))
+ 		return;
+ 	kunmap_high(page);
 _
 
-Patches currently in -mm which might be from henry.willard@oracle.com are
+Patches currently in -mm which might be from ira.weiny@intel.com are
 
-mm-limit-boost_watermark-on-small-zones.patch
+arch-kmap-remove-bug_on.patch
+arch-xtensa-move-kmap-build-bug-out-of-the-way.patch
+arch-kmap-remove-redundant-arch-specific-kmaps.patch
+arch-kunmap-remove-duplicate-kunmap-implementations.patch
+x86powerpcmicroblaze-kmap-move-preempt-disable.patch
+arch-kmap_atomic-consolidate-duplicate-code.patch
+arch-kunmap_atomic-consolidate-duplicate-code.patch
+arch-kmap-ensure-kmap_prot-visibility.patch
+arch-kmap-dont-hard-code-kmap_prot-values.patch
+arch-kmap-define-kmap_atomic_prot-for-all-archs.patch
+drm-remove-drm-specific-kmap_atomic-code.patch
+kmap-remove-kmap_atomic_to_page.patch
+parisc-kmap-remove-duplicate-kmap-code.patch
