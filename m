@@ -1,28 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + arch-kmap-define-kmap_atomic_prot-for-all-archs.patch
- added to -mm tree
-Date: Mon, 04 May 2020 15:09:41 -0700
-Message-ID: <20200504220941.Mj7VK8tE3%akpm@linux-foundation.org>
+Subject: + drm-remove-drm-specific-kmap_atomic-code.patch added to
+ -mm tree
+Date: Mon, 04 May 2020 15:09:46 -0700
+Message-ID: <20200504220946.7-u9ECLCC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56072 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726419AbgEDWJo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 May 2020 18:09:44 -0400
+        id S1726419AbgEDWJs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 May 2020 18:09:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: benh@kernel.crashing.org, bp@alien8.de, chris@zankel.net, christian.koenig@amd.com, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, dave.hansen@linux.intel.com, davem@davemloft.net, deller@gmx.de, hch@lst.de, hpa@zytor.com, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, paulus@samba.org, peterz@infradead.org, ray.huang@amd.com, tglx@linutronix.de, tsbogend@alpha.franken.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: arch/kmap: define kmap_atomic_prot() for all arch's
+     Subject: drm: remove drm specific kmap_atomic code
 has been added to the -mm tree.  Its filename is
-     arch-kmap-define-kmap_atomic_prot-for-all-archs.patch
+     drm-remove-drm-specific-kmap_atomic-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-kmap-define-kmap_atomic_prot-for-all-archs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drm-remove-drm-specific-kmap_a=
+tomic-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-kmap-define-kmap_atomic_prot-for-all-archs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drm-remove-drm-specific-kmap_a=
+tomic-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,35 +35,28 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: arch/kmap: define kmap_atomic_prot() for all arch's
+=46rom: Ira Weiny <ira.weiny@intel.com>
+Subject: drm: remove drm specific kmap_atomic code
 
-To support kmap_atomic_prot(), all architectures need to support
-protections passed to their kmap_atomic_high() function.  Pass protections
-into kmap_atomic_high() and change the name to kmap_atomic_high_prot() to
-match.
+kmap_atomic_prot() is now exported by all architectures.  Use this
+function rather than open coding a driver specific kmap_atomic.
 
-Then define kmap_atomic_prot() as a core function which calls
-kmap_atomic_high_prot() when needed.
-
-Finally, redefine kmap_atomic() as a wrapper of kmap_atomic_prot() with
-the default kmap_prot exported by the architectures.
-
-Link: http://lkml.kernel.org/r/20200504010912.982044-11-ira.weiny@intel.com
+Link: http://lkml.kernel.org/r/20200504010912.982044-12-ira.weiny@intel.com
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Christian K=C3=B6nig <christian.koenig@amd.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Koenig <christian.koenig@amd.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chris Zankel <chris@zankel.net>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -76,321 +74,160 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/mm/highmem.c                 |    6 +++---
- arch/arm/mm/highmem.c                 |    6 +++---
- arch/csky/mm/highmem.c                |    6 +++---
- arch/microblaze/include/asm/highmem.h |   16 ----------------
- arch/mips/mm/highmem.c                |    6 +++---
- arch/nds32/mm/highmem.c               |    6 +++---
- arch/powerpc/include/asm/highmem.h    |   17 -----------------
- arch/sparc/mm/highmem.c               |    6 +++---
- arch/x86/include/asm/highmem.h        |   14 --------------
- arch/xtensa/mm/highmem.c              |    6 +++---
- include/linux/highmem.h               |    7 ++++---
- 11 files changed, 25 insertions(+), 71 deletions(-)
+ drivers/gpu/drm/ttm/ttm_bo_util.c    |   56 +------------------------
+ drivers/gpu/drm/vmwgfx/vmwgfx_blit.c |   16 +++----
+ include/drm/ttm/ttm_bo_api.h         |    4 -
+ 3 files changed, 12 insertions(+), 64 deletions(-)
 
---- a/arch/arc/mm/highmem.c~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/arch/arc/mm/highmem.c
-@@ -49,7 +49,7 @@
- extern pte_t * pkmap_page_table;
- static pte_t * fixmap_page_table;
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	int idx, cpu_idx;
- 	unsigned long vaddr;
-@@ -59,11 +59,11 @@ void *kmap_atomic_high(struct page *page
- 	vaddr = FIXMAP_ADDR(idx);
- 
- 	set_pte_at(&init_mm, vaddr, fixmap_page_table + idx,
--		   mk_pte(page, kmap_prot));
-+		   mk_pte(page, prot));
- 
- 	return (void *)vaddr;
+--- a/drivers/gpu/drm/ttm/ttm_bo_util.c~drm-remove-drm-specific-kmap_atomic=
+-code
++++ a/drivers/gpu/drm/ttm/ttm_bo_util.c
+@@ -257,54 +257,6 @@ static int ttm_copy_io_page(void *dst, v
+ 	return 0;
  }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kv)
- {
---- a/arch/arm/mm/highmem.c~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/arch/arm/mm/highmem.c
-@@ -31,7 +31,7 @@ static inline pte_t get_fixmap_pte(unsig
- 	return *ptep;
- }
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned int idx;
- 	unsigned long vaddr;
-@@ -67,11 +67,11 @@ void *kmap_atomic_high(struct page *page
- 	 * in place, so the contained TLB flush ensures the TLB is updated
- 	 * with the new mapping.
- 	 */
--	set_fixmap_pte(idx, mk_pte(page, kmap_prot));
-+	set_fixmap_pte(idx, mk_pte(page, prot));
- 
- 	return (void *)vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
---- a/arch/csky/mm/highmem.c~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/arch/csky/mm/highmem.c
-@@ -21,7 +21,7 @@ EXPORT_SYMBOL(kmap_flush_tlb);
- 
- EXPORT_SYMBOL(kmap);
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned long vaddr;
- 	int idx, type;
-@@ -32,12 +32,12 @@ void *kmap_atomic_high(struct page *page
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte - idx)));
- #endif
--	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
-+	set_pte(kmap_pte-idx, mk_pte(page, prot));
- 	flush_tlb_one((unsigned long)vaddr);
- 
- 	return (void *)vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
---- a/arch/microblaze/include/asm/highmem.h~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/arch/microblaze/include/asm/highmem.h
-@@ -51,22 +51,6 @@ extern pte_t *pkmap_page_table;
- #define PKMAP_NR(virt)  ((virt - PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
--void *kmap_atomic_prot(struct page *page, pgprot_t prot)
+=20
+-#ifdef CONFIG_X86
+-#define __ttm_kmap_atomic_prot(__page, __prot) kmap_atomic_prot(__page, __=
+prot)
+-#define __ttm_kunmap_atomic(__addr) kunmap_atomic(__addr)
+-#else
+-#define __ttm_kmap_atomic_prot(__page, __prot) vmap(&__page, 1, 0,  __prot)
+-#define __ttm_kunmap_atomic(__addr) vunmap(__addr)
+-#endif
+-
+-
+-/**
+- * ttm_kmap_atomic_prot - Efficient kernel map of a single page with
+- * specified page protection.
+- *
+- * @page: The page to map.
+- * @prot: The page protection.
+- *
+- * This function maps a TTM page using the kmap_atomic api if available,
+- * otherwise falls back to vmap. The user must make sure that the
+- * specified page does not have an aliased mapping with a different caching
+- * policy unless the architecture explicitly allows it. Also mapping and
+- * unmapping using this api must be correctly nested. Unmapping should
+- * occur in the reverse order of mapping.
+- */
+-void *ttm_kmap_atomic_prot(struct page *page, pgprot_t prot)
 -{
--	preempt_disable();
--	pagefault_disable();
--	if (!PageHighMem(page))
--		return page_address(page);
--
--	return kmap_atomic_high_prot(page, prot);
+-	if (pgprot_val(prot) =3D=3D pgprot_val(PAGE_KERNEL))
+-		return kmap_atomic(page);
+-	else
+-		return __ttm_kmap_atomic_prot(page, prot);
 -}
+-EXPORT_SYMBOL(ttm_kmap_atomic_prot);
 -
--static inline void *kmap_atomic_high(struct page *page)
+-/**
+- * ttm_kunmap_atomic_prot - Unmap a page that was mapped using
+- * ttm_kmap_atomic_prot.
+- *
+- * @addr: The virtual address from the map.
+- * @prot: The page protection.
+- */
+-void ttm_kunmap_atomic_prot(void *addr, pgprot_t prot)
 -{
--	return kmap_atomic_high_prot(page, kmap_prot);
+-	if (pgprot_val(prot) =3D=3D pgprot_val(PAGE_KERNEL))
+-		kunmap_atomic(addr);
+-	else
+-		__ttm_kunmap_atomic(addr);
 -}
+-EXPORT_SYMBOL(ttm_kunmap_atomic_prot);
 -
- #define flush_cache_kmaps()	{ flush_icache(); flush_dcache(); }
- 
- #endif /* __KERNEL__ */
---- a/arch/mips/mm/highmem.c~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/arch/mips/mm/highmem.c
-@@ -18,7 +18,7 @@ void kmap_flush_tlb(unsigned long addr)
+ static int ttm_copy_io_ttm_page(struct ttm_tt *ttm, void *src,
+ 				unsigned long page,
+ 				pgprot_t prot)
+@@ -316,13 +268,13 @@ static int ttm_copy_io_ttm_page(struct t
+ 		return -ENOMEM;
+=20
+ 	src =3D (void *)((unsigned long)src + (page << PAGE_SHIFT));
+-	dst =3D ttm_kmap_atomic_prot(d, prot);
++	dst =3D kmap_atomic_prot(d, prot);
+ 	if (!dst)
+ 		return -ENOMEM;
+=20
+ 	memcpy_fromio(dst, src, PAGE_SIZE);
+=20
+-	ttm_kunmap_atomic_prot(dst, prot);
++	kunmap_atomic(dst);
+=20
+ 	return 0;
  }
- EXPORT_SYMBOL(kmap_flush_tlb);
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned long vaddr;
- 	int idx, type;
-@@ -29,12 +29,12 @@ void *kmap_atomic_high(struct page *page
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte - idx)));
- #endif
--	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
-+	set_pte(kmap_pte-idx, mk_pte(page, prot));
- 	local_flush_tlb_one((unsigned long)vaddr);
- 
- 	return (void*) vaddr;
+@@ -338,13 +290,13 @@ static int ttm_copy_ttm_io_page(struct t
+ 		return -ENOMEM;
+=20
+ 	dst =3D (void *)((unsigned long)dst + (page << PAGE_SHIFT));
+-	src =3D ttm_kmap_atomic_prot(s, prot);
++	src =3D kmap_atomic_prot(s, prot);
+ 	if (!src)
+ 		return -ENOMEM;
+=20
+ 	memcpy_toio(dst, src, PAGE_SIZE);
+=20
+-	ttm_kunmap_atomic_prot(src, prot);
++	kunmap_atomic(src);
+=20
+ 	return 0;
  }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
---- a/arch/nds32/mm/highmem.c~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/arch/nds32/mm/highmem.c
-@@ -10,7 +10,7 @@
- #include <asm/fixmap.h>
- #include <asm/tlbflush.h>
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned int idx;
- 	unsigned long vaddr, pte;
-@@ -21,7 +21,7 @@ void *kmap_atomic_high(struct page *page
- 
- 	idx = type + KM_TYPE_NR * smp_processor_id();
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
--	pte = (page_to_pfn(page) << PAGE_SHIFT) | (kmap_prot);
-+	pte = (page_to_pfn(page) << PAGE_SHIFT) | prot;
- 	ptep = pte_offset_kernel(pmd_off_k(vaddr), vaddr);
- 	set_pte(ptep, pte);
- 
-@@ -32,7 +32,7 @@ void *kmap_atomic_high(struct page *page
- 	return (void *)vaddr;
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_blit.c~drm-remove-drm-specific-kmap_ato=
+mic-code
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_blit.c
+@@ -374,12 +374,12 @@ static int vmw_bo_cpu_blit_line(struct v
+ 		copy_size =3D min_t(u32, copy_size, PAGE_SIZE - src_page_offset);
+=20
+ 		if (unmap_src) {
+-			ttm_kunmap_atomic_prot(d->src_addr, d->src_prot);
++			kunmap_atomic(d->src_addr);
+ 			d->src_addr =3D NULL;
+ 		}
+=20
+ 		if (unmap_dst) {
+-			ttm_kunmap_atomic_prot(d->dst_addr, d->dst_prot);
++			kunmap_atomic(d->dst_addr);
+ 			d->dst_addr =3D NULL;
+ 		}
+=20
+@@ -388,8 +388,8 @@ static int vmw_bo_cpu_blit_line(struct v
+ 				return -EINVAL;
+=20
+ 			d->dst_addr =3D
+-				ttm_kmap_atomic_prot(d->dst_pages[dst_page],
+-						     d->dst_prot);
++				kmap_atomic_prot(d->dst_pages[dst_page],
++						 d->dst_prot);
+ 			if (!d->dst_addr)
+ 				return -ENOMEM;
+=20
+@@ -401,8 +401,8 @@ static int vmw_bo_cpu_blit_line(struct v
+ 				return -EINVAL;
+=20
+ 			d->src_addr =3D
+-				ttm_kmap_atomic_prot(d->src_pages[src_page],
+-						     d->src_prot);
++				kmap_atomic_prot(d->src_pages[src_page],
++						 d->src_prot);
+ 			if (!d->src_addr)
+ 				return -ENOMEM;
+=20
+@@ -499,9 +499,9 @@ int vmw_bo_cpu_blit(struct ttm_buffer_ob
+ 	}
+ out:
+ 	if (d.src_addr)
+-		ttm_kunmap_atomic_prot(d.src_addr, d.src_prot);
++		kunmap_atomic(d.src_addr);
+ 	if (d.dst_addr)
+-		ttm_kunmap_atomic_prot(d.dst_addr, d.dst_prot);
++		kunmap_atomic(d.dst_addr);
+=20
+ 	return ret;
  }
- 
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
---- a/arch/powerpc/include/asm/highmem.h~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/arch/powerpc/include/asm/highmem.h
-@@ -59,23 +59,6 @@ extern pte_t *pkmap_page_table;
- #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
--static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
--{
--	preempt_disable();
--	pagefault_disable();
--	if (!PageHighMem(page))
--		return page_address(page);
+--- a/include/drm/ttm/ttm_bo_api.h~drm-remove-drm-specific-kmap_atomic-code
++++ a/include/drm/ttm/ttm_bo_api.h
+@@ -668,10 +668,6 @@ int ttm_bo_mmap_obj(struct vm_area_struc
+ int ttm_bo_mmap(struct file *filp, struct vm_area_struct *vma,
+ 		struct ttm_bo_device *bdev);
+=20
+-void *ttm_kmap_atomic_prot(struct page *page, pgprot_t prot);
 -
--	return kmap_atomic_high_prot(page, prot);
--}
--
--static inline void *kmap_atomic_high(struct page *page)
--{
--	return kmap_atomic_high_prot(page, kmap_prot);
--}
--
--
- #define flush_cache_kmaps()	flush_cache_all()
- 
- #endif /* __KERNEL__ */
---- a/arch/sparc/mm/highmem.c~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/arch/sparc/mm/highmem.c
-@@ -54,7 +54,7 @@ void __init kmap_init(void)
-         kmap_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
- }
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned long vaddr;
- 	long idx, type;
-@@ -73,7 +73,7 @@ void *kmap_atomic_high(struct page *page
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte-idx)));
- #endif
--	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
-+	set_pte(kmap_pte-idx, mk_pte(page, prot));
- /* XXX Fix - Anton */
- #if 0
- 	__flush_tlb_one(vaddr);
-@@ -83,7 +83,7 @@ void *kmap_atomic_high(struct page *page
- 
- 	return (void*) vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
---- a/arch/x86/include/asm/highmem.h~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/arch/x86/include/asm/highmem.h
-@@ -58,20 +58,6 @@ extern unsigned long highstart_pfn, high
- #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
--static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
--{
--	preempt_disable();
--	pagefault_disable();
--	if (!PageHighMem(page))
--		return page_address(page);
--
--	return kmap_atomic_high_prot(page, prot);
--}
--static inline void *kmap_atomic_high(struct page *page)
--{
--	return kmap_atomic_high_prot(page, kmap_prot);
--}
- void *kmap_atomic_pfn(unsigned long pfn);
- void *kmap_atomic_prot_pfn(unsigned long pfn, pgprot_t prot);
- 
---- a/arch/xtensa/mm/highmem.c~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/arch/xtensa/mm/highmem.c
-@@ -37,7 +37,7 @@ static inline enum fixed_addresses kmap_
- 		color;
- }
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	enum fixed_addresses idx;
- 	unsigned long vaddr;
-@@ -48,11 +48,11 @@ void *kmap_atomic_high(struct page *page
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte + idx)));
- #endif
--	set_pte(kmap_pte + idx, mk_pte(page, kmap_prot));
-+	set_pte(kmap_pte + idx, mk_pte(page, prot));
- 
- 	return (void *)vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
---- a/include/linux/highmem.h~arch-kmap-define-kmap_atomic_prot-for-all-archs
-+++ a/include/linux/highmem.h
-@@ -32,7 +32,7 @@ static inline void invalidate_kernel_vma
- #include <asm/kmap_types.h>
- 
- #ifdef CONFIG_HIGHMEM
--extern void *kmap_atomic_high(struct page *page);
-+extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
- extern void kunmap_atomic_high(void *kvaddr);
- #include <asm/highmem.h>
- 
-@@ -76,14 +76,15 @@ static inline void kunmap(struct page *p
-  * be used in IRQ contexts, so in some (very limited) cases we need
-  * it.
-  */
--static inline void *kmap_atomic(struct page *page)
-+static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
- {
- 	preempt_disable();
- 	pagefault_disable();
- 	if (!PageHighMem(page))
- 		return page_address(page);
--	return kmap_atomic_high(page);
-+	return kmap_atomic_high_prot(page, prot);
- }
-+#define kmap_atomic(page)	kmap_atomic_prot(page, kmap_prot)
- 
- /* declarations for linux/mm/highmem.c */
- unsigned int nr_free_highpages(void);
-_
-
-Patches currently in -mm which might be from ira.weiny@intel.com are
-
-arch-kmap-remove-bug_on.patch
-arch-xtensa-move-kmap-build-bug-out-of-the-way.patch
-arch-kmap-remove-redundant-arch-specific-kmaps.patch
-arch-kunmap-remove-duplicate-kunmap-implementations.patch
-x86powerpcmicroblaze-kmap-move-preempt-disable.patch
-arch-kmap_atomic-consolidate-duplicate-code.patch
-arch-kunmap_atomic-consolidate-duplicate-code.patch
-arch-kmap-ensure-kmap_prot-visibility.patch
-arch-kmap-dont-hard-code-kmap_prot-values.patch
-arch-kmap-define-kmap_atomic_prot-for-all-archs.patch
-drm-remove-drm-specific-kmap_atomic-code.patch
-kmap-remove-kmap_atomic_to_page.patch
-parisc-kmap-remove-duplicate-kmap-code.patch
+-void ttm_kunmap_atomic_prot(void *addr, pgprot_t prot);
