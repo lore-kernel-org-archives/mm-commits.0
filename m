@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
+Subject: + mm-memcg-fix-inconsistent-oom-event-behavior.patch
  added to -mm tree
-Date: Mon, 04 May 2020 15:35:56 -0700
-Message-ID: <20200504223556.dXpyg4MOC%akpm@linux-foundation.org>
+Date: Mon, 04 May 2020 16:05:10 -0700
+Message-ID: <20200504230510.faDPuPtMh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40198 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55874 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726419AbgEDWf6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 May 2020 18:35:58 -0400
+        id S1728182AbgEDXFL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 May 2020 19:05:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, cai@lca.pw, catalin.marinas@arm.com, christophe.leroy@c-s.fr, gerald.schaefer@de.ibm.com, mingo@kernel.org, mm-commits@vger.kernel.org
+To: chris@chrisdown.name, hannes@cmpxchg.org, laoar.shao@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com
 
 
 The patch titled
-     Subject: mm-debug-add-tests-validating-architecture-page-table-helpers-v18
+     Subject: mm, memcg: fix inconsistent oom event behavior
 has been added to the -mm tree.  Its filename is
-     mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
+     mm-memcg-fix-inconsistent-oom-event-behavior.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-fix-inconsistent-oom-event-behavior.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-fix-inconsistent-oom-event-behavior.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,56 +36,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm-debug-add-tests-validating-architecture-page-table-helpers-v18
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm, memcg: fix inconsistent oom event behavior
 
-Link: http://lkml.kernel.org/r/1588564865-31160-3-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
+A recent commit 9852ae3fe529 ("mm, memcg: consider subtrees in
+memory.events") changes the behavior of memcg events, which will consider
+subtrees in memory.events.  But oom_kill event is a special one as it is
+used in both cgroup1 and cgroup2.  In cgroup1, it is displayed in
+memory.oom_control.  The file memory.oom_control is in both root memcg and
+non root memcg, that is different with memory.event as it only in non-root
+memcg.  That commit is okay for cgroup2, but it is not okay for cgroup1 as
+it will cause inconsistent behavior between root memcg and non-root memcg.
+
+Here's an example on why this behavior is inconsistent in cgroup1.
+     root memcg
+     /
+  memcg foo
+   /
+memcg bar
+
+Suppose there's an oom_kill in memcg bar, then the oon_kill will be
+
+     root memcg : memory.oom_control(oom_kill)  0
+     /
+  memcg foo : memory.oom_control(oom_kill)  1
+   /
+memcg bar : memory.oom_control(oom_kill)  1
+
+For the non-root memcg, its memory.oom_control(oom_kill) includes its
+descendants' oom_kill, but for root memcg, it doesn't include its
+descendants' oom_kill.  That means, memory.oom_control(oom_kill) has
+different meanings in different memcgs.  That is inconsistent.  Then the
+user has to know whether the memcg is root or not.
+
+If we can't fully support it in cgroup1, for example by adding
+memory.events.local into cgroup1 as well, then let's don't touch its
+original behavior.
+
+Link: http://lkml.kernel.org/r/20200502141055.7378-1-laoar.shao@gmail.com
+Fixes: 9852ae3fe529 ("mm, memcg: consider subtrees in memory.events")
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Chris Down <chris@chrisdown.name>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ include/linux/memcontrol.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/Kconfig.debug~mm-debug-add-tests-validating-architecture-page-table-helpers-v18
-+++ a/lib/Kconfig.debug
-@@ -697,9 +697,8 @@ config DEBUG_VM_PGFLAGS
- config DEBUG_VM_PGTABLE
- 	bool "Debug arch page table for semantics compliance"
- 	depends on MMU
--	depends on !IA64 && !ARM
--	depends on ARCH_HAS_DEBUG_VM_PGTABLE || EXPERT
--	default y if ARCH_HAS_DEBUG_VM_PGTABLE && DEBUG_VM
-+	depends on ARCH_HAS_DEBUG_VM_PGTABLE
-+	default y if DEBUG_VM
- 	help
- 	  This option provides a debug method which can be used to test
- 	  architecture page table helper functions on various platforms in
-@@ -707,9 +706,7 @@ config DEBUG_VM_PGTABLE
- 	  will help architecture code in making sure that any changes or
- 	  new additions of these helpers still conform to expected
- 	  semantics of the generic MM. Platforms will have to opt in for
--	  this through ARCH_HAS_DEBUG_VM_PGTABLE. Although it can also be
--	  enabled through EXPERT without requiring code change. This test
--	  is disabled on IA64 and ARM platforms where it fails to build.
-+	  this through ARCH_HAS_DEBUG_VM_PGTABLE.
+--- a/include/linux/memcontrol.h~mm-memcg-fix-inconsistent-oom-event-behavior
++++ a/include/linux/memcontrol.h
+@@ -783,6 +783,8 @@ static inline void memcg_memory_event(st
+ 		atomic_long_inc(&memcg->memory_events[event]);
+ 		cgroup_file_notify(&memcg->events_file);
  
- 	  If unsure, say N.
- 
++		if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
++			break;
+ 		if (cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_LOCAL_EVENTS)
+ 			break;
+ 	} while ((memcg = parent_mem_cgroup(memcg)) &&
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
 
-powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
-mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
-mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch
-x86-mm-define-mm_p4d_folded.patch
-mm-debug-add-tests-validating-architecture-page-table-helpers.patch
-mm-debug-add-tests-validating-architecture-page-table-helpers-v17.patch
-mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
+mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc.patch
+mm-memcg-fix-inconsistent-oom-event-behavior.patch
+mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection.patch
+mm-memcg-add-workingset_restore-in-memorystat.patch
