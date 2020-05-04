@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- slub-limit-count-of-partial-slabs-scanned-to-gather-statistics.patch added
- to -mm tree
-Date: Mon, 04 May 2020 12:57:30 -0700
-Message-ID: <20200504195730.3XXBIk2n_%akpm@linux-foundation.org>
+Subject: + mm-memcg-add-workingset_restore-in-memorystat.patch
+ added to -mm tree
+Date: Mon, 04 May 2020 12:59:28 -0700
+Message-ID: <20200504195928.Z4TG-7k8q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52506 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53514 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726111AbgEDT5d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 4 May 2020 15:57:33 -0400
+        id S1726111AbgEDT7a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 4 May 2020 15:59:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, iamjoonsoo.kim@lge.com, khlebnikov@yandex-team.ru, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
+To: chris@chrisdown.name, hannes@cmpxchg.org, laoar.shao@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, peterz@infradead.org, shakeelb@google.com, surenb@google.com
 
 
 The patch titled
-     Subject: slub: limit count of partial slabs scanned to gather statistics
+     Subject: mm, memcg: add workingset_restore in memory.stat
 has been added to the -mm tree.  Its filename is
-     slub-limit-count-of-partial-slabs-scanned-to-gather-statistics.patch
+     mm-memcg-add-workingset_restore-in-memorystat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-limit-count-of-partial-slabs-scanned-to-gather-statistics.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-add-workingset_restore-in-memorystat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-limit-count-of-partial-slabs-scanned-to-gather-statistics.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-add-workingset_restore-in-memorystat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,83 +36,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: slub: limit count of partial slabs scanned to gather statistics
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm, memcg: add workingset_restore in memory.stat
 
-To get exact count of free and used objects slub have to scan list of
-partial slabs.  This may take at long time.  Scanning holds spinlock and
-blocks allocations which move partial slabs to per-cpu lists and back.
+There's a new workingset counter introduced in commit 1899ad18c607 ("mm:
+workingset: tell cache transitions from workingset thrashing").  With the
+help of this counter we can know the workingset is transitioning or
+thrashing.  To leverage the benifit of this counter to memcg, we should
+introduce it into memory.stat.  Then we could know the workingset of the
+workload inside a memcg better.
 
-Example found in the wild:
+Bellow is the verification of this new counter in memory.stat.  Read a
+file into the memory and then read it again to make these pages be active.
+The size of this file is 1G.  (memory.max is greater than file size) The
+counters in memory.stat will be
 
-# cat /sys/kernel/slab/dentry/partial
-14478538 N0=7329569 N1=7148969
-# time cat /sys/kernel/slab/dentry/objects
-286225471 N0=136967768 N1=149257703
+	inactive_file 0
+	active_file 1073639424
 
-real	0m1.722s
-user	0m0.001s
-sys	0m1.721s
+	workingset_refault 0 workingset_activate 0 workingset_restore 0
+workingset_nodereclaim 0 Trigger the memcg reclaim by setting a lower
+value to memory.high, and then some pages will be demoted into inactive
+list, and then some pages in the inactive list will be evicted into the
+storage.
 
-The same problem in slab was addressed in commit f728b0a5d72a ("mm, slab:
-faster active and free stats") by adding more kmem cache statistics.  For
-slub same approach requires atomic op on fast path when object frees.
+	inactive_file 498094080
+	active_file 310063104
 
-Let's simply limit count of scanned slabs and print warning.  Limit set in
-/sys/module/slub/parameters/max_partial_to_count.  Default is 10000 which
-should be enough for most sane cases.
+	workingset_refault 0
+	workingset_activate 0
+	workingset_restore 0
+	workingset_nodereclaim 0
 
-Return linear approximation if list of partials is longer than limit. 
-Nobody should notice difference.
+Then recover the memory.high and read the file into memory again.  As a
+result of it, the transitioning will occur.  Bellow is the result of this
+transitioning,
 
-Link: http://lkml.kernel.org/r/158860845968.33385.4165926113074799048.stgit@buzz
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+	inactive_file 498094080
+	active_file 575397888
+
+	workingset_refault 64746
+	workingset_activate 64746
+	workingset_restore 64746
+	workingset_nodereclaim 0
+
+Link: http://lkml.kernel.org/r/20200504153522.11553-1-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/cgroup-v2.rst |    4 ++++
+ mm/memcontrol.c                         |    2 ++
+ 2 files changed, 6 insertions(+)
 
---- a/mm/slub.c~slub-limit-count-of-partial-slabs-scanned-to-gather-statistics
-+++ a/mm/slub.c
-@@ -2451,16 +2451,29 @@ static inline unsigned long node_nr_objs
- #endif /* CONFIG_SLUB_DEBUG */
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcg-add-workingset_restore-in-memorystat
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1329,6 +1329,10 @@ PAGE_SIZE multiple when read back.
+ 	  workingset_activate
+ 		Number of refaulted pages that were immediately activated
  
- #if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SYSFS)
++	  workingset_restore
++		Number of restored pages which have been detected as an active
++		workingset before they got reclaimed.
 +
-+static unsigned long max_partial_to_count __read_mostly = 10000;
-+module_param(max_partial_to_count, ulong, 0644);
-+
- static unsigned long count_partial(struct kmem_cache_node *n,
- 					int (*get_count)(struct page *))
- {
-+	unsigned long counted = 0;
- 	unsigned long flags;
- 	unsigned long x = 0;
- 	struct page *page;
+ 	  workingset_nodereclaim
+ 		Number of times a shadow node has been reclaimed
  
- 	spin_lock_irqsave(&n->list_lock, flags);
--	list_for_each_entry(page, &n->partial, slab_list)
-+	list_for_each_entry(page, &n->partial, slab_list) {
- 		x += get_count(page);
-+
-+		if (++counted > max_partial_to_count) {
-+			pr_warn_once("SLUB: too much partial slabs to count all objects, increase max_partial_to_count.\n");
-+			/* Approximate total count of objects */
-+			x = mult_frac(x, n->nr_partial, counted);
-+			break;
-+		}
-+	}
- 	spin_unlock_irqrestore(&n->list_lock, flags);
- 	return x;
- }
+--- a/mm/memcontrol.c~mm-memcg-add-workingset_restore-in-memorystat
++++ a/mm/memcontrol.c
+@@ -1451,6 +1451,8 @@ static char *memory_stat_format(struct m
+ 		       memcg_page_state(memcg, WORKINGSET_REFAULT));
+ 	seq_buf_printf(&s, "workingset_activate %lu\n",
+ 		       memcg_page_state(memcg, WORKINGSET_ACTIVATE));
++	seq_buf_printf(&s, "workingset_restore %lu\n",
++		       memcg_page_state(memcg, WORKINGSET_RESTORE));
+ 	seq_buf_printf(&s, "workingset_nodereclaim %lu\n",
+ 		       memcg_page_state(memcg, WORKINGSET_NODERECLAIM));
+ 
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
 
-kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
-slub-limit-count-of-partial-slabs-scanned-to-gather-statistics.patch
+mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc.patch
+mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection.patch
+mm-memcg-add-workingset_restore-in-memorystat.patch
