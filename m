@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
- added to -mm tree
-Date: Tue, 05 May 2020 12:30:01 -0700
-Message-ID: <20200505193001.kQdLEJtl_%akpm@linux-foundation.org>
+Subject: + mm-remove-duplicated-include-from-madvisec.patch added
+ to -mm tree
+Date: Tue, 05 May 2020 12:46:45 -0700
+Message-ID: <20200505194645.XTeTteSBu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41404 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50100 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726350AbgEETaD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 May 2020 15:30:03 -0400
+        id S1728233AbgEETqq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 May 2020 15:46:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, benh@kernel.crashing.org, ebiederm@xmission.com, hch@lst.de, jk@ozlabs.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, oleg@redhat.com, paulus@samba.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, yuehaibing@huawei.com
 
 
 The patch titled
-     Subject: binfmt_elf_fdpic: remove the set_fs(KERNEL_DS) in elf_fdpic_core_dump
+     Subject: mm/madvise.c: remove duplicated include
 has been added to the -mm tree.  Its filename is
-     binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
+     mm-remove-duplicated-include-from-madvisec.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-duplicated-include-from-madvisec.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-duplicated-include-from-madvisec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,142 +36,32 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: binfmt_elf_fdpic: remove the set_fs(KERNEL_DS) in elf_fdpic_core_dump
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: mm/madvise.c: remove duplicated include
 
-There is no logic in elf_fdpic_core_dump itself or in the various arch
-helpers called from it which use uaccess routines on kernel pointers
-except for the file writes thate are nicely encapsulated by using
-__kernel_write in dump_emit.
+Remove duplicated include.
 
-Link: http://lkml.kernel.org/r/20200505101256.3121270-8-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Jeremy Kerr <jk@ozlabs.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Paul Mackerras <paulus@samba.org>
+Link: http://lkml.kernel.org/r/20200505100049.191351-1-yuehaibing@huawei.com
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ mm/madvise.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1549,7 +1549,6 @@ static int elf_fdpic_core_dump(struct co
- {
- #define	NUM_NOTES	6
- 	int has_dumped = 0;
--	mm_segment_t fs;
- 	int segs;
- 	int i;
- 	struct vm_area_struct *vma;
-@@ -1589,31 +1588,31 @@ static int elf_fdpic_core_dump(struct co
- 	/* alloc memory for large data structures: too large to be on stack */
- 	elf = kmalloc(sizeof(*elf), GFP_KERNEL);
- 	if (!elf)
--		goto cleanup;
-+		goto end_coredump;
- 	prstatus = kzalloc(sizeof(*prstatus), GFP_KERNEL);
- 	if (!prstatus)
--		goto cleanup;
-+		goto end_coredump;
- 	psinfo = kmalloc(sizeof(*psinfo), GFP_KERNEL);
- 	if (!psinfo)
--		goto cleanup;
-+		goto end_coredump;
- 	notes = kmalloc_array(NUM_NOTES, sizeof(struct memelfnote),
- 			      GFP_KERNEL);
- 	if (!notes)
--		goto cleanup;
-+		goto end_coredump;
- 	fpu = kmalloc(sizeof(*fpu), GFP_KERNEL);
- 	if (!fpu)
--		goto cleanup;
-+		goto end_coredump;
- #ifdef ELF_CORE_COPY_XFPREGS
- 	xfpu = kmalloc(sizeof(*xfpu), GFP_KERNEL);
- 	if (!xfpu)
--		goto cleanup;
-+		goto end_coredump;
- #endif
+--- a/mm/madvise.c~mm-remove-duplicated-include-from-madvisec
++++ a/mm/madvise.c
+@@ -29,7 +29,6 @@
+ #include <linux/swapops.h>
+ #include <linux/shmem_fs.h>
+ #include <linux/mmu_notifier.h>
+-#include <linux/sched/mm.h>
+ #include <linux/uio.h>
  
- 	for (ct = current->mm->core_state->dumper.next;
- 					ct; ct = ct->next) {
- 		tmp = kzalloc(sizeof(*tmp), GFP_KERNEL);
- 		if (!tmp)
--			goto cleanup;
-+			goto end_coredump;
- 
- 		tmp->thread = ct->task;
- 		list_add(&tmp->list, &thread_list);
-@@ -1678,9 +1677,6 @@ static int elf_fdpic_core_dump(struct co
- 			  "LINUX", ELF_CORE_XFPREG_TYPE, sizeof(*xfpu), xfpu);
- #endif
- 
--	fs = get_fs();
--	set_fs(KERNEL_DS);
--
- 	offset += sizeof(*elf);				/* Elf header */
- 	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
- 
-@@ -1788,9 +1784,6 @@ static int elf_fdpic_core_dump(struct co
- 	}
- 
- end_coredump:
--	set_fs(fs);
--
--cleanup:
- 	while (!list_empty(&thread_list)) {
- 		struct list_head *tmp = thread_list.next;
- 		list_del(tmp);
+ #include <asm/tlb.h>
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from yuehaibing@huawei.com are
 
-x86-hyperv-use-vmalloc_exec-for-the-hypercall-page.patch
-x86-fix-vmap-arguments-in-map_irq_stack.patch
-staging-android-ion-use-vmap-instead-of-vm_map_ram.patch
-staging-media-ipu3-use-vmap-instead-of-reimplementing-it.patch
-dma-mapping-use-vmap-insted-of-reimplementing-it.patch
-powerpc-add-an-ioremap_phb-helper.patch
-powerpc-remove-__ioremap_at-and-__iounmap_at.patch
-mm-remove-__get_vm_area.patch
-mm-unexport-unmap_kernel_range_noflush.patch
-mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping.patch
-mm-only-allow-page-table-mappings-for-built-in-zsmalloc.patch
-mm-pass-addr-as-unsigned-long-to-vb_free.patch
-mm-remove-vmap_page_range_noflush-and-vunmap_page_range.patch
-mm-rename-vmap_page_range-to-map_kernel_range.patch
-mm-dont-return-the-number-of-pages-from-map_kernel_range_noflush.patch
-mm-remove-map_vm_range.patch
-mm-remove-unmap_vmap_area.patch
-mm-remove-the-prot-argument-from-vm_map_ram.patch
-mm-enforce-that-vmap-cant-map-pages-executable.patch
-gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc.patch
-mm-remove-the-pgprot-argument-to-__vmalloc.patch
-mm-remove-the-prot-argument-to-__vmalloc_node.patch
-mm-remove-both-instances-of-__vmalloc_node_flags.patch
-mm-remove-__vmalloc_node_flags_caller.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
-mm-remove-vmalloc_user_node_flags.patch
-arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack.patch
-powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
-s390-use-__vmalloc_node-in-stack_alloc.patch
-powerpc-spufs-stop-using-access_ok.patch
-powerpc-spufs-simplify-spufs-core-dumping.patch
-signal-refactor-copy_siginfo_to_user32.patch
-binfmt_elf-remove-the-set_fskernel_ds-in-elf_core_dump.patch
-binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
-exec-simplify-the-copy_strings_kernel-calling-convention.patch
-exec-open-code-copy_string_kernel.patch
-amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
-kernel-move-use_mm-unuse_mm-to-kthreadc.patch
-kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
-kernel-set-user_ds-in-kthread_use_mm.patch
+mm-remove-duplicated-include-from-madvisec.patch
