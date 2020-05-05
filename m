@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- binfmt_elf-remove-the-set_fskernel_ds-in-elf_core_dump.patch added to -mm
- tree
-Date: Tue, 05 May 2020 12:29:58 -0700
-Message-ID: <20200505192958.70Uf6Db9U%akpm@linux-foundation.org>
+ binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
+ added to -mm tree
+Date: Tue, 05 May 2020 12:30:01 -0700
+Message-ID: <20200505193001.kQdLEJtl_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41330 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41404 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726350AbgEET37 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 May 2020 15:29:59 -0400
+        id S1726350AbgEETaD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 May 2020 15:30:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, benh@kernel.crashing.org, ebiederm@xmission.com, hch@lst.de, jk@ozlabs.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, oleg@redhat.com, paulus@samba.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: binfmt_elf: remove the set_fs(KERNEL_DS) in elf_core_dump
+     Subject: binfmt_elf_fdpic: remove the set_fs(KERNEL_DS) in elf_fdpic_core_dump
 has been added to the -mm tree.  Its filename is
-     binfmt_elf-remove-the-set_fskernel_ds-in-elf_core_dump.patch
+     binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_elf-remove-the-set_fskernel_ds-in-elf_core_dump.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_elf-remove-the-set_fskernel_ds-in-elf_core_dump.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,14 +38,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: binfmt_elf: remove the set_fs(KERNEL_DS) in elf_core_dump
+Subject: binfmt_elf_fdpic: remove the set_fs(KERNEL_DS) in elf_fdpic_core_dump
 
-There is no logic in elf_core_dump itself or in the various arch helpers
-called from it which use uaccess routines on kernel pointers except for
-the file writes thate are nicely encapsulated by using __kernel_write in
-dump_emit.
+There is no logic in elf_fdpic_core_dump itself or in the various arch
+helpers called from it which use uaccess routines on kernel pointers
+except for the file writes thate are nicely encapsulated by using
+__kernel_write in dump_emit.
 
-Link: http://lkml.kernel.org/r/20200505101256.3121270-7-hch@lst.de
+Link: http://lkml.kernel.org/r/20200505101256.3121270-8-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -58,67 +58,78 @@ Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+ fs/binfmt_elf_fdpic.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
---- a/fs/binfmt_elf.c~binfmt_elf-remove-the-set_fskernel_ds-in-elf_core_dump
-+++ a/fs/binfmt_elf.c
-@@ -1351,7 +1351,6 @@ static unsigned long vma_dump_size(struc
- 	    vma->vm_pgoff == 0 && (vma->vm_flags & VM_READ)) {
- 		u32 __user *header = (u32 __user *) vma->vm_start;
- 		u32 word;
--		mm_segment_t fs = get_fs();
- 		/*
- 		 * Doing it this way gets the constant folded by GCC.
- 		 */
-@@ -1364,14 +1363,8 @@ static unsigned long vma_dump_size(struc
- 		magic.elfmag[EI_MAG1] = ELFMAG1;
- 		magic.elfmag[EI_MAG2] = ELFMAG2;
- 		magic.elfmag[EI_MAG3] = ELFMAG3;
--		/*
--		 * Switch to the user "segment" for get_user(),
--		 * then put back what elf_core_dump() had in place.
--		 */
--		set_fs(USER_DS);
- 		if (unlikely(get_user(word, header)))
- 			word = 0;
--		set_fs(fs);
- 		if (word == magic.cmp)
- 			return PAGE_SIZE;
- 	}
-@@ -2179,7 +2172,6 @@ static void fill_extnum_info(struct elfh
- static int elf_core_dump(struct coredump_params *cprm)
+--- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1549,7 +1549,6 @@ static int elf_fdpic_core_dump(struct co
  {
+ #define	NUM_NOTES	6
  	int has_dumped = 0;
 -	mm_segment_t fs;
- 	int segs, i;
- 	size_t vma_data_size = 0;
- 	struct vm_area_struct *vma, *gate_vma;
-@@ -2228,13 +2220,10 @@ static int elf_core_dump(struct coredump
- 	 * notes.  This also sets up the file header.
- 	 */
- 	if (!fill_note_info(&elf, e_phnum, &info, cprm->siginfo, cprm->regs))
+ 	int segs;
+ 	int i;
+ 	struct vm_area_struct *vma;
+@@ -1589,31 +1588,31 @@ static int elf_fdpic_core_dump(struct co
+ 	/* alloc memory for large data structures: too large to be on stack */
+ 	elf = kmalloc(sizeof(*elf), GFP_KERNEL);
+ 	if (!elf)
 -		goto cleanup;
 +		goto end_coredump;
+ 	prstatus = kzalloc(sizeof(*prstatus), GFP_KERNEL);
+ 	if (!prstatus)
+-		goto cleanup;
++		goto end_coredump;
+ 	psinfo = kmalloc(sizeof(*psinfo), GFP_KERNEL);
+ 	if (!psinfo)
+-		goto cleanup;
++		goto end_coredump;
+ 	notes = kmalloc_array(NUM_NOTES, sizeof(struct memelfnote),
+ 			      GFP_KERNEL);
+ 	if (!notes)
+-		goto cleanup;
++		goto end_coredump;
+ 	fpu = kmalloc(sizeof(*fpu), GFP_KERNEL);
+ 	if (!fpu)
+-		goto cleanup;
++		goto end_coredump;
+ #ifdef ELF_CORE_COPY_XFPREGS
+ 	xfpu = kmalloc(sizeof(*xfpu), GFP_KERNEL);
+ 	if (!xfpu)
+-		goto cleanup;
++		goto end_coredump;
+ #endif
  
- 	has_dumped = 1;
+ 	for (ct = current->mm->core_state->dumper.next;
+ 					ct; ct = ct->next) {
+ 		tmp = kzalloc(sizeof(*tmp), GFP_KERNEL);
+ 		if (!tmp)
+-			goto cleanup;
++			goto end_coredump;
+ 
+ 		tmp->thread = ct->task;
+ 		list_add(&tmp->list, &thread_list);
+@@ -1678,9 +1677,6 @@ static int elf_fdpic_core_dump(struct co
+ 			  "LINUX", ELF_CORE_XFPREG_TYPE, sizeof(*xfpu), xfpu);
+ #endif
  
 -	fs = get_fs();
 -	set_fs(KERNEL_DS);
 -
- 	offset += sizeof(elf);				/* Elf header */
+ 	offset += sizeof(*elf);				/* Elf header */
  	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
  
-@@ -2362,9 +2351,6 @@ static int elf_core_dump(struct coredump
+@@ -1788,9 +1784,6 @@ static int elf_fdpic_core_dump(struct co
  	}
  
  end_coredump:
 -	set_fs(fs);
 -
 -cleanup:
- 	free_note_info(&info);
- 	kfree(shdr4extnum);
- 	kvfree(vma_filesz);
+ 	while (!list_empty(&thread_list)) {
+ 		struct list_head *tmp = thread_list.next;
+ 		list_del(tmp);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
