@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects.patch added to
- -mm tree
-Date: Tue, 05 May 2020 13:36:47 -0700
-Message-ID: <20200505203647.n_G5FPWzQ%akpm@linux-foundation.org>
+Subject: + arch-x86-makefile-use-config_shell.patch added to -mm
+ tree
+Date: Tue, 05 May 2020 14:12:28 -0700
+Message-ID: <20200505211228.4c9EMUAtM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38354 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46046 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728584AbgEEUgt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 May 2020 16:36:49 -0400
+        id S1728584AbgEEVMa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 May 2020 17:12:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, ebiggers@google.com, jarkko.sakkinen@linux.intel.com, jmorris@namei.org, joe@perches.com, longman@redhat.com, mm-commits@vger.kernel.org, rientjes@google.com, serge@hallyn.com, torvalds@linux-foundation.org, urezki@gmail.com, willy@infradead.org
+To: akpm@linux-foundation.org, bp@suse.de, mm-commits@vger.kernel.org, ndesaulniers@google.com
 
 
 The patch titled
-     Subject: mm: add kvfree_sensitive() for freeing sensitive data objects
+     Subject: arch/x86/Makefile: use $(CONFIG_SHELL)
 has been added to the -mm tree.  Its filename is
-     mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects.patch
+     arch-x86-makefile-use-config_shell.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-makefile-use-config_shell.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-makefile-use-config_shell.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,152 +36,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm: add kvfree_sensitive() for freeing sensitive data objects
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/x86/Makefile: use $(CONFIG_SHELL)
 
-For kvmalloc'ed data object that contains sensitive information like
-cryptographic keys, we need to make sure that the buffer is always cleared
-before freeing it.  Using memset() alone for buffer clearing may not
-provide certainty as the compiler may compile it away.  To be sure, the
-special memzero_explicit() has to be used.
+When scripts/x86-check-compiler.sh doesn't have the x bit set:
 
-This patch introduces a new kvfree_sensitive() for freeing those sensitive
-data objects allocated by kvmalloc().  The relevant places where
-kvfree_sensitive() can be used are modified to use it.
+q:/usr/src/25> make clean
+make: execvp: ./scripts/x86-check-compiler.sh: Permission denied
 
-Link: http://lkml.kernel.org/r/20200407200318.11711-1-longman@redhat.com
-Fixes: 4f0882491a14 ("KEYS: Avoid false positive ENOMEM error on key read")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Reviewed-by: Eric Biggers <ebiggers@google.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Uladzislau Rezki <urezki@gmail.com>
+Fix this by using $(CONFIG_SHELL).
+
+This will happen if the user downloads and applies patch-5.7.tar.gz, since
+patch(1) doesn't preserve the x bit.
+
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |    1 +
- mm/util.c                |   18 ++++++++++++++++++
- security/keys/internal.h |   11 -----------
- security/keys/keyctl.c   |   16 +++++-----------
- 4 files changed, 24 insertions(+), 22 deletions(-)
+ arch/x86/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects
-+++ a/include/linux/mm.h
-@@ -781,6 +781,7 @@ static inline void *kvcalloc(size_t n, s
- }
+--- a/arch/x86/Makefile~arch-x86-makefile-use-config_shell
++++ a/arch/x86/Makefile
+@@ -2,7 +2,7 @@
+ # Unified Makefile for i386 and x86_64
  
- extern void kvfree(const void *addr);
-+extern void kvfree_sensitive(const void *addr, size_t len);
+ #  Check the compiler
+-sane_compiler := $(shell $(srctree)/scripts/x86-check-compiler.sh $(CC))
++sane_compiler := $($(CONFIG_SHELL) $(srctree)/scripts/x86-check-compiler.sh $(CC))
+ $(if $(sane_compiler),$(error $(CC) check failed. Aborting),)
  
- static inline int compound_mapcount(struct page *page)
- {
---- a/mm/util.c~mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects
-+++ a/mm/util.c
-@@ -604,6 +604,24 @@ void kvfree(const void *addr)
- }
- EXPORT_SYMBOL(kvfree);
- 
-+/**
-+ * kvfree_sensitive - Free a data object containing sensitive information.
-+ * @addr: address of the data object to be freed.
-+ * @len: length of the data object.
-+ *
-+ * Use the special memzero_explicit() function to clear the content of a
-+ * kvmalloc'ed object containing sensitive data to make sure that the
-+ * compiler won't optimize out the data clearing.
-+ */
-+void kvfree_sensitive(const void *addr, size_t len)
-+{
-+	if (likely(!ZERO_OR_NULL_PTR(addr))) {
-+		memzero_explicit((void *)addr, len);
-+		kvfree(addr);
-+	}
-+}
-+EXPORT_SYMBOL(kvfree_sensitive);
-+
- static inline void *__page_rmapping(struct page *page)
- {
- 	unsigned long mapping;
---- a/security/keys/internal.h~mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects
-+++ a/security/keys/internal.h
-@@ -350,15 +350,4 @@ static inline void key_check(const struc
- #define key_check(key) do {} while(0)
- 
- #endif
--
--/*
-- * Helper function to clear and free a kvmalloc'ed memory object.
-- */
--static inline void __kvzfree(const void *addr, size_t len)
--{
--	if (addr) {
--		memset((void *)addr, 0, len);
--		kvfree(addr);
--	}
--}
- #endif /* _INTERNAL_H */
---- a/security/keys/keyctl.c~mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects
-+++ a/security/keys/keyctl.c
-@@ -142,10 +142,7 @@ SYSCALL_DEFINE5(add_key, const char __us
- 
- 	key_ref_put(keyring_ref);
-  error3:
--	if (payload) {
--		memzero_explicit(payload, plen);
--		kvfree(payload);
--	}
-+	kvfree_sensitive(payload, plen);
-  error2:
- 	kfree(description);
-  error:
-@@ -360,7 +357,7 @@ long keyctl_update_key(key_serial_t id,
- 
- 	key_ref_put(key_ref);
- error2:
--	__kvzfree(payload, plen);
-+	kvfree_sensitive(payload, plen);
- error:
- 	return ret;
- }
-@@ -914,7 +911,7 @@ can_read_key:
- 		 */
- 		if (ret > key_data_len) {
- 			if (unlikely(key_data))
--				__kvzfree(key_data, key_data_len);
-+				kvfree_sensitive(key_data, key_data_len);
- 			key_data_len = ret;
- 			continue;	/* Allocate buffer */
- 		}
-@@ -923,7 +920,7 @@ can_read_key:
- 			ret = -EFAULT;
- 		break;
- 	}
--	__kvzfree(key_data, key_data_len);
-+	kvfree_sensitive(key_data, key_data_len);
- 
- key_put_out:
- 	key_put(key);
-@@ -1225,10 +1222,7 @@ long keyctl_instantiate_key_common(key_s
- 		keyctl_change_reqkey_auth(NULL);
- 
- error2:
--	if (payload) {
--		memzero_explicit(payload, plen);
--		kvfree(payload);
--	}
-+	kvfree_sensitive(payload, plen);
- error:
- 	return ret;
- }
+ # select defconfig based on actual architecture
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-slub-fix-incorrect-interpretation-of-s-offset.patch
-mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects.patch
+mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+mm-gupc-updating-the-documentation-fix.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-add-debug_wx-support-fixpatch-added-to-mm-tree.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+linux-next-rejects.patch
+arch-x86-makefile-use-config_shell.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
