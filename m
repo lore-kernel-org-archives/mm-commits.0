@@ -1,33 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-add-a-intermediate-file-for-make-gtags.patch
+Subject: + mm-gup-fix-fixup_user_fault-on-multiple-retries.patch
  added to -mm tree
-Date: Tue, 05 May 2020 13:23:00 -0700
-Message-ID: <20200505202300.XXfTIsFdx%akpm@linux-foundation.org>
+Date: Tue, 05 May 2020 13:27:52 -0700
+Message-ID: <20200505202752.ey9Ieya9V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46298 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726593AbgEEUXC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 May 2020 16:23:02 -0400
+        id S1727785AbgEEU1x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 May 2020 16:27:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, gregkh@linuxfoundation.org, masahiroy@kernel.org, mchehab+huawei@kernel.org, mm-commits@vger.kernel.org, xujialu@vimux.org
+To: alex.williamson@redhat.com, bgeffon@google.com, mm-commits@vger.kernel.org, peterx@redhat.com
 
 
 The patch titled
-     Subject: scripts/tags.sh: add a intermediate file for 'make gtags'
+     Subject: mm/gup: fix fixup_user_fault() on multiple retries
 has been added to the -mm tree.  Its filename is
-     scripts-add-a-intermediate-file-for-make-gtags.patch
+     mm-gup-fix-fixup_user_fault-on-multiple-retries.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-add-a-intermediate-fil=
-e-for-make-gtags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-fix-fixup_user_fault-on-multiple-retries.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-add-a-intermediate-fil=
-e-for-make-gtags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-fix-fixup_user_fault-on-multiple-retries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,62 +30,71 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: xujialu <xujialu@vimux.org>
-Subject: scripts/tags.sh: add a intermediate file for 'make gtags'
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/gup: fix fixup_user_fault() on multiple retries
 
-As 'GTAGS Manual' said: If =C2=B4gtags.files=C2=B4 exists in the current di=
-rectory
-directory or a file is specified by the -f option, target files are
-limited by it.
+This part is overlooked when reworking the gup code on multiple retries. 
+When we get the 2nd+ retry, we'll be with TRIED flag set.  Current code
+will bail out on the 2nd retry because the !TRIED check will fail so the
+retry logic will be skipped.  What's worse is that, it will also return
+zero which errornously hints the caller that the page is faulted in while
+it's not.
 
-So add gtags.files just like cscope.files.
+The !TRIED flag check seems to not be needed even before the mutliple
+retries change because if we get a VM_FAULT_RETRY, it must be the 1st
+retry, and we should not have TRIED set for that.
 
-Link: http://lkml.kernel.org/r/20200502052619.26457-3-xujialu@vimux.org
-Signed-off-by: xujialu <xujialu@vimux.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Fix it by removing the !TRIED check, at the meantime check against fatal
+signals properly before the page fault so we can still properly respond to
+the user killing the process during retries.
+
+Link: http://lkml.kernel.org/r/20200502003523.8204-1-peterx@redhat.com
+Fixes: 4426e945df58 ("mm/gup: allow VM_FAULT_RETRY for multiple times")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Brian Geffon <bgeffon@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile        |    2 +-
- scripts/tags.sh |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ mm/gup.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/Makefile~scripts-add-a-intermediate-file-for-make-gtags
-+++ a/Makefile
-@@ -1398,7 +1398,7 @@ MRPROPER_FILES +=3D .config .config.old .v
-=20
- # Directories & files removed with 'make distclean'
- DISTCLEAN_DIRS  +=3D
--DISTCLEAN_FILES +=3D tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS
-+DISTCLEAN_FILES +=3D tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS gtags.files
-=20
- # clean - Delete most, but leave enough to build external modules
- #
---- a/scripts/tags.sh~scripts-add-a-intermediate-file-for-make-gtags
-+++ a/scripts/tags.sh
-@@ -142,7 +142,8 @@ docscope()
-=20
- dogtags()
- {
--	all_target_sources | gtags -i -f -
-+	all_target_sources > gtags.files
-+	gtags -i -f gtags.files
- }
-=20
- # Basic regular expressions with an optional /kind-spec/ for ctags and
+--- a/mm/gup.c~mm-gup-fix-fixup_user_fault-on-multiple-retries
++++ a/mm/gup.c
+@@ -1218,6 +1218,10 @@ retry:
+ 	if (!vma_permits_fault(vma, fault_flags))
+ 		return -EFAULT;
+ 
++	if ((fault_flags & FAULT_FLAG_KILLABLE) &&
++	    fatal_signal_pending(current))
++		return -EINTR;
++
+ 	ret = handle_mm_fault(vma, address, fault_flags);
+ 	major |= ret & VM_FAULT_MAJOR;
+ 	if (ret & VM_FAULT_ERROR) {
+@@ -1230,11 +1234,9 @@ retry:
+ 
+ 	if (ret & VM_FAULT_RETRY) {
+ 		down_read(&mm->mmap_sem);
+-		if (!(fault_flags & FAULT_FLAG_TRIED)) {
+-			*unlocked = true;
+-			fault_flags |= FAULT_FLAG_TRIED;
+-			goto retry;
+-		}
++		*unlocked = true;
++		fault_flags |= FAULT_FLAG_TRIED;
++		goto retry;
+ 	}
+ 
+ 	if (tsk) {
 _
 
-Patches currently in -mm which might be from xujialu@vimux.org are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-scripts-support-compiled-source-improved-precise.patch
-scripts-add-a-intermediate-file-for-make-gtags.patch
+mm-gup-fix-fixup_user_fault-on-multiple-retries.patch
