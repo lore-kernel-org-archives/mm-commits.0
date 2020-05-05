@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + arch-x86-makefile-use-config_shell.patch added to -mm
  tree
-Date: Tue, 05 May 2020 14:12:28 -0700
-Message-ID: <20200505211228.4c9EMUAtM%akpm@linux-foundation.org>
+Date: Tue, 05 May 2020 14:13:01 -0700
+Message-ID: <20200505211301.9_zLPwR3D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46046 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46288 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728584AbgEEVMa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 May 2020 17:12:30 -0400
+        id S1728076AbgEEVND (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 May 2020 17:13:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bp@suse.de, mm-commits@vger.kernel.org, ndesaulniers@google.com
@@ -49,6 +49,7 @@ Fix this by using $(CONFIG_SHELL).
 This will happen if the user downloads and applies patch-5.7.tar.gz, since
 patch(1) doesn't preserve the x bit.
 
+Fixes: 73da86741e7f7 ("x86/build: Check whether the compiler is sane")
 Cc: Borislav Petkov <bp@suse.de>
 Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
