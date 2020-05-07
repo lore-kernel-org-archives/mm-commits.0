@@ -1,74 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-fix-unused-function-warning.patch removed
- from -mm tree
-Date: Thu, 07 May 2020 09:55:46 -0700
-Message-ID: <20200507165546.wDLX54JIF%akpm@linux-foundation.org>
+Subject: [merged]
+ binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
+ removed from -mm tree
+Date: Thu, 07 May 2020 09:55:44 -0700
+Message-ID: <20200507165544.s85lQhpiS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57524 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57460 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726308AbgEGQzr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 12:55:47 -0400
+        id S1726308AbgEGQzq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 12:55:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriin@fb.com, arnd@arndb.de, ast@kernel.org, daniel@iogearbox.net, john.fastabend@gmail.com, kafai@fb.com, keescook@chromium.org, kpsingh@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, songliubraving@fb.com, yhs@fb.com, yzaikin@google.com
+To: arnd@arndb.de, benh@kernel.crashing.org, ebiederm@xmission.com, hch@lst.de, jk@ozlabs.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, oleg@redhat.com, paulus@samba.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: kernel/sysctl.c: fix unused function warning
+     Subject: binfmt_elf_fdpic: remove the set_fs(KERNEL_DS) in elf_fdpic_core_dump
 has been removed from the -mm tree.  Its filename was
-     sysctl-fix-unused-function-warning.patch
+     binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kernel/sysctl.c: fix unused function warning
+From: Christoph Hellwig <hch@lst.de>
+Subject: binfmt_elf_fdpic: remove the set_fs(KERNEL_DS) in elf_fdpic_core_dump
 
-The newly added bpf_stats_handler() has the wrong #ifdef check around it,
-leading to an unused-function warning when CONFIG_SYSCTL is disabled:
+There is no logic in elf_fdpic_core_dump itself or in the various arch
+helpers called from it which use uaccess routines on kernel pointers
+except for the file writes thate are nicely encapsulated by using
+__kernel_write in dump_emit.
 
-kernel/sysctl.c:205:12: error: unused function 'bpf_stats_handler' [-Werror,-Wunused-function]
-static int bpf_stats_handler(struct ctl_table *table, int write,
-
-Fix the check to match the reference.
-
-Link: http://lkml.kernel.org/r/20200505140734.503701-1-arnd@arndb.de
-Fixes: d46edd671a14 ("bpf: Sharing bpf runtime stats with BPF_ENABLE_STATS")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
-Acked-by: Song Liu <songliubraving@fb.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Martin KaFai Lau <kafai@fb.com>
-Cc: Yonghong Song <yhs@fb.com>
-Cc: Andrii Nakryiko <andriin@fb.com>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@chromium.org>
+Link: http://lkml.kernel.org/r/20200505101256.3121270-8-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: Jeremy Kerr <jk@ozlabs.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_elf_fdpic.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
---- a/kernel/sysctl.c~sysctl-fix-unused-function-warning
-+++ a/kernel/sysctl.c
-@@ -201,7 +201,7 @@ static int max_extfrag_threshold = 1000;
+--- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-remove-the-set_fskernel_ds-in-elf_fdpic_core_dump
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1549,7 +1549,6 @@ static int elf_fdpic_core_dump(struct co
+ {
+ #define	NUM_NOTES	6
+ 	int has_dumped = 0;
+-	mm_segment_t fs;
+ 	int segs;
+ 	int i;
+ 	struct vm_area_struct *vma;
+@@ -1589,31 +1588,31 @@ static int elf_fdpic_core_dump(struct co
+ 	/* alloc memory for large data structures: too large to be on stack */
+ 	elf = kmalloc(sizeof(*elf), GFP_KERNEL);
+ 	if (!elf)
+-		goto cleanup;
++		goto end_coredump;
+ 	prstatus = kzalloc(sizeof(*prstatus), GFP_KERNEL);
+ 	if (!prstatus)
+-		goto cleanup;
++		goto end_coredump;
+ 	psinfo = kmalloc(sizeof(*psinfo), GFP_KERNEL);
+ 	if (!psinfo)
+-		goto cleanup;
++		goto end_coredump;
+ 	notes = kmalloc_array(NUM_NOTES, sizeof(struct memelfnote),
+ 			      GFP_KERNEL);
+ 	if (!notes)
+-		goto cleanup;
++		goto end_coredump;
+ 	fpu = kmalloc(sizeof(*fpu), GFP_KERNEL);
+ 	if (!fpu)
+-		goto cleanup;
++		goto end_coredump;
+ #ifdef ELF_CORE_COPY_XFPREGS
+ 	xfpu = kmalloc(sizeof(*xfpu), GFP_KERNEL);
+ 	if (!xfpu)
+-		goto cleanup;
++		goto end_coredump;
+ #endif
  
- #endif /* CONFIG_SYSCTL */
+ 	for (ct = current->mm->core_state->dumper.next;
+ 					ct; ct = ct->next) {
+ 		tmp = kzalloc(sizeof(*tmp), GFP_KERNEL);
+ 		if (!tmp)
+-			goto cleanup;
++			goto end_coredump;
  
--#ifdef CONFIG_BPF_SYSCALL
-+#if defined(CONFIG_BPF_SYSCALL) && defined(CONFIG_SYSCTL)
- static int bpf_stats_handler(struct ctl_table *table, int write,
- 			     void __user *buffer, size_t *lenp,
- 			     loff_t *ppos)
+ 		tmp->thread = ct->task;
+ 		list_add(&tmp->list, &thread_list);
+@@ -1678,9 +1677,6 @@ static int elf_fdpic_core_dump(struct co
+ 			  "LINUX", ELF_CORE_XFPREG_TYPE, sizeof(*xfpu), xfpu);
+ #endif
+ 
+-	fs = get_fs();
+-	set_fs(KERNEL_DS);
+-
+ 	offset += sizeof(*elf);				/* Elf header */
+ 	offset += segs * sizeof(struct elf_phdr);	/* Program headers */
+ 
+@@ -1788,9 +1784,6 @@ static int elf_fdpic_core_dump(struct co
+ 	}
+ 
+ end_coredump:
+-	set_fs(fs);
+-
+-cleanup:
+ 	while (!list_empty(&thread_list)) {
+ 		struct list_head *tmp = thread_list.next;
+ 		list_del(tmp);
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from hch@lst.de are
 
-arm64-add-support-for-folded-p4d-page-tables-fix.patch
-bitops-avoid-clang-shift-count-overflow-warnings.patch
-ubsan-fix-gcc-10-warnings.patch
-initramfs-fix-another-section-mismatch.patch
+x86-hyperv-use-vmalloc_exec-for-the-hypercall-page.patch
+x86-fix-vmap-arguments-in-map_irq_stack.patch
+staging-android-ion-use-vmap-instead-of-vm_map_ram.patch
+staging-media-ipu3-use-vmap-instead-of-reimplementing-it.patch
+dma-mapping-use-vmap-insted-of-reimplementing-it.patch
+powerpc-add-an-ioremap_phb-helper.patch
+powerpc-remove-__ioremap_at-and-__iounmap_at.patch
+mm-remove-__get_vm_area.patch
+mm-unexport-unmap_kernel_range_noflush.patch
+mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping.patch
+mm-only-allow-page-table-mappings-for-built-in-zsmalloc.patch
+mm-pass-addr-as-unsigned-long-to-vb_free.patch
+mm-remove-vmap_page_range_noflush-and-vunmap_page_range.patch
+mm-rename-vmap_page_range-to-map_kernel_range.patch
+mm-dont-return-the-number-of-pages-from-map_kernel_range_noflush.patch
+mm-remove-map_vm_range.patch
+mm-remove-unmap_vmap_area.patch
+mm-remove-the-prot-argument-from-vm_map_ram.patch
+mm-enforce-that-vmap-cant-map-pages-executable.patch
+gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc.patch
+mm-remove-the-pgprot-argument-to-__vmalloc.patch
+mm-remove-the-prot-argument-to-__vmalloc_node.patch
+mm-remove-both-instances-of-__vmalloc_node_flags.patch
+mm-remove-__vmalloc_node_flags_caller.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
+mm-remove-vmalloc_user_node_flags.patch
+arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack.patch
+powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
+s390-use-__vmalloc_node-in-stack_alloc.patch
+exec-simplify-the-copy_strings_kernel-calling-convention.patch
+exec-open-code-copy_string_kernel.patch
+amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
+kernel-set-user_ds-in-kthread_use_mm.patch
