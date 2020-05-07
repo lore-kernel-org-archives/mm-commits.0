@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + kmap-consolidate-kmap_prot-definitions.patch added to
- -mm tree
-Date: Thu, 07 May 2020 13:37:15 -0700
-Message-ID: <20200507203715.-OjCV_WeU%akpm@linux-foundation.org>
+Subject: + sparc-remove-unnecessary-includes.patch added to -mm
+ tree
+Date: Thu, 07 May 2020 13:37:11 -0700
+Message-ID: <20200507203711.k00cJMZAF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44580 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44498 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726382AbgEGUhS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 16:37:18 -0400
+        id S1726268AbgEGUhM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 16:37:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, bp@alien8.de, chris@zankel.net, christian.koenig@amd.com, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, dave.hansen@linux.intel.com, davem@davemloft.net, deller@gmx.de, hch@infradead.org, hpa@zytor.com, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, paulus@samba.org, peterz@infradead.org, tglx@linutronix.de, tsbogend@alpha.franken.de, viro@zeniv.linux.org.uk
+To: benh@kernel.crashing.org, bp@alien8.de, chris@zankel.net, christian.koenig@amd.com, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, dave.hansen@linux.intel.com, davem@davemloft.net, deller@gmx.de, hch@lst.de, hpa@zytor.com, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, paulus@samba.org, peterz@infradead.org, tglx@linutronix.de, tsbogend@alpha.franken.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: kmap: consolidate kmap_prot definitions
+     Subject: sparc: remove unnecessary includes
 has been added to the -mm tree.  Its filename is
-     kmap-consolidate-kmap_prot-definitions.patch
+     sparc-remove-unnecessary-includes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmap-consolidate-kmap_prot-def=
-initions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sparc-remove-unnecessary-inclu=
+des.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmap-consolidate-kmap_prot-def=
-initions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-remove-unnecessary-inclu=
+des.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,21 +43,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Ira Weiny <ira.weiny@intel.com>
-Subject: kmap: consolidate kmap_prot definitions
+Subject: sparc: remove unnecessary includes
 
-Most architectures define kmap_prot to be PAGE_KERNEL.
+linux/highmem.h has not been needed for the pte_offset_map =3D> kmap_atomic
+use in sparc for some time (~2002)
 
-Let sparc and xtensa define there own and define PAGE_KERNEL as the
-default if not overridden.
+Remove this include.
 
-Link: http://lkml.kernel.org/r/20200507150004.1423069-16-ira.weiny@intel.com
+Link: http://lkml.kernel.org/r/20200507150004.1423069-15-ira.weiny@intel.com
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -75,157 +75,30 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/highmem.h        |    3 ---
- arch/arm/include/asm/highmem.h        |    2 --
- arch/csky/include/asm/highmem.h       |    2 --
- arch/microblaze/include/asm/highmem.h |    1 -
- arch/mips/include/asm/highmem.h       |    2 --
- arch/nds32/include/asm/highmem.h      |    1 -
- arch/powerpc/include/asm/highmem.h    |    1 -
- arch/sparc/include/asm/highmem.h      |    3 ++-
- arch/sparc/mm/highmem.c               |    4 ----
- arch/x86/include/asm/fixmap.h         |    1 -
- include/linux/highmem.h               |    4 ++++
- 11 files changed, 6 insertions(+), 18 deletions(-)
+ arch/sparc/mm/io-unit.c |    1 -
+ arch/sparc/mm/iommu.c   |    1 -
+ 2 files changed, 2 deletions(-)
 
---- a/arch/arc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/arc/include/asm/highmem.h
-@@ -25,9 +25,6 @@
- #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
- #define PKMAP_NR(virt)		(((virt) - PKMAP_BASE) >> PAGE_SHIFT)
-=20
--#define kmap_prot		PAGE_KERNEL
--
--
- #include <asm/cacheflush.h>
-=20
- extern void kmap_init(void);
---- a/arch/arm/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/arm/include/asm/highmem.h
-@@ -10,8 +10,6 @@
- #define PKMAP_NR(virt)		(((virt) - PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
-=20
--#define kmap_prot		PAGE_KERNEL
--
- #define flush_cache_kmaps() \
- 	do { \
- 		if (cache_is_vivt()) \
---- a/arch/csky/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/csky/include/asm/highmem.h
-@@ -38,8 +38,6 @@ extern void *kmap_atomic_pfn(unsigned lo
-=20
- extern void kmap_init(void);
-=20
--#define kmap_prot PAGE_KERNEL
--
- #endif /* __KERNEL__ */
-=20
- #endif /* __ASM_CSKY_HIGHMEM_H */
---- a/arch/microblaze/include/asm/highmem.h~kmap-consolidate-kmap_prot-defi=
-nitions
-+++ a/arch/microblaze/include/asm/highmem.h
-@@ -25,7 +25,6 @@
- #include <linux/uaccess.h>
- #include <asm/fixmap.h>
-=20
--#define kmap_prot		PAGE_KERNEL
- extern pte_t *kmap_pte;
- extern pte_t *pkmap_page_table;
-=20
---- a/arch/mips/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/mips/include/asm/highmem.h
-@@ -54,8 +54,6 @@ extern void *kmap_atomic_pfn(unsigned lo
-=20
- extern void kmap_init(void);
-=20
--#define kmap_prot PAGE_KERNEL
--
- #endif /* __KERNEL__ */
-=20
- #endif /* _ASM_HIGHMEM_H */
---- a/arch/nds32/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitio=
-ns
-+++ a/arch/nds32/include/asm/highmem.h
-@@ -32,7 +32,6 @@
- #define LAST_PKMAP_MASK		(LAST_PKMAP - 1)
- #define PKMAP_NR(virt)		(((virt) - (PKMAP_BASE)) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
--#define kmap_prot		PAGE_KERNEL
-=20
- static inline void flush_cache_kmaps(void)
- {
---- a/arch/powerpc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definit=
-ions
-+++ a/arch/powerpc/include/asm/highmem.h
-@@ -29,7 +29,6 @@
- #include <asm/page.h>
- #include <asm/fixmap.h>
-=20
--#define kmap_prot		PAGE_KERNEL
- extern pte_t *kmap_pte;
- extern pte_t *pkmap_page_table;
-=20
---- a/arch/sparc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitio=
-ns
-+++ a/arch/sparc/include/asm/highmem.h
-@@ -25,11 +25,12 @@
- #include <asm/vaddrs.h>
- #include <asm/kmap_types.h>
- #include <asm/pgtable.h>
-+#include <asm/pgtsrmmu.h>
-=20
- /* declarations for highmem.c */
- extern unsigned long highstart_pfn, highend_pfn;
-=20
--extern pgprot_t kmap_prot;
-+#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
- extern pte_t *pkmap_page_table;
-=20
- void kmap_init(void) __init;
---- a/arch/sparc/mm/highmem.c~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/sparc/mm/highmem.c
-@@ -32,9 +32,6 @@
- #include <asm/pgalloc.h>
- #include <asm/vaddrs.h>
-=20
--pgprot_t kmap_prot;
--EXPORT_SYMBOL(kmap_prot);
--
- static pte_t *kmap_pte;
-=20
- void __init kmap_init(void)
-@@ -51,7 +48,6 @@ void __init kmap_init(void)
-=20
-         /* cache the first kmap pte */
-         kmap_pte =3D pte_offset_kernel(dir, address);
--        kmap_prot =3D __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
- }
-=20
- void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
---- a/arch/x86/include/asm/fixmap.h~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/x86/include/asm/fixmap.h
-@@ -152,7 +152,6 @@ extern void reserve_top_address(unsigned
- extern int fixmaps_set;
-=20
- extern pte_t *kmap_pte;
--#define kmap_prot PAGE_KERNEL
- extern pte_t *pkmap_page_table;
-=20
- void __native_set_fixmap(enum fixed_addresses idx, pte_t pte);
---- a/include/linux/highmem.h~kmap-consolidate-kmap_prot-definitions
-+++ a/include/linux/highmem.h
-@@ -40,6 +40,10 @@ extern void kunmap_atomic_high(void *kva
- static inline void kmap_flush_tlb(unsigned long addr) { }
- #endif
-=20
-+#ifndef kmap_prot
-+#define kmap_prot PAGE_KERNEL
-+#endif
-+
- void *kmap_high(struct page *page);
- static inline void *kmap(struct page *page)
- {
+--- a/arch/sparc/mm/iommu.c~sparc-remove-unnecessary-includes
++++ a/arch/sparc/mm/iommu.c
+@@ -12,7 +12,6 @@
+ #include <linux/init.h>
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+-#include <linux/highmem.h>	/* pte_offset_map =3D> kmap_atomic */
+ #include <linux/dma-mapping.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+--- a/arch/sparc/mm/io-unit.c~sparc-remove-unnecessary-includes
++++ a/arch/sparc/mm/io-unit.c
+@@ -10,7 +10,6 @@
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/mm.h>
+-#include <linux/highmem.h>	/* pte_offset_map =3D> kmap_atomic */
+ #include <linux/bitops.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/of.h>
 _
 
 Patches currently in -mm which might be from ira.weiny@intel.com are
