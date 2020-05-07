@@ -1,215 +1,318 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 07 May 2020 09:54:15 -0700
-Message-ID: <20200507165415.y8-qZqtgq%akpm@linux-foundation.org>
+Subject: [merged]
+ powerpc-spufs-fix-copy_to_user-while-atomic.patch removed from -mm tree
+Date: Thu, 07 May 2020 09:55:28 -0700
+Message-ID: <20200507165528.NccAIh8fT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56062 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725949AbgEGQyR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 12:54:17 -0400
+        id S1726074AbgEGQzb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 12:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, benh@kernel.crashing.org, ebiederm@xmission.com, hch@lst.de, jk@ozlabs.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, oleg@redhat.com, paulus@samba.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: powerpc/spufs: fix copy_to_user while atomic
+has been removed from the -mm tree.  Its filename was
+     powerpc-spufs-fix-copy_to_user-while-atomic.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Jeremy Kerr <jk@ozlabs.org>
+Subject: powerpc/spufs: fix copy_to_user while atomic
 
+Patch series "remove set_fs calls from the coredump code", v6.
+
+This series gets rid of playing with the address limit in the exec and
+coredump code.  Most of this was fairly trivial, the biggest changes are
+those to the spufs coredump code.
+
+
+This patch (of 7):
+
+Currently, we may perform a copy_to_user (through
+simple_read_from_buffer()) while holding a context's register_lock, while
+accessing the context save area.
+
+This change uses a temporary buffer for the context save area data, which
+we then pass to simple_read_from_buffer.
+
+Includes changes from Christoph Hellwig <hch@lst.de>.
+
+[hch: renamed to function to avoid ___-prefixes]
+Link: http://lkml.kernel.org/r/20200505101256.3121270-1-hch@lst.de
+Link: http://lkml.kernel.org/r/20200505101256.3121270-2-hch@lst.de
+Fixes: bf1ab978be23 ("[POWERPC] coredump: Add SPU elf notes to coredump.")
+Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "Eric W . Biederman" <ebiederm@xmission.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c |    4 
- drivers/net/ipa/ipa_endpoint.c                             |   64 ----------
- drivers/net/wireguard/send.c                               |    5 
- include/net/mptcp.h                                        |    3 
- net/sched/cls_api.c                                        |   11 -
- 5 files changed, 87 deletions(-)
+ arch/powerpc/platforms/cell/spufs/file.c |  113 +++++++++++++--------
+ 1 file changed, 75 insertions(+), 38 deletions(-)
 
---- a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/mellanox/mlx5/core/steering/dr_send.c
-@@ -765,10 +765,6 @@ static struct mlx5dr_cq *dr_create_cq(st
- 	pas = (__be64 *)MLX5_ADDR_OF(create_cq_in, in, pas);
- 	mlx5_fill_page_frag_array(&cq->wq_ctrl.buf, pas);
- 
--<<<<<<< HEAD
--	cq->mcq.event = dr_cq_event;
--=======
-->>>>>>> linux-next/akpm-base
- 	cq->mcq.comp  = dr_cq_complete;
- 
- 	err = mlx5_core_create_cq(mdev, &cq->mcq, in, inlen, out, sizeof(out));
---- a/drivers/net/ipa/ipa_endpoint.c~linux-next-git-rejects
-+++ a/drivers/net/ipa/ipa_endpoint.c
-@@ -1269,70 +1269,6 @@ static void ipa_endpoint_reset(struct ip
- 			ret, endpoint->channel_id, endpoint->endpoint_id);
- }
- 
--<<<<<<< HEAD
--static int ipa_endpoint_stop_rx_dma(struct ipa *ipa)
--{
--	u16 size = IPA_ENDPOINT_STOP_RX_SIZE;
--	struct gsi_trans *trans;
--	dma_addr_t addr;
+--- a/arch/powerpc/platforms/cell/spufs/file.c~powerpc-spufs-fix-copy_to_user-while-atomic
++++ a/arch/powerpc/platforms/cell/spufs/file.c
+@@ -1978,8 +1978,9 @@ static ssize_t __spufs_mbox_info_read(st
+ static ssize_t spufs_mbox_info_read(struct file *file, char __user *buf,
+ 				   size_t len, loff_t *pos)
+ {
 -	int ret;
--
--	trans = ipa_cmd_trans_alloc(ipa, 1);
--	if (!trans) {
--		dev_err(&ipa->pdev->dev,
--			"no transaction for RX endpoint STOP workaround\n");
--		return -EBUSY;
--	}
--
--	/* Read into the highest part of the zero memory area */
--	addr = ipa->zero_addr + ipa->zero_size - size;
--
--	ipa_cmd_dma_task_32b_addr_add(trans, size, addr, false);
--
--	ret = gsi_trans_commit_wait_timeout(trans, ENDPOINT_STOP_DMA_TIMEOUT);
--	if (ret)
--		gsi_trans_free(trans);
--
+ 	struct spu_context *ctx = file->private_data;
++	u32 stat, data;
++	int ret;
+ 
+ 	if (!access_ok(buf, len))
+ 		return -EFAULT;
+@@ -1988,11 +1989,16 @@ static ssize_t spufs_mbox_info_read(stru
+ 	if (ret)
+ 		return ret;
+ 	spin_lock(&ctx->csa.register_lock);
+-	ret = __spufs_mbox_info_read(ctx, buf, len, pos);
++	stat = ctx->csa.prob.mb_stat_R;
++	data = ctx->csa.prob.pu_mb_R;
+ 	spin_unlock(&ctx->csa.register_lock);
+ 	spu_release_saved(ctx);
+ 
 -	return ret;
--}
--
--/**
-- * ipa_endpoint_stop() - Stops a GSI channel in IPA
-- * @client:	Client whose endpoint should be stopped
-- *
-- * This function implements the sequence to stop a GSI channel
-- * in IPA. This function returns when the channel is is STOP state.
-- *
-- * Return value: 0 on success, negative otherwise
-- */
--int ipa_endpoint_stop(struct ipa_endpoint *endpoint)
--{
--	u32 retries = IPA_ENDPOINT_STOP_RX_RETRIES;
--	int ret;
--
--	do {
--		struct ipa *ipa = endpoint->ipa;
--		struct gsi *gsi = &ipa->gsi;
--
--		ret = gsi_channel_stop(gsi, endpoint->channel_id);
--		if (ret != -EAGAIN || endpoint->toward_ipa)
--			break;
--
--		/* For IPA v3.5.1, send a DMA read task and check again */
--		if (ipa->version == IPA_VERSION_3_5_1) {
--			ret = ipa_endpoint_stop_rx_dma(ipa);
--			if (ret)
--				break;
--		}
--
--		msleep(1);
--	} while (retries--);
--
--	return retries ? ret : -EIO;
--}
--
--=======
-->>>>>>> linux-next/akpm-base
- static void ipa_endpoint_program(struct ipa_endpoint *endpoint)
++	/* EOF if there's no entry in the mbox */
++	if (!(stat & 0x0000ff))
++		return 0;
++
++	return simple_read_from_buffer(buf, len, pos, &data, sizeof(data));
+ }
+ 
+ static const struct file_operations spufs_mbox_info_fops = {
+@@ -2019,6 +2025,7 @@ static ssize_t spufs_ibox_info_read(stru
+ 				   size_t len, loff_t *pos)
  {
- 	if (endpoint->toward_ipa) {
---- a/drivers/net/wireguard/send.c~linux-next-git-rejects
-+++ a/drivers/net/wireguard/send.c
-@@ -303,11 +303,6 @@ void wg_packet_encrypt_worker(struct wor
- 		}
- 		wg_queue_enqueue_per_peer(&PACKET_PEER(first)->tx_queue, first,
- 					  state);
--<<<<<<< HEAD
--		if (need_resched())
--			cond_resched();
--=======
-->>>>>>> linux-next/akpm-base
+ 	struct spu_context *ctx = file->private_data;
++	u32 stat, data;
+ 	int ret;
+ 
+ 	if (!access_ok(buf, len))
+@@ -2028,11 +2035,16 @@ static ssize_t spufs_ibox_info_read(stru
+ 	if (ret)
+ 		return ret;
+ 	spin_lock(&ctx->csa.register_lock);
+-	ret = __spufs_ibox_info_read(ctx, buf, len, pos);
++	stat = ctx->csa.prob.mb_stat_R;
++	data = ctx->csa.priv2.puint_mb_R;
+ 	spin_unlock(&ctx->csa.register_lock);
+ 	spu_release_saved(ctx);
+ 
+-	return ret;
++	/* EOF if there's no entry in the ibox */
++	if (!(stat & 0xff0000))
++		return 0;
++
++	return simple_read_from_buffer(buf, len, pos, &data, sizeof(data));
+ }
+ 
+ static const struct file_operations spufs_ibox_info_fops = {
+@@ -2041,6 +2053,11 @@ static const struct file_operations spuf
+ 	.llseek  = generic_file_llseek,
+ };
+ 
++static size_t spufs_wbox_info_cnt(struct spu_context *ctx)
++{
++	return (4 - ((ctx->csa.prob.mb_stat_R & 0x00ff00) >> 8)) * sizeof(u32);
++}
++
+ static ssize_t __spufs_wbox_info_read(struct spu_context *ctx,
+ 			char __user *buf, size_t len, loff_t *pos)
+ {
+@@ -2049,7 +2066,7 @@ static ssize_t __spufs_wbox_info_read(st
+ 	u32 wbox_stat;
+ 
+ 	wbox_stat = ctx->csa.prob.mb_stat_R;
+-	cnt = 4 - ((wbox_stat & 0x00ff00) >> 8);
++	cnt = spufs_wbox_info_cnt(ctx);
+ 	for (i = 0; i < cnt; i++) {
+ 		data[i] = ctx->csa.spu_mailbox_data[i];
  	}
- }
- 
---- a/include/net/mptcp.h~linux-next-git-rejects
-+++ a/include/net/mptcp.h
-@@ -68,11 +68,8 @@ static inline bool rsk_is_mptcp(const st
- 	return tcp_rsk(req)->is_mptcp;
- }
- 
--<<<<<<< HEAD
--=======
- void mptcp_space(const struct sock *ssk, int *space, int *full_space);
- 
-->>>>>>> linux-next/akpm-base
- bool mptcp_syn_options(struct sock *sk, const struct sk_buff *skb,
- 		       unsigned int *size, struct mptcp_out_options *opts);
- bool mptcp_synack_options(const struct request_sock *req, unsigned int *size,
---- a/net/sched/cls_api.c~linux-next-git-rejects
-+++ a/net/sched/cls_api.c
-@@ -3527,16 +3527,6 @@ static void tcf_sample_get_group(struct
- #endif
- }
- 
--<<<<<<< HEAD
--static enum flow_action_hw_stats tc_act_hw_stats(u8 hw_stats)
--{
--	if (WARN_ON_ONCE(hw_stats > TCA_ACT_HW_STATS_ANY))
--		return FLOW_ACTION_HW_STATS_DONT_CARE;
--	else if (!hw_stats)
--		return FLOW_ACTION_HW_STATS_DISABLED;
--
--	return hw_stats;
--=======
- static void tcf_gate_entry_destructor(void *priv)
+@@ -2062,7 +2079,8 @@ static ssize_t spufs_wbox_info_read(stru
+ 				   size_t len, loff_t *pos)
  {
- 	struct action_gate_entry *oe = priv;
-@@ -3556,7 +3546,6 @@ static int tcf_gate_get_entries(struct f
- 	entry->destructor_priv = entry->gate.entries;
+ 	struct spu_context *ctx = file->private_data;
+-	int ret;
++	u32 data[ARRAY_SIZE(ctx->csa.spu_mailbox_data)];
++	int ret, count;
  
- 	return 0;
-->>>>>>> linux-next/akpm-base
+ 	if (!access_ok(buf, len))
+ 		return -EFAULT;
+@@ -2071,11 +2089,13 @@ static ssize_t spufs_wbox_info_read(stru
+ 	if (ret)
+ 		return ret;
+ 	spin_lock(&ctx->csa.register_lock);
+-	ret = __spufs_wbox_info_read(ctx, buf, len, pos);
++	count = spufs_wbox_info_cnt(ctx);
++	memcpy(&data, &ctx->csa.spu_mailbox_data, sizeof(data));
+ 	spin_unlock(&ctx->csa.register_lock);
+ 	spu_release_saved(ctx);
+ 
+-	return ret;
++	return simple_read_from_buffer(buf, len, pos, &data,
++				count * sizeof(u32));
  }
  
- int tc_setup_flow_action(struct flow_action *flow_action,
+ static const struct file_operations spufs_wbox_info_fops = {
+@@ -2084,27 +2104,33 @@ static const struct file_operations spuf
+ 	.llseek  = generic_file_llseek,
+ };
+ 
+-static ssize_t __spufs_dma_info_read(struct spu_context *ctx,
+-			char __user *buf, size_t len, loff_t *pos)
++static void spufs_get_dma_info(struct spu_context *ctx,
++		struct spu_dma_info *info)
+ {
+-	struct spu_dma_info info;
+-	struct mfc_cq_sr *qp, *spuqp;
+ 	int i;
+ 
+-	info.dma_info_type = ctx->csa.priv2.spu_tag_status_query_RW;
+-	info.dma_info_mask = ctx->csa.lscsa->tag_mask.slot[0];
+-	info.dma_info_status = ctx->csa.spu_chnldata_RW[24];
+-	info.dma_info_stall_and_notify = ctx->csa.spu_chnldata_RW[25];
+-	info.dma_info_atomic_command_status = ctx->csa.spu_chnldata_RW[27];
++	info->dma_info_type = ctx->csa.priv2.spu_tag_status_query_RW;
++	info->dma_info_mask = ctx->csa.lscsa->tag_mask.slot[0];
++	info->dma_info_status = ctx->csa.spu_chnldata_RW[24];
++	info->dma_info_stall_and_notify = ctx->csa.spu_chnldata_RW[25];
++	info->dma_info_atomic_command_status = ctx->csa.spu_chnldata_RW[27];
+ 	for (i = 0; i < 16; i++) {
+-		qp = &info.dma_info_command_data[i];
+-		spuqp = &ctx->csa.priv2.spuq[i];
++		struct mfc_cq_sr *qp = &info->dma_info_command_data[i];
++		struct mfc_cq_sr *spuqp = &ctx->csa.priv2.spuq[i];
+ 
+ 		qp->mfc_cq_data0_RW = spuqp->mfc_cq_data0_RW;
+ 		qp->mfc_cq_data1_RW = spuqp->mfc_cq_data1_RW;
+ 		qp->mfc_cq_data2_RW = spuqp->mfc_cq_data2_RW;
+ 		qp->mfc_cq_data3_RW = spuqp->mfc_cq_data3_RW;
+ 	}
++}
++
++static ssize_t __spufs_dma_info_read(struct spu_context *ctx,
++			char __user *buf, size_t len, loff_t *pos)
++{
++	struct spu_dma_info info;
++
++	spufs_get_dma_info(ctx, &info);
+ 
+ 	return simple_read_from_buffer(buf, len, pos, &info,
+ 				sizeof info);
+@@ -2114,6 +2140,7 @@ static ssize_t spufs_dma_info_read(struc
+ 			      size_t len, loff_t *pos)
+ {
+ 	struct spu_context *ctx = file->private_data;
++	struct spu_dma_info info;
+ 	int ret;
+ 
+ 	if (!access_ok(buf, len))
+@@ -2123,11 +2150,12 @@ static ssize_t spufs_dma_info_read(struc
+ 	if (ret)
+ 		return ret;
+ 	spin_lock(&ctx->csa.register_lock);
+-	ret = __spufs_dma_info_read(ctx, buf, len, pos);
++	spufs_get_dma_info(ctx, &info);
+ 	spin_unlock(&ctx->csa.register_lock);
+ 	spu_release_saved(ctx);
+ 
+-	return ret;
++	return simple_read_from_buffer(buf, len, pos, &info,
++				sizeof(info));
+ }
+ 
+ static const struct file_operations spufs_dma_info_fops = {
+@@ -2136,13 +2164,31 @@ static const struct file_operations spuf
+ 	.llseek = no_llseek,
+ };
+ 
++static void spufs_get_proxydma_info(struct spu_context *ctx,
++		struct spu_proxydma_info *info)
++{
++	int i;
++
++	info->proxydma_info_type = ctx->csa.prob.dma_querytype_RW;
++	info->proxydma_info_mask = ctx->csa.prob.dma_querymask_RW;
++	info->proxydma_info_status = ctx->csa.prob.dma_tagstatus_R;
++
++	for (i = 0; i < 8; i++) {
++		struct mfc_cq_sr *qp = &info->proxydma_info_command_data[i];
++		struct mfc_cq_sr *puqp = &ctx->csa.priv2.puq[i];
++
++		qp->mfc_cq_data0_RW = puqp->mfc_cq_data0_RW;
++		qp->mfc_cq_data1_RW = puqp->mfc_cq_data1_RW;
++		qp->mfc_cq_data2_RW = puqp->mfc_cq_data2_RW;
++		qp->mfc_cq_data3_RW = puqp->mfc_cq_data3_RW;
++	}
++}
++
+ static ssize_t __spufs_proxydma_info_read(struct spu_context *ctx,
+ 			char __user *buf, size_t len, loff_t *pos)
+ {
+ 	struct spu_proxydma_info info;
+-	struct mfc_cq_sr *qp, *puqp;
+ 	int ret = sizeof info;
+-	int i;
+ 
+ 	if (len < ret)
+ 		return -EINVAL;
+@@ -2150,18 +2196,7 @@ static ssize_t __spufs_proxydma_info_rea
+ 	if (!access_ok(buf, len))
+ 		return -EFAULT;
+ 
+-	info.proxydma_info_type = ctx->csa.prob.dma_querytype_RW;
+-	info.proxydma_info_mask = ctx->csa.prob.dma_querymask_RW;
+-	info.proxydma_info_status = ctx->csa.prob.dma_tagstatus_R;
+-	for (i = 0; i < 8; i++) {
+-		qp = &info.proxydma_info_command_data[i];
+-		puqp = &ctx->csa.priv2.puq[i];
+-
+-		qp->mfc_cq_data0_RW = puqp->mfc_cq_data0_RW;
+-		qp->mfc_cq_data1_RW = puqp->mfc_cq_data1_RW;
+-		qp->mfc_cq_data2_RW = puqp->mfc_cq_data2_RW;
+-		qp->mfc_cq_data3_RW = puqp->mfc_cq_data3_RW;
+-	}
++	spufs_get_proxydma_info(ctx, &info);
+ 
+ 	return simple_read_from_buffer(buf, len, pos, &info,
+ 				sizeof info);
+@@ -2171,17 +2206,19 @@ static ssize_t spufs_proxydma_info_read(
+ 				   size_t len, loff_t *pos)
+ {
+ 	struct spu_context *ctx = file->private_data;
++	struct spu_proxydma_info info;
+ 	int ret;
+ 
+ 	ret = spu_acquire_saved(ctx);
+ 	if (ret)
+ 		return ret;
+ 	spin_lock(&ctx->csa.register_lock);
+-	ret = __spufs_proxydma_info_read(ctx, buf, len, pos);
++	spufs_get_proxydma_info(ctx, &info);
+ 	spin_unlock(&ctx->csa.register_lock);
+ 	spu_release_saved(ctx);
+ 
+-	return ret;
++	return simple_read_from_buffer(buf, len, pos, &info,
++				sizeof(info));
+ }
+ 
+ static const struct file_operations spufs_proxydma_info_fops = {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-add-debug_wx-support-fixpatch-added-to-mm-tree.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-linux-next-rejects.patch
-arch-x86-makefile-use-config_shell.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+Patches currently in -mm which might be from jk@ozlabs.org are
