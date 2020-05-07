@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + arch-kmap-ensure-kmap_prot-visibility.patch added to
- -mm tree
-Date: Thu, 07 May 2020 13:36:46 -0700
-Message-ID: <20200507203646.BbnvTglhF%akpm@linux-foundation.org>
+Subject: + arch-kmap-dont-hard-code-kmap_prot-values.patch added
+ to -mm tree
+Date: Thu, 07 May 2020 13:36:50 -0700
+Message-ID: <20200507203650.GcYjFgTqx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43848 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43924 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726542AbgEGUgr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 16:36:47 -0400
+        id S1726382AbgEGUgv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 16:36:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: benh@kernel.crashing.org, bp@alien8.de, chris@zankel.net, christian.koenig@amd.com, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, dave.hansen@linux.intel.com, davem@davemloft.net, deller@gmx.de, hch@lst.de, hpa@zytor.com, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, paulus@samba.org, peterz@infradead.org, tglx@linutronix.de, tsbogend@alpha.franken.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: arch/kmap: ensure kmap_prot visibility
+     Subject: arch/kmap: don't hard code kmap_prot values
 has been added to the -mm tree.  Its filename is
-     arch-kmap-ensure-kmap_prot-visibility.patch
+     arch-kmap-dont-hard-code-kmap_prot-values.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-kmap-ensure-kmap_prot-vis=
-ibility.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-kmap-dont-hard-code-kmap_=
+prot-values.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-kmap-ensure-kmap_prot-vis=
-ibility.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-kmap-dont-hard-code-kmap_=
+prot-values.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,15 +43,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Ira Weiny <ira.weiny@intel.com>
-Subject: arch/kmap: ensure kmap_prot visibility
+Subject: arch/kmap: don't hard code kmap_prot values
 
-We want to support kmap_atomic_prot() on all architectures and it makes
-sense to define kmap_atomic() to use the default kmap_prot.
+To support kmap_atomic_prot() on all architectures each arch must support
+protections passed in to them.
 
-So we ensure all arch's have a globally available kmap_prot either as a
-define or exported symbol.
+Change csky, mips, nds32 and xtensa to use their global constant kmap_prot
+rather than a hard coded value which was equal.
 
-Link: http://lkml.kernel.org/r/20200507150004.1423069-9-ira.weiny@intel.com
+Link: http://lkml.kernel.org/r/20200507150004.1423069-10-ira.weiny@intel.com
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -76,87 +76,56 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/include/asm/highmem.h |    2 +-
- arch/microblaze/mm/init.c             |    3 ---
- arch/powerpc/include/asm/highmem.h    |    2 +-
- arch/powerpc/mm/mem.c                 |    3 ---
- arch/sparc/mm/highmem.c               |    1 +
- 5 files changed, 3 insertions(+), 8 deletions(-)
+ arch/csky/mm/highmem.c   |    2 +-
+ arch/mips/mm/highmem.c   |    2 +-
+ arch/nds32/mm/highmem.c  |    2 +-
+ arch/xtensa/mm/highmem.c |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/microblaze/include/asm/highmem.h~arch-kmap-ensure-kmap_prot-visi=
-bility
-+++ a/arch/microblaze/include/asm/highmem.h
-@@ -25,8 +25,8 @@
- #include <linux/uaccess.h>
- #include <asm/fixmap.h>
-=20
-+#define kmap_prot		PAGE_KERNEL
- extern pte_t *kmap_pte;
--extern pgprot_t kmap_prot;
- extern pte_t *pkmap_page_table;
-=20
- /*
---- a/arch/microblaze/mm/init.c~arch-kmap-ensure-kmap_prot-visibility
-+++ a/arch/microblaze/mm/init.c
-@@ -49,8 +49,6 @@ unsigned long lowmem_size;
- #ifdef CONFIG_HIGHMEM
- pte_t *kmap_pte;
- EXPORT_SYMBOL(kmap_pte);
--pgprot_t kmap_prot;
--EXPORT_SYMBOL(kmap_prot);
-=20
- static inline pte_t *virt_to_kpte(unsigned long vaddr)
- {
-@@ -68,7 +66,6 @@ static void __init highmem_init(void)
- 	pkmap_page_table =3D virt_to_kpte(PKMAP_BASE);
-=20
- 	kmap_pte =3D virt_to_kpte(__fix_to_virt(FIX_KMAP_BEGIN));
--	kmap_prot =3D PAGE_KERNEL;
- }
-=20
- static void highmem_setup(void)
---- a/arch/powerpc/include/asm/highmem.h~arch-kmap-ensure-kmap_prot-visibil=
-ity
-+++ a/arch/powerpc/include/asm/highmem.h
-@@ -29,8 +29,8 @@
- #include <asm/page.h>
- #include <asm/fixmap.h>
-=20
-+#define kmap_prot		PAGE_KERNEL
- extern pte_t *kmap_pte;
--extern pgprot_t kmap_prot;
- extern pte_t *pkmap_page_table;
-=20
- /*
---- a/arch/powerpc/mm/mem.c~arch-kmap-ensure-kmap_prot-visibility
-+++ a/arch/powerpc/mm/mem.c
-@@ -64,8 +64,6 @@ bool init_mem_is_free;
- #ifdef CONFIG_HIGHMEM
- pte_t *kmap_pte;
- EXPORT_SYMBOL(kmap_pte);
--pgprot_t kmap_prot;
--EXPORT_SYMBOL(kmap_prot);
+--- a/arch/csky/mm/highmem.c~arch-kmap-dont-hard-code-kmap_prot-values
++++ a/arch/csky/mm/highmem.c
+@@ -32,7 +32,7 @@ void *kmap_atomic_high(struct page *page
+ #ifdef CONFIG_DEBUG_HIGHMEM
+ 	BUG_ON(!pte_none(*(kmap_pte - idx)));
  #endif
+-	set_pte(kmap_pte-idx, mk_pte(page, PAGE_KERNEL));
++	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
+ 	flush_tlb_one((unsigned long)vaddr);
 =20
- pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-@@ -245,7 +243,6 @@ void __init paging_init(void)
- 	pkmap_page_table =3D virt_to_kpte(PKMAP_BASE);
+ 	return (void *)vaddr;
+--- a/arch/mips/mm/highmem.c~arch-kmap-dont-hard-code-kmap_prot-values
++++ a/arch/mips/mm/highmem.c
+@@ -29,7 +29,7 @@ void *kmap_atomic_high(struct page *page
+ #ifdef CONFIG_DEBUG_HIGHMEM
+ 	BUG_ON(!pte_none(*(kmap_pte - idx)));
+ #endif
+-	set_pte(kmap_pte-idx, mk_pte(page, PAGE_KERNEL));
++	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
+ 	local_flush_tlb_one((unsigned long)vaddr);
 =20
- 	kmap_pte =3D virt_to_kpte(__fix_to_virt(FIX_KMAP_BEGIN));
--	kmap_prot =3D PAGE_KERNEL;
- #endif /* CONFIG_HIGHMEM */
+ 	return (void*) vaddr;
+--- a/arch/nds32/mm/highmem.c~arch-kmap-dont-hard-code-kmap_prot-values
++++ a/arch/nds32/mm/highmem.c
+@@ -21,7 +21,7 @@ void *kmap_atomic_high(struct page *page
 =20
- 	printk(KERN_DEBUG "Top of RAM: 0x%llx, Total RAM: 0x%llx\n",
---- a/arch/sparc/mm/highmem.c~arch-kmap-ensure-kmap_prot-visibility
-+++ a/arch/sparc/mm/highmem.c
-@@ -33,6 +33,7 @@
- #include <asm/vaddrs.h>
+ 	idx =3D type + KM_TYPE_NR * smp_processor_id();
+ 	vaddr =3D __fix_to_virt(FIX_KMAP_BEGIN + idx);
+-	pte =3D (page_to_pfn(page) << PAGE_SHIFT) | (PAGE_KERNEL);
++	pte =3D (page_to_pfn(page) << PAGE_SHIFT) | (kmap_prot);
+ 	ptep =3D pte_offset_kernel(pmd_off_k(vaddr), vaddr);
+ 	set_pte(ptep, pte);
 =20
- pgprot_t kmap_prot;
-+EXPORT_SYMBOL(kmap_prot);
+--- a/arch/xtensa/mm/highmem.c~arch-kmap-dont-hard-code-kmap_prot-values
++++ a/arch/xtensa/mm/highmem.c
+@@ -48,7 +48,7 @@ void *kmap_atomic_high(struct page *page
+ #ifdef CONFIG_DEBUG_HIGHMEM
+ 	BUG_ON(!pte_none(*(kmap_pte + idx)));
+ #endif
+-	set_pte(kmap_pte + idx, mk_pte(page, PAGE_KERNEL_EXEC));
++	set_pte(kmap_pte + idx, mk_pte(page, kmap_prot));
 =20
- static pte_t *kmap_pte;
-=20
+ 	return (void *)vaddr;
+ }
 _
 
 Patches currently in -mm which might be from ira.weiny@intel.com are
