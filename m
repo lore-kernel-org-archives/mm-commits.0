@@ -1,32 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- =?US-ASCII?Q?lib-flex=5Fproportionsc-aging-counts-when-fraction-smaller?=
- =?US-ASCII?Q?-than-max=5Ffrac-fprop=5Ffrac=5Fbase.patch?= added to -mm
- tree
-Date: Thu, 07 May 2020 16:46:19 -0700
-Message-ID: <20200507234619.1XcSQj4PS%akpm@linux-foundation.org>
+ ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index.patch added
+ to -mm tree
+Date: Thu, 07 May 2020 16:53:43 -0700
+Message-ID: <20200507235343.GG9mhhjlf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49916 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52750 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726476AbgEGXqU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 19:46:20 -0400
+        id S1726476AbgEGXxp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 19:53:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org, tan.hu@zte.com.cn, wang.liang82@zte.com.cn, wang.yi59@zte.com.cn, xue.zhihong@zte.com.cn
+To: dave@stgolabs.net, longman@redhat.com, manfred@colorfullife.com, mingo@redhat.com, mm-commits@vger.kernel.org, neilb@suse.com, oberpar@linux.ibm.com, rostedt@goodmis.org, schwab@suse.de, stable@vger.kernel.org, vvs@virtuozzo.com
 
 
 The patch titled
-     Subject: lib/flex_proportions.c: aging counts when fraction smaller than max_frac/FPROP_FRAC_BASE
+     Subject: ipc/util.c: sysvipc_find_ipc() incorrectly updates position index
 has been added to the -mm tree.  Its filename is
-     lib-flex_proportionsc-aging-counts-when-fraction-smaller-than-max_frac-fprop_frac_base.patch
+     ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-flex_proportionsc-aging-counts-when-fraction-smaller-than-max_frac-fprop_frac_base.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-flex_proportionsc-aging-counts-when-fraction-smaller-than-max_frac-fprop_frac_base.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,41 +37,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tan Hu <tan.hu@zte.com.cn>
-Subject: lib/flex_proportions.c: aging counts when fraction smaller than max_frac/FPROP_FRAC_BASE
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: ipc/util.c: sysvipc_find_ipc() incorrectly updates position index
 
-If the given type has fraction smaller than max_frac/FPROP_FRAC_BASE,
-__fprop_inc_percpu_max should follow the design formula and aging fraction
-too.
+Commit 89163f93c6f9 ("ipc/util.c: sysvipc_find_ipc() should increase
+position index") is causing this bug (seen on 5.6.8):
 
-Link: http://lkml.kernel.org/r/1588746088-38605-1-git-send-email-tan.hu@zte.com.cn
-Signed-off-by: Tan Hu <tan.hu@zte.com.cn>
-Cc: <xue.zhihong@zte.com.cn>
-Cc: Yi Wang <wang.yi59@zte.com.cn>
-Cc: <wang.liang82@zte.com.cn>
-Cc: Jan Kara <jack@suse.cz>
+# ipcs -q
+
+------ Message Queues --------
+key        msqid      owner      perms      used-bytes   messages    
+
+# ipcmk -Q
+Message queue id: 0
+# ipcs -q
+
+------ Message Queues --------
+key        msqid      owner      perms      used-bytes   messages    
+0x82db8127 0          root       644        0            0           
+
+# ipcmk -Q
+Message queue id: 1
+# ipcs -q
+
+------ Message Queues --------
+key        msqid      owner      perms      used-bytes   messages    
+0x82db8127 0          root       644        0            0           
+0x76d1fb2a 1          root       644        0            0           
+
+# ipcrm -q 0
+# ipcs -q
+
+------ Message Queues --------
+key        msqid      owner      perms      used-bytes   messages    
+0x76d1fb2a 1          root       644        0            0           
+0x76d1fb2a 1          root       644        0            0           
+
+# ipcmk -Q
+Message queue id: 2
+# ipcrm -q 2
+# ipcs -q
+
+------ Message Queues --------
+key        msqid      owner      perms      used-bytes   messages    
+0x76d1fb2a 1          root       644        0            0           
+0x76d1fb2a 1          root       644        0            0           
+
+# ipcmk -Q
+Message queue id: 3
+# ipcrm -q 1
+# ipcs -q
+
+------ Message Queues --------
+key        msqid      owner      perms      used-bytes   messages    
+0x7c982867 3          root       644        0            0           
+0x7c982867 3          root       644        0            0           
+0x7c982867 3          root       644        0            0           
+0x7c982867 3          root       644        0            0           
+
+
+Whenever an IPC item with a low id is deleted, the items with higher ids
+are duplicated, as if filling a hole.
+
+new_pos should jump through hole of unused ids, pos can be updated inside
+"for" cycle.
+
+Link: http://lkml.kernel.org/r/4921fe9b-9385-a2b4-1dc4-1099be6d2e39@virtuozzo.com
+Fixes: 89163f93c6f9 ("ipc/util.c: sysvipc_find_ipc() should increase position index")
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Reported-by: Andreas Schwab <schwab@suse.de>
+Acked-by: Waiman Long <longman@redhat.com>
+Cc: NeilBrown <neilb@suse.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/flex_proportions.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ ipc/util.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/lib/flex_proportions.c~lib-flex_proportionsc-aging-counts-when-fraction-smaller-than-max_frac-fprop_frac_base
-+++ a/lib/flex_proportions.c
-@@ -266,8 +266,7 @@ void __fprop_inc_percpu_max(struct fprop
- 		if (numerator >
- 		    (((u64)denominator) * max_frac) >> FPROP_FRAC_SHIFT)
- 			return;
--	} else
--		fprop_reflect_period_percpu(p, pl);
--	percpu_counter_add_batch(&pl->events, 1, PROP_BATCH);
--	percpu_counter_add(&p->events, 1);
-+	}
-+
-+	__fprop_inc_percpu(p, pl);
- }
-_
-
-Patches currently in -mm which might be from tan.hu@zte.com.cn are
-
-lib-flex_proportionsc-aging-counts-when-fraction-smaller-than-max_frac-fprop_frac_base.patch
+--- a/ipc/util.c~ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index
++++ a/ipc/util.c
+@@ -764,21 +764,21 @@ static struct kern_ipc_perm *sysvipc_fin
+ 			total++;
+ 	}
+ 
+-	*new_pos = pos + 1;
++	ipc = NULL;
+ 	if (total >= ids->in_use)
+-		return NULL;
++		goto out;
+ 
+ 	for (; pos < ipc_mni; pos++) {
+ 		ipc = idr_find(&ids->ipcs_idr, pos);
+ 		if (ipc != NULL) {
+ 			rcu_read_lock();
+ 			ipc_lock_object(ipc);
+-			return ipc;
++			break;
+ 		}
+ 	}
