@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-consistent-update-to-pgsteal-and-pgscan.patch
+Subject: +
+ lib-zlib-remove-outdated-and-incorrect-pre-increment-optimization.patch
  added to -mm tree
-Date: Thu, 07 May 2020 14:15:05 -0700
-Message-ID: <20200507211505.bMnDGUunm%akpm@linux-foundation.org>
+Date: Thu, 07 May 2020 14:17:16 -0700
+Message-ID: <20200507211716.sdERhbTdB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33410 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37106 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726268AbgEGVPG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 17:15:06 -0400
+        id S1726218AbgEGVRS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 17:17:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com
+To: jannh@google.com, mm-commits@vger.kernel.org, zaslonko@linux.ibm.com
 
 
 The patch titled
-     Subject: mm: vmscan: consistent update to pgsteal and pgscan
+     Subject: lib/zlib: remove outdated and incorrect pre-increment optimization
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-consistent-update-to-pgsteal-and-pgscan.patch
+     lib-zlib-remove-outdated-and-incorrect-pre-increment-optimization.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-consistent-update-to-pgsteal-and-pgscan.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-zlib-remove-outdated-and-incorrect-pre-increment-optimization.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-consistent-update-to-pgsteal-and-pgscan.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-zlib-remove-outdated-and-incorrect-pre-increment-optimization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,60 +37,275 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: vmscan: consistent update to pgsteal and pgscan
+From: Jann Horn <jannh@google.com>
+Subject: lib/zlib: remove outdated and incorrect pre-increment optimization
 
-One way to measure the efficiency of memory reclaim is to look at the
-ratio (pgscan+pfrefill)/pgsteal.  However at the moment these stats are
-not updated consistently at the system level and the ratio of these are
-not very meaningful.  The pgsteal and pgscan are updated for only global
-reclaim while pgrefill gets updated for global as well as cgroup reclaim.
+The zlib inflate code has an old micro-optimization based on the
+assumption that for pre-increment memory accesses, the compiler will
+generate code that fits better into the processor's pipeline than what
+would be generated for post-increment memory accesses.
 
-Please note that this difference is only for system level vmstats.  The
-cgroup stats returned by memory.stat are actually consistent.  The
-cgroup's pgsteal contains number of reclaimed pages for global as well as
-cgroup reclaim.  So, one way to get the system level stats is to get these
-stats from root's memory.stat but root does not expose that interface. 
-Also for !CONFIG_MEMCG machines /proc/vmstat is the only way to get these
-stats.  So, make these stats consistent.
+This optimization was already removed in upstream zlib in 2016:
+https://github.com/madler/zlib/commit/9aaec95e8211
 
-Link: http://lkml.kernel.org/r/20200507204913.18661-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+This optimization causes UB according to C99, which says in section 6.5.6
+"Additive operators": "If both the pointer operand and the result point to
+elements of the same array object, or one past the last element of the
+array object, the evaluation shall not produce an overflow; otherwise, the
+behavior is undefined".
+
+This UB is not only a theoretical concern, but can also cause trouble for
+future work on compiler-based sanitizers.
+
+According to the zlib commit, this optimization also is not optimal
+anymore with modern compilers.
+
+Replace uses of OFF, PUP and UP_UNALIGNED with their definitions in the
+POSTINC case, and remove the macro definitions, just like in the upstream
+patch.
+
+Link: http://lkml.kernel.org/r/20200507123112.252723-1-jannh@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ lib/zlib_inflate/inffast.c |   91 +++++++++++++----------------------
+ 1 file changed, 35 insertions(+), 56 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-consistent-update-to-pgsteal-and-pgscan
-+++ a/mm/vmscan.c
-@@ -1943,8 +1943,7 @@ shrink_inactive_list(unsigned long nr_to
- 	reclaim_stat->recent_scanned[file] += nr_taken;
+--- a/lib/zlib_inflate/inffast.c~lib-zlib-remove-outdated-and-incorrect-pre-increment-optimization
++++ a/lib/zlib_inflate/inffast.c
+@@ -10,17 +10,6 @@
  
- 	item = current_is_kswapd() ? PGSCAN_KSWAPD : PGSCAN_DIRECT;
--	if (!cgroup_reclaim(sc))
--		__count_vm_events(item, nr_scanned);
-+	__count_vm_events(item, nr_scanned);
- 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
- 	spin_unlock_irq(&pgdat->lru_lock);
+ #ifndef ASMINF
  
-@@ -1957,8 +1956,7 @@ shrink_inactive_list(unsigned long nr_to
- 	spin_lock_irq(&pgdat->lru_lock);
+-/* Allow machine dependent optimization for post-increment or pre-increment.
+-   Based on testing to date,
+-   Pre-increment preferred for:
+-   - PowerPC G3 (Adler)
+-   - MIPS R5000 (Randers-Pehrson)
+-   Post-increment preferred for:
+-   - none
+-   No measurable difference:
+-   - Pentium III (Anderson)
+-   - M68060 (Nikl)
+- */
+ union uu {
+ 	unsigned short us;
+ 	unsigned char b[2];
+@@ -38,16 +27,6 @@ get_unaligned16(const unsigned short *p)
+ 	return mm.us;
+ }
  
- 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
--	if (!cgroup_reclaim(sc))
--		__count_vm_events(item, nr_reclaimed);
-+	__count_vm_events(item, nr_reclaimed);
- 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
- 	reclaim_stat->recent_rotated[0] += stat.nr_activate[0];
- 	reclaim_stat->recent_rotated[1] += stat.nr_activate[1];
+-#ifdef POSTINC
+-#  define OFF 0
+-#  define PUP(a) *(a)++
+-#  define UP_UNALIGNED(a) get_unaligned16((a)++)
+-#else
+-#  define OFF 1
+-#  define PUP(a) *++(a)
+-#  define UP_UNALIGNED(a) get_unaligned16(++(a))
+-#endif
+-
+ /*
+    Decode literal, length, and distance codes and write out the resulting
+    literal and match bytes until either not enough input or output is
+@@ -115,9 +94,9 @@ void inflate_fast(z_streamp strm, unsign
+ 
+     /* copy state to local variables */
+     state = (struct inflate_state *)strm->state;
+-    in = strm->next_in - OFF;
++    in = strm->next_in;
+     last = in + (strm->avail_in - 5);
+-    out = strm->next_out - OFF;
++    out = strm->next_out;
+     beg = out - (start - strm->avail_out);
+     end = out + (strm->avail_out - 257);
+ #ifdef INFLATE_STRICT
+@@ -138,9 +117,9 @@ void inflate_fast(z_streamp strm, unsign
+        input data or output space */
+     do {
+         if (bits < 15) {
+-            hold += (unsigned long)(PUP(in)) << bits;
++            hold += (unsigned long)(*in++) << bits;
+             bits += 8;
+-            hold += (unsigned long)(PUP(in)) << bits;
++            hold += (unsigned long)(*in++) << bits;
+             bits += 8;
+         }
+         this = lcode[hold & lmask];
+@@ -150,14 +129,14 @@ void inflate_fast(z_streamp strm, unsign
+         bits -= op;
+         op = (unsigned)(this.op);
+         if (op == 0) {                          /* literal */
+-            PUP(out) = (unsigned char)(this.val);
++            *out++ = (unsigned char)(this.val);
+         }
+         else if (op & 16) {                     /* length base */
+             len = (unsigned)(this.val);
+             op &= 15;                           /* number of extra bits */
+             if (op) {
+                 if (bits < op) {
+-                    hold += (unsigned long)(PUP(in)) << bits;
++                    hold += (unsigned long)(*in++) << bits;
+                     bits += 8;
+                 }
+                 len += (unsigned)hold & ((1U << op) - 1);
+@@ -165,9 +144,9 @@ void inflate_fast(z_streamp strm, unsign
+                 bits -= op;
+             }
+             if (bits < 15) {
+-                hold += (unsigned long)(PUP(in)) << bits;
++                hold += (unsigned long)(*in++) << bits;
+                 bits += 8;
+-                hold += (unsigned long)(PUP(in)) << bits;
++                hold += (unsigned long)(*in++) << bits;
+                 bits += 8;
+             }
+             this = dcode[hold & dmask];
+@@ -180,10 +159,10 @@ void inflate_fast(z_streamp strm, unsign
+                 dist = (unsigned)(this.val);
+                 op &= 15;                       /* number of extra bits */
+                 if (bits < op) {
+-                    hold += (unsigned long)(PUP(in)) << bits;
++                    hold += (unsigned long)(*in++) << bits;
+                     bits += 8;
+                     if (bits < op) {
+-                        hold += (unsigned long)(PUP(in)) << bits;
++                        hold += (unsigned long)(*in++) << bits;
+                         bits += 8;
+                     }
+                 }
+@@ -205,13 +184,13 @@ void inflate_fast(z_streamp strm, unsign
+                         state->mode = BAD;
+                         break;
+                     }
+-                    from = window - OFF;
++                    from = window;
+                     if (write == 0) {           /* very common case */
+                         from += wsize - op;
+                         if (op < len) {         /* some from window */
+                             len -= op;
+                             do {
+-                                PUP(out) = PUP(from);
++                                *out++ = *from++;
+                             } while (--op);
+                             from = out - dist;  /* rest from output */
+                         }
+@@ -222,14 +201,14 @@ void inflate_fast(z_streamp strm, unsign
+                         if (op < len) {         /* some from end of window */
+                             len -= op;
+                             do {
+-                                PUP(out) = PUP(from);
++                                *out++ = *from++;
+                             } while (--op);
+-                            from = window - OFF;
++                            from = window;
+                             if (write < len) {  /* some from start of window */
+                                 op = write;
+                                 len -= op;
+                                 do {
+-                                    PUP(out) = PUP(from);
++                                    *out++ = *from++;
+                                 } while (--op);
+                                 from = out - dist;      /* rest from output */
+                             }
+@@ -240,21 +219,21 @@ void inflate_fast(z_streamp strm, unsign
+                         if (op < len) {         /* some from window */
+                             len -= op;
+                             do {
+-                                PUP(out) = PUP(from);
++                                *out++ = *from++;
+                             } while (--op);
+                             from = out - dist;  /* rest from output */
+                         }
+                     }
+                     while (len > 2) {
+-                        PUP(out) = PUP(from);
+-                        PUP(out) = PUP(from);
+-                        PUP(out) = PUP(from);
++                        *out++ = *from++;
++                        *out++ = *from++;
++                        *out++ = *from++;
+                         len -= 3;
+                     }
+                     if (len) {
+-                        PUP(out) = PUP(from);
++                        *out++ = *from++;
+                         if (len > 1)
+-                            PUP(out) = PUP(from);
++                            *out++ = *from++;
+                     }
+                 }
+                 else {
+@@ -264,29 +243,29 @@ void inflate_fast(z_streamp strm, unsign
+                     from = out - dist;          /* copy direct from output */
+ 		    /* minimum length is three */
+ 		    /* Align out addr */
+-		    if (!((long)(out - 1 + OFF) & 1)) {
+-			PUP(out) = PUP(from);
++		    if (!((long)(out - 1) & 1)) {
++			*out++ = *from++;
+ 			len--;
+ 		    }
+-		    sout = (unsigned short *)(out - OFF);
++		    sout = (unsigned short *)(out);
+ 		    if (dist > 2) {
+ 			unsigned short *sfrom;
+ 
+-			sfrom = (unsigned short *)(from - OFF);
++			sfrom = (unsigned short *)(from);
+ 			loops = len >> 1;
+ 			do
+ #ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
+-			    PUP(sout) = PUP(sfrom);
++			    *sout++ = *sfrom++;
+ #else
+-			    PUP(sout) = UP_UNALIGNED(sfrom);
++			    *sout++ = get_unaligned16(sfrom++);
+ #endif
+ 			while (--loops);
+-			out = (unsigned char *)sout + OFF;
+-			from = (unsigned char *)sfrom + OFF;
++			out = (unsigned char *)sout;
++			from = (unsigned char *)sfrom;
+ 		    } else { /* dist == 1 or dist == 2 */
+ 			unsigned short pat16;
+ 
+-			pat16 = *(sout-1+OFF);
++			pat16 = *(sout-1);
+ 			if (dist == 1) {
+ 				union uu mm;
+ 				/* copy one char pattern to both bytes */
+@@ -296,12 +275,12 @@ void inflate_fast(z_streamp strm, unsign
+ 			}
+ 			loops = len >> 1;
+ 			do
+-			    PUP(sout) = pat16;
++			    *sout++ = pat16;
+ 			while (--loops);
+-			out = (unsigned char *)sout + OFF;
++			out = (unsigned char *)sout;
+ 		    }
+ 		    if (len & 1)
+-			PUP(out) = PUP(from);
++			*out++ = *from++;
+                 }
+             }
+             else if ((op & 64) == 0) {          /* 2nd level distance code */
+@@ -336,8 +315,8 @@ void inflate_fast(z_streamp strm, unsign
+     hold &= (1U << bits) - 1;
+ 
+     /* update state and return */
+-    strm->next_in = in + OFF;
+-    strm->next_out = out + OFF;
++    strm->next_in = in;
++    strm->next_out = out;
+     strm->avail_in = (unsigned)(in < last ? 5 + (last - in) : 5 - (in - last));
+     strm->avail_out = (unsigned)(out < end ?
+                                  257 + (end - out) : 257 - (out - end));
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from jannh@google.com are
 
-memcg-optimize-memorynuma_stat-like-memorystat.patch
-mm-vmscan-consistent-update-to-pgsteal-and-pgscan.patch
+lib-zlib-remove-outdated-and-incorrect-pre-increment-optimization.patch
