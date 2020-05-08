@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch added to -mm
- tree
-Date: Fri, 08 May 2020 16:20:04 -0700
-Message-ID: <20200508232004.Su9nOp5sZ%akpm@linux-foundation.org>
+ mm-memcontrol-prepare-swap-controller-setup-for-integration.patch added to
+ -mm tree
+Date: Fri, 08 May 2020 16:20:07 -0700
+Message-ID: <20200508232007.tuPgUkqUH%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41614 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41690 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727110AbgEHXUI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 19:20:08 -0400
+        id S1727110AbgEHXUK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 19:20:10 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.co
 
 
 The patch titled
-     Subject: mm: memcontrol: drop unused try/commit/cancel charge API
+     Subject: mm: memcontrol: prepare swap controller setup for integration
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
+     mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +40,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: drop unused try/commit/cancel charge API
+Subject: mm: memcontrol: prepare swap controller setup for integration
 
-There are no more users. RIP in peace.
+A few cleanups to streamline the swap controller setup:
 
-Link: http://lkml.kernel.org/r/20200508183105.225460-14-hannes@cmpxchg.org
+- Replace the do_swap_account flag with cgroup_memory_noswap. This
+  brings it in line with other functionality that is usually available
+  unless explicitly opted out of - nosocket, nokmem.
+
+- Remove the really_do_swap_account flag that stores the boot option
+  and is later used to switch the do_swap_account. It's not clear why
+  this indirection is/was necessary. Use do_swap_account directly.
+
+- Minor coding style polishing
+
+Link: http://lkml.kernel.org/r/20200508183105.225460-15-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
@@ -56,239 +66,187 @@ Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   36 ----------
- mm/memcontrol.c            |  126 ++++-------------------------------
- 2 files changed, 15 insertions(+), 147 deletions(-)
+ include/linux/memcontrol.h |    2 -
+ mm/memcontrol.c            |   59 ++++++++++++++++-------------------
+ mm/swap_cgroup.c           |    4 +-
+ 3 files changed, 31 insertions(+), 34 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-drop-unused-try-commit-cancel-charge-api
+--- a/include/linux/memcontrol.h~mm-memcontrol-prepare-swap-controller-setup-for-integration
 +++ a/include/linux/memcontrol.h
-@@ -406,14 +406,6 @@ static inline bool mem_cgroup_below_min(
- 		page_counter_read(&memcg->memory);
+@@ -609,7 +609,7 @@ struct mem_cgroup *mem_cgroup_get_oom_gr
+ void mem_cgroup_print_oom_group(struct mem_cgroup *memcg);
+ 
+ #ifdef CONFIG_MEMCG_SWAP
+-extern int do_swap_account;
++extern bool cgroup_memory_noswap;
+ #endif
+ 
+ struct mem_cgroup *lock_page_memcg(struct page *page);
+--- a/mm/memcontrol.c~mm-memcontrol-prepare-swap-controller-setup-for-integration
++++ a/mm/memcontrol.c
+@@ -83,10 +83,14 @@ static bool cgroup_memory_nokmem;
+ 
+ /* Whether the swap controller is active */
+ #ifdef CONFIG_MEMCG_SWAP
+-int do_swap_account __read_mostly;
++#ifdef CONFIG_MEMCG_SWAP_ENABLED
++bool cgroup_memory_noswap __read_mostly;
+ #else
+-#define do_swap_account		0
+-#endif
++bool cgroup_memory_noswap __read_mostly = 1;
++#endif /* CONFIG_MEMCG_SWAP_ENABLED */
++#else
++#define cgroup_memory_noswap		1
++#endif /* CONFIG_MEMCG_SWAP */
+ 
+ #ifdef CONFIG_CGROUP_WRITEBACK
+ static DECLARE_WAIT_QUEUE_HEAD(memcg_cgwb_frn_waitq);
+@@ -95,7 +99,7 @@ static DECLARE_WAIT_QUEUE_HEAD(memcg_cgw
+ /* Whether legacy memory+swap accounting is active */
+ static bool do_memsw_account(void)
+ {
+-	return !cgroup_subsys_on_dfl(memory_cgrp_subsys) && do_swap_account;
++	return !cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_noswap;
  }
  
--int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
--			  gfp_t gfp_mask, struct mem_cgroup **memcgp);
--int mem_cgroup_try_charge_delay(struct page *page, struct mm_struct *mm,
--			  gfp_t gfp_mask, struct mem_cgroup **memcgp);
--void mem_cgroup_commit_charge(struct page *page, struct mem_cgroup *memcg,
--			      bool lrucare);
--void mem_cgroup_cancel_charge(struct page *page, struct mem_cgroup *memcg);
--
- int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask,
- 		      bool lrucare);
+ #define THRESHOLDS_EVENTS_TARGET 128
+@@ -6458,18 +6462,19 @@ int mem_cgroup_charge(struct page *page,
+ 		/*
+ 		 * Every swap fault against a single page tries to charge the
+ 		 * page, bail as early as possible.  shmem_unuse() encounters
+-		 * already charged pages, too.  The USED bit is protected by
+-		 * the page lock, which serializes swap cache removal, which
++		 * already charged pages, too.  page->mem_cgroup is protected
++		 * by the page lock, which serializes swap cache removal, which
+ 		 * in turn serializes uncharging.
+ 		 */
+ 		VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 		if (compound_head(page)->mem_cgroup)
+ 			goto out;
  
-@@ -907,34 +899,6 @@ static inline bool mem_cgroup_below_min(
+-		if (do_swap_account) {
++		if (!cgroup_memory_noswap) {
+ 			swp_entry_t ent = { .val = page_private(page), };
+-			unsigned short id = lookup_swap_cgroup_id(ent);
++			unsigned short id;
+ 
++			id = lookup_swap_cgroup_id(ent);
+ 			rcu_read_lock();
+ 			memcg = mem_cgroup_from_id(id);
+ 			if (memcg && !css_tryget_online(&memcg->css))
+@@ -6942,7 +6947,7 @@ int mem_cgroup_try_charge_swap(struct pa
+ 	struct mem_cgroup *memcg;
+ 	unsigned short oldid;
+ 
+-	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) || !do_swap_account)
++	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) || cgroup_memory_noswap)
+ 		return 0;
+ 
+ 	memcg = page->mem_cgroup;
+@@ -6986,7 +6991,7 @@ void mem_cgroup_uncharge_swap(swp_entry_
+ 	struct mem_cgroup *memcg;
+ 	unsigned short id;
+ 
+-	if (!do_swap_account)
++	if (cgroup_memory_noswap)
+ 		return;
+ 
+ 	id = swap_cgroup_record(entry, 0, nr_pages);
+@@ -7009,7 +7014,7 @@ long mem_cgroup_get_nr_swap_pages(struct
+ {
+ 	long nr_swap_pages = get_nr_swap_pages();
+ 
+-	if (!do_swap_account || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	if (cgroup_memory_noswap || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 		return nr_swap_pages;
+ 	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg))
+ 		nr_swap_pages = min_t(long, nr_swap_pages,
+@@ -7026,7 +7031,7 @@ bool mem_cgroup_swap_full(struct page *p
+ 
+ 	if (vm_swap_full())
+ 		return true;
+-	if (!do_swap_account || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	if (cgroup_memory_noswap || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 		return false;
+ 
+ 	memcg = page->mem_cgroup;
+@@ -7041,22 +7046,15 @@ bool mem_cgroup_swap_full(struct page *p
  	return false;
  }
  
--static inline int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
--					gfp_t gfp_mask,
--					struct mem_cgroup **memcgp)
--{
--	*memcgp = NULL;
--	return 0;
--}
+-/* for remember boot option*/
+-#ifdef CONFIG_MEMCG_SWAP_ENABLED
+-static int really_do_swap_account __initdata = 1;
+-#else
+-static int really_do_swap_account __initdata;
+-#endif
 -
--static inline int mem_cgroup_try_charge_delay(struct page *page,
--					      struct mm_struct *mm,
--					      gfp_t gfp_mask,
--					      struct mem_cgroup **memcgp)
--{
--	*memcgp = NULL;
--	return 0;
--}
--
--static inline void mem_cgroup_commit_charge(struct page *page,
--					    struct mem_cgroup *memcg,
--					    bool lrucare)
--{
--}
--
--static inline void mem_cgroup_cancel_charge(struct page *page,
--					    struct mem_cgroup *memcg)
--{
--}
--
- static inline int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
- 				    gfp_t gfp_mask, bool lrucare)
+-static int __init enable_swap_account(char *s)
++static int __init setup_swap_account(char *s)
  {
---- a/mm/memcontrol.c~mm-memcontrol-drop-unused-try-commit-cancel-charge-api
-+++ a/mm/memcontrol.c
-@@ -6431,29 +6431,26 @@ void mem_cgroup_calculate_protection(str
+ 	if (!strcmp(s, "1"))
+-		really_do_swap_account = 1;
++		cgroup_memory_noswap = 0;
+ 	else if (!strcmp(s, "0"))
+-		really_do_swap_account = 0;
++		cgroup_memory_noswap = 1;
+ 	return 1;
  }
+-__setup("swapaccount=", enable_swap_account);
++__setup("swapaccount=", setup_swap_account);
  
- /**
-- * mem_cgroup_try_charge - try charging a page
-+ * mem_cgroup_charge - charge a newly allocated page to a cgroup
-  * @page: page to charge
-  * @mm: mm context of the victim
-  * @gfp_mask: reclaim mode
-- * @memcgp: charged memcg return
-+ * @lrucare: page might be on the LRU already
-  *
-  * Try to charge @page to the memcg that @mm belongs to, reclaiming
-  * pages according to @gfp_mask if necessary.
-  *
-- * Returns 0 on success, with *@memcgp pointing to the charged memcg.
-- * Otherwise, an error code is returned.
-- *
-- * After page->mapping has been set up, the caller must finalize the
-- * charge with mem_cgroup_commit_charge().  Or abort the transaction
-- * with mem_cgroup_cancel_charge() in case page instantiation fails.
-+ * Returns 0 on success. Otherwise, an error code is returned.
-  */
--int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
--			  gfp_t gfp_mask, struct mem_cgroup **memcgp)
-+int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask,
-+		      bool lrucare)
+ static u64 swap_current_read(struct cgroup_subsys_state *css,
+ 			     struct cftype *cft)
+@@ -7122,7 +7120,7 @@ static struct cftype swap_files[] = {
+ 	{ }	/* terminate */
+ };
+ 
+-static struct cftype memsw_cgroup_files[] = {
++static struct cftype memsw_files[] = {
+ 	{
+ 		.name = "memsw.usage_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
+@@ -7151,13 +7149,12 @@ static struct cftype memsw_cgroup_files[
+ 
+ static int __init mem_cgroup_swap_init(void)
  {
- 	unsigned int nr_pages = hpage_nr_pages(page);
- 	struct mem_cgroup *memcg = NULL;
- 	int ret = 0;
- 
-+	VM_BUG_ON_PAGE(PageLRU(page) && !lrucare, page);
+-	if (!mem_cgroup_disabled() && really_do_swap_account) {
+-		do_swap_account = 1;
+-		WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys,
+-					       swap_files));
+-		WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys,
+-						  memsw_cgroup_files));
+-	}
++	if (mem_cgroup_disabled() || cgroup_memory_noswap)
++		return 0;
 +
- 	if (mem_cgroup_disabled())
- 		goto out;
- 
-@@ -6485,56 +6482,8 @@ int mem_cgroup_try_charge(struct page *p
- 		memcg = get_mem_cgroup_from_mm(mm);
- 
- 	ret = try_charge(memcg, gfp_mask, nr_pages);
--
--	css_put(&memcg->css);
--out:
--	*memcgp = memcg;
--	return ret;
--}
--
--int mem_cgroup_try_charge_delay(struct page *page, struct mm_struct *mm,
--			  gfp_t gfp_mask, struct mem_cgroup **memcgp)
--{
--	int ret;
--
--	ret = mem_cgroup_try_charge(page, mm, gfp_mask, memcgp);
--	if (*memcgp)
--		cgroup_throttle_swaprate(page, gfp_mask);
--	return ret;
--}
--
--/**
-- * mem_cgroup_commit_charge - commit a page charge
-- * @page: page to charge
-- * @memcg: memcg to charge the page to
-- * @lrucare: page might be on LRU already
-- *
-- * Finalize a charge transaction started by mem_cgroup_try_charge(),
-- * after page->mapping has been set up.  This must happen atomically
-- * as part of the page instantiation, i.e. under the page table lock
-- * for anonymous pages, under the page lock for page and swap cache.
-- *
-- * In addition, the page must not be on the LRU during the commit, to
-- * prevent racing with task migration.  If it might be, use @lrucare.
-- *
-- * Use mem_cgroup_cancel_charge() to cancel the transaction instead.
-- */
--void mem_cgroup_commit_charge(struct page *page, struct mem_cgroup *memcg,
--			      bool lrucare)
--{
--	unsigned int nr_pages = hpage_nr_pages(page);
--
--	VM_BUG_ON_PAGE(PageLRU(page) && !lrucare, page);
--
--	if (mem_cgroup_disabled())
--		return;
--	/*
--	 * Swap faults will attempt to charge the same page multiple
--	 * times.  But reuse_swap_page() might have removed the page
--	 * from swapcache already, so we can't check PageSwapCache().
--	 */
--	if (!memcg)
--		return;
-+	if (ret)
-+		goto out_put;
- 
- 	commit_charge(page, memcg, lrucare);
- 
-@@ -6552,55 +6501,11 @@ void mem_cgroup_commit_charge(struct pag
- 		 */
- 		mem_cgroup_uncharge_swap(entry, nr_pages);
- 	}
--}
- 
--/**
-- * mem_cgroup_cancel_charge - cancel a page charge
-- * @page: page to charge
-- * @memcg: memcg to charge the page to
-- *
-- * Cancel a charge transaction started by mem_cgroup_try_charge().
-- */
--void mem_cgroup_cancel_charge(struct page *page, struct mem_cgroup *memcg)
--{
--	unsigned int nr_pages = hpage_nr_pages(page);
--
--	if (mem_cgroup_disabled())
--		return;
--	/*
--	 * Swap faults will attempt to charge the same page multiple
--	 * times.  But reuse_swap_page() might have removed the page
--	 * from swapcache already, so we can't check PageSwapCache().
--	 */
--	if (!memcg)
--		return;
--
--	cancel_charge(memcg, nr_pages);
--}
--
--/**
-- * mem_cgroup_charge - charge a newly allocated page to a cgroup
-- * @page: page to charge
-- * @mm: mm context of the victim
-- * @gfp_mask: reclaim mode
-- * @lrucare: page might be on the LRU already
-- *
-- * Try to charge @page to the memcg that @mm belongs to, reclaiming
-- * pages according to @gfp_mask if necessary.
-- *
-- * Returns 0 on success. Otherwise, an error code is returned.
-- */
--int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask,
--		      bool lrucare)
--{
--	struct mem_cgroup *memcg;
--	int ret;
--
--	ret = mem_cgroup_try_charge(page, mm, gfp_mask, &memcg);
--	if (ret)
--		return ret;
--	mem_cgroup_commit_charge(page, memcg, lrucare);
--	return 0;
-+out_put:
-+	css_put(&memcg->css);
-+out:
-+	return ret;
++	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
++	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys, memsw_files));
++
+ 	return 0;
  }
+ subsys_initcall(mem_cgroup_swap_init);
+--- a/mm/swap_cgroup.c~mm-memcontrol-prepare-swap-controller-setup-for-integration
++++ a/mm/swap_cgroup.c
+@@ -171,7 +171,7 @@ int swap_cgroup_swapon(int type, unsigne
+ 	unsigned long length;
+ 	struct swap_cgroup_ctrl *ctrl;
  
- struct uncharge_gather {
-@@ -6705,8 +6610,7 @@ static void uncharge_list(struct list_he
-  * mem_cgroup_uncharge - uncharge a page
-  * @page: page to uncharge
-  *
-- * Uncharge a page previously charged with mem_cgroup_try_charge() and
-- * mem_cgroup_commit_charge().
-+ * Uncharge a page previously charged with mem_cgroup_charge().
-  */
- void mem_cgroup_uncharge(struct page *page)
- {
-@@ -6729,7 +6633,7 @@ void mem_cgroup_uncharge(struct page *pa
-  * @page_list: list of pages to uncharge
-  *
-  * Uncharge a list of pages previously charged with
-- * mem_cgroup_try_charge() and mem_cgroup_commit_charge().
-+ * mem_cgroup_charge().
-  */
- void mem_cgroup_uncharge_list(struct list_head *page_list)
- {
+-	if (!do_swap_account)
++	if (cgroup_memory_noswap)
+ 		return 0;
+ 
+ 	length = DIV_ROUND_UP(max_pages, SC_PER_PAGE);
+@@ -209,7 +209,7 @@ void swap_cgroup_swapoff(int type)
+ 	unsigned long i, length;
+ 	struct swap_cgroup_ctrl *ctrl;
+ 
+-	if (!do_swap_account)
++	if (cgroup_memory_noswap)
+ 		return;
+ 
+ 	mutex_lock(&swap_cgroup_mutex);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
