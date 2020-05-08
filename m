@@ -1,43 +1,56 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 04/15] kernel/kcov.c: fix typos in
- kcov_remote_start documentation
-Date: Thu, 07 May 2020 18:35:49 -0700
-Message-ID: <20200508013549.M4PmRWho3%akpm@linux-foundation.org>
+Subject: [patch 05/15] scripts/decodecode: fix trapping
+ instruction formatting
+Date: Thu, 07 May 2020 18:35:53 -0700
+Message-ID: <20200508013553.GVpIke1cL%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58362 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58418 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726514AbgEHBfv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 21:35:51 -0400
+        id S1726514AbgEHBfy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 21:35:54 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andreyknvl@google.com, linux-mm@kvack.org, maciej.grochowski@pm.me, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bp@suse.de, colona@arista.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Maciej Grochowski <maciej.grochowski@pm.me>
-Subject: kernel/kcov.c: fix typos in kcov_remote_start documentation
+From: Ivan Delalande <colona@arista.com>
+Subject: scripts/decodecode: fix trapping instruction formatting
 
-Link: http://lkml.kernel.org/r/20200420030259.31674-1-maciek.grochowski@gmail.com
-Signed-off-by: Maciej Grochowski <maciej.grochowski@pm.me>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+If the trapping instruction contains a ':', for a memory access through
+segment registers for example, the sed substitution will insert the '*'
+marker in the middle of the instruction instead of the line address:
+
+	2b:   65 48 0f c7 0f          cmpxchg16b %gs:*(%rdi)          <-- trapping instruction
+
+I started to think I had forgotten some quirk of the assembly syntax
+before noticing that it was actually coming from the script.  Fix it to
+add the address marker at the right place for these instructions:
+
+	28:   49 8b 06                mov    (%r14),%rax
+	2b:*  65 48 0f c7 0f          cmpxchg16b %gs:(%rdi)           <-- trapping instruction
+	30:   0f 94 c0                sete   %al
+
+Link: http://lkml.kernel.org/r/20200419223653.GA31248@visor
+Fixes: 18ff44b189e2 ("scripts/decodecode: make faulting insn ptr more robust")
+Signed-off-by: Ivan Delalande <colona@arista.com>
+Reviewed-by: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/decodecode |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/kcov.c~kernel-kcovc-fix-typos-in-kcov_remote_start-documentation
-+++ a/kernel/kcov.c
-@@ -740,8 +740,8 @@ static const struct file_operations kcov
-  * kcov_remote_handle() with KCOV_SUBSYSTEM_COMMON as the subsystem id and an
-  * arbitrary 4-byte non-zero number as the instance id). This common handle
-  * then gets saved into the task_struct of the process that issued the
-- * KCOV_REMOTE_ENABLE ioctl. When this proccess issues system calls that spawn
-- * kernel threads, the common handle must be retrived via kcov_common_handle()
-+ * KCOV_REMOTE_ENABLE ioctl. When this process issues system calls that spawn
-+ * kernel threads, the common handle must be retrieved via kcov_common_handle()
-  * and passed to the spawned threads via custom annotations. Those kernel
-  * threads must in turn be annotated with kcov_remote_start(common_handle) and
-  * kcov_remote_stop(). All of the threads that are spawned by the same process
+--- a/scripts/decodecode~scripts-decodecode-fix-trapping-instruction-formatting
++++ a/scripts/decodecode
+@@ -126,7 +126,7 @@ faultlinenum=$(( $(wc -l $T.oo  | cut -d
+ faultline=`cat $T.dis | head -1 | cut -d":" -f2-`
+ faultline=`echo "$faultline" | sed -e 's/\[/\\\[/g; s/\]/\\\]/g'`
+ 
+-cat $T.oo | sed -e "${faultlinenum}s/^\(.*:\)\(.*\)/\1\*\2\t\t<-- trapping instruction/"
++cat $T.oo | sed -e "${faultlinenum}s/^\([^:]*:\)\(.*\)/\1\*\2\t\t<-- trapping instruction/"
+ echo
+ cat $T.aa
+ cleanup
 _
