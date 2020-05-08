@@ -1,30 +1,38 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zcomp-use-array_size-for-backends-list.patch added to
- -mm tree
-Date: Fri, 08 May 2020 16:48:47 -0700
-Message-ID: <20200508234847.laSu8sZ6c%akpm@linux-foundation.org>
+Subject: +
+ device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.patch
+ added to -mm tree
+Date: Fri, 08 May 2020 16:53:19 -0700
+Message-ID: <20200508235319.0NmZ0DltL%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49846 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727774AbgEHXst (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 19:48:49 -0400
+        id S1727878AbgEHXxV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 19:53:21 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, axboe@kernel.dk, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, dave.jiang@intel.com, david@redhat.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, stable@vger.kernel.org, vishal.l.verma@intel.com
 
 
 The patch titled
-     Subject: zcomp: Use ARRAY_SIZE() for backends list
+     Subject: device-dax: don't leak kernel memory to user space after unlo=
+ading kmem
 has been added to the -mm tree.  Its filename is
-     zcomp-use-array_size-for-backends-list.patch
+     device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.=
+patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zcomp-use-array_size-for-backends-list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/device-dax-dont-leak-kernel-me=
+mory-to-user-space-after-unloading-kmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zcomp-use-array_size-for-backends-list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/device-dax-dont-leak-kernel-me=
+mory-to-user-space-after-unloading-kmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,64 +40,144 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: zcomp: Use ARRAY_SIZE() for backends list
+=46rom: David Hildenbrand <david@redhat.com>
+Subject: device-dax: don't leak kernel memory to user space after unloading=
+ kmem
 
-Instead of keeping NULL terminated array switch to use ARRAY_SIZE()
-which helps to further clean up.
+Assume we have kmem configured and loaded:
+  [root@localhost ~]# cat /proc/iomem
+  ...
+  140000000-33fffffff : Persistent Memory$
+    140000000-1481fffff : namespace0.0
+    150000000-33fffffff : dax0.0
+      150000000-33fffffff : System RAM
 
-Link: http://lkml.kernel.org/r/20200508100758.51644-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Assume we try to unload kmem. This force-unloading will work, even if
+memory cannot get removed from the system.
+  [root@localhost ~]# rmmod kmem
+  [   86.380228] removing memory fails, because memory [0x0000000150000000-=
+0x0000000157ffffff] is onlined
+  ...
+  [   86.431225] kmem dax0.0: DAX region [mem 0x150000000-0x33fffffff] cann=
+ot be hotremoved until the next reboot
+
+Now, we can reconfigure the namespace:
+  [root@localhost ~]# ndctl create-namespace --force --reconfig=3Dnamespace=
+0.0 --mode=3Ddevdax
+  [  131.409351] nd_pmem namespace0.0: could not reserve region [mem 0x1400=
+00000-0x33fffffff]dax
+  [  131.410147] nd_pmem: probe of namespace0.0 failed with error -16namesp=
+ace0.0 --mode=3Ddevdax
+  ...
+
+This fails as expected due to the busy memory resource, and the memory
+cannot be used. However, the dax0.0 device is removed, and along its name.
+
+The name of the memory resource now points at freed memory (name of the
+device).
+  [root@localhost ~]# cat /proc/iomem
+  ...
+  140000000-33fffffff : Persistent Memory
+    140000000-1481fffff : namespace0.0
+    150000000-33fffffff : =EF=BF=BD_=EF=BF=BD^7_=EF=BF=BD=EF=BF=BD/_=EF=BF=
+=BD=EF=BF=BDwR=EF=BF=BD=EF=BF=BDWQ=EF=BF=BD=EF=BF=BD=EF=BF=BD^=EF=BF=BD=EF=
+=BF=BD=EF=BF=BD ...
+    150000000-33fffffff : System RAM
+
+We have to make sure to duplicate the string.  While at it, remove the
+superfluous setting of the name and fixup a stale comment.
+
+Link: http://lkml.kernel.org/r/20200508084217.9160-2-david@redhat.com
+Fixes: 9f960da72b25 ("device-dax: "Hotremove" persistent memory that is use=
+d like normal RAM")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: <stable@vger.kernel.org>	[5.3]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/dax/kmem.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zcomp-use-array_size-for-backends-list
-+++ a/drivers/block/zram/zcomp.c
-@@ -29,7 +29,6 @@ static const char * const backends[] = {
- #if IS_ENABLED(CONFIG_CRYPTO_ZSTD)
- 	"zstd",
- #endif
--	NULL
- };
- 
- static void zcomp_strm_free(struct zcomp_strm *zstrm)
-@@ -67,7 +66,7 @@ bool zcomp_available_algorithm(const cha
- {
- 	int i;
- 
--	i = __sysfs_match_string(backends, -1, comp);
-+	i = sysfs_match_string(backends, comp);
- 	if (i >= 0)
- 		return true;
- 
-@@ -86,9 +85,9 @@ ssize_t zcomp_available_show(const char
- {
- 	bool known_algorithm = false;
- 	ssize_t sz = 0;
--	int i = 0;
-+	int i;
- 
--	for (; backends[i]; i++) {
-+	for (i = 0; i < ARRAY_SIZE(backends); i++) {
- 		if (!strcmp(comp, backends[i])) {
- 			known_algorithm = true;
- 			sz += scnprintf(buf + sz, PAGE_SIZE - sz - 2,
+--- a/drivers/dax/kmem.c~device-dax-dont-leak-kernel-memory-to-user-space-a=
+fter-unloading-kmem
++++ a/drivers/dax/kmem.c
+@@ -22,6 +22,7 @@ int dev_dax_kmem_probe(struct device *de
+ 	resource_size_t kmem_size;
+ 	resource_size_t kmem_end;
+ 	struct resource *new_res;
++	const char *new_res_name;
+ 	int numa_node;
+ 	int rc;
+=20
+@@ -48,11 +49,16 @@ int dev_dax_kmem_probe(struct device *de
+ 	kmem_size &=3D ~(memory_block_size_bytes() - 1);
+ 	kmem_end =3D kmem_start + kmem_size;
+=20
+-	/* Region is permanently reserved.  Hot-remove not yet implemented. */
+-	new_res =3D request_mem_region(kmem_start, kmem_size, dev_name(dev));
++	new_res_name =3D kstrdup(dev_name(dev), GFP_KERNEL);
++	if (!new_res_name)
++		return -ENOMEM;
++
++	/* Region is permanently reserved if hotremove fails. */
++	new_res =3D request_mem_region(kmem_start, kmem_size, new_res_name);
+ 	if (!new_res) {
+ 		dev_warn(dev, "could not reserve region [%pa-%pa]\n",
+ 			 &kmem_start, &kmem_end);
++		kfree(new_res_name);
+ 		return -EBUSY;
+ 	}
+=20
+@@ -63,12 +69,12 @@ int dev_dax_kmem_probe(struct device *de
+ 	 * unknown to us that will break add_memory() below.
+ 	 */
+ 	new_res->flags =3D IORESOURCE_SYSTEM_RAM;
+-	new_res->name =3D dev_name(dev);
+=20
+ 	rc =3D add_memory(numa_node, new_res->start, resource_size(new_res));
+ 	if (rc) {
+ 		release_resource(new_res);
+ 		kfree(new_res);
++		kfree(new_res_name);
+ 		return rc;
+ 	}
+ 	dev_dax->dax_kmem_res =3D new_res;
+@@ -83,6 +89,7 @@ static int dev_dax_kmem_remove(struct de
+ 	struct resource *res =3D dev_dax->dax_kmem_res;
+ 	resource_size_t kmem_start =3D res->start;
+ 	resource_size_t kmem_size =3D resource_size(res);
++	const char *res_name =3D res->name;
+ 	int rc;
+=20
+ 	/*
+@@ -102,6 +109,7 @@ static int dev_dax_kmem_remove(struct de
+ 	/* Release and free dax resources */
+ 	release_resource(res);
+ 	kfree(res);
++	kfree(res_name);
+ 	dev_dax->dax_kmem_res =3D NULL;
+=20
+ 	return 0;
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-zcomp-use-array_size-for-backends-list.patch
+device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.patch
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix=
+.patch
+powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable.patch
+mm-memory_hotplug-remove-is_mem_section_removable.patch
+mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
+mm-memory_hotplug-handle-memblocks-only-with-config_arch_keep_memblock.patch
