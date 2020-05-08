@@ -1,79 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + stacktrace-cleanup-inconsistent-variable-type.patch
- added to -mm tree
-Date: Thu, 07 May 2020 17:05:30 -0700
-Message-ID: <20200508000530.nuRUTzJLb%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch removed
+ from -mm tree
+Date: Thu, 07 May 2020 18:27:43 -0700
+Message-ID: <20200508012743.tKIm4TZnq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57026 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54410 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726476AbgEHAFb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 20:05:31 -0400
+        id S1726495AbgEHB1p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 21:27:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bvanassche@acm.org, jpoimboe@redhat.com, matthias.bgg@gmail.com, mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, tglx@linutronix.de, walter-zh.wu@mediatek.com
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, laoar.shao@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, willy@infradead.org
 
 
 The patch titled
-     Subject: stacktrace: cleanup inconsistent variable type
-has been added to the -mm tree.  Its filename is
-     stacktrace-cleanup-inconsistent-variable-type.patch
+     Subject: mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix
+has been removed from the -mm tree.  Its filename was
+     mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/stacktrace-cleanup-inconsistent-variable-type.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/stacktrace-cleanup-inconsistent-variable-type.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc.patch
 
 ------------------------------------------------------
-From: Walter Wu <walter-zh.wu@mediatek.com>
-Subject: stacktrace: cleanup inconsistent variable type
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix
 
-Modify the variable type of 'skip' member of struct stack_trace.
-In theory, the 'skip' variable type should be unsigned int.
-There are two reasons:
-- The 'skip' only has two situation, 1)Positive value, 2)Zero
-- The 'skip' of struct stack_trace has inconsistent type with struct
-  stack_trace_data, it makes a bit confusion in the relationship between
-  struct stack_trace and stack_trace_data.
+s/EBUSY/ENOSPC/, per Michal
 
-Link: http://lkml.kernel.org/r/20200421013511.5960-1-walter-zh.wu@mediatek.com
-Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stacktrace.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/include/linux/stacktrace.h~stacktrace-cleanup-inconsistent-variable-type
-+++ a/include/linux/stacktrace.h
-@@ -64,7 +64,7 @@ void arch_stack_walk_user(stack_trace_co
- struct stack_trace {
- 	unsigned int nr_entries, max_entries;
- 	unsigned long *entries;
--	int skip;	/* input argument: How many entries to skip */
-+	unsigned int skip;	/* input argument: How many entries to skip */
- };
+--- a/mm/memcontrol.c~mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc-fix
++++ a/mm/memcontrol.c
+@@ -2721,8 +2721,6 @@ static int memcg_alloc_cache_id(void)
  
- extern void save_stack_trace(struct stack_trace *trace);
+ 	id = ida_simple_get(&memcg_cache_ida,
+ 			    0, MEMCG_CACHES_MAX_SIZE, GFP_KERNEL);
+-	if (id == -ENOSPC)
+-		return -EBUSY;
+ 	if (id < 0)
+ 		return id;
+ 
+@@ -5004,10 +5002,6 @@ static struct mem_cgroup *mem_cgroup_all
+ 	memcg->id.id = idr_alloc(&mem_cgroup_idr, NULL,
+ 				 1, MEM_CGROUP_ID_MAX,
+ 				 GFP_KERNEL);
+-	if (memcg->id.id == -ENOSPC) {
+-		error = -EBUSY;
+-		goto fail;
+-	}
+ 	if (memcg->id.id < 0) {
+ 		error = memcg->id.id;
+ 		goto fail;
 _
 
-Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-stacktrace-cleanup-inconsistent-variable-type.patch
+mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+mm-gupc-updating-the-documentation-fix.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-add-debug_wx-support-fixpatch-added-to-mm-tree.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+arch-x86-makefile-use-config_shell.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
