@@ -1,16 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch added to -mm
- tree
-Date: Fri, 08 May 2020 16:19:51 -0700
-Message-ID: <20200508231951.UAZYQKg3h%akpm@linux-foundation.org>
+ mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch added to -mm tree
+Date: Fri, 08 May 2020 16:19:56 -0700
+Message-ID: <20200508231956.jn8jbykgC%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41302 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41414 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727110AbgEHXTy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 19:19:54 -0400
+        id S1727110AbgEHXT6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 19:19:58 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.co
 
 
 The patch titled
-     Subject: mm: memcontrol: switch to native NR_ANON_MAPPED counter
+     Subject: mm: memcontrol: switch to native NR_ANON_THPS counter
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
+     mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +39,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: switch to native NR_ANON_MAPPED counter
+Subject: mm: memcontrol: switch to native NR_ANON_THPS counter
 
-Memcg maintains a private MEMCG_RSS counter.  This divergence from the
-generic VM accounting means unnecessary code overhead, and creates a
-dependency for memcg that page->mapping is set up at the time of charging,
-so that page types can be told apart.
+With rmap memcg locking already in place for NR_ANON_MAPPED, it's just a
+small step to remove the MEMCG_RSS_HUGE wart and switch memcg to the
+native NR_ANON_THPS accounting sites.
 
-Convert the generic accounting sites to mod_lruvec_page_state and friends
-to maintain the per-cgroup vmstat counter of NR_ANON_MAPPED.  We use
-lock_page_memcg() to stabilize page->mem_cgroup during rmap changes, the
-same way we do for NR_FILE_MAPPED.
-
-With the previous patch removing MEMCG_CACHE and the private NR_SHMEM
-counter, this patch finally eliminates the need to have page->mapping set
-up at charge time.  However, we need to have page->mem_cgroup set up by
-the time rmap runs and does the accounting, so switch the commit and the
-rmap callbacks around.
-
-v2: fix temporary accounting bug by switching rmap<->commit (Joonsoo)
-
-Link: http://lkml.kernel.org/r/20200508183105.225460-11-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20200508183105.225460-12-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Roman Gushchin <guro@fb.com>
@@ -73,386 +58,180 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/memcontrol.h |    3 --
- kernel/events/uprobes.c    |    2 -
- mm/huge_memory.c           |    2 -
- mm/khugepaged.c            |    2 -
- mm/memcontrol.c            |   27 ++++++--------------
- mm/memory.c                |   10 +++----
- mm/migrate.c               |    2 -
- mm/rmap.c                  |   47 +++++++++++++++++++++--------------
- mm/swapfile.c              |    4 +-
- mm/userfaultfd.c           |    2 -
- 10 files changed, 51 insertions(+), 50 deletions(-)
+ mm/huge_memory.c           |    4 ++-
+ mm/memcontrol.c            |   39 ++++++++++++++---------------------
+ mm/rmap.c                  |    6 ++---
+ 4 files changed, 23 insertions(+), 29 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-switch-to-native-nr_anon_mapped-counter
+--- a/include/linux/memcontrol.h~mm-memcontrol-switch-to-native-nr_anon_thps-counter
 +++ a/include/linux/memcontrol.h
 @@ -29,8 +29,7 @@ struct kmem_cache;
  
  /* Cgroup-specific page state, on top of universal node page state */
  enum memcg_stat_item {
--	MEMCG_RSS = NR_VM_NODE_STAT_ITEMS,
--	MEMCG_RSS_HUGE,
-+	MEMCG_RSS_HUGE = NR_VM_NODE_STAT_ITEMS,
- 	MEMCG_SWAP,
+-	MEMCG_RSS_HUGE = NR_VM_NODE_STAT_ITEMS,
+-	MEMCG_SWAP,
++	MEMCG_SWAP = NR_VM_NODE_STAT_ITEMS,
  	MEMCG_SOCK,
  	/* XXX: why are these zone and not node counters? */
---- a/kernel/events/uprobes.c~mm-memcontrol-switch-to-native-nr_anon_mapped-counter
-+++ a/kernel/events/uprobes.c
-@@ -188,8 +188,8 @@ static int __replace_page(struct vm_area
- 
- 	if (new_page) {
- 		get_page(new_page);
--		page_add_new_anon_rmap(new_page, vma, addr, false);
- 		mem_cgroup_commit_charge(new_page, memcg, false);
-+		page_add_new_anon_rmap(new_page, vma, addr, false);
- 		lru_cache_add_active_or_unevictable(new_page, vma);
- 	} else
- 		/* no new page, just dec_mm_counter for old_page */
---- a/mm/huge_memory.c~mm-memcontrol-switch-to-native-nr_anon_mapped-counter
+ 	MEMCG_KERNEL_STACK_KB,
+--- a/mm/huge_memory.c~mm-memcontrol-switch-to-native-nr_anon_thps-counter
 +++ a/mm/huge_memory.c
-@@ -640,8 +640,8 @@ static vm_fault_t __do_huge_pmd_anonymou
+@@ -2360,15 +2360,17 @@ static void __split_huge_pmd_locked(stru
+ 			atomic_inc(&page[i]._mapcount);
+ 	}
  
- 		entry = mk_huge_pmd(page, vma->vm_page_prot);
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
--		page_add_new_anon_rmap(page, vma, haddr, true);
- 		mem_cgroup_commit_charge(page, memcg, false);
-+		page_add_new_anon_rmap(page, vma, haddr, true);
- 		lru_cache_add_active_or_unevictable(page, vma);
- 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
- 		set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
---- a/mm/khugepaged.c~mm-memcontrol-switch-to-native-nr_anon_mapped-counter
-+++ a/mm/khugepaged.c
-@@ -1086,8 +1086,8 @@ static void collapse_huge_page(struct mm
++	lock_page_memcg(page);
+ 	if (atomic_add_negative(-1, compound_mapcount_ptr(page))) {
+ 		/* Last compound_mapcount is gone. */
+-		__dec_node_page_state(page, NR_ANON_THPS);
++		__dec_lruvec_page_state(page, NR_ANON_THPS);
+ 		if (TestClearPageDoubleMap(page)) {
+ 			/* No need in mapcount reference anymore */
+ 			for (i = 0; i < HPAGE_PMD_NR; i++)
+ 				atomic_dec(&page[i]._mapcount);
+ 		}
+ 	}
++	unlock_page_memcg(page);
  
- 	spin_lock(pmd_ptl);
- 	BUG_ON(!pmd_none(*pmd));
--	page_add_new_anon_rmap(new_page, vma, address, true);
- 	mem_cgroup_commit_charge(new_page, memcg, false);
-+	page_add_new_anon_rmap(new_page, vma, address, true);
- 	count_memcg_events(memcg, THP_COLLAPSE_ALLOC, 1);
- 	lru_cache_add_active_or_unevictable(new_page, vma);
- 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
---- a/mm/memcontrol.c~mm-memcontrol-switch-to-native-nr_anon_mapped-counter
+ 	smp_wmb(); /* make pte visible before pmd */
+ 	pmd_populate(mm, pmd, pgtable);
+--- a/mm/memcontrol.c~mm-memcontrol-switch-to-native-nr_anon_thps-counter
 +++ a/mm/memcontrol.c
-@@ -836,13 +836,6 @@ static void mem_cgroup_charge_statistics
+@@ -836,11 +836,6 @@ static void mem_cgroup_charge_statistics
  					 struct page *page,
  					 int nr_pages)
  {
--	/*
--	 * Here, RSS means 'mapped anon' and anon's SwapCache. Shmem/tmpfs is
--	 * counted as CACHE even if it's on ANON LRU.
--	 */
--	if (PageAnon(page))
--		__mod_memcg_state(memcg, MEMCG_RSS, nr_pages);
+-	if (abs(nr_pages) > 1) {
+-		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+-		__mod_memcg_state(memcg, MEMCG_RSS_HUGE, nr_pages);
+-	}
 -
- 	if (abs(nr_pages) > 1) {
- 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
- 		__mod_memcg_state(memcg, MEMCG_RSS_HUGE, nr_pages);
-@@ -1384,7 +1377,7 @@ static char *memory_stat_format(struct m
- 	 */
- 
- 	seq_buf_printf(&s, "anon %llu\n",
--		       (u64)memcg_page_state(memcg, MEMCG_RSS) *
-+		       (u64)memcg_page_state(memcg, NR_ANON_MAPPED) *
+ 	/* pagein of a big page is an event. So, ignore page size */
+ 	if (nr_pages > 0)
+ 		__count_memcg_events(memcg, PGPGIN, 1);
+@@ -1406,15 +1401,9 @@ static char *memory_stat_format(struct m
+ 		       (u64)memcg_page_state(memcg, NR_WRITEBACK) *
  		       PAGE_SIZE);
- 	seq_buf_printf(&s, "file %llu\n",
- 		       (u64)memcg_page_state(memcg, NR_FILE_PAGES) *
-@@ -3300,7 +3293,7 @@ static unsigned long mem_cgroup_usage(st
  
- 	if (mem_cgroup_is_root(memcg)) {
- 		val = memcg_page_state(memcg, NR_FILE_PAGES) +
--			memcg_page_state(memcg, MEMCG_RSS);
-+			memcg_page_state(memcg, NR_ANON_MAPPED);
- 		if (swap)
- 			val += memcg_page_state(memcg, MEMCG_SWAP);
- 	} else {
-@@ -3771,7 +3764,7 @@ static int memcg_numa_stat_show(struct s
+-	/*
+-	 * TODO: We should eventually replace our own MEMCG_RSS_HUGE counter
+-	 * with the NR_ANON_THP vm counter, but right now it's a pain in the
+-	 * arse because it requires migrating the work out of rmap to a place
+-	 * where the page->mem_cgroup is set up and stable.
+-	 */
+ 	seq_buf_printf(&s, "anon_thp %llu\n",
+-		       (u64)memcg_page_state(memcg, MEMCG_RSS_HUGE) *
+-		       PAGE_SIZE);
++		       (u64)memcg_page_state(memcg, NR_ANON_THPS) *
++		       HPAGE_PMD_NR * PAGE_SIZE);
  
+ 	for (i = 0; i < NR_LRU_LISTS; i++)
+ 		seq_buf_printf(&s, "%s %llu\n", lru_list_name(i),
+@@ -3008,8 +2997,6 @@ void mem_cgroup_split_huge_fixup(struct
+ 
+ 	for (i = 1; i < HPAGE_PMD_NR; i++)
+ 		head[i].mem_cgroup = head->mem_cgroup;
+-
+-	__mod_memcg_state(head->mem_cgroup, MEMCG_RSS_HUGE, -HPAGE_PMD_NR);
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+@@ -3765,7 +3752,7 @@ static int memcg_numa_stat_show(struct s
  static const unsigned int memcg1_stats[] = {
  	NR_FILE_PAGES,
--	MEMCG_RSS,
-+	NR_ANON_MAPPED,
- 	MEMCG_RSS_HUGE,
+ 	NR_ANON_MAPPED,
+-	MEMCG_RSS_HUGE,
++	NR_ANON_THPS,
  	NR_SHMEM,
  	NR_FILE_MAPPED,
-@@ -5401,7 +5394,12 @@ static int mem_cgroup_move_account(struc
+ 	NR_FILE_DIRTY,
+@@ -3802,11 +3789,14 @@ static int memcg_stat_show(struct seq_fi
+ 	BUILD_BUG_ON(ARRAY_SIZE(memcg1_stat_names) != ARRAY_SIZE(memcg1_stats));
  
- 	lock_page_memcg(page);
+ 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
++		unsigned long nr;
++
+ 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
+ 			continue;
+-		seq_printf(m, "%s %lu\n", memcg1_stat_names[i],
+-			   memcg_page_state_local(memcg, memcg1_stats[i]) *
+-			   PAGE_SIZE);
++		nr = memcg_page_state_local(memcg, memcg1_stats[i]);
++		if (memcg1_stats[i] == NR_ANON_THPS)
++			nr *= HPAGE_PMD_NR;
++		seq_printf(m, "%s %lu\n", memcg1_stat_names[i], nr * PAGE_SIZE);
+ 	}
  
--	if (!PageAnon(page)) {
-+	if (PageAnon(page)) {
-+		if (page_mapped(page)) {
-+			__mod_lruvec_state(from_vec, NR_ANON_MAPPED, -nr_pages);
-+			__mod_lruvec_state(to_vec, NR_ANON_MAPPED, nr_pages);
-+		}
-+	} else {
+ 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
+@@ -5398,6 +5388,13 @@ static int mem_cgroup_move_account(struc
+ 		if (page_mapped(page)) {
+ 			__mod_lruvec_state(from_vec, NR_ANON_MAPPED, -nr_pages);
+ 			__mod_lruvec_state(to_vec, NR_ANON_MAPPED, nr_pages);
++			if (PageTransHuge(page)) {
++				__mod_lruvec_state(from_vec, NR_ANON_THPS,
++						   -nr_pages);
++				__mod_lruvec_state(to_vec, NR_ANON_THPS,
++						   nr_pages);
++			}
++
+ 		}
+ 	} else {
  		__mod_lruvec_state(from_vec, NR_FILE_PAGES, -nr_pages);
- 		__mod_lruvec_state(to_vec, NR_FILE_PAGES, nr_pages);
- 
-@@ -6529,7 +6527,6 @@ void mem_cgroup_commit_charge(struct pag
- {
- 	unsigned int nr_pages = hpage_nr_pages(page);
- 
--	VM_BUG_ON_PAGE(!page->mapping, page);
- 	VM_BUG_ON_PAGE(PageLRU(page) && !lrucare, page);
- 
- 	if (mem_cgroup_disabled())
-@@ -6602,8 +6599,6 @@ int mem_cgroup_charge(struct page *page,
- 	struct mem_cgroup *memcg;
- 	int ret;
- 
--	VM_BUG_ON_PAGE(!page->mapping, page);
--
- 	ret = mem_cgroup_try_charge(page, mm, gfp_mask, &memcg);
- 	if (ret)
- 		return ret;
-@@ -6615,7 +6610,6 @@ struct uncharge_gather {
- 	struct mem_cgroup *memcg;
+@@ -6611,7 +6608,6 @@ struct uncharge_gather {
  	unsigned long nr_pages;
  	unsigned long pgpgout;
--	unsigned long nr_anon;
  	unsigned long nr_kmem;
- 	unsigned long nr_huge;
+-	unsigned long nr_huge;
  	struct page *dummy_page;
-@@ -6640,7 +6634,6 @@ static void uncharge_batch(const struct
+ };
+ 
+@@ -6634,7 +6630,6 @@ static void uncharge_batch(const struct
  	}
  
  	local_irq_save(flags);
--	__mod_memcg_state(ug->memcg, MEMCG_RSS, -ug->nr_anon);
- 	__mod_memcg_state(ug->memcg, MEMCG_RSS_HUGE, -ug->nr_huge);
+-	__mod_memcg_state(ug->memcg, MEMCG_RSS_HUGE, -ug->nr_huge);
  	__count_memcg_events(ug->memcg, PGPGOUT, ug->pgpgout);
  	__this_cpu_add(ug->memcg->vmstats_percpu->nr_page_events, ug->nr_pages);
-@@ -6680,8 +6673,6 @@ static void uncharge_page(struct page *p
+ 	memcg_check_events(ug->memcg, ug->dummy_page);
+@@ -6671,8 +6666,6 @@ static void uncharge_page(struct page *p
+ 	ug->nr_pages += nr_pages;
+ 
  	if (!PageKmemcg(page)) {
- 		if (PageTransHuge(page))
- 			ug->nr_huge += nr_pages;
--		if (PageAnon(page))
--			ug->nr_anon += nr_pages;
+-		if (PageTransHuge(page))
+-			ug->nr_huge += nr_pages;
  		ug->pgpgout++;
  	} else {
  		ug->nr_kmem += nr_pages;
---- a/mm/memory.c~mm-memcontrol-switch-to-native-nr_anon_mapped-counter
-+++ a/mm/memory.c
-@@ -2712,8 +2712,8 @@ static vm_fault_t wp_page_copy(struct vm
- 		 * thread doing COW.
- 		 */
- 		ptep_clear_flush_notify(vma, vmf->address, vmf->pte);
--		page_add_new_anon_rmap(new_page, vma, vmf->address, false);
- 		mem_cgroup_commit_charge(new_page, memcg, false);
-+		page_add_new_anon_rmap(new_page, vma, vmf->address, false);
- 		lru_cache_add_active_or_unevictable(new_page, vma);
- 		/*
- 		 * We call the notify macro here because, when using secondary
-@@ -3245,12 +3245,12 @@ vm_fault_t do_swap_page(struct vm_fault
- 
- 	/* ksm created a completely new copy */
- 	if (unlikely(page != swapcache && swapcache)) {
--		page_add_new_anon_rmap(page, vma, vmf->address, false);
- 		mem_cgroup_commit_charge(page, memcg, false);
-+		page_add_new_anon_rmap(page, vma, vmf->address, false);
- 		lru_cache_add_active_or_unevictable(page, vma);
- 	} else {
--		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
- 		mem_cgroup_commit_charge(page, memcg, true);
-+		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
- 		activate_page(page);
- 	}
- 
-@@ -3392,8 +3392,8 @@ static vm_fault_t do_anonymous_page(stru
- 	}
- 
- 	inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
--	page_add_new_anon_rmap(page, vma, vmf->address, false);
- 	mem_cgroup_commit_charge(page, memcg, false);
-+	page_add_new_anon_rmap(page, vma, vmf->address, false);
- 	lru_cache_add_active_or_unevictable(page, vma);
- setpte:
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, entry);
-@@ -3654,8 +3654,8 @@ vm_fault_t alloc_set_pte(struct vm_fault
- 	/* copy-on-write page */
- 	if (write && !(vma->vm_flags & VM_SHARED)) {
- 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
--		page_add_new_anon_rmap(page, vma, vmf->address, false);
- 		mem_cgroup_commit_charge(page, memcg, false);
-+		page_add_new_anon_rmap(page, vma, vmf->address, false);
- 		lru_cache_add_active_or_unevictable(page, vma);
- 	} else {
- 		inc_mm_counter_fast(vma->vm_mm, mm_counter_file(page));
---- a/mm/migrate.c~mm-memcontrol-switch-to-native-nr_anon_mapped-counter
-+++ a/mm/migrate.c
-@@ -2838,8 +2838,8 @@ static void migrate_vma_insert_page(stru
- 		goto unlock_abort;
- 
- 	inc_mm_counter(mm, MM_ANONPAGES);
--	page_add_new_anon_rmap(page, vma, addr, false);
- 	mem_cgroup_commit_charge(page, memcg, false);
-+	page_add_new_anon_rmap(page, vma, addr, false);
- 	if (!is_zone_device_page(page))
- 		lru_cache_add_active_or_unevictable(page, vma);
- 	get_page(page);
---- a/mm/rmap.c~mm-memcontrol-switch-to-native-nr_anon_mapped-counter
+--- a/mm/rmap.c~mm-memcontrol-switch-to-native-nr_anon_thps-counter
 +++ a/mm/rmap.c
-@@ -1114,6 +1114,11 @@ void do_page_add_anon_rmap(struct page *
- 	bool compound = flags & RMAP_COMPOUND;
- 	bool first;
- 
-+	if (unlikely(PageKsm(page)))
-+		lock_page_memcg(page);
-+	else
-+		VM_BUG_ON_PAGE(!PageLocked(page), page);
-+
- 	if (compound) {
- 		atomic_t *mapcount;
- 		VM_BUG_ON_PAGE(!PageLocked(page), page);
-@@ -1134,12 +1139,13 @@ void do_page_add_anon_rmap(struct page *
+@@ -1138,7 +1138,7 @@ void do_page_add_anon_rmap(struct page *
+ 		 * disabled.
  		 */
  		if (compound)
- 			__inc_node_page_state(page, NR_ANON_THPS);
--		__mod_node_page_state(page_pgdat(page), NR_ANON_MAPPED, nr);
-+		__mod_lruvec_page_state(page, NR_ANON_MAPPED, nr);
- 	}
--	if (unlikely(PageKsm(page)))
--		return;
- 
--	VM_BUG_ON_PAGE(!PageLocked(page), page);
-+	if (unlikely(PageKsm(page))) {
-+		unlock_page_memcg(page);
-+		return;
-+	}
- 
- 	/* address might be in next vma when migration races vma_adjust */
- 	if (first)
-@@ -1181,7 +1187,7 @@ void page_add_new_anon_rmap(struct page
- 		/* increment count (starts at -1) */
- 		atomic_set(&page->_mapcount, 0);
- 	}
--	__mod_node_page_state(page_pgdat(page), NR_ANON_MAPPED, nr);
-+	__mod_lruvec_page_state(page, NR_ANON_MAPPED, nr);
- 	__page_set_anon_rmap(page, vma, address, 1);
- }
- 
-@@ -1230,13 +1236,12 @@ static void page_remove_file_rmap(struct
- 	int i, nr = 1;
- 
- 	VM_BUG_ON_PAGE(compound && !PageHead(page), page);
--	lock_page_memcg(page);
- 
- 	/* Hugepages are not counted in NR_FILE_MAPPED for now. */
- 	if (unlikely(PageHuge(page))) {
- 		/* hugetlb pages are always mapped with pmds */
- 		atomic_dec(compound_mapcount_ptr(page));
--		goto out;
-+		return;
+-			__inc_node_page_state(page, NR_ANON_THPS);
++			__inc_lruvec_page_state(page, NR_ANON_THPS);
+ 		__mod_lruvec_page_state(page, NR_ANON_MAPPED, nr);
  	}
  
- 	/* page still mapped by someone else? */
-@@ -1246,14 +1251,14 @@ static void page_remove_file_rmap(struct
- 				nr++;
- 		}
- 		if (!atomic_add_negative(-1, compound_mapcount_ptr(page)))
--			goto out;
-+			return;
- 		if (PageSwapBacked(page))
- 			__dec_node_page_state(page, NR_SHMEM_PMDMAPPED);
- 		else
- 			__dec_node_page_state(page, NR_FILE_PMDMAPPED);
+@@ -1180,7 +1180,7 @@ void page_add_new_anon_rmap(struct page
+ 		if (hpage_pincount_available(page))
+ 			atomic_set(compound_pincount_ptr(page), 0);
+ 
+-		__inc_node_page_state(page, NR_ANON_THPS);
++		__inc_lruvec_page_state(page, NR_ANON_THPS);
  	} else {
- 		if (!atomic_add_negative(-1, &page->_mapcount))
--			goto out;
-+			return;
- 	}
+ 		/* Anon THP always mapped first with PMD */
+ 		VM_BUG_ON_PAGE(PageTransCompound(page), page);
+@@ -1286,7 +1286,7 @@ static void page_remove_anon_compound_rm
+ 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
+ 		return;
  
- 	/*
-@@ -1265,8 +1270,6 @@ static void page_remove_file_rmap(struct
+-	__dec_node_page_state(page, NR_ANON_THPS);
++	__dec_lruvec_page_state(page, NR_ANON_THPS);
  
- 	if (unlikely(PageMlocked(page)))
- 		clear_page_mlock(page);
--out:
--	unlock_page_memcg(page);
- }
- 
- static void page_remove_anon_compound_rmap(struct page *page)
-@@ -1310,7 +1313,7 @@ static void page_remove_anon_compound_rm
- 		clear_page_mlock(page);
- 
- 	if (nr)
--		__mod_node_page_state(page_pgdat(page), NR_ANON_MAPPED, -nr);
-+		__mod_lruvec_page_state(page, NR_ANON_MAPPED, -nr);
- }
- 
- /**
-@@ -1322,22 +1325,28 @@ static void page_remove_anon_compound_rm
-  */
- void page_remove_rmap(struct page *page, bool compound)
- {
--	if (!PageAnon(page))
--		return page_remove_file_rmap(page, compound);
-+	lock_page_memcg(page);
- 
--	if (compound)
--		return page_remove_anon_compound_rmap(page);
-+	if (!PageAnon(page)) {
-+		page_remove_file_rmap(page, compound);
-+		goto out;
-+	}
-+
-+	if (compound) {
-+		page_remove_anon_compound_rmap(page);
-+		goto out;
-+	}
- 
- 	/* page still mapped by someone else? */
- 	if (!atomic_add_negative(-1, &page->_mapcount))
--		return;
-+		goto out;
- 
- 	/*
- 	 * We use the irq-unsafe __{inc|mod}_zone_page_stat because
- 	 * these counters are not modified in interrupt context, and
- 	 * pte lock(a spinlock) is held, which implies preemption disabled.
- 	 */
--	__dec_node_page_state(page, NR_ANON_MAPPED);
-+	__dec_lruvec_page_state(page, NR_ANON_MAPPED);
- 
- 	if (unlikely(PageMlocked(page)))
- 		clear_page_mlock(page);
-@@ -1354,6 +1363,8 @@ void page_remove_rmap(struct page *page,
- 	 * Leaving it set also helps swapoff to reinstate ptes
- 	 * faster for those pages still in swapcache.
- 	 */
-+out:
-+	unlock_page_memcg(page);
- }
- 
- /*
---- a/mm/swapfile.c~mm-memcontrol-switch-to-native-nr_anon_mapped-counter
-+++ a/mm/swapfile.c
-@@ -1881,11 +1881,11 @@ static int unuse_pte(struct vm_area_stru
- 	set_pte_at(vma->vm_mm, addr, pte,
- 		   pte_mkold(mk_pte(page, vma->vm_page_prot)));
- 	if (page == swapcache) {
--		page_add_anon_rmap(page, vma, addr, false);
- 		mem_cgroup_commit_charge(page, memcg, true);
-+		page_add_anon_rmap(page, vma, addr, false);
- 	} else { /* ksm created a completely new copy */
--		page_add_new_anon_rmap(page, vma, addr, false);
- 		mem_cgroup_commit_charge(page, memcg, false);
-+		page_add_new_anon_rmap(page, vma, addr, false);
- 		lru_cache_add_active_or_unevictable(page, vma);
- 	}
- 	swap_free(entry);
---- a/mm/userfaultfd.c~mm-memcontrol-switch-to-native-nr_anon_mapped-counter
-+++ a/mm/userfaultfd.c
-@@ -123,8 +123,8 @@ static int mcopy_atomic_pte(struct mm_st
- 		goto out_release_uncharge_unlock;
- 
- 	inc_mm_counter(dst_mm, MM_ANONPAGES);
--	page_add_new_anon_rmap(page, dst_vma, dst_addr, false);
- 	mem_cgroup_commit_charge(page, memcg, false);
-+	page_add_new_anon_rmap(page, dst_vma, dst_addr, false);
- 	lru_cache_add_active_or_unevictable(page, dst_vma);
- 
- 	set_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
+ 	if (TestClearPageDoubleMap(page)) {
+ 		/*
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
