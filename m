@@ -1,86 +1,102 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 15/15] mm: limit boost_watermark on small zones
-Date: Thu, 07 May 2020 18:36:27 -0700
-Message-ID: <20200508013627.uDh87VOZJ%akpm@linux-foundation.org>
+Subject: +
+ arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch added to -mm
+ tree
+Date: Thu, 07 May 2020 19:08:13 -0700
+Message-ID: <20200508020813.KT6Udx4zG%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59044 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726575AbgEHBg2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 21:36:28 -0400
+        id S1726538AbgEHCIO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 22:08:14 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@redhat.com, henry.willard@oracle.com, linux-mm@kvack.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, ira.weiny@intel.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
-From: Henry Willard <henry.willard@oracle.com>
-Subject: mm: limit boost_watermark on small zones
 
-Commit 1c30844d2dfe ("mm: reclaim small amounts of memory when an external
-fragmentation event occurs") adds a boost_watermark() function which
-increases the min watermark in a zone by at least pageblock_nr_pages or
-the number of pages in a page block. On Arm64, with 64K pages and 512M
-huge pages, this is 8192 pages or 512M. It does this regardless of the
-number of managed pages managed in the zone or the likelihood of success.
-This can put the zone immediately under water in terms of allocating pages
-from the zone, and can cause a small machine to fail immediately due to
-OoM. Unlike set_recommended_min_free_kbytes(), which substantially
-increases min_free_kbytes and is tied to THP, boost_watermark() can be
-called even if THP is not active. The problem is most likely to appear
-on architectures such as Arm64 where pageblock_nr_pages is very large.
+The patch titled
+     Subject: arch-kunmap-remove-duplicate-kunmap-implementations-fix
+has been added to the -mm tree.  Its filename is
+     arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
 
-It is desirable to run the kdump capture kernel in as small a space as
-possible to avoid wasting memory. In some architectures, such as Arm64,
-there are restrictions on where the capture kernel can run, and therefore,
-the space available. A capture kernel running in 768M can fail due to OoM
-immediately after boost_watermark() sets the min in zone DMA32, where
-most of the memory is, to 512M. It fails even though there is over 500M of
-free memory. With boost_watermark() suppressed, the capture kernel can run
-successfully in 448M.
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
 
-This patch limits boost_watermark() to boosting a zone's min watermark only
-when there are enough pages that the boost will produce positive results.
-In this case that is estimated to be four times as many pages as
-pageblock_nr_pages.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Mel said:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-: There is no harm in marking it stable.  Clearly it does not happen very
-: often but it's not impossible.  32-bit x86 is a lot less common now
-: which would previously have been vulnerable to triggering this easily. 
-: ppc64 has a larger base page size but typically only has one zone. 
-: arm64 is likely the most vulnerable, particularly when CMA is
-: configured with a small movable zone.
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-Link: http://lkml.kernel.org/r/1588294148-6586-1-git-send-email-henry.willard@oracle.com
-Fixes: 1c30844d2dfe ("mm: reclaim small amounts of memory when an external fragmentation event occurs")
-Signed-off-by: Henry Willard <henry.willard@oracle.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch-kunmap-remove-duplicate-kunmap-implementations-fix
+
+fix CONFIG_HIGHMEM=n build on various architectures
+
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/highmem.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/page_alloc.c~mm-limit-boost_watermark-on-small-zones
-+++ a/mm/page_alloc.c
-@@ -2401,6 +2401,14 @@ static inline void boost_watermark(struc
+--- a/include/linux/highmem.h~arch-kunmap-remove-duplicate-kunmap-implementations-fix
++++ a/include/linux/highmem.h
+@@ -53,6 +53,7 @@ static inline void *kmap(struct page *pa
+ }
  
- 	if (!watermark_boost_factor)
- 		return;
-+	/*
-+	 * Don't bother in zones that are unlikely to produce results.
-+	 * On small machines, including kdump capture kernels running
-+	 * in a small area, boosting the watermark can cause an out of
-+	 * memory situation immediately.
-+	 */
-+	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
-+		return;
+ void kunmap_high(struct page *page);
++
+ static inline void kunmap(struct page *page)
+ {
+ 	might_sleep();
+@@ -111,6 +112,10 @@ static inline void *kmap(struct page *pa
+ 	return page_address(page);
+ }
  
- 	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
- 			watermark_boost_factor, 10000);
++static inline void kunmap_high(struct page *page)
++{
++}
++
+ static inline void kunmap(struct page *page)
+ {
+ }
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+mm-gupc-updating-the-documentation-fix.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-add-debug_wx-support-fixpatch-added-to-mm-tree.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+arch-x86-makefile-use-config_shell.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
