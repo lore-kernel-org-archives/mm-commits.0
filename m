@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch added to -mm
- tree
-Date: Thu, 07 May 2020 19:08:13 -0700
-Message-ID: <20200508020813.KT6Udx4zG%akpm@linux-foundation.org>
+ ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index-fix.patch
+ added to -mm tree
+Date: Fri, 08 May 2020 13:46:53 -0700
+Message-ID: <20200508204653.vUfFWDJl2%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42008 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52448 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726538AbgEHCIO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 22:08:14 -0400
+        id S1726817AbgEHUqz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 16:46:55 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ira.weiny@intel.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, dave@stgolabs.net, longman@redhat.com, manfred@colorfullife.com, mingo@redhat.com, mm-commits@vger.kernel.org, neilb@suse.com, oberpar@linux.ibm.com, rostedt@goodmis.org, schwab@suse.de, vvs@virtuozzo.com
 
 
 The patch titled
-     Subject: arch-kunmap-remove-duplicate-kunmap-implementations-fix
+     Subject: ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index-fix
 has been added to the -mm tree.  Its filename is
-     arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+     ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch-kunmap-remove-duplicate-kunmap-implementations-fix
+Subject: ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index-fix
 
-fix CONFIG_HIGHMEM=n build on various architectures
+fix conflict resolution fix
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Andreas Schwab <schwab@suse.de>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: NeilBrown <neilb@suse.com>
+Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Vasily Averin <vvs@virtuozzo.com>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ ipc/util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/highmem.h~arch-kunmap-remove-duplicate-kunmap-implementations-fix
-+++ a/include/linux/highmem.h
-@@ -53,6 +53,7 @@ static inline void *kmap(struct page *pa
+--- a/ipc/util.c~ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index-fix
++++ a/ipc/util.c
+@@ -777,7 +777,7 @@ static struct kern_ipc_perm *sysvipc_fin
+ 		}
+ 	}
+ out:
+-	*new_pos = pos + 1;
++	*new_pos = index + 1;
+ 	return ipc;
  }
  
- void kunmap_high(struct page *page);
-+
- static inline void kunmap(struct page *page)
- {
- 	might_sleep();
-@@ -111,6 +112,10 @@ static inline void *kmap(struct page *pa
- 	return page_address(page);
- }
- 
-+static inline void kunmap_high(struct page *page)
-+{
-+}
-+
- static inline void kunmap(struct page *page)
- {
- }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index-fix.patch
 squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
 drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
 mm.patch
