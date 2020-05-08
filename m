@@ -1,84 +1,43 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 03/15] mm/page_alloc: fix watchdog soft lockups
- during set_zone_contiguous()
-Date: Thu, 07 May 2020 18:35:46 -0700
-Message-ID: <20200508013546.5KqzoUC9B%akpm@linux-foundation.org>
+Subject: [patch 04/15] kernel/kcov.c: fix typos in
+ kcov_remote_start documentation
+Date: Thu, 07 May 2020 18:35:49 -0700
+Message-ID: <20200508013549.M4PmRWho3%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58292 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726514AbgEHBfs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 21:35:48 -0400
+        id S1726514AbgEHBfv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 21:35:51 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alexander.duyck@gmail.com, bhe@redhat.com, daniel.m.jordan@oracle.com, david@redhat.com, ktkhai@virtuozzo.com, linux-mm@kvack.org, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pankaj.gupta.linux@gmail.com, pasha.tatashin@soleen.com, shile.zhang@linux.alibaba.com, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, andreyknvl@google.com, linux-mm@kvack.org, maciej.grochowski@pm.me, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: fix watchdog soft lockups during set_zone_contiguous()
+From: Maciej Grochowski <maciej.grochowski@pm.me>
+Subject: kernel/kcov.c: fix typos in kcov_remote_start documentation
 
-Without CONFIG_PREEMPT, it can happen that we get soft lockups detected,
-e.g., while booting up.
-
-[  105.608900] watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [swapper/0:1]
-[  105.608933] Modules linked in:
-[  105.608933] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.6.0-next-20200331+ #4
-[  105.608933] Hardware name: Red Hat KVM, BIOS 1.11.1-4.module+el8.1.0+4066+0f1aadab 04/01/2014
-[  105.608933] RIP: 0010:__pageblock_pfn_to_page+0x134/0x1c0
-[  105.608933] Code: 85 c0 74 71 4a 8b 04 d0 48 85 c0 74 68 48 01 c1 74 63 f6 01 04 74 5e 48 c1 e7 06 4c 8b 05 cc 991
-[  105.608933] RSP: 0000:ffffb6d94000fe60 EFLAGS: 00010286 ORIG_RAX: ffffffffffffff13
-[  105.608933] RAX: fffff81953250000 RBX: 000000000a4c9600 RCX: ffff8fe9ff7c1990
-[  105.608933] RDX: ffff8fe9ff7dab80 RSI: 000000000a4c95ff RDI: 0000000293250000
-[  105.608933] RBP: ffff8fe9ff7dab80 R08: fffff816c0000000 R09: 0000000000000008
-[  105.608933] R10: 0000000000000014 R11: 0000000000000014 R12: 0000000000000000
-[  105.608933] R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
-[  105.608933] FS:  0000000000000000(0000) GS:ffff8fe1ff400000(0000) knlGS:0000000000000000
-[  105.608933] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  105.608933] CR2: 000000000f613000 CR3: 00000088cf20a000 CR4: 00000000000006f0
-[  105.608933] Call Trace:
-[  105.608933]  set_zone_contiguous+0x56/0x70
-[  105.608933]  page_alloc_init_late+0x166/0x176
-[  105.608933]  kernel_init_freeable+0xfa/0x255
-[  105.608933]  ? rest_init+0xaa/0xaa
-[  105.608933]  kernel_init+0xa/0x106
-[  105.608933]  ret_from_fork+0x35/0x40
-
-The issue becomes visible when having a lot of memory (e.g., 4TB) assigned
-to a single NUMA node - a system that can easily be created using QEMU. 
-Inside VMs on a hypervisor with quite some memory overcommit, this is
-fairly easy to trigger.
-
-Link: http://lkml.kernel.org/r/20200416073417.5003-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Shile Zhang <shile.zhang@linux.alibaba.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Alexander Duyck <alexander.duyck@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200420030259.31674-1-maciek.grochowski@gmail.com
+Signed-off-by: Maciej Grochowski <maciej.grochowski@pm.me>
+Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/kcov.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-watchdog-soft-lockups-during-set_zone_contiguous
-+++ a/mm/page_alloc.c
-@@ -1607,6 +1607,7 @@ void set_zone_contiguous(struct zone *zo
- 		if (!__pageblock_pfn_to_page(block_start_pfn,
- 					     block_end_pfn, zone))
- 			return;
-+		cond_resched();
- 	}
- 
- 	/* We confirm that there is no hole */
+--- a/kernel/kcov.c~kernel-kcovc-fix-typos-in-kcov_remote_start-documentation
++++ a/kernel/kcov.c
+@@ -740,8 +740,8 @@ static const struct file_operations kcov
+  * kcov_remote_handle() with KCOV_SUBSYSTEM_COMMON as the subsystem id and an
+  * arbitrary 4-byte non-zero number as the instance id). This common handle
+  * then gets saved into the task_struct of the process that issued the
+- * KCOV_REMOTE_ENABLE ioctl. When this proccess issues system calls that spawn
+- * kernel threads, the common handle must be retrived via kcov_common_handle()
++ * KCOV_REMOTE_ENABLE ioctl. When this process issues system calls that spawn
++ * kernel threads, the common handle must be retrieved via kcov_common_handle()
+  * and passed to the spawned threads via custom annotations. Those kernel
+  * threads must in turn be annotated with kcov_remote_start(common_handle) and
+  * kcov_remote_stop(). All of the threads that are spawned by the same process
 _
