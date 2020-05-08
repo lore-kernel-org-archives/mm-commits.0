@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-delete-unused-lrucare-handling.patch
- added to -mm tree
-Date: Fri, 08 May 2020 16:20:19 -0700
-Message-ID: <20200508232019.FJMXuEB14%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-update-page-mem_cgroup-stability-rules.patch added to -mm
+ tree
+Date: Fri, 08 May 2020 16:20:24 -0700
+Message-ID: <20200508232024.QlAVj3DJn%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42020 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42128 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727110AbgEHXUV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 19:20:21 -0400
+        id S1727110AbgEHXUZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 19:20:25 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +18,14 @@ To: alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.co
 
 
 The patch titled
-     Subject: mm: memcontrol: delete unused lrucare handling
+     Subject: mm: memcontrol: update page->mem_cgroup stability rules
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-delete-unused-lrucare-handling.patch
+     mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-delete-unused-lrucare-handling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-delete-unused-lrucare-handling.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: delete unused lrucare handling
+Subject: mm: memcontrol: update page->mem_cgroup stability rules
 
-Swapin faults were the last event to charge pages after they had already
-been put on the LRU list.  Now that we charge directly on swapin, the
-lrucare portion of the charge code is unused.
+The previous patches have simplified the access rules around
+page->mem_cgroup somewhat:
 
-Link: http://lkml.kernel.org/r/20200508183105.225460-19-hannes@cmpxchg.org
+1. We never change page->mem_cgroup while the page is isolated by
+   somebody else.  This was by far the biggest exception to our rules and
+   it didn't stop at lock_page() or lock_page_memcg().
+
+2. We charge pages before they get put into page tables now, so the
+   somewhat fishy rule about "can be in page table as long as it's still
+   locked" is now gone and boiled down to having an exclusive reference to
+   the page.
+
+Document the new rules.  Any of the following will stabilize the
+page->mem_cgroup association:
+
+- the page lock
+- LRU isolation
+- lock_page_memcg()
+- exclusive access to the page
+
+Link: http://lkml.kernel.org/r/20200508183105.225460-20-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
 Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -57,283 +74,47 @@ Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 +--
- kernel/events/uprobes.c    |    3 -
- mm/filemap.c               |    2 -
- mm/huge_memory.c           |    2 -
- mm/khugepaged.c            |    4 +-
- mm/memcontrol.c            |   57 ++---------------------------------
- mm/memory.c                |    8 ++--
- mm/migrate.c               |    2 -
- mm/shmem.c                 |    2 -
- mm/swap_state.c            |    2 -
- mm/userfaultfd.c           |    2 -
- 11 files changed, 19 insertions(+), 70 deletions(-)
+ mm/memcontrol.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-delete-unused-lrucare-handling
-+++ a/include/linux/memcontrol.h
-@@ -406,8 +406,7 @@ static inline bool mem_cgroup_below_min(
- 		page_counter_read(&memcg->memory);
- }
- 
--int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask,
--		      bool lrucare);
-+int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask);
- 
- void mem_cgroup_uncharge(struct page *page);
- void mem_cgroup_uncharge_list(struct list_head *page_list);
-@@ -900,7 +899,7 @@ static inline bool mem_cgroup_below_min(
- }
- 
- static inline int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
--				    gfp_t gfp_mask, bool lrucare)
-+				    gfp_t gfp_mask)
- {
- 	return 0;
- }
---- a/kernel/events/uprobes.c~mm-memcontrol-delete-unused-lrucare-handling
-+++ a/kernel/events/uprobes.c
-@@ -167,8 +167,7 @@ static int __replace_page(struct vm_area
- 				addr + PAGE_SIZE);
- 
- 	if (new_page) {
--		err = mem_cgroup_charge(new_page, vma->vm_mm, GFP_KERNEL,
--					false);
-+		err = mem_cgroup_charge(new_page, vma->vm_mm, GFP_KERNEL);
- 		if (err)
- 			return err;
- 	}
---- a/mm/filemap.c~mm-memcontrol-delete-unused-lrucare-handling
-+++ a/mm/filemap.c
-@@ -845,7 +845,7 @@ static int __add_to_page_cache_locked(st
- 	page->index = offset;
- 
- 	if (!huge) {
--		error = mem_cgroup_charge(page, current->mm, gfp_mask, false);
-+		error = mem_cgroup_charge(page, current->mm, gfp_mask);
- 		if (error)
- 			goto error;
- 	}
---- a/mm/huge_memory.c~mm-memcontrol-delete-unused-lrucare-handling
-+++ a/mm/huge_memory.c
-@@ -593,7 +593,7 @@ static vm_fault_t __do_huge_pmd_anonymou
- 
- 	VM_BUG_ON_PAGE(!PageCompound(page), page);
- 
--	if (mem_cgroup_charge(page, vma->vm_mm, gfp, false)) {
-+	if (mem_cgroup_charge(page, vma->vm_mm, gfp)) {
- 		put_page(page);
- 		count_vm_event(THP_FAULT_FALLBACK);
- 		count_vm_event(THP_FAULT_FALLBACK_CHARGE);
---- a/mm/khugepaged.c~mm-memcontrol-delete-unused-lrucare-handling
-+++ a/mm/khugepaged.c
-@@ -973,7 +973,7 @@ static void collapse_huge_page(struct mm
- 		goto out_nolock;
- 	}
- 
--	if (unlikely(mem_cgroup_charge(new_page, mm, gfp, false))) {
-+	if (unlikely(mem_cgroup_charge(new_page, mm, gfp))) {
- 		result = SCAN_CGROUP_CHARGE_FAIL;
- 		goto out_nolock;
- 	}
-@@ -1529,7 +1529,7 @@ static void collapse_file(struct mm_stru
- 		goto out;
- 	}
- 
--	if (unlikely(mem_cgroup_charge(new_page, mm, gfp, false))) {
-+	if (unlikely(mem_cgroup_charge(new_page, mm, gfp))) {
- 		result = SCAN_CGROUP_CHARGE_FAIL;
- 		goto out;
- 	}
---- a/mm/memcontrol.c~mm-memcontrol-delete-unused-lrucare-handling
+--- a/mm/memcontrol.c~mm-memcontrol-update-page-mem_cgroup-stability-rules
 +++ a/mm/memcontrol.c
-@@ -2603,51 +2603,9 @@ static void cancel_charge(struct mem_cgr
- 	css_put_many(&memcg->css, nr_pages);
- }
- 
--static void lock_page_lru(struct page *page, int *isolated)
-+static void commit_charge(struct page *page, struct mem_cgroup *memcg)
+@@ -1201,9 +1201,8 @@ int mem_cgroup_scan_tasks(struct mem_cgr
+  * @page: the page
+  * @pgdat: pgdat of the page
+  *
+- * This function is only safe when following the LRU page isolation
+- * and putback protocol: the LRU lock must be held, and the page must
+- * either be PageLRU() or the caller must have isolated/allocated it.
++ * This function relies on page->mem_cgroup being stable - see the
++ * access rules in commit_charge().
+  */
+ struct lruvec *mem_cgroup_page_lruvec(struct page *page, struct pglist_data *pgdat)
  {
--	pg_data_t *pgdat = page_pgdat(page);
--
--	spin_lock_irq(&pgdat->lru_lock);
--	if (PageLRU(page)) {
--		struct lruvec *lruvec;
--
--		lruvec = mem_cgroup_page_lruvec(page, pgdat);
--		ClearPageLRU(page);
--		del_page_from_lru_list(page, lruvec, page_lru(page));
--		*isolated = 1;
--	} else
--		*isolated = 0;
--}
--
--static void unlock_page_lru(struct page *page, int isolated)
--{
--	pg_data_t *pgdat = page_pgdat(page);
--
--	if (isolated) {
--		struct lruvec *lruvec;
--
--		lruvec = mem_cgroup_page_lruvec(page, pgdat);
--		VM_BUG_ON_PAGE(PageLRU(page), page);
--		SetPageLRU(page);
--		add_page_to_lru_list(page, lruvec, page_lru(page));
--	}
--	spin_unlock_irq(&pgdat->lru_lock);
--}
--
--static void commit_charge(struct page *page, struct mem_cgroup *memcg,
--			  bool lrucare)
--{
--	int isolated;
--
+@@ -2607,18 +2606,12 @@ static void commit_charge(struct page *p
+ {
  	VM_BUG_ON_PAGE(page->mem_cgroup, page);
--
--	/*
--	 * In some cases, SwapCache and FUSE(splice_buf->radixtree), the page
--	 * may already be on some other mem_cgroup's LRU.  Take care of it.
--	 */
--	if (lrucare)
--		lock_page_lru(page, &isolated);
--
  	/*
- 	 * Nobody should be changing or seriously looking at
- 	 * page->mem_cgroup at this point:
-@@ -2663,9 +2621,6 @@ static void commit_charge(struct page *p
- 	 *   have the page locked
+-	 * Nobody should be changing or seriously looking at
+-	 * page->mem_cgroup at this point:
++	 * Any of the following ensures page->mem_cgroup stability:
+ 	 *
+-	 * - the page is uncharged
+-	 *
+-	 * - the page is off-LRU
+-	 *
+-	 * - an anonymous fault has exclusive page access, except for
+-	 *   a locked page table
+-	 *
+-	 * - a page cache insertion, a swapin fault, or a migration
+-	 *   have the page locked
++	 * - the page lock
++	 * - LRU isolation
++	 * - lock_page_memcg()
++	 * - exclusive reference
  	 */
  	page->mem_cgroup = memcg;
--
--	if (lrucare)
--		unlock_page_lru(page, isolated);
  }
- 
- #ifdef CONFIG_MEMCG_KMEM
-@@ -6433,22 +6388,18 @@ void mem_cgroup_calculate_protection(str
-  * @page: page to charge
-  * @mm: mm context of the victim
-  * @gfp_mask: reclaim mode
-- * @lrucare: page might be on the LRU already
-  *
-  * Try to charge @page to the memcg that @mm belongs to, reclaiming
-  * pages according to @gfp_mask if necessary.
-  *
-  * Returns 0 on success. Otherwise, an error code is returned.
-  */
--int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask,
--		      bool lrucare)
-+int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask)
- {
- 	unsigned int nr_pages = hpage_nr_pages(page);
- 	struct mem_cgroup *memcg = NULL;
- 	int ret = 0;
- 
--	VM_BUG_ON_PAGE(PageLRU(page) && !lrucare, page);
--
- 	if (mem_cgroup_disabled())
- 		goto out;
- 
-@@ -6482,7 +6433,7 @@ int mem_cgroup_charge(struct page *page,
- 	if (ret)
- 		goto out_put;
- 
--	commit_charge(page, memcg, lrucare);
-+	commit_charge(page, memcg);
- 
- 	local_irq_disable();
- 	mem_cgroup_charge_statistics(memcg, page, nr_pages);
-@@ -6683,7 +6634,7 @@ void mem_cgroup_migrate(struct page *old
- 		page_counter_charge(&memcg->memsw, nr_pages);
- 	css_get_many(&memcg->css, nr_pages);
- 
--	commit_charge(newpage, memcg, false);
-+	commit_charge(newpage, memcg);
- 
- 	local_irq_save(flags);
- 	mem_cgroup_charge_statistics(memcg, newpage, nr_pages);
---- a/mm/memory.c~mm-memcontrol-delete-unused-lrucare-handling
-+++ a/mm/memory.c
-@@ -2677,7 +2677,7 @@ static vm_fault_t wp_page_copy(struct vm
- 		}
- 	}
- 
--	if (mem_cgroup_charge(new_page, mm, GFP_KERNEL, false))
-+	if (mem_cgroup_charge(new_page, mm, GFP_KERNEL))
- 		goto oom_free_new;
- 	cgroup_throttle_swaprate(new_page, GFP_KERNEL);
- 
-@@ -3136,7 +3136,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 				/* Tell memcg to use swap ownership records */
- 				SetPageSwapCache(page);
- 				err = mem_cgroup_charge(page, vma->vm_mm,
--							GFP_KERNEL, false);
-+							GFP_KERNEL);
- 				ClearPageSwapCache(page);
- 				if (err)
- 					goto out_page;
-@@ -3360,7 +3360,7 @@ static vm_fault_t do_anonymous_page(stru
- 	if (!page)
- 		goto oom;
- 
--	if (mem_cgroup_charge(page, vma->vm_mm, GFP_KERNEL, false))
-+	if (mem_cgroup_charge(page, vma->vm_mm, GFP_KERNEL))
- 		goto oom_free_page;
- 	cgroup_throttle_swaprate(page, GFP_KERNEL);
- 
-@@ -3856,7 +3856,7 @@ static vm_fault_t do_cow_fault(struct vm
- 	if (!vmf->cow_page)
- 		return VM_FAULT_OOM;
- 
--	if (mem_cgroup_charge(vmf->cow_page, vma->vm_mm, GFP_KERNEL, false)) {
-+	if (mem_cgroup_charge(vmf->cow_page, vma->vm_mm, GFP_KERNEL)) {
- 		put_page(vmf->cow_page);
- 		return VM_FAULT_OOM;
- 	}
---- a/mm/migrate.c~mm-memcontrol-delete-unused-lrucare-handling
-+++ a/mm/migrate.c
-@@ -2792,7 +2792,7 @@ static void migrate_vma_insert_page(stru
- 
- 	if (unlikely(anon_vma_prepare(vma)))
- 		goto abort;
--	if (mem_cgroup_charge(page, vma->vm_mm, GFP_KERNEL, false))
-+	if (mem_cgroup_charge(page, vma->vm_mm, GFP_KERNEL))
- 		goto abort;
- 
- 	/*
---- a/mm/shmem.c~mm-memcontrol-delete-unused-lrucare-handling
-+++ a/mm/shmem.c
-@@ -624,7 +624,7 @@ static int shmem_add_to_page_cache(struc
- 	page->index = index;
- 
- 	if (!PageSwapCache(page)) {
--		error = mem_cgroup_charge(page, charge_mm, gfp, false);
-+		error = mem_cgroup_charge(page, charge_mm, gfp);
- 		if (error) {
- 			if (PageTransHuge(page)) {
- 				count_vm_event(THP_FILE_FALLBACK);
---- a/mm/swap_state.c~mm-memcontrol-delete-unused-lrucare-handling
-+++ a/mm/swap_state.c
-@@ -427,7 +427,7 @@ struct page *__read_swap_cache_async(swp
- 	if (add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL))
- 		goto fail_unlock;
- 
--	if (mem_cgroup_charge(page, NULL, gfp_mask & GFP_KERNEL, false))
-+	if (mem_cgroup_charge(page, NULL, gfp_mask & GFP_KERNEL))
- 		goto fail_delete;
- 
- 	/* Initiate read into locked page */
---- a/mm/userfaultfd.c~mm-memcontrol-delete-unused-lrucare-handling
-+++ a/mm/userfaultfd.c
-@@ -96,7 +96,7 @@ static int mcopy_atomic_pte(struct mm_st
- 	__SetPageUptodate(page);
- 
- 	ret = -ENOMEM;
--	if (mem_cgroup_charge(page, dst_mm, GFP_KERNEL, false))
-+	if (mem_cgroup_charge(page, dst_mm, GFP_KERNEL))
- 		goto out_release;
- 
- 	_dst_pte = pte_mkdirty(mk_pte(page, dst_vma->vm_page_prot));
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
