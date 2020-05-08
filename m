@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-memcontrol-update-page-mem_cgroup-stability-rules.patch added to -mm
- tree
-Date: Fri, 08 May 2020 16:20:24 -0700
-Message-ID: <20200508232024.QlAVj3DJn%akpm@linux-foundation.org>
+Subject: + selftests-vm-pkeys-introduce-powerpc-support-fix.patch
+ added to -mm tree
+Date: Fri, 08 May 2020 16:38:15 -0700
+Message-ID: <20200508233815.FRP8HCJXT%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42128 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33710 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727110AbgEHXUZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 19:20:25 -0400
+        id S1727934AbgEHXiR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 19:38:17 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com
+To: aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com, dave.hansen@intel.com, desnesn@linux.vnet.ibm.com, fweimer@redhat.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: update page->mem_cgroup stability rules
+     Subject: selftests: vm: pkeys: fix powerpc access right updates
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
+     selftests-vm-pkeys-introduce-powerpc-support-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-pkeys-introduce-powerpc-support-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-pkeys-introduce-powerpc-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,101 +38,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: update page->mem_cgroup stability rules
+From: Sandipan Das <sandipan@linux.ibm.com>
+Subject: selftests: vm: pkeys: fix powerpc access right updates
 
-The previous patches have simplified the access rules around
-page->mem_cgroup somewhat:
+The Power ISA mandates that all writes to the Authority Mask Register
+(AMR) must always be preceded as well as succeeded by a
+context-synchronizing instruction.  This applies to both the privileged
+and unprivileged variants of the Move To AMR instruction.
 
-1. We never change page->mem_cgroup while the page is isolated by
-   somebody else.  This was by far the biggest exception to our rules and
-   it didn't stop at lock_page() or lock_page_memcg().
-
-2. We charge pages before they get put into page tables now, so the
-   somewhat fishy rule about "can be in page table as long as it's still
-   locked" is now gone and boiled down to having an exclusive reference to
-   the page.
-
-Document the new rules.  Any of the following will stabilize the
-page->mem_cgroup association:
-
-- the page lock
-- LRU isolation
-- lock_page_memcg()
-- exclusive access to the page
-
-Link: http://lkml.kernel.org/r/20200508183105.225460-20-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
-Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: http://lkml.kernel.org/r/5f65cf37be993760de8112a88da194e3ccbb2bf8.1588959697.git.sandipan@linux.ibm.com
+Fixes: 130f573c2a79 ("selftests/vm/pkeys: introduce powerpc support")
+Signed-off-by: Sandipan Das <sandipan@linux.ibm.com>
+Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Suggested-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: "Desnes A. Nunes do Rosario" <desnesn@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thiago Jung Bauermann <bauerman@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Suchanek <msuchanek@suse.de>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ tools/testing/selftests/vm/pkey-powerpc.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-update-page-mem_cgroup-stability-rules
-+++ a/mm/memcontrol.c
-@@ -1201,9 +1201,8 @@ int mem_cgroup_scan_tasks(struct mem_cgr
-  * @page: the page
-  * @pgdat: pgdat of the page
-  *
-- * This function is only safe when following the LRU page isolation
-- * and putback protocol: the LRU lock must be held, and the page must
-- * either be PageLRU() or the caller must have isolated/allocated it.
-+ * This function relies on page->mem_cgroup being stable - see the
-+ * access rules in commit_charge().
-  */
- struct lruvec *mem_cgroup_page_lruvec(struct page *page, struct pglist_data *pgdat)
- {
-@@ -2607,18 +2606,12 @@ static void commit_charge(struct page *p
- {
- 	VM_BUG_ON_PAGE(page->mem_cgroup, page);
- 	/*
--	 * Nobody should be changing or seriously looking at
--	 * page->mem_cgroup at this point:
-+	 * Any of the following ensures page->mem_cgroup stability:
- 	 *
--	 * - the page is uncharged
--	 *
--	 * - the page is off-LRU
--	 *
--	 * - an anonymous fault has exclusive page access, except for
--	 *   a locked page table
--	 *
--	 * - a page cache insertion, a swapin fault, or a migration
--	 *   have the page locked
-+	 * - the page lock
-+	 * - LRU isolation
-+	 * - lock_page_memcg()
-+	 * - exclusive reference
- 	 */
- 	page->mem_cgroup = memcg;
- }
+--- a/tools/testing/selftests/vm/pkey-powerpc.h~selftests-vm-pkeys-introduce-powerpc-support-fix
++++ a/tools/testing/selftests/vm/pkey-powerpc.h
+@@ -54,7 +54,8 @@ static inline void __write_pkey_reg(u64
+ 	dprintf4("%s() changing %016llx to %016llx\n",
+ 			 __func__, __read_pkey_reg(), pkey_reg);
+ 
+-	asm volatile("mtspr 0xd, %0" : : "r" ((unsigned long)(amr)) : "memory");
++	asm volatile("isync; mtspr 0xd, %0; isync"
++		     : : "r" ((unsigned long)(amr)) : "memory");
+ 
+ 	dprintf4("%s() pkey register after changing %016llx to %016llx\n",
+ 			__func__, __read_pkey_reg(), pkey_reg);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from sandipan@linux.ibm.com are
 
-mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
-mm-memcontrol-fix-stat-corrupting-race-in-charge-moving.patch
-mm-memcontrol-drop-compound-parameter-from-memcg-charging-api.patch
-mm-memcontrol-move-out-cgroup-swaprate-throttling.patch
-mm-memcontrol-convert-page-cache-to-a-new-mem_cgroup_charge-api.patch
-mm-memcontrol-prepare-uncharging-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-move_account-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-cgroup-vmstat-infrastructure-for-native-anon-counters.patch
-mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
-mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
-mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
-mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
-mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
-mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
-mm-memcontrol-charge-swapin-pages-on-instantiation.patch
-mm-memcontrol-delete-unused-lrucare-handling.patch
-mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
+mm-reset-numa-stats-for-boot-pagesets.patch
+selftests-vm-pkeys-use-sane-types-for-pkey-register.patch
+selftests-vm-pkeys-add-helpers-for-pkey-bits.patch
+selftests-vm-pkeys-use-the-correct-huge-page-size.patch
+selftests-vm-pkeys-introduce-powerpc-support-fix.patch
+selftests-vm-pkeys-override-access-right-definitions-on-powerpc-fix.patch
+selftests-vm-pkeys-use-the-correct-page-size-on-powerpc.patch
+selftests-vm-pkeys-fix-multilib-builds-for-x86.patch
