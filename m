@@ -1,96 +1,164 @@
-From: akpm@linux-foundation.org
-Subject: [merged] mm-limit-boost_watermark-on-small-zones.patch
- removed from -mm tree
-Date: Fri, 08 May 2020 15:32:57 -0700
-Message-ID: <20200508223257.HG_RRsUPm%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: +
+ mm-fix-numa-node-file-count-error-in-replace_page_cache.patch added to -mm
+ tree
+Date: Fri, 08 May 2020 16:19:21 -0700
+Message-ID: <20200508231921.J1VJp4WZs%akpm@linux-foundation.org>
+References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52974 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40490 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726843AbgEHWc6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 18:32:58 -0400
+        id S1727110AbgEHXTX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 19:19:23 -0400
+In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@redhat.com, henry.willard@oracle.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
+To: alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com
 
 
 The patch titled
-     Subject: mm: limit boost_watermark on small zones
-has been removed from the -mm tree.  Its filename was
-     mm-limit-boost_watermark-on-small-zones.patch
+     Subject: mm: fix NUMA node file count error in replace_page_cache()
+has been added to the -mm tree.  Its filename is
+     mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Henry Willard <henry.willard@oracle.com>
-Subject: mm: limit boost_watermark on small zones
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: fix NUMA node file count error in replace_page_cache()
 
-Commit 1c30844d2dfe ("mm: reclaim small amounts of memory when an external
-fragmentation event occurs") adds a boost_watermark() function which
-increases the min watermark in a zone by at least pageblock_nr_pages or
-the number of pages in a page block. On Arm64, with 64K pages and 512M
-huge pages, this is 8192 pages or 512M. It does this regardless of the
-number of managed pages managed in the zone or the likelihood of success.
-This can put the zone immediately under water in terms of allocating pages
-from the zone, and can cause a small machine to fail immediately due to
-OoM. Unlike set_recommended_min_free_kbytes(), which substantially
-increases min_free_kbytes and is tied to THP, boost_watermark() can be
-called even if THP is not active. The problem is most likely to appear
-on architectures such as Arm64 where pageblock_nr_pages is very large.
+Patch series "mm: memcontrol: charge swapin pages on instantiation", v2.
 
-It is desirable to run the kdump capture kernel in as small a space as
-possible to avoid wasting memory. In some architectures, such as Arm64,
-there are restrictions on where the capture kernel can run, and therefore,
-the space available. A capture kernel running in 768M can fail due to OoM
-immediately after boost_watermark() sets the min in zone DMA32, where
-most of the memory is, to 512M. It fails even though there is over 500M of
-free memory. With boost_watermark() suppressed, the capture kernel can run
-successfully in 448M.
+This patch series reworks memcg to charge swapin pages directly at
+swapin time, rather than at fault time, which may be much later, or
+not happen at all.
 
-This patch limits boost_watermark() to boosting a zone's min watermark only
-when there are enough pages that the boost will produce positive results.
-In this case that is estimated to be four times as many pages as
-pageblock_nr_pages.
+Changes in version 2:
+- prevent double charges on pre-allocated hugepages in khugepaged
+- leave shmem swapcache when charging fails to avoid double IO (Joonsoo)
+- fix temporary accounting bug by switching rmap<->commit (Joonsoo)
+- fix double swap charge bug in cgroup1/cgroup2 code gating
+- simplify swapin error checking (Joonsoo)
+- mm: memcontrol: document the new swap control behavior (Alex)
+- review tags
 
-Mel said:
+The delayed swapin charging scheme we have right now causes problems:
 
-: There is no harm in marking it stable.  Clearly it does not happen very
-: often but it's not impossible.  32-bit x86 is a lot less common now
-: which would previously have been vulnerable to triggering this easily. 
-: ppc64 has a larger base page size but typically only has one zone. 
-: arm64 is likely the most vulnerable, particularly when CMA is
-: configured with a small movable zone.
+- Alex's per-cgroup lru_lock patches rely on pages that have been
+  isolated from the LRU to have a stable page->mem_cgroup; otherwise
+  the lock may change underneath him. Swapcache pages are charged only
+  after they are added to the LRU, and charging doesn't follow the LRU
+  isolation protocol.
 
-Link: http://lkml.kernel.org/r/1588294148-6586-1-git-send-email-henry.willard@oracle.com
-Fixes: 1c30844d2dfe ("mm: reclaim small amounts of memory when an external fragmentation event occurs")
-Signed-off-by: Henry Willard <henry.willard@oracle.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+- Joonsoo's anon workingset patches need a suitable LRU at the time
+  the page enters the swap cache and displaces the non-resident
+  info. But the correct LRU is only available after charging.
+
+- It's a containment hole / DoS vector. Users can trigger arbitrarily
+  large swap readahead using MADV_WILLNEED. The memory is never
+  charged unless somebody actually touches it.
+
+- It complicates the page->mem_cgroup stabilization rules
+
+In order to charge pages directly at swapin time, the memcg code base
+needs to be prepared, and several overdue cleanups become a necessity:
+
+To charge pages at swapin time, we need to always have cgroup
+ownership tracking of swap records. We also cannot rely on
+page->mapping to tell apart page types at charge time, because that's
+only set up during a page fault.
+
+To eliminate the page->mapping dependency, memcg needs to ditch its
+private page type counters (MEMCG_CACHE, MEMCG_RSS, NR_SHMEM) in favor
+of the generic vmstat counters and accounting sites, such as
+NR_FILE_PAGES, NR_ANON_MAPPED etc.
+
+To switch to generic vmstat counters, the charge sequence must be
+adjusted such that page->mem_cgroup is set up by the time these
+counters are modified.
+
+The series is structured as follows:
+
+1. Bug fixes
+2. Decoupling charging from rmap
+3. Swap controller integration into memcg
+4. Direct swapin charging
+
+
+This patch (of 19):
+
+When replacing one page with another one in the cache, we have to decrease
+the file count of the old page's NUMA node and increase the one of the new
+NUMA node, otherwise the old node leaks the count and the new node
+eventually underflows its counter.
+
+Link: http://lkml.kernel.org/r/20200508183105.225460-1-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20200508183105.225460-2-hannes@cmpxchg.org
+Fixes: 74d609585d8b ("page cache: Add and replace pages using the XArray")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/filemap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-limit-boost_watermark-on-small-zones
-+++ a/mm/page_alloc.c
-@@ -2401,6 +2401,14 @@ static inline void boost_watermark(struc
- 
- 	if (!watermark_boost_factor)
- 		return;
-+	/*
-+	 * Don't bother in zones that are unlikely to produce results.
-+	 * On small machines, including kdump capture kernels running
-+	 * in a small area, boosting the watermark can cause an out of
-+	 * memory situation immediately.
-+	 */
-+	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
-+		return;
- 
- 	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
- 			watermark_boost_factor, 10000);
+--- a/mm/filemap.c~mm-fix-numa-node-file-count-error-in-replace_page_cache
++++ a/mm/filemap.c
+@@ -808,11 +808,11 @@ int replace_page_cache_page(struct page
+ 	old->mapping = NULL;
+ 	/* hugetlb pages do not participate in page cache accounting. */
+ 	if (!PageHuge(old))
+-		__dec_node_page_state(new, NR_FILE_PAGES);
++		__dec_node_page_state(old, NR_FILE_PAGES);
+ 	if (!PageHuge(new))
+ 		__inc_node_page_state(new, NR_FILE_PAGES);
+ 	if (PageSwapBacked(old))
+-		__dec_node_page_state(new, NR_SHMEM);
++		__dec_node_page_state(old, NR_SHMEM);
+ 	if (PageSwapBacked(new))
+ 		__inc_node_page_state(new, NR_SHMEM);
+ 	xas_unlock_irqrestore(&xas, flags);
 _
 
-Patches currently in -mm which might be from henry.willard@oracle.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
+mm-memcontrol-fix-stat-corrupting-race-in-charge-moving.patch
+mm-memcontrol-drop-compound-parameter-from-memcg-charging-api.patch
+mm-memcontrol-move-out-cgroup-swaprate-throttling.patch
+mm-memcontrol-convert-page-cache-to-a-new-mem_cgroup_charge-api.patch
+mm-memcontrol-prepare-uncharging-for-removal-of-private-page-type-counters.patch
+mm-memcontrol-prepare-move_account-for-removal-of-private-page-type-counters.patch
+mm-memcontrol-prepare-cgroup-vmstat-infrastructure-for-native-anon-counters.patch
+mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
+mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
+mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
+mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
+mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
+mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
+mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
+mm-memcontrol-charge-swapin-pages-on-instantiation.patch
+mm-memcontrol-delete-unused-lrucare-handling.patch
+mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
