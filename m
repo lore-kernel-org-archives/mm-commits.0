@@ -1,121 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc.patch removed from
- -mm tree
-Date: Fri, 08 May 2020 15:32:21 -0700
-Message-ID: <20200508223221.7xil9wBw3%akpm@linux-foundation.org>
+ mm-page_alloc-fix-watchdog-soft-lockups-during-set_zone_contiguous.patch
+ removed from -mm tree
+Date: Fri, 08 May 2020 15:32:24 -0700
+Message-ID: <20200508223224.ktkcxkZRW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51864 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51960 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727082AbgEHWcX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 18:32:23 -0400
+        id S1727082AbgEHWc0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 18:32:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, laoar.shao@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, willy@infradead.org
+To: alexander.duyck@gmail.com, bhe@redhat.com, daniel.m.jordan@oracle.com, david@redhat.com, ktkhai@virtuozzo.com, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pankaj.gupta.linux@gmail.com, pasha.tatashin@soleen.com, shile.zhang@linux.alibaba.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: fix error return value of mem_cgroup_css_alloc()
+     Subject: mm/page_alloc: fix watchdog soft lockups during set_zone_contiguous()
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc.patch
+     mm-page_alloc-fix-watchdog-soft-lockups-during-set_zone_contiguous.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm, memcg: fix error return value of mem_cgroup_css_alloc()
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/page_alloc: fix watchdog soft lockups during set_zone_contiguous()
 
-When I run my memcg testcase which creates lots of memcgs, I found
-there're unexpected out of memory logs while there're still enough
-available free memory.  The error log is, mkdir: cannot create directory
-'foo.65533': Cannot allocate memory
+Without CONFIG_PREEMPT, it can happen that we get soft lockups detected,
+e.g., while booting up.
 
-The reason is when we try to create more than MEM_CGROUP_ID_MAX memcgs, an
--ENOMEM errno will be set by mem_cgroup_css_alloc(), but the right errno
-should be -ENOSPC "No space left on device", which is an appropriate errno
-for userspace's failed mkdir.
+[  105.608900] watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [swapper/0:1]
+[  105.608933] Modules linked in:
+[  105.608933] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.6.0-next-20200331+ #4
+[  105.608933] Hardware name: Red Hat KVM, BIOS 1.11.1-4.module+el8.1.0+4066+0f1aadab 04/01/2014
+[  105.608933] RIP: 0010:__pageblock_pfn_to_page+0x134/0x1c0
+[  105.608933] Code: 85 c0 74 71 4a 8b 04 d0 48 85 c0 74 68 48 01 c1 74 63 f6 01 04 74 5e 48 c1 e7 06 4c 8b 05 cc 991
+[  105.608933] RSP: 0000:ffffb6d94000fe60 EFLAGS: 00010286 ORIG_RAX: ffffffffffffff13
+[  105.608933] RAX: fffff81953250000 RBX: 000000000a4c9600 RCX: ffff8fe9ff7c1990
+[  105.608933] RDX: ffff8fe9ff7dab80 RSI: 000000000a4c95ff RDI: 0000000293250000
+[  105.608933] RBP: ffff8fe9ff7dab80 R08: fffff816c0000000 R09: 0000000000000008
+[  105.608933] R10: 0000000000000014 R11: 0000000000000014 R12: 0000000000000000
+[  105.608933] R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+[  105.608933] FS:  0000000000000000(0000) GS:ffff8fe1ff400000(0000) knlGS:0000000000000000
+[  105.608933] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  105.608933] CR2: 000000000f613000 CR3: 00000088cf20a000 CR4: 00000000000006f0
+[  105.608933] Call Trace:
+[  105.608933]  set_zone_contiguous+0x56/0x70
+[  105.608933]  page_alloc_init_late+0x166/0x176
+[  105.608933]  kernel_init_freeable+0xfa/0x255
+[  105.608933]  ? rest_init+0xaa/0xaa
+[  105.608933]  kernel_init+0xa/0x106
+[  105.608933]  ret_from_fork+0x35/0x40
 
-As the errno really misled me, we should make it right.  After this patch,
-the error log will be "mkdir: cannot create directory 'foo.65533': No
-space left on device"
+The issue becomes visible when having a lot of memory (e.g., 4TB) assigned
+to a single NUMA node - a system that can easily be created using QEMU. 
+Inside VMs on a hypervisor with quite some memory overcommit, this is
+fairly easy to trigger.
 
-[akpm@linux-foundation.org: s/EBUSY/ENOSPC/, per Michal]
-[akpm@linux-foundation.org: s/EBUSY/ENOSPC/, per Michal]
-Link: http://lkml.kernel.org/r/20200407063621.GA18914@dhcp22.suse.cz
-Link: http://lkml.kernel.org/r/1586192163-20099-1-git-send-email-laoar.shao@gmail.com
-Fixes: 73f576c04b94 ("mm: memcontrol: fix cgroup creation failure after many small jobs")
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Acked-by: Michal Hocko <mhocko@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/20200416073417.5003-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Shile Zhang <shile.zhang@linux.alibaba.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memcontrol.c~mm-memcg-fix-error-return-value-of-mem_cgroup_css_alloc
-+++ a/mm/memcontrol.c
-@@ -4990,19 +4990,22 @@ static struct mem_cgroup *mem_cgroup_all
- 	unsigned int size;
- 	int node;
- 	int __maybe_unused i;
-+	long error = -ENOMEM;
+--- a/mm/page_alloc.c~mm-page_alloc-fix-watchdog-soft-lockups-during-set_zone_contiguous
++++ a/mm/page_alloc.c
+@@ -1607,6 +1607,7 @@ void set_zone_contiguous(struct zone *zo
+ 		if (!__pageblock_pfn_to_page(block_start_pfn,
+ 					     block_end_pfn, zone))
+ 			return;
++		cond_resched();
+ 	}
  
- 	size = sizeof(struct mem_cgroup);
- 	size += nr_node_ids * sizeof(struct mem_cgroup_per_node *);
- 
- 	memcg = kzalloc(size, GFP_KERNEL);
- 	if (!memcg)
--		return NULL;
-+		return ERR_PTR(error);
- 
- 	memcg->id.id = idr_alloc(&mem_cgroup_idr, NULL,
- 				 1, MEM_CGROUP_ID_MAX,
- 				 GFP_KERNEL);
--	if (memcg->id.id < 0)
-+	if (memcg->id.id < 0) {
-+		error = memcg->id.id;
- 		goto fail;
-+	}
- 
- 	memcg->vmstats_local = alloc_percpu(struct memcg_vmstats_percpu);
- 	if (!memcg->vmstats_local)
-@@ -5046,7 +5049,7 @@ static struct mem_cgroup *mem_cgroup_all
- fail:
- 	mem_cgroup_id_remove(memcg);
- 	__mem_cgroup_free(memcg);
--	return NULL;
-+	return ERR_PTR(error);
- }
- 
- static struct cgroup_subsys_state * __ref
-@@ -5057,8 +5060,8 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 	long error = -ENOMEM;
- 
- 	memcg = mem_cgroup_alloc();
--	if (!memcg)
--		return ERR_PTR(error);
-+	if (IS_ERR(memcg))
-+		return ERR_CAST(memcg);
- 
- 	WRITE_ONCE(memcg->high, PAGE_COUNTER_MAX);
- 	memcg->soft_limit = PAGE_COUNTER_MAX;
-@@ -5108,7 +5111,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- fail:
- 	mem_cgroup_id_remove(memcg);
- 	mem_cgroup_free(memcg);
--	return ERR_PTR(-ENOMEM);
-+	return ERR_PTR(error);
- }
- 
- static int mem_cgroup_css_online(struct cgroup_subsys_state *css)
+ 	/* We confirm that there is no hole */
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-memcg-fix-inconsistent-oom-event-behavior.patch
-mm-memcg-add-workingset_restore-in-memorystat.patch
-mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection.patch
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
+powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable.patch
+mm-memory_hotplug-remove-is_mem_section_removable.patch
+mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
+mm-memory_hotplug-handle-memblocks-only-with-config_arch_keep_memblock.patch
