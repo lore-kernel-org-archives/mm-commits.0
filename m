@@ -1,72 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kvm-svm-change-flag-passed-to-gup-fast-in-sev_pin_memory.patch removed from
- -mm tree
-Date: Fri, 08 May 2020 15:32:31 -0700
-Message-ID: <20200508223231.9HP-QmcnC%akpm@linux-foundation.org>
+ eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch removed
+ from -mm tree
+Date: Fri, 08 May 2020 15:32:34 -0700
+Message-ID: <20200508223234.3hxaFzIsF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52238 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727849AbgEHWcd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 18:32:33 -0400
+        id S1727849AbgEHWcf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 18:32:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@alien8.de, brijesh.singh@amd.com, hpa@zytor.com, hubcap@omnibond.com, ira.weiny@intel.com, Janakarajan.Natarajan@amd.com, jmattson@google.com, joro@8bytes.org, mingo@redhat.com, mm-commits@vger.kernel.org, pbonzini@redhat.com, sean.j.christopherson@intel.com, tglx@linutronix.de, vkuznets@redhat.com, wanpengli@tencent.com
+To: jbaron@akamai.com, khazhy@google.com, mm-commits@vger.kernel.org, r@hev.cc, rpenyaev@suse.de, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: arch/x86/kvm/svm/sev.c: change flag passed to GUP fast in sev_pin_memory()
+     Subject: eventpoll: fix missing wakeup for ovflist in ep_poll_callback
 has been removed from the -mm tree.  Its filename was
-     kvm-svm-change-flag-passed-to-gup-fast-in-sev_pin_memory.patch
+     eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Janakarajan Natarajan <Janakarajan.Natarajan@amd.com>
-Subject: arch/x86/kvm/svm/sev.c: change flag passed to GUP fast in sev_pin_memory()
+From: Khazhismel Kumykov <khazhy@google.com>
+Subject: eventpoll: fix missing wakeup for ovflist in ep_poll_callback
 
-When trying to lock read-only pages, sev_pin_memory() fails because
-FOLL_WRITE is used as the flag for get_user_pages_fast().
+In the event that we add to ovflist, before 339ddb53d373 we would be woken
+up by ep_scan_ready_list, and did no wakeup in ep_poll_callback.  With
+that wakeup removed, if we add to ovflist here, we may never wake up. 
+Rather than adding back the ep_scan_ready_list wakeup - which was
+resulting in unnecessary wakeups, trigger a wake-up in ep_poll_callback.
 
-Commit 73b0140bf0fe ("mm/gup: change GUP fast to use flags rather than a
-write 'bool'") updated the get_user_pages_fast() call sites to use flags,
-but incorrectly updated the call in sev_pin_memory().  As the original
-coding of this call was correct, revert the change made by that commit.
+We noticed that one of our workloads was missing wakeups starting with
+339ddb53d373 and upon manual inspection, this wakeup seemed missing to me.
+With this patch added, we no longer see missing wakeups.  I haven't yet
+tried to make a small reproducer, but the existing kselftests in
+filesystem/epoll passed for me with this patch.
 
-Link: http://lkml.kernel.org/r/20200423152419.87202-1-Janakarajan.Natarajan@amd.com
-Fixes: 73b0140bf0fe ("mm/gup: change GUP fast to use flags rather than a write 'bool'")
-Signed-off-by: Janakarajan Natarajan <Janakarajan.Natarajan@amd.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Sean Christopherson <sean.j.christopherson@intel.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Wanpeng Li <wanpengli@tencent.com>
-Cc: Jim Mattson <jmattson@google.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H . Peter Anvin" <hpa@zytor.com>
-Cc: Mike Marshall <hubcap@omnibond.com>
-Cc: Brijesh Singh <brijesh.singh@amd.com>
+[khazhy@google.com: use if/elif instead of goto + cleanup suggested by Roman]
+  Link: http://lkml.kernel.org/r/20200424190039.192373-1-khazhy@google.com
+Link: http://lkml.kernel.org/r/20200424025057.118641-1-khazhy@google.com
+Fixes: 339ddb53d373 ("fs/epoll: remove unnecessary wakeups of nested epoll")
+Signed-off-by: Khazhismel Kumykov <khazhy@google.com>
+Reviewed-by: Roman Penyaev <rpenyaev@suse.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Roman Penyaev <rpenyaev@suse.de>
+Cc: Heiher <r@hev.cc>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/svm/sev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/eventpoll.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/arch/x86/kvm/svm/sev.c~kvm-svm-change-flag-passed-to-gup-fast-in-sev_pin_memory
-+++ a/arch/x86/kvm/svm/sev.c
-@@ -345,7 +345,7 @@ static struct page **sev_pin_memory(stru
- 		return NULL;
+--- a/fs/eventpoll.c~eventpoll-fix-missing-wakeup-for-ovflist-in-ep_poll_callback
++++ a/fs/eventpoll.c
+@@ -1171,6 +1171,10 @@ static inline bool chain_epi_lockless(st
+ {
+ 	struct eventpoll *ep = epi->ep;
  
- 	/* Pin the user virtual address. */
--	npinned = get_user_pages_fast(uaddr, npages, FOLL_WRITE, pages);
-+	npinned = get_user_pages_fast(uaddr, npages, write ? FOLL_WRITE : 0, pages);
- 	if (npinned != npages) {
- 		pr_err("SEV: Failure locking %lu pages.\n", npages);
- 		goto err;
-_
-
-Patches currently in -mm which might be from Janakarajan.Natarajan@amd.com are
++	/* Fast preliminary check */
++	if (epi->next != EP_UNACTIVE_PTR)
++		return false;
++
+ 	/* Check that the same epi has not been just chained from another CPU */
+ 	if (cmpxchg(&epi->next, EP_UNACTIVE_PTR, NULL) != EP_UNACTIVE_PTR)
+ 		return false;
+@@ -1237,16 +1241,12 @@ static int ep_poll_callback(wait_queue_e
+ 	 * chained in ep->ovflist and requeued later on.
+ 	 */
+ 	if (READ_ONCE(ep->ovflist) != EP_UNACTIVE_PTR) {
+-		if (epi->next == EP_UNACTIVE_PTR &&
+-		    chain_epi_lockless(epi))
++		if (chain_epi_lockless(epi))
++			ep_pm_stay_awake_rcu(epi);
++	} else if (!ep_is_linked(epi)) {
++		/* In the usual case, add event to ready list. */
++		if (list_add_tail_lockless(&epi->rdllink, &ep->rdllist))
+ 			ep_pm_stay_awake_rcu(epi);
+-		goto out_unlock;
+-	}
