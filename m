@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index.patch added
- to -mm tree
-Date: Thu, 07 May 2020 16:53:43 -0700
-Message-ID: <20200507235343.GG9mhhjlf%akpm@linux-foundation.org>
+Subject: + stacktrace-cleanup-inconsistent-variable-type.patch
+ added to -mm tree
+Date: Thu, 07 May 2020 17:05:30 -0700
+Message-ID: <20200508000530.nuRUTzJLb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52750 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57026 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726476AbgEGXxp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 May 2020 19:53:45 -0400
+        id S1726476AbgEHAFb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 May 2020 20:05:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, longman@redhat.com, manfred@colorfullife.com, mingo@redhat.com, mm-commits@vger.kernel.org, neilb@suse.com, oberpar@linux.ibm.com, rostedt@goodmis.org, schwab@suse.de, stable@vger.kernel.org, vvs@virtuozzo.com
+To: bvanassche@acm.org, jpoimboe@redhat.com, matthias.bgg@gmail.com, mingo@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, tglx@linutronix.de, walter-zh.wu@mediatek.com
 
 
 The patch titled
-     Subject: ipc/util.c: sysvipc_find_ipc() incorrectly updates position index
+     Subject: stacktrace: cleanup inconsistent variable type
 has been added to the -mm tree.  Its filename is
-     ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index.patch
+     stacktrace-cleanup-inconsistent-variable-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/stacktrace-cleanup-inconsistent-variable-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/stacktrace-cleanup-inconsistent-variable-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,107 +36,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: ipc/util.c: sysvipc_find_ipc() incorrectly updates position index
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: stacktrace: cleanup inconsistent variable type
 
-Commit 89163f93c6f9 ("ipc/util.c: sysvipc_find_ipc() should increase
-position index") is causing this bug (seen on 5.6.8):
+Modify the variable type of 'skip' member of struct stack_trace.
+In theory, the 'skip' variable type should be unsigned int.
+There are two reasons:
+- The 'skip' only has two situation, 1)Positive value, 2)Zero
+- The 'skip' of struct stack_trace has inconsistent type with struct
+  stack_trace_data, it makes a bit confusion in the relationship between
+  struct stack_trace and stack_trace_data.
 
-# ipcs -q
-
------- Message Queues --------
-key        msqid      owner      perms      used-bytes   messages    
-
-# ipcmk -Q
-Message queue id: 0
-# ipcs -q
-
------- Message Queues --------
-key        msqid      owner      perms      used-bytes   messages    
-0x82db8127 0          root       644        0            0           
-
-# ipcmk -Q
-Message queue id: 1
-# ipcs -q
-
------- Message Queues --------
-key        msqid      owner      perms      used-bytes   messages    
-0x82db8127 0          root       644        0            0           
-0x76d1fb2a 1          root       644        0            0           
-
-# ipcrm -q 0
-# ipcs -q
-
------- Message Queues --------
-key        msqid      owner      perms      used-bytes   messages    
-0x76d1fb2a 1          root       644        0            0           
-0x76d1fb2a 1          root       644        0            0           
-
-# ipcmk -Q
-Message queue id: 2
-# ipcrm -q 2
-# ipcs -q
-
------- Message Queues --------
-key        msqid      owner      perms      used-bytes   messages    
-0x76d1fb2a 1          root       644        0            0           
-0x76d1fb2a 1          root       644        0            0           
-
-# ipcmk -Q
-Message queue id: 3
-# ipcrm -q 1
-# ipcs -q
-
------- Message Queues --------
-key        msqid      owner      perms      used-bytes   messages    
-0x7c982867 3          root       644        0            0           
-0x7c982867 3          root       644        0            0           
-0x7c982867 3          root       644        0            0           
-0x7c982867 3          root       644        0            0           
-
-
-Whenever an IPC item with a low id is deleted, the items with higher ids
-are duplicated, as if filling a hole.
-
-new_pos should jump through hole of unused ids, pos can be updated inside
-"for" cycle.
-
-Link: http://lkml.kernel.org/r/4921fe9b-9385-a2b4-1dc4-1099be6d2e39@virtuozzo.com
-Fixes: 89163f93c6f9 ("ipc/util.c: sysvipc_find_ipc() should increase position index")
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Reported-by: Andreas Schwab <schwab@suse.de>
-Acked-by: Waiman Long <longman@redhat.com>
-Cc: NeilBrown <neilb@suse.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200421013511.5960-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/stacktrace.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/ipc/util.c~ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index
-+++ a/ipc/util.c
-@@ -764,21 +764,21 @@ static struct kern_ipc_perm *sysvipc_fin
- 			total++;
- 	}
+--- a/include/linux/stacktrace.h~stacktrace-cleanup-inconsistent-variable-type
++++ a/include/linux/stacktrace.h
+@@ -64,7 +64,7 @@ void arch_stack_walk_user(stack_trace_co
+ struct stack_trace {
+ 	unsigned int nr_entries, max_entries;
+ 	unsigned long *entries;
+-	int skip;	/* input argument: How many entries to skip */
++	unsigned int skip;	/* input argument: How many entries to skip */
+ };
  
--	*new_pos = pos + 1;
-+	ipc = NULL;
- 	if (total >= ids->in_use)
--		return NULL;
-+		goto out;
- 
- 	for (; pos < ipc_mni; pos++) {
- 		ipc = idr_find(&ids->ipcs_idr, pos);
- 		if (ipc != NULL) {
- 			rcu_read_lock();
- 			ipc_lock_object(ipc);
--			return ipc;
-+			break;
- 		}
- 	}
+ extern void save_stack_trace(struct stack_trace *trace);
+_
+
+Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
+
+stacktrace-cleanup-inconsistent-variable-type.patch
