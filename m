@@ -1,187 +1,58 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- epoll-atomically-remove-wait-entry-on-wake-up.patch removed from -mm tree
-Date: Fri, 08 May 2020 15:32:49 -0700
-Message-ID: <20200508223249.CR5HKMDBq%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-vmscan-remove-unnecessary-argument-description-of-isolate?=
+ =?US-ASCII?Q?=5Flru=5Fpages.patch?= removed from -mm tree
+Date: Fri, 08 May 2020 15:32:52 -0700
+Message-ID: <20200508223252.6DsHEu4sK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52734 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726843AbgEHWcu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 18:32:50 -0400
+        id S1726843AbgEHWcy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 18:32:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbaron@akamai.com, khazhy@google.com, mm-commits@vger.kernel.org, r@hev.cc, rpenyaev@suse.de, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, chenqiwu@xiaomi.com, mm-commits@vger.kernel.org, qiwuchen55@gmail.com
 
 
 The patch titled
-     Subject: epoll: atomically remove wait entry on wake up
+     Subject: mm/vmscan: remove unnecessary argument description of isolate_lru_pages()
 has been removed from the -mm tree.  Its filename was
-     epoll-atomically-remove-wait-entry-on-wake-up.patch
+     mm-vmscan-remove-unnecessary-argument-description-of-isolate_lru_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Roman Penyaev <rpenyaev@suse.de>
-Subject: epoll: atomically remove wait entry on wake up
+From: Qiwu Chen <qiwuchen55@gmail.com>
+Subject: mm/vmscan: remove unnecessary argument description of isolate_lru_pages()
 
-This patch does two things:
+Since commit a9e7c39fa9fd9 ("mm/vmscan.c: remove 7th argument of
+isolate_lru_pages()"), the explanation of 'mode' argument has been
+unnecessary.  Let's remove it.
 
-1. fixes lost wakeup introduced by:
-  339ddb53d373 ("fs/epoll: remove unnecessary wakeups of nested epoll")
-
-2. improves performance for events delivery.
-
-The description of the problem is the following: if N (>1) threads are
-waiting on ep->wq for new events and M (>1) events come, it is quite
-likely that >1 wakeups hit the same wait queue entry, because there is
-quite a big window between __add_wait_queue_exclusive() and the following
-__remove_wait_queue() calls in ep_poll() function.  This can lead to lost
-wakeups, because thread, which was woken up, can handle not all the events
-in ->rdllist.  (in better words the problem is described here:
-https://lkml.org/lkml/2019/10/7/905)
-
-The idea of the current patch is to use init_wait() instead of
-init_waitqueue_entry().  Internally init_wait() sets
-autoremove_wake_function as a callback, which removes the wait entry
-atomically (under the wq locks) from the list, thus the next coming wakeup
-hits the next wait entry in the wait queue, thus preventing lost wakeups.
-
-Problem is very well reproduced by the epoll60 test case [1].
-
-Wait entry removal on wakeup has also performance benefits, because there
-is no need to take a ep->lock and remove wait entry from the queue after
-the successful wakeup.  Here is the timing output of the epoll60 test
-case:
-
-  With explicit wakeup from ep_scan_ready_list() (the state of the
-  code prior 339ddb53d373):
-
-    real    0m6.970s
-    user    0m49.786s
-    sys     0m0.113s
-
- After this patch:
-
-   real    0m5.220s
-   user    0m36.879s
-   sys     0m0.019s
-
-The other testcase is the stress-epoll [2], where one thread consumes
-all the events and other threads produce many events:
-
-  With explicit wakeup from ep_scan_ready_list() (the state of the
-  code prior 339ddb53d373):
-
-    threads  events/ms  run-time ms
-          8       5427         1474
-         16       6163         2596
-         32       6824         4689
-         64       7060         9064
-        128       6991        18309
-
- After this patch:
-
-    threads  events/ms  run-time ms
-          8       5598         1429
-         16       7073         2262
-         32       7502         4265
-         64       7640         8376
-        128       7634        16767
-
- (number of "events/ms" represents event bandwidth, thus higher is
-  better; number of "run-time ms" represents overall time spent
-  doing the benchmark, thus lower is better)
-
-[1] tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c
-[2] https://github.com/rouming/test-tools/blob/master/stress-epoll.c
-
-Link: http://lkml.kernel.org/r/20200430130326.1368509-2-rpenyaev@suse.de
-Signed-off-by: Roman Penyaev <rpenyaev@suse.de>
-Reviewed-by: Jason Baron <jbaron@akamai.com>
-Cc: Khazhismel Kumykov <khazhy@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Heiher <r@hev.cc>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200501090346.2894-1-chenqiwu@xiaomi.com
+Signed-off-by: Qiwu Chen <chenqiwu@xiaomi.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   43 ++++++++++++++++++++++++-------------------
- 1 file changed, 24 insertions(+), 19 deletions(-)
+ mm/vmscan.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/fs/eventpoll.c~epoll-atomically-remove-wait-entry-on-wake-up
-+++ a/fs/eventpoll.c
-@@ -1822,7 +1822,6 @@ static int ep_poll(struct eventpoll *ep,
- {
- 	int res = 0, eavail, timed_out = 0;
- 	u64 slack = 0;
--	bool waiter = false;
- 	wait_queue_entry_t wait;
- 	ktime_t expires, *to = NULL;
- 
-@@ -1867,21 +1866,23 @@ fetch_events:
- 	 */
- 	ep_reset_busy_poll_napi_id(ep);
- 
--	/*
--	 * We don't have any available event to return to the caller.  We need
--	 * to sleep here, and we will be woken by ep_poll_callback() when events
--	 * become available.
--	 */
--	if (!waiter) {
--		waiter = true;
--		init_waitqueue_entry(&wait, current);
--
-+	do {
-+		/*
-+		 * Internally init_wait() uses autoremove_wake_function(),
-+		 * thus wait entry is removed from the wait queue on each
-+		 * wakeup. Why it is important? In case of several waiters
-+		 * each new wakeup will hit the next waiter, giving it the
-+		 * chance to harvest new event. Otherwise wakeup can be
-+		 * lost. This is also good performance-wise, because on
-+		 * normal wakeup path no need to call __remove_wait_queue()
-+		 * explicitly, thus ep->lock is not taken, which halts the
-+		 * event delivery.
-+		 */
-+		init_wait(&wait);
- 		write_lock_irq(&ep->lock);
- 		__add_wait_queue_exclusive(&ep->wq, &wait);
- 		write_unlock_irq(&ep->lock);
--	}
- 
--	for (;;) {
- 		/*
- 		 * We don't want to sleep if the ep_poll_callback() sends us
- 		 * a wakeup in between. That's why we set the task state
-@@ -1911,10 +1912,20 @@ fetch_events:
- 			timed_out = 1;
- 			break;
- 		}
--	}
-+
-+		/* We were woken up, thus go and try to harvest some events */
-+		eavail = 1;
-+
-+	} while (0);
- 
- 	__set_current_state(TASK_RUNNING);
- 
-+	if (!list_empty_careful(&wait.entry)) {
-+		write_lock_irq(&ep->lock);
-+		__remove_wait_queue(&ep->wq, &wait);
-+		write_unlock_irq(&ep->lock);
-+	}
-+
- send_events:
- 	/*
- 	 * Try to transfer events to user space. In case we get 0 events and
-@@ -1925,12 +1936,6 @@ send_events:
- 	    !(res = ep_send_events(ep, events, maxevents)) && !timed_out)
- 		goto fetch_events;
- 
--	if (waiter) {
--		write_lock_irq(&ep->lock);
--		__remove_wait_queue(&ep->wq, &wait);
--		write_unlock_irq(&ep->lock);
--	}
+--- a/mm/vmscan.c~mm-vmscan-remove-unnecessary-argument-description-of-isolate_lru_pages
++++ a/mm/vmscan.c
+@@ -1625,7 +1625,6 @@ static __always_inline void update_lru_s
+  * @dst:	The temp list to put pages on to.
+  * @nr_scanned:	The number of pages that were scanned.
+  * @sc:		The scan_control struct for this reclaim session
+- * @mode:	One of the LRU isolation modes
+  * @lru:	LRU list id for isolating
+  *
+  * returns how many pages were moved onto *@dst.
+_
+
+Patches currently in -mm which might be from qiwuchen55@gmail.com are
+
+mm-vmscan-update-the-comment-of-should_continue_reclaim.patch
