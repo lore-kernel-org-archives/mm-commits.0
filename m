@@ -1,38 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.patch
- added to -mm tree
-Date: Fri, 08 May 2020 16:53:19 -0700
-Message-ID: <20200508235319.0NmZ0DltL%akpm@linux-foundation.org>
+ mm-memory_hotplug-introduce-add_memory_driver_managed.patch added to -mm
+ tree
+Date: Fri, 08 May 2020 16:56:40 -0700
+Message-ID: <20200508235640.PDgVDGh7H%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55836 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34282 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727878AbgEHXxV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 19:53:21 -0400
+        id S1726380AbgEHX4m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 19:56:42 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, dave.jiang@intel.com, david@redhat.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, stable@vger.kernel.org, vishal.l.verma@intel.com
+To: bhe@redhat.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@redhat.com, ebiederm@xmission.com, mhocko@suse.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, pasha.tatashin@soleen.com, richard.weiyang@gmail.com
 
 
 The patch titled
-     Subject: device-dax: don't leak kernel memory to user space after unlo=
-ading kmem
+     Subject: mm/memory_hotplug: introduce add_memory_driver_managed()
 has been added to the -mm tree.  Its filename is
-     device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.=
-patch
+     mm-memory_hotplug-introduce-add_memory_driver_managed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/device-dax-dont-leak-kernel-me=
-mory-to-user-space-after-unloading-kmem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-introduce-add_memory_driver_managed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/device-dax-dont-leak-kernel-me=
-mory-to-user-space-after-unloading-kmem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-introduce-add_memory_driver_managed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,144 +33,236 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: David Hildenbrand <david@redhat.com>
-Subject: device-dax: don't leak kernel memory to user space after unloading=
- kmem
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug: introduce add_memory_driver_managed()
 
-Assume we have kmem configured and loaded:
-  [root@localhost ~]# cat /proc/iomem
-  ...
-  140000000-33fffffff : Persistent Memory$
-    140000000-1481fffff : namespace0.0
-    150000000-33fffffff : dax0.0
-      150000000-33fffffff : System RAM
+Patch series "mm/memory_hotplug: Interface to add driver-managed system
+ram", v4.
 
-Assume we try to unload kmem. This force-unloading will work, even if
-memory cannot get removed from the system.
-  [root@localhost ~]# rmmod kmem
-  [   86.380228] removing memory fails, because memory [0x0000000150000000-=
-0x0000000157ffffff] is onlined
-  ...
-  [   86.431225] kmem dax0.0: DAX region [mem 0x150000000-0x33fffffff] cann=
-ot be hotremoved until the next reboot
+kexec (via kexec_load()) can currently not properly handle memory added
+via dax/kmem, and will have similar issues with virtio-mem.  kexec-tools
+will currently add all memory to the fixed-up initial firmware memmap.  In
+case of dax/kmem, this means that - in contrast to a proper reboot - how
+that persistent memory will be used can no longer be configured by the
+kexec'd kernel.  In case of virtio-mem it will be harmful, because that
+memory might contain inaccessible pieces that require coordination with
+hypervisor first.
 
-Now, we can reconfigure the namespace:
-  [root@localhost ~]# ndctl create-namespace --force --reconfig=3Dnamespace=
-0.0 --mode=3Ddevdax
-  [  131.409351] nd_pmem namespace0.0: could not reserve region [mem 0x1400=
-00000-0x33fffffff]dax
-  [  131.410147] nd_pmem: probe of namespace0.0 failed with error -16namesp=
-ace0.0 --mode=3Ddevdax
-  ...
+In both cases, we want to let the driver in the kexec'd kernel handle
+detecting and adding the memory, like during an ordinary reboot. 
+Introduce add_memory_driver_managed().  More on the samentics are in patch
+#1.
 
-This fails as expected due to the busy memory resource, and the memory
-cannot be used. However, the dax0.0 device is removed, and along its name.
+In the future, we might want to make this behavior configurable for
+dax/kmem- either by configuring it in the kernel (which would then also
+allow to configure kexec_file_load()) or in kexec-tools by also adding
+"System RAM (kmem)" memory from /proc/iomem to the fixed-up initial
+firmware memmap.
 
-The name of the memory resource now points at freed memory (name of the
-device).
-  [root@localhost ~]# cat /proc/iomem
-  ...
-  140000000-33fffffff : Persistent Memory
-    140000000-1481fffff : namespace0.0
-    150000000-33fffffff : =EF=BF=BD_=EF=BF=BD^7_=EF=BF=BD=EF=BF=BD/_=EF=BF=
-=BD=EF=BF=BDwR=EF=BF=BD=EF=BF=BDWQ=EF=BF=BD=EF=BF=BD=EF=BF=BD^=EF=BF=BD=EF=
-=BF=BD=EF=BF=BD ...
-    150000000-33fffffff : System RAM
+More on the motivation can be found in [1] and [2].
 
-We have to make sure to duplicate the string.  While at it, remove the
-superfluous setting of the name and fixup a stale comment.
+[1] https://lkml.kernel.org/r/20200429160803.109056-1-david@redhat.com
+[2] https://lkml.kernel.org/r/20200430102908.10107-1-david@redhat.com
 
-Link: http://lkml.kernel.org/r/20200508084217.9160-2-david@redhat.com
-Fixes: 9f960da72b25 ("device-dax: "Hotremove" persistent memory that is use=
-d like normal RAM")
+
+This patch (of 3):
+
+Some device drivers rely on memory they managed to not get added to the
+initial (firmware) memmap as system RAM - so it's not used as initial
+system RAM by the kernel and the driver is under control.  While this is
+the case during cold boot and after a reboot, kexec is not aware of that
+and might add such memory to the initial (firmware) memmap of the kexec
+kernel.  We need ways to teach kernel and userspace that this system ram
+is different.
+
+For example, dax/kmem allows to decide at runtime if persistent memory is
+to be used as system ram.  Another future user is virtio-mem, which has to
+coordinate with its hypervisor to deal with inaccessible parts within
+memory resources.
+
+We want to let users in the kernel (esp. kexec) but also user space
+(esp. kexec-tools) know that this memory has different semantics and
+needs to be handled differently:
+1. Don't create entries in /sys/firmware/memmap/
+2. Name the memory resource "System RAM ($DRIVER)" (exposed via
+   /proc/iomem) ($DRIVER might be "kmem", "virtio_mem").
+3. Flag the memory resource IORESOURCE_MEM_DRIVER_MANAGED
+
+/sys/firmware/memmap/ [1] represents the "raw firmware-provided memory
+map" because "on most architectures that firmware-provided memory map is
+modified afterwards by the kernel itself".  The primary user is kexec on
+x86-64.  Since commit d96ae5309165 ("memory-hotplug: create
+/sys/firmware/memmap entry for new memory"), we add all hotplugged memory
+to that firmware memmap - which makes perfect sense for traditional memory
+hotplug on x86-64, where real HW will also add hotplugged DIMMs to the
+firmware memmap.  We replicate what the "raw firmware-provided memory map"
+looks like after hot(un)plug.
+
+To keep things simple, let the user provide the full resource name instead
+of only the driver name - this way, we don't have to manually
+allocate/craft strings for memory resources.  Also use the resource name
+to make decisions, to avoid passing additional flags.  In case the name
+isn't "System RAM", it's special.
+
+We don't have to worry about firmware_map_remove() on the removal path. 
+If there is no entry, it will simply return with -EINVAL.
+
+We'll adapt dax/kmem in a follow-up patch.
+
+[1] https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-firmware-memmap
+
+Link: http://lkml.kernel.org/r/20200508084217.9160-1-david@redhat.com
+Link: http://lkml.kernel.org/r/20200508084217.9160-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: <stable@vger.kernel.org>	[5.3]
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ include/linux/ioport.h         |    1 
+ include/linux/memory_hotplug.h |    2 +
+ mm/memory_hotplug.c            |   62 +++++++++++++++++++++++++++++--
+ 3 files changed, 61 insertions(+), 4 deletions(-)
 
---- a/drivers/dax/kmem.c~device-dax-dont-leak-kernel-memory-to-user-space-a=
-fter-unloading-kmem
-+++ a/drivers/dax/kmem.c
-@@ -22,6 +22,7 @@ int dev_dax_kmem_probe(struct device *de
- 	resource_size_t kmem_size;
- 	resource_size_t kmem_end;
- 	struct resource *new_res;
-+	const char *new_res_name;
- 	int numa_node;
- 	int rc;
-=20
-@@ -48,11 +49,16 @@ int dev_dax_kmem_probe(struct device *de
- 	kmem_size &=3D ~(memory_block_size_bytes() - 1);
- 	kmem_end =3D kmem_start + kmem_size;
-=20
--	/* Region is permanently reserved.  Hot-remove not yet implemented. */
--	new_res =3D request_mem_region(kmem_start, kmem_size, dev_name(dev));
-+	new_res_name =3D kstrdup(dev_name(dev), GFP_KERNEL);
-+	if (!new_res_name)
-+		return -ENOMEM;
+--- a/include/linux/ioport.h~mm-memory_hotplug-introduce-add_memory_driver_managed
++++ a/include/linux/ioport.h
+@@ -103,6 +103,7 @@ struct resource {
+ #define IORESOURCE_MEM_32BIT		(3<<3)
+ #define IORESOURCE_MEM_SHADOWABLE	(1<<5)	/* dup: IORESOURCE_SHADOWABLE */
+ #define IORESOURCE_MEM_EXPANSIONROM	(1<<6)
++#define IORESOURCE_MEM_DRIVER_MANAGED	(1<<7)
+ 
+ /* PnP I/O specific bits (IORESOURCE_BITS) */
+ #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-introduce-add_memory_driver_managed
++++ a/include/linux/memory_hotplug.h
+@@ -342,6 +342,8 @@ extern void __ref free_area_init_core_ho
+ extern int __add_memory(int nid, u64 start, u64 size);
+ extern int add_memory(int nid, u64 start, u64 size);
+ extern int add_memory_resource(int nid, struct resource *resource);
++extern int add_memory_driver_managed(int nid, u64 start, u64 size,
++				     const char *resource_name);
+ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+ 		unsigned long nr_pages, struct vmem_altmap *altmap);
+ extern void remove_pfn_range_from_zone(struct zone *zone,
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-introduce-add_memory_driver_managed
++++ a/mm/memory_hotplug.c
+@@ -98,11 +98,14 @@ void mem_hotplug_done(void)
+ u64 max_mem_size = U64_MAX;
+ 
+ /* add this memory to iomem resource */
+-static struct resource *register_memory_resource(u64 start, u64 size)
++static struct resource *register_memory_resource(u64 start, u64 size,
++						 const char *resource_name)
+ {
+ 	struct resource *res;
+ 	unsigned long flags =  IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+-	char *resource_name = "System RAM";
 +
-+	/* Region is permanently reserved if hotremove fails. */
-+	new_res =3D request_mem_region(kmem_start, kmem_size, new_res_name);
- 	if (!new_res) {
- 		dev_warn(dev, "could not reserve region [%pa-%pa]\n",
- 			 &kmem_start, &kmem_end);
-+		kfree(new_res_name);
- 		return -EBUSY;
- 	}
-=20
-@@ -63,12 +69,12 @@ int dev_dax_kmem_probe(struct device *de
- 	 * unknown to us that will break add_memory() below.
- 	 */
- 	new_res->flags =3D IORESOURCE_SYSTEM_RAM;
--	new_res->name =3D dev_name(dev);
-=20
- 	rc =3D add_memory(numa_node, new_res->start, resource_size(new_res));
- 	if (rc) {
- 		release_resource(new_res);
- 		kfree(new_res);
-+		kfree(new_res_name);
- 		return rc;
- 	}
- 	dev_dax->dax_kmem_res =3D new_res;
-@@ -83,6 +89,7 @@ static int dev_dax_kmem_remove(struct de
- 	struct resource *res =3D dev_dax->dax_kmem_res;
- 	resource_size_t kmem_start =3D res->start;
- 	resource_size_t kmem_size =3D resource_size(res);
-+	const char *res_name =3D res->name;
- 	int rc;
-=20
++	if (strcmp(resource_name, "System RAM"))
++		flags |= IORESOURCE_MEM_DRIVER_MANAGED;
+ 
  	/*
-@@ -102,6 +109,7 @@ static int dev_dax_kmem_remove(struct de
- 	/* Release and free dax resources */
- 	release_resource(res);
- 	kfree(res);
-+	kfree(res_name);
- 	dev_dax->dax_kmem_res =3D NULL;
-=20
- 	return 0;
+ 	 * Make sure value parsed from 'mem=' only restricts memory adding
+@@ -1057,7 +1060,8 @@ int __ref add_memory_resource(int nid, s
+ 	BUG_ON(ret);
+ 
+ 	/* create new memmap entry */
+-	firmware_map_add_hotplug(start, start + size, "System RAM");
++	if (!strcmp(res->name, "System RAM"))
++		firmware_map_add_hotplug(start, start + size, "System RAM");
+ 
+ 	/* device_online() will take the lock when calling online_pages() */
+ 	mem_hotplug_done();
+@@ -1083,7 +1087,7 @@ int __ref __add_memory(int nid, u64 star
+ 	struct resource *res;
+ 	int ret;
+ 
+-	res = register_memory_resource(start, size);
++	res = register_memory_resource(start, size, "System RAM");
+ 	if (IS_ERR(res))
+ 		return PTR_ERR(res);
+ 
+@@ -1105,6 +1109,56 @@ int add_memory(int nid, u64 start, u64 s
+ }
+ EXPORT_SYMBOL_GPL(add_memory);
+ 
++/*
++ * Add special, driver-managed memory to the system as system RAM. Such
++ * memory is not exposed via the raw firmware-provided memmap as system
++ * RAM, instead, it is detected and added by a driver - during cold boot,
++ * after a reboot, and after kexec.
++ *
++ * Reasons why this memory should not be used for the initial memmap of a
++ * kexec kernel or for placing kexec images:
++ * - The booting kernel is in charge of determining how this memory will be
++ *   used (e.g., use persistent memory as system RAM)
++ * - Coordination with a hypervisor is required before this memory
++ *   can be used (e.g., inaccessible parts).
++ *
++ * For this memory, no entries in /sys/firmware/memmap ("raw firmware-provided
++ * memory map") are created. Also, the created memory resource is flagged
++ * with IORESOURCE_MEM_DRIVER_MANAGED, so in-kernel users can special-case
++ * this memory as well (esp., not place kexec images onto it).
++ *
++ * The resource_name (visible via /proc/iomem) has to have the format
++ * "System RAM ($DRIVER)".
++ */
++int add_memory_driver_managed(int nid, u64 start, u64 size,
++			      const char *resource_name)
++{
++	struct resource *res;
++	int rc;
++
++	if (!resource_name ||
++	    strstr(resource_name, "System RAM (") != resource_name ||
++	    resource_name[strlen(resource_name) - 1] != ')')
++		return -EINVAL;
++
++	lock_device_hotplug();
++
++	res = register_memory_resource(start, size, resource_name);
++	if (IS_ERR(res)) {
++		rc = PTR_ERR(res);
++		goto out_unlock;
++	}
++
++	rc = add_memory_resource(nid, res);
++	if (rc < 0)
++		release_memory_resource(res);
++
++out_unlock:
++	unlock_device_hotplug();
++	return rc;
++}
++EXPORT_SYMBOL_GPL(add_memory_driver_managed);
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+  * Confirm all pages in a range [start, end) belong to the same zone (skipping
 _
 
 Patches currently in -mm which might be from david@redhat.com are
 
 device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.patch
-drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix=
-.patch
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
 powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable.patch
 mm-memory_hotplug-remove-is_mem_section_removable.patch
 mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
 mm-memory_hotplug-handle-memblocks-only-with-config_arch_keep_memblock.patch
+mm-memory_hotplug-introduce-add_memory_driver_managed.patch
+kexec_file-dont-place-kexec-images-on-ioresource_mem_driver_managed.patch
+device-dax-add-memory-via-add_memory_driver_managed.patch
