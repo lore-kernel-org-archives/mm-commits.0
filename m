@@ -1,74 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ubsan-disable-ubsan_alignment-under-compile_test.patch removed from -mm
- tree
-Date: Fri, 08 May 2020 15:32:54 -0700
-Message-ID: <20200508223254.nXfSmSzjp%akpm@linux-foundation.org>
+Subject: [merged] mm-limit-boost_watermark-on-small-zones.patch
+ removed from -mm tree
+Date: Fri, 08 May 2020 15:32:57 -0700
+Message-ID: <20200508223257.HG_RRsUPm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52884 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726843AbgEHWcz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 18:32:55 -0400
+        id S1726843AbgEHWc6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 8 May 2020 18:32:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, jpoimboe@redhat.com, keescook@chromium.org, mm-commits@vger.kernel.org, peterz@infradead.org, rdunlap@infradead.org, sfr@canb.auug.org.au
+To: david@redhat.com, henry.willard@oracle.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST
+     Subject: mm: limit boost_watermark on small zones
 has been removed from the -mm tree.  Its filename was
-     ubsan-disable-ubsan_alignment-under-compile_test.patch
+     mm-limit-boost_watermark-on-small-zones.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST
+From: Henry Willard <henry.willard@oracle.com>
+Subject: mm: limit boost_watermark on small zones
 
-The documentation for UBSAN_ALIGNMENT already mentions that it should not
-be used on all*config builds (and for efficient-unaligned-access
-architectures), so just refactor the Kconfig to correctly implement this
-so randconfigs will stop creating insane images that freak out objtool
-under CONFIG_UBSAN_TRAP (due to the false positives producing functions
-that never return, etc).
+Commit 1c30844d2dfe ("mm: reclaim small amounts of memory when an external
+fragmentation event occurs") adds a boost_watermark() function which
+increases the min watermark in a zone by at least pageblock_nr_pages or
+the number of pages in a page block. On Arm64, with 64K pages and 512M
+huge pages, this is 8192 pages or 512M. It does this regardless of the
+number of managed pages managed in the zone or the likelihood of success.
+This can put the zone immediately under water in terms of allocating pages
+from the zone, and can cause a small machine to fail immediately due to
+OoM. Unlike set_recommended_min_free_kbytes(), which substantially
+increases min_free_kbytes and is tied to THP, boost_watermark() can be
+called even if THP is not active. The problem is most likely to appear
+on architectures such as Arm64 where pageblock_nr_pages is very large.
 
-Link: http://lkml.kernel.org/r/202005011433.C42EA3E2D@keescook
-Fixes: 0887a7ebc977 ("ubsan: add trap instrumentation option")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-  Link: https://lore.kernel.org/linux-next/202004231224.D6B3B650@keescook/
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+It is desirable to run the kdump capture kernel in as small a space as
+possible to avoid wasting memory. In some architectures, such as Arm64,
+there are restrictions on where the capture kernel can run, and therefore,
+the space available. A capture kernel running in 768M can fail due to OoM
+immediately after boost_watermark() sets the min in zone DMA32, where
+most of the memory is, to 512M. It fails even though there is over 500M of
+free memory. With boost_watermark() suppressed, the capture kernel can run
+successfully in 448M.
+
+This patch limits boost_watermark() to boosting a zone's min watermark only
+when there are enough pages that the boost will produce positive results.
+In this case that is estimated to be four times as many pages as
+pageblock_nr_pages.
+
+Mel said:
+
+: There is no harm in marking it stable.  Clearly it does not happen very
+: often but it's not impossible.  32-bit x86 is a lot less common now
+: which would previously have been vulnerable to triggering this easily. 
+: ppc64 has a larger base page size but typically only has one zone. 
+: arm64 is likely the most vulnerable, particularly when CMA is
+: configured with a small movable zone.
+
+Link: http://lkml.kernel.org/r/1588294148-6586-1-git-send-email-henry.willard@oracle.com
+Fixes: 1c30844d2dfe ("mm: reclaim small amounts of memory when an external fragmentation event occurs")
+Signed-off-by: Henry Willard <henry.willard@oracle.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan                                   |   15 ++++------
- tools/testing/selftests/wireguard/qemu/debug.config |    1 
- 2 files changed, 6 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/lib/Kconfig.ubsan~ubsan-disable-ubsan_alignment-under-compile_test
-+++ a/lib/Kconfig.ubsan
-@@ -60,18 +60,15 @@ config UBSAN_SANITIZE_ALL
- 	  Enabling this option will get kernel image size increased
- 	  significantly.
+--- a/mm/page_alloc.c~mm-limit-boost_watermark-on-small-zones
++++ a/mm/page_alloc.c
+@@ -2401,6 +2401,14 @@ static inline void boost_watermark(struc
  
--config UBSAN_NO_ALIGNMENT
--	bool "Disable checking of pointers alignment"
--	default y if HAVE_EFFICIENT_UNALIGNED_ACCESS
-+config UBSAN_ALIGNMENT
-+	bool "Enable checks for pointers alignment"
-+	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
-+	depends on !X86 || !COMPILE_TEST
- 	help
--	  This option disables the check of unaligned memory accesses.
--	  This option should be used when building allmodconfig.
--	  Disabling this option on architectures that support unaligned
-+	  This option enables the check of unaligned memory accesses.
-+	  Enabling this option on architectures that support unaligned
- 	  accesses may produce a lot of false positives.
+ 	if (!watermark_boost_factor)
+ 		return;
++	/*
++	 * Don't bother in zones that are unlikely to produce results.
++	 * On small machines, including kdump capture kernels running
++	 * in a small area, boosting the watermark can cause an out of
++	 * memory situation immediately.
++	 */
++	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
++		return;
  
--config UBSAN_ALIGNMENT
--	def_bool !UBSAN_NO_ALIGNMENT
+ 	max_boost = mult_frac(zone->_watermark[WMARK_HIGH],
+ 			watermark_boost_factor, 10000);
+_
+
+Patches currently in -mm which might be from henry.willard@oracle.com are
