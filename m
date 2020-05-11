@@ -1,68 +1,70 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged]
- =?US-ASCII?Q?lib-flex=5Fproportionsc-aging-counts-when-fraction-smaller?=
- =?US-ASCII?Q?-than-max=5Ffrac-fprop=5Ffrac=5Fbase.patch?= removed from -mm
+Subject: + xtensa-add-loglvl-to-show_trace-fix.patch added to -mm
  tree
-Date: Mon, 11 May 2020 14:31:05 -0700
-Message-ID: <20200511213105.kSqbJ3-iK%akpm@linux-foundation.org>
+Date: Mon, 11 May 2020 14:44:38 -0700
+Message-ID: <20200511214438.2WCkWlfbM%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38548 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47426 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725810AbgEKVbG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 11 May 2020 17:31:06 -0400
+        id S1725860AbgEKVoj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 May 2020 17:44:39 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org, tan.hu@zte.com.cn, wang.liang82@zte.com.cn, wang.yi59@zte.com.cn, xue.zhihong@zte.com.cn
+To: dima@arista.com, mm-commits@vger.kernel.org, rppt@kernel.org
 
 
 The patch titled
-     Subject: lib/flex_proportions.c: aging counts when fraction smaller than max_frac/FPROP_FRAC_BASE
-has been removed from the -mm tree.  Its filename was
-     lib-flex_proportionsc-aging-counts-when-fraction-smaller-than-max_frac-fprop_frac_base.patch
+     Subject: xtensa-add-loglvl-to-show_trace-fix
+has been added to the -mm tree.  Its filename is
+     xtensa-add-loglvl-to-show_trace-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/xtensa-add-loglvl-to-show_trace-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/xtensa-add-loglvl-to-show_trace-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Tan Hu <tan.hu@zte.com.cn>
-Subject: lib/flex_proportions.c: aging counts when fraction smaller than max_frac/FPROP_FRAC_BASE
+From: Mike Rapoport <rppt@kernel.org>
+Subject: xtensa-add-loglvl-to-show_trace-fix
 
-If the given type has fraction smaller than max_frac/FPROP_FRAC_BASE,
-__fprop_inc_percpu_max should follow the design formula and aging fraction
-too.
+build fix
 
-Link: http://lkml.kernel.org/r/1588746088-38605-1-git-send-email-tan.hu@zte.com.cn
-Signed-off-by: Tan Hu <tan.hu@zte.com.cn>
-Cc: <xue.zhihong@zte.com.cn>
-Cc: Yi Wang <wang.yi59@zte.com.cn>
-Cc: <wang.liang82@zte.com.cn>
-Cc: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/20200511194534.GA1018386@kernel.org
+Cc: Dmitry Safonov <dima@arista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/flex_proportions.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ arch/xtensa/kernel/traps.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/flex_proportions.c~lib-flex_proportionsc-aging-counts-when-fraction-smaller-than-max_frac-fprop_frac_base
-+++ a/lib/flex_proportions.c
-@@ -266,8 +266,7 @@ void __fprop_inc_percpu_max(struct fprop
- 		if (numerator >
- 		    (((u64)denominator) * max_frac) >> FPROP_FRAC_SHIFT)
- 			return;
--	} else
--		fprop_reflect_period_percpu(p, pl);
--	percpu_counter_add_batch(&pl->events, 1, PROP_BATCH);
--	percpu_counter_add(&p->events, 1);
-+	}
-+
-+	__fprop_inc_percpu(p, pl);
+--- a/arch/xtensa/kernel/traps.c~xtensa-add-loglvl-to-show_trace-fix
++++ a/arch/xtensa/kernel/traps.c
+@@ -515,7 +515,7 @@ void show_stack(struct task_struct *task
+ 	print_hex_dump(KERN_INFO, " ", DUMP_PREFIX_NONE,
+ 		       STACK_DUMP_LINE_SIZE, STACK_DUMP_ENTRY_SIZE,
+ 		       sp, len, false);
+-	show_trace(task, stack, KERN_INFO);
++	show_trace(task, sp, KERN_INFO);
  }
+ 
+ DEFINE_SPINLOCK(die_lock);
 _
 
-Patches currently in -mm which might be from tan.hu@zte.com.cn are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-lib-flex_proportionsc-cleanup-__fprop_inc_percpu_max.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix.patch
+xtensa-add-loglvl-to-show_trace-fix.patch
