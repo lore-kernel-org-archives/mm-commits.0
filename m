@@ -1,92 +1,84 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- =?US-ASCII?Q?mm-support-vector-address-ranges-for-process=5Fmadvise-fix-f?=
- =?US-ASCII?Q?ix-fix-fix-fix.patch?= added to -mm tree
-Date: Mon, 11 May 2020 14:02:24 -0700
-Message-ID: <20200511210224.BJcujpFi1%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-vmscan-consistent-update-to-pgsteal-and-pgscan.patch removed from -mm
+ tree
+Date: Mon, 11 May 2020 14:12:14 -0700
+Message-ID: <20200511211214.WuV8bV5h0%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43122 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52096 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731988AbgEKVCZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 11 May 2020 17:02:25 -0400
+        id S1725810AbgEKVMR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 May 2020 17:12:17 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: guro@fb.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com
 
 
 The patch titled
-     Subject: mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix
-has been added to the -mm tree.  Its filename is
-     mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+     Subject: mm: vmscan: consistent update to pgsteal and pgscan
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-consistent-update-to-pgsteal-and-pgscan.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: vmscan: consistent update to pgsteal and pgscan
 
-add compat_sys_process_madvise to mips syscall table
+One way to measure the efficiency of memory reclaim is to look at the
+ratio (pgscan+pfrefill)/pgsteal.  However at the moment these stats are
+not updated consistently at the system level and the ratio of these are
+not very meaningful.  The pgsteal and pgscan are updated for only global
+reclaim while pgrefill gets updated for global as well as cgroup reclaim.
 
-Cc: Minchan Kim <minchan@kernel.org>
+Please note that this difference is only for system level vmstats.  The
+cgroup stats returned by memory.stat are actually consistent.  The
+cgroup's pgsteal contains number of reclaimed pages for global as well as
+cgroup reclaim.  So, one way to get the system level stats is to get these
+stats from root's memory.stat but root does not expose that interface. 
+Also for !CONFIG_MEMCG machines /proc/vmstat is the only way to get these
+stats.  So, make these stats consistent.
+
+Link: http://lkml.kernel.org/r/20200507204913.18661-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/syscalls/syscall_o32.tbl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/arch/mips/kernel/syscalls/syscall_o32.tbl~mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix
-+++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
-@@ -425,4 +425,4 @@
- 435	o32	clone3				__sys_clone3
- 437	o32	openat2				sys_openat2
- 438	o32	pidfd_getfd			sys_pidfd_getfd
--439	o32	process_madvise			sys_process_madvise
-+439	o32	process_madvise			sys_process_madvise		compat_sys_process_madvise
+--- a/mm/vmscan.c~mm-vmscan-consistent-update-to-pgsteal-and-pgscan
++++ a/mm/vmscan.c
+@@ -1943,8 +1943,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	reclaim_stat->recent_scanned[file] += nr_taken;
+ 
+ 	item = current_is_kswapd() ? PGSCAN_KSWAPD : PGSCAN_DIRECT;
+-	if (!cgroup_reclaim(sc))
+-		__count_vm_events(item, nr_scanned);
++	__count_vm_events(item, nr_scanned);
+ 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
+ 	spin_unlock_irq(&pgdat->lru_lock);
+ 
+@@ -1957,8 +1956,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	spin_lock_irq(&pgdat->lru_lock);
+ 
+ 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
+-	if (!cgroup_reclaim(sc))
+-		__count_vm_events(item, nr_reclaimed);
++	__count_vm_events(item, nr_reclaimed);
+ 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
+ 	reclaim_stat->recent_rotated[0] += stat.nr_activate[0];
+ 	reclaim_stat->recent_rotated[1] += stat.nr_activate[1];
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index-fix.patch
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-linux-next-rejects.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+memcg-optimize-memorynuma_stat-like-memorystat.patch
+memcg-expose-root-cgroups-memorystat.patch
