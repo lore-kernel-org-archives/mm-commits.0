@@ -1,15 +1,18 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-introduce-external-memory-hinting-api-fix-2-fix.patch added to -mm tree
-Date: Mon, 11 May 2020 14:00:42 -0700
-Message-ID: <20200511210042.z954Y8Z6i%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-support-vector-address-ranges-for-process=5Fmadvise-fix-f?=
+ =?US-ASCII?Q?ix-fix-fix-fix.patch?= added to -mm tree
+Date: Mon, 11 May 2020 14:02:24 -0700
+Message-ID: <20200511210224.BJcujpFi1%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40960 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43122 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732133AbgEKVAo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 11 May 2020 17:00:44 -0400
+        id S1731988AbgEKVCZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 May 2020 17:02:25 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +20,14 @@ To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-introduce-external-memory-hinting-api-fix-2-fix
+     Subject: mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+     mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,26 +42,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-introduce-external-memory-hinting-api-fix-2-fix
+Subject: mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix
 
-the compat bit comes later
+add compat_sys_process_madvise to mips syscall table
 
 Cc: Minchan Kim <minchan@kernel.org>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  arch/mips/kernel/syscalls/syscall_o32.tbl |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/mips/kernel/syscalls/syscall_o32.tbl~mm-introduce-external-memory-hinting-api-fix-2-fix
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl~mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix
 +++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
 @@ -425,4 +425,4 @@
  435	o32	clone3				__sys_clone3
  437	o32	openat2				sys_openat2
  438	o32	pidfd_getfd			sys_pidfd_getfd
--439	o32	process_madvise			sys_process_madvise		compat_sys_process_madvise
-+439	o32	process_madvise			sys_process_madvise
+-439	o32	process_madvise			sys_process_madvise
++439	o32	process_madvise			sys_process_madvise		compat_sys_process_madvise
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +87,6 @@ mm-replace-zero-length-array-with-flexible-array-member-fix.patch
 mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
 linux-next-rejects.patch
 mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
 doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
