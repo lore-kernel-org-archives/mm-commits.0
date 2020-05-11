@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-vmstat-convert-to-use-define_seq_attribute-macro.patch added to -mm tree
-Date: Mon, 11 May 2020 14:21:48 -0700
-Message-ID: <20200511212148.MwcCgEo_V%akpm@linux-foundation.org>
+ kernel-kprobes-convert-to-use-define_seq_attribute-macro.patch added to -mm
+ tree
+Date: Mon, 11 May 2020 14:21:51 -0700
+Message-ID: <20200511212151.JOwPzF5eZ%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58304 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725895AbgEKVVv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 11 May 2020 17:21:51 -0400
+        id S1725895AbgEKVVx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 May 2020 17:21:53 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +18,14 @@ To: anil.s.keshavamurthy@intel.com, davem@davemloft.net, gregkh@linuxfoundation.
 
 
 The patch titled
-     Subject: mm/vmstat.c: convert to use DEFINE_SEQ_ATTRIBUTE macro
+     Subject: kernel/kprobes.c: convert to use DEFINE_SEQ_ATTRIBUTE macro
 has been added to the -mm tree.  Its filename is
-     mm-vmstat-convert-to-use-define_seq_attribute-macro.patch
+     kernel-kprobes-convert-to-use-define_seq_attribute-macro.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-convert-to-use-define_seq_attribute-macro.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-kprobes-convert-to-use-define_seq_attribute-macro.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-convert-to-use-define_seq_attribute-macro.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-kprobes-convert-to-use-define_seq_attribute-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,90 +40,93 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm/vmstat.c: convert to use DEFINE_SEQ_ATTRIBUTE macro
+Subject: kernel/kprobes.c: convert to use DEFINE_SEQ_ATTRIBUTE macro
 
 Use DEFINE_SEQ_ATTRIBUTE macro to simplify the code.
 
-Link: http://lkml.kernel.org/r/20200509064031.181091-3-wangkefeng.wang@huawei.com
+Link: http://lkml.kernel.org/r/20200509064031.181091-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Greg KH <gregkh@linuxfoundation.org>
 Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   32 ++++++--------------------------
- 1 file changed, 6 insertions(+), 26 deletions(-)
+ kernel/kprobes.c |   33 ++++++---------------------------
+ 1 file changed, 6 insertions(+), 27 deletions(-)
 
---- a/mm/vmstat.c~mm-vmstat-convert-to-use-define_seq_attribute-macro
-+++ a/mm/vmstat.c
-@@ -2055,24 +2055,14 @@ static int unusable_show(struct seq_file
+--- a/kernel/kprobes.c~kernel-kprobes-convert-to-use-define_seq_attribute-macro
++++ a/kernel/kprobes.c
+@@ -2398,24 +2398,14 @@ static int show_kprobe_addr(struct seq_f
  	return 0;
  }
  
--static const struct seq_operations unusable_op = {
-+static const struct seq_operations unusable_sops = {
- 	.start	= frag_start,
- 	.next	= frag_next,
- 	.stop	= frag_stop,
- 	.show	= unusable_show,
+-static const struct seq_operations kprobes_seq_ops = {
++static const struct seq_operations kprobes_sops = {
+ 	.start = kprobe_seq_start,
+ 	.next  = kprobe_seq_next,
+ 	.stop  = kprobe_seq_stop,
+ 	.show  = show_kprobe_addr
  };
  
--static int unusable_open(struct inode *inode, struct file *file)
+-static int kprobes_open(struct inode *inode, struct file *filp)
 -{
--	return seq_open(file, &unusable_op);
+-	return seq_open(filp, &kprobes_seq_ops);
 -}
 -
--static const struct file_operations unusable_file_ops = {
--	.open		= unusable_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= seq_release,
+-static const struct file_operations debugfs_kprobes_operations = {
+-	.open           = kprobes_open,
+-	.read           = seq_read,
+-	.llseek         = seq_lseek,
+-	.release        = seq_release,
 -};
-+DEFINE_SEQ_ATTRIBUTE(unusable);
++DEFINE_SEQ_ATTRIBUTE(kprobes);
  
- static void extfrag_show_print(struct seq_file *m,
- 					pg_data_t *pgdat, struct zone *zone)
-@@ -2107,24 +2097,14 @@ static int extfrag_show(struct seq_file
+ /* kprobes/blacklist -- shows which functions can not be probed */
+ static void *kprobe_blacklist_seq_start(struct seq_file *m, loff_t *pos)
+@@ -2446,24 +2436,14 @@ static int kprobe_blacklist_seq_show(str
  	return 0;
  }
  
--static const struct seq_operations extfrag_op = {
-+static const struct seq_operations extfrag_sops = {
- 	.start	= frag_start,
- 	.next	= frag_next,
- 	.stop	= frag_stop,
- 	.show	= extfrag_show,
+-static const struct seq_operations kprobe_blacklist_seq_ops = {
++static const struct seq_operations kprobe_blacklist_sops = {
+ 	.start = kprobe_blacklist_seq_start,
+ 	.next  = kprobe_blacklist_seq_next,
+ 	.stop  = kprobe_seq_stop,	/* Reuse void function */
+ 	.show  = kprobe_blacklist_seq_show,
  };
  
--static int extfrag_open(struct inode *inode, struct file *file)
+-static int kprobe_blacklist_open(struct inode *inode, struct file *filp)
 -{
--	return seq_open(file, &extfrag_op);
+-	return seq_open(filp, &kprobe_blacklist_seq_ops);
 -}
 -
--static const struct file_operations extfrag_file_ops = {
--	.open		= extfrag_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= seq_release,
+-static const struct file_operations debugfs_kprobe_blacklist_ops = {
+-	.open           = kprobe_blacklist_open,
+-	.read           = seq_read,
+-	.llseek         = seq_lseek,
+-	.release        = seq_release,
 -};
-+DEFINE_SEQ_ATTRIBUTE(extfrag);
++DEFINE_SEQ_ATTRIBUTE(kprobe_blacklist);
  
- static int __init extfrag_debug_init(void)
+ static int arm_all_kprobes(void)
  {
-@@ -2133,10 +2113,10 @@ static int __init extfrag_debug_init(voi
- 	extfrag_debug_root = debugfs_create_dir("extfrag", NULL);
+@@ -2622,13 +2602,12 @@ static int __init debugfs_kprobe_init(vo
  
- 	debugfs_create_file("unusable_index", 0444, extfrag_debug_root, NULL,
--			    &unusable_file_ops);
-+			    &unusable_fops);
+ 	dir = debugfs_create_dir("kprobes", NULL);
  
- 	debugfs_create_file("extfrag_index", 0444, extfrag_debug_root, NULL,
--			    &extfrag_file_ops);
-+			    &extfrag_fops);
+-	debugfs_create_file("list", 0400, dir, NULL,
+-			    &debugfs_kprobes_operations);
++	debugfs_create_file("list", 0400, dir, NULL, &kprobes_fops);
+ 
+ 	debugfs_create_file("enabled", 0600, dir, &value, &fops_kp);
+ 
+ 	debugfs_create_file("blacklist", 0400, dir, NULL,
+-			    &debugfs_kprobe_blacklist_ops);
++			    &kprobe_blacklist_fops);
  
  	return 0;
  }
