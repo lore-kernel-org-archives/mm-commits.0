@@ -1,79 +1,83 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- =?US-ASCII?Q?mm-memory=5Fhotplug-allow-arch-override-of-non-boot-memory-?=
- =?US-ASCII?Q?resource-names-fix.patch?= added to -mm tree
-Date: Fri, 08 May 2020 17:45:43 -0700
-Message-ID: <20200509004543.9XdMgEBb3%akpm@linux-foundation.org>
-References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Mon, 11 May 2020 11:44:56 -0700
+Message-ID: <20200511184456.acTo0ot6O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33618 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42116 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727878AbgEIApo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 8 May 2020 20:45:44 -0400
-In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
+        id S1729215AbgEKSo4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 May 2020 14:44:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anshuman.khandual@arm.com, bhsharma@redhat.com, catalin.marinas@arm.com, david@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, james.morse@arm.com, mhocko@kernel.org, mm-commits@vger.kernel.org, piliu@redhat.com, will@kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names-fix
-has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names-fix
+Subject: linux-next-git-rejects
 
-use MEMORY_HOTPLUG_RES_NAME in the debug message as well
-
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Bhupesh Sharma <bhsharma@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: James Morse <james.morse@arm.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: piliu <piliu@redhat.com>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/base/dd.c |    8 --------
+ fs/splice.c       |    9 ---------
+ 2 files changed, 17 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names-fix
-+++ a/mm/memory_hotplug.c
-@@ -129,7 +129,8 @@ static struct resource *register_memory_
- 			       resource_name, flags);
- 
- 	if (!res) {
--		pr_debug("Unable to reserve System RAM region: %016llx->%016llx\n",
-+		pr_debug("Unable to reserve " MEMORY_HOTPLUG_RES_NAME
-+				" region: %016llx->%016llx\n",
- 				start, start + size);
- 		return ERR_PTR(-EEXIST);
+--- a/drivers/base/dd.c~linux-next-git-rejects
++++ a/drivers/base/dd.c
+@@ -259,11 +259,7 @@ int driver_deferred_probe_check_state(st
  	}
+ 
+ 	if (!driver_deferred_probe_timeout && initcalls_done) {
+-<<<<<<< HEAD
+-		dev_warn(dev, "deferred probe timeout, ignoring dependency");
+-=======
+ 		dev_warn(dev, "deferred probe timeout, ignoring dependency\n");
+->>>>>>> linux-next/akpm-base
+ 		return -ETIMEDOUT;
+ 	}
+ 
+@@ -279,11 +275,7 @@ static void deferred_probe_timeout_work_
+ 	flush_work(&deferred_probe_work);
+ 
+ 	list_for_each_entry_safe(private, p, &deferred_probe_pending_list, deferred_probe)
+-<<<<<<< HEAD
+-		dev_info(private->device, "deferred probe pending");
+-=======
+ 		dev_info(private->device, "deferred probe pending\n");
+->>>>>>> linux-next/akpm-base
+ 	wake_up(&probe_timeout_waitqueue);
+ }
+ static DECLARE_DELAYED_WORK(deferred_probe_timeout_work, deferred_probe_timeout_work_func);
+--- a/fs/splice.c~linux-next-git-rejects
++++ a/fs/splice.c
+@@ -1118,17 +1118,8 @@ long do_splice(struct file *in, loff_t _
+ 	loff_t offset;
+ 	long ret;
+ 
+-<<<<<<< HEAD
+-	if (unlikely(!(in->f_mode & FMODE_READ) ||
+-		     !(out->f_mode & FMODE_WRITE)))
+-		return -EBADF;
+-
+-	ipipe = get_pipe_info(in);
+-	opipe = get_pipe_info(out);
+-=======
+ 	ipipe = get_pipe_info(in, true);
+ 	opipe = get_pipe_info(out, true);
+->>>>>>> linux-next/akpm-base
+ 
+ 	if (ipipe && opipe) {
+ 		if (off_in || off_out)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,7 +104,6 @@ mm-replace-zero-length-array-with-flexible-array-member-fix.patch
 mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
 mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names-fix.patch
 linux-next-rejects.patch
-linux-next-git-rejects.patch
 arch-x86-makefile-use-config_shell.patch
 doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
