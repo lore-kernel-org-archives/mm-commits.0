@@ -1,16 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- seq_file-introduce-define_seq_attribute-helper-macro.patch added to -mm
- tree
-Date: Mon, 11 May 2020 14:21:45 -0700
-Message-ID: <20200511212145.iDMy9f-kX%akpm@linux-foundation.org>
+ mm-vmstat-convert-to-use-define_seq_attribute-macro.patch added to -mm tree
+Date: Mon, 11 May 2020 14:21:48 -0700
+Message-ID: <20200511212148.MwcCgEo_V%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58264 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58304 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725895AbgEKVVr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 11 May 2020 17:21:47 -0400
+        id S1725895AbgEKVVv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 May 2020 17:21:51 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: anil.s.keshavamurthy@intel.com, davem@davemloft.net, gregkh@linuxfoundation.
 
 
 The patch titled
-     Subject: include/linux/seq_file.h: introduce DEFINE_SEQ_ATTRIBUTE() helper macro
+     Subject: mm/vmstat.c: convert to use DEFINE_SEQ_ATTRIBUTE macro
 has been added to the -mm tree.  Its filename is
-     seq_file-introduce-define_seq_attribute-helper-macro.patch
+     mm-vmstat-convert-to-use-define_seq_attribute-macro.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/seq_file-introduce-define_seq_attribute-helper-macro.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-convert-to-use-define_seq_attribute-macro.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/seq_file-introduce-define_seq_attribute-helper-macro.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-convert-to-use-define_seq_attribute-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,65 +39,93 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: include/linux/seq_file.h: introduce DEFINE_SEQ_ATTRIBUTE() helper macro
+Subject: mm/vmstat.c: convert to use DEFINE_SEQ_ATTRIBUTE macro
 
-Patch series "seq_file: Introduce DEFINE_SEQ_ATTRIBUTE() helper macro".
+Use DEFINE_SEQ_ATTRIBUTE macro to simplify the code.
 
-As discussed in
-https://lore.kernel.org/lkml/20191129222310.GA3712618@kroah.com/, we could
-introduce a new helper macro to reduce losts of boilerplate code, vmstat
-and kprobes is the example which covert to use it, if this is accepted, I
-will send out more cleanups.
-
-
-This patch (of 3):
-
-Introduce DEFINE_SEQ_ATTRIBUTE() helper macro to decrease code duplication.
-
-Link: http://lkml.kernel.org/r/20200509064031.181091-1-wangkefeng.wang@huawei.com
-Link: http://lkml.kernel.org/r/20200509064031.181091-2-wangkefeng.wang@huawei.com
+Link: http://lkml.kernel.org/r/20200509064031.181091-3-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/seq_file.h |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ mm/vmstat.c |   32 ++++++--------------------------
+ 1 file changed, 6 insertions(+), 26 deletions(-)
 
---- a/include/linux/seq_file.h~seq_file-introduce-define_seq_attribute-helper-macro
-+++ a/include/linux/seq_file.h
-@@ -145,6 +145,25 @@ void *__seq_open_private(struct file *,
- int seq_open_private(struct file *, const struct seq_operations *, int);
- int seq_release_private(struct inode *, struct file *);
+--- a/mm/vmstat.c~mm-vmstat-convert-to-use-define_seq_attribute-macro
++++ a/mm/vmstat.c
+@@ -2055,24 +2055,14 @@ static int unusable_show(struct seq_file
+ 	return 0;
+ }
  
-+#define DEFINE_SEQ_ATTRIBUTE(__name)					\
-+static int __name ## _open(struct inode *inode, struct file *file)	\
-+{									\
-+	int ret = seq_open(file, &__name ## _sops);			\
-+	if (!ret && inode->i_private) {					\
-+			struct seq_file *seq_f = file->private_data;	\
-+			seq_f->private = inode->i_private;		\
-+	}								\
-+	return ret;							\
-+}									\
-+									\
-+static const struct file_operations __name ## _fops = {			\
-+	.owner		= THIS_MODULE,					\
-+	.open		= __name ## _open,				\
-+	.read		= seq_read,					\
-+	.llseek		= seq_lseek,					\
-+	.release	= seq_release,					\
-+}
-+
- #define DEFINE_SHOW_ATTRIBUTE(__name)					\
- static int __name ## _open(struct inode *inode, struct file *file)	\
- {									\
+-static const struct seq_operations unusable_op = {
++static const struct seq_operations unusable_sops = {
+ 	.start	= frag_start,
+ 	.next	= frag_next,
+ 	.stop	= frag_stop,
+ 	.show	= unusable_show,
+ };
+ 
+-static int unusable_open(struct inode *inode, struct file *file)
+-{
+-	return seq_open(file, &unusable_op);
+-}
+-
+-static const struct file_operations unusable_file_ops = {
+-	.open		= unusable_open,
+-	.read		= seq_read,
+-	.llseek		= seq_lseek,
+-	.release	= seq_release,
+-};
++DEFINE_SEQ_ATTRIBUTE(unusable);
+ 
+ static void extfrag_show_print(struct seq_file *m,
+ 					pg_data_t *pgdat, struct zone *zone)
+@@ -2107,24 +2097,14 @@ static int extfrag_show(struct seq_file
+ 	return 0;
+ }
+ 
+-static const struct seq_operations extfrag_op = {
++static const struct seq_operations extfrag_sops = {
+ 	.start	= frag_start,
+ 	.next	= frag_next,
+ 	.stop	= frag_stop,
+ 	.show	= extfrag_show,
+ };
+ 
+-static int extfrag_open(struct inode *inode, struct file *file)
+-{
+-	return seq_open(file, &extfrag_op);
+-}
+-
+-static const struct file_operations extfrag_file_ops = {
+-	.open		= extfrag_open,
+-	.read		= seq_read,
+-	.llseek		= seq_lseek,
+-	.release	= seq_release,
+-};
++DEFINE_SEQ_ATTRIBUTE(extfrag);
+ 
+ static int __init extfrag_debug_init(void)
+ {
+@@ -2133,10 +2113,10 @@ static int __init extfrag_debug_init(voi
+ 	extfrag_debug_root = debugfs_create_dir("extfrag", NULL);
+ 
+ 	debugfs_create_file("unusable_index", 0444, extfrag_debug_root, NULL,
+-			    &unusable_file_ops);
++			    &unusable_fops);
+ 
+ 	debugfs_create_file("extfrag_index", 0444, extfrag_debug_root, NULL,
+-			    &extfrag_file_ops);
++			    &extfrag_fops);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
