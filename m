@@ -1,140 +1,191 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- =?US-ASCII?Q?mm-shmem-remove-rare-optimization-when-swapin-races-with-hol?=
- =?US-ASCII?Q?e-punching.patch?= added to -mm tree
-Date: Mon, 11 May 2020 12:54:17 -0700
-Message-ID: <20200511195417.Bp3SHkrrK%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ kexec-prevent-removal-of-memory-in-use-by-a-loaded-kexec-image.patch
+ removed from -mm tree
+Date: Mon, 11 May 2020 13:31:20 -0700
+Message-ID: <20200511203120.-GPOoWpwn%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37564 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38504 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728283AbgEKTyT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 11 May 2020 15:54:19 -0400
+        id S1729517AbgEKUbX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 May 2020 16:31:23 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.shi@linux.alibaba.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com
+To: anshuman.khandual@arm.com, bhsharma@redhat.com, catalin.marinas@arm.com, david@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, james.morse@arm.com, mhocko@kernel.org, mm-commits@vger.kernel.org, piliu@redhat.com, will@kernel.org
 
 
 The patch titled
-     Subject: mm: shmem: remove rare optimization when swapin races with hole punching
-has been added to the -mm tree.  Its filename is
-     mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
+     Subject: kexec: prevent removal of memory in use by a loaded kexec image
+has been removed from the -mm tree.  Its filename was
+     kexec-prevent-removal-of-memory-in-use-by-a-loaded-kexec-image.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: shmem: remove rare optimization when swapin races with hole punching
+From: James Morse <james.morse@arm.com>
+Subject: kexec: prevent removal of memory in use by a loaded kexec image
 
-Commit 215c02bc33bb ("tmpfs: fix shmem_getpage_gfp() VM_BUG_ON")
-recognized that hole punching can race with swapin and removed the
-BUG_ON() for a truncated entry from the swapin path.
+Patch series "kexec/memory_hotplug: Prevent removal and accidental use".
 
-The patch also added a swapcache deletion to optimize this rare case:
-Since swapin has the page locked, and free_swap_and_cache() merely
-trylocks, this situation can leave the page stranded in swapcache. 
-Usually, page reclaim picks up stale swapcache pages, and the race can
-happen at any other time when the page is locked.  (The same happens for
-non-shmem swapin racing with page table zapping.) The thinking here was:
-we already observed the race and we have the page locked, we may as well
-do the cleanup instead of waiting for reclaim.
+arm64 recently queued support for memory hotremove, which led to some new
+corner cases for kexec.
 
-However, this optimization complicates the next patch which moves the
-cgroup charging code around.  As this is just a minor speedup for a race
-condition that is so rare that it required a fuzzer to trigger the
-original BUG_ON(), it's no longer worth the complications.
+If the kexec segments are loaded for a removable region, that region may
+be removed before kexec actually occurs.  This causes the first kernel to
+lockup when applying the relocations.  (I've triggered this on x86 too).
 
-Link: http://lkml.kernel.org/r/20200511181056.GA339505@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
+The first patch adds a memory notifier for kexec so that it can refuse to
+allow in-use regions to be taken offline.
+
+This doesn't solve the problem for arm64, where the new kernel must
+initially rely on the data structures from the first boot to describe
+memory.  These don't describe hotpluggable memory.  If kexec places the
+kernel in one of these regions, it must also provide a DT that describes
+the region in which the kernel was mapped as memory.  (and somehow ensure
+its always present in the future...)
+
+To prevent this from happening accidentally with unaware user-space,
+patches two and three allow arm64 to give these regions a different name.
+
+This is a change in behaviour for arm64 as memory hotadd and hotremove
+were added separately.
+
+I haven't tried kdump.  Unaware kdump from user-space probably won't
+describe the hotplug regions if the name is different, which saves us from
+problems if the memory is no longer present at kdump time, but means the
+vmcore is incomplete.
+
+
+This patch (of 3):
+
+An image loaded for kexec is not stored in place, instead its segments are
+scattered through memory, and are re-assembled when needed.  In the
+meantime, the target memory may have been removed.
+
+Because mm is not aware that this memory is still in use, it allows it
+to be removed.
+
+Add a memory notifier to prevent the removal of memory regions that
+overlap with a loaded kexec image segment.  e.g., when triggered from the
+Qemu console:
+
+| kexec_core: memory region in use
+| memory memory32: Offline failed.
+
+Kexec allows user-space to specify the address that the kexec image
+should be loaded to.  Because this memory may be in use, an image
+loaded for kexec is not stored in place, instead its segments are
+scattered through memory, and are re-assembled when needed.  In the
+meantime, the target memory may have been removed.
+
+The target is described by user space during kexec_load() and that user
+space - right now - parses /proc/iomem to find applicable system
+memory.
+
+Link: http://lkml.kernel.org/r/20200326180730.4754-1-james.morse@arm.com
+Link: http://lkml.kernel.org/r/20200326180730.4754-2-james.morse@arm.com
+Signed-off-by: James Morse <james.morse@arm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Bhupesh Sharma <bhsharma@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: piliu <piliu@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   25 +++++++------------------
- 1 file changed, 7 insertions(+), 18 deletions(-)
+ kernel/kexec_core.c |   56 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
---- a/mm/shmem.c~mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching
-+++ a/mm/shmem.c
-@@ -1665,27 +1665,16 @@ static int shmem_swapin_page(struct inod
- 	}
+--- a/kernel/kexec_core.c~kexec-prevent-removal-of-memory-in-use-by-a-loaded-kexec-image
++++ a/kernel/kexec_core.c
+@@ -12,6 +12,7 @@
+ #include <linux/slab.h>
+ #include <linux/fs.h>
+ #include <linux/kexec.h>
++#include <linux/memory.h>
+ #include <linux/mutex.h>
+ #include <linux/list.h>
+ #include <linux/highmem.h>
+@@ -22,10 +23,12 @@
+ #include <linux/elf.h>
+ #include <linux/elfcore.h>
+ #include <linux/utsname.h>
++#include <linux/notifier.h>
+ #include <linux/numa.h>
+ #include <linux/suspend.h>
+ #include <linux/device.h>
+ #include <linux/freezer.h>
++#include <linux/pfn.h>
+ #include <linux/pm.h>
+ #include <linux/cpu.h>
+ #include <linux/uaccess.h>
+@@ -1219,3 +1222,56 @@ void __weak arch_kexec_protect_crashkres
  
- 	error = mem_cgroup_try_charge_delay(page, charge_mm, gfp, &memcg);
--	if (!error) {
--		error = shmem_add_to_page_cache(page, mapping, index,
--						swp_to_radix_entry(swap), gfp);
--		/*
--		 * We already confirmed swap under page lock, and make
--		 * no memory allocation here, so usually no possibility
--		 * of error; but free_swap_and_cache() only trylocks a
--		 * page, so it is just possible that the entry has been
--		 * truncated or holepunched since swap was confirmed.
--		 * shmem_undo_range() will have done some of the
--		 * unaccounting, now delete_from_swap_cache() will do
--		 * the rest.
--		 */
--		if (error) {
--			mem_cgroup_cancel_charge(page, memcg);
--			delete_from_swap_cache(page);
--		}
--	}
- 	if (error)
- 		goto failed;
- 
-+	error = shmem_add_to_page_cache(page, mapping, index,
-+					swp_to_radix_entry(swap), gfp);
-+	if (error) {
-+		mem_cgroup_cancel_charge(page, memcg);
-+		goto failed;
-+	}
+ void __weak arch_kexec_unprotect_crashkres(void)
+ {}
 +
- 	mem_cgroup_commit_charge(page, memcg, true);
- 
- 	spin_lock_irq(&info->lock);
++/*
++ * If user-space wants to offline memory that is in use by a loaded kexec
++ * image, it should unload the image first.
++ */
++static int mem_remove_cb(struct notifier_block *nb, unsigned long action,
++			 void *data)
++{
++	int rv = NOTIFY_OK, i;
++	struct memory_notify *arg = data;
++	unsigned long pfn = arg->start_pfn;
++	unsigned long nr_segments, sstart, send;
++	unsigned long end_pfn = arg->start_pfn + arg->nr_pages;
++
++	might_sleep();
++
++	if (action != MEM_GOING_OFFLINE)
++		return NOTIFY_DONE;
++
++	mutex_lock(&kexec_mutex);
++	if (kexec_image) {
++		nr_segments = kexec_image->nr_segments;
++
++		for (i = 0; i < nr_segments; i++) {
++			sstart = PFN_DOWN(kexec_image->segment[i].mem);
++			send = PFN_UP(kexec_image->segment[i].mem +
++				      kexec_image->segment[i].memsz);
++
++			if ((pfn <= sstart && sstart < end_pfn) ||
++			    (pfn <= send && send < end_pfn)) {
++				pr_warn("Memory region in use\n");
++				rv = NOTIFY_BAD;
++				break;
++			}
++		}
++	}
++	mutex_unlock(&kexec_mutex);
++
++	return rv;
++}
++
++static struct notifier_block mem_remove_nb = {
++	.notifier_call = mem_remove_cb,
++};
++
++static int __init register_mem_remove_cb(void)
++{
++	if (IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
++		return register_memory_notifier(&mem_remove_nb);
++
++	return 0;
++}
++device_initcall(register_mem_remove_cb);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from james.morse@arm.com are
 
-mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
-mm-memcontrol-fix-stat-corrupting-race-in-charge-moving.patch
-mm-memcontrol-drop-compound-parameter-from-memcg-charging-api.patch
-mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
-mm-memcontrol-move-out-cgroup-swaprate-throttling.patch
-mm-memcontrol-convert-page-cache-to-a-new-mem_cgroup_charge-api.patch
-mm-memcontrol-prepare-uncharging-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-move_account-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-cgroup-vmstat-infrastructure-for-native-anon-counters.patch
-mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
-mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
-mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
-mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
-mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
-mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
-mm-memcontrol-charge-swapin-pages-on-instantiation.patch
-mm-memcontrol-delete-unused-lrucare-handling.patch
-mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
+mm-memory_hotplug-allow-arch-override-of-non-boot-memory-resource-names.patch
+arm64-memory-give-hotplug-memory-a-different-resource-name.patch
