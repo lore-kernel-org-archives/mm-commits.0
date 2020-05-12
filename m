@@ -1,28 +1,30 @@
-From: akpm@linux-foundation.org
-Subject: + drm-remove-drm-specific-kmap_atomic-code-fix.patch
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + kasan-consistently-disable-debugging-features.patch
  added to -mm tree
-Date: Tue, 12 May 2020 13:58:08 -0700
-Message-ID: <20200512205808.Nsd4NvvBD%akpm@linux-foundation.org>
+Date: Tue, 12 May 2020 14:03:25 -0700
+Message-ID: <20200512210325._e0c4j-S5%akpm@linux-foundation.org>
+References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48772 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725938AbgELU6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 12 May 2020 16:58:09 -0400
+        id S1725938AbgELVD1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 12 May 2020 17:03:27 -0400
+In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, ira.weiny@intel.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, sfr@canb.auug.org.au
+To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, leonro@mellanox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm: vmwgfx: include linux/highmem.h
+     Subject: kasan: consistently disable debugging features
 has been added to the -mm tree.  Its filename is
-     drm-remove-drm-specific-kmap_atomic-code-fix.patch
+     kasan-consistently-disable-debugging-features.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drm-remove-drm-specific-kmap_atomic-code-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-consistently-disable-debugging-features.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drm-remove-drm-specific-kmap_atomic-code-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-consistently-disable-debugging-features.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,53 +38,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: drm: vmwgfx: include linux/highmem.h
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: consistently disable debugging features
 
-In order to call kmap_atomic() etc, we need to include linux/highmem.h:
+KASAN is incompatible with some kernel debugging/tracing features. 
+There's been multiple patches that disable those feature for some of KASAN
+files one by one.  Instead of prolonging that, disable these features for
+all KASAN files at once.
 
-drivers/gpu/drm/vmwgfx/vmwgfx_blit.c: In function 'vmw_bo_cpu_blit_line':
-drivers/gpu/drm/vmwgfx/vmwgfx_blit.c:377:4: error: implicit declaration of function 'kunmap_atomic'; did you mean 'in_atomic'? [-Werror=implicit-function-declaration]
-  377 |    kunmap_atomic(d->src_addr);
-      |    ^~~~~~~~~~~~~
-      |    in_atomic
-drivers/gpu/drm/vmwgfx/vmwgfx_blit.c:391:5: error: implicit declaration of function 'kmap_atomic_prot' [-Werror=implicit-function-declaration]
-  391 |     kmap_atomic_prot(d->dst_pages[dst_page],
-      |     ^~~~~~~~~~~~~~~~
-drivers/gpu/drm/vmwgfx/vmwgfx_blit.c:390:16: warning: assignment to 'u8 *' {aka 'unsigned char *'} from 'int' makes pointer from integer without a cast [-Wint-conversion]
-  390 |    d->dst_addr =
-      |                ^
-drivers/gpu/drm/vmwgfx/vmwgfx_blit.c:403:16: warning: assignment to 'u8 *' {aka 'unsigned char *'} from 'int' makes pointer from integer without a cast [-Wint-conversion]
-  403 |    d->src_addr =
-      |                ^
-
-Link: http://lkml.kernel.org/r/20200508220150.649044-1-arnd@arndb.de
-Fixes: 46385a895322 ("drm: remove drm specific kmap_atomic code")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: http://lkml.kernel.org/r/29bd753d5ff5596425905b0b07f51153e2345cc1.1589297433.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/vmwgfx/vmwgfx_blit.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kasan/Makefile |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_blit.c~drm-remove-drm-specific-kmap_atomic-code-fix
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_blit.c
-@@ -27,6 +27,7 @@
-  **************************************************************************/
+--- a/mm/kasan/Makefile~kasan-consistently-disable-debugging-features
++++ a/mm/kasan/Makefile
+@@ -1,23 +1,28 @@
+ # SPDX-License-Identifier: GPL-2.0
+ KASAN_SANITIZE := n
+-UBSAN_SANITIZE_common.o := n
+-UBSAN_SANITIZE_generic.o := n
+-UBSAN_SANITIZE_generic_report.o := n
+-UBSAN_SANITIZE_tags.o := n
++UBSAN_SANITIZE := n
+ KCOV_INSTRUMENT := n
  
- #include "vmwgfx_drv.h"
-+#include <linux/highmem.h>
++# Disable ftrace to avoid recursion.
+ CFLAGS_REMOVE_common.o = $(CC_FLAGS_FTRACE)
+ CFLAGS_REMOVE_generic.o = $(CC_FLAGS_FTRACE)
+ CFLAGS_REMOVE_generic_report.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_init.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_quarantine.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_report.o = $(CC_FLAGS_FTRACE)
+ CFLAGS_REMOVE_tags.o = $(CC_FLAGS_FTRACE)
++CFLAGS_REMOVE_tags_report.o = $(CC_FLAGS_FTRACE)
  
- /*
-  * Template that implements find_first_diff() for a generic
-_
-
-Patches currently in -mm which might be from arnd@arndb.de are
-
-arm64-add-support-for-folded-p4d-page-tables-fix.patch
-drm-remove-drm-specific-kmap_atomic-code-fix.patch
-bitops-avoid-clang-shift-count-overflow-warnings.patch
-ubsan-fix-gcc-10-warnings.patch
+ # Function splitter causes unnecessary splits in __asan_load1/__asan_store1
+ # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63533
