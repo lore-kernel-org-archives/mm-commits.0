@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-move-kasan_report-into-reportc.patch added to -mm
+Subject: +
+ mm-compaction-avoid-vm_bug_onpageslab-in-page_mapcount.patch added to -mm
  tree
-Date: Tue, 12 May 2020 14:04:00 -0700
-Message-ID: <20200512210400.yt48F6AWy%akpm@linux-foundation.org>
+Date: Wed, 13 May 2020 11:31:38 -0700
+Message-ID: <20200513183138.3e12_5I1z%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52618 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48226 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728220AbgELVEC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 12 May 2020 17:04:02 -0400
+        id S2390151AbgEMSbl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 May 2020 14:31:41 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, leon@kernel.org, leonro@mellanox.com, mm-commits@vger.kernel.org
+To: khlebnikov@yandex-team.ru, mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: kasan: move kasan_report() into report.c
+     Subject: mm/compaction: avoid VM_BUG_ON(PageSlab()) in page_mapcount()
 has been added to the -mm tree.  Its filename is
-     kasan-move-kasan_report-into-reportc.patch
+     mm-compaction-avoid-vm_bug_onpageslab-in-page_mapcount.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-move-kasan_report-into-reportc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-avoid-vm_bug_onpageslab-in-page_mapcount.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-move-kasan_report-into-reportc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-avoid-vm_bug_onpageslab-in-page_mapcount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,125 +39,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: move kasan_report() into report.c
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: mm/compaction: avoid VM_BUG_ON(PageSlab()) in page_mapcount()
 
-The kasan_report() functions belongs to report.c, as it's a common
-functions that does error reporting.
+isolate_migratepages_block() runs some checks out of lru_lock when
+choosing pages for migration.  After checking PageLRU() it checks extra
+page references by comparing page_count() and page_mapcount().  Between
+these two checks page could be removed from lru, freed and taken by slab.
 
-Link: http://lkml.kernel.org/r/78a81fde6eeda9db72a7fd55fbc33173a515e4b1.1589297433.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reported-by: Leon Romanovsky <leon@kernel.org>
-Tested-by: Leon Romanovsky <leon@kernel.org>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>
+As a result this race triggers VM_BUG_ON(PageSlab()) in page_mapcount(). 
+Race window is tiny.  For certain workload this happens around once a
+year.
+
+ page:ffffea0105ca9380 count:1 mapcount:0 mapping:ffff88ff7712c180 index:0x0 compound_mapcount: 0
+ flags: 0x500000000008100(slab|head)
+ raw: 0500000000008100 dead000000000100 dead000000000200 ffff88ff7712c180
+ raw: 0000000000000000 0000000080200020 00000001ffffffff 0000000000000000
+ page dumped because: VM_BUG_ON_PAGE(PageSlab(page))
+ ------------[ cut here ]------------
+ kernel BUG at ./include/linux/mm.h:628!
+ invalid opcode: 0000 [#1] SMP NOPTI
+ CPU: 77 PID: 504 Comm: kcompactd1 Tainted: G        W         4.19.109-27 #1
+ Hardware name: Yandex T175-N41-Y3N/MY81-EX0-Y3N, BIOS R05 06/20/2019
+ RIP: 0010:isolate_migratepages_block+0x986/0x9b0
+
+To fix just opencode page_mapcount() in racy check for 0-order case and
+recheck carefully under lru_lock when page cannot escape from lru.
+
+Also add checking extra references for file pages and swap cache.
+
+Link: http://lkml.kernel.org/r/158937872515.474360.5066096871639561424.stgit@buzz
+Fixes: 119d6d59dcc0 ("mm, compaction: avoid isolating pinned pages")
+Fixes: 1d148e218a0d ("mm: add VM_BUG_ON_PAGE() to page_mapcount()")
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   19 -------------------
- mm/kasan/report.c |   22 ++++++++++++++++++++--
- 2 files changed, 20 insertions(+), 21 deletions(-)
+ mm/compaction.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/mm/kasan/common.c~kasan-move-kasan_report-into-reportc
-+++ a/mm/kasan/common.c
-@@ -33,7 +33,6 @@
- #include <linux/types.h>
- #include <linux/vmalloc.h>
- #include <linux/bug.h>
--#include <linux/uaccess.h>
+--- a/mm/compaction.c~mm-compaction-avoid-vm_bug_onpageslab-in-page_mapcount
++++ a/mm/compaction.c
+@@ -935,12 +935,16 @@ isolate_migratepages_block(struct compac
+ 		}
  
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
-@@ -613,24 +612,6 @@ void kasan_free_shadow(const struct vm_s
- }
- #endif
+ 		/*
+-		 * Migration will fail if an anonymous page is pinned in memory,
++		 * Migration will fail if an page is pinned in memory,
+ 		 * so avoid taking lru_lock and isolating it unnecessarily in an
+-		 * admittedly racy check.
++		 * admittedly racy check simplest case for 0-order pages.
++		 *
++		 * Open code page_mapcount() to avoid VM_BUG_ON(PageSlab(page)).
++		 * Page could have extra reference from mapping or swap cache.
+ 		 */
+-		if (!page_mapping(page) &&
+-		    page_count(page) > page_mapcount(page))
++		if (!PageCompound(page) &&
++		    page_count(page) > atomic_read(&page->_mapcount) + 1 +
++				(!PageAnon(page) || PageSwapCache(page)))
+ 			goto isolate_fail;
  
--extern void __kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip);
--extern bool report_enabled(void);
--
--bool kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip)
--{
--	unsigned long flags = user_access_save();
--	bool ret = false;
--
--	if (likely(report_enabled())) {
--		__kasan_report(addr, size, is_write, ip);
--		ret = true;
--	}
--
--	user_access_restore(flags);
--
--	return ret;
--}
--
- #ifdef CONFIG_MEMORY_HOTPLUG
- static bool shadow_mapped(unsigned long addr)
- {
---- a/mm/kasan/report.c~kasan-move-kasan_report-into-reportc
-+++ a/mm/kasan/report.c
-@@ -29,6 +29,7 @@
- #include <linux/kasan.h>
- #include <linux/module.h>
- #include <linux/sched/task_stack.h>
-+#include <linux/uaccess.h>
- 
- #include <asm/sections.h>
- 
-@@ -454,7 +455,7 @@ static void print_shadow_for_address(con
- 	}
- }
- 
--bool report_enabled(void)
-+static bool report_enabled(void)
- {
- 	if (current->kasan_depth)
- 		return false;
-@@ -479,7 +480,8 @@ void kasan_report_invalid_free(void *obj
- 	end_report(&flags);
- }
- 
--void __kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip)
-+static void __kasan_report(unsigned long addr, size_t size, bool is_write,
-+				unsigned long ip)
- {
- 	struct kasan_access_info info;
- 	void *tagged_addr;
-@@ -518,6 +520,22 @@ void __kasan_report(unsigned long addr,
- 	end_report(&flags);
- }
- 
-+bool kasan_report(unsigned long addr, size_t size, bool is_write,
-+			unsigned long ip)
-+{
-+	unsigned long flags = user_access_save();
-+	bool ret = false;
+ 		/*
+@@ -975,6 +979,11 @@ isolate_migratepages_block(struct compac
+ 				low_pfn += compound_nr(page) - 1;
+ 				goto isolate_fail;
+ 			}
 +
-+	if (likely(report_enabled())) {
-+		__kasan_report(addr, size, is_write, ip);
-+		ret = true;
-+	}
-+
-+	user_access_restore(flags);
-+
-+	return ret;
-+}
-+
- #ifdef CONFIG_KASAN_INLINE
- /*
-  * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
++			/* Recheck page extra references under lock */
++			if (page_count(page) > page_mapcount(page) +
++				    (!PageAnon(page) || PageSwapCache(page)))
++				goto isolate_fail;
+ 		}
+ 
+ 		lruvec = mem_cgroup_page_lruvec(page, pgdat);
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
 
-kcov-cleanup-debug-messages.patch
-kcov-fix-potential-use-after-free-in-kcov_remote_start.patch
-kcov-move-t-kcov-assignments-into-kcov_start-stop.patch
-kcov-move-t-kcov_sequence-assignment.patch
-kcov-use-t-kcov_mode-as-enabled-indicator.patch
-kcov-collect-coverage-from-interrupts.patch
-usb-core-kcov-collect-coverage-from-usb-complete-callback.patch
-kasan-consistently-disable-debugging-features.patch
-kasan-add-missing-functions-declarations-to-kasanh.patch
-kasan-move-kasan_report-into-reportc.patch
+mm-compaction-avoid-vm_bug_onpageslab-in-page_mapcount.patch
+kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked.patch
