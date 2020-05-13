@@ -1,33 +1,29 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- =?US-ASCII?Q?mm-memcontrol-convert-anon-and-file-thp-to-new-mem=5Fcgr?=
- =?US-ASCII?Q?oup=5Fcharge-api-fix.patch?= added to -mm tree
-Date: Wed, 13 May 2020 15:00:20 -0700
-Message-ID: <20200513220020.mlJqzy-rb%akpm@linux-foundation.org>
+Subject: + mm-swap-use-prandom_u32_max.patch added to -mm tree
+Date: Wed, 13 May 2020 15:48:03 -0700
+Message-ID: <20200513224803.MYVBmbWx7%akpm@linux-foundation.org>
 References: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:32844 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60876 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730124AbgEMWAV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 May 2020 18:00:21 -0400
+        id S1726383AbgEMWsE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 May 2020 18:48:04 -0400
 In-Reply-To: <20200507183509.c5ef146c5aaeb118a25a39a8@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, hannes@cmpxchg.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: hughd@google.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix
+     Subject: mm/swapfile.c: use prandom_u32_max()
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
+     mm-swap-use-prandom_u32_max.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-use-prandom_u32_max.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-use-prandom_u32_max.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,63 +37,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm/swapfile.c: use prandom_u32_max()
 
-Fix crash.  If you have CONFIG_NUMA and the allocation fails, *hpage could
-contain an ERR_PTR instead of being NULL.
+To improve the code readability and take advantage of the common
+implementation.
 
-Link: http://lkml.kernel.org/r/20200512215813.GA487759@cmpxchg.org
-Reported-by: Qian Cai <cai@lca.pw>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/20200512081013.520201-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix
-+++ a/mm/khugepaged.c
-@@ -1097,7 +1097,7 @@ static void collapse_huge_page(struct mm
- out_up_write:
- 	up_write(&mm->mmap_sem);
- out_nolock:
--	if (*hpage)
-+	if (!IS_ERR_OR_NULL(*hpage))
- 		mem_cgroup_uncharge(*hpage);
- 	trace_mm_collapse_huge_page(mm, isolated, result);
- 	return;
-@@ -1834,7 +1834,7 @@ xa_unlocked:
- 	unlock_page(new_page);
- out:
- 	VM_BUG_ON(!list_empty(&pagelist));
--	if (*hpage)
-+	if (!IS_ERR_OR_NULL(*hpage))
- 		mem_cgroup_uncharge(*hpage);
- 	/* TODO: tracepoints */
- }
+--- a/mm/swapfile.c~mm-swap-use-prandom_u32_max
++++ a/mm/swapfile.c
+@@ -3209,7 +3209,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		 * select a random position to start with to help wear leveling
+ 		 * SSD
+ 		 */
+-		p->cluster_next = 1 + (prandom_u32() % p->highest_bit);
++		p->cluster_next = 1 + prandom_u32_max(p->highest_bit);
+ 		nr_cluster = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
+ 
+ 		cluster_info = kvcalloc(nr_cluster, sizeof(*cluster_info),
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
-mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
-mm-memcontrol-fix-stat-corrupting-race-in-charge-moving.patch
-mm-memcontrol-drop-compound-parameter-from-memcg-charging-api.patch
-mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
-mm-memcontrol-move-out-cgroup-swaprate-throttling.patch
-mm-memcontrol-convert-page-cache-to-a-new-mem_cgroup_charge-api.patch
-mm-memcontrol-prepare-uncharging-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-move_account-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-cgroup-vmstat-infrastructure-for-native-anon-counters.patch
-mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
-mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
-mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
-mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
-mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
-mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
-mm-memcontrol-charge-swapin-pages-on-instantiation.patch
-mm-memcontrol-delete-unused-lrucare-handling.patch
-mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
+swap-try-to-scan-more-free-slots-even-when-fragmented.patch
+mm-swap-use-prandom_u32_max.patch
+proc-pid-smaps-add-pmd-migration-entry-parsing.patch
