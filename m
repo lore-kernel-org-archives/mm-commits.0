@@ -1,821 +1,571 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures]
- vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch removed
- from -mm tree
-Date: Wed, 13 May 2020 19:26:53 -0700
-Message-ID: <20200514022653.TYWZfEwi9%akpm@linux-foundation.org>
+Subject: mmotm 2020-05-13-20-30 uploaded
+Date: Wed, 13 May 2020 20:31:04 -0700
+Message-ID: <20200514033104.kRFL_ctMQ%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38572 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56496 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725874AbgENC04 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 May 2020 22:26:56 -0400
+        id S1725925AbgENDbI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 May 2020 23:31:08 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@fromorbit.com, guro@fb.com, hannes@cmpxchg.org, laoar.shao@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
+To: broonie@kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+
+The mm-of-the-moment snapshot 2020-05-13-20-30 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (5.x
+or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
 
 
-The patch titled
-     Subject: Re: vfs: keep inodes with page cache off the inode shrinker LRU
-has been removed from the -mm tree.  Its filename was
-     vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch was dropped because it had testing failures
+	https://github.com/hnaz/linux-mm
 
-------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: Re: vfs: keep inodes with page cache off the inode shrinker LRU
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-The VFS inode shrinker is currently allowed to reclaim cold inodes with
-populated page cache.  This behavior goes back to CONFIG_HIGHMEM setups,
-which required the ability to drop page cache in large highem zones to
-free up struct inodes in comparatively tiny lowmem zones.
+A git copy of this tree is also available at
 
-However, it has significant side effects that are hard to justify on
-systems without highmem:
+	https://github.com/hnaz/linux-mm
 
-- It can drop gigabytes of hot and active page cache on the floor
-  without consulting the VM (recorded as "inodesteal" events in
-  /proc/vmstat).  Such an "aging inversion" between unreferenced inodes
-  holding hot cache easily happens in practice: for example, a git tree
-  whose objects are accessed frequently but no open file descriptors are
-  maintained throughout.
 
-- It can als prematurely drop non-resident info stored inside the
-  inodes, which can let massive cache thrashing go unnoticed.  This in
-  turn means we're making the wrong decisions in page reclaim and can get
-  stuck in pathological thrashing.  The thrashing also doesn't show up as
-  memory pressure in psi, causing failure in the userspace OOM detection
-  chain, which can leave a system (or Android device e.g.) stranded in a
-  livelock.
 
-History
+This mmotm tree contains the following patches against 5.7-rc5:
+(patches marked "*" will be included in linux-next)
 
-As this keeps causing problems for people, there have been several
-attempts to address this.
-
-One recent attempt was to make the inode shrinker simply skip over inodes
-that still contain pages: a76cf1a474d7 ("mm: don't reclaim inodes with
-many attached pages").
-
-However, this change had to be reverted in 69056ee6a8a3 ("Revert "mm:
-don't reclaim inodes with many attached pages"") because it caused severe
-reclaim performance problems: Inodes that sit on the shrinker LRU are
-attracting reclaim pressure away from the page cache and toward the VFS. 
-If we then permanently exempt sizable portions of this pool from actually
-getting reclaimed when looked at, this pressure accumulates as deferred
-shrinker work (a mechanism for *temporarily* unreclaimable objects) until
-it causes mayhem in the VFS cache pools.
-
-In the bug quoted in 69056ee6a8a3 in particular, the excessive pressure
-drove the XFS shrinker into dirty objects, where it caused synchronous,
-IO-bound stalls, even as there was plenty of clean page cache that should
-have been reclaimed instead.
-
-Another variant of this problem was recently observed, where the kernel
-violates cgroups' memory.low protection settings and reclaims page cache
-way beyond the configured thresholds.  It was followed by a proposal of a
-modified form of the reverted commit above, that implements
-memory.low-sensitive shrinker skipping over populated inodes on the LRU
-[1].  However, this proposal continues to run the risk of attracting
-disproportionate reclaim pressure to a pool of still-used inodes, while
-not addressing the more generic reclaim inversion problem outside of a
-very specific cgroup application.
-
-[1] https://lore.kernel.org/linux-mm/1578499437-1664-1-git-send-email-laoar.shao@gmail.com/
-
-Solution
-
-This patch fixes the aging inversion described above on !CONFIG_HIGHMEM
-systems, without reintroducing the problems associated with excessive
-shrinker LRU rotations, by keeping populated inodes off the shrinker LRUs
-entirely.
-
-Currently, inodes are kept off the shrinker LRU as long as they have an
-elevated i_count, indicating an active user.  Unfortunately, the page
-cache cannot simply hold an i_count reference, because unlink() *should*
-result in the inode being dropped and its cache invalidated.
-
-Instead, this patch makes iput_final() consult the state of the page cache
-and punt the LRU linking to the VM if the inode is still populated; the VM
-in turn checks the inode state when it depopulates the page cache, and
-adds the inode to the LRU if necessary.
-
-This is not unlike what we do for dirty inodes, which are moved off the
-LRU permanently until writeback completion puts them back on (iff still
-unused).  We can reuse the same code -- inode_add_lru() - here.
-
-This is also not unlike page reclaim, where the lower VM layer has to
-negotiate state with the higher VFS layer.  Follow existing precedence and
-handle the inversion as much as possible on the VM side:
-
-- introduce an I_PAGES flag that the VM maintains under the i_lock, so
-  that any inode code holding that lock can check the page cache state
-  without having to lock and inspect the struct address_space
-
-- introduce inode_pages_set() and inode_pages_clear() to maintain the
-  inode LRU state from the VM side, then update all cache mutators to use
-  them when populating the first cache entry or clearing the last
-
-With this, the concept of "inodesteal" - where the inode shrinker drops
-page cache - is relegated to CONFIG_HIGHMEM systems only.  The VM is in
-charge of the cache, the shrinker in charge of struct inode.
-
-Footnotes
-
-- For debuggability, add vmstat counters that track the number of times
-  a new cache entry pulls a previously unused inode off the LRU
-  (pginoderescue), as well as how many times existing cache deferred an
-  LRU addition.  Keep the pginodesteal/kswapd_inodesteal counters for
-  backwards compatibility, but they'll just show 0 now.
-
-- Fix /proc/sys/vm/drop_caches to drop shadow entries from the page
-  cache.  Not doing so has always been a bit strange, but since most
-  people drop cache and metadata cache together, the inode shrinker would
-  have taken care of them before - no more, so do it VM-side.
-
-Link: http://lkml.kernel.org/r/20200512212936.GA450429@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/block_dev.c                |    2 
- fs/dax.c                      |   14 ++++
- fs/drop_caches.c              |    2 
- fs/inode.c                    |  112 +++++++++++++++++++++++++++++---
- fs/internal.h                 |    2 
- include/linux/fs.h            |   17 ++++
- include/linux/pagemap.h       |    2 
- include/linux/vm_event_item.h |    3 
- mm/filemap.c                  |   37 ++++++++--
- mm/huge_memory.c              |    3 
- mm/truncate.c                 |   34 +++++++--
- mm/vmscan.c                   |    6 +
- mm/vmstat.c                   |    4 -
- mm/workingset.c               |    4 +
- 14 files changed, 208 insertions(+), 34 deletions(-)
-
---- a/fs/block_dev.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/fs/block_dev.c
-@@ -79,7 +79,7 @@ void kill_bdev(struct block_device *bdev
- {
- 	struct address_space *mapping = bdev->bd_inode->i_mapping;
- 
--	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
-+	if (mapping_empty(mapping))
- 		return;
- 
- 	invalidate_bh_lrus();
---- a/fs/dax.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/fs/dax.c
-@@ -478,9 +478,11 @@ static void *grab_mapping_entry(struct x
- {
- 	unsigned long index = xas->xa_index;
- 	bool pmd_downgrade = false; /* splitting PMD entry into PTE entries? */
-+	int populated;
- 	void *entry;
- 
- retry:
-+	populated = 0;
- 	xas_lock_irq(xas);
- 	entry = get_unlocked_entry(xas, order);
- 
-@@ -526,6 +528,8 @@ retry:
- 		xas_store(xas, NULL);	/* undo the PMD join */
- 		dax_wake_entry(xas, entry, true);
- 		mapping->nrexceptional--;
-+		if (mapping_empty(mapping))
-+			populated = -1;
- 		entry = NULL;
- 		xas_set(xas, index);
- 	}
-@@ -541,11 +545,17 @@ retry:
- 		dax_lock_entry(xas, entry);
- 		if (xas_error(xas))
- 			goto out_unlock;
-+		if (mapping_empty(mapping))
-+			populated++;
- 		mapping->nrexceptional++;
- 	}
- 
- out_unlock:
- 	xas_unlock_irq(xas);
-+	if (populated == -1)
-+		inode_pages_clear(mapping->inode);
-+	else if (populated == 1)
-+		inode_pages_set(mapping->inode);
- 	if (xas_nomem(xas, mapping_gfp_mask(mapping) & ~__GFP_HIGHMEM))
- 		goto retry;
- 	if (xas->xa_node == XA_ERROR(-ENOMEM))
-@@ -631,6 +641,7 @@ static int __dax_invalidate_entry(struct
- 					  pgoff_t index, bool trunc)
- {
- 	XA_STATE(xas, &mapping->i_pages, index);
-+	bool empty = false;
- 	int ret = 0;
- 	void *entry;
- 
-@@ -645,10 +656,13 @@ static int __dax_invalidate_entry(struct
- 	dax_disassociate_entry(entry, mapping, trunc);
- 	xas_store(&xas, NULL);
- 	mapping->nrexceptional--;
-+	empty = mapping_empty(mapping);
- 	ret = 1;
- out:
- 	put_unlocked_entry(&xas, entry);
- 	xas_unlock_irq(&xas);
-+	if (empty)
-+		inode_pages_clear(mapping->host);
- 	return ret;
- }
- 
---- a/fs/drop_caches.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/fs/drop_caches.c
-@@ -27,7 +27,7 @@ static void drop_pagecache_sb(struct sup
- 		 * we need to reschedule to avoid softlockups.
- 		 */
- 		if ((inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW)) ||
--		    (inode->i_mapping->nrpages == 0 && !need_resched())) {
-+		    (mapping_empty(inode->i_mapping) && !need_resched())) {
- 			spin_unlock(&inode->i_lock);
- 			continue;
- 		}
---- a/fs/inode.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/fs/inode.c
-@@ -431,26 +431,101 @@ static void inode_lru_list_add(struct in
- 		inode->i_state |= I_REFERENCED;
- }
- 
-+static void inode_lru_list_del(struct inode *inode)
-+{
-+	if (list_lru_del(&inode->i_sb->s_inode_lru, &inode->i_lru))
-+		this_cpu_dec(nr_unused);
-+}
-+
- /*
-  * Add inode to LRU if needed (inode is unused and clean).
-  *
-  * Needs inode->i_lock held.
-  */
--void inode_add_lru(struct inode *inode)
-+bool inode_add_lru(struct inode *inode)
- {
--	if (!(inode->i_state & (I_DIRTY_ALL | I_SYNC |
--				I_FREEING | I_WILL_FREE)) &&
--	    !atomic_read(&inode->i_count) && inode->i_sb->s_flags & SB_ACTIVE)
--		inode_lru_list_add(inode);
-+	if (inode->i_state &
-+	    (I_DIRTY_ALL | I_SYNC | I_FREEING | I_WILL_FREE | I_PAGES))
-+		return false;
-+	if (atomic_read(&inode->i_count))
-+		return false;
-+	if (!(inode->i_sb->s_flags & SB_ACTIVE))
-+		return false;
-+	inode_lru_list_add(inode);
-+	return true;
- }
- 
-+/*
-+ * Usually, inodes become reclaimable when they are no longer
-+ * referenced and their page cache has been reclaimed. The following
-+ * API allows the VM to communicate cache population state to the VFS.
-+ *
-+ * However, on CONFIG_HIGHMEM we can't wait for the page cache to go
-+ * away: cache pages allocated in a large highmem zone could pin
-+ * struct inode memory allocated in relatively small lowmem zones. So
-+ * when CONFIG_HIGHMEM is enabled, we tie cache to the inode lifetime.
-+ */
- 
--static void inode_lru_list_del(struct inode *inode)
-+#ifndef CONFIG_HIGHMEM
-+/**
-+ * inode_pages_set - mark the inode as holding page cache
-+ * @inode: the inode whose first cache page was just added
-+ *
-+ * Tell the VFS that this inode has populated page cache and must not
-+ * be reclaimed by the inode shrinker.
-+ *
-+ * The caller must hold the page lock of the just-added page: by
-+ * pinning the page, the page cache cannot become depopulated, and we
-+ * can safely set I_PAGES without a race check under the i_pages lock.
-+ *
-+ * This function acquires the i_lock.
-+ */
-+void inode_pages_set(struct inode *inode)
- {
-+	spin_lock(&inode->i_lock);
-+	if (!(inode->i_state & I_PAGES)) {
-+		inode->i_state |= I_PAGES;
-+		if (!list_empty(&inode->i_lru)) {
-+			count_vm_event(PGINODERESCUE);
-+			inode_lru_list_del(inode);
-+		}
-+	}
-+	spin_unlock(&inode->i_lock);
-+}
- 
--	if (list_lru_del(&inode->i_sb->s_inode_lru, &inode->i_lru))
--		this_cpu_dec(nr_unused);
-+/**
-+ * inode_pages_clear - mark the inode as not holding page cache
-+ * @inode: the inode whose last cache page was just removed
-+ *
-+ * Tell the VFS that the inode no longer holds page cache and that its
-+ * lifetime is to be handed over to the inode shrinker LRU.
-+ *
-+ * This function acquires the i_lock and the i_pages lock.
-+ */
-+void inode_pages_clear(struct inode *inode)
-+{
-+	struct address_space *mapping = &inode->i_data;
-+	bool add_to_lru = false;
-+	unsigned long flags;
-+
-+	spin_lock(&inode->i_lock);
-+
-+	xa_lock_irqsave(&mapping->i_pages, flags);
-+	if ((inode->i_state & I_PAGES) && mapping_empty(mapping)) {
-+		inode->i_state &= ~I_PAGES;
-+		add_to_lru = true;
-+	}
-+	xa_unlock_irqrestore(&mapping->i_pages, flags);
-+
-+	if (add_to_lru) {
-+		WARN_ON_ONCE(!list_empty(&inode->i_lru));
-+		if (inode_add_lru(inode))
-+			__count_vm_event(PGINODEDELAYED);
-+	}
-+
-+	spin_unlock(&inode->i_lock);
- }
-+#endif /* !CONFIG_HIGHMEM */
- 
- /**
-  * inode_sb_list_add - add inode to the superblock list of inodes
-@@ -743,6 +818,8 @@ static enum lru_status inode_lru_isolate
- 	if (!spin_trylock(&inode->i_lock))
- 		return LRU_SKIP;
- 
-+	WARN_ON_ONCE(inode->i_state & I_PAGES);
-+
- 	/*
- 	 * Referenced or dirty inodes are still in use. Give them another pass
- 	 * through the LRU as we canot reclaim them now.
-@@ -762,7 +839,18 @@ static enum lru_status inode_lru_isolate
- 		return LRU_ROTATE;
- 	}
- 
--	if (inode_has_buffers(inode) || inode->i_data.nrpages) {
-+	/*
-+	 * Usually, populated inodes shouldn't be on the shrinker LRU,
-+	 * but they can be briefly visible when a new page is added to
-+	 * an inode that was already linked but inode_pages_set()
-+	 * hasn't run yet to move them off.
-+	 *
-+	 * The other exception is on HIGHMEM systems: highmem cache
-+	 * can pin lowmem struct inodes, and we might be in dire
-+	 * straits in the lower zones. Purge cache to free the inode.
-+	 */
-+	if (inode_has_buffers(inode) || !mapping_empty(&inode->i_data)) {
-+#ifdef CONFIG_HIGHMEM
- 		__iget(inode);
- 		spin_unlock(&inode->i_lock);
- 		spin_unlock(lru_lock);
-@@ -779,6 +867,12 @@ static enum lru_status inode_lru_isolate
- 		iput(inode);
- 		spin_lock(lru_lock);
- 		return LRU_RETRY;
-+#else
-+		list_lru_isolate(lru, &inode->i_lru);
-+		spin_unlock(&inode->i_lock);
-+		this_cpu_dec(nr_unused);
-+		return LRU_REMOVED;
-+#endif
- 	}
- 
- 	WARN_ON(inode->i_state & I_NEW);
---- a/fs/internal.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/fs/internal.h
-@@ -137,7 +137,7 @@ extern int vfs_open(const struct path *,
-  * inode.c
-  */
- extern long prune_icache_sb(struct super_block *sb, struct shrink_control *sc);
--extern void inode_add_lru(struct inode *inode);
-+extern bool inode_add_lru(struct inode *inode);
- extern int dentry_needs_remove_privs(struct dentry *dentry);
- 
- /*
---- a/include/linux/fs.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/include/linux/fs.h
-@@ -592,6 +592,11 @@ static inline void mapping_allow_writabl
- 	atomic_inc(&mapping->i_mmap_writable);
- }
- 
-+static inline bool mapping_empty(struct address_space *mapping)
-+{
-+	return mapping->nrpages + mapping->nrexceptional == 0;
-+}
-+
- /*
-  * Use sequence counter to get consistent i_size on 32-bit processors.
-  */
-@@ -2162,6 +2167,9 @@ static inline void kiocb_clone(struct ki
-  *
-  * I_CREATING		New object's inode in the middle of setting up.
-  *
-+ * I_PAGES		Inode is holding page cache that needs to get reclaimed
-+ *			first before the inode can go onto the shrinker LRU.
-+ *
-  * Q: What is the difference between I_WILL_FREE and I_FREEING?
-  */
- #define I_DIRTY_SYNC		(1 << 0)
-@@ -2184,6 +2192,7 @@ static inline void kiocb_clone(struct ki
- #define I_WB_SWITCH		(1 << 13)
- #define I_OVL_INUSE		(1 << 14)
- #define I_CREATING		(1 << 15)
-+#define I_PAGES			(1 << 16)
- 
- #define I_DIRTY_INODE (I_DIRTY_SYNC | I_DIRTY_DATASYNC)
- #define I_DIRTY (I_DIRTY_INODE | I_DIRTY_PAGES)
-@@ -3123,6 +3132,14 @@ static inline void remove_inode_hash(str
- 		__remove_inode_hash(inode);
- }
- 
-+#ifndef CONFIG_HIGHMEM
-+extern void inode_pages_set(struct inode *inode);
-+extern void inode_pages_clear(struct inode *inode);
-+#else
-+static inline void inode_pages_set(struct inode *inode) {}
-+static inline void inode_pages_clear(struct inode *inode) {}
-+#endif
-+
- extern void inode_sb_list_add(struct inode *inode);
- 
- #ifdef CONFIG_BLOCK
---- a/include/linux/pagemap.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/include/linux/pagemap.h
-@@ -613,7 +613,7 @@ int add_to_page_cache_locked(struct page
- int add_to_page_cache_lru(struct page *page, struct address_space *mapping,
- 				pgoff_t index, gfp_t gfp_mask);
- extern void delete_from_page_cache(struct page *page);
--extern void __delete_from_page_cache(struct page *page, void *shadow);
-+extern bool __delete_from_page_cache(struct page *page, void *shadow);
- int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask);
- void delete_from_page_cache_batch(struct address_space *mapping,
- 				  struct pagevec *pvec);
---- a/include/linux/vm_event_item.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/include/linux/vm_event_item.h
-@@ -38,7 +38,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- #ifdef CONFIG_NUMA
- 		PGSCAN_ZONE_RECLAIM_FAILED,
- #endif
--		PGINODESTEAL, SLABS_SCANNED, KSWAPD_INODESTEAL,
-+		SLABS_SCANNED,
-+		PGINODESTEAL, KSWAPD_INODESTEAL, PGINODERESCUE, PGINODEDELAYED,
- 		KSWAPD_LOW_WMARK_HIT_QUICKLY, KSWAPD_HIGH_WMARK_HIT_QUICKLY,
- 		PAGEOUTRUN, PGROTATED,
- 		DROP_PAGECACHE, DROP_SLAB,
---- a/mm/filemap.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/mm/filemap.c
-@@ -116,8 +116,8 @@
-  *   ->tasklist_lock            (memory_failure, collect_procs_ao)
-  */
- 
--static void page_cache_delete(struct address_space *mapping,
--				   struct page *page, void *shadow)
-+static bool __must_check page_cache_delete(struct address_space *mapping,
-+					   struct page *page, void *shadow)
- {
- 	XA_STATE(xas, &mapping->i_pages, page->index);
- 	unsigned int nr = 1;
-@@ -151,6 +151,8 @@ static void page_cache_delete(struct add
- 		smp_wmb();
- 	}
- 	mapping->nrpages -= nr;
-+
-+	return mapping_empty(mapping);
- }
- 
- static void unaccount_page_cache_page(struct address_space *mapping,
-@@ -227,15 +229,18 @@ static void unaccount_page_cache_page(st
-  * Delete a page from the page cache and free it. Caller has to make
-  * sure the page is locked and that nobody else uses it - or that usage
-  * is safe.  The caller must hold the i_pages lock.
-+ *
-+ * If this returns true, the caller must call inode_pages_clear()
-+ * after dropping the i_pages lock.
-  */
--void __delete_from_page_cache(struct page *page, void *shadow)
-+bool __must_check __delete_from_page_cache(struct page *page, void *shadow)
- {
- 	struct address_space *mapping = page->mapping;
- 
- 	trace_mm_filemap_delete_from_page_cache(page);
- 
- 	unaccount_page_cache_page(mapping, page);
--	page_cache_delete(mapping, page, shadow);
-+	return page_cache_delete(mapping, page, shadow);
- }
- 
- static void page_cache_free_page(struct address_space *mapping,
-@@ -267,12 +272,16 @@ void delete_from_page_cache(struct page
- {
- 	struct address_space *mapping = page_mapping(page);
- 	unsigned long flags;
-+	bool empty;
- 
- 	BUG_ON(!PageLocked(page));
- 	xa_lock_irqsave(&mapping->i_pages, flags);
--	__delete_from_page_cache(page, NULL);
-+	empty = __delete_from_page_cache(page, NULL);
- 	xa_unlock_irqrestore(&mapping->i_pages, flags);
- 
-+	if (empty)
-+		inode_pages_clear(mapping->host);
-+
- 	page_cache_free_page(mapping, page);
- }
- EXPORT_SYMBOL(delete_from_page_cache);
-@@ -291,8 +300,8 @@ EXPORT_SYMBOL(delete_from_page_cache);
-  *
-  * The function expects the i_pages lock to be held.
-  */
--static void page_cache_delete_batch(struct address_space *mapping,
--			     struct pagevec *pvec)
-+static bool __must_check page_cache_delete_batch(struct address_space *mapping,
-+						 struct pagevec *pvec)
- {
- 	XA_STATE(xas, &mapping->i_pages, pvec->pages[0]->index);
- 	int total_pages = 0;
-@@ -337,12 +346,15 @@ static void page_cache_delete_batch(stru
- 		total_pages++;
- 	}
- 	mapping->nrpages -= total_pages;
-+
-+	return mapping_empty(mapping);
- }
- 
- void delete_from_page_cache_batch(struct address_space *mapping,
- 				  struct pagevec *pvec)
- {
- 	int i;
-+	bool empty;
- 	unsigned long flags;
- 
- 	if (!pagevec_count(pvec))
-@@ -354,9 +366,12 @@ void delete_from_page_cache_batch(struct
- 
- 		unaccount_page_cache_page(mapping, pvec->pages[i]);
- 	}
--	page_cache_delete_batch(mapping, pvec);
-+	empty = page_cache_delete_batch(mapping, pvec);
- 	xa_unlock_irqrestore(&mapping->i_pages, flags);
- 
-+	if (empty)
-+		inode_pages_clear(mapping->host);
-+
- 	for (i = 0; i < pagevec_count(pvec); i++)
- 		page_cache_free_page(mapping, pvec->pages[i]);
- }
-@@ -833,6 +848,7 @@ static int __add_to_page_cache_locked(st
- 	XA_STATE(xas, &mapping->i_pages, offset);
- 	int huge = PageHuge(page);
- 	struct mem_cgroup *memcg;
-+	bool populated = false;
- 	int error;
- 	void *old;
- 
-@@ -860,6 +876,7 @@ static int __add_to_page_cache_locked(st
- 		if (xas_error(&xas))
- 			goto unlock;
- 
-+		populated = mapping_empty(mapping);
- 		if (xa_is_value(old)) {
- 			mapping->nrexceptional--;
- 			if (shadowp)
-@@ -880,6 +897,10 @@ unlock:
- 	if (!huge)
- 		mem_cgroup_commit_charge(page, memcg, false, false);
- 	trace_mm_filemap_add_to_page_cache(page);
-+
-+	if (populated)
-+		inode_pages_set(mapping->host);
-+
- 	return 0;
- error:
- 	page->mapping = NULL;
---- a/mm/huge_memory.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/mm/huge_memory.c
-@@ -2608,7 +2608,8 @@ static void __split_huge_page(struct pag
- 		/* Some pages can be beyond i_size: drop them from page cache */
- 		if (head[i].index >= end) {
- 			ClearPageDirty(head + i);
--			__delete_from_page_cache(head + i, NULL);
-+			/* We know we're not removing the last page */
-+			(void)__delete_from_page_cache(head + i, NULL);
- 			if (IS_ENABLED(CONFIG_SHMEM) && PageSwapBacked(head))
- 				shmem_uncharge(head->mapping->host, 1);
- 			put_page(head + i);
---- a/mm/truncate.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/mm/truncate.c
-@@ -31,24 +31,31 @@
-  * itself locked.  These unlocked entries need verification under the tree
-  * lock.
-  */
--static inline void __clear_shadow_entry(struct address_space *mapping,
--				pgoff_t index, void *entry)
-+static bool __must_check __clear_shadow_entry(struct address_space *mapping,
-+					      pgoff_t index, void *entry)
- {
- 	XA_STATE(xas, &mapping->i_pages, index);
- 
- 	xas_set_update(&xas, workingset_update_node);
- 	if (xas_load(&xas) != entry)
--		return;
-+		return 0;
- 	xas_store(&xas, NULL);
- 	mapping->nrexceptional--;
-+
-+	return mapping_empty(mapping);
- }
- 
- static void clear_shadow_entry(struct address_space *mapping, pgoff_t index,
- 			       void *entry)
- {
-+	bool empty;
-+
- 	xa_lock_irq(&mapping->i_pages);
--	__clear_shadow_entry(mapping, index, entry);
-+	empty = __clear_shadow_entry(mapping, index, entry);
- 	xa_unlock_irq(&mapping->i_pages);
-+
-+	if (empty)
-+		inode_pages_clear(mapping->host);
- }
- 
- /*
-@@ -61,7 +68,7 @@ static void truncate_exceptional_pvec_en
- 				pgoff_t end)
- {
- 	int i, j;
--	bool dax, lock;
-+	bool dax, lock, empty = false;
- 
- 	/* Handled by shmem itself */
- 	if (shmem_mapping(mapping))
-@@ -96,11 +103,16 @@ static void truncate_exceptional_pvec_en
- 			continue;
- 		}
- 
--		__clear_shadow_entry(mapping, index, page);
-+		if (__clear_shadow_entry(mapping, index, page))
-+			empty = true;
- 	}
- 
- 	if (lock)
- 		xa_unlock_irq(&mapping->i_pages);
-+
-+	if (empty)
-+		inode_pages_clear(mapping->host);
-+
- 	pvec->nr = j;
- }
- 
-@@ -300,7 +312,7 @@ void truncate_inode_pages_range(struct a
- 	pgoff_t		index;
- 	int		i;
- 
--	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
-+	if (mapping_empty(mapping))
- 		goto out;
- 
- 	/* Offsets within partial pages */
-@@ -636,6 +648,7 @@ static int
- invalidate_complete_page2(struct address_space *mapping, struct page *page)
- {
- 	unsigned long flags;
-+	bool empty;
- 
- 	if (page->mapping != mapping)
- 		return 0;
-@@ -648,9 +661,12 @@ invalidate_complete_page2(struct address
- 		goto failed;
- 
- 	BUG_ON(page_has_private(page));
--	__delete_from_page_cache(page, NULL);
-+	empty = __delete_from_page_cache(page, NULL);
- 	xa_unlock_irqrestore(&mapping->i_pages, flags);
- 
-+	if (empty)
-+		inode_pages_clear(mapping->host);
-+
- 	if (mapping->a_ops->freepage)
- 		mapping->a_ops->freepage(page);
- 
-@@ -692,7 +708,7 @@ int invalidate_inode_pages2_range(struct
- 	int ret2 = 0;
- 	int did_range_unmap = 0;
- 
--	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
-+	if (mapping_empty(mapping))
- 		goto out;
- 
- 	pagevec_init(&pvec);
---- a/mm/vmscan.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/mm/vmscan.c
-@@ -901,6 +901,7 @@ static int __remove_mapping(struct addre
- 	} else {
- 		void (*freepage)(struct page *);
- 		void *shadow = NULL;
-+		int empty;
- 
- 		freepage = mapping->a_ops->freepage;
- 		/*
-@@ -922,9 +923,12 @@ static int __remove_mapping(struct addre
- 		if (reclaimed && page_is_file_lru(page) &&
- 		    !mapping_exiting(mapping) && !dax_mapping(mapping))
- 			shadow = workingset_eviction(page, target_memcg);
--		__delete_from_page_cache(page, shadow);
-+		empty = __delete_from_page_cache(page, shadow);
- 		xa_unlock_irqrestore(&mapping->i_pages, flags);
- 
-+		if (empty)
-+			inode_pages_clear(mapping->host);
-+
- 		if (freepage != NULL)
- 			freepage(page);
- 	}
---- a/mm/vmstat.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/mm/vmstat.c
-@@ -1205,9 +1205,11 @@ const char * const vmstat_text[] = {
- #ifdef CONFIG_NUMA
- 	"zone_reclaim_failed",
- #endif
--	"pginodesteal",
- 	"slabs_scanned",
-+	"pginodesteal",
- 	"kswapd_inodesteal",
-+	"pginoderescue",
-+	"pginodedelayed",
- 	"kswapd_low_wmark_hit_quickly",
- 	"kswapd_high_wmark_hit_quickly",
- 	"pageoutrun",
---- a/mm/workingset.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/mm/workingset.c
-@@ -491,6 +491,7 @@ static enum lru_status shadow_lru_isolat
- 	struct xa_node *node = container_of(item, struct xa_node, private_list);
- 	XA_STATE(xas, node->array, 0);
- 	struct address_space *mapping;
-+	bool empty = false;
- 	int ret;
- 
- 	/*
-@@ -529,6 +530,7 @@ static enum lru_status shadow_lru_isolat
- 	if (WARN_ON_ONCE(node->count != node->nr_values))
- 		goto out_invalid;
- 	mapping->nrexceptional -= node->nr_values;
-+	empty = mapping_empty(mapping);
- 	xas.xa_node = xa_parent_locked(&mapping->i_pages, node);
- 	xas.xa_offset = node->offset;
- 	xas.xa_shift = node->shift + XA_CHUNK_SHIFT;
-@@ -542,6 +544,8 @@ static enum lru_status shadow_lru_isolat
- 
- out_invalid:
- 	xa_unlock_irq(&mapping->i_pages);
-+	if (empty)
-+		inode_pages_clear(mapping->host);
- 	ret = LRU_REMOVED_RETRY;
- out:
- 	cond_resched();
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
-mm-memcontrol-fix-stat-corrupting-race-in-charge-moving.patch
-mm-memcontrol-drop-compound-parameter-from-memcg-charging-api.patch
-mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
-mm-memcontrol-move-out-cgroup-swaprate-throttling.patch
-mm-memcontrol-convert-page-cache-to-a-new-mem_cgroup_charge-api.patch
-mm-memcontrol-prepare-uncharging-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-move_account-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-cgroup-vmstat-infrastructure-for-native-anon-counters.patch
-mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
-mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
-mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
-mm-memcontrol-switch-to-native-nr_anon_thps-counter-fix.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
-mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
-mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
-mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
-mm-memcontrol-charge-swapin-pages-on-instantiation.patch
-mm-memcontrol-delete-unused-lrucare-handling.patch
-mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
+  origin.patch
+* mm-memcg-fix-inconsistent-oom-event-behavior.patch
+* epoll-call-final-ep_events_available-check-under-the-lock.patch
+* mm-gup-fix-fixup_user_fault-on-multiple-retries.patch
+* userfaultfd-fix-remap-event-with-mremap_dontunmap.patch
+* ipc-utilc-sysvipc_find_ipc-incorrectly-updates-position-index.patch
+* kasan-consistently-disable-debugging-features.patch
+* kasan-add-missing-functions-declarations-to-kasanh.patch
+* checkpatch-test-git_dir-changes.patch
+* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
+* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
+* kcov-cleanup-debug-messages.patch
+* kcov-fix-potential-use-after-free-in-kcov_remote_start.patch
+* kcov-move-t-kcov-assignments-into-kcov_start-stop.patch
+* kcov-move-t-kcov_sequence-assignment.patch
+* kcov-use-t-kcov_mode-as-enabled-indicator.patch
+* kcov-collect-coverage-from-interrupts.patch
+* usb-core-kcov-collect-coverage-from-usb-complete-callback.patch
+* memcg-optimize-memorynuma_stat-like-memorystat.patch
+* lib-lzo-fix-ambiguous-encoding-bug-in-lzo-rle.patch
+* device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.patch
+* mm-compaction-avoid-vm_bug_onpageslab-in-page_mapcount.patch
+* scripts-support-compiled-source-improved-precise.patch
+* scripts-add-a-intermediate-file-for-make-gtags.patch
+* squashfs-migrate-from-ll_rw_block-usage-to-bio.patch
+* squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+* ocfs2-add-missing-annotation-for-dlm_empty_lockres.patch
+* ocfs2-mount-shared-volume-without-ha-stack.patch
+* drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+* ramfs-support-o_tmpfile.patch
+* vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs.patch
+* buffer-record-blockdev-write-errors-in-super_block-that-it-backs.patch
+* kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+  mm.patch
+* usercopy-mark-dma-kmalloc-caches-as-usercopy-caches.patch
+* mm-slub-fix-corrupted-freechain-in-deactivate_slab.patch
+* mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+* slub-remove-userspace-notifier-for-cache-add-remove.patch
+* slub-remove-kmalloc-under-list_lock-from-list_slab_objects.patch
+* mm-slub-fix-stack-overruns-with-slub_stats.patch
+* mm-slub-add-panic_on_error-to-the-debug-facilities.patch
+* mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+* mm-dump_page-do-not-crash-with-invalid-mapping-pointer.patch
+* mm-move-readahead-prototypes-from-mmh.patch
+* mm-return-void-from-various-readahead-functions.patch
+* mm-ignore-return-value-of-readpages.patch
+* mm-move-readahead-nr_pages-check-into-read_pages.patch
+* mm-add-new-readahead_control-api.patch
+* mm-use-readahead_control-to-pass-arguments.patch
+* mm-rename-various-offset-parameters-to-index.patch
+* mm-rename-readahead-loop-variable-to-i.patch
+* mm-remove-page_offset-from-readahead-loop.patch
+* mm-put-readahead-pages-in-cache-earlier.patch
+* mm-add-readahead-address-space-operation.patch
+* mm-move-end_index-check-out-of-readahead-loop.patch
+* mm-add-page_cache_readahead_unbounded.patch
+* mm-document-why-we-dont-set-pagereadahead.patch
+* mm-use-memalloc_nofs_save-in-readahead-path.patch
+* fs-convert-mpage_readpages-to-mpage_readahead.patch
+* btrfs-convert-from-readpages-to-readahead.patch
+* erofs-convert-uncompressed-files-from-readpages-to-readahead.patch
+* erofs-convert-compressed-files-from-readpages-to-readahead.patch
+* ext4-convert-from-readpages-to-readahead.patch
+* ext4-pass-the-inode-to-ext4_mpage_readpages.patch
+* f2fs-convert-from-readpages-to-readahead.patch
+* f2fs-pass-the-inode-to-f2fs_mpage_readpages.patch
+* fuse-convert-from-readpages-to-readahead.patch
+* fuse-convert-from-readpages-to-readahead-fix.patch
+* iomap-convert-from-readpages-to-readahead.patch
+* mm-gupc-updating-the-documentation.patch
+* mm-gupc-updating-the-documentation-fix.patch
+* mm-swapfile-use-list_prevnext_entry-instead-of-open-coding.patch
+* mm-swap_state-fix-a-data-race-in-swapin_nr_pages.patch
+* mm-swap-properly-update-readahead-statistics-in-unuse_pte_range.patch
+* mm-swapfilec-offset-is-only-used-when-there-is-more-slots.patch
+* mm-swapfilec-explicitly-show-ssd-non-ssd-is-handled-mutually-exclusive.patch
+* mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case.patch
+* mm-swapfilec-simplify-the-calculation-of-n_goal.patch
+* mm-swapfilec-remove-the-extra-check-in-scan_swap_map_slots.patch
+* mm-swapfilec-found_free-could-be-represented-by-tmp-max.patch
+* mm-swapfilec-tmp-is-always-smaller-than-max.patch
+* mm-swapfilec-omit-a-duplicate-code-by-compare-tmp-and-max-first.patch
+* swap-try-to-scan-more-free-slots-even-when-fragmented.patch
+* mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable.patch
+* mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+* mm-swapfilec-__swap_entry_free-always-free-1-entry.patch
+* mm-swap-use-prandom_u32_max.patch
+* mm-memcg-add-workingset_restore-in-memorystat.patch
+* mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection.patch
+* mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
+* mm-memcontrol-simplify-value-comparison-between-count-and-limit.patch
+* mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
+* mm-memcontrol-fix-stat-corrupting-race-in-charge-moving.patch
+* mm-memcontrol-drop-compound-parameter-from-memcg-charging-api.patch
+* mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
+* mm-memcontrol-move-out-cgroup-swaprate-throttling.patch
+* mm-memcontrol-convert-page-cache-to-a-new-mem_cgroup_charge-api.patch
+* mm-memcontrol-prepare-uncharging-for-removal-of-private-page-type-counters.patch
+* mm-memcontrol-prepare-move_account-for-removal-of-private-page-type-counters.patch
+* mm-memcontrol-prepare-cgroup-vmstat-infrastructure-for-native-anon-counters.patch
+* mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
+* mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
+* mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
+* mm-memcontrol-switch-to-native-nr_anon_thps-counter-fix.patch
+* mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
+* mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
+* mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
+* mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
+* mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
+* mm-memcontrol-charge-swapin-pages-on-instantiation.patch
+* mm-memcontrol-document-the-new-swap-control-behavior.patch
+* mm-memcontrol-delete-unused-lrucare-handling.patch
+* mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
+* memcg-expose-root-cgroups-memorystat.patch
+* h8300-remove-usage-of-__arch_use_5level_hack.patch
+* arm-add-support-for-folded-p4d-page-tables.patch
+* arm-add-support-for-folded-p4d-page-tables-fix.patch
+* arm64-add-support-for-folded-p4d-page-tables.patch
+* arm64-add-support-for-folded-p4d-page-tables-fix.patch
+* hexagon-remove-__arch_use_5level_hack.patch
+* ia64-add-support-for-folded-p4d-page-tables.patch
+* nios2-add-support-for-folded-p4d-page-tables.patch
+* openrisc-add-support-for-folded-p4d-page-tables.patch
+* powerpc-add-support-for-folded-p4d-page-tables.patch
+* powerpc-add-support-for-folded-p4d-page-tables-fix.patch
+* sh-fault-modernize-printing-of-kernel-messages.patch
+* sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
+* sh-add-support-for-folded-p4d-page-tables.patch
+* unicore32-remove-__arch_use_5level_hack.patch
+* asm-generic-remove-pgtable-nop4d-hackh.patch
+* mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
+* mm-gupc-further-document-vma_permits_fault.patch
+* proc-pid-smaps-add-pmd-migration-entry-parsing.patch
+* mm-mmap-fix-the-adjusted-length-error.patch
+* mm-memory-remove-unnecessary-pte_devmap-case-in-copy_one_pte.patch
+* x86-hyperv-use-vmalloc_exec-for-the-hypercall-page.patch
+* x86-fix-vmap-arguments-in-map_irq_stack.patch
+* staging-android-ion-use-vmap-instead-of-vm_map_ram.patch
+* staging-media-ipu3-use-vmap-instead-of-reimplementing-it.patch
+* dma-mapping-use-vmap-insted-of-reimplementing-it.patch
+* powerpc-add-an-ioremap_phb-helper.patch
+* powerpc-remove-__ioremap_at-and-__iounmap_at.patch
+* mm-remove-__get_vm_area.patch
+* mm-unexport-unmap_kernel_range_noflush.patch
+* mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping.patch
+* mm-only-allow-page-table-mappings-for-built-in-zsmalloc.patch
+* mm-pass-addr-as-unsigned-long-to-vb_free.patch
+* mm-remove-vmap_page_range_noflush-and-vunmap_page_range.patch
+* mm-rename-vmap_page_range-to-map_kernel_range.patch
+* mm-dont-return-the-number-of-pages-from-map_kernel_range_noflush.patch
+* mm-remove-map_vm_range.patch
+* mm-remove-unmap_vmap_area.patch
+* mm-remove-the-prot-argument-from-vm_map_ram.patch
+* mm-enforce-that-vmap-cant-map-pages-executable.patch
+* gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc.patch
+* mm-remove-the-pgprot-argument-to-__vmalloc.patch
+* mm-remove-the-prot-argument-to-__vmalloc_node.patch
+* mm-remove-both-instances-of-__vmalloc_node_flags.patch
+* mm-remove-__vmalloc_node_flags_caller.patch
+* mm-remove-__vmalloc_node_flags_caller-fix.patch
+* mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
+* mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+* mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+* mm-remove-vmalloc_user_node_flags.patch
+* mm-remove-vmalloc_user_node_flags-fix.patch
+* arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack.patch
+* powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
+* s390-use-__vmalloc_node-in-stack_alloc.patch
+* mm-init-report-kasan-tag-information-stored-in-page-flags.patch
+* kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source.patch
+* kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4.patch
+* stringh-fix-incompatibility-between-fortify_source-and-kasan.patch
+* kasan-move-kasan_report-into-reportc.patch
+* mm-clarify-__gfp_memalloc-usage.patch
+* mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
+* mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
+* mm-remove-config_have_memblock_node_map-option.patch
+* mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
+* mm-use-free_area_init-instead-of-free_area_init_nodes.patch
+* alpha-simplify-detection-of-memory-zone-boundaries.patch
+* arm-simplify-detection-of-memory-zone-boundaries.patch
+* arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+* csky-simplify-detection-of-memory-zone-boundaries.patch
+* m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
+* parisc-simplify-detection-of-memory-zone-boundaries.patch
+* sparc32-simplify-detection-of-memory-zone-boundaries.patch
+* unicore32-simplify-detection-of-memory-zone-boundaries.patch
+* xtensa-simplify-detection-of-memory-zone-boundaries.patch
+* mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn.patch
+* mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix.patch
+* mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
+* mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+* mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix.patch
+* mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2.patch
+* mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
+* mm-clean-up-free_area_init_node-and-its-helpers.patch
+* mm-simplify-find_min_pfn_with_active_regions.patch
+* docs-vm-update-memory-models-documentation.patch
+* mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
+* mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
+* mm-page_allocc-rename-free_pages_check_bad-to-check_free_page_bad.patch
+* mm-page_allocc-rename-free_pages_check-to-check_free_page.patch
+* mm-page_allocc-extract-check__page_bad-common-part-to-page_bad_reason.patch
+* mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations.patch
+* mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations-fix.patch
+* mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init.patch
+* mm-initialize-deferred-pages-with-interrupts-enabled.patch
+* mm-call-cond_resched-from-deferred_init_memmap.patch
+* mm-remove-unused-free_bootmem_with_active_regions.patch
+* mm-page_allocc-only-tune-sysctl_lowmem_reserve_ratio-value-once-when-changing-it.patch
+* mm-page_allocc-clear-out-zone-lowmem_reserve-if-the-zone-is-empty.patch
+* mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone.patch
+* mm-page_alloc-use-ac-high_zoneidx-for-classzone_idx.patch
+* mm-page_alloc-integrate-classzone_idx-and-high_zoneidx.patch
+* mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
+* mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
+* mm-reset-numa-stats-for-boot-pagesets.patch
+* mm-reset-numa-stats-for-boot-pagesets-v3.patch
+* mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch
+* mm-vmscan-count-layzfree-pages-and-fix-nr_isolated_-mismatch.patch
+* mm-vmscanc-change-prototype-for-shrink_page_list.patch
+* mm-vmscan-update-the-comment-of-should_continue_reclaim.patch
+* tools-vm-page_owner_sort-filter-out-unneeded-line.patch
+* mm-mempolicy-fix-up-gup-usage-in-lookup_node.patch
+* mm-memblock-fix-minor-typo-and-unclear-comment.patch
+* hugetlb_cgroup-remove-unused-variable-i.patch
+* khugepaged-add-self-test.patch
+* khugepaged-add-self-test-fix.patch
+* khugepaged-add-self-test-fix-2.patch
+* khugepaged-add-self-test-fix-2-fix.patch
+* khugepaged-do-not-stop-collapse-if-less-than-half-ptes-are-referenced.patch
+* khugepaged-drain-all-lru-caches-before-scanning-pages.patch
+* khugepaged-drain-lru-add-pagevec-after-swapin.patch
+* khugepaged-allow-to-collapse-a-page-shared-across-fork.patch
+* khugepaged-allow-to-collapse-pte-mapped-compound-pages.patch
+* thp-change-cow-semantics-for-anon-thp.patch
+* khugepaged-introduce-max_ptes_shared-tunable.patch
+* khugepaged-introduce-max_ptes_shared-tunable-fix.patch
+* hugetlbfs-add-arch_hugetlb_valid_size.patch
+* hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code.patch
+* hugetlbfs-remove-hugetlb_add_hstate-warning-for-existing-hstate.patch
+* hugetlbfs-remove-hugetlb_add_hstate-warning-for-existing-hstate-fix.patch
+* hugetlbfs-clean-up-command-line-processing.patch
+* hugetlbfs-move-hugepagesz=-parsing-to-arch-independent-code-fix.patch
+* mm-hugetlb-avoid-unnecessary-check-on-pud-and-pmd-entry-in-huge_pte_offset.patch
+* arm64-mm-drop-__have_arch_huge_ptep_get.patch
+* mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range.patch
+* mm-hugetlb-define-a-generic-fallback-for-arch_clear_hugepage_flags.patch
+* arch-kmap-remove-bug_on.patch
+* arch-xtensa-move-kmap-build-bug-out-of-the-way.patch
+* arch-kmap-remove-redundant-arch-specific-kmaps.patch
+* arch-kunmap-remove-duplicate-kunmap-implementations.patch
+* arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+* x86powerpcmicroblaze-kmap-move-preempt-disable.patch
+* arch-kmap_atomic-consolidate-duplicate-code.patch
+* arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+* arch-kunmap_atomic-consolidate-duplicate-code.patch
+* arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+* arch-kmap-ensure-kmap_prot-visibility.patch
+* arch-kmap-dont-hard-code-kmap_prot-values.patch
+* arch-kmap-define-kmap_atomic_prot-for-all-archs.patch
+* drm-remove-drm-specific-kmap_atomic-code.patch
+* drm-remove-drm-specific-kmap_atomic-code-fix.patch
+* kmap-remove-kmap_atomic_to_page.patch
+* parisc-kmap-remove-duplicate-kmap-code.patch
+* sparc-remove-unnecessary-includes.patch
+* kmap-consolidate-kmap_prot-definitions.patch
+* kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+* mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
+* powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
+* mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+* mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch
+* drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup.patch
+* drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix.patch
+* mm-add-debug_wx-support.patch
+* mm-add-debug_wx-support-fix.patch
+* mm-add-debug_wx-support-fix-2.patch
+* mm-add-debug_wx-support-fix-3.patch
+* riscv-support-debug_wx.patch
+* riscv-support-debug_wx-fix.patch
+* x86-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
+* arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
+* mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects.patch
+* mm-memory_hotplug-refrain-from-adding-memory-into-an-impossible-node.patch
+* powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable.patch
+* mm-memory_hotplug-remove-is_mem_section_removable.patch
+* mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
+* mm-memory_hotplug-handle-memblocks-only-with-config_arch_keep_memblock.patch
+* mm-memory_hotplug-introduce-add_memory_driver_managed.patch
+* kexec_file-dont-place-kexec-images-on-ioresource_mem_driver_managed.patch
+* device-dax-add-memory-via-add_memory_driver_managed.patch
+* mm-replace-zero-length-array-with-flexible-array-member.patch
+* mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+* mm-memory_hotplug-fix-a-typo-in-comment-recoreded-recorded.patch
+* mm-ksm-fix-a-typo-in-comment-alreaady-already.patch
+* mm-ksm-fix-a-typo-in-comment-alreaady-already-v2.patch
+* mm-mmap-fix-a-typo-in-comment-compatbility-compatibility.patch
+* mm-hugetlb-fix-a-typo-in-comment-manitained-maintained.patch
+* mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2.patch
+* mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+* mm-vmsan-fix-some-typos-in-comment.patch
+* mm-compaction-fix-a-typo-in-comment-pessemistic-pessimistic.patch
+* mm-memblock-fix-a-typo-in-comment-implict-implicit.patch
+* mm-list_lru-fix-a-typo-in-comment-numbesr-numbers.patch
+* mm-filemap-fix-a-typo-in-comment-unneccssary-unnecessary.patch
+* mm-frontswap-fix-some-typos-in-frontswapc.patch
+* mm-memcg-fix-some-typos-in-memcontrolc.patch
+* mm-fix-a-typo-in-comment-strucure-structure.patch
+* mm-slub-fix-a-typo-in-comment-disambiguiation-disambiguation.patch
+* mm-sparse-fix-a-typo-in-comment-convienence-convenience.patch
+* mm-page-writeback-fix-a-typo-in-comment-effictive-effective.patch
+* mm-memory-fix-a-typo-in-comment-attampt-attempt.patch
+* mm-use-false-for-bool-variable.patch
+* mm-return-true-in-cpupid_pid_unset.patch
+* zcomp-use-array_size-for-backends-list.patch
+* info-task-hung-in-generic_file_write_iter.patch
+* info-task-hung-in-generic_file_write-fix.patch
+* kernel-hung_taskc-monitor-killed-tasks.patch
+* proc-rename-catch-function-argument.patch
+* x86-mm-define-mm_p4d_folded.patch
+* mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+* mm-debug-add-tests-validating-architecture-page-table-helpers-v17.patch
+* mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
+* userc-make-uidhash_table-static.patch
+* dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only.patch
+* dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2.patch
+* get_maintainer-add-email-addresses-from-yaml-files.patch
+* bitops-avoid-clang-shift-count-overflow-warnings.patch
+* lib-math-avoid-trailing-n-hidden-in-pr_fmt.patch
+* lib-add-might_fault-to-strncpy_from_user.patch
+* lib-optimize-cpumask_local_spread.patch
+* lib-test_lockupc-make-test_inode-static.patch
+* lib-zlib-remove-outdated-and-incorrect-pre-increment-optimization.patch
+* percpu_ref-use-a-more-common-logging-style.patch
+* lib-flex_proportionsc-cleanup-__fprop_inc_percpu_max.patch
+* checkpatch-additional-maintainer-section-entry-ordering-checks.patch
+* checkpatch-look-for-c99-comments-in-ctx_locate_comment.patch
+* checkpatch-disallow-git-and-file-fix.patch
+* checkpatch-use-patch-subject-when-reading-from-stdin.patch
+* checkpatch-use-patch-subject-when-reading-from-stdin-fix.patch
+* fs-binfmt_elf-remove-redundant-elf_map-ifndef.patch
+* elfnote-mark-all-note-sections-shf_alloc.patch
+* fs-binfmt_elfc-allocate-initialized-memory-in-fill_thread_core_info.patch
+* fat-dont-allow-to-mount-if-the-fat-length-==-0.patch
+* fat-improve-the-readahead-for-fat-entries.patch
+* fs-seq_filec-seq_read-update-pr_info_ratelimited.patch
+* seq_file-introduce-define_seq_attribute-helper-macro.patch
+* seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+* mm-vmstat-convert-to-use-define_seq_attribute-macro.patch
+* kernel-kprobes-convert-to-use-define_seq_attribute-macro.patch
+* exec-simplify-the-copy_strings_kernel-calling-convention.patch
+* exec-open-code-copy_string_kernel.patch
+* umh-fix-refcount-underflow-in-fork_usermode_blob.patch
+* rapidio-avoid-data-race-between-file-operation-callbacks-and-mport_cdev_add.patch
+* kernel-relayc-fix-read_pos-error-when-multiple-readers.patch
+* aio-simplify-read_events.patch
+* add-kernel-config-option-for-twisting-kernel-behavior.patch
+* twist-allow-disabling-k_spec-function-in-drivers-tty-vt-keyboardc.patch
+* twist-add-option-for-selecting-twist-options-for-syzkallers-testing.patch
+* selftests-x86-pkeys-move-selftests-to-arch-neutral-directory.patch
+* selftests-vm-pkeys-rename-all-references-to-pkru-to-a-generic-name.patch
+* selftests-vm-pkeys-move-generic-definitions-to-header-file.patch
+* selftests-vm-pkeys-move-some-definitions-to-arch-specific-header.patch
+* selftests-vm-pkeys-make-gcc-check-arguments-of-sigsafe_printf.patch
+* selftests-vm-pkeys-use-sane-types-for-pkey-register.patch
+* selftests-vm-pkeys-add-helpers-for-pkey-bits.patch
+* selftests-vm-pkeys-fix-pkey_disable_clear.patch
+* selftests-vm-pkeys-fix-assertion-in-pkey_disable_set-clear.patch
+* selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-random.patch
+* selftests-vm-pkeys-use-the-correct-huge-page-size.patch
+* selftests-vm-pkeys-introduce-generic-pkey-abstractions.patch
+* selftests-vm-pkeys-introduce-powerpc-support.patch
+* selftests-vm-pkeys-introduce-powerpc-support-fix.patch
+* selftests-vm-pkeys-fix-number-of-reserved-powerpc-pkeys.patch
+* selftests-vm-pkeys-fix-assertion-in-test_pkey_alloc_exhaust.patch
+* selftests-vm-pkeys-improve-checks-to-determine-pkey-support.patch
+* selftests-vm-pkeys-associate-key-on-a-mapped-page-and-detect-access-violation.patch
+* selftests-vm-pkeys-associate-key-on-a-mapped-page-and-detect-write-violation.patch
+* selftests-vm-pkeys-detect-write-violation-on-a-mapped-access-denied-key-page.patch
+* selftests-vm-pkeys-introduce-a-sub-page-allocator.patch
+* selftests-vm-pkeys-test-correct-behaviour-of-pkey-0.patch
+* selftests-vm-pkeys-override-access-right-definitions-on-powerpc.patch
+* selftests-vm-pkeys-override-access-right-definitions-on-powerpc-fix.patch
+* selftests-vm-pkeys-use-the-correct-page-size-on-powerpc.patch
+* selftests-vm-pkeys-fix-multilib-builds-for-x86.patch
+* tools-testing-selftests-vm-remove-duplicate-headers.patch
+* ubsan-fix-gcc-10-warnings.patch
+* ipc-msg-add-missing-annotation-for-freeque.patch
+* ipc-use-a-work-queue-to-free_ipc.patch
+* ipc-convert-ipcs_idr-to-xarray.patch
+* ipc-convert-ipcs_idr-to-xarray-update.patch
+* ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+  linux-next.patch
+  linux-next-rejects.patch
+* xarrayh-correct-return-code-for-xa_store_bhirq.patch
+* kernel-sysctl-support-setting-sysctl-parameters-from-kernel-command-line.patch
+* kernel-sysctl-support-handling-command-line-aliases.patch
+* kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
+* tools-testing-selftests-sysctl-sysctlsh-support-config_test_sysctl=y.patch
+* lib-test_sysctl-support-testing-of-sysctl-boot-parameter.patch
+* kernel-watchdogc-convert-soft-hardlockup-boot-parameters-to-sysctl-aliases.patch
+* kernel-hung_taskc-introduce-sysctl-to-print-all-traces-when-a-hung-task-is-detected.patch
+* panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
+* kernel-sysctl-ignore-out-of-range-taint-bits-introduced-via-kerneltainted.patch
+* stacktrace-cleanup-inconsistent-variable-type.patch
+* amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+* kernel-move-use_mm-unuse_mm-to-kthreadc.patch
+* kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
+* kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
+* kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
+* kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
+* kernel-set-user_ds-in-kthread_use_mm.patch
+* mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+* kallsyms-printk-add-loglvl-to-print_ip_sym.patch
+* alpha-add-show_stack_loglvl.patch
+* arc-add-show_stack_loglvl.patch
+* arm-asm-add-loglvl-to-c_backtrace.patch
+* arm-add-loglvl-to-unwind_backtrace.patch
+* arm-add-loglvl-to-dump_backtrace.patch
+* arm-wire-up-dump_backtrace_entrystm.patch
+* arm-add-show_stack_loglvl.patch
+* arm64-add-loglvl-to-dump_backtrace.patch
+* arm64-add-show_stack_loglvl.patch
+* c6x-add-show_stack_loglvl.patch
+* csky-add-show_stack_loglvl.patch
+* h8300-add-show_stack_loglvl.patch
+* hexagon-add-show_stack_loglvl.patch
+* ia64-pass-log-level-as-arg-into-ia64_do_show_stack.patch
+* ia64-add-show_stack_loglvl.patch
+* m68k-add-show_stack_loglvl.patch
+* microblaze-add-loglvl-to-microblaze_unwind_inner.patch
+* microblaze-add-loglvl-to-microblaze_unwind.patch
+* microblaze-add-show_stack_loglvl.patch
+* mips-add-show_stack_loglvl.patch
+* nds32-add-show_stack_loglvl.patch
+* nios2-add-show_stack_loglvl.patch
+* openrisc-add-show_stack_loglvl.patch
+* parisc-add-show_stack_loglvl.patch
+* powerpc-add-show_stack_loglvl.patch
+* riscv-add-show_stack_loglvl.patch
+* s390-add-show_stack_loglvl.patch
+* sh-add-loglvl-to-dump_mem.patch
+* sh-remove-needless-printk.patch
+* sh-add-loglvl-to-printk_address.patch
+* sh-add-loglvl-to-show_trace.patch
+* sh-add-show_stack_loglvl.patch
+* sparc-add-show_stack_loglvl.patch
+* um-sysrq-remove-needless-variable-sp.patch
+* um-add-show_stack_loglvl.patch
+* unicore32-remove-unused-pmode-argument-in-c_backtrace.patch
+* unicore32-add-loglvl-to-c_backtrace.patch
+* unicore32-add-show_stack_loglvl.patch
+* x86-add-missing-const-qualifiers-for-log_lvl.patch
+* x86-add-show_stack_loglvl.patch
+* xtensa-add-loglvl-to-show_trace.patch
+* xtensa-add-loglvl-to-show_trace-fix.patch
+* xtensa-add-show_stack_loglvl.patch
+* sysrq-use-show_stack_loglvl.patch
+* x86-amd_gart-print-stacktrace-for-a-leak-with-kern_err.patch
+* power-use-show_stack_loglvl.patch
+* kdb-dont-play-with-console_loglevel.patch
+* sched-print-stack-trace-with-kern_info.patch
+* kernel-use-show_stack_loglvl.patch
+* kernel-rename-show_stack_loglvl-=-show_stack.patch
+* mm-frontswap-mark-various-intentional-data-races.patch
+* mm-page_io-mark-various-intentional-data-races.patch
+* mm-page_io-mark-various-intentional-data-races-v2.patch
+* mm-swap_state-mark-various-intentional-data-races.patch
+* mm-filemap-fix-a-data-race-in-filemap_fault.patch
+* mm-swapfile-fix-and-annotate-various-data-races.patch
+* mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+* mm-page_counter-fix-various-data-races-at-memsw.patch
+* mm-memcontrol-fix-a-data-race-in-scan-count.patch
+* mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+* mm-mempool-fix-a-data-race-in-mempool_free.patch
+* mm-util-annotate-an-data-race-at-vm_committed_as.patch
+* mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+* mm-annotate-a-data-race-in-page_zonenum.patch
+* mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
+* net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy.patch
+* mm-mmapc-add-more-sanity-checks-to-get_unmapped_area.patch
+* mm-mmapc-do-not-allow-mappings-outside-of-allowed-limits.patch
+* mm-pass-task-and-mm-to-do_madvise.patch
+* mm-introduce-external-memory-hinting-api.patch
+* mm-introduce-external-memory-hinting-api-fix.patch
+* mm-introduce-external-memory-hinting-api-fix-2.patch
+* mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+* mm-check-fatal-signal-pending-of-target-process.patch
+* pid-move-pidfd_get_pid-function-to-pidc.patch
+* mm-support-both-pid-and-pidfd-for-process_madvise.patch
+* mm-madvise-allow-ksm-hints-for-remote-api.patch
+* mm-support-vector-address-ranges-for-process_madvise.patch
+* mm-support-vector-address-ranges-for-process_madvise-fix.patch
+* mm-support-vector-address-ranges-for-process_madvise-fix-fix.patch
+* mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
+* mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix.patch
+* mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+* mm-remove-duplicated-include-from-madvisec.patch
+* mm-expand-documentation-over-__read_mostly.patch
+* doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked.patch
+* doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+* fix-read-buffer-overflow-in-delta-ipc.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  mutex-subsystem-synchro-test-module.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  workaround-for-a-pci-restoring-bug.patch
