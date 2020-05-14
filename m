@@ -1,80 +1,130 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 1/7] mm, memcg: fix inconsistent oom event
- behavior
-Date: Wed, 13 May 2020 17:50:34 -0700
-Message-ID: <20200514005034.nVmk0GIGf%akpm@linux-foundation.org>
+Subject: [patch 2/7] epoll: call final ep_events_available() check
+ under the lock
+Date: Wed, 13 May 2020 17:50:38 -0700
+Message-ID: <20200514005038.xbbqtFFTp%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55738 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728313AbgENAuh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 May 2020 20:50:37 -0400
+        id S1728313AbgENAuk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 May 2020 20:50:40 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris@chrisdown.name, hannes@cmpxchg.org, laoar.shao@gmail.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, jbaron@akamai.com, khazhy@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, rpenyaev@suse.de, stable@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm, memcg: fix inconsistent oom event behavior
+From: Roman Penyaev <rpenyaev@suse.de>
+Subject: epoll: call final ep_events_available() check under the lock
 
-A recent commit 9852ae3fe529 ("mm, memcg: consider subtrees in
-memory.events") changes the behavior of memcg events, which will consider
-subtrees in memory.events.  But oom_kill event is a special one as it is
-used in both cgroup1 and cgroup2.  In cgroup1, it is displayed in
-memory.oom_control.  The file memory.oom_control is in both root memcg and
-non root memcg, that is different with memory.event as it only in non-root
-memcg.  That commit is okay for cgroup2, but it is not okay for cgroup1 as
-it will cause inconsistent behavior between root memcg and non-root memcg.
+There is a possible race when ep_scan_ready_list() leaves ->rdllist and
+->obflist empty for a short period of time although some events are
+pending.  It is quite likely that ep_events_available() observes empty
+lists and goes to sleep.  Since 339ddb53d373 ("fs/epoll: remove
+unnecessary wakeups of nested epoll") we are conservative in wakeups
+(there is only one place for wakeup and this is ep_poll_callback()), thus
+ep_events_available() must always observe correct state of two lists.  The
+easiest and correct way is to do the final check under the lock.  This
+does not impact the performance, since lock is taken anyway for adding a
+wait entry to the wait queue.
 
-Here's an example on why this behavior is inconsistent in cgroup1.
-     root memcg
-     /
-  memcg foo
-   /
-memcg bar
+The discussion of the problem can be found here:
+   https://lore.kernel.org/linux-fsdevel/a2f22c3c-c25a-4bda-8339-a7bdaf17849e@akamai.com/
 
-Suppose there's an oom_kill in memcg bar, then the oon_kill will be
+In this patch barrierless __set_current_state() is used.  This is safe
+since waitqueue_active() is called under the same lock on wakeup side.
 
-     root memcg : memory.oom_control(oom_kill)  0
-     /
-  memcg foo : memory.oom_control(oom_kill)  1
-   /
-memcg bar : memory.oom_control(oom_kill)  1
+Short-circuit for fatal signals (i.e.  fatal_signal_pending() check) is
+moved to the line just before actual events harvesting routine.  This is
+fully compliant to what is said in the comment of the patch where the
+actual fatal_signal_pending() check was added: c257a340ede0 ("fs, epoll:
+short circuit fetching events if thread has been killed").
 
-For the non-root memcg, its memory.oom_control(oom_kill) includes its
-descendants' oom_kill, but for root memcg, it doesn't include its
-descendants' oom_kill.  That means, memory.oom_control(oom_kill) has
-different meanings in different memcgs.  That is inconsistent.  Then the
-user has to know whether the memcg is root or not.
-
-If we can't fully support it in cgroup1, for example by adding
-memory.events.local into cgroup1 as well, then let's don't touch its
-original behavior.
-
-Link: http://lkml.kernel.org/r/20200502141055.7378-1-laoar.shao@gmail.com
-Fixes: 9852ae3fe529 ("mm, memcg: consider subtrees in memory.events")
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Chris Down <chris@chrisdown.name>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20200505145609.1865152-1-rpenyaev@suse.de
+Fixes: 339ddb53d373 ("fs/epoll: remove unnecessary wakeups of nested epoll")
+Signed-off-by: Roman Penyaev <rpenyaev@suse.de>
+Reported-by: Jason Baron <jbaron@akamai.com>
+Reviewed-by: Jason Baron <jbaron@akamai.com>
+Cc: Khazhismel Kumykov <khazhy@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/eventpoll.c |   48 +++++++++++++++++++++++++++--------------------
+ 1 file changed, 28 insertions(+), 20 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-fix-inconsistent-oom-event-behavior
-+++ a/include/linux/memcontrol.h
-@@ -783,6 +783,8 @@ static inline void memcg_memory_event(st
- 		atomic_long_inc(&memcg->memory_events[event]);
- 		cgroup_file_notify(&memcg->events_file);
+--- a/fs/eventpoll.c~epoll-call-final-ep_events_available-check-under-the-lock
++++ a/fs/eventpoll.c
+@@ -1879,34 +1879,33 @@ fetch_events:
+ 		 * event delivery.
+ 		 */
+ 		init_wait(&wait);
+-		write_lock_irq(&ep->lock);
+-		__add_wait_queue_exclusive(&ep->wq, &wait);
+-		write_unlock_irq(&ep->lock);
  
-+		if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+			break;
- 		if (cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_LOCAL_EVENTS)
++		write_lock_irq(&ep->lock);
+ 		/*
+-		 * We don't want to sleep if the ep_poll_callback() sends us
+-		 * a wakeup in between. That's why we set the task state
+-		 * to TASK_INTERRUPTIBLE before doing the checks.
++		 * Barrierless variant, waitqueue_active() is called under
++		 * the same lock on wakeup ep_poll_callback() side, so it
++		 * is safe to avoid an explicit barrier.
+ 		 */
+-		set_current_state(TASK_INTERRUPTIBLE);
++		__set_current_state(TASK_INTERRUPTIBLE);
++
+ 		/*
+-		 * Always short-circuit for fatal signals to allow
+-		 * threads to make a timely exit without the chance of
+-		 * finding more events available and fetching
+-		 * repeatedly.
++		 * Do the final check under the lock. ep_scan_ready_list()
++		 * plays with two lists (->rdllist and ->ovflist) and there
++		 * is always a race when both lists are empty for short
++		 * period of time although events are pending, so lock is
++		 * important.
+ 		 */
+-		if (fatal_signal_pending(current)) {
+-			res = -EINTR;
+-			break;
++		eavail = ep_events_available(ep);
++		if (!eavail) {
++			if (signal_pending(current))
++				res = -EINTR;
++			else
++				__add_wait_queue_exclusive(&ep->wq, &wait);
+ 		}
++		write_unlock_irq(&ep->lock);
+ 
+-		eavail = ep_events_available(ep);
+-		if (eavail)
+-			break;
+-		if (signal_pending(current)) {
+-			res = -EINTR;
++		if (eavail || res)
  			break;
- 	} while ((memcg = parent_mem_cgroup(memcg)) &&
+-		}
+ 
+ 		if (!schedule_hrtimeout_range(to, slack, HRTIMER_MODE_ABS)) {
+ 			timed_out = 1;
+@@ -1927,6 +1926,15 @@ fetch_events:
+ 	}
+ 
+ send_events:
++	if (fatal_signal_pending(current)) {
++		/*
++		 * Always short-circuit for fatal signals to allow
++		 * threads to make a timely exit without the chance of
++		 * finding more events available and fetching
++		 * repeatedly.
++		 */
++		res = -EINTR;
++	}
+ 	/*
+ 	 * Try to transfer events to user space. In case we get 0 events and
+ 	 * there's still timeout left over, we go trying again in search of
 _
