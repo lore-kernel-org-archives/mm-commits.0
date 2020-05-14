@@ -1,130 +1,75 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 2/7] epoll: call final ep_events_available() check
- under the lock
-Date: Wed, 13 May 2020 17:50:38 -0700
-Message-ID: <20200514005038.xbbqtFFTp%akpm@linux-foundation.org>
+Subject: [patch 3/7] mm/gup: fix fixup_user_fault() on multiple
+ retries
+Date: Wed, 13 May 2020 17:50:41 -0700
+Message-ID: <20200514005041.Biir9x7Bl%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55850 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55922 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728313AbgENAuk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 May 2020 20:50:40 -0400
+        id S1728313AbgENAum (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 May 2020 20:50:42 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jbaron@akamai.com, khazhy@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, rpenyaev@suse.de, stable@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, alex.williamson@redhat.com, bgeffon@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, peterx@redhat.com, torvalds@linux-foundation.org
 
-From: Roman Penyaev <rpenyaev@suse.de>
-Subject: epoll: call final ep_events_available() check under the lock
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/gup: fix fixup_user_fault() on multiple retries
 
-There is a possible race when ep_scan_ready_list() leaves ->rdllist and
-->obflist empty for a short period of time although some events are
-pending.  It is quite likely that ep_events_available() observes empty
-lists and goes to sleep.  Since 339ddb53d373 ("fs/epoll: remove
-unnecessary wakeups of nested epoll") we are conservative in wakeups
-(there is only one place for wakeup and this is ep_poll_callback()), thus
-ep_events_available() must always observe correct state of two lists.  The
-easiest and correct way is to do the final check under the lock.  This
-does not impact the performance, since lock is taken anyway for adding a
-wait entry to the wait queue.
+This part is overlooked when reworking the gup code on multiple retries. 
+When we get the 2nd+ retry, we'll be with TRIED flag set.  Current code
+will bail out on the 2nd retry because the !TRIED check will fail so the
+retry logic will be skipped.  What's worse is that, it will also return
+zero which errornously hints the caller that the page is faulted in while
+it's not.
 
-The discussion of the problem can be found here:
-   https://lore.kernel.org/linux-fsdevel/a2f22c3c-c25a-4bda-8339-a7bdaf17849e@akamai.com/
+The !TRIED flag check seems to not be needed even before the mutliple
+retries change because if we get a VM_FAULT_RETRY, it must be the 1st
+retry, and we should not have TRIED set for that.
 
-In this patch barrierless __set_current_state() is used.  This is safe
-since waitqueue_active() is called under the same lock on wakeup side.
+Fix it by removing the !TRIED check, at the meantime check against fatal
+signals properly before the page fault so we can still properly respond to
+the user killing the process during retries.
 
-Short-circuit for fatal signals (i.e.  fatal_signal_pending() check) is
-moved to the line just before actual events harvesting routine.  This is
-fully compliant to what is said in the comment of the patch where the
-actual fatal_signal_pending() check was added: c257a340ede0 ("fs, epoll:
-short circuit fetching events if thread has been killed").
-
-Link: http://lkml.kernel.org/r/20200505145609.1865152-1-rpenyaev@suse.de
-Fixes: 339ddb53d373 ("fs/epoll: remove unnecessary wakeups of nested epoll")
-Signed-off-by: Roman Penyaev <rpenyaev@suse.de>
-Reported-by: Jason Baron <jbaron@akamai.com>
-Reviewed-by: Jason Baron <jbaron@akamai.com>
-Cc: Khazhismel Kumykov <khazhy@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200502003523.8204-1-peterx@redhat.com
+Fixes: 4426e945df58 ("mm/gup: allow VM_FAULT_RETRY for multiple times")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Brian Geffon <bgeffon@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   48 +++++++++++++++++++++++++++--------------------
- 1 file changed, 28 insertions(+), 20 deletions(-)
+ mm/gup.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/fs/eventpoll.c~epoll-call-final-ep_events_available-check-under-the-lock
-+++ a/fs/eventpoll.c
-@@ -1879,34 +1879,33 @@ fetch_events:
- 		 * event delivery.
- 		 */
- 		init_wait(&wait);
--		write_lock_irq(&ep->lock);
--		__add_wait_queue_exclusive(&ep->wq, &wait);
--		write_unlock_irq(&ep->lock);
+--- a/mm/gup.c~mm-gup-fix-fixup_user_fault-on-multiple-retries
++++ a/mm/gup.c
+@@ -1218,6 +1218,10 @@ retry:
+ 	if (!vma_permits_fault(vma, fault_flags))
+ 		return -EFAULT;
  
-+		write_lock_irq(&ep->lock);
- 		/*
--		 * We don't want to sleep if the ep_poll_callback() sends us
--		 * a wakeup in between. That's why we set the task state
--		 * to TASK_INTERRUPTIBLE before doing the checks.
-+		 * Barrierless variant, waitqueue_active() is called under
-+		 * the same lock on wakeup ep_poll_callback() side, so it
-+		 * is safe to avoid an explicit barrier.
- 		 */
--		set_current_state(TASK_INTERRUPTIBLE);
-+		__set_current_state(TASK_INTERRUPTIBLE);
++	if ((fault_flags & FAULT_FLAG_KILLABLE) &&
++	    fatal_signal_pending(current))
++		return -EINTR;
 +
- 		/*
--		 * Always short-circuit for fatal signals to allow
--		 * threads to make a timely exit without the chance of
--		 * finding more events available and fetching
--		 * repeatedly.
-+		 * Do the final check under the lock. ep_scan_ready_list()
-+		 * plays with two lists (->rdllist and ->ovflist) and there
-+		 * is always a race when both lists are empty for short
-+		 * period of time although events are pending, so lock is
-+		 * important.
- 		 */
--		if (fatal_signal_pending(current)) {
--			res = -EINTR;
--			break;
-+		eavail = ep_events_available(ep);
-+		if (!eavail) {
-+			if (signal_pending(current))
-+				res = -EINTR;
-+			else
-+				__add_wait_queue_exclusive(&ep->wq, &wait);
- 		}
-+		write_unlock_irq(&ep->lock);
+ 	ret = handle_mm_fault(vma, address, fault_flags);
+ 	major |= ret & VM_FAULT_MAJOR;
+ 	if (ret & VM_FAULT_ERROR) {
+@@ -1230,11 +1234,9 @@ retry:
  
--		eavail = ep_events_available(ep);
--		if (eavail)
--			break;
--		if (signal_pending(current)) {
--			res = -EINTR;
-+		if (eavail || res)
- 			break;
+ 	if (ret & VM_FAULT_RETRY) {
+ 		down_read(&mm->mmap_sem);
+-		if (!(fault_flags & FAULT_FLAG_TRIED)) {
+-			*unlocked = true;
+-			fault_flags |= FAULT_FLAG_TRIED;
+-			goto retry;
 -		}
- 
- 		if (!schedule_hrtimeout_range(to, slack, HRTIMER_MODE_ABS)) {
- 			timed_out = 1;
-@@ -1927,6 +1926,15 @@ fetch_events:
++		*unlocked = true;
++		fault_flags |= FAULT_FLAG_TRIED;
++		goto retry;
  	}
  
- send_events:
-+	if (fatal_signal_pending(current)) {
-+		/*
-+		 * Always short-circuit for fatal signals to allow
-+		 * threads to make a timely exit without the chance of
-+		 * finding more events available and fetching
-+		 * repeatedly.
-+		 */
-+		res = -EINTR;
-+	}
- 	/*
- 	 * Try to transfer events to user space. In case we get 0 events and
- 	 * there's still timeout left over, we go trying again in search of
+ 	if (tsk) {
 _
