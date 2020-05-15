@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch added
- to -mm tree
-Date: Fri, 15 May 2020 14:15:30 -0700
-Message-ID: <20200515211530.Z3x33A0Hr%akpm@linux-foundation.org>
+ x86-mm-simplify-init_trampoline-and-surrounding-logic.patch added to -mm
+ tree
+Date: Fri, 15 May 2020 14:15:34 -0700
+Message-ID: <20200515211534.y5tAgZUVh%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52470 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52598 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726183AbgEOVPd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 15 May 2020 17:15:33 -0400
+        id S1726183AbgEOVPg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 15 May 2020 17:15:36 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: arnd@arndb.de, bcain@codeaurora.org, bp@alien8.de, catalin.marinas@arm.com, 
 
 
 The patch titled
-     Subject: m68k/mm: move {cache,nocahe}_page() definitions close to their user
+     Subject: x86/mm: simplify init_trampoline() and surrounding logic
 has been added to the -mm tree.  Its filename is
-     m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
+     x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,20 +40,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: m68k/mm: move {cache,nocahe}_page() definitions close to their user
+Subject: x86/mm: simplify init_trampoline() and surrounding logic
 
-The cache_page() and nocache_page() functions are only used by the
-motorola MMU variant for setting caching attributes for the page table
-pages.
+There are three cases for the trampoline initialization:
+* 32-bit does nothing
+* 64-bit with kaslr disabled simply copies a PGD entry from the direct map
+  to the trampoline PGD
+* 64-bit with kaslr enabled maps the real mode trampoline at PUD level
 
-Move the definitions of these functions from
-arch/m68k/include/asm/motorola_pgtable.h closer to their usage in
-arch/m68k/mm/motorola.c and drop unused definition in
-arch/m68k/include/asm/mcf_pgtable.h.
+These cases are currently differentiated by a bunch of ifdefs inside
+asm/include/pgtable.h and the case of 64-bits with kaslr on uses
+pgd_index() helper.
 
-Link: http://lkml.kernel.org/r/20200514170327.31389-7-rppt@kernel.org
+Replacing the ifdefs with a static function in arch/x86/mm/init.c gives
+clearer code and allows moving pgd_index() to the generic implementation
+in include/linux/pgtable.h
+
+Link: http://lkml.kernel.org/r/20200514170327.31389-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Greg Ungerer <gerg@linux-m68k.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Brian Cain <bcain@codeaurora.org>
@@ -62,6 +66,7 @@ Cc: Chris Zankel <chris@zankel.net>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Greg Ungerer <gerg@linux-m68k.org>
 Cc: Guan Xuetao <gxt@pku.edu.cn>
 Cc: Guo Ren <guoren@kernel.org>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
@@ -90,165 +95,159 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/mcf_pgtable.h      |   40 -------------------
- arch/m68k/include/asm/motorola_pgtable.h |   44 ---------------------
- arch/m68k/mm/motorola.c                  |   43 ++++++++++++++++++++
- 3 files changed, 43 insertions(+), 84 deletions(-)
+ arch/x86/include/asm/kaslr.h   |    2 +
+ arch/x86/include/asm/pgtable.h |   15 --------------
+ arch/x86/include/asm/setup.h   |    9 ++++++++
+ arch/x86/mm/init.c             |   22 ++++++++++++++++++++
+ arch/x86/mm/kaslr.c            |   33 -------------------------------
+ 5 files changed, 35 insertions(+), 46 deletions(-)
 
---- a/arch/m68k/include/asm/mcf_pgtable.h~m68k-mm-move-cachenocahe_page-definitions-close-to-their-user
-+++ a/arch/m68k/include/asm/mcf_pgtable.h
-@@ -329,46 +329,6 @@ extern pgd_t kernel_pg_dir[PTRS_PER_PGD]
- 	((pte_t *) __pmd_page(*(dir)) + __pte_offset(address))
+--- a/arch/x86/include/asm/kaslr.h~x86-mm-simplify-init_trampoline-and-surrounding-logic
++++ a/arch/x86/include/asm/kaslr.h
+@@ -6,8 +6,10 @@ unsigned long kaslr_get_random_long(cons
  
- /*
-- * Disable caching for page at given kernel virtual address.
-- */
--static inline void nocache_page(void *vaddr)
--{
--	pgd_t *dir;
--	p4d_t *p4dp;
--	pud_t *pudp;
--	pmd_t *pmdp;
--	pte_t *ptep;
--	unsigned long addr = (unsigned long) vaddr;
--
--	dir = pgd_offset_k(addr);
--	p4dp = p4d_offset(dir, addr);
--	pudp = pud_offset(p4dp, addr);
--	pmdp = pmd_offset(pudp, addr);
--	ptep = pte_offset_kernel(pmdp, addr);
--	*ptep = pte_mknocache(*ptep);
--}
--
--/*
-- * Enable caching for page at given kernel virtual address.
-- */
--static inline void cache_page(void *vaddr)
--{
--	pgd_t *dir;
--	p4d_t *p4dp;
--	pud_t *pudp;
--	pmd_t *pmdp;
--	pte_t *ptep;
--	unsigned long addr = (unsigned long) vaddr;
--
--	dir = pgd_offset_k(addr);
--	p4dp = p4d_offset(dir, addr);
--	pudp = pud_offset(p4dp, addr);
--	pmdp = pmd_offset(pudp, addr);
--	ptep = pte_offset_kernel(pmdp, addr);
--	*ptep = pte_mkcache(*ptep);
--}
--
--/*
-  * Encode and de-code a swap entry (must be !pte_none(e) && !pte_present(e))
-  */
- #define __swp_type(x)		((x).val & 0xFF)
---- a/arch/m68k/include/asm/motorola_pgtable.h~m68k-mm-move-cachenocahe_page-definitions-close-to-their-user
-+++ a/arch/m68k/include/asm/motorola_pgtable.h
-@@ -227,50 +227,6 @@ static inline pte_t *pte_offset_kernel(p
- #define pte_offset_map(pmdp,address) ((pte_t *)__pmd_page(*pmdp) + (((address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)))
- #define pte_unmap(pte)		((void)0)
+ #ifdef CONFIG_RANDOMIZE_MEMORY
+ void kernel_randomize_memory(void);
++void init_trampoline_kaslr(void);
+ #else
+ static inline void kernel_randomize_memory(void) { }
++static inline void init_trampoline_kaslr(void) {}
+ #endif /* CONFIG_RANDOMIZE_MEMORY */
  
--/* Prior to calling these routines, the page should have been flushed
-- * from both the cache and ATC, or the CPU might not notice that the
-- * cache setting for the page has been changed. -jskov
-- */
--static inline void nocache_page(void *vaddr)
+ #endif
+--- a/arch/x86/include/asm/pgtable.h~x86-mm-simplify-init_trampoline-and-surrounding-logic
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1070,27 +1070,14 @@ void init_mem_mapping(void);
+ void early_alloc_pgt_buf(void);
+ extern void memblock_find_dma_reserve(void);
+ 
++
+ #ifdef CONFIG_X86_64
+-/* Realmode trampoline initialization. */
+ extern pgd_t trampoline_pgd_entry;
+-static inline void __meminit init_trampoline_default(void)
 -{
--	unsigned long addr = (unsigned long)vaddr;
--
--	if (CPU_IS_040_OR_060) {
--		pgd_t *dir;
--		p4d_t *p4dp;
--		pud_t *pudp;
--		pmd_t *pmdp;
--		pte_t *ptep;
--
--		dir = pgd_offset_k(addr);
--		p4dp = p4d_offset(dir, addr);
--		pudp = pud_offset(p4dp, addr);
--		pmdp = pmd_offset(pudp, addr);
--		ptep = pte_offset_kernel(pmdp, addr);
--		*ptep = pte_mknocache(*ptep);
--	}
+-	/* Default trampoline pgd value */
+-	trampoline_pgd_entry = init_top_pgt[pgd_index(__PAGE_OFFSET)];
 -}
+ 
+ void __init poking_init(void);
+ 
+ unsigned long init_memory_mapping(unsigned long start,
+ 				  unsigned long end, pgprot_t prot);
 -
--static inline void cache_page(void *vaddr)
--{
--	unsigned long addr = (unsigned long)vaddr;
--
--	if (CPU_IS_040_OR_060) {
--		pgd_t *dir;
--		p4d_t *p4dp;
--		pud_t *pudp;
--		pmd_t *pmdp;
--		pte_t *ptep;
--
--		dir = pgd_offset_k(addr);
--		p4dp = p4d_offset(dir, addr);
--		pudp = pud_offset(p4dp, addr);
--		pmdp = pmd_offset(pudp, addr);
--		ptep = pte_offset_kernel(pmdp, addr);
--		*ptep = pte_mkcache(*ptep);
--	}
--}
--
- /* Encode and de-code a swap entry (must be !pte_none(e) && !pte_present(e)) */
- #define __swp_type(x)		(((x).val >> 4) & 0xff)
- #define __swp_offset(x)		((x).val >> 12)
---- a/arch/m68k/mm/motorola.c~m68k-mm-move-cachenocahe_page-definitions-close-to-their-user
-+++ a/arch/m68k/mm/motorola.c
-@@ -45,6 +45,49 @@ unsigned long mm_cachebits;
- EXPORT_SYMBOL(mm_cachebits);
+-# ifdef CONFIG_RANDOMIZE_MEMORY
+-void __meminit init_trampoline(void);
+-# else
+-#  define init_trampoline init_trampoline_default
+-# endif
+-#else
+-static inline void init_trampoline(void) { }
  #endif
  
-+/* Prior to calling these routines, the page should have been flushed
-+ * from both the cache and ATC, or the CPU might not notice that the
-+ * cache setting for the page has been changed. -jskov
-+ */
-+static inline void nocache_page(void *vaddr)
-+{
-+	unsigned long addr = (unsigned long)vaddr;
-+
-+	if (CPU_IS_040_OR_060) {
-+		pgd_t *dir;
-+		p4d_t *p4dp;
-+		pud_t *pudp;
-+		pmd_t *pmdp;
-+		pte_t *ptep;
-+
-+		dir = pgd_offset_k(addr);
-+		p4dp = p4d_offset(dir, addr);
-+		pudp = pud_offset(p4dp, addr);
-+		pmdp = pmd_offset(pudp, addr);
-+		ptep = pte_offset_kernel(pmdp, addr);
-+		*ptep = pte_mknocache(*ptep);
-+	}
-+}
-+
-+static inline void cache_page(void *vaddr)
-+{
-+	unsigned long addr = (unsigned long)vaddr;
-+
-+	if (CPU_IS_040_OR_060) {
-+		pgd_t *dir;
-+		p4d_t *p4dp;
-+		pud_t *pudp;
-+		pmd_t *pmdp;
-+		pte_t *ptep;
-+
-+		dir = pgd_offset_k(addr);
-+		p4dp = p4d_offset(dir, addr);
-+		pudp = pud_offset(p4dp, addr);
-+		pmdp = pmd_offset(pudp, addr);
-+		ptep = pte_offset_kernel(pmdp, addr);
-+		*ptep = pte_mkcache(*ptep);
-+	}
-+}
+ /* local pte updates need not use xchg for locking */
+--- a/arch/x86/include/asm/setup.h~x86-mm-simplify-init_trampoline-and-surrounding-logic
++++ a/arch/x86/include/asm/setup.h
+@@ -78,6 +78,15 @@ static inline bool kaslr_enabled(void)
+ 	return !!(boot_params.hdr.loadflags & KASLR_FLAG);
+ }
  
- /*
-  * Motorola 680x0 user's manual recommends using uncached memory for address
++/*
++ * Apply no randomization if KASLR was disabled at boot or if KASAN
++ * is enabled. KASAN shadow mappings rely on regions being PGD aligned.
++ */
++static inline bool kaslr_memory_enabled(void)
++{
++	return kaslr_enabled() && !IS_ENABLED(CONFIG_KASAN);
++}
++
+ static inline unsigned long kaslr_offset(void)
+ {
+ 	return (unsigned long)&_text - __START_KERNEL;
+--- a/arch/x86/mm/init.c~x86-mm-simplify-init_trampoline-and-surrounding-logic
++++ a/arch/x86/mm/init.c
+@@ -682,6 +682,28 @@ static void __init memory_map_bottom_up(
+ 	}
+ }
+ 
++/*
++ * The real mode trampoline, which is required for bootstrapping CPUs
++ * occupies only a small area under the low 1MB.  See reserve_real_mode()
++ * for details.
++ *
++ * If KASLR is disabled the first PGD entry of the direct mapping is copied
++ * to map the real mode trampoline.
++ *
++ * If KASLR is enabled, copy only the PUD which covers the low 1MB
++ * area. This limits the randomization granularity to 1GB for both 4-level
++ * and 5-level paging.
++ */
++static void __init init_trampoline(void)
++{
++#ifdef CONFIG_X86_64
++	if (!kaslr_memory_enabled())
++		trampoline_pgd_entry = init_top_pgt[pgd_index(__PAGE_OFFSET)];
++	else
++		init_trampoline_kaslr();
++#endif
++}
++
+ void __init init_mem_mapping(void)
+ {
+ 	unsigned long end;
+--- a/arch/x86/mm/kaslr.c~x86-mm-simplify-init_trampoline-and-surrounding-logic
++++ a/arch/x86/mm/kaslr.c
+@@ -61,15 +61,6 @@ static inline unsigned long get_padding(
+ 	return (region->size_tb << TB_SHIFT);
+ }
+ 
+-/*
+- * Apply no randomization if KASLR was disabled at boot or if KASAN
+- * is enabled. KASAN shadow mappings rely on regions being PGD aligned.
+- */
+-static inline bool kaslr_memory_enabled(void)
+-{
+-	return kaslr_enabled() && !IS_ENABLED(CONFIG_KASAN);
+-}
+-
+ /* Initialize base and padding for each memory region randomized with KASLR */
+ void __init kernel_randomize_memory(void)
+ {
+@@ -148,7 +139,7 @@ void __init kernel_randomize_memory(void
+ 	}
+ }
+ 
+-static void __meminit init_trampoline_pud(void)
++void __meminit init_trampoline_kaslr(void)
+ {
+ 	pud_t *pud_page_tramp, *pud, *pud_tramp;
+ 	p4d_t *p4d_page_tramp, *p4d, *p4d_tramp;
+@@ -189,25 +180,3 @@ static void __meminit init_trampoline_pu
+ 			__pgd(_KERNPG_TABLE | __pa(pud_page_tramp)));
+ 	}
+ }
+-
+-/*
+- * The real mode trampoline, which is required for bootstrapping CPUs
+- * occupies only a small area under the low 1MB.  See reserve_real_mode()
+- * for details.
+- *
+- * If KASLR is disabled the first PGD entry of the direct mapping is copied
+- * to map the real mode trampoline.
+- *
+- * If KASLR is enabled, copy only the PUD which covers the low 1MB
+- * area. This limits the randomization granularity to 1GB for both 4-level
+- * and 5-level paging.
+- */
+-void __meminit init_trampoline(void)
+-{
+-	if (!kaslr_memory_enabled()) {
+-		init_trampoline_default();
+-		return;
+-	}
+-
+-	init_trampoline_pud();
+-}
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
