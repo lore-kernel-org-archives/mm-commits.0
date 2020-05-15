@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch added to -mm
- tree
-Date: Fri, 15 May 2020 14:15:21 -0700
-Message-ID: <20200515211521.W8mq2YARr%akpm@linux-foundation.org>
+ m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
+ added to -mm tree
+Date: Fri, 15 May 2020 14:15:25 -0700
+Message-ID: <20200515211525.u_XIaLvb8%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52282 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52370 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726183AbgEOVPX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 15 May 2020 17:15:23 -0400
+        id S1726183AbgEOVP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 15 May 2020 17:15:28 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: arnd@arndb.de, bcain@codeaurora.org, bp@alien8.de, catalin.marinas@arm.com, 
 
 
 The patch titled
-     Subject: csky: replace definitions of __pXd_offset() with pXd_index()
+     Subject: m68k/mm/motorola: move comment about page table allocation funcitons
 has been added to the -mm tree.  Its filename is
-     csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
+     m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: csky: replace definitions of __pXd_offset() with pXd_index()
+Subject: m68k/mm/motorola: move comment about page table allocation funcitons
 
-All architectures use pXd_index() to get an entry in the page table page
-corresponding to a virtual address.
+The comment about page table allocation functions resides in
+include/asm/motorola_pgtable.h while the functions live in
+include/asm/motorola_pgaloc.h.
 
-Align csky with other architectures.
+Move the comment close to the code.
 
-Link: http://lkml.kernel.org/r/20200514170327.31389-5-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200514170327.31389-6-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -86,63 +87,40 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/include/asm/pgtable.h |    5 ++---
- arch/csky/mm/fault.c            |    2 +-
- arch/csky/mm/highmem.c          |    2 +-
- arch/csky/mm/init.c             |    6 +++---
- 4 files changed, 7 insertions(+), 8 deletions(-)
+ arch/m68k/include/asm/motorola_pgalloc.h |    6 ++++++
+ arch/m68k/include/asm/motorola_pgtable.h |    6 ------
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/arch/csky/include/asm/pgtable.h~csky-replace-definitions-of-__pxd_offset-with-pxd_index
-+++ a/arch/csky/include/asm/pgtable.h
-@@ -229,9 +229,8 @@ static inline pte_t pte_mkyoung(pte_t pt
- 	return pte;
- }
+--- a/arch/m68k/include/asm/motorola_pgalloc.h~m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons
++++ a/arch/m68k/include/asm/motorola_pgalloc.h
+@@ -18,6 +18,12 @@ extern void init_pointer_table(void *tab
+ extern void *get_pointer_table(int type);
+ extern int free_pointer_table(void *table, int type);
  
--#define __pgd_offset(address)	pgd_index(address)
--#define __pud_offset(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
--#define __pmd_offset(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
-+#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
-+#define pmd_index(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
++/*
++ * Allocate and free page tables. The xxx_kernel() versions are
++ * used to allocate a kernel page table - this turns on ASN bits
++ * if any.
++ */
++
+ static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
+ {
+ 	return get_pointer_table(TABLE_PTE);
+--- a/arch/m68k/include/asm/motorola_pgtable.h~m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons
++++ a/arch/m68k/include/asm/motorola_pgtable.h
+@@ -227,12 +227,6 @@ static inline pte_t *pte_offset_kernel(p
+ #define pte_offset_map(pmdp,address) ((pte_t *)__pmd_page(*pmdp) + (((address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)))
+ #define pte_unmap(pte)		((void)0)
  
- /* to find an entry in a kernel page-table-directory */
- #define pgd_offset_k(address)	pgd_offset(&init_mm, address)
---- a/arch/csky/mm/fault.c~csky-replace-definitions-of-__pxd_offset-with-pxd_index
-+++ a/arch/csky/mm/fault.c
-@@ -78,7 +78,7 @@ asmlinkage void do_page_fault(struct pt_
- 		 * Do _not_ use "tsk" here. We might be inside
- 		 * an interrupt in the middle of a task switch..
- 		 */
--		int offset = __pgd_offset(address);
-+		int offset = pgd_index(address);
- 		pgd_t *pgd, *pgd_k;
- 		pud_t *pud, *pud_k;
- 		pmd_t *pmd, *pmd_k;
---- a/arch/csky/mm/highmem.c~csky-replace-definitions-of-__pxd_offset-with-pxd_index
-+++ a/arch/csky/mm/highmem.c
-@@ -92,7 +92,7 @@ static void __init kmap_pages_init(void)
- 	vaddr = PKMAP_BASE;
- 	fixrange_init(vaddr, vaddr + PAGE_SIZE*LAST_PKMAP, swapper_pg_dir);
- 
--	pgd = swapper_pg_dir + __pgd_offset(vaddr);
-+	pgd = swapper_pg_dir + pgd_index(vaddr);
- 	pud = (pud_t *)pgd;
- 	pmd = pmd_offset(pud, vaddr);
- 	pte = pte_offset_kernel(pmd, vaddr);
---- a/arch/csky/mm/init.c~csky-replace-definitions-of-__pxd_offset-with-pxd_index
-+++ a/arch/csky/mm/init.c
-@@ -157,9 +157,9 @@ void __init fixrange_init(unsigned long
- 	unsigned long vaddr;
- 
- 	vaddr = start;
--	i = __pgd_offset(vaddr);
--	j = __pud_offset(vaddr);
--	k = __pmd_offset(vaddr);
-+	i = pgd_index(vaddr);
-+	j = pud_index(vaddr);
-+	k = pmd_index(vaddr);
- 	pgd = pgd_base + i;
- 
- 	for ( ; (i < PTRS_PER_PGD) && (vaddr != end); pgd++, i++) {
+-/*
+- * Allocate and free page tables. The xxx_kernel() versions are
+- * used to allocate a kernel page table - this turns on ASN bits
+- * if any.
+- */
+-
+ /* Prior to calling these routines, the page should have been flushed
+  * from both the cache and ATC, or the CPU might not notice that the
+  * cache setting for the page has been changed. -jskov
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
