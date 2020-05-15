@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-consolidate-pmd_index-and-pmd_offset-definitions.patch added to -mm tree
-Date: Fri, 15 May 2020 14:16:04 -0700
-Message-ID: <20200515211604.8wMCYIeH0%akpm@linux-foundation.org>
+ mm-consolidate-pud_index-and-pud_offset-definitions.patch added to -mm tree
+Date: Fri, 15 May 2020 14:16:14 -0700
+Message-ID: <20200515211614.dFQQRrGGt%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53008 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53194 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726183AbgEOVQH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 15 May 2020 17:16:07 -0400
+        id S1726183AbgEOVQS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 15 May 2020 17:16:18 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: arnd@arndb.de, bcain@codeaurora.org, bp@alien8.de, catalin.marinas@arm.com, 
 
 
 The patch titled
-     Subject: mm: consolidate pmd_index() and pmd_offset() definitions
+     Subject: mm: consolidate pud_index() and pud_offset() definitions
 has been added to the -mm tree.  Its filename is
-     mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
+     mm-consolidate-pud_index-and-pud_offset-definitions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-consolidate-pud_index-and-pud_offset-definitions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consolidate-pud_index-and-pud_offset-definitions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,32 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: consolidate pmd_index() and pmd_offset() definitions
+Subject: mm: consolidate pud_index() and pud_offset() definitions
 
-All architectures define pmd_index() as
+All architectures that have at least four-level page tables define
+pud_offset() as an entry in the array of PUDs indexed by the pud_index(),
+where pud_index() is
 
-	(address >> PMD_SHIFT) & (PTRS_PER_PMD - 1)
+	(address >> PUD_SHIFT) & (PTRS_PER_PUD - 1)
 
-and all architectures that have at least three-level page tables define
-pmd_offset() as an entry in the array of PMDs indexed by the pmd_index().
-
-For the most architectures the pmd_offset() implementation relies on the
-availability of pud_page_vaddr() that converts a PMD entry value to the
-virtual address of the page containing PMD array.
+For the most architectures the pud_offset() implementation relies on the
+availability of pud_page_vaddr() that converts a PUD entry value to the
+virtual address of the page containing PUD array.
 
 Let's use such implementation as a generic and drop most of the
-definitions of pmd_index() and pmd_offset() in <asm/pgtable.h> files.
+definitions of pud_index() and pud_offset() in <asm/pgtable.h> files.
 
 The architectures that didn't provide pud_page_vaddr() are updated to have
 that defined.
 
 The generic implementation can be overridden by an architecture and this
 ability is currently in use by there architectures:
-* alpha has special requirements for memory access ordering
-* arm has custom definition of folded 2-level page tables
 * s390 has custom definitions of all page table accessors
 
-Link: http://lkml.kernel.org/r/20200514170327.31389-11-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200514170327.31389-12-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -103,527 +100,243 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/pgtable.h             |    1 
- arch/arm/include/asm/pgtable-2level.h        |    1 
- arch/arm/include/asm/pgtable-3level.h        |    7 ----
- arch/arm/include/asm/pgtable-nommu.h         |    1 
- arch/arm64/include/asm/pgtable.h             |    8 ++--
- arch/c6x/include/asm/pgtable.h               |    1 
- arch/csky/include/asm/pgtable.h              |    1 
- arch/hexagon/include/asm/pgtable.h           |    9 -----
- arch/ia64/include/asm/pgtable.h              |    4 --
- arch/m68k/include/asm/motorola_pgtable.h     |    7 ----
- arch/microblaze/include/asm/pgtable.h        |    1 
- arch/mips/include/asm/pgtable-32.h           |    1 
- arch/mips/include/asm/pgtable-64.h           |    6 ---
- arch/parisc/include/asm/pgtable.h            |    8 ----
- arch/parisc/kernel/pci-dma.c                 |    2 -
- arch/powerpc/include/asm/book3s/64/pgtable.h |    3 -
- arch/powerpc/include/asm/nohash/64/pgtable.h |    3 -
- arch/riscv/include/asm/pgtable-64.h          |    7 ----
- arch/riscv/mm/init.c                         |   12 +++----
- arch/s390/include/asm/pgtable.h              |    1 
- arch/sh/include/asm/pgtable-3level.h         |    7 ----
- arch/sh/include/asm/pgtable_32.h             |    1 
- arch/sh/include/asm/pgtable_64.h             |    1 
- arch/sparc/include/asm/pgtable_32.h          |    9 -----
- arch/sparc/include/asm/pgtable_64.h          |    7 ----
- arch/um/include/asm/pgtable-3level.h         |    4 --
- arch/um/include/asm/pgtable.h                |    4 --
- arch/x86/include/asm/pgtable.h               |   17 ---------
- include/asm-generic/pgtable-nopmd.h          |    1 
- include/linux/pgtable.h                      |   29 +++++++++++++++--
- 30 files changed, 44 insertions(+), 120 deletions(-)
+ arch/arm64/include/asm/pgtable.h                |    8 ++++---
+ arch/csky/include/asm/pgtable.h                 |    2 -
+ arch/ia64/include/asm/pgtable.h                 |    6 -----
+ arch/mips/include/asm/pgtable-32.h              |    1 
+ arch/mips/include/asm/pgtable-64.h              |    7 ------
+ arch/powerpc/include/asm/book3s/64/pgtable.h    |    4 ---
+ arch/powerpc/include/asm/nohash/64/pgtable-4k.h |    4 ---
+ arch/s390/include/asm/pgtable.h                 |    1 
+ arch/sh/include/asm/pgtable_32.h                |    2 -
+ arch/sh/include/asm/pgtable_64.h                |    2 -
+ arch/sparc/include/asm/pgtable_64.h             |    5 ----
+ arch/x86/include/asm/pgtable.h                  |   11 ---------
+ include/asm-generic/pgtable-nopud.h             |    1 
+ include/linux/pgtable.h                         |   16 ++++++++++++++
+ 14 files changed, 23 insertions(+), 47 deletions(-)
 
---- a/arch/alpha/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/alpha/include/asm/pgtable.h
-@@ -305,6 +305,7 @@ extern inline pmd_t * pmd_offset(pud_t *
- 	smp_read_barrier_depends(); /* see above */
- 	return ret;
- }
-+#define pmd_offset pmd_offset
- 
- /* Find an entry in the third-level page table.. */
- extern inline pte_t * pte_offset_kernel(pmd_t * dir, unsigned long address)
---- a/arch/arm64/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
+--- a/arch/arm64/include/asm/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -566,11 +566,13 @@ static inline phys_addr_t pud_page_paddr
- 	return __pud_to_phys(pud);
+@@ -626,11 +626,13 @@ static inline phys_addr_t p4d_page_paddr
+ 	return __p4d_to_phys(p4d);
  }
  
--/* Find an entry in the second-level page table. */
--#define pmd_index(addr)		(((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
-+static inline unsigned long pud_page_vaddr(pud_t pud)
+-/* Find an entry in the frst-level page table. */
+-#define pud_index(addr)		(((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
++static inline unsigned long p4d_page_vaddr(p4d_t p4d)
 +{
-+	return (unsigned long)__va(pud_page_paddr(pud));
++	return (unsigned long)__va(p4d_page_paddr(p4d));
 +}
  
-+/* Find an entry in the second-level page table. */
- #define pmd_offset_phys(dir, addr)	(pud_page_paddr(READ_ONCE(*(dir))) + pmd_index(addr) * sizeof(pmd_t))
--#define pmd_offset(dir, addr)		((pmd_t *)__va(pmd_offset_phys((dir), (addr))))
++/* Find an entry in the frst-level page table. */
+ #define pud_offset_phys(dir, addr)	(p4d_page_paddr(READ_ONCE(*(dir))) + pud_index(addr) * sizeof(pud_t))
+-#define pud_offset(dir, addr)		((pud_t *)__va(pud_offset_phys((dir), (addr))))
  
- #define pmd_set_fixmap(addr)		((pmd_t *)set_fixmap_offset(FIX_PMD, addr))
- #define pmd_set_fixmap_offset(pud, addr)	pmd_set_fixmap(pmd_offset_phys(pud, addr))
---- a/arch/arm/include/asm/pgtable-2level.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/arm/include/asm/pgtable-2level.h
-@@ -187,6 +187,7 @@ static inline pmd_t *pmd_offset(pud_t *p
- {
- 	return (pmd_t *)pud;
- }
-+#define pmd_offset pmd_offset
- 
- #define pmd_large(pmd)		(pmd_val(pmd) & 2)
- #define pmd_leaf(pmd)		(pmd_val(pmd) & 2)
---- a/arch/arm/include/asm/pgtable-3level.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/arm/include/asm/pgtable-3level.h
-@@ -133,13 +133,6 @@ static inline pmd_t *pud_page_vaddr(pud_
- 	return __va(pud_val(pud) & PHYS_MASK & (s32)PAGE_MASK);
- }
- 
--/* Find an entry in the second-level page table.. */
--#define pmd_index(addr)		(((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
--static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
--{
--	return (pmd_t *)pud_page_vaddr(*pud) + pmd_index(addr);
--}
--
- #define pmd_bad(pmd)		(!(pmd_val(pmd) & 2))
- 
- #define copy_pmd(pmdpd,pmdps)		\
---- a/arch/arm/include/asm/pgtable-nommu.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/arm/include/asm/pgtable-nommu.h
-@@ -22,7 +22,6 @@
- #define pgd_bad(pgd)		(0)
- #define pgd_clear(pgdp)
- #define kern_addr_valid(addr)	(1)
--#define	pmd_offset(a, b)	((void *)0)
- /* FIXME */
- /*
-  * PMD_SHIFT determines the size of the area a second-level page table can map
---- a/arch/c6x/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/c6x/include/asm/pgtable.h
-@@ -26,7 +26,6 @@
- #define pgd_clear(pgdp)
- #define kern_addr_valid(addr) (1)
- 
--#define pmd_offset(a, b)	((void *)0)
- #define pmd_none(x)		(!pmd_val(x))
- #define pmd_present(x)		(pmd_val(x))
- #define pmd_clear(xp)		do { set_pmd(xp, __pmd(0)); } while (0)
---- a/arch/csky/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
+ #define pud_set_fixmap(addr)		((pud_t *)set_fixmap_offset(FIX_PUD, addr))
+ #define pud_set_fixmap_offset(p4d, addr)	pud_set_fixmap(pud_offset_phys(p4d, addr))
+--- a/arch/csky/include/asm/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
 +++ a/arch/csky/include/asm/pgtable.h
-@@ -221,7 +221,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+@@ -220,8 +220,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ 	return pte;
  }
  
- #define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
--#define pmd_index(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
- 
+-#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
+-
  /* to find an entry in a kernel page-table-directory */
  #define pgd_offset_k(address)	pgd_offset(&init_mm, address)
---- a/arch/hexagon/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/hexagon/include/asm/pgtable.h
-@@ -206,15 +206,6 @@ static inline void pte_clear(struct mm_s
- 	pte_val(*ptep) = _NULL_PTE;
- }
  
--#ifdef NEED_PMD_INDEX_DESPITE_BEING_2_LEVEL
--/**
-- * pmd_index - returns the index of the entry in the PMD page
-- * which would control the given virtual address
-- */
--#define pmd_index(address) (((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
--
--#endif
--
- /**
-  * pgd_index - returns the index of the entry in the PGD page
-  * which would control the given virtual address
---- a/arch/ia64/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
+--- a/arch/ia64/include/asm/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
 +++ a/arch/ia64/include/asm/pgtable.h
-@@ -389,10 +389,6 @@ pgd_offset (const struct mm_struct *mm,
- 	((pud_t *) p4d_page_vaddr(*(dir)) + (((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1)))
- #endif
+@@ -383,12 +383,6 @@ pgd_offset (const struct mm_struct *mm,
+    here.  */
+ #define pgd_offset_gate(mm, addr)	pgd_offset_k(addr)
  
--/* Find an entry in the third-level page table.. */
--#define pmd_offset(dir,addr) \
--	((pmd_t *) pud_page_vaddr(*(dir)) + (((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1)))
+-#if CONFIG_PGTABLE_LEVELS == 4
+-/* Find an entry in the second-level page table.. */
+-#define pud_offset(dir,addr) \
+-	((pud_t *) p4d_page_vaddr(*(dir)) + (((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1)))
+-#endif
 -
  /* atomic versions of the some PTE manipulations: */
  
  static inline int
---- a/arch/m68k/include/asm/motorola_pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/m68k/include/asm/motorola_pgtable.h
-@@ -211,13 +211,6 @@ static inline pgd_t *pgd_offset_k(unsign
- 	return kernel_pg_dir + (address >> PGDIR_SHIFT);
- }
- 
--
--/* Find an entry in the second-level page table.. */
--static inline pmd_t *pmd_offset(pud_t *dir, unsigned long address)
--{
--	return (pmd_t *)pud_page_vaddr(*dir) + ((address >> PMD_SHIFT) & (PTRS_PER_PMD-1));
--}
--
- /* Encode and de-code a swap entry (must be !pte_none(e) && !pte_present(e)) */
- #define __swp_type(x)		(((x).val >> 4) & 0xff)
- #define __swp_offset(x)		((x).val >> 12)
---- a/arch/microblaze/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/microblaze/include/asm/pgtable.h
-@@ -21,7 +21,6 @@ extern int mem_init_done;
- #define pgd_bad(pgd)		(0)
- #define pgd_clear(pgdp)
- #define kern_addr_valid(addr)	(1)
--#define	pmd_offset(a, b)	((void *) 0)
- 
- #define PAGE_NONE		__pgprot(0) /* these mean nothing to non MMU */
- #define PAGE_SHARED		__pgprot(0) /* these mean nothing to non MMU */
---- a/arch/mips/include/asm/pgtable-32.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
+--- a/arch/mips/include/asm/pgtable-32.h~mm-consolidate-pud_index-and-pud_offset-definitions
 +++ a/arch/mips/include/asm/pgtable-32.h
-@@ -200,7 +200,6 @@ static inline pte_t pfn_pte(unsigned lon
- 
- #define pgd_index(address)	(((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
- #define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
--#define pmd_index(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
- 
- /* to find an entry in a page-table-directory */
- #define pgd_offset(mm, addr)	((mm)->pgd + pgd_index(addr))
---- a/arch/mips/include/asm/pgtable-64.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/mips/include/asm/pgtable-64.h
-@@ -324,7 +324,6 @@ static inline void pud_clear(pud_t *pudp
+@@ -199,7 +199,6 @@ static inline pte_t pfn_pte(unsigned lon
  #define pgd_offset_k(address) pgd_offset(&init_mm, address)
  
  #define pgd_index(address)	(((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
--#define pmd_index(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
+-#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
  
  /* to find an entry in a page-table-directory */
  #define pgd_offset(mm, addr)	((mm)->pgd + pgd_index(addr))
-@@ -337,11 +336,6 @@ static inline unsigned long pud_page_vad
- #define pud_phys(pud)		virt_to_phys((void *)pud_val(pud))
- #define pud_page(pud)		(pfn_to_page(pud_phys(pud) >> PAGE_SHIFT))
+--- a/arch/mips/include/asm/pgtable-64.h~mm-consolidate-pud_index-and-pud_offset-definitions
++++ a/arch/mips/include/asm/pgtable-64.h
+@@ -172,8 +172,6 @@
  
--/* Find an entry in the second-level page table.. */
--static inline pmd_t *pmd_offset(pud_t * pud, unsigned long address)
--{
--	return (pmd_t *) pud_page_vaddr(*pud) + pmd_index(address);
--}
- #endif
+ extern pte_t invalid_pte_table[PTRS_PER_PTE];
  
- /*
---- a/arch/parisc/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/parisc/include/asm/pgtable.h
-@@ -448,14 +448,6 @@ static inline unsigned long pmd_page_vad
- 
- /* Find an entry in the second-level page table.. */
- 
--#if CONFIG_PGTABLE_LEVELS == 3
--#define pmd_index(addr)         (((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
--#define pmd_offset(dir,address) \
--((pmd_t *) pud_page_vaddr(*(dir)) + pmd_index(address))
--#else
--#define pmd_offset(dir,addr) ((pmd_t *) dir)
--#endif
+-#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
 -
- extern void paging_init (void);
+ #ifndef __PAGETABLE_PUD_FOLDED
+ /*
+  * For 4-level pagetables we defines these ourselves, for 3-level the
+@@ -222,11 +220,6 @@ static inline unsigned long p4d_page_vad
  
- /* Used for deferring calls to flush_dcache_page() */
---- a/arch/parisc/kernel/pci-dma.c~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/parisc/kernel/pci-dma.c
-@@ -201,7 +201,7 @@ static inline void unmap_uncached_pmd(pg
- 		pgd_clear(dir);
- 		return;
- 	}
--	pmd = pmd_offset(dir, vaddr);
-+	pmd = pmd_offset(pud_offset(p4d_offset(dir, vaddr), vaddr), vaddr);
- 	vaddr &= ~PGDIR_MASK;
- 	end = vaddr + size;
- 	if (end > PGDIR_SIZE)
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
+ #define p4d_index(address)	(((address) >> P4D_SHIFT) & (PTRS_PER_P4D - 1))
+ 
+-static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
+-{
+-	return (pud_t *)p4d_page_vaddr(*p4d) + pud_index(address);
+-}
+-
+ static inline void set_p4d(p4d_t *p4d, p4d_t p4dval)
+ {
+ 	*p4d = p4dval;
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
 +++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -1010,7 +1010,6 @@ extern struct page *p4d_page(p4d_t p4d);
+@@ -1009,7 +1009,6 @@ extern struct page *p4d_page(p4d_t p4d);
+ #define p4d_page_vaddr(p4d)	__va(p4d_val(p4d) & ~P4D_MASKED_BITS)
  
  #define pgd_index(address) (((address) >> (PGDIR_SHIFT)) & (PTRS_PER_PGD - 1))
- #define pud_index(address) (((address) >> (PUD_SHIFT)) & (PTRS_PER_PUD - 1))
--#define pmd_index(address) (((address) >> (PMD_SHIFT)) & (PTRS_PER_PMD - 1))
+-#define pud_index(address) (((address) >> (PUD_SHIFT)) & (PTRS_PER_PUD - 1))
  
  /*
   * Find an entry in a page-table-directory.  We combine the address region
-@@ -1021,8 +1020,6 @@ extern struct page *p4d_page(p4d_t p4d);
- 
- #define pud_offset(p4dp, addr)	\
- 	(((pud_t *) p4d_page_vaddr(*(p4dp))) + pud_index(addr))
--#define pmd_offset(pudp,addr) \
--	(((pmd_t *) pud_page_vaddr(*(pudp))) + pmd_index(addr))
- 
- /* to find an entry in a kernel page-table-directory */
- /* This now only contains the vmalloc pages */
---- a/arch/powerpc/include/asm/nohash/64/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/powerpc/include/asm/nohash/64/pgtable.h
-@@ -190,9 +190,6 @@ static inline void p4d_set(p4d_t *p4dp,
+@@ -1018,9 +1017,6 @@ extern struct page *p4d_page(p4d_t p4d);
  
  #define pgd_offset(mm, address)	 ((mm)->pgd + pgd_index(address))
  
--#define pmd_offset(pudp,addr) \
--  (((pmd_t *) pud_page_vaddr(*(pudp))) + (((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1)))
+-#define pud_offset(p4dp, addr)	\
+-	(((pud_t *) p4d_page_vaddr(*(p4dp))) + pud_index(addr))
 -
  /* to find an entry in a kernel page-table-directory */
  /* This now only contains the vmalloc pages */
  #define pgd_offset_k(address) pgd_offset(&init_mm, address)
---- a/arch/riscv/include/asm/pgtable-64.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/riscv/include/asm/pgtable-64.h
-@@ -70,13 +70,6 @@ static inline struct page *pud_page(pud_
- 	return pfn_to_page(pud_val(pud) >> _PAGE_PFN_SHIFT);
- }
+--- a/arch/powerpc/include/asm/nohash/64/pgtable-4k.h~mm-consolidate-pud_index-and-pud_offset-definitions
++++ a/arch/powerpc/include/asm/nohash/64/pgtable-4k.h
+@@ -78,10 +78,6 @@ extern struct page *p4d_page(p4d_t p4d);
  
--#define pmd_index(addr) (((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
+ #endif /* !__ASSEMBLY__ */
+ 
+-#define pud_offset(p4dp, addr)	\
+-  (((pud_t *) p4d_page_vaddr(*(p4dp))) + \
+-    (((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1)))
 -
--static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
--{
--	return (pmd_t *)pud_page_vaddr(*pud) + pmd_index(addr);
--}
--
- static inline pmd_t pfn_pmd(unsigned long pfn, pgprot_t prot)
- {
- 	return __pmd((pfn << _PAGE_PFN_SHIFT) | pgprot_val(prot));
---- a/arch/riscv/mm/init.c~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/riscv/mm/init.c
-@@ -283,21 +283,21 @@ static void __init create_pmd_mapping(pm
- {
- 	pte_t *ptep;
- 	phys_addr_t pte_phys;
--	uintptr_t pmd_index = pmd_index(va);
-+	uintptr_t pmd_idx = pmd_index(va);
+ #define pud_ERROR(e) \
+ 	pr_err("%s:%d: bad pud %08lx.\n", __FILE__, __LINE__, pud_val(e))
  
- 	if (sz == PMD_SIZE) {
--		if (pmd_none(pmdp[pmd_index]))
--			pmdp[pmd_index] = pfn_pmd(PFN_DOWN(pa), prot);
-+		if (pmd_none(pmdp[pmd_idx]))
-+			pmdp[pmd_idx] = pfn_pmd(PFN_DOWN(pa), prot);
- 		return;
- 	}
- 
--	if (pmd_none(pmdp[pmd_index])) {
-+	if (pmd_none(pmdp[pmd_idx])) {
- 		pte_phys = alloc_pte(va);
--		pmdp[pmd_index] = pfn_pmd(PFN_DOWN(pte_phys), PAGE_TABLE);
-+		pmdp[pmd_idx] = pfn_pmd(PFN_DOWN(pte_phys), PAGE_TABLE);
- 		ptep = get_pte_virt(pte_phys);
- 		memset(ptep, 0, PAGE_SIZE);
- 	} else {
--		pte_phys = PFN_PHYS(_pmd_pfn(pmdp[pmd_index]));
-+		pte_phys = PFN_PHYS(_pmd_pfn(pmdp[pmd_idx]));
- 		ptep = get_pte_virt(pte_phys);
- 	}
- 
---- a/arch/s390/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
+--- a/arch/s390/include/asm/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
 +++ a/arch/s390/include/asm/pgtable.h
-@@ -1281,6 +1281,7 @@ static inline pmd_t *pmd_offset(pud_t *p
- 		return (pmd_t *) pud_deref(*pud) + pmd_index(address);
- 	return (pmd_t *) pud;
+@@ -1274,6 +1274,7 @@ static inline pud_t *pud_offset(p4d_t *p
+ 		return (pud_t *) p4d_deref(*p4d) + pud_index(address);
+ 	return (pud_t *) p4d;
  }
-+#define pmd_offset pmd_offset
++#define pud_offset pud_offset
  
- static inline unsigned long pmd_page_vaddr(pmd_t pmd)
+ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
  {
---- a/arch/sh/include/asm/pgtable_32.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
+--- a/arch/sh/include/asm/pgtable_32.h~mm-consolidate-pud_index-and-pud_offset-definitions
 +++ a/arch/sh/include/asm/pgtable_32.h
-@@ -416,7 +416,6 @@ static inline unsigned long pmd_page_vad
+@@ -415,8 +415,6 @@ static inline unsigned long pmd_page_vad
+ /* to find an entry in a kernel page-table-directory */
  #define pgd_offset_k(address)	pgd_offset(&init_mm, address)
  
- #define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
--#define pmd_index(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
- 
+-#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
+-
  #ifdef CONFIG_X2TLB
  #define pte_ERROR(e) \
---- a/arch/sh/include/asm/pgtable-3level.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/sh/include/asm/pgtable-3level.h
-@@ -39,13 +39,6 @@ static inline unsigned long pud_page_vad
- 
- /* only used by the stubbed out hugetlb gup code, should never be called */
- #define pud_page(pud)		NULL
--
--#define pmd_index(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
--static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
--{
--	return (pmd_t *)pud_page_vaddr(*pud) + pmd_index(address);
--}
--
- #define pud_none(x)	(!pud_val(x))
- #define pud_present(x)	(pud_val(x))
- #define pud_clear(xp)	do { set_pud(xp, __pud(0)); } while (0)
---- a/arch/sh/include/asm/pgtable_64.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
+ 	printk("%s:%d: bad pte %p(%08lx%08lx).\n", __FILE__, __LINE__, \
+--- a/arch/sh/include/asm/pgtable_64.h~mm-consolidate-pud_index-and-pud_offset-definitions
 +++ a/arch/sh/include/asm/pgtable_64.h
-@@ -52,7 +52,6 @@ static __inline__ void set_pte(pte_t *pt
+@@ -51,8 +51,6 @@ static __inline__ void set_pte(pte_t *pt
+ /* To find an entry in a kernel PGD. */
  #define pgd_offset_k(address) pgd_offset(&init_mm, address)
  
- #define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
--/* #define pmd_index(address)	(((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1)) */
- 
+-#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
+-
  /*
   * PMD level access routines. Same notes as above.
---- a/arch/sparc/include/asm/pgtable_32.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -329,13 +329,6 @@ static inline pte_t pte_modify(pte_t pte
+  */
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-consolidate-pud_index-and-pud_offset-definitions
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -896,11 +896,6 @@ static inline unsigned long pud_pfn(pud_
  /* to find an entry in a kernel page-table-directory */
  #define pgd_offset_k(address) pgd_offset(&init_mm, address)
  
--/* Find an entry in the second-level page table.. */
--static inline pmd_t *pmd_offset(pud_t * dir, unsigned long address)
--{
--	return (pmd_t *) pud_page_vaddr(*dir) +
--		((address >> PMD_SHIFT) & (PTRS_PER_PMD - 1));
--}
--
- struct seq_file;
- void mmu_info(struct seq_file *m);
- 
-@@ -424,7 +417,7 @@ static inline int io_remap_pfn_range(str
- 
- 	return remap_pfn_range(vma, from, phys_base >> PAGE_SHIFT, size, prot);
- }
--#define io_remap_pfn_range io_remap_pfn_range 
-+#define io_remap_pfn_range io_remap_pfn_range
- 
- #define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- #define ptep_set_access_flags(__vma, __address, __ptep, __entry, __dirty) \
---- a/arch/sparc/include/asm/pgtable_64.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -901,11 +901,6 @@ static inline unsigned long pud_pfn(pud_
- #define pud_offset(p4dp, address)	\
- 	((pud_t *) p4d_page_vaddr(*(p4dp)) + pud_index(address))
- 
--/* Find an entry in the second-level page table.. */
--#define pmd_offset(pudp, address)	\
--	((pmd_t *) pud_page_vaddr(*(pudp)) + \
--	 (((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1)))
+-/* Find an entry in the third-level page table.. */
+-#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
+-#define pud_offset(p4dp, address)	\
+-	((pud_t *) p4d_page_vaddr(*(p4dp)) + pud_index(address))
 -
  /* We cannot include <linux/mm_types.h> at this point yet: */
  extern struct mm_struct init_mm;
  
-@@ -1070,7 +1065,7 @@ static inline int io_remap_pfn_range(str
- 
- 	return remap_pfn_range(vma, from, phys_base >> PAGE_SHIFT, size, prot);
- }
--#define io_remap_pfn_range io_remap_pfn_range 
-+#define io_remap_pfn_range io_remap_pfn_range
- 
- static inline unsigned long __untagged_addr(unsigned long start)
- {
---- a/arch/um/include/asm/pgtable-3level.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/um/include/asm/pgtable-3level.h
-@@ -89,10 +89,6 @@ static inline void pud_clear (pud_t *pud
- #define pud_page(pud) phys_to_page(pud_val(pud) & PAGE_MASK)
- #define pud_page_vaddr(pud) ((unsigned long) __va(pud_val(pud) & PAGE_MASK))
- 
--/* Find an entry in the second-level page table.. */
--#define pmd_offset(pud, address) ((pmd_t *) pud_page_vaddr(*(pud)) + \
--			pmd_index(address))
--
- static inline unsigned long pte_pfn(pte_t pte)
- {
- 	return phys_to_pfn(pte_val(pte));
---- a/arch/um/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/arch/um/include/asm/pgtable.h
-@@ -318,10 +318,6 @@ static inline pte_t pte_modify(pte_t pte
-  * control the given virtual address
-  */
- #define pmd_page_vaddr(pmd) ((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
--#define pmd_index(address) (((address) >> PMD_SHIFT) & (PTRS_PER_PMD-1))
--
--#define pmd_page_vaddr(pmd) \
--	((unsigned long) __va(pmd_val(pmd) & PAGE_MASK))
- 
- struct mm_struct;
- extern pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr);
---- a/arch/x86/include/asm/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
+--- a/arch/x86/include/asm/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
 +++ a/arch/x86/include/asm/pgtable.h
-@@ -836,17 +836,6 @@ static inline unsigned long pmd_page_vad
- #define pmd_page(pmd)	pfn_to_page(pmd_pfn(pmd))
- 
- /*
-- * the pmd page can be thought of an array like this: pmd_t[PTRS_PER_PMD]
-- *
-- * this macro returns the index of the entry in the pmd page which would
-- * control the given virtual address
-- */
--static inline unsigned long pmd_index(unsigned long address)
--{
--	return (address >> PMD_SHIFT) & (PTRS_PER_PMD - 1);
--}
--
--/*
-  * Conversion functions: convert a page and protection to a page entry,
-  * and a page entry and page directory to the page they refer to.
-  *
-@@ -887,12 +876,6 @@ static inline unsigned long pud_page_vad
-  */
- #define pud_page(pud)	pfn_to_page(pud_pfn(pud))
- 
--/* Find an entry in the second-level page table.. */
--static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
--{
--	return (pmd_t *)pud_page_vaddr(*pud) + pmd_index(address);
--}
--
- #define pud_leaf	pud_large
- static inline int pud_large(pud_t pud)
- {
---- a/include/asm-generic/pgtable-nopmd.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
-+++ a/include/asm-generic/pgtable-nopmd.h
-@@ -45,6 +45,7 @@ static inline pmd_t * pmd_offset(pud_t *
- {
- 	return (pmd_t *)pud;
+@@ -895,11 +895,6 @@ static inline int pud_large(pud_t pud)
  }
-+#define pmd_offset pmd_offset
+ #endif	/* CONFIG_PGTABLE_LEVELS > 2 */
  
- #define pmd_val(x)				(pud_val((x).pud))
- #define __pmd(x)				((pmd_t) { __pud(x) } )
---- a/include/linux/pgtable.h~mm-consolidate-pmd_index-and-pmd_offset-definitions
+-static inline unsigned long pud_index(unsigned long address)
+-{
+-	return (address >> PUD_SHIFT) & (PTRS_PER_PUD - 1);
+-}
+-
+ #if CONFIG_PGTABLE_LEVELS > 3
+ static inline int p4d_none(p4d_t p4d)
+ {
+@@ -922,12 +917,6 @@ static inline unsigned long p4d_page_vad
+  */
+ #define p4d_page(p4d)	pfn_to_page(p4d_pfn(p4d))
+ 
+-/* Find an entry in the third-level page table.. */
+-static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
+-{
+-	return (pud_t *)p4d_page_vaddr(*p4d) + pud_index(address);
+-}
+-
+ static inline int p4d_bad(p4d_t p4d)
+ {
+ 	unsigned long ignore_flags = _KERNPG_TABLE | _PAGE_USER;
+--- a/include/asm-generic/pgtable-nopud.h~mm-consolidate-pud_index-and-pud_offset-definitions
++++ a/include/asm-generic/pgtable-nopud.h
+@@ -43,6 +43,7 @@ static inline pud_t *pud_offset(p4d_t *p
+ {
+ 	return (pud_t *)p4d;
+ }
++#define pud_offset pud_offset
+ 
+ #define pud_val(x)				(p4d_val((x).p4d))
+ #define __pud(x)				((pud_t) { __p4d(x) })
+--- a/include/linux/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
 +++ a/include/linux/pgtable.h
-@@ -29,16 +29,30 @@
+@@ -53,6 +53,14 @@ static inline unsigned long pmd_index(un
+ #define pmd_index pmd_index
  #endif
  
- /*
-- * the pte page can be thought of an array like this: pte_t[PTRS_PER_PTE]
-+ * A page table page can be thought of an array like this: pXd_t[PTRS_PER_PxD]
-  *
-- * this function returns the index of the entry in the pte page which would
-- * control the given virtual address
-+ * The pXx_index() functions return the index of the entry in the page
-+ * table page which would control the given virtual address
-+ *
-+ * As these functions may be used by the same code for different levels of
-+ * the page table folding, they are always available, regardless of
-+ * CONFIG_PGTABLE_LEVELS value. For the folded levels they simply return 0
-+ * because in such cases PTRS_PER_PxD equals 1.
-  */
-+
- static inline unsigned long pte_index(unsigned long address)
- {
- 	return (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
- }
- 
-+#ifndef pmd_index
-+static inline unsigned long pmd_index(unsigned long address)
++#ifndef pud_index
++static inline unsigned long pud_index(unsigned long address)
 +{
-+	return (address >> PMD_SHIFT) & (PTRS_PER_PMD - 1);
++	return (address >> PUD_SHIFT) & (PTRS_PER_PUD - 1);
 +}
-+#define pmd_index pmd_index
++#define pud_index pud_index
 +#endif
 +
  #ifndef pte_offset_kernel
  static inline pte_t *pte_offset_kernel(pmd_t *pmd, unsigned long address)
  {
-@@ -57,6 +71,15 @@ static inline pte_t *pte_offset_kernel(p
- #define pte_unmap(pte) ((void)(pte))	/* NOP */
+@@ -80,6 +88,14 @@ static inline pmd_t *pmd_offset(pud_t *p
+ #define pmd_offset pmd_offset
  #endif
  
-+/* Find an entry in the second-level page table.. */
-+#ifndef pmd_offset
-+static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
++#ifndef pud_offset
++static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
 +{
-+	return (pmd_t *)pud_page_vaddr(*pud) + pmd_index(address);
++	return (pud_t *)p4d_page_vaddr(*p4d) + pud_index(address);
 +}
-+#define pmd_offset pmd_offset
++#define pud_offset pud_offset
 +#endif
 +
  /*
