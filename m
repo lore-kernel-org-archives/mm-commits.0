@@ -1,29 +1,29 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-remove-vmalloc-faulting.patch added to -mm tree
-Date: Fri, 15 May 2020 13:06:34 -0700
-Message-ID: <20200515200634.aJAGZ4_VV%akpm@linux-foundation.org>
+Subject: + x86-bitops-fix-build-regression.patch added to -mm tree
+Date: Fri, 15 May 2020 13:53:42 -0700
+Message-ID: <20200515205342.17UvbQbmL%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55628 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726183AbgEOUGg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 15 May 2020 16:06:36 -0400
+        id S1726541AbgEOUxo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 15 May 2020 16:53:44 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, dave.hansen@linux.intel.com, hch@lst.de, hpa@zytor.com, jroedel@suse.de, luto@kernel.org, mhocko@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, peterz@infradead.org, rjw@rjwysocki.net, rostedt@goodmis.org, tglx@linutronix.de, vbabka@suse.cz, willy@infradead.org
+To: andriy.shevchenko@intel.com, aryabinin@virtuozzo.com, bot@kernelci.org, bp@alien8.de, brgerst@gmail.com, dja@axtens.net, elver@google.com, hpa@zytor.com, ilie.halip@gmail.com, jesse.brandeburg@intel.com, luc.vanoostenryck@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org, natechancellor@gmail.com, ndesaulniers@google.com, paulmck@kernel.org, peterz@infradead.org, sedat.dilek@gmail.com, tglx@linutronix.de, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: x86/mm: remove vmalloc faulting
+     Subject: x86: bitops: fix build regression
 has been added to the -mm tree.  Its filename is
-     x86-mm-remove-vmalloc-faulting.patch
+     x86-bitops-fix-build-regression.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-remove-vmalloc-faulting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-bitops-fix-build-regression.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-remove-vmalloc-faulting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-bitops-fix-build-regression.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,311 +37,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joerg Roedel <jroedel@suse.de>
-Subject: x86/mm: remove vmalloc faulting
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: x86: bitops: fix build regression
 
-Remove fault handling on vmalloc areas, as the vmalloc code now takes care
-of synchronizing changes to all page-tables in the system.
+This is easily reproducible via CC=clang+CONFIG_STAGING=y+CONFIG_VT6656=m.
 
-Link: http://lkml.kernel.org/r/20200515140023.25469-8-joro@8bytes.org
-Signed-off-by: Joerg Roedel <jroedel@suse.de>
-Acked-by: Andy Lutomirski <luto@kernel.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H . Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+It turns out that if your config tickles __builtin_constant_p via
+differences in choices to inline or not, these statements produce invalid
+assembly:
+
+$ cat foo.c
+long a(long b, long c) {
+  asm("orb	%1, %0" : "+q"(c): "r"(b));
+  return c;
+}
+$ gcc foo.c
+foo.c: Assembler messages:
+foo.c:2: Error: `%rax' not allowed with `orb'
+
+Use the `%b` "x86 Operand Modifier" to instead force register allocation
+to select a lower-8-bit GPR operand.
+
+The "q" constraint only has meaning on -m32 otherwise is treated as
+"r". Not all GPRs have low-8-bit aliases for -m32.
+
+Link: http://lkml.kernel.org/r/20200508183230.229464-1-ndesaulniers@google.com
+Link: https://github.com/ClangBuiltLinux/linux/issues/961
+Link: https://lore.kernel.org/lkml/20200504193524.GA221287@google.com/
+Link: https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html#x86Operandmodifiers
+Fixes: 1651e700664b4 ("x86: Fix bitops.h warning with a moved cast")
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Reported-by: kernelci.org bot <bot@kernelci.org>
+Suggested-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+Suggested-by: Brian Gerst <brgerst@gmail.com>
+Suggested-by: H. Peter Anvin <hpa@zytor.com>
+Suggested-by: Ilie Halip <ilie.halip@gmail.com>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Reviewed-By: Brian Gerst <brgerst@gmail.com>
+Tested-by: Nathan Chancellor <natechancellor@gmail.com>	[build, clang-11]
+Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Marco Elver <elver@google.com>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Daniel Axtens <dja@axtens.net>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/switch_to.h |   23 ----
- arch/x86/kernel/setup_percpu.c   |    6 -
- arch/x86/mm/fault.c              |  134 -----------------------------
- arch/x86/mm/pti.c                |    8 -
- arch/x86/mm/tlb.c                |   37 --------
- 5 files changed, 4 insertions(+), 204 deletions(-)
+ arch/x86/include/asm/bitops.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/arch/x86/include/asm/switch_to.h~x86-mm-remove-vmalloc-faulting
-+++ a/arch/x86/include/asm/switch_to.h
-@@ -12,27 +12,6 @@ struct task_struct *__switch_to_asm(stru
- __visible struct task_struct *__switch_to(struct task_struct *prev,
- 					  struct task_struct *next);
- 
--/* This runs runs on the previous thread's stack. */
--static inline void prepare_switch_to(struct task_struct *next)
--{
--#ifdef CONFIG_VMAP_STACK
--	/*
--	 * If we switch to a stack that has a top-level paging entry
--	 * that is not present in the current mm, the resulting #PF will
--	 * will be promoted to a double-fault and we'll panic.  Probe
--	 * the new stack now so that vmalloc_fault can fix up the page
--	 * tables if needed.  This can only happen if we use a stack
--	 * in vmap space.
--	 *
--	 * We assume that the stack is aligned so that it never spans
--	 * more than one top-level paging entry.
--	 *
--	 * To minimize cache pollution, just follow the stack pointer.
--	 */
--	READ_ONCE(*(unsigned char *)next->thread.sp);
--#endif
--}
--
- asmlinkage void ret_from_fork(void);
- 
- /*
-@@ -67,8 +46,6 @@ struct fork_frame {
- 
- #define switch_to(prev, next, last)					\
- do {									\
--	prepare_switch_to(next);					\
--									\
- 	((last) = __switch_to_asm((prev), (next)));			\
- } while (0)
- 
---- a/arch/x86/kernel/setup_percpu.c~x86-mm-remove-vmalloc-faulting
-+++ a/arch/x86/kernel/setup_percpu.c
-@@ -287,9 +287,9 @@ void __init setup_per_cpu_areas(void)
- 	/*
- 	 * Sync back kernel address range again.  We already did this in
- 	 * setup_arch(), but percpu data also needs to be available in
--	 * the smpboot asm.  We can't reliably pick up percpu mappings
--	 * using vmalloc_fault(), because exception dispatch needs
--	 * percpu data.
-+	 * the smpboot asm and arch_sync_kernel_mappings() doesn't sync to
-+	 * swapper_pg_dir on 32-bit. The per-cpu mappings need to be available
-+	 * there too.
- 	 *
- 	 * FIXME: Can the later sync in setup_cpu_entry_areas() replace
- 	 * this call?
---- a/arch/x86/mm/fault.c~x86-mm-remove-vmalloc-faulting
-+++ a/arch/x86/mm/fault.c
-@@ -215,44 +215,6 @@ void arch_sync_kernel_mappings(unsigned
- }
- 
- /*
-- * 32-bit:
-- *
-- *   Handle a fault on the vmalloc or module mapping area
-- */
--static noinline int vmalloc_fault(unsigned long address)
--{
--	unsigned long pgd_paddr;
--	pmd_t *pmd_k;
--	pte_t *pte_k;
--
--	/* Make sure we are in vmalloc area: */
--	if (!(address >= VMALLOC_START && address < VMALLOC_END))
--		return -1;
--
--	/*
--	 * Synchronize this task's top level page-table
--	 * with the 'reference' page table.
--	 *
--	 * Do _not_ use "current" here. We might be inside
--	 * an interrupt in the middle of a task switch..
--	 */
--	pgd_paddr = read_cr3_pa();
--	pmd_k = vmalloc_sync_one(__va(pgd_paddr), address);
--	if (!pmd_k)
--		return -1;
--
--	if (pmd_large(*pmd_k))
--		return 0;
--
--	pte_k = pte_offset_kernel(pmd_k, address);
--	if (!pte_present(*pte_k))
--		return -1;
--
--	return 0;
--}
--NOKPROBE_SYMBOL(vmalloc_fault);
--
--/*
-  * Did it hit the DOS screen memory VA from vm86 mode?
-  */
- static inline void
-@@ -316,79 +278,6 @@ out:
- 
- #else /* CONFIG_X86_64: */
- 
--/*
-- * 64-bit:
-- *
-- *   Handle a fault on the vmalloc area
-- */
--static noinline int vmalloc_fault(unsigned long address)
--{
--	pgd_t *pgd, *pgd_k;
--	p4d_t *p4d, *p4d_k;
--	pud_t *pud;
--	pmd_t *pmd;
--	pte_t *pte;
--
--	/* Make sure we are in vmalloc area: */
--	if (!(address >= VMALLOC_START && address < VMALLOC_END))
--		return -1;
--
--	/*
--	 * Copy kernel mappings over when needed. This can also
--	 * happen within a race in page table update. In the later
--	 * case just flush:
--	 */
--	pgd = (pgd_t *)__va(read_cr3_pa()) + pgd_index(address);
--	pgd_k = pgd_offset_k(address);
--	if (pgd_none(*pgd_k))
--		return -1;
--
--	if (pgtable_l5_enabled()) {
--		if (pgd_none(*pgd)) {
--			set_pgd(pgd, *pgd_k);
--			arch_flush_lazy_mmu_mode();
--		} else {
--			BUG_ON(pgd_page_vaddr(*pgd) != pgd_page_vaddr(*pgd_k));
--		}
--	}
--
--	/* With 4-level paging, copying happens on the p4d level. */
--	p4d = p4d_offset(pgd, address);
--	p4d_k = p4d_offset(pgd_k, address);
--	if (p4d_none(*p4d_k))
--		return -1;
--
--	if (p4d_none(*p4d) && !pgtable_l5_enabled()) {
--		set_p4d(p4d, *p4d_k);
--		arch_flush_lazy_mmu_mode();
--	} else {
--		BUG_ON(p4d_pfn(*p4d) != p4d_pfn(*p4d_k));
--	}
--
--	BUILD_BUG_ON(CONFIG_PGTABLE_LEVELS < 4);
--
--	pud = pud_offset(p4d, address);
--	if (pud_none(*pud))
--		return -1;
--
--	if (pud_large(*pud))
--		return 0;
--
--	pmd = pmd_offset(pud, address);
--	if (pmd_none(*pmd))
--		return -1;
--
--	if (pmd_large(*pmd))
--		return 0;
--
--	pte = pte_offset_kernel(pmd, address);
--	if (!pte_present(*pte))
--		return -1;
--
--	return 0;
--}
--NOKPROBE_SYMBOL(vmalloc_fault);
--
- #ifdef CONFIG_CPU_SUP_AMD
- static const char errata93_warning[] =
- KERN_ERR 
-@@ -1227,29 +1116,6 @@ do_kern_addr_fault(struct pt_regs *regs,
- 	 */
- 	WARN_ON_ONCE(hw_error_code & X86_PF_PK);
- 
--	/*
--	 * We can fault-in kernel-space virtual memory on-demand. The
--	 * 'reference' page table is init_mm.pgd.
--	 *
--	 * NOTE! We MUST NOT take any locks for this case. We may
--	 * be in an interrupt or a critical region, and should
--	 * only copy the information from the master page table,
--	 * nothing more.
--	 *
--	 * Before doing this on-demand faulting, ensure that the
--	 * fault is not any of the following:
--	 * 1. A fault on a PTE with a reserved bit set.
--	 * 2. A fault caused by a user-mode access.  (Do not demand-
--	 *    fault kernel memory due to user-mode accesses).
--	 * 3. A fault caused by a page-level protection violation.
--	 *    (A demand fault would be on a non-present page which
--	 *     would have X86_PF_PROT==0).
--	 */
--	if (!(hw_error_code & (X86_PF_RSVD | X86_PF_USER | X86_PF_PROT))) {
--		if (vmalloc_fault(address) >= 0)
--			return;
--	}
--
- 	/* Was the fault spurious, caused by lazy TLB invalidation? */
- 	if (spurious_kernel_fault(hw_error_code, address))
- 		return;
---- a/arch/x86/mm/pti.c~x86-mm-remove-vmalloc-faulting
-+++ a/arch/x86/mm/pti.c
-@@ -448,13 +448,7 @@ static void __init pti_clone_user_shared
- 		 * the sp1 and sp2 slots.
- 		 *
- 		 * This is done for all possible CPUs during boot to ensure
--		 * that it's propagated to all mms.  If we were to add one of
--		 * these mappings during CPU hotplug, we would need to take
--		 * some measure to make sure that every mm that subsequently
--		 * ran on that CPU would have the relevant PGD entry in its
--		 * pagetables.  The usual vmalloc_fault() mechanism would not
--		 * work for page faults taken in entry_SYSCALL_64 before RSP
--		 * is set up.
-+		 * that it's propagated to all mms.
- 		 */
- 
- 		unsigned long va = (unsigned long)&per_cpu(cpu_tss_rw, cpu);
---- a/arch/x86/mm/tlb.c~x86-mm-remove-vmalloc-faulting
-+++ a/arch/x86/mm/tlb.c
-@@ -161,34 +161,6 @@ void switch_mm(struct mm_struct *prev, s
- 	local_irq_restore(flags);
- }
- 
--static void sync_current_stack_to_mm(struct mm_struct *mm)
--{
--	unsigned long sp = current_stack_pointer;
--	pgd_t *pgd = pgd_offset(mm, sp);
--
--	if (pgtable_l5_enabled()) {
--		if (unlikely(pgd_none(*pgd))) {
--			pgd_t *pgd_ref = pgd_offset_k(sp);
--
--			set_pgd(pgd, *pgd_ref);
--		}
--	} else {
--		/*
--		 * "pgd" is faked.  The top level entries are "p4d"s, so sync
--		 * the p4d.  This compiles to approximately the same code as
--		 * the 5-level case.
--		 */
--		p4d_t *p4d = p4d_offset(pgd, sp);
--
--		if (unlikely(p4d_none(*p4d))) {
--			pgd_t *pgd_ref = pgd_offset_k(sp);
--			p4d_t *p4d_ref = p4d_offset(pgd_ref, sp);
--
--			set_p4d(p4d, *p4d_ref);
--		}
--	}
--}
--
- static inline unsigned long mm_mangle_tif_spec_ib(struct task_struct *next)
+--- a/arch/x86/include/asm/bitops.h~x86-bitops-fix-build-regression
++++ a/arch/x86/include/asm/bitops.h
+@@ -52,9 +52,9 @@ static __always_inline void
+ arch_set_bit(long nr, volatile unsigned long *addr)
  {
- 	unsigned long next_tif = task_thread_info(next)->flags;
-@@ -377,15 +349,6 @@ void switch_mm_irqs_off(struct mm_struct
- 		 */
- 		cond_ibpb(tsk);
- 
--		if (IS_ENABLED(CONFIG_VMAP_STACK)) {
--			/*
--			 * If our current stack is in vmalloc space and isn't
--			 * mapped in the new pgd, we'll double-fault.  Forcibly
--			 * map it.
--			 */
--			sync_current_stack_to_mm(next);
--		}
+ 	if (__builtin_constant_p(nr)) {
+-		asm volatile(LOCK_PREFIX "orb %1,%0"
++		asm volatile(LOCK_PREFIX "orb %b1,%0"
+ 			: CONST_MASK_ADDR(nr, addr)
+-			: "iq" (CONST_MASK(nr) & 0xff)
++			: "iq" (CONST_MASK(nr))
+ 			: "memory");
+ 	} else {
+ 		asm volatile(LOCK_PREFIX __ASM_SIZE(bts) " %1,%0"
+@@ -72,9 +72,9 @@ static __always_inline void
+ arch_clear_bit(long nr, volatile unsigned long *addr)
+ {
+ 	if (__builtin_constant_p(nr)) {
+-		asm volatile(LOCK_PREFIX "andb %1,%0"
++		asm volatile(LOCK_PREFIX "andb %b1,%0"
+ 			: CONST_MASK_ADDR(nr, addr)
+-			: "iq" (CONST_MASK(nr) ^ 0xff));
++			: "iq" (~CONST_MASK(nr)));
+ 	} else {
+ 		asm volatile(LOCK_PREFIX __ASM_SIZE(btr) " %1,%0"
+ 			: : RLONG_ADDR(addr), "Ir" (nr) : "memory");
+@@ -123,9 +123,9 @@ static __always_inline void
+ arch_change_bit(long nr, volatile unsigned long *addr)
+ {
+ 	if (__builtin_constant_p(nr)) {
+-		asm volatile(LOCK_PREFIX "xorb %1,%0"
++		asm volatile(LOCK_PREFIX "xorb %b1,%0"
+ 			: CONST_MASK_ADDR(nr, addr)
+-			: "iq" ((u8)CONST_MASK(nr)));
++			: "iq" (CONST_MASK(nr)));
+ 	} else {
+ 		asm volatile(LOCK_PREFIX __ASM_SIZE(btc) " %1,%0"
+ 			: : RLONG_ADDR(addr), "Ir" (nr) : "memory");
+_
+
+Patches currently in -mm which might be from ndesaulniers@google.com are
+
+elfnote-mark-all-note-sections-shf_alloc.patch
+x86-bitops-fix-build-regression.patch
