@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
- added to -mm tree
-Date: Fri, 15 May 2020 14:15:25 -0700
-Message-ID: <20200515211525.u_XIaLvb8%akpm@linux-foundation.org>
+ m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch added
+ to -mm tree
+Date: Fri, 15 May 2020 14:15:30 -0700
+Message-ID: <20200515211530.Z3x33A0Hr%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52370 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52470 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726183AbgEOVP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 15 May 2020 17:15:28 -0400
+        id S1726183AbgEOVPd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 15 May 2020 17:15:33 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: arnd@arndb.de, bcain@codeaurora.org, bp@alien8.de, catalin.marinas@arm.com, 
 
 
 The patch titled
-     Subject: m68k/mm/motorola: move comment about page table allocation funcitons
+     Subject: m68k/mm: move {cache,nocahe}_page() definitions close to their user
 has been added to the -mm tree.  Its filename is
-     m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
+     m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +40,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: m68k/mm/motorola: move comment about page table allocation funcitons
+Subject: m68k/mm: move {cache,nocahe}_page() definitions close to their user
 
-The comment about page table allocation functions resides in
-include/asm/motorola_pgtable.h while the functions live in
-include/asm/motorola_pgaloc.h.
+The cache_page() and nocache_page() functions are only used by the
+motorola MMU variant for setting caching attributes for the page table
+pages.
 
-Move the comment close to the code.
+Move the definitions of these functions from
+arch/m68k/include/asm/motorola_pgtable.h closer to their usage in
+arch/m68k/mm/motorola.c and drop unused definition in
+arch/m68k/include/asm/mcf_pgtable.h.
 
-Link: http://lkml.kernel.org/r/20200514170327.31389-6-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200514170327.31389-7-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Greg Ungerer <gerg@linux-m68k.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Brian Cain <bcain@codeaurora.org>
@@ -58,7 +62,6 @@ Cc: Chris Zankel <chris@zankel.net>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
 Cc: Guan Xuetao <gxt@pku.edu.cn>
 Cc: Guo Ren <guoren@kernel.org>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
@@ -87,40 +90,165 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/motorola_pgalloc.h |    6 ++++++
- arch/m68k/include/asm/motorola_pgtable.h |    6 ------
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ arch/m68k/include/asm/mcf_pgtable.h      |   40 -------------------
+ arch/m68k/include/asm/motorola_pgtable.h |   44 ---------------------
+ arch/m68k/mm/motorola.c                  |   43 ++++++++++++++++++++
+ 3 files changed, 43 insertions(+), 84 deletions(-)
 
---- a/arch/m68k/include/asm/motorola_pgalloc.h~m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons
-+++ a/arch/m68k/include/asm/motorola_pgalloc.h
-@@ -18,6 +18,12 @@ extern void init_pointer_table(void *tab
- extern void *get_pointer_table(int type);
- extern int free_pointer_table(void *table, int type);
+--- a/arch/m68k/include/asm/mcf_pgtable.h~m68k-mm-move-cachenocahe_page-definitions-close-to-their-user
++++ a/arch/m68k/include/asm/mcf_pgtable.h
+@@ -329,46 +329,6 @@ extern pgd_t kernel_pg_dir[PTRS_PER_PGD]
+ 	((pte_t *) __pmd_page(*(dir)) + __pte_offset(address))
  
-+/*
-+ * Allocate and free page tables. The xxx_kernel() versions are
-+ * used to allocate a kernel page table - this turns on ASN bits
-+ * if any.
-+ */
-+
- static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
- {
- 	return get_pointer_table(TABLE_PTE);
---- a/arch/m68k/include/asm/motorola_pgtable.h~m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons
+ /*
+- * Disable caching for page at given kernel virtual address.
+- */
+-static inline void nocache_page(void *vaddr)
+-{
+-	pgd_t *dir;
+-	p4d_t *p4dp;
+-	pud_t *pudp;
+-	pmd_t *pmdp;
+-	pte_t *ptep;
+-	unsigned long addr = (unsigned long) vaddr;
+-
+-	dir = pgd_offset_k(addr);
+-	p4dp = p4d_offset(dir, addr);
+-	pudp = pud_offset(p4dp, addr);
+-	pmdp = pmd_offset(pudp, addr);
+-	ptep = pte_offset_kernel(pmdp, addr);
+-	*ptep = pte_mknocache(*ptep);
+-}
+-
+-/*
+- * Enable caching for page at given kernel virtual address.
+- */
+-static inline void cache_page(void *vaddr)
+-{
+-	pgd_t *dir;
+-	p4d_t *p4dp;
+-	pud_t *pudp;
+-	pmd_t *pmdp;
+-	pte_t *ptep;
+-	unsigned long addr = (unsigned long) vaddr;
+-
+-	dir = pgd_offset_k(addr);
+-	p4dp = p4d_offset(dir, addr);
+-	pudp = pud_offset(p4dp, addr);
+-	pmdp = pmd_offset(pudp, addr);
+-	ptep = pte_offset_kernel(pmdp, addr);
+-	*ptep = pte_mkcache(*ptep);
+-}
+-
+-/*
+  * Encode and de-code a swap entry (must be !pte_none(e) && !pte_present(e))
+  */
+ #define __swp_type(x)		((x).val & 0xFF)
+--- a/arch/m68k/include/asm/motorola_pgtable.h~m68k-mm-move-cachenocahe_page-definitions-close-to-their-user
 +++ a/arch/m68k/include/asm/motorola_pgtable.h
-@@ -227,12 +227,6 @@ static inline pte_t *pte_offset_kernel(p
+@@ -227,50 +227,6 @@ static inline pte_t *pte_offset_kernel(p
  #define pte_offset_map(pmdp,address) ((pte_t *)__pmd_page(*pmdp) + (((address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)))
  #define pte_unmap(pte)		((void)0)
  
--/*
-- * Allocate and free page tables. The xxx_kernel() versions are
-- * used to allocate a kernel page table - this turns on ASN bits
-- * if any.
+-/* Prior to calling these routines, the page should have been flushed
+- * from both the cache and ATC, or the CPU might not notice that the
+- * cache setting for the page has been changed. -jskov
 - */
+-static inline void nocache_page(void *vaddr)
+-{
+-	unsigned long addr = (unsigned long)vaddr;
 -
- /* Prior to calling these routines, the page should have been flushed
-  * from both the cache and ATC, or the CPU might not notice that the
-  * cache setting for the page has been changed. -jskov
+-	if (CPU_IS_040_OR_060) {
+-		pgd_t *dir;
+-		p4d_t *p4dp;
+-		pud_t *pudp;
+-		pmd_t *pmdp;
+-		pte_t *ptep;
+-
+-		dir = pgd_offset_k(addr);
+-		p4dp = p4d_offset(dir, addr);
+-		pudp = pud_offset(p4dp, addr);
+-		pmdp = pmd_offset(pudp, addr);
+-		ptep = pte_offset_kernel(pmdp, addr);
+-		*ptep = pte_mknocache(*ptep);
+-	}
+-}
+-
+-static inline void cache_page(void *vaddr)
+-{
+-	unsigned long addr = (unsigned long)vaddr;
+-
+-	if (CPU_IS_040_OR_060) {
+-		pgd_t *dir;
+-		p4d_t *p4dp;
+-		pud_t *pudp;
+-		pmd_t *pmdp;
+-		pte_t *ptep;
+-
+-		dir = pgd_offset_k(addr);
+-		p4dp = p4d_offset(dir, addr);
+-		pudp = pud_offset(p4dp, addr);
+-		pmdp = pmd_offset(pudp, addr);
+-		ptep = pte_offset_kernel(pmdp, addr);
+-		*ptep = pte_mkcache(*ptep);
+-	}
+-}
+-
+ /* Encode and de-code a swap entry (must be !pte_none(e) && !pte_present(e)) */
+ #define __swp_type(x)		(((x).val >> 4) & 0xff)
+ #define __swp_offset(x)		((x).val >> 12)
+--- a/arch/m68k/mm/motorola.c~m68k-mm-move-cachenocahe_page-definitions-close-to-their-user
++++ a/arch/m68k/mm/motorola.c
+@@ -45,6 +45,49 @@ unsigned long mm_cachebits;
+ EXPORT_SYMBOL(mm_cachebits);
+ #endif
+ 
++/* Prior to calling these routines, the page should have been flushed
++ * from both the cache and ATC, or the CPU might not notice that the
++ * cache setting for the page has been changed. -jskov
++ */
++static inline void nocache_page(void *vaddr)
++{
++	unsigned long addr = (unsigned long)vaddr;
++
++	if (CPU_IS_040_OR_060) {
++		pgd_t *dir;
++		p4d_t *p4dp;
++		pud_t *pudp;
++		pmd_t *pmdp;
++		pte_t *ptep;
++
++		dir = pgd_offset_k(addr);
++		p4dp = p4d_offset(dir, addr);
++		pudp = pud_offset(p4dp, addr);
++		pmdp = pmd_offset(pudp, addr);
++		ptep = pte_offset_kernel(pmdp, addr);
++		*ptep = pte_mknocache(*ptep);
++	}
++}
++
++static inline void cache_page(void *vaddr)
++{
++	unsigned long addr = (unsigned long)vaddr;
++
++	if (CPU_IS_040_OR_060) {
++		pgd_t *dir;
++		p4d_t *p4dp;
++		pud_t *pudp;
++		pmd_t *pmdp;
++		pte_t *ptep;
++
++		dir = pgd_offset_k(addr);
++		p4dp = p4d_offset(dir, addr);
++		pudp = pud_offset(p4dp, addr);
++		pmdp = pmd_offset(pudp, addr);
++		ptep = pte_offset_kernel(pmdp, addr);
++		*ptep = pte_mkcache(*ptep);
++	}
++}
+ 
+ /*
+  * Motorola 680x0 user's manual recommends using uncached memory for address
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
