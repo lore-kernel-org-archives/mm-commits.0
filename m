@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ivtv-convert-get_user_pages-pin_user_pages.patch added
- to -mm tree
-Date: Mon, 18 May 2020 14:25:10 -0700
-Message-ID: <20200518212510.xNJNsU0c6%akpm@linux-foundation.org>
+Subject: +
+ rapidio-fix-an-error-in-get_user_pages_fast-error-handling.patch added to
+ -mm tree
+Date: Mon, 18 May 2020 14:37:37 -0700
+Message-ID: <20200518213737.wQv6yFzC8%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44608 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47048 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726250AbgERVZM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 17:25:12 -0400
+        id S1726250AbgERVhi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 17:37:38 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: awalls@md.metrocast.net, jhubbard@nvidia.com, mchehab@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alex.bou9@gmail.com, dan.carpenter@oracle.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, mporter@kernel.crashing.org, stable@vger.kernel.org, sumit.semwal@linaro.org
 
 
 The patch titled
-     Subject: ivtv: convert get_user_pages() --> pin_user_pages()
+     Subject: rapidio: fix an error in get_user_pages_fast() error handling
 has been added to the -mm tree.  Its filename is
-     ivtv-convert-get_user_pages-pin_user_pages.patch
+     rapidio-fix-an-error-in-get_user_pages_fast-error-handling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ivtv-convert-get_user_pages-pin_user_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-fix-an-error-in-get_user_pages_fast-error-handling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ivtv-convert-get_user_pages-pin_user_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-fix-an-error-in-get_user_pages_fast-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,171 +40,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: ivtv: convert get_user_pages() --> pin_user_pages()
+Subject: rapidio: fix an error in get_user_pages_fast() error handling
 
-This code was using get_user_pages*(), in a "Case 2" scenario (DMA/RDMA),
-using the categorization from [1].  That means that it's time to convert
-the get_user_pages*() + put_page() calls to pin_user_pages*() +
-unpin_user_pages() calls.
+In the case of get_user_pages_fast() returning fewer pages than requested,
+rio_dma_transfer() does not quite do the right thing.  It attempts to
+release all the pages that were requested, rather than just the pages that
+were pinned.
 
-There is some helpful background in [2]: basically, this is a small part
-of fixing a long-standing disconnect between pinning pages, and file
-systems' use of those pages.
+Fix the error handling so that only the pages that were successfully
+pinned are released.
 
-[1] Documentation/core-api/pin_user_pages.rst
-
-[2] "Explicit pinning of user-space pages":
-    https://lwn.net/Articles/807108/
-
-Link: http://lkml.kernel.org/r/20200518012157.1178336-3-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200517235620.205225-2-jhubbard@nvidia.com
+Fixes: e8de370188d0 ("rapidio: add mport char device driver")
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/pci/ivtv/ivtv-udma.c |   19 ++++++-------------
- drivers/media/pci/ivtv/ivtv-yuv.c  |   17 ++++++-----------
- drivers/media/pci/ivtv/ivtvfb.c    |    4 ++--
- 3 files changed, 14 insertions(+), 26 deletions(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/drivers/media/pci/ivtv/ivtvfb.c~ivtv-convert-get_user_pages-pin_user_pages
-+++ a/drivers/media/pci/ivtv/ivtvfb.c
-@@ -281,10 +281,10 @@ static int ivtvfb_prep_dec_dma_to_device
- 	/* Map User DMA */
- 	if (ivtv_udma_setup(itv, ivtv_dest_addr, userbuf, size_in_bytes) <= 0) {
- 		mutex_unlock(&itv->udma.lock);
--		IVTVFB_WARN("ivtvfb_prep_dec_dma_to_device, Error with get_user_pages: %d bytes, %d pages returned\n",
-+		IVTVFB_WARN("ivtvfb_prep_dec_dma_to_device, Error with pin_user_pages: %d bytes, %d pages returned\n",
- 			       size_in_bytes, itv->udma.page_count);
- 
--		/* get_user_pages must have failed completely */
-+		/* pin_user_pages must have failed completely */
- 		return -EIO;
- 	}
- 
---- a/drivers/media/pci/ivtv/ivtv-udma.c~ivtv-convert-get_user_pages-pin_user_pages
-+++ a/drivers/media/pci/ivtv/ivtv-udma.c
-@@ -92,7 +92,7 @@ int ivtv_udma_setup(struct ivtv *itv, un
- {
- 	struct ivtv_dma_page_info user_dma;
- 	struct ivtv_user_dma *dma = &itv->udma;
--	int i, err;
-+	int err;
- 
- 	IVTV_DEBUG_DMA("ivtv_udma_setup, dst: 0x%08x\n", (unsigned int)ivtv_dest_addr);
- 
-@@ -111,16 +111,15 @@ int ivtv_udma_setup(struct ivtv *itv, un
- 		return -EINVAL;
- 	}
- 
--	/* Get user pages for DMA Xfer */
--	err = get_user_pages_unlocked(user_dma.uaddr, user_dma.page_count,
-+	/* Pin user pages for DMA Xfer */
-+	err = pin_user_pages_unlocked(user_dma.uaddr, user_dma.page_count,
- 			dma->map, FOLL_FORCE);
- 
- 	if (user_dma.page_count != err) {
- 		IVTV_DEBUG_WARN("failed to map user pages, returned %d instead of %d\n",
- 			   err, user_dma.page_count);
- 		if (err >= 0) {
--			for (i = 0; i < err; i++)
--				put_page(dma->map[i]);
-+			unpin_user_pages(dma->map, err);
- 			return -EINVAL;
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-an-error-in-get_user_pages_fast-error-handling
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -877,6 +877,11 @@ rio_dma_transfer(struct file *filp, u32
+ 				rmcd_error("pinned %ld out of %ld pages",
+ 					   pinned, nr_pages);
+ 			ret = -EFAULT;
++			/*
++			 * Set nr_pages up to mean "how many pages to unpin, in
++			 * the error handler:
++			 */
++			nr_pages = pinned;
+ 			goto err_pg;
  		}
- 		return err;
-@@ -130,9 +129,7 @@ int ivtv_udma_setup(struct ivtv *itv, un
  
- 	/* Fill SG List with new values */
- 	if (ivtv_udma_fill_sg_list(dma, &user_dma, 0) < 0) {
--		for (i = 0; i < dma->page_count; i++) {
--			put_page(dma->map[i]);
--		}
-+		unpin_user_pages(dma->map, dma->page_count);
- 		dma->page_count = 0;
- 		return -ENOMEM;
- 	}
-@@ -153,7 +150,6 @@ int ivtv_udma_setup(struct ivtv *itv, un
- void ivtv_udma_unmap(struct ivtv *itv)
- {
- 	struct ivtv_user_dma *dma = &itv->udma;
--	int i;
- 
- 	IVTV_DEBUG_INFO("ivtv_unmap_user_dma\n");
- 
-@@ -169,10 +165,7 @@ void ivtv_udma_unmap(struct ivtv *itv)
- 	/* sync DMA */
- 	ivtv_udma_sync_for_cpu(itv);
- 
--	/* Release User Pages */
--	for (i = 0; i < dma->page_count; i++) {
--		put_page(dma->map[i]);
--	}
-+	unpin_user_pages(dma->map, dma->page_count);
- 	dma->page_count = 0;
- }
- 
---- a/drivers/media/pci/ivtv/ivtv-yuv.c~ivtv-convert-get_user_pages-pin_user_pages
-+++ a/drivers/media/pci/ivtv/ivtv-yuv.c
-@@ -30,7 +30,6 @@ static int ivtv_yuv_prep_user_dma(struct
- 	struct yuv_playback_info *yi = &itv->yuv_info;
- 	u8 frame = yi->draw_frame;
- 	struct yuv_frame_info *f = &yi->new_frame_info[frame];
--	int i;
- 	int y_pages, uv_pages;
- 	unsigned long y_buffer_offset, uv_buffer_offset;
- 	int y_decode_height, uv_decode_height, y_size;
-@@ -62,12 +61,12 @@ static int ivtv_yuv_prep_user_dma(struct
- 	ivtv_udma_get_page_info (&y_dma, (unsigned long)args->y_source, 720 * y_decode_height);
- 	ivtv_udma_get_page_info (&uv_dma, (unsigned long)args->uv_source, 360 * uv_decode_height);
- 
--	/* Get user pages for DMA Xfer */
--	y_pages = get_user_pages_unlocked(y_dma.uaddr,
-+	/* Pin user pages for DMA Xfer */
-+	y_pages = pin_user_pages_unlocked(y_dma.uaddr,
- 			y_dma.page_count, &dma->map[0], FOLL_FORCE);
- 	uv_pages = 0; /* silence gcc. value is set and consumed only if: */
- 	if (y_pages == y_dma.page_count) {
--		uv_pages = get_user_pages_unlocked(uv_dma.uaddr,
-+		uv_pages = pin_user_pages_unlocked(uv_dma.uaddr,
- 				uv_dma.page_count, &dma->map[y_pages],
- 				FOLL_FORCE);
- 	}
-@@ -81,8 +80,7 @@ static int ivtv_yuv_prep_user_dma(struct
- 				 uv_pages, uv_dma.page_count);
- 
- 			if (uv_pages >= 0) {
--				for (i = 0; i < uv_pages; i++)
--					put_page(dma->map[y_pages + i]);
-+				unpin_user_pages(&dma->map[y_pages], uv_pages);
- 				rc = -EFAULT;
- 			} else {
- 				rc = uv_pages;
-@@ -93,8 +91,7 @@ static int ivtv_yuv_prep_user_dma(struct
- 				 y_pages, y_dma.page_count);
- 		}
- 		if (y_pages >= 0) {
--			for (i = 0; i < y_pages; i++)
--				put_page(dma->map[i]);
-+			unpin_user_pages(dma->map, y_pages);
- 			/*
- 			 * Inherit the -EFAULT from rc's
- 			 * initialization, but allow it to be
-@@ -112,9 +109,7 @@ static int ivtv_yuv_prep_user_dma(struct
- 	/* Fill & map SG List */
- 	if (ivtv_udma_fill_sg_list (dma, &uv_dma, ivtv_udma_fill_sg_list (dma, &y_dma, 0)) < 0) {
- 		IVTV_DEBUG_WARN("could not allocate bounce buffers for highmem userspace buffers\n");
--		for (i = 0; i < dma->page_count; i++) {
--			put_page(dma->map[i]);
--		}
-+		unpin_user_pages(dma->map, dma->page_count);
- 		dma->page_count = 0;
- 		return -ENOMEM;
- 	}
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
 
+rapidio-fix-an-error-in-get_user_pages_fast-error-handling.patch
 mm-gup-introduce-pin_user_pages_unlocked.patch
 ivtv-convert-get_user_pages-pin_user_pages.patch
+rapidio-convert-get_user_pages-pin_user_pages.patch
