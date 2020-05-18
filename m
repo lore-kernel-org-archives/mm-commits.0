@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch added to
- -mm tree
-Date: Mon, 18 May 2020 15:18:53 -0700
-Message-ID: <20200518221853.6lLTWvACR%akpm@linux-foundation.org>
+ proc-meminfo-avoid-open-coded-reading-of-vm_committed_as.patch added to -mm
+ tree
+Date: Mon, 18 May 2020 15:41:24 -0700
+Message-ID: <20200518224124.STLYyj6g8%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33918 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40800 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726640AbgERWSz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 18:18:55 -0400
+        id S1726359AbgERWl0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 18:41:26 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, dave.hansen@linux.intel.com, hch@lst.de, hpa@zytor.com, jroedel@suse.de, luto@kernel.org, mhocko@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, peterz@infradead.org, rjw@rjwysocki.net, rostedt@goodmis.org, tglx@linutronix.de, vbabka@suse.cz, willy@infradead.org
+To: andi.kleen@intel.com, dave.hansen@intel.com, feng.tang@intel.com, hannes@cmpxchg.org, keescook@chromium.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@intel.com, willy@infradead.org, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm-vmalloc-track-which-page-table-levels-were-modified-fix
+     Subject: proc/meminfo: avoid open coded reading of vm_committed_as
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
+     proc-meminfo-avoid-open-coded-reading-of-vm_committed_as.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-meminfo-avoid-open-coded-reading-of-vm_committed_as.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-meminfo-avoid-open-coded-reading-of-vm_committed_as.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,72 +39,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-track-which-page-table-levels-were-modified-fix
+From: Feng Tang <feng.tang@intel.com>
+Subject: proc/meminfo: avoid open coded reading of vm_committed_as
 
-map_kernel_range_noflush() needs the arch_sync_kernel_mappings() call
+Patch series "make vm_committed_as_batch aware of vm overcommit policy", v3.
 
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H . Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Joerg Roedel <jroedel@suse.de>
+When checking a performance change for will-it-scale scalability mmap test
+[1], we found very high lock contention for spinlock of percpu counter
+'vm_committed_as':
+
+    94.14%     0.35%  [kernel.kallsyms]         [k] _raw_spin_lock_irqsave
+    48.21% _raw_spin_lock_irqsave;percpu_counter_add_batch;__vm_enough_memory;mmap_region;do_mmap;
+    45.91% _raw_spin_lock_irqsave;percpu_counter_add_batch;__do_munmap;
+
+Actually this heavy lock contention is not always necessary.  The
+'vm_committed_as' needs to be very precise when the strict
+OVERCOMMIT_NEVER policy is set, which requires a rather small batch number
+for the percpu counter.
+
+So keep 'batch' number unchanged for strict OVERCOMMIT_NEVER policy, and
+enlarge it for not-so-strict OVERCOMMIT_ALWAYS and OVERCOMMIT_GUESS
+policies.
+
+Benchmark with the same testcase in [1] shows 53% improvement on a 8C/16T
+desktop, and 2097%(20X) on a 4S/72C/144T server.  And for that case,
+whether it shows improvements depends on if the test mmap size is bigger
+than the batch number computed.
+
+We tested 10+ platforms in 0day (server, desktop and laptop).  If we lift
+it to 64X, 80%+ platforms show improvements, and for 16X lift, 1/3 of the
+platforms will show improvements.
+
+And generally it should help the mmap/unmap usage,as Michal Hocko
+mentioned:
+
+: I believe that there are non-synthetic worklaods which would benefit from
+: a larger batch.  E.g.  large in memory databases which do large mmaps
+: during startups from multiple threads.
+
+
+This patch (of 3):
+
+Use the existing vm_memory_committed() instead, which is also convenient
+for future change.
+
+Link: http://lkml.kernel.org/r/1589611660-89854-1-git-send-email-feng.tang@intel.com
+Link: http://lkml.kernel.org/r/1589611660-89854-2-git-send-email-feng.tang@intel.com
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/proc/meminfo.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-track-which-page-table-levels-were-modified-fix
-+++ a/mm/vmalloc.c
-@@ -309,6 +309,9 @@ int map_kernel_range_noflush(unsigned lo
- 			return err;
- 	} while (pgd++, addr = next, addr != end);
+--- a/fs/proc/meminfo.c~proc-meminfo-avoid-open-coded-reading-of-vm_committed_as
++++ a/fs/proc/meminfo.c
+@@ -41,7 +41,7 @@ static int meminfo_proc_show(struct seq_
  
-+	if (mask & ARCH_PAGE_TABLE_SYNC_MASK)
-+		arch_sync_kernel_mappings(start, end);
-+
- 	return 0;
- }
+ 	si_meminfo(&i);
+ 	si_swapinfo(&i);
+-	committed = percpu_counter_read_positive(&vm_committed_as);
++	committed = vm_memory_committed();
  
+ 	cached = global_node_page_state(NR_FILE_PAGES) -
+ 			total_swapcache_pages() - i.bufferram;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from feng.tang@intel.com are
 
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-rejects.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+proc-meminfo-avoid-open-coded-reading-of-vm_committed_as.patch
+mm-utilc-make-vm_memory_committed-more-accurate.patch
+mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
