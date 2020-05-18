@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer_headh-remove-attach_page_buffers.patch added to
- -mm tree
-Date: Mon, 18 May 2020 14:46:28 -0700
-Message-ID: <20200518214628.CI5UY7YSh%akpm@linux-foundation.org>
+Subject: +
+ mm-migratec-call-detach_page_private-to-cleanup-code.patch added to -mm
+ tree
+Date: Mon, 18 May 2020 14:46:31 -0700
+Message-ID: <20200518214631.WAi1eoSKj%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49912 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49948 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727819AbgERVq3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 17:46:29 -0400
+        id S1727819AbgERVqc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 17:46:32 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adilger@dilger.ca, bigeasy@linutronix.de, guoqing.jiang@cloud.ionos.com, guro@fb.com, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: guoqing.jiang@cloud.ionos.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buffer_head.h: remove attach_page_buffers
+     Subject: mm/migrate.c: call detach_page_private to cleanup code
 has been added to the -mm tree.  Its filename is
-     buffer_headh-remove-attach_page_buffers.patch
+     mm-migratec-call-detach_page_private-to-cleanup-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/buffer_headh-remove-attach_page_buffers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migratec-call-detach_page_private-to-cleanup-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/buffer_headh-remove-attach_page_buffers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migratec-call-detach_page_private-to-cleanup-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,33 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Subject: buffer_head.h: remove attach_page_buffers
+Subject: mm/migrate.c: call detach_page_private to cleanup code
 
-All the callers have replaced attach_page_buffers with the new function
-attach_page_private, so remove it.
+We can cleanup code a little by call detach_page_private here.
 
-Link: http://lkml.kernel.org/r/20200517214718.468-10-guoqing.jiang@cloud.ionos.com
+Link: http://lkml.kernel.org/r/20200517214718.468-11-guoqing.jiang@cloud.ionos.com
 Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Andreas Dilger <adilger@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/buffer_head.h |    8 --------
- 1 file changed, 8 deletions(-)
+ mm/migrate.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/include/linux/buffer_head.h~buffer_headh-remove-attach_page_buffers
-+++ a/include/linux/buffer_head.h
-@@ -272,14 +272,6 @@ void buffer_init(void);
-  * inline definitions
-  */
+--- a/mm/migrate.c~mm-migratec-call-detach_page_private-to-cleanup-code
++++ a/mm/migrate.c
+@@ -797,10 +797,7 @@ recheck_buffers:
+ 	if (rc != MIGRATEPAGE_SUCCESS)
+ 		goto unlock_buffers;
  
--static inline void attach_page_buffers(struct page *page,
--		struct buffer_head *head)
--{
--	get_page(page);
--	SetPagePrivate(page);
--	set_page_private(page, (unsigned long)head);
--}
+-	ClearPagePrivate(page);
+-	set_page_private(newpage, page_private(page));
+-	set_page_private(page, 0);
+-	put_page(page);
++	set_page_private(newpage, detach_page_private(page));
+ 	get_page(newpage);
+ 
+ 	bh = head;
+_
+
+Patches currently in -mm which might be from guoqing.jiang@cloud.ionos.com are
+
+include-linux-pagemaph-introduce-attach-detach_page_private.patch
+md-remove-__clear_page_buffers-and-use-attach-detach_page_private.patch
+btrfs-use-attach-detach_page_private.patch
+fs-bufferc-use-attach-detach_page_private.patch
+f2fs-use-attach-detach_page_private.patch
+iomap-use-attach-detach_page_private.patch
+ntfs-replace-attach_page_buffers-with-attach_page_private.patch
+orangefs-use-attach-detach_page_private.patch
+buffer_headh-remove-attach_page_buffers.patch
+mm-migratec-call-detach_page_private-to-cleanup-code.patch
