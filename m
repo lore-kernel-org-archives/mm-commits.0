@@ -1,14 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + exec-relocate-path_noexec-check.patch added to -mm tree
-Date: Mon, 18 May 2020 13:42:05 -0700
-Message-ID: <20200518204205.Z4MykSDv2%akpm@linux-foundation.org>
+Subject: +
+ fs-include-fmode_exec-when-converting-flags-to-f_mode.patch added to -mm
+ tree
+Date: Mon, 18 May 2020 13:42:08 -0700
+Message-ID: <20200518204208.59t-wjebv%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59608 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726275AbgERUmH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 16:42:07 -0400
+        id S1726275AbgERUmJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 16:42:09 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -16,14 +18,14 @@ To: christian.brauner@ubuntu.com, dvyukov@google.com, ebiggers3@gmail.com, keesc
 
 
 The patch titled
-     Subject: exec: relocate path_noexec() check
+     Subject: fs: include FMODE_EXEC when converting flags to f_mode
 has been added to the -mm tree.  Its filename is
-     exec-relocate-path_noexec-check.patch
+     fs-include-fmode_exec-when-converting-flags-to-f_mode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-relocate-path_noexec-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-include-fmode_exec-when-converting-flags-to-f_mode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-relocate-path_noexec-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-include-fmode_exec-when-converting-flags-to-f_mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,72 +40,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: exec: relocate path_noexec() check
+Subject: fs: include FMODE_EXEC when converting flags to f_mode
 
-The path_noexec() check, like the regular file check, was happening too
-late, letting LSMs see impossible execve()s.  Check it earlier as well and
-collect the redundant fs/exec.c path_noexec() test under the same
-robustness comment as the S_ISREG() check.
+Include FMODE_EXEC when building the f_mode field, so that code can
+actually test the correct field and values.  Only three places actually
+examine f_flags for FMODE_EXEC:
 
-My notes on the call path, and related arguments, checks, etc:
+fs/open.c:      if (unlikely((f->f_mode & FMODE_EXEC) && !S_ISREG(inode->i_mode))) {
+include/linux/fsnotify.h:               if (file->f_mode & FMODE_EXEC) {
+include/linux/fsnotify.h:       if (file->f_mode & FMODE_EXEC)
 
-do_open_execat()
-    struct open_flags open_exec_flags = {
-        .open_flag = O_LARGEFILE | O_RDONLY | __FMODE_EXEC, ...
-    do_filp_open(dfd, filename, open_flags)
-        path_openat(nameidata, open_flags, flags)
-            /* f_mode populated from open_flags in alloc_empty_file() */
-            file = alloc_empty_file(open_flags, current_cred());
-            do_open(nameidata, file, open_flags)
-                /* new location of FMODE_EXEC vs path_noexec() test */
-                may_open(path, acc_mode, open_flag)
-                    inode_permission(inode, MAY_OPEN | acc_mode)
-                        security_inode_permission(inode, acc_mode)
-                vfs_open(path, file)
-                    do_dentry_open(file, path->dentry->d_inode, open)
-                        security_file_open(f)
-                        open()
-    /* old location of path_noexec() test */
-
-Link: http://lkml.kernel.org/r/20200518055457.12302-4-keescook@chromium.org
+Link: http://lkml.kernel.org/r/20200518055457.12302-5-keescook@chromium.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Eric Biggers <ebiggers3@gmail.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Eric Biggers <ebiggers3@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c  |    6 ++----
- fs/namei.c |    5 +++--
- 2 files changed, 5 insertions(+), 6 deletions(-)
+ fs/namei.c               |    4 ++--
+ include/linux/fs.h       |    3 ++-
+ include/linux/fsnotify.h |    4 ++--
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
---- a/fs/exec.c~exec-relocate-path_noexec-check
-+++ a/fs/exec.c
-@@ -140,13 +140,12 @@ SYSCALL_DEFINE1(uselib, const char __use
- 		goto out;
+--- a/fs/namei.c~fs-include-fmode_exec-when-converting-flags-to-f_mode
++++ a/fs/namei.c
+@@ -3213,8 +3213,8 @@ static int do_open(struct nameidata *nd,
+ 		return -ENOTDIR;
  
- 	/*
--	 * do_open() has already checked for this, but we can be extra
-+	 * do_open() has already checked for these, but we can be extra
- 	 * cautious and check again at the very end too.
- 	 */
- 	error = -EACCES;
- 	if (!S_ISREG(file_inode(file)->i_mode))
- 		goto exit;
--
- 	if (path_noexec(&file->f_path))
- 		goto exit;
+ 	/* Opening for execution requires a regular file on an exec mnt. */
+-	if ((file->f_flags & FMODE_EXEC) && (!d_is_reg(nd->path.dentry) ||
+-					     path_noexec(&nd->path)))
++	if ((file->f_mode & FMODE_EXEC) && (!d_is_reg(nd->path.dentry) ||
++					    path_noexec(&nd->path)))
+ 		return -EACCES;
  
-@@ -889,13 +888,12 @@ static struct file *do_open_execat(int f
- 		goto out;
+ 	do_truncate = false;
+--- a/include/linux/fs.h~fs-include-fmode_exec-when-converting-flags-to-f_mode
++++ a/include/linux/fs.h
+@@ -3563,10 +3563,11 @@ int __init get_filesystem_list(char *buf
  
- 	/*
--	 * do_open() has already checked for this, but we can be extra
-+	 * do_open() has already checked for these, but we can be extra
- 	 * cautious and check again at the very end too.
- 	 */
- 	err = -EACCES;
- 	if (!S_ISREG(file_inode(file)->i_mode))
- 		goto exit;
+ #define __FMODE_EXEC		((__force int) FMODE_EXEC)
+ #define __FMODE_NONOTIFY	((__force int) FMODE_NONOTIFY)
++#define __SMUGGLED_FMODE_FLAGS	(__FMODE_EXEC | __FMODE_NONOTIFY)
+ 
+ #define ACC_MODE(x) ("\004\002\006\006"[(x)&O_ACCMODE])
+ #define OPEN_FMODE(flag) ((__force fmode_t)(((flag + 1) & O_ACCMODE) | \
+-					    (flag & __FMODE_NONOTIFY)))
++					    (flag & __SMUGGLED_FMODE_FLAGS)))
+ 
+ static inline bool is_sxid(umode_t mode)
+ {
+--- a/include/linux/fsnotify.h~fs-include-fmode_exec-when-converting-flags-to-f_mode
++++ a/include/linux/fsnotify.h
+@@ -90,7 +90,7 @@ static inline int fsnotify_perm(struct f
+ 	if (mask & MAY_OPEN) {
+ 		fsnotify_mask = FS_OPEN_PERM;
+ 
+-		if (file->f_flags & __FMODE_EXEC) {
++		if (file->f_mode & FMODE_EXEC) {
+ 			ret = fsnotify_file(file, FS_OPEN_EXEC_PERM);
+ 
+ 			if (ret)
+@@ -264,7 +264,7 @@ static inline void fsnotify_open(struct
+ {
+ 	__u32 mask = FS_OPEN;
+ 
+-	if (file->f_flags & __FMODE_EXEC)
++	if (file->f_mode & FMODE_EXEC)
+ 		mask |= FS_OPEN_EXEC;
+ 
+ 	fsnotify_file(file, mask);
+_
+
+Patches currently in -mm which might be from keescook@chromium.org are
+
+exec-change-uselib2-is_sreg-failure-to-eacces.patch
+exec-relocate-s_isreg-check.patch
+exec-relocate-path_noexec-check.patch
+fs-include-fmode_exec-when-converting-flags-to-f_mode.patch
