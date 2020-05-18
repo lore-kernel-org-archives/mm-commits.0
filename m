@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs.patch
- added to -mm tree
-Date: Mon, 18 May 2020 13:32:09 -0700
-Message-ID: <20200518203209.ue1QJo7SX%akpm@linux-foundation.org>
+ mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch added
+ to -mm tree
+Date: Mon, 18 May 2020 13:34:23 -0700
+Message-ID: <20200518203423.MPBp5PFKR%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56238 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56742 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726412AbgERUcL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 16:32:11 -0400
+        id S1726250AbgERUe0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 16:34:26 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cg.chen@huawei.com, chenjie6@huawei.com, hushijie3@huawei.com, lkp@intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, nixiaoming@huawei.com, wangkefeng.wang@huawei.com, will@kernel.org, yangerkun@huawei.com
+To: aarcange@redhat.com, anshuman.khandual@arm.com, cai@lca.pw, daniel.m.jordan@oracle.com, hannes@cmpxchg.org, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: hugetlbfs: get unmapped area below TASK_UNMAPPED_BASE for hugetlbfs
+     Subject: mm/vmstat: add events for PMD based THP migration without split
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs.patch
+     mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,151 +39,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shijie Hu <hushijie3@huawei.com>
-Subject: hugetlbfs: get unmapped area below TASK_UNMAPPED_BASE for hugetlbfs
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/vmstat: add events for PMD based THP migration without split
 
-In a 32-bit program, running on arm64 architecture.  When the address
-space below mmap base is completely exhausted, shmat() for huge pages will
-return ENOMEM, but shmat() for normal pages can still success on no-legacy
-mode.  This seems not fair.
+This adds the following two new VM events which will help in validating
+PMD based THP migration without split.  Statistics reported through these
+events will help in performance debugging.
 
-For normal pages, the calling trace of get_unmapped_area() is:
+1. THP_PMD_MIGRATION_SUCCESS
+2. THP_PMD_MIGRATION_FAILURE
 
-	=> mm->get_unmapped_area()
-	if on legacy mode,
-		=> arch_get_unmapped_area()
-			=> vm_unmapped_area()
-	if on no-legacy mode,
-		=> arch_get_unmapped_area_topdown()
-			=> vm_unmapped_area()
-
-For huge pages, the calling trace of get_unmapped_area() is:
-
-	=> file->f_op->get_unmapped_area()
-		=> hugetlb_get_unmapped_area()
-			=> vm_unmapped_area()
-
-To solve this issue, we only need to make hugetlb_get_unmapped_area() take
-the same way as mm->get_unmapped_area().  Add *bottomup() and *topdown()
-for hugetlbfs, and check current mm->get_unmapped_area() to decide which
-one to use.  If mm->get_unmapped_area is equal to
-arch_get_unmapped_area_topdown(), hugetlb_get_unmapped_area() calls
-topdown routine, otherwise calls bottomup routine.
-
-Link: http://lkml.kernel.org/r/20200518065338.113664-1-hushijie3@huawei.com
-Signed-off-by: Shijie Hu <hushijie3@huawei.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: kbuild test robot <lkp@intel.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: yangerkun <yangerkun@huawei.com>
-Cc: ChenGang <cg.chen@huawei.com>
-Cc: Chen Jie <chenjie6@huawei.com>
+Link: http://lkml.kernel.org/r/1589784156-28831-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   67 ++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 59 insertions(+), 8 deletions(-)
+ include/linux/vm_event_item.h |    4 ++++
+ mm/migrate.c                  |   15 +++++++++++++++
+ mm/vmstat.c                   |    4 ++++
+ 3 files changed, 23 insertions(+)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs
-+++ a/fs/hugetlbfs/inode.c
-@@ -38,6 +38,7 @@
- #include <linux/uio.h>
- 
- #include <linux/uaccess.h>
-+#include <linux/sched/mm.h>
- 
- static const struct super_operations hugetlbfs_ops;
- static const struct address_space_operations hugetlbfs_aops;
-@@ -191,13 +192,60 @@ out:
- 
- #ifndef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
- static unsigned long
-+hugetlb_get_unmapped_area_bottomup(struct file *file, unsigned long addr,
-+		unsigned long len, unsigned long pgoff, unsigned long flags)
-+{
-+	struct hstate *h = hstate_file(file);
-+	struct vm_unmapped_area_info info;
-+
-+	info.flags = 0;
-+	info.length = len;
-+	info.low_limit = current->mm->mmap_base;
-+	info.high_limit = TASK_SIZE;
-+	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
-+	info.align_offset = 0;
-+	return vm_unmapped_area(&info);
-+}
-+
-+static unsigned long
-+hugetlb_get_unmapped_area_topdown(struct file *file, unsigned long addr,
-+		unsigned long len, unsigned long pgoff, unsigned long flags)
-+{
-+	struct hstate *h = hstate_file(file);
-+	struct vm_unmapped_area_info info;
-+
-+	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
-+	info.length = len;
-+	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
-+	info.high_limit = current->mm->mmap_base;
-+	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
-+	info.align_offset = 0;
-+	addr = vm_unmapped_area(&info);
-+
-+	/*
-+	 * A failed mmap() very likely causes application failure,
-+	 * so fall back to the bottom-up function here. This scenario
-+	 * can happen with large stack limits and large mmap()
-+	 * allocations.
-+	 */
-+	if (unlikely(offset_in_page(addr))) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.flags = 0;
-+		info.low_limit = current->mm->mmap_base;
-+		info.high_limit = TASK_SIZE;
-+		addr = vm_unmapped_area(&info);
-+	}
-+
-+	return addr;
-+}
-+
-+static unsigned long
- hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
- 		unsigned long len, unsigned long pgoff, unsigned long flags)
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
- 	struct hstate *h = hstate_file(file);
--	struct vm_unmapped_area_info info;
- 
- 	if (len & ~huge_page_mask(h))
- 		return -EINVAL;
-@@ -218,13 +266,16 @@ hugetlb_get_unmapped_area(struct file *f
- 			return addr;
- 	}
- 
--	info.flags = 0;
--	info.length = len;
--	info.low_limit = TASK_UNMAPPED_BASE;
--	info.high_limit = TASK_SIZE;
--	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
--	return vm_unmapped_area(&info);
-+	/*
-+	 * Use mm->get_unmapped_area value as a hint to use topdown routine.
-+	 * If architectures have special needs, they should define their own
-+	 * version of hugetlb_get_unmapped_area.
-+	 */
-+	if (mm->get_unmapped_area == arch_get_unmapped_area_topdown)
-+		return hugetlb_get_unmapped_area_topdown(file, addr, len,
-+				pgoff, flags);
-+	return hugetlb_get_unmapped_area_bottomup(file, addr, len,
-+			pgoff, flags);
- }
+--- a/include/linux/vm_event_item.h~mm-vmstat-add-events-for-pmd-based-thp-migration-without-split
++++ a/include/linux/vm_event_item.h
+@@ -91,6 +91,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		THP_ZERO_PAGE_ALLOC_FAILED,
+ 		THP_SWPOUT,
+ 		THP_SWPOUT_FALLBACK,
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
++		THP_PMD_MIGRATION_SUCCESS,
++		THP_PMD_MIGRATION_FAILURE,
++#endif
+ #endif
+ #ifdef CONFIG_MEMORY_BALLOON
+ 		BALLOON_INFLATE,
+--- a/mm/migrate.c~mm-vmstat-add-events-for-pmd-based-thp-migration-without-split
++++ a/mm/migrate.c
+@@ -1177,6 +1177,18 @@ out:
+ #define ICE_noinline
  #endif
  
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
++static inline void thp_migration_success(bool success)
++{
++	if (success)
++		count_vm_event(THP_PMD_MIGRATION_SUCCESS);
++	else
++		count_vm_event(THP_PMD_MIGRATION_FAILURE);
++}
++#else
++static inline void thp_migration_success(bool success) { }
++#endif
++
+ /*
+  * Obtain the lock on page, remove all ptes and migrate the page
+  * to the newly allocated page in newpage.
+@@ -1239,6 +1251,8 @@ out:
+ 	 * we want to retry.
+ 	 */
+ 	if (rc == MIGRATEPAGE_SUCCESS) {
++		if (PageTransHuge(newpage))
++			thp_migration_success(true);
+ 		put_page(page);
+ 		if (reason == MR_MEMORY_FAILURE) {
+ 			/*
+@@ -1481,6 +1495,7 @@ retry:
+ 					unlock_page(page);
+ 					if (!rc) {
+ 						list_safe_reset_next(page, page2, lru);
++						thp_migration_success(false);
+ 						goto retry;
+ 					}
+ 				}
+--- a/mm/vmstat.c~mm-vmstat-add-events-for-pmd-based-thp-migration-without-split
++++ a/mm/vmstat.c
+@@ -1274,6 +1274,10 @@ const char * const vmstat_text[] = {
+ 	"thp_zero_page_alloc_failed",
+ 	"thp_swpout",
+ 	"thp_swpout_fallback",
++#ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
++	"thp_pmd_migration_success",
++	"thp_pmd_migration_failure",
++#endif
+ #endif
+ #ifdef CONFIG_MEMORY_BALLOON
+ 	"balloon_inflate",
 _
 
-Patches currently in -mm which might be from hushijie3@huawei.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs.patch
+mm-page_alloc-restrict-and-formalize-compound_page_dtors.patch
+arm64-mm-drop-__have_arch_huge_ptep_get.patch
+mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range.patch
+mm-hugetlb-define-a-generic-fallback-for-arch_clear_hugepage_flags.patch
+powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
+mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
+x86-mm-define-mm_p4d_folded.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v17.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
