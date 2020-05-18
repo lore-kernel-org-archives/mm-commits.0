@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2.patch added
- to -mm tree
-Date: Mon, 18 May 2020 15:52:25 -0700
-Message-ID: <20200518225225.h0PDoJHVi%akpm@linux-foundation.org>
+Subject: + mm-use-only-pidfd-for-process_madvise-syscall.patch
+ added to -mm tree
+Date: Mon, 18 May 2020 16:07:04 -0700
+Message-ID: <20200518230704.ZVf6L_tad%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46418 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52110 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726359AbgERWw0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 18:52:26 -0400
+        id S1726481AbgERXHG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 19:07:06 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com, sfr@canb.auug.org.au
+To: arjunroy@google.com, bgeffon@google.com, dancol@google.com, hannes@cmpxchg.org, joaodias@google.com, joel@joelfernandes.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, oleksandr@redhat.com, rientjes@google.com, shakeelb@google.com, sj38.park@gmail.com, sonnyrao@google.com, sspatil@google.com, surenb@google.com, timmurray@google.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: powerpc/kasan: fix PMD access in kasan_unmap_early_shadow_vmalloc()
+     Subject: mm: use only pidfd for process_madvise syscall
 has been added to the -mm tree.  Its filename is
-     mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2.patch
+     mm-use-only-pidfd-for-process_madvise-syscall.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-only-pidfd-for-process_madvise-syscall.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-only-pidfd-for-process_madvise-syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,85 +38,141 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: powerpc/kasan: fix PMD access in kasan_unmap_early_shadow_vmalloc()
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: use only pidfd for process_madvise syscall
 
-The introduction of the generic shortcuts for PMD entry access broke PMD
-access in kasan_unmap_early_shadow_vmalloc() because the name used in
-powerpc for the same helper was different from the generic one.
+Based on discussion[1], people didn't feel we need to support both
+pid and pidfd for every new coming API[2] so this patch keeps only
+pidfd. This patch also changes flags's type with "unsigned int".
 
-Link: http://lkml.kernel.org/r/20200516172304.GC1059226@linux.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reported-by: kbuild test robot <lkp@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+[1] https://lore.kernel.org/linux-mm/20200509124817.xmrvsrq3mla6b76k@wittgenstein/
+[2] https://lore.kernel.org/linux-mm/9d849087-3359-c4ab-fbec-859e8186c509@virtuozzo.com/
+
+Link: http://lkml.kernel.org/r/20200518211350.GA50295@google.com
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Arjun Roy <arjunroy@google.com>
+Cc: Tim Murray <timmurray@google.com>
+Cc: Daniel Colascione <dancol@google.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: John Dias <joaodias@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: SeongJae Park <sj38.park@gmail.com>
+Cc: Oleksandr Natalenko <oleksandr@redhat.com>
+Cc: Sandeep Patil <sspatil@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/kasan/kasan_init_32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/madvise.c |   42 +++++++++++++-----------------------------
+ 1 file changed, 13 insertions(+), 29 deletions(-)
 
---- a/arch/powerpc/mm/kasan/kasan_init_32.c~mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2
-+++ a/arch/powerpc/mm/kasan/kasan_init_32.c
-@@ -121,7 +121,7 @@ static void __init kasan_unmap_early_sha
- 	phys_addr_t pa = __pa(kasan_early_shadow_page);
+--- a/mm/madvise.c~mm-use-only-pidfd-for-process_madvise-syscall
++++ a/mm/madvise.c
+@@ -1230,8 +1230,8 @@ static int process_madvise_vec(struct ta
+ 	return ret;
+ }
  
- 	for (k_cur = k_start & PAGE_MASK; k_cur < k_end; k_cur += PAGE_SIZE) {
--		pmd_t *pmd = pmd_ptr_k(k_cur);
-+		pmd_t *pmd = pmd_off_k(k_cur);
- 		pte_t *ptep = pte_offset_kernel(pmd, k_cur);
+-static ssize_t do_process_madvise(int which, pid_t upid, struct iov_iter *iter,
+-				       int behavior, unsigned long flags)
++static ssize_t do_process_madvise(int pidfd, struct iov_iter *iter,
++				int behavior, unsigned int flags)
+ {
+ 	ssize_t ret;
+ 	struct pid *pid;
+@@ -1242,26 +1242,12 @@ static ssize_t do_process_madvise(int wh
+ 	if (flags != 0)
+ 		return -EINVAL;
  
- 		if ((pte_val(*ptep) & PTE_RPN_MASK) != pa)
+-	switch (which) {
+-	case P_PID:
+-		if (upid <= 0)
+-			return -EINVAL;
+-
+-		pid = find_get_pid(upid);
+-		if (!pid)
+-			return -ESRCH;
+-		break;
+-	case P_PIDFD:
+-		if (upid < 0)
+-			return -EINVAL;
+-
+-		pid = pidfd_get_pid(upid);
+-		if (IS_ERR(pid))
+-			return PTR_ERR(pid);
+-		break;
+-	default:
++	if (pidfd < 0)
+ 		return -EINVAL;
+-	}
++
++	pid = pidfd_get_pid(pidfd);
++	if (IS_ERR(pid))
++		return PTR_ERR(pid);
+ 
+ 	task = get_pid_task(pid, PIDTYPE_PID);
+ 	if (!task) {
+@@ -1293,9 +1279,8 @@ put_pid:
+ 	return ret;
+ }
+ 
+-SYSCALL_DEFINE6(process_madvise, int, which, pid_t, upid,
+-		const struct iovec __user *, vec, unsigned long, vlen,
+-		int, behavior, unsigned long, flags)
++SYSCALL_DEFINE5(process_madvise, int, pidfd, const struct iovec __user *, vec,
++		unsigned long, vlen, int, behavior, unsigned int, flags)
+ {
+ 	ssize_t ret;
+ 	struct iovec iovstack[UIO_FASTIOV];
+@@ -1304,19 +1289,18 @@ SYSCALL_DEFINE6(process_madvise, int, wh
+ 
+ 	ret = import_iovec(READ, vec, vlen, ARRAY_SIZE(iovstack), &iov, &iter);
+ 	if (ret >= 0) {
+-		ret = do_process_madvise(which, upid, &iter, behavior, flags);
++		ret = do_process_madvise(pidfd, &iter, behavior, flags);
+ 		kfree(iov);
+ 	}
+ 	return ret;
+ }
+ 
+ #ifdef CONFIG_COMPAT
+-COMPAT_SYSCALL_DEFINE6(process_madvise, compat_int_t, which,
+-			compat_pid_t, upid,
++COMPAT_SYSCALL_DEFINE5(process_madvise, compat_int_t, pidfd,
+ 			const struct compat_iovec __user *, vec,
+ 			compat_ulong_t, vlen,
+ 			compat_int_t, behavior,
+-			compat_ulong_t, flags)
++			compat_int_t, flags)
+ 
+ {
+ 	ssize_t ret;
+@@ -1327,7 +1311,7 @@ COMPAT_SYSCALL_DEFINE6(process_madvise,
+ 	ret = compat_import_iovec(READ, vec, vlen, ARRAY_SIZE(iovstack),
+ 				&iov, &iter);
+ 	if (ret >= 0) {
+-		ret = do_process_madvise(which, upid, &iter, behavior, flags);
++		ret = do_process_madvise(pidfd, &iter, behavior, flags);
+ 		kfree(iov);
+ 	}
+ 	return ret;
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
-mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
-mm-remove-config_have_memblock_node_map-option.patch
-mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
-mm-use-free_area_init-instead-of-free_area_init_nodes.patch
-alpha-simplify-detection-of-memory-zone-boundaries.patch
-arm-simplify-detection-of-memory-zone-boundaries.patch
-arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
-csky-simplify-detection-of-memory-zone-boundaries.patch
-m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
-parisc-simplify-detection-of-memory-zone-boundaries.patch
-sparc32-simplify-detection-of-memory-zone-boundaries.patch
-unicore32-simplify-detection-of-memory-zone-boundaries.patch
-xtensa-simplify-detection-of-memory-zone-boundaries.patch
-mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2.patch
-mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
-mm-clean-up-free_area_init_node-and-its-helpers.patch
-mm-simplify-find_min_pfn_with_active_regions.patch
-docs-vm-update-memory-models-documentation.patch
-h8300-remove-usage-of-__arch_use_5level_hack.patch
-arm-add-support-for-folded-p4d-page-tables.patch
-arm-add-support-for-folded-p4d-page-tables-fix.patch
-arm64-add-support-for-folded-p4d-page-tables.patch
-hexagon-remove-__arch_use_5level_hack.patch
-ia64-add-support-for-folded-p4d-page-tables.patch
-nios2-add-support-for-folded-p4d-page-tables.patch
-openrisc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables-fix.patch
-sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
-sh-add-support-for-folded-p4d-page-tables.patch
-unicore32-remove-__arch_use_5level_hack.patch
-asm-generic-remove-pgtable-nop4d-hackh.patch
-mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
-mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
-mm-introduce-include-linux-pgtableh.patch
-mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
-csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
-m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
-m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2.patch
-mm-consolidate-pte_index-and-pte_offset_-definitions.patch
-mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
-mm-consolidate-pud_index-and-pud_offset-definitions.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api.patch
+mm-introduce-external-memory-hinting-api-fix.patch
+mm-introduce-external-memory-hinting-api-fix-2.patch
+mm-check-fatal-signal-pending-of-target-process.patch
+pid-move-pidfd_get_pid-function-to-pidc.patch
+mm-support-both-pid-and-pidfd-for-process_madvise.patch
+mm-support-vector-address-ranges-for-process_madvise.patch
+mm-support-vector-address-ranges-for-process_madvise-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix.patch
+mm-use-only-pidfd-for-process_madvise-syscall.patch
