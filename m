@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + unicore32-remove-flush_cache_user_range.patch added to
- -mm tree
-Date: Mon, 18 May 2020 18:12:46 -0700
-Message-ID: <20200519011246.iv60_nePs%akpm@linux-foundation.org>
+Subject: +
+ asm-generic-fix-the-inclusion-guards-for-cacheflushh.patch added to -mm
+ tree
+Date: Mon, 18 May 2020 18:12:48 -0700
+Message-ID: <20200519011248.YEOwPOJCA%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58486 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58514 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726628AbgESBMr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 21:12:47 -0400
+        id S1726628AbgESBMt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 21:12:49 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gxt@pku.edu.cn, hch@lst.de, mm-commits@vger.kernel.org
+To: arnd@arndb.de, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: unicore32: remove flush_cache_user_range
+     Subject: asm-generic: fix the inclusion guards for cacheflush.h
 has been added to the -mm tree.  Its filename is
-     unicore32-remove-flush_cache_user_range.patch
+     asm-generic-fix-the-inclusion-guards-for-cacheflushh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/unicore32-remove-flush_cache_user_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/asm-generic-fix-the-inclusion-guards-for-cacheflushh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/unicore32-remove-flush_cache_user_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/asm-generic-fix-the-inclusion-guards-for-cacheflushh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,37 +40,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: unicore32: remove flush_cache_user_range
+Subject: asm-generic: fix the inclusion guards for cacheflush.h
 
-flush_cache_user_range is an ARMism not used by any generic or unicore32
-specific code.
+cacheflush.h uses a somewhat to generic include guard name that clashes
+with various arch files.  Use a more specific one.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-5-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-6-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Guan Xuetao <gxt@pku.edu.cn>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/include/asm/cacheflush.h |    8 --------
- 1 file changed, 8 deletions(-)
+ include/asm-generic/cacheflush.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/unicore32/include/asm/cacheflush.h~unicore32-remove-flush_cache_user_range
-+++ a/arch/unicore32/include/asm/cacheflush.h
-@@ -133,14 +133,6 @@ extern void flush_cache_page(struct vm_a
- #define flush_cache_dup_mm(mm) flush_cache_mm(mm)
+--- a/include/asm-generic/cacheflush.h~asm-generic-fix-the-inclusion-guards-for-cacheflushh
++++ a/include/asm-generic/cacheflush.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef __ASM_CACHEFLUSH_H
+-#define __ASM_CACHEFLUSH_H
++#ifndef _ASM_GENERIC_CACHEFLUSH_H
++#define _ASM_GENERIC_CACHEFLUSH_H
  
- /*
-- * flush_cache_user_range is used when we want to ensure that the
-- * Harvard caches are synchronised for the user space address range.
-- * This is used for the UniCore private sys_cacheflush system call.
-- */
--#define flush_cache_user_range(vma, start, end) \
--	__cpuc_coherent_user_range((start) & PAGE_MASK, PAGE_ALIGN(end))
--
--/*
-  * Perform necessary cache operations to ensure that data previously
-  * stored within this range of addresses can be executed by the CPU.
-  */
+ /* Keep includes the same across arches.  */
+ #include <linux/mm.h>
+@@ -109,4 +109,4 @@ static inline void flush_cache_vunmap(un
+ 	memcpy(dst, src, len)
+ #endif
+ 
+-#endif /* __ASM_CACHEFLUSH_H */
++#endif /* _ASM_GENERIC_CACHEFLUSH_H */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
