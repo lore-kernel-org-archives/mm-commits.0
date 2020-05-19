@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-use-asm-generic-cacheflushh.patch added to -mm
- tree
-Date: Mon, 18 May 2020 18:13:14 -0700
-Message-ID: <20200519011314.823ShMCtP%akpm@linux-foundation.org>
+Subject: + armsparcunicore32-remove-flush_icache_user_range.patch
+ added to -mm tree
+Date: Mon, 18 May 2020 18:13:16 -0700
+Message-ID: <20200519011316.Vi1yh9pxh%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58994 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59028 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727125AbgESBNQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 21:13:16 -0400
+        id S1727125AbgESBNT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 21:13:19 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aou@eecs.berkeley.edu, hch@lst.de, mm-commits@vger.kernel.org, palmer@sifive.com, palmerdabbelt@google.com, paul.walmsley@sifive.com
+To: davem@davemloft.net, gxt@pku.edu.cn, hch@lst.de, linux@armlinux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: riscv: use asm-generic/cacheflush.h
+     Subject: arm,sparc,unicore32: remove flush_icache_user_range
 has been added to the -mm tree.  Its filename is
-     riscv-use-asm-generic-cacheflushh.patch
+     armsparcunicore32-remove-flush_icache_user_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/riscv-use-asm-generic-cacheflushh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/armsparcunicore32-remove-flush_icache_user_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/riscv-use-asm-generic-cacheflushh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/armsparcunicore32-remove-flush_icache_user_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,109 +39,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: riscv: use asm-generic/cacheflush.h
+Subject: arm,sparc,unicore32: remove flush_icache_user_range
 
-RISC-V needs almost no cache flushing routines of its own.  Rely on
-asm-generic/cacheflush.h for the defaults.
+flush_icache_user_range is only used by <asm-generic/cacheflush.h>, so
+remove it from the architectures that implement it, but don't use
+<asm-generic/cacheflush.h>.
 
-Also remove the pointless __KERNEL__ ifdef while we're at it.
-
-Link: http://lkml.kernel.org/r/20200515143646.3857579-18-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-19-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Palmer Dabbelt <palmerdabbelt@google.com>
-Acked-by: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@sifive.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Guan Xuetao <gxt@pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/cacheflush.h |   62 +-------------------------
- 1 file changed, 3 insertions(+), 59 deletions(-)
+ arch/arm/include/asm/cacheflush.h       |    3 ---
+ arch/sparc/include/asm/cacheflush_32.h  |    2 --
+ arch/sparc/include/asm/cacheflush_64.h  |    1 -
+ arch/unicore32/include/asm/cacheflush.h |    3 ---
+ 4 files changed, 9 deletions(-)
 
---- a/arch/riscv/include/asm/cacheflush.h~riscv-use-asm-generic-cacheflushh
-+++ a/arch/riscv/include/asm/cacheflush.h
-@@ -8,65 +8,6 @@
+--- a/arch/arm/include/asm/cacheflush.h~armsparcunicore32-remove-flush_icache_user_range
++++ a/arch/arm/include/asm/cacheflush.h
+@@ -318,9 +318,6 @@ extern void flush_kernel_dcache_page(str
+ #define flush_dcache_mmap_lock(mapping)		xa_lock_irq(&mapping->i_pages)
+ #define flush_dcache_mmap_unlock(mapping)	xa_unlock_irq(&mapping->i_pages)
  
- #include <linux/mm.h>
- 
--#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+-#define flush_icache_user_range(vma,page,addr,len) \
+-	flush_dcache_page(page)
 -
--/*
-- * The cache doesn't need to be flushed when TLB entries change when
-- * the cache is mapped to physical memory, not virtual memory
-- */
--static inline void flush_cache_all(void)
--{
--}
--
--static inline void flush_cache_mm(struct mm_struct *mm)
--{
--}
--
--static inline void flush_cache_dup_mm(struct mm_struct *mm)
--{
--}
--
--static inline void flush_cache_range(struct vm_area_struct *vma,
--				     unsigned long start,
--				     unsigned long end)
--{
--}
--
--static inline void flush_cache_page(struct vm_area_struct *vma,
--				    unsigned long vmaddr,
--				    unsigned long pfn)
--{
--}
--
--static inline void flush_dcache_mmap_lock(struct address_space *mapping)
--{
--}
--
--static inline void flush_dcache_mmap_unlock(struct address_space *mapping)
--{
--}
--
--static inline void flush_icache_page(struct vm_area_struct *vma,
--				     struct page *page)
--{
--}
--
--static inline void flush_cache_vmap(unsigned long start, unsigned long end)
--{
--}
--
--static inline void flush_cache_vunmap(unsigned long start, unsigned long end)
--{
--}
--
--#define copy_to_user_page(vma, page, vaddr, dst, src, len) \
--	do { \
--		memcpy(dst, src, len); \
--		flush_icache_user_range(vma, page, vaddr, len); \
--	} while (0)
--#define copy_from_user_page(vma, page, vaddr, dst, src, len) \
--	memcpy(dst, src, len)
--
- static inline void local_flush_icache_all(void)
- {
- 	asm volatile ("fence.i" ::: "memory");
-@@ -79,6 +20,7 @@ static inline void flush_dcache_page(str
- 	if (test_bit(PG_dcache_clean, &page->flags))
- 		clear_bit(PG_dcache_clean, &page->flags);
- }
-+#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
- 
  /*
-  * RISC-V doesn't have an instruction to flush parts of the instruction cache,
-@@ -105,4 +47,6 @@ void flush_icache_mm(struct mm_struct *m
- #define SYS_RISCV_FLUSH_ICACHE_LOCAL 1UL
- #define SYS_RISCV_FLUSH_ICACHE_ALL   (SYS_RISCV_FLUSH_ICACHE_LOCAL)
+  * We don't appear to need to do anything here.  In fact, if we did, we'd
+  * duplicate cache flushing elsewhere performed by flush_dcache_page().
+--- a/arch/sparc/include/asm/cacheflush_32.h~armsparcunicore32-remove-flush_icache_user_range
++++ a/arch/sparc/include/asm/cacheflush_32.h
+@@ -17,8 +17,6 @@
+ #define flush_icache_range(start, end)		do { } while (0)
+ #define flush_icache_page(vma, pg)		do { } while (0)
  
-+#include <asm-generic/cacheflush.h>
-+
- #endif /* _ASM_RISCV_CACHEFLUSH_H */
+-#define flush_icache_user_range(vma,pg,adr,len)	do { } while (0)
+-
+ #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
+ 	do {							\
+ 		flush_cache_page(vma, vaddr, page_to_pfn(page));\
+--- a/arch/sparc/include/asm/cacheflush_64.h~armsparcunicore32-remove-flush_icache_user_range
++++ a/arch/sparc/include/asm/cacheflush_64.h
+@@ -49,7 +49,6 @@ void __flush_dcache_range(unsigned long
+ void flush_dcache_page(struct page *page);
+ 
+ #define flush_icache_page(vma, pg)	do { } while(0)
+-#define flush_icache_user_range(vma,pg,adr,len)	do { } while (0)
+ 
+ void flush_ptrace_access(struct vm_area_struct *, struct page *,
+ 			 unsigned long uaddr, void *kaddr,
+--- a/arch/unicore32/include/asm/cacheflush.h~armsparcunicore32-remove-flush_icache_user_range
++++ a/arch/unicore32/include/asm/cacheflush.h
+@@ -162,9 +162,6 @@ extern void flush_dcache_page(struct pag
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+ 
+-#define flush_icache_user_range(vma, page, addr, len)	\
+-	flush_dcache_page(page)
+-
+ /*
+  * We don't appear to need to do anything here.  In fact, if we did, we'd
+  * duplicate cache flushing elsewhere performed by flush_dcache_page().
 _
 
 Patches currently in -mm which might be from hch@lst.de are
