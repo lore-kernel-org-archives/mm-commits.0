@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-implement-flush_icache_user_range.patch added to -mm
- tree
-Date: Mon, 18 May 2020 18:13:27 -0700
-Message-ID: <20200519011327.pSpsm53We%akpm@linux-foundation.org>
+Subject: + xtensa-implement-flush_icache_user_range.patch added to
+ -mm tree
+Date: Mon, 18 May 2020 18:13:30 -0700
+Message-ID: <20200519011330.fV19zhQEX%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59192 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59234 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727125AbgESBN3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 21:13:29 -0400
+        id S1727125AbgESBNb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 21:13:31 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dalias@libc.org, hch@lst.de, mm-commits@vger.kernel.org, ysato@users.sourceforge.jp
+To: chris@zankel.net, hch@lst.de, jcmvbkbc@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: implement flush_icache_user_range
+     Subject: xtensa: implement flush_icache_user_range
 has been added to the -mm tree.  Its filename is
-     sh-implement-flush_icache_user_range.patch
+     xtensa-implement-flush_icache_user_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-implement-flush_icache_user_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/xtensa-implement-flush_icache_user_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-implement-flush_icache_user_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/xtensa-implement-flush_icache_user_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,32 +39,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: sh: implement flush_icache_user_range
+Subject: xtensa: implement flush_icache_user_range
 
-The SuperH implementation of flush_icache_range seems to be able to
+The Xtensa implementation of flush_icache_range seems to be able to
 cope with user addresses.  Just define flush_icache_user_range to
 flush_icache_range.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-22-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-23-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/cacheflush.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/xtensa/include/asm/cacheflush.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/sh/include/asm/cacheflush.h~sh-implement-flush_icache_user_range
-+++ a/arch/sh/include/asm/cacheflush.h
-@@ -46,6 +46,7 @@ extern void flush_cache_range(struct vm_
- #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
- extern void flush_dcache_page(struct page *page);
- extern void flush_icache_range(unsigned long start, unsigned long end);
+--- a/arch/xtensa/include/asm/cacheflush.h~xtensa-implement-flush_icache_user_range
++++ a/arch/xtensa/include/asm/cacheflush.h
+@@ -107,6 +107,8 @@ void flush_cache_page(struct vm_area_str
+ #define flush_cache_page  local_flush_cache_page
+ #endif
+ 
 +#define flush_icache_user_range flush_icache_range
- extern void flush_icache_page(struct vm_area_struct *vma,
- 				 struct page *page);
- extern void flush_cache_sigtramp(unsigned long address);
++
+ #define local_flush_cache_all()						\
+ 	do {								\
+ 		__flush_invalidate_dcache_all();			\
 _
 
 Patches currently in -mm which might be from hch@lst.de are
