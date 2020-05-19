@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + exec-only-build-read_code-when-needed.patch added to
- -mm tree
-Date: Mon, 18 May 2020 18:13:37 -0700
-Message-ID: <20200519011337.FKRerjQHn%akpm@linux-foundation.org>
+Subject: + exec-use-flush_icache_user_range-in-read_code.patch
+ added to -mm tree
+Date: Mon, 18 May 2020 18:13:39 -0700
+Message-ID: <20200519011339.TiMlk_XX5%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59334 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59360 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726721AbgESBNj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 21:13:39 -0400
+        id S1726721AbgESBNk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 21:13:40 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: hch@lst.de, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: exec: only build read_code when needed
+     Subject: exec: use flush_icache_user_range in read_code
 has been added to the -mm tree.  Its filename is
-     exec-only-build-read_code-when-needed.patch
+     exec-use-flush_icache_user_range-in-read_code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exec-only-build-read_code-when-needed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-use-flush_icache_user_range-in-read_code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exec-only-build-read_code-when-needed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-use-flush_icache_user_range-in-read_code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: exec: only build read_code when needed
+Subject: exec: use flush_icache_user_range in read_code
 
-Only build read_code when binary formats that use it are built into the
-kernel.
+read_code operates on user addresses.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-26-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-27-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/exec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/exec.c~exec-only-build-read_code-when-needed
+--- a/fs/exec.c~exec-use-flush_icache_user_range-in-read_code
 +++ a/fs/exec.c
-@@ -1056,6 +1056,8 @@ out:
- }
- EXPORT_SYMBOL_GPL(kernel_read_file_from_fd);
- 
-+#if defined(CONFIG_HAVE_AOUT) || defined(CONFIG_BINFMT_FLAT) || \
-+    defined(CONFIG_BINFMT_ELF_FDPIC)
- ssize_t read_code(struct file *file, unsigned long addr, loff_t pos, size_t len)
+@@ -1062,7 +1062,7 @@ ssize_t read_code(struct file *file, uns
  {
  	ssize_t res = vfs_read(file, (void __user *)addr, len, &pos);
-@@ -1064,6 +1066,7 @@ ssize_t read_code(struct file *file, uns
+ 	if (res > 0)
+-		flush_icache_range(addr, addr + len);
++		flush_icache_user_range(addr, addr + len);
  	return res;
  }
  EXPORT_SYMBOL(read_code);
-+#endif
- 
- /*
-  * Maps the mm_struct mm into the current task struct.
 _
 
 Patches currently in -mm which might be from hch@lst.de are
