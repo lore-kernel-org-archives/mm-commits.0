@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + m68k-implement-flush_icache_user_range.patch added to
+Subject: + exec-only-build-read_code-when-needed.patch added to
  -mm tree
-Date: Mon, 18 May 2020 18:13:34 -0700
-Message-ID: <20200519011334.IU_fPkHyb%akpm@linux-foundation.org>
+Date: Mon, 18 May 2020 18:13:37 -0700
+Message-ID: <20200519011337.FKRerjQHn%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59300 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726721AbgESBNf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 21:13:35 -0400
+        id S1726721AbgESBNj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 21:13:39 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, hch@lst.de, mm-commits@vger.kernel.org
+To: hch@lst.de, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: m68k: implement flush_icache_user_range
+     Subject: exec: only build read_code when needed
 has been added to the -mm tree.  Its filename is
-     m68k-implement-flush_icache_user_range.patch
+     exec-only-build-read_code-when-needed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m68k-implement-flush_icache_user_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exec-only-build-read_code-when-needed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-implement-flush_icache_user_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exec-only-build-read_code-when-needed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +39,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: m68k: implement flush_icache_user_range
+Subject: exec: only build read_code when needed
 
-Rename the current flush_icache_range to flush_icache_user_range as per
-commit ae92ef8a4424 ("PATCH] flush icache in correct context") there seems
-to be an assumption that it operates on user addresses.  Add a
-flush_icache_range around it that for now is a no-op.
+Only build read_code when binary formats that use it are built into the
+kernel.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-25-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-26-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/cacheflush_mm.h |    2 ++
- arch/m68k/mm/cache.c                  |    7 ++++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ fs/exec.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/m68k/include/asm/cacheflush_mm.h~m68k-implement-flush_icache_user_range
-+++ a/arch/m68k/include/asm/cacheflush_mm.h
-@@ -257,6 +257,8 @@ static inline void __flush_page_to_ram(v
- extern void flush_icache_user_page(struct vm_area_struct *vma, struct page *page,
- 				    unsigned long addr, int len);
- extern void flush_icache_range(unsigned long address, unsigned long endaddr);
-+extern void flush_icache_user_range(unsigned long address,
-+		unsigned long endaddr);
- 
- static inline void copy_to_user_page(struct vm_area_struct *vma,
- 				     struct page *page, unsigned long vaddr,
---- a/arch/m68k/mm/cache.c~m68k-implement-flush_icache_user_range
-+++ a/arch/m68k/mm/cache.c
-@@ -73,7 +73,7 @@ static unsigned long virt_to_phys_slow(u
- 
- /* Push n pages at kernel virtual address and clear the icache */
- /* RZ: use cpush %bc instead of cpush %dc, cinv %ic */
--void flush_icache_range(unsigned long address, unsigned long endaddr)
-+void flush_icache_user_range(unsigned long address, unsigned long endaddr)
- {
- 	if (CPU_IS_COLDFIRE) {
- 		unsigned long start, end;
-@@ -104,6 +104,11 @@ void flush_icache_range(unsigned long ad
- 			      : "di" (FLUSH_I));
- 	}
+--- a/fs/exec.c~exec-only-build-read_code-when-needed
++++ a/fs/exec.c
+@@ -1056,6 +1056,8 @@ out:
  }
-+
-+void flush_icache_range(unsigned long address, unsigned long endaddr)
-+{
-+	flush_icache_user_range(address, endaddr);
-+}
- EXPORT_SYMBOL(flush_icache_range);
+ EXPORT_SYMBOL_GPL(kernel_read_file_from_fd);
  
- void flush_icache_user_page(struct vm_area_struct *vma, struct page *page,
++#if defined(CONFIG_HAVE_AOUT) || defined(CONFIG_BINFMT_FLAT) || \
++    defined(CONFIG_BINFMT_ELF_FDPIC)
+ ssize_t read_code(struct file *file, unsigned long addr, loff_t pos, size_t len)
+ {
+ 	ssize_t res = vfs_read(file, (void __user *)addr, len, &pos);
+@@ -1064,6 +1066,7 @@ ssize_t read_code(struct file *file, uns
+ 	return res;
+ }
+ EXPORT_SYMBOL(read_code);
++#endif
+ 
+ /*
+  * Maps the mm_struct mm into the current task struct.
 _
 
 Patches currently in -mm which might be from hch@lst.de are
