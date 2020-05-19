@@ -1,197 +1,236 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged]
- mm-slub-add-panic_on_error-to-the-debug-facilities.patch removed from -mm
- tree
-Date: Mon, 18 May 2020 20:12:53 -0700
-Message-ID: <20200519031253.J2TYwQnUv%akpm@linux-foundation.org>
+Subject: +
+ mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch added to
+ -mm tree
+Date: Mon, 18 May 2020 20:22:35 -0700
+Message-ID: <20200519032235.DW4TJKoQL%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38542 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41978 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726302AbgESDMy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 23:12:54 -0400
+        id S1726293AbgESDWh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 23:22:37 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aquini@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
+To: airlied@linux.ie, chris@chris-wilson.co.uk, daniel@ffwll.ch, jani.nikula@linux.intel.com, jhubbard@nvidia.com, joonas.lahtinen@linux.intel.com, jrdr.linux@gmail.com, matthew.auld@intel.com, mm-commits@vger.kernel.org, rodrigo.vivi@intel.com, tvrtko.ursulin@intel.com, willy@infradead.org
 
 
 The patch titled
-     Subject: mm: slub: add panic_on_error to the debug facilities
-has been removed from the -mm tree.  Its filename was
-     mm-slub-add-panic_on_error-to-the-debug-facilities.patch
+     Subject: mm/gup: move __get_user_pages_fast() down a few lines in gup.c
+has been added to the -mm tree.  Its filename is
+     mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: mm: slub: add panic_on_error to the debug facilities
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: move __get_user_pages_fast() down a few lines in gup.c
 
-Sometimes it is desirable to override SLUB's debug facilities default
-behavior upon stumbling on a cache or object error and just stop the
-execution in order to grab a coredump, at the error-spotting time, instead
-of trying to fix the issue and report in an attempt to keep the system
-rolling.
+Patch series "mm/gup, drm/i915: refactor gup_fast, convert to
+pin_user_pages()".
 
-This patch introduces a new debug flag SLAB_PANIC_ON_ERROR, along with its
-related SLUB-machinery, in order to extend current slub_debug facilites
-and provide the aforementioned behavior override.
+In order to convert the drm/i915 driver from get_user_pages() to
+pin_user_pages(), a FOLL_PIN equivalent of __get_user_pages_fast() was
+required.  That led to refactoring __get_user_pages_fast(), with the
+following goals:
 
-Link: http://lkml.kernel.org/r/20200501211540.71216-1-aquini@redhat.com
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+1) As above: provide a pin_user_pages*() routine for drm/i915 to call,
+   in place of __get_user_pages_fast(),
+
+2) Get rid of the gup.c duplicate code for walking page tables with
+   interrupts disabled. This duplicate code is a minor maintenance
+   problem anyway.
+
+3) Make it easy for an upcoming patch from Souptick, which aims to
+   convert __get_user_pages_fast() to use a gup_flags argument, instead
+   of a bool writeable arg.  Also, if this series looks good, we can
+   ask Souptick to change the name as well, to whatever the consensus
+   is. My initial recommendation is: get_user_pages_fast_only(), to
+   match the new pin_user_pages_only().
+
+
+This patch (of 4):
+
+This is in order to avoid a forward declaration of
+internal_get_user_pages_fast(), in the next patch.
+
+This is code movement only--all generated code should be identical.
+
+Link: http://lkml.kernel.org/r/20200519002124.2025955-1-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200519002124.2025955-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: "Joonas Lahtinen" <joonas.lahtinen@linux.intel.com>
+Cc: Matthew Auld <matthew.auld@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.rst |    2 +
- include/linux/slab.h      |    2 +
- mm/slab.h                 |    3 +-
- mm/slub.c                 |   44 +++++++++++++++++++++++++++---------
- 4 files changed, 40 insertions(+), 11 deletions(-)
+ mm/gup.c |  112 ++++++++++++++++++++++++++---------------------------
+ 1 file changed, 56 insertions(+), 56 deletions(-)
 
---- a/Documentation/vm/slub.rst~mm-slub-add-panic_on_error-to-the-debug-facilities
-+++ a/Documentation/vm/slub.rst
-@@ -54,6 +54,8 @@ Possible debug options are::
- 			caused higher minimum slab orders
- 	-		Switch all debugging off (useful if the kernel is
- 			configured with CONFIG_SLUB_DEBUG_ON)
-+	C		Toggle panic on error (crash) to allow for post-mortem
-+			analysis of a coredump taken at the error-spotting time
- 
- F.e. in order to boot just with sanity checks and red zoning one would specify::
- 
---- a/include/linux/slab.h~mm-slub-add-panic_on_error-to-the-debug-facilities
-+++ a/include/linux/slab.h
-@@ -25,6 +25,8 @@
-  */
- /* DEBUG: Perform (expensive) checks on alloc/free */
- #define SLAB_CONSISTENCY_CHECKS	((slab_flags_t __force)0x00000100U)
-+/* DEBUG: panic on error (forced crash) */
-+#define SLAB_PANIC_ON_ERROR	((slab_flags_t __force)0x00000200U)
- /* DEBUG: Red zone objs in a cache */
- #define SLAB_RED_ZONE		((slab_flags_t __force)0x00000400U)
- /* DEBUG: Poison objects */
---- a/mm/slab.h~mm-slub-add-panic_on_error-to-the-debug-facilities
-+++ a/mm/slab.h
-@@ -198,7 +198,8 @@ static inline slab_flags_t kmem_cache_fl
- #define SLAB_DEBUG_FLAGS (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER)
- #elif defined(CONFIG_SLUB_DEBUG)
- #define SLAB_DEBUG_FLAGS (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER | \
--			  SLAB_TRACE | SLAB_CONSISTENCY_CHECKS)
-+			  SLAB_TRACE | SLAB_CONSISTENCY_CHECKS | \
-+			  SLAB_PANIC_ON_ERROR)
- #else
- #define SLAB_DEBUG_FLAGS (0)
- #endif
---- a/mm/slub.c~mm-slub-add-panic_on_error-to-the-debug-facilities
-+++ a/mm/slub.c
-@@ -728,8 +728,6 @@ static void print_trailer(struct kmem_ca
- 		/* Beginning of the filler is the free pointer */
- 		print_section(KERN_ERR, "Padding ", p + off,
- 			      size_from_object(s) - off);
--
--	dump_stack();
+--- a/mm/gup.c~mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc
++++ a/mm/gup.c
+@@ -2687,62 +2687,6 @@ static bool gup_fast_permitted(unsigned
  }
+ #endif
  
- void object_err(struct kmem_cache *s, struct page *page,
-@@ -737,6 +735,9 @@ void object_err(struct kmem_cache *s, st
+-/*
+- * Like get_user_pages_fast() except it's IRQ-safe in that it won't fall back to
+- * the regular GUP.
+- * Note a difference with get_user_pages_fast: this always returns the
+- * number of pages pinned, 0 if no pages were pinned.
+- *
+- * If the architecture does not support this function, simply return with no
+- * pages pinned.
+- */
+-int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+-			  struct page **pages)
+-{
+-	unsigned long len, end;
+-	unsigned long flags;
+-	int nr_pinned = 0;
+-	/*
+-	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
+-	 * because gup fast is always a "pin with a +1 page refcount" request.
+-	 */
+-	unsigned int gup_flags = FOLL_GET;
+-
+-	if (write)
+-		gup_flags |= FOLL_WRITE;
+-
+-	start = untagged_addr(start) & PAGE_MASK;
+-	len = (unsigned long) nr_pages << PAGE_SHIFT;
+-	end = start + len;
+-
+-	if (end <= start)
+-		return 0;
+-	if (unlikely(!access_ok((void __user *)start, len)))
+-		return 0;
+-
+-	/*
+-	 * Disable interrupts.  We use the nested form as we can already have
+-	 * interrupts disabled by get_futex_key.
+-	 *
+-	 * With interrupts disabled, we block page table pages from being
+-	 * freed from under us. See struct mmu_table_batch comments in
+-	 * include/asm-generic/tlb.h for more details.
+-	 *
+-	 * We do not adopt an rcu_read_lock(.) here as we also want to
+-	 * block IPIs that come from THPs splitting.
+-	 */
+-
+-	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
+-	    gup_fast_permitted(start, end)) {
+-		local_irq_save(flags);
+-		gup_pgd_range(start, end, gup_flags, pages, &nr_pinned);
+-		local_irq_restore(flags);
+-	}
+-
+-	return nr_pinned;
+-}
+-EXPORT_SYMBOL_GPL(__get_user_pages_fast);
+-
+ static int __gup_longterm_unlocked(unsigned long start, int nr_pages,
+ 				   unsigned int gup_flags, struct page **pages)
  {
- 	slab_bug(s, "%s", reason);
- 	print_trailer(s, page, object);
-+	if (unlikely(s->flags & SLAB_PANIC_ON_ERROR))
-+		panic("BUG: %s: %s", s->name, reason);
-+	dump_stack();
+@@ -2815,6 +2759,62 @@ static int internal_get_user_pages_fast(
+ 	return ret;
  }
  
- static __printf(3, 4) void slab_err(struct kmem_cache *s, struct page *page,
-@@ -750,6 +751,8 @@ static __printf(3, 4) void slab_err(stru
- 	va_end(args);
- 	slab_bug(s, "%s", buf);
- 	print_page_info(page);
-+	if (unlikely(s->flags & SLAB_PANIC_ON_ERROR))
-+		panic("BUG: %s: %s", s->name, buf);
- 	dump_stack();
- }
- 
-@@ -799,7 +802,7 @@ static int check_bytes_and_report(struct
- 					fault, end - 1, fault - addr,
- 					fault[0], value);
- 	print_trailer(s, page, object);
--
-+	dump_stack();
- 	restore_bytes(s, what, value, fault, end);
- 	return 0;
- }
-@@ -1197,13 +1200,14 @@ static inline int free_consistency_check
- 		if (!PageSlab(page)) {
- 			slab_err(s, page, "Attempt to free object(0x%p) outside of slab",
- 				 object);
--		} else if (!page->slab_cache) {
--			pr_err("SLUB <none>: no slab for object 0x%p.\n",
--			       object);
--			dump_stack();
--		} else
--			object_err(s, page, object,
--					"page slab pointer corrupt.");
-+		} else {
-+			char reason[80];
-+
-+			snprintf(reason, sizeof(reason),
-+				 "page slab pointer corruption: 0x%p (0x%p expected)",
-+				 page->slab_cache, s);
-+			object_err(s, page, object, reason);
-+		}
- 		return 0;
- 	}
- 	return 1;
-@@ -1315,6 +1319,9 @@ static int __init setup_slub_debug(char
- 			 */
- 			disable_higher_order_debug = 1;
- 			break;
-+		case 'c':
-+			slub_debug |= SLAB_PANIC_ON_ERROR;
-+			break;
- 		default:
- 			pr_err("slub_debug option '%c' unknown. skipped\n",
- 			       *str);
-@@ -5364,6 +5371,22 @@ static ssize_t free_calls_show(struct km
- 	return list_locations(s, buf, TRACK_FREE);
- }
- SLAB_ATTR_RO(free_calls);
-+
-+static ssize_t
-+panic_on_error_show(struct kmem_cache *s, char *buf)
++/*
++ * Like get_user_pages_fast() except it's IRQ-safe in that it won't fall back to
++ * the regular GUP.
++ * Note a difference with get_user_pages_fast: this always returns the
++ * number of pages pinned, 0 if no pages were pinned.
++ *
++ * If the architecture does not support this function, simply return with no
++ * pages pinned.
++ */
++int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
++			  struct page **pages)
 +{
-+	return sprintf(buf, "%d\n", !!(s->flags & SLAB_PANIC_ON_ERROR));
-+}
++	unsigned long len, end;
++	unsigned long flags;
++	int nr_pinned = 0;
++	/*
++	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
++	 * because gup fast is always a "pin with a +1 page refcount" request.
++	 */
++	unsigned int gup_flags = FOLL_GET;
 +
-+static ssize_t
-+panic_on_error_store(struct kmem_cache *s, const char *buf, size_t length)
-+{
-+	s->flags &= ~SLAB_PANIC_ON_ERROR;
-+	if (buf[0] == '1')
-+		s->flags |= SLAB_PANIC_ON_ERROR;
-+	return length;
++	if (write)
++		gup_flags |= FOLL_WRITE;
++
++	start = untagged_addr(start) & PAGE_MASK;
++	len = (unsigned long) nr_pages << PAGE_SHIFT;
++	end = start + len;
++
++	if (end <= start)
++		return 0;
++	if (unlikely(!access_ok((void __user *)start, len)))
++		return 0;
++
++	/*
++	 * Disable interrupts.  We use the nested form as we can already have
++	 * interrupts disabled by get_futex_key.
++	 *
++	 * With interrupts disabled, we block page table pages from being
++	 * freed from under us. See struct mmu_table_batch comments in
++	 * include/asm-generic/tlb.h for more details.
++	 *
++	 * We do not adopt an rcu_read_lock(.) here as we also want to
++	 * block IPIs that come from THPs splitting.
++	 */
++
++	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
++	    gup_fast_permitted(start, end)) {
++		local_irq_save(flags);
++		gup_pgd_range(start, end, gup_flags, pages, &nr_pinned);
++		local_irq_restore(flags);
++	}
++
++	return nr_pinned;
 +}
-+SLAB_ATTR(panic_on_error);
- #endif /* CONFIG_SLUB_DEBUG */
- 
- #ifdef CONFIG_FAILSLAB
-@@ -5538,6 +5561,7 @@ static struct attribute *slab_attrs[] =
- 	&validate_attr.attr,
- 	&alloc_calls_attr.attr,
- 	&free_calls_attr.attr,
-+	&panic_on_error_attr.attr,
- #endif
- #ifdef CONFIG_ZONE_DMA
- 	&cache_dma_attr.attr,
++EXPORT_SYMBOL_GPL(__get_user_pages_fast);
++
+ /**
+  * get_user_pages_fast() - pin user pages in memory
+  * @start:      starting user address
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-kernel-add-panic_on_taint.patch
-kernel-sysctl-ignore-out-of-range-taint-bits-introduced-via-kerneltainted.patch
+rapidio-fix-an-error-in-get_user_pages_fast-error-handling.patch
+selftests-vm-gitignore-add-mremap_dontunmap.patch
+selftests-vm-write_to_hugetlbfsc-fix-unused-variable-warning.patch
+mm-gup-introduce-pin_user_pages_unlocked.patch
+ivtv-convert-get_user_pages-pin_user_pages.patch
+mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch
+mm-gup-refactor-and-de-duplicate-gup_fast-code.patch
+mm-gup-introduce-pin_user_pages_fast_only.patch
+drm-i915-convert-get_user_pages-pin_user_pages.patch
+khugepaged-add-self-test-fix-3.patch
+rapidio-convert-get_user_pages-pin_user_pages.patch
