@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-use-asm-generic-cacheflushh.patch added to -mm
+Subject: + arm64-use-asm-generic-cacheflushh.patch added to -mm
  tree
-Date: Mon, 18 May 2020 18:13:02 -0700
-Message-ID: <20200519011302.i9ZXPLVQL%akpm@linux-foundation.org>
+Date: Mon, 18 May 2020 18:12:58 -0700
+Message-ID: <20200519011258.nwFjLqsJh%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58824 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58756 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727125AbgESBNE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 21:13:04 -0400
+        id S1727125AbgESBNA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 21:13:00 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bcain@codeaurora.org, hch@lst.de, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, hch@lst.de, mm-commits@vger.kernel.org, will@kernel.org
 
 
 The patch titled
-     Subject: hexagon: use asm-generic/cacheflush.h
+     Subject: arm64: use asm-generic/cacheflush.h
 has been added to the -mm tree.  Its filename is
-     hexagon-use-asm-generic-cacheflushh.patch
+     arm64-use-asm-generic-cacheflushh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hexagon-use-asm-generic-cacheflushh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-use-asm-generic-cacheflushh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hexagon-use-asm-generic-cacheflushh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-use-asm-generic-cacheflushh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +39,92 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: hexagon: use asm-generic/cacheflush.h
+Subject: arm64: use asm-generic/cacheflush.h
 
-Hexagon needs almost no cache flushing routines of its own.  Rely on
+ARM64 needs almost no cache flushing routines of its own.  Rely on
 asm-generic/cacheflush.h for the defaults.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-12-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-10-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Brian Cain <bcain@codeaurora.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/include/asm/cacheflush.h |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ arch/arm64/include/asm/cacheflush.h |   46 ++------------------------
+ 1 file changed, 5 insertions(+), 41 deletions(-)
 
---- a/arch/hexagon/include/asm/cacheflush.h~hexagon-use-asm-generic-cacheflushh
-+++ a/arch/hexagon/include/asm/cacheflush.h
-@@ -25,29 +25,17 @@
- #define LINESIZE	32
- #define LINEBITS	5
+--- a/arch/arm64/include/asm/cacheflush.h~arm64-use-asm-generic-cacheflushh
++++ a/arch/arm64/include/asm/cacheflush.h
+@@ -94,20 +94,7 @@ static inline void flush_icache_range(un
  
--#define flush_cache_all()			do { } while (0)
--#define flush_cache_mm(mm)			do { } while (0)
--#define flush_cache_dup_mm(mm)			do { } while (0)
--#define flush_cache_range(vma, start, end)	do { } while (0)
--#define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
--#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
--#define flush_dcache_page(page)			do { } while (0)
--#define flush_dcache_mmap_lock(mapping)		do { } while (0)
--#define flush_dcache_mmap_unlock(mapping)	do { } while (0)
--#define flush_icache_page(vma, pg)		do { } while (0)
--#define flush_icache_user_range(vma, pg, adr, len)	do { } while (0)
--#define flush_cache_vmap(start, end)		do { } while (0)
--#define flush_cache_vunmap(start, end)		do { } while (0)
+ 	kick_all_cpus_sync();
+ }
 -
- /*
-  * Flush Dcache range through current map.
-  */
- extern void flush_dcache_range(unsigned long start, unsigned long end);
-+#define flush_dcache_range flush_dcache_range
- 
- /*
-  * Flush Icache range through current map.
-  */
- extern void flush_icache_range(unsigned long start, unsigned long end);
+-static inline void flush_cache_mm(struct mm_struct *mm)
+-{
+-}
+-
+-static inline void flush_cache_page(struct vm_area_struct *vma,
+-				    unsigned long user_addr, unsigned long pfn)
+-{
+-}
+-
+-static inline void flush_cache_range(struct vm_area_struct *vma,
+-				     unsigned long start, unsigned long end)
+-{
+-}
 +#define flush_icache_range flush_icache_range
  
  /*
-  * Memory-management related flushes are there to ensure in non-physically
-@@ -78,6 +66,7 @@ static inline void update_mmu_cache(stru
- 
- void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
- 		       unsigned long vaddr, void *dst, void *src, int len);
+  * Cache maintenance functions used by the DMA API. No to be used directly.
+@@ -123,12 +110,7 @@ extern void __dma_flush_area(const void
+  */
+ extern void copy_to_user_page(struct vm_area_struct *, struct page *,
+ 	unsigned long, void *, const void *, unsigned long);
+-#define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+-	do {							\
+-		memcpy(dst, src, len);				\
+-	} while (0)
+-
+-#define flush_cache_dup_mm(mm) flush_cache_mm(mm)
 +#define copy_to_user_page copy_to_user_page
  
- #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
- 	memcpy(dst, src, len)
-@@ -85,4 +74,6 @@ void copy_to_user_page(struct vm_area_st
- extern void hexagon_inv_dcache_range(unsigned long start, unsigned long end);
- extern void hexagon_clean_dcache_range(unsigned long start, unsigned long end);
+ /*
+  * flush_dcache_page is used when the kernel has written to the page
+@@ -154,29 +136,11 @@ static __always_inline void __flush_icac
+ 	dsb(ish);
+ }
  
+-#define flush_dcache_mmap_lock(mapping)		do { } while (0)
+-#define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+-
+-/*
+- * We don't appear to need to do anything here.  In fact, if we did, we'd
+- * duplicate cache flushing elsewhere performed by flush_dcache_page().
+- */
+-#define flush_icache_page(vma,page)	do { } while (0)
+-
+-/*
+- * Not required on AArch64 (PIPT or VIPT non-aliasing D-cache).
+- */
+-static inline void flush_cache_vmap(unsigned long start, unsigned long end)
+-{
+-}
+-
+-static inline void flush_cache_vunmap(unsigned long start, unsigned long end)
+-{
+-}
+-
+ int set_memory_valid(unsigned long addr, int numpages, int enable);
+ 
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
+ 
+-#endif
 +#include <asm-generic/cacheflush.h>
 +
- #endif
++#endif /* __ASM_CACHEFLUSH_H */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
