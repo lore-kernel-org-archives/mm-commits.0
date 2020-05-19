@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nommu-use-flush_icache_user_range-in-brk-and-mmap.patch
- added to -mm tree
-Date: Mon, 18 May 2020 18:13:43 -0700
-Message-ID: <20200519011343.Qhhgci2g2%akpm@linux-foundation.org>
+Subject: +
+ module-move-the-set_fs-hack-for-flush_icache_range-to-m68k.patch added to
+ -mm tree
+Date: Mon, 18 May 2020 18:13:45 -0700
+Message-ID: <20200519011345.aBymkYUzs%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59404 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59456 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726953AbgESBNo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 21:13:44 -0400
+        id S1726920AbgESBNs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 21:13:48 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, gerg@linux-m68k.org, hch@lst.de, mm-commits@vger.kernel.org
+To: ast@kernel.org, daniel@iogearbox.net, geert@linux-m68k.org, hch@lst.de, jeyu@kernel.org, kafai@fb.com, mm-commits@vger.kernel.org, songliubraving@fb.com, yhs@fb.com
 
 
 The patch titled
-     Subject: nommu: use flush_icache_user_range in brk and mmap
+     Subject: module: move the set_fs hack for flush_icache_range to m68k
 has been added to the -mm tree.  Its filename is
-     nommu-use-flush_icache_user_range-in-brk-and-mmap.patch
+     module-move-the-set_fs-hack-for-flush_icache_range-to-m68k.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nommu-use-flush_icache_user_range-in-brk-and-mmap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/module-move-the-set_fs-hack-for-flush_icache_range-to-m68k.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nommu-use-flush_icache_user_range-in-brk-and-mmap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/module-move-the-set_fs-hack-for-flush_icache_range-to-m68k.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,40 +40,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: nommu: use flush_icache_user_range in brk and mmap
+Subject: module: move the set_fs hack for flush_icache_range to m68k
 
-These obviously operate on user addresses.
+flush_icache_range generally operates on kernel addresses, but for some
+reason m68k needed a set_fs override.  Move that into the m68k code insted
+of keeping it in the module loader.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-29-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-30-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
+Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Martin KaFai Lau <kafai@fb.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Yonghong Song <yhs@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/m68k/mm/cache.c |    4 ++++
+ kernel/module.c      |    8 --------
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
---- a/mm/nommu.c~nommu-use-flush_icache_user_range-in-brk-and-mmap
-+++ a/mm/nommu.c
-@@ -433,7 +433,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+--- a/arch/m68k/mm/cache.c~module-move-the-set_fs-hack-for-flush_icache_range-to-m68k
++++ a/arch/m68k/mm/cache.c
+@@ -107,7 +107,11 @@ void flush_icache_user_range(unsigned lo
+ 
+ void flush_icache_range(unsigned long address, unsigned long endaddr)
+ {
++	mm_segment_t old_fs = get_fs();
++
++	set_fs(KERNEL_DS);
+ 	flush_icache_user_range(address, endaddr);
++	set_fs(old_fs);
+ }
+ EXPORT_SYMBOL(flush_icache_range);
+ 
+--- a/kernel/module.c~module-move-the-set_fs-hack-for-flush_icache_range-to-m68k
++++ a/kernel/module.c
+@@ -3330,12 +3330,6 @@ static int check_module_license_and_vers
+ 
+ static void flush_module_icache(const struct module *mod)
+ {
+-	mm_segment_t old_fs;
+-
+-	/* flush the icache in correct context */
+-	old_fs = get_fs();
+-	set_fs(KERNEL_DS);
+-
  	/*
- 	 * Ok, looks good - let it rip.
- 	 */
--	flush_icache_range(mm->brk, brk);
-+	flush_icache_user_range(mm->brk, brk);
- 	return mm->brk = brk;
+ 	 * Flush the instruction cache, since we've played with text.
+ 	 * Do it before processing of module parameters, so the module
+@@ -3347,8 +3341,6 @@ static void flush_module_icache(const st
+ 				   + mod->init_layout.size);
+ 	flush_icache_range((unsigned long)mod->core_layout.base,
+ 			   (unsigned long)mod->core_layout.base + mod->core_layout.size);
+-
+-	set_fs(old_fs);
  }
  
-@@ -1277,7 +1277,7 @@ share:
- 	/* we flush the region from the icache only when the first executable
- 	 * mapping of it is made  */
- 	if (vma->vm_flags & VM_EXEC && !region->vm_icache_flushed) {
--		flush_icache_range(region->vm_start, region->vm_end);
-+		flush_icache_user_range(region->vm_start, region->vm_end);
- 		region->vm_icache_flushed = true;
- 	}
- 
+ int __weak module_frob_arch_sections(Elf_Ehdr *hdr,
 _
 
 Patches currently in -mm which might be from hch@lst.de are
