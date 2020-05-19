@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + asm-generic-dont-include-linux-mmh-in-cacheflushh.patch
- added to -mm tree
-Date: Mon, 18 May 2020 18:12:50 -0700
-Message-ID: <20200519011250.A49WLaH8M%akpm@linux-foundation.org>
+Subject: + alpha-use-asm-generic-cacheflushh.patch added to -mm
+ tree
+Date: Mon, 18 May 2020 18:12:56 -0700
+Message-ID: <20200519011256.FW8YEEJar%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58554 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726628AbgESBMw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 21:12:52 -0400
+        id S1727125AbgESBM6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 21:12:58 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anton.ivanov@cambridgegreys.com, arnd@arndb.de, bp@alien8.de, dan.j.williams@intel.com, dave.jiang@intel.com, hch@lst.de, hpa@zytor.com, ira.weiny@intel.com, jdike@addtoit.com, keith.busch@intel.com, mingo@redhat.com, mm-commits@vger.kernel.org, npiggin@gmail.com, peterz@infradead.org, richard@nod.at, tglx@linutronix.de, vishal.l.verma@intel.com, will@kernel.org
+To: hch@lst.de, ink@jurassic.park.msu.ru, mattst88@gmail.com, mm-commits@vger.kernel.org, rth@twiddle.net
 
 
 The patch titled
-     Subject: asm-generic: don't include <linux/mm.h> in cacheflush.h
+     Subject: alpha: use asm-generic/cacheflush.h
 has been added to the -mm tree.  Its filename is
-     asm-generic-dont-include-linux-mmh-in-cacheflushh.patch
+     alpha-use-asm-generic-cacheflushh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/asm-generic-dont-include-linux-mmh-in-cacheflushh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/alpha-use-asm-generic-cacheflushh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/asm-generic-dont-include-linux-mmh-in-cacheflushh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/alpha-use-asm-generic-cacheflushh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,93 +39,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: asm-generic: don't include <linux/mm.h> in cacheflush.h
+Subject: alpha: use asm-generic/cacheflush.h
 
-This seems to lead to some crazy include loops when using
-asm-generic/cacheflush.h on more architectures, so leave it to the arch
-header for now.
+Alpha needs almost no cache flushing routines of its own.  Rely on
+asm-generic/cacheflush.h for the defaults.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-7-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-9-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Nick Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/tlb.h         |    2 ++
- arch/x86/include/asm/cacheflush.h |    2 ++
- drivers/nvdimm/pmem.c             |    3 ++-
- include/asm-generic/cacheflush.h  |    3 ---
- 4 files changed, 6 insertions(+), 4 deletions(-)
+ arch/alpha/include/asm/cacheflush.h |   28 +++++---------------------
+ 1 file changed, 6 insertions(+), 22 deletions(-)
 
---- a/arch/um/include/asm/tlb.h~asm-generic-dont-include-linux-mmh-in-cacheflushh
-+++ a/arch/um/include/asm/tlb.h
-@@ -2,6 +2,8 @@
- #ifndef __UM_TLB_H
- #define __UM_TLB_H
+--- a/arch/alpha/include/asm/cacheflush.h~alpha-use-asm-generic-cacheflushh
++++ a/arch/alpha/include/asm/cacheflush.h
+@@ -4,19 +4,6 @@
  
-+#include <linux/mm.h>
-+
- #include <asm/tlbflush.h>
- #include <asm-generic/cacheflush.h>
- #include <asm-generic/tlb.h>
---- a/arch/x86/include/asm/cacheflush.h~asm-generic-dont-include-linux-mmh-in-cacheflushh
-+++ a/arch/x86/include/asm/cacheflush.h
-@@ -2,6 +2,8 @@
- #ifndef _ASM_X86_CACHEFLUSH_H
- #define _ASM_X86_CACHEFLUSH_H
+ #include <linux/mm.h>
  
-+#include <linux/mm.h>
-+
- /* Caches aren't brain-dead on the intel. */
- #include <asm-generic/cacheflush.h>
- #include <asm/special_insns.h>
---- a/drivers/nvdimm/pmem.c~asm-generic-dont-include-linux-mmh-in-cacheflushh
-+++ a/drivers/nvdimm/pmem.c
-@@ -7,7 +7,6 @@
-  * Copyright (c) 2015, Boaz Harrosh <boaz@plexistor.com>.
-  */
- 
--#include <asm/cacheflush.h>
- #include <linux/blkdev.h>
- #include <linux/hdreg.h>
- #include <linux/init.h>
-@@ -25,6 +24,8 @@
- #include <linux/dax.h>
- #include <linux/nd.h>
- #include <linux/backing-dev.h>
-+#include <linux/mm.h>
-+#include <asm/cacheflush.h>
- #include "pmem.h"
- #include "pfn.h"
- #include "nd.h"
---- a/include/asm-generic/cacheflush.h~asm-generic-dont-include-linux-mmh-in-cacheflushh
-+++ a/include/asm-generic/cacheflush.h
-@@ -2,9 +2,6 @@
- #ifndef _ASM_GENERIC_CACHEFLUSH_H
- #define _ASM_GENERIC_CACHEFLUSH_H
- 
--/* Keep includes the same across arches.  */
--#include <linux/mm.h>
+-/* Caches aren't brain-dead on the Alpha. */
+-#define flush_cache_all()			do { } while (0)
+-#define flush_cache_mm(mm)			do { } while (0)
+-#define flush_cache_dup_mm(mm)			do { } while (0)
+-#define flush_cache_range(vma, start, end)	do { } while (0)
+-#define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+-#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+-#define flush_dcache_page(page)			do { } while (0)
+-#define flush_dcache_mmap_lock(mapping)		do { } while (0)
+-#define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+-#define flush_cache_vmap(start, end)		do { } while (0)
+-#define flush_cache_vunmap(start, end)		do { } while (0)
 -
- #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ /* Note that the following two definitions are _highly_ dependent
+    on the contexts in which they are used in the kernel.  I personally
+    think it is criminal how loosely defined these macros are.  */
+@@ -59,20 +46,17 @@ flush_icache_user_range(struct vm_area_s
+ 			mm->context[smp_processor_id()] = 0;
+ 	}
+ }
+-#else
++#define flush_icache_user_range flush_icache_user_range
++#else /* CONFIG_SMP */
+ extern void flush_icache_user_range(struct vm_area_struct *vma,
+ 		struct page *page, unsigned long addr, int len);
+-#endif
++#define flush_icache_user_range flush_icache_user_range
++#endif /* CONFIG_SMP */
  
- /*
+ /* This is used only in __do_fault and do_swap_page.  */
+ #define flush_icache_page(vma, page) \
+-  flush_icache_user_range((vma), (page), 0, 0)
++	flush_icache_user_range((vma), (page), 0, 0)
+ 
+-#define copy_to_user_page(vma, page, vaddr, dst, src, len) \
+-do { memcpy(dst, src, len); \
+-     flush_icache_user_range(vma, page, vaddr, len); \
+-} while (0)
+-#define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+-	memcpy(dst, src, len)
++#include <asm-generic/cacheflush.h>
+ 
+ #endif /* _ALPHA_CACHEFLUSH_H */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
