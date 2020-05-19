@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-unexport-flush_icache_user_range.patch added to
+Subject: + unicore32-remove-flush_cache_user_range.patch added to
  -mm tree
-Date: Mon, 18 May 2020 18:12:44 -0700
-Message-ID: <20200519011244.Xlyo7aMX6%akpm@linux-foundation.org>
+Date: Mon, 18 May 2020 18:12:46 -0700
+Message-ID: <20200519011246.iv60_nePs%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58452 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726628AbgESBMp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 May 2020 21:12:45 -0400
+        id S1726628AbgESBMr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 May 2020 21:12:47 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, hch@lst.de, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org
+To: gxt@pku.edu.cn, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: unexport flush_icache_user_range
+     Subject: unicore32: remove flush_cache_user_range
 has been added to the -mm tree.  Its filename is
-     powerpc-unexport-flush_icache_user_range.patch
+     unicore32-remove-flush_cache_user_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-unexport-flush_icache_user_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/unicore32-remove-flush_cache_user_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-unexport-flush_icache_user_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/unicore32-remove-flush_cache_user_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,32 +39,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: powerpc: unexport flush_icache_user_range
+Subject: unicore32: remove flush_cache_user_range
 
-flush_icache_user_range is only used by copy_to_user_page, which is
-only used by core VM code.
+flush_cache_user_range is an ARMism not used by any generic or unicore32
+specific code.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-4-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-5-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Guan Xuetao <gxt@pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mem.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/unicore32/include/asm/cacheflush.h |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/arch/powerpc/mm/mem.c~powerpc-unexport-flush_icache_user_range
-+++ a/arch/powerpc/mm/mem.c
-@@ -583,7 +583,6 @@ void flush_icache_user_range(struct vm_a
- 	flush_icache_range(maddr, maddr + len);
- 	kunmap(page);
- }
--EXPORT_SYMBOL(flush_icache_user_range);
+--- a/arch/unicore32/include/asm/cacheflush.h~unicore32-remove-flush_cache_user_range
++++ a/arch/unicore32/include/asm/cacheflush.h
+@@ -133,14 +133,6 @@ extern void flush_cache_page(struct vm_a
+ #define flush_cache_dup_mm(mm) flush_cache_mm(mm)
  
  /*
-  * System memory should not be in /proc/iomem but various tools expect it
+- * flush_cache_user_range is used when we want to ensure that the
+- * Harvard caches are synchronised for the user space address range.
+- * This is used for the UniCore private sys_cacheflush system call.
+- */
+-#define flush_cache_user_range(vma, start, end) \
+-	__cpuc_coherent_user_range((start) & PAGE_MASK, PAGE_ALIGN(end))
+-
+-/*
+  * Perform necessary cache operations to ensure that data previously
+  * stored within this range of addresses can be executed by the CPU.
+  */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
