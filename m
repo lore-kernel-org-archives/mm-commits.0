@@ -1,31 +1,29 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
- added to -mm tree
-Date: Wed, 20 May 2020 16:46:39 -0700
-Message-ID: <20200520234639.Bjq6Hhiq6%akpm@linux-foundation.org>
+Subject: + padata-initialize-earlier-fix.patch added to -mm tree
+Date: Wed, 20 May 2020 16:53:02 -0700
+Message-ID: <20200520235302.T_vGuZ79Q%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37912 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39972 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726566AbgETXql (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 19:46:41 -0400
+        id S1726560AbgETXxD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 19:53:03 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, lkp@intel.com, matorola@gmail.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com, stable@vger.kernel.org
+To: akpm@linux-foundation.org, daniel.m.jordan@oracle.com, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org, steffen.klassert@secunet.com
 
 
 The patch titled
-     Subject: sparc32: use PUD rather than PGD to get PMD in srmmu_nocache_init()
+     Subject: padata-initialize-earlier-fix
 has been added to the -mm tree.  Its filename is
-     sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
+     padata-initialize-earlier-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/padata-initialize-earlier-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/padata-initialize-earlier-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,101 +37,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: sparc32: use PUD rather than PGD to get PMD in srmmu_nocache_init()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: padata-initialize-earlier-fix
 
-The kbuild test robot reported the following warning:
+don't put <#include padata.h> at the end of the list, to reduce patch
+collisions
 
-arch/sparc/mm/srmmu.c: In function 'srmmu_nocache_init':
->> arch/sparc/mm/srmmu.c:300:9: error: variable 'pud' set but not used
->> [-Werror=unused-but-set-variable]
-300 |  pud_t *pud;
-
-This warning is caused by misprint in the page table traversal in
-srmmu_nocache_init() function which accessed a PMD entry using PGD rather
-than PUD.
-Since sparc32 has only 3 page table levels, the PGD and PUD are essentially
-the same and usage of __nocache_fix() removed the type checking.
-
-Use PUD for the consistency and to silence the compiler warning.
-
-Link: http://lkml.kernel.org/r/20200520132005.GM1059226@linux.ibm.com
-Fixes: 7235db268a2777bc38 ("sparc32: use pgtable-nopud instead of 4level-fixup")
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reported-by: kbuild test robot <lkp@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Anatoly Pugachev <matorola@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/srmmu.c |    2 +-
+ init/main.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sparc/mm/srmmu.c~sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init
-+++ a/arch/sparc/mm/srmmu.c
-@@ -333,7 +333,7 @@ static void __init srmmu_nocache_init(vo
- 		pgd = pgd_offset_k(vaddr);
- 		p4d = p4d_offset(__nocache_fix(pgd), vaddr);
- 		pud = pud_offset(__nocache_fix(p4d), vaddr);
--		pmd = pmd_offset(__nocache_fix(pgd), vaddr);
-+		pmd = pmd_offset(__nocache_fix(pud), vaddr);
- 		pte = pte_offset_kernel(__nocache_fix(pmd), vaddr);
+--- a/init/main.c~padata-initialize-earlier-fix
++++ a/init/main.c
+@@ -63,6 +63,7 @@
+ #include <linux/debugobjects.h>
+ #include <linux/lockdep.h>
+ #include <linux/kmemleak.h>
++#include <linux/padata.h>
+ #include <linux/pid_namespace.h>
+ #include <linux/device/driver.h>
+ #include <linux/kthread.h>
+@@ -94,7 +95,6 @@
+ #include <linux/rodata_test.h>
+ #include <linux/jump_label.h>
+ #include <linux/mem_encrypt.h>
+-#include <linux/padata.h>
  
- 		pteval = ((paddr >> 4) | SRMMU_ET_PTE | SRMMU_PRIV);
+ #include <asm/io.h>
+ #include <asm/bugs.h>
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
-mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
-mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
-mm-remove-config_have_memblock_node_map-option.patch
-mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
-mm-use-free_area_init-instead-of-free_area_init_nodes.patch
-alpha-simplify-detection-of-memory-zone-boundaries.patch
-arm-simplify-detection-of-memory-zone-boundaries.patch
-arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
-csky-simplify-detection-of-memory-zone-boundaries.patch
-m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
-parisc-simplify-detection-of-memory-zone-boundaries.patch
-sparc32-simplify-detection-of-memory-zone-boundaries.patch
-unicore32-simplify-detection-of-memory-zone-boundaries.patch
-xtensa-simplify-detection-of-memory-zone-boundaries.patch
-mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2.patch
-mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
-mm-clean-up-free_area_init_node-and-its-helpers.patch
-mm-simplify-find_min_pfn_with_active_regions.patch
-docs-vm-update-memory-models-documentation.patch
-h8300-remove-usage-of-__arch_use_5level_hack.patch
-arm-add-support-for-folded-p4d-page-tables.patch
-arm-add-support-for-folded-p4d-page-tables-fix.patch
-arm64-add-support-for-folded-p4d-page-tables.patch
-hexagon-remove-__arch_use_5level_hack.patch
-ia64-add-support-for-folded-p4d-page-tables.patch
-nios2-add-support-for-folded-p4d-page-tables.patch
-openrisc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables-fix.patch
-powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch
-sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
-sh-add-support-for-folded-p4d-page-tables.patch
-unicore32-remove-__arch_use_5level_hack.patch
-asm-generic-remove-pgtable-nop4d-hackh.patch
-mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
-mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
-mm-introduce-include-linux-pgtableh.patch
-mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
-csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
-m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
-m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2.patch
-mm-consolidate-pte_index-and-pte_offset_-definitions.patch
-mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
-mm-consolidate-pud_index-and-pud_offset-definitions.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+mm-gupc-updating-the-documentation-fix.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
+mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+padata-initialize-earlier-fix.patch
+arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-add-debug_wx-support-fix.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-rejects.patch
+kernel-add-panic_on_taint-fix.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
