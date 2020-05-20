@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + padata-document-multithreaded-jobs.patch added to -mm
- tree
-Date: Wed, 20 May 2020 16:31:37 -0700
-Message-ID: <20200520233137.uurquAPOn%akpm@linux-foundation.org>
+Subject: +
+ sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
+ added to -mm tree
+Date: Wed, 20 May 2020 16:46:39 -0700
+Message-ID: <20200520234639.Bjq6Hhiq6%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57592 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37912 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728664AbgETXbj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 19:31:39 -0400
+        id S1726566AbgETXql (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 19:46:41 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.williamson@redhat.com, alexander.h.duyck@linux.intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com, david@redhat.com, elliott@hpe.com, herbert@gondor.apana.org.au, jgg@ziepe.ca, josh@joshtriplett.org, ktkhai@virtuozzo.com, mhocko@kernel.org, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, pavel@ucw.cz, peterz@infradead.org, rdunlap@infradead.org, shile.zhang@linux.alibaba.com, steffen.klassert@secunet.com, steven.sistare@oracle.com, tj@kernel.org, ziy@nvidia.com
+To: davem@davemloft.net, lkp@intel.com, matorola@gmail.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: padata: document multithreaded jobs
+     Subject: sparc32: use PUD rather than PGD to get PMD in srmmu_nocache_init()
 has been added to the -mm tree.  Its filename is
-     padata-document-multithreaded-jobs.patch
+     sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/padata-document-multithreaded-jobs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/padata-document-multithreaded-jobs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,113 +39,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Jordan <daniel.m.jordan@oracle.com>
-Subject: padata: document multithreaded jobs
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: sparc32: use PUD rather than PGD to get PMD in srmmu_nocache_init()
 
-Add Documentation for multithreaded jobs.
+The kbuild test robot reported the following warning:
 
-Link: http://lkml.kernel.org/r/20200520182645.1658949-8-daniel.m.jordan@oracle.com
-Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Robert Elliott <elliott@hpe.com>
-Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+arch/sparc/mm/srmmu.c: In function 'srmmu_nocache_init':
+>> arch/sparc/mm/srmmu.c:300:9: error: variable 'pud' set but not used
+>> [-Werror=unused-but-set-variable]
+300 |  pud_t *pud;
+
+This warning is caused by misprint in the page table traversal in
+srmmu_nocache_init() function which accessed a PMD entry using PGD rather
+than PUD.
+Since sparc32 has only 3 page table levels, the PGD and PUD are essentially
+the same and usage of __nocache_fix() removed the type checking.
+
+Use PUD for the consistency and to silence the compiler warning.
+
+Link: http://lkml.kernel.org/r/20200520132005.GM1059226@linux.ibm.com
+Fixes: 7235db268a2777bc38 ("sparc32: use pgtable-nopud instead of 4level-fixup")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Anatoly Pugachev <matorola@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/padata.rst |   41 +++++++++++++++++++++-------
- 1 file changed, 31 insertions(+), 10 deletions(-)
+ arch/sparc/mm/srmmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/core-api/padata.rst~padata-document-multithreaded-jobs
-+++ a/Documentation/core-api/padata.rst
-@@ -4,23 +4,26 @@
- The padata parallel execution mechanism
- =======================================
+--- a/arch/sparc/mm/srmmu.c~sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init
++++ a/arch/sparc/mm/srmmu.c
+@@ -333,7 +333,7 @@ static void __init srmmu_nocache_init(vo
+ 		pgd = pgd_offset_k(vaddr);
+ 		p4d = p4d_offset(__nocache_fix(pgd), vaddr);
+ 		pud = pud_offset(__nocache_fix(p4d), vaddr);
+-		pmd = pmd_offset(__nocache_fix(pgd), vaddr);
++		pmd = pmd_offset(__nocache_fix(pud), vaddr);
+ 		pte = pte_offset_kernel(__nocache_fix(pmd), vaddr);
  
--:Date: December 2019
-+:Date: April 2020
- 
- Padata is a mechanism by which the kernel can farm jobs out to be done in
--parallel on multiple CPUs while retaining their ordering.  It was developed for
--use with the IPsec code, which needs to be able to perform encryption and
--decryption on large numbers of packets without reordering those packets.  The
--crypto developers made a point of writing padata in a sufficiently general
--fashion that it could be put to other uses as well.
-+parallel on multiple CPUs while optionally retaining their ordering.
- 
--Usage
--=====
-+It was originally developed for IPsec, which needs to perform encryption and
-+decryption on large numbers of packets without reordering those packets.  This
-+is currently the sole consumer of padata's serialized job support.
-+
-+Padata also supports multithreaded jobs, splitting up the job evenly while load
-+balancing and coordinating between threads.
-+
-+Running Serialized Jobs
-+=======================
- 
- Initializing
- ------------
- 
--The first step in using padata is to set up a padata_instance structure for
--overall control of how jobs are to be run::
-+The first step in using padata to run parallel jobs is to set up a
-+padata_instance structure for overall control of how jobs are to be run::
- 
-     #include <linux/padata.h>
- 
-@@ -162,6 +165,24 @@ functions that correspond to the allocat
- It is the user's responsibility to ensure all outstanding jobs are complete
- before any of the above are called.
- 
-+Running Multithreaded Jobs
-+==========================
-+
-+A multithreaded job has a main thread and zero or more helper threads, with the
-+main thread participating in the job and then waiting until all helpers have
-+finished.  padata splits the job into units called chunks, where a chunk is a
-+piece of the job that one thread completes in one call to the thread function.
-+
-+A user has to do three things to run a multithreaded job.  First, describe the
-+job by defining a padata_mt_job structure, which is explained in the Interface
-+section.  This includes a pointer to the thread function, which padata will
-+call each time it assigns a job chunk to a thread.  Then, define the thread
-+function, which accepts three arguments, ``start``, ``end``, and ``arg``, where
-+the first two delimit the range that the thread operates on and the last is a
-+pointer to the job's shared state, if any.  Prepare the shared state, which is
-+typically a stack-allocated structure that wraps the required data.  Last, call
-+padata_do_multithreaded(), which will return once the job is finished.
-+
- Interface
- =========
- 
+ 		pteval = ((paddr >> 4) | SRMMU_ET_PTE | SRMMU_PRIV);
 _
 
-Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init.patch
-padata-remove-exit-routine.patch
-padata-initialize-earlier.patch
-padata-allocate-work-structures-for-parallel-jobs-from-a-pool.patch
-padata-add-basic-support-for-multithreaded-jobs.patch
-mm-parallelize-deferred_init_memmap.patch
-mm-make-deferred-inits-max-threads-arch-specific.patch
-padata-document-multithreaded-jobs.patch
+sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
+mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
+mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
+mm-remove-config_have_memblock_node_map-option.patch
+mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
+mm-use-free_area_init-instead-of-free_area_init_nodes.patch
+alpha-simplify-detection-of-memory-zone-boundaries.patch
+arm-simplify-detection-of-memory-zone-boundaries.patch
+arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+csky-simplify-detection-of-memory-zone-boundaries.patch
+m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
+parisc-simplify-detection-of-memory-zone-boundaries.patch
+sparc32-simplify-detection-of-memory-zone-boundaries.patch
+unicore32-simplify-detection-of-memory-zone-boundaries.patch
+xtensa-simplify-detection-of-memory-zone-boundaries.patch
+mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2.patch
+mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
+mm-clean-up-free_area_init_node-and-its-helpers.patch
+mm-simplify-find_min_pfn_with_active_regions.patch
+docs-vm-update-memory-models-documentation.patch
+h8300-remove-usage-of-__arch_use_5level_hack.patch
+arm-add-support-for-folded-p4d-page-tables.patch
+arm-add-support-for-folded-p4d-page-tables-fix.patch
+arm64-add-support-for-folded-p4d-page-tables.patch
+hexagon-remove-__arch_use_5level_hack.patch
+ia64-add-support-for-folded-p4d-page-tables.patch
+nios2-add-support-for-folded-p4d-page-tables.patch
+openrisc-add-support-for-folded-p4d-page-tables.patch
+powerpc-add-support-for-folded-p4d-page-tables.patch
+powerpc-add-support-for-folded-p4d-page-tables-fix.patch
+powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch
+sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
+sh-add-support-for-folded-p4d-page-tables.patch
+unicore32-remove-__arch_use_5level_hack.patch
+asm-generic-remove-pgtable-nop4d-hackh.patch
+mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
+mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
+mm-introduce-include-linux-pgtableh.patch
+mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
+csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
+m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
+m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
+x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
+mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
+mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix.patch
+mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2.patch
+mm-consolidate-pte_index-and-pte_offset_-definitions.patch
+mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
+mm-consolidate-pud_index-and-pud_offset-definitions.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions.patch
