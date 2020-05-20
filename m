@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+ mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
  added to -mm tree
-Date: Tue, 19 May 2020 18:40:37 -0700
-Message-ID: <20200520014037.oeQHRc5Lq%akpm@linux-foundation.org>
+Date: Tue, 19 May 2020 18:41:32 -0700
+Message-ID: <20200520014132.IwdmI5D_y%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39758 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726348AbgETBki (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 May 2020 21:40:38 -0400
+        id S1726348AbgETBld (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 May 2020 21:41:33 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: charante@codeaurora.org, mm-commits@vger.kernel.org, vinmenon@codeaurora.org
+To: akpm@linux-foundation.org, charante@codeaurora.org, mm-commits@vger.kernel.org, vinmenon@codeaurora.org
 
 
 The patch titled
-     Subject: mm, page_alloc: skip ->waternark_boost for atomic order-0 allocations
+     Subject: mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+     mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +39,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm, page_alloc: skip ->waternark_boost for atomic order-0 allocations
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix
 
-When boosting is enabled, it is observed that rate of atomic order-0
-allocation failures are high due to the fact that free levels in the
-system are checked with ->watermark_boost offset.  This is not a problem
-for sleepable allocations but for atomic allocations which looks like
-regression.
+fix comment grammer, reflow comment
 
-This problem is seen frequently on system setup of Android kernel running
-on Snapdragon hardware with 4GB RAM size.  When no extfrag event occurred
-in the system, ->watermark_boost factor is zero, thus the watermark
-configurations in the system are:
-
-   _watermark = (
-          [WMARK_MIN] = 1272, --> ~5MB
-          [WMARK_LOW] = 9067, --> ~36MB
-          [WMARK_HIGH] = 9385), --> ~38MB
-   watermark_boost = 0
-
-After launching some memory hungry applications in Android which can cause
-extfrag events in the system to an extent that ->watermark_boost can be
-set to max i.e.  default boost factor makes it to 150% of high watermark.
-
-   _watermark = (
-          [WMARK_MIN] = 1272, --> ~5MB
-          [WMARK_LOW] = 9067, --> ~36MB
-          [WMARK_HIGH] = 9385), --> ~38MB
-   watermark_boost = 14077, -->~57MB
-
-With default system configuration, for an atomic order-0 allocation to
-succeed, having free memory of ~2MB will suffice.  But boosting makes the
-min_wmark to ~61MB thus for an atomic order-0 allocation to be successful
-system should have minimum of ~23MB of free memory(from calculations of
-zone_watermark_ok(), min = 3/4(min/2)).  But failures are observed despite
-system is having ~20MB of free memory.  In the testing, this is
-reproducible as early as first 300secs since boot and with further lowram
-configurations(<2GB) it is observed as early as first 150secs since boot.
-
-These failures can be avoided by excluding the ->watermark_boost in
-watermark calculations for atomic order-0 allocations.
-
-Link: http://lkml.kernel.org/r/1589882284-21010-1-git-send-email-charante@codeaurora.org
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
+Cc: Charan Teja Reddy <charante@codeaurora.org>
 Cc: Vinayak Menon <vinmenon@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/page_alloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations
+--- a/mm/page_alloc.c~mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix
 +++ a/mm/page_alloc.c
-@@ -3709,6 +3709,18 @@ retry:
- 		}
- 
+@@ -3711,11 +3711,11 @@ retry:
  		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
-+		/*
-+		 * Allow GFP_ATOMIC order-0 allocations to exclude the
-+		 * zone->watermark_boost in its watermark calculations.
-+		 * We rely on the ALLOC_ flags set for GFP_ATOMIC
-+		 * requests in gfp_to_alloc_flags() for this. Reason not to
-+		 * use the GFP_ATOMIC directly is that we want to fall back
-+		 * to slow path thus wake up kswapd.
-+		 */
-+		if (unlikely(!order && !(alloc_flags & ALLOC_WMARK_MASK) &&
-+		     (alloc_flags & (ALLOC_HARDER | ALLOC_HIGH)))) {
-+			mark = zone->_watermark[WMARK_MIN];
-+		}
- 		if (!zone_watermark_fast(zone, order, mark,
- 				       ac->highest_zoneidx, alloc_flags)) {
- 			int ret;
+ 		/*
+ 		 * Allow GFP_ATOMIC order-0 allocations to exclude the
+-		 * zone->watermark_boost in its watermark calculations.
+-		 * We rely on the ALLOC_ flags set for GFP_ATOMIC
+-		 * requests in gfp_to_alloc_flags() for this. Reason not to
+-		 * use the GFP_ATOMIC directly is that we want to fall back
+-		 * to slow path thus wake up kswapd.
++		 * zone->watermark_boost in their watermark calculations.
++		 * We rely on the ALLOC_ flags set for GFP_ATOMIC requests in
++		 * gfp_to_alloc_flags() for this.  Reason not to use the
++		 * GFP_ATOMIC directly is that we want to fall back to slow path
++		 * thus wake up kswapd.
+ 		 */
+ 		if (unlikely(!order && !(alloc_flags & ALLOC_WMARK_MASK) &&
+ 		     (alloc_flags & (ALLOC_HARDER | ALLOC_HIGH)))) {
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-reset-the-zone-watermark_boost-early.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+mm-gupc-updating-the-documentation-fix.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
+mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-add-debug_wx-support-fix.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-rejects.patch
+kernel-add-panic_on_taint-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
