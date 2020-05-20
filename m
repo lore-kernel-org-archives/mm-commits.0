@@ -1,30 +1,29 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + makefile-support-compressed-debug-info.patch added to
- -mm tree
-Date: Wed, 20 May 2020 16:22:05 -0700
-Message-ID: <20200520232205.lR35_cCwC%akpm@linux-foundation.org>
+Subject: + padata-remove-exit-routine.patch added to -mm tree
+Date: Wed, 20 May 2020 16:31:16 -0700
+Message-ID: <20200520233116.ahMy5DKfL%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49466 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57058 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728683AbgETXWG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 19:22:06 -0400
+        id S1726688AbgETXbS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 19:31:18 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, blakie@google.com, changbin.du@intel.com, krzk@kernel.org, maskray@google.com, mchehab+huawei@kernel.org, michal.lkml@markovi.net, mm-commits@vger.kernel.org, ndesaulniers@google.com, nickc@redhat.com, rdunlap@infradead.org, sedat.dilek@gmail.com, sfr@canb.auug.org.au
+To: alex.williamson@redhat.com, alexander.h.duyck@linux.intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com, david@redhat.com, elliott@hpe.com, herbert@gondor.apana.org.au, jgg@ziepe.ca, josh@joshtriplett.org, ktkhai@virtuozzo.com, mhocko@kernel.org, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, pavel@ucw.cz, peterz@infradead.org, rdunlap@infradead.org, shile.zhang@linux.alibaba.com, steffen.klassert@secunet.com, steven.sistare@oracle.com, tj@kernel.org, ziy@nvidia.com
 
 
 The patch titled
-     Subject: Makefile: support compressed debug info
+     Subject: padata: remove exit routine
 has been added to the -mm tree.  Its filename is
-     makefile-support-compressed-debug-info.patch
+     padata-remove-exit-routine.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/makefile-support-compressed-debug-info.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/padata-remove-exit-routine.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/makefile-support-compressed-debug-info.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/padata-remove-exit-routine.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,124 +37,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: Makefile: support compressed debug info
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: padata: remove exit routine
 
-As debug information gets larger and larger, it helps significantly save
-the size of vmlinux images to compress the information in the debug
-information sections.  Note: this debug info is typically split off from
-the final compressed kernel image, which is why vmlinux is what's used in
-conjunction with GDB.  Minimizing the debug info size should have no
-impact on boot times, or final compressed kernel image size.
+Patch series "padata: parallelize deferred page init", v2.
 
-All of the debug sections will have a `C` flag set.
-$ readelf -S <object file>
+Deferred struct page init is a bottleneck in kernel boot--the biggest for
+us and probably others.  Optimizing it maximizes availability for
+large-memory systems and allows spinning up short-lived VMs as needed
+without having to leave them running.  It also benefits bare metal
+machines hosting VMs that are sensitive to downtime.  In projects such as
+VMM Fast Restart[1], where guest state is preserved across kexec reboot,
+it helps prevent application and network timeouts in the guests.
 
-$ bloaty vmlinux.gcc75.compressed.dwarf4 -- \
-    vmlinux.gcc75.uncompressed.dwarf4
+So, multithread deferred init to take full advantage of system memory
+bandwidth.
 
-    FILE SIZE        VM SIZE
- --------------  --------------
-  +0.0%     +18  [ = ]       0    [Unmapped]
- -73.3%  -114Ki  [ = ]       0    .debug_aranges
- -76.2% -2.01Mi  [ = ]       0    .debug_frame
- -73.6% -2.89Mi  [ = ]       0    .debug_str
- -80.7% -4.66Mi  [ = ]       0    .debug_abbrev
- -82.9% -4.88Mi  [ = ]       0    .debug_ranges
- -70.5% -9.04Mi  [ = ]       0    .debug_line
- -79.3% -10.9Mi  [ = ]       0    .debug_loc
- -39.5% -88.6Mi  [ = ]       0    .debug_info
- -18.2%  -123Mi  [ = ]       0    TOTAL
+Extend padata, a framework that handles many parallel singlethreaded jobs,
+to handle multithreaded jobs as well by adding support for splitting up
+the work evenly, specifying a minimum amount of work that's appropriate
+for one helper thread to do, load balancing between helpers, and
+coordinating them.  More documentation in patches 4 and 7.
 
-$ bloaty vmlinux.clang11.compressed.dwarf4 -- \
-    vmlinux.clang11.uncompressed.dwarf4
+This series is the first step in a project to address other memory
+proportional bottlenecks in the kernel such as pmem struct page init, vfio
+page pinning, hugetlb fallocate, and munmap.  Deferred page init doesn't
+require concurrency limits, resource control, or priority adjustments like
+these other users will because it happens during boot when the system is
+otherwise idle and waiting for page init to finish.
 
-    FILE SIZE        VM SIZE
- --------------  --------------
-  +0.0%     +23  [ = ]       0    [Unmapped]
- -65.6%    -871  [ = ]       0    .debug_aranges
- -77.4% -1.84Mi  [ = ]       0    .debug_frame
- -82.9% -2.33Mi  [ = ]       0    .debug_abbrev
- -73.1% -2.43Mi  [ = ]       0    .debug_str
- -84.8% -3.07Mi  [ = ]       0    .debug_ranges
- -65.9% -8.62Mi  [ = ]       0    .debug_line
- -86.2% -40.0Mi  [ = ]       0    .debug_loc
- -42.0% -64.1Mi  [ = ]       0    .debug_info
- -22.1%  -122Mi  [ = ]       0    TOTAL
+This has been run on a variety of x86 systems and speeds up kernel boot by
+3% to 49%, saving up to 1.6 out of 4 seconds.  Patch 5 has more numbers.
 
-For x86_64 defconfig + LLVM=1 (before):
-Elapsed (wall clock) time (h:mm:ss or m:ss): 3:22.03
-Maximum resident set size (kbytes): 43856
 
-For x86_64 defconfig + LLVM=1 (after):
-Elapsed (wall clock) time (h:mm:ss or m:ss): 3:32.52
-Maximum resident set size (kbytes): 1566776
+This patch (of 7):
 
-Link: http://lkml.kernel.org/r/20200520193637.6015-1-ndesaulniers@google.com
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Suggested-by: David Blaikie <blakie@google.com>
-Suggested-by: Fangrui Song <maskray@google.com>
-Suggested-by: Nick Clifton <nickc@redhat.com>
-Suggested-by: Sedat Dilek <sedat.dilek@gmail.com>
-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Nick Clifton <nickc@redhat.com>
-Cc: Michal Marek <michal.lkml@markovi.net>
-Cc: Changbin Du <changbin.du@intel.com>
+padata_driver_exit() is unnecessary because padata isn't built as a module
+and doesn't exit.
+
+padata's init routine will soon allocate memory, so getting rid of the
+exit function now avoids pointless code to free it.
+
+Link: http://lkml.kernel.org/r/20200520182645.1658949-1-daniel.m.jordan@oracle.com
+Link: http://lkml.kernel.org/r/20200520182645.1658949-2-daniel.m.jordan@oracle.com
+Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Robert Elliott <elliott@hpe.com>
+Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
+Cc: Steven Sistare <steven.sistare@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile          |    6 ++++++
- lib/Kconfig.debug |   15 +++++++++++++++
- 2 files changed, 21 insertions(+)
+ kernel/padata.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/lib/Kconfig.debug~makefile-support-compressed-debug-info
-+++ a/lib/Kconfig.debug
-@@ -213,6 +213,21 @@ config DEBUG_INFO_REDUCED
- 	  DEBUG_INFO build and compile times are reduced too.
- 	  Only works with newer gcc versions.
+--- a/kernel/padata.c~padata-remove-exit-routine
++++ a/kernel/padata.c
+@@ -1072,10 +1072,4 @@ static __init int padata_driver_init(voi
+ }
+ module_init(padata_driver_init);
  
-+config DEBUG_INFO_COMPRESSED
-+	bool "Compressed debugging information"
-+	depends on DEBUG_INFO
-+	depends on $(cc-option,-gz=zlib)
-+	depends on $(as-option,-Wa,--compress-debug-sections=zlib)
-+	depends on $(ld-option,--compress-debug-sections=zlib)
-+	help
-+	  Compress the debug information using zlib.  Requires GCC 5.0+ or Clang
-+	  5.0+, binutils 2.26+, and zlib.
-+
-+	  Users of dpkg-deb via scripts/package/builddeb may
-+	  wish to set the $KDEB_COMPRESS env var to "none" to avoid recompressing
-+	  the debug info again with a different compression scheme, which can
-+	  result in larger binaries.
-+
- config DEBUG_INFO_SPLIT
- 	bool "Produce split debuginfo in .dwo files"
- 	depends on DEBUG_INFO
---- a/Makefile~makefile-support-compressed-debug-info
-+++ a/Makefile
-@@ -814,6 +814,12 @@ DEBUG_CFLAGS	+= $(call cc-option, -femit
- 		   $(call cc-option,-fno-var-tracking)
- endif
- 
-+ifdef CONFIG_DEBUG_INFO_COMPRESSED
-+DEBUG_CFLAGS	+= -gz=zlib
-+KBUILD_AFLAGS	+= -Wa,--compress-debug-sections=zlib
-+KBUILD_LDFLAGS	+= --compress-debug-sections=zlib
-+endif
-+
- KBUILD_CFLAGS += $(DEBUG_CFLAGS)
- export DEBUG_CFLAGS
- 
+-static __exit void padata_driver_exit(void)
+-{
+-	cpuhp_remove_multi_state(CPUHP_PADATA_DEAD);
+-	cpuhp_remove_multi_state(hp_online);
+-}
+-module_exit(padata_driver_exit);
+ #endif
 _
 
-Patches currently in -mm which might be from ndesaulniers@google.com are
+Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
 
-x86-bitops-fix-build-regression.patch
-makefile-support-compressed-debug-info.patch
-elfnote-mark-all-note-sections-shf_alloc.patch
+mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init.patch
+padata-remove-exit-routine.patch
+padata-initialize-earlier.patch
+padata-allocate-work-structures-for-parallel-jobs-from-a-pool.patch
+padata-add-basic-support-for-multithreaded-jobs.patch
+mm-parallelize-deferred_init_memmap.patch
+mm-make-deferred-inits-max-threads-arch-specific.patch
+padata-document-multithreaded-jobs.patch
