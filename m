@@ -1,29 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + padata-initialize-earlier-fix.patch added to -mm tree
-Date: Wed, 20 May 2020 16:53:02 -0700
-Message-ID: <20200520235302.T_vGuZ79Q%akpm@linux-foundation.org>
+Subject: +
+ asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch added to -mm
+ tree
+Date: Wed, 20 May 2020 16:57:51 -0700
+Message-ID: <20200520235751.Hqh4Knwk9%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39972 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41200 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726560AbgETXxD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 19:53:03 -0400
+        id S1726619AbgETX5w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 19:57:52 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, daniel.m.jordan@oracle.com, herbert@gondor.apana.org.au, mm-commits@vger.kernel.org, steffen.klassert@secunet.com
+To: hch@lst.de, lkp@intel.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: padata-initialize-earlier-fix
+     Subject: asm-generic-dont-include-linux-mmh-in-cacheflushh-fix
 has been added to the -mm tree.  Its filename is
-     padata-initialize-earlier-fix.patch
+     asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/padata-initialize-earlier-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/padata-initialize-earlier-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,73 +39,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: padata-initialize-earlier-fix
+From: Christoph Hellwig <hch@lst.de>
+Subject: asm-generic-dont-include-linux-mmh-in-cacheflushh-fix
 
-don't put <#include padata.h> at the end of the list, to reduce patch
-collisions
+fix warning:
 
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
+In file included from ./arch/s390/include/generated/asm/cacheflush.h:1,
+from drivers/media/platform/omap3isp/ispvideo.c:13:
+include/asm-generic/cacheflush.h:18:42: warning: 'struct mm_struct' declared inside parameter list will not be visible outside of this definition or declaration
+
+Link: http://lkml.kernel.org/r/20200520173520.GA11199@lst.de
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
+ drivers/media/platform/omap3isp/ispvideo.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/init/main.c~padata-initialize-earlier-fix
-+++ a/init/main.c
-@@ -63,6 +63,7 @@
- #include <linux/debugobjects.h>
- #include <linux/lockdep.h>
- #include <linux/kmemleak.h>
-+#include <linux/padata.h>
- #include <linux/pid_namespace.h>
- #include <linux/device/driver.h>
- #include <linux/kthread.h>
-@@ -94,7 +95,6 @@
- #include <linux/rodata_test.h>
- #include <linux/jump_label.h>
- #include <linux/mem_encrypt.h>
--#include <linux/padata.h>
+--- a/drivers/media/platform/omap3isp/ispvideo.c~asm-generic-dont-include-linux-mmh-in-cacheflushh-fix
++++ a/drivers/media/platform/omap3isp/ispvideo.c
+@@ -10,7 +10,6 @@
+  *	     Sakari Ailus <sakari.ailus@iki.fi>
+  */
  
- #include <asm/io.h>
- #include <asm/bugs.h>
+-#include <asm/cacheflush.h>
+ #include <linux/clk.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
+@@ -19,6 +18,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
++#include <asm/cacheflush.h>
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-ioctl.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-padata-initialize-earlier-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-rejects.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+x86-hyperv-use-vmalloc_exec-for-the-hypercall-page.patch
+x86-fix-vmap-arguments-in-map_irq_stack.patch
+staging-android-ion-use-vmap-instead-of-vm_map_ram.patch
+staging-media-ipu3-use-vmap-instead-of-reimplementing-it.patch
+dma-mapping-use-vmap-insted-of-reimplementing-it.patch
+powerpc-add-an-ioremap_phb-helper.patch
+powerpc-remove-__ioremap_at-and-__iounmap_at.patch
+mm-remove-__get_vm_area.patch
+mm-unexport-unmap_kernel_range_noflush.patch
+mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping.patch
+mm-only-allow-page-table-mappings-for-built-in-zsmalloc.patch
+mm-pass-addr-as-unsigned-long-to-vb_free.patch
+mm-remove-vmap_page_range_noflush-and-vunmap_page_range.patch
+mm-rename-vmap_page_range-to-map_kernel_range.patch
+mm-dont-return-the-number-of-pages-from-map_kernel_range_noflush.patch
+mm-remove-map_vm_range.patch
+mm-remove-unmap_vmap_area.patch
+mm-remove-the-prot-argument-from-vm_map_ram.patch
+mm-enforce-that-vmap-cant-map-pages-executable.patch
+gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc.patch
+mm-remove-the-pgprot-argument-to-__vmalloc.patch
+mm-remove-the-prot-argument-to-__vmalloc_node.patch
+mm-remove-both-instances-of-__vmalloc_node_flags.patch
+mm-remove-__vmalloc_node_flags_caller.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
+mm-remove-vmalloc_user_node_flags.patch
+arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack.patch
+powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
+s390-use-__vmalloc_node-in-stack_alloc.patch
+exec-simplify-the-copy_strings_kernel-calling-convention.patch
+exec-open-code-copy_string_kernel.patch
+amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
+kernel-set-user_ds-in-kthread_use_mm.patch
+arm-fix-the-flush_icache_range-arguments-in-set_fiq_handler.patch
+nds32-unexport-flush_icache_page.patch
+powerpc-unexport-flush_icache_user_range.patch
+unicore32-remove-flush_cache_user_range.patch
+asm-generic-fix-the-inclusion-guards-for-cacheflushh.patch
+asm-generic-dont-include-linux-mmh-in-cacheflushh.patch
+asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch
+asm-generic-improve-the-flush_dcache_page-stub.patch
+alpha-use-asm-generic-cacheflushh.patch
+arm64-use-asm-generic-cacheflushh.patch
+c6x-use-asm-generic-cacheflushh.patch
+hexagon-use-asm-generic-cacheflushh.patch
+ia64-use-asm-generic-cacheflushh.patch
+microblaze-use-asm-generic-cacheflushh.patch
+m68knommu-use-asm-generic-cacheflushh.patch
+openrisc-use-asm-generic-cacheflushh.patch
+powerpc-use-asm-generic-cacheflushh.patch
+riscv-use-asm-generic-cacheflushh.patch
+armsparcunicore32-remove-flush_icache_user_range.patch
+mm-rename-flush_icache_user_range-to-flush_icache_user_page.patch
+asm-generic-add-a-flush_icache_user_range-stub.patch
+sh-implement-flush_icache_user_range.patch
+xtensa-implement-flush_icache_user_range.patch
+arm-rename-flush_cache_user_range-to-flush_icache_user_range.patch
+m68k-implement-flush_icache_user_range.patch
+exec-only-build-read_code-when-needed.patch
+exec-use-flush_icache_user_range-in-read_code.patch
+binfmt_flat-use-flush_icache_user_range.patch
+nommu-use-flush_icache_user_range-in-brk-and-mmap.patch
+module-move-the-set_fs-hack-for-flush_icache_range-to-m68k.patch
