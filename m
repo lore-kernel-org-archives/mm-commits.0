@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch added to -mm
- tree
-Date: Tue, 19 May 2020 18:15:13 -0700
-Message-ID: <20200520011513.9_dfc-_bd%akpm@linux-foundation.org>
+ mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+ added to -mm tree
+Date: Tue, 19 May 2020 18:40:37 -0700
+Message-ID: <20200520014037.oeQHRc5Lq%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34142 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726318AbgETBPO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 May 2020 21:15:14 -0400
+        id S1726348AbgETBki (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 May 2020 21:40:38 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, christophe.leroy@c-s.fr, lkp@intel.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, rppt@linux.ibm.com
+To: charante@codeaurora.org, mm-commits@vger.kernel.org, vinmenon@codeaurora.org
 
 
 The patch titled
-     Subject: powerpc/xmon: drop unused pgdir varialble in show_pte() function
+     Subject: mm, page_alloc: skip ->waternark_boost for atomic order-0 allocations
 has been added to the -mm tree.  Its filename is
-     powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch
+     mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,112 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: powerpc/xmon: drop unused pgdir varialble in show_pte() function
+From: Charan Teja Reddy <charante@codeaurora.org>
+Subject: mm, page_alloc: skip ->waternark_boost for atomic order-0 allocations
 
-The kernel build robot complained:
+When boosting is enabled, it is observed that rate of atomic order-0
+allocation failures are high due to the fact that free levels in the
+system are checked with ->watermark_boost offset.  This is not a problem
+for sleepable allocations but for atomic allocations which looks like
+regression.
 
-arch/powerpc/xmon/xmon.c: In function 'show_pte':
->> arch/powerpc/xmon/xmon.c:3138:16: warning: variable 'pgdir' set but not
->> used [-Wunused-but-set-variable]
-3138 |  pgd_t *pgdp, *pgdir;
-|                ^~~~~
+This problem is seen frequently on system setup of Android kernel running
+on Snapdragon hardware with 4GB RAM size.  When no extfrag event occurred
+in the system, ->watermark_boost factor is zero, thus the watermark
+configurations in the system are:
 
-Remove the unused pgdir variable and adjust if () else statement to comply
-with the coding style.
+   _watermark = (
+          [WMARK_MIN] = 1272, --> ~5MB
+          [WMARK_LOW] = 9067, --> ~36MB
+          [WMARK_HIGH] = 9385), --> ~38MB
+   watermark_boost = 0
 
-Link: http://lkml.kernel.org/r/20200519181454.GI1059226@linux.ibm.com
-Reported-by: kbuild test robot <lkp@intel.com>
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
+After launching some memory hungry applications in Android which can cause
+extfrag events in the system to an extent that ->watermark_boost can be
+set to max i.e.  default boost factor makes it to 150% of high watermark.
+
+   _watermark = (
+          [WMARK_MIN] = 1272, --> ~5MB
+          [WMARK_LOW] = 9067, --> ~36MB
+          [WMARK_HIGH] = 9385), --> ~38MB
+   watermark_boost = 14077, -->~57MB
+
+With default system configuration, for an atomic order-0 allocation to
+succeed, having free memory of ~2MB will suffice.  But boosting makes the
+min_wmark to ~61MB thus for an atomic order-0 allocation to be successful
+system should have minimum of ~23MB of free memory(from calculations of
+zone_watermark_ok(), min = 3/4(min/2)).  But failures are observed despite
+system is having ~20MB of free memory.  In the testing, this is
+reproducible as early as first 300secs since boot and with further lowram
+configurations(<2GB) it is observed as early as first 150secs since boot.
+
+These failures can be avoided by excluding the ->watermark_boost in
+watermark calculations for atomic order-0 allocations.
+
+Link: http://lkml.kernel.org/r/1589882284-21010-1-git-send-email-charante@codeaurora.org
+Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/xmon/xmon.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/arch/powerpc/xmon/xmon.c~powerpc-add-support-for-folded-p4d-page-tables-fix-2
-+++ a/arch/powerpc/xmon/xmon.c
-@@ -3213,7 +3213,7 @@ static void show_pte(unsigned long addr)
- 	unsigned long tskv = 0;
- 	struct task_struct *tsk = NULL;
- 	struct mm_struct *mm;
--	pgd_t *pgdp, *pgdir;
-+	pgd_t *pgdp;
- 	p4d_t *p4dp;
- 	pud_t *pudp;
- 	pmd_t *pmdp;
-@@ -3238,13 +3238,10 @@ static void show_pte(unsigned long addr)
- 	catch_memory_errors = 1;
- 	sync();
+--- a/mm/page_alloc.c~mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations
++++ a/mm/page_alloc.c
+@@ -3709,6 +3709,18 @@ retry:
+ 		}
  
--	if (mm == &init_mm) {
-+	if (mm == &init_mm)
- 		pgdp = pgd_offset_k(addr);
--		pgdir = pgd_offset_k(0);
--	} else {
-+	else
- 		pgdp = pgd_offset(mm, addr);
--		pgdir = pgd_offset(mm, 0);
--	}
- 
- 	p4dp = p4d_offset(pgdp, addr);
- 
+ 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
++		/*
++		 * Allow GFP_ATOMIC order-0 allocations to exclude the
++		 * zone->watermark_boost in its watermark calculations.
++		 * We rely on the ALLOC_ flags set for GFP_ATOMIC
++		 * requests in gfp_to_alloc_flags() for this. Reason not to
++		 * use the GFP_ATOMIC directly is that we want to fall back
++		 * to slow path thus wake up kswapd.
++		 */
++		if (unlikely(!order && !(alloc_flags & ALLOC_WMARK_MASK) &&
++		     (alloc_flags & (ALLOC_HARDER | ALLOC_HIGH)))) {
++			mark = zone->_watermark[WMARK_MIN];
++		}
+ 		if (!zone_watermark_fast(zone, order, mark,
+ 				       ac->highest_zoneidx, alloc_flags)) {
+ 			int ret;
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from charante@codeaurora.org are
 
-mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
-mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
-mm-remove-config_have_memblock_node_map-option.patch
-mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
-mm-use-free_area_init-instead-of-free_area_init_nodes.patch
-alpha-simplify-detection-of-memory-zone-boundaries.patch
-arm-simplify-detection-of-memory-zone-boundaries.patch
-arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
-csky-simplify-detection-of-memory-zone-boundaries.patch
-m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
-parisc-simplify-detection-of-memory-zone-boundaries.patch
-sparc32-simplify-detection-of-memory-zone-boundaries.patch
-unicore32-simplify-detection-of-memory-zone-boundaries.patch
-xtensa-simplify-detection-of-memory-zone-boundaries.patch
-mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2.patch
-mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
-mm-clean-up-free_area_init_node-and-its-helpers.patch
-mm-simplify-find_min_pfn_with_active_regions.patch
-docs-vm-update-memory-models-documentation.patch
-h8300-remove-usage-of-__arch_use_5level_hack.patch
-arm-add-support-for-folded-p4d-page-tables.patch
-arm-add-support-for-folded-p4d-page-tables-fix.patch
-arm64-add-support-for-folded-p4d-page-tables.patch
-hexagon-remove-__arch_use_5level_hack.patch
-ia64-add-support-for-folded-p4d-page-tables.patch
-nios2-add-support-for-folded-p4d-page-tables.patch
-openrisc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables-fix.patch
-powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch
-sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
-sh-add-support-for-folded-p4d-page-tables.patch
-unicore32-remove-__arch_use_5level_hack.patch
-asm-generic-remove-pgtable-nop4d-hackh.patch
-mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
-mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
-mm-introduce-include-linux-pgtableh.patch
-mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
-csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
-m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
-m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2.patch
-mm-consolidate-pte_index-and-pte_offset_-definitions.patch
-mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
-mm-consolidate-pud_index-and-pud_offset-definitions.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions.patch
+mm-page_alloc-reset-the-zone-watermark_boost-early.patch
+mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
