@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+Subject: + mm-use-only-pidfd-for-process_madvise-syscall-fix.patch
  added to -mm tree
-Date: Tue, 19 May 2020 18:41:32 -0700
-Message-ID: <20200520014132.IwdmI5D_y%akpm@linux-foundation.org>
+Date: Tue, 19 May 2020 19:43:35 -0700
+Message-ID: <20200520024335.ZWuzc3OQc%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39968 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44938 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726348AbgETBld (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 May 2020 21:41:33 -0400
+        id S1726318AbgETCng (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 May 2020 22:43:36 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, charante@codeaurora.org, mm-commits@vger.kernel.org, vinmenon@codeaurora.org
+To: christian.brauner@ubuntu.com, minchan@kernel.org, mm-commits@vger.kernel.org, surenb@google.com
 
 
 The patch titled
-     Subject: mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix
+     Subject: mm: return EBADF if pidfd is invalid
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+     mm-use-only-pidfd-for-process_madvise-syscall-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-only-pidfd-for-process_madvise-syscall-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-only-pidfd-for-process_madvise-syscall-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +38,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: return EBADF if pidfd is invalid
 
-fix comment grammer, reflow comment
+This patch makes returning of EBADF when the fd passed as argument is
+invalid. The implementaion relies on pidfd_get_pid's error return.
 
-Cc: Charan Teja Reddy <charante@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+This patch also fixes syscall declare part since we removed pid support.
+
+Link: http://lkml.kernel.org/r/20200519181447.GA220547@google.com
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/compat.h   |    6 +++---
+ include/linux/syscalls.h |    5 ++---
+ mm/madvise.c             |    3 ---
+ 3 files changed, 5 insertions(+), 9 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix
-+++ a/mm/page_alloc.c
-@@ -3711,11 +3711,11 @@ retry:
- 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
- 		/*
- 		 * Allow GFP_ATOMIC order-0 allocations to exclude the
--		 * zone->watermark_boost in its watermark calculations.
--		 * We rely on the ALLOC_ flags set for GFP_ATOMIC
--		 * requests in gfp_to_alloc_flags() for this. Reason not to
--		 * use the GFP_ATOMIC directly is that we want to fall back
--		 * to slow path thus wake up kswapd.
-+		 * zone->watermark_boost in their watermark calculations.
-+		 * We rely on the ALLOC_ flags set for GFP_ATOMIC requests in
-+		 * gfp_to_alloc_flags() for this.  Reason not to use the
-+		 * GFP_ATOMIC directly is that we want to fall back to slow path
-+		 * thus wake up kswapd.
- 		 */
- 		if (unlikely(!order && !(alloc_flags & ALLOC_WMARK_MASK) &&
- 		     (alloc_flags & (ALLOC_HARDER | ALLOC_HIGH)))) {
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-rejects.patch
-kernel-add-panic_on_taint-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+--- a/include/linux/compat.h~mm-use-only-pidfd-for-process_madvise-syscall-fix
++++ a/include/linux/compat.h
+@@ -827,10 +827,10 @@ asmlinkage long compat_sys_pwritev64v2(u
+ 		unsigned long vlen, loff_t pos, rwf_t flags);
+ #endif
+ 
+-asmlinkage ssize_t compat_sys_process_madvise(compat_int_t which,
+-		compat_pid_t upid, const struct compat_iovec __user *vec,
++asmlinkage ssize_t compat_sys_process_madvise(compat_int_t pidfd,
++		const struct compat_iovec __user *vec,
+ 		compat_ulong_t vlen, compat_int_t behavior,
+-		compat_ulong_t flags);
++		compat_int_t flags);
+ 
+ /*
+  * Deprecated system calls which are still defined in
+--- a/include/linux/syscalls.h~mm-use-only-pidfd-for-process_madvise-syscall-fix
++++ a/include/linux/syscalls.h
+@@ -879,9 +879,8 @@ asmlinkage long sys_munlockall(void);
+ asmlinkage long sys_mincore(unsigned long start, size_t len,
+ 				unsigned char __user * vec);
+ asmlinkage long sys_madvise(unsigned long start, size_t len, int behavior);
+-asmlinkage long sys_process_madvise(int which, pid_t upid,
+-		const struct iovec __user *vec, unsigned long vlen,
+-		int behavior, unsigned long flags);
++asmlinkage long sys_process_madvise(int pidfd, const struct iovec __user *vec,
++		unsigned long vlen, int behavior, unsigned int flags);
+ asmlinkage long sys_remap_file_pages(unsigned long start, unsigned long size,
+ 			unsigned long prot, unsigned long pgoff,
+ 			unsigned long flags);
+--- a/mm/madvise.c~mm-use-only-pidfd-for-process_madvise-syscall-fix
++++ a/mm/madvise.c
+@@ -1242,9 +1242,6 @@ static ssize_t do_process_madvise(int pi
+ 	if (flags != 0)
+ 		return -EINVAL;
+ 
+-	if (pidfd < 0)
+-		return -EINVAL;
