@@ -1,14 +1,14 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + padata-remove-exit-routine.patch added to -mm tree
-Date: Wed, 20 May 2020 16:31:16 -0700
-Message-ID: <20200520233116.ahMy5DKfL%akpm@linux-foundation.org>
+Subject: + padata-initialize-earlier.patch added to -mm tree
+Date: Wed, 20 May 2020 16:31:19 -0700
+Message-ID: <20200520233119.ChBVu2bfy%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57058 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57140 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726688AbgETXbS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 19:31:18 -0400
+        id S1728654AbgETXbW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 19:31:22 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -16,14 +16,14 @@ To: alex.williamson@redhat.com, alexander.h.duyck@linux.intel.com, corbet@lwn.ne
 
 
 The patch titled
-     Subject: padata: remove exit routine
+     Subject: padata: initialize earlier
 has been added to the -mm tree.  Its filename is
-     padata-remove-exit-routine.patch
+     padata-initialize-earlier.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/padata-remove-exit-routine.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/padata-initialize-earlier.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/padata-remove-exit-routine.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/padata-initialize-earlier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,56 +38,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Jordan <daniel.m.jordan@oracle.com>
-Subject: padata: remove exit routine
+Subject: padata: initialize earlier
 
-Patch series "padata: parallelize deferred page init", v2.
+padata will soon initialize the system's struct pages in parallel, so it
+needs to be ready by page_alloc_init_late().
 
-Deferred struct page init is a bottleneck in kernel boot--the biggest for
-us and probably others.  Optimizing it maximizes availability for
-large-memory systems and allows spinning up short-lived VMs as needed
-without having to leave them running.  It also benefits bare metal
-machines hosting VMs that are sensitive to downtime.  In projects such as
-VMM Fast Restart[1], where guest state is preserved across kexec reboot,
-it helps prevent application and network timeouts in the guests.
+The error return from padata_driver_init() triggers an initcall warning,
+so add a warning to padata_init() to avoid silent failure.
 
-So, multithread deferred init to take full advantage of system memory
-bandwidth.
-
-Extend padata, a framework that handles many parallel singlethreaded jobs,
-to handle multithreaded jobs as well by adding support for splitting up
-the work evenly, specifying a minimum amount of work that's appropriate
-for one helper thread to do, load balancing between helpers, and
-coordinating them.  More documentation in patches 4 and 7.
-
-This series is the first step in a project to address other memory
-proportional bottlenecks in the kernel such as pmem struct page init, vfio
-page pinning, hugetlb fallocate, and munmap.  Deferred page init doesn't
-require concurrency limits, resource control, or priority adjustments like
-these other users will because it happens during boot when the system is
-otherwise idle and waiting for page init to finish.
-
-This has been run on a variety of x86 systems and speeds up kernel boot by
-3% to 49%, saving up to 1.6 out of 4 seconds.  Patch 5 has more numbers.
-
-
-This patch (of 7):
-
-padata_driver_exit() is unnecessary because padata isn't built as a module
-and doesn't exit.
-
-padata's init routine will soon allocate memory, so getting rid of the
-exit function now avoids pointless code to free it.
-
-Link: http://lkml.kernel.org/r/20200520182645.1658949-1-daniel.m.jordan@oracle.com
-Link: http://lkml.kernel.org/r/20200520182645.1658949-2-daniel.m.jordan@oracle.com
+Link: http://lkml.kernel.org/r/20200520182645.1658949-3-daniel.m.jordan@oracle.com
 Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Josh Triplett <josh@joshtriplett.org>
@@ -99,28 +65,96 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Robert Elliott <elliott@hpe.com>
 Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
 Cc: Steven Sistare <steven.sistare@oracle.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/padata.c |    6 ------
- 1 file changed, 6 deletions(-)
+ include/linux/padata.h |    6 ++++++
+ init/main.c            |    2 ++
+ kernel/padata.c        |   17 ++++++++---------
+ 3 files changed, 16 insertions(+), 9 deletions(-)
 
---- a/kernel/padata.c~padata-remove-exit-routine
-+++ a/kernel/padata.c
-@@ -1072,10 +1072,4 @@ static __init int padata_driver_init(voi
- }
- module_init(padata_driver_init);
+--- a/include/linux/padata.h~padata-initialize-earlier
++++ a/include/linux/padata.h
+@@ -164,6 +164,12 @@ struct padata_instance {
+ #define	PADATA_INVALID	4
+ };
  
--static __exit void padata_driver_exit(void)
--{
--	cpuhp_remove_multi_state(CPUHP_PADATA_DEAD);
--	cpuhp_remove_multi_state(hp_online);
++#ifdef CONFIG_PADATA
++extern void __init padata_init(void);
++#else
++static inline void __init padata_init(void) {}
++#endif
++
+ extern struct padata_instance *padata_alloc_possible(const char *name);
+ extern void padata_free(struct padata_instance *pinst);
+ extern struct padata_shell *padata_alloc_shell(struct padata_instance *pinst);
+--- a/init/main.c~padata-initialize-earlier
++++ a/init/main.c
+@@ -94,6 +94,7 @@
+ #include <linux/rodata_test.h>
+ #include <linux/jump_label.h>
+ #include <linux/mem_encrypt.h>
++#include <linux/padata.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -1482,6 +1483,7 @@ static noinline void __init kernel_init_
+ 	smp_init();
+ 	sched_init_smp();
+ 
++	padata_init();
+ 	page_alloc_init_late();
+ 	/* Initialize page ext after all struct pages are initialized. */
+ 	page_ext_init();
+--- a/kernel/padata.c~padata-initialize-earlier
++++ a/kernel/padata.c
+@@ -31,7 +31,6 @@
+ #include <linux/slab.h>
+ #include <linux/sysfs.h>
+ #include <linux/rcupdate.h>
+-#include <linux/module.h>
+ 
+ #define MAX_OBJ_NUM 1000
+ 
+@@ -1050,26 +1049,26 @@ void padata_free_shell(struct padata_she
+ }
+ EXPORT_SYMBOL(padata_free_shell);
+ 
+-#ifdef CONFIG_HOTPLUG_CPU
+-
+-static __init int padata_driver_init(void)
++void __init padata_init(void)
+ {
++#ifdef CONFIG_HOTPLUG_CPU
+ 	int ret;
+ 
+ 	ret = cpuhp_setup_state_multi(CPUHP_AP_ONLINE_DYN, "padata:online",
+ 				      padata_cpu_online, NULL);
+ 	if (ret < 0)
+-		return ret;
++		goto err;
+ 	hp_online = ret;
+ 
+ 	ret = cpuhp_setup_state_multi(CPUHP_PADATA_DEAD, "padata:dead",
+ 				      NULL, padata_cpu_dead);
+ 	if (ret < 0) {
+ 		cpuhp_remove_multi_state(hp_online);
+-		return ret;
++		goto err;
+ 	}
+-	return 0;
 -}
--module_exit(padata_driver_exit);
+-module_init(padata_driver_init);
+ 
++	return;
++err:
++	pr_warn("padata: initialization failed\n");
  #endif
++}
 _
 
 Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
