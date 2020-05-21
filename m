@@ -1,16 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
+Subject: + mm-workingset-let-cache-workingset-challenge-anon.patch
  added to -mm tree
-Date: Wed, 20 May 2020 20:31:46 -0700
-Message-ID: <20200521033146.HCqxijDDJ%akpm@linux-foundation.org>
+Date: Wed, 20 May 2020 20:31:56 -0700
+Message-ID: <20200521033156.6qCTgox9f%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34794 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34938 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727958AbgEUDbs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 23:31:48 -0400
+        id S1727974AbgEUDb6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 23:31:58 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.
 
 
 The patch titled
-     Subject: mm: keep separate anon and file statistics on page reclaim activity
+     Subject: mm: workingset: let cache workingset challenge anon
 has been added to the -mm tree.  Its filename is
-     mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
+     mm-workingset-let-cache-workingset-challenge-anon.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-let-cache-workingset-challenge-anon.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-let-cache-workingset-challenge-anon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +39,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: keep separate anon and file statistics on page reclaim activity
+Subject: mm: workingset: let cache workingset challenge anon
 
-Having statistics on pages scanned and pages reclaimed for both anon and
-file pages makes it easier to evaluate changes to LRU balancing.
+We activate cache refaults with reuse distances in pages smaller than the
+size of the total cache.  This allows new pages with competitive access
+frequencies to establish themselves, as well as challenge and potentially
+displace pages on the active list that have gone cold.
 
-While at it, clean up the stat-keeping mess for isolation, putback,
-reclaim stats etc.  a bit: first the physical LRU operation (isolation and
-putback), followed by vmstats, reclaim_stats, and then vm events.
+However, that assumes that active cache can only replace other active
+cache in a competition for the hottest memory.  This is not a great
+default assumption.  The page cache might be thrashing while there are
+enough completely cold and unused anonymous pages sitting around that we'd
+only have to write to swap once to stop all IO from the cache.
 
-Link: http://lkml.kernel.org/r/20200520232525.798933-3-hannes@cmpxchg.org
+Activate cache refaults when their reuse distance in pages is smaller than
+the total userspace workingset, including anonymous pages.
+
+Reclaim can still decide how to balance pressure among the two LRUs
+depending on the IO situation.  Rotational drives will prefer avoiding
+random IO from swap and go harder after cache.  But fundamentally, hot
+cache should be able to compete with anon pages for a place in RAM.
+
+Link: http://lkml.kernel.org/r/20200520232525.798933-6-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -58,85 +69,51 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    4 ++++
- mm/vmscan.c                   |   17 +++++++++--------
- mm/vmstat.c                   |    4 ++++
- 3 files changed, 17 insertions(+), 8 deletions(-)
+ mm/workingset.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
---- a/include/linux/vm_event_item.h~mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity
-+++ a/include/linux/vm_event_item.h
-@@ -35,6 +35,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGSCAN_KSWAPD,
- 		PGSCAN_DIRECT,
- 		PGSCAN_DIRECT_THROTTLE,
-+		PGSCAN_ANON,
-+		PGSCAN_FILE,
-+		PGSTEAL_ANON,
-+		PGSTEAL_FILE,
- #ifdef CONFIG_NUMA
- 		PGSCAN_ZONE_RECLAIM_FAILED,
- #endif
---- a/mm/vmscan.c~mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity
-+++ a/mm/vmscan.c
-@@ -1913,7 +1913,7 @@ shrink_inactive_list(unsigned long nr_to
- 	unsigned int nr_reclaimed = 0;
- 	unsigned long nr_taken;
- 	struct reclaim_stat stat;
--	int file = is_file_lru(lru);
-+	bool file = is_file_lru(lru);
- 	enum vm_event_item item;
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
-@@ -1941,11 +1941,12 @@ shrink_inactive_list(unsigned long nr_to
+--- a/mm/workingset.c~mm-workingset-let-cache-workingset-challenge-anon
++++ a/mm/workingset.c
+@@ -277,8 +277,8 @@ void workingset_refault(struct page *pag
+ 	struct mem_cgroup *eviction_memcg;
+ 	struct lruvec *eviction_lruvec;
+ 	unsigned long refault_distance;
++	unsigned long workingset_size;
+ 	struct pglist_data *pgdat;
+-	unsigned long active_file;
+ 	struct mem_cgroup *memcg;
+ 	unsigned long eviction;
+ 	struct lruvec *lruvec;
+@@ -310,7 +310,6 @@ void workingset_refault(struct page *pag
+ 		goto out;
+ 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
+ 	refault = atomic_long_read(&eviction_lruvec->inactive_age);
+-	active_file = lruvec_page_state(eviction_lruvec, NR_ACTIVE_FILE);
  
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
- 	reclaim_stat->recent_scanned[file] += nr_taken;
--
- 	item = current_is_kswapd() ? PGSCAN_KSWAPD : PGSCAN_DIRECT;
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, nr_scanned);
- 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
-+	__count_vm_events(PGSCAN_ANON + file, nr_scanned);
-+
- 	spin_unlock_irq(&pgdat->lru_lock);
+ 	/*
+ 	 * Calculate the refault distance
+@@ -345,10 +344,18 @@ void workingset_refault(struct page *pag
  
- 	if (nr_taken == 0)
-@@ -1956,16 +1957,16 @@ shrink_inactive_list(unsigned long nr_to
+ 	/*
+ 	 * Compare the distance to the existing workingset size. We
+-	 * don't act on pages that couldn't stay resident even if all
+-	 * the memory was available to the page cache.
++	 * don't activate pages that couldn't stay resident even if
++	 * all the memory was available to the page cache. Whether
++	 * cache can compete with anon or not depends on having swap.
+ 	 */
+-	if (refault_distance > active_file)
++	workingset_size = lruvec_page_state(eviction_lruvec, NR_ACTIVE_FILE);
++	if (mem_cgroup_get_nr_swap_pages(memcg) > 0) {
++		workingset_size += lruvec_page_state(eviction_lruvec,
++						     NR_INACTIVE_ANON);
++		workingset_size += lruvec_page_state(eviction_lruvec,
++						     NR_ACTIVE_ANON);
++	}
++	if (refault_distance > workingset_size)
+ 		goto out;
  
- 	spin_lock_irq(&pgdat->lru_lock);
- 
-+	move_pages_to_lru(lruvec, &page_list);
-+
-+	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
-+	reclaim_stat->recent_rotated[0] += stat.nr_activate[0];
-+	reclaim_stat->recent_rotated[1] += stat.nr_activate[1];
- 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, nr_reclaimed);
- 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
--	reclaim_stat->recent_rotated[0] += stat.nr_activate[0];
--	reclaim_stat->recent_rotated[1] += stat.nr_activate[1];
--
--	move_pages_to_lru(lruvec, &page_list);
--
--	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
-+	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
- 
- 	spin_unlock_irq(&pgdat->lru_lock);
- 
---- a/mm/vmstat.c~mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity
-+++ a/mm/vmstat.c
-@@ -1201,6 +1201,10 @@ const char * const vmstat_text[] = {
- 	"pgscan_kswapd",
- 	"pgscan_direct",
- 	"pgscan_direct_throttle",
-+	"pgscan_anon",
-+	"pgscan_file",
-+	"pgsteal_anon",
-+	"pgsteal_file",
- 
- #ifdef CONFIG_NUMA
- 	"zone_reclaim_failed",
+ 	SetPageActive(page);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
