@@ -1,153 +1,146 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-limit-the-range-of-lru-type-balancing.patch
- added to -mm tree
-Date: Wed, 20 May 2020 20:32:20 -0700
-Message-ID: <20200521033220.Ez2XvcTDF%akpm@linux-foundation.org>
+Subject: [failures] makefile-support-compressed-debug-info.patch
+ removed from -mm tree
+Date: Wed, 20 May 2020 20:46:51 -0700
+Message-ID: <20200521034651.Ghv7sfYws%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35308 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38574 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728078AbgEUDcW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 23:32:22 -0400
+        id S1728015AbgEUDqx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 23:46:53 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@redhat.com
+To: anshuman.khandual@arm.com, blaikie@google.com, changbin.du@intel.com, krzk@kernel.org, maskray@google.com, mchehab+huawei@kernel.org, michal.lkml@markovi.net, mm-commits@vger.kernel.org, ndesaulniers@google.com, nickc@redhat.com, rdunlap@infradead.org, sedat.dilek@gmail.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm: vmscan: limit the range of LRU type balancing
-has been added to the -mm tree.  Its filename is
-     mm-vmscan-limit-the-range-of-lru-type-balancing.patch
+     Subject: Makefile: support compressed debug info
+has been removed from the -mm tree.  Its filename was
+     makefile-support-compressed-debug-info.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-limit-the-range-of-lru-type-balancing.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-limit-the-range-of-lru-type-balancing.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: limit the range of LRU type balancing
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: Makefile: support compressed debug info
 
-When LRU cost only shows up on one list, we abruptly stop scanning that
-list altogether.  That's an extreme reaction: by the time the other list
-starts thrashing and the pendulum swings back, we may have no recent age
-information on the first list anymore, and we could have significant
-latencies until the scanner has caught up.
+As debug information gets larger and larger, it helps significantly save
+the size of vmlinux images to compress the information in the debug
+information sections.  Note: this debug info is typically split off from
+the final compressed kernel image, which is why vmlinux is what's used in
+conjunction with GDB.  Minimizing the debug info size should have no
+impact on boot times, or final compressed kernel image size.
 
-Soften this change in the feedback system by ensuring that no list
-receives less than a third of overall pressure, and only distribute the
-other 66% according to LRU cost.  This ensures that we maintain a minimum
-rate of aging on the entire workingset while it's being pressured, while
-still allowing a generous rate of convergence when the relative sizes of
-the lists need to adjust.
+All of the debug sections will have a `C` flag set.
+$ readelf -S <object file>
 
-Link: http://lkml.kernel.org/r/20200520232525.798933-15-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
+$ bloaty vmlinux.gcc75.compressed.dwarf4 -- \
+    vmlinux.gcc75.uncompressed.dwarf4
+
+    FILE SIZE        VM SIZE
+ --------------  --------------
+  +0.0%     +18  [ = ]       0    [Unmapped]
+ -73.3%  -114Ki  [ = ]       0    .debug_aranges
+ -76.2% -2.01Mi  [ = ]       0    .debug_frame
+ -73.6% -2.89Mi  [ = ]       0    .debug_str
+ -80.7% -4.66Mi  [ = ]       0    .debug_abbrev
+ -82.9% -4.88Mi  [ = ]       0    .debug_ranges
+ -70.5% -9.04Mi  [ = ]       0    .debug_line
+ -79.3% -10.9Mi  [ = ]       0    .debug_loc
+ -39.5% -88.6Mi  [ = ]       0    .debug_info
+ -18.2%  -123Mi  [ = ]       0    TOTAL
+
+$ bloaty vmlinux.clang11.compressed.dwarf4 -- \
+    vmlinux.clang11.uncompressed.dwarf4
+
+    FILE SIZE        VM SIZE
+ --------------  --------------
+  +0.0%     +23  [ = ]       0    [Unmapped]
+ -65.6%    -871  [ = ]       0    .debug_aranges
+ -77.4% -1.84Mi  [ = ]       0    .debug_frame
+ -82.9% -2.33Mi  [ = ]       0    .debug_abbrev
+ -73.1% -2.43Mi  [ = ]       0    .debug_str
+ -84.8% -3.07Mi  [ = ]       0    .debug_ranges
+ -65.9% -8.62Mi  [ = ]       0    .debug_line
+ -86.2% -40.0Mi  [ = ]       0    .debug_loc
+ -42.0% -64.1Mi  [ = ]       0    .debug_info
+ -22.1%  -122Mi  [ = ]       0    TOTAL
+
+For x86_64 defconfig + LLVM=1 (before):
+Elapsed (wall clock) time (h:mm:ss or m:ss): 3:22.03
+Maximum resident set size (kbytes): 43856
+
+For x86_64 defconfig + LLVM=1 (after):
+Elapsed (wall clock) time (h:mm:ss or m:ss): 3:32.52
+Maximum resident set size (kbytes): 1566776
+
+Link: http://lkml.kernel.org/r/20200520193637.6015-1-ndesaulniers@google.com
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Suggested-by: David Blaikie <blakie@google.com>
+Suggested-by: Fangrui Song <maskray@google.com>
+Suggested-by: Nick Clifton <nickc@redhat.com>
+Suggested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Cc: Nick Clifton <nickc@redhat.com>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Changbin Du <changbin.du@intel.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ Makefile          |    6 ++++++
+ lib/Kconfig.debug |   15 +++++++++++++++
+ 2 files changed, 21 insertions(+)
 
---- a/mm/vmscan.c~mm-vmscan-limit-the-range-of-lru-type-balancing
-+++ a/mm/vmscan.c
-@@ -2237,12 +2237,11 @@ static void get_scan_count(struct lruvec
- 			   unsigned long *nr)
- {
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
-+	unsigned long anon_cost, file_cost, total_cost;
- 	int swappiness = mem_cgroup_swappiness(memcg);
- 	u64 fraction[2];
- 	u64 denominator = 0;	/* gcc */
--	unsigned long anon_prio, file_prio;
- 	enum scan_balance scan_balance;
--	unsigned long totalcost;
- 	unsigned long ap, fp;
- 	enum lru_list lru;
+--- a/lib/Kconfig.debug~makefile-support-compressed-debug-info
++++ a/lib/Kconfig.debug
+@@ -213,6 +213,21 @@ config DEBUG_INFO_REDUCED
+ 	  DEBUG_INFO build and compile times are reduced too.
+ 	  Only works with newer gcc versions.
  
-@@ -2301,17 +2300,22 @@ static void get_scan_count(struct lruvec
- 	 * the relative IO cost of bringing back a swapped out
- 	 * anonymous page vs reloading a filesystem page (swappiness).
- 	 *
-+	 * Although we limit that influence to ensure no list gets
-+	 * left behind completely: at least a third of the pressure is
-+	 * applied, before swappiness.
-+	 *
- 	 * With swappiness at 100, anon and file have equal IO cost.
- 	 */
--	anon_prio = swappiness;
--	file_prio = 200 - anon_prio;
-+	total_cost = sc->anon_cost + sc->file_cost;
-+	anon_cost = total_cost + sc->anon_cost;
-+	file_cost = total_cost + sc->file_cost;
-+	total_cost = anon_cost + file_cost;
++config DEBUG_INFO_COMPRESSED
++	bool "Compressed debugging information"
++	depends on DEBUG_INFO
++	depends on $(cc-option,-gz=zlib)
++	depends on $(as-option,-Wa,--compress-debug-sections=zlib)
++	depends on $(ld-option,--compress-debug-sections=zlib)
++	help
++	  Compress the debug information using zlib.  Requires GCC 5.0+ or Clang
++	  5.0+, binutils 2.26+, and zlib.
++
++	  Users of dpkg-deb via scripts/package/builddeb may
++	  wish to set the $KDEB_COMPRESS env var to "none" to avoid recompressing
++	  the debug info again with a different compression scheme, which can
++	  result in larger binaries.
++
+ config DEBUG_INFO_SPLIT
+ 	bool "Produce split debuginfo in .dwo files"
+ 	depends on DEBUG_INFO
+--- a/Makefile~makefile-support-compressed-debug-info
++++ a/Makefile
+@@ -814,6 +814,12 @@ DEBUG_CFLAGS	+= $(call cc-option, -femit
+ 		   $(call cc-option,-fno-var-tracking)
+ endif
  
--	totalcost = sc->anon_cost + sc->file_cost;
--	ap = anon_prio * (totalcost + 1);
--	ap /= sc->anon_cost + 1;
-+	ap = swappiness * (total_cost + 1);
-+	ap /= anon_cost + 1;
++ifdef CONFIG_DEBUG_INFO_COMPRESSED
++DEBUG_CFLAGS	+= -gz=zlib
++KBUILD_AFLAGS	+= -Wa,--compress-debug-sections=zlib
++KBUILD_LDFLAGS	+= --compress-debug-sections=zlib
++endif
++
+ KBUILD_CFLAGS += $(DEBUG_CFLAGS)
+ export DEBUG_CFLAGS
  
--	fp = file_prio * (totalcost + 1);
--	fp /= sc->file_cost + 1;
-+	fp = (200 - swappiness) * (total_cost + 1);
-+	fp /= file_cost + 1;
- 
- 	fraction[0] = ap;
- 	fraction[1] = fp;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from ndesaulniers@google.com are
 
-mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
-mm-memcontrol-fix-stat-corrupting-race-in-charge-moving.patch
-mm-memcontrol-drop-compound-parameter-from-memcg-charging-api.patch
-mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
-mm-memcontrol-move-out-cgroup-swaprate-throttling.patch
-mm-memcontrol-convert-page-cache-to-a-new-mem_cgroup_charge-api.patch
-mm-memcontrol-prepare-uncharging-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-move_account-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-cgroup-vmstat-infrastructure-for-native-anon-counters.patch
-mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
-mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
-mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
-mm-memcontrol-switch-to-native-nr_anon_thps-counter-fix.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
-mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
-mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
-mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
-mm-memcontrol-charge-swapin-pages-on-instantiation.patch
-mm-memcontrol-delete-unused-lrucare-handling.patch
-mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
-mm-fix-lru-balancing-effect-of-new-transparent-huge-pages.patch
-mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
-mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset.patch
-mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
-mm-workingset-let-cache-workingset-challenge-anon.patch
-mm-remove-use-once-cache-bias-from-lru-balancing.patch
-mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count.patch
-mm-base-lru-balancing-on-an-explicit-cost-model.patch
-mm-deactivations-shouldnt-bias-the-lru-balance.patch
-mm-only-count-actual-rotations-as-lru-reclaim-cost.patch
-mm-balance-lru-lists-based-on-relative-thrashing.patch
-mm-vmscan-determine-anon-file-pressure-balance-at-the-reclaim-root.patch
-mm-vmscan-reclaim-writepage-is-io-cost.patch
-mm-vmscan-limit-the-range-of-lru-type-balancing.patch
+x86-bitops-fix-build-regression.patch
+elfnote-mark-all-note-sections-shf_alloc.patch
