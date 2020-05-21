@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmap-locking-api-add-mmap_lock_initializer.patch added
- to -mm tree
-Date: Wed, 20 May 2020 20:24:43 -0700
-Message-ID: <20200521032443.B8DQ6L4T8%akpm@linux-foundation.org>
+Subject: +
+ mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked.patch
+ added to -mm tree
+Date: Wed, 20 May 2020 20:24:46 -0700
+Message-ID: <20200521032446.c8ISoEwPg%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60902 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728172AbgEUDYp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 23:24:45 -0400
+        id S1728172AbgEUDYs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 23:24:48 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +18,14 @@ To: daniel.m.jordan@oracle.com, dbueso@suse.de, hughd@google.com, jgg@ziepe.ca, 
 
 
 The patch titled
-     Subject: mmap locking API: add MMAP_LOCK_INITIALIZER
+     Subject: mmap locking API: add mmap_assert_locked() and mmap_assert_write_locked()
 has been added to the -mm tree.  Its filename is
-     mmap-locking-api-add-mmap_lock_initializer.patch
+     mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmap-locking-api-add-mmap_lock_initializer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-locking-api-add-mmap_lock_initializer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mmap locking API: add MMAP_LOCK_INITIALIZER
+Subject: mmap locking API: add mmap_assert_locked() and mmap_assert_write_locked()
 
-Define a new initializer for the mmap locking api.  Initially this just
-evaluates to __RWSEM_INITIALIZER as the API is defined as wrappers around
-rwsem.
+Add new APIs to assert that mmap_sem is held.
 
-Link: http://lkml.kernel.org/r/20200520052908.204642-9-walken@google.com
+Using this instead of rwsem_is_locked and lockdep_assert_held[_write]
+makes the assertions more tolerant of future changes to the lock type.
+
+Link: http://lkml.kernel.org/r/20200520052908.204642-10-walken@google.com
 Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
 Cc: Davidlohr Bueso <dbueso@suse.de>
 Cc: David Rientjes <rientjes@google.com>
@@ -56,64 +56,196 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
 Cc: Liam Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/tboot.c    |    2 +-
- drivers/firmware/efi/efi.c |    2 +-
- include/linux/mmap_lock.h  |    3 +++
- mm/init-mm.c               |    2 +-
- 4 files changed, 6 insertions(+), 3 deletions(-)
+ arch/x86/events/core.c    |    2 +-
+ fs/userfaultfd.c          |    6 +++---
+ include/linux/mmap_lock.h |   14 ++++++++++++++
+ mm/gup.c                  |    2 +-
+ mm/hmm.c                  |    2 +-
+ mm/memory.c               |    2 +-
+ mm/mmu_notifier.c         |    6 +++---
+ mm/pagewalk.c             |    6 +++---
+ mm/util.c                 |    2 +-
+ 9 files changed, 28 insertions(+), 14 deletions(-)
 
---- a/arch/x86/kernel/tboot.c~mmap-locking-api-add-mmap_lock_initializer
-+++ a/arch/x86/kernel/tboot.c
-@@ -93,7 +93,7 @@ static struct mm_struct tboot_mm = {
- 	.pgd            = swapper_pg_dir,
- 	.mm_users       = ATOMIC_INIT(2),
- 	.mm_count       = ATOMIC_INIT(1),
--	.mmap_sem       = __RWSEM_INITIALIZER(init_mm.mmap_sem),
-+	MMAP_LOCK_INITIALIZER(init_mm)
- 	.page_table_lock =  __SPIN_LOCK_UNLOCKED(init_mm.page_table_lock),
- 	.mmlist         = LIST_HEAD_INIT(init_mm.mmlist),
- };
---- a/drivers/firmware/efi/efi.c~mmap-locking-api-add-mmap_lock_initializer
-+++ a/drivers/firmware/efi/efi.c
-@@ -54,7 +54,7 @@ struct mm_struct efi_mm = {
- 	.mm_rb			= RB_ROOT,
- 	.mm_users		= ATOMIC_INIT(2),
- 	.mm_count		= ATOMIC_INIT(1),
--	.mmap_sem		= __RWSEM_INITIALIZER(efi_mm.mmap_sem),
-+	MMAP_LOCK_INITIALIZER(efi_mm)
- 	.page_table_lock	= __SPIN_LOCK_UNLOCKED(efi_mm.page_table_lock),
- 	.mmlist			= LIST_HEAD_INIT(efi_mm.mmlist),
- 	.cpu_bitmap		= { [BITS_TO_LONGS(NR_CPUS)] = 0},
---- a/include/linux/mmap_lock.h~mmap-locking-api-add-mmap_lock_initializer
+--- a/arch/x86/events/core.c~mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked
++++ a/arch/x86/events/core.c
+@@ -2181,7 +2181,7 @@ static void x86_pmu_event_mapped(struct
+ 	 * For now, this can't happen because all callers hold mmap_sem
+ 	 * for write.  If this changes, we'll need a different solution.
+ 	 */
+-	lockdep_assert_held_write(&mm->mmap_sem);
++	mmap_assert_write_locked(mm);
+ 
+ 	if (atomic_inc_return(&mm->context.perf_rdpmc_allowed) == 1)
+ 		on_each_cpu_mask(mm_cpumask(mm), cr4_update_pce, NULL, 1);
+--- a/fs/userfaultfd.c~mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked
++++ a/fs/userfaultfd.c
+@@ -234,7 +234,7 @@ static inline bool userfaultfd_huge_must
+ 	pte_t *ptep, pte;
+ 	bool ret = true;
+ 
+-	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
++	mmap_assert_locked(mm);
+ 
+ 	ptep = huge_pte_offset(mm, address, vma_mmu_pagesize(vma));
+ 
+@@ -286,7 +286,7 @@ static inline bool userfaultfd_must_wait
+ 	pte_t *pte;
+ 	bool ret = true;
+ 
+-	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
++	mmap_assert_locked(mm);
+ 
+ 	pgd = pgd_offset(mm, address);
+ 	if (!pgd_present(*pgd))
+@@ -405,7 +405,7 @@ vm_fault_t handle_userfault(struct vm_fa
+ 	 * Coredumping runs without mmap_sem so we can only check that
+ 	 * the mmap_sem is held, if PF_DUMPCORE was not set.
+ 	 */
+-	WARN_ON_ONCE(!rwsem_is_locked(&mm->mmap_sem));
++	mmap_assert_locked(mm);
+ 
+ 	ctx = vmf->vma->vm_userfaultfd_ctx.ctx;
+ 	if (!ctx)
+--- a/include/linux/mmap_lock.h~mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked
 +++ a/include/linux/mmap_lock.h
-@@ -1,6 +1,9 @@
+@@ -1,6 +1,8 @@
  #ifndef _LINUX_MMAP_LOCK_H
  #define _LINUX_MMAP_LOCK_H
  
-+#define MMAP_LOCK_INITIALIZER(name) \
-+	.mmap_sem = __RWSEM_INITIALIZER((name).mmap_sem),
++#include <linux/mmdebug.h>
 +
- static inline void mmap_init_lock(struct mm_struct *mm)
- {
- 	init_rwsem(&mm->mmap_sem);
---- a/mm/init-mm.c~mmap-locking-api-add-mmap_lock_initializer
-+++ a/mm/init-mm.c
-@@ -31,7 +31,7 @@ struct mm_struct init_mm = {
- 	.pgd		= swapper_pg_dir,
- 	.mm_users	= ATOMIC_INIT(2),
- 	.mm_count	= ATOMIC_INIT(1),
--	.mmap_sem	= __RWSEM_INITIALIZER(init_mm.mmap_sem),
-+	MMAP_LOCK_INITIALIZER(init_mm)
- 	.page_table_lock =  __SPIN_LOCK_UNLOCKED(init_mm.page_table_lock),
- 	.arg_lock	=  __SPIN_LOCK_UNLOCKED(init_mm.arg_lock),
- 	.mmlist		= LIST_HEAD_INIT(init_mm.mmlist),
+ #define MMAP_LOCK_INITIALIZER(name) \
+ 	.mmap_sem = __RWSEM_INITIALIZER((name).mmap_sem),
+ 
+@@ -73,4 +75,16 @@ static inline void mmap_read_unlock_non_
+ 	up_read_non_owner(&mm->mmap_sem);
+ }
+ 
++static inline void mmap_assert_locked(struct mm_struct *mm)
++{
++	lockdep_assert_held(&mm->mmap_sem);
++	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_sem), mm);
++}
++
++static inline void mmap_assert_write_locked(struct mm_struct *mm)
++{
++	lockdep_assert_held_write(&mm->mmap_sem);
++	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_sem), mm);
++}
++
+ #endif /* _LINUX_MMAP_LOCK_H */
+--- a/mm/gup.c~mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked
++++ a/mm/gup.c
+@@ -1410,7 +1410,7 @@ long populate_vma_page_range(struct vm_a
+ 	VM_BUG_ON(end   & ~PAGE_MASK);
+ 	VM_BUG_ON_VMA(start < vma->vm_start, vma);
+ 	VM_BUG_ON_VMA(end   > vma->vm_end, vma);
+-	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_sem), mm);
++	mmap_assert_locked(mm);
+ 
+ 	gup_flags = FOLL_TOUCH | FOLL_POPULATE | FOLL_MLOCK;
+ 	if (vma->vm_flags & VM_LOCKONFAULT)
+--- a/mm/hmm.c~mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked
++++ a/mm/hmm.c
+@@ -563,7 +563,7 @@ int hmm_range_fault(struct hmm_range *ra
+ 	struct mm_struct *mm = range->notifier->mm;
+ 	int ret;
+ 
+-	lockdep_assert_held(&mm->mmap_sem);
++	mmap_assert_locked(mm);
+ 
+ 	do {
+ 		/* If range is no longer valid force retry. */
+--- a/mm/memory.c~mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked
++++ a/mm/memory.c
+@@ -1211,7 +1211,7 @@ static inline unsigned long zap_pud_rang
+ 		next = pud_addr_end(addr, end);
+ 		if (pud_trans_huge(*pud) || pud_devmap(*pud)) {
+ 			if (next - addr != HPAGE_PUD_SIZE) {
+-				VM_BUG_ON_VMA(!rwsem_is_locked(&tlb->mm->mmap_sem), vma);
++				mmap_assert_locked(tlb->mm);
+ 				split_huge_pud(vma, pud, addr);
+ 			} else if (zap_huge_pud(tlb, vma, pud, addr))
+ 				goto next;
+--- a/mm/mmu_notifier.c~mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked
++++ a/mm/mmu_notifier.c
+@@ -609,7 +609,7 @@ int __mmu_notifier_register(struct mmu_n
+ 	struct mmu_notifier_subscriptions *subscriptions = NULL;
+ 	int ret;
+ 
+-	lockdep_assert_held_write(&mm->mmap_sem);
++	mmap_assert_write_locked(mm);
+ 	BUG_ON(atomic_read(&mm->mm_users) <= 0);
+ 
+ 	if (IS_ENABLED(CONFIG_LOCKDEP)) {
+@@ -761,7 +761,7 @@ struct mmu_notifier *mmu_notifier_get_lo
+ 	struct mmu_notifier *subscription;
+ 	int ret;
+ 
+-	lockdep_assert_held_write(&mm->mmap_sem);
++	mmap_assert_write_locked(mm);
+ 
+ 	if (mm->notifier_subscriptions) {
+ 		subscription = find_get_mmu_notifier(mm, ops);
+@@ -1006,7 +1006,7 @@ int mmu_interval_notifier_insert_locked(
+ 		mm->notifier_subscriptions;
+ 	int ret;
+ 
+-	lockdep_assert_held_write(&mm->mmap_sem);
++	mmap_assert_write_locked(mm);
+ 
+ 	if (!subscriptions || !subscriptions->has_itree) {
+ 		ret = __mmu_notifier_register(NULL, mm);
+--- a/mm/pagewalk.c~mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked
++++ a/mm/pagewalk.c
+@@ -395,7 +395,7 @@ int walk_page_range(struct mm_struct *mm
+ 	if (!walk.mm)
+ 		return -EINVAL;
+ 
+-	lockdep_assert_held(&walk.mm->mmap_sem);
++	mmap_assert_locked(walk.mm);
+ 
+ 	vma = find_vma(walk.mm, start);
+ 	do {
+@@ -453,7 +453,7 @@ int walk_page_range_novma(struct mm_stru
+ 	if (start >= end || !walk.mm)
+ 		return -EINVAL;
+ 
+-	lockdep_assert_held(&walk.mm->mmap_sem);
++	mmap_assert_locked(walk.mm);
+ 
+ 	return __walk_page_range(start, end, &walk);
+ }
+@@ -472,7 +472,7 @@ int walk_page_vma(struct vm_area_struct
+ 	if (!walk.mm)
+ 		return -EINVAL;
+ 
+-	lockdep_assert_held(&walk.mm->mmap_sem);
++	mmap_assert_locked(walk.mm);
+ 
+ 	err = walk_page_test(vma->vm_start, vma->vm_end, &walk);
+ 	if (err > 0)
+--- a/mm/util.c~mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked
++++ a/mm/util.c
+@@ -437,7 +437,7 @@ int __account_locked_vm(struct mm_struct
+ 	unsigned long locked_vm, limit;
+ 	int ret = 0;
+ 
+-	lockdep_assert_held_write(&mm->mmap_sem);
++	mmap_assert_write_locked(mm);
+ 
+ 	locked_vm = mm->locked_vm;
+ 	if (inc) {
 _
 
 Patches currently in -mm which might be from walken@google.com are
