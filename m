@@ -1,15 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-use-once-cache-bias-from-lru-balancing.patch
+Subject: +
+ mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count.patch
  added to -mm tree
-Date: Wed, 20 May 2020 20:31:58 -0700
-Message-ID: <20200521033158.kzeKQG1VS%akpm@linux-foundation.org>
+Date: Wed, 20 May 2020 20:32:00 -0700
+Message-ID: <20200521033200.rtNX0jfpb%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34976 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35012 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727974AbgEUDb7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 23:31:59 -0400
+        id S1727974AbgEUDcB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 23:32:01 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +18,14 @@ To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.
 
 
 The patch titled
-     Subject: mm: remove use-once cache bias from LRU balancing
+     Subject: mm: vmscan: drop unnecessary div0 avoidance rounding in get_scan_count()
 has been added to the -mm tree.  Its filename is
-     mm-remove-use-once-cache-bias-from-lru-balancing.patch
+     mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-use-once-cache-bias-from-lru-balancing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-use-once-cache-bias-from-lru-balancing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +40,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: remove use-once cache bias from LRU balancing
+Subject: mm: vmscan: drop unnecessary div0 avoidance rounding in get_scan_count()
 
-When the splitlru patches divided page cache and swap-backed pages into
-separate LRU lists, the pressure balance between the lists was biased to
-account for the fact that streaming IO can cause memory pressure with a
-flood of pages that are used only once.  New page cache additions would
-tip the balance toward the file LRU, and repeat access would neutralize
-that bias again.  This ensured that page reclaim would always go for
-used-once cache first.
+When we calculate the relative scan pressure between the anon and file LRU
+lists, we have to assume that reclaim_stat can contain zeroes.  To avoid
+div0 crashes, we add 1 to all denominators like so:
 
-Since e9868505987a ("mm,vmscan: only evict file pages when we have
-plenty"), page reclaim generally skips over swap-backed memory entirely as
-long as there is used-once cache present, and will apply the LRU balancing
-when only repeatedly accessed cache pages are left - at which point the
-previous use-once bias will have been neutralized.  This makes the
-use-once cache balancing bias unnecessary.
+        anon_prio = swappiness;
+        file_prio = 200 - anon_prio;
 
-Link: http://lkml.kernel.org/r/20200520232525.798933-7-hannes@cmpxchg.org
+	[...]
+
+        /*
+         * The amount of pressure on anon vs file pages is inversely
+         * proportional to the fraction of recently scanned pages on
+         * each list that were recently referenced and in active use.
+         */
+        ap = anon_prio * (reclaim_stat->recent_scanned[0] + 1);
+        ap /= reclaim_stat->recent_rotated[0] + 1;
+
+        fp = file_prio * (reclaim_stat->recent_scanned[1] + 1);
+        fp /= reclaim_stat->recent_rotated[1] + 1;
+        spin_unlock_irq(&pgdat->lru_lock);
+
+        fraction[0] = ap;
+        fraction[1] = fp;
+        denominator = ap + fp + 1;
+
+While reclaim_stat can contain 0, it's not actually possible for ap + fp
+to be 0.  One of anon_prio or file_prio could be zero, but they must still
+add up to 200.  And the reclaim_stat fraction, due to the +1 in there, is
+always at least 1.  So if one of the two numerators is 0, the other one
+can't be.  ap + fp is always at least 1.  Drop the + 1.
+
+Link: http://lkml.kernel.org/r/20200520232525.798933-8-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swap.c~mm-remove-use-once-cache-bias-from-lru-balancing
-+++ a/mm/swap.c
-@@ -277,7 +277,6 @@ static void __activate_page(struct page
- 			    void *arg)
- {
- 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
--		int file = page_is_file_lru(page);
- 		int lru = page_lru_base_type(page);
+--- a/mm/vmscan.c~mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count
++++ a/mm/vmscan.c
+@@ -2348,7 +2348,7 @@ static void get_scan_count(struct lruvec
  
- 		del_page_from_lru_list(page, lruvec, lru);
-@@ -287,7 +286,6 @@ static void __activate_page(struct page
- 		trace_mm_lru_activate(page);
- 
- 		__count_vm_event(PGACTIVATE);
--		update_page_reclaim_stat(lruvec, file, 1, hpage_nr_pages(page));
- 	}
- }
- 
-@@ -936,9 +934,6 @@ static void __pagevec_lru_add_fn(struct
- 
- 	if (page_evictable(page)) {
- 		lru = page_lru(page);
--		update_page_reclaim_stat(lruvec, is_file_lru(lru),
--					 PageActive(page),
--					 hpage_nr_pages(page));
- 		if (was_unevictable)
- 			count_vm_event(UNEVICTABLE_PGRESCUED);
- 	} else {
+ 	fraction[0] = ap;
+ 	fraction[1] = fp;
+-	denominator = ap + fp + 1;
++	denominator = ap + fp;
+ out:
+ 	for_each_evictable_lru(lru) {
+ 		int file = is_file_lru(lru);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
