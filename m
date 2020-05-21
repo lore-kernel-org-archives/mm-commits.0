@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch added to
- -mm tree
-Date: Wed, 20 May 2020 20:31:52 -0700
-Message-ID: <20200521033152.dXWSpNWf4%akpm@linux-foundation.org>
+ mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
+ added to -mm tree
+Date: Wed, 20 May 2020 20:31:46 -0700
+Message-ID: <20200521033146.HCqxijDDJ%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34886 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34794 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727974AbgEUDby (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 23:31:54 -0400
+        id S1727958AbgEUDbs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 23:31:48 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.
 
 
 The patch titled
-     Subject: mm: fold and remove lru_cache_add_anon() and lru_cache_add_file()
+     Subject: mm: keep separate anon and file statistics on page reclaim activity
 has been added to the -mm tree.  Its filename is
-     mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
+     mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,225 +40,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: fold and remove lru_cache_add_anon() and lru_cache_add_file()
+Subject: mm: keep separate anon and file statistics on page reclaim activity
 
-They're the same function, and for the purpose of all callers they are
-equivalent to lru_cache_add().
+Having statistics on pages scanned and pages reclaimed for both anon and
+file pages makes it easier to evaluate changes to LRU balancing.
 
-Link: http://lkml.kernel.org/r/20200520232525.798933-5-hannes@cmpxchg.org
+While at it, clean up the stat-keeping mess for isolation, putback,
+reclaim stats etc.  a bit: first the physical LRU operation (isolation and
+putback), followed by vmstats, reclaim_stats, and then vm events.
+
+Link: http://lkml.kernel.org/r/20200520232525.798933-3-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/file.c       |   10 +++++-----
- fs/fuse/dev.c        |    2 +-
- include/linux/swap.h |    2 --
- mm/khugepaged.c      |    8 ++------
- mm/memory.c          |    2 +-
- mm/shmem.c           |    6 +++---
- mm/swap.c            |   38 ++++++++------------------------------
- mm/swap_state.c      |    2 +-
- 8 files changed, 21 insertions(+), 49 deletions(-)
+ include/linux/vm_event_item.h |    4 ++++
+ mm/vmscan.c                   |   17 +++++++++--------
+ mm/vmstat.c                   |    4 ++++
+ 3 files changed, 17 insertions(+), 8 deletions(-)
 
---- a/fs/cifs/file.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
-+++ a/fs/cifs/file.c
-@@ -4162,7 +4162,7 @@ cifs_readv_complete(struct work_struct *
- 	for (i = 0; i < rdata->nr_pages; i++) {
- 		struct page *page = rdata->pages[i];
+--- a/include/linux/vm_event_item.h~mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity
++++ a/include/linux/vm_event_item.h
+@@ -35,6 +35,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		PGSCAN_KSWAPD,
+ 		PGSCAN_DIRECT,
+ 		PGSCAN_DIRECT_THROTTLE,
++		PGSCAN_ANON,
++		PGSCAN_FILE,
++		PGSTEAL_ANON,
++		PGSTEAL_FILE,
+ #ifdef CONFIG_NUMA
+ 		PGSCAN_ZONE_RECLAIM_FAILED,
+ #endif
+--- a/mm/vmscan.c~mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity
++++ a/mm/vmscan.c
+@@ -1913,7 +1913,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	unsigned int nr_reclaimed = 0;
+ 	unsigned long nr_taken;
+ 	struct reclaim_stat stat;
+-	int file = is_file_lru(lru);
++	bool file = is_file_lru(lru);
+ 	enum vm_event_item item;
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+@@ -1941,11 +1941,12 @@ shrink_inactive_list(unsigned long nr_to
  
--		lru_cache_add_file(page);
-+		lru_cache_add(page);
- 
- 		if (rdata->result == 0 ||
- 		    (rdata->result == -EAGAIN && got_bytes)) {
-@@ -4232,7 +4232,7 @@ readpages_fill_pages(struct TCP_Server_I
- 			 * fill them until the writes are flushed.
- 			 */
- 			zero_user(page, 0, PAGE_SIZE);
--			lru_cache_add_file(page);
-+			lru_cache_add(page);
- 			flush_dcache_page(page);
- 			SetPageUptodate(page);
- 			unlock_page(page);
-@@ -4242,7 +4242,7 @@ readpages_fill_pages(struct TCP_Server_I
- 			continue;
- 		} else {
- 			/* no need to hold page hostage */
--			lru_cache_add_file(page);
-+			lru_cache_add(page);
- 			unlock_page(page);
- 			put_page(page);
- 			rdata->pages[i] = NULL;
-@@ -4437,7 +4437,7 @@ static int cifs_readpages(struct file *f
- 			/* best to give up if we're out of mem */
- 			list_for_each_entry_safe(page, tpage, &tmplist, lru) {
- 				list_del(&page->lru);
--				lru_cache_add_file(page);
-+				lru_cache_add(page);
- 				unlock_page(page);
- 				put_page(page);
- 			}
-@@ -4475,7 +4475,7 @@ static int cifs_readpages(struct file *f
- 			add_credits_and_wake_if(server, &rdata->credits, 0);
- 			for (i = 0; i < rdata->nr_pages; i++) {
- 				page = rdata->pages[i];
--				lru_cache_add_file(page);
-+				lru_cache_add(page);
- 				unlock_page(page);
- 				put_page(page);
- 			}
---- a/fs/fuse/dev.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
-+++ a/fs/fuse/dev.c
-@@ -840,7 +840,7 @@ static int fuse_try_move_page(struct fus
- 	get_page(newpage);
- 
- 	if (!(buf->flags & PIPE_BUF_FLAG_LRU))
--		lru_cache_add_file(newpage);
-+		lru_cache_add(newpage);
- 
- 	err = 0;
- 	spin_lock(&cs->req->waitq.lock);
---- a/include/linux/swap.h~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
-+++ a/include/linux/swap.h
-@@ -335,8 +335,6 @@ extern unsigned long nr_free_pagecache_p
- 
- /* linux/mm/swap.c */
- extern void lru_cache_add(struct page *);
--extern void lru_cache_add_anon(struct page *page);
--extern void lru_cache_add_file(struct page *page);
- extern void lru_add_page_tail(struct page *page, struct page *page_tail,
- 			 struct lruvec *lruvec, struct list_head *head);
- extern void activate_page(struct page *);
---- a/mm/khugepaged.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
-+++ a/mm/khugepaged.c
-@@ -1775,13 +1775,9 @@ xa_unlocked:
- 
- 		SetPageUptodate(new_page);
- 		page_ref_add(new_page, HPAGE_PMD_NR - 1);
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
+ 	reclaim_stat->recent_scanned[file] += nr_taken;
 -
--		if (is_shmem) {
-+		if (is_shmem)
- 			set_page_dirty(new_page);
--			lru_cache_add_anon(new_page);
--		} else {
--			lru_cache_add_file(new_page);
--		}
-+		lru_cache_add(new_page);
- 
- 		/*
- 		 * Remove pte page tables, so we can re-fault the page as huge.
---- a/mm/memory.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
-+++ a/mm/memory.c
-@@ -3139,7 +3139,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 				if (err)
- 					goto out_page;
- 
--				lru_cache_add_anon(page);
-+				lru_cache_add(page);
- 				swap_readpage(page, true);
- 			}
- 		} else {
---- a/mm/shmem.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
-+++ a/mm/shmem.c
-@@ -1609,7 +1609,7 @@ static int shmem_replace_page(struct pag
- 		 */
- 		oldpage = newpage;
- 	} else {
--		lru_cache_add_anon(newpage);
-+		lru_cache_add(newpage);
- 		*pagep = newpage;
- 	}
- 
-@@ -1860,7 +1860,7 @@ alloc_nohuge:
- 					charge_mm);
- 	if (error)
- 		goto unacct;
--	lru_cache_add_anon(page);
-+	lru_cache_add(page);
- 
- 	spin_lock_irq(&info->lock);
- 	info->alloced += compound_nr(page);
-@@ -2376,7 +2376,7 @@ static int shmem_mfill_atomic_pte(struct
- 	if (!pte_none(*dst_pte))
- 		goto out_release_unlock;
- 
--	lru_cache_add_anon(page);
-+	lru_cache_add(page);
- 
- 	spin_lock_irq(&info->lock);
- 	info->alloced++;
---- a/mm/swap.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
-+++ a/mm/swap.c
-@@ -403,35 +403,6 @@ void mark_page_accessed(struct page *pag
- }
- EXPORT_SYMBOL(mark_page_accessed);
- 
--static void __lru_cache_add(struct page *page)
--{
--	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
--
--	get_page(page);
--	if (!pagevec_add(pvec, page) || PageCompound(page))
--		__pagevec_lru_add(pvec);
--	put_cpu_var(lru_add_pvec);
--}
--
--/**
-- * lru_cache_add_anon - add a page to the page lists
-- * @page: the page to add
-- */
--void lru_cache_add_anon(struct page *page)
--{
--	if (PageActive(page))
--		ClearPageActive(page);
--	__lru_cache_add(page);
--}
--
--void lru_cache_add_file(struct page *page)
--{
--	if (PageActive(page))
--		ClearPageActive(page);
--	__lru_cache_add(page);
--}
--EXPORT_SYMBOL(lru_cache_add_file);
--
- /**
-  * lru_cache_add - add a page to a page list
-  * @page: the page to be added to the LRU.
-@@ -443,10 +414,17 @@ EXPORT_SYMBOL(lru_cache_add_file);
-  */
- void lru_cache_add(struct page *page)
- {
-+	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
+ 	item = current_is_kswapd() ? PGSCAN_KSWAPD : PGSCAN_DIRECT;
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, nr_scanned);
+ 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
++	__count_vm_events(PGSCAN_ANON + file, nr_scanned);
 +
- 	VM_BUG_ON_PAGE(PageActive(page) && PageUnevictable(page), page);
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
--	__lru_cache_add(page);
+ 	spin_unlock_irq(&pgdat->lru_lock);
+ 
+ 	if (nr_taken == 0)
+@@ -1956,16 +1957,16 @@ shrink_inactive_list(unsigned long nr_to
+ 
+ 	spin_lock_irq(&pgdat->lru_lock);
+ 
++	move_pages_to_lru(lruvec, &page_list);
 +
-+	get_page(page);
-+	if (!pagevec_add(pvec, page) || PageCompound(page))
-+		__pagevec_lru_add(pvec);
-+	put_cpu_var(lru_add_pvec);
- }
-+EXPORT_SYMBOL(lru_cache_add);
++	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
++	reclaim_stat->recent_rotated[0] += stat.nr_activate[0];
++	reclaim_stat->recent_rotated[1] += stat.nr_activate[1];
+ 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, nr_reclaimed);
+ 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
+-	reclaim_stat->recent_rotated[0] += stat.nr_activate[0];
+-	reclaim_stat->recent_rotated[1] += stat.nr_activate[1];
+-
+-	move_pages_to_lru(lruvec, &page_list);
+-
+-	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
++	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
  
- /**
-  * lru_cache_add_active_or_unevictable
---- a/mm/swap_state.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
-+++ a/mm/swap_state.c
-@@ -432,7 +432,7 @@ struct page *__read_swap_cache_async(swp
+ 	spin_unlock_irq(&pgdat->lru_lock);
  
- 	/* Initiate read into locked page */
- 	SetPageWorkingset(page);
--	lru_cache_add_anon(page);
-+	lru_cache_add(page);
- 	*new_page_allocated = true;
- 	return page;
+--- a/mm/vmstat.c~mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity
++++ a/mm/vmstat.c
+@@ -1201,6 +1201,10 @@ const char * const vmstat_text[] = {
+ 	"pgscan_kswapd",
+ 	"pgscan_direct",
+ 	"pgscan_direct_throttle",
++	"pgscan_anon",
++	"pgscan_file",
++	"pgsteal_anon",
++	"pgsteal_file",
  
+ #ifdef CONFIG_NUMA
+ 	"zone_reclaim_failed",
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
