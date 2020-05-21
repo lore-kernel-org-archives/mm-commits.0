@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-pre.patch added to -mm tree
-Date: Thu, 21 May 2020 14:07:09 -0700
-Message-ID: <20200521210709.N1ZetHoSj%akpm@linux-foundation.org>
+Subject: + linux-next-post.patch added to -mm tree
+Date: Thu, 21 May 2020 14:11:19 -0700
+Message-ID: <20200521211119.ewzwDHv0B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51196 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729756AbgEUVHL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 May 2020 17:07:11 -0400
+        id S1730564AbgEUVLU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 May 2020 17:11:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-pre
+     Subject: linux-next-post
 has been added to the -mm tree.  Its filename is
-     linux-next-pre.patch
+     linux-next-post.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-pre.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-post.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-pre.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-post.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,30 +36,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-pre
+Subject: linux-next-post
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/sysctl.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/kernel/sysctl.c~linux-next-pre
+--- a/kernel/sysctl.c~linux-next-post
 +++ a/kernel/sysctl.c
-@@ -131,7 +131,6 @@ static unsigned long zero_ul;
+@@ -118,6 +118,7 @@ static unsigned long zero_ul;
  static unsigned long one_ul = 1;
  static unsigned long long_max = LONG_MAX;
  static int one_hundred = 100;
--static int two_hundred = 200;
++static int two_hundred = 200;
  static int one_thousand = 1000;
  #ifdef CONFIG_PRINTK
  static int ten_thousand = 10000;
-@@ -1392,7 +1391,7 @@ static struct ctl_table vm_table[] = {
+@@ -2732,7 +2733,7 @@ static struct ctl_table vm_table[] = {
  		.mode		= 0644,
  		.proc_handler	= proc_dointvec_minmax,
  		.extra1		= SYSCTL_ZERO,
--		.extra2		= &two_hundred,
-+		.extra2		= &one_hundred,
+-		.extra2		= &one_hundred,
++		.extra2		= &two_hundred,
  	},
  #ifdef CONFIG_HUGETLB_PAGE
  	{
@@ -95,6 +95,7 @@ seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
 ipc-convert-ipcs_idr-to-xarray-update-fix.patch
 linux-next-pre.patch
 linux-next-rejects.patch
+linux-next-post.patch
 kernel-add-panic_on_taint-fix.patch
 mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
 mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
