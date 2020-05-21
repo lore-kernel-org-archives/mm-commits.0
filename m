@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-deactivations-shouldnt-bias-the-lru-balance.patch
- added to -mm tree
-Date: Wed, 20 May 2020 20:32:05 -0700
-Message-ID: <20200521033205.4_ro2ng3k%akpm@linux-foundation.org>
+Subject: +
+ mm-only-count-actual-rotations-as-lru-reclaim-cost.patch added to -mm tree
+Date: Wed, 20 May 2020 20:32:07 -0700
+Message-ID: <20200521033207.LCLBOZjXb%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35090 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728264AbgEUDcG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 23:32:06 -0400
+        id S1728264AbgEUDcJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 23:32:09 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.
 
 
 The patch titled
-     Subject: mm: deactivations shouldn't bias the LRU balance
+     Subject: mm: only count actual rotations as LRU reclaim cost
 has been added to the -mm tree.  Its filename is
-     mm-deactivations-shouldnt-bias-the-lru-balance.patch
+     mm-only-count-actual-rotations-as-lru-reclaim-cost.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-deactivations-shouldnt-bias-the-lru-balance.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-only-count-actual-rotations-as-lru-reclaim-cost.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-deactivations-shouldnt-bias-the-lru-balance.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-only-count-actual-rotations-as-lru-reclaim-cost.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,28 +39,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: deactivations shouldn't bias the LRU balance
+Subject: mm: only count actual rotations as LRU reclaim cost
 
-Operations like MADV_FREE, FADV_DONTNEED etc.  currently move any affected
-active pages to the inactive list to accelerate their reclaim (good) but
-also steer page reclaim toward that LRU type, or away from the other
-(bad).
+When shrinking the active file list we rotate referenced pages only when
+they're in an executable mapping.  The others get deactivated.  When it
+comes to balancing scan pressure, though, we count all referenced pages as
+rotated, even the deactivated ones.  Yet they do not carry the same cost
+to the system: the deactivated page *might* refault later on, but the
+deactivation is tangible progress toward freeing pages; rotations on the
+other hand cost time and effort without getting any closer to freeing
+memory.
 
-The reason why this is undesirable is that such operations are not part of
-the regular page aging cycle, and rather a fluke that doesn't say much
-about the remaining pages on that list; they might all be in heavy use,
-and once the chunk of easy victims has been purged, the VM continues to
-apply elevated pressure on those remaining hot pages.  The other LRU,
-meanwhile, might have easily reclaimable pages, and there was never a need
-to steer away from it in the first place.
+Don't treat both events as equal.  The following patch will hook up LRU
+balancing to cache and anon refaults, which are a much more concrete cost
+signal for reclaiming one list over the other.  Thus, remove the maybe-IO
+cost bias from page references, and only note the CPU cost for actual
+rotations that prevent the pages from getting reclaimed.
 
-As the previous patch outlined, we should focus on recording actually
-observed cost to steer the balance rather than speculating about the
-potential value of one LRU list over the other.  In that spirit, leave
-explicitely deactivated pages to the LRU algorithm to pick up, and let
-rotations decide which list is the easiest to reclaim.
-
-Link: http://lkml.kernel.org/r/20200520232525.798933-10-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20200520232525.798933-11-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -69,41 +65,39 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/vmscan.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/swap.c~mm-deactivations-shouldnt-bias-the-lru-balance
-+++ a/mm/swap.c
-@@ -515,14 +515,12 @@ static void lru_deactivate_file_fn(struc
+--- a/mm/vmscan.c~mm-only-count-actual-rotations-as-lru-reclaim-cost
++++ a/mm/vmscan.c
+@@ -2054,7 +2054,6 @@ static void shrink_active_list(unsigned
  
- 	if (active)
- 		__count_vm_event(PGDEACTIVATE);
--	lru_note_cost(lruvec, !file, hpage_nr_pages(page));
- }
- 
- static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
- 			    void *arg)
- {
- 	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
--		int file = page_is_file_lru(page);
- 		int lru = page_lru_base_type(page);
- 
- 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
-@@ -531,7 +529,6 @@ static void lru_deactivate_fn(struct pag
- 		add_page_to_lru_list(page, lruvec, lru);
- 
- 		__count_vm_events(PGDEACTIVATE, hpage_nr_pages(page));
--		lru_note_cost(lruvec, !file, hpage_nr_pages(page));
- 	}
- }
- 
-@@ -556,7 +553,6 @@ static void lru_lazyfree_fn(struct page
- 
- 		__count_vm_events(PGLAZYFREE, hpage_nr_pages(page));
- 		count_memcg_page_event(page, PGLAZYFREE);
--		lru_note_cost(lruvec, 0, hpage_nr_pages(page));
- 	}
- }
+ 		if (page_referenced(page, 0, sc->target_mem_cgroup,
+ 				    &vm_flags)) {
+-			nr_rotated += hpage_nr_pages(page);
+ 			/*
+ 			 * Identify referenced, file-backed active pages and
+ 			 * give them one more trip around the active list. So
+@@ -2065,6 +2064,7 @@ static void shrink_active_list(unsigned
+ 			 * so we ignore them here.
+ 			 */
+ 			if ((vm_flags & VM_EXEC) && page_is_file_lru(page)) {
++				nr_rotated += hpage_nr_pages(page);
+ 				list_add(&page->lru, &l_active);
+ 				continue;
+ 			}
+@@ -2080,10 +2080,8 @@ static void shrink_active_list(unsigned
+ 	 */
+ 	spin_lock_irq(&pgdat->lru_lock);
+ 	/*
+-	 * Count referenced pages from currently used mappings as rotated,
+-	 * even though only some of them are actually re-activated.  This
+-	 * helps balance scan pressure between file and anonymous pages in
+-	 * get_scan_count.
++	 * Rotating pages costs CPU without actually
++	 * progressing toward the reclaim goal.
+ 	 */
+ 	lru_note_cost(lruvec, file, nr_rotated);
  
 _
 
