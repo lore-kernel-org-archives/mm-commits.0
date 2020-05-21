@@ -1,102 +1,113 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked]
- scripts-support-compiled-source-improved-precise.patch removed from -mm
+Subject: +
+ arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch added to -mm
  tree
-Date: Thu, 21 May 2020 10:28:34 -0700
-Message-ID: <20200521172834.HNvITuDlF%akpm@linux-foundation.org>
+Date: Thu, 21 May 2020 11:30:06 -0700
+Message-ID: <20200521183006.JJtIVGylS%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49490 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39506 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727955AbgEUR2f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 May 2020 13:28:35 -0400
+        id S1728240AbgEUSaH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 May 2020 14:30:07 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, gregkh@linuxfoundation.org, masahiroy@kernel.org, mchehab+huawei@kernel.org, mm-commits@vger.kernel.org, xujialu@vimux.org
+To: akpm@linux-foundation.org, deller@gmx.de, James.Bottomley@HansenPartnership.com, lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
 
 
 The patch titled
-     Subject: scripts/tags.sh: support compiled source, improved precise
-has been removed from the -mm tree.  Its filename was
-     scripts-support-compiled-source-improved-precise.patch
+     Subject: arch/parisc/include/asm/pgtable.h: remove unused `old_pte'
+has been added to the -mm tree.  Its filename is
+     arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: xujialu <xujialu@vimux.org>
-Subject: scripts/tags.sh: support compiled source, improved precise
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/parisc/include/asm/pgtable.h: remove unused `old_pte'
 
-Original 'COMPILED_SOURCE=1 make cscope' collects nearly 30000 files
-include too many unused files, this patch precisely collects source
-files from *.cmd, in this case just 3000 files include dts and dtsi.
+parisc's set_pte_at() macro has set-but-not-used variable.
 
-Usage:
-  1) COMPILED_SOURCE=1                           make {cscope,gtags}
-  2) COMPILED_SOURCE=1 KBUILD_ABS_SRCTREE=1      make {cscope,gtags}
-  3) COMPILED_SOURCE=1              ./scripts/tags.sh {cscope,gtags}
-  4) COMPILED_SOURCE=1 ABSPWD=$PWD/ ./scripts/tags.sh {cscope,gtags}
+include/linux/pgtable.h: In function 'pte_clear_not_present_full':
+arch/parisc/include/asm/pgtable.h:96:9: warning: variable 'old_pte' set but not used [-Wunused-but-set-variable]
 
-Link: http://lkml.kernel.org/r/20200502052619.26457-2-xujialu@vimux.org
-Signed-off-by: xujialu <xujialu@vimux.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/tags.sh |   36 ++++++++++++++++++++++--------------
- 1 file changed, 22 insertions(+), 14 deletions(-)
+ arch/parisc/include/asm/pgtable.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/scripts/tags.sh~scripts-support-compiled-source-improved-precise
-+++ a/scripts/tags.sh
-@@ -89,22 +89,30 @@ all_sources()
- 	find_other_sources '*.[chS]'
- }
+--- a/arch/parisc/include/asm/pgtable.h~arch-parisc-include-asm-pgtableh-remove-unused-old_pte
++++ a/arch/parisc/include/asm/pgtable.h
+@@ -93,10 +93,8 @@ static inline void purge_tlb_entries(str
  
-+# COMPILED_SOURCE=1                           make {cscope,gtags}
-+# COMPILED_SOURCE=1 KBUILD_ABS_SRCTREE=1      make {cscope,gtags}
-+# COMPILED_SOURCE=1              ./scripts/tags.sh {cscope,gtags}
-+# COMPILED_SOURCE=1 ABSPWD=$PWD/ ./scripts/tags.sh {cscope,gtags}
-+xtags_juggle_list()
-+{
-+	SRCTREE=$(realpath ${tree}.)
-+
-+	cd $(dirname $(find -name .config -print -quit).)
-+
-+	realpath -e --relative-to=${SRCTREE} $(find -name "*.cmd" -exec \
-+		grep -Poh '(?(?=^source_.* \K).*|(?=^  \K\S).*(?= \\))' {} \+ |
-+		awk '!a[$0]++') include/generated/autoconf.h |
-+	sed -e "/\.\./d" -e "s,^,${ABSPWD}${tree},"
-+}
-+
- all_compiled_sources()
- {
--	for i in $(all_sources); do
--		case "$i" in
--			*.[cS])
--				j=${i/\.[cS]/\.o}
--				j="${j#$tree}"
--				if [ -e $j ]; then
--					echo $i
--				fi
--				;;
--			*)
--				echo $i
--				;;
--		esac
--	done
-+	# Consider 'git ls-files' features:
-+	#   1) sort and uniq target files
-+	#   2) limit target files by index
-+	# git ls-files $(xtags_juggle_list)
-+
-+	xtags_juggle_list | sort -u
- }
- 
- all_target_sources()
+ #define set_pte_at(mm, addr, ptep, pteval)			\
+ 	do {							\
+-		pte_t old_pte;					\
+ 		unsigned long flags;				\
+ 		spin_lock_irqsave(pgd_spinlock((mm)->pgd), flags);\
+-		old_pte = *ptep;				\
+ 		set_pte(ptep, pteval);				\
+ 		purge_tlb_entries(mm, addr);			\
+ 		spin_unlock_irqrestore(pgd_spinlock((mm)->pgd), flags);\
 _
 
-Patches currently in -mm which might be from xujialu@vimux.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+mm-gupc-updating-the-documentation-fix.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
+mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+padata-initialize-earlier-fix.patch
+arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-add-debug_wx-support-fix.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-rejects.patch
+kernel-add-panic_on_taint-fix.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
