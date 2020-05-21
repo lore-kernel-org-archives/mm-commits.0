@@ -1,18 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- =?US-ASCII?Q?mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-f?=
- =?US-ASCII?Q?ile-workingset.patch?= added to -mm tree
-Date: Wed, 20 May 2020 20:31:49 -0700
-Message-ID: <20200521033149.EqT3ATBEJ%akpm@linux-foundation.org>
+Subject: + mm-remove-use-once-cache-bias-from-lru-balancing.patch
+ added to -mm tree
+Date: Wed, 20 May 2020 20:31:58 -0700
+Message-ID: <20200521033158.kzeKQG1VS%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34844 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727998AbgEUDbv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 23:31:51 -0400
+        id S1727974AbgEUDb7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 23:31:59 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -20,14 +17,14 @@ To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.
 
 
 The patch titled
-     Subject: mm: allow swappiness that prefers reclaiming anon over the file workingset
+     Subject: mm: remove use-once cache bias from LRU balancing
 has been added to the -mm tree.  Its filename is
-     mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset.patch
+     mm-remove-use-once-cache-bias-from-lru-balancing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-use-once-cache-bias-from-lru-balancing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-use-once-cache-bias-from-lru-balancing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,96 +39,63 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: allow swappiness that prefers reclaiming anon over the file workingset
+Subject: mm: remove use-once cache bias from LRU balancing
 
-With the advent of fast random IO devices (SSDs, PMEM) and in-memory swap
-devices such as zswap, it's possible for swap to be much faster than
-filesystems, and for swapping to be preferable over thrashing filesystem
-caches.
+When the splitlru patches divided page cache and swap-backed pages into
+separate LRU lists, the pressure balance between the lists was biased to
+account for the fact that streaming IO can cause memory pressure with a
+flood of pages that are used only once.  New page cache additions would
+tip the balance toward the file LRU, and repeat access would neutralize
+that bias again.  This ensured that page reclaim would always go for
+used-once cache first.
 
-Allow setting swappiness - which defines the rough relative IO cost of
-cache misses between page cache and swap-backed pages - to reflect such
-situations by making the swap-preferred range configurable.
+Since e9868505987a ("mm,vmscan: only evict file pages when we have
+plenty"), page reclaim generally skips over swap-backed memory entirely as
+long as there is used-once cache present, and will apply the LRU balancing
+when only repeatedly accessed cache pages are left - at which point the
+previous use-once bias will have been neutralized.  This makes the
+use-once cache balancing bias unnecessary.
 
-Link: http://lkml.kernel.org/r/20200520232525.798933-4-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20200520232525.798933-7-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |   23 +++++++++++++++++-----
- kernel/sysctl.c                         |    3 +-
- mm/vmscan.c                             |    2 -
- 3 files changed, 21 insertions(+), 7 deletions(-)
+ mm/swap.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -831,14 +831,27 @@ tooling to work, you can do::
- swappiness
- ==========
+--- a/mm/swap.c~mm-remove-use-once-cache-bias-from-lru-balancing
++++ a/mm/swap.c
+@@ -277,7 +277,6 @@ static void __activate_page(struct page
+ 			    void *arg)
+ {
+ 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+-		int file = page_is_file_lru(page);
+ 		int lru = page_lru_base_type(page);
  
--This control is used to define how aggressive the kernel will swap
--memory pages.  Higher values will increase aggressiveness, lower values
--decrease the amount of swap.  A value of 0 instructs the kernel not to
--initiate swap until the amount of free and file-backed pages is less
--than the high water mark in a zone.
-+This control is used to define the rough relative IO cost of swapping
-+and filesystem paging, as a value between 0 and 200. At 100, the VM
-+assumes equal IO cost and will thus apply memory pressure to the page
-+cache and swap-backed pages equally; lower values signify more
-+expensive swap IO, higher values indicates cheaper.
-+
-+Keep in mind that filesystem IO patterns under memory pressure tend to
-+be more efficient than swap's random IO. An optimal value will require
-+experimentation and will also be workload-dependent.
+ 		del_page_from_lru_list(page, lruvec, lru);
+@@ -287,7 +286,6 @@ static void __activate_page(struct page
+ 		trace_mm_lru_activate(page);
  
- The default value is 60.
+ 		__count_vm_event(PGACTIVATE);
+-		update_page_reclaim_stat(lruvec, file, 1, hpage_nr_pages(page));
+ 	}
+ }
  
-+For in-memory swap, like zram or zswap, as well as hybrid setups that
-+have swap on faster devices than the filesystem, values beyond 100 can
-+be considered. For example, if the random IO against the swap device
-+is on average 2x faster than IO from the filesystem, swappiness should
-+be 133 (x + 2x = 200, 2x = 133.33).
-+
-+At 0, the kernel will not initiate swap until the amount of free and
-+file-backed pages is less than the high watermark in a zone.
-+
+@@ -936,9 +934,6 @@ static void __pagevec_lru_add_fn(struct
  
- unprivileged_userfaultfd
- ========================
---- a/kernel/sysctl.c~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
-+++ a/kernel/sysctl.c
-@@ -131,6 +131,7 @@ static unsigned long zero_ul;
- static unsigned long one_ul = 1;
- static unsigned long long_max = LONG_MAX;
- static int one_hundred = 100;
-+static int two_hundred = 200;
- static int one_thousand = 1000;
- #ifdef CONFIG_PRINTK
- static int ten_thousand = 10000;
-@@ -1391,7 +1392,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_hundred,
-+		.extra2		= &two_hundred,
- 	},
- #ifdef CONFIG_HUGETLB_PAGE
- 	{
---- a/mm/vmscan.c~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
-+++ a/mm/vmscan.c
-@@ -161,7 +161,7 @@ struct scan_control {
- #endif
- 
- /*
-- * From 0 .. 100.  Higher means more swappy.
-+ * From 0 .. 200.  Higher means more swappy.
-  */
- int vm_swappiness = 60;
- /*
+ 	if (page_evictable(page)) {
+ 		lru = page_lru(page);
+-		update_page_reclaim_stat(lruvec, is_file_lru(lru),
+-					 PageActive(page),
+-					 hpage_nr_pages(page));
+ 		if (was_unevictable)
+ 			count_vm_event(UNEVICTABLE_PGRESCUED);
+ 	} else {
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
