@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation.patch
- added to -mm tree
-Date: Wed, 20 May 2020 19:51:12 -0700
-Message-ID: <20200521025112.CeF-TpVhD%akpm@linux-foundation.org>
+ mmap-locking-api-initial-implementation-as-rwsem-wrappers.patch added to
+ -mm tree
+Date: Wed, 20 May 2020 20:23:47 -0700
+Message-ID: <20200521032347.UWri76Ibp%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57320 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728026AbgEUCvP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 22:51:15 -0400
+        id S1727825AbgEUDXt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 23:23:49 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.m.jordan@oracle.com, hughd@google.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, ying.huang@intel.com
+To: daniel.m.jordan@oracle.com, dbueso@suse.de, hughd@google.com, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, ldufour@linux.ibm.com, Liam.Howlett@oracle.com, mm-commits@vger.kernel.org, peterz@infradead.org, rientjes@google.com, vbabka@suse.cz, walken@google.com, willy@infradead.org, yinghan@google.com
 
 
 The patch titled
-     Subject: swap: reduce lock contention on swap cache from swap slots allocation
+     Subject: mmap locking API: initial implementation as rwsem wrappers
 has been added to the -mm tree.  Its filename is
-     swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation.patch
+     mmap-locking-api-initial-implementation-as-rwsem-wrappers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmap-locking-api-initial-implementation-as-rwsem-wrappers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-locking-api-initial-implementation-as-rwsem-wrappers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,196 +39,140 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: swap: reduce lock contention on swap cache from swap slots allocation
+From: Michel Lespinasse <walken@google.com>
+Subject: mmap locking API: initial implementation as rwsem wrappers
 
-In some swap scalability test, it is found that there are heavy lock
-contention on swap cache even if we have split one swap cache radix tree
-per swap device to one swap cache radix tree every 64 MB trunk in commit
-4b3ef9daa4fc ("mm/swap: split swap cache into 64MB trunks").
+This patch series adds a new mmap locking API replacing the existing
+mmap_sem lock and unlocks.  Initially the API is just implemente in terms
+of inlined rwsem calls, so it doesn't provide any new functionality.
 
-The reason is as follow.  After the swap device becomes fragmented so that
-there's no free swap cluster, the swap device will be scanned linearly to
-find the free swap slots.  swap_info_struct->cluster_next is the next
-scanning base that is shared by all CPUs.  So nearby free swap slots will
-be allocated for different CPUs.  The probability for multiple CPUs to
-operate on the same 64 MB trunk is high.  This causes the lock contention
-on the swap cache.
+There are two justifications for the new API:
 
-To solve the issue, in this patch, for SSD swap device, a percpu version
-next scanning base (cluster_next_cpu) is added.  Every CPU will use its
-own per-cpu next scanning base.  And after finishing scanning a 64MB
-trunk, the per-cpu scanning base will be changed to the beginning of
-another randomly selected 64MB trunk.  In this way, the probability for
-multiple CPUs to operate on the same 64 MB trunk is reduced greatly.  Thus
-the lock contention is reduced too.  For HDD, because sequential access is
-more important for IO performance, the original shared next scanning base
-is used.
+- At first, it provides an easy hooking point to instrument mmap_sem
+  locking latencies independently of any other rwsems.
 
-To test the patch, we have run 16-process pmbench memory benchmark on a
-2-socket server machine with 48 cores.  One ram disk is configured as the
-swap device per socket.  The pmbench working-set size is much larger than
-the available memory so that swapping is triggered.  The memory read/write
-ratio is 80/20 and the accessing pattern is random.  In the original
-implementation, the lock contention on the swap cache is heavy.  The perf
-profiling data of the lock contention code path is as following,
+- In the future, it may be a starting point for replacing the rwsem
+  implementation with a different one, such as range locks.  This is
+  something that is being explored, even though there is no wide concensus
+  about this possible direction yet.  (see
+  https://patchwork.kernel.org/cover/11401483/)
 
-_raw_spin_lock_irq.add_to_swap_cache.add_to_swap.shrink_page_list:      7.91
-_raw_spin_lock_irqsave.__remove_mapping.shrink_page_list:               7.11
-_raw_spin_lock.swapcache_free_entries.free_swap_slot.__swap_entry_free: 2.51
-_raw_spin_lock_irqsave.swap_cgroup_record.mem_cgroup_uncharge_swap:     1.66
-_raw_spin_lock_irq.shrink_inactive_list.shrink_lruvec.shrink_node:      1.29
-_raw_spin_lock.free_pcppages_bulk.drain_pages_zone.drain_pages:         1.03
-_raw_spin_lock_irq.shrink_active_list.shrink_lruvec.shrink_node:        0.93
 
-After applying this patch, it becomes,
+This patch (of 12):
 
-_raw_spin_lock.swapcache_free_entries.free_swap_slot.__swap_entry_free: 3.58
-_raw_spin_lock_irq.shrink_inactive_list.shrink_lruvec.shrink_node:      2.3
-_raw_spin_lock_irqsave.swap_cgroup_record.mem_cgroup_uncharge_swap:     2.26
-_raw_spin_lock_irq.shrink_active_list.shrink_lruvec.shrink_node:        1.8
-_raw_spin_lock.free_pcppages_bulk.drain_pages_zone.drain_pages:         1.19
+This change wraps the existing mmap_sem related rwsem calls into a new
+mmap locking API.  There are two justifications for the new API:
 
-The lock contention on the swap cache is almost eliminated.
+- At first, it provides an easy hooking point to instrument mmap_sem
+  locking latencies independently of any other rwsems.
 
-And the pmbench score increases 18.5%.  The swapin throughput
-increases 18.7% from 2.96 GB/s to 3.51 GB/s.  While the swapout
-throughput increases 18.5% from 2.99 GB/s to 3.54 GB/s.
+- In the future, it may be a starting point for replacing the rwsem
+  implementation with a different one, such as range locks.
 
-Link: http://lkml.kernel.org/r/20200520031502.175659-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Link: http://lkml.kernel.org/r/20200520052908.204642-1-walken@google.com
+Link: http://lkml.kernel.org/r/20200520052908.204642-2-walken@google.com
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
+Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Liam Howlett <Liam.Howlett@oracle.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/swapfile.c        |   54 +++++++++++++++++++++++++++++++++++++----
- 2 files changed, 51 insertions(+), 4 deletions(-)
+ include/linux/mm.h        |    1 
+ include/linux/mmap_lock.h |   54 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+)
 
---- a/include/linux/swap.h~swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation
-+++ a/include/linux/swap.h
-@@ -252,6 +252,7 @@ struct swap_info_struct {
- 	unsigned int inuse_pages;	/* number of those currently in use */
- 	unsigned int cluster_next;	/* likely index for next allocation */
- 	unsigned int cluster_nr;	/* countdown to next cluster search */
-+	unsigned int __percpu *cluster_next_cpu; /*percpu index for next allocation */
- 	struct percpu_cluster __percpu *percpu_cluster; /* per cpu's swap location */
- 	struct rb_root swap_extent_root;/* root of the swap extent rbtree */
- 	struct block_device *bdev;	/* swap device or bdev of swap file */
---- a/mm/swapfile.c~swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation
-+++ a/mm/swapfile.c
-@@ -616,7 +616,8 @@ new_cluster:
- 			 * discarding, do discard now and reclaim them
- 			 */
- 			swap_do_scheduled_discard(si);
--			*scan_base = *offset = si->cluster_next;
-+			*scan_base = this_cpu_read(*si->cluster_next_cpu);
-+			*offset = *scan_base;
- 			goto new_cluster;
- 		} else
- 			return false;
-@@ -722,6 +723,34 @@ static void swap_range_free(struct swap_
- 	}
- }
- 
-+static void set_cluster_next(struct swap_info_struct *si, unsigned long next)
+--- /dev/null
++++ a/include/linux/mmap_lock.h
+@@ -0,0 +1,54 @@
++#ifndef _LINUX_MMAP_LOCK_H
++#define _LINUX_MMAP_LOCK_H
++
++static inline void mmap_init_lock(struct mm_struct *mm)
 +{
-+	unsigned long prev;
-+
-+	if (!(si->flags & SWP_SOLIDSTATE)) {
-+		si->cluster_next = next;
-+		return;
-+	}
-+
-+	prev = this_cpu_read(*si->cluster_next_cpu);
-+	/*
-+	 * Cross the swap address space size aligned trunk, choose
-+	 * another trunk randomly to avoid lock contention on swap
-+	 * address space if possible.
-+	 */
-+	if ((prev >> SWAP_ADDRESS_SPACE_SHIFT) !=
-+	    (next >> SWAP_ADDRESS_SPACE_SHIFT)) {
-+		/* No free swap slots available */
-+		if (si->highest_bit <= si->lowest_bit)
-+			return;
-+		next = si->lowest_bit +
-+			prandom_u32_max(si->highest_bit - si->lowest_bit + 1);
-+		next = ALIGN(next, SWAP_ADDRESS_SPACE_PAGES);
-+		next = max_t(unsigned int, next, si->lowest_bit);
-+	}
-+	this_cpu_write(*si->cluster_next_cpu, next);
++	init_rwsem(&mm->mmap_sem);
 +}
 +
- static int scan_swap_map_slots(struct swap_info_struct *si,
- 			       unsigned char usage, int nr,
- 			       swp_entry_t slots[])
-@@ -746,7 +775,16 @@ static int scan_swap_map_slots(struct sw
- 	 */
- 
- 	si->flags += SWP_SCANNING;
--	scan_base = offset = si->cluster_next;
-+	/*
-+	 * Use percpu scan base for SSD to reduce lock contention on
-+	 * cluster and swap cache.  For HDD, sequential access is more
-+	 * important.
-+	 */
-+	if (si->flags & SWP_SOLIDSTATE)
-+		scan_base = this_cpu_read(*si->cluster_next_cpu);
-+	else
-+		scan_base = si->cluster_next;
-+	offset = scan_base;
- 
- 	/* SSD algorithm */
- 	if (si->cluster_info) {
-@@ -835,7 +873,6 @@ checks:
- 	unlock_cluster(ci);
- 
- 	swap_range_alloc(si, offset, 1);
--	si->cluster_next = offset + 1;
- 	slots[n_ret++] = swp_entry(si->type, offset);
- 
- 	/* got enough slots or reach max slots? */
-@@ -884,6 +921,7 @@ checks:
- 	}
- 
- done:
-+	set_cluster_next(si, offset + 1);
- 	si->flags -= SWP_SCANNING;
- 	return n_ret;
- 
-@@ -2834,6 +2872,11 @@ static struct swap_info_struct *alloc_sw
- 	p = kvzalloc(struct_size(p, avail_lists, nr_node_ids), GFP_KERNEL);
- 	if (!p)
- 		return ERR_PTR(-ENOMEM);
-+	p->cluster_next_cpu = alloc_percpu(unsigned int);
-+	if (!p->cluster_next_cpu) {
-+		kvfree(p);
-+		return ERR_PTR(-ENOMEM);
-+	}
- 
- 	spin_lock(&swap_lock);
- 	for (type = 0; type < nr_swapfiles; type++) {
-@@ -3209,7 +3252,10 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		 * select a random position to start with to help wear leveling
- 		 * SSD
- 		 */
--		p->cluster_next = 1 + prandom_u32_max(p->highest_bit);
-+		for_each_possible_cpu(cpu) {
-+			per_cpu(*p->cluster_next_cpu, cpu) =
-+				1 + prandom_u32_max(p->highest_bit);
-+		}
- 		nr_cluster = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
- 
- 		cluster_info = kvcalloc(nr_cluster, sizeof(*cluster_info),
++static inline void mmap_write_lock(struct mm_struct *mm)
++{
++	down_write(&mm->mmap_sem);
++}
++
++static inline int mmap_write_lock_killable(struct mm_struct *mm)
++{
++	return down_write_killable(&mm->mmap_sem);
++}
++
++static inline bool mmap_write_trylock(struct mm_struct *mm)
++{
++	return down_write_trylock(&mm->mmap_sem) != 0;
++}
++
++static inline void mmap_write_unlock(struct mm_struct *mm)
++{
++	up_write(&mm->mmap_sem);
++}
++
++static inline void mmap_write_downgrade(struct mm_struct *mm)
++{
++	downgrade_write(&mm->mmap_sem);
++}
++
++static inline void mmap_read_lock(struct mm_struct *mm)
++{
++	down_read(&mm->mmap_sem);
++}
++
++static inline int mmap_read_lock_killable(struct mm_struct *mm)
++{
++	return down_read_killable(&mm->mmap_sem);
++}
++
++static inline bool mmap_read_trylock(struct mm_struct *mm)
++{
++	return down_read_trylock(&mm->mmap_sem) != 0;
++}
++
++static inline void mmap_read_unlock(struct mm_struct *mm)
++{
++	up_read(&mm->mmap_sem);
++}
++
++#endif /* _LINUX_MMAP_LOCK_H */
+--- a/include/linux/mm.h~mmap-locking-api-initial-implementation-as-rwsem-wrappers
++++ a/include/linux/mm.h
+@@ -15,6 +15,7 @@
+ #include <linux/atomic.h>
+ #include <linux/debug_locks.h>
+ #include <linux/mm_types.h>
++#include <linux/mmap_lock.h>
+ #include <linux/range.h>
+ #include <linux/pfn.h>
+ #include <linux/percpu-refcount.h>
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from walken@google.com are
 
-swap-try-to-scan-more-free-slots-even-when-fragmented.patch
-mm-swap-use-prandom_u32_max.patch
-swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation.patch
-proc-pid-smaps-add-pmd-migration-entry-parsing.patch
+mmap-locking-api-initial-implementation-as-rwsem-wrappers.patch
+mmu-notifier-use-the-new-mmap-locking-api.patch
+dma-reservations-use-the-new-mmap-locking-api.patch
+mmap-locking-api-use-coccinelle-to-convert-mmap_sem-rwsem-call-sites.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle.patch
+mmap-locking-api-convert-nested-write-lock-sites.patch
+mmap-locking-api-add-mmap_read_trylock_non_owner.patch
+mmap-locking-api-add-mmap_lock_initializer.patch
+mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock.patch
+mmap-locking-api-convert-mmap_sem-api-comments.patch
+mmap-locking-api-convert-mmap_sem-comments.patch
