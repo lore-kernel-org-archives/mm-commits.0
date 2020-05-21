@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch added to -mm
- tree
-Date: Wed, 20 May 2020 16:57:51 -0700
-Message-ID: <20200520235751.Hqh4Knwk9%akpm@linux-foundation.org>
+Subject: + z3fold-fix-use-after-free-when-freeing-handles.patch
+ added to -mm tree
+Date: Wed, 20 May 2020 17:47:04 -0700
+Message-ID: <20200521004704.PNIP1YkNw%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41200 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35266 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726619AbgETX5w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 May 2020 19:57:52 -0400
+        id S1726819AbgEUArF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 May 2020 20:47:05 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, lkp@intel.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: cai@lca.pw, mm-commits@vger.kernel.org, shentino@gmail.com, stable@vger.kernel.org, uladzislau.rezki@sony.com, vitaly.wool@konsulko.com
 
 
 The patch titled
-     Subject: asm-generic-dont-include-linux-mmh-in-cacheflushh-fix
+     Subject: z3fold: fix use-after-free when freeing handles
 has been added to the -mm tree.  Its filename is
-     asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch
+     z3fold-fix-use-after-free-when-freeing-handles.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-fix-use-after-free-when-freeing-handles.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-fix-use-after-free-when-freeing-handles.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,110 +38,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: asm-generic-dont-include-linux-mmh-in-cacheflushh-fix
+From: Uladzislau Rezki <uladzislau.rezki@sony.com>
+Subject: z3fold: fix use-after-free when freeing handles
 
-fix warning:
+free_handle() for a foreign handle may race with inter-page compaction,
+what can lead to memory corruption.  To avoid that, take write lock not
+read lock in free_handle to be synchronized with __release_z3fold_page().
 
-In file included from ./arch/s390/include/generated/asm/cacheflush.h:1,
-from drivers/media/platform/omap3isp/ispvideo.c:13:
-include/asm-generic/cacheflush.h:18:42: warning: 'struct mm_struct' declared inside parameter list will not be visible outside of this definition or declaration
+For example KASAN can detect it:
 
-Link: http://lkml.kernel.org/r/20200520173520.GA11199@lst.de
-Reported-by: kbuild test robot <lkp@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+[   33.723357] ==================================================================
+[   33.723401] BUG: KASAN: use-after-free in LZ4_decompress_safe+0x2c4/0x3b8
+[   33.723418] Read of size 1 at addr ffffffc976695ca3 by task GoogleApiHandle/4121
+[   33.723428]
+[   33.723449] CPU: 0 PID: 4121 Comm: GoogleApiHandle Tainted: P S         OE     4.19.81-perf+ #162
+[   33.723461] Hardware name: Sony Mobile Communications. PDX-203(KONA) (DT)
+[   33.723473] Call trace:
+[   33.723495] dump_backtrace+0x0/0x288
+[   33.723512] show_stack+0x14/0x20
+[   33.723533] dump_stack+0xe4/0x124
+[   33.723551] print_address_description+0x80/0x2e0
+[   33.723566] kasan_report+0x268/0x2d0
+[   33.723584] __asan_load1+0x4c/0x58
+[   33.723601] LZ4_decompress_safe+0x2c4/0x3b8
+[   33.723619] lz4_decompress_crypto+0x3c/0x70
+[   33.723636] crypto_decompress+0x58/0x70
+[   33.723656] zcomp_decompress+0xd4/0x120
+...
+
+Apart from that, initialize zhdr->mapped_count in init_z3fold_page() and
+remove "newpage" variable because it is not used anywhere.
+
+Link: http://lkml.kernel.org/r/20200520082100.28876-1-vitaly.wool@konsulko.com
+Signed-off-by: Uladzislau Rezki <uladzislau.rezki@sony.com>
+Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Raymond Jennings <shentino@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/platform/omap3isp/ispvideo.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/z3fold.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/drivers/media/platform/omap3isp/ispvideo.c~asm-generic-dont-include-linux-mmh-in-cacheflushh-fix
-+++ a/drivers/media/platform/omap3isp/ispvideo.c
-@@ -10,7 +10,6 @@
-  *	     Sakari Ailus <sakari.ailus@iki.fi>
-  */
+--- a/mm/z3fold.c~z3fold-fix-use-after-free-when-freeing-handles
++++ a/mm/z3fold.c
+@@ -318,16 +318,16 @@ static inline void free_handle(unsigned
+ 	slots = handle_to_slots(handle);
+ 	write_lock(&slots->lock);
+ 	*(unsigned long *)handle = 0;
+-	write_unlock(&slots->lock);
+-	if (zhdr->slots == slots)
++	if (zhdr->slots == slots) {
++		write_unlock(&slots->lock);
+ 		return; /* simple case, nothing else to do */
++	}
  
--#include <asm/cacheflush.h>
- #include <linux/clk.h>
- #include <linux/mm.h>
- #include <linux/module.h>
-@@ -19,6 +18,7 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
-+#include <asm/cacheflush.h>
+ 	/* we are freeing a foreign handle if we are here */
+ 	zhdr->foreign_handles--;
+ 	is_free = true;
+-	read_lock(&slots->lock);
+ 	if (!test_bit(HANDLES_ORPHANED, &slots->pool)) {
+-		read_unlock(&slots->lock);
++		write_unlock(&slots->lock);
+ 		return;
+ 	}
+ 	for (i = 0; i <= BUDDY_MASK; i++) {
+@@ -336,7 +336,7 @@ static inline void free_handle(unsigned
+ 			break;
+ 		}
+ 	}
+-	read_unlock(&slots->lock);
++	write_unlock(&slots->lock);
  
- #include <media/v4l2-dev.h>
- #include <media/v4l2-ioctl.h>
+ 	if (is_free) {
+ 		struct z3fold_pool *pool = slots_to_pool(slots);
+@@ -422,6 +422,7 @@ static struct z3fold_header *init_z3fold
+ 	zhdr->start_middle = 0;
+ 	zhdr->cpu = -1;
+ 	zhdr->foreign_handles = 0;
++	zhdr->mapped_count = 0;
+ 	zhdr->slots = slots;
+ 	zhdr->pool = pool;
+ 	INIT_LIST_HEAD(&zhdr->buddy);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from uladzislau.rezki@sony.com are
 
-x86-hyperv-use-vmalloc_exec-for-the-hypercall-page.patch
-x86-fix-vmap-arguments-in-map_irq_stack.patch
-staging-android-ion-use-vmap-instead-of-vm_map_ram.patch
-staging-media-ipu3-use-vmap-instead-of-reimplementing-it.patch
-dma-mapping-use-vmap-insted-of-reimplementing-it.patch
-powerpc-add-an-ioremap_phb-helper.patch
-powerpc-remove-__ioremap_at-and-__iounmap_at.patch
-mm-remove-__get_vm_area.patch
-mm-unexport-unmap_kernel_range_noflush.patch
-mm-rename-config_pgtable_mapping-to-config_zsmalloc_pgtable_mapping.patch
-mm-only-allow-page-table-mappings-for-built-in-zsmalloc.patch
-mm-pass-addr-as-unsigned-long-to-vb_free.patch
-mm-remove-vmap_page_range_noflush-and-vunmap_page_range.patch
-mm-rename-vmap_page_range-to-map_kernel_range.patch
-mm-dont-return-the-number-of-pages-from-map_kernel_range_noflush.patch
-mm-remove-map_vm_range.patch
-mm-remove-unmap_vmap_area.patch
-mm-remove-the-prot-argument-from-vm_map_ram.patch
-mm-enforce-that-vmap-cant-map-pages-executable.patch
-gpu-drm-remove-the-powerpc-hack-in-drm_legacy_sg_alloc.patch
-mm-remove-the-pgprot-argument-to-__vmalloc.patch
-mm-remove-the-prot-argument-to-__vmalloc_node.patch
-mm-remove-both-instances-of-__vmalloc_node_flags.patch
-mm-remove-__vmalloc_node_flags_caller.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
-mm-remove-vmalloc_user_node_flags.patch
-arm64-use-__vmalloc_node-in-arch_alloc_vmap_stack.patch
-powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
-s390-use-__vmalloc_node-in-stack_alloc.patch
-exec-simplify-the-copy_strings_kernel-calling-convention.patch
-exec-open-code-copy_string_kernel.patch
-amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
-kernel-move-use_mm-unuse_mm-to-kthreadc.patch
-kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
-kernel-set-user_ds-in-kthread_use_mm.patch
-arm-fix-the-flush_icache_range-arguments-in-set_fiq_handler.patch
-nds32-unexport-flush_icache_page.patch
-powerpc-unexport-flush_icache_user_range.patch
-unicore32-remove-flush_cache_user_range.patch
-asm-generic-fix-the-inclusion-guards-for-cacheflushh.patch
-asm-generic-dont-include-linux-mmh-in-cacheflushh.patch
-asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch
-asm-generic-improve-the-flush_dcache_page-stub.patch
-alpha-use-asm-generic-cacheflushh.patch
-arm64-use-asm-generic-cacheflushh.patch
-c6x-use-asm-generic-cacheflushh.patch
-hexagon-use-asm-generic-cacheflushh.patch
-ia64-use-asm-generic-cacheflushh.patch
-microblaze-use-asm-generic-cacheflushh.patch
-m68knommu-use-asm-generic-cacheflushh.patch
-openrisc-use-asm-generic-cacheflushh.patch
-powerpc-use-asm-generic-cacheflushh.patch
-riscv-use-asm-generic-cacheflushh.patch
-armsparcunicore32-remove-flush_icache_user_range.patch
-mm-rename-flush_icache_user_range-to-flush_icache_user_page.patch
-asm-generic-add-a-flush_icache_user_range-stub.patch
-sh-implement-flush_icache_user_range.patch
-xtensa-implement-flush_icache_user_range.patch
-arm-rename-flush_cache_user_range-to-flush_icache_user_range.patch
-m68k-implement-flush_icache_user_range.patch
-exec-only-build-read_code-when-needed.patch
-exec-use-flush_icache_user_range-in-read_code.patch
-binfmt_flat-use-flush_icache_user_range.patch
-nommu-use-flush_icache_user_range-in-brk-and-mmap.patch
-module-move-the-set_fs-hack-for-flush_icache_range-to-m68k.patch
+z3fold-fix-use-after-free-when-freeing-handles.patch
