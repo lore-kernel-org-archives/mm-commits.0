@@ -1,33 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- =?US-ASCII?Q?mmap-locking-api-convert-mmap=5Fsem-call-sites-missed-by-?=
- =?US-ASCII?Q?coccinelle-fix-fix-fix.patch?= added to -mm tree
-Date: Thu, 21 May 2020 20:01:25 -0700
-Message-ID: <20200522030125.5p0fwkx-m%akpm@linux-foundation.org>
+ mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch added to -mm
+ tree
+Date: Thu, 21 May 2020 20:10:09 -0700
+Message-ID: <20200522031009.-cK4MXeH8%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33084 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35776 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727024AbgEVDB0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 May 2020 23:01:26 -0400
+        id S1727083AbgEVDKK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 May 2020 23:10:10 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, walken@google.com
+To: akpm@linux-foundation.org, dchinner@redhat.com, guoqing.jiang@cloud.ionos.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix
+     Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix
 has been added to the -mm tree.  Its filename is
-     mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+     mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,50 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix
+Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix
 
-more linux-next leftovers
+use attach_page_private(), per Dave.
 
-Cc: Michel Lespinasse <walken@google.com>
-
+http://lkml.kernel.org/r/20200521225220.GV2005@dread.disaster.area
+Cc: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+Cc: Dave Chinner <dchinner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vfio/pci/vfio_pci.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/vfio/pci/vfio_pci.c~mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix
-+++ a/drivers/vfio/pci/vfio_pci.c
-@@ -1425,17 +1425,17 @@ static int vfio_pci_zap_and_vma_lock(str
- 		mutex_unlock(&vdev->vma_lock);
+--- a/mm/migrate.c~mm-migratec-call-detach_page_private-to-cleanup-code-fix
++++ a/mm/migrate.c
+@@ -797,7 +797,7 @@ recheck_buffers:
+ 	if (rc != MIGRATEPAGE_SUCCESS)
+ 		goto unlock_buffers;
  
- 		if (try) {
--			if (!down_read_trylock(&mm->mmap_sem)) {
-+			if (!mmap_read_trylock(mm)) {
- 				mmput(mm);
- 				return 0;
- 			}
- 		} else {
--			down_read(&mm->mmap_sem);
-+			mmap_read_lock(mm);
- 		}
- 		if (mmget_still_valid(mm)) {
- 			if (try) {
- 				if (!mutex_trylock(&vdev->vma_lock)) {
--					up_read(&mm->mmap_sem);
-+					mmap_read_unlock(mm);
- 					mmput(mm);
- 					return 0;
- 				}
-@@ -1457,7 +1457,7 @@ static int vfio_pci_zap_and_vma_lock(str
- 			}
- 			mutex_unlock(&vdev->vma_lock);
- 		}
--		up_read(&mm->mmap_sem);
-+		mmap_read_unlock(mm);
- 		mmput(mm);
- 	}
- }
+-	set_page_private(newpage, (unsigned long)detach_page_private(page));
++	attach_page_private(newpage, detach_page_private(page));
+ 	get_page(newpage);
+ 
+ 	bh = head;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
