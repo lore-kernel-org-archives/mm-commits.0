@@ -1,27 +1,33 @@
-From: akpm@linux-foundation.org
-Subject: + linux-next-post.patch added to -mm tree
-Date: Thu, 21 May 2020 14:11:19 -0700
-Message-ID: <20200521211119.ewzwDHv0B%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?mmap-locking-api-convert-mmap=5Fsem-call-sites-missed-by-?=
+ =?US-ASCII?Q?coccinelle-fix-fix.patch?= added to -mm tree
+Date: Thu, 21 May 2020 18:05:33 -0700
+Message-ID: <20200522010533.iKZWYMi9t%akpm@linux-foundation.org>
+References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52828 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48558 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730564AbgEUVLU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 May 2020 17:11:20 -0400
+        id S1726693AbgEVBFe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 May 2020 21:05:34 -0400
+In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, walken@google.com
 
 
 The patch titled
-     Subject: linux-next-post
+     Subject: mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-post.patch
+     mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-post.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-post.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,33 +42,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-post
+Subject: mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix
 
+more linux-next leftovers
+
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/staging/media/atomisp/pci/hmm/hmm_bo.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/sysctl.c~linux-next-post
-+++ a/kernel/sysctl.c
-@@ -118,6 +118,7 @@ static unsigned long zero_ul;
- static unsigned long one_ul = 1;
- static unsigned long long_max = LONG_MAX;
- static int one_hundred = 100;
-+static int two_hundred = 200;
- static int one_thousand = 1000;
- #ifdef CONFIG_PRINTK
- static int ten_thousand = 10000;
-@@ -2732,7 +2733,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_hundred,
-+		.extra2		= &two_hundred,
- 	},
- #ifdef CONFIG_HUGETLB_PAGE
- 	{
+--- a/drivers/staging/media/atomisp/pci/hmm/hmm_bo.c~mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix
++++ a/drivers/staging/media/atomisp/pci/hmm/hmm_bo.c
+@@ -982,9 +982,9 @@ static int alloc_user_pages(struct hmm_b
+ 	}
+ 
+ 	mutex_unlock(&bo->mutex);
+-	down_read(&current->mm->mmap_sem);
++	mmap_read_lock(current->mm);
+ 	vma = find_vma(current->mm, (unsigned long)userptr);
+-	up_read(&current->mm->mmap_sem);
++	mmap_read_unlock(current->mm);
+ 	if (!vma) {
+ 		dev_err(atomisp_dev, "find_vma failed\n");
+ 		kfree(bo->page_obj);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +103,7 @@ linux-next-post.patch
 kernel-add-panic_on_taint-fix.patch
 mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
 mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
 mmap-locking-api-convert-mmap_sem-comments-fix.patch
 mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
 mm-pass-task-and-mm-to-do_madvise.patch
