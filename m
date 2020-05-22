@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- init-allow-distribution-configuration-of-default-init.patch added to -mm
- tree
-Date: Fri, 22 May 2020 16:32:31 -0700
-Message-ID: <20200522233231.hMdmh4uZm%akpm@linux-foundation.org>
+ mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch added to -mm tree
+Date: Fri, 22 May 2020 16:38:36 -0700
+Message-ID: <20200522233836.S59eM6fRK%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44448 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46544 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726546AbgEVXcd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 22 May 2020 19:32:33 -0400
+        id S1726546AbgEVXih (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 22 May 2020 19:38:37 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chrisdown.name, gregkh@linuxfoundation.org, mhiramat@kernel.org, mm-commits@vger.kernel.org
+To: cai@lca.pw, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init: allow distribution configuration of default init
+     Subject: mm-deactivations-shouldnt-bias-the-lru-balance-fix
 has been added to the -mm tree.  Its filename is
-     init-allow-distribution-configuration-of-default-init.patch
+     mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-allow-distribution-configuration-of-default-init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-allow-distribution-configuration-of-default-init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,116 +38,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Down <chris@chrisdown.name>
-Subject: init: allow distribution configuration of default init
+From: Qian Cai <cai@lca.pw>
+Subject: mm-deactivations-shouldnt-bias-the-lru-balance-fix
 
-Some init systems (eg.  systemd) have init at their own paths, for
-example, /usr/lib/systemd/systemd.  A compatibility symlink to one of the
-hardcoded init paths is provided by another package, usually named
-something like systemd-sysvcompat or similar.
+fix set-but-not-used warning
 
-Currently distro maintainers who are hands-off on the bootloader are more
-or less required to include those compatibility links as part of their
-base distribution, because it's hard to migrate away from them since
-there's a risk some users will not get the message to set init= on the
-kernel command line appropriately.
-
-Moreover, for distributions where the init system is something the
-distribution itself is opinionated about (eg.  Arch, which has systemd in
-the required `base` package), we could usually reasonably configure this
-ahead of time when building the distribution kernel.  However, we
-currently simply don't have any way to configure the kernel to do this. 
-Here's an example discussion where removing sysvcompat was discussed by
-distro maintainers[0].
-
-This patch adds a new Kconfig tunable, CONFIG_DEFAULT_INIT, which if set
-is tried before the hardcoded fallback list.  So the order of precedence
-is now thus:
-
-1. init= on command line (on failure: panic)
-2. CONFIG_DEFAULT_INIT (on failure: try #3)
-3. Hardcoded fallback list (on failure: panic)
-
-This new config parameter will allow distribution maintainers to move away
-from these compatibility links safely, without having to worry that their
-users might not have the right init=.
-
-There are also two other benefits of this over having the distribution
-maintain a symlink:
-
-1. One of the value propositions over simply having distributions
-   maintain a /sbin/init symlink via a package is that it also frees
-   distributions which have a preferred default, but not mandatory, init
-   system from having their package manager fight with their users for
-   control of /{s,}bin/init.  Instead, the distribution simply makes
-   their preference known in CONFIG_DEFAULT_INIT, and if the user
-   installs another init system and uninstalls the default one they can
-   still make use of /{s,}bin/init and friends for their own uses. This
-   makes more cases Just Work(tm) without the user having to perform
-   extra configuration via init=.
-
-2. Since before this we don't know which path the distribution actually
-   _intends_ to serve init from, we don't pr_err if it is simply
-   missing, and usually will just silently put the user in a /bin/sh
-   shell. Now that the distribution can make a declaration of intent, we
-   can be more vocal when this init system fails to launch for any
-   reason, even if it's simply because no file exists at that location,
-   speeding up the palaver of init/mount dependency/etc debugging a bit.
-
-[0]: https://lists.archlinux.org/pipermail/arch-dev-public/2019-January/029435.html
-
-Link: http://lkml.kernel.org/r/20200522160234.GA1487022@chrisdown.name
-Signed-off-by: Chris Down <chris@chrisdown.name>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Link: http://lkml.kernel.org/r/20200522133335.GA624@Qians-MacBook-Air.local
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   10 ++++++++++
- init/main.c  |   10 ++++++++++
- 2 files changed, 20 insertions(+)
+ mm/swap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/init/Kconfig~init-allow-distribution-configuration-of-default-init
-+++ a/init/Kconfig
-@@ -257,6 +257,16 @@ config KERNEL_UNCOMPRESSED
+--- a/mm/swap.c~mm-deactivations-shouldnt-bias-the-lru-balance-fix
++++ a/mm/swap.c
+@@ -475,7 +475,7 @@ void lru_cache_add_active_or_unevictable
+ static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruvec,
+ 			      void *arg)
+ {
+-	int lru, file;
++	int lru;
+ 	bool active;
  
- endchoice
+ 	if (!PageLRU(page))
+@@ -489,7 +489,6 @@ static void lru_deactivate_file_fn(struc
+ 		return;
  
-+config DEFAULT_INIT
-+	string "Default init path"
-+	default ""
-+	help
-+	  This option determines the default init for the system if no init=
-+	  option is passed on the kernel command line. If the requested path is
-+	  not present, we will still then move on to attempting further
-+	  locations (e.g. /sbin/init, etc). If this is empty, we will just use
-+	  the fallback list when init= is not passed.
-+
- config DEFAULT_HOSTNAME
- 	string "Default hostname"
- 	default "(none)"
---- a/init/main.c~init-allow-distribution-configuration-of-default-init
-+++ a/init/main.c
-@@ -1433,6 +1433,16 @@ static int __ref kernel_init(void *unuse
- 		panic("Requested init %s failed (error %d).",
- 		      execute_command, ret);
- 	}
-+
-+	if (CONFIG_DEFAULT_INIT[0] != '\0') {
-+		ret = run_init_process(CONFIG_DEFAULT_INIT);
-+		if (ret)
-+			pr_err("Default init %s failed (error %d)\n",
-+			       CONFIG_DEFAULT_INIT, ret);
-+		else
-+			return 0;
-+	}
-+
- 	if (!try_to_run_init_process("/sbin/init") ||
- 	    !try_to_run_init_process("/etc/init") ||
- 	    !try_to_run_init_process("/bin/init") ||
+ 	active = PageActive(page);
+-	file = page_is_file_lru(page);
+ 	lru = page_lru_base_type(page);
+ 
+ 	del_page_from_lru_list(page, lruvec, lru + active);
 _
 
-Patches currently in -mm which might be from chris@chrisdown.name are
+Patches currently in -mm which might be from cai@lca.pw are
 
-mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
-init-allow-distribution-configuration-of-default-init.patch
+mm-z3fold-silence-kmemleak-false-positives-of-slots.patch
+mm-slub-fix-stack-overruns-with-slub_stats.patch
+mm-swap_state-fix-a-data-race-in-swapin_nr_pages.patch
+mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix.patch
+mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch
+mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races-v2.patch
+mm-swap_state-mark-various-intentional-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+mm-page_counter-fix-various-data-races-at-memsw.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-util-annotate-an-data-race-at-vm_committed_as.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+mm-annotate-a-data-race-in-page_zonenum.patch
+mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
