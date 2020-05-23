@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
- added to -mm tree
-Date: Fri, 22 May 2020 18:02:22 -0700
-Message-ID: <20200523010222.hJhirbZqr%akpm@linux-foundation.org>
+Subject: +
+ mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch added to
+ -mm tree
+Date: Fri, 22 May 2020 18:03:47 -0700
+Message-ID: <20200523010347.G4KUlW5Ho%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53914 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54364 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731169AbgEWBCX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 22 May 2020 21:02:23 -0400
+        id S1731183AbgEWBDs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 22 May 2020 21:03:48 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jhubbard@nvidia.com, mm-commits@vger.kernel.org, walken@google.com
+To: akpm@linux-foundation.org, dchinner@redhat.com, guoqing.jiang@cloud.ionos.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix
+     Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
 has been added to the -mm tree.  Its filename is
-     mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+     mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix
+Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
 
-fix it for mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
+clear PagePrivate
 
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Michel Lespinasse <walken@google.com>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/gup.c~mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix
-+++ a/mm/gup.c
-@@ -2729,7 +2729,7 @@ static int internal_get_user_pages_fast(
- 		return -EINVAL;
+--- a/mm/migrate.c~mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
++++ a/mm/migrate.c
+@@ -807,8 +807,6 @@ recheck_buffers:
  
- 	if (!(gup_flags & FOLL_FAST_ONLY))
--		might_lock_read(&current->mm->mmap_sem);
-+		might_lock_read(&current->mm->mmap_lock);
+ 	} while (bh != head);
  
- 	start = untagged_addr(start) & PAGE_MASK;
- 	addr = start;
+-	SetPagePrivate(newpage);
+-
+ 	if (mode != MIGRATE_SYNC_NO_COPY)
+ 		migrate_page_copy(newpage, page);
+ 	else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
