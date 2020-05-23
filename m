@@ -1,48 +1,91 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: +
- mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
- added to -mm tree
-Date: Fri, 22 May 2020 17:54:13 -0700
-Message-ID: <20200522175413.5a26736e94d21c3281d05119@linux-foundation.org>
+Subject: +
+ mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch added to -mm
+ tree
+Date: Fri, 22 May 2020 17:56:39 -0700
+Message-ID: <20200523005639.Ncmp1PRRZ%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
-        <20200522030125.5p0fwkx-m%akpm@linux-foundation.org>
-        <CANN689HdE5d9ADE=8uRajTRL47oUcEV5mtCO0kRRWR8Jy_J3hg@mail.gmail.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49522 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49814 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387413AbgEWAyO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 22 May 2020 20:54:14 -0400
-In-Reply-To: <CANN689HdE5d9ADE=8uRajTRL47oUcEV5mtCO0kRRWR8Jy_J3hg@mail.gmail.com>
+        id S1731169AbgEWA4l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 22 May 2020 20:56:41 -0400
+In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Michel Lespinasse <walken@google.com>
-Cc: mm-commits@vger.kernel.org
+To: jgg@ziepe.ca, jhubbard@nvidia.com, mm-commits@vger.kernel.org, walken@google.com, willy@infradead.org
 
-On Thu, 21 May 2020 20:23:52 -0700 Michel Lespinasse <walken@google.com> wrote:
 
-> Hi Andrew,
-> 
-> Thanks for going through this to fix the conflicts. is your current
-> git tree exported somewhere, so that I could help fixing such
-> conflicts with a coccinelle run ?
+The patch titled
+     Subject: mm/gup: might_lock_read(mmap_sem) in get_user_pages_fast()
+has been added to the -mm tree.  Its filename is
+     mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
 
-My tree changes a lot :( 658 patches so far this cycle, tons on them in
-MM.
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
 
-linux-next is probably the best way to get at it when it's in a
-reasonable shape.  Perhaps you could keep an eye on linux-next, do the
-occasional grep send me any fixups for anything which I missed?
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-> On an unrelated note, I wanted to ask about the status of "mm/mmap.c:
-> fix the adjusted length error", which I noticed is still in your tree.
-> The code there is correct, but changes an O(log N) algorithm into an
-> O(N) one, so I am somewhat concerned about it...
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-It's completely stuck - I'm awaiting some sort of resolution.
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-It seems that the bug is real - is there any alternative solution on
-offer?
+------------------------------------------------------
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: might_lock_read(mmap_sem) in get_user_pages_fast()
+
+Instead of scattering these assertions across the drivers, do this
+assertion inside the core of get_user_pages_fast*() functions.  That also
+includes pin_user_pages_fast*() routines.
+
+Add a might_lock_read(mmap_sem) call to internal_get_user_pages_fast().
+
+Link: http://lkml.kernel.org/r/20200522010443.1290485-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Matthew Wilcox <willy@infradead.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/gup.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/mm/gup.c~mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast
++++ a/mm/gup.c
+@@ -2723,6 +2723,9 @@ static int internal_get_user_pages_fast(
+ 				       FOLL_FAST_ONLY)))
+ 		return -EINVAL;
+ 
++	if (!(gup_flags & FOLL_FAST_ONLY))
++		might_lock_read(&current->mm->mmap_sem);
++
+ 	start = untagged_addr(start) & PAGE_MASK;
+ 	addr = start;
+ 	len = (unsigned long) nr_pages << PAGE_SHIFT;
+_
+
+Patches currently in -mm which might be from jhubbard@nvidia.com are
+
+rapidio-fix-an-error-in-get_user_pages_fast-error-handling.patch
+selftests-vm-gitignore-add-mremap_dontunmap.patch
+selftests-vm-write_to_hugetlbfsc-fix-unused-variable-warning.patch
+mm-gup-introduce-pin_user_pages_unlocked.patch
+ivtv-convert-get_user_pages-pin_user_pages.patch
+mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch
+mm-gup-refactor-and-de-duplicate-gup_fast-code.patch
+mm-gup-refactor-and-de-duplicate-gup_fast-code-fix.patch
+mm-gup-introduce-pin_user_pages_fast_only.patch
+drm-i915-convert-get_user_pages-pin_user_pages.patch
+mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
+khugepaged-add-self-test-fix-3.patch
+rapidio-convert-get_user_pages-pin_user_pages.patch
