@@ -1,34 +1,48 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated]
- =?US-ASCII?Q?mm-memcontrol-make-swap-tracking-an-integral-part-of-memo?=
- =?US-ASCII?Q?ry-control-fix.patch?= removed from -mm tree
-Date: Fri, 22 May 2020 18:06:53 -0700
-Message-ID: <20200523010653.yMGIWxpo2%akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-?=
+ =?US-ASCII?Q?control-fix-v2.patch?= added to -mm tree
+Date: Fri, 22 May 2020 18:09:18 -0700
+Message-ID: <20200523010918.eDZY5_14K%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55158 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56036 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387453AbgEWBG4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 22 May 2020 21:06:56 -0400
+        id S2387427AbgEWBJT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 22 May 2020 21:09:19 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.shi@linux.alibaba.com, bsingharora@gmail.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, mhocko@kernel.org, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org, shakeelb@google.com
+To: hannes@cmpxchg.org, hughd@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org
 
 
 The patch titled
-     Subject: mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix.patch
+     Subject: Re: mm: mkfs.ext4 invoked oom-killer on i386 - pagecache_get_page
+has been added to the -mm tree.  Its filename is
+     mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: Re: mm: mkfs.ext4 invoked oom-killer on i386 - pagecache_get_page
 
 Fix crash with cgroup_disable=memory:
 
@@ -54,117 +68,73 @@ Fix crash with cgroup_disable=memory:
 > > > > 2.2 05/23/2018
 > > > > [   35.539507] EIP: mem_cgroup_get_nr_swap_pages+0x28/0x60
 
-do_memsw_account() used to be automatically false when the cgroup
-controller was disabled.  Now that it's replaced by cgroup_memory_noswap,
-for which this isn't true, make the mem_cgroup_disabled() checks explicit
-in the swap control API.
+Swap accounting used to be implied-disabled when the cgroup controller was
+disabled.  Restore that for the new cgroup_memory_noswap, so that we bail
+out of this function instead of dereferencing a NULL memcg.
 
-[hannes@cmpxchg.org: use mem_cgroup_disabled() in all API functions]
-Link: http://lkml.kernel.org/r/20200521191746.GB815980@cmpxchg.org
+Link: http://lkml.kernel.org/r/20200521215855.GB815153@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
 Debugged-by: Hugh Dickins <hughd@google.com>
 Debugged-by: Michal Hocko <mhocko@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   47 ++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 41 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix
+--- a/mm/memcontrol.c~mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2
 +++ a/mm/memcontrol.c
-@@ -6882,6 +6882,9 @@ void mem_cgroup_swapout(struct page *pag
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
- 	VM_BUG_ON_PAGE(page_count(page), page);
+@@ -7152,7 +7152,11 @@ static struct cftype memsw_files[] = {
  
+ static int __init mem_cgroup_swap_init(void)
+ {
+-	if (mem_cgroup_disabled() || cgroup_memory_noswap)
++	/* No memory control -> no swap control */
 +	if (mem_cgroup_disabled())
-+		return;
++		cgroup_memory_noswap = true;
 +
- 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		return;
- 
-@@ -6947,6 +6950,10 @@ int mem_cgroup_try_charge_swap(struct pa
- 	struct mem_cgroup *memcg;
- 	unsigned short oldid;
- 
-+	if (mem_cgroup_disabled())
-+		return 0;
-+
-+	/* Only cgroup2 has swap.max */
- 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	if (cgroup_memory_noswap)
  		return 0;
  
-@@ -6991,6 +6998,9 @@ void mem_cgroup_uncharge_swap(swp_entry_
- 	struct mem_cgroup *memcg;
- 	unsigned short id;
- 
-+	if (mem_cgroup_disabled())
-+		return;
-+
- 	id = swap_cgroup_record(entry, 0, nr_pages);
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_id(id);
-@@ -7011,12 +7021,25 @@ long mem_cgroup_get_nr_swap_pages(struct
- {
- 	long nr_swap_pages = get_nr_swap_pages();
- 
--	if (cgroup_memory_noswap || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
--		return nr_swap_pages;
-+	if (mem_cgroup_disabled())
-+		goto out;
-+
-+	/* Swap control disabled */
-+	if (cgroup_memory_noswap)
-+		goto out;
-+
-+	/*
-+	 * Only cgroup2 has swap.max, cgroup1 does mem+sw accounting,
-+	 * which does not place restrictions specifically on swap.
-+	 */
-+	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		goto out;
-+
- 	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg))
- 		nr_swap_pages = min_t(long, nr_swap_pages,
- 				      READ_ONCE(memcg->swap.max) -
- 				      page_counter_read(&memcg->swap));
-+out:
- 	return nr_swap_pages;
- }
- 
-@@ -7028,18 +7051,30 @@ bool mem_cgroup_swap_full(struct page *p
- 
- 	if (vm_swap_full())
- 		return true;
--	if (cgroup_memory_noswap || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
--		return false;
-+
-+	if (mem_cgroup_disabled())
-+		goto out;
-+
-+	/* Swap control disabled */
-+	if (cgroup_memory_noswap)
-+		goto out;
-+
-+	/*
-+	 * Only cgroup2 has swap.max, cgroup1 does mem+sw accounting,
-+	 * which does not place restrictions specifically on swap.
-+	 */
-+	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		goto out;
- 
- 	memcg = page->mem_cgroup;
- 	if (!memcg)
--		return false;
-+		goto out;
- 
- 	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg))
- 		if (page_counter_read(&memcg->swap) * 2 >=
- 		    READ_ONCE(memcg->swap.max))
- 			return true;
+ 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
+_
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
+mm-memcontrol-fix-stat-corrupting-race-in-charge-moving.patch
+mm-memcontrol-drop-compound-parameter-from-memcg-charging-api.patch
+mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
+mm-memcontrol-move-out-cgroup-swaprate-throttling.patch
+mm-memcontrol-convert-page-cache-to-a-new-mem_cgroup_charge-api.patch
+mm-memcontrol-prepare-uncharging-for-removal-of-private-page-type-counters.patch
+mm-memcontrol-prepare-move_account-for-removal-of-private-page-type-counters.patch
+mm-memcontrol-prepare-cgroup-vmstat-infrastructure-for-native-anon-counters.patch
+mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
+mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
+mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
+mm-memcontrol-switch-to-native-nr_anon_thps-counter-fix.patch
+mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
+mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
+mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
+mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
+mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
+mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2.patch
+mm-memcontrol-charge-swapin-pages-on-instantiation.patch
+mm-memcontrol-delete-unused-lrucare-handling.patch
+mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
+mm-fix-lru-balancing-effect-of-new-transparent-huge-pages.patch
+mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
+mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset.patch
+mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
+mm-workingset-let-cache-workingset-challenge-anon.patch
+mm-remove-use-once-cache-bias-from-lru-balancing.patch
+mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count.patch
+mm-base-lru-balancing-on-an-explicit-cost-model.patch
+mm-deactivations-shouldnt-bias-the-lru-balance.patch
+mm-only-count-actual-rotations-as-lru-reclaim-cost.patch
+mm-balance-lru-lists-based-on-relative-thrashing.patch
+mm-vmscan-determine-anon-file-pressure-balance-at-the-reclaim-root.patch
+mm-vmscan-reclaim-writepage-is-io-cost.patch
+mm-vmscan-limit-the-range-of-lru-type-balancing.patch
