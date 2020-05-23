@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-swapfile-fix-proc-swaps-heading-and-size-used-priority-alignment.patch
- added to -mm tree
-Date: Fri, 22 May 2020 17:00:05 -0700
-Message-ID: <20200523000005.dLcHFDIoy%akpm@linux-foundation.org>
+ mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch added to -mm
+ tree
+Date: Fri, 22 May 2020 17:24:34 -0700
+Message-ID: <20200523002434.yOjlnu_8p%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33520 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41082 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731169AbgEWAAG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 22 May 2020 20:00:06 -0400
+        id S1731169AbgEWAYf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 22 May 2020 20:24:35 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, viro@zeniv.linux.org.uk
+To: alex.shi@linux.alibaba.com, aquini@redhat.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: swapfile: fix /proc/swaps heading and Size/Used/Priority alignment
+     Subject: mm/swap: fix livelock in __read_swap_cache_async()
 has been added to the -mm tree.  Its filename is
-     mm-swapfile-fix-proc-swaps-heading-and-size-used-priority-alignment.patch
+     mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapfile-fix-proc-swaps-heading-and-size-used-priority-alignment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfile-fix-proc-swaps-heading-and-size-used-priority-alignment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +39,143 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: swapfile: fix /proc/swaps heading and Size/Used/Priority alignment
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/swap: fix livelock in __read_swap_cache_async()
 
-Fix the heading and Size/Used/Priority field alignments in /proc/swaps. 
-If the Size and/or Used value is >= 10000000 (8 bytes), then the alignment
-by using tab characters is broken.
+I've only seen this livelock on one machine (repeatably, but not to
+order), and not fully analyzed it - two processes seen looping around
+getting -EEXIST from swapcache_prepare(), I guess a third (at lower
+priority?  but wanting the same cpu as one of the loopers?  preemption or
+cond_resched() not enough to let it back in?) set SWAP_HAS_CACHE, then
+went off into direct reclaim, scheduled away, and somehow could not get
+back to add the page to swap cache and let them all complete.
 
-This patch maintains the use of tabs for alignment.  If spaces are
-preferred, we can just use a Field Width specifier for the bytes and inuse
-fields.  That way those fields don't have to be a multiple of 8 bytes in
-width.  E.g., with a field width of 12, both Size and Used would always
-fit on the first line of an 80-column wide terminal (only Priority would
-be on the second line).
+Restore the page allocation in __read_swap_cache_async() to before the
+swapcache_prepare() call: "mm: memcontrol: charge swapin pages on
+instantiation" moved it outside the loop, which indeed looks much nicer,
+but exposed this weakness.  We used to allocate new_page once and then
+keep it across all iterations of the loop: but I think that just optimizes
+for a rare case, and complicates the flow, so go with the new simpler
+structure, with allocate+free each time around (which is more considerate
+use of the memory too).
 
-There are actually 2 problems: heading alignment and field width.  On an
-xterm, if Used is 7 bytes in length, the tab does nothing, and the display
-is like this, with no space/tab between the Used and Priority fields. 
-(ugh)
+Fix the comment on the looping case, which has long been inaccurate: it's
+not a racing get_swap_page() that's the problem here.
 
-Filename				Type		Size	Used	Priority
-/dev/sda8                               partition	16779260	2023012-1
+Fix the add_to_swap_cache() and mem_cgroup_charge() error recovery: not
+swap_free(), but put_swap_page() to undo SWAP_HAS_CACHE, as was done
+before; but delete_from_swap_cache() already includes it.
 
-To be clear, if one does 'cat /proc/swaps >/tmp/proc.swaps', it does look
-different, like so:
+And one more nit: I don't think it makes any difference in practice, but
+remove the "& GFP_KERNEL" mask from the mem_cgroup_charge() call:
+add_to_swap_cache() needs that, to convert gfp_mask from user and page
+cache allocation (e.g.  highmem) to radix node allocation (lowmem), but we
+don't need or usually apply that mask when charging mem_cgroup.
 
-Filename				Type		Size	Used	Priority
-/dev/sda8                               partition	16779260	2086988	-1
-
-Link: http://lkml.kernel.org/r/c0ffb41a-81ac-ddfa-d452-a9229ecc0387@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2005212246080.8458@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/swap_state.c |   52 +++++++++++++++++++++++++---------------------
+ 1 file changed, 29 insertions(+), 23 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfile-fix-proc-swaps-heading-and-size-used-priority-alignment
-+++ a/mm/swapfile.c
-@@ -2798,20 +2798,24 @@ static int swap_show(struct seq_file *sw
- 	struct swap_info_struct *si = v;
- 	struct file *file;
- 	int len;
-+	unsigned int bytes, inuse;
+--- a/mm/swap_state.c~mm-memcontrol-charge-swapin-pages-on-instantiation-fix
++++ a/mm/swap_state.c
+@@ -393,56 +393,62 @@ struct page *__read_swap_cache_async(swp
+ 			return NULL;
  
- 	if (si == SEQ_START_TOKEN) {
--		seq_puts(swap,"Filename\t\t\t\tType\t\tSize\tUsed\tPriority\n");
-+		seq_puts(swap,"Filename\t\t\t\tType\t\tSize\t\tUsed\t\tPriority\n");
- 		return 0;
+ 		/*
++		 * Get a new page to read into from swap.  Allocate it now,
++		 * before marking swap_map SWAP_HAS_CACHE, when -EEXIST will
++		 * cause any racers to loop around until we add it to cache.
++		 */
++		page = alloc_page_vma(gfp_mask, vma, addr);
++		if (!page)
++			return NULL;
++
++		/*
+ 		 * Swap entry may have been freed since our caller observed it.
+ 		 */
+ 		err = swapcache_prepare(entry);
+ 		if (!err)
+ 			break;
+ 
+-		if (err == -EEXIST) {
+-			/*
+-			 * We might race against get_swap_page() and stumble
+-			 * across a SWAP_HAS_CACHE swap_map entry whose page
+-			 * has not been brought into the swapcache yet.
+-			 */
+-			cond_resched();
+-			continue;
+-		}
++		put_page(page);
++		if (err != -EEXIST)
++			return NULL;
+ 
+-		return NULL;
++		/*
++		 * We might race against __delete_from_swap_cache(), and
++		 * stumble across a swap_map entry whose SWAP_HAS_CACHE
++		 * has not yet been cleared.  Or race against another
++		 * __read_swap_cache_async(), which has set SWAP_HAS_CACHE
++		 * in swap_map, but not yet added its page to swap cache.
++		 */
++		cond_resched();
  	}
  
-+	bytes = si->pages << (PAGE_SHIFT - 10);
-+	inuse = si->inuse_pages << (PAGE_SHIFT - 10);
-+
- 	file = si->swap_file;
- 	len = seq_file_path(swap, file, " \t\n\\");
--	seq_printf(swap, "%*s%s\t%u\t%u\t%d\n",
-+	seq_printf(swap, "%*s%s\t%u\t%s%u\t%s%d\n",
- 			len < 40 ? 40 - len : 1, " ",
- 			S_ISBLK(file_inode(file)->i_mode) ?
- 				"partition" : "file\t",
--			si->pages << (PAGE_SHIFT - 10),
--			si->inuse_pages << (PAGE_SHIFT - 10),
-+			bytes, bytes < 10000000 ? "\t" : "",
-+			inuse, inuse < 10000000 ? "\t" : "",
- 			si->prio);
- 	return 0;
+ 	/*
+-	 * The swap entry is ours to swap in. Prepare a new page.
++	 * The swap entry is ours to swap in. Prepare the new page.
+ 	 */
+ 
+-	page = alloc_page_vma(gfp_mask, vma, addr);
+-	if (!page)
+-		goto fail_free;
+-
+ 	__SetPageLocked(page);
+ 	__SetPageSwapBacked(page);
+ 
+ 	/* May fail (-ENOMEM) if XArray node allocation failed. */
+-	if (add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL))
++	if (add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL)) {
++		put_swap_page(page, entry);
+ 		goto fail_unlock;
++	}
+ 
+-	if (mem_cgroup_charge(page, NULL, gfp_mask & GFP_KERNEL, false))
+-		goto fail_delete;
++	if (mem_cgroup_charge(page, NULL, gfp_mask, false)) {
++		delete_from_swap_cache(page);
++		goto fail_unlock;
++	}
+ 
+-	/* Initiate read into locked page */
++	/* Caller will initiate read into locked page */
+ 	SetPageWorkingset(page);
+ 	lru_cache_add_anon(page);
+ 	*new_page_allocated = true;
+ 	return page;
+ 
+-fail_delete:
+-	delete_from_swap_cache(page);
+ fail_unlock:
+ 	unlock_page(page);
+ 	put_page(page);
+-fail_free:
+-	swap_free(entry);
+ 	return NULL;
  }
+ 
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-swapfile-fix-proc-swaps-heading-and-size-used-priority-alignment.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix.patch
+mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix.patch
+mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-fix.patch
