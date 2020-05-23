@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch added to -mm
- tree
-Date: Fri, 22 May 2020 17:24:34 -0700
-Message-ID: <20200523002434.yOjlnu_8p%akpm@linux-foundation.org>
+ mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
+ added to -mm tree
+Date: Fri, 22 May 2020 17:51:02 -0700
+Message-ID: <20200523005102.zAEInKoi9%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41082 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48692 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731169AbgEWAYf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 22 May 2020 20:24:35 -0400
+        id S1731169AbgEWAvD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 22 May 2020 20:51:03 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.shi@linux.alibaba.com, aquini@redhat.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: anshuman.khandual@arm.com, hughd@google.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: mm/swap: fix livelock in __read_swap_cache_async()
+     Subject: mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
+     mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,143 +39,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/swap: fix livelock in __read_swap_cache_async()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update
 
-I've only seen this livelock on one machine (repeatably, but not to
-order), and not fully analyzed it - two processes seen looping around
-getting -EEXIST from swapcache_prepare(), I guess a third (at lower
-priority?  but wanting the same cpu as one of the loopers?  preemption or
-cond_resched() not enough to let it back in?) set SWAP_HAS_CACHE, then
-went off into direct reclaim, scheduled away, and somehow could not get
-back to add the page to swap cache and let them all complete.
+rename thp_migration_success() to thp_pmd_migration_success() per John
 
-Restore the page allocation in __read_swap_cache_async() to before the
-swapcache_prepare() call: "mm: memcontrol: charge swapin pages on
-instantiation" moved it outside the loop, which indeed looks much nicer,
-but exposed this weakness.  We used to allocate new_page once and then
-keep it across all iterations of the loop: but I think that just optimizes
-for a rare case, and complicates the flow, so go with the new simpler
-structure, with allocate+free each time around (which is more considerate
-use of the memory too).
-
-Fix the comment on the looping case, which has long been inaccurate: it's
-not a racing get_swap_page() that's the problem here.
-
-Fix the add_to_swap_cache() and mem_cgroup_charge() error recovery: not
-swap_free(), but put_swap_page() to undo SWAP_HAS_CACHE, as was done
-before; but delete_from_swap_cache() already includes it.
-
-And one more nit: I don't think it makes any difference in practice, but
-remove the "& GFP_KERNEL" mask from the mem_cgroup_charge() call:
-add_to_swap_cache() needs that, to convert gfp_mask from user and page
-cache allocation (e.g.  highmem) to radix node allocation (lowmem), but we
-don't need or usually apply that mask when charging mem_cgroup.
-
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2005212246080.8458@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Rafael Aquini <aquini@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/1590118444-21601-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   52 +++++++++++++++++++++++++---------------------
- 1 file changed, 29 insertions(+), 23 deletions(-)
+ mm/migrate.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
---- a/mm/swap_state.c~mm-memcontrol-charge-swapin-pages-on-instantiation-fix
-+++ a/mm/swap_state.c
-@@ -393,56 +393,62 @@ struct page *__read_swap_cache_async(swp
- 			return NULL;
+--- a/mm/migrate.c~mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update
++++ a/mm/migrate.c
+@@ -1173,7 +1173,7 @@ out:
+ #endif
  
- 		/*
-+		 * Get a new page to read into from swap.  Allocate it now,
-+		 * before marking swap_map SWAP_HAS_CACHE, when -EEXIST will
-+		 * cause any racers to loop around until we add it to cache.
-+		 */
-+		page = alloc_page_vma(gfp_mask, vma, addr);
-+		if (!page)
-+			return NULL;
-+
-+		/*
- 		 * Swap entry may have been freed since our caller observed it.
- 		 */
- 		err = swapcache_prepare(entry);
- 		if (!err)
- 			break;
- 
--		if (err == -EEXIST) {
--			/*
--			 * We might race against get_swap_page() and stumble
--			 * across a SWAP_HAS_CACHE swap_map entry whose page
--			 * has not been brought into the swapcache yet.
--			 */
--			cond_resched();
--			continue;
--		}
-+		put_page(page);
-+		if (err != -EEXIST)
-+			return NULL;
- 
--		return NULL;
-+		/*
-+		 * We might race against __delete_from_swap_cache(), and
-+		 * stumble across a swap_map entry whose SWAP_HAS_CACHE
-+		 * has not yet been cleared.  Or race against another
-+		 * __read_swap_cache_async(), which has set SWAP_HAS_CACHE
-+		 * in swap_map, but not yet added its page to swap cache.
-+		 */
-+		cond_resched();
- 	}
- 
- 	/*
--	 * The swap entry is ours to swap in. Prepare a new page.
-+	 * The swap entry is ours to swap in. Prepare the new page.
- 	 */
- 
--	page = alloc_page_vma(gfp_mask, vma, addr);
--	if (!page)
--		goto fail_free;
--
- 	__SetPageLocked(page);
- 	__SetPageSwapBacked(page);
- 
- 	/* May fail (-ENOMEM) if XArray node allocation failed. */
--	if (add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL))
-+	if (add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL)) {
-+		put_swap_page(page, entry);
- 		goto fail_unlock;
-+	}
- 
--	if (mem_cgroup_charge(page, NULL, gfp_mask & GFP_KERNEL, false))
--		goto fail_delete;
-+	if (mem_cgroup_charge(page, NULL, gfp_mask, false)) {
-+		delete_from_swap_cache(page);
-+		goto fail_unlock;
-+	}
- 
--	/* Initiate read into locked page */
-+	/* Caller will initiate read into locked page */
- 	SetPageWorkingset(page);
- 	lru_cache_add_anon(page);
- 	*new_page_allocated = true;
- 	return page;
- 
--fail_delete:
--	delete_from_swap_cache(page);
- fail_unlock:
- 	unlock_page(page);
- 	put_page(page);
--fail_free:
--	swap_free(entry);
- 	return NULL;
+ #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
+-static inline void thp_migration_success(bool success)
++static inline void thp_pmd_migration_success(bool success)
+ {
+ 	if (success)
+ 		count_vm_event(THP_PMD_MIGRATION_SUCCESS);
+@@ -1181,7 +1181,9 @@ static inline void thp_migration_success
+ 		count_vm_event(THP_PMD_MIGRATION_FAILURE);
  }
+ #else
+-static inline void thp_migration_success(bool success) { }
++static inline void thp_pmd_migration_success(bool success)
++{
++}
+ #endif
  
+ /*
+@@ -1246,8 +1248,14 @@ out:
+ 	 * we want to retry.
+ 	 */
+ 	if (rc == MIGRATEPAGE_SUCCESS) {
++		/*
++		 * When the page to be migrated has been freed from under
++		 * us, that is considered a MIGRATEPAGE_SUCCESS, but no
++		 * newpage has been allocated. It should not be counted
++		 * as a successful THP migration.
++		 */
+ 		if (newpage && PageTransHuge(newpage))
+-			thp_migration_success(true);
++			thp_pmd_migration_success(true);
+ 		put_page(page);
+ 		if (reason == MR_MEMORY_FAILURE) {
+ 			/*
+@@ -1490,7 +1498,7 @@ retry:
+ 					unlock_page(page);
+ 					if (!rc) {
+ 						list_safe_reset_next(page, page2, lru);
+-						thp_migration_success(false);
++						thp_pmd_migration_success(false);
+ 						goto retry;
+ 					}
+ 				}
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix.patch
-mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
-mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-fix.patch
+mm-page_alloc-restrict-and-formalize-compound_page_dtors.patch
+arm64-mm-drop-__have_arch_huge_ptep_get.patch
+mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range.patch
+mm-hugetlb-define-a-generic-fallback-for-arch_clear_hugepage_flags.patch
+powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
+mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
+x86-mm-define-mm_p4d_folded.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v17.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
