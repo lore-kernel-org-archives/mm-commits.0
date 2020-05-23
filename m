@@ -1,113 +1,170 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch added to
- -mm tree
-Date: Fri, 22 May 2020 18:03:47 -0700
-Message-ID: <20200523010347.G4KUlW5Ho%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ =?US-ASCII?Q?mm-memcontrol-make-swap-tracking-an-integral-part-of-memo?=
+ =?US-ASCII?Q?ry-control-fix.patch?= removed from -mm tree
+Date: Fri, 22 May 2020 18:06:53 -0700
+Message-ID: <20200523010653.yMGIWxpo2%akpm@linux-foundation.org>
 References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54364 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55158 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731183AbgEWBDs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 22 May 2020 21:03:48 -0400
+        id S2387453AbgEWBG4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 22 May 2020 21:06:56 -0400
 In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dchinner@redhat.com, guoqing.jiang@cloud.ionos.com, mm-commits@vger.kernel.org
+To: alex.shi@linux.alibaba.com, bsingharora@gmail.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, mhocko@kernel.org, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org, shakeelb@google.com
 
 
 The patch titled
-     Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
-has been added to the -mm tree.  Its filename is
-     mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
+     Subject: mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
+From: Hugh Dickins <hughd@google.com>
+Subject: mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix
 
-clear PagePrivate
+Fix crash with cgroup_disable=memory:
 
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+> > > > + mkfs -t ext4 /dev/disk/by-id/ata-TOSHIBA_MG04ACA100N_Y8NRK0BPF6XF
+> > > > mke2fs 1.43.8 (1-Jan-2018)
+> > > > Creating filesystem with 244190646 4k blocks and 61054976 inodes
+> > > > Filesystem UUID: 3bb1a285-2cb4-44b4-b6e8-62548f3ac620
+> > > > Superblock backups stored on blocks:
+> > > > 32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208,
+> > > > 4096000, 7962624, 11239424, 20480000, 23887872, 71663616, 78675968,
+> > > > 102400000, 214990848
+> > > > Allocating group tables:    0/7453                           done
+> > > > Writing inode tables:    0/7453                           done
+> > > > Creating journal (262144 blocks): [   35.502102] BUG: kernel NULL
+> > > > pointer dereference, address: 000000c8
+> > > > [   35.508372] #PF: supervisor read access in kernel mode
+> > > > [   35.513506] #PF: error_code(0x0000) - not-present page
+> > > > [   35.518638] *pde = 00000000
+> > > > [   35.521514] Oops: 0000 [#1] SMP
+> > > > [   35.524652] CPU: 0 PID: 145 Comm: kswapd0 Not tainted
+> > > > 5.7.0-rc6-next-20200519+ #1
+> > > > [   35.532121] Hardware name: Supermicro SYS-5019S-ML/X11SSH-F, BIOS
+> > > > 2.2 05/23/2018
+> > > > [   35.539507] EIP: mem_cgroup_get_nr_swap_pages+0x28/0x60
+
+do_memsw_account() used to be automatically false when the cgroup
+controller was disabled.  Now that it's replaced by cgroup_memory_noswap,
+for which this isn't true, make the mem_cgroup_disabled() checks explicit
+in the swap control API.
+
+[hannes@cmpxchg.org: use mem_cgroup_disabled() in all API functions]
+Link: http://lkml.kernel.org/r/20200521191746.GB815980@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Debugged-by: Hugh Dickins <hughd@google.com>
+Debugged-by: Michal Hocko <mhocko@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/memcontrol.c |   47 ++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 41 insertions(+), 6 deletions(-)
 
---- a/mm/migrate.c~mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
-+++ a/mm/migrate.c
-@@ -807,8 +807,6 @@ recheck_buffers:
+--- a/mm/memcontrol.c~mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix
++++ a/mm/memcontrol.c
+@@ -6882,6 +6882,9 @@ void mem_cgroup_swapout(struct page *pag
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
+ 	VM_BUG_ON_PAGE(page_count(page), page);
  
- 	} while (bh != head);
++	if (mem_cgroup_disabled())
++		return;
++
+ 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 		return;
  
--	SetPagePrivate(newpage);
--
- 	if (mode != MIGRATE_SYNC_NO_COPY)
- 		migrate_page_copy(newpage, page);
- 	else
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-padata-initialize-earlier-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+@@ -6947,6 +6950,10 @@ int mem_cgroup_try_charge_swap(struct pa
+ 	struct mem_cgroup *memcg;
+ 	unsigned short oldid;
+ 
++	if (mem_cgroup_disabled())
++		return 0;
++
++	/* Only cgroup2 has swap.max */
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 		return 0;
+ 
+@@ -6991,6 +6998,9 @@ void mem_cgroup_uncharge_swap(swp_entry_
+ 	struct mem_cgroup *memcg;
+ 	unsigned short id;
+ 
++	if (mem_cgroup_disabled())
++		return;
++
+ 	id = swap_cgroup_record(entry, 0, nr_pages);
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_id(id);
+@@ -7011,12 +7021,25 @@ long mem_cgroup_get_nr_swap_pages(struct
+ {
+ 	long nr_swap_pages = get_nr_swap_pages();
+ 
+-	if (cgroup_memory_noswap || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
+-		return nr_swap_pages;
++	if (mem_cgroup_disabled())
++		goto out;
++
++	/* Swap control disabled */
++	if (cgroup_memory_noswap)
++		goto out;
++
++	/*
++	 * Only cgroup2 has swap.max, cgroup1 does mem+sw accounting,
++	 * which does not place restrictions specifically on swap.
++	 */
++	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
++		goto out;
++
+ 	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg))
+ 		nr_swap_pages = min_t(long, nr_swap_pages,
+ 				      READ_ONCE(memcg->swap.max) -
+ 				      page_counter_read(&memcg->swap));
++out:
+ 	return nr_swap_pages;
+ }
+ 
+@@ -7028,18 +7051,30 @@ bool mem_cgroup_swap_full(struct page *p
+ 
+ 	if (vm_swap_full())
+ 		return true;
+-	if (cgroup_memory_noswap || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
+-		return false;
++
++	if (mem_cgroup_disabled())
++		goto out;
++
++	/* Swap control disabled */
++	if (cgroup_memory_noswap)
++		goto out;
++
++	/*
++	 * Only cgroup2 has swap.max, cgroup1 does mem+sw accounting,
++	 * which does not place restrictions specifically on swap.
++	 */
++	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
++		goto out;
+ 
+ 	memcg = page->mem_cgroup;
+ 	if (!memcg)
+-		return false;
++		goto out;
+ 
+ 	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg))
+ 		if (page_counter_read(&memcg->swap) * 2 >=
+ 		    READ_ONCE(memcg->swap.max))
+ 			return true;
