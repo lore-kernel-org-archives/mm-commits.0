@@ -1,167 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.patch
- removed from -mm tree
-Date: Sun, 24 May 2020 16:18:17 -0700
-Message-ID: <20200524231817.Yw8HV20Pm%akpm@linux-foundation.org>
+Subject: [merged] x86-bitops-fix-build-regression.patch removed
+ from -mm tree
+Date: Sun, 24 May 2020 16:18:20 -0700
+Message-ID: <20200524231820.IAuFIbHey%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54620 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54686 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388468AbgEXXST (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 May 2020 19:18:19 -0400
+        id S2388468AbgEXXSV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 May 2020 19:18:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, dave.jiang@intel.com, david@redhat.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, stable@vger.kernel.org, vishal.l.verma@intel.com
+To: andriy.shevchenko@intel.com, aryabinin@virtuozzo.com, bot@kernelci.org, bp@alien8.de, brgerst@gmail.com, dja@axtens.net, elver@google.com, hpa@zytor.com, ilie.halip@gmail.com, jesse.brandeburg@intel.com, luc.vanoostenryck@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org, natechancellor@gmail.com, ndesaulniers@google.com, paulmck@kernel.org, peterz@infradead.org, sedat.dilek@gmail.com, tglx@linutronix.de, yamada.masahiro@socionext.com
 
 
 The patch titled
-     Subject: device-dax: don't leak kernel memory to user space after unlo=
-ading kmem
+     Subject: x86: bitops: fix build regression
 has been removed from the -mm tree.  Its filename was
-     device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.=
-patch
+     x86-bitops-fix-build-regression.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: David Hildenbrand <david@redhat.com>
-Subject: device-dax: don't leak kernel memory to user space after unloading=
- kmem
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: x86: bitops: fix build regression
 
-Assume we have kmem configured and loaded:
-  [root@localhost ~]# cat /proc/iomem
-  ...
-  140000000-33fffffff : Persistent Memory$
-    140000000-1481fffff : namespace0.0
-    150000000-33fffffff : dax0.0
-      150000000-33fffffff : System RAM
+This is easily reproducible via CC=clang+CONFIG_STAGING=y+CONFIG_VT6656=m.
 
-Assume we try to unload kmem. This force-unloading will work, even if
-memory cannot get removed from the system.
-  [root@localhost ~]# rmmod kmem
-  [   86.380228] removing memory fails, because memory [0x0000000150000000-=
-0x0000000157ffffff] is onlined
-  ...
-  [   86.431225] kmem dax0.0: DAX region [mem 0x150000000-0x33fffffff] cann=
-ot be hotremoved until the next reboot
+It turns out that if your config tickles __builtin_constant_p via
+differences in choices to inline or not, these statements produce invalid
+assembly:
 
-Now, we can reconfigure the namespace:
-  [root@localhost ~]# ndctl create-namespace --force --reconfig=3Dnamespace=
-0.0 --mode=3Ddevdax
-  [  131.409351] nd_pmem namespace0.0: could not reserve region [mem 0x1400=
-00000-0x33fffffff]dax
-  [  131.410147] nd_pmem: probe of namespace0.0 failed with error -16namesp=
-ace0.0 --mode=3Ddevdax
-  ...
+$ cat foo.c
+long a(long b, long c) {
+  asm("orb	%1, %0" : "+q"(c): "r"(b));
+  return c;
+}
+$ gcc foo.c
+foo.c: Assembler messages:
+foo.c:2: Error: `%rax' not allowed with `orb'
 
-This fails as expected due to the busy memory resource, and the memory
-cannot be used. However, the dax0.0 device is removed, and along its name.
+Use the `%b` "x86 Operand Modifier" to instead force register allocation
+to select a lower-8-bit GPR operand.
 
-The name of the memory resource now points at freed memory (name of the
-device).
-  [root@localhost ~]# cat /proc/iomem
-  ...
-  140000000-33fffffff : Persistent Memory
-    140000000-1481fffff : namespace0.0
-    150000000-33fffffff : =EF=BF=BD_=EF=BF=BD^7_=EF=BF=BD=EF=BF=BD/_=EF=BF=
-=BD=EF=BF=BDwR=EF=BF=BD=EF=BF=BDWQ=EF=BF=BD=EF=BF=BD=EF=BF=BD^=EF=BF=BD=EF=
-=BF=BD=EF=BF=BD ...
-    150000000-33fffffff : System RAM
+The "q" constraint only has meaning on -m32 otherwise is treated as
+"r". Not all GPRs have low-8-bit aliases for -m32.
 
-We have to make sure to duplicate the string.  While at it, remove the
-superfluous setting of the name and fixup a stale comment.
-
-Link: http://lkml.kernel.org/r/20200508084217.9160-2-david@redhat.com
-Fixes: 9f960da72b25 ("device-dax: "Hotremove" persistent memory that is use=
-d like normal RAM")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: <stable@vger.kernel.org>	[5.3]
+Link: http://lkml.kernel.org/r/20200508183230.229464-1-ndesaulniers@google.com
+Link: https://github.com/ClangBuiltLinux/linux/issues/961
+Link: https://lore.kernel.org/lkml/20200504193524.GA221287@google.com/
+Link: https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html#x86Operandmodifiers
+Fixes: 1651e700664b4 ("x86: Fix bitops.h warning with a moved cast")
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+Reported-by: kernelci.org bot <bot@kernelci.org>
+Suggested-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+Suggested-by: Brian Gerst <brgerst@gmail.com>
+Suggested-by: H. Peter Anvin <hpa@zytor.com>
+Suggested-by: Ilie Halip <ilie.halip@gmail.com>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Reviewed-By: Brian Gerst <brgerst@gmail.com>
+Tested-by: Nathan Chancellor <natechancellor@gmail.com>	[build, clang-11]
+Reviewed-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Marco Elver <elver@google.com>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Daniel Axtens <dja@axtens.net>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/bitops.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/drivers/dax/kmem.c~device-dax-dont-leak-kernel-memory-to-user-space-a=
-fter-unloading-kmem
-+++ a/drivers/dax/kmem.c
-@@ -22,6 +22,7 @@ int dev_dax_kmem_probe(struct device *de
- 	resource_size_t kmem_size;
- 	resource_size_t kmem_end;
- 	struct resource *new_res;
-+	const char *new_res_name;
- 	int numa_node;
- 	int rc;
-=20
-@@ -48,11 +49,16 @@ int dev_dax_kmem_probe(struct device *de
- 	kmem_size &=3D ~(memory_block_size_bytes() - 1);
- 	kmem_end =3D kmem_start + kmem_size;
-=20
--	/* Region is permanently reserved.  Hot-remove not yet implemented. */
--	new_res =3D request_mem_region(kmem_start, kmem_size, dev_name(dev));
-+	new_res_name =3D kstrdup(dev_name(dev), GFP_KERNEL);
-+	if (!new_res_name)
-+		return -ENOMEM;
-+
-+	/* Region is permanently reserved if hotremove fails. */
-+	new_res =3D request_mem_region(kmem_start, kmem_size, new_res_name);
- 	if (!new_res) {
- 		dev_warn(dev, "could not reserve region [%pa-%pa]\n",
- 			 &kmem_start, &kmem_end);
-+		kfree(new_res_name);
- 		return -EBUSY;
- 	}
-=20
-@@ -63,12 +69,12 @@ int dev_dax_kmem_probe(struct device *de
- 	 * unknown to us that will break add_memory() below.
- 	 */
- 	new_res->flags =3D IORESOURCE_SYSTEM_RAM;
--	new_res->name =3D dev_name(dev);
-=20
- 	rc =3D add_memory(numa_node, new_res->start, resource_size(new_res));
- 	if (rc) {
- 		release_resource(new_res);
- 		kfree(new_res);
-+		kfree(new_res_name);
- 		return rc;
- 	}
- 	dev_dax->dax_kmem_res =3D new_res;
-@@ -83,6 +89,7 @@ static int dev_dax_kmem_remove(struct de
- 	struct resource *res =3D dev_dax->dax_kmem_res;
- 	resource_size_t kmem_start =3D res->start;
- 	resource_size_t kmem_size =3D resource_size(res);
-+	const char *res_name =3D res->name;
- 	int rc;
-=20
- 	/*
-@@ -102,6 +109,7 @@ static int dev_dax_kmem_remove(struct de
- 	/* Release and free dax resources */
- 	release_resource(res);
- 	kfree(res);
-+	kfree(res_name);
- 	dev_dax->dax_kmem_res =3D NULL;
-=20
- 	return 0;
+--- a/arch/x86/include/asm/bitops.h~x86-bitops-fix-build-regression
++++ a/arch/x86/include/asm/bitops.h
+@@ -52,9 +52,9 @@ static __always_inline void
+ arch_set_bit(long nr, volatile unsigned long *addr)
+ {
+ 	if (__builtin_constant_p(nr)) {
+-		asm volatile(LOCK_PREFIX "orb %1,%0"
++		asm volatile(LOCK_PREFIX "orb %b1,%0"
+ 			: CONST_MASK_ADDR(nr, addr)
+-			: "iq" (CONST_MASK(nr) & 0xff)
++			: "iq" (CONST_MASK(nr))
+ 			: "memory");
+ 	} else {
+ 		asm volatile(LOCK_PREFIX __ASM_SIZE(bts) " %1,%0"
+@@ -72,9 +72,9 @@ static __always_inline void
+ arch_clear_bit(long nr, volatile unsigned long *addr)
+ {
+ 	if (__builtin_constant_p(nr)) {
+-		asm volatile(LOCK_PREFIX "andb %1,%0"
++		asm volatile(LOCK_PREFIX "andb %b1,%0"
+ 			: CONST_MASK_ADDR(nr, addr)
+-			: "iq" (CONST_MASK(nr) ^ 0xff));
++			: "iq" (~CONST_MASK(nr)));
+ 	} else {
+ 		asm volatile(LOCK_PREFIX __ASM_SIZE(btr) " %1,%0"
+ 			: : RLONG_ADDR(addr), "Ir" (nr) : "memory");
+@@ -123,9 +123,9 @@ static __always_inline void
+ arch_change_bit(long nr, volatile unsigned long *addr)
+ {
+ 	if (__builtin_constant_p(nr)) {
+-		asm volatile(LOCK_PREFIX "xorb %1,%0"
++		asm volatile(LOCK_PREFIX "xorb %b1,%0"
+ 			: CONST_MASK_ADDR(nr, addr)
+-			: "iq" ((u8)CONST_MASK(nr)));
++			: "iq" (CONST_MASK(nr)));
+ 	} else {
+ 		asm volatile(LOCK_PREFIX __ASM_SIZE(btc) " %1,%0"
+ 			: : RLONG_ADDR(addr), "Ir" (nr) : "memory");
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from ndesaulniers@google.com are
 
-drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix=
-.patch
-powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable.patch
-mm-memory_hotplug-remove-is_mem_section_removable.patch
-mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
-mm-memory_hotplug-handle-memblocks-only-with-config_arch_keep_memblock.patch
-mm-memory_hotplug-introduce-add_memory_driver_managed.patch
-kexec_file-dont-place-kexec-images-on-ioresource_mem_driver_managed.patch
-device-dax-add-memory-via-add_memory_driver_managed.patch
+elfnote-mark-all-note-sections-shf_alloc.patch
