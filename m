@@ -1,287 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Sun, 24 May 2020 16:17:50 -0700
-Message-ID: <20200524231750.A9PFp1ei-%akpm@linux-foundation.org>
+Subject: [merged]
+ device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.patch
+ removed from -mm tree
+Date: Sun, 24 May 2020 16:18:17 -0700
+Message-ID: <20200524231817.Yw8HV20Pm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54562 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54620 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388202AbgEXXRw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 May 2020 19:17:52 -0400
+        id S2388468AbgEXXST (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 May 2020 19:18:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, dave.jiang@intel.com, david@redhat.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, stable@vger.kernel.org, vishal.l.verma@intel.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: device-dax: don't leak kernel memory to user space after unlo=
+ading kmem
+has been removed from the -mm tree.  Its filename was
+     device-dax-dont-leak-kernel-memory-to-user-space-after-unloading-kmem.=
+patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+=46rom: David Hildenbrand <david@redhat.com>
+Subject: device-dax: don't leak kernel memory to user space after unloading=
+ kmem
 
+Assume we have kmem configured and loaded:
+  [root@localhost ~]# cat /proc/iomem
+  ...
+  140000000-33fffffff : Persistent Memory$
+    140000000-1481fffff : namespace0.0
+    150000000-33fffffff : dax0.0
+      150000000-33fffffff : System RAM
+
+Assume we try to unload kmem. This force-unloading will work, even if
+memory cannot get removed from the system.
+  [root@localhost ~]# rmmod kmem
+  [   86.380228] removing memory fails, because memory [0x0000000150000000-=
+0x0000000157ffffff] is onlined
+  ...
+  [   86.431225] kmem dax0.0: DAX region [mem 0x150000000-0x33fffffff] cann=
+ot be hotremoved until the next reboot
+
+Now, we can reconfigure the namespace:
+  [root@localhost ~]# ndctl create-namespace --force --reconfig=3Dnamespace=
+0.0 --mode=3Ddevdax
+  [  131.409351] nd_pmem namespace0.0: could not reserve region [mem 0x1400=
+00000-0x33fffffff]dax
+  [  131.410147] nd_pmem: probe of namespace0.0 failed with error -16namesp=
+ace0.0 --mode=3Ddevdax
+  ...
+
+This fails as expected due to the busy memory resource, and the memory
+cannot be used. However, the dax0.0 device is removed, and along its name.
+
+The name of the memory resource now points at freed memory (name of the
+device).
+  [root@localhost ~]# cat /proc/iomem
+  ...
+  140000000-33fffffff : Persistent Memory
+    140000000-1481fffff : namespace0.0
+    150000000-33fffffff : =EF=BF=BD_=EF=BF=BD^7_=EF=BF=BD=EF=BF=BD/_=EF=BF=
+=BD=EF=BF=BDwR=EF=BF=BD=EF=BF=BDWQ=EF=BF=BD=EF=BF=BD=EF=BF=BD^=EF=BF=BD=EF=
+=BF=BD=EF=BF=BD ...
+    150000000-33fffffff : System RAM
+
+We have to make sure to duplicate the string.  While at it, remove the
+superfluous setting of the name and fixup a stale comment.
+
+Link: http://lkml.kernel.org/r/20200508084217.9160-2-david@redhat.com
+Fixes: 9f960da72b25 ("device-dax: "Hotremove" persistent memory that is use=
+d like normal RAM")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: <stable@vger.kernel.org>	[5.3]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/display/dc/dcn10/dcn10_init.c    |    3 
- drivers/gpu/drm/amd/display/dc/dcn20/dcn20_init.c    |    3 
- drivers/gpu/drm/amd/display/dc/dcn21/dcn21_init.c    |    8 --
- drivers/gpu/drm/amd/display/dc/dml/dml_inline_defs.h |   15 ----
- drivers/net/phy/mscc/mscc.h                          |    6 -
- drivers/net/phy/mscc/mscc_main.c                     |   35 ----------
- net/core/flow_dissector.c                            |    9 --
- net/mptcp/options.c                                  |    8 --
- 8 files changed, 87 deletions(-)
+ drivers/dax/kmem.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
---- a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_init.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_init.c
-@@ -73,12 +73,9 @@ static const struct hw_sequencer_funcs d
- 	.get_clock = dcn10_get_clock,
- 	.get_vupdate_offset_from_vsync = dcn10_get_vupdate_offset_from_vsync,
- 	.calc_vupdate_position = dcn10_calc_vupdate_position,
--<<<<<<< HEAD
--=======
- 	.set_backlight_level = dce110_set_backlight_level,
- 	.set_abm_immediate_disable = dce110_set_abm_immediate_disable,
- 	.set_pipe = dce110_set_pipe,
-->>>>>>> linux-next/akpm-base
- };
- 
- static const struct hwseq_private_funcs dcn10_private_funcs = {
---- a/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_init.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_init.c
-@@ -84,12 +84,9 @@ static const struct hw_sequencer_funcs d
- 	.set_flip_control_gsl = dcn20_set_flip_control_gsl,
- 	.get_vupdate_offset_from_vsync = dcn10_get_vupdate_offset_from_vsync,
- 	.calc_vupdate_position = dcn10_calc_vupdate_position,
--<<<<<<< HEAD
--=======
- 	.set_backlight_level = dce110_set_backlight_level,
- 	.set_abm_immediate_disable = dce110_set_abm_immediate_disable,
- 	.set_pipe = dce110_set_pipe,
-->>>>>>> linux-next/akpm-base
- };
- 
- static const struct hwseq_private_funcs dcn20_private_funcs = {
---- a/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_init.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_init.c
-@@ -87,18 +87,10 @@ static const struct hw_sequencer_funcs d
- 	.exit_optimized_pwr_state = dcn21_exit_optimized_pwr_state,
- 	.get_vupdate_offset_from_vsync = dcn10_get_vupdate_offset_from_vsync,
- 	.calc_vupdate_position = dcn10_calc_vupdate_position,
--<<<<<<< HEAD
--	.set_cursor_position = dcn10_set_cursor_position,
--	.set_cursor_attribute = dcn10_set_cursor_attribute,
--	.set_cursor_sdr_white_level = dcn10_set_cursor_sdr_white_level,
--	.optimize_pwr_state = dcn21_optimize_pwr_state,
--	.exit_optimized_pwr_state = dcn21_exit_optimized_pwr_state,
--=======
- 	.power_down = dce110_power_down,
- 	.set_backlight_level = dcn21_set_backlight_level,
- 	.set_abm_immediate_disable = dcn21_set_abm_immediate_disable,
- 	.set_pipe = dcn21_set_pipe,
-->>>>>>> linux-next/akpm-base
- };
- 
- static const struct hwseq_private_funcs dcn21_private_funcs = {
---- a/drivers/gpu/drm/amd/display/dc/dml/dml_inline_defs.h~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/display/dc/dml/dml_inline_defs.h
-@@ -75,21 +75,6 @@ static inline double dml_floor(double a,
- }
- 
- static inline double dml_round(double a)
--<<<<<<< HEAD
--{
--	double round_pt = 0.5;
--	double ceil = dml_ceil(a, 1);
--	double floor = dml_floor(a, 1);
--
--	if (a - floor >= round_pt)
--		return ceil;
--	else
--		return floor;
--}
--
--static inline int dml_log2(double x)
--=======
-->>>>>>> linux-next/akpm-base
- {
- 	double round_pt = 0.5;
- 	double ceil = dml_ceil(a, 1);
---- a/drivers/net/phy/mscc/mscc.h~linux-next-git-rejects
-+++ a/drivers/net/phy/mscc/mscc.h
-@@ -353,12 +353,6 @@ struct vsc8531_private {
- 	const struct vsc85xx_hw_stat *hw_stats;
- 	u64 *stats;
- 	int nstats;
--<<<<<<< HEAD
--	bool pkg_init;
--	/* PHY address within the package. */
--	u8 addr;
--=======
-->>>>>>> linux-next/akpm-base
- 	/* For multiple port PHYs; the MDIO address of the base PHY in the
- 	 * package.
+--- a/drivers/dax/kmem.c~device-dax-dont-leak-kernel-memory-to-user-space-a=
+fter-unloading-kmem
++++ a/drivers/dax/kmem.c
+@@ -22,6 +22,7 @@ int dev_dax_kmem_probe(struct device *de
+ 	resource_size_t kmem_size;
+ 	resource_size_t kmem_end;
+ 	struct resource *new_res;
++	const char *new_res_name;
+ 	int numa_node;
+ 	int rc;
+=20
+@@ -48,11 +49,16 @@ int dev_dax_kmem_probe(struct device *de
+ 	kmem_size &=3D ~(memory_block_size_bytes() - 1);
+ 	kmem_end =3D kmem_start + kmem_size;
+=20
+-	/* Region is permanently reserved.  Hot-remove not yet implemented. */
+-	new_res =3D request_mem_region(kmem_start, kmem_size, dev_name(dev));
++	new_res_name =3D kstrdup(dev_name(dev), GFP_KERNEL);
++	if (!new_res_name)
++		return -ENOMEM;
++
++	/* Region is permanently reserved if hotremove fails. */
++	new_res =3D request_mem_region(kmem_start, kmem_size, new_res_name);
+ 	if (!new_res) {
+ 		dev_warn(dev, "could not reserve region [%pa-%pa]\n",
+ 			 &kmem_start, &kmem_end);
++		kfree(new_res_name);
+ 		return -EBUSY;
+ 	}
+=20
+@@ -63,12 +69,12 @@ int dev_dax_kmem_probe(struct device *de
+ 	 * unknown to us that will break add_memory() below.
  	 */
---- a/drivers/net/phy/mscc/mscc_main.c~linux-next-git-rejects
-+++ a/drivers/net/phy/mscc/mscc_main.c
-@@ -1315,24 +1315,6 @@ static int vsc8584_config_init(struct ph
- 
- 	mutex_lock(&phydev->mdio.bus->mdio_lock);
- 
--<<<<<<< HEAD
--	__mdiobus_write(phydev->mdio.bus, phydev->mdio.addr,
--			MSCC_EXT_PAGE_ACCESS, MSCC_PHY_PAGE_EXTENDED);
--	addr = __mdiobus_read(phydev->mdio.bus, phydev->mdio.addr,
--			      MSCC_PHY_EXT_PHY_CNTL_4);
--	addr >>= PHY_CNTL_4_ADDR_POS;
--
--	val = __mdiobus_read(phydev->mdio.bus, phydev->mdio.addr,
--			     MSCC_PHY_ACTIPHY_CNTL);
--	if (val & PHY_ADDR_REVERSED)
--		vsc8531->base_addr = phydev->mdio.addr + addr;
--	else
--		vsc8531->base_addr = phydev->mdio.addr - addr;
--
--	vsc8531->addr = addr;
--
--=======
-->>>>>>> linux-next/akpm-base
- 	/* Some parts of the init sequence are identical for every PHY in the
- 	 * package. Some parts are modifying the GPIO register bank which is a
- 	 * set of registers that are affecting all PHYs, a few resetting the
-@@ -1745,23 +1727,6 @@ static int vsc8514_config_init(struct ph
- 
- 	mutex_lock(&phydev->mdio.bus->mdio_lock);
- 
--<<<<<<< HEAD
--	__phy_write(phydev, MSCC_EXT_PAGE_ACCESS, MSCC_PHY_PAGE_EXTENDED);
--
--	addr = __phy_read(phydev, MSCC_PHY_EXT_PHY_CNTL_4);
--	addr >>= PHY_CNTL_4_ADDR_POS;
--
--	val = __phy_read(phydev, MSCC_PHY_ACTIPHY_CNTL);
--
--	if (val & PHY_ADDR_REVERSED)
--		vsc8531->base_addr = phydev->mdio.addr + addr;
--	else
--		vsc8531->base_addr = phydev->mdio.addr - addr;
--
--	vsc8531->addr = addr;
--
--=======
-->>>>>>> linux-next/akpm-base
- 	/* Some parts of the init sequence are identical for every PHY in the
- 	 * package. Some parts are modifying the GPIO register bank which is a
- 	 * set of registers that are affecting all PHYs, a few resetting the
---- a/net/core/flow_dissector.c~linux-next-git-rejects
-+++ a/net/core/flow_dissector.c
-@@ -1854,15 +1854,6 @@ static int __init init_default_flow_diss
- 	skb_flow_dissector_init(&flow_keys_basic_dissector,
- 				flow_keys_basic_dissector_keys,
- 				ARRAY_SIZE(flow_keys_basic_dissector_keys));
--<<<<<<< HEAD
--=======
--
--	err = register_pernet_subsys(&flow_dissector_pernet_ops);
--
--	WARN_ON(err);
--	return err;
--}
-->>>>>>> linux-next/akpm-base
- 
- 	return register_pernet_subsys(&flow_dissector_pernet_ops);
- }
---- a/net/mptcp/options.c~linux-next-git-rejects
-+++ a/net/mptcp/options.c
-@@ -551,11 +551,7 @@ static u64 add_addr_generate_hmac(u64 ke
- 
- 	mptcp_crypto_hmac_sha(key1, key2, msg, 7, hmac);
- 
--<<<<<<< HEAD
--	return get_unaligned_be64(&hmac[SHA256_DIGEST_SIZE - sizeof(u64)]);
--=======
- 	return get_unaligned_be64(&hmac[MPTCP_ADDR_HMAC_LEN - sizeof(u64)]);
-->>>>>>> linux-next/akpm-base
- }
- 
- #if IS_ENABLED(CONFIG_MPTCP_IPV6)
-@@ -572,11 +568,7 @@ static u64 add_addr6_generate_hmac(u64 k
- 
- 	mptcp_crypto_hmac_sha(key1, key2, msg, 19, hmac);
- 
--<<<<<<< HEAD
--	return get_unaligned_be64(&hmac[SHA256_DIGEST_SIZE - sizeof(u64)]);
--=======
- 	return get_unaligned_be64(&hmac[MPTCP_ADDR_HMAC_LEN - sizeof(u64)]);
-->>>>>>> linux-next/akpm-base
- }
- #endif
- 
+ 	new_res->flags =3D IORESOURCE_SYSTEM_RAM;
+-	new_res->name =3D dev_name(dev);
+=20
+ 	rc =3D add_memory(numa_node, new_res->start, resource_size(new_res));
+ 	if (rc) {
+ 		release_resource(new_res);
+ 		kfree(new_res);
++		kfree(new_res_name);
+ 		return rc;
+ 	}
+ 	dev_dax->dax_kmem_res =3D new_res;
+@@ -83,6 +89,7 @@ static int dev_dax_kmem_remove(struct de
+ 	struct resource *res =3D dev_dax->dax_kmem_res;
+ 	resource_size_t kmem_start =3D res->start;
+ 	resource_size_t kmem_size =3D resource_size(res);
++	const char *res_name =3D res->name;
+ 	int rc;
+=20
+ 	/*
+@@ -102,6 +109,7 @@ static int dev_dax_kmem_remove(struct de
+ 	/* Release and free dax resources */
+ 	release_resource(res);
+ 	kfree(res);
++	kfree(res_name);
+ 	dev_dax->dax_kmem_res =3D NULL;
+=20
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-padata-initialize-earlier-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-linux-next-git-rejects.patch
+drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup-fix=
+.patch
+powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable.patch
+mm-memory_hotplug-remove-is_mem_section_removable.patch
+mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
+mm-memory_hotplug-handle-memblocks-only-with-config_arch_keep_memblock.patch
+mm-memory_hotplug-introduce-add_memory_driver_managed.patch
+kexec_file-dont-place-kexec-images-on-ioresource_mem_driver_managed.patch
+device-dax-add-memory-via-add_memory_driver_managed.patch
