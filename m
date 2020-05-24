@@ -1,51 +1,106 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- selftests-vm-write_to_hugetlbfsc-fix-unused-variable-warning.patch removed
- from -mm tree
-Date: Sun, 24 May 2020 16:18:28 -0700
-Message-ID: <20200524231828.x3yYQnII1%akpm@linux-foundation.org>
+ kasan-disable-branch-tracing-for-core-runtime.patch removed from -mm tree
+Date: Sun, 24 May 2020 16:18:31 -0700
+Message-ID: <20200524231831.vvViKlAs1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54798 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388202AbgEXXSa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 May 2020 19:18:30 -0400
+        id S2388202AbgEXXSc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 May 2020 19:18:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: almasrymina@google.com, bgeffon@google.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
+To: andreyknvl@google.com, aryabinin@virtuozzo.com, cai@lca.pw, dvyukov@google.com, elver@google.com, glider@google.com, mm-commits@vger.kernel.org, rong.a.chen@intel.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm/write_to_hugetlbfs.c: fix unused variable warning
+     Subject: kasan: disable branch tracing for core runtime
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-write_to_hugetlbfsc-fix-unused-variable-warning.patch
+     kasan-disable-branch-tracing-for-core-runtime.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: selftests/vm/write_to_hugetlbfs.c: fix unused variable warning
+From: Marco Elver <elver@google.com>
+Subject: kasan: disable branch tracing for core runtime
 
-Remove unused variable "i", which was triggering a compiler warning.
+During early boot, while KASAN is not yet initialized, it is possible to
+enter reporting code-path and end up in kasan_report().  While
+uninitialized, the branch there prevents generating any reports, however,
+under certain circumstances when branches are being traced
+(TRACE_BRANCH_PROFILING), we may recurse deep enough to cause kernel
+reboots without warning.
 
-Link: http://lkml.kernel.org/r/20200517001245.361762-2-jhubbard@nvidia.com
-Fixes: 29750f71a9b4 ("hugetlb_cgroup: add hugetlb_cgroup reservation tests")
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-By: Mina Almasry <almasrymina@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+To prevent similar issues in future, we should disable branch tracing for
+the core runtime.
+
+[elver@google.com: remove duplicate DISABLE_BRANCH_PROFILING, per Qian Cai]
+  Link: https://lore.kernel.org/lkml/20200517011732.GE24705@shao2-debian/
+  Link: http://lkml.kernel.org/r/20200522075207.157349-1-elver@google.com
+Link: http://lkml.kernel.org/r//20200517011732.GE24705@shao2-debian/
+Link: http://lkml.kernel.org/r/20200519182459.87166-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Reported-by: kernel test robot <rong.a.chen@intel.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/write_to_hugetlbfs.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/kasan/Makefile  |   16 ++++++++--------
+ mm/kasan/generic.c |    1 -
+ mm/kasan/tags.c    |    1 -
+ 3 files changed, 8 insertions(+), 10 deletions(-)
 
---- a/tools/testing/selftests/vm/write_to_hugetlbfs.c~selftests-vm-write_to_hugetlbfsc-fix-unused-variable-warning
-+++ a/tools/testing/selftests/vm/write_to_hugetlbfs.c
-@@ -74,8 +74,6 @@ int main(int argc, char **argv)
- 	int write = 0;
- 	int reserve = 1;
+--- a/mm/kasan/generic.c~kasan-disable-branch-tracing-for-core-runtime
++++ a/mm/kasan/generic.c
+@@ -15,7 +15,6 @@
+  */
  
--	unsigned long i;
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-#define DISABLE_BRANCH_PROFILING
+ 
+ #include <linux/export.h>
+ #include <linux/interrupt.h>
+--- a/mm/kasan/Makefile~kasan-disable-branch-tracing-for-core-runtime
++++ a/mm/kasan/Makefile
+@@ -15,14 +15,14 @@ CFLAGS_REMOVE_tags_report.o = $(CC_FLAGS
+ 
+ # Function splitter causes unnecessary splits in __asan_load1/__asan_store1
+ # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63533
+-CFLAGS_common.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
+-CFLAGS_generic.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
+-CFLAGS_generic_report.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
+-CFLAGS_init.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
+-CFLAGS_quarantine.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
+-CFLAGS_report.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
+-CFLAGS_tags.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
+-CFLAGS_tags_report.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
++CFLAGS_common.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
++CFLAGS_generic.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
++CFLAGS_generic_report.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
++CFLAGS_init.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
++CFLAGS_quarantine.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
++CFLAGS_report.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
++CFLAGS_tags.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
++CFLAGS_tags_report.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
+ 
+ obj-$(CONFIG_KASAN) := common.o init.o report.o
+ obj-$(CONFIG_KASAN_GENERIC) += generic.o generic_report.o quarantine.o
+--- a/mm/kasan/tags.c~kasan-disable-branch-tracing-for-core-runtime
++++ a/mm/kasan/tags.c
+@@ -12,7 +12,6 @@
+  */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-#define DISABLE_BRANCH_PROFILING
+ 
+ #include <linux/export.h>
+ #include <linux/interrupt.h>
+_
+
+Patches currently in -mm which might be from elver@google.com are
