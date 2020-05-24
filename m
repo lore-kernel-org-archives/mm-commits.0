@@ -1,58 +1,124 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- maintainers-update-email-address-for-naoya-horiguchi.patch removed from -mm
- tree
-Date: Sun, 24 May 2020 16:18:37 -0700
-Message-ID: <20200524231837.VyzVjRHFk%akpm@linux-foundation.org>
+ sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
+ removed from -mm tree
+Date: Sun, 24 May 2020 16:18:39 -0700
+Message-ID: <20200524231839.gJ8sc9Bzt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54916 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54944 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388202AbgEXXSh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 May 2020 19:18:37 -0400
+        id S2388202AbgEXXSk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 May 2020 19:18:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, naoya.horiguchi@nec.com
+To: davem@davemloft.net, lkp@intel.com, matorola@gmail.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update email address for Naoya Horiguchi
+     Subject: sparc32: use PUD rather than PGD to get PMD in srmmu_nocache_init()
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-email-address-for-naoya-horiguchi.patch
+     sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: MAINTAINERS: update email address for Naoya Horiguchi
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: sparc32: use PUD rather than PGD to get PMD in srmmu_nocache_init()
 
-My email address has changed due to system upgrade, so please update it in
-MAINTAINERS list.  My old address (n-horiguchi@ah.jp.nec.com) will be
-still active for a few months.
+The kbuild test robot reported the following warning:
 
-Note that my email system has some encoding issue and can't send patches
-in raw format via git-send-email.  So patches from me will be delivered
-via my free address (nao.horiguchi@gmail.com) or GitHub.
+arch/sparc/mm/srmmu.c: In function 'srmmu_nocache_init':
+>> arch/sparc/mm/srmmu.c:300:9: error: variable 'pud' set but not used
+>> [-Werror=unused-but-set-variable]
+300 |  pud_t *pud;
 
-Link: http://lkml.kernel.org/r/1589874488-9247-1-git-send-email-naoya.horiguchi@nec.com
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+This warning is caused by misprint in the page table traversal in
+srmmu_nocache_init() function which accessed a PMD entry using PGD rather
+than PUD.
+
+Since sparc32 has only 3 page table levels, the PGD and PUD are
+essentially the same and usage of __nocache_fix() removed the type
+checking.
+
+Use PUD for the consistency and to silence the compiler warning.
+
+Link: http://lkml.kernel.org/r/20200520132005.GM1059226@linux.ibm.com
+Fixes: 7235db268a2777bc38 ("sparc32: use pgtable-nopud instead of 4level-fixup")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Anatoly Pugachev <matorola@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
+ arch/sparc/mm/srmmu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-update-email-address-for-naoya-horiguchi
-+++ a/MAINTAINERS
-@@ -7829,7 +7829,7 @@ T:	git git://linuxtv.org/media_tree.git
- F:	drivers/media/platform/sti/hva
+--- a/arch/sparc/mm/srmmu.c~sparc32-use-pud-rather-than-pgd-to-get-pmd-in-srmmu_nocache_init
++++ a/arch/sparc/mm/srmmu.c
+@@ -333,7 +333,7 @@ static void __init srmmu_nocache_init(vo
+ 		pgd = pgd_offset_k(vaddr);
+ 		p4d = p4d_offset(__nocache_fix(pgd), vaddr);
+ 		pud = pud_offset(__nocache_fix(p4d), vaddr);
+-		pmd = pmd_offset(__nocache_fix(pgd), vaddr);
++		pmd = pmd_offset(__nocache_fix(pud), vaddr);
+ 		pte = pte_offset_kernel(__nocache_fix(pmd), vaddr);
  
- HWPOISON MEMORY FAILURE HANDLING
--M:	Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-+M:	Naoya Horiguchi <naoya.horiguchi@nec.com>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	mm/hwpoison-inject.c
+ 		pteval = ((paddr >> 4) | SRMMU_ET_PTE | SRMMU_PRIV);
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
+
+mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
+mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
+mm-remove-config_have_memblock_node_map-option.patch
+mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
+mm-use-free_area_init-instead-of-free_area_init_nodes.patch
+alpha-simplify-detection-of-memory-zone-boundaries.patch
+arm-simplify-detection-of-memory-zone-boundaries.patch
+arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+csky-simplify-detection-of-memory-zone-boundaries.patch
+m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
+parisc-simplify-detection-of-memory-zone-boundaries.patch
+sparc32-simplify-detection-of-memory-zone-boundaries.patch
+unicore32-simplify-detection-of-memory-zone-boundaries.patch
+xtensa-simplify-detection-of-memory-zone-boundaries.patch
+mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2.patch
+mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
+mm-clean-up-free_area_init_node-and-its-helpers.patch
+mm-simplify-find_min_pfn_with_active_regions.patch
+docs-vm-update-memory-models-documentation.patch
+h8300-remove-usage-of-__arch_use_5level_hack.patch
+arm-add-support-for-folded-p4d-page-tables.patch
+arm-add-support-for-folded-p4d-page-tables-fix.patch
+arm64-add-support-for-folded-p4d-page-tables.patch
+hexagon-remove-__arch_use_5level_hack.patch
+ia64-add-support-for-folded-p4d-page-tables.patch
+nios2-add-support-for-folded-p4d-page-tables.patch
+openrisc-add-support-for-folded-p4d-page-tables.patch
+powerpc-add-support-for-folded-p4d-page-tables.patch
+powerpc-add-support-for-folded-p4d-page-tables-fix.patch
+powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch
+sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
+sh-add-support-for-folded-p4d-page-tables.patch
+unicore32-remove-__arch_use_5level_hack.patch
+asm-generic-remove-pgtable-nop4d-hackh.patch
+mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
+mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
+mm-introduce-include-linux-pgtableh.patch
+mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
+csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
+m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
+m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
+x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
+mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
+mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix.patch
+mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2.patch
+mm-consolidate-pte_index-and-pte_offset_-definitions.patch
+mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
+mm-consolidate-pud_index-and-pud_offset-definitions.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions.patch
