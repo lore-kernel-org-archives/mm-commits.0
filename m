@@ -1,33 +1,27 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- =?US-ASCII?Q?mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-?=
- =?US-ASCII?Q?control-fix-v2.patch?= added to -mm tree
-Date: Fri, 22 May 2020 18:09:18 -0700
-Message-ID: <20200523010918.eDZY5_14K%akpm@linux-foundation.org>
-References: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Sun, 24 May 2020 16:17:50 -0700
+Message-ID: <20200524231750.A9PFp1ei-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56036 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387427AbgEWBJT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 22 May 2020 21:09:19 -0400
-In-Reply-To: <20200513175005.1f4839360c18c0238df292d1@linux-foundation.org>
+        id S2388202AbgEXXRw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 May 2020 19:17:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Re: mm: mkfs.ext4 invoked oom-killer on i386 - pagecache_get_page
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,100 +35,253 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: Re: mm: mkfs.ext4 invoked oom-killer on i386 - pagecache_get_page
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Fix crash with cgroup_disable=memory:
-
-> > > > + mkfs -t ext4 /dev/disk/by-id/ata-TOSHIBA_MG04ACA100N_Y8NRK0BPF6XF
-> > > > mke2fs 1.43.8 (1-Jan-2018)
-> > > > Creating filesystem with 244190646 4k blocks and 61054976 inodes
-> > > > Filesystem UUID: 3bb1a285-2cb4-44b4-b6e8-62548f3ac620
-> > > > Superblock backups stored on blocks:
-> > > > 32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208,
-> > > > 4096000, 7962624, 11239424, 20480000, 23887872, 71663616, 78675968,
-> > > > 102400000, 214990848
-> > > > Allocating group tables:    0/7453                           done
-> > > > Writing inode tables:    0/7453                           done
-> > > > Creating journal (262144 blocks): [   35.502102] BUG: kernel NULL
-> > > > pointer dereference, address: 000000c8
-> > > > [   35.508372] #PF: supervisor read access in kernel mode
-> > > > [   35.513506] #PF: error_code(0x0000) - not-present page
-> > > > [   35.518638] *pde = 00000000
-> > > > [   35.521514] Oops: 0000 [#1] SMP
-> > > > [   35.524652] CPU: 0 PID: 145 Comm: kswapd0 Not tainted
-> > > > 5.7.0-rc6-next-20200519+ #1
-> > > > [   35.532121] Hardware name: Supermicro SYS-5019S-ML/X11SSH-F, BIOS
-> > > > 2.2 05/23/2018
-> > > > [   35.539507] EIP: mem_cgroup_get_nr_swap_pages+0x28/0x60
-
-Swap accounting used to be implied-disabled when the cgroup controller was
-disabled.  Restore that for the new cgroup_memory_noswap, so that we bail
-out of this function instead of dereferencing a NULL memcg.
-
-Link: http://lkml.kernel.org/r/20200521215855.GB815153@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Debugged-by: Hugh Dickins <hughd@google.com>
-Debugged-by: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/amd/display/dc/dcn10/dcn10_init.c    |    3 
+ drivers/gpu/drm/amd/display/dc/dcn20/dcn20_init.c    |    3 
+ drivers/gpu/drm/amd/display/dc/dcn21/dcn21_init.c    |    8 --
+ drivers/gpu/drm/amd/display/dc/dml/dml_inline_defs.h |   15 ----
+ drivers/net/phy/mscc/mscc.h                          |    6 -
+ drivers/net/phy/mscc/mscc_main.c                     |   35 ----------
+ net/core/flow_dissector.c                            |    9 --
+ net/mptcp/options.c                                  |    8 --
+ 8 files changed, 87 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2
-+++ a/mm/memcontrol.c
-@@ -7152,7 +7152,11 @@ static struct cftype memsw_files[] = {
+--- a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_init.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_init.c
+@@ -73,12 +73,9 @@ static const struct hw_sequencer_funcs d
+ 	.get_clock = dcn10_get_clock,
+ 	.get_vupdate_offset_from_vsync = dcn10_get_vupdate_offset_from_vsync,
+ 	.calc_vupdate_position = dcn10_calc_vupdate_position,
+-<<<<<<< HEAD
+-=======
+ 	.set_backlight_level = dce110_set_backlight_level,
+ 	.set_abm_immediate_disable = dce110_set_abm_immediate_disable,
+ 	.set_pipe = dce110_set_pipe,
+->>>>>>> linux-next/akpm-base
+ };
  
- static int __init mem_cgroup_swap_init(void)
+ static const struct hwseq_private_funcs dcn10_private_funcs = {
+--- a/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_init.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_init.c
+@@ -84,12 +84,9 @@ static const struct hw_sequencer_funcs d
+ 	.set_flip_control_gsl = dcn20_set_flip_control_gsl,
+ 	.get_vupdate_offset_from_vsync = dcn10_get_vupdate_offset_from_vsync,
+ 	.calc_vupdate_position = dcn10_calc_vupdate_position,
+-<<<<<<< HEAD
+-=======
+ 	.set_backlight_level = dce110_set_backlight_level,
+ 	.set_abm_immediate_disable = dce110_set_abm_immediate_disable,
+ 	.set_pipe = dce110_set_pipe,
+->>>>>>> linux-next/akpm-base
+ };
+ 
+ static const struct hwseq_private_funcs dcn20_private_funcs = {
+--- a/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_init.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_init.c
+@@ -87,18 +87,10 @@ static const struct hw_sequencer_funcs d
+ 	.exit_optimized_pwr_state = dcn21_exit_optimized_pwr_state,
+ 	.get_vupdate_offset_from_vsync = dcn10_get_vupdate_offset_from_vsync,
+ 	.calc_vupdate_position = dcn10_calc_vupdate_position,
+-<<<<<<< HEAD
+-	.set_cursor_position = dcn10_set_cursor_position,
+-	.set_cursor_attribute = dcn10_set_cursor_attribute,
+-	.set_cursor_sdr_white_level = dcn10_set_cursor_sdr_white_level,
+-	.optimize_pwr_state = dcn21_optimize_pwr_state,
+-	.exit_optimized_pwr_state = dcn21_exit_optimized_pwr_state,
+-=======
+ 	.power_down = dce110_power_down,
+ 	.set_backlight_level = dcn21_set_backlight_level,
+ 	.set_abm_immediate_disable = dcn21_set_abm_immediate_disable,
+ 	.set_pipe = dcn21_set_pipe,
+->>>>>>> linux-next/akpm-base
+ };
+ 
+ static const struct hwseq_private_funcs dcn21_private_funcs = {
+--- a/drivers/gpu/drm/amd/display/dc/dml/dml_inline_defs.h~linux-next-git-rejects
++++ a/drivers/gpu/drm/amd/display/dc/dml/dml_inline_defs.h
+@@ -75,21 +75,6 @@ static inline double dml_floor(double a,
+ }
+ 
+ static inline double dml_round(double a)
+-<<<<<<< HEAD
+-{
+-	double round_pt = 0.5;
+-	double ceil = dml_ceil(a, 1);
+-	double floor = dml_floor(a, 1);
+-
+-	if (a - floor >= round_pt)
+-		return ceil;
+-	else
+-		return floor;
+-}
+-
+-static inline int dml_log2(double x)
+-=======
+->>>>>>> linux-next/akpm-base
  {
--	if (mem_cgroup_disabled() || cgroup_memory_noswap)
-+	/* No memory control -> no swap control */
-+	if (mem_cgroup_disabled())
-+		cgroup_memory_noswap = true;
-+
-+	if (cgroup_memory_noswap)
- 		return 0;
+ 	double round_pt = 0.5;
+ 	double ceil = dml_ceil(a, 1);
+--- a/drivers/net/phy/mscc/mscc.h~linux-next-git-rejects
++++ a/drivers/net/phy/mscc/mscc.h
+@@ -353,12 +353,6 @@ struct vsc8531_private {
+ 	const struct vsc85xx_hw_stat *hw_stats;
+ 	u64 *stats;
+ 	int nstats;
+-<<<<<<< HEAD
+-	bool pkg_init;
+-	/* PHY address within the package. */
+-	u8 addr;
+-=======
+->>>>>>> linux-next/akpm-base
+ 	/* For multiple port PHYs; the MDIO address of the base PHY in the
+ 	 * package.
+ 	 */
+--- a/drivers/net/phy/mscc/mscc_main.c~linux-next-git-rejects
++++ a/drivers/net/phy/mscc/mscc_main.c
+@@ -1315,24 +1315,6 @@ static int vsc8584_config_init(struct ph
  
- 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
+ 	mutex_lock(&phydev->mdio.bus->mdio_lock);
+ 
+-<<<<<<< HEAD
+-	__mdiobus_write(phydev->mdio.bus, phydev->mdio.addr,
+-			MSCC_EXT_PAGE_ACCESS, MSCC_PHY_PAGE_EXTENDED);
+-	addr = __mdiobus_read(phydev->mdio.bus, phydev->mdio.addr,
+-			      MSCC_PHY_EXT_PHY_CNTL_4);
+-	addr >>= PHY_CNTL_4_ADDR_POS;
+-
+-	val = __mdiobus_read(phydev->mdio.bus, phydev->mdio.addr,
+-			     MSCC_PHY_ACTIPHY_CNTL);
+-	if (val & PHY_ADDR_REVERSED)
+-		vsc8531->base_addr = phydev->mdio.addr + addr;
+-	else
+-		vsc8531->base_addr = phydev->mdio.addr - addr;
+-
+-	vsc8531->addr = addr;
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	/* Some parts of the init sequence are identical for every PHY in the
+ 	 * package. Some parts are modifying the GPIO register bank which is a
+ 	 * set of registers that are affecting all PHYs, a few resetting the
+@@ -1745,23 +1727,6 @@ static int vsc8514_config_init(struct ph
+ 
+ 	mutex_lock(&phydev->mdio.bus->mdio_lock);
+ 
+-<<<<<<< HEAD
+-	__phy_write(phydev, MSCC_EXT_PAGE_ACCESS, MSCC_PHY_PAGE_EXTENDED);
+-
+-	addr = __phy_read(phydev, MSCC_PHY_EXT_PHY_CNTL_4);
+-	addr >>= PHY_CNTL_4_ADDR_POS;
+-
+-	val = __phy_read(phydev, MSCC_PHY_ACTIPHY_CNTL);
+-
+-	if (val & PHY_ADDR_REVERSED)
+-		vsc8531->base_addr = phydev->mdio.addr + addr;
+-	else
+-		vsc8531->base_addr = phydev->mdio.addr - addr;
+-
+-	vsc8531->addr = addr;
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	/* Some parts of the init sequence are identical for every PHY in the
+ 	 * package. Some parts are modifying the GPIO register bank which is a
+ 	 * set of registers that are affecting all PHYs, a few resetting the
+--- a/net/core/flow_dissector.c~linux-next-git-rejects
++++ a/net/core/flow_dissector.c
+@@ -1854,15 +1854,6 @@ static int __init init_default_flow_diss
+ 	skb_flow_dissector_init(&flow_keys_basic_dissector,
+ 				flow_keys_basic_dissector_keys,
+ 				ARRAY_SIZE(flow_keys_basic_dissector_keys));
+-<<<<<<< HEAD
+-=======
+-
+-	err = register_pernet_subsys(&flow_dissector_pernet_ops);
+-
+-	WARN_ON(err);
+-	return err;
+-}
+->>>>>>> linux-next/akpm-base
+ 
+ 	return register_pernet_subsys(&flow_dissector_pernet_ops);
+ }
+--- a/net/mptcp/options.c~linux-next-git-rejects
++++ a/net/mptcp/options.c
+@@ -551,11 +551,7 @@ static u64 add_addr_generate_hmac(u64 ke
+ 
+ 	mptcp_crypto_hmac_sha(key1, key2, msg, 7, hmac);
+ 
+-<<<<<<< HEAD
+-	return get_unaligned_be64(&hmac[SHA256_DIGEST_SIZE - sizeof(u64)]);
+-=======
+ 	return get_unaligned_be64(&hmac[MPTCP_ADDR_HMAC_LEN - sizeof(u64)]);
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ #if IS_ENABLED(CONFIG_MPTCP_IPV6)
+@@ -572,11 +568,7 @@ static u64 add_addr6_generate_hmac(u64 k
+ 
+ 	mptcp_crypto_hmac_sha(key1, key2, msg, 19, hmac);
+ 
+-<<<<<<< HEAD
+-	return get_unaligned_be64(&hmac[SHA256_DIGEST_SIZE - sizeof(u64)]);
+-=======
+ 	return get_unaligned_be64(&hmac[MPTCP_ADDR_HMAC_LEN - sizeof(u64)]);
+->>>>>>> linux-next/akpm-base
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
-mm-memcontrol-fix-stat-corrupting-race-in-charge-moving.patch
-mm-memcontrol-drop-compound-parameter-from-memcg-charging-api.patch
-mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
-mm-memcontrol-move-out-cgroup-swaprate-throttling.patch
-mm-memcontrol-convert-page-cache-to-a-new-mem_cgroup_charge-api.patch
-mm-memcontrol-prepare-uncharging-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-move_account-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-cgroup-vmstat-infrastructure-for-native-anon-counters.patch
-mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
-mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
-mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
-mm-memcontrol-switch-to-native-nr_anon_thps-counter-fix.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
-mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
-mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
-mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
-mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2.patch
-mm-memcontrol-charge-swapin-pages-on-instantiation.patch
-mm-memcontrol-delete-unused-lrucare-handling.patch
-mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
-mm-fix-lru-balancing-effect-of-new-transparent-huge-pages.patch
-mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
-mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset.patch
-mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
-mm-workingset-let-cache-workingset-challenge-anon.patch
-mm-remove-use-once-cache-bias-from-lru-balancing.patch
-mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count.patch
-mm-base-lru-balancing-on-an-explicit-cost-model.patch
-mm-deactivations-shouldnt-bias-the-lru-balance.patch
-mm-only-count-actual-rotations-as-lru-reclaim-cost.patch
-mm-balance-lru-lists-based-on-relative-thrashing.patch
-mm-vmscan-determine-anon-file-pressure-balance-at-the-reclaim-root.patch
-mm-vmscan-reclaim-writepage-is-io-cost.patch
-mm-vmscan-limit-the-range-of-lru-type-balancing.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
+mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
+mm-gupc-updating-the-documentation-fix.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
+mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+padata-initialize-earlier-fix.patch
+arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-add-debug_wx-support-fix.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-pre.patch
+linux-next-rejects.patch
+linux-next-post.patch
+kernel-add-panic_on_taint-fix.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+linux-next-git-rejects.patch
