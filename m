@@ -1,63 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-add-files-related-to-kdump.patch
- removed from -mm tree
-Date: Sun, 24 May 2020 16:18:45 -0700
-Message-ID: <20200524231845.XgX9wT5Qm%akpm@linux-foundation.org>
+Subject: [merged]
+ z3fold-fix-use-after-free-when-freeing-handles.patch removed from -mm tree
+Date: Sun, 24 May 2020 16:18:42 -0700
+Message-ID: <20200524231842.2Tnk-ylQq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55034 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54982 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388556AbgEXXSp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 May 2020 19:18:45 -0400
+        id S2388556AbgEXXSn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 May 2020 19:18:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, dyoung@redhat.com, mm-commits@vger.kernel.org
+To: cai@lca.pw, mm-commits@vger.kernel.org, shentino@gmail.com, stable@vger.kernel.org, uladzislau.rezki@sony.com, vitaly.wool@konsulko.com
 
 
 The patch titled
-     Subject: MAINTAINERS: add files related to kdump
+     Subject: z3fold: fix use-after-free when freeing handles
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-files-related-to-kdump.patch
+     z3fold-fix-use-after-free-when-freeing-handles.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: MAINTAINERS: add files related to kdump
+From: Uladzislau Rezki <uladzislau.rezki@sony.com>
+Subject: z3fold: fix use-after-free when freeing handles
 
-Kdump is implemented based on kexec, however some files are only related
-to crash dumping and missing, add them to KDUMP entry.
+free_handle() for a foreign handle may race with inter-page compaction,
+what can lead to memory corruption.  To avoid that, take write lock not
+read lock in free_handle to be synchronized with __release_z3fold_page().
 
-Link: http://lkml.kernel.org/r/20200520103633.GW5029@MiWiFi-R3L-srv
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: Dave Young <dyoung@redhat.com>
+For example KASAN can detect it:
+
+[   33.723357] ==================================================================
+[   33.723401] BUG: KASAN: use-after-free in LZ4_decompress_safe+0x2c4/0x3b8
+[   33.723418] Read of size 1 at addr ffffffc976695ca3 by task GoogleApiHandle/4121
+[   33.723428]
+[   33.723449] CPU: 0 PID: 4121 Comm: GoogleApiHandle Tainted: P S         OE     4.19.81-perf+ #162
+[   33.723461] Hardware name: Sony Mobile Communications. PDX-203(KONA) (DT)
+[   33.723473] Call trace:
+[   33.723495] dump_backtrace+0x0/0x288
+[   33.723512] show_stack+0x14/0x20
+[   33.723533] dump_stack+0xe4/0x124
+[   33.723551] print_address_description+0x80/0x2e0
+[   33.723566] kasan_report+0x268/0x2d0
+[   33.723584] __asan_load1+0x4c/0x58
+[   33.723601] LZ4_decompress_safe+0x2c4/0x3b8
+[   33.723619] lz4_decompress_crypto+0x3c/0x70
+[   33.723636] crypto_decompress+0x58/0x70
+[   33.723656] zcomp_decompress+0xd4/0x120
+...
+
+Apart from that, initialize zhdr->mapped_count in init_z3fold_page() and
+remove "newpage" variable because it is not used anywhere.
+
+Link: http://lkml.kernel.org/r/20200520082100.28876-1-vitaly.wool@konsulko.com
+Signed-off-by: Uladzislau Rezki <uladzislau.rezki@sony.com>
+Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Raymond Jennings <shentino@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/z3fold.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-files-related-to-kdump
-+++ a/MAINTAINERS
-@@ -9185,6 +9185,11 @@ L:	kexec@lists.infradead.org
- S:	Maintained
- W:	http://lse.sourceforge.net/kdump/
- F:	Documentation/admin-guide/kdump/
-+F:	fs/proc/vmcore.c
-+F:	include/linux/crash_core.h
-+F:	include/linux/crash_dump.h
-+F:	include/uapi/linux/vmcore.h
-+F:	kernel/crash_*.c
+--- a/mm/z3fold.c~z3fold-fix-use-after-free-when-freeing-handles
++++ a/mm/z3fold.c
+@@ -318,16 +318,16 @@ static inline void free_handle(unsigned
+ 	slots = handle_to_slots(handle);
+ 	write_lock(&slots->lock);
+ 	*(unsigned long *)handle = 0;
+-	write_unlock(&slots->lock);
+-	if (zhdr->slots == slots)
++	if (zhdr->slots == slots) {
++		write_unlock(&slots->lock);
+ 		return; /* simple case, nothing else to do */
++	}
  
- KEENE FM RADIO TRANSMITTER DRIVER
- M:	Hans Verkuil <hverkuil@xs4all.nl>
+ 	/* we are freeing a foreign handle if we are here */
+ 	zhdr->foreign_handles--;
+ 	is_free = true;
+-	read_lock(&slots->lock);
+ 	if (!test_bit(HANDLES_ORPHANED, &slots->pool)) {
+-		read_unlock(&slots->lock);
++		write_unlock(&slots->lock);
+ 		return;
+ 	}
+ 	for (i = 0; i <= BUDDY_MASK; i++) {
+@@ -336,7 +336,7 @@ static inline void free_handle(unsigned
+ 			break;
+ 		}
+ 	}
+-	read_unlock(&slots->lock);
++	write_unlock(&slots->lock);
+ 
+ 	if (is_free) {
+ 		struct z3fold_pool *pool = slots_to_pool(slots);
+@@ -422,6 +422,7 @@ static struct z3fold_header *init_z3fold
+ 	zhdr->start_middle = 0;
+ 	zhdr->cpu = -1;
+ 	zhdr->foreign_handles = 0;
++	zhdr->mapped_count = 0;
+ 	zhdr->slots = slots;
+ 	zhdr->pool = pool;
+ 	INIT_LIST_HEAD(&zhdr->buddy);
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
-
-mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn.patch
-mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix-2.patch
-mm-remove-unused-free_bootmem_with_active_regions.patch
-mm-page_allocc-only-tune-sysctl_lowmem_reserve_ratio-value-once-when-changing-it.patch
-mm-page_allocc-clear-out-zone-lowmem_reserve-if-the-zone-is-empty.patch
-mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone.patch
+Patches currently in -mm which might be from uladzislau.rezki@sony.com are
