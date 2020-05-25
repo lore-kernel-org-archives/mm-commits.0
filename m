@@ -1,28 +1,31 @@
-From: akpm@linux-foundation.org
-Subject: + linux-next-fix-syscall-numbers-fix.patch added to -mm
- tree
-Date: Mon, 25 May 2020 11:04:12 -0700
-Message-ID: <20200525180412.B9_NrOXKx%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: +
+ khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix.patch added
+ to -mm tree
+Date: Mon, 25 May 2020 13:01:59 -0700
+Message-ID: <20200525200159.v4Fr7Ypx_%akpm@linux-foundation.org>
+References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55138 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388621AbgEYSEN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 25 May 2020 14:04:13 -0400
+        id S1726729AbgEYUCA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 25 May 2020 16:02:00 -0400
+In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: cai@lca.pw, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: linux-next-fix-syscall-numbers-fix
+     Subject: khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-fix-syscall-numbers-fix.patch
+     khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-fix-syscall-numbers-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-fix-syscall-numbers-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,75 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-fix-syscall-numbers-fix
+From: Qian Cai <cai@lca.pw>
+Subject: khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix
 
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+fix set-but-not-used warning
+
+Link: http://lkml.kernel.org/r/20200521145644.GA6367@ovpn-112-192.phx2.redhat.com
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/unistd32.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/arch/arm64/include/asm/unistd32.h~linux-next-fix-syscall-numbers-fix
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -889,7 +889,7 @@ __SYSCALL(__NR_faccessat2, sys_faccessat
- __SYSCALL(__NR_watch_mount, sys_watch_mount)
- #define __NR_watch_sb 441
- __SYSCALL(__NR_watch_sb, sys_watch_sb)
--#define __NR_fsinfo 441
-+#define __NR_fsinfo 442
- __SYSCALL(__NR_fsinfo, sys_fsinfo)
+--- a/mm/khugepaged.c~khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix
++++ a/mm/khugepaged.c
+@@ -528,9 +528,8 @@ static void release_pte_pages(pte_t *pte
  
- /*
+ static bool is_refcount_suitable(struct page *page)
+ {
+-	int expected_refcount, refcount;
++	int expected_refcount;
+ 
+-	refcount = page_count(page);
+ 	expected_refcount = total_mapcount(page);
+ 	if (PageSwapCache(page))
+ 		expected_refcount += compound_nr(page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cai@lca.pw are
 
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-padata-initialize-earlier-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-fix-syscall-numbers.patch
-linux-next-fix-syscall-numbers-fix.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mm-z3fold-silence-kmemleak-false-positives-of-slots.patch
+mm-slub-fix-stack-overruns-with-slub_stats.patch
+mm-swap_state-fix-a-data-race-in-swapin_nr_pages.patch
+mm-memmap_init-iterate-over-memblock-regions-rather-that-check-each-pfn-fix.patch
+mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch
+khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix.patch
+mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races-v2.patch
+mm-swap_state-mark-various-intentional-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+mm-page_counter-fix-various-data-races-at-memsw.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-util-annotate-an-data-race-at-vm_committed_as.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+mm-annotate-a-data-race-in-page_zonenum.patch
+mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
