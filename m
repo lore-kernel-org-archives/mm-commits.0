@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch added to -mm
- tree
-Date: Sun, 24 May 2020 17:45:21 -0700
-Message-ID: <20200525004521.vUpgdw_hk%akpm@linux-foundation.org>
+Subject: + mm-remove-vm_bug_onpageslab-from-page_mapcount.patch
+ added to -mm tree
+Date: Sun, 24 May 2020 17:49:08 -0700
+Message-ID: <20200525004908.ptY_Df6aP%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45642 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46612 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388014AbgEYApX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 May 2020 20:45:23 -0400
+        id S2388014AbgEYAtK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 May 2020 20:49:10 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, walken@google.com
+To: hughd@google.com, khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix
+     Subject: mm: remove VM_BUG_ON(PageSlab()) from page_mapcount()
 has been added to the -mm tree.  Its filename is
-     mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+     mm-remove-vm_bug_onpageslab-from-page_mapcount.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-vm_bug_onpageslab-from-page_mapcount.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-vm_bug_onpageslab-from-page_mapcount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,140 +38,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: mm: remove VM_BUG_ON(PageSlab()) from page_mapcount()
 
-more linux-next fixups, per Michel
+Replace superfluous VM_BUG_ON() with comment about correct usage.
 
-Cc: Michel Lespinasse <walken@google.com>
+Technically reverts commit 1d148e218a0d0566b1c06f2f45f1436d53b049b2
+("mm: add VM_BUG_ON_PAGE() to page_mapcount()"), but context have changed.
+
+Function isolate_migratepages_block() runs some checks out of lru_lock
+when choose pages for migration.  After checking PageLRU() it checks extra
+page references by comparing page_count() and page_mapcount().  Between
+these two checks page could be removed from lru, freed and taken by slab.
+
+As a result this race triggers VM_BUG_ON(PageSlab()) in page_mapcount().
+Race window is tiny. For certain workload this happens around once a year.
+
+ page:ffffea0105ca9380 count:1 mapcount:0 mapping:ffff88ff7712c180 index:0x0 compound_mapcount: 0
+ flags: 0x500000000008100(slab|head)
+ raw: 0500000000008100 dead000000000100 dead000000000200 ffff88ff7712c180
+ raw: 0000000000000000 0000000080200020 00000001ffffffff 0000000000000000
+ page dumped because: VM_BUG_ON_PAGE(PageSlab(page))
+ ------------[ cut here ]------------
+ kernel BUG at ./include/linux/mm.h:628!
+ invalid opcode: 0000 [#1] SMP NOPTI
+ CPU: 77 PID: 504 Comm: kcompactd1 Tainted: G        W         4.19.109-27 #1
+ Hardware name: Yandex T175-N41-Y3N/MY81-EX0-Y3N, BIOS R05 06/20/2019
+ RIP: 0010:isolate_migratepages_block+0x986/0x9b0
+
+Code in isolate_migratepages_block() was added in commit 119d6d59dcc0
+("mm, compaction: avoid isolating pinned pages") before adding VM_BUG_ON
+into page_mapcount().
+
+This race has been predicted in 2015 by Vlastimil Babka (see link below).
+
+Link: http://lkml.kernel.org/r/159032779896.957378.7852761411265662220.stgit@buzz
+Link: https://lore.kernel.org/lkml/557710E1.6060103@suse.cz/
+Link: https://lore.kernel.org/linux-mm/158937872515.474360.5066096871639561424.stgit@buzz/T/ (v1)
+Fixes: 1d148e218a0d ("mm: add VM_BUG_ON_PAGE() to page_mapcount()")
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/resctrl/pseudo_lock.c |    6 +++---
- drivers/misc/cxl/cxllib.c                 |    5 ++---
- drivers/vfio/pci/vfio_pci.c               |   14 +++++++-------
- 3 files changed, 12 insertions(+), 13 deletions(-)
+ include/linux/mm.h |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/arch/x86/kernel/cpu/resctrl/pseudo_lock.c~mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix
-+++ a/arch/x86/kernel/cpu/resctrl/pseudo_lock.c
-@@ -1326,9 +1326,9 @@ int rdtgroup_pseudo_lock_create(struct r
- 	 * pseudo-locked region will still be here on return.
- 	 *
- 	 * The mutex has to be released temporarily to avoid a potential
--	 * deadlock with the mm->mmap_lock semaphore which is obtained in
--	 * the device_create() and debugfs_create_dir() callpath below
--	 * as well as before the mmap() callback is called.
-+	 * deadlock with the mm->mmap_lock which is obtained in the
-+	 * device_create() and debugfs_create_dir() callpath below as well as
-+	 * before the mmap() callback is called.
- 	 */
- 	mutex_unlock(&rdtgroup_mutex);
+--- a/include/linux/mm.h~mm-remove-vm_bug_onpageslab-from-page_mapcount
++++ a/include/linux/mm.h
+@@ -782,6 +782,11 @@ static inline void *kvcalloc(size_t n, s
  
---- a/drivers/misc/cxl/cxllib.c~mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix
-+++ a/drivers/misc/cxl/cxllib.c
-@@ -245,9 +245,8 @@ int cxllib_handle_fault(struct mm_struct
- 	     dar += page_size) {
- 		if (dar < vma_start || dar >= vma_end) {
- 			/*
--			 * We don't hold the mm->mmap_lock semaphore
--			 * while iterating, since the semaphore is
--			 * required by one of the lower-level page
-+			 * We don't hold mm->mmap_lock while iterating, since
-+			 * the lock is required by one of the lower-level page
- 			 * fault processing functions and it could
- 			 * create a deadlock.
- 			 *
---- a/drivers/vfio/pci/vfio_pci.c~mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix
-+++ a/drivers/vfio/pci/vfio_pci.c
-@@ -1188,7 +1188,7 @@ reset_info_exit:
+ extern void kvfree(const void *addr);
  
- 		/*
- 		 * We need to get memory_lock for each device, but devices
--		 * can share mmap_sem, therefore we need to zap and hold
-+		 * can share mmap_lock, therefore we need to zap and hold
- 		 * the vma_lock for each device, and only then get each
- 		 * memory_lock.
- 		 */
-@@ -1378,26 +1378,26 @@ static int vfio_pci_zap_and_vma_lock(str
++/*
++ * Mapcount of compound page as a whole, not includes mapped sub-pages.
++ *
++ * Must be called only for compound pages or any their tail sub-pages.
++ */
+ static inline int compound_mapcount(struct page *page)
+ {
+ 	VM_BUG_ON_PAGE(!PageCompound(page), page);
+@@ -801,10 +806,15 @@ static inline void page_mapcount_reset(s
  
- 	/*
- 	 * Lock ordering:
--	 * vma_lock is nested under mmap_sem for vm_ops callback paths.
-+	 * vma_lock is nested under mmap_lock for vm_ops callback paths.
- 	 * The memory_lock semaphore is used by both code paths calling
- 	 * into this function to zap vmas and the vm_ops.fault callback
- 	 * to protect the memory enable state of the device.
- 	 *
--	 * When zapping vmas we need to maintain the mmap_sem => vma_lock
-+	 * When zapping vmas we need to maintain the mmap_lock => vma_lock
- 	 * ordering, which requires using vma_lock to walk vma_list to
--	 * acquire an mm, then dropping vma_lock to get the mmap_sem and
-+	 * acquire an mm, then dropping vma_lock to get the mmap_lock and
- 	 * reacquiring vma_lock.  This logic is derived from similar
- 	 * requirements in uverbs_user_mmap_disassociate().
- 	 *
--	 * mmap_sem must always be the top-level lock when it is taken.
-+	 * mmap_lock must always be the top-level lock when it is taken.
- 	 * Therefore we can only hold the memory_lock write lock when
--	 * vma_list is empty, as we'd need to take mmap_sem to clear
-+	 * vma_list is empty, as we'd need to take mmap_lock to clear
- 	 * entries.  vma_list can only be guaranteed empty when holding
- 	 * vma_lock, thus memory_lock is nested under vma_lock.
- 	 *
- 	 * This enables the vm_ops.fault callback to acquire vma_lock,
- 	 * followed by memory_lock read lock, while already holding
--	 * mmap_sem without risk of deadlock.
-+	 * mmap_lock without risk of deadlock.
- 	 */
- 	while (1) {
- 		struct mm_struct *mm = NULL;
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-padata-initialize-earlier-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+ int __page_mapcount(struct page *page);
+ 
++/*
++ * Mapcount of 0-order page, for sub-page includes compound_mapcount().
++ *
++ * Result is undefined for pages which cannot be mapped into userspace.
++ * For example SLAB or special types of pages. See function page_has_type().
++ * They use this place in struct page differently.
++ */
+ static inline int page_mapcount(struct page *page)
+ {
+-	VM_BUG_ON_PAGE(PageSlab(page), page);
