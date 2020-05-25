@@ -1,27 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fix-syscall-numbers.patch added to -mm tree
-Date: Mon, 25 May 2020 11:01:39 -0700
-Message-ID: <20200525180139.hvt7kHJOt%akpm@linux-foundation.org>
+Subject: + linux-next-fix-syscall-numbers-fix.patch added to -mm
+ tree
+Date: Mon, 25 May 2020 11:04:12 -0700
+Message-ID: <20200525180412.B9_NrOXKx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54758 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388621AbgEYSBl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 25 May 2020 14:01:41 -0400
+        id S2388621AbgEYSEN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 25 May 2020 14:04:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: linux-next-fix-syscall-numbers
+     Subject: linux-next-fix-syscall-numbers-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-fix-syscall-numbers.patch
+     linux-next-fix-syscall-numbers-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-fix-syscall-numbers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-fix-syscall-numbers-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-fix-syscall-numbers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-fix-syscall-numbers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,20 +37,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-fix-syscall-numbers
-
-sfr's head is spinning too.
+Subject: linux-next-fix-syscall-numbers-fix
 
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/asm-generic/unistd.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/include/asm/unistd32.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/uapi/asm-generic/unistd.h~linux-next-fix-syscall-numbers
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -861,11 +861,11 @@ __SYSCALL(__NR_faccessat2, sys_faccessat
+--- a/arch/arm64/include/asm/unistd32.h~linux-next-fix-syscall-numbers-fix
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -889,7 +889,7 @@ __SYSCALL(__NR_faccessat2, sys_faccessat
  __SYSCALL(__NR_watch_mount, sys_watch_mount)
  #define __NR_watch_sb 441
  __SYSCALL(__NR_watch_sb, sys_watch_sb)
@@ -57,12 +56,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +#define __NR_fsinfo 442
  __SYSCALL(__NR_fsinfo, sys_fsinfo)
  
- #undef __NR_syscalls
--#define __NR_syscalls 442
-+#define __NR_syscalls 443
- 
  /*
-  * 32 bit systems traditionally used different
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +92,7 @@ ipc-convert-ipcs_idr-to-xarray-update-fix.patch
 linux-next-pre.patch
 linux-next-rejects.patch
 linux-next-fix-syscall-numbers.patch
+linux-next-fix-syscall-numbers-fix.patch
 linux-next-post.patch
 kernel-add-panic_on_taint-fix.patch
 mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
