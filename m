@@ -1,110 +1,91 @@
-From: akpm@linux-foundation.org
-Subject: [merged]
- z3fold-fix-use-after-free-when-freeing-handles.patch removed from -mm tree
-Date: Sun, 24 May 2020 16:18:42 -0700
-Message-ID: <20200524231842.2Tnk-ylQq%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + bitops-simplify-get_count_order_long.patch added to -mm
+ tree
+Date: Sun, 24 May 2020 17:06:17 -0700
+Message-ID: <20200525000617.ss2ZfMBYF%akpm@linux-foundation.org>
+References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54982 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388556AbgEXXSn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 May 2020 19:18:43 -0400
+        id S2388149AbgEYAGS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 May 2020 20:06:18 -0400
+In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, mm-commits@vger.kernel.org, shentino@gmail.com, stable@vger.kernel.org, uladzislau.rezki@sony.com, vitaly.wool@konsulko.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
 
 
 The patch titled
-     Subject: z3fold: fix use-after-free when freeing handles
-has been removed from the -mm tree.  Its filename was
-     z3fold-fix-use-after-free-when-freeing-handles.patch
+     Subject: include/linux/bitops.h: simplify get_count_order_long()
+has been added to the -mm tree.  Its filename is
+     bitops-simplify-get_count_order_long.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/bitops-simplify-get_count_order_long.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitops-simplify-get_count_order_long.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Uladzislau Rezki <uladzislau.rezki@sony.com>
-Subject: z3fold: fix use-after-free when freeing handles
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: include/linux/bitops.h: simplify get_count_order_long()
 
-free_handle() for a foreign handle may race with inter-page compaction,
-what can lead to memory corruption.  To avoid that, take write lock not
-read lock in free_handle to be synchronized with __release_z3fold_page().
+These two cases could be unified into one.
 
-For example KASAN can detect it:
-
-[   33.723357] ==================================================================
-[   33.723401] BUG: KASAN: use-after-free in LZ4_decompress_safe+0x2c4/0x3b8
-[   33.723418] Read of size 1 at addr ffffffc976695ca3 by task GoogleApiHandle/4121
-[   33.723428]
-[   33.723449] CPU: 0 PID: 4121 Comm: GoogleApiHandle Tainted: P S         OE     4.19.81-perf+ #162
-[   33.723461] Hardware name: Sony Mobile Communications. PDX-203(KONA) (DT)
-[   33.723473] Call trace:
-[   33.723495] dump_backtrace+0x0/0x288
-[   33.723512] show_stack+0x14/0x20
-[   33.723533] dump_stack+0xe4/0x124
-[   33.723551] print_address_description+0x80/0x2e0
-[   33.723566] kasan_report+0x268/0x2d0
-[   33.723584] __asan_load1+0x4c/0x58
-[   33.723601] LZ4_decompress_safe+0x2c4/0x3b8
-[   33.723619] lz4_decompress_crypto+0x3c/0x70
-[   33.723636] crypto_decompress+0x58/0x70
-[   33.723656] zcomp_decompress+0xd4/0x120
-...
-
-Apart from that, initialize zhdr->mapped_count in init_z3fold_page() and
-remove "newpage" variable because it is not used anywhere.
-
-Link: http://lkml.kernel.org/r/20200520082100.28876-1-vitaly.wool@konsulko.com
-Signed-off-by: Uladzislau Rezki <uladzislau.rezki@sony.com>
-Signed-off-by: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Raymond Jennings <shentino@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200524123551.9469-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/linux/bitops.h |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/z3fold.c~z3fold-fix-use-after-free-when-freeing-handles
-+++ a/mm/z3fold.c
-@@ -318,16 +318,16 @@ static inline void free_handle(unsigned
- 	slots = handle_to_slots(handle);
- 	write_lock(&slots->lock);
- 	*(unsigned long *)handle = 0;
--	write_unlock(&slots->lock);
--	if (zhdr->slots == slots)
-+	if (zhdr->slots == slots) {
-+		write_unlock(&slots->lock);
- 		return; /* simple case, nothing else to do */
-+	}
+--- a/include/linux/bitops.h~bitops-simplify-get_count_order_long
++++ a/include/linux/bitops.h
+@@ -206,10 +206,7 @@ static inline int get_count_order_long(u
+ {
+ 	if (l == 0UL)
+ 		return -1;
+-	else if (l & (l - 1UL))
+-		return (int)fls_long(l);
+-	else
+-		return (int)fls_long(l) - 1;
++	return (int)fls_long(--l);
+ }
  
- 	/* we are freeing a foreign handle if we are here */
- 	zhdr->foreign_handles--;
- 	is_free = true;
--	read_lock(&slots->lock);
- 	if (!test_bit(HANDLES_ORPHANED, &slots->pool)) {
--		read_unlock(&slots->lock);
-+		write_unlock(&slots->lock);
- 		return;
- 	}
- 	for (i = 0; i <= BUDDY_MASK; i++) {
-@@ -336,7 +336,7 @@ static inline void free_handle(unsigned
- 			break;
- 		}
- 	}
--	read_unlock(&slots->lock);
-+	write_unlock(&slots->lock);
- 
- 	if (is_free) {
- 		struct z3fold_pool *pool = slots_to_pool(slots);
-@@ -422,6 +422,7 @@ static struct z3fold_header *init_z3fold
- 	zhdr->start_middle = 0;
- 	zhdr->cpu = -1;
- 	zhdr->foreign_handles = 0;
-+	zhdr->mapped_count = 0;
- 	zhdr->slots = slots;
- 	zhdr->pool = pool;
- 	INIT_LIST_HEAD(&zhdr->buddy);
+ /**
 _
 
-Patches currently in -mm which might be from uladzislau.rezki@sony.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
+
+mm-swapfilec-offset-is-only-used-when-there-is-more-slots.patch
+mm-swapfilec-explicitly-show-ssd-non-ssd-is-handled-mutually-exclusive.patch
+mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case.patch
+mm-swapfilec-simplify-the-calculation-of-n_goal.patch
+mm-swapfilec-remove-the-extra-check-in-scan_swap_map_slots.patch
+mm-swapfilec-found_free-could-be-represented-by-tmp-max.patch
+mm-swapfilec-tmp-is-always-smaller-than-max.patch
+mm-swapfilec-omit-a-duplicate-code-by-compare-tmp-and-max-first.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable.patch
+mm-swapfilec-__swap_entry_free-always-free-1-entry.patch
+mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
+mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
+mm-page_allocc-rename-free_pages_check_bad-to-check_free_page_bad.patch
+mm-page_allocc-rename-free_pages_check-to-check_free_page.patch
+mm-page_allocc-extract-check__page_bad-common-part-to-page_bad_reason.patch
+mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
+mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
+mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch
+bitops-simplify-get_count_order_long.patch
