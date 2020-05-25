@@ -1,30 +1,33 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-vm_bug_onpageslab-from-page_mapcount.patch
- added to -mm tree
-Date: Sun, 24 May 2020 17:49:08 -0700
-Message-ID: <20200525004908.ptY_Df6aP%akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?swap-reduce-lock-contention-on-swap-cache-from-swap-slots?=
+ =?US-ASCII?Q?-allocation-v3.patch?= added to -mm tree
+Date: Sun, 24 May 2020 17:57:17 -0700
+Message-ID: <20200525005717.WBPtMX7St%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46612 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50304 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388014AbgEYAtK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 May 2020 20:49:10 -0400
+        id S2388294AbgEYA5T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 May 2020 20:57:19 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz
+To: daniel.m.jordan@oracle.com, hughd@google.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm: remove VM_BUG_ON(PageSlab()) from page_mapcount()
+     Subject: swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v3
 has been added to the -mm tree.  Its filename is
-     mm-remove-vm_bug_onpageslab-from-page_mapcount.patch
+     swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-vm_bug_onpageslab-from-page_mapcount.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-vm_bug_onpageslab-from-page_mapcount.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,81 +41,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm: remove VM_BUG_ON(PageSlab()) from page_mapcount()
+From: Huang Ying <ying.huang@intel.com>
+Subject: swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v3
 
-Replace superfluous VM_BUG_ON() with comment about correct usage.
+fix cluster_next_cpu allocation and freeing, per Daniel
 
-Technically reverts commit 1d148e218a0d0566b1c06f2f45f1436d53b049b2
-("mm: add VM_BUG_ON_PAGE() to page_mapcount()"), but context have changed.
-
-Function isolate_migratepages_block() runs some checks out of lru_lock
-when choose pages for migration.  After checking PageLRU() it checks extra
-page references by comparing page_count() and page_mapcount().  Between
-these two checks page could be removed from lru, freed and taken by slab.
-
-As a result this race triggers VM_BUG_ON(PageSlab()) in page_mapcount().
-Race window is tiny. For certain workload this happens around once a year.
-
- page:ffffea0105ca9380 count:1 mapcount:0 mapping:ffff88ff7712c180 index:0x0 compound_mapcount: 0
- flags: 0x500000000008100(slab|head)
- raw: 0500000000008100 dead000000000100 dead000000000200 ffff88ff7712c180
- raw: 0000000000000000 0000000080200020 00000001ffffffff 0000000000000000
- page dumped because: VM_BUG_ON_PAGE(PageSlab(page))
- ------------[ cut here ]------------
- kernel BUG at ./include/linux/mm.h:628!
- invalid opcode: 0000 [#1] SMP NOPTI
- CPU: 77 PID: 504 Comm: kcompactd1 Tainted: G        W         4.19.109-27 #1
- Hardware name: Yandex T175-N41-Y3N/MY81-EX0-Y3N, BIOS R05 06/20/2019
- RIP: 0010:isolate_migratepages_block+0x986/0x9b0
-
-Code in isolate_migratepages_block() was added in commit 119d6d59dcc0
-("mm, compaction: avoid isolating pinned pages") before adding VM_BUG_ON
-into page_mapcount().
-
-This race has been predicted in 2015 by Vlastimil Babka (see link below).
-
-Link: http://lkml.kernel.org/r/159032779896.957378.7852761411265662220.stgit@buzz
-Link: https://lore.kernel.org/lkml/557710E1.6060103@suse.cz/
-Link: https://lore.kernel.org/linux-mm/158937872515.474360.5066096871639561424.stgit@buzz/T/ (v1)
-Fixes: 1d148e218a0d ("mm: add VM_BUG_ON_PAGE() to page_mapcount()")
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200525002648.336325-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/swapfile.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-vm_bug_onpageslab-from-page_mapcount
-+++ a/include/linux/mm.h
-@@ -782,6 +782,11 @@ static inline void *kvcalloc(size_t n, s
+--- a/mm/swapfile.c~swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v3
++++ a/mm/swapfile.c
+@@ -2691,6 +2691,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	mutex_unlock(&swapon_mutex);
+ 	free_percpu(p->percpu_cluster);
+ 	p->percpu_cluster = NULL;
++	free_percpu(p->cluster_next_cpu);
++	p->cluster_next_cpu = NULL;
+ 	vfree(swap_map);
+ 	kvfree(cluster_info);
+ 	kvfree(frontswap_map);
+@@ -2872,11 +2874,6 @@ static struct swap_info_struct *alloc_sw
+ 	p = kvzalloc(struct_size(p, avail_lists, nr_node_ids), GFP_KERNEL);
+ 	if (!p)
+ 		return ERR_PTR(-ENOMEM);
+-	p->cluster_next_cpu = alloc_percpu(unsigned int);
+-	if (!p->cluster_next_cpu) {
+-		kvfree(p);
+-		return ERR_PTR(-ENOMEM);
+-	}
  
- extern void kvfree(const void *addr);
+ 	spin_lock(&swap_lock);
+ 	for (type = 0; type < nr_swapfiles; type++) {
+@@ -3248,6 +3245,11 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		unsigned long ci, nr_cluster;
  
-+/*
-+ * Mapcount of compound page as a whole, not includes mapped sub-pages.
-+ *
-+ * Must be called only for compound pages or any their tail sub-pages.
-+ */
- static inline int compound_mapcount(struct page *page)
- {
- 	VM_BUG_ON_PAGE(!PageCompound(page), page);
-@@ -801,10 +806,15 @@ static inline void page_mapcount_reset(s
- 
- int __page_mapcount(struct page *page);
- 
-+/*
-+ * Mapcount of 0-order page, for sub-page includes compound_mapcount().
-+ *
-+ * Result is undefined for pages which cannot be mapped into userspace.
-+ * For example SLAB or special types of pages. See function page_has_type().
-+ * They use this place in struct page differently.
-+ */
- static inline int page_mapcount(struct page *page)
- {
--	VM_BUG_ON_PAGE(PageSlab(page), page);
+ 		p->flags |= SWP_SOLIDSTATE;
++		p->cluster_next_cpu = alloc_percpu(unsigned int);
++		if (!p->cluster_next_cpu) {
++			error = -ENOMEM;
++			goto bad_swap_unlock_inode;
++		}
+ 		/*
+ 		 * select a random position to start with to help wear leveling
+ 		 * SSD
+@@ -3371,6 +3373,8 @@ bad_swap_unlock_inode:
+ bad_swap:
+ 	free_percpu(p->percpu_cluster);
+ 	p->percpu_cluster = NULL;
++	free_percpu(p->cluster_next_cpu);
++	p->cluster_next_cpu = NULL;
+ 	if (inode && S_ISBLK(inode->i_mode) && p->bdev) {
+ 		set_blocksize(p->bdev, p->old_block_size);
+ 		blkdev_put(p->bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
+_
+
+Patches currently in -mm which might be from ying.huang@intel.com are
+
+swap-try-to-scan-more-free-slots-even-when-fragmented.patch
+mm-swap-use-prandom_u32_max.patch
+swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation.patch
+swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v3.patch
+proc-pid-smaps-add-pmd-migration-entry-parsing.patch
