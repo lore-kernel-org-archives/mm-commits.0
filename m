@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- x86-mm-simplify-init_trampoline-and-surrounding-logic-fix.patch added to
- -mm tree
-Date: Mon, 25 May 2020 13:19:41 -0700
-Message-ID: <20200525201941.kkbLSuHe_%akpm@linux-foundation.org>
+Subject: + lib-make-a-test-module-with-set-clear-bit.patch added
+ to -mm tree
+Date: Mon, 25 May 2020 13:41:19 -0700
+Message-ID: <20200525204119.A3KVxDxU7%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58318 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38004 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388994AbgEYUTm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 25 May 2020 16:19:42 -0400
+        id S2390437AbgEYUlU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 25 May 2020 16:41:20 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+To: andriy.shevchenko@intel.com, bp@alien8.de, christian.brauner@ubuntu.com, dan.j.williams@intel.com, jesse.brandeburg@intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, peterz@infradead.org, richard.weiyang@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: x86/kaslr: take CONFIG_RANDOMIZE_MEMORY into account in kaslr_enabled()
+     Subject: lib: make a test module with set/clear bit
 has been added to the -mm tree.  Its filename is
-     x86-mm-simplify-init_trampoline-and-surrounding-logic-fix.patch
+     lib-make-a-test-module-with-set-clear-bit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-simplify-init_trampoline-and-surrounding-logic-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-make-a-test-module-with-set-clear-bit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-simplify-init_trampoline-and-surrounding-logic-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-make-a-test-module-with-set-clear-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,107 +38,157 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: x86/kaslr: take CONFIG_RANDOMIZE_MEMORY into account in kaslr_enabled()
+From: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Subject: lib: make a test module with set/clear bit
 
-Until refactoring of the init_trampoline(), kaslr_enabled() was used only
-inside '#ifdef CONFIG_RANDOMIZE_MEMORY' and reported only the state of the
-command line override.
+Test some bit clears/sets to make sure assembly doesn't change, and that
+the set_bit and clear_bit functions work and don't cause sparse warnings.
 
-The simplification of init_trampoline() made kaslr_enabled() visible for
-builds with CONFIG_RANDOMIZE_MEMORY=n and in this case it will return true
-if the randomization was not disabled on the command line.
+Instruct Kbuild to build this file with extra warning level -Wextra, to
+catch new issues, and also doesn't hurt to build with C=1.
 
-This in turn will call a dummy init_trampoline_kaslr() instead of setting
-trampline_pgd_entry directly.
+This was used to test changes to arch/x86/include/asm/bitops.h.
 
-As the result, the kernel reboots while starting the secondary CPUs, e.g.
-kernel test bot reported:
+In particular, sparse (C=1) was very concerned when the last bit before a
+natural boundary, like 7, or 31, was being tested, as this causes sign
+extension (0xffffff7f) for instance when clearing bit 7.
 
-...
-[    0.244628] Performance Events: unsupported p6 CPU model 60 no PMU driver, software events only.
-[    0.244993] rcu: Hierarchical SRCU implementation.
-[    0.245617] smp: Bringing up secondary CPUs ...
-[    0.247388] x86: Booting SMP configuration:
-BUG: kernel reboot-without-warning in boot stage
+Recommended usage:
+make defconfig
+scripts/config -m CONFIG_TEST_BITOPS
+make modules_prepare
+make C=1 W=1 lib/test_bitops.ko
+objdump -S -d lib/test_bitops.ko
+insmod lib/test_bitops.ko
+rmmod lib/test_bitops.ko
+<check dmesg>, there should be no compiler/sparse warnings and no
+error messages in log.
 
-Adding a check for IS_ENABLED(CONFIG_RANDOMIZE_MEMORY) to kaslr_enabled()
-resolves the issue.
-
-Link: http://lkml.kernel.org/r/20200525104045.GB13212@linux.ibm.com
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reported-by: kbuild test robot <lkp@intel.com>
+Link: http://lkml.kernel.org/r/20200310221747.2848474-2-jesse.brandeburg@intel.com
+Signed-off-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+CcL Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/setup.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug                  |   13 +++++
+ lib/Makefile                       |    2 
+ lib/test_bitops.c                  |   60 +++++++++++++++++++++++++++
+ tools/testing/selftests/lib/config |    1 
+ 4 files changed, 76 insertions(+)
 
---- a/arch/x86/include/asm/setup.h~x86-mm-simplify-init_trampoline-and-surrounding-logic-fix
-+++ a/arch/x86/include/asm/setup.h
-@@ -75,7 +75,8 @@ extern char _text[];
+--- a/lib/Kconfig.debug~lib-make-a-test-module-with-set-clear-bit
++++ a/lib/Kconfig.debug
+@@ -2035,6 +2035,19 @@ config TEST_LKM
  
- static inline bool kaslr_enabled(void)
- {
--	return !!(boot_params.hdr.loadflags & KASLR_FLAG);
-+	return IS_ENABLED(CONFIG_RANDOMIZE_MEMORY) &&
-+		!!(boot_params.hdr.loadflags & KASLR_FLAG);
- }
+ 	  If unsure, say N.
  
- /*
++config TEST_BITOPS
++	tristate "Test module for compilation of clear_bit/set_bit operations"
++	depends on m
++	help
++	  This builds the "test_bitops" module that is much like the
++	  TEST_LKM module except that it does a basic exercise of the
++	  clear_bit and set_bit macros to make sure there are no compiler
++	  warnings from C=1 sparse checker or -Wextra compilations. It has
++	  no dependencies and doesn't run or load unless explicitly requested
++	  by name.  for example: modprobe test_bitops.
++
++	  If unsure, say N.
++
+ config TEST_VMALLOC
+ 	tristate "Test module for stress/performance analysis of vmalloc allocator"
+ 	default n
+--- a/lib/Makefile~lib-make-a-test-module-with-set-clear-bit
++++ a/lib/Makefile
+@@ -76,6 +76,8 @@ obj-$(CONFIG_TEST_SORT) += test_sort.o
+ obj-$(CONFIG_TEST_USER_COPY) += test_user_copy.o
+ obj-$(CONFIG_TEST_STATIC_KEYS) += test_static_keys.o
+ obj-$(CONFIG_TEST_STATIC_KEYS) += test_static_key_base.o
++obj-$(CONFIG_TEST_BITOPS) += test_bitops.o
++CFLAGS_test_bitops.o += -Werror
+ obj-$(CONFIG_TEST_PRINTF) += test_printf.o
+ obj-$(CONFIG_TEST_BITMAP) += test_bitmap.o
+ obj-$(CONFIG_TEST_STRSCPY) += test_strscpy.o
+--- /dev/null
++++ a/lib/test_bitops.c
+@@ -0,0 +1,60 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Copyright (C) 2020 Intel Corporation
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/printk.h>
++
++/* a tiny module only meant to test set/clear_bit */
++
++/* use an enum because thats the most common BITMAP usage */
++enum bitops_fun {
++	BITOPS_4 = 4,
++	BITOPS_7 = 7,
++	BITOPS_11 = 11,
++	BITOPS_31 = 31,
++	BITOPS_88 = 88,
++	BITOPS_LAST = 255,
++	BITOPS_LENGTH = 256
++};
++
++static DECLARE_BITMAP(g_bitmap, BITOPS_LENGTH);
++
++static int __init test_bitops_startup(void)
++{
++	pr_warn("Loaded test module\n");
++	set_bit(BITOPS_4, g_bitmap);
++	set_bit(BITOPS_7, g_bitmap);
++	set_bit(BITOPS_11, g_bitmap);
++	set_bit(BITOPS_31, g_bitmap);
++	set_bit(BITOPS_88, g_bitmap);
++	return 0;
++}
++
++static void __exit test_bitops_unstartup(void)
++{
++	int bit_set;
++
++	clear_bit(BITOPS_4, g_bitmap);
++	clear_bit(BITOPS_7, g_bitmap);
++	clear_bit(BITOPS_11, g_bitmap);
++	clear_bit(BITOPS_31, g_bitmap);
++	clear_bit(BITOPS_88, g_bitmap);
++
++	bit_set = find_first_bit(g_bitmap, BITOPS_LAST);
++	if (bit_set != BITOPS_LAST)
++		pr_err("ERROR: FOUND SET BIT %d\n", bit_set);
++
++	pr_warn("Unloaded test module\n");
++}
++
++module_init(test_bitops_startup);
++module_exit(test_bitops_unstartup);
++
++MODULE_AUTHOR("Jesse Brandeburg <jesse.brandeburg@intel.com>");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Bit testing module");
+--- a/tools/testing/selftests/lib/config~lib-make-a-test-module-with-set-clear-bit
++++ a/tools/testing/selftests/lib/config
+@@ -2,3 +2,4 @@ CONFIG_TEST_PRINTF=m
+ CONFIG_TEST_BITMAP=m
+ CONFIG_PRIME_NUMBERS=m
+ CONFIG_TEST_STRSCPY=m
++CONFIG_TEST_BITOPS=m
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from jesse.brandeburg@intel.com are
 
-mm-memblock-replace-dereferences-of-memblock_regionnid-with-api-calls.patch
-mm-make-early_pfn_to_nid-and-related-defintions-close-to-each-other.patch
-mm-remove-config_have_memblock_node_map-option.patch
-mm-free_area_init-use-maximal-zone-pfns-rather-than-zone-sizes.patch
-mm-use-free_area_init-instead-of-free_area_init_nodes.patch
-alpha-simplify-detection-of-memory-zone-boundaries.patch
-arm-simplify-detection-of-memory-zone-boundaries.patch
-arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
-csky-simplify-detection-of-memory-zone-boundaries.patch
-m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
-parisc-simplify-detection-of-memory-zone-boundaries.patch
-sparc32-simplify-detection-of-memory-zone-boundaries.patch
-unicore32-simplify-detection-of-memory-zone-boundaries.patch
-xtensa-simplify-detection-of-memory-zone-boundaries.patch
-mm-remove-early_pfn_in_nid-and-config_nodes_span_other_nodes.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2.patch
-mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
-mm-clean-up-free_area_init_node-and-its-helpers.patch
-mm-simplify-find_min_pfn_with_active_regions.patch
-docs-vm-update-memory-models-documentation.patch
-h8300-remove-usage-of-__arch_use_5level_hack.patch
-arm-add-support-for-folded-p4d-page-tables.patch
-arm-add-support-for-folded-p4d-page-tables-fix.patch
-arm64-add-support-for-folded-p4d-page-tables.patch
-hexagon-remove-__arch_use_5level_hack.patch
-ia64-add-support-for-folded-p4d-page-tables.patch
-nios2-add-support-for-folded-p4d-page-tables.patch
-openrisc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables-fix.patch
-powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch
-sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
-sh-add-support-for-folded-p4d-page-tables.patch
-unicore32-remove-__arch_use_5level_hack.patch
-asm-generic-remove-pgtable-nop4d-hackh.patch
-mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
-mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
-mm-introduce-include-linux-pgtableh.patch
-mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
-csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
-m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
-m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic-fix.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-2.patch
-mm-consolidate-pte_index-and-pte_offset_-definitions.patch
-mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
-mm-consolidate-pud_index-and-pud_offset-definitions.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions.patch
+lib-make-a-test-module-with-set-clear-bit.patch
