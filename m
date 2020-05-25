@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmthp-stop-leaking-unreleased-file-pages.patch added to
- -mm tree
-Date: Sun, 24 May 2020 17:08:09 -0700
-Message-ID: <20200525000809.7Ttcv_7tp%akpm@linux-foundation.org>
+Subject: +
+ mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch added to -mm
+ tree
+Date: Sun, 24 May 2020 17:45:21 -0700
+Message-ID: <20200525004521.vUpgdw_hk%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36788 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388149AbgEYAIK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 24 May 2020 20:08:10 -0400
+        id S2388014AbgEYApX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 24 May 2020 20:45:23 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, riel@surriel.com, songliubraving@fb.com, stable@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, walken@google.com
 
 
 The patch titled
-     Subject: mm,thp: stop leaking unreleased file pages
+     Subject: mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     mmthp-stop-leaking-unreleased-file-pages.patch
+     mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmthp-stop-leaking-unreleased-file-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmthp-stop-leaking-unreleased-file-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,42 +39,140 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm,thp: stop leaking unreleased file pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix
 
-When collapse_file() calls try_to_release_page(), it has already isolated
-the page: so if releasing buffers happens to fail (as it sometimes does),
-remember to putback_lru_page(): otherwise that page is left unreclaimable
-and unfreeable, and the file extent uncollapsible.
+more linux-next fixups, per Michel
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2005231837500.1766@eggly.anvils
-Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[5.4+]
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/cpu/resctrl/pseudo_lock.c |    6 +++---
+ drivers/misc/cxl/cxllib.c                 |    5 ++---
+ drivers/vfio/pci/vfio_pci.c               |   14 +++++++-------
+ 3 files changed, 12 insertions(+), 13 deletions(-)
 
---- a/mm/khugepaged.c~mmthp-stop-leaking-unreleased-file-pages
-+++ a/mm/khugepaged.c
-@@ -1692,6 +1692,7 @@ static void collapse_file(struct mm_stru
- 		if (page_has_private(page) &&
- 		    !try_to_release_page(page, GFP_KERNEL)) {
- 			result = SCAN_PAGE_HAS_PRIVATE;
-+			putback_lru_page(page);
- 			goto out_unlock;
- 		}
+--- a/arch/x86/kernel/cpu/resctrl/pseudo_lock.c~mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix
++++ a/arch/x86/kernel/cpu/resctrl/pseudo_lock.c
+@@ -1326,9 +1326,9 @@ int rdtgroup_pseudo_lock_create(struct r
+ 	 * pseudo-locked region will still be here on return.
+ 	 *
+ 	 * The mutex has to be released temporarily to avoid a potential
+-	 * deadlock with the mm->mmap_lock semaphore which is obtained in
+-	 * the device_create() and debugfs_create_dir() callpath below
+-	 * as well as before the mmap() callback is called.
++	 * deadlock with the mm->mmap_lock which is obtained in the
++	 * device_create() and debugfs_create_dir() callpath below as well as
++	 * before the mmap() callback is called.
+ 	 */
+ 	mutex_unlock(&rdtgroup_mutex);
  
+--- a/drivers/misc/cxl/cxllib.c~mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix
++++ a/drivers/misc/cxl/cxllib.c
+@@ -245,9 +245,8 @@ int cxllib_handle_fault(struct mm_struct
+ 	     dar += page_size) {
+ 		if (dar < vma_start || dar >= vma_end) {
+ 			/*
+-			 * We don't hold the mm->mmap_lock semaphore
+-			 * while iterating, since the semaphore is
+-			 * required by one of the lower-level page
++			 * We don't hold mm->mmap_lock while iterating, since
++			 * the lock is required by one of the lower-level page
+ 			 * fault processing functions and it could
+ 			 * create a deadlock.
+ 			 *
+--- a/drivers/vfio/pci/vfio_pci.c~mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix
++++ a/drivers/vfio/pci/vfio_pci.c
+@@ -1188,7 +1188,7 @@ reset_info_exit:
+ 
+ 		/*
+ 		 * We need to get memory_lock for each device, but devices
+-		 * can share mmap_sem, therefore we need to zap and hold
++		 * can share mmap_lock, therefore we need to zap and hold
+ 		 * the vma_lock for each device, and only then get each
+ 		 * memory_lock.
+ 		 */
+@@ -1378,26 +1378,26 @@ static int vfio_pci_zap_and_vma_lock(str
+ 
+ 	/*
+ 	 * Lock ordering:
+-	 * vma_lock is nested under mmap_sem for vm_ops callback paths.
++	 * vma_lock is nested under mmap_lock for vm_ops callback paths.
+ 	 * The memory_lock semaphore is used by both code paths calling
+ 	 * into this function to zap vmas and the vm_ops.fault callback
+ 	 * to protect the memory enable state of the device.
+ 	 *
+-	 * When zapping vmas we need to maintain the mmap_sem => vma_lock
++	 * When zapping vmas we need to maintain the mmap_lock => vma_lock
+ 	 * ordering, which requires using vma_lock to walk vma_list to
+-	 * acquire an mm, then dropping vma_lock to get the mmap_sem and
++	 * acquire an mm, then dropping vma_lock to get the mmap_lock and
+ 	 * reacquiring vma_lock.  This logic is derived from similar
+ 	 * requirements in uverbs_user_mmap_disassociate().
+ 	 *
+-	 * mmap_sem must always be the top-level lock when it is taken.
++	 * mmap_lock must always be the top-level lock when it is taken.
+ 	 * Therefore we can only hold the memory_lock write lock when
+-	 * vma_list is empty, as we'd need to take mmap_sem to clear
++	 * vma_list is empty, as we'd need to take mmap_lock to clear
+ 	 * entries.  vma_list can only be guaranteed empty when holding
+ 	 * vma_lock, thus memory_lock is nested under vma_lock.
+ 	 *
+ 	 * This enables the vm_ops.fault callback to acquire vma_lock,
+ 	 * followed by memory_lock read lock, while already holding
+-	 * mmap_sem without risk of deadlock.
++	 * mmap_lock without risk of deadlock.
+ 	 */
+ 	while (1) {
+ 		struct mm_struct *mm = NULL;
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mmthp-stop-leaking-unreleased-file-pages.patch
-mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
-mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-fix.patch
+squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
+mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
+mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
+mm-gupc-updating-the-documentation-fix.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+mm-remove-vmalloc_user_node_flags-fix.patch
+mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
+mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+padata-initialize-earlier-fix.patch
+arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-add-debug_wx-support-fix.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-pre.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+linux-next-post.patch
+kernel-add-panic_on_taint-fix.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
