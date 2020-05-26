@@ -1,95 +1,182 @@
-From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-fix-syscall-numbers-fix.patch
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [failures]
+ mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
  removed from -mm tree
-Date: Tue, 26 May 2020 13:56:29 -0700
-Message-ID: <20200526205629.9w76D37um%akpm@linux-foundation.org>
+Date: Tue, 26 May 2020 14:18:34 -0700
+Message-ID: <20200526211834.xBy1bn0-b%akpm@linux-foundation.org>
+References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33268 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38036 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390353AbgEZU4a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 26 May 2020 16:56:30 -0400
+        id S2390009AbgEZVSg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 26 May 2020 17:18:36 -0400
+In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: andi.kleen@intel.com, dave.hansen@intel.com, feng.tang@intel.com, hannes@cmpxchg.org, keescook@chromium.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@intel.com, willy@infradead.org, ying.huang@intel.com
 
 
 The patch titled
-     Subject: linux-next-fix-syscall-numbers-fix
+     Subject: mm: adjust vm_committed_as_batch according to vm overcommit policy
 has been removed from the -mm tree.  Its filename was
-     linux-next-fix-syscall-numbers-fix.patch
+     mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-fix-syscall-numbers-fix
+From: Feng Tang <feng.tang@intel.com>
+Subject: mm: adjust vm_committed_as_batch according to vm overcommit policy
 
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+When checking a performance change for will-it-scale scalability mmap test
+[1], we found very high lock contention for spinlock of percpu counter
+'vm_committed_as':
+
+    94.14%     0.35%  [kernel.kallsyms]         [k] _raw_spin_lock_irqsave
+    48.21% _raw_spin_lock_irqsave;percpu_counter_add_batch;__vm_enough_memory;mmap_region;do_mmap;
+    45.91% _raw_spin_lock_irqsave;percpu_counter_add_batch;__do_munmap;
+
+Actually this heavy lock contention is not always necessary.  The
+'vm_committed_as' needs to be very precise when the strict
+OVERCOMMIT_NEVER policy is set, which requires a rather small batch number
+for the percpu counter.
+
+So keep 'batch' number unchanged for strict OVERCOMMIT_NEVER policy, and
+lift it to 64X for OVERCOMMIT_ALWAYS and OVERCOMMIT_GUESS policies.  Also
+add a sysctl handler to adjust it when the policy is reconfigured.
+
+Benchmark with the same testcase in [1] shows 53% improvement on a 8C/16T
+desktop, and 2097%(20X) on a 4S/72C/144T server.  We tested with test
+platforms in 0day (server, desktop and laptop), and 80%+ platforms shows
+improvements with that test.  And whether it shows improvements depends on
+if the test mmap size is bigger than the batch number computed.
+
+And if the lift is 16X, 1/3 of the platforms will show improvements,
+though it should help the mmap/unmap usage generally, as Michal Hocko
+mentioned:
+
+: I believe that there are non-synthetic worklaods which would benefit from
+: a larger batch.  E.g.  large in memory databases which do large mmaps
+: during startups from multiple threads.
+
+[1] https://lore.kernel.org/lkml/20200305062138.GI5972@shao2-debian/
+
+Link: http://lkml.kernel.org/r/1589611660-89854-4-git-send-email-feng.tang@intel.com
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/unistd32.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h   |    2 ++
+ include/linux/mman.h |    4 ++++
+ kernel/sysctl.c      |    2 +-
+ mm/mm_init.c         |   16 +++++++++++++---
+ mm/util.c            |   12 ++++++++++++
+ 5 files changed, 32 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/unistd32.h~linux-next-fix-syscall-numbers-fix
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -889,7 +889,7 @@ __SYSCALL(__NR_faccessat2, sys_faccessat
- __SYSCALL(__NR_watch_mount, sys_watch_mount)
- #define __NR_watch_sb 441
- __SYSCALL(__NR_watch_sb, sys_watch_sb)
--#define __NR_fsinfo 441
-+#define __NR_fsinfo 442
- __SYSCALL(__NR_fsinfo, sys_fsinfo)
+--- a/include/linux/mman.h~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/include/linux/mman.h
+@@ -57,8 +57,12 @@ extern struct percpu_counter vm_committe
  
- /*
+ #ifdef CONFIG_SMP
+ extern s32 vm_committed_as_batch;
++extern void mm_compute_batch(void);
+ #else
+ #define vm_committed_as_batch 0
++static inline void mm_compute_batch(void)
++{
++}
+ #endif
+ 
+ unsigned long vm_memory_committed(void);
+--- a/include/linux/mm.h~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/include/linux/mm.h
+@@ -205,6 +205,8 @@ int overcommit_ratio_handler(struct ctl_
+ 		loff_t *);
+ int overcommit_kbytes_handler(struct ctl_table *, int, void *, size_t *,
+ 		loff_t *);
++int overcommit_policy_handler(struct ctl_table *, int, void *, size_t *,
++		loff_t *);
+ 
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
+--- a/kernel/sysctl.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/kernel/sysctl.c
+@@ -2650,7 +2650,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &sysctl_overcommit_memory,
+ 		.maxlen		= sizeof(sysctl_overcommit_memory),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
++		.proc_handler	= overcommit_policy_handler,
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= &two,
+ 	},
+--- a/mm/mm_init.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/mm/mm_init.c
+@@ -13,6 +13,7 @@
+ #include <linux/memory.h>
+ #include <linux/notifier.h>
+ #include <linux/sched.h>
++#include <linux/mman.h>
+ #include "internal.h"
+ 
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
+@@ -144,14 +145,23 @@ EXPORT_SYMBOL_GPL(mm_kobj);
+ #ifdef CONFIG_SMP
+ s32 vm_committed_as_batch = 32;
+ 
+-static void __meminit mm_compute_batch(void)
++void mm_compute_batch(void)
+ {
+ 	u64 memsized_batch;
+ 	s32 nr = num_present_cpus();
+ 	s32 batch = max_t(s32, nr*2, 32);
++	unsigned long ram_pages = totalram_pages();
+ 
+-	/* batch size set to 0.4% of (total memory/#cpus), or max int32 */
+-	memsized_batch = min_t(u64, (totalram_pages()/nr)/256, 0x7fffffff);
++	/*
++	 * For policy of OVERCOMMIT_NEVER, set batch size to 0.4%
++	 * of (total memory/#cpus), and lift it to 25% for other
++	 * policies to easy the possible lock contention for percpu_counter
++	 * vm_committed_as, while the max limit is INT_MAX
++	 */
++	if (sysctl_overcommit_memory == OVERCOMMIT_NEVER)
++		memsized_batch = min_t(u64, ram_pages/nr/256, INT_MAX);
++	else
++		memsized_batch = min_t(u64, ram_pages/nr/4, INT_MAX);
+ 
+ 	vm_committed_as_batch = max_t(s32, memsized_batch, batch);
+ }
+--- a/mm/util.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/mm/util.c
+@@ -746,6 +746,18 @@ int overcommit_ratio_handler(struct ctl_
+ 	return ret;
+ }
+ 
++int overcommit_policy_handler(struct ctl_table *table, int write, void *buffer,
++		size_t *lenp, loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++	if (ret == 0 && write)
++		mm_compute_batch();
++
++	return ret;
++}
++
+ int overcommit_kbytes_handler(struct ctl_table *table, int write, void *buffer,
+ 		size_t *lenp, loff_t *ppos)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-remove-vm_bug_onpageslab-from-page_mapcount-fix.patch
-squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
-arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-padata-initialize-earlier-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+Patches currently in -mm which might be from feng.tang@intel.com are
