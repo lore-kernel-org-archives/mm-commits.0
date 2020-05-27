@@ -1,75 +1,136 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures]
- mm-utilc-make-vm_memory_committed-more-accurate.patch removed from -mm tree
-Date: Tue, 26 May 2020 14:18:31 -0700
-Message-ID: <20200526211831.HrglLmcbI%akpm@linux-foundation.org>
+Subject: + mm-swap-fix-vmstats-for-huge-pages.patch added to -mm
+ tree
+Date: Wed, 27 May 2020 12:12:01 -0700
+Message-ID: <20200527191201.NAEmkLhxZ%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38008 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47688 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2390009AbgEZVSc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 26 May 2020 17:18:32 -0400
+        id S1725795AbgE0TMD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 15:12:03 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi.kleen@intel.com, dave.hansen@intel.com, feng.tang@intel.com, hannes@cmpxchg.org, keescook@chromium.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@intel.com, willy@infradead.org, ying.huang@intel.com
+To: guro@fb.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com
 
 
 The patch titled
-     Subject: mm/util.c: make vm_memory_committed() more accurate
-has been removed from the -mm tree.  Its filename was
-     mm-utilc-make-vm_memory_committed-more-accurate.patch
+     Subject: mm: swap: fix vmstats for huge pages
+has been added to the -mm tree.  Its filename is
+     mm-swap-fix-vmstats-for-huge-pages.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-fix-vmstats-for-huge-pages.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-fix-vmstats-for-huge-pages.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Feng Tang <feng.tang@intel.com>
-Subject: mm/util.c: make vm_memory_committed() more accurate
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: swap: fix vmstats for huge pages
 
-percpu_counter_sum_positive() will provide more accurate info.
+Many of the callbacks called by pagevec_lru_move_fn() does not correctly
+update the vmstats for huge pages.  Fix that.  Also __pagevec_lru_add_fn()
+use the irq-unsafe alternative to update the stat as the irqs are already
+disabled.
 
-As with percpu_counter_read_positive(), in worst case the deviation could
-be 'batch * nr_cpus', which is totalram_pages/256 for now, and will be
-more when the batch gets enlarged.
-
-Its time cost is about 800 nanoseconds on a 2C/4T platform and 2~3
-microseconds on a 2S/36C/72T server in normal case, and in worst case
-where vm_committed_as's spinlock is under severe contention, it costs
-30~40 microseconds for the 2S/36C/72T sever, which should be fine for its
-only two users: /proc/meminfo and HyperV balloon driver's status trace per
-second.
-
-Link: http://lkml.kernel.org/r/1589611660-89854-3-git-send-email-feng.tang@intel.com
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: http://lkml.kernel.org/r/20200527182916.249910-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/util.c~mm-utilc-make-vm_memory_committed-more-accurate
-+++ a/mm/util.c
-@@ -790,7 +790,7 @@ struct percpu_counter vm_committed_as __
-  */
- unsigned long vm_memory_committed(void)
- {
--	return percpu_counter_read_positive(&vm_committed_as);
-+	return percpu_counter_sum_positive(&vm_committed_as);
+--- a/mm/swap.c~mm-swap-fix-vmstats-for-huge-pages
++++ a/mm/swap.c
+@@ -225,7 +225,7 @@ static void pagevec_move_tail_fn(struct
+ 		del_page_from_lru_list(page, lruvec, page_lru(page));
+ 		ClearPageActive(page);
+ 		add_page_to_lru_list_tail(page, lruvec, page_lru(page));
+-		(*pgmoved)++;
++		(*pgmoved) += hpage_nr_pages(page);
+ 	}
  }
- EXPORT_SYMBOL_GPL(vm_memory_committed);
  
+@@ -285,7 +285,7 @@ static void __activate_page(struct page
+ 		add_page_to_lru_list(page, lruvec, lru);
+ 		trace_mm_lru_activate(page);
+ 
+-		__count_vm_event(PGACTIVATE);
++		__count_vm_events(PGACTIVATE, hpage_nr_pages(page));
+ 		update_page_reclaim_stat(lruvec, file, 1);
+ 	}
+ }
+@@ -503,6 +503,7 @@ static void lru_deactivate_file_fn(struc
+ {
+ 	int lru, file;
+ 	bool active;
++	int nr_pages = hpage_nr_pages(page);
+ 
+ 	if (!PageLRU(page))
+ 		return;
+@@ -536,11 +537,11 @@ static void lru_deactivate_file_fn(struc
+ 		 * We moves tha page into tail of inactive.
+ 		 */
+ 		add_page_to_lru_list_tail(page, lruvec, lru);
+-		__count_vm_event(PGROTATED);
++		__count_vm_events(PGROTATED, nr_pages);
+ 	}
+ 
+ 	if (active)
+-		__count_vm_event(PGDEACTIVATE);
++		__count_vm_events(PGDEACTIVATE, nr_pages);
+ 	update_page_reclaim_stat(lruvec, file, 0);
+ }
+ 
+@@ -928,6 +929,7 @@ static void __pagevec_lru_add_fn(struct
+ {
+ 	enum lru_list lru;
+ 	int was_unevictable = TestClearPageUnevictable(page);
++	int nr_pages = hpage_nr_pages(page);
+ 
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
+ 
+@@ -965,13 +967,13 @@ static void __pagevec_lru_add_fn(struct
+ 		update_page_reclaim_stat(lruvec, page_is_file_lru(page),
+ 					 PageActive(page));
+ 		if (was_unevictable)
+-			count_vm_event(UNEVICTABLE_PGRESCUED);
++			__count_vm_events(UNEVICTABLE_PGRESCUED, nr_pages);
+ 	} else {
+ 		lru = LRU_UNEVICTABLE;
+ 		ClearPageActive(page);
+ 		SetPageUnevictable(page);
+ 		if (!was_unevictable)
+-			count_vm_event(UNEVICTABLE_PGCULLED);
++			__count_vm_events(UNEVICTABLE_PGCULLED, nr_pages);
+ 	}
+ 
+ 	add_page_to_lru_list(page, lruvec, lru);
 _
 
-Patches currently in -mm which might be from feng.tang@intel.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
+memcg-optimize-memorynuma_stat-like-memorystat.patch
+mm-swap-fix-vmstats-for-huge-pages.patch
+mm-swap-memcg-fix-memcg-stats-for-huge-pages.patch
+memcg-expose-root-cgroups-memorystat.patch
