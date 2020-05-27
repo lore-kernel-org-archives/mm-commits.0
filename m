@@ -1,31 +1,36 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-move-penalty-delay-clamping-out-of-calculate_high_delay.patch added to
- -mm tree
-Date: Wed, 27 May 2020 14:33:04 -0700
-Message-ID: <20200527213304.upm6xgAqV%akpm@linux-foundation.org>
+ mm-gup-update-pin_user_pagesrst-for-case-3-mmu-notifiers.patch added to -mm
+ tree
+Date: Wed, 27 May 2020 14:36:23 -0700
+Message-ID: <20200527213623.V5dUxTUBY%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47744 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726129AbgE0VdG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 17:33:06 -0400
+        id S1726114AbgE0Vg0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 17:36:26 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chrisdown.name, hannes@cmpxchg.org, hughd@google.com, kuba@kernel.org, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org
+To: corbet@lwn.net, daniel@ffwll.ch, david@fromorbit.com, jack@suse.cz, jglisse@redhat.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm/memcg: move penalty delay clamping out of calculate_high_delay()
+     Subject: mm/gup: update pin_user_pages.rst for "case 3" (mmu notifiers)
 has been added to the -mm tree.  Its filename is
-     mm-move-penalty-delay-clamping-out-of-calculate_high_delay.patch
+     mm-gup-update-pin_user_pagesrst-for-case-3-mmu-notifiers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-penalty-delay-clamping-out-of-calculate_high_delay.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-update-pin_user_pagesrs=
+t-for-case-3-mmu-notifiers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-penalty-delay-clamping-out-of-calculate_high_delay.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-update-pin_user_pagesrs=
+t-for-case-3-mmu-notifiers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +38,108 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jakub Kicinski <kuba@kernel.org>
-Subject: mm/memcg: move penalty delay clamping out of calculate_high_delay()
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: update pin_user_pages.rst for "case 3" (mmu notifiers)
 
-We will want to call calculate_high_delay() twice - once for memory and
-once for swap, and we should apply the clamp value to sum of the
-penalties.  Clamping has to be applied outside of calculate_high_delay().
+Update case 3 so that it covers the use of mmu notifiers, for hardware
+that does, or does not have replayable page faults.
 
-Link: http://lkml.kernel.org/r/20200527195846.102707-3-kuba@kernel.org
-Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+Also, elaborate case 4 slightly, as it was quite cryptic.
+
+Link: http://lkml.kernel.org/r/20200527194953.11130-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ Documentation/core-api/pin_user_pages.rst |   29 +++++++++++---------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
---- a/mm/memcontrol.c~mm-move-penalty-delay-clamping-out-of-calculate_high_delay
-+++ a/mm/memcontrol.c
-@@ -2386,14 +2386,7 @@ static unsigned long calculate_high_dela
- 	 * MEMCG_CHARGE_BATCH pages is nominal, so work out how much smaller or
- 	 * larger the current charge patch is than that.
- 	 */
--	penalty_jiffies = penalty_jiffies * nr_pages / MEMCG_CHARGE_BATCH;
--
--	/*
--	 * Clamp the max delay per usermode return so as to still keep the
--	 * application moving forwards and also permit diagnostics, albeit
--	 * extremely slowly.
--	 */
--	return min(penalty_jiffies, MEMCG_MAX_HIGH_DELAY_JIFFIES);
-+	return penalty_jiffies * nr_pages / MEMCG_CHARGE_BATCH;
- }
- 
- /*
-@@ -2422,6 +2415,13 @@ void mem_cgroup_handle_over_high(void)
- 					       mem_find_max_overage(memcg));
- 
- 	/*
-+	 * Clamp the max delay per usermode return so as to still keep the
-+	 * application moving forwards and also permit diagnostics, albeit
-+	 * extremely slowly.
-+	 */
-+	penalty_jiffies = min(penalty_jiffies, MEMCG_MAX_HIGH_DELAY_JIFFIES);
-+
-+	/*
- 	 * Don't sleep if the amount of jiffies this memcg owes us is so low
- 	 * that it's not even worth doing, in an attempt to be nice to those who
- 	 * go only a small amount over their memory.high value and maybe haven't
+--- a/Documentation/core-api/pin_user_pages.rst~mm-gup-update-pin_user_page=
+srst-for-case-3-mmu-notifiers
++++ a/Documentation/core-api/pin_user_pages.rst
+@@ -148,23 +148,28 @@ NOTE: Some pages, such as DAX pages, can
+ because DAX pages do not have a separate page cache, and so "pinning" impl=
+ies
+ locking down file system blocks, which is not (yet) supported in that way.
+=20
+-CASE 3: Hardware with page faulting support
+--------------------------------------------
+-Here, a well-written driver doesn't normally need to pin pages at all. How=
+ever,
+-if the driver does choose to do so, it can register MMU notifiers for the =
+range,
+-and will be called back upon invalidation. Either way (avoiding page pinni=
+ng, or
+-using MMU notifiers to unpin upon request), there is proper synchronizatio=
+n with
+-both filesystem and mm (page_mkclean(), munmap(), etc).
++CASE 3: MMU notifier registration, with or without page faulting hardware
++-------------------------------------------------------------------------
++Device drivers can pin pages via get_user_pages*(), and register for mmu
++notifier callbacks for the memory range. Then, upon receiving a notifier
++"invalidate range" callback , stop the device from using the range, and un=
+pin
++the pages. There may be other possible schemes, such as for example explic=
+itly
++synchronizing against pending IO, that accomplish approximately the same t=
+hing.
+=20
+-Therefore, neither flag needs to be set.
++Or, if the hardware supports replayable page faults, then the device drive=
+r can
++avoid pinning entirely (this is ideal), as follows: register for mmu notif=
+ier
++callbacks as above, but instead of stopping the device and unpinning in the
++callback, simply remove the range from the device's page tables.
+=20
+-In this case, ideally, neither get_user_pages() nor pin_user_pages() shoul=
+d be
+-called. Instead, the software should be written so that it does not pin pa=
+ges.
+-This allows mm and filesystems to operate more efficiently and reliably.
++Either way, as long as the driver unpins the pages upon mmu notifier callb=
+ack,
++then there is proper synchronization with both filesystem and mm
++(page_mkclean(), munmap(), etc). Therefore, neither flag needs to be set.
+=20
+ CASE 4: Pinning for struct page manipulation only
+ -------------------------------------------------
+-Here, normal GUP calls are sufficient, so neither flag needs to be set.
++If only struct page data (as opposed to the actual memory contents that a =
+page
++is tracking) is affected, then normal GUP calls are sufficient, and neithe=
+r flag
++needs to be set.
+=20
+ page_maybe_dma_pinned(): the whole point of pinning
+ =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
 _
 
-Patches currently in -mm which might be from kuba@kernel.org are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-prepare-for-swap-over-high-accounting-and-penalty-calculation.patch
-mm-move-penalty-delay-clamping-out-of-calculate_high_delay.patch
-mm-move-cgroup-high-memory-limit-setting-into-struct-page_counter.patch
-mm-automatically-penalize-tasks-with-high-swap-use.patch
+mm-gup-introduce-pin_user_pages_unlocked.patch
+ivtv-convert-get_user_pages-pin_user_pages.patch
+mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch
+mm-gup-refactor-and-de-duplicate-gup_fast-code.patch
+mm-gup-refactor-and-de-duplicate-gup_fast-code-fix.patch
+mm-gup-introduce-pin_user_pages_fast_only.patch
+drm-i915-convert-get_user_pages-pin_user_pages.patch
+mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
+khugepaged-add-self-test-fix-3.patch
+rapidio-convert-get_user_pages-pin_user_pages.patch
+mm-gup-update-pin_user_pagesrst-for-case-3-mmu-notifiers.patch
