@@ -1,30 +1,35 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
- added to -mm tree
-Date: Wed, 27 May 2020 15:55:05 -0700
-Message-ID: <20200527225505.R0QsiA6q4%akpm@linux-foundation.org>
+Subject: + mm-gup-introduce-pin_user_pages_locked.patch added to
+ -mm tree
+Date: Wed, 27 May 2020 16:17:54 -0700
+Message-ID: <20200527231754.YnbMpevsR%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36968 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40336 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725267AbgE0WzH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 18:55:07 -0400
+        id S1725267AbgE0XR4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 19:17:56 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, wangyan122@huawei.com
+To: daniel@ffwll.ch, david@fromorbit.com, jack@suse.cz, jglisse@redhat.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: ocfs2: fix ocfs2 corrupt when iputting an inode
+     Subject: mm/gup: introduce pin_user_pages_locked()
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
+     mm-gup-introduce-pin_user_pages_locked.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-introduce-pin_user_page=
+s_locked.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-introduce-pin_user_page=
+s_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,75 +37,109 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wangyan <wangyan122@huawei.com>
-Subject: ocfs2: fix ocfs2 corrupt when iputting an inode
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: introduce pin_user_pages_locked()
 
-In this condition, it will cause an bug on error.
-ocfs2_mkdir()
-  ->ocfs2_mknod()
-    ->ocfs2_mknod_locked()
-      ->__ocfs2_mknod_locked()
-        //Assume inode->i_generation is genN.
-        ->inode->i_generation = osb->s_next_generation++;
-        // The inode lockres has been initialized.
-        ->ocfs2_populate_inode()
-        ->ocfs2_create_new_inode_locks()
-            ->An error happened, returned value is non-zero
-      // free the start_bit x in bg_blkno
-      ->ocfs2_free_suballoc_bits()
-    ->...  /* Another process execute mkdir success in this place,
-              and it occupied the start_bit x in bg_blkno
-              which has been freed before. Its inode->i_generation
-              is genN + 1 */
-    ->iput(inode)
-      ->evict()
-        ->ocfs2_evict_inode()
-          ->ocfs2_delete_inode()
-            ->ocfs2_inode_lock()
-              ->ocfs2_inode_lock_update()
-                /* Bug on here, genN != genN + 1 */
-                ->mlog_bug_on_msg(inode->i_generation !=
-                  le32_to_cpu(fe->i_generation))
+Patch series "mm/gup: introduce pin_user_pages_locked(), use it in
+frame_vector.c"
 
-So, we need not to reclaim the inode when the inode->ip_inode_lockres
-has been initialized. It will be freed in iput().
+This adds yet one more pin_user_pages*() variant, and uses that to convert
+mm/frame_vector.c.
 
-Link: http://lkml.kernel.org/r/ef080ca3-5d74-e276-17a1-d9e7c7e662c9@huawei.com
-Signed-off-by: Yan Wang <wangyan122@huawei.com>
-Reviewed-by: Jun Piao <piaojun@huawei.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
+With this, along with maybe 20 or 30 other recent patches in various
+trees, we are close to having the relevant gup call sites converted--with
+the notable exception of the bio/block layer.
+
+
+This patch (of 2):
+
+Introduce pin_user_pages_locked(), which is nearly identical to
+get_user_pages_locked() except that it sets FOLL_PIN and rejects FOLL_GET.
+
+Link: http://lkml.kernel.org/r/20200527223243.884385-1-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200527223243.884385-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    2 ++
+ mm/gup.c           |   30 ++++++++++++++++++++++++++++++
+ 2 files changed, 32 insertions(+)
 
---- a/fs/ocfs2/namei.c~ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode
-+++ a/fs/ocfs2/namei.c
-@@ -640,7 +640,8 @@ static int ocfs2_mknod_locked(struct ocf
- 	status = __ocfs2_mknod_locked(dir, inode, dev, new_fe_bh,
- 				    parent_fe_bh, handle, inode_ac,
- 				    fe_blkno, suballoc_loc, suballoc_bit);
--	if (status < 0) {
-+	if (status < 0 && !(OCFS2_I(inode)->ip_inode_lockres.l_flags &
-+				OCFS2_LOCK_INITIALIZED)) {
- 		u64 bg_blkno = ocfs2_which_suballoc_group(fe_blkno, suballoc_bit);
- 		int tmp = ocfs2_free_suballoc_bits(handle, inode_ac->ac_inode,
- 				inode_ac->ac_bh, suballoc_bit, bg_blkno, 1);
+--- a/include/linux/mm.h~mm-gup-introduce-pin_user_pages_locked
++++ a/include/linux/mm.h
+@@ -1707,6 +1707,8 @@ long pin_user_pages(unsigned long start,
+ 		    struct vm_area_struct **vmas);
+ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+ 		    unsigned int gup_flags, struct page **pages, int *locked);
++long pin_user_pages_locked(unsigned long start, unsigned long nr_pages,
++		    unsigned int gup_flags, struct page **pages, int *locked);
+ long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
+ 		    struct page **pages, unsigned int gup_flags);
+ long pin_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
+--- a/mm/gup.c~mm-gup-introduce-pin_user_pages_locked
++++ a/mm/gup.c
+@@ -3022,3 +3022,33 @@ long pin_user_pages_unlocked(unsigned lo
+ 	return get_user_pages_unlocked(start, nr_pages, pages, gup_flags);
+ }
+ EXPORT_SYMBOL(pin_user_pages_unlocked);
++
++/*
++ * pin_user_pages_locked() is the FOLL_PIN variant of get_user_pages_locke=
+d().
++ * Behavior is the same, except that this one sets FOLL_PIN and rejects
++ * FOLL_GET.
++ */
++long pin_user_pages_locked(unsigned long start, unsigned long nr_pages,
++			   unsigned int gup_flags, struct page **pages,
++			   int *locked)
++{
++	/*
++	 * FIXME: Current FOLL_LONGTERM behavior is incompatible with
++	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
++	 * vmas.  As there are no users of this flag in this call we simply
++	 * disallow this option for now.
++	 */
++	if (WARN_ON_ONCE(gup_flags & FOLL_LONGTERM))
++		return -EINVAL;
++
++	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
++	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
++		return -EINVAL;
++
++	gup_flags |=3D FOLL_PIN;
++	return __get_user_pages_locked(current, current->mm, start, nr_pages,
++				       pages, NULL, locked,
++				       gup_flags | FOLL_TOUCH);
++}
++EXPORT_SYMBOL(pin_user_pages_locked);
++
 _
 
-Patches currently in -mm which might be from wangyan122@huawei.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
-ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
+mm-gup-introduce-pin_user_pages_unlocked.patch
+ivtv-convert-get_user_pages-pin_user_pages.patch
+mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch
+mm-gup-refactor-and-de-duplicate-gup_fast-code.patch
+mm-gup-refactor-and-de-duplicate-gup_fast-code-fix.patch
+mm-gup-introduce-pin_user_pages_fast_only.patch
+drm-i915-convert-get_user_pages-pin_user_pages.patch
+mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
+khugepaged-add-self-test-fix-3.patch
+rapidio-convert-get_user_pages-pin_user_pages.patch
+mm-gup-update-pin_user_pagesrst-for-case-3-mmu-notifiers.patch
+mm-gup-introduce-pin_user_pages_locked.patch
+mm-gup-frame_vector-convert-get_user_pages-pin_user_pages.patch
