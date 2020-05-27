@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-memcg-fix-memcg-stats-for-huge-pages.patch
+Subject: +
+ mm-prepare-for-swap-over-high-accounting-and-penalty-calculation.patch
  added to -mm tree
-Date: Wed, 27 May 2020 12:12:04 -0700
-Message-ID: <20200527191204.ingoxEKWk%akpm@linux-foundation.org>
+Date: Wed, 27 May 2020 14:33:01 -0700
+Message-ID: <20200527213301.5G3DMCcun%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47720 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47660 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726770AbgE0TMG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 15:12:06 -0400
+        id S1726129AbgE0VdD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 17:33:03 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com
+To: chris@chrisdown.name, hannes@cmpxchg.org, hughd@google.com, kuba@kernel.org, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org
 
 
 The patch titled
-     Subject: mm: swap: memcg: fix memcg stats for huge pages
+     Subject: mm/memcg: prepare for swap over-high accounting and penalty calculation
 has been added to the -mm tree.  Its filename is
-     mm-swap-memcg-fix-memcg-stats-for-huge-pages.patch
+     mm-prepare-for-swap-over-high-accounting-and-penalty-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-memcg-fix-memcg-stats-for-huge-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-prepare-for-swap-over-high-accounting-and-penalty-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-memcg-fix-memcg-stats-for-huge-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prepare-for-swap-over-high-accounting-and-penalty-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,103 +39,148 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: swap: memcg: fix memcg stats for huge pages
+From: Jakub Kicinski <kuba@kernel.org>
+Subject: mm/memcg: prepare for swap over-high accounting and penalty calculation
 
-Commit 2262185c5b28 ("mm: per-cgroup memory reclaim stats") added
-PGLAZYFREE, PGACTIVATE & PGDEACTIVATE stats for cgroups but missed couple
-of places and PGLAZYFREE missed huge page handling.  Fix that.  Also for
-PGLAZYFREE use the irq-unsafe function to update as the irq is already
-disabled.
+Patch series "memcg: Slow down swap allocation as the available space gets
+depleted", v6.
 
-Link: http://lkml.kernel.org/r/20200527182947.251343-1-shakeelb@google.com
-Fixes: 2262185c5b28 ("mm: per-cgroup memory reclaim stats")
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Tejun describes the problem as follows:
+
+When swap runs out, there's an abrupt change in system behavior - the
+anonymous memory suddenly becomes unmanageable which readily breaks any
+sort of memory isolation and can bring down the whole system.  To avoid
+that, oomd [1] monitors free swap space and triggers kills when it drops
+below the specific threshold (e.g.  15%).
+
+While this works, it's far from ideal:
+ - Depending on IO performance and total swap size, a given
+   headroom might not be enough or too much.
+ - oomd has to monitor swap depletion in addition to the usual
+   pressure metrics and it currently doesn't consider memory.swap.max.
+
+Solve this by adapting parts of the approach that memory.high uses - slow
+down allocation as the resource gets depleted turning the depletion
+behavior from abrupt cliff one to gradual degradation observable through
+memory pressure metric.
+
+[1] https://github.com/facebookincubator/oomd
+
+
+This patch (of 4):
+
+Slice the memory overage calculation logic a little bit so we can reuse it
+to apply a similar penalty to the swap.  The logic which accesses the
+memory-specific fields (use and high values) has to be taken out of
+calculate_high_delay().
+
+Link: http://lkml.kernel.org/r/20200527195846.102707-1-kuba@kernel.org
+Link: http://lkml.kernel.org/r/20200527195846.102707-2-kuba@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Roman Gushchin <guro@fb.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Chris Down <chris@chrisdown.name>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   62 +++++++++++++++++++++++++---------------------
+ 1 file changed, 35 insertions(+), 27 deletions(-)
 
---- a/mm/swap.c~mm-swap-memcg-fix-memcg-stats-for-huge-pages
-+++ a/mm/swap.c
-@@ -278,6 +278,7 @@ static void __activate_page(struct page
- 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
- 		int file = page_is_file_lru(page);
- 		int lru = page_lru_base_type(page);
-+		int nr_pages = hpage_nr_pages(page);
+--- a/mm/memcontrol.c~mm-prepare-for-swap-over-high-accounting-and-penalty-calculation
++++ a/mm/memcontrol.c
+@@ -2321,41 +2321,48 @@ static void high_work_func(struct work_s
+  #define MEMCG_DELAY_PRECISION_SHIFT 20
+  #define MEMCG_DELAY_SCALING_SHIFT 14
  
- 		del_page_from_lru_list(page, lruvec, lru);
- 		SetPageActive(page);
-@@ -285,7 +286,8 @@ static void __activate_page(struct page
- 		add_page_to_lru_list(page, lruvec, lru);
- 		trace_mm_lru_activate(page);
+-/*
+- * Get the number of jiffies that we should penalise a mischievous cgroup which
+- * is exceeding its memory.high by checking both it and its ancestors.
+- */
+-static unsigned long calculate_high_delay(struct mem_cgroup *memcg,
+-					  unsigned int nr_pages)
++static u64 calculate_overage(unsigned long usage, unsigned long high)
+ {
+-	unsigned long penalty_jiffies;
+-	u64 max_overage = 0;
++	u64 overage;
  
--		__count_vm_events(PGACTIVATE, hpage_nr_pages(page));
-+		__count_vm_events(PGACTIVATE, nr_pages);
-+		__count_memcg_events(lruvec_memcg(lruvec), PGACTIVATE, nr_pages);
- 		update_page_reclaim_stat(lruvec, file, 1);
- 	}
- }
-@@ -540,8 +542,10 @@ static void lru_deactivate_file_fn(struc
- 		__count_vm_events(PGROTATED, nr_pages);
- 	}
+-	do {
+-		unsigned long usage, high;
+-		u64 overage;
++	if (usage <= high)
++		return 0;
  
--	if (active)
-+	if (active) {
- 		__count_vm_events(PGDEACTIVATE, nr_pages);
-+		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_pages);
-+	}
- 	update_page_reclaim_stat(lruvec, file, 0);
- }
+-		usage = page_counter_read(&memcg->memory);
+-		high = READ_ONCE(memcg->high);
++	/*
++	 * Prevent division by 0 in overage calculation by acting as if
++	 * it was a threshold of 1 page
++	 */
++	high = max(high, 1UL);
  
-@@ -551,13 +555,15 @@ static void lru_deactivate_fn(struct pag
- 	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
- 		int file = page_is_file_lru(page);
- 		int lru = page_lru_base_type(page);
-+		int nr_pages = hpage_nr_pages(page);
+-		if (usage <= high)
+-			continue;
++	overage = usage - high;
++	overage <<= MEMCG_DELAY_PRECISION_SHIFT;
++	return div64_u64(overage, high);
++}
  
- 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
- 		ClearPageActive(page);
- 		ClearPageReferenced(page);
- 		add_page_to_lru_list(page, lruvec, lru);
+-		/*
+-		 * Prevent division by 0 in overage calculation by acting as if
+-		 * it was a threshold of 1 page
+-		 */
+-		high = max(high, 1UL);
+-
+-		overage = usage - high;
+-		overage <<= MEMCG_DELAY_PRECISION_SHIFT;
+-		overage = div64_u64(overage, high);
++static u64 mem_find_max_overage(struct mem_cgroup *memcg)
++{
++	u64 overage, max_overage = 0;
  
--		__count_vm_events(PGDEACTIVATE, hpage_nr_pages(page));
-+		__count_vm_events(PGDEACTIVATE, nr_pages);
-+		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_pages);
- 		update_page_reclaim_stat(lruvec, file, 0);
- 	}
- }
-@@ -568,6 +574,7 @@ static void lru_lazyfree_fn(struct page
- 	if (PageLRU(page) && PageAnon(page) && PageSwapBacked(page) &&
- 	    !PageSwapCache(page) && !PageUnevictable(page)) {
- 		bool active = PageActive(page);
-+		int nr_pages = hpage_nr_pages(page);
+-		if (overage > max_overage)
+-			max_overage = overage;
++	do {
++		overage = calculate_overage(page_counter_read(&memcg->memory),
++					    READ_ONCE(memcg->high));
++		max_overage = max(overage, max_overage);
+ 	} while ((memcg = parent_mem_cgroup(memcg)) &&
+ 		 !mem_cgroup_is_root(memcg));
  
- 		del_page_from_lru_list(page, lruvec,
- 				       LRU_INACTIVE_ANON + active);
-@@ -581,8 +588,8 @@ static void lru_lazyfree_fn(struct page
- 		ClearPageSwapBacked(page);
- 		add_page_to_lru_list(page, lruvec, LRU_INACTIVE_FILE);
++	return max_overage;
++}
++
++/*
++ * Get the number of jiffies that we should penalise a mischievous cgroup which
++ * is exceeding its memory.high by checking both it and its ancestors.
++ */
++static unsigned long calculate_high_delay(struct mem_cgroup *memcg,
++					  unsigned int nr_pages,
++					  u64 max_overage)
++{
++	unsigned long penalty_jiffies;
++
+ 	if (!max_overage)
+ 		return 0;
  
--		__count_vm_events(PGLAZYFREE, hpage_nr_pages(page));
--		count_memcg_page_event(page, PGLAZYFREE);
-+		__count_vm_events(PGLAZYFREE, nr_pages);
-+		__count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE, nr_pages);
- 		update_page_reclaim_stat(lruvec, 1, 0);
- 	}
- }
+@@ -2411,7 +2418,8 @@ void mem_cgroup_handle_over_high(void)
+ 	 * memory.high is breached and reclaim is unable to keep up. Throttle
+ 	 * allocators proactively to slow down excessive growth.
+ 	 */
+-	penalty_jiffies = calculate_high_delay(memcg, nr_pages);
++	penalty_jiffies = calculate_high_delay(memcg, nr_pages,
++					       mem_find_max_overage(memcg));
+ 
+ 	/*
+ 	 * Don't sleep if the amount of jiffies this memcg owes us is so low
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from kuba@kernel.org are
 
-memcg-optimize-memorynuma_stat-like-memorystat.patch
-mm-swap-fix-vmstats-for-huge-pages.patch
-mm-swap-memcg-fix-memcg-stats-for-huge-pages.patch
-memcg-expose-root-cgroups-memorystat.patch
+mm-prepare-for-swap-over-high-accounting-and-penalty-calculation.patch
+mm-move-penalty-delay-clamping-out-of-calculate_high_delay.patch
+mm-move-cgroup-high-memory-limit-setting-into-struct-page_counter.patch
+mm-automatically-penalize-tasks-with-high-swap-use.patch
