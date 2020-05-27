@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-prepare-for-swap-over-high-accounting-and-penalty-calculation.patch
+ mm-move-cgroup-high-memory-limit-setting-into-struct-page_counter.patch
  added to -mm tree
-Date: Wed, 27 May 2020 14:33:01 -0700
-Message-ID: <20200527213301.5G3DMCcun%akpm@linux-foundation.org>
+Date: Wed, 27 May 2020 14:33:07 -0700
+Message-ID: <20200527213307.ZacRqb1Ix%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47660 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726129AbgE0VdD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 17:33:03 -0400
+        id S1726129AbgE0VdJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 17:33:09 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: chris@chrisdown.name, hannes@cmpxchg.org, hughd@google.com, kuba@kernel.org,
 
 
 The patch titled
-     Subject: mm/memcg: prepare for swap over-high accounting and penalty calculation
+     Subject: mm/memcg: move cgroup high memory limit setting into struct page_counter
 has been added to the -mm tree.  Its filename is
-     mm-prepare-for-swap-over-high-accounting-and-penalty-calculation.patch
+     mm-move-cgroup-high-memory-limit-setting-into-struct-page_counter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-prepare-for-swap-over-high-accounting-and-penalty-calculation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-cgroup-high-memory-limit-setting-into-struct-page_counter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prepare-for-swap-over-high-accounting-and-penalty-calculation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-cgroup-high-memory-limit-setting-into-struct-page_counter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,142 +40,141 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jakub Kicinski <kuba@kernel.org>
-Subject: mm/memcg: prepare for swap over-high accounting and penalty calculation
+Subject: mm/memcg: move cgroup high memory limit setting into struct page_counter
 
-Patch series "memcg: Slow down swap allocation as the available space gets
-depleted", v6.
+High memory limit is currently recorded directly in struct mem_cgroup.  We
+are about to add a high limit for swap, move the field to struct
+page_counter and add some helpers.
 
-Tejun describes the problem as follows:
-
-When swap runs out, there's an abrupt change in system behavior - the
-anonymous memory suddenly becomes unmanageable which readily breaks any
-sort of memory isolation and can bring down the whole system.  To avoid
-that, oomd [1] monitors free swap space and triggers kills when it drops
-below the specific threshold (e.g.  15%).
-
-While this works, it's far from ideal:
- - Depending on IO performance and total swap size, a given
-   headroom might not be enough or too much.
- - oomd has to monitor swap depletion in addition to the usual
-   pressure metrics and it currently doesn't consider memory.swap.max.
-
-Solve this by adapting parts of the approach that memory.high uses - slow
-down allocation as the resource gets depleted turning the depletion
-behavior from abrupt cliff one to gradual degradation observable through
-memory pressure metric.
-
-[1] https://github.com/facebookincubator/oomd
-
-
-This patch (of 4):
-
-Slice the memory overage calculation logic a little bit so we can reuse it
-to apply a similar penalty to the swap.  The logic which accesses the
-memory-specific fields (use and high values) has to be taken out of
-calculate_high_delay().
-
-Link: http://lkml.kernel.org/r/20200527195846.102707-1-kuba@kernel.org
-Link: http://lkml.kernel.org/r/20200527195846.102707-2-kuba@kernel.org
+Link: http://lkml.kernel.org/r/20200527195846.102707-4-kuba@kernel.org
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Chris Down <chris@chrisdown.name>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   62 +++++++++++++++++++++++++---------------------
- 1 file changed, 35 insertions(+), 27 deletions(-)
+ include/linux/memcontrol.h   |    3 ---
+ include/linux/page_counter.h |    8 ++++++++
+ mm/memcontrol.c              |   19 +++++++++++--------
+ 3 files changed, 19 insertions(+), 11 deletions(-)
 
---- a/mm/memcontrol.c~mm-prepare-for-swap-over-high-accounting-and-penalty-calculation
-+++ a/mm/memcontrol.c
-@@ -2321,41 +2321,48 @@ static void high_work_func(struct work_s
-  #define MEMCG_DELAY_PRECISION_SHIFT 20
-  #define MEMCG_DELAY_SCALING_SHIFT 14
+--- a/include/linux/memcontrol.h~mm-move-cgroup-high-memory-limit-setting-into-struct-page_counter
++++ a/include/linux/memcontrol.h
+@@ -215,9 +215,6 @@ struct mem_cgroup {
+ 	struct page_counter kmem;
+ 	struct page_counter tcpmem;
  
--/*
-- * Get the number of jiffies that we should penalise a mischievous cgroup which
-- * is exceeding its memory.high by checking both it and its ancestors.
-- */
--static unsigned long calculate_high_delay(struct mem_cgroup *memcg,
--					  unsigned int nr_pages)
-+static u64 calculate_overage(unsigned long usage, unsigned long high)
- {
--	unsigned long penalty_jiffies;
--	u64 max_overage = 0;
-+	u64 overage;
- 
--	do {
--		unsigned long usage, high;
--		u64 overage;
-+	if (usage <= high)
-+		return 0;
- 
--		usage = page_counter_read(&memcg->memory);
--		high = READ_ONCE(memcg->high);
-+	/*
-+	 * Prevent division by 0 in overage calculation by acting as if
-+	 * it was a threshold of 1 page
-+	 */
-+	high = max(high, 1UL);
- 
--		if (usage <= high)
--			continue;
-+	overage = usage - high;
-+	overage <<= MEMCG_DELAY_PRECISION_SHIFT;
-+	return div64_u64(overage, high);
-+}
- 
--		/*
--		 * Prevent division by 0 in overage calculation by acting as if
--		 * it was a threshold of 1 page
--		 */
--		high = max(high, 1UL);
+-	/* Upper bound of normal memory consumption range */
+-	unsigned long high;
 -
--		overage = usage - high;
--		overage <<= MEMCG_DELAY_PRECISION_SHIFT;
--		overage = div64_u64(overage, high);
-+static u64 mem_find_max_overage(struct mem_cgroup *memcg)
-+{
-+	u64 overage, max_overage = 0;
+ 	/* Range enforcement for interrupt charges */
+ 	struct work_struct high_work;
  
--		if (overage > max_overage)
--			max_overage = overage;
-+	do {
-+		overage = calculate_overage(page_counter_read(&memcg->memory),
-+					    READ_ONCE(memcg->high));
-+		max_overage = max(overage, max_overage);
+--- a/include/linux/page_counter.h~mm-move-cgroup-high-memory-limit-setting-into-struct-page_counter
++++ a/include/linux/page_counter.h
+@@ -10,6 +10,7 @@ struct page_counter {
+ 	atomic_long_t usage;
+ 	unsigned long min;
+ 	unsigned long low;
++	unsigned long high;
+ 	unsigned long max;
+ 	struct page_counter *parent;
+ 
+@@ -55,6 +56,13 @@ bool page_counter_try_charge(struct page
+ void page_counter_uncharge(struct page_counter *counter, unsigned long nr_pages);
+ void page_counter_set_min(struct page_counter *counter, unsigned long nr_pages);
+ void page_counter_set_low(struct page_counter *counter, unsigned long nr_pages);
++
++static inline void page_counter_set_high(struct page_counter *counter,
++					 unsigned long nr_pages)
++{
++	WRITE_ONCE(counter->high, nr_pages);
++}
++
+ int page_counter_set_max(struct page_counter *counter, unsigned long nr_pages);
+ int page_counter_memparse(const char *buf, const char *max,
+ 			  unsigned long *nr_pages);
+--- a/mm/memcontrol.c~mm-move-cgroup-high-memory-limit-setting-into-struct-page_counter
++++ a/mm/memcontrol.c
+@@ -2252,7 +2252,8 @@ static void reclaim_high(struct mem_cgro
+ 			 gfp_t gfp_mask)
+ {
+ 	do {
+-		if (page_counter_read(&memcg->memory) <= READ_ONCE(memcg->high))
++		if (page_counter_read(&memcg->memory) <=
++		    READ_ONCE(memcg->memory.high))
+ 			continue;
+ 		memcg_memory_event(memcg, MEMCG_HIGH);
+ 		try_to_free_mem_cgroup_pages(memcg, nr_pages, gfp_mask, true);
+@@ -2345,7 +2346,7 @@ static u64 mem_find_max_overage(struct m
+ 
+ 	do {
+ 		overage = calculate_overage(page_counter_read(&memcg->memory),
+-					    READ_ONCE(memcg->high));
++					    READ_ONCE(memcg->memory.high));
+ 		max_overage = max(overage, max_overage);
  	} while ((memcg = parent_mem_cgroup(memcg)) &&
  		 !mem_cgroup_is_root(memcg));
- 
-+	return max_overage;
-+}
-+
-+/*
-+ * Get the number of jiffies that we should penalise a mischievous cgroup which
-+ * is exceeding its memory.high by checking both it and its ancestors.
-+ */
-+static unsigned long calculate_high_delay(struct mem_cgroup *memcg,
-+					  unsigned int nr_pages,
-+					  u64 max_overage)
-+{
-+	unsigned long penalty_jiffies;
-+
- 	if (!max_overage)
- 		return 0;
- 
-@@ -2411,7 +2418,8 @@ void mem_cgroup_handle_over_high(void)
- 	 * memory.high is breached and reclaim is unable to keep up. Throttle
- 	 * allocators proactively to slow down excessive growth.
+@@ -2604,7 +2605,8 @@ done_restock:
+ 	 * reclaim, the cost of mismatch is negligible.
  	 */
--	penalty_jiffies = calculate_high_delay(memcg, nr_pages);
-+	penalty_jiffies = calculate_high_delay(memcg, nr_pages,
-+					       mem_find_max_overage(memcg));
+ 	do {
+-		if (page_counter_read(&memcg->memory) > READ_ONCE(memcg->high)) {
++		if (page_counter_read(&memcg->memory) >
++		    READ_ONCE(memcg->memory.high)) {
+ 			/* Don't bother a random interrupted task */
+ 			if (in_interrupt()) {
+ 				schedule_work(&memcg->high_work);
+@@ -4349,7 +4351,7 @@ void mem_cgroup_wb_stats(struct bdi_writ
  
- 	/*
- 	 * Don't sleep if the amount of jiffies this memcg owes us is so low
+ 	while ((parent = parent_mem_cgroup(memcg))) {
+ 		unsigned long ceiling = min(READ_ONCE(memcg->memory.max),
+-					    READ_ONCE(memcg->high));
++					    READ_ONCE(memcg->memory.high));
+ 		unsigned long used = page_counter_read(&memcg->memory);
+ 
+ 		*pheadroom = min(*pheadroom, ceiling - min(ceiling, used));
+@@ -5074,7 +5076,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	if (IS_ERR(memcg))
+ 		return ERR_CAST(memcg);
+ 
+-	WRITE_ONCE(memcg->high, PAGE_COUNTER_MAX);
++	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
+ 	memcg->soft_limit = PAGE_COUNTER_MAX;
+ 	if (parent) {
+ 		memcg->swappiness = mem_cgroup_swappiness(parent);
+@@ -5227,7 +5229,7 @@ static void mem_cgroup_css_reset(struct
+ 	page_counter_set_max(&memcg->tcpmem, PAGE_COUNTER_MAX);
+ 	page_counter_set_min(&memcg->memory, 0);
+ 	page_counter_set_low(&memcg->memory, 0);
+-	WRITE_ONCE(memcg->high, PAGE_COUNTER_MAX);
++	page_counter_set_high(&memcg->memory, PAGE_COUNTER_MAX);
+ 	memcg->soft_limit = PAGE_COUNTER_MAX;
+ 	memcg_wb_domain_size_changed(memcg);
+ }
+@@ -6026,7 +6028,8 @@ static ssize_t memory_low_write(struct k
+ 
+ static int memory_high_show(struct seq_file *m, void *v)
+ {
+-	return seq_puts_memcg_tunable(m, READ_ONCE(mem_cgroup_from_seq(m)->high));
++	return seq_puts_memcg_tunable(m,
++		READ_ONCE(mem_cgroup_from_seq(m)->memory.high));
+ }
+ 
+ static ssize_t memory_high_write(struct kernfs_open_file *of,
+@@ -6043,7 +6046,7 @@ static ssize_t memory_high_write(struct
+ 	if (err)
+ 		return err;
+ 
+-	WRITE_ONCE(memcg->high, high);
++	page_counter_set_high(&memcg->memory, high);
+ 
+ 	for (;;) {
+ 		unsigned long nr_pages = page_counter_read(&memcg->memory);
 _
 
 Patches currently in -mm which might be from kuba@kernel.org are
