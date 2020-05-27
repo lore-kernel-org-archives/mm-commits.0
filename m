@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- x86-mm-ptdump-calculate-effective-permissions-correctly-fix.patch added to
+ ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch added to
  -mm tree
-Date: Wed, 27 May 2020 15:32:33 -0700
-Message-ID: <20200527223233.mLmrc1Osc%akpm@linux-foundation.org>
+Date: Wed, 27 May 2020 15:55:02 -0700
+Message-ID: <20200527225502._bYNxd42_%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54740 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36944 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725385AbgE0Wce (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 18:32:34 -0400
+        id S1725267AbgE0WzE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 18:55:04 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, mm-commits@vger.kernel.org, steven.price@arm.com
+To: gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, wangyan122@huawei.com
 
 
 The patch titled
-     Subject: x86-mm-ptdump-calculate-effective-permissions-correctly-fix
+     Subject: ocfs2: clear links count in ocfs2_mknod() if an error occurs
 has been added to the -mm tree.  Its filename is
-     x86-mm-ptdump-calculate-effective-permissions-correctly-fix.patch
+     ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-ptdump-calculate-effective-permissions-correctly-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-ptdump-calculate-effective-permissions-correctly-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,23 +39,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Steven Price <steven.price@arm.com>
-Subject: x86-mm-ptdump-calculate-effective-permissions-correctly-fix
+From: Wangyan <wangyan122@huawei.com>
+Subject: ocfs2: clear links count in ocfs2_mknod() if an error occurs
 
-make the assignment conditional on val != 0.
+In this condition, the inode can not be wiped when error happened.
+ocfs2_mkdir()
+  ->ocfs2_mknod()
+    ->ocfs2_mknod_locked()
+      ->__ocfs2_mknod_locked()
+        ->ocfs2_set_links_count() // i_links_count is 2
+    -> ... // an error accrue, goto roll_back or leave.
+    ->ocfs2_commit_trans()
+    ->iput(inode)
+      ->evict()
+        ->ocfs2_evict_inode()
+          ->ocfs2_delete_inode()
+            ->ocfs2_inode_lock()
+              ->ocfs2_inode_lock_update()
+                ->ocfs2_refresh_inode()
+                  ->set_nlink();    // inode->i_nlink is 2 now.
+            /* if wipe is 0, it will goto bail_unlock_inode */
+            ->ocfs2_query_inode_wipe()
+              ->if (inode->i_nlink) return; // wipe is 0.
+            /* inode can not be wiped */
+            ->ocfs2_wipe_inode()
+So, we need clear links before the transaction committed.
 
-Link: http://lkml.kernel.org/r/430c8ab4-e7cd-6933-dde6-087fac6db872@arm.com
-Reported-by: Qian Cai <cai@lca.pw>
+Link: http://lkml.kernel.org/r/d8147c41-fb2b-bdf7-b660-1f3c8448c33f@huawei.com
+Signed-off-by: Yan Wang <wangyan122@huawei.com>
+Reviewed-by: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/dump_pagetables.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/namei.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/arch/x86/mm/dump_pagetables.c~x86-mm-ptdump-calculate-effective-permissions-correctly-fix
-+++ a/arch/x86/mm/dump_pagetables.c
-@@ -282,10 +282,10 @@ static void note_page(struct ptdump_stat
- 	struct seq_file *m = st->seq;
+--- a/fs/ocfs2/namei.c~ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs
++++ a/fs/ocfs2/namei.c
+@@ -453,8 +453,12 @@ roll_back:
+ leave:
+ 	if (status < 0 && did_quota_inode)
+ 		dquot_free_inode(inode);
+-	if (handle)
++	if (handle) {
++		if (status < 0 && new_fe_bh != NULL)
++			ocfs2_set_links_count((struct ocfs2_dinode *)
++					new_fe_bh->b_data, 0);
+ 		ocfs2_commit_trans(osb, handle);
++	}
  
- 	new_prot = val & PTE_FLAGS_MASK;
--	new_eff = st->prot_levels[level];
+ 	ocfs2_inode_unlock(dir, 1);
+ 	if (did_block_signals)
+@@ -598,6 +602,8 @@ static int __ocfs2_mknod_locked(struct i
+ leave:
+ 	if (status < 0) {
+ 		if (*new_fe_bh) {
++			if (fe)
++				ocfs2_set_links_count(fe, 0);
+ 			brelse(*new_fe_bh);
+ 			*new_fe_bh = NULL;
+ 		}
+@@ -2023,8 +2029,12 @@ bail:
+ 					ocfs2_clusters_to_bytes(osb->sb, 1));
+ 	if (status < 0 && did_quota_inode)
+ 		dquot_free_inode(inode);
+-	if (handle)
++	if (handle) {
++		if (status < 0 && new_fe_bh != NULL)
++			ocfs2_set_links_count((struct ocfs2_dinode *)
++					new_fe_bh->b_data, 0);
+ 		ocfs2_commit_trans(osb, handle);
++	}
+ 
+ 	ocfs2_inode_unlock(dir, 1);
+ 	if (did_block_signals)
+_
+
+Patches currently in -mm which might be from wangyan122@huawei.com are
+
+ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
+ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
