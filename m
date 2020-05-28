@@ -1,90 +1,49 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 1/5] mm/z3fold: silence kmemleak false positives
- of slots
-Date: Wed, 27 May 2020 22:20:40 -0700
-Message-ID: <20200528052040.tET7TeyHc%akpm@linux-foundation.org>
+Subject: [patch 2/5] mm,thp: stop leaking unreleased file pages
+Date: Wed, 27 May 2020 22:20:43 -0700
+Message-ID: <20200528052043.TKW9wStFk%akpm@linux-foundation.org>
 References: <20200527222015.62ba8592af63dae12ab58ffe@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45166 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45248 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725764AbgE1FUm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 28 May 2020 01:20:42 -0400
+        id S1725764AbgE1FUp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 28 May 2020 01:20:45 -0400
 In-Reply-To: <20200527222015.62ba8592af63dae12ab58ffe@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cai@lca.pw, catalin.marinas@arm.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vitaly.wool@konsulko.com
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, riel@surriel.com, songliubraving@fb.com, stable@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Qian Cai <cai@lca.pw>
-Subject: mm/z3fold: silence kmemleak false positives of slots
+From: Hugh Dickins <hughd@google.com>
+Subject: mm,thp: stop leaking unreleased file pages
 
-Kmemleak reported many leaks while under memory pressue in,
+When collapse_file() calls try_to_release_page(), it has already isolated
+the page: so if releasing buffers happens to fail (as it sometimes does),
+remember to putback_lru_page(): otherwise that page is left unreclaimable
+and unfreeable, and the file extent uncollapsible.
 
-slots = alloc_slots(pool, gfp);
-
-which is referenced by "zhdr" in init_z3fold_page(),
-
-zhdr->slots = slots;
-
-However, "zhdr" could be gone without freeing slots as the later will be
-freed separately when the last "handle" off of "handles" array is freed. It
-will be within "slots" which is always aligned.
-
-unreferenced object 0xc000000fdadc1040 (size 104):
-  comm "oom04", pid 140476, jiffies 4295359280 (age 3454.970s)
-  hex dump (first 32 bytes):
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace:
-    [<00000000d1f0f5eb>] z3fold_zpool_malloc+0x7b0/0xe10
-    alloc_slots at mm/z3fold.c:214
-    (inlined by) init_z3fold_page at mm/z3fold.c:412
-    (inlined by) z3fold_alloc at mm/z3fold.c:1161
-    (inlined by) z3fold_zpool_malloc at mm/z3fold.c:1735
-    [<0000000064a2e969>] zpool_malloc+0x34/0x50
-    [<00000000af63e491>] zswap_frontswap_store+0x60c/0xda0
-    zswap_frontswap_store at mm/zswap.c:1093
-    [<00000000af5e07e0>] __frontswap_store+0x128/0x330
-    [<00000000de2f582b>] swap_writepage+0x58/0x110
-    [<000000000120885f>] pageout+0x16c/0xa40
-    [<00000000444c1f68>] shrink_page_list+0x1ac8/0x25c0
-    [<00000000d19e8610>] shrink_inactive_list+0x270/0x730
-    [<00000000e17df726>] shrink_lruvec+0x444/0xf30
-    [<000000005f02ab35>] shrink_node+0x2a4/0x9c0
-    [<00000000014cabbd>] do_try_to_free_pages+0x158/0x640
-    [<00000000dcfaba07>] try_to_free_pages+0x1bc/0x5f0
-    [<00000000fa207ab8>] __alloc_pages_slowpath.constprop.60+0x4dc/0x15a0
-    [<000000003669f1d2>] __alloc_pages_nodemask+0x520/0x650
-    [<0000000011fa4168>] alloc_pages_vma+0xc0/0x420
-    [<0000000098b376f2>] handle_mm_fault+0x1174/0x1bf0
-
-Link: http://lkml.kernel.org/r/20200522220052.2225-1-cai@lca.pw
-Signed-off-by: Qian Cai <cai@lca.pw>
-Acked-by: Vitaly Wool <vitaly.wool@konsulko.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2005231837500.1766@eggly.anvils
+Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Song Liu <songliubraving@fb.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: <stable@vger.kernel.org>	[5.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/khugepaged.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/z3fold.c~mm-z3fold-silence-kmemleak-false-positives-of-slots
-+++ a/mm/z3fold.c
-@@ -43,6 +43,7 @@
- #include <linux/spinlock.h>
- #include <linux/zpool.h>
- #include <linux/magic.h>
-+#include <linux/kmemleak.h>
+--- a/mm/khugepaged.c~mmthp-stop-leaking-unreleased-file-pages
++++ a/mm/khugepaged.c
+@@ -1692,6 +1692,7 @@ static void collapse_file(struct mm_stru
+ 		if (page_has_private(page) &&
+ 		    !try_to_release_page(page, GFP_KERNEL)) {
+ 			result = SCAN_PAGE_HAS_PRIVATE;
++			putback_lru_page(page);
+ 			goto out_unlock;
+ 		}
  
- /*
-  * NCHUNKS_ORDER determines the internal allocation granularity, effectively
-@@ -215,6 +216,8 @@ static inline struct z3fold_buddy_slots
- 				 (gfp & ~(__GFP_HIGHMEM | __GFP_MOVABLE)));
- 
- 	if (slots) {
-+		/* It will be freed separately in free_handle(). */
-+		kmemleak_not_leak(slots);
- 		memset(slots->slot, 0, sizeof(slots->slot));
- 		slots->pool = (unsigned long)pool;
- 		rwlock_init(&slots->lock);
 _
