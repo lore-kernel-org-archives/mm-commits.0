@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maccess-remove-various-unused-weak-aliases.patch added
+Subject: + maccess-remove-duplicate-kerneldoc-comments.patch added
  to -mm tree
-Date: Wed, 27 May 2020 17:36:51 -0700
-Message-ID: <20200528003651.s4F1F6n34%akpm@linux-foundation.org>
+Date: Wed, 27 May 2020 17:36:55 -0700
+Message-ID: <20200528003655.W2sf8nT2T%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57830 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57880 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725826AbgE1Agx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 20:36:53 -0400
+        id S1725294AbgE1Ag6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 20:36:58 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@ke
 
 
 The patch titled
-     Subject: maccess: remove various unused weak aliases
+     Subject: maccess: remove duplicate kerneldoc comments
 has been added to the -mm tree.  Its filename is
-     maccess-remove-various-unused-weak-aliases.patch
+     maccess-remove-duplicate-kerneldoc-comments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maccess-remove-various-unused-weak-aliases.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maccess-remove-duplicate-kerneldoc-comments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maccess-remove-various-unused-weak-aliases.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maccess-remove-duplicate-kerneldoc-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +39,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: maccess: remove various unused weak aliases
+Subject: maccess: remove duplicate kerneldoc comments
 
-maccess tends to define lots of underscore prefixed symbols that then
-have other weak aliases.  But except for two cases they are never
-actually used, so remove them.
+Many of the maccess routines have a copy of the kerneldoc comment
+in the header.  Remove it as it is not useful and will get out of
+sync sooner or later.
 
-Link: http://lkml.kernel.org/r/20200521152301.2587579-3-hch@lst.de
+Link: http://lkml.kernel.org/r/20200521152301.2587579-4-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
@@ -56,85 +56,62 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |    3 ---
- mm/maccess.c            |   19 +++----------------
- 2 files changed, 3 insertions(+), 19 deletions(-)
+ include/linux/uaccess.h |   38 --------------------------------------
+ 1 file changed, 38 deletions(-)
 
---- a/include/linux/uaccess.h~maccess-remove-various-unused-weak-aliases
+--- a/include/linux/uaccess.h~maccess-remove-duplicate-kerneldoc-comments
 +++ a/include/linux/uaccess.h
-@@ -324,7 +324,6 @@ extern long __probe_kernel_read(void *ds
-  * happens, handle that and return -EFAULT.
-  */
+@@ -301,50 +301,12 @@ copy_struct_from_user(void *dst, size_t
+ 	return 0;
+ }
+ 
+-/*
+- * probe_kernel_read(): safely attempt to read from a location
+- * @dst: pointer to the buffer that shall take the data
+- * @src: address to read from
+- * @size: size of the data chunk
+- *
+- * Safely read from address @src to the buffer at @dst.  If a kernel fault
+- * happens, handle that and return -EFAULT.
+- */
+ extern long probe_kernel_read(void *dst, const void *src, size_t size);
+ extern long probe_kernel_read_strict(void *dst, const void *src, size_t size);
+ extern long __probe_kernel_read(void *dst, const void *src, size_t size);
+-
+-/*
+- * probe_user_read(): safely attempt to read from a location in user space
+- * @dst: pointer to the buffer that shall take the data
+- * @src: address to read from
+- * @size: size of the data chunk
+- *
+- * Safely read from address @src to the buffer at @dst.  If a kernel fault
+- * happens, handle that and return -EFAULT.
+- */
  extern long probe_user_read(void *dst, const void __user *src, size_t size);
--extern long __probe_user_read(void *dst, const void __user *src, size_t size);
  
- /*
-  * probe_kernel_write(): safely attempt to write to a location
-@@ -336,7 +335,6 @@ extern long __probe_user_read(void *dst,
-  * happens, handle that and return -EFAULT.
-  */
+-/*
+- * probe_kernel_write(): safely attempt to write to a location
+- * @dst: address to write to
+- * @src: pointer to the data that shall be written
+- * @size: size of the data chunk
+- *
+- * Safely write to address @dst from the buffer at @src.  If a kernel fault
+- * happens, handle that and return -EFAULT.
+- */
  extern long notrace probe_kernel_write(void *dst, const void *src, size_t size);
--extern long notrace __probe_kernel_write(void *dst, const void *src, size_t size);
- 
- /*
-  * probe_user_write(): safely attempt to write to a location in user space
-@@ -348,7 +346,6 @@ extern long notrace __probe_kernel_write
-  * happens, handle that and return -EFAULT.
-  */
+-
+-/*
+- * probe_user_write(): safely attempt to write to a location in user space
+- * @dst: address to write to
+- * @src: pointer to the data that shall be written
+- * @size: size of the data chunk
+- *
+- * Safely write to address @dst from the buffer at @src.  If a kernel fault
+- * happens, handle that and return -EFAULT.
+- */
  extern long notrace probe_user_write(void __user *dst, const void *src, size_t size);
--extern long notrace __probe_user_write(void __user *dst, const void *src, size_t size);
  
  extern long strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count);
- extern long strncpy_from_unsafe_strict(char *dst, const void *unsafe_addr,
---- a/mm/maccess.c~maccess-remove-various-unused-weak-aliases
-+++ a/mm/maccess.c
-@@ -79,11 +79,7 @@ EXPORT_SYMBOL_GPL(probe_kernel_read);
-  * Safely read from user address @src to the buffer at @dst. If a kernel fault
-  * happens, handle that and return -EFAULT.
-  */
--
--long __weak probe_user_read(void *dst, const void __user *src, size_t size)
--    __attribute__((alias("__probe_user_read")));
--
--long __probe_user_read(void *dst, const void __user *src, size_t size)
-+long probe_user_read(void *dst, const void __user *src, size_t size)
- {
- 	long ret = -EFAULT;
- 	mm_segment_t old_fs = get_fs();
-@@ -106,11 +102,7 @@ EXPORT_SYMBOL_GPL(probe_user_read);
-  * Safely write to address @dst from the buffer at @src.  If a kernel fault
-  * happens, handle that and return -EFAULT.
-  */
--
--long __weak probe_kernel_write(void *dst, const void *src, size_t size)
--    __attribute__((alias("__probe_kernel_write")));
--
--long __probe_kernel_write(void *dst, const void *src, size_t size)
-+long probe_kernel_write(void *dst, const void *src, size_t size)
- {
- 	long ret;
- 	mm_segment_t old_fs = get_fs();
-@@ -131,11 +123,7 @@ long __probe_kernel_write(void *dst, con
-  * Safely write to address @dst from the buffer at @src.  If a kernel fault
-  * happens, handle that and return -EFAULT.
-  */
--
--long __weak probe_user_write(void __user *dst, const void *src, size_t size)
--    __attribute__((alias("__probe_user_write")));
--
--long __probe_user_write(void __user *dst, const void *src, size_t size)
-+long probe_user_write(void __user *dst, const void *src, size_t size)
- {
- 	long ret = -EFAULT;
- 	mm_segment_t old_fs = get_fs();
-@@ -171,7 +159,6 @@ long __probe_user_write(void __user *dst
-  * probing memory on a user address range where strncpy_from_unsafe_user() is
-  * supposed to be used instead.
-  */
--
- long __weak strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count)
-     __attribute__((alias("__strncpy_from_unsafe")));
- 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
