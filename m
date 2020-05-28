@@ -1,50 +1,53 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 4/5] fs/binfmt_elf.c: allocate initialized memory
- in fill_thread_core_info()
-Date: Wed, 27 May 2020 22:20:52 -0700
-Message-ID: <20200528052052.tLpI_z4pp%akpm@linux-foundation.org>
+Subject: [patch 5/5] include/asm-generic/topology.h: guard
+ cpumask_of_node() macro argument
+Date: Wed, 27 May 2020 22:20:55 -0700
+Message-ID: <20200528052055.nbIbqxl2c%akpm@linux-foundation.org>
 References: <20200527222015.62ba8592af63dae12ab58ffe@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45446 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45518 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725764AbgE1FUx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 28 May 2020 01:20:53 -0400
+        id S1725764AbgE1FU4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 28 May 2020 01:20:56 -0400
 In-Reply-To: <20200527222015.62ba8592af63dae12ab58ffe@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, akpm@linux-foundation.org, glider@google.com, keescook@chromium.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, sunhaoyl@outlook.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, arnd@arndb.de, linux-mm@kvack.org, linux@roeck-us.net, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Alexander Potapenko <glider@google.com>
-Subject: fs/binfmt_elf.c: allocate initialized memory in fill_thread_core_info()
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: include/asm-generic/topology.h: guard cpumask_of_node() macro argument
 
-KMSAN reported uninitialized data being written to disk when dumping core.
-As a result, several kilobytes of kmalloc memory may be written to the
-core file and then read by a non-privileged user.
+drivers/hwmon/amd_energy.c:195:15: error: invalid operands to binary expression ('void' and 'int')
+                                        (channel - data->nr_cpus));
+                                        ~~~~~~~~~^~~~~~~~~~~~~~~~~
+include/asm-generic/topology.h:51:42: note: expanded from macro 'cpumask_of_node'
+    #define cpumask_of_node(node)       ((void)node, cpu_online_mask)
+                                               ^~~~
+include/linux/cpumask.h:618:72: note: expanded from macro 'cpumask_first_and'
+ #define cpumask_first_and(src1p, src2p) cpumask_next_and(-1, (src1p), (src2p))
+                                                                       ^~~~~
 
-Link: http://lkml.kernel.org/r/20200419100848.63472-1-glider@google.com
-Link: https://github.com/google/kmsan/issues/76
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reported-by: sam <sunhaoyl@outlook.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200527134623.930247-1-arnd@arndb.de
+Fixes: f0b848ce6fe9 ("cpumask: Introduce cpumask_of_{node,pcibus} to replace {node,pcibus}_to_cpumask")
+Fixes: 8abee9566b7e ("hwmon: Add amd_energy driver to report energy counters")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
+ include/asm-generic/topology.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/binfmt_elf.c~fs-binfmt_elfc-allocate-initialized-memory-in-fill_thread_core_info
-+++ a/fs/binfmt_elf.c
-@@ -1733,7 +1733,7 @@ static int fill_thread_core_info(struct
- 		    (!regset->active || regset->active(t->task, regset) > 0)) {
- 			int ret;
- 			size_t size = regset_size(t->task, regset);
--			void *data = kmalloc(size, GFP_KERNEL);
-+			void *data = kzalloc(size, GFP_KERNEL);
- 			if (unlikely(!data))
- 				return 0;
- 			ret = regset->get(t->task, regset,
+--- a/include/asm-generic/topology.h~cpumask-guard-cpumask_of_node-macro-argument
++++ a/include/asm-generic/topology.h
+@@ -48,7 +48,7 @@
+   #ifdef CONFIG_NEED_MULTIPLE_NODES
+     #define cpumask_of_node(node)	((node) == 0 ? cpu_online_mask : cpu_none_mask)
+   #else
+-    #define cpumask_of_node(node)	((void)node, cpu_online_mask)
++    #define cpumask_of_node(node)	((void)(node), cpu_online_mask)
+   #endif
+ #endif
+ #ifndef pcibus_to_node
 _
