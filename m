@@ -1,16 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- maccess-unexport-probe_kernel_write-and-probe_user_write.patch added to -mm
- tree
-Date: Wed, 27 May 2020 17:36:46 -0700
-Message-ID: <20200528003646.wraIitg6Z%akpm@linux-foundation.org>
+Subject: + maccess-remove-various-unused-weak-aliases.patch added
+ to -mm tree
+Date: Wed, 27 May 2020 17:36:51 -0700
+Message-ID: <20200528003651.s4F1F6n34%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57750 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57830 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725960AbgE1Ags (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 20:36:48 -0400
+        id S1725826AbgE1Agx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 20:36:53 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@ke
 
 
 The patch titled
-     Subject: maccess: unexport probe_kernel_write and probe_user_write
+     Subject: maccess: remove various unused weak aliases
 has been added to the -mm tree.  Its filename is
-     maccess-unexport-probe_kernel_write-and-probe_user_write.patch
+     maccess-remove-various-unused-weak-aliases.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maccess-unexport-probe_kernel_write-and-probe_user_write.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maccess-remove-various-unused-weak-aliases.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maccess-unexport-probe_kernel_write-and-probe_user_write.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maccess-remove-various-unused-weak-aliases.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,61 +39,102 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: maccess: unexport probe_kernel_write and probe_user_write
+Subject: maccess: remove various unused weak aliases
 
-Patch series "clean up and streamline probe_kernel_* and friends", v4.
+maccess tends to define lots of underscore prefixed symbols that then
+have other weak aliases.  But except for two cases they are never
+actually used, so remove them.
 
-This series start cleaning up the safe kernel and user memory probing
-helpers in mm/maccess.c, and then allows architectures to implement the
-kernel probing without overriding the address space limit and temporarily
-allowing access to user memory.  It then switches x86 over to this new
-mechanism by reusing the unsafe_* uaccess logic.
-
-This version also switches to the saner copy_{from,to}_kernel_nofault
-naming suggested by Linus.
-
-I kept the x86 helpers as-is without calling unsage_{get,put}_user as that
-avoids a number of hard to trace casts, and it will still work with the
-asm-goto based version easily.
-
-
-This patch (of 20):
-
-These two functions are not used by any modular code.
-
-Link: http://lkml.kernel.org/r/20200521152301.2587579-1-hch@lst.de
-Link: http://lkml.kernel.org/r/20200521152301.2587579-2-hch@lst.de
+Link: http://lkml.kernel.org/r/20200521152301.2587579-3-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/maccess.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/uaccess.h |    3 ---
+ mm/maccess.c            |   19 +++----------------
+ 2 files changed, 3 insertions(+), 19 deletions(-)
 
---- a/mm/maccess.c~maccess-unexport-probe_kernel_write-and-probe_user_write
+--- a/include/linux/uaccess.h~maccess-remove-various-unused-weak-aliases
++++ a/include/linux/uaccess.h
+@@ -324,7 +324,6 @@ extern long __probe_kernel_read(void *ds
+  * happens, handle that and return -EFAULT.
+  */
+ extern long probe_user_read(void *dst, const void __user *src, size_t size);
+-extern long __probe_user_read(void *dst, const void __user *src, size_t size);
+ 
+ /*
+  * probe_kernel_write(): safely attempt to write to a location
+@@ -336,7 +335,6 @@ extern long __probe_user_read(void *dst,
+  * happens, handle that and return -EFAULT.
+  */
+ extern long notrace probe_kernel_write(void *dst, const void *src, size_t size);
+-extern long notrace __probe_kernel_write(void *dst, const void *src, size_t size);
+ 
+ /*
+  * probe_user_write(): safely attempt to write to a location in user space
+@@ -348,7 +346,6 @@ extern long notrace __probe_kernel_write
+  * happens, handle that and return -EFAULT.
+  */
+ extern long notrace probe_user_write(void __user *dst, const void *src, size_t size);
+-extern long notrace __probe_user_write(void __user *dst, const void *src, size_t size);
+ 
+ extern long strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count);
+ extern long strncpy_from_unsafe_strict(char *dst, const void *unsafe_addr,
+--- a/mm/maccess.c~maccess-remove-various-unused-weak-aliases
 +++ a/mm/maccess.c
-@@ -121,7 +121,6 @@ long __probe_kernel_write(void *dst, con
+@@ -79,11 +79,7 @@ EXPORT_SYMBOL_GPL(probe_kernel_read);
+  * Safely read from user address @src to the buffer at @dst. If a kernel fault
+  * happens, handle that and return -EFAULT.
+  */
+-
+-long __weak probe_user_read(void *dst, const void __user *src, size_t size)
+-    __attribute__((alias("__probe_user_read")));
+-
+-long __probe_user_read(void *dst, const void __user *src, size_t size)
++long probe_user_read(void *dst, const void __user *src, size_t size)
+ {
+ 	long ret = -EFAULT;
+ 	mm_segment_t old_fs = get_fs();
+@@ -106,11 +102,7 @@ EXPORT_SYMBOL_GPL(probe_user_read);
+  * Safely write to address @dst from the buffer at @src.  If a kernel fault
+  * happens, handle that and return -EFAULT.
+  */
+-
+-long __weak probe_kernel_write(void *dst, const void *src, size_t size)
+-    __attribute__((alias("__probe_kernel_write")));
+-
+-long __probe_kernel_write(void *dst, const void *src, size_t size)
++long probe_kernel_write(void *dst, const void *src, size_t size)
+ {
+ 	long ret;
+ 	mm_segment_t old_fs = get_fs();
+@@ -131,11 +123,7 @@ long __probe_kernel_write(void *dst, con
+  * Safely write to address @dst from the buffer at @src.  If a kernel fault
+  * happens, handle that and return -EFAULT.
+  */
+-
+-long __weak probe_user_write(void __user *dst, const void *src, size_t size)
+-    __attribute__((alias("__probe_user_write")));
+-
+-long __probe_user_write(void __user *dst, const void *src, size_t size)
++long probe_user_write(void __user *dst, const void *src, size_t size)
+ {
+ 	long ret = -EFAULT;
+ 	mm_segment_t old_fs = get_fs();
+@@ -171,7 +159,6 @@ long __probe_user_write(void __user *dst
+  * probing memory on a user address range where strncpy_from_unsafe_user() is
+  * supposed to be used instead.
+  */
+-
+ long __weak strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count)
+     __attribute__((alias("__strncpy_from_unsafe")));
  
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(probe_kernel_write);
- 
- /**
-  * probe_user_write(): safely attempt to write to a user-space location
-@@ -148,7 +147,6 @@ long __probe_user_write(void __user *dst
- 
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(probe_user_write);
- 
- /**
-  * strncpy_from_unsafe: - Copy a NUL terminated string from unsafe address.
 _
 
 Patches currently in -mm which might be from hch@lst.de are
