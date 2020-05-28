@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault.patch added to
- -mm tree
-Date: Wed, 27 May 2020 17:37:10 -0700
-Message-ID: <20200528003710.fKPRwKZ76%akpm@linux-foundation.org>
+ maccess-remove-probe_read_common-and-probe_write_common.patch added to -mm
+ tree
+Date: Wed, 27 May 2020 17:37:13 -0700
+Message-ID: <20200528003713.kF6-KhStc%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58144 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58188 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725267AbgE1AhM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 20:37:12 -0400
+        id S1725267AbgE1AhP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 20:37:15 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@ke
 
 
 The patch titled
-     Subject: maccess: rename strnlen_unsafe_user to strnlen_user_nofault
+     Subject: maccess: remove probe_read_common and probe_write_common
 has been added to the -mm tree.  Its filename is
-     maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault.patch
+     maccess-remove-probe_read_common-and-probe_write_common.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maccess-remove-probe_read_common-and-probe_write_common.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maccess-remove-probe_read_common-and-probe_write_common.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: maccess: rename strnlen_unsafe_user to strnlen_user_nofault
+Subject: maccess: remove probe_read_common and probe_write_common
 
-This matches the naming of strnlen_user, and also makes it more clear
-what the function is supposed to do.
+Each of the helpers has just two callers, which also different in
+dealing with kernel or userspace pointers.  Just open code the logic
+in the callers.
 
-Link: http://lkml.kernel.org/r/20200521152301.2587579-9-hch@lst.de
+Link: http://lkml.kernel.org/r/20200521152301.2587579-10-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
@@ -56,53 +57,117 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h     |    2 +-
- kernel/trace/trace_kprobe.c |    2 +-
- mm/maccess.c                |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ mm/maccess.c |   63 ++++++++++++++++++++++---------------------------
+ 1 file changed, 29 insertions(+), 34 deletions(-)
 
---- a/include/linux/uaccess.h~maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault
-+++ a/include/linux/uaccess.h
-@@ -315,7 +315,7 @@ long strncpy_from_kernel_nofault(char *d
- extern long __strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count);
- long strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
- 		long count);
--extern long strnlen_unsafe_user(const void __user *unsafe_addr, long count);
-+long strnlen_user_nofault(const void __user *unsafe_addr, long count);
- 
- /**
-  * probe_kernel_address(): safely attempt to read from a location
---- a/kernel/trace/trace_kprobe.c~maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault
-+++ a/kernel/trace/trace_kprobe.c
-@@ -1221,7 +1221,7 @@ fetch_store_strlen_user(unsigned long ad
- {
- 	const void __user *uaddr =  (__force const void __user *)addr;
- 
--	return strnlen_unsafe_user(uaddr, MAX_STRING_SIZE);
-+	return strnlen_user_nofault(uaddr, MAX_STRING_SIZE);
- }
- 
- /*
---- a/mm/maccess.c~maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault
+--- a/mm/maccess.c~maccess-remove-probe_read_common-and-probe_write_common
 +++ a/mm/maccess.c
-@@ -259,7 +259,7 @@ long strncpy_from_user_nofault(char *dst
+@@ -6,30 +6,6 @@
+ #include <linux/mm.h>
+ #include <linux/uaccess.h>
+ 
+-static __always_inline long
+-probe_read_common(void *dst, const void __user *src, size_t size)
+-{
+-	long ret;
+-
+-	pagefault_disable();
+-	ret = __copy_from_user_inatomic(dst, src, size);
+-	pagefault_enable();
+-
+-	return ret ? -EFAULT : 0;
+-}
+-
+-static __always_inline long
+-probe_write_common(void __user *dst, const void *src, size_t size)
+-{
+-	long ret;
+-
+-	pagefault_disable();
+-	ret = __copy_to_user_inatomic(dst, src, size);
+-	pagefault_enable();
+-
+-	return ret ? -EFAULT : 0;
+-}
+-
+ /**
+  * probe_kernel_read(): safely attempt to read from any location
+  * @dst: pointer to the buffer that shall take the data
+@@ -70,10 +46,15 @@ long __probe_kernel_read(void *dst, cons
+ 	mm_segment_t old_fs = get_fs();
+ 
+ 	set_fs(KERNEL_DS);
+-	ret = probe_read_common(dst, (__force const void __user *)src, size);
++	pagefault_disable();
++	ret = __copy_from_user_inatomic(dst, (__force const void __user *)src,
++			size);
++	pagefault_enable();
+ 	set_fs(old_fs);
+ 
+-	return ret;
++	if (ret)
++		return -EFAULT;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(probe_kernel_read);
+ 
+@@ -92,11 +73,16 @@ long probe_user_read(void *dst, const vo
+ 	mm_segment_t old_fs = get_fs();
+ 
+ 	set_fs(USER_DS);
+-	if (access_ok(src, size))
+-		ret = probe_read_common(dst, src, size);
++	if (access_ok(src, size)) {
++		pagefault_disable();
++		ret = __copy_from_user_inatomic(dst, src, size);
++		pagefault_enable();
++	}
+ 	set_fs(old_fs);
+ 
+-	return ret;
++	if (ret)
++		return -EFAULT;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(probe_user_read);
+ 
+@@ -115,10 +101,14 @@ long probe_kernel_write(void *dst, const
+ 	mm_segment_t old_fs = get_fs();
+ 
+ 	set_fs(KERNEL_DS);
+-	ret = probe_write_common((__force void __user *)dst, src, size);
++	pagefault_disable();
++	ret = __copy_to_user_inatomic((__force void __user *)dst, src, size);
++	pagefault_enable();
+ 	set_fs(old_fs);
+ 
+-	return ret;
++	if (ret)
++		return -EFAULT;
++	return 0;
  }
  
  /**
-- * strnlen_unsafe_user: - Get the size of a user string INCLUDING final NUL.
-+ * strnlen_user_nofault: - Get the size of a user string INCLUDING final NUL.
-  * @unsafe_addr: The string to measure.
-  * @count: Maximum count (including NUL)
-  *
-@@ -274,7 +274,7 @@ long strncpy_from_user_nofault(char *dst
-  * Unlike strnlen_user, this can be used from IRQ handler etc. because
-  * it disables pagefaults.
-  */
--long strnlen_unsafe_user(const void __user *unsafe_addr, long count)
-+long strnlen_user_nofault(const void __user *unsafe_addr, long count)
- {
+@@ -136,11 +126,16 @@ long probe_user_write(void __user *dst,
  	mm_segment_t old_fs = get_fs();
- 	int ret;
+ 
+ 	set_fs(USER_DS);
+-	if (access_ok(dst, size))
+-		ret = probe_write_common(dst, src, size);
++	if (access_ok(dst, size)) {
++		pagefault_disable();
++		ret = __copy_to_user_inatomic(dst, src, size);
++		pagefault_enable();
++	}
+ 	set_fs(old_fs);
+ 
+-	return ret;
++	if (ret)
++		return -EFAULT;
++	return 0;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from hch@lst.de are
