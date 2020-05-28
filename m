@@ -1,17 +1,17 @@
-From: akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- =?US-ASCII?Q?x86-use-non-set=5Ffs-based-maccess-routines-x86-use-non-set?=
- =?US-ASCII?Q?=5Ffs-based-maccess-routines.patch?= added to -mm tree
-Date: Wed, 27 May 2020 17:39:56 -0700
-Message-ID: <20200528003956.6qYzARIqn%akpm@linux-foundation.org>
+ x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch added to
+ -mm tree
+Date: Wed, 27 May 2020 17:45:06 -0700
+Message-ID: <20200528004506.k87fLmWT-%akpm@linux-foundation.org>
+References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59522 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725267AbgE1Aj6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 20:39:58 -0400
+        id S1725768AbgE1ApI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 20:45:08 -0400
+In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org
@@ -20,12 +20,12 @@ To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org
 The patch titled
      Subject: x86-use-non-set_fs-based-maccess-routines-x86-use-non-set_fs-based-maccess-routines
 has been added to the -mm tree.  Its filename is
-     x86-use-non-set_fs-based-maccess-routines-x86-use-non-set_fs-based-maccess-routines.patch
+     x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-use-non-set_fs-based-maccess-routines-x86-use-non-set_fs-based-maccess-routines.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-use-non-set_fs-based-maccess-routines-x86-use-non-set_fs-based-maccess-routines.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -92,7 +92,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  arch/x86/include/asm/uaccess.h |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/x86/include/asm/uaccess.h~x86-use-non-set_fs-based-maccess-routines-x86-use-non-set_fs-based-maccess-routines
+--- a/arch/x86/include/asm/uaccess.h~x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes
 +++ a/arch/x86/include/asm/uaccess.h
 @@ -527,11 +527,11 @@ do {									\
  
@@ -155,6 +155,6 @@ mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
 mm-pass-task-and-mm-to-do_madvise.patch
 mm-introduce-external-memory-hinting-api-fix-2-fix.patch
 mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-x86-use-non-set_fs-based-maccess-routines-x86-use-non-set_fs-based-maccess-routines.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
 doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
