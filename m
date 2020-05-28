@@ -1,16 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- maccess-always-use-strict-semantics-for-probe_kernel_read.patch added to
- -mm tree
-Date: Wed, 27 May 2020 17:37:34 -0700
-Message-ID: <20200528003734.ESp3enZst%akpm@linux-foundation.org>
+Subject: + maccess-move-user-access-routines-together.patch added
+ to -mm tree
+Date: Wed, 27 May 2020 17:37:38 -0700
+Message-ID: <20200528003738.3O0krgC5u%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58554 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58622 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725267AbgE1Ahg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 20:37:36 -0400
+        id S1725267AbgE1Ahk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 20:37:40 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +17,14 @@ To: ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@ke
 
 
 The patch titled
-     Subject: maccess: always use strict semantics for probe_kernel_read
+     Subject: maccess: move user access routines together
 has been added to the -mm tree.  Its filename is
-     maccess-always-use-strict-semantics-for-probe_kernel_read.patch
+     maccess-move-user-access-routines-together.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maccess-always-use-strict-semantics-for-probe_kernel_read.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maccess-move-user-access-routines-together.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maccess-always-use-strict-semantics-for-probe_kernel_read.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maccess-move-user-access-routines-together.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: maccess: always use strict semantics for probe_kernel_read
+Subject: maccess: move user access routines together
 
-Except for historical confusion in the kprobes/uprobes and bpf tracers,
-which has been fixed now, there is no good reason to ever allow user
-memory accesses from probe_kernel_read.  Switch probe_kernel_read to only
-read from kernel memory.
+Move kernel access vs user access routines together to ease upcoming
+ifdefs.
 
-Link: http://lkml.kernel.org/r/20200521152301.2587579-17-hch@lst.de
+Link: http://lkml.kernel.org/r/20200521152301.2587579-18-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
@@ -58,191 +55,142 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/lib/memcpy.c    |    2 -
- arch/um/kernel/maccess.c    |    2 -
- arch/x86/mm/maccess.c       |    9 +------
- include/linux/uaccess.h     |    4 ---
- kernel/trace/bpf_trace.c    |    2 -
- kernel/trace/trace_kprobe.c |    4 +--
- mm/maccess.c                |   40 +++++-----------------------------
- 7 files changed, 14 insertions(+), 49 deletions(-)
+ mm/maccess.c |  110 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 55 insertions(+), 55 deletions(-)
 
---- a/arch/parisc/lib/memcpy.c~maccess-always-use-strict-semantics-for-probe_kernel_read
-+++ a/arch/parisc/lib/memcpy.c
-@@ -57,7 +57,7 @@ void * memcpy(void * dst,const void *src
- EXPORT_SYMBOL(raw_copy_in_user);
- EXPORT_SYMBOL(memcpy);
- 
--bool probe_kernel_read_allowed(const void *unsafe_src, size_t size, bool strict)
-+bool probe_kernel_read_allowed(const void *unsafe_src, size_t size)
- {
- 	if ((unsigned long)unsafe_src < PAGE_SIZE)
- 		return false;
---- a/arch/um/kernel/maccess.c~maccess-always-use-strict-semantics-for-probe_kernel_read
-+++ a/arch/um/kernel/maccess.c
-@@ -7,7 +7,7 @@
- #include <linux/kernel.h>
- #include <os.h>
- 
--bool probe_kernel_read_allowed(const void *src, size_t size, bool strict)
-+bool probe_kernel_read_allowed(const void *src, size_t size)
- {
- 	void *psrc = (void *)rounddown((unsigned long)src, PAGE_SIZE);
- 
---- a/arch/x86/mm/maccess.c~maccess-always-use-strict-semantics-for-probe_kernel_read
-+++ a/arch/x86/mm/maccess.c
-@@ -9,13 +9,10 @@ static __always_inline u64 canonical_add
- 	return ((s64)vaddr << (64 - vaddr_bits)) >> (64 - vaddr_bits);
- }
- 
--bool probe_kernel_read_allowed(const void *unsafe_src, size_t size, bool strict)
-+bool probe_kernel_read_allowed(const void *unsafe_src, size_t size)
- {
- 	unsigned long vaddr = (unsigned long)unsafe_src;
- 
--	if (!strict)
--		return true;
--
- 	/*
- 	 * Range covering the highest possible canonical userspace address
- 	 * as well as non-canonical address range. For the canonical range
-@@ -25,10 +22,8 @@ bool probe_kernel_read_allowed(const voi
- 	       canonical_address(vaddr, boot_cpu_data.x86_virt_bits) == vaddr;
- }
- #else
--bool probe_kernel_read_allowed(const void *unsafe_src, size_t size, bool strict)
-+bool probe_kernel_read_allowed(const void *unsafe_src, size_t size)
- {
--	if (!strict)
--		return true;
- 	return (unsigned long)vaddr >= TASK_SIZE_MAX;
- }
- #endif
---- a/include/linux/uaccess.h~maccess-always-use-strict-semantics-for-probe_kernel_read
-+++ a/include/linux/uaccess.h
-@@ -301,11 +301,9 @@ copy_struct_from_user(void *dst, size_t
- 	return 0;
- }
- 
--bool probe_kernel_read_allowed(const void *unsafe_src, size_t size,
--		bool strict);
-+bool probe_kernel_read_allowed(const void *unsafe_src, size_t size);
- 
- extern long probe_kernel_read(void *dst, const void *src, size_t size);
--extern long probe_kernel_read_strict(void *dst, const void *src, size_t size);
- extern long probe_user_read(void *dst, const void __user *src, size_t size);
- 
- extern long notrace probe_kernel_write(void *dst, const void *src, size_t size);
---- a/kernel/trace/bpf_trace.c~maccess-always-use-strict-semantics-for-probe_kernel_read
-+++ a/kernel/trace/bpf_trace.c
-@@ -196,7 +196,7 @@ bpf_probe_read_kernel_common(void *dst,
- 
- 	if (unlikely(ret < 0))
- 		goto fail;
--	ret = probe_kernel_read_strict(dst, unsafe_ptr, size);
-+	ret = probe_kernel_read(dst, unsafe_ptr, size);
- 	if (unlikely(ret < 0))
- 		goto fail;
- 	return ret;
---- a/kernel/trace/trace_kprobe.c~maccess-always-use-strict-semantics-for-probe_kernel_read
-+++ a/kernel/trace/trace_kprobe.c
-@@ -1222,7 +1222,7 @@ fetch_store_strlen(unsigned long addr)
- #endif
- 
- 	do {
--		ret = probe_kernel_read_strict(&c, (u8 *)addr + len, 1);
-+		ret = probe_kernel_read(&c, (u8 *)addr + len, 1);
- 		len++;
- 	} while (c && ret == 0 && len < MAX_STRING_SIZE);
- 
-@@ -1300,7 +1300,7 @@ probe_mem_read(void *dest, void *src, si
- 	if ((unsigned long)src < TASK_SIZE)
- 		return probe_mem_read_user(dest, src, size);
- #endif
--	return probe_kernel_read_strict(dest, src, size);
-+	return probe_kernel_read(dest, src, size);
- }
- 
- /* Note that we don't verify it, since the code does not come from user space */
---- a/mm/maccess.c~maccess-always-use-strict-semantics-for-probe_kernel_read
+--- a/mm/maccess.c~maccess-move-user-access-routines-together
 +++ a/mm/maccess.c
-@@ -6,36 +6,13 @@
- #include <linux/mm.h>
- #include <linux/uaccess.h>
- 
--static long __probe_kernel_read(void *dst, const void *src, size_t size,
--		bool strict);
--
--bool __weak probe_kernel_read_allowed(const void *unsafe_src, size_t size,
--		bool strict)
-+bool __weak probe_kernel_read_allowed(const void *unsafe_src, size_t size)
- {
- 	return true;
- }
+@@ -47,34 +47,6 @@ long probe_kernel_read(void *dst, const
+ EXPORT_SYMBOL_GPL(probe_kernel_read);
  
  /**
-- * probe_kernel_read(): safely attempt to read from any location
+- * probe_user_read(): safely attempt to read from a user-space location
 - * @dst: pointer to the buffer that shall take the data
-- * @src: address to read from
+- * @src: address to read from. This must be a user address.
 - * @size: size of the data chunk
 - *
-- * Same as probe_kernel_read_strict() except that for architectures with
-- * not fully separated user and kernel address spaces this function also works
-- * for user address tanges.
-- *
-- * DO NOT USE THIS FUNCTION - it is broken on architectures with entirely
-- * separate kernel and user address spaces, and also a bad idea otherwise.
+- * Safely read from user address @src to the buffer at @dst. If a kernel fault
+- * happens, handle that and return -EFAULT.
 - */
--long probe_kernel_read(void *dst, const void *src, size_t size)
+-long probe_user_read(void *dst, const void __user *src, size_t size)
 -{
--	return __probe_kernel_read(dst, src, size, false);
+-	long ret = -EFAULT;
+-	mm_segment_t old_fs = get_fs();
+-
+-	set_fs(USER_DS);
+-	if (access_ok(src, size)) {
+-		pagefault_disable();
+-		ret = __copy_from_user_inatomic(dst, src, size);
+-		pagefault_enable();
+-	}
+-	set_fs(old_fs);
+-
+-	if (ret)
+-		return -EFAULT;
+-	return 0;
 -}
--EXPORT_SYMBOL_GPL(probe_kernel_read);
+-EXPORT_SYMBOL_GPL(probe_user_read);
 -
 -/**
-- * probe_kernel_read_strict(): safely attempt to read from kernel-space
-+ * probe_kernel_read(): safely attempt to read from kernel-space
-  * @dst: pointer to the buffer that shall take the data
-  * @src: address to read from
-  * @size: size of the data chunk
-@@ -48,18 +25,12 @@ EXPORT_SYMBOL_GPL(probe_kernel_read);
-  * probe_kernel_read() suitable for use within regions where the caller
-  * already holds mmap_lock, or other locks which nest inside mmap_lock.
-  */
--long probe_kernel_read_strict(void *dst, const void *src, size_t size)
--{
--	return __probe_kernel_read(dst, src, size, true);
--}
--
--static long __probe_kernel_read(void *dst, const void *src, size_t size,
--		bool strict)
-+long probe_kernel_read(void *dst, const void *src, size_t size)
- {
- 	long ret;
- 	mm_segment_t old_fs = get_fs();
- 
--	if (!probe_kernel_read_allowed(src, size, strict))
-+	if (!probe_kernel_read_allowed(src, size))
- 		return -EFAULT;
- 
- 	set_fs(KERNEL_DS);
-@@ -73,6 +44,7 @@ static long __probe_kernel_read(void *ds
- 		return -EFAULT;
- 	return 0;
+  * probe_kernel_write(): safely attempt to write to a location
+  * @dst: address to write to
+  * @src: pointer to the data that shall be written
+@@ -100,33 +72,6 @@ long probe_kernel_write(void *dst, const
  }
-+EXPORT_SYMBOL_GPL(probe_kernel_read);
  
  /**
-  * probe_user_read(): safely attempt to read from a user-space location
-@@ -180,7 +152,7 @@ long strncpy_from_kernel_nofault(char *d
+- * probe_user_write(): safely attempt to write to a user-space location
+- * @dst: address to write to
+- * @src: pointer to the data that shall be written
+- * @size: size of the data chunk
+- *
+- * Safely write to address @dst from the buffer at @src.  If a kernel fault
+- * happens, handle that and return -EFAULT.
+- */
+-long probe_user_write(void __user *dst, const void *src, size_t size)
+-{
+-	long ret = -EFAULT;
+-	mm_segment_t old_fs = get_fs();
+-
+-	set_fs(USER_DS);
+-	if (access_ok(dst, size)) {
+-		pagefault_disable();
+-		ret = __copy_to_user_inatomic(dst, src, size);
+-		pagefault_enable();
+-	}
+-	set_fs(old_fs);
+-
+-	if (ret)
+-		return -EFAULT;
+-	return 0;
+-}
+-
+-/**
+  * strncpy_from_kernel_nofault: - Copy a NUL terminated string from unsafe
+  *				 address.
+  * @dst:   Destination address, in kernel space.  This buffer must be at
+@@ -170,6 +115,61 @@ long strncpy_from_kernel_nofault(char *d
+ }
  
- 	if (unlikely(count <= 0))
- 		return 0;
--	if (!probe_kernel_read_allowed(unsafe_addr, count, true))
-+	if (!probe_kernel_read_allowed(unsafe_addr, count))
- 		return -EFAULT;
- 
- 	set_fs(KERNEL_DS);
+ /**
++ * probe_user_read(): safely attempt to read from a user-space location
++ * @dst: pointer to the buffer that shall take the data
++ * @src: address to read from. This must be a user address.
++ * @size: size of the data chunk
++ *
++ * Safely read from user address @src to the buffer at @dst. If a kernel fault
++ * happens, handle that and return -EFAULT.
++ */
++long probe_user_read(void *dst, const void __user *src, size_t size)
++{
++	long ret = -EFAULT;
++	mm_segment_t old_fs = get_fs();
++
++	set_fs(USER_DS);
++	if (access_ok(src, size)) {
++		pagefault_disable();
++		ret = __copy_from_user_inatomic(dst, src, size);
++		pagefault_enable();
++	}
++	set_fs(old_fs);
++
++	if (ret)
++		return -EFAULT;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(probe_user_read);
++
++/**
++ * probe_user_write(): safely attempt to write to a user-space location
++ * @dst: address to write to
++ * @src: pointer to the data that shall be written
++ * @size: size of the data chunk
++ *
++ * Safely write to address @dst from the buffer at @src.  If a kernel fault
++ * happens, handle that and return -EFAULT.
++ */
++long probe_user_write(void __user *dst, const void *src, size_t size)
++{
++	long ret = -EFAULT;
++	mm_segment_t old_fs = get_fs();
++
++	set_fs(USER_DS);
++	if (access_ok(dst, size)) {
++		pagefault_disable();
++		ret = __copy_to_user_inatomic(dst, src, size);
++		pagefault_enable();
++	}
++	set_fs(old_fs);
++
++	if (ret)
++		return -EFAULT;
++	return 0;
++}
++
++/**
+  * strncpy_from_user_nofault: - Copy a NUL terminated string from unsafe user
+  *				address.
+  * @dst:   Destination address, in kernel space.  This buffer must be at
 _
 
 Patches currently in -mm which might be from hch@lst.de are
