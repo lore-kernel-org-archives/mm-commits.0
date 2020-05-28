@@ -1,97 +1,50 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 3/5] mm: remove VM_BUG_ON(PageSlab()) from
- page_mapcount()
-Date: Wed, 27 May 2020 22:20:47 -0700
-Message-ID: <20200528052047.tDxIOLXzt%akpm@linux-foundation.org>
+Subject: [patch 4/5] fs/binfmt_elf.c: allocate initialized memory
+ in fill_thread_core_info()
+Date: Wed, 27 May 2020 22:20:52 -0700
+Message-ID: <20200528052052.tLpI_z4pp%akpm@linux-foundation.org>
 References: <20200527222015.62ba8592af63dae12ab58ffe@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45380 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725764AbgE1FUs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 28 May 2020 01:20:48 -0400
+        id S1725764AbgE1FUx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 28 May 2020 01:20:53 -0400
 In-Reply-To: <20200527222015.62ba8592af63dae12ab58ffe@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, rientjes@google.com, stable@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
+To: adobriyan@gmail.com, akpm@linux-foundation.org, glider@google.com, keescook@chromium.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, stable@vger.kernel.org, sunhaoyl@outlook.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm: remove VM_BUG_ON(PageSlab()) from page_mapcount()
+From: Alexander Potapenko <glider@google.com>
+Subject: fs/binfmt_elf.c: allocate initialized memory in fill_thread_core_info()
 
-Replace superfluous VM_BUG_ON() with comment about correct usage.
+KMSAN reported uninitialized data being written to disk when dumping core.
+As a result, several kilobytes of kmalloc memory may be written to the
+core file and then read by a non-privileged user.
 
-Technically reverts commit 1d148e218a0d0566b1c06f2f45f1436d53b049b2
-("mm: add VM_BUG_ON_PAGE() to page_mapcount()"), but context have changed.
-
-Function isolate_migratepages_block() runs some checks out of lru_lock
-when choose pages for migration.  After checking PageLRU() it checks extra
-page references by comparing page_count() and page_mapcount().  Between
-these two checks page could be removed from lru, freed and taken by slab.
-
-As a result this race triggers VM_BUG_ON(PageSlab()) in page_mapcount().
-Race window is tiny. For certain workload this happens around once a year.
-
- page:ffffea0105ca9380 count:1 mapcount:0 mapping:ffff88ff7712c180 index:0x0 compound_mapcount: 0
- flags: 0x500000000008100(slab|head)
- raw: 0500000000008100 dead000000000100 dead000000000200 ffff88ff7712c180
- raw: 0000000000000000 0000000080200020 00000001ffffffff 0000000000000000
- page dumped because: VM_BUG_ON_PAGE(PageSlab(page))
- ------------[ cut here ]------------
- kernel BUG at ./include/linux/mm.h:628!
- invalid opcode: 0000 [#1] SMP NOPTI
- CPU: 77 PID: 504 Comm: kcompactd1 Tainted: G        W         4.19.109-27 #1
- Hardware name: Yandex T175-N41-Y3N/MY81-EX0-Y3N, BIOS R05 06/20/2019
- RIP: 0010:isolate_migratepages_block+0x986/0x9b0
-
-Code in isolate_migratepages_block() was added in commit 119d6d59dcc0
-("mm, compaction: avoid isolating pinned pages") before adding VM_BUG_ON
-into page_mapcount().
-
-This race has been predicted in 2015 by Vlastimil Babka (see link below).
-
-[akpm@linux-foundation.org: comment tweaks, per Hugh]
-Link: http://lkml.kernel.org/r/159032779896.957378.7852761411265662220.stgit@buzz
-Link: https://lore.kernel.org/lkml/557710E1.6060103@suse.cz/
-Link: https://lore.kernel.org/linux-mm/158937872515.474360.5066096871639561424.stgit@buzz/T/ (v1)
-Fixes: 1d148e218a0d ("mm: add VM_BUG_ON_PAGE() to page_mapcount()")
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
+Link: http://lkml.kernel.org/r/20200419100848.63472-1-glider@google.com
+Link: https://github.com/google/kmsan/issues/76
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Reported-by: sam <sunhaoyl@outlook.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-remove-vm_bug_onpageslab-from-page_mapcount
-+++ a/include/linux/mm.h
-@@ -782,6 +782,11 @@ static inline void *kvcalloc(size_t n, s
- 
- extern void kvfree(const void *addr);
- 
-+/*
-+ * Mapcount of compound page as a whole, does not include mapped sub-pages.
-+ *
-+ * Must be called only for compound pages or any their tail sub-pages.
-+ */
- static inline int compound_mapcount(struct page *page)
- {
- 	VM_BUG_ON_PAGE(!PageCompound(page), page);
-@@ -801,10 +806,16 @@ static inline void page_mapcount_reset(s
- 
- int __page_mapcount(struct page *page);
- 
-+/*
-+ * Mapcount of 0-order page; when compound sub-page, includes
-+ * compound_mapcount().
-+ *
-+ * Result is undefined for pages which cannot be mapped into userspace.
-+ * For example SLAB or special types of pages. See function page_has_type().
-+ * They use this place in struct page differently.
-+ */
- static inline int page_mapcount(struct page *page)
- {
--	VM_BUG_ON_PAGE(PageSlab(page), page);
+--- a/fs/binfmt_elf.c~fs-binfmt_elfc-allocate-initialized-memory-in-fill_thread_core_info
++++ a/fs/binfmt_elf.c
+@@ -1733,7 +1733,7 @@ static int fill_thread_core_info(struct
+ 		    (!regset->active || regset->active(t->task, regset) > 0)) {
+ 			int ret;
+ 			size_t size = regset_size(t->task, regset);
+-			void *data = kmalloc(size, GFP_KERNEL);
++			void *data = kzalloc(size, GFP_KERNEL);
+ 			if (unlikely(!data))
+ 				return 0;
+ 			ret = regset->get(t->task, regset,
+_
