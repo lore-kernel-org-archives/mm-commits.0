@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch added
- to -mm tree
-Date: Wed, 27 May 2020 18:02:00 -0700
-Message-ID: <20200528010200.xDWQV6lnl%akpm@linux-foundation.org>
+ bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+ added to -mm tree
+Date: Wed, 27 May 2020 19:04:47 -0700
+Message-ID: <20200528020447.pnTwSEt0u%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37222 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725819AbgE1BCB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 21:02:01 -0400
+        id S1725849AbgE1CEs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 22:04:48 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de, vbabka@suse.cz
+To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: maccess-always-use-strict-semantics-for-probe_kernel_read-fix
+     Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
 has been added to the -mm tree.  Its filename is
-     maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+     bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maccess-always-use-strict-semantics-for-probe_kernel_read-fix
+Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
 
-update "maccess: always use strict semantics for probe_kernel_read"
-(http://lkml.kernel.org/r/20200331165454.12263-1-vbabka@suse.cz) for
-"mm, dump_page(): do not crash with invalid mapping pointer"
-(http://lkml.kernel.org/r/20200331165454.12263-1-vbabka@suse.cz).
+User the proper helper for kernel or userspace addresses based on
+TASK_SIZE instead of the dangerous strncpy_from_unsafe function.
 
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -58,42 +55,37 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/trace/bpf_trace.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
---- a/mm/debug.c~maccess-always-use-strict-semantics-for-probe_kernel_read-fix
-+++ a/mm/debug.c
-@@ -120,9 +120,9 @@ void __dump_page(struct page *page, cons
- 		 * mapping can be invalid pointer and we don't want to crash
- 		 * accessing it, so probe everything depending on it carefully
- 		 */
--		if (probe_kernel_read_strict(&host, &mapping->host,
--						sizeof(struct inode *)) ||
--		    probe_kernel_read_strict(&a_ops, &mapping->a_ops,
-+		if (probe_kernel_read(&host, &mapping->host,
-+					sizeof(struct inode *)) ||
-+		    probe_kernel_read(&a_ops, &mapping->a_ops,
- 				sizeof(struct address_space_operations *))) {
- 			pr_warn("failed to read mapping->host or a_ops, mapping not a valid kernel address?\n");
- 			goto out_mapping;
-@@ -133,7 +133,7 @@ void __dump_page(struct page *page, cons
- 			goto out_mapping;
+--- a/kernel/trace/bpf_trace.c~bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better
++++ a/kernel/trace/bpf_trace.c
+@@ -588,15 +588,22 @@ BPF_CALL_5(bpf_seq_printf, struct seq_fi
  		}
  
--		if (probe_kernel_read_strict(&dentry_first,
-+		if (probe_kernel_read(&dentry_first,
- 			&host->i_dentry.first, sizeof(struct hlist_node *))) {
- 			pr_warn("mapping->a_ops:%ps with invalid mapping->host inode address %px\n",
- 				a_ops, host);
-@@ -146,7 +146,7 @@ void __dump_page(struct page *page, cons
- 		}
+ 		if (fmt[i] == 's') {
++			void *unsafe_ptr;
++
+ 			/* try our best to copy */
+ 			if (memcpy_cnt >= MAX_SEQ_PRINTF_MAX_MEMCPY) {
+ 				err = -E2BIG;
+ 				goto out;
+ 			}
  
- 		dentry_ptr = container_of(dentry_first, struct dentry, d_u.d_alias);
--		if (probe_kernel_read_strict(&dentry, dentry_ptr,
-+		if (probe_kernel_read(&dentry, dentry_ptr,
- 							sizeof(struct dentry))) {
- 			pr_warn("mapping->aops:%ps with invalid mapping->host->i_dentry.first %px\n",
- 				a_ops, dentry_ptr);
+-			err = strncpy_from_unsafe(bufs->buf[memcpy_cnt],
+-						  (void *) (long) args[fmt_cnt],
+-						  MAX_SEQ_PRINTF_STR_LEN);
++			unsafe_ptr = (void *)(long)args[fmt_cnt];
++			if ((unsigned long)unsafe_ptr < TASK_SIZE) {
++				err = strncpy_from_user_nofault(
++					bufs->buf[memcpy_cnt], unsafe_ptr,
++					MAX_SEQ_PRINTF_STR_LEN);
++			} else {
++				err = -EFAULT;
++			}
+ 			if (err < 0)
+ 				bufs->buf[memcpy_cnt][0] = '\0';
+ 			params[fmt_cnt] = (u64)(long)bufs->buf[memcpy_cnt];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -142,6 +134,7 @@ mm-pass-task-and-mm-to-do_madvise.patch
 mm-introduce-external-memory-hinting-api-fix-2-fix.patch
 mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
 maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
 maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
 x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
 doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
