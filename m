@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-memory_failure-only-send-bus_mceerr_ao-to-early-kill-process.patch added
- to -mm tree
-Date: Wed, 27 May 2020 16:52:39 -0700
-Message-ID: <20200527235239.79ZbRwDPA%akpm@linux-foundation.org>
+ relay-handle-alloc_percpu-returning-null-in-relay_open.patch added to -mm
+ tree
+Date: Wed, 27 May 2020 17:10:24 -0700
+Message-ID: <20200528001024.1hGeX0ei-%akpm@linux-foundation.org>
 References: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47858 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50072 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725613AbgE0Xwn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 May 2020 19:52:43 -0400
+        id S1725267AbgE1AK1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 May 2020 20:10:27 -0400
 In-Reply-To: <20200522222217.ee14ad7eda7aab1e6697da6c@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, nao.horiguchi@gmail.com, naoya.horiguchi@nec.com, wetpzy@gmail.com
+To: ajd@linux.ibm.com, akash.goel@intel.com, carnil@debian.org, dja@axtens.net, linux@roeck-us.net, mm-commits@vger.kernel.org, mpe@ellerman.id.au, rientjes@google.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_failure: only send BUS_MCEERR_AO to early-kill process
+     Subject: kernel/relay.c: handle alloc_percpu returning NULL in relay_open
 has been added to the -mm tree.  Its filename is
-     mm-memory_failure-only-send-bus_mceerr_ao-to-early-kill-process.patch
+     relay-handle-alloc_percpu-returning-null-in-relay_open.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_failure-only-send-bus_mceerr_ao-to-early-kill-process.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/relay-handle-alloc_percpu-returning-null-in-relay_open.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_failure-only-send-bus_mceerr_ao-to-early-kill-process.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/relay-handle-alloc_percpu-returning-null-in-relay_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Yi <wetpzy@gmail.com>
-Subject: mm, memory_failure: only send BUS_MCEERR_AO to early-kill process
+From: Daniel Axtens <dja@axtens.net>
+Subject: kernel/relay.c: handle alloc_percpu returning NULL in relay_open
 
-If a process don't need early-kill, it may not care the BUS_MCEERR_AO. 
-Let the process to be killed when it really access the corrupted memory.
+alloc_percpu() may return NULL, which means chan->buf may be set to NULL. 
+In that case, when we do *per_cpu_ptr(chan->buf, ...), we dereference an
+invalid pointer:
 
-Link: http://lkml.kernel.org/r/1590476801-19882-1-git-send-email-wetp.zy@linux.alibaba.com
-Signed-off-by: Zhang Yi <wetpzy@gmail.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+BUG: Unable to handle kernel data access at 0x7dae0000
+Faulting instruction address: 0xc0000000003f3fec
+...
+NIP [c0000000003f3fec] relay_open+0x29c/0x600
+LR [c0000000003f3fc0] relay_open+0x270/0x600
+Call Trace:
+[c000000054353a70] [c0000000003f3fb4] relay_open+0x264/0x600 (unreliable)
+[c000000054353b00] [c000000000451764] __blk_trace_setup+0x254/0x600
+[c000000054353bb0] [c000000000451b78] blk_trace_setup+0x68/0xa0
+[c000000054353c10] [c0000000010da77c] sg_ioctl+0x7bc/0x2e80
+[c000000054353cd0] [c000000000758cbc] do_vfs_ioctl+0x13c/0x1300
+[c000000054353d90] [c000000000759f14] ksys_ioctl+0x94/0x130
+[c000000054353de0] [c000000000759ff8] sys_ioctl+0x48/0xb0
+[c000000054353e20] [c00000000000bcd0] system_call+0x5c/0x68
+
+Check if alloc_percpu returns NULL.
+
+This was found by syzkaller both on x86 and powerpc, and the reproducer it
+found on powerpc is capable of hitting the issue as an unprivileged user.
+
+Link: http://lkml.kernel.org/r/20191219121256.26480-1-dja@axtens.net
+Fixes: 017c59c042d0 ("relay: Use per CPU constructs for the relay channel buffer pointers")
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Reviewed-by: Michael Ellerman <mpe@ellerman.id.au>
+Reviewed-by: Andrew Donnellan <ajd@linux.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Reported-by: syzbot+1e925b4b836afe85a1c6@syzkaller-ppc64.appspotmail.com
+Reported-by: syzbot+587b2421926808309d21@syzkaller-ppc64.appspotmail.com
+Reported-by: syzbot+58320b7171734bf79d26@syzkaller.appspotmail.com
+Reported-by: syzbot+d6074fb08bdb2e010520@syzkaller.appspotmail.com
+Cc: Akash Goel <akash.goel@intel.com>
+Cc: Andrew Donnellan <ajd@linux.ibm.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Salvatore Bonaccorso <carnil@debian.org>
+Cc: <stable@vger.kernel.org>	[4.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ kernel/relay.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/memory-failure.c~mm-memory_failure-only-send-bus_mceerr_ao-to-early-kill-process
-+++ a/mm/memory-failure.c
-@@ -210,7 +210,7 @@ static int kill_proc(struct to_kill *tk,
- {
- 	struct task_struct *t = tk->tsk;
- 	short addr_lsb = tk->size_shift;
--	int ret;
-+	int ret = 0;
+--- a/kernel/relay.c~relay-handle-alloc_percpu-returning-null-in-relay_open
++++ a/kernel/relay.c
+@@ -581,6 +581,11 @@ struct rchan *relay_open(const char *bas
+ 		return NULL;
  
- 	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
- 		pfn, t->comm, t->pid);
-@@ -225,8 +225,9 @@ static int kill_proc(struct to_kill *tk,
- 		 * This could cause a loop when the user sets SIGBUS
- 		 * to SIG_IGN, but hopefully no one will do that?
- 		 */
--		ret = send_sig_mceerr(BUS_MCEERR_AO, (void __user *)tk->addr,
--				      addr_lsb, t);  /* synchronous? */
-+		if ((t->flags & PF_MCE_PROCESS) && (t->flags & PF_MCE_EARLY))
-+			ret = send_sig_mceerr(BUS_MCEERR_AO,
-+				(void __user *)tk->addr, addr_lsb, t);
- 	}
- 	if (ret < 0)
- 		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
+ 	chan->buf = alloc_percpu(struct rchan_buf *);
++	if (!chan->buf) {
++		kfree(chan);
++		return NULL;
++	}
++
+ 	chan->version = RELAYFS_CHANNEL_VERSION;
+ 	chan->n_subbufs = n_subbufs;
+ 	chan->subbuf_size = subbuf_size;
 _
 
-Patches currently in -mm which might be from wetpzy@gmail.com are
+Patches currently in -mm which might be from dja@axtens.net are
 
-mm-memory_failure-only-send-bus_mceerr_ao-to-early-kill-process.patch
+kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source.patch
+kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4.patch
+stringh-fix-incompatibility-between-fortify_source-and-kasan.patch
+relay-handle-alloc_percpu-returning-null-in-relay_open.patch
