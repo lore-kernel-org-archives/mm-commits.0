@@ -1,29 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- ubsan-entirely-disable-alignment-checks-under-ubsan_trap.patch added to -mm
- tree
-Date: Fri, 29 May 2020 13:16:15 -0700
-Message-ID: <20200529201615.tUza8IAeg%akpm@linux-foundation.org>
+ =?US-ASCII?Q?swap-reduce-lock-contention-on-swap-cache-from-swap-slots?=
+ =?US-ASCII?Q?-allocation-v4.patch?= added to -mm tree
+Date: Fri, 29 May 2020 13:21:32 -0700
+Message-ID: <20200529202132.YBzjYShw3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47912 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49136 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726878AbgE2UQR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 29 May 2020 16:16:17 -0400
+        id S1726926AbgE2UVe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 29 May 2020 16:21:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, jpoimboe@redhat.com, keescook@chromium.org, lenaptr@google.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
+To: daniel.m.jordan@oracle.com, hughd@google.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: ubsan: entirely disable alignment checks under UBSAN_TRAP
+     Subject: swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4
 has been added to the -mm tree.  Its filename is
-     ubsan-entirely-disable-alignment-checks-under-ubsan_trap.patch
+     swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ubsan-entirely-disable-alignment-checks-under-ubsan_trap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ubsan-entirely-disable-alignment-checks-under-ubsan_trap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,48 +39,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: entirely disable alignment checks under UBSAN_TRAP
+From: Huang Ying <ying.huang@intel.com>
+Subject: swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4
 
-Commit 8d58f222e85f ("ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST")
-tried to fix the pathological results of UBSAN_ALIGNMENT with UBSAN_TRAP
-(which objtool would rightly scream about), but it made an assumption
-about how COMPILE_TEST gets set (it is not set for randconfig).  As a
-result, we need a bigger hammer here: just don't allow the alignment
-checks with the trap mode.
+- Fix wrong ALIGN() usage with ALIGN_DOWN().  Thanks Daniel's comments!
 
-Link: http://lkml.kernel.org/r/202005291236.000FCB6@keescook
-Link: https://lore.kernel.org/lkml/742521db-1e8c-0d7a-1ed4-a908894fb497@infradead.org/
-Fixes: 8d58f222e85f ("ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Elena Petrova <lenaptr@google.com>
+- Add some comments.  Thanks Daniel's comments!
+
+Link: http://lkml.kernel.org/r/20200529010840.928819-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/lib/Kconfig.ubsan~ubsan-entirely-disable-alignment-checks-under-ubsan_trap
-+++ a/lib/Kconfig.ubsan
-@@ -63,7 +63,7 @@ config UBSAN_SANITIZE_ALL
- config UBSAN_ALIGNMENT
- 	bool "Enable checks for pointers alignment"
- 	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
--	depends on !X86 || !COMPILE_TEST
-+	depends on !UBSAN_TRAP
- 	help
- 	  This option enables the check of unaligned memory accesses.
- 	  Enabling this option on architectures that support unaligned
+--- a/mm/swapfile.c~swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4
++++ a/mm/swapfile.c
+@@ -613,7 +613,8 @@ new_cluster:
+ 		} else if (!cluster_list_empty(&si->discard_clusters)) {
+ 			/*
+ 			 * we don't have free cluster but have some clusters in
+-			 * discarding, do discard now and reclaim them
++			 * discarding, do discard now and reclaim them, then
++			 * reread cluster_next_cpu since we dropped si->lock
+ 			 */
+ 			swap_do_scheduled_discard(si);
+ 			*scan_base = this_cpu_read(*si->cluster_next_cpu);
+@@ -745,7 +746,7 @@ static void set_cluster_next(struct swap
+ 			return;
+ 		next = si->lowest_bit +
+ 			prandom_u32_max(si->highest_bit - si->lowest_bit + 1);
+-		next = ALIGN(next, SWAP_ADDRESS_SPACE_PAGES);
++		next = ALIGN_DOWN(next, SWAP_ADDRESS_SPACE_PAGES);
+ 		next = max_t(unsigned int, next, si->lowest_bit);
+ 	}
+ 	this_cpu_write(*si->cluster_next_cpu, next);
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-ubsan-entirely-disable-alignment-checks-under-ubsan_trap.patch
-exec-change-uselib2-is_sreg-failure-to-eacces.patch
-exec-relocate-s_isreg-check.patch
-exec-relocate-path_noexec-check.patch
-fs-include-fmode_exec-when-converting-flags-to-f_mode.patch
+swap-try-to-scan-more-free-slots-even-when-fragmented.patch
+mm-swap-use-prandom_u32_max.patch
+swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation.patch
+swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v3.patch
+swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4.patch
+proc-pid-smaps-add-pmd-migration-entry-parsing.patch
