@@ -1,92 +1,56 @@
-From: akpm@linux-foundation.org
-Subject: +
- =?US-ASCII?Q?swap-reduce-lock-contention-on-swap-cache-from-swap-slots?=
- =?US-ASCII?Q?-allocation-v4.patch?= added to -mm tree
-Date: Fri, 29 May 2020 13:21:32 -0700
-Message-ID: <20200529202132.YBzjYShw3%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: incoming
+Date: Fri, 29 May 2020 13:31:39 -0700
+Message-ID: <20200529133139.c606b0e34255336d97af2b30@linux-foundation.org>
+References: <20200527222015.62ba8592af63dae12ab58ffe@linux-foundation.org>
+        <CAHk-=whQSWcE1WvKxptHdyc9BUXQyxxyAH954=Jb_YSBrNJYDQ@mail.gmail.com>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49136 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51374 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726926AbgE2UVe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 29 May 2020 16:21:34 -0400
+        id S1727851AbgE2Ubl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 29 May 2020 16:31:41 -0400
+In-Reply-To: <CAHk-=whQSWcE1WvKxptHdyc9BUXQyxxyAH954=Jb_YSBrNJYDQ@mail.gmail.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.m.jordan@oracle.com, hughd@google.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, ying.huang@intel.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, Linux-MM <linux-mm@kvack.org>
 
+On Thu, 28 May 2020 13:10:18 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-The patch titled
-     Subject: swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4
-has been added to the -mm tree.  Its filename is
-     swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4.patch
+> Hmm..
+> 
+> On Wed, May 27, 2020 at 10:20 PM Andrew Morton
+> <akpm@linux-foundation.org> wrote:
+> >
+> >  fs/binfmt_elf.c                |    2 +-
+> >  include/asm-generic/topology.h |    2 +-
+> >  include/linux/mm.h             |   19 +++++++++++++++----
+> >  mm/khugepaged.c                |    1 +
+> >  mm/z3fold.c                    |    3 +++
+> >  5 files changed, 21 insertions(+), 6 deletions(-)
+> 
+> I wonder how you generate that diffstat.
+> 
+> The change to <linux/mm.h> simply doesn't match what you sent me.  The
+> patch you sent me that changed mm.h had this:
+> 
+>  include/linux/mm.h |   15 +++++++++++++--
+>  1 file changed, 13 insertions(+), 2 deletions(-)
+> 
+> (note 15 lines changed: it's +13 and -2) but now suddenly in your
+> overall diffstat you have that
+> 
+>   include/linux/mm.h             |   19 +++++++++++++++----
+> 
+> with +15/-4.
+> 
+> So your diffstat simply doesn't match what you are sending. What's going on?
+> 
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4
-
-- Fix wrong ALIGN() usage with ALIGN_DOWN().  Thanks Daniel's comments!
-
-- Add some comments.  Thanks Daniel's comments!
-
-Link: http://lkml.kernel.org/r/20200529010840.928819-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/swapfile.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
---- a/mm/swapfile.c~swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4
-+++ a/mm/swapfile.c
-@@ -613,7 +613,8 @@ new_cluster:
- 		} else if (!cluster_list_empty(&si->discard_clusters)) {
- 			/*
- 			 * we don't have free cluster but have some clusters in
--			 * discarding, do discard now and reclaim them
-+			 * discarding, do discard now and reclaim them, then
-+			 * reread cluster_next_cpu since we dropped si->lock
- 			 */
- 			swap_do_scheduled_discard(si);
- 			*scan_base = this_cpu_read(*si->cluster_next_cpu);
-@@ -745,7 +746,7 @@ static void set_cluster_next(struct swap
- 			return;
- 		next = si->lowest_bit +
- 			prandom_u32_max(si->highest_bit - si->lowest_bit + 1);
--		next = ALIGN(next, SWAP_ADDRESS_SPACE_PAGES);
-+		next = ALIGN_DOWN(next, SWAP_ADDRESS_SPACE_PAGES);
- 		next = max_t(unsigned int, next, si->lowest_bit);
- 	}
- 	this_cpu_write(*si->cluster_next_cpu, next);
-_
-
-Patches currently in -mm which might be from ying.huang@intel.com are
-
-swap-try-to-scan-more-free-slots-even-when-fragmented.patch
-mm-swap-use-prandom_u32_max.patch
-swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation.patch
-swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v3.patch
-swap-reduce-lock-contention-on-swap-cache-from-swap-slots-allocation-v4.patch
-proc-pid-smaps-add-pmd-migration-entry-parsing.patch
+Bah.  I got lazy (didn't want to interrupt an ongoing build) so I
+generated the diffstat prior to folding two patches into a single one. 
+Evidently diffstat isn't as smart as I had assumed!
