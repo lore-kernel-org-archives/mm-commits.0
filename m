@@ -1,56 +1,78 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: incoming
-Date: Fri, 29 May 2020 13:31:39 -0700
-Message-ID: <20200529133139.c606b0e34255336d97af2b30@linux-foundation.org>
-References: <20200527222015.62ba8592af63dae12ab58ffe@linux-foundation.org>
-        <CAHk-=whQSWcE1WvKxptHdyc9BUXQyxxyAH954=Jb_YSBrNJYDQ@mail.gmail.com>
+From: akpm@linux-foundation.org
+Subject: +
+ kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch added
+ to -mm tree
+Date: Fri, 29 May 2020 14:05:20 -0700
+Message-ID: <20200529210520.Eu7gFaWrW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51374 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60290 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727851AbgE2Ubl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 29 May 2020 16:31:41 -0400
-In-Reply-To: <CAHk-=whQSWcE1WvKxptHdyc9BUXQyxxyAH954=Jb_YSBrNJYDQ@mail.gmail.com>
+        id S1727781AbgE2VFW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 29 May 2020 17:05:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, Linux-MM <linux-mm@kvack.org>
+To: alexdeucher@gmail.com, hch@lst.de, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
-On Thu, 28 May 2020 13:10:18 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> Hmm..
-> 
-> On Wed, May 27, 2020 at 10:20 PM Andrew Morton
-> <akpm@linux-foundation.org> wrote:
-> >
-> >  fs/binfmt_elf.c                |    2 +-
-> >  include/asm-generic/topology.h |    2 +-
-> >  include/linux/mm.h             |   19 +++++++++++++++----
-> >  mm/khugepaged.c                |    1 +
-> >  mm/z3fold.c                    |    3 +++
-> >  5 files changed, 21 insertions(+), 6 deletions(-)
-> 
-> I wonder how you generate that diffstat.
-> 
-> The change to <linux/mm.h> simply doesn't match what you sent me.  The
-> patch you sent me that changed mm.h had this:
-> 
->  include/linux/mm.h |   15 +++++++++++++--
->  1 file changed, 13 insertions(+), 2 deletions(-)
-> 
-> (note 15 lines changed: it's +13 and -2) but now suddenly in your
-> overall diffstat you have that
-> 
->   include/linux/mm.h             |   19 +++++++++++++++----
-> 
-> with +15/-4.
-> 
-> So your diffstat simply doesn't match what you are sending. What's going on?
-> 
+The patch titled
+     Subject: drm/amdkfd: fix up for {un}use_mm() rename
+has been added to the -mm tree.  Its filename is
+     kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch
 
-Bah.  I got lazy (didn't want to interrupt an ongoing build) so I
-generated the diffstat prior to folding two patches into a single one. 
-Evidently diffstat isn't as smart as I had assumed!
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: drm/amdkfd: fix up for {un}use_mm() rename
+
+Link: http://lkml.kernel.org/r/20200528201940.759c58ff@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Alex Deucher <alexdeucher@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c~kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2
++++ a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
+@@ -114,7 +114,7 @@ static void kfd_sdma_activity_worker(str
+ 		return;
+ 	}
+ 
+-	use_mm(mm);
++	kthread_use_mm(mm);
+ 
+ 	dqm_lock(dqm);
+ 
+@@ -141,7 +141,7 @@ static void kfd_sdma_activity_worker(str
+ 	}
+ 
+ 	dqm_unlock(dqm);
+-	unuse_mm(mm);
++	kthread_unuse_mm(mm);
+ 	mmput(mm);
+ }
+ 
+_
+
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
+
+kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch
