@@ -1,39 +1,77 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: incoming
-Date: Fri, 29 May 2020 14:12:34 -0700
-Message-ID: <20200529141234.a77cdb556ea55a9b2514ef90@linux-foundation.org>
-References: <20200527222015.62ba8592af63dae12ab58ffe@linux-foundation.org>
-        <CAHk-=whQSWcE1WvKxptHdyc9BUXQyxxyAH954=Jb_YSBrNJYDQ@mail.gmail.com>
-        <20200529133139.c606b0e34255336d97af2b30@linux-foundation.org>
-        <CAHk-=wiU-vQVURz62dzitbh2Pk+m_+ipaJU6=z=ES3cd_wKSLQ@mail.gmail.com>
+From: akpm@linux-foundation.org
+Subject: + writeback-remove-unused-variable.patch added to -mm
+ tree
+Date: Fri, 29 May 2020 15:05:37 -0700
+Message-ID: <20200529220537.5jb73Yw6o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34916 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50528 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728040AbgE2VMf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 29 May 2020 17:12:35 -0400
-In-Reply-To: <CAHk-=wiU-vQVURz62dzitbh2Pk+m_+ipaJU6=z=ES3cd_wKSLQ@mail.gmail.com>
+        id S1726975AbgE2WFh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 29 May 2020 18:05:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, Linux-MM <linux-mm@kvack.org>
+To: mm-commits@vger.kernel.org, yuchao0@huawei.com
 
-On Fri, 29 May 2020 13:38:35 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> On Fri, May 29, 2020 at 1:31 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> >
-> > Bah.  I got lazy (didn't want to interrupt an ongoing build) so I
-> > generated the diffstat prior to folding two patches into a single one.
-> > Evidently diffstat isn't as smart as I had assumed!
-> 
-> Ahh. Yes - given two patches, diffstat just adds up the line number
-> counts for the individual diffs, it doesn't count some kind of
-> "combined diff result" line counts.
+The patch titled
+     Subject: writeback: remove unused variable
+has been added to the -mm tree.  Its filename is
+     writeback-remove-unused-variable.patch
 
-Stupid diffstat.  Means that basically all my diffstats are very wrong.
-Thanks for spotting it.
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/writeback-remove-unused-variable.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/writeback-remove-unused-variable.patch
 
-I can fix that...
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Chao Yu <yuchao0@huawei.com>
+Subject: writeback: remove unused variable
+
+Commit 64081362e8ff ("mm/page-writeback.c: fix range_cyclic writeback
+vs writepages deadlock") left unused variable, remove it.
+
+Link: http://lkml.kernel.org/r/20200528033740.17269-1-yuchao0@huawei.com
+Signed-off-by: Chao Yu <yuchao0@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/page-writeback.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+--- a/mm/page-writeback.c~writeback-remove-unused-variable
++++ a/mm/page-writeback.c
+@@ -2164,7 +2164,6 @@ int write_cache_pages(struct address_spa
+ 	int error;
+ 	struct pagevec pvec;
+ 	int nr_pages;
+-	pgoff_t uninitialized_var(writeback_index);
+ 	pgoff_t index;
+ 	pgoff_t end;		/* Inclusive */
+ 	pgoff_t done_index;
+@@ -2173,8 +2172,7 @@ int write_cache_pages(struct address_spa
+ 
+ 	pagevec_init(&pvec);
+ 	if (wbc->range_cyclic) {
+-		writeback_index = mapping->writeback_index; /* prev offset */
+-		index = writeback_index;
++		index = mapping->writeback_index; /* prev offset */
+ 		end = -1;
+ 	} else {
+ 		index = wbc->range_start >> PAGE_SHIFT;
+_
+
+Patches currently in -mm which might be from yuchao0@huawei.com are
+
+writeback-remove-unused-variable.patch
