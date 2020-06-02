@@ -1,93 +1,134 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 007/128] usercopy: mark dma-kmalloc caches as
- usercopy caches
-Date: Mon, 01 Jun 2020 21:45:43 -0700
-Message-ID: <20200602044543.U9huDju4a%akpm@linux-foundation.org>
+Subject: [patch 008/128] mm/slub.c: fix corrupted freechain in
+ deactivate_slab()
+Date: Mon, 01 Jun 2020 21:45:47 -0700
+Message-ID: <20200602044547.J0i4C2xZi%akpm@linux-foundation.org>
 References: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36300 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725793AbgFBEpp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:45:45 -0400
+        id S1725793AbgFBEpt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:45:49 -0400
 In-Reply-To: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, borntraeger@de.ibm.com, christoffer.dall@linaro.org, cl@linux.com, dave.kleikamp@oracle.com, dave@nullcore.net, davem@davemloft.net, hch@infradead.org, iamjoonsoo.kim@lge.com, jack@suse.cz, jannh@google.com, jslaby@suse.cz, jwi@linux.ibm.com, labbott@redhat.com, linux-mm@kvack.org, luisbg@kernel.org, luto@kernel.org, marc.zyngier@arm.com, mark.rutland@arm.com, martin.petersen@oracle.com, mjg59@google.com, mkubecek@suse.cz, mm-commits@vger.kernel.org, pbonzini@redhat.com, penberg@kernel.org, riel@surriel.com, rientjes@google.com, torvalds@linux-foundation.org, ubraun@linux.ibm.com, vbabka@suse.cz, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, cl@linux.com, dongli.zhang@oracle.com, iamjoonsoo.kim@lge.com, joe.jin@oracle.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, torvalds@linux-foundation.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: usercopy: mark dma-kmalloc caches as usercopy caches
+From: Dongli Zhang <dongli.zhang@oracle.com>
+Subject: mm/slub.c: fix corrupted freechain in deactivate_slab()
 
-We have seen a "usercopy: Kernel memory overwrite attempt detected to SLUB
-object 'dma-kmalloc-1 k' (offset 0, size 11)!" error on s390x, as IUCV
-uses kmalloc() with __GFP_DMA because of memory address restrictions.  The
-issue has been discussed [2] and it has been noted that if all the kmalloc
-caches are marked as usercopy, there's little reason not to mark
-dma-kmalloc caches too.  The 'dma' part merely means that __GFP_DMA is
-used to restrict memory address range.
+The slub_debug is able to fix the corrupted slab freelist/page.  However,
+alloc_debug_processing() only checks the validity of current and next
+freepointer during allocation path.  As a result, once some objects have
+their freepointers corrupted, deactivate_slab() may lead to page fault.
 
-As Jann Horn put it [3]:
+Below is from a test kernel module when 'slub_debug=PUF,kmalloc-128
+slub_nomerge'.  The test kernel corrupts the freepointer of one free
+object on purpose.  Unfortunately, deactivate_slab() does not detect it
+when iterating the freechain.
 
-"I think dma-kmalloc slabs should be handled the same way as normal
-kmalloc slabs.  When a dma-kmalloc allocation is freshly created, it is
-just normal kernel memory - even if it might later be used for DMA -, and
-it should be perfectly fine to copy_from_user() into such allocations at
-that point, and to copy_to_user() out of them at the end.  If you look at
-the places where such allocations are created, you can see things like
-kmemdup(), memcpy() and so on - all normal operations that shouldn't
-conceptually be different from usercopy in any relevant way."
+[ 92.665260] BUG: unable to handle page fault for address: 00000000123456f8
+[ 92.671597] #PF: supervisor read access in kernel mode
+[ 92.676159] #PF: error_code(0x0000) - not-present page
+[ 92.681666] PGD 0 P4D 0
+[ 92.684923] Oops: 0000 [#1] SMP PTI
+... ...
+[ 92.706684] RIP: 0010:deactivate_slab.isra.92+0xed/0x490
+... ...
+[ 92.819781] Call Trace:
+[ 92.823129]  ? ext4_htree_store_dirent+0x30/0xf0
+[ 92.829488]  ? ext4_htree_store_dirent+0x30/0xf0
+[ 92.834852]  ? stack_trace_save+0x46/0x70
+[ 92.839342]  ? init_object+0x66/0x80
+[ 92.843729]  ? ___slab_alloc+0x536/0x570
+[ 92.847664]  ___slab_alloc+0x536/0x570
+[ 92.851696]  ? __find_get_block+0x23d/0x2c0
+[ 92.856763]  ? ext4_htree_store_dirent+0x30/0xf0
+[ 92.862258]  ? _cond_resched+0x10/0x40
+[ 92.866925]  ? __getblk_gfp+0x27/0x2a0
+[ 92.872136]  ? ext4_htree_store_dirent+0x30/0xf0
+[ 92.878394]  ? __slab_alloc+0x17/0x30
+[ 92.883222]  __slab_alloc+0x17/0x30
+[ 92.887210]  __kmalloc+0x1d9/0x200
+[ 92.891448]  ext4_htree_store_dirent+0x30/0xf0
+[ 92.896748]  htree_dirblock_to_tree+0xcb/0x1c0
+[ 92.902398]  ext4_htree_fill_tree+0x1bc/0x2d0
+[ 92.907749]  ext4_readdir+0x54f/0x920
+[ 92.912725]  iterate_dir+0x88/0x190
+[ 92.917072]  __x64_sys_getdents+0xa6/0x140
+[ 92.922760]  ? fillonedir+0xb0/0xb0
+[ 92.927020]  ? do_syscall_64+0x49/0x170
+[ 92.931603]  ? __ia32_sys_getdents+0x130/0x130
+[ 92.937012]  do_syscall_64+0x49/0x170
+[ 92.940754]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-Thus this patch marks the dma-kmalloc-* caches as usercopy.
+Therefore, this patch adds extra consistency check in deactivate_slab(). 
+Once an object's freepointer is corrupted, all following objects starting
+at this object are isolated.
 
-[1] https://bugzilla.suse.com/show_bug.cgi?id=1156053
-[2] https://lore.kernel.org/kernel-hardening/bfca96db-bbd0-d958-7732-76e36c667c68@suse.cz/
-[3] https://lore.kernel.org/kernel-hardening/CAG48ez1a4waGk9kB0WLaSbs4muSoK0AYAVk8=XYaKj4_+6e6Hg@mail.gmail.com/
-
-Link: http://lkml.kernel.org/r/7d810f6d-8085-ea2f-7805-47ba3842dc50@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Acked-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Julian Wiedmann <jwi@linux.ibm.com>
-Cc: Ursula Braun <ubraun@linux.ibm.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: David Windsor <dave@nullcore.net>
+[akpm@linux-foundation.org: fix build with CONFIG_SLAB_DEBUG=n]
+Link: http://lkml.kernel.org/r/20200331031450.12182-1-dongli.zhang@oracle.com
+Signed-off-by: Dongli Zhang <dongli.zhang@oracle.com>
+Cc: Joe Jin <joe.jin@oracle.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Luis de Bethencourt <luisbg@kernel.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Matthew Garrett <mjg59@google.com>
-Cc: Michal Kubecek <mkubecek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slub.c |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
---- a/mm/slab_common.c~usercopy-mark-dma-kmalloc-caches-as-usercopy-caches
-+++ a/mm/slab_common.c
-@@ -1303,7 +1303,8 @@ void __init create_kmalloc_caches(slab_f
- 			kmalloc_caches[KMALLOC_DMA][i] = create_kmalloc_cache(
- 				kmalloc_info[i].name[KMALLOC_DMA],
- 				kmalloc_info[i].size,
--				SLAB_CACHE_DMA | flags, 0, 0);
-+				SLAB_CACHE_DMA | flags, 0,
-+				kmalloc_info[i].size);
- 		}
- 	}
- #endif
+--- a/mm/slub.c~mm-slub-fix-corrupted-freechain-in-deactivate_slab
++++ a/mm/slub.c
+@@ -679,6 +679,20 @@ static void slab_fix(struct kmem_cache *
+ 	va_end(args);
+ }
+ 
++static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
++			       void *freelist, void *nextfree)
++{
++	if ((s->flags & SLAB_CONSISTENCY_CHECKS) &&
++	    !check_valid_pointer(s, page, nextfree)) {
++		object_err(s, page, freelist, "Freechain corrupt");
++		freelist = NULL;
++		slab_fix(s, "Isolate corrupted freechain");
++		return true;
++	}
++
++	return false;
++}
++
+ static void print_trailer(struct kmem_cache *s, struct page *page, u8 *p)
+ {
+ 	unsigned int off;	/* Offset of last byte */
+@@ -1410,6 +1424,11 @@ static inline void inc_slabs_node(struct
+ static inline void dec_slabs_node(struct kmem_cache *s, int node,
+ 							int objects) {}
+ 
++static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
++			       void *freelist, void *nextfree)
++{
++	return false;
++}
+ #endif /* CONFIG_SLUB_DEBUG */
+ 
+ /*
+@@ -2093,6 +2112,14 @@ static void deactivate_slab(struct kmem_
+ 		void *prior;
+ 		unsigned long counters;
+ 
++		/*
++		 * If 'nextfree' is invalid, it is possible that the object at
++		 * 'freelist' is already corrupted.  So isolate all objects
++		 * starting at 'freelist'.
++		 */
++		if (freelist_corrupted(s, page, freelist, nextfree))
++			break;
++
+ 		do {
+ 			prior = page->freelist;
+ 			counters = page->counters;
 _
