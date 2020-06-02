@@ -1,27 +1,25 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 100/128] mm: pass addr as unsigned long to vb_free
-Date: Mon, 01 Jun 2020 21:51:02 -0700
-Message-ID: <20200602045102.DAWdII2o8%akpm@linux-foundation.org>
+Subject: [patch 097/128] mm: unexport unmap_kernel_range_noflush
+Date: Mon, 01 Jun 2020 21:50:49 -0700
+Message-ID: <20200602045049.06RTwrIRS%akpm@linux-foundation.org>
 References: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43486 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43068 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726122AbgFBEvF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:51:05 -0400
+        id S1726122AbgFBEuv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:50:51 -0400
 In-Reply-To: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: airlied@linux.ie, akpm@linux-foundation.org, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, christophe.leroy@c-s.fr, daniel.vetter@ffwll.ch, daniel@ffwll.ch, gor@linux.ibm.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, hannes@cmpxchg.org, hch@lst.de, heiko.carstens@de.ibm.com, kys@microsoft.com, labbott@redhat.com, linux-mm@kvack.org, mark.rutland@arm.com, mikelley@microsoft.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, paulus@ozlabs.org, peterz@infradead.org, robin.murphy@arm.com, sakari.ailus@linux.intel.com, sthemmin@microsoft.com, sumit.semwal@linaro.org, torvalds@linux-foundation.org, wei.liu@kernel.org, will@kernel.org, xiang@kernel.org
 
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: pass addr as unsigned long to vb_free
+Subject: mm: unexport unmap_kernel_range_noflush
 
-Ever use of addr in vb_free casts to unsigned long first, and the caller
-has an unsigned long version of the address available anyway.  Just pass
-that and avoid all the casts.
+There are no modular users of this function.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-13-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-10-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -53,57 +51,17 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ mm/vmalloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-pass-addr-as-unsigned-long-to-vb_free
+--- a/mm/vmalloc.c~mm-unexport-unmap_kernel_range_noflush
 +++ a/mm/vmalloc.c
-@@ -1665,7 +1665,7 @@ static void *vb_alloc(unsigned long size
- 	return vaddr;
- }
- 
--static void vb_free(const void *addr, unsigned long size)
-+static void vb_free(unsigned long addr, unsigned long size)
+@@ -2030,7 +2030,6 @@ void unmap_kernel_range_noflush(unsigned
  {
- 	unsigned long offset;
- 	unsigned long vb_idx;
-@@ -1675,24 +1675,22 @@ static void vb_free(const void *addr, un
- 	BUG_ON(offset_in_page(size));
- 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
+ 	vunmap_page_range(addr, addr + size);
+ }
+-EXPORT_SYMBOL_GPL(unmap_kernel_range_noflush);
  
--	flush_cache_vunmap((unsigned long)addr, (unsigned long)addr + size);
-+	flush_cache_vunmap(addr, addr + size);
- 
- 	order = get_order(size);
- 
--	offset = (unsigned long)addr & (VMAP_BLOCK_SIZE - 1);
--	offset >>= PAGE_SHIFT;
-+	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
- 
--	vb_idx = addr_to_vb_idx((unsigned long)addr);
-+	vb_idx = addr_to_vb_idx(addr);
- 	rcu_read_lock();
- 	vb = radix_tree_lookup(&vmap_block_tree, vb_idx);
- 	rcu_read_unlock();
- 	BUG_ON(!vb);
- 
--	vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
-+	vunmap_page_range(addr, addr + size);
- 
- 	if (debug_pagealloc_enabled_static())
--		flush_tlb_kernel_range((unsigned long)addr,
--					(unsigned long)addr + size);
-+		flush_tlb_kernel_range(addr, addr + size);
- 
- 	spin_lock(&vb->lock);
- 
-@@ -1792,7 +1790,7 @@ void vm_unmap_ram(const void *mem, unsig
- 
- 	if (likely(count <= VMAP_MAX_ALLOC)) {
- 		debug_check_no_locks_freed(mem, size);
--		vb_free(mem, size);
-+		vb_free(addr, size);
- 		return;
- 	}
- 
+ /**
+  * unmap_kernel_range - unmap kernel VM area and flush cache and TLB
 _
