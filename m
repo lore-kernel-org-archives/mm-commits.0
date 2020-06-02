@@ -1,87 +1,48 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 042/128] fs/buffer.c: use
- attach/detach_page_private
-Date: Tue, 02 Jun 2020 13:12:28 -0700
-Message-ID: <20200602201228.nSVzQkdeq%akpm@linux-foundation.org>
+Subject: [patch 043/128] f2fs: use attach/detach_page_private
+Date: Tue, 02 Jun 2020 13:12:31 -0700
+Message-ID: <20200602201231.CWgrSMNyo%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55942 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726112AbgFBUMa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:12:30 -0400
+        id S1726112AbgFBUMc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 16:12:32 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guoqing.jiang@cloud.ionos.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, guoqing.jiang@cloud.ionos.com, jaegeuk@kernel.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yuchao0@huawei.com
 
 From: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Subject: fs/buffer.c: use attach/detach_page_private
+Subject: f2fs: use attach/detach_page_private
 
 Since the new pair function is introduced, we can call them to clean the
-code in buffer.c.
+code in f2fs.h.
 
-Link: http://lkml.kernel.org/r/20200517214718.468-5-guoqing.jiang@cloud.ionos.com
+Link: http://lkml.kernel.org/r/20200517214718.468-6-guoqing.jiang@cloud.ionos.com
 Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Acked-by: Chao Yu <yuchao0@huawei.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ fs/f2fs/f2fs.h |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
---- a/fs/buffer.c~fs-bufferc-use-attach-detach_page_private
-+++ a/fs/buffer.c
-@@ -123,14 +123,6 @@ void __wait_on_buffer(struct buffer_head
- }
- EXPORT_SYMBOL(__wait_on_buffer);
+--- a/fs/f2fs/f2fs.h~f2fs-use-attach-detach_page_private
++++ a/fs/f2fs/f2fs.h
+@@ -3051,19 +3051,12 @@ static inline void f2fs_set_page_private
+ 	if (PagePrivate(page))
+ 		return;
  
--static void
--__clear_page_buffers(struct page *page)
--{
--	ClearPagePrivate(page);
--	set_page_private(page, 0);
--	put_page(page);
--}
--
- static void buffer_io_error(struct buffer_head *bh, char *msg)
+-	get_page(page);
+-	SetPagePrivate(page);
+-	set_page_private(page, data);
++	attach_page_private(page, (void *)data);
+ }
+ 
+ static inline void f2fs_clear_page_private(struct page *page)
  {
- 	if (!test_bit(BH_Quiet, &bh->b_state))
-@@ -906,7 +898,7 @@ link_dev_buffers(struct page *page, stru
- 		bh = bh->b_this_page;
- 	} while (bh);
- 	tail->b_this_page = head;
--	attach_page_buffers(page, head);
-+	attach_page_private(page, head);
- }
- 
- static sector_t blkdev_max_block(struct block_device *bdev, unsigned int size)
-@@ -1587,7 +1579,7 @@ void create_empty_buffers(struct page *p
- 			bh = bh->b_this_page;
- 		} while (bh != head);
- 	}
--	attach_page_buffers(page, head);
-+	attach_page_private(page, head);
- 	spin_unlock(&page->mapping->private_lock);
- }
- EXPORT_SYMBOL(create_empty_buffers);
-@@ -2574,7 +2566,7 @@ static void attach_nobh_buffers(struct p
- 			bh->b_this_page = head;
- 		bh = bh->b_this_page;
- 	} while (bh != head);
--	attach_page_buffers(page, head);
-+	attach_page_private(page, head);
- 	spin_unlock(&page->mapping->private_lock);
- }
- 
-@@ -3234,7 +3226,7 @@ drop_buffers(struct page *page, struct b
- 		bh = next;
- 	} while (bh != head);
- 	*buffers_to_free = head;
--	__clear_page_buffers(page);
-+	detach_page_private(page);
- 	return 1;
- failed:
- 	return 0;
-_
+-	if (!PagePrivate(page))
+-		return;
