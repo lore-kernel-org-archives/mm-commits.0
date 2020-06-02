@@ -1,70 +1,181 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 055/128] mm/gup: introduce pin_user_pages_unlocked
-Date: Tue, 02 Jun 2020 13:13:10 -0700
-Message-ID: <20200602201310.t8SYcilp9%akpm@linux-foundation.org>
+Subject: [patch 056/128] ivtv: convert get_user_pages() -->
+ pin_user_pages()
+Date: Tue, 02 Jun 2020 13:13:13 -0700
+Message-ID: <20200602201313.McIlR9KkJ%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56842 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56914 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726139AbgFBUNM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:13:12 -0400
+        id S1726139AbgFBUNP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 16:13:15 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, awalls@md.metrocast.net, jhubbard@nvidia.com, linux-mm@kvack.org, mchehab@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: introduce pin_user_pages_unlocked
+Subject: ivtv: convert get_user_pages() --> pin_user_pages()
 
-Introduce pin_user_pages_unlocked(), which is nearly identical to the
-get_user_pages_unlocked() that it wraps, except that it sets FOLL_PIN and
-rejects FOLL_GET.
+This code was using get_user_pages*(), in a "Case 2" scenario (DMA/RDMA),
+using the categorization from [1].  That means that it's time to convert
+the get_user_pages*() + put_page() calls to pin_user_pages*() +
+unpin_user_pages() calls.
 
-Link: http://lkml.kernel.org/r/20200518012157.1178336-2-jhubbard@nvidia.com
+There is some helpful background in [2]: basically, this is a small part
+of fixing a long-standing disconnect between pinning pages, and file
+systems' use of those pages.
+
+[1] Documentation/core-api/pin_user_pages.rst
+
+[2] "Explicit pinning of user-space pages":
+    https://lwn.net/Articles/807108/
+
+Link: http://lkml.kernel.org/r/20200518012157.1178336-3-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Andy Walls <awalls@md.metrocast.net>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/gup.c           |   17 +++++++++++++++++
- 2 files changed, 19 insertions(+)
+ drivers/media/pci/ivtv/ivtv-udma.c |   19 ++++++-------------
+ drivers/media/pci/ivtv/ivtv-yuv.c  |   17 ++++++-----------
+ drivers/media/pci/ivtv/ivtvfb.c    |    4 ++--
+ 3 files changed, 14 insertions(+), 26 deletions(-)
 
---- a/include/linux/mm.h~mm-gup-introduce-pin_user_pages_unlocked
-+++ a/include/linux/mm.h
-@@ -1709,6 +1709,8 @@ long get_user_pages_locked(unsigned long
- 		    unsigned int gup_flags, struct page **pages, int *locked);
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 		    struct page **pages, unsigned int gup_flags);
-+long pin_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
-+		    struct page **pages, unsigned int gup_flags);
+--- a/drivers/media/pci/ivtv/ivtvfb.c~ivtv-convert-get_user_pages-pin_user_pages
++++ a/drivers/media/pci/ivtv/ivtvfb.c
+@@ -281,10 +281,10 @@ static int ivtvfb_prep_dec_dma_to_device
+ 	/* Map User DMA */
+ 	if (ivtv_udma_setup(itv, ivtv_dest_addr, userbuf, size_in_bytes) <= 0) {
+ 		mutex_unlock(&itv->udma.lock);
+-		IVTVFB_WARN("ivtvfb_prep_dec_dma_to_device, Error with get_user_pages: %d bytes, %d pages returned\n",
++		IVTVFB_WARN("ivtvfb_prep_dec_dma_to_device, Error with pin_user_pages: %d bytes, %d pages returned\n",
+ 			       size_in_bytes, itv->udma.page_count);
  
- int get_user_pages_fast(unsigned long start, int nr_pages,
- 			unsigned int gup_flags, struct page **pages);
---- a/mm/gup.c~mm-gup-introduce-pin_user_pages_unlocked
-+++ a/mm/gup.c
-@@ -2960,3 +2960,20 @@ long pin_user_pages(unsigned long start,
- 				     pages, vmas, gup_flags);
+-		/* get_user_pages must have failed completely */
++		/* pin_user_pages must have failed completely */
+ 		return -EIO;
+ 	}
+ 
+--- a/drivers/media/pci/ivtv/ivtv-udma.c~ivtv-convert-get_user_pages-pin_user_pages
++++ a/drivers/media/pci/ivtv/ivtv-udma.c
+@@ -92,7 +92,7 @@ int ivtv_udma_setup(struct ivtv *itv, un
+ {
+ 	struct ivtv_dma_page_info user_dma;
+ 	struct ivtv_user_dma *dma = &itv->udma;
+-	int i, err;
++	int err;
+ 
+ 	IVTV_DEBUG_DMA("ivtv_udma_setup, dst: 0x%08x\n", (unsigned int)ivtv_dest_addr);
+ 
+@@ -111,16 +111,15 @@ int ivtv_udma_setup(struct ivtv *itv, un
+ 		return -EINVAL;
+ 	}
+ 
+-	/* Get user pages for DMA Xfer */
+-	err = get_user_pages_unlocked(user_dma.uaddr, user_dma.page_count,
++	/* Pin user pages for DMA Xfer */
++	err = pin_user_pages_unlocked(user_dma.uaddr, user_dma.page_count,
+ 			dma->map, FOLL_FORCE);
+ 
+ 	if (user_dma.page_count != err) {
+ 		IVTV_DEBUG_WARN("failed to map user pages, returned %d instead of %d\n",
+ 			   err, user_dma.page_count);
+ 		if (err >= 0) {
+-			for (i = 0; i < err; i++)
+-				put_page(dma->map[i]);
++			unpin_user_pages(dma->map, err);
+ 			return -EINVAL;
+ 		}
+ 		return err;
+@@ -130,9 +129,7 @@ int ivtv_udma_setup(struct ivtv *itv, un
+ 
+ 	/* Fill SG List with new values */
+ 	if (ivtv_udma_fill_sg_list(dma, &user_dma, 0) < 0) {
+-		for (i = 0; i < dma->page_count; i++) {
+-			put_page(dma->map[i]);
+-		}
++		unpin_user_pages(dma->map, dma->page_count);
+ 		dma->page_count = 0;
+ 		return -ENOMEM;
+ 	}
+@@ -153,7 +150,6 @@ int ivtv_udma_setup(struct ivtv *itv, un
+ void ivtv_udma_unmap(struct ivtv *itv)
+ {
+ 	struct ivtv_user_dma *dma = &itv->udma;
+-	int i;
+ 
+ 	IVTV_DEBUG_INFO("ivtv_unmap_user_dma\n");
+ 
+@@ -169,10 +165,7 @@ void ivtv_udma_unmap(struct ivtv *itv)
+ 	/* sync DMA */
+ 	ivtv_udma_sync_for_cpu(itv);
+ 
+-	/* Release User Pages */
+-	for (i = 0; i < dma->page_count; i++) {
+-		put_page(dma->map[i]);
+-	}
++	unpin_user_pages(dma->map, dma->page_count);
+ 	dma->page_count = 0;
  }
- EXPORT_SYMBOL(pin_user_pages);
-+
-+/*
-+ * pin_user_pages_unlocked() is the FOLL_PIN variant of
-+ * get_user_pages_unlocked(). Behavior is the same, except that this one sets
-+ * FOLL_PIN and rejects FOLL_GET.
-+ */
-+long pin_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
-+			     struct page **pages, unsigned int gup_flags)
-+{
-+	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
-+	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
-+		return -EINVAL;
-+
-+	gup_flags |= FOLL_PIN;
-+	return get_user_pages_unlocked(start, nr_pages, pages, gup_flags);
-+}
-+EXPORT_SYMBOL(pin_user_pages_unlocked);
+ 
+--- a/drivers/media/pci/ivtv/ivtv-yuv.c~ivtv-convert-get_user_pages-pin_user_pages
++++ a/drivers/media/pci/ivtv/ivtv-yuv.c
+@@ -30,7 +30,6 @@ static int ivtv_yuv_prep_user_dma(struct
+ 	struct yuv_playback_info *yi = &itv->yuv_info;
+ 	u8 frame = yi->draw_frame;
+ 	struct yuv_frame_info *f = &yi->new_frame_info[frame];
+-	int i;
+ 	int y_pages, uv_pages;
+ 	unsigned long y_buffer_offset, uv_buffer_offset;
+ 	int y_decode_height, uv_decode_height, y_size;
+@@ -62,12 +61,12 @@ static int ivtv_yuv_prep_user_dma(struct
+ 	ivtv_udma_get_page_info (&y_dma, (unsigned long)args->y_source, 720 * y_decode_height);
+ 	ivtv_udma_get_page_info (&uv_dma, (unsigned long)args->uv_source, 360 * uv_decode_height);
+ 
+-	/* Get user pages for DMA Xfer */
+-	y_pages = get_user_pages_unlocked(y_dma.uaddr,
++	/* Pin user pages for DMA Xfer */
++	y_pages = pin_user_pages_unlocked(y_dma.uaddr,
+ 			y_dma.page_count, &dma->map[0], FOLL_FORCE);
+ 	uv_pages = 0; /* silence gcc. value is set and consumed only if: */
+ 	if (y_pages == y_dma.page_count) {
+-		uv_pages = get_user_pages_unlocked(uv_dma.uaddr,
++		uv_pages = pin_user_pages_unlocked(uv_dma.uaddr,
+ 				uv_dma.page_count, &dma->map[y_pages],
+ 				FOLL_FORCE);
+ 	}
+@@ -81,8 +80,7 @@ static int ivtv_yuv_prep_user_dma(struct
+ 				 uv_pages, uv_dma.page_count);
+ 
+ 			if (uv_pages >= 0) {
+-				for (i = 0; i < uv_pages; i++)
+-					put_page(dma->map[y_pages + i]);
++				unpin_user_pages(&dma->map[y_pages], uv_pages);
+ 				rc = -EFAULT;
+ 			} else {
+ 				rc = uv_pages;
+@@ -93,8 +91,7 @@ static int ivtv_yuv_prep_user_dma(struct
+ 				 y_pages, y_dma.page_count);
+ 		}
+ 		if (y_pages >= 0) {
+-			for (i = 0; i < y_pages; i++)
+-				put_page(dma->map[i]);
++			unpin_user_pages(dma->map, y_pages);
+ 			/*
+ 			 * Inherit the -EFAULT from rc's
+ 			 * initialization, but allow it to be
+@@ -112,9 +109,7 @@ static int ivtv_yuv_prep_user_dma(struct
+ 	/* Fill & map SG List */
+ 	if (ivtv_udma_fill_sg_list (dma, &uv_dma, ivtv_udma_fill_sg_list (dma, &y_dma, 0)) < 0) {
+ 		IVTV_DEBUG_WARN("could not allocate bounce buffers for highmem userspace buffers\n");
+-		for (i = 0; i < dma->page_count; i++) {
+-			put_page(dma->map[i]);
+-		}
++		unpin_user_pages(dma->map, dma->page_count);
+ 		dma->page_count = 0;
+ 		return -ENOMEM;
+ 	}
 _
