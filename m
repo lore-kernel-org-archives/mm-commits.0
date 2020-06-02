@@ -1,36 +1,102 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: incoming
-Date: Tue, 2 Jun 2020 14:38:37 -0700
-Message-ID: <20200602143837.b7e99423965acfeeda0560d1@linux-foundation.org>
-References: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
-        <20200602130815.e42816a455f2861cc8521abd@linux-foundation.org>
-        <CAHk-=wgRV=SaiMn3L5u5mG0WfvB2VfEQadtudzDV3KRz5HnFrQ@mail.gmail.com>
+From: akpm@linux-foundation.org
+Subject: [merged]
+ mm-move-end_index-check-out-of-readahead-loop.patch removed from -mm tree
+Date: Tue, 02 Jun 2020 14:38:38 -0700
+Message-ID: <20200602213838.lwhwqdcsY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52558 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726320AbgFBVii (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:38:38 -0400
-In-Reply-To: <CAHk-=wgRV=SaiMn3L5u5mG0WfvB2VfEQadtudzDV3KRz5HnFrQ@mail.gmail.com>
+        id S1726320AbgFBVik (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:38:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, Linux-MM <linux-mm@kvack.org>
+To: darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang25@huawei.com, hch@lst.de, jaegeuk@kernel.org, jhubbard@nvidia.com, johannes.thumshirn@wdc.com, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, mszeredi@redhat.com, william.kucharski@oracle.com, willy@infradead.org, xiyou.wangcong@gmail.com, yuchao0@huawei.com, ziy@nvidia.com
 
-On Tue, 2 Jun 2020 13:45:49 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-> On Tue, Jun 2, 2020 at 1:08 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> >
-> > The local_lock merge made rather a mess of all of this.  I'm
-> > cooking up a full resend of the same material.
-> 
-> Hmm. I have no issues with conflicts, and already took your previous series.
+The patch titled
+     Subject: mm: move end_index check out of readahead loop
+has been removed from the -mm tree.  Its filename was
+     mm-move-end_index-check-out-of-readahead-loop.patch
 
-Well that's odd.
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-> I've pushed it out now - does my tree match what you expect?
+------------------------------------------------------
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: move end_index check out of readahead loop
 
-Yup, thanks.
+By reducing nr_to_read, we can eliminate this check from inside the loop.
+
+Link: http://lkml.kernel.org/r/20200414150233.24495-13-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Cc: Chao Yu <yuchao0@huawei.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Eric Biggers <ebiggers@google.com>
+Cc: Gao Xiang <gaoxiang25@huawei.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Johannes Thumshirn <johannes.thumshirn@wdc.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/readahead.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+--- a/mm/readahead.c~mm-move-end_index-check-out-of-readahead-loop
++++ a/mm/readahead.c
+@@ -167,8 +167,6 @@ void __do_page_cache_readahead(struct ad
+ 		unsigned long lookahead_size)
+ {
+ 	struct inode *inode = mapping->host;
+-	struct page *page;
+-	unsigned long end_index;	/* The last page we want to read */
+ 	LIST_HEAD(page_pool);
+ 	loff_t isize = i_size_read(inode);
+ 	gfp_t gfp_mask = readahead_gfp_mask(mapping);
+@@ -178,22 +176,26 @@ void __do_page_cache_readahead(struct ad
+ 		._index = index,
+ 	};
+ 	unsigned long i;
++	pgoff_t end_index;	/* The last page we want to read */
+ 
+ 	if (isize == 0)
+ 		return;
+ 
+-	end_index = ((isize - 1) >> PAGE_SHIFT);
++	end_index = (isize - 1) >> PAGE_SHIFT;
++	if (index > end_index)
++		return;
++	/* Don't read past the page containing the last byte of the file */
++	if (nr_to_read > end_index - index)
++		nr_to_read = end_index - index + 1;
+ 
+ 	/*
+ 	 * Preallocate as many pages as we will need.
+ 	 */
+ 	for (i = 0; i < nr_to_read; i++) {
+-		if (index + i > end_index)
+-			break;
++		struct page *page = xa_load(&mapping->i_pages, index + i);
+ 
+ 		BUG_ON(index + i != rac._index + rac._nr_pages);
+ 
+-		page = xa_load(&mapping->i_pages, index + i);
+ 		if (page && !xa_is_value(page)) {
+ 			/*
+ 			 * Page already present?  Kick off the current batch of
+_
+
+Patches currently in -mm which might be from willy@infradead.org are
+
+mm-simplify-calling-a-compound-page-destructor.patch
+ipc-convert-ipcs_idr-to-xarray.patch
+ipc-convert-ipcs_idr-to-xarray-update.patch
