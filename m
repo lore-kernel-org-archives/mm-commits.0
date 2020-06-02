@@ -1,60 +1,92 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch removed
- from -mm tree
-Date: Mon, 01 Jun 2020 21:15:24 -0700
-Message-ID: <20200602041524.uWXFzNN2z%akpm@linux-foundation.org>
+ mm-replace-pf_less_throttle-with-pf_local_throttle-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Mon, 01 Jun 2020 21:16:04 -0700
+Message-ID: <20200602041604.WkH-biwwb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51664 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52696 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725616AbgFBEPZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:15:25 -0400
+        id S1725781AbgFBEQF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:16:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dchinner@redhat.com, guoqing.jiang@cloud.ionos.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, neilb@suse.de
 
 
 The patch titled
-     Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
+     Subject: mm-replace-pf_less_throttle-with-pf_local_throttle-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
+     mm-replace-pf_less_throttle-with-pf_local_throttle-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-migratec-call-detach_page_private-to-cleanup-code.patch
+This patch was dropped because it was folded into mm-replace-pf_less_throttle-with-pf_local_throttle.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
+Subject: mm-replace-pf_less_throttle-with-pf_local_throttle-checkpatch-fixes
 
-clear PagePrivate
+WARNING: 'deamon' may be misspelled - perhaps 'daemon'?
+#26: 
+of the deamon writing to the "final" bdi.
 
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+WARNING: Block comments use a trailing */ on a separate line
+#117: FILE: include/linux/sched.h:1488:
++						 * I am cleaning dirty pages from some other bdi. */
+
+WARNING: labels should not be indented
+#171: FILE: mm/page-writeback.c:1658:
++		free_running:
+
+total: 0 errors, 3 warnings, 145 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-replace-pf_less_throttle-with-pf_local_throttle.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: NeilBrown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/sched.h |    2 +-
+ mm/page-writeback.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/migrate.c~mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
-+++ a/mm/migrate.c
-@@ -807,8 +807,6 @@ recheck_buffers:
+--- a/include/linux/sched.h~mm-replace-pf_less_throttle-with-pf_local_throttle-checkpatch-fixes
++++ a/include/linux/sched.h
+@@ -1484,7 +1484,7 @@ extern struct pid *cad_pid;
+ #define PF_KSWAPD		0x00020000	/* I am kswapd */
+ #define PF_MEMALLOC_NOFS	0x00040000	/* All allocation requests will inherit GFP_NOFS */
+ #define PF_MEMALLOC_NOIO	0x00080000	/* All allocation requests will inherit GFP_NOIO */
+-#define PF_LOCAL_THROTTLE	0x00100000	/* Throttle writes only agasint the bdi I write to,
++#define PF_LOCAL_THROTTLE	0x00100000	/* Throttle writes only against the bdi I write to,
+ 						 * I am cleaning dirty pages from some other bdi. */
+ #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
+ #define PF_RANDOMIZE		0x00400000	/* Randomize virtual address space */
+--- a/mm/page-writeback.c~mm-replace-pf_less_throttle-with-pf_local_throttle-checkpatch-fixes
++++ a/mm/page-writeback.c
+@@ -1655,7 +1655,7 @@ static void balance_dirty_pages(struct b
+ 			unsigned long intv;
+ 			unsigned long m_intv;
  
- 	} while (bh != head);
+-		free_running:
++free_running:
+ 			intv = dirty_poll_interval(dirty, thresh);
+ 			m_intv = ULONG_MAX;
  
--	SetPagePrivate(newpage);
--
- 	if (mode != MIGRATE_SYNC_NO_COPY)
- 		migrate_page_copy(newpage, page);
- 	else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code.patch
-mm-replace-pf_less_throttle-with-pf_local_throttle-checkpatch-fixes.patch
+mm-replace-pf_less_throttle-with-pf_local_throttle.patch
 mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix.patch
 mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix-2.patch
 mm-gupc-updating-the-documentation-fix.patch
