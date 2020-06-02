@@ -1,286 +1,128 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 038/128] iomap: convert from readpages to
- readahead
-Date: Mon, 01 Jun 2020 21:47:34 -0700
-Message-ID: <20200602044734.pWac1TQI7%akpm@linux-foundation.org>
+Subject: [patch 039/128] include/linux/pagemap.h: introduce
+ attach/detach_page_private
+Date: Mon, 01 Jun 2020 21:47:38 -0700
+Message-ID: <20200602044738.z834WeyIG%akpm@linux-foundation.org>
 References: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38542 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38632 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726000AbgFBErh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:47:37 -0400
+        id S1725835AbgFBErk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:47:40 -0400
 In-Reply-To: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang25@huawei.com, hch@lst.de, jaegeuk@kernel.org, jhubbard@nvidia.com, johannes.thumshirn@wdc.com, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, mszeredi@redhat.com, torvalds@linux-foundation.org, william.kucharski@oracle.com, willy@infradead.org, xiyou.wangcong@gmail.com, yuchao0@huawei.com, ziy@nvidia.com
+To: adilger@dilger.ca, agruenba@redhat.com, akpm@linux-foundation.org, anton@tuxera.com, bigeasy@linutronix.de, chao@kernel.org, clm@fb.com, darrick.wong@oracle.com, david@fromorbit.com, dsterba@suse.com, guoqing.jiang@cloud.ionos.com, guro@fb.com, hch@infradead.org, hubcap@omnibond.com, jaegeuk@kernel.org, josef@toxicpanda.com, kirill.shutemov@linux.intel.com, laoar.shao@gmail.com, linux-mm@kvack.org, martin@omnibond.com, mm-commits@vger.kernel.org, song@kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, william.kucharski@oracle.com, willy@infradead.org, yang.shi@linux.alibaba.com, yuchao0@huawei.com
 
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: iomap: convert from readpages to readahead
+=46rom: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+Subject: include/linux/pagemap.h: introduce attach/detach_page_private
 
-Use the new readahead operation in iomap.  Convert XFS and ZoneFS to use
-it.
+Patch series "Introduce attach/detach_page_private to cleanup code".
 
-Link: http://lkml.kernel.org/r/20200414150233.24495-26-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Cc: Chao Yu <yuchao0@huawei.com>
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Eric Biggers <ebiggers@google.com>
-Cc: Gao Xiang <gaoxiang25@huawei.com>
+
+This patch (of 10):
+
+The logic in attach_page_buffers and __clear_page_buffers are quite
+paired, but
+
+1. they are located in different files.
+
+2. attach_page_buffers is implemented in buffer_head.h, so it could be
+   used by other files. But __clear_page_buffers is static function in
+   buffer.c and other potential users can't call the function, md-bitmap
+   even copied the function.
+
+So, introduce the new attach/detach_page_private to replace them.  With
+the new pair of function, we will remove the usage of attach_page_buffers
+and __clear_page_buffers in next patches.  Thanks for suggestions about
+the function name from Alexander Viro, Andreas Gr=C3=BCnbacher, Christoph
+Hellwig and Matthew Wilcox.
+
+Link: http://lkml.kernel.org/r/20200517214718.468-1-guoqing.jiang@cloud.ion=
+os.com
+Link: http://lkml.kernel.org/r/20200517214718.468-2-guoqing.jiang@cloud.ion=
+os.com
+Signed-off-by: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Song Liu <song@kernel.org>
+Cc: Chris Mason <clm@fb.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Johannes Thumshirn <johannes.thumshirn@wdc.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Anton Altaparmakov <anton@tuxera.com>
+Cc: Mike Marshall <hubcap@omnibond.com>
+Cc: Martin Brandenburg <martin@omnibond.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Andreas Dilger <adilger@dilger.ca>
+Cc: Chao Yu <yuchao0@huawei.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/iomap/buffered-io.c |   92 +++++++++++++--------------------------
- fs/iomap/trace.h       |    2 
- fs/xfs/xfs_aops.c      |   13 ++---
- fs/zonefs/super.c      |    7 +-
- include/linux/iomap.h  |    3 -
- 5 files changed, 42 insertions(+), 75 deletions(-)
+ include/linux/pagemap.h |   37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
---- a/fs/iomap/buffered-io.c~iomap-convert-from-readpages-to-readahead
-+++ a/fs/iomap/buffered-io.c
-@@ -214,9 +214,8 @@ iomap_read_end_io(struct bio *bio)
- struct iomap_readpage_ctx {
- 	struct page		*cur_page;
- 	bool			cur_page_in_bio;
--	bool			is_readahead;
- 	struct bio		*bio;
--	struct list_head	*pages;
-+	struct readahead_control *rac;
- };
- 
- static void
-@@ -308,7 +307,7 @@ iomap_readpage_actor(struct inode *inode
- 		if (ctx->bio)
- 			submit_bio(ctx->bio);
- 
--		if (ctx->is_readahead) /* same as readahead_gfp_mask */
-+		if (ctx->rac) /* same as readahead_gfp_mask */
- 			gfp |= __GFP_NORETRY | __GFP_NOWARN;
- 		ctx->bio = bio_alloc(gfp, min(BIO_MAX_PAGES, nr_vecs));
- 		/*
-@@ -319,7 +318,7 @@ iomap_readpage_actor(struct inode *inode
- 		if (!ctx->bio)
- 			ctx->bio = bio_alloc(orig_gfp, 1);
- 		ctx->bio->bi_opf = REQ_OP_READ;
--		if (ctx->is_readahead)
-+		if (ctx->rac)
- 			ctx->bio->bi_opf |= REQ_RAHEAD;
- 		ctx->bio->bi_iter.bi_sector = sector;
- 		bio_set_dev(ctx->bio, iomap->bdev);
-@@ -375,36 +374,8 @@ iomap_readpage(struct page *page, const
+--- a/include/linux/pagemap.h~include-linux-pagemaph-introduce-attach-detac=
+h_page_private
++++ a/include/linux/pagemap.h
+@@ -208,6 +208,43 @@ static inline int page_cache_add_specula
+ 	return __page_cache_add_speculative(page, count);
  }
- EXPORT_SYMBOL_GPL(iomap_readpage);
- 
--static struct page *
--iomap_next_page(struct inode *inode, struct list_head *pages, loff_t pos,
--		loff_t length, loff_t *done)
--{
--	while (!list_empty(pages)) {
--		struct page *page = lru_to_page(pages);
--
--		if (page_offset(page) >= (u64)pos + length)
--			break;
--
--		list_del(&page->lru);
--		if (!add_to_page_cache_lru(page, inode->i_mapping, page->index,
--				GFP_NOFS))
--			return page;
--
--		/*
--		 * If we already have a page in the page cache at index we are
--		 * done.  Upper layers don't care if it is uptodate after the
--		 * readpages call itself as every page gets checked again once
--		 * actually needed.
--		 */
--		*done += PAGE_SIZE;
--		put_page(page);
--	}
--
--	return NULL;
--}
--
- static loff_t
--iomap_readpages_actor(struct inode *inode, loff_t pos, loff_t length,
-+iomap_readahead_actor(struct inode *inode, loff_t pos, loff_t length,
- 		void *data, struct iomap *iomap, struct iomap *srcmap)
- {
- 	struct iomap_readpage_ctx *ctx = data;
-@@ -418,10 +389,7 @@ iomap_readpages_actor(struct inode *inod
- 			ctx->cur_page = NULL;
- 		}
- 		if (!ctx->cur_page) {
--			ctx->cur_page = iomap_next_page(inode, ctx->pages,
--					pos, length, &done);
--			if (!ctx->cur_page)
--				break;
-+			ctx->cur_page = readahead_page(ctx->rac);
- 			ctx->cur_page_in_bio = false;
- 		}
- 		ret = iomap_readpage_actor(inode, pos + done, length - done,
-@@ -431,32 +399,43 @@ iomap_readpages_actor(struct inode *inod
- 	return done;
- }
- 
--int
--iomap_readpages(struct address_space *mapping, struct list_head *pages,
--		unsigned nr_pages, const struct iomap_ops *ops)
--{
+=20
 +/**
-+ * iomap_readahead - Attempt to read pages from a file.
-+ * @rac: Describes the pages to be read.
-+ * @ops: The operations vector for the filesystem.
++ * attach_page_private - Attach private data to a page.
++ * @page: Page to attach data to.
++ * @data: Data to attach to page.
 + *
-+ * This function is for filesystems to call to implement their readahead
-+ * address_space operation.
-+ *
-+ * Context: The @ops callbacks may submit I/O (eg to read the addresses of
-+ * blocks from disc), and may wait for it.  The caller may be trying to
-+ * access a different page, and so sleeping excessively should be avoided.
-+ * It may allocate memory, but should avoid costly allocations.  This
-+ * function is called with memalloc_nofs set, so allocations will not cause
-+ * the filesystem to be reentered.
++ * Attaching private data to a page increments the page's reference count.
++ * The data must be detached before the page will be freed.
 + */
-+void iomap_readahead(struct readahead_control *rac, const struct iomap_ops *ops)
++static inline void attach_page_private(struct page *page, void *data)
 +{
-+	struct inode *inode = rac->mapping->host;
-+	loff_t pos = readahead_pos(rac);
-+	loff_t length = readahead_length(rac);
- 	struct iomap_readpage_ctx ctx = {
--		.pages		= pages,
--		.is_readahead	= true,
-+		.rac	= rac,
- 	};
--	loff_t pos = page_offset(list_entry(pages->prev, struct page, lru));
--	loff_t last = page_offset(list_entry(pages->next, struct page, lru));
--	loff_t length = last - pos + PAGE_SIZE, ret = 0;
- 
--	trace_iomap_readpages(mapping->host, nr_pages);
-+	trace_iomap_readahead(inode, readahead_count(rac));
- 
- 	while (length > 0) {
--		ret = iomap_apply(mapping->host, pos, length, 0, ops,
--				&ctx, iomap_readpages_actor);
-+		loff_t ret = iomap_apply(inode, pos, length, 0, ops,
-+				&ctx, iomap_readahead_actor);
- 		if (ret <= 0) {
- 			WARN_ON_ONCE(ret == 0);
--			goto done;
-+			break;
- 		}
- 		pos += ret;
- 		length -= ret;
- 	}
--	ret = 0;
--done:
++	get_page(page);
++	set_page_private(page, (unsigned long)data);
++	SetPagePrivate(page);
++}
 +
- 	if (ctx.bio)
- 		submit_bio(ctx.bio);
- 	if (ctx.cur_page) {
-@@ -464,15 +443,8 @@ done:
- 			unlock_page(ctx.cur_page);
- 		put_page(ctx.cur_page);
- 	}
--
--	/*
--	 * Check that we didn't lose a page due to the arcance calling
--	 * conventions..
--	 */
--	WARN_ON_ONCE(!ret && !list_empty(ctx.pages));
--	return ret;
- }
--EXPORT_SYMBOL_GPL(iomap_readpages);
-+EXPORT_SYMBOL_GPL(iomap_readahead);
- 
- /*
-  * iomap_is_partially_uptodate checks whether blocks within a page are
---- a/fs/iomap/trace.h~iomap-convert-from-readpages-to-readahead
-+++ a/fs/iomap/trace.h
-@@ -39,7 +39,7 @@ DEFINE_EVENT(iomap_readpage_class, name,
- 	TP_PROTO(struct inode *inode, int nr_pages), \
- 	TP_ARGS(inode, nr_pages))
- DEFINE_READPAGE_EVENT(iomap_readpage);
--DEFINE_READPAGE_EVENT(iomap_readpages);
-+DEFINE_READPAGE_EVENT(iomap_readahead);
- 
- DECLARE_EVENT_CLASS(iomap_range_class,
- 	TP_PROTO(struct inode *inode, unsigned long off, unsigned int len),
---- a/fs/xfs/xfs_aops.c~iomap-convert-from-readpages-to-readahead
-+++ a/fs/xfs/xfs_aops.c
-@@ -621,14 +621,11 @@ xfs_vm_readpage(
- 	return iomap_readpage(page, &xfs_read_iomap_ops);
- }
- 
--STATIC int
--xfs_vm_readpages(
--	struct file		*unused,
--	struct address_space	*mapping,
--	struct list_head	*pages,
--	unsigned		nr_pages)
-+STATIC void
-+xfs_vm_readahead(
-+	struct readahead_control	*rac)
- {
--	return iomap_readpages(mapping, pages, nr_pages, &xfs_read_iomap_ops);
-+	iomap_readahead(rac, &xfs_read_iomap_ops);
- }
- 
- static int
-@@ -644,7 +641,7 @@ xfs_iomap_swapfile_activate(
- 
- const struct address_space_operations xfs_address_space_operations = {
- 	.readpage		= xfs_vm_readpage,
--	.readpages		= xfs_vm_readpages,
-+	.readahead		= xfs_vm_readahead,
- 	.writepage		= xfs_vm_writepage,
- 	.writepages		= xfs_vm_writepages,
- 	.set_page_dirty		= iomap_set_page_dirty,
---- a/fs/zonefs/super.c~iomap-convert-from-readpages-to-readahead
-+++ a/fs/zonefs/super.c
-@@ -78,10 +78,9 @@ static int zonefs_readpage(struct file *
- 	return iomap_readpage(page, &zonefs_iomap_ops);
- }
- 
--static int zonefs_readpages(struct file *unused, struct address_space *mapping,
--			    struct list_head *pages, unsigned int nr_pages)
-+static void zonefs_readahead(struct readahead_control *rac)
- {
--	return iomap_readpages(mapping, pages, nr_pages, &zonefs_iomap_ops);
-+	iomap_readahead(rac, &zonefs_iomap_ops);
- }
- 
- /*
-@@ -128,7 +127,7 @@ static int zonefs_writepages(struct addr
- 
- static const struct address_space_operations zonefs_file_aops = {
- 	.readpage		= zonefs_readpage,
--	.readpages		= zonefs_readpages,
-+	.readahead		= zonefs_readahead,
- 	.writepage		= zonefs_writepage,
- 	.writepages		= zonefs_writepages,
- 	.set_page_dirty		= iomap_set_page_dirty,
---- a/include/linux/iomap.h~iomap-convert-from-readpages-to-readahead
-+++ a/include/linux/iomap.h
-@@ -155,8 +155,7 @@ loff_t iomap_apply(struct inode *inode,
- ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
- 		const struct iomap_ops *ops);
- int iomap_readpage(struct page *page, const struct iomap_ops *ops);
--int iomap_readpages(struct address_space *mapping, struct list_head *pages,
--		unsigned nr_pages, const struct iomap_ops *ops);
-+void iomap_readahead(struct readahead_control *, const struct iomap_ops *ops);
- int iomap_set_page_dirty(struct page *page);
- int iomap_is_partially_uptodate(struct page *page, unsigned long from,
- 		unsigned long count);
++/**
++ * detach_page_private - Detach private data from a page.
++ * @page: Page to detach data from.
++ *
++ * Removes the data that was previously attached to the page and decrements
++ * the refcount on the page.
++ *
++ * Return: Data that was attached to the page.
++ */
++static inline void *detach_page_private(struct page *page)
++{
++	void *data =3D (void *)page_private(page);
++
++	if (!PagePrivate(page))
++		return NULL;
++	ClearPagePrivate(page);
++	set_page_private(page, 0);
++	put_page(page);
++
++	return data;
++}
++
+ #ifdef CONFIG_NUMA
+ extern struct page *__page_cache_alloc(gfp_t gfp);
+ #else
 _
