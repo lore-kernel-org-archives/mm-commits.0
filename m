@@ -1,70 +1,55 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch removed
- from -mm tree
-Date: Mon, 01 Jun 2020 21:20:47 -0700
-Message-ID: <20200602042047.-39KF9mtb%akpm@linux-foundation.org>
+ mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+ removed from -mm tree
+Date: Mon, 01 Jun 2020 21:20:50 -0700
+Message-ID: <20200602042050.iL43k--WP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55916 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725616AbgFBEUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:20:49 -0400
+        id S1725616AbgFBEUw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:20:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org, peterz@infradead.org
 
 
 The patch titled
-     Subject: mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix
+     Subject: mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+     mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
 
 This patch was dropped because it was folded into mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix
+Subject: mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix
 
-add missing `node' arg
+fix riscv nommu build
 
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_vmalloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/riscv/include/asm/pgtable.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/test_vmalloc.c~mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix
-+++ a/lib/test_vmalloc.c
-@@ -91,7 +91,7 @@ static int random_size_align_alloc_test(
- 		 */
- 		size = ((rnd % 10) + 1) * PAGE_SIZE;
+--- a/arch/riscv/include/asm/pgtable.h~mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -473,9 +473,9 @@ static inline int ptep_clear_flush_young
+ #define PAGE_SHARED		__pgprot(0)
+ #define PAGE_KERNEL		__pgprot(0)
+ #define swapper_pg_dir		NULL
++#define TASK_SIZE		0xffffffffUL
+ #define VMALLOC_START		0
+-
+-#define TASK_SIZE 0xffffffffUL
++#define VMALLOC_END		TASK_SIZE
  
--		ptr = __vmalloc_node(size, align, GFP_KERNEL | __GFP_ZERO,
-+		ptr = __vmalloc_node(size, align, GFP_KERNEL | __GFP_ZERO, 0,
- 				__builtin_return_address(0));
- 		if (!ptr)
- 			return -1;
-@@ -114,7 +114,7 @@ static int align_shift_alloc_test(void)
- 	for (i = 0; i < BITS_PER_LONG; i++) {
- 		align = ((unsigned long) 1) << i;
+ static inline void __kernel_map_pages(struct page *page, int numpages, int enable) {}
  
--		ptr = __vmalloc_node(PAGE_SIZE, align, GFP_KERNEL | __GFP_ZERO,
-+		ptr = __vmalloc_node(PAGE_SIZE, align, GFP_KERNEL|__GFP_ZERO, 0,
- 				__builtin_return_address(0));
- 		if (!ptr)
- 			return -1;
-@@ -132,7 +132,7 @@ static int fix_align_alloc_test(void)
- 
- 	for (i = 0; i < test_loop_count; i++) {
- 		ptr = __vmalloc_node(5 * PAGE_SIZE, THREAD_ALIGN << 1,
--				GFP_KERNEL | __GFP_ZERO,
-+				GFP_KERNEL | __GFP_ZERO, 0,
- 				__builtin_return_address(0));
- 		if (!ptr)
- 			return -1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +57,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
 mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
 mm-remove-vmalloc_user_node_flags-fix.patch
 mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
 drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
