@@ -1,42 +1,42 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- erofs-convert-uncompressed-files-from-readpages-to-readahead.patch removed
+ erofs-convert-compressed-files-from-readpages-to-readahead.patch removed
  from -mm tree
-Date: Tue, 02 Jun 2020 14:38:56 -0700
-Message-ID: <20200602213856.kDHmHcVLB%akpm@linux-foundation.org>
+Date: Tue, 02 Jun 2020 14:38:59 -0700
+Message-ID: <20200602213859.8tduufLao%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53076 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726320AbgFBVi6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:38:58 -0400
+        id S1726320AbgFBVjB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:39:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang25@huawei.com, hch@lst.de, jaegeuk@kernel.org, jhubbard@nvidia.com, johannes.thumshirn@wdc.com, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, mszeredi@redhat.com, william.kucharski@oracle.com, willy@infradead.org, xiyou.wangcong@gmail.com, yuchao0@huawei.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: erofs: convert uncompressed files from readpages to readahead
+     Subject: erofs: convert compressed files from readpages to readahead
 has been removed from the -mm tree.  Its filename was
-     erofs-convert-uncompressed-files-from-readpages-to-readahead.patch
+     erofs-convert-compressed-files-from-readpages-to-readahead.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: erofs: convert uncompressed files from readpages to readahead
+Subject: erofs: convert compressed files from readpages to readahead
 
-Use the new readahead operation in erofs
+Use the new readahead operation in erofs.
 
-Link: http://lkml.kernel.org/r/20200414150233.24495-19-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200414150233.24495-20-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Gao Xiang <gaoxiang25@huawei.com>
+Reviewed-by: Dave Chinner <dchinner@redhat.com>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Reviewed-by: Chao Yu <yuchao0@huawei.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Cong Wang <xiyou.wangcong@gmail.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Eric Biggers <ebiggers@google.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: John Hubbard <jhubbard@nvidia.com>
@@ -49,123 +49,53 @@ Cc: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/erofs/data.c              |   41 ++++++++++++---------------------
- fs/erofs/zdata.c             |    2 -
- include/trace/events/erofs.h |    6 ++--
- 3 files changed, 19 insertions(+), 30 deletions(-)
+ fs/erofs/zdata.c |   29 +++++++++--------------------
+ 1 file changed, 9 insertions(+), 20 deletions(-)
 
---- a/fs/erofs/data.c~erofs-convert-uncompressed-files-from-readpages-to-readahead
-+++ a/fs/erofs/data.c
-@@ -280,47 +280,36 @@ static int erofs_raw_access_readpage(str
- 	return 0;
+--- a/fs/erofs/zdata.c~erofs-convert-compressed-files-from-readpages-to-readahead
++++ a/fs/erofs/zdata.c
+@@ -1305,28 +1305,23 @@ static bool should_decompress_synchronou
+ 	return nr <= sbi->max_sync_decompress_pages;
  }
  
--static int erofs_raw_access_readpages(struct file *filp,
--				      struct address_space *mapping,
--				      struct list_head *pages,
--				      unsigned int nr_pages)
-+static void erofs_raw_access_readahead(struct readahead_control *rac)
+-static int z_erofs_readpages(struct file *filp, struct address_space *mapping,
+-			     struct list_head *pages, unsigned int nr_pages)
++static void z_erofs_readahead(struct readahead_control *rac)
  {
- 	erofs_off_t last_block;
- 	struct bio *bio = NULL;
--	gfp_t gfp = readahead_gfp_mask(mapping);
--	struct page *page = list_last_entry(pages, struct page, lru);
-+	struct page *page;
+-	struct inode *const inode = mapping->host;
++	struct inode *const inode = rac->mapping->host;
+ 	struct erofs_sb_info *const sbi = EROFS_I_SB(inode);
  
--	trace_erofs_readpages(mapping->host, page, nr_pages, true);
+-	bool sync = should_decompress_synchronously(sbi, nr_pages);
++	bool sync = should_decompress_synchronously(sbi, readahead_count(rac));
+ 	struct z_erofs_decompress_frontend f = DECOMPRESS_FRONTEND_INIT(inode);
+-	gfp_t gfp = mapping_gfp_constraint(mapping, GFP_KERNEL);
+-	struct page *head = NULL;
++	struct page *page, *head = NULL;
+ 	LIST_HEAD(pagepool);
+ 
+-	trace_erofs_readpages(mapping->host, lru_to_page(pages)->index,
+-			      nr_pages, false);
++	trace_erofs_readpages(inode, readahead_index(rac),
++			readahead_count(rac), false);
+ 
+-	f.headoffset = (erofs_off_t)lru_to_page(pages)->index << PAGE_SHIFT;
 -
 -	for (; nr_pages; --nr_pages) {
--		page = list_entry(pages->prev, struct page, lru);
-+	trace_erofs_readpages(rac->mapping->host, readahead_index(rac),
-+			readahead_count(rac), true);
+-		struct page *page = lru_to_page(pages);
++	f.headoffset = readahead_pos(rac);
  
 +	while ((page = readahead_page(rac))) {
  		prefetchw(&page->flags);
 -		list_del(&page->lru);
  
--		if (!add_to_page_cache_lru(page, mapping, page->index, gfp)) {
--			bio = erofs_read_raw_page(bio, mapping, page,
--						  &last_block, nr_pages, true);
--
--			/* all the page errors are ignored when readahead */
--			if (IS_ERR(bio)) {
--				pr_err("%s, readahead error at page %lu of nid %llu\n",
--				       __func__, page->index,
--				       EROFS_I(mapping->host)->nid);
-+		bio = erofs_read_raw_page(bio, rac->mapping, page, &last_block,
-+				readahead_count(rac), true);
-+
-+		/* all the page errors are ignored when readahead */
-+		if (IS_ERR(bio)) {
-+			pr_err("%s, readahead error at page %lu of nid %llu\n",
-+			       __func__, page->index,
-+			       EROFS_I(rac->mapping->host)->nid);
+ 		/*
+ 		 * A pure asynchronous readahead is indicated if
+@@ -1335,11 +1330,6 @@ static int z_erofs_readpages(struct file
+ 		 */
+ 		sync &= !(PageReadahead(page) && !head);
  
--				bio = NULL;
--			}
-+			bio = NULL;
- 		}
- 
--		/* pages could still be locked */
- 		put_page(page);
- 	}
--	DBG_BUGON(!list_empty(pages));
- 
- 	/* the rare case (end in gaps) */
- 	if (bio)
- 		submit_bio(bio);
--	return 0;
- }
- 
- static int erofs_get_block(struct inode *inode, sector_t iblock,
-@@ -358,7 +347,7 @@ static sector_t erofs_bmap(struct addres
- /* for uncompressed (aligned) files and raw access for other files */
- const struct address_space_operations erofs_raw_access_aops = {
- 	.readpage = erofs_raw_access_readpage,
--	.readpages = erofs_raw_access_readpages,
-+	.readahead = erofs_raw_access_readahead,
- 	.bmap = erofs_bmap,
- };
- 
---- a/fs/erofs/zdata.c~erofs-convert-uncompressed-files-from-readpages-to-readahead
-+++ a/fs/erofs/zdata.c
-@@ -1317,7 +1317,7 @@ static int z_erofs_readpages(struct file
- 	struct page *head = NULL;
- 	LIST_HEAD(pagepool);
- 
--	trace_erofs_readpages(mapping->host, lru_to_page(pages),
-+	trace_erofs_readpages(mapping->host, lru_to_page(pages)->index,
- 			      nr_pages, false);
- 
- 	f.headoffset = (erofs_off_t)lru_to_page(pages)->index << PAGE_SHIFT;
---- a/include/trace/events/erofs.h~erofs-convert-uncompressed-files-from-readpages-to-readahead
-+++ a/include/trace/events/erofs.h
-@@ -113,10 +113,10 @@ TRACE_EVENT(erofs_readpage,
- 
- TRACE_EVENT(erofs_readpages,
- 
--	TP_PROTO(struct inode *inode, struct page *page, unsigned int nrpage,
-+	TP_PROTO(struct inode *inode, pgoff_t start, unsigned int nrpage,
- 		bool raw),
- 
--	TP_ARGS(inode, page, nrpage, raw),
-+	TP_ARGS(inode, start, nrpage, raw),
- 
- 	TP_STRUCT__entry(
- 		__field(dev_t,		dev	)
-@@ -129,7 +129,7 @@ TRACE_EVENT(erofs_readpages,
- 	TP_fast_assign(
- 		__entry->dev	= inode->i_sb->s_dev;
- 		__entry->nid	= EROFS_I(inode)->nid;
--		__entry->start	= page->index;
-+		__entry->start	= start;
- 		__entry->nrpage	= nrpage;
- 		__entry->raw	= raw;
- 	),
-_
-
-Patches currently in -mm which might be from willy@infradead.org are
-
-mm-simplify-calling-a-compound-page-destructor.patch
-ipc-convert-ipcs_idr-to-xarray.patch
-ipc-convert-ipcs_idr-to-xarray-update.patch
+-		if (add_to_page_cache_lru(page, mapping, page->index, gfp)) {
+-			list_add(&page->lru, &pagepool);
+-			continue;
+-		}
