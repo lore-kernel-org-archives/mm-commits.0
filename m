@@ -1,37 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch removed from
- -mm tree
-Date: Tue, 02 Jun 2020 14:42:36 -0700
-Message-ID: <20200602214236.82YRzyV7K%akpm@linux-foundation.org>
+ mm-remove-the-prot-argument-to-__vmalloc_node.patch removed from -mm tree
+Date: Tue, 02 Jun 2020 14:42:25 -0700
+Message-ID: <20200602214225.3TSvkMZdI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57410 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728390AbgFBVmj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:42:39 -0400
+        id S1728390AbgFBVm1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:42:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, christophe.leroy@c-s.fr, daniel.vetter@ffwll.ch, daniel@ffwll.ch, gor@linux.ibm.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, hannes@cmpxchg.org, hch@lst.de, heiko.carstens@de.ibm.com, kys@microsoft.com, labbott@redhat.com, mark.rutland@arm.com, mikelley@microsoft.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, paulus@ozlabs.org, peterz@infradead.org, robin.murphy@arm.com, sakari.ailus@linux.intel.com, sthemmin@microsoft.com, sumit.semwal@linaro.org, wei.liu@kernel.org, will@kernel.org, xiang@kernel.org
 
 
 The patch titled
-     Subject: mm: switch the test_vmalloc module to use __vmalloc_node
+     Subject: mm: remove the prot argument to __vmalloc_node
 has been removed from the -mm tree.  Its filename was
-     mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
+     mm-remove-the-prot-argument-to-__vmalloc_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: switch the test_vmalloc module to use __vmalloc_node
+Subject: mm: remove the prot argument to __vmalloc_node
 
-No need to export the very low-level __vmalloc_node_range when the test
-module can use a slightly higher level variant.
+This is always PAGE_KERNEL now.
 
-[akpm@linux-foundation.org: add missing `node' arg]
-[akpm@linux-foundation.org: fix riscv nommu build]
-Link: http://lkml.kernel.org/r/20200414131348.444715-26-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-23-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -63,107 +59,117 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgtable.h |    4 ++--
- lib/test_vmalloc.c               |   26 +++++++-------------------
- mm/vmalloc.c                     |   17 ++++++++---------
- 3 files changed, 17 insertions(+), 30 deletions(-)
+ mm/vmalloc.c |   35 ++++++++++++++---------------------
+ 1 file changed, 14 insertions(+), 21 deletions(-)
 
---- a/arch/riscv/include/asm/pgtable.h~mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -473,9 +473,9 @@ static inline int ptep_clear_flush_young
- #define PAGE_SHARED		__pgprot(0)
- #define PAGE_KERNEL		__pgprot(0)
- #define swapper_pg_dir		NULL
-+#define TASK_SIZE		0xffffffffUL
- #define VMALLOC_START		0
--
--#define TASK_SIZE 0xffffffffUL
-+#define VMALLOC_END		TASK_SIZE
- 
- static inline void __kernel_map_pages(struct page *page, int numpages, int enable) {}
- 
---- a/lib/test_vmalloc.c~mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node
-+++ a/lib/test_vmalloc.c
-@@ -91,12 +91,8 @@ static int random_size_align_alloc_test(
- 		 */
- 		size = ((rnd % 10) + 1) * PAGE_SIZE;
- 
--		ptr = __vmalloc_node_range(size, align,
--		   VMALLOC_START, VMALLOC_END,
--		   GFP_KERNEL | __GFP_ZERO,
--		   PAGE_KERNEL,
--		   0, 0, __builtin_return_address(0));
--
-+		ptr = __vmalloc_node(size, align, GFP_KERNEL | __GFP_ZERO, 0,
-+				__builtin_return_address(0));
- 		if (!ptr)
- 			return -1;
- 
-@@ -118,12 +114,8 @@ static int align_shift_alloc_test(void)
- 	for (i = 0; i < BITS_PER_LONG; i++) {
- 		align = ((unsigned long) 1) << i;
- 
--		ptr = __vmalloc_node_range(PAGE_SIZE, align,
--			VMALLOC_START, VMALLOC_END,
--			GFP_KERNEL | __GFP_ZERO,
--			PAGE_KERNEL,
--			0, 0, __builtin_return_address(0));
--
-+		ptr = __vmalloc_node(PAGE_SIZE, align, GFP_KERNEL|__GFP_ZERO, 0,
-+				__builtin_return_address(0));
- 		if (!ptr)
- 			return -1;
- 
-@@ -139,13 +131,9 @@ static int fix_align_alloc_test(void)
- 	int i;
- 
- 	for (i = 0; i < test_loop_count; i++) {
--		ptr = __vmalloc_node_range(5 * PAGE_SIZE,
--			THREAD_ALIGN << 1,
--			VMALLOC_START, VMALLOC_END,
--			GFP_KERNEL | __GFP_ZERO,
--			PAGE_KERNEL,
--			0, 0, __builtin_return_address(0));
--
-+		ptr = __vmalloc_node(5 * PAGE_SIZE, THREAD_ALIGN << 1,
-+				GFP_KERNEL | __GFP_ZERO, 0,
-+				__builtin_return_address(0));
- 		if (!ptr)
- 			return -1;
- 
---- a/mm/vmalloc.c~mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node
+--- a/mm/vmalloc.c~mm-remove-the-prot-argument-to-__vmalloc_node
 +++ a/mm/vmalloc.c
-@@ -2523,15 +2523,6 @@ fail:
- 	return NULL;
- }
+@@ -2402,8 +2402,7 @@ void *vmap(struct page **pages, unsigned
+ EXPORT_SYMBOL(vmap);
  
--/*
-- * This is only for performance analysis of vmalloc and stress purpose.
-- * It is required by vmalloc test module, therefore do not use it other
-- * than that.
-- */
--#ifdef CONFIG_TEST_VMALLOC_MODULE
--EXPORT_SYMBOL_GPL(__vmalloc_node_range);
--#endif
--
- /**
-  * __vmalloc_node - allocate virtually contiguous memory
+ static void *__vmalloc_node(unsigned long size, unsigned long align,
+-			    gfp_t gfp_mask, pgprot_t prot,
+-			    int node, const void *caller);
++			    gfp_t gfp_mask, int node, const void *caller);
+ static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
+ 				 pgprot_t prot, int node)
+ {
+@@ -2421,7 +2420,7 @@ static void *__vmalloc_area_node(struct
+ 	/* Please note that the recursion is strictly bounded. */
+ 	if (array_size > PAGE_SIZE) {
+ 		pages = __vmalloc_node(array_size, 1, nested_gfp|highmem_mask,
+-				PAGE_KERNEL, node, area->caller);
++				node, area->caller);
+ 	} else {
+ 		pages = kmalloc_node(array_size, nested_gfp, node);
+ 	}
+@@ -2540,13 +2539,11 @@ EXPORT_SYMBOL_GPL(__vmalloc_node_range);
   * @size:	    allocation size
-@@ -2557,6 +2548,14 @@ void *__vmalloc_node(unsigned long size,
+  * @align:	    desired alignment
+  * @gfp_mask:	    flags for the page level allocator
+- * @prot:	    protection mask for the allocated pages
+  * @node:	    node to use for allocation or NUMA_NO_NODE
+  * @caller:	    caller's return address
+  *
+- * Allocate enough pages to cover @size from the page level
+- * allocator with @gfp_mask flags.  Map them into contiguous
+- * kernel virtual space, using a pagetable protection of @prot.
++ * Allocate enough pages to cover @size from the page level allocator with
++ * @gfp_mask flags.  Map them into contiguous kernel virtual space.
+  *
+  * Reclaim modifiers in @gfp_mask - __GFP_NORETRY, __GFP_RETRY_MAYFAIL
+  * and __GFP_NOFAIL are not supported
+@@ -2557,16 +2554,15 @@ EXPORT_SYMBOL_GPL(__vmalloc_node_range);
+  * Return: pointer to the allocated memory or %NULL on error
+  */
+ static void *__vmalloc_node(unsigned long size, unsigned long align,
+-			    gfp_t gfp_mask, pgprot_t prot,
+-			    int node, const void *caller)
++			    gfp_t gfp_mask, int node, const void *caller)
+ {
  	return __vmalloc_node_range(size, align, VMALLOC_START, VMALLOC_END,
- 				gfp_mask, PAGE_KERNEL, 0, node, caller);
+-				gfp_mask, prot, 0, node, caller);
++				gfp_mask, PAGE_KERNEL, 0, node, caller);
  }
-+/*
-+ * This is only for performance analysis of vmalloc and stress purpose.
-+ * It is required by vmalloc test module, therefore do not use it other
-+ * than that.
-+ */
-+#ifdef CONFIG_TEST_VMALLOC_MODULE
-+EXPORT_SYMBOL_GPL(__vmalloc_node);
-+#endif
  
  void *__vmalloc(unsigned long size, gfp_t gfp_mask)
  {
+-	return __vmalloc_node(size, 1, gfp_mask, PAGE_KERNEL, NUMA_NO_NODE,
++	return __vmalloc_node(size, 1, gfp_mask, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(__vmalloc);
+@@ -2574,15 +2570,15 @@ EXPORT_SYMBOL(__vmalloc);
+ static inline void *__vmalloc_node_flags(unsigned long size,
+ 					int node, gfp_t flags)
+ {
+-	return __vmalloc_node(size, 1, flags, PAGE_KERNEL,
+-					node, __builtin_return_address(0));
++	return __vmalloc_node(size, 1, flags, node,
++				__builtin_return_address(0));
+ }
+ 
+ 
+ void *__vmalloc_node_flags_caller(unsigned long size, int node, gfp_t flags,
+ 				  void *caller)
+ {
+-	return __vmalloc_node(size, 1, flags, PAGE_KERNEL, node, caller);
++	return __vmalloc_node(size, 1, flags, node, caller);
+ }
+ 
+ /**
+@@ -2657,8 +2653,8 @@ EXPORT_SYMBOL(vmalloc_user);
+  */
+ void *vmalloc_node(unsigned long size, int node)
+ {
+-	return __vmalloc_node(size, 1, GFP_KERNEL, PAGE_KERNEL,
+-					node, __builtin_return_address(0));
++	return __vmalloc_node(size, 1, GFP_KERNEL, node,
++			__builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(vmalloc_node);
+ 
+@@ -2671,9 +2667,6 @@ EXPORT_SYMBOL(vmalloc_node);
+  * allocator and map them into contiguous kernel virtual space.
+  * The memory allocated is set to zero.
+  *
+- * For tight control over page level allocator and protection flags
+- * use __vmalloc_node() instead.
+- *
+  * Return: pointer to the allocated memory or %NULL on error
+  */
+ void *vzalloc_node(unsigned long size, int node)
+@@ -2746,8 +2739,8 @@ void *vmalloc_exec(unsigned long size)
+  */
+ void *vmalloc_32(unsigned long size)
+ {
+-	return __vmalloc_node(size, 1, GFP_VMALLOC32, PAGE_KERNEL,
+-			      NUMA_NO_NODE, __builtin_return_address(0));
++	return __vmalloc_node(size, 1, GFP_VMALLOC32, NUMA_NO_NODE,
++			__builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(vmalloc_32);
+ 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
