@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-pass-addr-as-unsigned-long-to-vb_free.patch
- removed from -mm tree
-Date: Tue, 02 Jun 2020 14:41:52 -0700
-Message-ID: <20200602214152.N6eNpxtWG%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-remove-vmap_page_range_noflush-and-vunmap_page_range.patch removed from
+ -mm tree
+Date: Tue, 02 Jun 2020 14:41:56 -0700
+Message-ID: <20200602214156.i8b32m3ZQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56318 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56398 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728226AbgFBVlz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:41:55 -0400
+        id S1728226AbgFBVmA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:42:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, christophe.leroy@c-s.fr, daniel.vetter@ffwll.ch, daniel@ffwll.ch, gor@linux.ibm.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, hannes@cmpxchg.org, hch@lst.de, heiko.carstens@de.ibm.com, kys@microsoft.com, labbott@redhat.com, mark.rutland@arm.com, mikelley@microsoft.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, paulus@ozlabs.org, peterz@infradead.org, robin.murphy@arm.com, sakari.ailus@linux.intel.com, sthemmin@microsoft.com, sumit.semwal@linaro.org, wei.liu@kernel.org, will@kernel.org, xiang@kernel.org
 
 
 The patch titled
-     Subject: mm: pass addr as unsigned long to vb_free
+     Subject: mm: remove vmap_page_range_noflush and vunmap_page_range
 has been removed from the -mm tree.  Its filename was
-     mm-pass-addr-as-unsigned-long-to-vb_free.patch
+     mm-remove-vmap_page_range_noflush-and-vunmap_page_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: pass addr as unsigned long to vb_free
+Subject: mm: remove vmap_page_range_noflush and vunmap_page_range
 
-Ever use of addr in vb_free casts to unsigned long first, and the caller
-has an unsigned long version of the address available anyway.  Just pass
-that and avoid all the casts.
+These have non-static aliases called map_kernel_range_noflush and
+unmap_kernel_range_noflush that just differ slightly in the calling
+conventions that pass addr + size instead of an end.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-13-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-14-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -61,58 +62,163 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ mm/vmalloc.c |   98 ++++++++++++++++++++-----------------------------
+ 1 file changed, 40 insertions(+), 58 deletions(-)
 
---- a/mm/vmalloc.c~mm-pass-addr-as-unsigned-long-to-vb_free
+--- a/mm/vmalloc.c~mm-remove-vmap_page_range_noflush-and-vunmap_page_range
 +++ a/mm/vmalloc.c
-@@ -1665,7 +1665,7 @@ static void *vb_alloc(unsigned long size
- 	return vaddr;
+@@ -128,10 +128,24 @@ static void vunmap_p4d_range(pgd_t *pgd,
+ 	} while (p4d++, addr = next, addr != end);
  }
  
--static void vb_free(const void *addr, unsigned long size)
-+static void vb_free(unsigned long addr, unsigned long size)
+-static void vunmap_page_range(unsigned long addr, unsigned long end)
++/**
++ * unmap_kernel_range_noflush - unmap kernel VM area
++ * @addr: start of the VM area to unmap
++ * @size: size of the VM area to unmap
++ *
++ * Unmap PFN_UP(@size) pages at @addr.  The VM area @addr and @size specify
++ * should have been allocated using get_vm_area() and its friends.
++ *
++ * NOTE:
++ * This function does NOT do any cache flushing.  The caller is responsible
++ * for calling flush_cache_vunmap() on to-be-mapped areas before calling this
++ * function and flush_tlb_kernel_range() after.
++ */
++void unmap_kernel_range_noflush(unsigned long addr, unsigned long size)
  {
- 	unsigned long offset;
- 	unsigned long vb_idx;
-@@ -1675,24 +1675,22 @@ static void vb_free(const void *addr, un
- 	BUG_ON(offset_in_page(size));
- 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
+-	pgd_t *pgd;
++	unsigned long end = addr + size;
+ 	unsigned long next;
++	pgd_t *pgd;
  
--	flush_cache_vunmap((unsigned long)addr, (unsigned long)addr + size);
-+	flush_cache_vunmap(addr, addr + size);
+ 	BUG_ON(addr >= end);
+ 	pgd = pgd_offset_k(addr);
+@@ -220,18 +234,30 @@ static int vmap_p4d_range(pgd_t *pgd, un
+ 	return 0;
+ }
  
- 	order = get_order(size);
+-/*
+- * Set up page tables in kva (addr, end). The ptes shall have prot "prot", and
+- * will have pfns corresponding to the "pages" array.
++/**
++ * map_kernel_range_noflush - map kernel VM area with the specified pages
++ * @addr: start of the VM area to map
++ * @size: size of the VM area to map
++ * @prot: page protection flags to use
++ * @pages: pages to map
+  *
+- * Ie. pte at addr+N*PAGE_SIZE shall point to pfn corresponding to pages[N]
++ * Map PFN_UP(@size) pages at @addr.  The VM area @addr and @size specify should
++ * have been allocated using get_vm_area() and its friends.
++ *
++ * NOTE:
++ * This function does NOT do any cache flushing.  The caller is responsible for
++ * calling flush_cache_vmap() on to-be-mapped areas before calling this
++ * function.
++ *
++ * RETURNS:
++ * The number of pages mapped on success, -errno on failure.
+  */
+-static int vmap_page_range_noflush(unsigned long start, unsigned long end,
+-				   pgprot_t prot, struct page **pages)
++int map_kernel_range_noflush(unsigned long addr, unsigned long size,
++			     pgprot_t prot, struct page **pages)
+ {
+-	pgd_t *pgd;
++	unsigned long end = addr + size;
+ 	unsigned long next;
+-	unsigned long addr = start;
++	pgd_t *pgd;
+ 	int err = 0;
+ 	int nr = 0;
  
--	offset = (unsigned long)addr & (VMAP_BLOCK_SIZE - 1);
--	offset >>= PAGE_SHIFT;
-+	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
+@@ -252,7 +278,7 @@ static int vmap_page_range(unsigned long
+ {
+ 	int ret;
  
--	vb_idx = addr_to_vb_idx((unsigned long)addr);
-+	vb_idx = addr_to_vb_idx(addr);
- 	rcu_read_lock();
- 	vb = radix_tree_lookup(&vmap_block_tree, vb_idx);
+-	ret = vmap_page_range_noflush(start, end, prot, pages);
++	ret = map_kernel_range_noflush(start, end - start, prot, pages);
+ 	flush_cache_vmap(start, end);
+ 	return ret;
+ }
+@@ -1227,7 +1253,7 @@ EXPORT_SYMBOL_GPL(unregister_vmap_purge_
+  */
+ static void unmap_vmap_area(struct vmap_area *va)
+ {
+-	vunmap_page_range(va->va_start, va->va_end);
++	unmap_kernel_range_noflush(va->va_start, va->va_end - va->va_start);
+ }
+ 
+ /*
+@@ -1687,7 +1713,7 @@ static void vb_free(unsigned long addr,
  	rcu_read_unlock();
  	BUG_ON(!vb);
  
--	vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
-+	vunmap_page_range(addr, addr + size);
+-	vunmap_page_range(addr, addr + size);
++	unmap_kernel_range_noflush(addr, size);
  
  	if (debug_pagealloc_enabled_static())
--		flush_tlb_kernel_range((unsigned long)addr,
--					(unsigned long)addr + size);
-+		flush_tlb_kernel_range(addr, addr + size);
+ 		flush_tlb_kernel_range(addr, addr + size);
+@@ -1986,50 +2012,6 @@ void __init vmalloc_init(void)
+ }
  
- 	spin_lock(&vb->lock);
+ /**
+- * map_kernel_range_noflush - map kernel VM area with the specified pages
+- * @addr: start of the VM area to map
+- * @size: size of the VM area to map
+- * @prot: page protection flags to use
+- * @pages: pages to map
+- *
+- * Map PFN_UP(@size) pages at @addr.  The VM area @addr and @size
+- * specify should have been allocated using get_vm_area() and its
+- * friends.
+- *
+- * NOTE:
+- * This function does NOT do any cache flushing.  The caller is
+- * responsible for calling flush_cache_vmap() on to-be-mapped areas
+- * before calling this function.
+- *
+- * RETURNS:
+- * The number of pages mapped on success, -errno on failure.
+- */
+-int map_kernel_range_noflush(unsigned long addr, unsigned long size,
+-			     pgprot_t prot, struct page **pages)
+-{
+-	return vmap_page_range_noflush(addr, addr + size, prot, pages);
+-}
+-
+-/**
+- * unmap_kernel_range_noflush - unmap kernel VM area
+- * @addr: start of the VM area to unmap
+- * @size: size of the VM area to unmap
+- *
+- * Unmap PFN_UP(@size) pages at @addr.  The VM area @addr and @size
+- * specify should have been allocated using get_vm_area() and its
+- * friends.
+- *
+- * NOTE:
+- * This function does NOT do any cache flushing.  The caller is
+- * responsible for calling flush_cache_vunmap() on to-be-mapped areas
+- * before calling this function and flush_tlb_kernel_range() after.
+- */
+-void unmap_kernel_range_noflush(unsigned long addr, unsigned long size)
+-{
+-	vunmap_page_range(addr, addr + size);
+-}
+-
+-/**
+  * unmap_kernel_range - unmap kernel VM area and flush cache and TLB
+  * @addr: start of the VM area to unmap
+  * @size: size of the VM area to unmap
+@@ -2042,7 +2024,7 @@ void unmap_kernel_range(unsigned long ad
+ 	unsigned long end = addr + size;
  
-@@ -1792,7 +1790,7 @@ void vm_unmap_ram(const void *mem, unsig
- 
- 	if (likely(count <= VMAP_MAX_ALLOC)) {
- 		debug_check_no_locks_freed(mem, size);
--		vb_free(mem, size);
-+		vb_free(addr, size);
- 		return;
- 	}
+ 	flush_cache_vunmap(addr, end);
+-	vunmap_page_range(addr, end);
++	unmap_kernel_range_noflush(addr, size);
+ 	flush_tlb_kernel_range(addr, end);
+ }
  
 _
 
