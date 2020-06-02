@@ -1,162 +1,97 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch removed from
- -mm tree
-Date: Mon, 01 Jun 2020 21:14:14 -0700
-Message-ID: <20200602041414.50mDQhP0c%akpm@linux-foundation.org>
+ fuse-convert-from-readpages-to-readahead-fix.patch removed from -mm tree
+Date: Mon, 01 Jun 2020 21:14:51 -0700
+Message-ID: <20200602041451.8Vfx8C9VR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49924 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725841AbgFBEOQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:14:16 -0400
+        id S1725616AbgFBEOx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:14:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, dongli.zhang@oracle.com, iamjoonsoo.kim@lge.com, joe.jin@oracle.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
+To: darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang25@huawei.com, hch@lst.de, jaegeuk@kernel.org, jhubbard@nvidia.com, johannes.thumshirn@wdc.com, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, mszeredi@redhat.com, william.kucharski@oracle.com, willy@infradead.org, xiyou.wangcong@gmail.com, yuchao0@huawei.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix
+     Subject: fuse-convert-from-readpages-to-readahead-fix
 has been removed from the -mm tree.  Its filename was
-     mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+     fuse-convert-from-readpages-to-readahead-fix.patch
 
-This patch was dropped because it was folded into mm-slub-fix-corrupted-freechain-in-deactivate_slab.patch
+This patch was dropped because it was folded into fuse-convert-from-readpages-to-readahead.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix
+From: Matthew Wilcox <willy@infradead.org>
+Subject: fuse-convert-from-readpages-to-readahead-fix
 
-fix build with CONFIG_SLAB_DEBUG=n
+build fix
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dongli Zhang <dongli.zhang@oracle.com>
-Cc: Joe Jin <joe.jin@oracle.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Link: http://lkml.kernel.org/r/20200415025938.GB5820@bombadil.infradead.org
+Cc: Chao Yu <yuchao0@huawei.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Eric Biggers <ebiggers@google.com>
+Cc: Gao Xiang <gaoxiang25@huawei.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Johannes Thumshirn <johannes.thumshirn@wdc.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   37 +++++++++++++++++++++++++------------
- 1 file changed, 25 insertions(+), 12 deletions(-)
+ fs/fuse/file.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix
-+++ a/mm/slub.c
-@@ -679,6 +679,20 @@ static void slab_fix(struct kmem_cache *
- 	va_end(args);
- }
+--- a/fs/fuse/file.c~fuse-convert-from-readpages-to-readahead-fix
++++ a/fs/fuse/file.c
+@@ -924,7 +924,8 @@ static void fuse_readahead(struct readah
+ 	if (is_bad_inode(inode))
+ 		return;
  
-+static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
-+			       void *freelist, void *nextfree)
-+{
-+	if ((s->flags & SLAB_CONSISTENCY_CHECKS) &&
-+	    !check_valid_pointer(s, page, nextfree)) {
-+		object_err(s, page, freelist, "Freechain corrupt");
-+		freelist = NULL;
-+		slab_fix(s, "Isolate corrupted freechain");
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
- static void print_trailer(struct kmem_cache *s, struct page *page, u8 *p)
- {
- 	unsigned int off;	/* Offset of last byte */
-@@ -1410,6 +1424,11 @@ static inline void inc_slabs_node(struct
- static inline void dec_slabs_node(struct kmem_cache *s, int node,
- 							int objects) {}
+-	max_pages = min(fc->max_pages, fc->max_read / PAGE_SIZE);
++	max_pages = min_t(unsigned int, fc->max_pages,
++			fc->max_read / PAGE_SIZE);
  
-+static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
-+			       void *freelist, void *nextfree)
-+{
-+	return false;
-+}
- #endif /* CONFIG_SLUB_DEBUG */
- 
- /*
-@@ -2093,19 +2112,13 @@ static void deactivate_slab(struct kmem_
- 		void *prior;
- 		unsigned long counters;
- 
--		if ((s->flags & SLAB_CONSISTENCY_CHECKS) &&
--		    !check_valid_pointer(s, page, nextfree)) {
--			/*
--			 * If 'nextfree' is invalid, it is possible that
--			 * the object at 'freelist' is already corrupted.
--			 * Therefore, all objects starting at 'freelist'
--			 * are isolated.
--			 */
--			object_err(s, page, freelist, "Freechain corrupt");
--			freelist = NULL;
--			slab_fix(s, "Isolate corrupted freechain");
-+		/*
-+		 * If 'nextfree' is invalid, it is possible that the object at
-+		 * 'freelist' is already corrupted.  So isolate all objects
-+		 * starting at 'freelist'.
-+		 */
-+		if (freelist_corrupted(s, page, freelist, nextfree))
- 			break;
--		}
- 
- 		do {
- 			prior = page->freelist;
+ 	for (;;) {
+ 		struct fuse_io_args *ia;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
-mm-replace-pf_less_throttle-with-pf_local_throttle-checkpatch-fixes.patch
-mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix.patch
-mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix-2.patch
-mm-gupc-updating-the-documentation-fix.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
-mm-ptdump-expand-type-of-val-in-note_page-fix.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
-mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-lib-make-a-test-module-with-get_count_order-long-fix.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-maccess-unify-the-probe-kernel-arch-hooks-fix.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better-fix.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-move-readahead-prototypes-from-mmh.patch
+mm-return-void-from-various-readahead-functions.patch
+mm-ignore-return-value-of-readpages.patch
+mm-move-readahead-nr_pages-check-into-read_pages.patch
+mm-add-new-readahead_control-api.patch
+mm-use-readahead_control-to-pass-arguments.patch
+mm-rename-various-offset-parameters-to-index.patch
+mm-rename-readahead-loop-variable-to-i.patch
+mm-remove-page_offset-from-readahead-loop.patch
+mm-put-readahead-pages-in-cache-earlier.patch
+mm-add-readahead-address-space-operation.patch
+mm-move-end_index-check-out-of-readahead-loop.patch
+mm-add-page_cache_readahead_unbounded.patch
+mm-document-why-we-dont-set-pagereadahead.patch
+mm-use-memalloc_nofs_save-in-readahead-path.patch
+fs-convert-mpage_readpages-to-mpage_readahead.patch
+btrfs-convert-from-readpages-to-readahead.patch
+erofs-convert-uncompressed-files-from-readpages-to-readahead.patch
+erofs-convert-compressed-files-from-readpages-to-readahead.patch
+ext4-convert-from-readpages-to-readahead.patch
+ext4-pass-the-inode-to-ext4_mpage_readpages.patch
+f2fs-convert-from-readpages-to-readahead.patch
+f2fs-pass-the-inode-to-f2fs_mpage_readpages.patch
+fuse-convert-from-readpages-to-readahead.patch
+iomap-convert-from-readpages-to-readahead.patch
+mm-remove-misleading-comment.patch
+mm-simplify-calling-a-compound-page-destructor.patch
+ipc-convert-ipcs_idr-to-xarray.patch
+ipc-convert-ipcs_idr-to-xarray-update.patch
