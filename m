@@ -1,98 +1,210 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch removed from
- -mm tree
-Date: Tue, 02 Jun 2020 14:37:36 -0700
-Message-ID: <20200602213736.zVgpgIg-p%akpm@linux-foundation.org>
+ vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs.patch removed
+ from -mm tree
+Date: Tue, 02 Jun 2020 14:37:38 -0700
+Message-ID: <20200602213738.ZmMmdtWKa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50726 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50770 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726320AbgFBVhi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:37:38 -0400
+        id S1726320AbgFBVhk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:37:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, deller@gmx.de, James.Bottomley@HansenPartnership.com, lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+To: andres@anarazel.de, david@fromorbit.com, dhowells@redhat.com, hch@infradead.org, jack@suse.cz, jlayton@kernel.org, jlayton@redhat.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, willy@infradead.org
 
 
 The patch titled
-     Subject: arch/parisc/include/asm/pgtable.h: remove unused `old_pte'
+     Subject: vfs: track per-sb writeback errors and report them to syncfs
 has been removed from the -mm tree.  Its filename was
-     arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
+     vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/parisc/include/asm/pgtable.h: remove unused `old_pte'
+From: Jeff Layton <jlayton@redhat.com>
+Subject: vfs: track per-sb writeback errors and report them to syncfs
 
-parisc's set_pte_at() macro has set-but-not-used variable.
+Patch series "vfs: have syncfs() return error when there are writeback
+errors", v6.
 
-include/linux/pgtable.h: In function 'pte_clear_not_present_full':
-arch/parisc/include/asm/pgtable.h:96:9: warning: variable 'old_pte' set but not used [-Wunused-but-set-variable]
+Currently, syncfs does not return errors when one of the inodes fails to
+be written back.  It will return errors based on the legacy AS_EIO and
+AS_ENOSPC flags when syncing out the block device fails, but that's not
+particularly helpful for filesystems that aren't backed by a blockdev. 
+It's also possible for a stray sync to lose those errors.
 
-Reported-by: kbuild test robot <lkp@intel.com>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+The basic idea in this set is to track writeback errors at the superblock
+level, so that we can quickly and easily check whether something bad
+happened without having to fsync each file individually.  syncfs is then
+changed to reliably report writeback errors after they occur, much in the
+same fashion as fsync does now.
+
+
+This patch (of 2):
+
+Usually we suggest that applications call fsync when they want to ensure
+that all data written to the file has made it to the backing store, but
+that can be inefficient when there are a lot of open files.
+
+Calling syncfs on the filesystem can be more efficient in some situations,
+but the error reporting doesn't currently work the way most people expect.
+If a single inode on a filesystem reports a writeback error, syncfs won't
+necessarily return an error.  syncfs only returns an error if
+__sync_blockdev fails, and on some filesystems that's a no-op.
+
+It would be better if syncfs reported an error if there were any writeback
+failures.  Then applications could call syncfs to see if there are any
+errors on any open files, and could then call fsync on all of the other
+descriptors to figure out which one failed.
+
+This patch adds a new errseq_t to struct super_block, and has
+mapping_set_error also record writeback errors there.
+
+To report those errors, we also need to keep an errseq_t in struct file to
+act as a cursor.  This patch adds a dedicated field for that purpose,
+which slots nicely into 4 bytes of padding at the end of struct file on
+x86_64.
+
+An earlier version of this patch used an O_PATH file descriptor to cue the
+kernel that the open file should track the superblock error and not the
+inode's writeback error.
+
+I think that API is just too weird though.  This is simpler and should
+make syncfs error reporting "just work" even if someone is multiplexing
+fsync and syncfs on the same fds.
+
+Link: http://lkml.kernel.org/r/20200428135155.19223-1-jlayton@kernel.org
+Link: http://lkml.kernel.org/r/20200428135155.19223-2-jlayton@kernel.org
+Signed-off-by: Jeff Layton <jlayton@kernel.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Andres Freund <andres@anarazel.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/pgtable.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/dax/device.c    |    1 +
+ fs/file_table.c         |    1 +
+ fs/open.c               |    3 +--
+ fs/sync.c               |    6 ++++--
+ include/linux/fs.h      |   16 ++++++++++++++++
+ include/linux/pagemap.h |    5 ++++-
+ 6 files changed, 27 insertions(+), 5 deletions(-)
 
---- a/arch/parisc/include/asm/pgtable.h~arch-parisc-include-asm-pgtableh-remove-unused-old_pte
-+++ a/arch/parisc/include/asm/pgtable.h
-@@ -93,10 +93,8 @@ static inline void purge_tlb_entries(str
+--- a/drivers/dax/device.c~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/drivers/dax/device.c
+@@ -377,6 +377,7 @@ static int dax_open(struct inode *inode,
+ 	inode->i_mapping->a_ops = &dev_dax_aops;
+ 	filp->f_mapping = inode->i_mapping;
+ 	filp->f_wb_err = filemap_sample_wb_err(filp->f_mapping);
++	filp->f_sb_err = file_sample_sb_err(filp);
+ 	filp->private_data = dev_dax;
+ 	inode->i_flags = S_DAX;
  
- #define set_pte_at(mm, addr, ptep, pteval)			\
- 	do {							\
--		pte_t old_pte;					\
- 		unsigned long flags;				\
- 		spin_lock_irqsave(pgd_spinlock((mm)->pgd), flags);\
--		old_pte = *ptep;				\
- 		set_pte(ptep, pteval);				\
- 		purge_tlb_entries(mm, addr);			\
- 		spin_unlock_irqrestore(pgd_spinlock((mm)->pgd), flags);\
+--- a/fs/file_table.c~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/fs/file_table.c
+@@ -198,6 +198,7 @@ static struct file *alloc_file(const str
+ 	file->f_inode = path->dentry->d_inode;
+ 	file->f_mapping = path->dentry->d_inode->i_mapping;
+ 	file->f_wb_err = filemap_sample_wb_err(file->f_mapping);
++	file->f_sb_err = file_sample_sb_err(file);
+ 	if ((file->f_mode & FMODE_READ) &&
+ 	     likely(fop->read || fop->read_iter))
+ 		file->f_mode |= FMODE_CAN_READ;
+--- a/fs/open.c~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/fs/open.c
+@@ -775,9 +775,8 @@ static int do_dentry_open(struct file *f
+ 	path_get(&f->f_path);
+ 	f->f_inode = inode;
+ 	f->f_mapping = inode->i_mapping;
+-
+-	/* Ensure that we skip any errors that predate opening of the file */
+ 	f->f_wb_err = filemap_sample_wb_err(f->f_mapping);
++	f->f_sb_err = file_sample_sb_err(f);
+ 
+ 	if (unlikely(f->f_flags & O_PATH)) {
+ 		f->f_mode = FMODE_PATH | FMODE_OPENED;
+--- a/fs/sync.c~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/fs/sync.c
+@@ -161,7 +161,7 @@ SYSCALL_DEFINE1(syncfs, int, fd)
+ {
+ 	struct fd f = fdget(fd);
+ 	struct super_block *sb;
+-	int ret;
++	int ret, ret2;
+ 
+ 	if (!f.file)
+ 		return -EBADF;
+@@ -171,8 +171,10 @@ SYSCALL_DEFINE1(syncfs, int, fd)
+ 	ret = sync_filesystem(sb);
+ 	up_read(&sb->s_umount);
+ 
++	ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
++
+ 	fdput(f);
+-	return ret;
++	return ret ? ret : ret2;
+ }
+ 
+ /**
+--- a/include/linux/fs.h~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/include/linux/fs.h
+@@ -976,6 +976,7 @@ struct file {
+ #endif /* #ifdef CONFIG_EPOLL */
+ 	struct address_space	*f_mapping;
+ 	errseq_t		f_wb_err;
++	errseq_t		f_sb_err; /* for syncfs */
+ } __randomize_layout
+   __attribute__((aligned(4)));	/* lest something weird decides that 2 is OK */
+ 
+@@ -1520,6 +1521,9 @@ struct super_block {
+ 	/* Being remounted read-only */
+ 	int s_readonly_remount;
+ 
++	/* per-sb errseq_t for reporting writeback errors via syncfs */
++	errseq_t s_wb_err;
++
+ 	/* AIO completions deferred from interrupt context */
+ 	struct workqueue_struct *s_dio_done_wq;
+ 	struct hlist_head s_pins;
+@@ -2831,6 +2835,18 @@ static inline errseq_t filemap_sample_wb
+ 	return errseq_sample(&mapping->wb_err);
+ }
+ 
++/**
++ * file_sample_sb_err - sample the current errseq_t to test for later errors
++ * @mapping: mapping to be sampled
++ *
++ * Grab the most current superblock-level errseq_t value for the given
++ * struct file.
++ */
++static inline errseq_t file_sample_sb_err(struct file *file)
++{
++	return errseq_sample(&file->f_path.dentry->d_sb->s_wb_err);
++}
++
+ static inline int filemap_nr_thps(struct address_space *mapping)
+ {
+ #ifdef CONFIG_READ_ONLY_THP_FOR_FS
+--- a/include/linux/pagemap.h~vfs-track-per-sb-writeback-errors-and-report-them-to-syncfs
++++ a/include/linux/pagemap.h
+@@ -51,7 +51,10 @@ static inline void mapping_set_error(str
+ 		return;
+ 
+ 	/* Record in wb_err for checkers using errseq_t based tracking */
+-	filemap_set_wb_err(mapping, error);
++	__filemap_set_wb_err(mapping, error);
++
++	/* Record it in superblock */
++	errseq_set(&mapping->host->i_sb->s_wb_err, error);
+ 
+ 	/* Record it in flags for now, for legacy callers */
+ 	if (error == -ENOSPC)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-lib-make-a-test-module-with-get_count_order-long-fix.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-maccess-unify-the-probe-kernel-arch-hooks-fix.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+Patches currently in -mm which might be from jlayton@redhat.com are
