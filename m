@@ -1,26 +1,29 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 092/128] staging: media: ipu3: use vmap instead of
+Subject: [patch 093/128] dma-mapping: use vmap insted of
  reimplementing it
-Date: Tue, 02 Jun 2020 13:15:22 -0700
-Message-ID: <20200602201522.saGp2NG_t%akpm@linux-foundation.org>
+Date: Tue, 02 Jun 2020 13:15:26 -0700
+Message-ID: <20200602201526.PK3TaF4_C%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59708 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726112AbgFBUPY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:15:24 -0400
+        id S1726809AbgFBUP3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 16:15:29 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: airlied@linux.ie, akpm@linux-foundation.org, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, christophe.leroy@c-s.fr, daniel.vetter@ffwll.ch, daniel@ffwll.ch, gor@linux.ibm.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, hannes@cmpxchg.org, hch@lst.de, heiko.carstens@de.ibm.com, kys@microsoft.com, labbott@redhat.com, linux-mm@kvack.org, mark.rutland@arm.com, mikelley@microsoft.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, paulus@ozlabs.org, peterz@infradead.org, robin.murphy@arm.com, sakari.ailus@linux.intel.com, sthemmin@microsoft.com, sumit.semwal@linaro.org, torvalds@linux-foundation.org, wei.liu@kernel.org, will@kernel.org, xiang@kernel.org
 
 From: Christoph Hellwig <hch@lst.de>
-Subject: staging: media: ipu3: use vmap instead of reimplementing it
+Subject: dma-mapping: use vmap insted of reimplementing it
 
-Just use vmap instead of messing with vmalloc internals.
+Replace the open coded instance of vmap with the actual function.  In
+the non-contiguous (IOMMU) case this requires an extra find_vm_area,
+but given that this isn't a fast path function that is a small price
+to pay.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-5-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-6-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -52,98 +55,74 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/media/ipu3/ipu3-css-pool.h |    4 --
- drivers/staging/media/ipu3/ipu3-dmamap.c   |   30 +++++--------------
- 2 files changed, 9 insertions(+), 25 deletions(-)
+ kernel/dma/remap.c |   48 ++++++++++---------------------------------
+ 1 file changed, 12 insertions(+), 36 deletions(-)
 
---- a/drivers/staging/media/ipu3/ipu3-css-pool.h~staging-media-ipu3-use-vmap-instead-of-reimplementing-it
-+++ a/drivers/staging/media/ipu3/ipu3-css-pool.h
-@@ -15,14 +15,12 @@ struct imgu_device;
-  * @size:		size of the buffer in bytes.
-  * @vaddr:		kernel virtual address.
-  * @daddr:		iova dma address to access IPU3.
-- * @vma:		private, a pointer to &struct vm_struct,
-- *			used for imgu_dmamap_free.
-  */
- struct imgu_css_map {
- 	size_t size;
- 	void *vaddr;
- 	dma_addr_t daddr;
--	struct vm_struct *vma;
-+	struct page **pages;
- };
+--- a/kernel/dma/remap.c~dma-mapping-use-vmap-insted-of-reimplementing-it
++++ a/kernel/dma/remap.c
+@@ -20,23 +20,6 @@ struct page **dma_common_find_pages(void
+ 	return area->pages;
+ }
  
- /**
---- a/drivers/staging/media/ipu3/ipu3-dmamap.c~staging-media-ipu3-use-vmap-instead-of-reimplementing-it
-+++ a/drivers/staging/media/ipu3/ipu3-dmamap.c
-@@ -96,6 +96,7 @@ void *imgu_dmamap_alloc(struct imgu_devi
- 	unsigned long shift = iova_shift(&imgu->iova_domain);
- 	struct device *dev = &imgu->pci_dev->dev;
- 	size_t size = PAGE_ALIGN(len);
+-static struct vm_struct *__dma_common_pages_remap(struct page **pages,
+-			size_t size, pgprot_t prot, const void *caller)
+-{
+-	struct vm_struct *area;
+-
+-	area = get_vm_area_caller(size, VM_DMA_COHERENT, caller);
+-	if (!area)
+-		return NULL;
+-
+-	if (map_vm_area(area, prot, pages)) {
+-		vunmap(area->addr);
+-		return NULL;
+-	}
+-
+-	return area;
+-}
+-
+ /*
+  * Remaps an array of PAGE_SIZE pages into another vm_area.
+  * Cannot be used in non-sleeping contexts
+@@ -44,15 +27,12 @@ static struct vm_struct *__dma_common_pa
+ void *dma_common_pages_remap(struct page **pages, size_t size,
+ 			 pgprot_t prot, const void *caller)
+ {
+-	struct vm_struct *area;
++	void *vaddr;
+ 
+-	area = __dma_common_pages_remap(pages, size, prot, caller);
+-	if (!area)
+-		return NULL;
+-
+-	area->pages = pages;
+-
+-	return area->addr;
++	vaddr = vmap(pages, size >> PAGE_SHIFT, VM_DMA_COHERENT, prot);
++	if (vaddr)
++		find_vm_area(vaddr)->pages = pages;
++	return vaddr;
+ }
+ 
+ /*
+@@ -62,24 +42,20 @@ void *dma_common_pages_remap(struct page
+ void *dma_common_contiguous_remap(struct page *page, size_t size,
+ 			pgprot_t prot, const void *caller)
+ {
+-	int i;
 +	int count = size >> PAGE_SHIFT;
  	struct page **pages;
- 	dma_addr_t iovaddr;
- 	struct iova *iova;
-@@ -114,7 +115,7 @@ void *imgu_dmamap_alloc(struct imgu_devi
+-	struct vm_struct *area;
++	void *vaddr;
++	int i;
  
- 	/* Call IOMMU driver to setup pgt */
- 	iovaddr = iova_dma_addr(&imgu->iova_domain, iova);
--	for (i = 0; i < size / PAGE_SIZE; ++i) {
-+	for (i = 0; i < count; ++i) {
- 		rval = imgu_mmu_map(imgu->mmu, iovaddr,
- 				    page_to_phys(pages[i]), PAGE_SIZE);
- 		if (rval)
-@@ -123,33 +124,23 @@ void *imgu_dmamap_alloc(struct imgu_devi
- 		iovaddr += PAGE_SIZE;
- 	}
- 
--	/* Now grab a virtual region */
--	map->vma = __get_vm_area(size, VM_USERMAP, VMALLOC_START, VMALLOC_END);
--	if (!map->vma)
-+	map->vaddr = vmap(pages, count, VM_USERMAP, PAGE_KERNEL);
-+	if (!map->vaddr)
- 		goto out_unmap;
- 
--	map->vma->pages = pages;
--	/* And map it in KVA */
--	if (map_vm_area(map->vma, PAGE_KERNEL, pages))
--		goto out_vunmap;
+-	pages = kmalloc(sizeof(struct page *) << get_order(size), GFP_KERNEL);
++	pages = kmalloc_array(count, sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages)
+ 		return NULL;
 -
-+	map->pages = pages;
- 	map->size = size;
- 	map->daddr = iova_dma_addr(&imgu->iova_domain, iova);
--	map->vaddr = map->vma->addr;
- 
- 	dev_dbg(dev, "%s: allocated %zu @ IOVA %pad @ VA %p\n", __func__,
--		size, &map->daddr, map->vma->addr);
+-	for (i = 0; i < (size >> PAGE_SHIFT); i++)
++	for (i = 0; i < count; i++)
+ 		pages[i] = nth_page(page, i);
 -
--	return map->vma->addr;
-+		size, &map->daddr, map->vaddr);
- 
--out_vunmap:
--	vunmap(map->vma->addr);
-+	return map->vaddr;
- 
- out_unmap:
- 	imgu_dmamap_free_buffer(pages, size);
- 	imgu_mmu_unmap(imgu->mmu, iova_dma_addr(&imgu->iova_domain, iova),
- 		       i * PAGE_SIZE);
--	map->vma = NULL;
- 
- out_free_iova:
- 	__free_iova(&imgu->iova_domain, iova);
-@@ -177,8 +168,6 @@ void imgu_dmamap_unmap(struct imgu_devic
-  */
- void imgu_dmamap_free(struct imgu_device *imgu, struct imgu_css_map *map)
- {
--	struct vm_struct *area = map->vma;
--
- 	dev_dbg(&imgu->pci_dev->dev, "%s: freeing %zu @ IOVA %pad @ VA %p\n",
- 		__func__, map->size, &map->daddr, map->vaddr);
- 
-@@ -187,11 +176,8 @@ void imgu_dmamap_free(struct imgu_device
- 
- 	imgu_dmamap_unmap(imgu, map);
- 
--	if (WARN_ON(!area) || WARN_ON(!area->pages))
--		return;
+-	area = __dma_common_pages_remap(pages, size, prot, caller);
