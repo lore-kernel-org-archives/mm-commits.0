@@ -1,135 +1,47 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 086/128] /proc/PID/smaps: Add PMD migration entry
- parsing
-Date: Tue, 02 Jun 2020 13:14:58 -0700
-Message-ID: <20200602201458.fxXm8THNI%akpm@linux-foundation.org>
+Subject: [patch 087/128] mm/memory: remove unnecessary pte_devmap
+ case in copy_one_pte()
+Date: Tue, 02 Jun 2020 13:15:01 -0700
+Message-ID: <20200602201501.RugVRVDk3%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59102 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726112AbgFBUPA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:15:00 -0400
+        id S1726112AbgFBUPD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 16:15:03 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, adobriyan@gmail.com, akpm@linux-foundation.org, jglisse@redhat.com, khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz, yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
+To: akpm@linux-foundation.org, chenqiwu@xiaomi.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, willy@infradead.org
 
-=46rom: Huang Ying <ying.huang@intel.com>
-Subject: /proc/PID/smaps: Add PMD migration entry parsing
+From: chenqiwu <chenqiwu@xiaomi.com>
+Subject: mm/memory: remove unnecessary pte_devmap case in copy_one_pte()
 
-Now, when reading /proc/PID/smaps, the PMD migration entry in page table
-is simply ignored.  To improve the accuracy of /proc/PID/smaps, its
-parsing and processing is added.
+Since commit 25b2995a35b6 ("mm: remove MEMORY_DEVICE_PUBLIC support"), the
+assignment to 'page' for pte_devmap case has been unnecessary.  Let's
+remove it.
 
-To test the patch, we run pmbench to eat 400 MB memory in background, then
-run /usr/bin/migratepages and `cat /proc/PID/smaps` every second.  The
-issue as follows can be reproduced within 60 seconds.
-
-Before the patch, for the fully populated 400 MB anonymous VMA, some THP
-pages under migration may be lost as below.
-
-7f3f6a7e5000-7f3f837e5000 rw-p 00000000 00:00 0
-Size:             409600 kB
-KernelPageSize:        4 kB
-MMUPageSize:           4 kB
-Rss:              407552 kB
-Pss:              407552 kB
-Shared_Clean:          0 kB
-Shared_Dirty:          0 kB
-Private_Clean:         0 kB
-Private_Dirty:    407552 kB
-Referenced:       301056 kB
-Anonymous:        407552 kB
-LazyFree:              0 kB
-AnonHugePages:    405504 kB
-ShmemPmdMapped:        0 kB
-FilePmdMapped:        0 kB
-Shared_Hugetlb:        0 kB
-Private_Hugetlb:       0 kB
-Swap:                  0 kB
-SwapPss:               0 kB
-Locked:                0 kB
-THPeligible:		1
-VmFlags: rd wr mr mw me ac
-
-After the patch, it will be always,
-
-7f3f6a7e5000-7f3f837e5000 rw-p 00000000 00:00 0
-Size:             409600 kB
-KernelPageSize:        4 kB
-MMUPageSize:           4 kB
-Rss:              409600 kB
-Pss:              409600 kB
-Shared_Clean:          0 kB
-Shared_Dirty:          0 kB
-Private_Clean:         0 kB
-Private_Dirty:    409600 kB
-Referenced:       294912 kB
-Anonymous:        409600 kB
-LazyFree:              0 kB
-AnonHugePages:    407552 kB
-ShmemPmdMapped:        0 kB
-FilePmdMapped:        0 kB
-Shared_Hugetlb:        0 kB
-Private_Hugetlb:       0 kB
-Swap:                  0 kB
-SwapPss:               0 kB
-Locked:                0 kB
-THPeligible:		1
-VmFlags: rd wr mr mw me ac
-
-Link: http://lkml.kernel.org/r/20200403123059.1846960-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+[willy@infradead.org: changelog]
+Link: http://lkml.kernel.org/r/1587349685-31712-1-git-send-email-qiwuchen55@gmail.com
+Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Reviewed-by: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/memory.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-pid-smaps-add-pmd-migration-entry-parsing
-+++ a/fs/proc/task_mmu.c
-@@ -546,10 +546,17 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 	struct mem_size_stats *mss =3D walk->private;
- 	struct vm_area_struct *vma =3D walk->vma;
- 	bool locked =3D !!(vma->vm_flags & VM_LOCKED);
--	struct page *page;
-+	struct page *page =3D NULL;
-=20
--	/* FOLL_DUMP will return -EFAULT on huge zero page */
--	page =3D follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
-+	if (pmd_present(*pmd)) {
-+		/* FOLL_DUMP will return -EFAULT on huge zero page */
-+		page =3D follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
-+	} else if (unlikely(thp_migration_supported() && is_swap_pmd(*pmd))) {
-+		swp_entry_t entry =3D pmd_to_swp_entry(*pmd);
-+
-+		if (is_migration_entry(entry))
-+			page =3D migration_entry_to_page(entry);
-+	}
- 	if (IS_ERR_OR_NULL(page))
- 		return;
- 	if (PageAnon(page))
-@@ -578,8 +585,7 @@ static int smaps_pte_range(pmd_t *pmd, u
-=20
- 	ptl =3D pmd_trans_huge_lock(pmd, vma);
- 	if (ptl) {
--		if (pmd_present(*pmd))
--			smaps_pmd_entry(pmd, addr, walk);
-+		smaps_pmd_entry(pmd, addr, walk);
- 		spin_unlock(ptl);
- 		goto out;
+--- a/mm/memory.c~mm-memory-remove-unnecessary-pte_devmap-case-in-copy_one_pte
++++ a/mm/memory.c
+@@ -802,8 +802,6 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 		get_page(page);
+ 		page_dup_rmap(page, false);
+ 		rss[mm_counter(page)]++;
+-	} else if (pte_devmap(pte)) {
+-		page = pte_page(pte);
  	}
+ 
+ out_set_pte:
 _
