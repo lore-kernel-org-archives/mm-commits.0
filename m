@@ -1,69 +1,54 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 125/128] kasan: fix clang compilation warning due
- to stack protector
-Date: Tue, 02 Jun 2020 13:17:42 -0700
-Message-ID: <20200602201742.1X-y3HkhX%akpm@linux-foundation.org>
+Subject: [patch 126/128] ubsan: entirely disable alignment checks
+ under UBSAN_TRAP
+Date: Tue, 02 Jun 2020 13:17:45 -0700
+Message-ID: <20200602201745.8b74gSjCQ%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35774 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35896 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726112AbgFBURp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:17:45 -0400
+        id S1726112AbgFBURq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 16:17:46 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andreyknvl@google.com, cai@lca.pw, elver@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dvyukov@google.com, jpoimboe@redhat.com, keescook@chromium.org, lenaptr@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, rdunlap@infradead.org, torvalds@linux-foundation.org
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: fix clang compilation warning due to stack protector
+From: Kees Cook <keescook@chromium.org>
+Subject: ubsan: entirely disable alignment checks under UBSAN_TRAP
 
-KASAN uses a single cc-option invocation to disable both conserve-stack
-and stack-protector flags.  The former flag is not present in Clang, which
-causes cc-option to fail, and results in stack-protector being enabled.
+Commit 8d58f222e85f ("ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST")
+tried to fix the pathological results of UBSAN_ALIGNMENT with UBSAN_TRAP
+(which objtool would rightly scream about), but it made an assumption
+about how COMPILE_TEST gets set (it is not set for randconfig).  As a
+result, we need a bigger hammer here: just don't allow the alignment
+checks with the trap mode.
 
-Fix by using separate cc-option calls for each flag.  Also collect all
-flags in a variable to avoid calling cc-option multiple times for
-different files.
-
-Link: http://lkml.kernel.org/r/c2f0c8e4048852ae014f4a391d96ca42d27e3255.1590779332.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reported-by: Qian Cai <cai@lca.pw>
-Reviewed-by: Marco Elver <elver@google.com>
+Link: http://lkml.kernel.org/r/202005291236.000FCB6@keescook
+Link: https://lore.kernel.org/lkml/742521db-1e8c-0d7a-1ed4-a908894fb497@infradead.org/
+Fixes: 8d58f222e85f ("ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Elena Petrova <lenaptr@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/Makefile |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ lib/Kconfig.ubsan |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kasan/Makefile~kasan-fix-clang-compilation-warning-due-to-stack-protector
-+++ a/mm/kasan/Makefile
-@@ -15,14 +15,19 @@ CFLAGS_REMOVE_tags_report.o = $(CC_FLAGS
- 
- # Function splitter causes unnecessary splits in __asan_load1/__asan_store1
- # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63533
--CFLAGS_common.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
--CFLAGS_generic.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
--CFLAGS_generic_report.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
--CFLAGS_init.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
--CFLAGS_quarantine.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
--CFLAGS_report.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
--CFLAGS_tags.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
--CFLAGS_tags_report.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector) -DDISABLE_BRANCH_PROFILING
-+CC_FLAGS_KASAN_RUNTIME := $(call cc-option, -fno-conserve-stack)
-+CC_FLAGS_KASAN_RUNTIME += $(call cc-option, -fno-stack-protector)
-+# Disable branch tracing to avoid recursion.
-+CC_FLAGS_KASAN_RUNTIME += -DDISABLE_BRANCH_PROFILING
-+
-+CFLAGS_common.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_generic.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_generic_report.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_init.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_quarantine.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_report.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_tags.o := $(CC_FLAGS_KASAN_RUNTIME)
-+CFLAGS_tags_report.o := $(CC_FLAGS_KASAN_RUNTIME)
- 
- obj-$(CONFIG_KASAN) := common.o init.o report.o
- obj-$(CONFIG_KASAN_GENERIC) += generic.o generic_report.o quarantine.o
+--- a/lib/Kconfig.ubsan~ubsan-entirely-disable-alignment-checks-under-ubsan_trap
++++ a/lib/Kconfig.ubsan
+@@ -63,7 +63,7 @@ config UBSAN_SANITIZE_ALL
+ config UBSAN_ALIGNMENT
+ 	bool "Enable checks for pointers alignment"
+ 	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
+-	depends on !X86 || !COMPILE_TEST
++	depends on !UBSAN_TRAP
+ 	help
+ 	  This option enables the check of unaligned memory accesses.
+ 	  Enabling this option on architectures that support unaligned
 _
