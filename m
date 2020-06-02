@@ -1,88 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-init-report-kasan-tag-information-stored-in-page-flags.patch removed
- from -mm tree
-Date: Tue, 02 Jun 2020 14:43:21 -0700
-Message-ID: <20200602214321.QPX4Segh4%akpm@linux-foundation.org>
+Subject: [merged] kasan-move-kasan_report-into-reportc.patch
+ removed from -mm tree
+Date: Tue, 02 Jun 2020 14:43:23 -0700
+Message-ID: <20200602214323.8wt-1rDiS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58288 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58322 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726174AbgFBVnW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:43:22 -0400
+        id S1726174AbgFBVnZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:43:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, chunyan.zhang@unisoc.com, dvyukov@google.com, glider@google.com, jing.xia@unisoc.com, mm-commits@vger.kernel.org, orson.zhai@unisoc.com
+To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, leon@kernel.org, leonro@mellanox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mm_init.c: report kasan-tag information stored in page->flags
+     Subject: kasan: move kasan_report() into report.c
 has been removed from the -mm tree.  Its filename was
-     mm-init-report-kasan-tag-information-stored-in-page-flags.patch
+     kasan-move-kasan_report-into-reportc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jing Xia <jing.xia@unisoc.com>
-Subject: mm/mm_init.c: report kasan-tag information stored in page->flags
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: move kasan_report() into report.c
 
-The pageflags_layout_usage shows incorrect message by means of
-mminit_loglevel when Kasan runs in the mode of software tag-based enabled
-with CONFIG_KASAN_SW_TAGS.  This patch corrects it and reports kasan-tag
-information.
+The kasan_report() functions belongs to report.c, as it's a common
+functions that does error reporting.
 
-Link: http://lkml.kernel.org/r/1586929370-10838-1-git-send-email-jing.xia.mail@gmail.com
-Signed-off-by: Jing Xia <jing.xia@unisoc.com>
-Cc: Chunyan Zhang <chunyan.zhang@unisoc.com>
-Cc: Orson Zhai <orson.zhai@unisoc.com>
+Link: http://lkml.kernel.org/r/78a81fde6eeda9db72a7fd55fbc33173a515e4b1.1589297433.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reported-by: Leon Romanovsky <leon@kernel.org>
+Tested-by: Leon Romanovsky <leon@kernel.org>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/kasan/common.c |   19 -------------------
+ mm/kasan/report.c |   22 ++++++++++++++++++++--
+ 2 files changed, 20 insertions(+), 21 deletions(-)
 
---- a/mm/mm_init.c~mm-init-report-kasan-tag-information-stored-in-page-flags
-+++ a/mm/mm_init.c
-@@ -67,26 +67,30 @@ void __init mminit_verify_pageflags_layo
- 	unsigned long or_mask, add_mask;
+--- a/mm/kasan/common.c~kasan-move-kasan_report-into-reportc
++++ a/mm/kasan/common.c
+@@ -33,7 +33,6 @@
+ #include <linux/types.h>
+ #include <linux/vmalloc.h>
+ #include <linux/bug.h>
+-#include <linux/uaccess.h>
  
- 	shift = 8 * sizeof(unsigned long);
--	width = shift - SECTIONS_WIDTH - NODES_WIDTH - ZONES_WIDTH - LAST_CPUPID_SHIFT;
-+	width = shift - SECTIONS_WIDTH - NODES_WIDTH - ZONES_WIDTH
-+		- LAST_CPUPID_SHIFT - KASAN_TAG_WIDTH;
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_widths",
--		"Section %d Node %d Zone %d Lastcpupid %d Flags %d\n",
-+		"Section %d Node %d Zone %d Lastcpupid %d Kasantag %d Flags %d\n",
- 		SECTIONS_WIDTH,
- 		NODES_WIDTH,
- 		ZONES_WIDTH,
- 		LAST_CPUPID_WIDTH,
-+		KASAN_TAG_WIDTH,
- 		NR_PAGEFLAGS);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_shifts",
--		"Section %d Node %d Zone %d Lastcpupid %d\n",
-+		"Section %d Node %d Zone %d Lastcpupid %d Kasantag %d\n",
- 		SECTIONS_SHIFT,
- 		NODES_SHIFT,
- 		ZONES_SHIFT,
--		LAST_CPUPID_SHIFT);
-+		LAST_CPUPID_SHIFT,
-+		KASAN_TAG_WIDTH);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_pgshifts",
--		"Section %lu Node %lu Zone %lu Lastcpupid %lu\n",
-+		"Section %lu Node %lu Zone %lu Lastcpupid %lu Kasantag %lu\n",
- 		(unsigned long)SECTIONS_PGSHIFT,
- 		(unsigned long)NODES_PGSHIFT,
- 		(unsigned long)ZONES_PGSHIFT,
--		(unsigned long)LAST_CPUPID_PGSHIFT);
-+		(unsigned long)LAST_CPUPID_PGSHIFT,
-+		(unsigned long)KASAN_TAG_PGSHIFT);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_nodezoneid",
- 		"Node/Zone ID: %lu -> %lu\n",
- 		(unsigned long)(ZONEID_PGOFF + ZONEID_SHIFT),
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+@@ -613,24 +612,6 @@ void kasan_free_shadow(const struct vm_s
+ }
+ #endif
+ 
+-extern void __kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip);
+-extern bool report_enabled(void);
+-
+-bool kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip)
+-{
+-	unsigned long flags = user_access_save();
+-	bool ret = false;
+-
+-	if (likely(report_enabled())) {
+-		__kasan_report(addr, size, is_write, ip);
+-		ret = true;
+-	}
+-
+-	user_access_restore(flags);
+-
+-	return ret;
+-}
+-
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ static bool shadow_mapped(unsigned long addr)
+ {
+--- a/mm/kasan/report.c~kasan-move-kasan_report-into-reportc
++++ a/mm/kasan/report.c
+@@ -29,6 +29,7 @@
+ #include <linux/kasan.h>
+ #include <linux/module.h>
+ #include <linux/sched/task_stack.h>
++#include <linux/uaccess.h>
+ 
+ #include <asm/sections.h>
+ 
+@@ -454,7 +455,7 @@ static void print_shadow_for_address(con
+ 	}
+ }
+ 
+-bool report_enabled(void)
++static bool report_enabled(void)
+ {
+ 	if (current->kasan_depth)
+ 		return false;
+@@ -479,7 +480,8 @@ void kasan_report_invalid_free(void *obj
+ 	end_report(&flags);
+ }
+ 
+-void __kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip)
++static void __kasan_report(unsigned long addr, size_t size, bool is_write,
++				unsigned long ip)
+ {
+ 	struct kasan_access_info info;
+ 	void *tagged_addr;
+@@ -518,6 +520,22 @@ void __kasan_report(unsigned long addr,
+ 	end_report(&flags);
+ }
+ 
++bool kasan_report(unsigned long addr, size_t size, bool is_write,
++			unsigned long ip)
++{
++	unsigned long flags = user_access_save();
++	bool ret = false;
++
++	if (likely(report_enabled())) {
++		__kasan_report(addr, size, is_write, ip);
++		ret = true;
++	}
++
++	user_access_restore(flags);
++
++	return ret;
++}
++
+ #ifdef CONFIG_KASAN_INLINE
+ /*
+  * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
 _
 
-Patches currently in -mm which might be from jing.xia@unisoc.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
+
+kcov-cleanup-debug-messages.patch
+kcov-fix-potential-use-after-free-in-kcov_remote_start.patch
+kcov-move-t-kcov-assignments-into-kcov_start-stop.patch
+kcov-move-t-kcov_sequence-assignment.patch
+kcov-use-t-kcov_mode-as-enabled-indicator.patch
+kcov-collect-coverage-from-interrupts.patch
+usb-core-kcov-collect-coverage-from-usb-complete-callback.patch
