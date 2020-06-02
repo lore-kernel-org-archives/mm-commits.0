@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-gup-introduce-pin_user_pages_locked-v2.patch added
+Subject: + sh-sh4a-bring-back-tmu3_device-early-device.patch added
  to -mm tree
-Date: Mon, 01 Jun 2020 17:24:37 -0700
-Message-ID: <20200602002437.IoUbZk-lO%akpm@linux-foundation.org>
+Date: Mon, 01 Jun 2020 17:55:24 -0700
+Message-ID: <20200602005524.LfVXIDBkg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49906 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36800 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725446AbgFBAYj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Jun 2020 20:24:39 -0400
+        id S1725793AbgFBAz0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Jun 2020 20:55:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@ffwll.ch, david@fromorbit.com, david@redhat.com, jack@suse.cz, jglisse@redhat.com, jhubbard@nvidia.com, jrdr.linux@gmail.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, vbabka@suse.cz
+To: amodra@gmail.com, bin.meng@windriver.com, chenzhou10@huawei.com, dalias@libc.org, geert+renesas@glider.be, glaubitz@physik.fu-berlin.de, krzk@kernel.org, kuninori.morimoto.gx@renesas.com, mm-commits@vger.kernel.org, romain.naour@gmail.com, sam@ravnborg.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm/gup: introduce pin_user_pages_locked()
+     Subject: sh: sh4a: bring back tmu3_device early device
 has been added to the -mm tree.  Its filename is
-     mm-gup-introduce-pin_user_pages_locked-v2.patch
+     sh-sh4a-bring-back-tmu3_device-early-device.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-introduce-pin_user_page=
-s_locked-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-sh4a-bring-back-tmu3_device=
+-early-device.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-introduce-pin_user_page=
-s_locked-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-sh4a-bring-back-tmu3_device=
+-early-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,59 +42,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: introduce pin_user_pages_locked()
+=46rom: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: sh: sh4a: bring back tmu3_device early device
 
-add an assert-and-return to the corresponding get_user_pages_locked()
-call, to keep out any externally set FOLL_PIN flag,
+Commit 1399c195ef50 ("sh: Switch to new style TMU device") converted
+tmu3_device platform device to new style of platform data but removed it
+from sh7786_early_devices array effectively removing last three timers and
+causing a warning:
 
-Link: http://lkml.kernel.org/r/20200531234131.770697-2-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+    arch/sh/kernel/cpu/sh4a/setup-sh7786.c:243:31:
+        warning: =E2=80=98tmu3_device=E2=80=99 defined but not used [-Wunus=
+ed-variable]
+
+Fixes: 1399c195ef50 ("sh: Switch to new style TMU device")
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Alan Modra <amodra@gmail.com>
+Cc: Bin Meng <bin.meng@windriver.com>
+Cc: Chen Zhou <chenzhou10@huawei.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Romain Naour <romain.naour@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/sh/kernel/cpu/sh4a/setup-sh7786.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/gup.c~mm-gup-introduce-pin_user_pages_locked-v2
-+++ a/mm/gup.c
-@@ -2020,6 +2020,12 @@ long get_user_pages_locked(unsigned long
- 	 */
- 	if (WARN_ON_ONCE(gup_flags & FOLL_LONGTERM))
- 		return -EINVAL;
-+	/*
-+	 * FOLL_PIN must only be set internally by the pin_user_pages*() APIs,
-+	 * never directly by the caller, so enforce that:
-+	 */
-+	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
-+		return -EINVAL;
+--- a/arch/sh/kernel/cpu/sh4a/setup-sh7786.c~sh-sh4a-bring-back-tmu3_device=
+-early-device
++++ a/arch/sh/kernel/cpu/sh4a/setup-sh7786.c
+@@ -391,6 +391,7 @@ static struct platform_device *sh7786_ea
+ 	&tmu0_device,
+ 	&tmu1_device,
+ 	&tmu2_device,
++	&tmu3_device,
+ };
 =20
- 	return __get_user_pages_locked(current, current->mm, start, nr_pages,
- 				       pages, NULL, locked,
+ static struct platform_device *sh7786_devices[] __initdata =3D {
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from krzk@kernel.org are
 
-mm-gup-introduce-pin_user_pages_unlocked.patch
-ivtv-convert-get_user_pages-pin_user_pages.patch
-mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch
-mm-gup-refactor-and-de-duplicate-gup_fast-code.patch
-mm-gup-refactor-and-de-duplicate-gup_fast-code-fix.patch
-mm-gup-introduce-pin_user_pages_fast_only.patch
-drm-i915-convert-get_user_pages-pin_user_pages.patch
-mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
-khugepaged-add-self-test-fix-3.patch
-rapidio-convert-get_user_pages-pin_user_pages.patch
-mm-gup-update-pin_user_pagesrst-for-case-3-mmu-notifiers.patch
-mm-gup-introduce-pin_user_pages_locked.patch
-mm-gup-introduce-pin_user_pages_locked-v2.patch
-mm-gup-frame_vector-convert-get_user_pages-pin_user_pages.patch
-mm-gup-documentation-fix-for-pin_user_pages-apis.patch
+sh-sh4a-bring-back-tmu3_device-early-device.patch
