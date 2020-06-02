@@ -1,66 +1,156 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 068/128] mm/swapfile.c: omit a duplicate code by
- compare tmp and max first
-Date: Tue, 02 Jun 2020 13:13:54 -0700
-Message-ID: <20200602201354.r1UxsykK3%akpm@linux-foundation.org>
+Subject: [patch 069/128] swap: try to scan more free slots even
+ when fragmented
+Date: Tue, 02 Jun 2020 13:13:57 -0700
+Message-ID: <20200602201357._1JnYVYPI%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57786 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57862 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726112AbgFBUNz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:13:55 -0400
+        id S1726112AbgFBUN7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 16:13:59 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
+To: akpm@linux-foundation.org, dave.hansen@intel.com, hughd@google.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
 
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/swapfile.c: omit a duplicate code by compare tmp and max first
+From: Huang Ying <ying.huang@intel.com>
+Subject: swap: try to scan more free slots even when fragmented
 
-There are two duplicate code to handle the case when there is no available
-swap entry.  To avoid this, we can compare tmp and max first and let the
-second guard do its job.
+Now, the scalability of swap code will drop much when the swap device
+becomes fragmented, because the swap slots allocation batching stops
+working.  To solve the problem, in this patch, we will try to scan a
+little more swap slots with restricted effort to batch the swap slots
+allocation even if the swap device is fragmented.  Test shows that the
+benchmark score can increase up to 37.1% with the patch.  Details are as
+follows.
 
-No functional change is expected.
+The swap code has a per-cpu cache of swap slots.  These batch swap space
+allocations to improve swap subsystem scaling.  In the following code
+path,
 
-Link: http://lkml.kernel.org/r/20200421213824.8099-3-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+  add_to_swap()
+    get_swap_page()
+      refill_swap_slots_cache()
+        get_swap_pages()
+	  scan_swap_map_slots()
+
+scan_swap_map_slots() and get_swap_pages() can return multiple swap slots
+for each call.  These slots will be cached in the per-CPU swap slots
+cache, so that several following swap slot requests will be fulfilled
+there to avoid the lock contention in the lower level swap space
+allocation/freeing code path.
+
+But this only works when there are free swap clusters.  If a swap device
+becomes so fragmented that there's no free swap clusters,
+scan_swap_map_slots() and get_swap_pages() will return only one swap slot
+for each call in the above code path.  Effectively, this falls back to the
+situation before the swap slots cache was introduced, the heavy lock
+contention on the swap related locks kills the scalability.
+
+Why does it work in this way?  Because the swap device could be large, and
+the free swap slot scanning could be quite time consuming, to avoid taking
+too much time to scanning free swap slots, the conservative method was
+used.
+
+In fact, this can be improved via scanning a little more free slots with
+strictly restricted effort.  Which is implemented in this patch.  In
+scan_swap_map_slots(), after the first free swap slot is gotten, we will
+try to scan a little more, but only if we haven't scanned too many slots
+(< LATENCY_LIMIT).  That is, the added scanning latency is strictly
+restricted.
+
+To test the patch, we have run 16-process pmbench memory benchmark on a
+2-socket server machine with 48 cores.  Multiple ram disks are configured
+as the swap devices.  The pmbench working-set size is much larger than the
+available memory so that swapping is triggered.  The memory read/write
+ratio is 80/20 and the accessing pattern is random, so the swap space
+becomes highly fragmented during the test.  In the original
+implementation, the lock contention on swap related locks is very heavy. 
+The perf profiling data of the lock contention code path is as following,
+
+_raw_spin_lock.get_swap_pages.get_swap_page.add_to_swap:             21.03
+_raw_spin_lock_irq.shrink_inactive_list.shrink_lruvec.shrink_node:    1.92
+_raw_spin_lock_irq.shrink_active_list.shrink_lruvec.shrink_node:      1.72
+_raw_spin_lock.free_pcppages_bulk.drain_pages_zone.drain_pages:       0.69
+
+While after applying this patch, it becomes,
+
+_raw_spin_lock_irq.shrink_inactive_list.shrink_lruvec.shrink_node:    4.89
+_raw_spin_lock_irq.shrink_active_list.shrink_lruvec.shrink_node:      3.85
+_raw_spin_lock.free_pcppages_bulk.drain_pages_zone.drain_pages:       1.1
+_raw_spin_lock_irqsave.pagevec_lru_move_fn.__lru_cache_add.do_swap_page: 0.88
+
+That is, the lock contention on the swap locks is eliminated.
+
+And the pmbench score increases 37.1%.  The swapin throughput increases
+45.7% from 2.02 GB/s to 2.94 GB/s.  While the swapout throughput increases
+45.3% from 2.04 GB/s to 2.97 GB/s.
+
+Link: http://lkml.kernel.org/r/20200427030023.264780-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ mm/swapfile.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/mm/swapfile.c~mm-swapfilec-omit-a-duplicate-code-by-compare-tmp-and-max-first
+--- a/mm/swapfile.c~swap-try-to-scan-more-free-slots-even-when-fragmented
 +++ a/mm/swapfile.c
-@@ -629,17 +629,15 @@ new_cluster:
- 	tmp = cluster->next;
- 	max = min_t(unsigned long, si->max,
- 		    (cluster_next(&cluster->index) + 1) * SWAPFILE_CLUSTER);
--	if (tmp >= max) {
--		cluster_set_null(&cluster->index);
--		goto new_cluster;
--	}
--	ci = lock_cluster(si, tmp);
--	while (tmp < max) {
--		if (!si->swap_map[tmp])
--			break;
--		tmp++;
-+	if (tmp < max) {
-+		ci = lock_cluster(si, tmp);
-+		while (tmp < max) {
-+			if (!si->swap_map[tmp])
-+				break;
-+			tmp++;
-+		}
-+		unlock_cluster(ci);
+@@ -732,6 +732,7 @@ static int scan_swap_map_slots(struct sw
+ 	unsigned long last_in_cluster = 0;
+ 	int latency_ration = LATENCY_LIMIT;
+ 	int n_ret = 0;
++	bool scanned_many = false;
+ 
+ 	/*
+ 	 * We try to cluster swap pages by allocating them sequentially
+@@ -863,6 +864,25 @@ checks:
+ 		goto checks;
  	}
--	unlock_cluster(ci);
- 	if (tmp >= max) {
- 		cluster_set_null(&cluster->index);
- 		goto new_cluster;
+ 
++	/*
++	 * Even if there's no free clusters available (fragmented),
++	 * try to scan a little more quickly with lock held unless we
++	 * have scanned too many slots already.
++	 */
++	if (!scanned_many) {
++		unsigned long scan_limit;
++
++		if (offset < scan_base)
++			scan_limit = scan_base;
++		else
++			scan_limit = si->highest_bit;
++		for (; offset <= scan_limit && --latency_ration > 0;
++		     offset++) {
++			if (!si->swap_map[offset])
++				goto checks;
++		}
++	}
++
+ done:
+ 	si->flags -= SWP_SCANNING;
+ 	return n_ret;
+@@ -881,6 +901,7 @@ scan:
+ 		if (unlikely(--latency_ration < 0)) {
+ 			cond_resched();
+ 			latency_ration = LATENCY_LIMIT;
++			scanned_many = true;
+ 		}
+ 	}
+ 	offset = si->lowest_bit;
+@@ -896,6 +917,7 @@ scan:
+ 		if (unlikely(--latency_ration < 0)) {
+ 			cond_resched();
+ 			latency_ration = LATENCY_LIMIT;
++			scanned_many = true;
+ 		}
+ 		offset++;
+ 	}
 _
