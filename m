@@ -1,14 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Tue, 02 Jun 2020 11:14:45 -0700
-Message-ID: <20200602181445.Hlfx6eGoP%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 02 Jun 2020 11:28:34 -0700
+Message-ID: <20200602182834.itiOjis0k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41920 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44930 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726130AbgFBSOr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 14:14:47 -0400
+        id S1726000AbgFBS2h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 14:28:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
@@ -16,10 +15,24 @@ To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 The patch titled
      Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -28,579 +41,964 @@ Subject: linux-next-git-rejects
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/mmp3.dtsi                     |    8 -
- arch/x86/kernel/fpu/xstate.c                    |    4 
- drivers/net/ethernet/mellanox/mlx5/core/Kconfig |    4 
- drivers/platform/chrome/chromeos_pstore.c       |    3 
- drivers/power/supply/bd70528-charger.c          |   64 --------------
- drivers/regulator/max8998.c                     |    5 -
- drivers/spi/spi-dw-core.c                       |   13 --
- drivers/spi/spi-dw-mmio.c                       |   10 --
- drivers/spi/spi-dw-pci.c                        |   12 --
- drivers/spi/spi-dw.h                            |   25 -----
- fs/ext4/super.c                                 |    4 
- fs/f2fs/f2fs.h                                  |    3 
- fs/pstore/blk.c                                 |   28 ------
- fs/pstore/inode.c                               |    4 
- include/linux/virtio_net.h                      |    7 -
- net/ipv4/nexthop.c                              |   25 -----
- net/xdp/xdp_umem.c                              |    4 
- sound/usb/quirks-table.h                        |   18 ---
- 18 files changed, 241 deletions(-)
+ arch/alpha/kernel/syscalls/syscall.tbl      |    3 
+ arch/arm/tools/syscall.tbl                  |    3 
+ arch/arm64/include/asm/ptrace.h             |    4 
+ arch/arm64/include/asm/unistd.h             |    4 
+ arch/arm64/include/asm/unistd32.h           |    3 
+ arch/arm64/kvm/reset.c                      |    7 -
+ arch/ia64/kernel/syscalls/syscall.tbl       |    3 
+ arch/m68k/kernel/syscalls/syscall.tbl       |    3 
+ arch/microblaze/kernel/syscalls/syscall.tbl |    3 
+ arch/mips/kernel/syscalls/syscall_n32.tbl   |    3 
+ arch/mips/kernel/syscalls/syscall_n64.tbl   |    3 
+ arch/mips/kernel/syscalls/syscall_o32.tbl   |    3 
+ arch/parisc/kernel/syscalls/syscall.tbl     |    3 
+ arch/powerpc/kernel/syscalls/syscall.tbl    |    3 
+ arch/powerpc/kernel/traps.c                 |   11 --
+ arch/s390/kernel/syscalls/syscall.tbl       |    3 
+ arch/sh/kernel/syscalls/syscall.tbl         |    3 
+ arch/sparc/kernel/syscalls/syscall.tbl      |    3 
+ arch/x86/entry/entry_32.S                   |   66 ------------
+ arch/x86/entry/syscalls/syscall_32.tbl      |    3 
+ arch/x86/entry/syscalls/syscall_64.tbl      |    3 
+ arch/x86/include/asm/traps.h                |   93 ------------------
+ arch/x86/kernel/cpu/mce/core.c              |   30 -----
+ arch/x86/kernel/cpu/mce/p5.c                |   10 -
+ arch/x86/kernel/cpu/mce/winchip.c           |    9 -
+ arch/x86/kernel/traps.c                     |   77 --------------
+ arch/xtensa/kernel/syscalls/syscall.tbl     |    3 
+ fs/mount.h                                  |    3 
+ include/linux/capability.h                  |    3 
+ include/linux/hardirq.h                     |    8 -
+ include/linux/sched.h                       |    4 
+ include/uapi/asm-generic/unistd.h           |    6 -
+ include/uapi/linux/capability.h             |    5 
+ kernel/Makefile                             |    3 
+ security/selinux/include/classmap.h         |    6 -
+ 35 files changed, 400 deletions(-)
 
---- a/arch/arm/boot/dts/mmp3.dtsi~linux-next-git-rejects
-+++ a/arch/arm/boot/dts/mmp3.dtsi
-@@ -201,11 +201,7 @@
- 				status = "disabled";
- 			};
- 
--<<<<<<< HEAD
--			hsic_phy0: hsic-phy@f0001800 {
--=======
- 			hsic_phy0: usb-phy@f0001800 {
-->>>>>>> linux-next/akpm-base
- 				compatible = "marvell,mmp3-hsic-phy";
- 				reg = <0xf0001800 0x40>;
- 				#phy-cells = <0>;
-@@ -226,11 +222,7 @@
- 				status = "disabled";
- 			};
- 
--<<<<<<< HEAD
--			hsic_phy1: hsic-phy@f0002800 {
--=======
- 			hsic_phy1: usb-phy@f0002800 {
-->>>>>>> linux-next/akpm-base
- 				compatible = "marvell,mmp3-hsic-phy";
- 				reg = <0xf0002800 0x40>;
- 				#phy-cells = <0>;
---- a/arch/x86/kernel/fpu/xstate.c~linux-next-git-rejects
-+++ a/arch/x86/kernel/fpu/xstate.c
-@@ -1062,11 +1062,7 @@ int copy_xstate_to_kernel(void *kbuf, st
- 	 */
- 	memset(&header, 0, sizeof(header));
- 	header.xfeatures = xsave->header.xfeatures;
--<<<<<<< HEAD
--	header.xfeatures &= ~XFEATURE_MASK_SUPERVISOR;
--=======
- 	header.xfeatures &= xfeatures_mask_user();
-->>>>>>> linux-next/akpm-base
- 
- 	if (header.xfeatures & XFEATURE_MASK_FP)
- 		copy_part(0, off_mxcsr,
---- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig~linux-next-git-rejects
-+++ a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-@@ -95,11 +95,7 @@ config MLX5_CLS_ACT
- 
- config MLX5_TC_CT
- 	bool "MLX5 TC connection tracking offload support"
--<<<<<<< HEAD
--	depends on MLX5_ESWITCH && NF_FLOW_TABLE && NET_ACT_CT && NET_TC_SKB_EXT
--=======
- 	depends on MLX5_CLS_ACT && NF_FLOW_TABLE && NET_ACT_CT && NET_TC_SKB_EXT
-->>>>>>> linux-next/akpm-base
- 	default y
- 	help
- 	  Say Y here if you want to support offloading connection tracking rules
---- a/drivers/platform/chrome/chromeos_pstore.c~linux-next-git-rejects
-+++ a/drivers/platform/chrome/chromeos_pstore.c
-@@ -57,10 +57,7 @@ static struct ramoops_platform_data chro
- 	.record_size	= 0x40000,
- 	.console_size	= 0x20000,
- 	.ftrace_size	= 0x20000,
+--- a/arch/alpha/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/alpha/kernel/syscalls/syscall.tbl
+@@ -478,9 +478,6 @@
+ 547	common	openat2				sys_openat2
+ 548	common	pidfd_getfd			sys_pidfd_getfd
+ 549	common	faccessat2			sys_faccessat2
 -<<<<<<< HEAD
 -=======
- 	.pmsg_size	= 0x20000,
+ 550	common	watch_mount			sys_watch_mount
+ 551	common	watch_sb			sys_watch_sb
+ 552	common	fsinfo				sys_fsinfo
 ->>>>>>> linux-next/akpm-base
- 	.max_reason	= KMSG_DUMP_OOPS,
- };
+--- a/arch/arm64/include/asm/ptrace.h~linux-next-git-rejects
++++ a/arch/arm64/include/asm/ptrace.h
+@@ -35,11 +35,7 @@
+ #define GIC_PRIO_PSR_I_SET		(1 << 4)
  
---- a/drivers/power/supply/bd70528-charger.c~linux-next-git-rejects
-+++ a/drivers/power/supply/bd70528-charger.c
-@@ -336,18 +336,7 @@ static int bd70528_get_present(struct bd
- 	return 0;
- }
+ /* Additional SPSR bits not exposed in the UABI */
+-<<<<<<< HEAD
+-
+-=======
+ #define PSR_MODE_THREAD_BIT	(1 << 0)
+->>>>>>> linux-next/akpm-base
+ #define PSR_IL_BIT		(1 << 20)
+ 
+ /* AArch32-specific ptrace requests */
+--- a/arch/arm64/include/asm/unistd32.h~linux-next-git-rejects
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -885,15 +885,12 @@ __SYSCALL(__NR_openat2, sys_openat2)
+ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_getfd)
+ #define __NR_faccessat2 439
+ __SYSCALL(__NR_faccessat2, sys_faccessat2)
+-<<<<<<< HEAD
+-=======
+ #define __NR_watch_mount 440
+ __SYSCALL(__NR_watch_mount, sys_watch_mount)
+ #define __NR_watch_sb 441
+ __SYSCALL(__NR_watch_sb, sys_watch_sb)
+ #define __NR_fsinfo 442
+ __SYSCALL(__NR_fsinfo, sys_fsinfo)
+->>>>>>> linux-next/akpm-base
+ 
+ /*
+  * Please add new compat syscalls above this comment and update
+--- a/arch/arm64/include/asm/unistd.h~linux-next-git-rejects
++++ a/arch/arm64/include/asm/unistd.h
+@@ -38,11 +38,7 @@
+ #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
+ #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
  
 -<<<<<<< HEAD
--struct bd70528_linear_range {
--	int min;
--	int step;
--	int vals;
--	int low_sel;
+-#define __NR_compat_syscalls		440
+-=======
+ #define __NR_compat_syscalls		443
+->>>>>>> linux-next/akpm-base
+ #endif
+ 
+ #define __ARCH_WANT_SYS_CLONE
+--- a/arch/arm64/kvm/reset.c~linux-next-git-rejects
++++ a/arch/arm64/kvm/reset.c
+@@ -39,15 +39,8 @@ static u32 kvm_ipa_limit;
+ #define VCPU_RESET_PSTATE_EL1	(PSR_MODE_EL1h | PSR_A_BIT | PSR_I_BIT | \
+ 				 PSR_F_BIT | PSR_D_BIT)
+ 
+-<<<<<<< HEAD
+-static const struct kvm_regs default_regs_reset32 = {
+-	.regs.pstate = (PSR_AA32_MODE_SVC | PSR_AA32_A_BIT |
+-			PSR_AA32_I_BIT | PSR_AA32_F_BIT),
 -};
--
--static const struct bd70528_linear_range current_limit_ranges[] = {
 -=======
- static const struct linear_range current_limit_ranges[] = {
+ #define VCPU_RESET_PSTATE_SVC	(PSR_AA32_MODE_SVC | PSR_AA32_A_BIT | \
+ 				 PSR_AA32_I_BIT | PSR_AA32_F_BIT)
 ->>>>>>> linux-next/akpm-base
- 	{
- 		.min = 5,
- 		.step = 1,
-@@ -409,59 +398,6 @@ static const struct bd70528_linear_range
- #define MAX_WARM_CHG_CURR_SEL 0x1f
- #define MIN_CHG_CURR_SEL 0x0
+ 
+ /**
+  * kvm_arch_vm_ioctl_check_extension
+--- a/arch/arm/tools/syscall.tbl~linux-next-git-rejects
++++ a/arch/arm/tools/syscall.tbl
+@@ -452,9 +452,6 @@
+ 437	common	openat2				sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount			sys_watch_mount
+ 441	common	watch_sb			sys_watch_sb
+ 442	common	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/ia64/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -359,9 +359,6 @@
+ 437	common	openat2				sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount			sys_watch_mount
+ 441	common	watch_sb			sys_watch_sb
+ 442	common	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/m68k/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -438,9 +438,6 @@
+ 437	common	openat2				sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount			sys_watch_mount
+ 441	common	watch_sb			sys_watch_sb
+ 442	common	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/microblaze/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/microblaze/kernel/syscalls/syscall.tbl
+@@ -444,9 +444,6 @@
+ 437	common	openat2				sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount			sys_watch_mount
+ 441	common	watch_sb			sys_watch_sb
+ 442	common	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl~linux-next-git-rejects
++++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -377,9 +377,6 @@
+ 437	n32	openat2				sys_openat2
+ 438	n32	pidfd_getfd			sys_pidfd_getfd
+ 439	n32	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	n32	watch_mount			sys_watch_mount
+ 441	n32	watch_sb			sys_watch_sb
+ 442	n32	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl~linux-next-git-rejects
++++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -353,9 +353,6 @@
+ 437	n64	openat2				sys_openat2
+ 438	n64	pidfd_getfd			sys_pidfd_getfd
+ 439	n64	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	n64	watch_mount			sys_watch_mount
+ 441	n64	watch_sb			sys_watch_sb
+ 442	n64	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl~linux-next-git-rejects
++++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -426,9 +426,6 @@
+ 437	o32	openat2				sys_openat2
+ 438	o32	pidfd_getfd			sys_pidfd_getfd
+ 439	o32	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	o32	watch_mount			sys_watch_mount
+ 441	o32	watch_sb			sys_watch_sb
+ 442	o32	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/parisc/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -436,9 +436,6 @@
+ 437	common	openat2				sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount			sys_watch_mount
+ 441	common	watch_sb			sys_watch_sb
+ 442	common	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -528,9 +528,6 @@
+ 437	common	openat2				sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount			sys_watch_mount
+ 441	common	watch_sb			sys_watch_sb
+ 442	common	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/powerpc/kernel/traps.c~linux-next-git-rejects
++++ a/arch/powerpc/kernel/traps.c
+@@ -444,11 +444,8 @@ void system_reset_exception(struct pt_re
+ 	bool saved_hsrrs = false;
+ 	u8 ftrace_enabled = this_cpu_get_ftrace_enabled();
  
 -<<<<<<< HEAD
--static int find_value_for_selector_low(const struct bd70528_linear_range *r,
--				       int selectors, unsigned int sel,
--				       unsigned int *val)
--{
--	int i;
--
--	for (i = 0; i < selectors; i++) {
--		if (r[i].low_sel <= sel && r[i].low_sel + r[i].vals >= sel) {
--			*val = r[i].min + (sel - r[i].low_sel) * r[i].step;
--			return 0;
--		}
--	}
--	return -EINVAL;
--}
--
--/*
-- * For BD70528 voltage/current limits we happily accept any value which
-- * belongs the range. We could check if value matching the selector is
-- * desired by computing the range min + (sel - sel_low) * range step - but
-- * I guess it is enough if we use voltage/current which is closest (below)
-- * the requested?
-- */
--static int find_selector_for_value_low(const struct bd70528_linear_range *r,
--				       int selectors, unsigned int val,
--				       unsigned int *sel, bool *found)
--{
--	int i;
--	int ret = -EINVAL;
--
--	*found = false;
--	for (i = 0; i < selectors; i++) {
--		if (r[i].min <= val) {
--			if (r[i].min + r[i].step * r[i].vals >= val) {
--				*found = true;
--				*sel = r[i].low_sel + (val - r[i].min) /
--				       r[i].step;
--				ret = 0;
--				break;
--			}
--			/*
--			 * If the range max is smaller than requested
--			 * we can set the max supported value from range
--			 */
--			*sel = r[i].low_sel + r[i].vals;
--			ret = 0;
--		}
--	}
--	return ret;
--}
--
 -=======
+ 	this_cpu_set_ftrace_enabled(0);
+ 
 ->>>>>>> linux-next/akpm-base
- static int get_charge_current(struct bd70528_psy *bdpsy, int *ma)
- {
- 	unsigned int sel;
---- a/drivers/regulator/max8998.c~linux-next-git-rejects
-+++ a/drivers/regulator/max8998.c
-@@ -371,13 +371,8 @@ static int max8998_set_voltage_buck_time
- 	return 0;
- }
+ 	nmi_enter();
  
--<<<<<<< HEAD
--static int max8998_set_current_limit(struct regulator_dev *rdev,
--				     int min_uA, int max_uA)
--=======
- int max8998_set_current_limit(struct regulator_dev *rdev,
- 			      int min_uA, int max_uA)
-->>>>>>> linux-next/akpm-base
- {
- 	struct max8998_data *max8998 = rdev_get_drvdata(rdev);
- 	struct i2c_client *i2c = max8998->iodev->i2c;
---- a/drivers/spi/spi-dw-core.c~linux-next-git-rejects
-+++ a/drivers/spi/spi-dw-core.c
-@@ -29,13 +29,6 @@ struct chip_data {
- };
- 
- #ifdef CONFIG_DEBUG_FS
--<<<<<<< HEAD:drivers/spi/spi-dw-core.c
--
--#define DW_SPI_DBGFS_REG(_name, _off)	\
--{					\
--	.name = _name,			\
--	.offset = _off,			\
--=======
- #define SPI_REGS_BUFSIZE	1024
- static ssize_t dw_spi_show_regs(struct file *file, char __user *user_buf,
- 		size_t count, loff_t *ppos)
-@@ -89,7 +82,6 @@ static ssize_t dw_spi_show_regs(struct f
- 	ret = simple_read_from_buffer(user_buf, count, ppos, buf, len);
- 	kfree(buf);
- 	return ret;
-->>>>>>> linux-next/akpm-base:drivers/spi/spi-dw.c
- }
- 
- static const struct debugfs_reg32 dw_spi_dbgfs_regs[] = {
-@@ -411,16 +403,11 @@ static int dw_spi_transfer_one(struct sp
- 
- 	spi_enable_chip(dws, 1);
- 
--<<<<<<< HEAD:drivers/spi/spi-dw-core.c
--	if (dws->dma_mapped)
--		return dws->dma_ops->dma_transfer(dws, transfer);
--=======
- 	if (dws->dma_mapped) {
- 		ret = dws->dma_ops->dma_transfer(dws, transfer);
- 		if (ret < 0)
- 			return ret;
+ 	/*
+@@ -522,11 +519,8 @@ out:
  	}
-->>>>>>> linux-next/akpm-base:drivers/spi/spi-dw.c
  
- 	return 1;
+ 	nmi_exit();
+-<<<<<<< HEAD
+-=======
+ 
+ 	this_cpu_set_ftrace_enabled(ftrace_enabled);
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* What should we do here? We could issue a shutdown or hard reset. */
  }
---- a/drivers/spi/spi-dw.h~linux-next-git-rejects
-+++ a/drivers/spi/spi-dw.h
-@@ -2,11 +2,6 @@
- #ifndef DW_SPI_HEADER_H
- #define DW_SPI_HEADER_H
- 
--<<<<<<< HEAD
--#include <linux/completion.h>
--#include <linux/debugfs.h>
--=======
-->>>>>>> linux-next/akpm-base
- #include <linux/irqreturn.h>
- #include <linux/io.h>
- #include <linux/scatterlist.h>
-@@ -152,10 +147,6 @@ struct dw_spi {
- 	unsigned long		dma_chan_busy;
- 	dma_addr_t		dma_addr; /* phy address of the Data register */
- 	const struct dw_spi_dma_ops *dma_ops;
--<<<<<<< HEAD
--	struct completion	dma_completion;
--=======
-->>>>>>> linux-next/akpm-base
- 
- #ifdef CONFIG_DEBUG_FS
- 	struct dentry *debugfs;
-@@ -264,25 +255,9 @@ extern u32 dw_spi_update_cr0(struct spi_
- extern u32 dw_spi_update_cr0_v1_01a(struct spi_controller *master,
- 				    struct spi_device *spi,
- 				    struct spi_transfer *transfer);
--<<<<<<< HEAD
--
--#ifdef CONFIG_SPI_DW_DMA
--
--extern void dw_spi_dma_setup_mfld(struct dw_spi *dws);
--extern void dw_spi_dma_setup_generic(struct dw_spi *dws);
--
--#else
--
--static inline void dw_spi_dma_setup_mfld(struct dw_spi *dws) {}
--static inline void dw_spi_dma_setup_generic(struct dw_spi *dws) {}
--
--#endif /* !CONFIG_SPI_DW_DMA */
--
--=======
- 
- /* platform related setup */
- extern int dw_spi_mid_init_mfld(struct dw_spi *dws);
- extern int dw_spi_mid_init_generic(struct dw_spi *dws);
- 
-->>>>>>> linux-next/akpm-base
- #endif /* DW_SPI_HEADER_H */
---- a/drivers/spi/spi-dw-mmio.c~linux-next-git-rejects
-+++ a/drivers/spi/spi-dw-mmio.c
-@@ -151,11 +151,6 @@ static int dw_spi_dw_apb_init(struct pla
- 	/* Register hook to configure CTRLR0 */
- 	dwsmmio->dws.update_cr0 = dw_spi_update_cr0;
- 
--<<<<<<< HEAD
--	dw_spi_dma_setup_generic(&dwsmmio->dws);
--
--=======
-->>>>>>> linux-next/akpm-base
- 	return 0;
- }
- 
-@@ -165,11 +160,6 @@ static int dw_spi_dwc_ssi_init(struct pl
- 	/* Register hook to configure CTRLR0 */
- 	dwsmmio->dws.update_cr0 = dw_spi_update_cr0_v1_01a;
- 
--<<<<<<< HEAD
--	dw_spi_dma_setup_generic(&dwsmmio->dws);
--
--=======
-->>>>>>> linux-next/akpm-base
- 	return 0;
- }
- 
---- a/drivers/spi/spi-dw-pci.c~linux-next-git-rejects
-+++ a/drivers/spi/spi-dw-pci.c
-@@ -67,31 +67,19 @@ static int spi_generic_init(struct dw_sp
- }
- 
- static struct spi_pci_desc spi_pci_mid_desc_1 = {
--<<<<<<< HEAD
--	.setup = spi_mid_init,
--=======
- 	.setup = dw_spi_mid_init_mfld,
-->>>>>>> linux-next/akpm-base
- 	.num_cs = 5,
- 	.bus_num = 0,
- };
- 
- static struct spi_pci_desc spi_pci_mid_desc_2 = {
--<<<<<<< HEAD
--	.setup = spi_mid_init,
--=======
- 	.setup = dw_spi_mid_init_mfld,
-->>>>>>> linux-next/akpm-base
- 	.num_cs = 2,
- 	.bus_num = 1,
- };
- 
- static struct spi_pci_desc spi_pci_ehl_desc = {
--<<<<<<< HEAD
--	.setup = spi_generic_init,
--=======
- 	.setup = dw_spi_mid_init_generic,
-->>>>>>> linux-next/akpm-base
- 	.num_cs = 2,
- 	.bus_num = -1,
- 	.max_freq = 100000000,
---- a/fs/ext4/super.c~linux-next-git-rejects
-+++ a/fs/ext4/super.c
-@@ -1824,11 +1824,7 @@ static const struct mount_opts {
- 	{Opt_jqfmt_vfsv1, QFMT_VFS_V1, MOPT_QFMT},
- 	{Opt_max_dir_size_kb, 0, MOPT_GTE0},
- 	{Opt_test_dummy_encryption, 0, MOPT_STRING},
--<<<<<<< HEAD
--	{Opt_nombcache, EXT4_MOUNT_NO_MBCACHE, MOPT_SET},
--=======
- 	{Opt_nombcache, EXT4_MOUNT_NO_MBCACHE, MOPT_SET | MOPT_NO_REMOUNT},
-->>>>>>> linux-next/akpm-base
- 	{Opt_err, 0, 0}
- };
- 
---- a/fs/f2fs/f2fs.h~linux-next-git-rejects
-+++ a/fs/f2fs/f2fs.h
-@@ -139,10 +139,7 @@ struct f2fs_mount_info {
- 	int fs_mode;			/* fs mode: LFS or ADAPTIVE */
- 	int bggc_mode;			/* bggc mode: off, on or sync */
- 	struct fscrypt_dummy_context dummy_enc_ctx; /* test dummy encryption */
--<<<<<<< HEAD
--=======
- 	block_t unusable_cap_perc;	/* percentage for cap */
-->>>>>>> linux-next/akpm-base
- 	block_t unusable_cap;		/* Amount of space allowed to be
- 					 * unusable when disabling checkpoint
- 					 */
---- a/fs/pstore/blk.c~linux-next-git-rejects
-+++ a/fs/pstore/blk.c
-@@ -113,12 +113,8 @@ static int __register_pstore_device(stru
+@@ -833,10 +827,6 @@ int machine_check_generic(struct pt_regs
+ void machine_check_exception(struct pt_regs *regs)
  {
- 	int ret;
- 
+ 	int recover = 0;
 -<<<<<<< HEAD
--	lockdep_assert_held(&pstore_blk_lock);
--=======
- 	if (WARN_ON(!mutex_is_locked(&pstore_blk_lock)))
- 		return -EINVAL;
-->>>>>>> linux-next/akpm-base
- 
- 	if (!dev || !dev->total_size || !dev->read || !dev->write)
- 		return -EINVAL;
-@@ -190,11 +186,7 @@ EXPORT_SYMBOL_GPL(register_pstore_device
- 
- static void __unregister_pstore_device(struct pstore_device_info *dev)
- {
--<<<<<<< HEAD
--	lockdep_assert_held(&pstore_blk_lock);
--=======
- 	WARN_ON(!mutex_is_locked(&pstore_blk_lock));
-->>>>>>> linux-next/akpm-base
- 	if (pstore_zone_info && pstore_zone_info->read == dev->read) {
- 		unregister_pstore_zone(pstore_zone_info);
- 		kfree(pstore_zone_info);
-@@ -232,12 +224,8 @@ static struct block_device *psblk_get_bd
- 	fmode_t mode = FMODE_READ | FMODE_WRITE;
- 	sector_t nr_sects;
- 
--<<<<<<< HEAD
--	lockdep_assert_held(&pstore_blk_lock);
--=======
- 	if (WARN_ON(!mutex_is_locked(&pstore_blk_lock)))
- 		return ERR_PTR(-EINVAL);
-->>>>>>> linux-next/akpm-base
- 
- 	if (pstore_zone_info)
- 		return ERR_PTR(-EBUSY);
-@@ -279,20 +267,12 @@ static void psblk_put_bdev(struct block_
- {
- 	fmode_t mode = FMODE_READ | FMODE_WRITE;
- 
--<<<<<<< HEAD
--	lockdep_assert_held(&pstore_blk_lock);
 -
--	if (!bdev)
+-	nmi_enter();
+-=======
+ 	bool nested;
+ 
+ 	/*
+@@ -852,7 +842,6 @@ void machine_check_exception(struct pt_r
+ 		nested = false;
+ 	if (!nested)
+ 		nmi_enter();
+->>>>>>> linux-next/akpm-base
+ 
+ 	__this_cpu_inc(irq_stat.mce_exceptions);
+ 
+--- a/arch/s390/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/s390/kernel/syscalls/syscall.tbl
+@@ -441,9 +441,6 @@
+ 437  common	openat2			sys_openat2			sys_openat2
+ 438  common	pidfd_getfd		sys_pidfd_getfd			sys_pidfd_getfd
+ 439  common	faccessat2		sys_faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount		sys_watch_mount			sys_watch_mount
+ 441	common	watch_sb		sys_watch_sb			sys_watch_sb
+ 442  common	fsinfo			sys_fsinfo			sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/sh/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/sh/kernel/syscalls/syscall.tbl
+@@ -441,9 +441,6 @@
+ 437	common	openat2				sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount			sys_watch_mount
+ 441	common	watch_sb			sys_watch_sb
+ 442	common	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/sparc/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -484,9 +484,6 @@
+ 437	common	openat2			sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount			sys_watch_mount
+ 441	common	watch_sb			sys_watch_sb
+ 442	common	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/x86/entry/entry_32.S~linux-next-git-rejects
++++ a/arch/x86/entry/entry_32.S
+@@ -1243,60 +1243,7 @@ SYM_FUNC_START(xen_failsafe_callback)
+ SYM_FUNC_END(xen_failsafe_callback)
+ #endif /* CONFIG_XEN_PV */
+ 
+-<<<<<<< HEAD
+-#ifdef CONFIG_XEN_PVHVM
+-BUILD_INTERRUPT3(xen_hvm_callback_vector, HYPERVISOR_CALLBACK_VECTOR,
+-		 xen_evtchn_do_upcall)
+-#endif
+-
+-
+-#if IS_ENABLED(CONFIG_HYPERV)
+-
+-BUILD_INTERRUPT3(hyperv_callback_vector, HYPERVISOR_CALLBACK_VECTOR,
+-		 hyperv_vector_handler)
+-
+-BUILD_INTERRUPT3(hyperv_reenlightenment_vector, HYPERV_REENLIGHTENMENT_VECTOR,
+-		 hyperv_reenlightenment_intr)
+-
+-BUILD_INTERRUPT3(hv_stimer0_callback_vector, HYPERV_STIMER0_VECTOR,
+-		 hv_stimer0_vector_handler)
+-
+-#endif /* CONFIG_HYPERV */
+-
+-SYM_CODE_START(page_fault)
+-	ASM_CLAC
+-	pushl	$do_page_fault
+-	jmp	common_exception_read_cr2
+-SYM_CODE_END(page_fault)
+-
+-SYM_CODE_START_LOCAL_NOALIGN(common_exception_read_cr2)
+-	/* the function address is in %gs's slot on the stack */
+-	SAVE_ALL switch_stacks=1 skip_gs=1 unwind_espfix=1
+-
+-	ENCODE_FRAME_POINTER
+-
+-	/* fixup %gs */
+-	GS_TO_REG %ecx
+-	movl	PT_GS(%esp), %edi
+-	REG_TO_PTGS %ecx
+-	SET_KERNEL_GS %ecx
+-
+-	GET_CR2_INTO(%ecx)			# might clobber %eax
+-
+-	/* fixup orig %eax */
+-	movl	PT_ORIG_EAX(%esp), %edx		# get the error code
+-	movl	$-1, PT_ORIG_EAX(%esp)		# no syscall to restart
+-
+-	TRACE_IRQS_OFF
+-	movl	%esp, %eax			# pt_regs pointer
+-	CALL_NOSPEC edi
+-	jmp	ret_from_exception
+-SYM_CODE_END(common_exception_read_cr2)
+-
+-SYM_CODE_START_LOCAL_NOALIGN(common_exception)
+-=======
+ SYM_CODE_START_LOCAL_NOALIGN(handle_exception)
+->>>>>>> linux-next/akpm-base
+ 	/* the function address is in %gs's slot on the stack */
+ 	SAVE_ALL switch_stacks=1 skip_gs=1 unwind_espfix=1
+ 	ENCODE_FRAME_POINTER
+@@ -1313,11 +1260,6 @@ SYM_CODE_START_LOCAL_NOALIGN(handle_exce
+ 
+ 	movl	%esp, %eax			# pt_regs pointer
+ 	CALL_NOSPEC edi
+-<<<<<<< HEAD
+-	jmp	ret_from_exception
+-SYM_CODE_END(common_exception)
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ handle_exception_return:
+ #ifdef CONFIG_VM86
+@@ -1334,9 +1276,6 @@ handle_exception_return:
+ 	cmpl	$USER_RPL, %eax			# returning to v8086 or userspace ?
+ 	jnb	ret_to_user
+ 
+-<<<<<<< HEAD
+-SYM_CODE_START(double_fault)
+-=======
+ 	PARANOID_EXIT_TO_KERNEL_MODE
+ 	BUG_IF_WRONG_CR3
+ 	RESTORE_REGS 4
+@@ -1348,7 +1287,6 @@ ret_to_user:
+ SYM_CODE_END(handle_exception)
+ 
+ SYM_CODE_START(asm_exc_double_fault)
+->>>>>>> linux-next/akpm-base
+ 1:
+ 	/*
+ 	 * This is a task gate handler, not an interrupt gate handler.
+@@ -1386,11 +1324,7 @@ SYM_CODE_START(asm_exc_double_fault)
+ 1:
+ 	hlt
+ 	jmp 1b
+-<<<<<<< HEAD
+-SYM_CODE_END(double_fault)
+-=======
+ SYM_CODE_END(asm_exc_double_fault)
+->>>>>>> linux-next/akpm-base
+ 
+ /*
+  * NMI is doubly nasty.  It can happen on the first instruction of
+--- a/arch/x86/entry/syscalls/syscall_32.tbl~linux-next-git-rejects
++++ a/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -443,9 +443,6 @@
+ 437	i386	openat2			sys_openat2
+ 438	i386	pidfd_getfd		sys_pidfd_getfd
+ 439	i386	faccessat2		sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	i386	watch_mount		sys_watch_mount
+ 441	i386	watch_sb		sys_watch_sb
+ 442	i386	fsinfo			sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/arch/x86/entry/syscalls/syscall_64.tbl~linux-next-git-rejects
++++ a/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -360,12 +360,9 @@
+ 437	common	openat2			sys_openat2
+ 438	common	pidfd_getfd		sys_pidfd_getfd
+ 439	common	faccessat2		sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount		sys_watch_mount
+ 441	common	watch_sb		sys_watch_sb
+ 442	common	fsinfo			sys_fsinfo
+->>>>>>> linux-next/akpm-base
+ 
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+--- a/arch/x86/include/asm/traps.h~linux-next-git-rejects
++++ a/arch/x86/include/asm/traps.h
+@@ -9,86 +9,6 @@
+ #include <asm/idtentry.h>
+ #include <asm/siginfo.h>			/* TRAP_TRACE, ... */
+ 
+-<<<<<<< HEAD
+-#define dotraplinkage __visible
+-
+-asmlinkage void divide_error(void);
+-asmlinkage void debug(void);
+-asmlinkage void nmi(void);
+-asmlinkage void int3(void);
+-asmlinkage void overflow(void);
+-asmlinkage void bounds(void);
+-asmlinkage void invalid_op(void);
+-asmlinkage void device_not_available(void);
+-#ifdef CONFIG_X86_64
+-asmlinkage void double_fault(void);
+-#endif
+-asmlinkage void coprocessor_segment_overrun(void);
+-asmlinkage void invalid_TSS(void);
+-asmlinkage void segment_not_present(void);
+-asmlinkage void stack_segment(void);
+-asmlinkage void general_protection(void);
+-asmlinkage void page_fault(void);
+-asmlinkage void async_page_fault(void);
+-asmlinkage void spurious_interrupt_bug(void);
+-asmlinkage void coprocessor_error(void);
+-asmlinkage void alignment_check(void);
+-#ifdef CONFIG_X86_MCE
+-asmlinkage void machine_check(void);
+-#endif /* CONFIG_X86_MCE */
+-asmlinkage void simd_coprocessor_error(void);
+-
+-#if defined(CONFIG_X86_64) && defined(CONFIG_XEN_PV)
+-asmlinkage void xen_divide_error(void);
+-asmlinkage void xen_xennmi(void);
+-asmlinkage void xen_xendebug(void);
+-asmlinkage void xen_int3(void);
+-asmlinkage void xen_overflow(void);
+-asmlinkage void xen_bounds(void);
+-asmlinkage void xen_invalid_op(void);
+-asmlinkage void xen_device_not_available(void);
+-asmlinkage void xen_double_fault(void);
+-asmlinkage void xen_coprocessor_segment_overrun(void);
+-asmlinkage void xen_invalid_TSS(void);
+-asmlinkage void xen_segment_not_present(void);
+-asmlinkage void xen_stack_segment(void);
+-asmlinkage void xen_general_protection(void);
+-asmlinkage void xen_page_fault(void);
+-asmlinkage void xen_spurious_interrupt_bug(void);
+-asmlinkage void xen_coprocessor_error(void);
+-asmlinkage void xen_alignment_check(void);
+-#ifdef CONFIG_X86_MCE
+-asmlinkage void xen_machine_check(void);
+-#endif /* CONFIG_X86_MCE */
+-asmlinkage void xen_simd_coprocessor_error(void);
+-#endif
+-
+-dotraplinkage void do_divide_error(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_debug(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_nmi(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_int3(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_overflow(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_bounds(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_invalid_op(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_device_not_available(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_double_fault(struct pt_regs *regs, long error_code, unsigned long cr2);
+-dotraplinkage void do_coprocessor_segment_overrun(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_invalid_TSS(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_segment_not_present(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_stack_segment(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_general_protection(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code, unsigned long address);
+-dotraplinkage void do_spurious_interrupt_bug(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_coprocessor_error(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_alignment_check(struct pt_regs *regs, long error_code);
+-dotraplinkage void do_simd_coprocessor_error(struct pt_regs *regs, long error_code);
+-#ifdef CONFIG_X86_32
+-dotraplinkage void do_iret_error(struct pt_regs *regs, long error_code);
+-#endif
+-dotraplinkage void do_mce(struct pt_regs *regs, long error_code);
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ #ifdef CONFIG_X86_64
+ asmlinkage __visible notrace struct pt_regs *sync_regs(struct pt_regs *eregs);
+ asmlinkage __visible notrace
+@@ -114,19 +34,6 @@ static inline int get_si_code(unsigned l
+ extern int panic_on_unrecovered_nmi;
+ 
+ void math_emulate(struct math_emu_info *);
+-<<<<<<< HEAD
+-#ifndef CONFIG_X86_32
+-asmlinkage void smp_thermal_interrupt(struct pt_regs *regs);
+-asmlinkage void smp_threshold_interrupt(struct pt_regs *regs);
+-asmlinkage void smp_deferred_error_interrupt(struct pt_regs *regs);
+-#endif
+-
+-void smp_apic_timer_interrupt(struct pt_regs *regs);
+-void smp_spurious_interrupt(struct pt_regs *regs);
+-void smp_error_interrupt(struct pt_regs *regs);
+-asmlinkage void smp_irq_move_cleanup_interrupt(void);
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ #ifdef CONFIG_VMAP_STACK
+ void __noreturn handle_stack_overflow(const char *message,
+--- a/arch/x86/kernel/cpu/mce/core.c~linux-next-git-rejects
++++ a/arch/x86/kernel/cpu/mce/core.c
+@@ -1181,20 +1181,12 @@ static void kill_me_maybe(struct callbac
+ 	int flags = MF_ACTION_REQUIRED;
+ 
+ 	pr_err("Uncorrected hardware memory error in user-access at %llx", p->mce_addr);
+-<<<<<<< HEAD
+-	if (!(p->mce_status & MCG_STATUS_RIPV))
+-		flags |= MF_MUST_KILL;
+-
+-	if (!memory_failure(p->mce_addr >> PAGE_SHIFT, flags)) {
+-		set_mce_nospec(p->mce_addr >> PAGE_SHIFT);
+-=======
+ 
+ 	if (!p->mce_ripv)
+ 		flags |= MF_MUST_KILL;
+ 
+ 	if (!memory_failure(p->mce_addr >> PAGE_SHIFT, flags)) {
+ 		set_mce_nospec(p->mce_addr >> PAGE_SHIFT, p->mce_whole_page);
+->>>>>>> linux-next/akpm-base
+ 		return;
+ 	}
+ 
+@@ -1220,11 +1212,7 @@ static void kill_me_maybe(struct callbac
+  * backing the user stack, tracing that reads the user stack will cause
+  * potentially infinite recursion.
+  */
+-<<<<<<< HEAD
+-void noinstr do_machine_check(struct pt_regs *regs, long error_code)
+-=======
+ void noinstr do_machine_check(struct pt_regs *regs)
+->>>>>>> linux-next/akpm-base
+ {
+ 	DECLARE_BITMAP(valid_banks, MAX_NR_BANKS);
+ 	DECLARE_BITMAP(toclear, MAX_NR_BANKS);
+@@ -1257,14 +1245,6 @@ void noinstr do_machine_check(struct pt_
+ 	 */
+ 	int lmce = 1;
+ 
+-<<<<<<< HEAD
+-	if (__mc_check_crashing_cpu(cpu))
 -		return;
 -
+-	nmi_enter();
+-
 -=======
- 	if (!bdev)
- 		return;
- 
- 	if (WARN_ON(!mutex_is_locked(&pstore_blk_lock)))
- 		return;
- 
 ->>>>>>> linux-next/akpm-base
- 	if (holder)
- 		mode |= FMODE_EXCL;
- 	blkdev_put(bdev, mode);
-@@ -390,12 +370,8 @@ static int __register_pstore_blk(struct
- 	void *holder = blkdev;
- 	int ret = -ENODEV;
+ 	this_cpu_inc(mce_exception_count);
  
+ 	mce_gather_info(&m, regs);
+@@ -1360,12 +1340,8 @@ void noinstr do_machine_check(struct pt_
+ 		BUG_ON(!on_thread_stack() || !user_mode(regs));
+ 
+ 		current->mce_addr = m.addr;
 -<<<<<<< HEAD
--	lockdep_assert_held(&pstore_blk_lock);
+-		current->mce_status = m.mcgstatus;
 -=======
- 	if (WARN_ON(!mutex_is_locked(&pstore_blk_lock)))
- 		return -EINVAL;
+ 		current->mce_ripv = !!(m.mcgstatus & MCG_STATUS_RIPV);
+ 		current->mce_whole_page = whole_page(&m);
 ->>>>>>> linux-next/akpm-base
- 
- 	/* hold bdev exclusively */
- 	memset(&binfo, 0, sizeof(binfo));
-@@ -473,11 +449,7 @@ static void __unregister_pstore_blk(unsi
- 	struct pstore_device_info dev = { .read = psblk_generic_blk_read };
- 	void *holder = blkdev;
- 
+ 		current->mce_kill_me.func = kill_me_maybe;
+ 		if (kill_it)
+ 			current->mce_kill_me.func = kill_me_now;
+@@ -1385,12 +1361,6 @@ void noinstr do_machine_check(struct pt_
+ 				mce_panic("Failed kernel mode recovery", &m, msg);
+ 		}
+ 	}
 -<<<<<<< HEAD
--	lockdep_assert_held(&pstore_blk_lock);
+-
+-out_ist:
+-	nmi_exit();
 -=======
- 	WARN_ON(!mutex_is_locked(&pstore_blk_lock));
 ->>>>>>> linux-next/akpm-base
- 	if (psblk_bdev && MAJOR(psblk_bdev->bd_dev) == major) {
- 		__unregister_pstore_device(&dev);
- 		psblk_put_bdev(psblk_bdev, holder);
---- a/fs/pstore/inode.c~linux-next-git-rejects
-+++ a/fs/pstore/inode.c
-@@ -287,11 +287,7 @@ static const struct super_operations pst
- 	.show_options	= pstore_show_options,
- };
+ }
+ EXPORT_SYMBOL_GPL(do_machine_check);
  
--<<<<<<< HEAD
--static struct dentry *psinfo_lock_root(void)
--=======
- struct dentry *psinfo_lock_root(void)
-->>>>>>> linux-next/akpm-base
+--- a/arch/x86/kernel/cpu/mce/p5.c~linux-next-git-rejects
++++ a/arch/x86/kernel/cpu/mce/p5.c
+@@ -25,12 +25,7 @@ static noinstr void pentium_machine_chec
  {
- 	struct dentry *root;
- 
---- a/include/linux/virtio_net.h~linux-next-git-rejects
-+++ a/include/linux/virtio_net.h
-@@ -111,18 +111,11 @@ retry:
- 		u16 gso_size = __virtio16_to_cpu(little_endian, hdr->gso_size);
- 		struct skb_shared_info *shinfo = skb_shinfo(skb);
+ 	u32 loaddr, hi, lotype;
  
 -<<<<<<< HEAD
--		/* Too small packets are not really GSO ones. */
--		if (skb->len - p_off > gso_size) {
--			shinfo->gso_size = gso_size;
--			shinfo->gso_type = gso_type;
+-	nmi_enter();
+-
 -=======
- 		if (skb->len - p_off <= gso_size)
- 			return -EINVAL;
+ 	instrumentation_begin();
+->>>>>>> linux-next/akpm-base
+ 	rdmsr(MSR_IA32_P5_MC_ADDR, loaddr, hi);
+ 	rdmsr(MSR_IA32_P5_MC_TYPE, lotype, hi);
  
- 		skb_shinfo(skb)->gso_size = gso_size;
- 		skb_shinfo(skb)->gso_type = gso_type;
+@@ -43,12 +38,7 @@ static noinstr void pentium_machine_chec
+ 	}
+ 
+ 	add_taint(TAINT_MACHINE_CHECK, LOCKDEP_NOW_UNRELIABLE);
+-<<<<<<< HEAD
+-
+-	nmi_exit();
+-=======
+ 	instrumentation_end();
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ /* Set up machine check reporting for processors with Intel style MCE: */
+--- a/arch/x86/kernel/cpu/mce/winchip.c~linux-next-git-rejects
++++ a/arch/x86/kernel/cpu/mce/winchip.c
+@@ -19,19 +19,10 @@
+ /* Machine check handler for WinChip C6: */
+ static noinstr void winchip_machine_check(struct pt_regs *regs)
+ {
+-<<<<<<< HEAD
+-	nmi_enter();
+-
+-	pr_emerg("CPU0: Machine Check Exception.\n");
+-	add_taint(TAINT_MACHINE_CHECK, LOCKDEP_NOW_UNRELIABLE);
+-
+-	nmi_exit();
+-=======
+ 	instrumentation_begin();
+ 	pr_emerg("CPU0: Machine Check Exception.\n");
+ 	add_taint(TAINT_MACHINE_CHECK, LOCKDEP_NOW_UNRELIABLE);
+ 	instrumentation_end();
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ /* Set up machine check reporting on the Winchip C6 series */
+--- a/arch/x86/kernel/traps.c~linux-next-git-rejects
++++ a/arch/x86/kernel/traps.c
+@@ -388,10 +388,7 @@ DEFINE_IDTENTRY_DF(exc_double_fault)
+ #endif
+ 
+ 	nmi_enter();
+-<<<<<<< HEAD
+-=======
+ 	instrumentation_begin();
+->>>>>>> linux-next/akpm-base
+ 	notify_die(DIE_TRAP, str, regs, error_code, X86_TRAP_DF, SIGSEGV);
+ 
+ 	tsk->thread.error_code = error_code;
+@@ -584,21 +581,7 @@ exit:
+ 
+ static bool do_int3(struct pt_regs *regs)
+ {
+-<<<<<<< HEAD
+-	if (poke_int3_handler(regs))
+-		return;
+-
+-	/*
+-	 * Unlike any other non-IST entry, we can be called from pretty much
+-	 * any location in the kernel through kprobes -- text_poke() will most
+-	 * likely be handled by poke_int3_handler() above. This means this
+-	 * handler is effectively NMI-like.
+-	 */
+-	if (!user_mode(regs))
+-		nmi_enter();
+-=======
+ 	int res;
 ->>>>>>> linux-next/akpm-base
  
- 			/* Header must be checked, and gso_segs computed. */
- 			shinfo->gso_type |= SKB_GSO_DODGY;
---- a/net/ipv4/nexthop.c~linux-next-git-rejects
-+++ a/net/ipv4/nexthop.c
-@@ -788,7 +788,6 @@ static void remove_nh_grp_entry(struct n
- 	newg->has_v4 = nhg->has_v4;
- 	newg->mpath = nhg->mpath;
- 	newg->num_nh = nhg->num_nh;
+ #ifdef CONFIG_KGDB_LOW_LEVEL_TRAP
+ 	if (kgdb_ll_trap(DIE_INT3, "int3", regs, 0, X86_TRAP_BP,
+@@ -625,11 +608,6 @@ static void do_int3_user(struct pt_regs
+ 	cond_local_irq_disable(regs);
+ }
+ 
 -<<<<<<< HEAD
- 
- 	/* copy old entries to new except the one getting removed */
- 	nhges = nhg->nh_entries;
-@@ -811,30 +810,6 @@ static void remove_nh_grp_entry(struct n
- 	nh_group_rebalance(newg);
- 	rcu_assign_pointer(nhp->nh_grp, newg);
- 
+-exit:
+-	if (!user_mode(regs))
+-		nmi_exit();
 -=======
+ DEFINE_IDTENTRY_RAW(exc_int3)
+ {
+ 	/*
+@@ -664,7 +642,6 @@ DEFINE_IDTENTRY_RAW(exc_int3)
+ 		instrumentation_end();
+ 		nmi_exit();
+ 	}
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ #ifdef CONFIG_X86_64
+@@ -804,55 +781,6 @@ static void noinstr handle_debug(struct
+ 	struct task_struct *tsk = current;
+ 	int si_code;
+ 
+-<<<<<<< HEAD
+-	nmi_enter();
 -
--	/* copy old entries to new except the one getting removed */
--	nhges = nhg->nh_entries;
--	new_nhges = newg->nh_entries;
--	for (i = 0, j = 0; i < nhg->num_nh; ++i) {
--		/* current nexthop getting removed */
--		if (nhg->nh_entries[i].nh == nh) {
--			newg->num_nh--;
--			continue;
--		}
+-	get_debugreg(dr6, 6);
+-	/*
+-	 * The Intel SDM says:
+-	 *
+-	 *   Certain debug exceptions may clear bits 0-3. The remaining
+-	 *   contents of the DR6 register are never cleared by the
+-	 *   processor. To avoid confusion in identifying debug
+-	 *   exceptions, debug handlers should clear the register before
+-	 *   returning to the interrupted task.
+-	 *
+-	 * Keep it simple: clear DR6 immediately.
+-	 */
+-	set_debugreg(0, 6);
 -
--		list_del(&nhges[i].nh_list);
--		new_nhges[j].nh_parent = nhges[i].nh_parent;
--		new_nhges[j].nh = nhges[i].nh;
--		new_nhges[j].weight = nhges[i].weight;
--		list_add(&new_nhges[j].nh_list, &new_nhges[j].nh->grp_list);
--		j++;
+-	/* Filter out all the reserved bits which are preset to 1 */
+-	dr6 &= ~DR6_RESERVED;
+-
+-	/*
+-	 * The SDM says "The processor clears the BTF flag when it
+-	 * generates a debug exception."  Clear TIF_BLOCKSTEP to keep
+-	 * TIF_BLOCKSTEP in sync with the hardware BTF flag.
+-	 */
+-	clear_tsk_thread_flag(tsk, TIF_BLOCKSTEP);
+-
+-	if (unlikely(!user_mode(regs) && (dr6 & DR_STEP) &&
+-		     is_sysenter_singlestep(regs))) {
+-		dr6 &= ~DR_STEP;
+-		if (!dr6)
+-			goto exit;
+-		/*
+-		 * else we might have gotten a single-step trap and hit a
+-		 * watchpoint at the same time, in which case we should fall
+-		 * through and handle the watchpoint.
+-		 */
 -	}
 -
--	nh_group_rebalance(newg);
--	rcu_assign_pointer(nhp->nh_grp, newg);
+-	/*
+-	 * If dr6 has no reason to give us about the origin of this trap,
+-	 * then it's very likely the result of an icebp/int01 trap.
+-	 * User wants a sigtrap for that.
+-	 */
+-	if (!dr6 && user_mode(regs))
+-		user_icebp = 1;
 -
-->>>>>>> linux-next/akpm-base
- 	list_del(&nhge->nh_list);
- 	nexthop_put(nhge->nh);
- 
---- a/net/xdp/xdp_umem.c~linux-next-git-rejects
-+++ a/net/xdp/xdp_umem.c
-@@ -355,11 +355,7 @@ static int xdp_umem_reg(struct xdp_umem
- 
- 	umem->size = size;
- 	umem->headroom = headroom;
--<<<<<<< HEAD
--	umem->chunk_size_nohr = chunk_size - headroom;
 -=======
- 	umem->chunk_size = chunk_size;
 ->>>>>>> linux-next/akpm-base
- 	umem->npgs = (u32)npgs;
- 	umem->pgs = NULL;
- 	umem->user = NULL;
---- a/sound/usb/quirks-table.h~linux-next-git-rejects
-+++ a/sound/usb/quirks-table.h
-@@ -3549,23 +3549,6 @@ ALC1220_VB_DESKTOP(0x26ce, 0x0a01), /* A
+ 	/* Store the virtualized DR6 value */
+ 	tsk->thread.debugreg6 = dr6;
+ 
+@@ -900,10 +828,6 @@ out:
+ 	instrumentation_end();
+ }
+ 
+-<<<<<<< HEAD
+-exit:
+-	nmi_exit();
+-=======
+ static __always_inline void exc_debug_kernel(struct pt_regs *regs,
+ 					     unsigned long dr6)
+ {
+@@ -974,7 +898,6 @@ DEFINE_IDTENTRY_DEBUG_USER(exc_debug)
+ 	debug_enter(&dr6, &dr7);
+ 	exc_debug_user(regs, dr6);
+ 	debug_exit(dr7);
+->>>>>>> linux-next/akpm-base
+ }
+ #else
+ /* 32 bit does not have separate entry points. */
+--- a/arch/xtensa/kernel/syscalls/syscall.tbl~linux-next-git-rejects
++++ a/arch/xtensa/kernel/syscalls/syscall.tbl
+@@ -409,9 +409,6 @@
+ 437	common	openat2				sys_openat2
+ 438	common	pidfd_getfd			sys_pidfd_getfd
+ 439	common	faccessat2			sys_faccessat2
+-<<<<<<< HEAD
+-=======
+ 440	common	watch_mount			sys_watch_mount
+ 441	common	watch_sb			sys_watch_sb
+ 442	common	fsinfo				sys_fsinfo
+->>>>>>> linux-next/akpm-base
+--- a/fs/mount.h~linux-next-git-rejects
++++ a/fs/mount.h
+@@ -169,8 +169,6 @@ static inline bool is_anon_ns(struct mnt
+ }
+ 
+ extern void mnt_cursor_del(struct mnt_namespace *ns, struct mount *cursor);
+-<<<<<<< HEAD
+-=======
+ 
+ #ifdef CONFIG_MOUNT_NOTIFICATIONS
+ extern void notify_mount(struct mount *triggered,
+@@ -185,4 +183,3 @@ static inline void notify_mount(struct m
+ {
+ }
+ #endif
+->>>>>>> linux-next/akpm-base
+--- a/include/linux/capability.h~linux-next-git-rejects
++++ a/include/linux/capability.h
+@@ -255,14 +255,11 @@ static inline bool perfmon_capable(void)
+ {
+ 	return capable(CAP_PERFMON) || capable(CAP_SYS_ADMIN);
+ }
+-<<<<<<< HEAD
+-=======
+ 
+ static inline bool bpf_capable(void)
+ {
+ 	return capable(CAP_BPF) || capable(CAP_SYS_ADMIN);
+ }
+->>>>>>> linux-next/akpm-base
+ 
+ /* audit system wants to get cap info from files as well */
+ extern int get_vfs_caps_from_disk(const struct dentry *dentry, struct cpu_vfs_cap_data *cpu_caps);
+--- a/include/linux/hardirq.h~linux-next-git-rejects
++++ a/include/linux/hardirq.h
+@@ -116,10 +116,6 @@ extern void rcu_nmi_exit(void);
+ 		arch_nmi_enter();				\
+ 		printk_nmi_enter();				\
+ 		lockdep_off();					\
+-<<<<<<< HEAD
+-		ftrace_nmi_enter();				\
+-=======
+->>>>>>> linux-next/akpm-base
+ 		BUG_ON(in_nmi() == NMI_MASK);			\
+ 		__preempt_count_add(NMI_OFFSET + HARDIRQ_OFFSET);	\
+ 		rcu_nmi_enter();				\
+@@ -138,10 +134,6 @@ extern void rcu_nmi_exit(void);
+ 		rcu_nmi_exit();					\
+ 		BUG_ON(!in_nmi());				\
+ 		__preempt_count_sub(NMI_OFFSET + HARDIRQ_OFFSET);	\
+-<<<<<<< HEAD
+-		ftrace_nmi_exit();				\
+-=======
+->>>>>>> linux-next/akpm-base
+ 		lockdep_on();					\
+ 		printk_nmi_exit();				\
+ 		arch_nmi_exit();				\
+--- a/include/linux/sched.h~linux-next-git-rejects
++++ a/include/linux/sched.h
+@@ -1309,13 +1309,9 @@ struct task_struct {
+ 
+ #ifdef CONFIG_X86_MCE
+ 	u64				mce_addr;
+-<<<<<<< HEAD
+-	u64				mce_status;
+-=======
+ 	__u64				mce_ripv : 1,
+ 					mce_whole_page : 1,
+ 					__mce_reserved : 62;
+->>>>>>> linux-next/akpm-base
+ 	struct callback_head		mce_kill_me;
+ #endif
+ 
+--- a/include/uapi/asm-generic/unistd.h~linux-next-git-rejects
++++ a/include/uapi/asm-generic/unistd.h
+@@ -857,11 +857,6 @@ __SYSCALL(__NR_openat2, sys_openat2)
+ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_getfd)
+ #define __NR_faccessat2 439
+ __SYSCALL(__NR_faccessat2, sys_faccessat2)
+-<<<<<<< HEAD
+-
+-#undef __NR_syscalls
+-#define __NR_syscalls 440
+-=======
+ #define __NR_watch_mount 440
+ __SYSCALL(__NR_watch_mount, sys_watch_mount)
+ #define __NR_watch_sb 441
+@@ -871,7 +866,6 @@ __SYSCALL(__NR_fsinfo, sys_fsinfo)
+ 
+ #undef __NR_syscalls
+ #define __NR_syscalls 443
+->>>>>>> linux-next/akpm-base
+ 
+ /*
+  * 32 bit systems traditionally used different
+--- a/include/uapi/linux/capability.h~linux-next-git-rejects
++++ a/include/uapi/linux/capability.h
+@@ -374,10 +374,6 @@ struct vfs_ns_cap_data {
   */
- {
- 	USB_DEVICE(0x0414, 0xa000),
--<<<<<<< HEAD
--	.driver_info = (unsigned long) & (const struct snd_usb_audio_quirk) {
--		.vendor_name = "Gigabyte",
--		.product_name = "Aorus Master Front Headphone",
--		.profile_name = "Gigabyte-Aorus-Master-Front-Headphone",
--		.ifnum = QUIRK_NO_INTERFACE
--	}
--},
--{
--	USB_DEVICE(0x0414, 0xa001),
--	.driver_info = (unsigned long) & (const struct snd_usb_audio_quirk) {
--		.vendor_name = "Gigabyte",
--		.product_name = "Aorus Master Main Audio",
--		.profile_name = "Gigabyte-Aorus-Master-Main-Audio",
--		.ifnum = QUIRK_NO_INTERFACE
--	}
--=======
- 	QUIRK_DEVICE_PROFILE("Gigabyte", "Aorus Master Front Headphone",
- 			     "Gigabyte-Aorus-Master-Front-Headphone")
- },
-@@ -3573,7 +3556,6 @@ ALC1220_VB_DESKTOP(0x26ce, 0x0a01), /* A
- 	USB_DEVICE(0x0414, 0xa001),
- 	QUIRK_DEVICE_PROFILE("Gigabyte", "Aorus Master Main Audio",
- 			     "Gigabyte-Aorus-Master-Main-Audio")
-->>>>>>> linux-next/akpm-base
- },
  
- #undef USB_DEVICE_VENDOR_SPEC
+ #define CAP_PERFMON		38
+-<<<<<<< HEAD
+-
+-#define CAP_LAST_CAP         CAP_PERFMON
+-=======
+ 
+ /*
+  * CAP_BPF allows the following BPF operations:
+@@ -411,7 +407,6 @@ struct vfs_ns_cap_data {
+ #define CAP_BPF			39
+ 
+ #define CAP_LAST_CAP         CAP_BPF
+->>>>>>> linux-next/akpm-base
+ 
+ #define cap_valid(x) ((x) >= 0 && (x) <= CAP_LAST_CAP)
+ 
+--- a/kernel/Makefile~linux-next-git-rejects
++++ a/kernel/Makefile
+@@ -108,10 +108,7 @@ obj-$(CONFIG_IRQ_WORK) += irq_work.o
+ obj-$(CONFIG_CPU_PM) += cpu_pm.o
+ obj-$(CONFIG_BPF) += bpf/
+ obj-$(CONFIG_SHADOW_CALL_STACK) += scs.o
+-<<<<<<< HEAD
+-=======
+ obj-$(CONFIG_KCSAN) += kcsan/
+->>>>>>> linux-next/akpm-base
+ 
+ obj-$(CONFIG_PERF_EVENTS) += events/
+ 
+--- a/security/selinux/include/classmap.h~linux-next-git-rejects
++++ a/security/selinux/include/classmap.h
+@@ -27,15 +27,9 @@
+ 	    "audit_control", "setfcap"
+ 
+ #define COMMON_CAP2_PERMS  "mac_override", "mac_admin", "syslog", \
+-<<<<<<< HEAD
+-		"wake_alarm", "block_suspend", "audit_read", "perfmon"
+-
+-#if CAP_LAST_CAP > CAP_PERFMON
+-=======
+ 		"wake_alarm", "block_suspend", "audit_read", "perfmon", "bpf"
+ 
+ #if CAP_LAST_CAP > CAP_BPF
+->>>>>>> linux-next/akpm-base
+ #error New capability defined, please update COMMON_CAP2_PERMS.
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -624,6 +1022,7 @@ seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
 ipc-convert-ipcs_idr-to-xarray-update-fix.patch
 linux-next-pre.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 linux-next-post.patch
 kernel-add-panic_on_taint-fix.patch
 mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
