@@ -1,53 +1,52 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch removed from
- -mm tree
-Date: Mon, 01 Jun 2020 21:15:21 -0700
-Message-ID: <20200602041521.0o0x84Jyh%akpm@linux-foundation.org>
+ mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch removed
+ from -mm tree
+Date: Mon, 01 Jun 2020 21:15:24 -0700
+Message-ID: <20200602041524.uWXFzNN2z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51536 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51664 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725616AbgFBEPX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:15:23 -0400
+        id S1725616AbgFBEPZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:15:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dchinner@redhat.com, guoqing.jiang@cloud.ionos.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix
+     Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
+     mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
 
 This patch was dropped because it was folded into mm-migratec-call-detach_page_private-to-cleanup-code.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix
+Subject: mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
 
-use attach_page_private(), per Dave.
+clear PagePrivate
 
-http://lkml.kernel.org/r/20200521225220.GV2005@dread.disaster.area
-Cc: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/migrate.c~mm-migratec-call-detach_page_private-to-cleanup-code-fix
+--- a/mm/migrate.c~mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix
 +++ a/mm/migrate.c
-@@ -797,7 +797,7 @@ recheck_buffers:
- 	if (rc != MIGRATEPAGE_SUCCESS)
- 		goto unlock_buffers;
+@@ -807,8 +807,6 @@ recheck_buffers:
  
--	set_page_private(newpage, (unsigned long)detach_page_private(page));
-+	attach_page_private(newpage, detach_page_private(page));
- 	get_page(newpage);
+ 	} while (bh != head);
  
- 	bh = head;
+-	SetPagePrivate(newpage);
+-
+ 	if (mode != MIGRATE_SYNC_NO_COPY)
+ 		migrate_page_copy(newpage, page);
+ 	else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -55,7 +54,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
 mm-migratec-call-detach_page_private-to-cleanup-code.patch
-mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
 mm-replace-pf_less_throttle-with-pf_local_throttle-checkpatch-fixes.patch
 mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix.patch
 mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix-2.patch
