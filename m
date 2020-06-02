@@ -1,36 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-remove-the-prot-argument-from-vm_map_ram.patch removed from -mm tree
-Date: Tue, 02 Jun 2020 14:42:12 -0700
-Message-ID: <20200602214212.JcFEkXgOS%akpm@linux-foundation.org>
+ mm-enforce-that-vmap-cant-map-pages-executable.patch removed from -mm tree
+Date: Tue, 02 Jun 2020 14:42:15 -0700
+Message-ID: <20200602214215.xPnVYKuL_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56742 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56808 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728226AbgFBVmO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:42:14 -0400
+        id S1728226AbgFBVmR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:42:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, christophe.leroy@c-s.fr, daniel.vetter@ffwll.ch, daniel@ffwll.ch, gor@linux.ibm.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, hannes@cmpxchg.org, hch@lst.de, heiko.carstens@de.ibm.com, kys@microsoft.com, labbott@redhat.com, mark.rutland@arm.com, mikelley@microsoft.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, paulus@ozlabs.org, peterz@infradead.org, robin.murphy@arm.com, sakari.ailus@linux.intel.com, sthemmin@microsoft.com, sumit.semwal@linaro.org, wei.liu@kernel.org, will@kernel.org, xiang@kernel.org
 
 
 The patch titled
-     Subject: mm: remove the prot argument from vm_map_ram
+     Subject: mm: enforce that vmap can't map pages executable
 has been removed from the -mm tree.  Its filename was
-     mm-remove-the-prot-argument-from-vm_map_ram.patch
+     mm-enforce-that-vmap-cant-map-pages-executable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove the prot argument from vm_map_ram
+Subject: mm: enforce that vmap can't map pages executable
 
-This is always PAGE_KERNEL - for long term mappings with other properties
-vmap should be used.
+To help enforcing the W^X protection don't allow remapping existing pages
+as executable.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-19-hch@lst.de
+x86 bits from Peter Zijlstra, arm64 bits from Mark Rutland.
+
+Link: http://lkml.kernel.org/r/20200414131348.444715-20-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Mark Rutland <mark.rutland@arm.com>.
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@c-s.fr>
 Cc: Daniel Vetter <daniel@ffwll.ch>
@@ -42,7 +45,6 @@ Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Laura Abbott <labbott@redhat.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Michael Kelley <mikelley@microsoft.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
@@ -60,116 +62,63 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gem/selftests/mock_dmabuf.c   |    2 +-
- drivers/media/common/videobuf2/videobuf2-dma-sg.c  |    3 +--
- drivers/media/common/videobuf2/videobuf2-vmalloc.c |    3 +--
- fs/erofs/decompressor.c                            |    2 +-
- fs/xfs/xfs_buf.c                                   |    2 +-
- include/linux/vmalloc.h                            |    3 +--
- mm/nommu.c                                         |    2 +-
- mm/vmalloc.c                                       |    4 ++--
- 8 files changed, 9 insertions(+), 12 deletions(-)
+ arch/arm64/include/asm/pgtable.h     |    3 +++
+ arch/x86/include/asm/pgtable_types.h |    6 ++++++
+ include/asm-generic/pgtable.h        |    4 ++++
+ mm/vmalloc.c                         |    2 +-
+ 4 files changed, 14 insertions(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/i915/gem/selftests/mock_dmabuf.c~mm-remove-the-prot-argument-from-vm_map_ram
-+++ a/drivers/gpu/drm/i915/gem/selftests/mock_dmabuf.c
-@@ -66,7 +66,7 @@ static void *mock_dmabuf_vmap(struct dma
- {
- 	struct mock_dmabuf *mock = to_mock(dma_buf);
+--- a/arch/arm64/include/asm/pgtable.h~mm-enforce-that-vmap-cant-map-pages-executable
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -407,6 +407,9 @@ static inline pmd_t pmd_mkdevmap(pmd_t p
+ #define __pgprot_modify(prot,mask,bits) \
+ 	__pgprot((pgprot_val(prot) & ~(mask)) | (bits))
  
--	return vm_map_ram(mock->pages, mock->npages, 0, PAGE_KERNEL);
-+	return vm_map_ram(mock->pages, mock->npages, 0);
- }
- 
- static void mock_dmabuf_vunmap(struct dma_buf *dma_buf, void *vaddr)
---- a/drivers/media/common/videobuf2/videobuf2-dma-sg.c~mm-remove-the-prot-argument-from-vm_map_ram
-+++ a/drivers/media/common/videobuf2/videobuf2-dma-sg.c
-@@ -309,8 +309,7 @@ static void *vb2_dma_sg_vaddr(void *buf_
- 		if (buf->db_attach)
- 			buf->vaddr = dma_buf_vmap(buf->db_attach->dmabuf);
- 		else
--			buf->vaddr = vm_map_ram(buf->pages,
--					buf->num_pages, -1, PAGE_KERNEL);
-+			buf->vaddr = vm_map_ram(buf->pages, buf->num_pages, -1);
- 	}
- 
- 	/* add offset in case userptr is not page-aligned */
---- a/drivers/media/common/videobuf2/videobuf2-vmalloc.c~mm-remove-the-prot-argument-from-vm_map_ram
-+++ a/drivers/media/common/videobuf2/videobuf2-vmalloc.c
-@@ -107,8 +107,7 @@ static void *vb2_vmalloc_get_userptr(str
- 		buf->vaddr = (__force void *)
- 			ioremap(__pfn_to_phys(nums[0]), size + offset);
- 	} else {
--		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1,
--					PAGE_KERNEL);
-+		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1);
- 	}
- 
- 	if (!buf->vaddr)
---- a/fs/erofs/decompressor.c~mm-remove-the-prot-argument-from-vm_map_ram
-+++ a/fs/erofs/decompressor.c
-@@ -274,7 +274,7 @@ static int z_erofs_decompress_generic(st
- 
- 	i = 0;
- 	while (1) {
--		dst = vm_map_ram(rq->out, nrpages_out, -1, PAGE_KERNEL);
-+		dst = vm_map_ram(rq->out, nrpages_out, -1);
- 
- 		/* retry two more times (totally 3 times) */
- 		if (dst || ++i >= 3)
---- a/fs/xfs/xfs_buf.c~mm-remove-the-prot-argument-from-vm_map_ram
-+++ a/fs/xfs/xfs_buf.c
-@@ -477,7 +477,7 @@ _xfs_buf_map_pages(
- 		nofs_flag = memalloc_nofs_save();
- 		do {
- 			bp->b_addr = vm_map_ram(bp->b_pages, bp->b_page_count,
--						-1, PAGE_KERNEL);
-+						-1);
- 			if (bp->b_addr)
- 				break;
- 			vm_unmap_aliases();
---- a/include/linux/vmalloc.h~mm-remove-the-prot-argument-from-vm_map_ram
-+++ a/include/linux/vmalloc.h
-@@ -88,8 +88,7 @@ struct vmap_area {
-  *	Highlevel APIs for driver use
++#define pgprot_nx(prot) \
++	__pgprot_modify(prot, 0, PTE_PXN)
++
+ /*
+  * Mark the prot value as uncacheable and unbufferable.
   */
- extern void vm_unmap_ram(const void *mem, unsigned int count);
--extern void *vm_map_ram(struct page **pages, unsigned int count,
--				int node, pgprot_t prot);
-+extern void *vm_map_ram(struct page **pages, unsigned int count, int node);
- extern void vm_unmap_aliases(void);
+--- a/arch/x86/include/asm/pgtable_types.h~mm-enforce-that-vmap-cant-map-pages-executable
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -282,6 +282,12 @@ typedef struct pgprot { pgprotval_t pgpr
  
- #ifdef CONFIG_MMU
---- a/mm/nommu.c~mm-remove-the-prot-argument-from-vm_map_ram
-+++ a/mm/nommu.c
-@@ -351,7 +351,7 @@ void vunmap(const void *addr)
- }
- EXPORT_SYMBOL(vunmap);
+ typedef struct { pgdval_t pgd; } pgd_t;
  
--void *vm_map_ram(struct page **pages, unsigned int count, int node, pgprot_t prot)
-+void *vm_map_ram(struct page **pages, unsigned int count, int node)
- {
- 	BUG();
- 	return NULL;
---- a/mm/vmalloc.c~mm-remove-the-prot-argument-from-vm_map_ram
++static inline pgprot_t pgprot_nx(pgprot_t prot)
++{
++	return __pgprot(pgprot_val(prot) | _PAGE_NX);
++}
++#define pgprot_nx pgprot_nx
++
+ #ifdef CONFIG_X86_PAE
+ 
+ /*
+--- a/include/asm-generic/pgtable.h~mm-enforce-that-vmap-cant-map-pages-executable
++++ a/include/asm-generic/pgtable.h
+@@ -491,6 +491,10 @@ static inline int arch_unmap_one(struct
+ #define flush_tlb_fix_spurious_fault(vma, address) flush_tlb_page(vma, address)
+ #endif
+ 
++#ifndef pgprot_nx
++#define pgprot_nx(prot)	(prot)
++#endif
++
+ #ifndef pgprot_noncached
+ #define pgprot_noncached(prot)	(prot)
+ #endif
+--- a/mm/vmalloc.c~mm-enforce-that-vmap-cant-map-pages-executable
 +++ a/mm/vmalloc.c
-@@ -1835,7 +1835,7 @@ EXPORT_SYMBOL(vm_unmap_ram);
-  *
-  * Returns: a pointer to the address that has been mapped, or %NULL on failure
-  */
--void *vm_map_ram(struct page **pages, unsigned int count, int node, pgprot_t prot)
-+void *vm_map_ram(struct page **pages, unsigned int count, int node)
- {
- 	unsigned long size = (unsigned long)count << PAGE_SHIFT;
- 	unsigned long addr;
-@@ -1859,7 +1859,7 @@ void *vm_map_ram(struct page **pages, un
- 
- 	kasan_unpoison_vmalloc(mem, size);
- 
--	if (map_kernel_range(addr, size, prot, pages) < 0) {
-+	if (map_kernel_range(addr, size, PAGE_KERNEL, pages) < 0) {
- 		vm_unmap_ram(mem, count);
+@@ -2391,7 +2391,7 @@ void *vmap(struct page **pages, unsigned
+ 	if (!area)
  		return NULL;
- 	}
+ 
+-	if (map_kernel_range((unsigned long)area->addr, size, prot,
++	if (map_kernel_range((unsigned long)area->addr, size, pgprot_nx(prot),
+ 			pages) < 0) {
+ 		vunmap(area->addr);
+ 		return NULL;
 _
 
 Patches currently in -mm which might be from hch@lst.de are
