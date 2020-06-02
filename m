@@ -1,66 +1,58 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-ptdump-expand-type-of-val-in-note_page-fix.patch removed from -mm tree
-Date: Mon, 01 Jun 2020 21:19:31 -0700
-Message-ID: <20200602041931.AJOwwYI37%akpm@linux-foundation.org>
+ mm-remove-__vmalloc_node_flags_caller-fix.patch removed from -mm tree
+Date: Mon, 01 Jun 2020 21:20:14 -0700
+Message-ID: <20200602042014.PJfDPKU5i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55678 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55792 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725616AbgFBETd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:19:33 -0400
+        id S1725616AbgFBEUP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:20:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bp@alien8.de, dave.hansen@linux.intel.com, jbeulich@suse.com, lkp@intel.com, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org, steven.price@arm.com, tglx@linutronix.de
+To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm-ptdump-expand-type-of-val-in-note_page-fix
+     Subject: mm-remove-__vmalloc_node_flags_caller-fix
 has been removed from the -mm tree.  Its filename was
-     mm-ptdump-expand-type-of-val-in-note_page-fix.patch
+     mm-remove-__vmalloc_node_flags_caller-fix.patch
 
-This patch was dropped because it was folded into mm-ptdump-expand-type-of-val-in-note_page.patch
+This patch was dropped because it was folded into mm-remove-__vmalloc_node_flags_caller.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-ptdump-expand-type-of-val-in-note_page-fix
+Subject: mm-remove-__vmalloc_node_flags_caller-fix
 
-fix riscv
+fix nommu build
 
-Reported-by: kbuild test robot <lkp@intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jan Beulich <jbeulich@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/mm/ptdump.c |    2 +-
+ mm/nommu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/riscv/mm/ptdump.c~mm-ptdump-expand-type-of-val-in-note_page-fix
-+++ a/arch/riscv/mm/ptdump.c
-@@ -204,7 +204,7 @@ static void note_prot_wx(struct pg_state
+--- a/mm/nommu.c~mm-remove-__vmalloc_node_flags_caller-fix
++++ a/mm/nommu.c
+@@ -153,7 +153,7 @@ EXPORT_SYMBOL(__vmalloc);
+ void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
+ 		int node, const void *caller)
+ {
+-	return __vmalloc(size, flags);
++	return __vmalloc(size, gfp_mask);
  }
  
- static void note_page(struct ptdump_state *pt_st, unsigned long addr,
--		      int level, unsigned long val)
-+		      int level, u64 val)
- {
- 	struct pg_state *st = container_of(pt_st, struct pg_state, ptdump);
- 	u64 pa = PFN_PHYS(pte_pfn(__pte(val)));
+ static void *__vmalloc_user_flags(unsigned long size, gfp_t flags)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-ptdump-expand-type-of-val-in-note_page.patch
-mm-remove-__vmalloc_node_flags_caller-fix.patch
+mm-remove-__vmalloc_node_flags_caller.patch
 mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
 mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
 mm-remove-vmalloc_user_node_flags-fix.patch
