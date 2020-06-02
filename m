@@ -1,53 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- x86-hyperv-use-vmalloc_exec-for-the-hypercall-page.patch removed from -mm
- tree
-Date: Tue, 02 Jun 2020 14:41:17 -0700
-Message-ID: <20200602214117.nYeYf8V9l%akpm@linux-foundation.org>
+Subject: [merged] x86-fix-vmap-arguments-in-map_irq_stack.patch
+ removed from -mm tree
+Date: Tue, 02 Jun 2020 14:41:20 -0700
+Message-ID: <20200602214120.rJHqbmpID%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55304 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55374 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728226AbgFBVlT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:41:19 -0400
+        id S1728226AbgFBVlV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:41:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, christophe.leroy@c-s.fr, daniel.vetter@ffwll.ch, daniel@ffwll.ch, gor@linux.ibm.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, hannes@cmpxchg.org, hch@lst.de, heiko.carstens@de.ibm.com, kys@microsoft.com, labbott@redhat.com, mark.rutland@arm.com, mikelley@microsoft.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, paulus@ozlabs.org, peterz@infradead.org, robin.murphy@arm.com, sakari.ailus@linux.intel.com, sthemmin@microsoft.com, sumit.semwal@linaro.org, wei.liu@kernel.org, will@kernel.org, xiang@kernel.org
 
 
 The patch titled
-     Subject: x86/hyperv: use vmalloc_exec for the hypercall page
+     Subject: x86: fix vmap arguments in map_irq_stack
 has been removed from the -mm tree.  Its filename was
-     x86-hyperv-use-vmalloc_exec-for-the-hypercall-page.patch
+     x86-fix-vmap-arguments-in-map_irq_stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: x86/hyperv: use vmalloc_exec for the hypercall page
+Subject: x86: fix vmap arguments in map_irq_stack
 
-Patch series "decruft the vmalloc API", v2.
+vmap does not take a gfp_t, the flags argument is for VM_* flags.
 
-Peter noticed that with some dumb luck you can toast the kernel address
-space with exported vmalloc symbols.
-
-I used this as an opportunity to decruft the vmalloc.c API and make it
-much more systematic.  This also removes any chance to create vmalloc
-mappings outside the designated areas or using executable permissions
-from modules.  Besides that it removes more than 300 lines of code.
-
-
-This patch (of 29):
-
-Use the designated helper for allocating executable kernel memory, and
-remove the now unused PAGE_KERNEL_RX define.
-
-Link: http://lkml.kernel.org/r/20200414131348.444715-1-hch@lst.de
-Link: http://lkml.kernel.org/r/20200414131348.444715-2-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-3-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Michael Kelley <mikelley@microsoft.com>
-Acked-by: Wei Liu <wei.liu@kernel.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@c-s.fr>
 Cc: Daniel Vetter <daniel@ffwll.ch>
@@ -60,54 +41,38 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Laura Abbott <labbott@redhat.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Kelley <mikelley@microsoft.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Robin Murphy <robin.murphy@arm.com>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Stephen Hemminger <sthemmin@microsoft.com>
 Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Wei Liu <wei.liu@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@ozlabs.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Paul Mackerras <paulus@ozlabs.org>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/hyperv/hv_init.c            |    2 +-
- arch/x86/include/asm/pgtable_types.h |    2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ arch/x86/kernel/irq_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/hyperv/hv_init.c~x86-hyperv-use-vmalloc_exec-for-the-hypercall-page
-+++ a/arch/x86/hyperv/hv_init.c
-@@ -379,7 +379,7 @@ void __init hyperv_init(void)
- 	guest_id = generate_guest_id(0, LINUX_VERSION_CODE, 0);
- 	wrmsrl(HV_X64_MSR_GUEST_OS_ID, guest_id);
+--- a/arch/x86/kernel/irq_64.c~x86-fix-vmap-arguments-in-map_irq_stack
++++ a/arch/x86/kernel/irq_64.c
+@@ -43,7 +43,7 @@ static int map_irq_stack(unsigned int cp
+ 		pages[i] = pfn_to_page(pa >> PAGE_SHIFT);
+ 	}
  
--	hv_hypercall_pg  = __vmalloc(PAGE_SIZE, GFP_KERNEL, PAGE_KERNEL_RX);
-+	hv_hypercall_pg = vmalloc_exec(PAGE_SIZE);
- 	if (hv_hypercall_pg == NULL) {
- 		wrmsrl(HV_X64_MSR_GUEST_OS_ID, 0);
- 		goto remove_cpuhp_state;
---- a/arch/x86/include/asm/pgtable_types.h~x86-hyperv-use-vmalloc_exec-for-the-hypercall-page
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -194,7 +194,6 @@ enum page_cache_mode {
- #define _PAGE_TABLE_NOENC	 (__PP|__RW|_USR|___A|   0|___D|   0|   0)
- #define _PAGE_TABLE		 (__PP|__RW|_USR|___A|   0|___D|   0|   0| _ENC)
- #define __PAGE_KERNEL_RO	 (__PP|   0|   0|___A|__NX|___D|   0|___G)
--#define __PAGE_KERNEL_RX	 (__PP|   0|   0|___A|   0|___D|   0|___G)
- #define __PAGE_KERNEL_NOCACHE	 (__PP|__RW|   0|___A|__NX|___D|   0|___G| __NC)
- #define __PAGE_KERNEL_VVAR	 (__PP|   0|_USR|___A|__NX|___D|   0|___G)
- #define __PAGE_KERNEL_LARGE	 (__PP|__RW|   0|___A|__NX|___D|_PSE|___G)
-@@ -220,7 +219,6 @@ enum page_cache_mode {
- #define PAGE_KERNEL_RO		__pgprot_mask(__PAGE_KERNEL_RO         | _ENC)
- #define PAGE_KERNEL_EXEC	__pgprot_mask(__PAGE_KERNEL_EXEC       | _ENC)
- #define PAGE_KERNEL_EXEC_NOENC	__pgprot_mask(__PAGE_KERNEL_EXEC       |    0)
--#define PAGE_KERNEL_RX		__pgprot_mask(__PAGE_KERNEL_RX         | _ENC)
- #define PAGE_KERNEL_NOCACHE	__pgprot_mask(__PAGE_KERNEL_NOCACHE    | _ENC)
- #define PAGE_KERNEL_LARGE	__pgprot_mask(__PAGE_KERNEL_LARGE      | _ENC)
- #define PAGE_KERNEL_LARGE_EXEC	__pgprot_mask(__PAGE_KERNEL_LARGE_EXEC | _ENC)
+-	va = vmap(pages, IRQ_STACK_SIZE / PAGE_SIZE, GFP_KERNEL, PAGE_KERNEL);
++	va = vmap(pages, IRQ_STACK_SIZE / PAGE_SIZE, VM_MAP, PAGE_KERNEL);
+ 	if (!va)
+ 		return -ENOMEM;
+ 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
