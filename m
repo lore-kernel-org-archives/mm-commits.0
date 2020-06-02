@@ -1,74 +1,145 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_failure-dont-send-bus_mceerr_ao-for-action-required-error.patch
- removed from -mm tree
-Date: Tue, 02 Jun 2020 14:41:15 -0700
-Message-ID: <20200602214115.dD-BM67fS%akpm@linux-foundation.org>
+ proc-pid-smaps-add-pmd-migration-entry-parsing.patch removed from -mm tree
+Date: Tue, 02 Jun 2020 14:41:10 -0700
+Message-ID: <20200602214110.J0tfj-gn4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55278 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55210 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728226AbgFBVlQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:41:16 -0400
+        id S1728080AbgFBVlL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:41:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, naoya.horiguchi@nec.com, pankaj.gupta.linux@gmail.com, wetp.zy@linux.alibaba.com
+To: aarcange@redhat.com, adobriyan@gmail.com, jglisse@redhat.com, khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz, yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: mm, memory_failure: don't send BUS_MCEERR_AO for action required error
+     Subject: /proc/PID/smaps: Add PMD migration entry parsing
 has been removed from the -mm tree.  Its filename was
-     mm-memory_failure-dont-send-bus_mceerr_ao-for-action-required-error.patch
+     proc-pid-smaps-add-pmd-migration-entry-parsing.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Wetp Zhang <wetp.zy@linux.alibaba.com>
-Subject: mm, memory_failure: don't send BUS_MCEERR_AO for action required error
+=46rom: Huang Ying <ying.huang@intel.com>
+Subject: /proc/PID/smaps: Add PMD migration entry parsing
 
-Some processes dont't want to be killed early, but in "Action Required"
-case, those also may be killed by BUS_MCEERR_AO when sharing memory with
-other which is accessing the fail memory.  And sending SIGBUS with
-BUS_MCEERR_AO for action required error is strange, so ignore the
-non-current processes here.
+Now, when reading /proc/PID/smaps, the PMD migration entry in page table
+is simply ignored.  To improve the accuracy of /proc/PID/smaps, its
+parsing and processing is added.
 
-Link: http://lkml.kernel.org/r/1590817116-21281-1-git-send-email-wetp.zy@linux.alibaba.com
-Signed-off-by: Wetp Zhang <wetp.zy@linux.alibaba.com>
-Suggested-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+To test the patch, we run pmbench to eat 400 MB memory in background, then
+run /usr/bin/migratepages and `cat /proc/PID/smaps` every second.  The
+issue as follows can be reproduced within 60 seconds.
+
+Before the patch, for the fully populated 400 MB anonymous VMA, some THP
+pages under migration may be lost as below.
+
+7f3f6a7e5000-7f3f837e5000 rw-p 00000000 00:00 0
+Size:             409600 kB
+KernelPageSize:        4 kB
+MMUPageSize:           4 kB
+Rss:              407552 kB
+Pss:              407552 kB
+Shared_Clean:          0 kB
+Shared_Dirty:          0 kB
+Private_Clean:         0 kB
+Private_Dirty:    407552 kB
+Referenced:       301056 kB
+Anonymous:        407552 kB
+LazyFree:              0 kB
+AnonHugePages:    405504 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:        0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  0 kB
+SwapPss:               0 kB
+Locked:                0 kB
+THPeligible:		1
+VmFlags: rd wr mr mw me ac
+
+After the patch, it will be always,
+
+7f3f6a7e5000-7f3f837e5000 rw-p 00000000 00:00 0
+Size:             409600 kB
+KernelPageSize:        4 kB
+MMUPageSize:           4 kB
+Rss:              409600 kB
+Pss:              409600 kB
+Shared_Clean:          0 kB
+Shared_Dirty:          0 kB
+Private_Clean:         0 kB
+Private_Dirty:    409600 kB
+Referenced:       294912 kB
+Anonymous:        409600 kB
+LazyFree:              0 kB
+AnonHugePages:    407552 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:        0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  0 kB
+SwapPss:               0 kB
+Locked:                0 kB
+THPeligible:		1
+VmFlags: rd wr mr mw me ac
+
+Link: http://lkml.kernel.org/r/20200403123059.1846960-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ fs/proc/task_mmu.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory_failure-dont-send-bus_mceerr_ao-for-action-required-error
-+++ a/mm/memory-failure.c
-@@ -210,14 +210,17 @@ static int kill_proc(struct to_kill *tk,
- {
- 	struct task_struct *t = tk->tsk;
- 	short addr_lsb = tk->size_shift;
--	int ret;
-+	int ret = 0;
- 
--	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
--		pfn, t->comm, t->pid);
-+	if ((t->mm == current->mm) || !(flags & MF_ACTION_REQUIRED))
-+		pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
-+			pfn, t->comm, t->pid);
- 
--	if ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm) {
--		ret = force_sig_mceerr(BUS_MCEERR_AR, (void __user *)tk->addr,
--				       addr_lsb);
-+	if (flags & MF_ACTION_REQUIRED) {
-+		if (t->mm == current->mm)
-+			ret = force_sig_mceerr(BUS_MCEERR_AR,
-+					 (void __user *)tk->addr, addr_lsb);
-+		/* send no signal to non-current processes */
- 	} else {
- 		/*
- 		 * Don't use force here, it's convenient if the signal
+--- a/fs/proc/task_mmu.c~proc-pid-smaps-add-pmd-migration-entry-parsing
++++ a/fs/proc/task_mmu.c
+@@ -546,10 +546,17 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ 	struct mem_size_stats *mss =3D walk->private;
+ 	struct vm_area_struct *vma =3D walk->vma;
+ 	bool locked =3D !!(vma->vm_flags & VM_LOCKED);
+-	struct page *page;
++	struct page *page =3D NULL;
+=20
+-	/* FOLL_DUMP will return -EFAULT on huge zero page */
+-	page =3D follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
++	if (pmd_present(*pmd)) {
++		/* FOLL_DUMP will return -EFAULT on huge zero page */
++		page =3D follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
++	} else if (unlikely(thp_migration_supported() && is_swap_pmd(*pmd))) {
++		swp_entry_t entry =3D pmd_to_swp_entry(*pmd);
++
++		if (is_migration_entry(entry))
++			page =3D migration_entry_to_page(entry);
++	}
+ 	if (IS_ERR_OR_NULL(page))
+ 		return;
+ 	if (PageAnon(page))
+@@ -578,8 +585,7 @@ static int smaps_pte_range(pmd_t *pmd, u
+=20
+ 	ptl =3D pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
+-		if (pmd_present(*pmd))
+-			smaps_pmd_entry(pmd, addr, walk);
++		smaps_pmd_entry(pmd, addr, walk);
+ 		spin_unlock(ptl);
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from wetp.zy@linux.alibaba.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
