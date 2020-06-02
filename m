@@ -1,46 +1,69 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 072/128] mm/swapfile.c: use prandom_u32_max()
-Date: Tue, 02 Jun 2020 13:14:06 -0700
-Message-ID: <20200602201406.vRGSyc6UX%akpm@linux-foundation.org>
+Subject: [patch 071/128] mm/swapfile.c: __swap_entry_free() always
+ free 1 entry
+Date: Tue, 02 Jun 2020 13:14:04 -0700
+Message-ID: <20200602201404.snD5-mPgW%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58032 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57980 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726112AbgFBUOI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:14:08 -0400
+        id S1726112AbgFBUOF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 16:14:05 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, torvalds@linux-foundation.org, ying.huang@intel.com
+To: akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, torvalds@linux-foundation.org
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/swapfile.c: use prandom_u32_max()
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/swapfile.c: __swap_entry_free() always free 1 entry
 
-To improve the code readability and take advantage of the common
-implementation.
+__swap_entry_free() always frees 1 entry.  Let's remove the usage.
 
-Link: http://lkml.kernel.org/r/20200512081013.520201-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/20200501015259.32237-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-use-prandom_u32_max
+--- a/mm/swapfile.c~mm-swapfilec-__swap_entry_free-always-free-1-entry
 +++ a/mm/swapfile.c
-@@ -3209,7 +3209,7 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		 * select a random position to start with to help wear leveling
- 		 * SSD
- 		 */
--		p->cluster_next = 1 + (prandom_u32() % p->highest_bit);
-+		p->cluster_next = 1 + prandom_u32_max(p->highest_bit);
- 		nr_cluster = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
+@@ -1273,13 +1273,14 @@ unlock_out:
+ }
  
- 		cluster_info = kvcalloc(nr_cluster, sizeof(*cluster_info),
+ static unsigned char __swap_entry_free(struct swap_info_struct *p,
+-				       swp_entry_t entry, unsigned char usage)
++				       swp_entry_t entry)
+ {
+ 	struct swap_cluster_info *ci;
+ 	unsigned long offset = swp_offset(entry);
++	unsigned char usage;
+ 
+ 	ci = lock_cluster_or_swap_info(p, offset);
+-	usage = __swap_entry_free_locked(p, offset, usage);
++	usage = __swap_entry_free_locked(p, offset, 1);
+ 	unlock_cluster_or_swap_info(p, ci);
+ 	if (!usage)
+ 		free_swap_slot(entry);
+@@ -1314,7 +1315,7 @@ void swap_free(swp_entry_t entry)
+ 
+ 	p = _swap_info_get(entry);
+ 	if (p)
+-		__swap_entry_free(p, entry, 1);
++		__swap_entry_free(p, entry);
+ }
+ 
+ /*
+@@ -1737,7 +1738,7 @@ int free_swap_and_cache(swp_entry_t entr
+ 
+ 	p = _swap_info_get(entry);
+ 	if (p) {
+-		count = __swap_entry_free(p, entry, 1);
++		count = __swap_entry_free(p, entry);
+ 		if (count == SWAP_HAS_CACHE &&
+ 		    !swap_page_trans_huge_swapped(p, entry))
+ 			__try_to_reclaim_swap(p, swp_offset(entry),
 _
