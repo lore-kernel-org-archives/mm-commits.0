@@ -1,143 +1,96 @@
-From: akpm@linux-foundation.org
-Subject: [merged] kasan-move-kasan_report-into-reportc.patch
- removed from -mm tree
-Date: Tue, 02 Jun 2020 14:43:23 -0700
-Message-ID: <20200602214323.8wt-1rDiS%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [folded-merged]
+ lib-make-a-test-module-with-get_count_order-long-fix.patch removed from -mm
+ tree
+Date: Tue, 02 Jun 2020 15:51:38 -0700
+Message-ID: <20200602225138.9jNzY_vEX%akpm@linux-foundation.org>
+References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58322 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726174AbgFBVnZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:43:25 -0400
+        id S1726174AbgFBWvk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 18:51:40 -0400
+In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, leon@kernel.org, leonro@mellanox.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
 
 
 The patch titled
-     Subject: kasan: move kasan_report() into report.c
+     Subject: lib-make-a-test-module-with-get_count_order-long-fix
 has been removed from the -mm tree.  Its filename was
-     kasan-move-kasan_report-into-reportc.patch
+     lib-make-a-test-module-with-get_count_order-long-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into lib-make-a-test-module-with-get_count_order-long.patch
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: move kasan_report() into report.c
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-make-a-test-module-with-get_count_order-long-fix
 
-The kasan_report() functions belongs to report.c, as it's a common
-functions that does error reporting.
+tweak Kconfig text
 
-Link: http://lkml.kernel.org/r/78a81fde6eeda9db72a7fd55fbc33173a515e4b1.1589297433.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reported-by: Leon Romanovsky <leon@kernel.org>
-Tested-by: Leon Romanovsky <leon@kernel.org>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |   19 -------------------
- mm/kasan/report.c |   22 ++++++++++++++++++++--
- 2 files changed, 20 insertions(+), 21 deletions(-)
+ lib/Kconfig.debug |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/kasan/common.c~kasan-move-kasan_report-into-reportc
-+++ a/mm/kasan/common.c
-@@ -33,7 +33,6 @@
- #include <linux/types.h>
- #include <linux/vmalloc.h>
- #include <linux/bug.h>
--#include <linux/uaccess.h>
- 
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
-@@ -613,24 +612,6 @@ void kasan_free_shadow(const struct vm_s
- }
- #endif
- 
--extern void __kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip);
--extern bool report_enabled(void);
--
--bool kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip)
--{
--	unsigned long flags = user_access_save();
--	bool ret = false;
--
--	if (likely(report_enabled())) {
--		__kasan_report(addr, size, is_write, ip);
--		ret = true;
--	}
--
--	user_access_restore(flags);
--
--	return ret;
--}
--
- #ifdef CONFIG_MEMORY_HOTPLUG
- static bool shadow_mapped(unsigned long addr)
- {
---- a/mm/kasan/report.c~kasan-move-kasan_report-into-reportc
-+++ a/mm/kasan/report.c
-@@ -29,6 +29,7 @@
- #include <linux/kasan.h>
- #include <linux/module.h>
- #include <linux/sched/task_stack.h>
-+#include <linux/uaccess.h>
- 
- #include <asm/sections.h>
- 
-@@ -454,7 +455,7 @@ static void print_shadow_for_address(con
- 	}
- }
- 
--bool report_enabled(void)
-+static bool report_enabled(void)
- {
- 	if (current->kasan_depth)
- 		return false;
-@@ -479,7 +480,8 @@ void kasan_report_invalid_free(void *obj
- 	end_report(&flags);
- }
- 
--void __kasan_report(unsigned long addr, size_t size, bool is_write, unsigned long ip)
-+static void __kasan_report(unsigned long addr, size_t size, bool is_write,
-+				unsigned long ip)
- {
- 	struct kasan_access_info info;
- 	void *tagged_addr;
-@@ -518,6 +520,22 @@ void __kasan_report(unsigned long addr,
- 	end_report(&flags);
- }
- 
-+bool kasan_report(unsigned long addr, size_t size, bool is_write,
-+			unsigned long ip)
-+{
-+	unsigned long flags = user_access_save();
-+	bool ret = false;
-+
-+	if (likely(report_enabled())) {
-+		__kasan_report(addr, size, is_write, ip);
-+		ret = true;
-+	}
-+
-+	user_access_restore(flags);
-+
-+	return ret;
-+}
-+
- #ifdef CONFIG_KASAN_INLINE
- /*
-  * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
+--- a/lib/Kconfig.debug~lib-make-a-test-module-with-get_count_order-long-fix
++++ a/lib/Kconfig.debug
+@@ -2040,8 +2040,8 @@ config TEST_GETORDER
+ 	depends on m
+ 	help
+ 	  This builds the "test_getorder" module that is much like the
+-	  TEST_LKM module except that it does a basic exercise of the
+-	  get_count_order and get_count_order_long to make sure there are no
++	  TEST_LKM module except that it does a basic exercise of
++	  get_count_order() and get_count_order_long() to make sure there are no
+ 	  compiler warnings from C=1 sparse checker or -Wextra compilations.
+ 	  It has no dependencies and doesn't run or load unless explicitly
+ 	  requested by name. For example: modprobe test_getorder.
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kcov-cleanup-debug-messages.patch
-kcov-fix-potential-use-after-free-in-kcov_remote_start.patch
-kcov-move-t-kcov-assignments-into-kcov_start-stop.patch
-kcov-move-t-kcov_sequence-assignment.patch
-kcov-use-t-kcov_mode-as-enabled-indicator.patch
-kcov-collect-coverage-from-interrupts.patch
-usb-core-kcov-collect-coverage-from-usb-complete-callback.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
+mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-add-debug_wx-support-fix.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+lib-make-a-test-module-with-get_count_order-long.patch
+seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-pre.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+linux-next-post.patch
+kernel-add-panic_on_taint-fix.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
