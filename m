@@ -1,63 +1,58 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
- removed from -mm tree
-Date: Mon, 01 Jun 2020 21:20:50 -0700
-Message-ID: <20200602042050.iL43k--WP%akpm@linux-foundation.org>
+ mm-remove-vmalloc_user_node_flags-fix.patch removed from -mm tree
+Date: Mon, 01 Jun 2020 21:21:23 -0700
+Message-ID: <20200602042123.9Ok1fk1q6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55968 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725616AbgFBEUw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:20:52 -0400
+        id S1725616AbgFBEVY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:21:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org, peterz@infradead.org
+To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix
+     Subject: mm-remove-vmalloc_user_node_flags-fix
 has been removed from the -mm tree.  Its filename was
-     mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
+     mm-remove-vmalloc_user_node_flags-fix.patch
 
-This patch was dropped because it was folded into mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
+This patch was dropped because it was folded into mm-remove-vmalloc_user_node_flags.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix
+Subject: mm-remove-vmalloc_user_node_flags-fix
 
-fix riscv nommu build
+fix nommu.c build
 
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/pgtable.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/nommu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/riscv/include/asm/pgtable.h~mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -473,9 +473,9 @@ static inline int ptep_clear_flush_young
- #define PAGE_SHARED		__pgprot(0)
- #define PAGE_KERNEL		__pgprot(0)
- #define swapper_pg_dir		NULL
-+#define TASK_SIZE		0xffffffffUL
- #define VMALLOC_START		0
--
--#define TASK_SIZE 0xffffffffUL
-+#define VMALLOC_END		TASK_SIZE
+--- a/mm/nommu.c~mm-remove-vmalloc_user_node_flags-fix
++++ a/mm/nommu.c
+@@ -155,7 +155,7 @@ void *__vmalloc_node_range(unsigned long
+ 		pgprot_t prot, unsigned long vm_flags, int node,
+ 		const void *caller)
+ {
+-	return __vmalloc(size, flags);
++	return __vmalloc(size, gfp_mask);
+ }
  
- static inline void __kernel_map_pages(struct page *page, int numpages, int enable) {}
- 
+ void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
-mm-remove-vmalloc_user_node_flags-fix.patch
+mm-remove-vmalloc_user_node_flags.patch
 mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
 drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
 mm.patch
