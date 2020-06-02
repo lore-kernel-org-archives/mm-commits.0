@@ -1,144 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: [merged] s390-use-__vmalloc_node-in-stack_alloc.patch
- removed from -mm tree
-Date: Tue, 02 Jun 2020 14:42:52 -0700
-Message-ID: <20200602214252.Vus3FAoJP%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-add-functions-to-track-page-directory-modifications.patch removed from
+ -mm tree
+Date: Tue, 02 Jun 2020 14:42:56 -0700
+Message-ID: <20200602214256.wb9SwSeuz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57726 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57794 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728317AbgFBVmy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:42:54 -0400
+        id S1728305AbgFBVm6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:42:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, christophe.leroy@c-s.fr, daniel.vetter@ffwll.ch, daniel@ffwll.ch, gor@linux.ibm.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, hannes@cmpxchg.org, hch@lst.de, heiko.carstens@de.ibm.com, kys@microsoft.com, labbott@redhat.com, mark.rutland@arm.com, mikelley@microsoft.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, paulus@ozlabs.org, peterz@infradead.org, robin.murphy@arm.com, sakari.ailus@linux.intel.com, sthemmin@microsoft.com, sumit.semwal@linaro.org, wei.liu@kernel.org, will@kernel.org, xiang@kernel.org
+To: arnd@arndb.de, dave.hansen@linux.intel.com, hch@lst.de, hpa@zytor.com, jroedel@suse.de, luto@kernel.org, mhocko@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, peterz@infradead.org, rjw@rjwysocki.net, rostedt@goodmis.org, tglx@linutronix.de, vbabka@suse.cz, willy@infradead.org
 
 
 The patch titled
-     Subject: s390: use __vmalloc_node in stack_alloc
+     Subject: mm: add functions to track page directory modifications
 has been removed from the -mm tree.  Its filename was
-     s390-use-__vmalloc_node-in-stack_alloc.patch
+     mm-add-functions-to-track-page-directory-modifications.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: s390: use __vmalloc_node in stack_alloc
+From: Joerg Roedel <jroedel@suse.de>
+Subject: mm: add functions to track page directory modifications
 
-stack_alloc can use a slightly higher level vmalloc function.
+Patch series "mm: Get rid of vmalloc_sync_(un)mappings()", v3.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-30-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
+After the recent issue with vmalloc and tracing code[1] on x86 and a long
+history of previous issues related to the vmalloc_sync_mappings()
+interface, I thought the time has come to remove it.  Please see [2], [3],
+and [4] for some other issues in the past.
+
+The patches add tracking of page-table directory changes to the vmalloc
+and ioremap code.  Depending on which page-table levels changes have been
+made, a new per-arch function is called: arch_sync_kernel_mappings().
+
+On x86-64 with 4-level paging, this function will not be called more than
+64 times in a systems runtime (because vmalloc-space takes 64 PGD entries
+which are only populated, but never cleared).
+
+As a side effect this also allows to get rid of vmalloc faults on x86,
+making it safe to touch vmalloc'ed memory in the page-fault handler.  Note
+that this potentially includes per-cpu memory.
+
+
+This patch (of 7):
+
+Add page-table allocation functions which will keep track of changed
+directory entries.  They are needed for new PGD, P4D, PUD, and PMD entries
+and will be used in vmalloc and ioremap code to decide whether any changes
+in the kernel mappings need to be synchronized between page-tables in the
+system.
+
+Link: http://lkml.kernel.org/r/20200515140023.25469-1-joro@8bytes.org
+Link: http://lkml.kernel.org/r/20200515140023.25469-2-joro@8bytes.org
+Signed-off-by: Joerg Roedel <jroedel@suse.de>
+Acked-by: Andy Lutomirski <luto@kernel.org>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Wei Liu <wei.liu@kernel.org>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Laura Abbott <labbott@redhat.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Gao Xiang <xiang@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michael Kelley <mikelley@microsoft.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: "H . Peter Anvin" <hpa@zytor.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/setup.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ include/asm-generic/5level-fixup.h |    5 +-
+ include/asm-generic/pgtable.h      |   23 +++++++++++++
+ include/linux/mm.h                 |   46 +++++++++++++++++++++++++++
+ 3 files changed, 72 insertions(+), 2 deletions(-)
 
---- a/arch/s390/kernel/setup.c~s390-use-__vmalloc_node-in-stack_alloc
-+++ a/arch/s390/kernel/setup.c
-@@ -305,12 +305,9 @@ void *restart_stack __section(.data);
- unsigned long stack_alloc(void)
- {
- #ifdef CONFIG_VMAP_STACK
--	return (unsigned long)
--		__vmalloc_node_range(THREAD_SIZE, THREAD_SIZE,
--				     VMALLOC_START, VMALLOC_END,
--				     THREADINFO_GFP,
--				     PAGE_KERNEL, 0, NUMA_NO_NODE,
--				     __builtin_return_address(0));
-+	return (unsigned long)__vmalloc_node(THREAD_SIZE, THREAD_SIZE,
-+			THREADINFO_GFP, NUMA_NO_NODE,
-+			__builtin_return_address(0));
- #else
- 	return __get_free_pages(GFP_KERNEL, THREAD_SIZE_ORDER);
+--- a/include/asm-generic/5level-fixup.h~mm-add-functions-to-track-page-directory-modifications
++++ a/include/asm-generic/5level-fixup.h
+@@ -17,8 +17,9 @@
+ 	((unlikely(pgd_none(*(p4d))) && __pud_alloc(mm, p4d, address)) ? \
+ 		NULL : pud_offset(p4d, address))
+ 
+-#define p4d_alloc(mm, pgd, address)	(pgd)
+-#define p4d_offset(pgd, start)		(pgd)
++#define p4d_alloc(mm, pgd, address)		(pgd)
++#define p4d_alloc_track(mm, pgd, address, mask)	(pgd)
++#define p4d_offset(pgd, start)			(pgd)
+ 
+ #ifndef __ASSEMBLY__
+ static inline int p4d_none(p4d_t p4d)
+--- a/include/asm-generic/pgtable.h~mm-add-functions-to-track-page-directory-modifications
++++ a/include/asm-generic/pgtable.h
+@@ -1213,6 +1213,29 @@ static inline bool arch_has_pfn_modify_c
+ # define PAGE_KERNEL_EXEC PAGE_KERNEL
  #endif
+ 
++/*
++ * Page Table Modification bits for pgtbl_mod_mask.
++ *
++ * These are used by the p?d_alloc_track*() set of functions an in the generic
++ * vmalloc/ioremap code to track at which page-table levels entries have been
++ * modified. Based on that the code can better decide when vmalloc and ioremap
++ * mapping changes need to be synchronized to other page-tables in the system.
++ */
++#define		__PGTBL_PGD_MODIFIED	0
++#define		__PGTBL_P4D_MODIFIED	1
++#define		__PGTBL_PUD_MODIFIED	2
++#define		__PGTBL_PMD_MODIFIED	3
++#define		__PGTBL_PTE_MODIFIED	4
++
++#define		PGTBL_PGD_MODIFIED	BIT(__PGTBL_PGD_MODIFIED)
++#define		PGTBL_P4D_MODIFIED	BIT(__PGTBL_P4D_MODIFIED)
++#define		PGTBL_PUD_MODIFIED	BIT(__PGTBL_PUD_MODIFIED)
++#define		PGTBL_PMD_MODIFIED	BIT(__PGTBL_PMD_MODIFIED)
++#define		PGTBL_PTE_MODIFIED	BIT(__PGTBL_PTE_MODIFIED)
++
++/* Page-Table Modification Mask */
++typedef unsigned int pgtbl_mod_mask;
++
+ #endif /* !__ASSEMBLY__ */
+ 
+ #ifndef io_remap_pfn_range
+--- a/include/linux/mm.h~mm-add-functions-to-track-page-directory-modifications
++++ a/include/linux/mm.h
+@@ -2087,13 +2087,54 @@ static inline pud_t *pud_alloc(struct mm
+ 	return (unlikely(p4d_none(*p4d)) && __pud_alloc(mm, p4d, address)) ?
+ 		NULL : pud_offset(p4d, address);
+ }
++
++static inline p4d_t *p4d_alloc_track(struct mm_struct *mm, pgd_t *pgd,
++				     unsigned long address,
++				     pgtbl_mod_mask *mod_mask)
++
++{
++	if (unlikely(pgd_none(*pgd))) {
++		if (__p4d_alloc(mm, pgd, address))
++			return NULL;
++		*mod_mask |= PGTBL_PGD_MODIFIED;
++	}
++
++	return p4d_offset(pgd, address);
++}
++
+ #endif /* !__ARCH_HAS_5LEVEL_HACK */
+ 
++static inline pud_t *pud_alloc_track(struct mm_struct *mm, p4d_t *p4d,
++				     unsigned long address,
++				     pgtbl_mod_mask *mod_mask)
++{
++	if (unlikely(p4d_none(*p4d))) {
++		if (__pud_alloc(mm, p4d, address))
++			return NULL;
++		*mod_mask |= PGTBL_P4D_MODIFIED;
++	}
++
++	return pud_offset(p4d, address);
++}
++
+ static inline pmd_t *pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
+ {
+ 	return (unlikely(pud_none(*pud)) && __pmd_alloc(mm, pud, address))?
+ 		NULL: pmd_offset(pud, address);
+ }
++
++static inline pmd_t *pmd_alloc_track(struct mm_struct *mm, pud_t *pud,
++				     unsigned long address,
++				     pgtbl_mod_mask *mod_mask)
++{
++	if (unlikely(pud_none(*pud))) {
++		if (__pmd_alloc(mm, pud, address))
++			return NULL;
++		*mod_mask |= PGTBL_PUD_MODIFIED;
++	}
++
++	return pmd_offset(pud, address);
++}
+ #endif /* CONFIG_MMU */
+ 
+ #if USE_SPLIT_PTE_PTLOCKS
+@@ -2209,6 +2250,11 @@ static inline void pgtable_pte_page_dtor
+ 	((unlikely(pmd_none(*(pmd))) && __pte_alloc_kernel(pmd))? \
+ 		NULL: pte_offset_kernel(pmd, address))
+ 
++#define pte_alloc_kernel_track(pmd, address, mask)			\
++	((unlikely(pmd_none(*(pmd))) &&					\
++	  (__pte_alloc_kernel(pmd) || ({*(mask)|=PGTBL_PMD_MODIFIED;0;})))?\
++		NULL: pte_offset_kernel(pmd, address))
++
+ #if USE_SPLIT_PMD_PTLOCKS
+ 
+ static struct page *pmd_to_page(pmd_t *pmd)
 _
 
-Patches currently in -mm which might be from hch@lst.de are
-
-exec-simplify-the-copy_strings_kernel-calling-convention.patch
-exec-open-code-copy_string_kernel.patch
-amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
-kernel-move-use_mm-unuse_mm-to-kthreadc.patch
-kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
-kernel-set-user_ds-in-kthread_use_mm.patch
-arm-fix-the-flush_icache_range-arguments-in-set_fiq_handler.patch
-nds32-unexport-flush_icache_page.patch
-powerpc-unexport-flush_icache_user_range.patch
-unicore32-remove-flush_cache_user_range.patch
-asm-generic-fix-the-inclusion-guards-for-cacheflushh.patch
-asm-generic-dont-include-linux-mmh-in-cacheflushh.patch
-asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch
-asm-generic-improve-the-flush_dcache_page-stub.patch
-alpha-use-asm-generic-cacheflushh.patch
-arm64-use-asm-generic-cacheflushh.patch
-c6x-use-asm-generic-cacheflushh.patch
-hexagon-use-asm-generic-cacheflushh.patch
-ia64-use-asm-generic-cacheflushh.patch
-microblaze-use-asm-generic-cacheflushh.patch
-m68knommu-use-asm-generic-cacheflushh.patch
-openrisc-use-asm-generic-cacheflushh.patch
-powerpc-use-asm-generic-cacheflushh.patch
-riscv-use-asm-generic-cacheflushh.patch
-armsparcunicore32-remove-flush_icache_user_range.patch
-mm-rename-flush_icache_user_range-to-flush_icache_user_page.patch
-asm-generic-add-a-flush_icache_user_range-stub.patch
-sh-implement-flush_icache_user_range.patch
-xtensa-implement-flush_icache_user_range.patch
-arm-rename-flush_cache_user_range-to-flush_icache_user_range.patch
-m68k-implement-flush_icache_user_range.patch
-exec-only-build-read_code-when-needed.patch
-exec-use-flush_icache_user_range-in-read_code.patch
-binfmt_flat-use-flush_icache_user_range.patch
-nommu-use-flush_icache_user_range-in-brk-and-mmap.patch
-module-move-the-set_fs-hack-for-flush_icache_range-to-m68k.patch
-maccess-unexport-probe_kernel_write-and-probe_user_write.patch
-maccess-remove-various-unused-weak-aliases.patch
-maccess-remove-duplicate-kerneldoc-comments.patch
-maccess-clarify-kerneldoc-comments.patch
-maccess-update-the-top-of-file-comment.patch
-maccess-rename-strncpy_from_unsafe_user-to-strncpy_from_user_nofault.patch
-maccess-rename-strncpy_from_unsafe_strict-to-strncpy_from_kernel_nofault.patch
-maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault.patch
-maccess-remove-probe_read_common-and-probe_write_common.patch
-maccess-unify-the-probe-kernel-arch-hooks.patch
-bpf-factor-out-a-bpf_trace_copy_string-helper.patch
-bpf-handle-the-compat-string-in-bpf_trace_copy_string-better.patch
-bpf-rework-the-compat-kernel-probe-handling.patch
-tracing-kprobes-handle-mixed-kernel-userspace-probes-better.patch
-maccess-remove-strncpy_from_unsafe.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read.patch
-maccess-move-user-access-routines-together.patch
-maccess-allow-architectures-to-provide-kernel-probing-directly.patch
-x86-use-non-set_fs-based-maccess-routines.patch
-maccess-return-erange-when-copy_from_kernel_nofault_allowed-fails.patch
+Patches currently in -mm which might be from jroedel@suse.de are
