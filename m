@@ -1,29 +1,30 @@
-From: akpm@linux-foundation.org
-Subject: +
- bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
- added to -mm tree
-Date: Tue, 02 Jun 2020 11:31:38 -0700
-Message-ID: <20200602183138.LTsSXiI4j%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-slub-fix-a-memory-leak-in-sysfs_slab_add.patch added
+ to -mm tree
+Date: Tue, 02 Jun 2020 12:05:41 -0700
+Message-ID: <20200602190541.aNsDYH1Zh%akpm@linux-foundation.org>
+References: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46096 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57686 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726000AbgFBSbk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 14:31:40 -0400
+        id S1726267AbgFBTFm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 15:05:42 -0400
+In-Reply-To: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: cl@linux.com, hulkci@huawei.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, wanghai38@huawei.com
 
 
 The patch titled
-     Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
+     Subject: mm/slub: fix a memory leak in sysfs_slab_add()
 has been added to the -mm tree.  Its filename is
-     bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+     mm-slub-fix-a-memory-leak-in-sysfs_slab_add.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-a-memory-leak-in-sysfs_slab_add.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-a-memory-leak-in-sysfs_slab_add.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,89 +38,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
+From: Wang Hai <wanghai38@huawei.com>
+Subject: mm/slub: fix a memory leak in sysfs_slab_add()
 
-User the proper helper for kernel or userspace addresses based on
-TASK_SIZE instead of the dangerous strncpy_from_unsafe function.
+syzkaller reports for memory leak when kobject_init_and_add() returns an
+error in the function sysfs_slab_add() [1]
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+When this happened, the function kobject_put() is not called for the
+corresponding kobject, which potentially leads to memory leak.
+
+This patch fixes the issue by calling kobject_put() even if
+kobject_init_and_add() fails.
+
+[1]
+BUG: memory leak
+unreferenced object 0xffff8880a6d4be88 (size 8):
+  comm "syz-executor.3", pid 946, jiffies 4295772514 (age 18.396s)
+  hex dump (first 8 bytes):
+    70 69 64 5f 33 00 ff ff                          pid_3...
+  backtrace:
+    [<00000000a0980095>] kstrdup+0x35/0x70 mm/util.c:60
+    [<00000000ef0cff3f>] kstrdup_const+0x3d/0x50 mm/util.c:82
+    [<00000000e2461486>] kvasprintf_const+0x112/0x170 lib/kasprintf.c:48
+    [<000000005d749e93>] kobject_set_name_vargs+0x55/0x130 lib/kobject.c:289
+    [<0000000094e31519>] kobject_add_varg lib/kobject.c:384 [inline]
+    [<0000000094e31519>] kobject_init_and_add+0xd8/0x170 lib/kobject.c:473
+    [<0000000060f13e32>] sysfs_slab_add+0x1d8/0x290 mm/slub.c:5811
+    [<00000000fe1d9a22>] __kmem_cache_create+0x50a/0x570 mm/slub.c:4384
+    [<000000006a71a1b4>] create_cache+0x113/0x1e0 mm/slab_common.c:407
+    [<0000000089491438>] kmem_cache_create_usercopy+0x1a1/0x260 mm/slab_common.c:505
+    [<000000008c992595>] kmem_cache_create+0xd/0x10 mm/slab_common.c:564
+    [<000000005320c4b6>] create_pid_cachep kernel/pid_namespace.c:54 [inline]
+    [<000000005320c4b6>] create_pid_namespace kernel/pid_namespace.c:96 [inline]
+    [<000000005320c4b6>] copy_pid_ns+0x77c/0x8f0 kernel/pid_namespace.c:148
+    [<00000000fc8e1a2b>] create_new_namespaces+0x26b/0xa30 kernel/nsproxy.c:95
+    [<0000000080f0c9a5>] unshare_nsproxy_namespaces+0xa7/0x1e0 kernel/nsproxy.c:229
+    [<0000000007e05aea>] ksys_unshare+0x3d2/0x770 kernel/fork.c:2969
+    [<00000000e04c8e4b>] __do_sys_unshare kernel/fork.c:3037 [inline]
+    [<00000000e04c8e4b>] __se_sys_unshare kernel/fork.c:3035 [inline]
+    [<00000000e04c8e4b>] __x64_sys_unshare+0x2d/0x40 kernel/fork.c:3035
+    [<000000005c4707c7>] do_syscall_64+0xa1/0x530 arch/x86/entry/common.c:295
+
+Link: http://lkml.kernel.org/r/20200602115033.1054-1-wanghai38@huawei.com
+Fixes: 80da026a8e5d ("mm/slub: fix slab double-free in case of duplicate sysfs filename")
+Signed-off-by: Wang Hai <wanghai38@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/bpf_trace.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/slub.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/kernel/trace/bpf_trace.c~bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better
-+++ a/kernel/trace/bpf_trace.c
-@@ -588,15 +588,17 @@ BPF_CALL_5(bpf_seq_printf, struct seq_fi
- 		}
+--- a/mm/slub.c~mm-slub-fix-a-memory-leak-in-sysfs_slab_add
++++ a/mm/slub.c
+@@ -5833,8 +5833,10 @@ static int sysfs_slab_add(struct kmem_ca
  
- 		if (fmt[i] == 's') {
-+			void *unsafe_ptr;
-+
- 			/* try our best to copy */
- 			if (memcpy_cnt >= MAX_SEQ_PRINTF_MAX_MEMCPY) {
- 				err = -E2BIG;
- 				goto out;
- 			}
+ 	s->kobj.kset = kset;
+ 	err = kobject_init_and_add(&s->kobj, &slab_ktype, NULL, "%s", name);
+-	if (err)
++	if (err) {
++		kobject_put(&s->kobj);
+ 		goto out;
++	}
  
--			err = strncpy_from_unsafe_strict(bufs->buf[memcpy_cnt],
--							 (void *) (long) args[fmt_cnt],
--							 MAX_SEQ_PRINTF_STR_LEN);
-+			unsafe_ptr = (void *)(long)args[fmt_cnt];
-+			err = strncpy_from_kernel_nofault(bufs->buf[memcpy_cnt],
-+					unsafe_ptr, MAX_SEQ_PRINTF_STR_LEN);
- 			if (err < 0)
- 				bufs->buf[memcpy_cnt][0] = '\0';
- 			params[fmt_cnt] = (u64)(long)bufs->buf[memcpy_cnt];
+ 	err = sysfs_create_group(&s->kobj, &slab_attr_group);
+ 	if (err)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wanghai38@huawei.com are
 
-arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
-mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-lib-make-a-test-module-with-get_count_order-long-fix.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-maccess-unify-the-probe-kernel-arch-hooks-fix.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-slub-fix-a-memory-leak-in-sysfs_slab_add.patch
