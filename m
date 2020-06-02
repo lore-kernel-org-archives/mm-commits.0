@@ -1,82 +1,112 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch removed from -mm
- tree
-Date: Mon, 01 Jun 2020 21:13:45 -0700
-Message-ID: <20200602041345.OXyuPwbNK%akpm@linux-foundation.org>
+ mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch removed from
+ -mm tree
+Date: Mon, 01 Jun 2020 21:14:14 -0700
+Message-ID: <20200602041414.50mDQhP0c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49250 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49924 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725841AbgFBENq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:13:46 -0400
+        id S1725841AbgFBEOQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:14:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrien+dev@schischi.me, akpm@linux-foundation.org, drosen@google.com, groeck@chromium.org, hch@lst.de, mm-commits@vger.kernel.org, phillip@squashfs.org.uk, pliard@google.com, rdunlap@infradead.org, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, cl@linux.com, dongli.zhang@oracle.com, iamjoonsoo.kim@lge.com, joe.jin@oracle.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: squashfs-migrate-from-ll_rw_block-usage-to-bio-fix
+     Subject: mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix
 has been removed from the -mm tree.  Its filename was
-     squashfs-migrate-from-ll_rw_block-usage-to-bio-fix.patch
+     mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
 
-This patch was dropped because it was folded into squashfs-migrate-from-ll_rw_block-usage-to-bio.patch
+This patch was dropped because it was folded into mm-slub-fix-corrupted-freechain-in-deactivate_slab.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: squashfs-migrate-from-ll_rw_block-usage-to-bio-fix
+Subject: mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix
 
-fix build error reported by Randy
+fix build with CONFIG_SLAB_DEBUG=n
 
-Link: http://lkml.kernel.org/r/319997c2-5fc8-f889-2ea3-d913308a7c1f@infradead.org
-Cc: Adrien Schildknecht <adrien+dev@schischi.me>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Daniel Rosenberg <drosen@google.com>
-Cc: Guenter Roeck <groeck@chromium.org>
-Cc: Philippe Liard <pliard@google.com>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dongli Zhang <dongli.zhang@oracle.com>
+Cc: Joe Jin <joe.jin@oracle.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/decompressor_multi_percpu.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ mm/slub.c |   37 +++++++++++++++++++++++++------------
+ 1 file changed, 25 insertions(+), 12 deletions(-)
 
---- a/fs/squashfs/decompressor_multi_percpu.c~squashfs-migrate-from-ll_rw_block-usage-to-bio-fix
-+++ a/fs/squashfs/decompressor_multi_percpu.c
-@@ -72,14 +72,17 @@ void squashfs_decompressor_destroy(struc
- 	}
+--- a/mm/slub.c~mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix
++++ a/mm/slub.c
+@@ -679,6 +679,20 @@ static void slab_fix(struct kmem_cache *
+ 	va_end(args);
  }
  
--int squashfs_decompress(struct squashfs_sb_info *msblk, struct buffer_head **bh,
--	int b, int offset, int length, struct squashfs_page_actor *output)
-+int squashfs_decompress(struct squashfs_sb_info *msblk, struct bio *bio,
-+	int offset, int length, struct squashfs_page_actor *output)
- {
--	struct squashfs_stream __percpu *percpu =
--			(struct squashfs_stream __percpu *) msblk->stream;
--	struct squashfs_stream *stream = get_cpu_ptr(percpu);
--	int res = msblk->decompressor->decompress(msblk, stream->stream, bh, b,
--		offset, length, output);
-+	struct squashfs_stream __percpu *percpu;
-+	struct squashfs_stream *stream;
-+	int res;
++static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
++			       void *freelist, void *nextfree)
++{
++	if ((s->flags & SLAB_CONSISTENCY_CHECKS) &&
++	    !check_valid_pointer(s, page, nextfree)) {
++		object_err(s, page, freelist, "Freechain corrupt");
++		freelist = NULL;
++		slab_fix(s, "Isolate corrupted freechain");
++		return true;
++	}
 +
-+	percpu = (struct squashfs_stream __percpu *)msblk->stream;
-+	stream = get_cpu_ptr(percpu);
-+	res = msblk->decompressor->decompress(msblk, stream->stream, bio,
-+					      offset, length, output);
- 	put_cpu_ptr(stream);
++	return false;
++}
++
+ static void print_trailer(struct kmem_cache *s, struct page *page, u8 *p)
+ {
+ 	unsigned int off;	/* Offset of last byte */
+@@ -1410,6 +1424,11 @@ static inline void inc_slabs_node(struct
+ static inline void dec_slabs_node(struct kmem_cache *s, int node,
+ 							int objects) {}
  
- 	if (res < 0)
++static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
++			       void *freelist, void *nextfree)
++{
++	return false;
++}
+ #endif /* CONFIG_SLUB_DEBUG */
+ 
+ /*
+@@ -2093,19 +2112,13 @@ static void deactivate_slab(struct kmem_
+ 		void *prior;
+ 		unsigned long counters;
+ 
+-		if ((s->flags & SLAB_CONSISTENCY_CHECKS) &&
+-		    !check_valid_pointer(s, page, nextfree)) {
+-			/*
+-			 * If 'nextfree' is invalid, it is possible that
+-			 * the object at 'freelist' is already corrupted.
+-			 * Therefore, all objects starting at 'freelist'
+-			 * are isolated.
+-			 */
+-			object_err(s, page, freelist, "Freechain corrupt");
+-			freelist = NULL;
+-			slab_fix(s, "Isolate corrupted freechain");
++		/*
++		 * If 'nextfree' is invalid, it is possible that the object at
++		 * 'freelist' is already corrupted.  So isolate all objects
++		 * starting at 'freelist'.
++		 */
++		if (freelist_corrupted(s, page, freelist, nextfree))
+ 			break;
+-		}
+ 
+ 		do {
+ 			prior = page->freelist;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-squashfs-migrate-from-ll_rw_block-usage-to-bio.patch
 arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
-mm-slub-fix-corrupted-freechain-in-deactivate_slab-fix.patch
+mm-slub-fix-corrupted-freechain-in-deactivate_slab.patch
 mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
 mm-migratec-call-detach_page_private-to-cleanup-code-fix.patch
 mm-migratec-call-detach_page_private-to-cleanup-code-fix-fix.patch
