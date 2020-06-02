@@ -1,55 +1,57 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix.patch removed from
- -mm tree
-Date: Mon, 01 Jun 2020 21:16:25 -0700
-Message-ID: <20200602041625.qPLi_U4oc%akpm@linux-foundation.org>
+ mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix-2.patch removed
+ from -mm tree
+Date: Mon, 01 Jun 2020 21:16:28 -0700
+Message-ID: <20200602041628.oFkynDer6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53060 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53114 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725781AbgFBEQ1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:16:27 -0400
+        id S1725781AbgFBEQa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:16:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, neilb@suse.de
+To: akpm@linux-foundation.org, chuck.lever@oracle.com, hch@lst.de, jack@suse.cz, mhocko@suse.com, mm-commits@vger.kernel.org, neilb@suse.de, trond.myklebust@hammerspace.com
 
 
 The patch titled
-     Subject: mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix
+     Subject: mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix.patch
+     mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix-2.patch
 
 This patch was dropped because it was folded into mm-discard-nr_unstable_nfs-use-nr_writeback-instead.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix
+Subject: mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix-2
 
-re-layout comment
+fix printk warning
 
 Cc: NeilBrown <neilb@suse.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Michal Hocko <mhocko@suse.com>	[mm]
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chuck Lever <chuck.lever@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/base/node.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmstat.c~mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix
-+++ a/mm/vmstat.c
-@@ -1724,9 +1724,9 @@ static int vmstat_show(struct seq_file *
- 	seq_putc(m, '\n');
- 
- 	if (off == NR_VMSTAT_ITEMS - 1) {
--		/* We've come to the end - add any deprecated counters
--		 * to avoid breaking userspace which might depend on
--		 * them being present.
-+		/*
-+		 * We've come to the end - add any deprecated counters to avoid
-+		 * breaking userspace which might depend on them being present.
- 		 */
- 		seq_puts(m, "nr_unstable 0\n");
- 	}
+--- a/drivers/base/node.c~mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix-2
++++ a/drivers/base/node.c
+@@ -439,7 +439,7 @@ static ssize_t node_read_meminfo(struct
+ 		       nid, K(i.sharedram),
+ 		       nid, sum_zone_node_page_state(nid, NR_KERNEL_STACK_KB),
+ 		       nid, K(sum_zone_node_page_state(nid, NR_PAGETABLE)),
+-		       nid, 0,
++		       nid, 0UL,
+ 		       nid, K(sum_zone_node_page_state(nid, NR_BOUNCE)),
+ 		       nid, K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
+ 		       nid, K(sreclaimable +
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -57,7 +59,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
 mm-discard-nr_unstable_nfs-use-nr_writeback-instead.patch
-mm-discard-nr_unstable_nfs-use-nr_writeback-instead-fix-2.patch
 mm-gupc-updating-the-documentation-fix.patch
 mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
 mm-ptdump-expand-type-of-val-in-note_page-fix.patch
