@@ -1,59 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-remove-vmalloc_user_node_flags-fix.patch removed from -mm tree
-Date: Mon, 01 Jun 2020 21:21:23 -0700
-Message-ID: <20200602042123.9Ok1fk1q6%akpm@linux-foundation.org>
+ mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch removed
+ from -mm tree
+Date: Mon, 01 Jun 2020 21:22:02 -0700
+Message-ID: <20200602042202.Jz48lifAh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56032 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56172 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725616AbgFBEVY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:21:24 -0400
+        id S1725616AbgFBEWE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:22:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, arnd@arndb.de, dave.hansen@linux.intel.com, hch@lst.de, hpa@zytor.com, jroedel@suse.de, luto@kernel.org, mhocko@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, peterz@infradead.org, rjw@rjwysocki.net, rostedt@goodmis.org, tglx@linutronix.de, vbabka@suse.cz, willy@infradead.org
 
 
 The patch titled
-     Subject: mm-remove-vmalloc_user_node_flags-fix
+     Subject: mm-vmalloc-track-which-page-table-levels-were-modified-fix
 has been removed from the -mm tree.  Its filename was
-     mm-remove-vmalloc_user_node_flags-fix.patch
+     mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
 
-This patch was dropped because it was folded into mm-remove-vmalloc_user_node_flags.patch
+This patch was dropped because it was folded into mm-vmalloc-track-which-page-table-levels-were-modified.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-remove-vmalloc_user_node_flags-fix
+Subject: mm-vmalloc-track-which-page-table-levels-were-modified-fix
 
-fix nommu.c build
+map_kernel_range_noflush() needs the arch_sync_kernel_mappings() call
 
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christoph Hellwig <hch@lst.de>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H . Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Joerg Roedel <jroedel@suse.de>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/nommu.c~mm-remove-vmalloc_user_node_flags-fix
-+++ a/mm/nommu.c
-@@ -155,7 +155,7 @@ void *__vmalloc_node_range(unsigned long
- 		pgprot_t prot, unsigned long vm_flags, int node,
- 		const void *caller)
+--- a/mm/vmalloc.c~mm-vmalloc-track-which-page-table-levels-were-modified-fix
++++ a/mm/vmalloc.c
+@@ -291,6 +291,7 @@ static int vmap_p4d_range(pgd_t *pgd, un
+ int map_kernel_range_noflush(unsigned long addr, unsigned long size,
+ 			     pgprot_t prot, struct page **pages)
  {
--	return __vmalloc(size, flags);
-+	return __vmalloc(size, gfp_mask);
++	unsigned long start = addr;
+ 	unsigned long end = addr + size;
+ 	unsigned long next;
+ 	pgd_t *pgd;
+@@ -309,6 +310,9 @@ int map_kernel_range_noflush(unsigned lo
+ 			return err;
+ 	} while (pgd++, addr = next, addr != end);
+ 
++	if (mask & ARCH_PAGE_TABLE_SYNC_MASK)
++		arch_sync_kernel_mappings(start, end);
++
+ 	return 0;
  }
  
- void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-remove-vmalloc_user_node_flags.patch
-mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
+mm-vmalloc-track-which-page-table-levels-were-modified.patch
 drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
 mm.patch
 mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
