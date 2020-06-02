@@ -1,101 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-ptdump-expand-type-of-val-in-note_page.patch
- removed from -mm tree
-Date: Tue, 02 Jun 2020 14:41:08 -0700
-Message-ID: <20200602214108.Y2xZZckZT%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memory-remove-unnecessary-pte_devmap-case-in-copy_one_pte.patch removed
+ from -mm tree
+Date: Tue, 02 Jun 2020 14:41:13 -0700
+Message-ID: <20200602214113.bEAMWCUif%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55142 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728080AbgFBVlJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:41:09 -0400
+        id S1728226AbgFBVlN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:41:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@alien8.de, dave.hansen@linux.intel.com, jbeulich@suse.com, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org, stable@vger.kernel.org, steven.price@arm.com, tglx@linutronix.de
+To: chenqiwu@xiaomi.com, mhocko@suse.com, mm-commits@vger.kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: mm: ptdump: expand type of 'val' in note_page()
+     Subject: mm/memory: remove unnecessary pte_devmap case in copy_one_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-ptdump-expand-type-of-val-in-note_page.patch
+     mm-memory-remove-unnecessary-pte_devmap-case-in-copy_one_pte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Steven Price <steven.price@arm.com>
-Subject: mm: ptdump: expand type of 'val' in note_page()
+From: chenqiwu <chenqiwu@xiaomi.com>
+Subject: mm/memory: remove unnecessary pte_devmap case in copy_one_pte()
 
-The page table entry is passed in the 'val' argument to note_page(),
-however this was previously an "unsigned long" which is fine on 64-bit
-platforms.  But for 32 bit x86 it is not always big enough to contain a
-page table entry which may be 64 bits.
+Since commit 25b2995a35b6 ("mm: remove MEMORY_DEVICE_PUBLIC support"), the
+assignment to 'page' for pte_devmap case has been unnecessary.  Let's
+remove it.
 
-Change the type to u64 to ensure that it is always big enough.
-
-[akpm@linux-foundation.org: fix riscv]
-Link: http://lkml.kernel.org/r/20200521152308.33096-3-steven.price@arm.com
-Signed-off-by: Steven Price <steven.price@arm.com>
-Reported-by: Jan Beulich <jbeulich@suse.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+[willy@infradead.org: changelog]
+Link: http://lkml.kernel.org/r/1587349685-31712-1-git-send-email-qiwuchen55@gmail.com
+Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/dump.c          |    2 +-
- arch/riscv/mm/ptdump.c        |    2 +-
- arch/x86/mm/dump_pagetables.c |    2 +-
- include/linux/ptdump.h        |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ mm/memory.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/arch/arm64/mm/dump.c~mm-ptdump-expand-type-of-val-in-note_page
-+++ a/arch/arm64/mm/dump.c
-@@ -252,7 +252,7 @@ static void note_prot_wx(struct pg_state
- }
+--- a/mm/memory.c~mm-memory-remove-unnecessary-pte_devmap-case-in-copy_one_pte
++++ a/mm/memory.c
+@@ -802,8 +802,6 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 		get_page(page);
+ 		page_dup_rmap(page, false);
+ 		rss[mm_counter(page)]++;
+-	} else if (pte_devmap(pte)) {
+-		page = pte_page(pte);
+ 	}
  
- static void note_page(struct ptdump_state *pt_st, unsigned long addr, int level,
--		      unsigned long val)
-+		      u64 val)
- {
- 	struct pg_state *st = container_of(pt_st, struct pg_state, ptdump);
- 	static const char units[] = "KMGTPE";
---- a/arch/riscv/mm/ptdump.c~mm-ptdump-expand-type-of-val-in-note_page
-+++ a/arch/riscv/mm/ptdump.c
-@@ -204,7 +204,7 @@ static void note_prot_wx(struct pg_state
- }
- 
- static void note_page(struct ptdump_state *pt_st, unsigned long addr,
--		      int level, unsigned long val)
-+		      int level, u64 val)
- {
- 	struct pg_state *st = container_of(pt_st, struct pg_state, ptdump);
- 	u64 pa = PFN_PHYS(pte_pfn(__pte(val)));
---- a/arch/x86/mm/dump_pagetables.c~mm-ptdump-expand-type-of-val-in-note_page
-+++ a/arch/x86/mm/dump_pagetables.c
-@@ -273,7 +273,7 @@ static void effective_prot(struct ptdump
-  * print what we collected so far.
-  */
- static void note_page(struct ptdump_state *pt_st, unsigned long addr, int level,
--		      unsigned long val)
-+		      u64 val)
- {
- 	struct pg_state *st = container_of(pt_st, struct pg_state, ptdump);
- 	pgprotval_t new_prot, new_eff;
---- a/include/linux/ptdump.h~mm-ptdump-expand-type-of-val-in-note_page
-+++ a/include/linux/ptdump.h
-@@ -13,7 +13,7 @@ struct ptdump_range {
- struct ptdump_state {
- 	/* level is 0:PGD to 4:PTE, or -1 if unknown */
- 	void (*note_page)(struct ptdump_state *st, unsigned long addr,
--			  int level, unsigned long val);
-+			  int level, u64 val);
- 	void (*effective_prot)(struct ptdump_state *st, int level, u64 val);
- 	const struct ptdump_range *range;
- };
+ out_set_pte:
 _
 
-Patches currently in -mm which might be from steven.price@arm.com are
+Patches currently in -mm which might be from chenqiwu@xiaomi.com are
+
+mm-memblock-fix-minor-typo-and-unclear-comment.patch
+mm-replace-zero-length-array-with-flexible-array-member.patch
