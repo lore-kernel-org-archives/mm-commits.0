@@ -1,91 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-swapfilec-__swap_entry_free-always-free-1-entry.patch removed from -mm
- tree
-Date: Tue, 02 Jun 2020 14:40:31 -0700
-Message-ID: <20200602214031.LTqmbQY6B%akpm@linux-foundation.org>
+Subject: [merged] mm-swap-use-prandom_u32_max.patch removed from
+ -mm tree
+Date: Tue, 02 Jun 2020 14:40:34 -0700
+Message-ID: <20200602214034.HSy09fQJ2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54654 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54678 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726809AbgFBVkc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:40:32 -0400
+        id S1726130AbgFBVke (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:40:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
+To: hughd@google.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, tim.c.chen@linux.intel.com, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm/swapfile.c: __swap_entry_free() always free 1 entry
+     Subject: mm/swapfile.c: use prandom_u32_max()
 has been removed from the -mm tree.  Its filename was
-     mm-swapfilec-__swap_entry_free-always-free-1-entry.patch
+     mm-swap-use-prandom_u32_max.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/swapfile.c: __swap_entry_free() always free 1 entry
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm/swapfile.c: use prandom_u32_max()
 
-__swap_entry_free() always frees 1 entry.  Let's remove the usage.
+To improve the code readability and take advantage of the common
+implementation.
 
-Link: http://lkml.kernel.org/r/20200501015259.32237-2-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20200512081013.520201-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swapfilec-__swap_entry_free-always-free-1-entry
+--- a/mm/swapfile.c~mm-swap-use-prandom_u32_max
 +++ a/mm/swapfile.c
-@@ -1273,13 +1273,14 @@ unlock_out:
- }
+@@ -3209,7 +3209,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		 * select a random position to start with to help wear leveling
+ 		 * SSD
+ 		 */
+-		p->cluster_next = 1 + (prandom_u32() % p->highest_bit);
++		p->cluster_next = 1 + prandom_u32_max(p->highest_bit);
+ 		nr_cluster = DIV_ROUND_UP(maxpages, SWAPFILE_CLUSTER);
  
- static unsigned char __swap_entry_free(struct swap_info_struct *p,
--				       swp_entry_t entry, unsigned char usage)
-+				       swp_entry_t entry)
- {
- 	struct swap_cluster_info *ci;
- 	unsigned long offset = swp_offset(entry);
-+	unsigned char usage;
- 
- 	ci = lock_cluster_or_swap_info(p, offset);
--	usage = __swap_entry_free_locked(p, offset, usage);
-+	usage = __swap_entry_free_locked(p, offset, 1);
- 	unlock_cluster_or_swap_info(p, ci);
- 	if (!usage)
- 		free_swap_slot(entry);
-@@ -1314,7 +1315,7 @@ void swap_free(swp_entry_t entry)
- 
- 	p = _swap_info_get(entry);
- 	if (p)
--		__swap_entry_free(p, entry, 1);
-+		__swap_entry_free(p, entry);
- }
- 
- /*
-@@ -1737,7 +1738,7 @@ int free_swap_and_cache(swp_entry_t entr
- 
- 	p = _swap_info_get(entry);
- 	if (p) {
--		count = __swap_entry_free(p, entry, 1);
-+		count = __swap_entry_free(p, entry);
- 		if (count == SWAP_HAS_CACHE &&
- 		    !swap_page_trans_huge_swapped(p, entry))
- 			__try_to_reclaim_swap(p, swp_offset(entry),
+ 		cluster_info = kvcalloc(nr_cluster, sizeof(*cluster_info),
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
-
-mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
-mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
-mm-page_allocc-rename-free_pages_check_bad-to-check_free_page_bad.patch
-mm-page_allocc-rename-free_pages_check-to-check_free_page.patch
-mm-page_allocc-extract-check__page_bad-common-part-to-page_bad_reason.patch
-mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
-mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
-mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch
-bitops-simplify-get_count_order_long.patch
-bitops-use-the-same-mechanism-for-get_count_order.patch
-lib-make-a-test-module-with-get_count_order-long.patch
+Patches currently in -mm which might be from ying.huang@intel.com are
