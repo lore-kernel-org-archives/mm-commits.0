@@ -1,89 +1,87 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 025/128] mm: move end_index check out of readahead
- loop
-Date: Tue, 02 Jun 2020 13:11:24 -0700
-Message-ID: <20200602201124.JBsJVakQh%akpm@linux-foundation.org>
+Subject: [patch 028/128] mm: use memalloc_nofs_save in readahead
+ path
+Date: Tue, 02 Jun 2020 13:11:35 -0700
+Message-ID: <20200602201135.RE2ZMIqnG%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54556 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54810 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726174AbgFBUL1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:11:27 -0400
+        id S1726112AbgFBULh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 16:11:37 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang25@huawei.com, hch@lst.de, jaegeuk@kernel.org, jhubbard@nvidia.com, johannes.thumshirn@wdc.com, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, mszeredi@redhat.com, torvalds@linux-foundation.org, william.kucharski@oracle.com, willy@infradead.org, xiyou.wangcong@gmail.com, yuchao0@huawei.com, ziy@nvidia.com
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: move end_index check out of readahead loop
+Subject: mm: use memalloc_nofs_save in readahead path
 
-By reducing nr_to_read, we can eliminate this check from inside the loop.
+Ensure that memory allocations in the readahead path do not attempt to
+reclaim file-backed pages, which could lead to a deadlock.  It is
+possible, though unlikely this is the root cause of a problem observed by
+Cong Wang.
 
-Link: http://lkml.kernel.org/r/20200414150233.24495-13-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200414150233.24495-16-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reported-by: Cong Wang <xiyou.wangcong@gmail.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Cc: Chao Yu <yuchao0@huawei.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
 Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Eric Biggers <ebiggers@google.com>
 Cc: Gao Xiang <gaoxiang25@huawei.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Johannes Thumshirn <johannes.thumshirn@wdc.com>
 Cc: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/readahead.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/mm/readahead.c~mm-move-end_index-check-out-of-readahead-loop
+--- a/mm/readahead.c~mm-use-memalloc_nofs_save-in-readahead-path
 +++ a/mm/readahead.c
-@@ -167,8 +167,6 @@ void __do_page_cache_readahead(struct ad
- 		unsigned long lookahead_size)
- {
- 	struct inode *inode = mapping->host;
--	struct page *page;
--	unsigned long end_index;	/* The last page we want to read */
- 	LIST_HEAD(page_pool);
- 	loff_t isize = i_size_read(inode);
- 	gfp_t gfp_mask = readahead_gfp_mask(mapping);
-@@ -178,22 +176,26 @@ void __do_page_cache_readahead(struct ad
- 		._index = index,
- 	};
+@@ -22,6 +22,7 @@
+ #include <linux/mm_inline.h>
+ #include <linux/blk-cgroup.h>
+ #include <linux/fadvise.h>
++#include <linux/sched/mm.h>
+ 
+ #include "internal.h"
+ 
+@@ -186,6 +187,18 @@ void page_cache_readahead_unbounded(stru
  	unsigned long i;
-+	pgoff_t end_index;	/* The last page we want to read */
- 
- 	if (isize == 0)
- 		return;
- 
--	end_index = ((isize - 1) >> PAGE_SHIFT);
-+	end_index = (isize - 1) >> PAGE_SHIFT;
-+	if (index > end_index)
-+		return;
-+	/* Don't read past the page containing the last byte of the file */
-+	if (nr_to_read > end_index - index)
-+		nr_to_read = end_index - index + 1;
  
  	/*
++	 * Partway through the readahead operation, we will have added
++	 * locked pages to the page cache, but will not yet have submitted
++	 * them for I/O.  Adding another page may need to allocate memory,
++	 * which can trigger memory reclaim.  Telling the VM we're in
++	 * the middle of a filesystem operation will cause it to not
++	 * touch file-backed pages, preventing a deadlock.  Most (all?)
++	 * filesystems already specify __GFP_NOFS in their mapping's
++	 * gfp_mask, but let's be explicit here.
++	 */
++	unsigned int nofs = memalloc_nofs_save();
++
++	/*
  	 * Preallocate as many pages as we will need.
  	 */
  	for (i = 0; i < nr_to_read; i++) {
--		if (index + i > end_index)
--			break;
-+		struct page *page = xa_load(&mapping->i_pages, index + i);
+@@ -229,6 +242,7 @@ void page_cache_readahead_unbounded(stru
+ 	 * will then handle the error.
+ 	 */
+ 	read_pages(&rac, &page_pool, false);
++	memalloc_nofs_restore(nofs);
+ }
+ EXPORT_SYMBOL_GPL(page_cache_readahead_unbounded);
  
- 		BUG_ON(index + i != rac._index + rac._nr_pages);
- 
--		page = xa_load(&mapping->i_pages, index + i);
- 		if (page && !xa_is_value(page)) {
- 			/*
- 			 * Page already present?  Kick off the current batch of
 _
