@@ -1,75 +1,155 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 078/128] memcg: expose root cgroup's memory.stat
-Date: Mon, 01 Jun 2020 21:49:39 -0700
-Message-ID: <20200602044939.Qwy-kLSIU%akpm@linux-foundation.org>
+Subject: [patch 079/128] mm/memcg: prepare for swap over-high
+ accounting and penalty calculation
+Date: Mon, 01 Jun 2020 21:49:42 -0700
+Message-ID: <20200602044942._uiPP5Mr0%akpm@linux-foundation.org>
 References: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40932 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40992 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725835AbgFBEtk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:49:40 -0400
+        id S1725835AbgFBEto (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:49:44 -0400
 In-Reply-To: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org, laoar.shao@gmail.com, linux-mm@kvack.org, mgorman@suse.de, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, chris@chrisdown.name, hannes@cmpxchg.org, hughd@google.com, kuba@kernel.org, linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org, torvalds@linux-foundation.org
 
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: expose root cgroup's memory.stat
+From: Jakub Kicinski <kuba@kernel.org>
+Subject: mm/memcg: prepare for swap over-high accounting and penalty calculation
 
-One way to measure the efficiency of memory reclaim is to look at the
-ratio (pgscan+pfrefill)/pgsteal.  However at the moment these stats are
-not updated consistently at the system level and the ratio of these are
-not very meaningful.  The pgsteal and pgscan are updated for only global
-reclaim while pgrefill gets updated for global as well as cgroup reclaim.
+Patch series "memcg: Slow down swap allocation as the available space gets
+depleted", v6.
 
-Please note that this difference is only for system level vmstats.  The
-cgroup stats returned by memory.stat are actually consistent.  The
-cgroup's pgsteal contains number of reclaimed pages for global as well as
-cgroup reclaim.  So, one way to get the system level stats is to get these
-stats from root's memory.stat, so, expose memory.stat for the root cgroup.
+Tejun describes the problem as follows:
 
-	from Johannes Weiner:
-	There are subtle differences between /proc/vmstat and
-	memory.stat, and cgroup-aware code that wants to watch the full
-	hierarchy currently has to know about these intricacies and
-	translate semantics back and forth.
+When swap runs out, there's an abrupt change in system behavior - the
+anonymous memory suddenly becomes unmanageable which readily breaks any
+sort of memory isolation and can bring down the whole system.  To avoid
+that, oomd [1] monitors free swap space and triggers kills when it drops
+below the specific threshold (e.g.  15%).
 
-	Generally having the fully recursive memory.stat at the root
-	level could help a broader range of usecases.
+While this works, it's far from ideal:
+ - Depending on IO performance and total swap size, a given
+   headroom might not be enough or too much.
+ - oomd has to monitor swap depletion in addition to the usual
+   pressure metrics and it currently doesn't consider memory.swap.max.
 
-Why not fix the stats by including both the global and cgroup reclaim
-activity instead of exposing root cgroup's memory.stat?  The reason is
-the benefit of having metrics exposing the activity that happens purely
-due to machine capacity rather than localized activity that happens due
-to the limits throughout the cgroup tree.  Additionally there are
-userspace tools like sysstat(sar) which reads these stats to inform
-about the system level reclaim activity.  So, we should not break such
-use-cases.
+Solve this by adapting parts of the approach that memory.high uses - slow
+down allocation as the resource gets depleted turning the depletion
+behavior from abrupt cliff one to gradual degradation observable through
+memory pressure metric.
 
-Link: http://lkml.kernel.org/r/20200508170630.94406-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+[1] https://github.com/facebookincubator/oomd
+
+
+This patch (of 4):
+
+Slice the memory overage calculation logic a little bit so we can reuse it
+to apply a similar penalty to the swap.  The logic which accesses the
+memory-specific fields (use and high values) has to be taken out of
+calculate_high_delay().
+
+Link: http://lkml.kernel.org/r/20200527195846.102707-1-kuba@kernel.org
+Link: http://lkml.kernel.org/r/20200527195846.102707-2-kuba@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Yafang Shao <laoar.shao@gmail.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Roman Gushchin <guro@fb.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Chris Down <chris@chrisdown.name>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memcontrol.c |   62 +++++++++++++++++++++++++---------------------
+ 1 file changed, 35 insertions(+), 27 deletions(-)
 
---- a/mm/memcontrol.c~memcg-expose-root-cgroups-memorystat
+--- a/mm/memcontrol.c~mm-prepare-for-swap-over-high-accounting-and-penalty-calculation
 +++ a/mm/memcontrol.c
-@@ -6228,7 +6228,6 @@ static struct cftype memory_files[] = {
- 	},
- 	{
- 		.name = "stat",
--		.flags = CFTYPE_NOT_ON_ROOT,
- 		.seq_show = memory_stat_show,
- 	},
- 	{
+@@ -2321,41 +2321,48 @@ static void high_work_func(struct work_s
+  #define MEMCG_DELAY_PRECISION_SHIFT 20
+  #define MEMCG_DELAY_SCALING_SHIFT 14
+ 
+-/*
+- * Get the number of jiffies that we should penalise a mischievous cgroup which
+- * is exceeding its memory.high by checking both it and its ancestors.
+- */
+-static unsigned long calculate_high_delay(struct mem_cgroup *memcg,
+-					  unsigned int nr_pages)
++static u64 calculate_overage(unsigned long usage, unsigned long high)
+ {
+-	unsigned long penalty_jiffies;
+-	u64 max_overage = 0;
++	u64 overage;
+ 
+-	do {
+-		unsigned long usage, high;
+-		u64 overage;
++	if (usage <= high)
++		return 0;
+ 
+-		usage = page_counter_read(&memcg->memory);
+-		high = READ_ONCE(memcg->high);
++	/*
++	 * Prevent division by 0 in overage calculation by acting as if
++	 * it was a threshold of 1 page
++	 */
++	high = max(high, 1UL);
+ 
+-		if (usage <= high)
+-			continue;
++	overage = usage - high;
++	overage <<= MEMCG_DELAY_PRECISION_SHIFT;
++	return div64_u64(overage, high);
++}
+ 
+-		/*
+-		 * Prevent division by 0 in overage calculation by acting as if
+-		 * it was a threshold of 1 page
+-		 */
+-		high = max(high, 1UL);
+-
+-		overage = usage - high;
+-		overage <<= MEMCG_DELAY_PRECISION_SHIFT;
+-		overage = div64_u64(overage, high);
++static u64 mem_find_max_overage(struct mem_cgroup *memcg)
++{
++	u64 overage, max_overage = 0;
+ 
+-		if (overage > max_overage)
+-			max_overage = overage;
++	do {
++		overage = calculate_overage(page_counter_read(&memcg->memory),
++					    READ_ONCE(memcg->high));
++		max_overage = max(overage, max_overage);
+ 	} while ((memcg = parent_mem_cgroup(memcg)) &&
+ 		 !mem_cgroup_is_root(memcg));
+ 
++	return max_overage;
++}
++
++/*
++ * Get the number of jiffies that we should penalise a mischievous cgroup which
++ * is exceeding its memory.high by checking both it and its ancestors.
++ */
++static unsigned long calculate_high_delay(struct mem_cgroup *memcg,
++					  unsigned int nr_pages,
++					  u64 max_overage)
++{
++	unsigned long penalty_jiffies;
++
+ 	if (!max_overage)
+ 		return 0;
+ 
+@@ -2411,7 +2418,8 @@ void mem_cgroup_handle_over_high(void)
+ 	 * memory.high is breached and reclaim is unable to keep up. Throttle
+ 	 * allocators proactively to slow down excessive growth.
+ 	 */
+-	penalty_jiffies = calculate_high_delay(memcg, nr_pages);
++	penalty_jiffies = calculate_high_delay(memcg, nr_pages,
++					       mem_find_max_overage(memcg));
+ 
+ 	/*
+ 	 * Don't sleep if the amount of jiffies this memcg owes us is so low
 _
