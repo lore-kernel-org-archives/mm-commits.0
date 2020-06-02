@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-use-the-same-mechanism-for-get_count_order.patch
+Subject: +
+ mm-memory_failure-dont-send-bus_mceerr_ao-for-action-required-error.patch
  added to -mm tree
-Date: Mon, 01 Jun 2020 18:01:49 -0700
-Message-ID: <20200602010149.SLwhb6K-k%akpm@linux-foundation.org>
+Date: Mon, 01 Jun 2020 18:06:58 -0700
+Message-ID: <20200602010658.G9T9EyUuI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38328 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725793AbgFBBBu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Jun 2020 21:01:50 -0400
+        id S1725793AbgFBBHA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Jun 2020 21:07:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
+To: mm-commits@vger.kernel.org, naoya.horiguchi@nec.com, pankaj.gupta.linux@gmail.com, wetp.zy@linux.alibaba.com
 
 
 The patch titled
-     Subject: bitops: use the same mechanism for get_count_order[_long]
+     Subject: mm, memory_failure: don't send BUS_MCEERR_AO for action required error
 has been added to the -mm tree.  Its filename is
-     bitops-use-the-same-mechanism-for-get_count_order.patch
+     mm-memory_failure-dont-send-bus_mceerr_ao-for-action-required-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitops-use-the-same-mechanism-for-get_count_order.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_failure-dont-send-bus_mceerr_ao-for-action-required-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitops-use-the-same-mechanism-for-get_count_order.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_failure-dont-send-bus_mceerr_ao-for-action-required-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,62 +37,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: bitops: use the same mechanism for get_count_order[_long]
+From: Wetp Zhang <wetp.zy@linux.alibaba.com>
+Subject: mm, memory_failure: don't send BUS_MCEERR_AO for action required error
 
-These two functions share the same logic.
+Some processes dont't want to be killed early, but in "Action Required"
+case, those also may be killed by BUS_MCEERR_AO when sharing memory with
+other which is accessing the fail memory.  And sending SIGBUS with
+BUS_MCEERR_AO for action required error is strange, so ignore the
+non-current processes here.
 
-Link: http://lkml.kernel.org/r/20200525215958.21653-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Link: http://lkml.kernel.org/r/1590817116-21281-1-git-send-email-wetp.zy@linux.alibaba.com
+Signed-off-by: Wetp Zhang <wetp.zy@linux.alibaba.com>
+Suggested-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/memory-failure.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/include/linux/bitops.h~bitops-use-the-same-mechanism-for-get_count_order
-+++ a/include/linux/bitops.h
-@@ -188,12 +188,10 @@ static inline unsigned fls_long(unsigned
- 
- static inline int get_count_order(unsigned int count)
+--- a/mm/memory-failure.c~mm-memory_failure-dont-send-bus_mceerr_ao-for-action-required-error
++++ a/mm/memory-failure.c
+@@ -210,14 +210,17 @@ static int kill_proc(struct to_kill *tk,
  {
--	int order;
-+	if (count == 0)
-+		return -1;
+ 	struct task_struct *t = tk->tsk;
+ 	short addr_lsb = tk->size_shift;
+-	int ret;
++	int ret = 0;
  
--	order = fls(count) - 1;
--	if (count & (count - 1))
--		order++;
--	return order;
-+	return fls(--count);
- }
+-	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
+-		pfn, t->comm, t->pid);
++	if ((t->mm == current->mm) || !(flags & MF_ACTION_REQUIRED))
++		pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
++			pfn, t->comm, t->pid);
  
- /**
+-	if ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm) {
+-		ret = force_sig_mceerr(BUS_MCEERR_AR, (void __user *)tk->addr,
+-				       addr_lsb);
++	if (flags & MF_ACTION_REQUIRED) {
++		if (t->mm == current->mm)
++			ret = force_sig_mceerr(BUS_MCEERR_AR,
++					 (void __user *)tk->addr, addr_lsb);
++		/* send no signal to non-current processes */
+ 	} else {
+ 		/*
+ 		 * Don't use force here, it's convenient if the signal
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from wetp.zy@linux.alibaba.com are
 
-mm-swapfilec-offset-is-only-used-when-there-is-more-slots.patch
-mm-swapfilec-explicitly-show-ssd-non-ssd-is-handled-mutually-exclusive.patch
-mm-swapfilec-remove-the-unnecessary-goto-for-ssd-case.patch
-mm-swapfilec-simplify-the-calculation-of-n_goal.patch
-mm-swapfilec-remove-the-extra-check-in-scan_swap_map_slots.patch
-mm-swapfilec-found_free-could-be-represented-by-tmp-max.patch
-mm-swapfilec-tmp-is-always-smaller-than-max.patch
-mm-swapfilec-omit-a-duplicate-code-by-compare-tmp-and-max-first.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable.patch
-mm-swapfilec-__swap_entry_free-always-free-1-entry.patch
-mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
-mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
-mm-page_allocc-rename-free_pages_check_bad-to-check_free_page_bad.patch
-mm-page_allocc-rename-free_pages_check-to-check_free_page.patch
-mm-page_allocc-extract-check__page_bad-common-part-to-page_bad_reason.patch
-mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
-mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
-mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch
-bitops-simplify-get_count_order_long.patch
-bitops-use-the-same-mechanism-for-get_count_order.patch
-lib-make-a-test-module-with-get_count_order-long.patch
+mm-memory_failure-dont-send-bus_mceerr_ao-for-action-required-error.patch
