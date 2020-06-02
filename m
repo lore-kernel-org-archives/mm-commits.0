@@ -1,47 +1,64 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 087/128] mm/memory: remove unnecessary pte_devmap
- case in copy_one_pte()
-Date: Tue, 02 Jun 2020 13:15:01 -0700
-Message-ID: <20200602201501.RugVRVDk3%akpm@linux-foundation.org>
+Subject: [patch 088/128] mm, memory_failure: don't send
+ BUS_MCEERR_AO for action required error
+Date: Tue, 02 Jun 2020 13:15:05 -0700
+Message-ID: <20200602201505.jHFvBWh1g%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59212 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59282 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726112AbgFBUPD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:15:03 -0400
+        id S1726112AbgFBUPH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 16:15:07 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chenqiwu@xiaomi.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, willy@infradead.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, naoya.horiguchi@nec.com, pankaj.gupta.linux@gmail.com, torvalds@linux-foundation.org, wetp.zy@linux.alibaba.com
 
-From: chenqiwu <chenqiwu@xiaomi.com>
-Subject: mm/memory: remove unnecessary pte_devmap case in copy_one_pte()
+From: Wetp Zhang <wetp.zy@linux.alibaba.com>
+Subject: mm, memory_failure: don't send BUS_MCEERR_AO for action required error
 
-Since commit 25b2995a35b6 ("mm: remove MEMORY_DEVICE_PUBLIC support"), the
-assignment to 'page' for pte_devmap case has been unnecessary.  Let's
-remove it.
+Some processes dont't want to be killed early, but in "Action Required"
+case, those also may be killed by BUS_MCEERR_AO when sharing memory with
+other which is accessing the fail memory.  And sending SIGBUS with
+BUS_MCEERR_AO for action required error is strange, so ignore the
+non-current processes here.
 
-[willy@infradead.org: changelog]
-Link: http://lkml.kernel.org/r/1587349685-31712-1-git-send-email-qiwuchen55@gmail.com
-Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Matthew Wilcox <willy@infradead.org>
+Link: http://lkml.kernel.org/r/1590817116-21281-1-git-send-email-wetp.zy@linux.alibaba.com
+Signed-off-by: Wetp Zhang <wetp.zy@linux.alibaba.com>
+Suggested-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/memory-failure.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/mm/memory.c~mm-memory-remove-unnecessary-pte_devmap-case-in-copy_one_pte
-+++ a/mm/memory.c
-@@ -802,8 +802,6 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 		get_page(page);
- 		page_dup_rmap(page, false);
- 		rss[mm_counter(page)]++;
--	} else if (pte_devmap(pte)) {
--		page = pte_page(pte);
- 	}
+--- a/mm/memory-failure.c~mm-memory_failure-dont-send-bus_mceerr_ao-for-action-required-error
++++ a/mm/memory-failure.c
+@@ -210,14 +210,17 @@ static int kill_proc(struct to_kill *tk,
+ {
+ 	struct task_struct *t = tk->tsk;
+ 	short addr_lsb = tk->size_shift;
+-	int ret;
++	int ret = 0;
  
- out_set_pte:
+-	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
+-		pfn, t->comm, t->pid);
++	if ((t->mm == current->mm) || !(flags & MF_ACTION_REQUIRED))
++		pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
++			pfn, t->comm, t->pid);
+ 
+-	if ((flags & MF_ACTION_REQUIRED) && t->mm == current->mm) {
+-		ret = force_sig_mceerr(BUS_MCEERR_AR, (void __user *)tk->addr,
+-				       addr_lsb);
++	if (flags & MF_ACTION_REQUIRED) {
++		if (t->mm == current->mm)
++			ret = force_sig_mceerr(BUS_MCEERR_AR,
++					 (void __user *)tk->addr, addr_lsb);
++		/* send no signal to non-current processes */
+ 	} else {
+ 		/*
+ 		 * Don't use force here, it's convenient if the signal
 _
