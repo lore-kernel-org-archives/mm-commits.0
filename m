@@ -1,55 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch removed from -mm tree
-Date: Tue, 02 Jun 2020 14:42:48 -0700
-Message-ID: <20200602214248.zMKmeE7x4%akpm@linux-foundation.org>
+Subject: [merged] s390-use-__vmalloc_node-in-stack_alloc.patch
+ removed from -mm tree
+Date: Tue, 02 Jun 2020 14:42:52 -0700
+Message-ID: <20200602214252.Vus3FAoJP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57652 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57726 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728317AbgFBVmu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:42:50 -0400
+        id S1728317AbgFBVmy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:42:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: airlied@linux.ie, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, christophe.leroy@c-s.fr, daniel.vetter@ffwll.ch, daniel@ffwll.ch, gor@linux.ibm.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, hannes@cmpxchg.org, hch@lst.de, heiko.carstens@de.ibm.com, kys@microsoft.com, labbott@redhat.com, mark.rutland@arm.com, mikelley@microsoft.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, paulus@ozlabs.org, peterz@infradead.org, robin.murphy@arm.com, sakari.ailus@linux.intel.com, sthemmin@microsoft.com, sumit.semwal@linaro.org, wei.liu@kernel.org, will@kernel.org, xiang@kernel.org
 
 
 The patch titled
-     Subject: powerpc: use __vmalloc_node in alloc_vm_stack
+     Subject: s390: use __vmalloc_node in stack_alloc
 has been removed from the -mm tree.  Its filename was
-     powerpc-use-__vmalloc_node-in-alloc_vm_stack.patch
+     s390-use-__vmalloc_node-in-stack_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: powerpc: use __vmalloc_node in alloc_vm_stack
+Subject: s390: use __vmalloc_node in stack_alloc
 
-alloc_vm_stack can use a slightly higher level vmalloc function.
+stack_alloc can use a slightly higher level vmalloc function.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-29-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-30-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Gao Xiang <xiang@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Wei Liu <wei.liu@kernel.org>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Laura Abbott <labbott@redhat.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michael Kelley <mikelley@microsoft.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Gao Xiang <xiang@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Kelley <mikelley@microsoft.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
@@ -59,23 +59,27 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/irq.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/s390/kernel/setup.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/arch/powerpc/kernel/irq.c~powerpc-use-__vmalloc_node-in-alloc_vm_stack
-+++ a/arch/powerpc/kernel/irq.c
-@@ -748,9 +748,8 @@ void do_IRQ(struct pt_regs *regs)
- 
- static void *__init alloc_vm_stack(void)
+--- a/arch/s390/kernel/setup.c~s390-use-__vmalloc_node-in-stack_alloc
++++ a/arch/s390/kernel/setup.c
+@@ -305,12 +305,9 @@ void *restart_stack __section(.data);
+ unsigned long stack_alloc(void)
  {
--	return __vmalloc_node_range(THREAD_SIZE, THREAD_ALIGN, VMALLOC_START,
--				    VMALLOC_END, THREADINFO_GFP, PAGE_KERNEL,
--				     0, NUMA_NO_NODE, (void*)_RET_IP_);
-+	return __vmalloc_node(THREAD_SIZE, THREAD_ALIGN, THREADINFO_GFP,
-+			      NUMA_NO_NODE, (void *)_RET_IP_);
- }
- 
- static void __init vmap_irqstack_init(void)
+ #ifdef CONFIG_VMAP_STACK
+-	return (unsigned long)
+-		__vmalloc_node_range(THREAD_SIZE, THREAD_SIZE,
+-				     VMALLOC_START, VMALLOC_END,
+-				     THREADINFO_GFP,
+-				     PAGE_KERNEL, 0, NUMA_NO_NODE,
+-				     __builtin_return_address(0));
++	return (unsigned long)__vmalloc_node(THREAD_SIZE, THREAD_SIZE,
++			THREADINFO_GFP, NUMA_NO_NODE,
++			__builtin_return_address(0));
+ #else
+ 	return __get_free_pages(GFP_KERNEL, THREAD_SIZE_ORDER);
+ #endif
 _
 
 Patches currently in -mm which might be from hch@lst.de are
