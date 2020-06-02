@@ -1,28 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + sh-remove-call-to-memset-after-dma_alloc_coherent.patch
- added to -mm tree
-Date: Mon, 01 Jun 2020 17:55:39 -0700
-Message-ID: <20200602005539.IYkgw8zEt%akpm@linux-foundation.org>
+Subject: + sh-use-generic-strncpy.patch added to -mm tree
+Date: Mon, 01 Jun 2020 17:55:42 -0700
+Message-ID: <20200602005542.f1o2H2CAs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37144 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725793AbgFBAzl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Jun 2020 20:55:41 -0400
+        id S1725793AbgFBAzp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Jun 2020 20:55:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: amodra@gmail.com, bin.meng@windriver.com, chenzhou10@huawei.com, dalias@libc.org, geert+renesas@glider.be, glaubitz@physik.fu-berlin.de, krzk@kernel.org, kuninori.morimoto.gx@renesas.com, mm-commits@vger.kernel.org, romain.naour@gmail.com, sam@ravnborg.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: sh: remove call to memset after dma_alloc_coherent
+     Subject: sh: use generic strncpy()
 has been added to the -mm tree.  Its filename is
-     sh-remove-call-to-memset-after-dma_alloc_coherent.patch
+     sh-use-generic-strncpy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-remove-call-to-memset-after-dma_alloc_coherent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-use-generic-strncpy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-remove-call-to-memset-after-dma_alloc_coherent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-use-generic-strncpy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,20 +35,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Zhou <chenzhou10@huawei.com>
-Subject: sh: remove call to memset after dma_alloc_coherent
+From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Subject: sh: use generic strncpy()
 
-Function dma_alloc_coherent use in buf already zeroes out memory,
-so memset is not needed.
+Current SH will get below warning at strncpy()
 
-Link: https://marc.info/?l=linux-sh&m=157793031102356
-Signed-off-by: Chen Zhou <chenzhou10@huawei.com>
+In file included from ${LINUX}/arch/sh/include/asm/string.h:3,
+                 from ${LINUX}/include/linux/string.h:20,
+                 from ${LINUX}/include/linux/bitmap.h:9,
+                 from ${LINUX}/include/linux/nodemask.h:95,
+                 from ${LINUX}/include/linux/mmzone.h:17,
+                 from ${LINUX}/include/linux/gfp.h:6,
+                 from ${LINUX}/innclude/linux/slab.h:15,
+                 from ${LINUX}/linux/drivers/mmc/host/vub300.c:38:
+${LINUX}/drivers/mmc/host/vub300.c: In function 'new_system_port_status':
+${LINUX}/arch/sh/include/asm/string_32.h:51:42: warning: array subscript\
+  80 is above array bounds of 'char[26]' [-Warray-bounds]
+   : "0" (__dest), "1" (__src), "r" (__src+__n)
+                                     ~~~~~^~~~
+
+In general, strncpy() should behave like below.
+
+	char dest[10];
+	char *src = "12345";
+
+	strncpy(dest, src, 10);
+	// dest = {'1', '2', '3', '4', '5',
+	           '\0','\0','\0','\0','\0'}
+
+But, current SH strnpy() has 2 issues.
+1st is it will access to out-of-memory (= src + 10).
+2nd is it needs big fixup for it, and maintenance __asm__
+code is difficult.
+
+To solve these issues, this patch simply uses generic strncpy()
+instead of architecture specific one.
+
+Link: https://marc.info/?l=linux-renesas-soc&m=157664657013309
+Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 Cc: Alan Modra <amodra@gmail.com>
 Cc: Bin Meng <bin.meng@windriver.com>
+Cc: Chen Zhou <chenzhou10@huawei.com>
 Cc: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
 Cc: Rich Felker <dalias@libc.org>
 Cc: Romain Naour <romain.naour@gmail.com>
 Cc: Sam Ravnborg <sam@ravnborg.org>
@@ -57,13 +86,37 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/consistent.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/sh/include/asm/string_32.h |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
---- a/arch/sh/mm/consistent.c~sh-remove-call-to-memset-after-dma_alloc_coherent
-+++ a/arch/sh/mm/consistent.c
-@@ -57,8 +57,6 @@ int __init platform_resource_setup_memor
- 		return -ENOMEM;
- 	}
+--- a/arch/sh/include/asm/string_32.h~sh-use-generic-strncpy
++++ a/arch/sh/include/asm/string_32.h
+@@ -28,32 +28,6 @@ static inline char *strcpy(char *__dest,
+ 	return __xdest;
+ }
  
--	memset(buf, 0, memsize);
+-#define __HAVE_ARCH_STRNCPY
+-static inline char *strncpy(char *__dest, const char *__src, size_t __n)
+-{
+-	register char *__xdest = __dest;
+-	unsigned long __dummy;
+-
+-	if (__n == 0)
+-		return __xdest;
+-
+-	__asm__ __volatile__(
+-		"1:\n"
+-		"mov.b	@%1+, %2\n\t"
+-		"mov.b	%2, @%0\n\t"
+-		"cmp/eq	#0, %2\n\t"
+-		"bt/s	2f\n\t"
+-		" cmp/eq	%5,%1\n\t"
+-		"bf/s	1b\n\t"
+-		" add	#1, %0\n"
+-		"2:"
+-		: "=r" (__dest), "=r" (__src), "=&z" (__dummy)
+-		: "0" (__dest), "1" (__src), "r" (__src+__n)
+-		: "memory", "t");
+-
+-	return __xdest;
+-}
