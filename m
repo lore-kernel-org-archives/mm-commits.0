@@ -1,65 +1,35 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 014/128] mm: move readahead prototypes from mm.h
-Date: Tue, 02 Jun 2020 13:10:42 -0700
-Message-ID: <20200602201042.VA2uCl-L4%akpm@linux-foundation.org>
+Subject: [patch 016/128] mm: ignore return value of ->readpages
+Date: Tue, 02 Jun 2020 13:10:50 -0700
+Message-ID: <20200602201050.E_iT7Ny3z%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53664 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728101AbgFBUKp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 16:10:45 -0400
+        id S1728409AbgFBUKv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 16:10:51 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, darrick.wong@oracle.com, dchinner@redhat.com, ebiggers@google.com, gaoxiang25@huawei.com, hch@lst.de, jaegeuk@kernel.org, jhubbard@nvidia.com, johannes.thumshirn@wdc.com, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, mszeredi@redhat.com, torvalds@linux-foundation.org, william.kucharski@oracle.com, willy@infradead.org, xiyou.wangcong@gmail.com, yuchao0@huawei.com, ziy@nvidia.com
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: move readahead prototypes from mm.h
+Subject: mm: ignore return value of ->readpages
 
-Patch series "Change readahead API", v11.
+We used to assign the return value to a variable, which we then ignored. 
+Remove the pretence of caring.
 
-This series adds a readahead address_space operation to replace the
-readpages operation.  The key difference is that pages are added to the
-page cache as they are allocated (and then looked up by the filesystem)
-instead of passing them on a list to the readpages operation and having
-the filesystem add them to the page cache.  It's a net reduction in code
-for each implementation, more efficient than walking a list, and solves
-the direct-write vs buffered-read problem reported by yu kuai at
-http://lkml.kernel.org/r/20200116063601.39201-1-yukuai3@huawei.com
-
-The only unconverted filesystems are those which use fscache.  Their
-conversion is pending Dave Howells' rewrite which will make the conversion
-substantially easier.  This should be completed by the end of the year.
-
-I want to thank the reviewers/testers; Dave Chinner, John Hubbard, Eric
-Biggers, Johannes Thumshirn, Dave Sterba, Zi Yan, Christoph Hellwig and
-Miklos Szeredi have done a marvellous job of providing constructive
-criticism.
-
-These patches pass an xfstests run on ext4, xfs & btrfs with no
-regressions that I can tell (some of the tests seem a little flaky before
-and remain flaky afterwards).
-
-
-This patch (of 25):
-
-The readahead code is part of the page cache so should be found in the
-pagemap.h file.  force_page_cache_readahead is only used within mm, so
-move it to mm/internal.h instead.  Remove the parameter names where they
-add no value, and rename the ones which were actively misleading.
-
-Link: http://lkml.kernel.org/r/20200414150233.24495-1-willy@infradead.org
-Link: http://lkml.kernel.org/r/20200414150233.24495-2-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200414150233.24495-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dave Chinner <dchinner@redhat.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Reviewed-by: Johannes Thumshirn <johannes.thumshirn@wdc.com>
 Cc: Chao Yu <yuchao0@huawei.com>
 Cc: Cong Wang <xiyou.wangcong@gmail.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Eric Biggers <ebiggers@google.com>
 Cc: Gao Xiang <gaoxiang25@huawei.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
@@ -71,88 +41,36 @@ Cc: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-core.c        |    1 +
- include/linux/mm.h      |   19 -------------------
- include/linux/pagemap.h |    8 ++++++++
- mm/fadvise.c            |    2 ++
- mm/internal.h           |    2 ++
- 5 files changed, 13 insertions(+), 19 deletions(-)
+ mm/readahead.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/block/blk-core.c~mm-move-readahead-prototypes-from-mmh
-+++ a/block/blk-core.c
-@@ -20,6 +20,7 @@
- #include <linux/blk-mq.h>
- #include <linux/highmem.h>
- #include <linux/mm.h>
-+#include <linux/pagemap.h>
- #include <linux/kernel_stat.h>
- #include <linux/string.h>
- #include <linux/init.h>
---- a/include/linux/mm.h~mm-move-readahead-prototypes-from-mmh
-+++ a/include/linux/mm.h
-@@ -2608,25 +2608,6 @@ extern vm_fault_t filemap_page_mkwrite(s
- int __must_check write_one_page(struct page *page);
- void task_dirty_inc(struct task_struct *tsk);
+--- a/mm/readahead.c~mm-ignore-return-value-of-readpages
++++ a/mm/readahead.c
+@@ -113,17 +113,16 @@ int read_cache_pages(struct address_spac
  
--/* readahead.c */
--#define VM_READAHEAD_PAGES	(SZ_128K / PAGE_SIZE)
--
--int force_page_cache_readahead(struct address_space *mapping, struct file *filp,
--			pgoff_t offset, unsigned long nr_to_read);
--
--void page_cache_sync_readahead(struct address_space *mapping,
--			       struct file_ra_state *ra,
--			       struct file *filp,
--			       pgoff_t offset,
--			       unsigned long size);
--
--void page_cache_async_readahead(struct address_space *mapping,
--				struct file_ra_state *ra,
--				struct file *filp,
--				struct page *pg,
--				pgoff_t offset,
--				unsigned long size);
--
- extern unsigned long stack_guard_gap;
- /* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
- extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
---- a/include/linux/pagemap.h~mm-move-readahead-prototypes-from-mmh
-+++ a/include/linux/pagemap.h
-@@ -618,6 +618,14 @@ int replace_page_cache_page(struct page
- void delete_from_page_cache_batch(struct address_space *mapping,
- 				  struct pagevec *pvec);
+ EXPORT_SYMBOL(read_cache_pages);
  
-+#define VM_READAHEAD_PAGES	(SZ_128K / PAGE_SIZE)
-+
-+void page_cache_sync_readahead(struct address_space *, struct file_ra_state *,
-+		struct file *, pgoff_t index, unsigned long req_count);
-+void page_cache_async_readahead(struct address_space *, struct file_ra_state *,
-+		struct file *, struct page *, pgoff_t index,
-+		unsigned long req_count);
-+
- /*
-  * Like add_to_page_cache_locked, but used to add newly allocated pages:
-  * the page is new, so we can just run __SetPageLocked() against it.
---- a/mm/fadvise.c~mm-move-readahead-prototypes-from-mmh
-+++ a/mm/fadvise.c
-@@ -22,6 +22,8 @@
+-static int read_pages(struct address_space *mapping, struct file *filp,
++static void read_pages(struct address_space *mapping, struct file *filp,
+ 		struct list_head *pages, unsigned int nr_pages, gfp_t gfp)
+ {
+ 	struct blk_plug plug;
+ 	unsigned page_idx;
+-	int ret;
  
- #include <asm/unistd.h>
+ 	blk_start_plug(&plug);
  
-+#include "internal.h"
-+
- /*
-  * POSIX_FADV_WILLNEED could set PG_Referenced, and POSIX_FADV_NOREUSE could
-  * deactivate the pages and clear PG_Referenced.
---- a/mm/internal.h~mm-move-readahead-prototypes-from-mmh
-+++ a/mm/internal.h
-@@ -49,6 +49,8 @@ void unmap_page_range(struct mmu_gather
- 			     unsigned long addr, unsigned long end,
- 			     struct zap_details *details);
+ 	if (mapping->a_ops->readpages) {
+-		ret = mapping->a_ops->readpages(filp, mapping, pages, nr_pages);
++		mapping->a_ops->readpages(filp, mapping, pages, nr_pages);
+ 		/* Clean up the remaining pages */
+ 		put_pages_list(pages);
+ 		goto out;
+@@ -136,12 +135,9 @@ static int read_pages(struct address_spa
+ 			mapping->a_ops->readpage(filp, page);
+ 		put_page(page);
+ 	}
+-	ret = 0;
  
-+int force_page_cache_readahead(struct address_space *, struct file *,
-+		pgoff_t index, unsigned long nr_to_read);
- extern unsigned int __do_page_cache_readahead(struct address_space *mapping,
- 		struct file *filp, pgoff_t offset, unsigned long nr_to_read,
- 		unsigned long lookahead_size);
-_
+ out:
+ 	blk_finish_plug(&plug);
