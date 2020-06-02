@@ -1,101 +1,55 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-swapfile-fix-proc-swaps-heading-and-size-used-priority-alignment.patch
- removed from -mm tree
-Date: Tue, 02 Jun 2020 14:40:39 -0700
-Message-ID: <20200602214039.Z0XzDVq_4%akpm@linux-foundation.org>
+ mm-swap-delete-meaningless-__add_to_swap_cache-declaration.patch removed
+ from -mm tree
+Date: Tue, 02 Jun 2020 14:40:41 -0700
+Message-ID: <20200602214041.HaMBfJfpp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54744 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54788 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726130AbgFBVkk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:40:40 -0400
+        id S1726130AbgFBVkl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:40:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, linmiaohe@huawei.com, mm-commits@vger.kernel.org, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm: swapfile: fix /proc/swaps heading and Size/Used/Priority alignment
+     Subject: include/linux/swap.h: delete meaningless __add_to_swap_cache() declaration
 has been removed from the -mm tree.  Its filename was
-     mm-swapfile-fix-proc-swaps-heading-and-size-used-priority-alignment.patch
+     mm-swap-delete-meaningless-__add_to_swap_cache-declaration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: swapfile: fix /proc/swaps heading and Size/Used/Priority alignment
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: include/linux/swap.h: delete meaningless __add_to_swap_cache() declaration
 
-Fix the heading and Size/Used/Priority field alignments in /proc/swaps. 
-If the Size and/or Used value is >= 10000000 (8 bytes), then the alignment
-by using tab characters is broken.
+Since commit 8d93b41c09d1 ("mm: Convert add_to_swap_cache to XArray"),
+__add_to_swap_cache and add_to_swap_cache are combined into one function. 
+There is no __add_to_swap_cache() anymore.
 
-This patch maintains the use of tabs for alignment.  If spaces are
-preferred, we can just use a Field Width specifier for the bytes and inuse
-fields.  That way those fields don't have to be a multiple of 8 bytes in
-width.  E.g., with a field width of 12, both Size and Used would always
-fit on the first line of an 80-column wide terminal (only Priority would
-be on the second line).
-
-There are actually 2 problems: heading alignment and field width.  On an
-xterm, if Used is 7 bytes in length, the tab does nothing, and the display
-is like this, with no space/tab between the Used and Priority fields. 
-(ugh)
-
-Filename				Type		Size	Used	Priority
-/dev/sda8                               partition	16779260	2023012-1
-
-To be clear, if one does 'cat /proc/swaps >/tmp/proc.swaps', it does look
-different, like so:
-
-Filename				Type		Size	Used	Priority
-/dev/sda8                               partition	16779260	2086988	-1
-
-Link: http://lkml.kernel.org/r/c0ffb41a-81ac-ddfa-d452-a9229ecc0387@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Link: http://lkml.kernel.org/r/1590810326-2493-1-git-send-email-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ include/linux/swap.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swapfile-fix-proc-swaps-heading-and-size-used-priority-alignment
-+++ a/mm/swapfile.c
-@@ -2801,20 +2801,24 @@ static int swap_show(struct seq_file *sw
- 	struct swap_info_struct *si = v;
- 	struct file *file;
- 	int len;
-+	unsigned int bytes, inuse;
- 
- 	if (si == SEQ_START_TOKEN) {
--		seq_puts(swap,"Filename\t\t\t\tType\t\tSize\tUsed\tPriority\n");
-+		seq_puts(swap,"Filename\t\t\t\tType\t\tSize\t\tUsed\t\tPriority\n");
- 		return 0;
- 	}
- 
-+	bytes = si->pages << (PAGE_SHIFT - 10);
-+	inuse = si->inuse_pages << (PAGE_SHIFT - 10);
-+
- 	file = si->swap_file;
- 	len = seq_file_path(swap, file, " \t\n\\");
--	seq_printf(swap, "%*s%s\t%u\t%u\t%d\n",
-+	seq_printf(swap, "%*s%s\t%u\t%s%u\t%s%d\n",
- 			len < 40 ? 40 - len : 1, " ",
- 			S_ISBLK(file_inode(file)->i_mode) ?
- 				"partition" : "file\t",
--			si->pages << (PAGE_SHIFT - 10),
--			si->inuse_pages << (PAGE_SHIFT - 10),
-+			bytes, bytes < 10000000 ? "\t" : "",
-+			inuse, inuse < 10000000 ? "\t" : "",
- 			si->prio);
- 	return 0;
- }
+--- a/include/linux/swap.h~mm-swap-delete-meaningless-__add_to_swap_cache-declaration
++++ a/include/linux/swap.h
+@@ -415,7 +415,6 @@ extern unsigned long total_swapcache_pag
+ extern void show_swap_cache_info(void);
+ extern int add_to_swap(struct page *page);
+ extern int add_to_swap_cache(struct page *, swp_entry_t, gfp_t);
+-extern int __add_to_swap_cache(struct page *page, swp_entry_t entry);
+ extern void __delete_from_swap_cache(struct page *, swp_entry_t entry);
+ extern void delete_from_swap_cache(struct page *);
+ extern void free_page_and_swap_cache(struct page *);
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
-
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix.patch
+Patches currently in -mm which might be from linmiaohe@huawei.com are
