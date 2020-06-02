@@ -1,58 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-gupc-updating-the-documentation-fix.patch removed from -mm tree
-Date: Mon, 01 Jun 2020 21:17:02 -0700
-Message-ID: <20200602041702.kfmXuMADA%akpm@linux-foundation.org>
+ mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+ removed from -mm tree
+Date: Mon, 01 Jun 2020 21:17:31 -0700
+Message-ID: <20200602041731.jVVLhhw2U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53888 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54788 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725781AbgFBERD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:17:03 -0400
+        id S1726122AbgFBERc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:17:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jrdr.linux@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
 
 
 The patch titled
-     Subject: mm-gupc-updating-the-documentation-fix
+     Subject: mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix
 has been removed from the -mm tree.  Its filename was
-     mm-gupc-updating-the-documentation-fix.patch
+     mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
 
-This patch was dropped because it was folded into mm-gupc-updating-the-documentation.patch
+This patch was dropped because it was folded into mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-gupc-updating-the-documentation-fix
+Subject: mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix
 
-s@/*@/**@
+tweak capitalization in comments
 
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gupc-updating-the-documentation-fix
-+++ a/mm/gup.c
-@@ -722,7 +722,7 @@ static struct page *follow_p4d_mask(stru
- 	return follow_pud_mask(vma, address, p4d, flags, ctx);
- }
+--- a/include/linux/swap.h~mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix
++++ a/include/linux/swap.h
+@@ -187,12 +187,12 @@ enum {
+ #define SWAP_HAS_CACHE	0x40	/* Flag page is cached, in first swap_map */
+ #define COUNT_CONTINUED	0x80	/* Flag swap_map continuation for full count */
  
--/*
-+/**
-  * follow_page_mask - look up a page descriptor from a user-virtual address
-  * @vma: vm_area_struct mapping @address
-  * @address: virtual address to look up
+-/* Special Value in first swap_map */
++/* Special value in first swap_map */
+ #define SWAP_MAP_MAX	0x3e	/* Max count */
+ #define SWAP_MAP_BAD	0x3f	/* Note page is bad */
+ #define SWAP_MAP_SHMEM	0xbf	/* Owned by shmem/tmpfs */
+ 
+-/* Special Value in each swap_map continuation */
++/* Special value in each swap_map continuation */
+ #define SWAP_CONT_MAX	0x7f	/* Max count */
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-gupc-updating-the-documentation.patch
-mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable-fix.patch
+mm-swapfilec-classify-swap_map_xxx-to-make-it-more-readable.patch
 mm-ptdump-expand-type-of-val-in-note_page-fix.patch
 mm-remove-__vmalloc_node_flags_caller-fix.patch
 mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
