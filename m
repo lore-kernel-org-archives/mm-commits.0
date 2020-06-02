@@ -1,59 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-remove-__vmalloc_node_flags_caller-fix.patch removed from -mm tree
-Date: Mon, 01 Jun 2020 21:20:14 -0700
-Message-ID: <20200602042014.PJfDPKU5i%akpm@linux-foundation.org>
+ mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch removed
+ from -mm tree
+Date: Mon, 01 Jun 2020 21:20:47 -0700
+Message-ID: <20200602042047.-39KF9mtb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55792 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55916 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725616AbgFBEUP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:20:15 -0400
+        id S1725616AbgFBEUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:20:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org, peterz@infradead.org
 
 
 The patch titled
-     Subject: mm-remove-__vmalloc_node_flags_caller-fix
+     Subject: mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix
 has been removed from the -mm tree.  Its filename was
-     mm-remove-__vmalloc_node_flags_caller-fix.patch
+     mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
 
-This patch was dropped because it was folded into mm-remove-__vmalloc_node_flags_caller.patch
+This patch was dropped because it was folded into mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-remove-__vmalloc_node_flags_caller-fix
+Subject: mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix
 
-fix nommu build
+add missing `node' arg
 
 Cc: Christoph Hellwig <hch@lst.de>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_vmalloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/nommu.c~mm-remove-__vmalloc_node_flags_caller-fix
-+++ a/mm/nommu.c
-@@ -153,7 +153,7 @@ EXPORT_SYMBOL(__vmalloc);
- void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
- 		int node, const void *caller)
- {
--	return __vmalloc(size, flags);
-+	return __vmalloc(size, gfp_mask);
- }
+--- a/lib/test_vmalloc.c~mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix
++++ a/lib/test_vmalloc.c
+@@ -91,7 +91,7 @@ static int random_size_align_alloc_test(
+ 		 */
+ 		size = ((rnd % 10) + 1) * PAGE_SIZE;
  
- static void *__vmalloc_user_flags(unsigned long size, gfp_t flags)
+-		ptr = __vmalloc_node(size, align, GFP_KERNEL | __GFP_ZERO,
++		ptr = __vmalloc_node(size, align, GFP_KERNEL | __GFP_ZERO, 0,
+ 				__builtin_return_address(0));
+ 		if (!ptr)
+ 			return -1;
+@@ -114,7 +114,7 @@ static int align_shift_alloc_test(void)
+ 	for (i = 0; i < BITS_PER_LONG; i++) {
+ 		align = ((unsigned long) 1) << i;
+ 
+-		ptr = __vmalloc_node(PAGE_SIZE, align, GFP_KERNEL | __GFP_ZERO,
++		ptr = __vmalloc_node(PAGE_SIZE, align, GFP_KERNEL|__GFP_ZERO, 0,
+ 				__builtin_return_address(0));
+ 		if (!ptr)
+ 			return -1;
+@@ -132,7 +132,7 @@ static int fix_align_alloc_test(void)
+ 
+ 	for (i = 0; i < test_loop_count; i++) {
+ 		ptr = __vmalloc_node(5 * PAGE_SIZE, THREAD_ALIGN << 1,
+-				GFP_KERNEL | __GFP_ZERO,
++				GFP_KERNEL | __GFP_ZERO, 0,
+ 				__builtin_return_address(0));
+ 		if (!ptr)
+ 			return -1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 mm-slub-add-panic_on_error-to-the-debug-facilities-fix.patch
-mm-remove-__vmalloc_node_flags_caller.patch
-mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix.patch
+mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node.patch
 mm-switch-the-test_vmalloc-module-to-use-__vmalloc_node-fix-fix.patch
 mm-remove-vmalloc_user_node_flags-fix.patch
 mm-vmalloc-track-which-page-table-levels-were-modified-fix.patch
