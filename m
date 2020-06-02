@@ -1,92 +1,135 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 085/128] mm: ptdump: expand type of 'val' in
- note_page()
-Date: Mon, 01 Jun 2020 21:50:01 -0700
-Message-ID: <20200602045001.lGoO32E-a%akpm@linux-foundation.org>
+Subject: [patch 086/128] /proc/PID/smaps: Add PMD migration entry
+ parsing
+Date: Mon, 01 Jun 2020 21:50:05 -0700
+Message-ID: <20200602045005.nuZBJi6j1%akpm@linux-foundation.org>
 References: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41428 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41542 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726062AbgFBEuD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:50:03 -0400
+        id S1725793AbgFBEuH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:50:07 -0400
 In-Reply-To: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bp@alien8.de, dave.hansen@linux.intel.com, jbeulich@suse.com, linux-mm@kvack.org, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org, stable@vger.kernel.org, steven.price@arm.com, tglx@linutronix.de, torvalds@linux-foundation.org
+To: aarcange@redhat.com, adobriyan@gmail.com, akpm@linux-foundation.org, jglisse@redhat.com, khlebnikov@yandex-team.ru, kirill.shutemov@linux.intel.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz, yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
 
-From: Steven Price <steven.price@arm.com>
-Subject: mm: ptdump: expand type of 'val' in note_page()
+=46rom: Huang Ying <ying.huang@intel.com>
+Subject: /proc/PID/smaps: Add PMD migration entry parsing
 
-The page table entry is passed in the 'val' argument to note_page(),
-however this was previously an "unsigned long" which is fine on 64-bit
-platforms.  But for 32 bit x86 it is not always big enough to contain a
-page table entry which may be 64 bits.
+Now, when reading /proc/PID/smaps, the PMD migration entry in page table
+is simply ignored.  To improve the accuracy of /proc/PID/smaps, its
+parsing and processing is added.
 
-Change the type to u64 to ensure that it is always big enough.
+To test the patch, we run pmbench to eat 400 MB memory in background, then
+run /usr/bin/migratepages and `cat /proc/PID/smaps` every second.  The
+issue as follows can be reproduced within 60 seconds.
 
-[akpm@linux-foundation.org: fix riscv]
-Link: http://lkml.kernel.org/r/20200521152308.33096-3-steven.price@arm.com
-Signed-off-by: Steven Price <steven.price@arm.com>
-Reported-by: Jan Beulich <jbeulich@suse.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Before the patch, for the fully populated 400 MB anonymous VMA, some THP
+pages under migration may be lost as below.
+
+7f3f6a7e5000-7f3f837e5000 rw-p 00000000 00:00 0
+Size:             409600 kB
+KernelPageSize:        4 kB
+MMUPageSize:           4 kB
+Rss:              407552 kB
+Pss:              407552 kB
+Shared_Clean:          0 kB
+Shared_Dirty:          0 kB
+Private_Clean:         0 kB
+Private_Dirty:    407552 kB
+Referenced:       301056 kB
+Anonymous:        407552 kB
+LazyFree:              0 kB
+AnonHugePages:    405504 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:        0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  0 kB
+SwapPss:               0 kB
+Locked:                0 kB
+THPeligible:		1
+VmFlags: rd wr mr mw me ac
+
+After the patch, it will be always,
+
+7f3f6a7e5000-7f3f837e5000 rw-p 00000000 00:00 0
+Size:             409600 kB
+KernelPageSize:        4 kB
+MMUPageSize:           4 kB
+Rss:              409600 kB
+Pss:              409600 kB
+Shared_Clean:          0 kB
+Shared_Dirty:          0 kB
+Private_Clean:         0 kB
+Private_Dirty:    409600 kB
+Referenced:       294912 kB
+Anonymous:        409600 kB
+LazyFree:              0 kB
+AnonHugePages:    407552 kB
+ShmemPmdMapped:        0 kB
+FilePmdMapped:        0 kB
+Shared_Hugetlb:        0 kB
+Private_Hugetlb:       0 kB
+Swap:                  0 kB
+SwapPss:               0 kB
+Locked:                0 kB
+THPeligible:		1
+VmFlags: rd wr mr mw me ac
+
+Link: http://lkml.kernel.org/r/20200403123059.1846960-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: "J=C3=A9r=C3=B4me Glisse" <jglisse@redhat.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/dump.c          |    2 +-
- arch/riscv/mm/ptdump.c        |    2 +-
- arch/x86/mm/dump_pagetables.c |    2 +-
- include/linux/ptdump.h        |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ fs/proc/task_mmu.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
---- a/arch/arm64/mm/dump.c~mm-ptdump-expand-type-of-val-in-note_page
-+++ a/arch/arm64/mm/dump.c
-@@ -247,7 +247,7 @@ static void note_prot_wx(struct pg_state
- }
- 
- static void note_page(struct ptdump_state *pt_st, unsigned long addr, int level,
--		      unsigned long val)
-+		      u64 val)
- {
- 	struct pg_state *st = container_of(pt_st, struct pg_state, ptdump);
- 	static const char units[] = "KMGTPE";
---- a/arch/riscv/mm/ptdump.c~mm-ptdump-expand-type-of-val-in-note_page
-+++ a/arch/riscv/mm/ptdump.c
-@@ -204,7 +204,7 @@ static void note_prot_wx(struct pg_state
- }
- 
- static void note_page(struct ptdump_state *pt_st, unsigned long addr,
--		      int level, unsigned long val)
-+		      int level, u64 val)
- {
- 	struct pg_state *st = container_of(pt_st, struct pg_state, ptdump);
- 	u64 pa = PFN_PHYS(pte_pfn(__pte(val)));
---- a/arch/x86/mm/dump_pagetables.c~mm-ptdump-expand-type-of-val-in-note_page
-+++ a/arch/x86/mm/dump_pagetables.c
-@@ -273,7 +273,7 @@ static void effective_prot(struct ptdump
-  * print what we collected so far.
-  */
- static void note_page(struct ptdump_state *pt_st, unsigned long addr, int level,
--		      unsigned long val)
-+		      u64 val)
- {
- 	struct pg_state *st = container_of(pt_st, struct pg_state, ptdump);
- 	pgprotval_t new_prot, new_eff;
---- a/include/linux/ptdump.h~mm-ptdump-expand-type-of-val-in-note_page
-+++ a/include/linux/ptdump.h
-@@ -13,7 +13,7 @@ struct ptdump_range {
- struct ptdump_state {
- 	/* level is 0:PGD to 4:PTE, or -1 if unknown */
- 	void (*note_page)(struct ptdump_state *st, unsigned long addr,
--			  int level, unsigned long val);
-+			  int level, u64 val);
- 	void (*effective_prot)(struct ptdump_state *st, int level, u64 val);
- 	const struct ptdump_range *range;
- };
+--- a/fs/proc/task_mmu.c~proc-pid-smaps-add-pmd-migration-entry-parsing
++++ a/fs/proc/task_mmu.c
+@@ -546,10 +546,17 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ 	struct mem_size_stats *mss =3D walk->private;
+ 	struct vm_area_struct *vma =3D walk->vma;
+ 	bool locked =3D !!(vma->vm_flags & VM_LOCKED);
+-	struct page *page;
++	struct page *page =3D NULL;
+=20
+-	/* FOLL_DUMP will return -EFAULT on huge zero page */
+-	page =3D follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
++	if (pmd_present(*pmd)) {
++		/* FOLL_DUMP will return -EFAULT on huge zero page */
++		page =3D follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
++	} else if (unlikely(thp_migration_supported() && is_swap_pmd(*pmd))) {
++		swp_entry_t entry =3D pmd_to_swp_entry(*pmd);
++
++		if (is_migration_entry(entry))
++			page =3D migration_entry_to_page(entry);
++	}
+ 	if (IS_ERR_OR_NULL(page))
+ 		return;
+ 	if (PageAnon(page))
+@@ -578,8 +585,7 @@ static int smaps_pte_range(pmd_t *pmd, u
+=20
+ 	ptl =3D pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
+-		if (pmd_present(*pmd))
+-			smaps_pmd_entry(pmd, addr, walk);
++		smaps_pmd_entry(pmd, addr, walk);
+ 		spin_unlock(ptl);
+ 		goto out;
+ 	}
 _
