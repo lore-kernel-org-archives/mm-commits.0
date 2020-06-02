@@ -1,35 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better-fix.patch
- removed from -mm tree
-Date: Tue, 02 Jun 2020 11:31:29 -0700
-Message-ID: <20200602183129.e0ZOOn4br%akpm@linux-foundation.org>
+Subject: +
+ bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+ added to -mm tree
+Date: Tue, 02 Jun 2020 11:31:38 -0700
+Message-ID: <20200602183138.LTsSXiI4j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45968 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46096 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726000AbgFBSba (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 14:31:30 -0400
+        id S1726000AbgFBSbk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 14:31:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better-fix
-has been removed from the -mm tree.  Its filename was
-     bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better-fix.patch
+     Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
+has been added to the -mm tree.  Its filename is
+     bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better-fix
+Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
 
-use strncpy_from_kernel_nofault(), per Christoph
+User the proper helper for kernel or userspace addresses based on
+TASK_SIZE instead of the dangerous strncpy_from_unsafe function.
 
-Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -38,22 +53,27 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/bpf_trace.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ kernel/trace/bpf_trace.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/kernel/trace/bpf_trace.c~bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better-fix
+--- a/kernel/trace/bpf_trace.c~bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better
 +++ a/kernel/trace/bpf_trace.c
-@@ -597,13 +597,8 @@ BPF_CALL_5(bpf_seq_printf, struct seq_fi
+@@ -588,15 +588,17 @@ BPF_CALL_5(bpf_seq_printf, struct seq_fi
+ 		}
+ 
+ 		if (fmt[i] == 's') {
++			void *unsafe_ptr;
++
+ 			/* try our best to copy */
+ 			if (memcpy_cnt >= MAX_SEQ_PRINTF_MAX_MEMCPY) {
+ 				err = -E2BIG;
+ 				goto out;
  			}
  
- 			unsafe_ptr = (void *)(long)args[fmt_cnt];
--			if ((unsigned long)unsafe_ptr < TASK_SIZE) {
--				err = strncpy_from_user_nofault(
--					bufs->buf[memcpy_cnt], unsafe_ptr,
--					MAX_SEQ_PRINTF_STR_LEN);
--			} else {
--				err = -EFAULT;
--			}
+-			err = strncpy_from_unsafe_strict(bufs->buf[memcpy_cnt],
+-							 (void *) (long) args[fmt_cnt],
+-							 MAX_SEQ_PRINTF_STR_LEN);
++			unsafe_ptr = (void *)(long)args[fmt_cnt];
 +			err = strncpy_from_kernel_nofault(bufs->buf[memcpy_cnt],
 +					unsafe_ptr, MAX_SEQ_PRINTF_STR_LEN);
  			if (err < 0)
