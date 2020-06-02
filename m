@@ -1,223 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-mount-shared-volume-without-ha-stack.patch
- removed from -mm tree
-Date: Tue, 02 Jun 2020 14:37:33 -0700
-Message-ID: <20200602213733.CSLeoCMSE%akpm@linux-foundation.org>
+Subject: [merged]
+ arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch removed from
+ -mm tree
+Date: Tue, 02 Jun 2020 14:37:36 -0700
+Message-ID: <20200602213736.zVgpgIg-p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50652 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50726 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727032AbgFBVhf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 17:37:35 -0400
+        id S1726320AbgFBVhi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 17:37:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gechangwei@live.cn, ghe@suse.com, jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
+To: akpm@linux-foundation.org, deller@gmx.de, James.Bottomley@HansenPartnership.com, lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
 
 
 The patch titled
-     Subject: ocfs2: mount shared volume without ha stack
+     Subject: arch/parisc/include/asm/pgtable.h: remove unused `old_pte'
 has been removed from the -mm tree.  Its filename was
-     ocfs2-mount-shared-volume-without-ha-stack.patch
+     arch-parisc-include-asm-pgtableh-remove-unused-old_pte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: mount shared volume without ha stack
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/parisc/include/asm/pgtable.h: remove unused `old_pte'
 
-Usually we create and use a ocfs2 shared volume on the top of ha stack. 
-For pcmk based ha stack, which includes DLM, corosync and pacemaker
-services.
+parisc's set_pte_at() macro has set-but-not-used variable.
 
-The customers complained they could not mount existent ocfs2 volume in the
-single node without ha stack, e.g.  single node backup/restore scenario.
+include/linux/pgtable.h: In function 'pte_clear_not_present_full':
+arch/parisc/include/asm/pgtable.h:96:9: warning: variable 'old_pte' set but not used [-Wunused-but-set-variable]
 
-Like this case, the customers just want to access the data from the
-existent ocfs2 volume quickly, but do not want to restart or setup ha
-stack.
-
-Then, I'd like to add a mount option "nocluster", if the users use this
-option to mount a ocfs2 shared volume, the whole mount will not depend on
-the ha related services.  the command will mount the existent ocfs2 volume
-directly (like local mount), for avoiding setup the ha stack.
-
-Link: http://lkml.kernel.org/r/20200423053300.22661-1-ghe@suse.com
-Signed-off-by: Gang He <ghe@suse.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2.h    |    4 ++-
- fs/ocfs2/slot_map.c |   46 ++++++++++++++++++++++++------------------
- fs/ocfs2/super.c    |   21 +++++++++++++++++++
- 3 files changed, 51 insertions(+), 20 deletions(-)
+ arch/parisc/include/asm/pgtable.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/fs/ocfs2/ocfs2.h~ocfs2-mount-shared-volume-without-ha-stack
-+++ a/fs/ocfs2/ocfs2.h
-@@ -279,6 +279,7 @@ enum ocfs2_mount_options
- 	OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT = 1 << 15,  /* Journal Async Commit */
- 	OCFS2_MOUNT_ERRORS_CONT = 1 << 16, /* Return EIO to the calling process on error */
- 	OCFS2_MOUNT_ERRORS_ROFS = 1 << 17, /* Change filesystem to read-only on error */
-+	OCFS2_MOUNT_NOCLUSTER = 1 << 18, /* No cluster aware filesystem mount */
- };
+--- a/arch/parisc/include/asm/pgtable.h~arch-parisc-include-asm-pgtableh-remove-unused-old_pte
++++ a/arch/parisc/include/asm/pgtable.h
+@@ -93,10 +93,8 @@ static inline void purge_tlb_entries(str
  
- #define OCFS2_OSB_SOFT_RO	0x0001
-@@ -673,7 +674,8 @@ static inline int ocfs2_cluster_o2cb_glo
- 
- static inline int ocfs2_mount_local(struct ocfs2_super *osb)
- {
--	return (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_LOCAL_MOUNT);
-+	return ((osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_LOCAL_MOUNT)
-+		|| (osb->s_mount_opt & OCFS2_MOUNT_NOCLUSTER));
- }
- 
- static inline int ocfs2_uses_extended_slot_map(struct ocfs2_super *osb)
---- a/fs/ocfs2/slot_map.c~ocfs2-mount-shared-volume-without-ha-stack
-+++ a/fs/ocfs2/slot_map.c
-@@ -254,14 +254,16 @@ static int __ocfs2_find_empty_slot(struc
- 	int i, ret = -ENOSPC;
- 
- 	if ((preferred >= 0) && (preferred < si->si_num_slots)) {
--		if (!si->si_slots[preferred].sl_valid) {
-+		if (!si->si_slots[preferred].sl_valid ||
-+		    !si->si_slots[preferred].sl_node_num) {
- 			ret = preferred;
- 			goto out;
- 		}
- 	}
- 
- 	for(i = 0; i < si->si_num_slots; i++) {
--		if (!si->si_slots[i].sl_valid) {
-+		if (!si->si_slots[i].sl_valid ||
-+		    !si->si_slots[i].sl_node_num) {
- 			ret = i;
- 			break;
- 		}
-@@ -456,24 +458,30 @@ int ocfs2_find_slot(struct ocfs2_super *
- 	spin_lock(&osb->osb_lock);
- 	ocfs2_update_slot_info(si);
- 
--	/* search for ourselves first and take the slot if it already
--	 * exists. Perhaps we need to mark this in a variable for our
--	 * own journal recovery? Possibly not, though we certainly
--	 * need to warn to the user */
--	slot = __ocfs2_node_num_to_slot(si, osb->node_num);
--	if (slot < 0) {
--		/* if no slot yet, then just take 1st available
--		 * one. */
--		slot = __ocfs2_find_empty_slot(si, osb->preferred_slot);
-+	if (ocfs2_mount_local(osb))
-+		/* use slot 0 directly in local mode */
-+		slot = 0;
-+	else {
-+		/* search for ourselves first and take the slot if it already
-+		 * exists. Perhaps we need to mark this in a variable for our
-+		 * own journal recovery? Possibly not, though we certainly
-+		 * need to warn to the user */
-+		slot = __ocfs2_node_num_to_slot(si, osb->node_num);
- 		if (slot < 0) {
--			spin_unlock(&osb->osb_lock);
--			mlog(ML_ERROR, "no free slots available!\n");
--			status = -EINVAL;
--			goto bail;
--		}
--	} else
--		printk(KERN_INFO "ocfs2: Slot %d on device (%s) was already "
--		       "allocated to this node!\n", slot, osb->dev_str);
-+			/* if no slot yet, then just take 1st available
-+			 * one. */
-+			slot = __ocfs2_find_empty_slot(si, osb->preferred_slot);
-+			if (slot < 0) {
-+				spin_unlock(&osb->osb_lock);
-+				mlog(ML_ERROR, "no free slots available!\n");
-+				status = -EINVAL;
-+				goto bail;
-+			}
-+		} else
-+			printk(KERN_INFO "ocfs2: Slot %d on device (%s) was "
-+			       "already allocated to this node!\n",
-+			       slot, osb->dev_str);
-+	}
- 
- 	ocfs2_set_slot(si, slot, osb->node_num);
- 	osb->slot_num = slot;
---- a/fs/ocfs2/super.c~ocfs2-mount-shared-volume-without-ha-stack
-+++ a/fs/ocfs2/super.c
-@@ -175,6 +175,7 @@ enum {
- 	Opt_dir_resv_level,
- 	Opt_journal_async_commit,
- 	Opt_err_cont,
-+	Opt_nocluster,
- 	Opt_err,
- };
- 
-@@ -208,6 +209,7 @@ static const match_table_t tokens = {
- 	{Opt_dir_resv_level, "dir_resv_level=%u"},
- 	{Opt_journal_async_commit, "journal_async_commit"},
- 	{Opt_err_cont, "errors=continue"},
-+	{Opt_nocluster, "nocluster"},
- 	{Opt_err, NULL}
- };
- 
-@@ -619,6 +621,13 @@ static int ocfs2_remount(struct super_bl
- 		goto out;
- 	}
- 
-+	tmp = OCFS2_MOUNT_NOCLUSTER;
-+	if ((osb->s_mount_opt & tmp) != (parsed_options.mount_opt & tmp)) {
-+		ret = -EINVAL;
-+		mlog(ML_ERROR, "Cannot change nocluster option on remount\n");
-+		goto out;
-+	}
-+
- 	tmp = OCFS2_MOUNT_HB_LOCAL | OCFS2_MOUNT_HB_GLOBAL |
- 		OCFS2_MOUNT_HB_NONE;
- 	if ((osb->s_mount_opt & tmp) != (parsed_options.mount_opt & tmp)) {
-@@ -859,6 +868,7 @@ static int ocfs2_verify_userspace_stack(
- 	}
- 
- 	if (ocfs2_userspace_stack(osb) &&
-+	    !(osb->s_mount_opt & OCFS2_MOUNT_NOCLUSTER) &&
- 	    strncmp(osb->osb_cluster_stack, mopt->cluster_stack,
- 		    OCFS2_STACK_LABEL_LEN)) {
- 		mlog(ML_ERROR,
-@@ -1139,6 +1149,11 @@ static int ocfs2_fill_super(struct super
- 	       osb->s_mount_opt & OCFS2_MOUNT_DATA_WRITEBACK ? "writeback" :
- 	       "ordered");
- 
-+	if ((osb->s_mount_opt & OCFS2_MOUNT_NOCLUSTER) &&
-+	   !(osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_LOCAL_MOUNT))
-+		printk(KERN_NOTICE "ocfs2: The shared device (%s) is mounted "
-+		       "without cluster aware mode.\n", osb->dev_str);
-+
- 	atomic_set(&osb->vol_state, VOLUME_MOUNTED);
- 	wake_up(&osb->osb_mount_event);
- 
-@@ -1445,6 +1460,9 @@ static int ocfs2_parse_options(struct su
- 		case Opt_journal_async_commit:
- 			mopt->mount_opt |= OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT;
- 			break;
-+		case Opt_nocluster:
-+			mopt->mount_opt |= OCFS2_MOUNT_NOCLUSTER;
-+			break;
- 		default:
- 			mlog(ML_ERROR,
- 			     "Unrecognized mount option \"%s\" "
-@@ -1556,6 +1574,9 @@ static int ocfs2_show_options(struct seq
- 	if (opts & OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT)
- 		seq_printf(s, ",journal_async_commit");
- 
-+	if (opts & OCFS2_MOUNT_NOCLUSTER)
-+		seq_printf(s, ",nocluster");
-+
- 	return 0;
- }
- 
+ #define set_pte_at(mm, addr, ptep, pteval)			\
+ 	do {							\
+-		pte_t old_pte;					\
+ 		unsigned long flags;				\
+ 		spin_lock_irqsave(pgd_spinlock((mm)->pgd), flags);\
+-		old_pte = *ptep;				\
+ 		set_pte(ptep, pteval);				\
+ 		purge_tlb_entries(mm, addr);			\
+ 		spin_unlock_irqrestore(pgd_spinlock((mm)->pgd), flags);\
 _
 
-Patches currently in -mm which might be from ghe@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
+mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-add-debug_wx-support-fix.patch
+riscv-support-debug_wx-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+lib-make-a-test-module-with-get_count_order-long-fix.patch
+seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-pre.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+linux-next-post.patch
+kernel-add-panic_on_taint-fix.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
