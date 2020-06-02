@@ -1,53 +1,44 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 051/128] mm/page-writeback.c: remove unused
- variable
-Date: Mon, 01 Jun 2020 21:48:15 -0700
-Message-ID: <20200602044815.avRQl4X5j%akpm@linux-foundation.org>
+Subject: [patch 050/128] mm/filemap.c: remove misleading comment
+Date: Mon, 01 Jun 2020 21:48:12 -0700
+Message-ID: <20200602044812.GTUDQxeSg%akpm@linux-foundation.org>
 References: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39366 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39298 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725835AbgFBEsQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:48:16 -0400
+        id S1725986AbgFBEsO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:48:14 -0400
 In-Reply-To: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, yuchao0@huawei.com
+To: akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, william.kucharski@oracle.com, willy@infradead.org
 
-From: Chao Yu <yuchao0@huawei.com>
-Subject: mm/page-writeback.c: remove unused variable
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/filemap.c: remove misleading comment
 
-Commit 64081362e8ff ("mm/page-writeback.c: fix range_cyclic writeback
-vs writepages deadlock") left unused variable, remove it.
+We no longer return 0 here and the comment doesn't tell us anything that
+we don't already know (SIGBUS is a pretty good indicator that things
+didn't work out).
 
-Link: http://lkml.kernel.org/r/20200528033740.17269-1-yuchao0@huawei.com
-Signed-off-by: Chao Yu <yuchao0@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: http://lkml.kernel.org/r/20200529123243.20640-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/filemap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/page-writeback.c~writeback-remove-unused-variable
-+++ a/mm/page-writeback.c
-@@ -2164,7 +2164,6 @@ int write_cache_pages(struct address_spa
- 	int error;
- 	struct pagevec pvec;
- 	int nr_pages;
--	pgoff_t uninitialized_var(writeback_index);
- 	pgoff_t index;
- 	pgoff_t end;		/* Inclusive */
- 	pgoff_t done_index;
-@@ -2173,8 +2172,7 @@ int write_cache_pages(struct address_spa
+--- a/mm/filemap.c~mm-remove-misleading-comment
++++ a/mm/filemap.c
+@@ -2566,7 +2566,6 @@ page_not_uptodate:
+ 	if (!error || error == AOP_TRUNCATED_PAGE)
+ 		goto retry_find;
  
- 	pagevec_init(&pvec);
- 	if (wbc->range_cyclic) {
--		writeback_index = mapping->writeback_index; /* prev offset */
--		index = writeback_index;
-+		index = mapping->writeback_index; /* prev offset */
- 		end = -1;
- 	} else {
- 		index = wbc->range_start >> PAGE_SHIFT;
+-	/* Things didn't work out. Return zero to tell the mm layer so. */
+ 	shrink_readahead_size_eio(ra);
+ 	return VM_FAULT_SIGBUS;
+ 
 _
