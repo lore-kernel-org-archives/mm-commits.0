@@ -1,54 +1,78 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 126/128] ubsan: entirely disable alignment checks
- under UBSAN_TRAP
-Date: Mon, 01 Jun 2020 21:52:46 -0700
-Message-ID: <20200602045246.pe2oJNbY9%akpm@linux-foundation.org>
+Subject: [patch 127/128] mm/mm_init.c: report kasan-tag
+ information stored in page->flags
+Date: Mon, 01 Jun 2020 21:52:49 -0700
+Message-ID: <20200602045249.sPyr89GXs%akpm@linux-foundation.org>
 References: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47174 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47284 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725890AbgFBEwr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:52:47 -0400
+        id S1725890AbgFBEwv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:52:51 -0400
 In-Reply-To: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dvyukov@google.com, jpoimboe@redhat.com, keescook@chromium.org, lenaptr@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, rdunlap@infradead.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, chunyan.zhang@unisoc.com, dvyukov@google.com, glider@google.com, jing.xia@unisoc.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, orson.zhai@unisoc.com, torvalds@linux-foundation.org
 
-From: Kees Cook <keescook@chromium.org>
-Subject: ubsan: entirely disable alignment checks under UBSAN_TRAP
+From: Jing Xia <jing.xia@unisoc.com>
+Subject: mm/mm_init.c: report kasan-tag information stored in page->flags
 
-Commit 8d58f222e85f ("ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST")
-tried to fix the pathological results of UBSAN_ALIGNMENT with UBSAN_TRAP
-(which objtool would rightly scream about), but it made an assumption
-about how COMPILE_TEST gets set (it is not set for randconfig).  As a
-result, we need a bigger hammer here: just don't allow the alignment
-checks with the trap mode.
+The pageflags_layout_usage shows incorrect message by means of
+mminit_loglevel when Kasan runs in the mode of software tag-based enabled
+with CONFIG_KASAN_SW_TAGS.  This patch corrects it and reports kasan-tag
+information.
 
-Link: http://lkml.kernel.org/r/202005291236.000FCB6@keescook
-Link: https://lore.kernel.org/lkml/742521db-1e8c-0d7a-1ed4-a908894fb497@infradead.org/
-Fixes: 8d58f222e85f ("ubsan: disable UBSAN_ALIGNMENT under COMPILE_TEST")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Link: http://lkml.kernel.org/r/1586929370-10838-1-git-send-email-jing.xia.mail@gmail.com
+Signed-off-by: Jing Xia <jing.xia@unisoc.com>
+Cc: Chunyan Zhang <chunyan.zhang@unisoc.com>
+Cc: Orson Zhai <orson.zhai@unisoc.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Elena Petrova <lenaptr@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mm_init.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
---- a/lib/Kconfig.ubsan~ubsan-entirely-disable-alignment-checks-under-ubsan_trap
-+++ a/lib/Kconfig.ubsan
-@@ -63,7 +63,7 @@ config UBSAN_SANITIZE_ALL
- config UBSAN_ALIGNMENT
- 	bool "Enable checks for pointers alignment"
- 	default !HAVE_EFFICIENT_UNALIGNED_ACCESS
--	depends on !X86 || !COMPILE_TEST
-+	depends on !UBSAN_TRAP
- 	help
- 	  This option enables the check of unaligned memory accesses.
- 	  Enabling this option on architectures that support unaligned
+--- a/mm/mm_init.c~mm-init-report-kasan-tag-information-stored-in-page-flags
++++ a/mm/mm_init.c
+@@ -67,26 +67,30 @@ void __init mminit_verify_pageflags_layo
+ 	unsigned long or_mask, add_mask;
+ 
+ 	shift = 8 * sizeof(unsigned long);
+-	width = shift - SECTIONS_WIDTH - NODES_WIDTH - ZONES_WIDTH - LAST_CPUPID_SHIFT;
++	width = shift - SECTIONS_WIDTH - NODES_WIDTH - ZONES_WIDTH
++		- LAST_CPUPID_SHIFT - KASAN_TAG_WIDTH;
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_widths",
+-		"Section %d Node %d Zone %d Lastcpupid %d Flags %d\n",
++		"Section %d Node %d Zone %d Lastcpupid %d Kasantag %d Flags %d\n",
+ 		SECTIONS_WIDTH,
+ 		NODES_WIDTH,
+ 		ZONES_WIDTH,
+ 		LAST_CPUPID_WIDTH,
++		KASAN_TAG_WIDTH,
+ 		NR_PAGEFLAGS);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_shifts",
+-		"Section %d Node %d Zone %d Lastcpupid %d\n",
++		"Section %d Node %d Zone %d Lastcpupid %d Kasantag %d\n",
+ 		SECTIONS_SHIFT,
+ 		NODES_SHIFT,
+ 		ZONES_SHIFT,
+-		LAST_CPUPID_SHIFT);
++		LAST_CPUPID_SHIFT,
++		KASAN_TAG_WIDTH);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_pgshifts",
+-		"Section %lu Node %lu Zone %lu Lastcpupid %lu\n",
++		"Section %lu Node %lu Zone %lu Lastcpupid %lu Kasantag %lu\n",
+ 		(unsigned long)SECTIONS_PGSHIFT,
+ 		(unsigned long)NODES_PGSHIFT,
+ 		(unsigned long)ZONES_PGSHIFT,
+-		(unsigned long)LAST_CPUPID_PGSHIFT);
++		(unsigned long)LAST_CPUPID_PGSHIFT,
++		(unsigned long)KASAN_TAG_PGSHIFT);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_nodezoneid",
+ 		"Node/Zone ID: %lu -> %lu\n",
+ 		(unsigned long)(ZONEID_PGOFF + ZONEID_SHIFT),
 _
