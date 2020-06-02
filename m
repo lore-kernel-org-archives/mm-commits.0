@@ -1,27 +1,27 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 102/128] mm: rename vmap_page_range to
- map_kernel_range
-Date: Mon, 01 Jun 2020 21:51:11 -0700
-Message-ID: <20200602045111.d0rsOhx7q%akpm@linux-foundation.org>
+Subject: [patch 103/128] mm: don't return the number of pages from
+ map_kernel_range{,_noflush}
+Date: Mon, 01 Jun 2020 21:51:15 -0700
+Message-ID: <20200602045115.72u1RbBJe%akpm@linux-foundation.org>
 References: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43746 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725890AbgFBEvN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 00:51:13 -0400
+        id S1725890AbgFBEvR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 2 Jun 2020 00:51:17 -0400
 In-Reply-To: <20200601214457.919c35648e96a2b46b573fe1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: airlied@linux.ie, akpm@linux-foundation.org, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, christophe.leroy@c-s.fr, daniel.vetter@ffwll.ch, daniel@ffwll.ch, gor@linux.ibm.com, gregkh@linuxfoundation.org, haiyangz@microsoft.com, hannes@cmpxchg.org, hch@lst.de, heiko.carstens@de.ibm.com, kys@microsoft.com, labbott@redhat.com, linux-mm@kvack.org, mark.rutland@arm.com, mikelley@microsoft.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, paulus@ozlabs.org, peterz@infradead.org, robin.murphy@arm.com, sakari.ailus@linux.intel.com, sthemmin@microsoft.com, sumit.semwal@linaro.org, torvalds@linux-foundation.org, wei.liu@kernel.org, will@kernel.org, xiang@kernel.org
 
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: rename vmap_page_range to map_kernel_range
+Subject: mm: don't return the number of pages from map_kernel_range{,_noflush}
 
-This matches the map_kernel_range_noflush API.  Also change to pass a size
-instead of the end, similar to the noflush version.
+None of the callers needs the number of pages, and a 0 / -errno return
+value is a lot more intuitive.
 
-Link: http://lkml.kernel.org/r/20200414131348.444715-15-hch@lst.de
+Link: http://lkml.kernel.org/r/20200414131348.444715-16-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
@@ -53,47 +53,27 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/vmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-rename-vmap_page_range-to-map_kernel_range
+--- a/mm/vmalloc.c~mm-dont-return-the-number-of-pages-from-map_kernel_range_noflush
 +++ a/mm/vmalloc.c
-@@ -273,13 +273,13 @@ int map_kernel_range_noflush(unsigned lo
- 	return nr;
+@@ -250,7 +250,7 @@ static int vmap_p4d_range(pgd_t *pgd, un
+  * function.
+  *
+  * RETURNS:
+- * The number of pages mapped on success, -errno on failure.
++ * 0 on success, -errno on failure.
+  */
+ int map_kernel_range_noflush(unsigned long addr, unsigned long size,
+ 			     pgprot_t prot, struct page **pages)
+@@ -270,7 +270,7 @@ int map_kernel_range_noflush(unsigned lo
+ 			return err;
+ 	} while (pgd++, addr = next, addr != end);
+ 
+-	return nr;
++	return 0;
  }
  
--static int vmap_page_range(unsigned long start, unsigned long end,
-+static int map_kernel_range(unsigned long start, unsigned long size,
- 			   pgprot_t prot, struct page **pages)
- {
- 	int ret;
- 
--	ret = map_kernel_range_noflush(start, end - start, prot, pages);
--	flush_cache_vmap(start, end);
-+	ret = map_kernel_range_noflush(start, size, prot, pages);
-+	flush_cache_vmap(start, start + size);
- 	return ret;
- }
- 
-@@ -1867,7 +1867,7 @@ void *vm_map_ram(struct page **pages, un
- 
- 	kasan_unpoison_vmalloc(mem, size);
- 
--	if (vmap_page_range(addr, addr + size, prot, pages) < 0) {
-+	if (map_kernel_range(addr, size, prot, pages) < 0) {
- 		vm_unmap_ram(mem, count);
- 		return NULL;
- 	}
-@@ -2031,10 +2031,9 @@ void unmap_kernel_range(unsigned long ad
- int map_vm_area(struct vm_struct *area, pgprot_t prot, struct page **pages)
- {
- 	unsigned long addr = (unsigned long)area->addr;
--	unsigned long end = addr + get_vm_area_size(area);
- 	int err;
- 
--	err = vmap_page_range(addr, end, prot, pages);
-+	err = map_kernel_range(addr, get_vm_area_size(area), prot, pages);
- 
- 	return err > 0 ? 0 : err;
- }
+ static int map_kernel_range(unsigned long start, unsigned long size,
 _
