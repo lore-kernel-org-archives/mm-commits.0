@@ -1,95 +1,103 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 102/131] mm: memcontrol: update page->mem_cgroup
- stability rules
-Date: Wed, 03 Jun 2020 16:02:27 -0700
-Message-ID: <20200603230227.qrSxzvCXO%akpm@linux-foundation.org>
+Subject: [patch 128/131] mm: add DEBUG_WX support
+Date: Wed, 03 Jun 2020 16:03:52 -0700
+Message-ID: <20200603230352.5Ea0perKx%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47824 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726678AbgFCXIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:43 -0400
+        id S1726839AbgFCXIo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:44 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, bsingharora@gmail.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, linux-mm@kvack.org, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, torvalds@linux-foundation.org, will@kernel.org, zong.li@sifive.com
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: update page->mem_cgroup stability rules
+From: Zong Li <zong.li@sifive.com>
+Subject: mm: add DEBUG_WX support
 
-The previous patches have simplified the access rules around
-page->mem_cgroup somewhat:
+Patch series "Extract DEBUG_WX to shared use".
 
-1. We never change page->mem_cgroup while the page is isolated by
-   somebody else.  This was by far the biggest exception to our rules and
-   it didn't stop at lock_page() or lock_page_memcg().
+Some architectures support DEBUG_WX function, it's verbatim from each
+others, so extract to mm/Kconfig.debug for shared use.
 
-2. We charge pages before they get put into page tables now, so the
-   somewhat fishy rule about "can be in page table as long as it's still
-   locked" is now gone and boiled down to having an exclusive reference to
-   the page.
+PPC and ARM ports don't support generic page dumper yet, so we only
+refine x86 and arm64 port in this patch series.
 
-Document the new rules.  Any of the following will stabilize the
-page->mem_cgroup association:
+For RISC-V port, the DEBUG_WX support depends on other patches which
+be merged already:
+  - RISC-V page table dumper
+  - Support strict kernel memory permissions for security
 
-- the page lock
-- LRU isolation
-- lock_page_memcg()
-- exclusive access to the page
 
-Link: http://lkml.kernel.org/r/20200508183105.225460-20-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
-Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+This patch (of 4):
+
+Some architectures support DEBUG_WX function, it's verbatim from each
+others.  Extract to mm/Kconfig.debug for shared use.
+
+[akpm@linux-foundation.org: reword text, per Will Deacon & Zong Li]
+  Link: http://lkml.kernel.org/r/20200427194245.oxRJKj3fn%25akpm@linux-foundation.org
+[zong.li@sifive.com: remove the specific name of arm64]
+  Link: http://lkml.kernel.org/r/3a6a92ecedc54e1d0fc941398e63d504c2cd5611.1589178399.git.zong.li@sifive.com
+[zong.li@sifive.com: add MMU dependency for DEBUG_WX]
+  Link: http://lkml.kernel.org/r/4a674ac7863ff39ca91847b10e51209771f99416.1589178399.git.zong.li@sifive.com
+Link: http://lkml.kernel.org/r/cover.1587455584.git.zong.li@sifive.com
+Link: http://lkml.kernel.org/r/23980cd0f0e5d79e24a92169116407c75bcc650d.1587455584.git.zong.li@sifive.com
+Signed-off-by: Zong Li <zong.li@sifive.com>
+Suggested-by: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ mm/Kconfig.debug |   32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcontrol-update-page-mem_cgroup-stability-rules
-+++ a/mm/memcontrol.c
-@@ -1201,9 +1201,8 @@ int mem_cgroup_scan_tasks(struct mem_cgr
-  * @page: the page
-  * @pgdat: pgdat of the page
-  *
-- * This function is only safe when following the LRU page isolation
-- * and putback protocol: the LRU lock must be held, and the page must
-- * either be PageLRU() or the caller must have isolated/allocated it.
-+ * This function relies on page->mem_cgroup being stable - see the
-+ * access rules in commit_charge().
-  */
- struct lruvec *mem_cgroup_page_lruvec(struct page *page, struct pglist_data *pgdat)
- {
-@@ -2659,18 +2658,12 @@ static void commit_charge(struct page *p
- {
- 	VM_BUG_ON_PAGE(page->mem_cgroup, page);
- 	/*
--	 * Nobody should be changing or seriously looking at
--	 * page->mem_cgroup at this point:
-+	 * Any of the following ensures page->mem_cgroup stability:
- 	 *
--	 * - the page is uncharged
--	 *
--	 * - the page is off-LRU
--	 *
--	 * - an anonymous fault has exclusive page access, except for
--	 *   a locked page table
--	 *
--	 * - a page cache insertion, a swapin fault, or a migration
--	 *   have the page locked
-+	 * - the page lock
-+	 * - LRU isolation
-+	 * - lock_page_memcg()
-+	 * - exclusive reference
- 	 */
- 	page->mem_cgroup = memcg;
- }
+--- a/mm/Kconfig.debug~mm-add-debug_wx-support
++++ a/mm/Kconfig.debug
+@@ -118,6 +118,38 @@ config DEBUG_RODATA_TEST
+     ---help---
+       This option enables a testcase for the setting rodata read-only.
+ 
++config ARCH_HAS_DEBUG_WX
++	bool
++
++config DEBUG_WX
++	bool "Warn on W+X mappings at boot"
++	depends on ARCH_HAS_DEBUG_WX
++	depends on MMU
++	select PTDUMP_CORE
++	help
++	  Generate a warning if any W+X mappings are found at boot.
++
++	  This is useful for discovering cases where the kernel is leaving W+X
++	  mappings after applying NX, as such mappings are a security risk.
++
++	  Look for a message in dmesg output like this:
++
++	    <arch>/mm: Checked W+X mappings: passed, no W+X pages found.
++
++	  or like this, if the check failed:
++
++	    <arch>/mm: Checked W+X mappings: failed, <N> W+X pages found.
++
++	  Note that even if the check fails, your kernel is possibly
++	  still fine, as W+X mappings are not a security hole in
++	  themselves, what they do is that they make the exploitation
++	  of other unfixed kernel bugs easier.
++
++	  There is no runtime or memory usage effect of this option
++	  once the kernel has booted up - it's a one time check.
++
++	  If in doubt, say "Y".
++
+ config GENERIC_PTDUMP
+ 	bool
+ 
 _
