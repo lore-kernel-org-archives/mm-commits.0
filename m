@@ -1,79 +1,141 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: [folded-merged]
- mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch removed from -mm
+ mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch removed from -mm
  tree
-Date: Wed, 03 Jun 2020 15:21:44 -0700
-Message-ID: <20200603222144.RRrTCwfkf%akpm@linux-foundation.org>
+Date: Wed, 03 Jun 2020 15:22:53 -0700
+Message-ID: <20200603222253.hQv_PO3s9%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56400 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56786 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726749AbgFCWVp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:21:45 -0400
+        id S1726908AbgFCWWz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:22:55 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: anshuman.khandual@arm.com, catalin.marinas@arm.com, mm-commits@vger.kernel.org, will@kernel.org
 
 
 The patch titled
-     Subject: mm-deactivations-shouldnt-bias-the-lru-balance-fix
+     Subject: mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
 has been removed from the -mm tree.  Its filename was
-     mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch
+     mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2.patch
 
-This patch was dropped because it was folded into mm-deactivations-shouldnt-bias-the-lru-balance.patch
+This patch was dropped because it was folded into mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: mm-deactivations-shouldnt-bias-the-lru-balance-fix
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
 
-fix set-but-not-used warning
+chang pmd_mknotvalid() to pmd_mkinvalid() per Will
 
-Link: http://lkml.kernel.org/r/20200522133335.GA624@Qians-MacBook-Air.local
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/1587520326-10099-3-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/arc/include/asm/hugepage.h       |    2 +-
+ arch/arm/include/asm/pgtable-3level.h |    2 +-
+ arch/arm64/include/asm/pgtable.h      |    2 +-
+ arch/mips/include/asm/pgtable.h       |    2 +-
+ arch/x86/include/asm/pgtable.h        |    2 +-
+ arch/x86/mm/kmmio.c                   |    2 +-
+ mm/pgtable-generic.c                  |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/swap.c~mm-deactivations-shouldnt-bias-the-lru-balance-fix
-+++ a/mm/swap.c
-@@ -472,7 +472,7 @@ void lru_cache_add_active_or_unevictable
- static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruvec,
- 			      void *arg)
+--- a/arch/arc/include/asm/hugepage.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/arc/include/asm/hugepage.h
+@@ -26,7 +26,7 @@ static inline pmd_t pte_pmd(pte_t pte)
+ #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
+ #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
+ #define pmd_mkhuge(pmd)		pte_pmd(pte_mkhuge(pmd_pte(pmd)))
+-#define pmd_mknotvalid(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
++#define pmd_mkinvalid(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
+ #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+ 
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
+--- a/arch/arm64/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -366,7 +366,7 @@ static inline int pmd_protnone(pmd_t pmd
+ #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+ #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
+ #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
+-#define pmd_mknotvalid(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
++#define pmd_mkinvalid(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
+ 
+ #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
+ 
+--- a/arch/arm/include/asm/pgtable-3level.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -221,7 +221,7 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
+ #define pmdp_establish generic_pmdp_establish
+ 
+ /* represent a notpresent pmd by faulting entry, this is used by pmdp_invalidate */
+-static inline pmd_t pmd_mknotvalid(pmd_t pmd)
++static inline pmd_t pmd_mkinvalid(pmd_t pmd)
  {
--	int lru, file;
-+	int lru;
- 	bool active;
+ 	return __pmd(pmd_val(pmd) & ~L_PMD_SECT_VALID);
+ }
+--- a/arch/mips/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/mips/include/asm/pgtable.h
+@@ -631,7 +631,7 @@ static inline pmd_t pmd_modify(pmd_t pmd
+ 	return pmd;
+ }
  
- 	if (!PageLRU(page))
-@@ -486,7 +486,6 @@ static void lru_deactivate_file_fn(struc
- 		return;
+-static inline pmd_t pmd_mknotvalid(pmd_t pmd)
++static inline pmd_t pmd_mkinvalid(pmd_t pmd)
+ {
+ 	pmd_val(pmd) &= ~(_PAGE_PRESENT | _PAGE_VALID | _PAGE_DIRTY);
  
- 	active = PageActive(page);
--	file = page_is_file_lru(page);
- 	lru = page_lru_base_type(page);
+--- a/arch/x86/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/x86/include/asm/pgtable.h
+@@ -624,7 +624,7 @@ static inline pud_t pfn_pud(unsigned lon
+ 	return __pud(pfn | check_pgprot(pgprot));
+ }
  
- 	del_page_from_lru_list(page, lruvec, lru + active);
+-static inline pmd_t pmd_mknotvalid(pmd_t pmd)
++static inline pmd_t pmd_mkinvalid(pmd_t pmd)
+ {
+ 	return pfn_pmd(pmd_pfn(pmd),
+ 		      __pgprot(pmd_flags(pmd) & ~(_PAGE_PRESENT|_PAGE_PROTNONE)));
+--- a/arch/x86/mm/kmmio.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/arch/x86/mm/kmmio.c
+@@ -130,7 +130,7 @@ static void clear_pmd_presence(pmd_t *pm
+ 	pmdval_t v = pmd_val(*pmd);
+ 	if (clear) {
+ 		*old = v;
+-		new_pmd = pmd_mknotvalid(*pmd);
++		new_pmd = pmd_mkinvalid(*pmd);
+ 	} else {
+ 		/* Presume this has been called with clear==true previously */
+ 		new_pmd = __pmd(*old);
+--- a/mm/pgtable-generic.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mkinvalid-v2
++++ a/mm/pgtable-generic.c
+@@ -194,7 +194,7 @@ pgtable_t pgtable_trans_huge_withdraw(st
+ pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 		     pmd_t *pmdp)
+ {
+-	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mknotvalid(*pmdp));
++	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mkinvalid(*pmdp));
+ 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return old;
+ }
 _
 
-Patches currently in -mm which might be from cai@lca.pw are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-deactivations-shouldnt-bias-the-lru-balance.patch
-mm-kmemleak-silence-kcsan-splats-in-checksum.patch
-mm-frontswap-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races-v2.patch
-mm-swap_state-mark-various-intentional-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races-v2.patch
-mm-page_counter-fix-various-data-races-at-memsw.patch
-mm-memcontrol-fix-a-data-race-in-scan-count.patch
-mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-mm-mempool-fix-a-data-race-in-mempool_free.patch
-mm-util-annotate-an-data-race-at-vm_committed_as.patch
-mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
-mm-annotate-a-data-race-in-page_zonenum.patch
-mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
+mm-page_alloc-restrict-and-formalize-compound_page_dtors.patch
+arm64-mm-drop-__have_arch_huge_ptep_get.patch
+mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range.patch
+mm-hugetlb-define-a-generic-fallback-for-arch_clear_hugepage_flags.patch
+powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
+mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
+x86-mm-define-mm_p4d_folded.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v17.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
