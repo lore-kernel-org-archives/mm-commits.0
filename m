@@ -1,98 +1,69 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 047/131] mm, page_alloc: reset the
- zone->watermark_boost early
-Date: Wed, 03 Jun 2020 15:59:14 -0700
-Message-ID: <20200603225914.E66bk3LLS%akpm@linux-foundation.org>
+Subject: [patch 048/131] mm/page_alloc: restrict and formalize
+ compound_page_dtors[]
+Date: Wed, 03 Jun 2020 15:59:17 -0700
+Message-ID: <20200603225917._dZfZ5SQB%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41296 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41350 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725821AbgFCW7R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:59:17 -0400
+        id S1725821AbgFCW7S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:59:18 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhe@redhat.com, charante@codeaurora.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vinmenon@codeaurora.org
+To: akpm@linux-foundation.org, anshuman.khandual@arm.com, david@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm, page_alloc: reset the zone->watermark_boost early
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/page_alloc: restrict and formalize compound_page_dtors[]
 
-Updating the zone watermarks by any means, like min_free_kbytes,
-water_mark_scale_factor etc, when ->watermark_boost is set will result in
-higher low and high watermarks than the user asked.
+Restrict elements in compound_page_dtors[] array per NR_COMPOUND_DTORS and
+explicitly position them according to enum compound_dtor_id.  This
+improves protection against possible misalignment between
+compound_page_dtors[] and enum compound_dtor_id later on.
 
-Below are the steps to reproduce the problem on system setup of Android
-kernel running on Snapdragon hardware.
-
-1) Default settings of the system are as below:
-
-   #cat /proc/sys/vm/min_free_kbytes = 5162
-   #cat /proc/zoneinfo | grep -e boost -e low -e "high " -e min -e Node
-	Node 0, zone   Normal
-		min      797
-		low      8340
-		high     8539
-
-2) Monitor the zone->watermark_boost(by adding a debug print in the
-   kernel) and whenever it is greater than zero value, write the same
-   value of min_free_kbytes obtained from step 1.
-
-   #echo 5162 > /proc/sys/vm/min_free_kbytes
-
-3) Then read the zone watermarks in the system while the
-   ->watermark_boost is zero.  This should show the same values of
-   watermarks as step 1 but shown a higher values than asked.
-
-   #cat /proc/zoneinfo | grep -e boost -e low -e "high " -e min -e Node
-	Node 0, zone   Normal
-		min      797
-		low      21148
-		high     21347
-
-These higher values are because of updating the zone watermarks using the
-macro min_wmark_pages(zone) which also adds the zone->watermark_boost.
-
-	#define min_wmark_pages(z) (z->_watermark[WMARK_MIN] +
-					z->watermark_boost)
-
-So the steps that lead to the issue are:
-
-1) On the extfrag event, watermarks are boosted by storing the required
-   value in ->watermark_boost.
-
-2) User tries to update the zone watermarks level in the system through
-   min_free_kbytes or watermark_scale_factor.
-
-3) Later, when kswapd woke up, it resets the zone->watermark_boost to
-   zero.
-
-In step 2), we use the min_wmark_pages() macro to store the watermarks
-in the zone structure thus the values are always offsetted by
-->watermark_boost value. This can be avoided by resetting the
-->watermark_boost to zero before it is used.
-
-Link: http://lkml.kernel.org/r/1589457511-4255-1-git-send-email-charante@codeaurora.org
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Link: http://lkml.kernel.org/r/1589795958-19317-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |    2 +-
+ mm/page_alloc.c    |   10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-reset-the-zone-watermark_boost-early
+--- a/include/linux/mm.h~mm-page_alloc-restrict-and-formalize-compound_page_dtors
++++ a/include/linux/mm.h
+@@ -867,7 +867,7 @@ enum compound_dtor_id {
+ #endif
+ 	NR_COMPOUND_DTORS,
+ };
+-extern compound_page_dtor * const compound_page_dtors[];
++extern compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS];
+ 
+ static inline void set_compound_page_dtor(struct page *page,
+ 		enum compound_dtor_id compound_dtor)
+--- a/mm/page_alloc.c~mm-page_alloc-restrict-and-formalize-compound_page_dtors
 +++ a/mm/page_alloc.c
-@@ -7788,9 +7788,9 @@ static void __setup_per_zone_wmarks(void
- 			    mult_frac(zone_managed_pages(zone),
- 				      watermark_scale_factor, 10000));
+@@ -302,14 +302,14 @@ const char * const migratetype_names[MIG
+ #endif
+ };
  
-+		zone->watermark_boost = 0;
- 		zone->_watermark[WMARK_LOW]  = min_wmark_pages(zone) + tmp;
- 		zone->_watermark[WMARK_HIGH] = min_wmark_pages(zone) + tmp * 2;
--		zone->watermark_boost = 0;
+-compound_page_dtor * const compound_page_dtors[] = {
+-	NULL,
+-	free_compound_page,
++compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS] = {
++	[NULL_COMPOUND_DTOR] = NULL,
++	[COMPOUND_PAGE_DTOR] = free_compound_page,
+ #ifdef CONFIG_HUGETLB_PAGE
+-	free_huge_page,
++	[HUGETLB_PAGE_DTOR] = free_huge_page,
+ #endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	free_transhuge_page,
++	[TRANSHUGE_PAGE_DTOR] = free_transhuge_page,
+ #endif
+ };
  
- 		spin_unlock_irqrestore(&zone->lock, flags);
- 	}
 _
