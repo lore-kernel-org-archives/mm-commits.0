@@ -1,86 +1,220 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 075/131] arm64/mm: drop __HAVE_ARCH_HUGE_PTEP_GET
-Date: Wed, 03 Jun 2020 16:00:56 -0700
-Message-ID: <20200603230056.4SIR-SKjH%akpm@linux-foundation.org>
+Subject: [patch 076/131] mm/hugetlb: define a generic fallback for
+ is_hugepage_only_range()
+Date: Wed, 03 Jun 2020 16:01:01 -0700
+Message-ID: <20200603230101.nXzMdSLsK%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43370 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43464 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725821AbgFCXA7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:00:59 -0400
+        id S1725821AbgFCXBE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:01:04 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, anshuman.khandual@arm.com, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, fenghua.yu@intel.com, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, James.Bottomley@HansenPartnership.com, linux-mm@kvack.org, linux@armlinux.org.uk, mike.kravetz@oracle.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, palmer@dabbelt.com, paul.walmsley@sifive.com, paulus@samba.org, tglx@linutronix.de, tony.luck@intel.com, torvalds@linux-foundation.org, tsbogend@alpha.franken.de, will@kernel.org, ysato@users.sourceforge.jp
 
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: arm64/mm: drop __HAVE_ARCH_HUGE_PTEP_GET
+Subject: mm/hugetlb: define a generic fallback for is_hugepage_only_range()
 
-Patch series "mm/hugetlb: Add some new generic fallbacks", v3.
+There are multiple similar definitions for is_hugepage_only_range() on
+various platforms.  Lets just add it's generic fallback definition for
+platforms that do not override.  This help reduce code duplication.
 
-This series adds the following new generic fallbacks.  Before that it
-drops __HAVE_ARCH_HUGE_PTEP_GET from arm64 platform.
-
-1. is_hugepage_only_range()
-2. arch_clear_hugepage_flags()
-
-After this arm (32 bit) remains the sole platform defining it's own
-huge_ptep_get() via __HAVE_ARCH_HUGE_PTEP_GET.
-
-
-This patch (of 3):
-
-Platform specific huge_ptep_get() is required only when fetching the huge
-PTE involves more than just dereferencing the page table pointer.  This is
-not the case on arm64 platform.  Hence huge_ptep_pte() can be dropped
-along with it's __HAVE_ARCH_HUGE_PTEP_GET subscription.  Before that, it
-updates the generic huge_ptep_get() with READ_ONCE() which will prevent
-known page table issues with THP on arm64.
-
-Link: http://lkml.kernel.org/r/1588907271-11920-1-git-send-email-anshuman.khandual@arm.com
-Link: http://lkml.kernel.org/r//1506527369-19535-1-git-send-email-will.deacon@arm.com/
-Link: http://lkml.kernel.org/r/1588907271-11920-2-git-send-email-anshuman.khandual@arm.com
+Link: http://lkml.kernel.org/r/1588907271-11920-3-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Russell King <linux@armlinux.org.uk>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/hugetlb.h |    6 ------
- include/asm-generic/hugetlb.h    |    2 +-
- 2 files changed, 1 insertion(+), 7 deletions(-)
+ arch/arm/include/asm/hugetlb.h     |    6 ------
+ arch/arm64/include/asm/hugetlb.h   |    6 ------
+ arch/ia64/include/asm/hugetlb.h    |    1 +
+ arch/mips/include/asm/hugetlb.h    |    7 -------
+ arch/parisc/include/asm/hugetlb.h  |    6 ------
+ arch/powerpc/include/asm/hugetlb.h |    1 +
+ arch/riscv/include/asm/hugetlb.h   |    6 ------
+ arch/s390/include/asm/hugetlb.h    |    7 -------
+ arch/sh/include/asm/hugetlb.h      |    6 ------
+ arch/sparc/include/asm/hugetlb.h   |    6 ------
+ arch/x86/include/asm/hugetlb.h     |    6 ------
+ include/linux/hugetlb.h            |    9 +++++++++
+ 12 files changed, 11 insertions(+), 56 deletions(-)
 
---- a/arch/arm64/include/asm/hugetlb.h~arm64-mm-drop-__have_arch_huge_ptep_get
+--- a/arch/arm64/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
 +++ a/arch/arm64/include/asm/hugetlb.h
 @@ -17,12 +17,6 @@
  extern bool arch_hugetlb_migration_supported(struct hstate *h);
  #endif
  
--#define __HAVE_ARCH_HUGE_PTEP_GET
--static inline pte_t huge_ptep_get(pte_t *ptep)
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr, unsigned long len)
 -{
--	return READ_ONCE(*ptep);
+-	return 0;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ 	clear_bit(PG_dcache_clean, &page->flags);
+--- a/arch/arm/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/arm/include/asm/hugetlb.h
+@@ -14,12 +14,6 @@
+ #include <asm/hugetlb-3level.h>
+ #include <asm-generic/hugetlb.h>
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr, unsigned long len)
+-{
+-	return 0;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ 	clear_bit(PG_dcache_clean, &page->flags);
+--- a/arch/ia64/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/ia64/include/asm/hugetlb.h
+@@ -20,6 +20,7 @@ static inline int is_hugepage_only_range
+ 	return (REGION_NUMBER(addr) == RGN_HPAGE ||
+ 		REGION_NUMBER((addr)+(len)-1) == RGN_HPAGE);
+ }
++#define is_hugepage_only_range is_hugepage_only_range
+ 
+ #define __HAVE_ARCH_HUGE_PTEP_CLEAR_FLUSH
+ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+--- a/arch/mips/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/mips/include/asm/hugetlb.h
+@@ -11,13 +11,6 @@
+ 
+ #include <asm/page.h>
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len)
+-{
+-	return 0;
+-}
+-
+ #define __HAVE_ARCH_PREPARE_HUGEPAGE_RANGE
+ static inline int prepare_hugepage_range(struct file *file,
+ 					 unsigned long addr,
+--- a/arch/parisc/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/parisc/include/asm/hugetlb.h
+@@ -12,12 +12,6 @@ void set_huge_pte_at(struct mm_struct *m
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep);
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len) {
+-	return 0;
+-}
+-
+ /*
+  * If the arch doesn't supply something else, assume that hugepage
+  * size aligned regions are ok without further preparation.
+--- a/arch/powerpc/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/powerpc/include/asm/hugetlb.h
+@@ -30,6 +30,7 @@ static inline int is_hugepage_only_range
+ 		return slice_is_hugepage_only_range(mm, addr, len);
+ 	return 0;
+ }
++#define is_hugepage_only_range is_hugepage_only_range
+ 
+ #define __HAVE_ARCH_HUGETLB_FREE_PGD_RANGE
+ void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
+--- a/arch/riscv/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/riscv/include/asm/hugetlb.h
+@@ -5,12 +5,6 @@
+ #include <asm-generic/hugetlb.h>
+ #include <asm/page.h>
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len) {
+-	return 0;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+--- a/arch/s390/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/s390/include/asm/hugetlb.h
+@@ -21,13 +21,6 @@ pte_t huge_ptep_get(pte_t *ptep);
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 			      unsigned long addr, pte_t *ptep);
+ 
+-static inline bool is_hugepage_only_range(struct mm_struct *mm,
+-					  unsigned long addr,
+-					  unsigned long len)
+-{
+-	return false;
+-}
+-
+ /*
+  * If the arch doesn't supply something else, assume that hugepage
+  * size aligned regions are ok without further preparation.
+--- a/arch/sh/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/sh/include/asm/hugetlb.h
+@@ -5,12 +5,6 @@
+ #include <asm/cacheflush.h>
+ #include <asm/page.h>
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len) {
+-	return 0;
+-}
+-
+ /*
+  * If the arch doesn't supply something else, assume that hugepage
+  * size aligned regions are ok without further preparation.
+--- a/arch/sparc/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/sparc/include/asm/hugetlb.h
+@@ -20,12 +20,6 @@ void set_huge_pte_at(struct mm_struct *m
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep);
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len) {
+-	return 0;
+-}
+-
+ #define __HAVE_ARCH_HUGE_PTEP_CLEAR_FLUSH
+ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 					 unsigned long addr, pte_t *ptep)
+--- a/arch/x86/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/x86/include/asm/hugetlb.h
+@@ -7,12 +7,6 @@
+ 
+ #define hugepages_supported() boot_cpu_has(X86_FEATURE_PSE)
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len) {
+-	return 0;
 -}
