@@ -1,111 +1,89 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 084/131] mm: memcontrol: fix stat-corrupting race
- in charge moving
-Date: Wed, 03 Jun 2020 16:01:28 -0700
-Message-ID: <20200603230128.KtoTvVLG2%akpm@linux-foundation.org>
+Subject: [patch 129/131] riscv: support DEBUG_WX
+Date: Wed, 03 Jun 2020 16:03:55 -0700
+Message-ID: <20200603230355.TFNjWIB4V%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47820 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726373AbgFCXIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726743AbgFCXIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 3 Jun 2020 19:08:43 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, bsingharora@gmail.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, linux-mm@kvack.org, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, torvalds@linux-foundation.org, will@kernel.org, zong.li@sifive.com
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: fix stat-corrupting race in charge moving
+From: Zong Li <zong.li@sifive.com>
+Subject: riscv: support DEBUG_WX
 
-The move_lock is a per-memcg lock, but the VM accounting code that needs
-to acquire it comes from the page and follows page->mem_cgroup under RCU
-protection.  That means that the page becomes unlocked not when we drop
-the move_lock, but when we update page->mem_cgroup.  And that assignment
-doesn't imply any memory ordering.  If that pointer write gets reordered
-against the reads of the page state - page_mapped, PageDirty etc.  the
-state may change while we rely on it being stable and we can end up
-corrupting the counters.
+Support DEBUG_WX to check whether there are mapping with write and execute
+permission at the same time.
 
-Place an SMP memory barrier to make sure we're done with all page state by
-the time the new page->mem_cgroup becomes visible.
-
-Also replace the open-coded move_lock with a lock_page_memcg() to make it
-more obvious what we're serializing against.
-
-Link: http://lkml.kernel.org/r/20200508183105.225460-3-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+[akpm@linux-foundation.org: replace macros with C]
+Link: http://lkml.kernel.org/r/282e266311bced080bc6f7c255b92f87c1eb65d6.1587455584.git.zong.li@sifive.com
+Signed-off-by: Zong Li <zong.li@sifive.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ arch/riscv/Kconfig              |    1 +
+ arch/riscv/include/asm/ptdump.h |   11 +++++++++++
+ arch/riscv/mm/init.c            |    3 +++
+ 3 files changed, 15 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-stat-corrupting-race-in-charge-moving
-+++ a/mm/memcontrol.c
-@@ -5432,7 +5432,6 @@ static int mem_cgroup_move_account(struc
- {
- 	struct lruvec *from_vec, *to_vec;
- 	struct pglist_data *pgdat;
--	unsigned long flags;
- 	unsigned int nr_pages = compound ? hpage_nr_pages(page) : 1;
- 	int ret;
- 	bool anon;
-@@ -5459,18 +5458,13 @@ static int mem_cgroup_move_account(struc
- 	from_vec = mem_cgroup_lruvec(from, pgdat);
- 	to_vec = mem_cgroup_lruvec(to, pgdat);
+--- a/arch/riscv/include/asm/ptdump.h~riscv-support-debug_wx
++++ a/arch/riscv/include/asm/ptdump.h
+@@ -8,4 +8,15 @@
  
--	spin_lock_irqsave(&from->move_lock, flags);
-+	lock_page_memcg(page);
+ void ptdump_check_wx(void);
  
- 	if (!anon && page_mapped(page)) {
- 		__mod_lruvec_state(from_vec, NR_FILE_MAPPED, -nr_pages);
- 		__mod_lruvec_state(to_vec, NR_FILE_MAPPED, nr_pages);
- 	}
++#ifdef CONFIG_DEBUG_WX
++static inline void debug_checkwx(void)
++{
++	ptdump_check_wx();
++}
++#else
++static inline void debug_checkwx(void)
++{
++}
++#endif
++
+ #endif /* _ASM_RISCV_PTDUMP_H */
+--- a/arch/riscv/Kconfig~riscv-support-debug_wx
++++ a/arch/riscv/Kconfig
+@@ -16,6 +16,7 @@ config RISCV
+ 	select OF_EARLY_FLATTREE
+ 	select OF_IRQ
+ 	select ARCH_HAS_BINFMT_FLAT
++	select ARCH_HAS_DEBUG_WX
+ 	select ARCH_WANT_FRAME_POINTERS
+ 	select CLONE_BACKWARDS
+ 	select COMMON_CLK
+--- a/arch/riscv/mm/init.c~riscv-support-debug_wx
++++ a/arch/riscv/mm/init.c
+@@ -19,6 +19,7 @@
+ #include <asm/sections.h>
+ #include <asm/pgtable.h>
+ #include <asm/io.h>
++#include <asm/ptdump.h>
  
--	/*
--	 * move_lock grabbed above and caller set from->moving_account, so
--	 * mod_memcg_page_state will serialize updates to PageDirty.
--	 * So mapping should be stable for dirty pages.
--	 */
- 	if (!anon && PageDirty(page)) {
- 		struct address_space *mapping = page_mapping(page);
+ #include "../kernel/head.h"
  
-@@ -5486,15 +5480,23 @@ static int mem_cgroup_move_account(struc
- 	}
- 
- 	/*
-+	 * All state has been migrated, let's switch to the new memcg.
-+	 *
- 	 * It is safe to change page->mem_cgroup here because the page
--	 * is referenced, charged, and isolated - we can't race with
--	 * uncharging, charging, migration, or LRU putback.
-+	 * is referenced, charged, isolated, and locked: we can't race
-+	 * with (un)charging, migration, LRU putback, or anything else
-+	 * that would rely on a stable page->mem_cgroup.
-+	 *
-+	 * Note that lock_page_memcg is a memcg lock, not a page lock,
-+	 * to save space. As soon as we switch page->mem_cgroup to a
-+	 * new memcg that isn't locked, the above state can change
-+	 * concurrently again. Make sure we're truly done with it.
- 	 */
-+	smp_mb();
- 
--	/* caller should have done css_get */
--	page->mem_cgroup = to;
-+	page->mem_cgroup = to; 	/* caller should have done css_get */
- 
--	spin_unlock_irqrestore(&from->move_lock, flags);
-+	__unlock_page_memcg(from);
- 
- 	ret = 0;
+@@ -514,6 +515,8 @@ void mark_rodata_ro(void)
+ 	set_memory_ro(rodata_start, (data_start - rodata_start) >> PAGE_SHIFT);
+ 	set_memory_nx(rodata_start, (data_start - rodata_start) >> PAGE_SHIFT);
+ 	set_memory_nx(data_start, (max_low - data_start) >> PAGE_SHIFT);
++
++	debug_checkwx();
+ }
+ #endif
  
 _
