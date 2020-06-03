@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test-get_count_order-long-in-test_bitopsc.patch
- added to -mm tree
-Date: Tue, 02 Jun 2020 15:53:41 -0700
-Message-ID: <20200602225341.p6GQ12cbg%akpm@linux-foundation.org>
+Subject: + mm-page_allocc-add-missing-line-breaks.patch added to
+ -mm tree
+Date: Wed, 03 Jun 2020 13:08:26 -0700
+Message-ID: <20200603200826.6jLFbycRp%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58914 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59370 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728987AbgFBWxm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 2 Jun 2020 18:53:42 -0400
+        id S1725821AbgFCUI2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 16:08:28 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
+To: akpm@linux-foundation.org, chentao107@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: test get_count_order/long in test_bitops.c
+     Subject: mm/page_alloc.c: add missing newline
 has been added to the -mm tree.  Its filename is
-     lib-test-get_count_order-long-in-test_bitopsc.patch
+     mm-page_allocc-add-missing-line-breaks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test-get_count_order-long-in-test_bitopsc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-add-missing-line-breaks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test-get_count_order-long-in-test_bitopsc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-add-missing-line-breaks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,126 +38,33 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: lib: test get_count_order/long in test_bitops.c
+From: Chen Tao <chentao107@huawei.com>
+Subject: mm/page_alloc.c: add missing newline
 
-Add some test for get_count_order/long in test_bitops.c.
+Add missing line breaks on pr_warn().
 
-Link: http://lkml.kernel.org/r/20200602223728.32722-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Link: http://lkml.kernel.org/r/20200603063547.235825-1-chentao107@huawei.com
+Signed-off-by: Chen Tao <chentao107@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |   10 +++++-----
- lib/test_bitops.c |   40 ++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 43 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/Kconfig.debug~lib-test-get_count_order-long-in-test_bitopsc
-+++ a/lib/Kconfig.debug
-@@ -2029,15 +2029,15 @@ config TEST_LKM
- 	  If unsure, say N.
+--- a/mm/page_alloc.c~mm-page_allocc-add-missing-line-breaks
++++ a/mm/page_alloc.c
+@@ -7194,7 +7194,7 @@ static void __init find_zone_movable_pfn
+ 		}
  
- config TEST_BITOPS
--	tristate "Test module for compilation of clear_bit/set_bit operations"
-+	tristate "Test module for compilation of bitops operations"
- 	depends on m
- 	help
- 	  This builds the "test_bitops" module that is much like the
- 	  TEST_LKM module except that it does a basic exercise of the
--	  clear_bit and set_bit macros to make sure there are no compiler
--	  warnings from C=1 sparse checker or -Wextra compilations. It has
--	  no dependencies and doesn't run or load unless explicitly requested
--	  by name.  for example: modprobe test_bitops.
-+	  set/clear_bit macros and get_count_order/long to make sure there are
-+	  no compiler warnings from C=1 sparse checker or -Wextra
-+	  compilations. It has no dependencies and doesn't run or load unless
-+	  explicitly requested by name.  for example: modprobe test_bitops.
+ 		if (mem_below_4gb_not_mirrored)
+-			pr_warn("This configuration results in unmirrored kernel memory.");
++			pr_warn("This configuration results in unmirrored kernel memory.\n");
  
- 	  If unsure, say N.
- 
---- a/lib/test_bitops.c~lib-test-get_count_order-long-in-test_bitopsc
-+++ a/lib/test_bitops.c
-@@ -9,7 +9,11 @@
- #include <linux/module.h>
- #include <linux/printk.h>
- 
--/* a tiny module only meant to test set/clear_bit */
-+/* a tiny module only meant to test
-+ *
-+ *   set/clear_bit
-+ *   get_count_order/long
-+ */
- 
- /* use an enum because thats the most common BITMAP usage */
- enum bitops_fun {
-@@ -24,6 +28,26 @@ enum bitops_fun {
- 
- static DECLARE_BITMAP(g_bitmap, BITOPS_LENGTH);
- 
-+unsigned int order_comb[][2] = {
-+	{0x00000003,  2},
-+	{0x00000004,  2},
-+	{0x00001fff, 13},
-+	{0x00002000, 13},
-+	{0x50000000, 31},
-+	{0x80000000, 31},
-+	{0x80003000, 32},
-+};
-+
-+unsigned long order_comb_long[][2] = {
-+	{0x0000000300000000, 34},
-+	{0x0000000400000000, 34},
-+	{0x00001fff00000000, 45},
-+	{0x0000200000000000, 45},
-+	{0x5000000000000000, 63},
-+	{0x8000000000000000, 63},
-+	{0x8000300000000000, 64},
-+};
-+
- static int __init test_bitops_startup(void)
- {
- 	pr_warn("Loaded test module\n");
-@@ -32,6 +56,18 @@ static int __init test_bitops_startup(vo
- 	set_bit(BITOPS_11, g_bitmap);
- 	set_bit(BITOPS_31, g_bitmap);
- 	set_bit(BITOPS_88, g_bitmap);
-+
-+	for (i = 0; i < ARRAY_SIZE(order_comb); i++) {
-+		if (order_comb[i][1] != get_count_order(order_comb[i][0]))
-+			pr_warn("get_count_order wrong for %x\n",
-+				       order_comb[i][0]); }
-+
-+	for (i = 0; i < ARRAY_SIZE(order_comb_long); i++) {
-+		if (order_comb_long[i][1] !=
-+			       get_count_order_long(order_comb_long[i][0]))
-+			pr_warn("get_count_order_long wrong for %lx\n",
-+				       order_comb_long[i][0]); }
-+
- 	return 0;
- }
- 
-@@ -55,6 +91,6 @@ static void __exit test_bitops_unstartup
- module_init(test_bitops_startup);
- module_exit(test_bitops_unstartup);
- 
--MODULE_AUTHOR("Jesse Brandeburg <jesse.brandeburg@intel.com>");
-+MODULE_AUTHOR("Jesse Brandeburg <jesse.brandeburg@intel.com>, Wei Yang <richard.weiyang@gmail.com>");
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("Bit testing module");
+ 		goto out2;
+ 	}
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from chentao107@huawei.com are
 
-mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
-mm-page_allocc-bad_flags-is-not-necessary-for-bad_page.patch
-mm-page_allocc-rename-free_pages_check_bad-to-check_free_page_bad.patch
-mm-page_allocc-rename-free_pages_check-to-check_free_page.patch
-mm-page_allocc-extract-check__page_bad-common-part-to-page_bad_reason.patch
-mm-page_allocc-use-node_mask_none-in-build_zonelists.patch
-mm-rename-gfpflags_to_migratetype-to-gfp_migratetype-for-same-convention.patch
-mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch
-bitops-simplify-get_count_order_long.patch
-bitops-use-the-same-mechanism-for-get_count_order.patch
-lib-test-get_count_order-long-in-test_bitopsc.patch
+mm-page_allocc-add-missing-line-breaks.patch
