@@ -1,109 +1,84 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 105/131] mm: allow swappiness that prefers
- reclaiming anon over the file workingset
-Date: Wed, 03 Jun 2020 16:02:37 -0700
-Message-ID: <20200603230237.xj0G5g-t7%akpm@linux-foundation.org>
+Subject: [patch 131/131] arm64: mm: use ARCH_HAS_DEBUG_WX instead
+ of arch defined
+Date: Wed, 03 Jun 2020 16:04:02 -0700
+Message-ID: <20200603230402.XCluSVOgm%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47816 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726567AbgFCXIk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:40 -0400
+        id S1726541AbgFCXIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:39 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, linux-mm@kvack.org, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, torvalds@linux-foundation.org, will@kernel.org, zong.li@sifive.com
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: allow swappiness that prefers reclaiming anon over the file workingset
+From: Zong Li <zong.li@sifive.com>
+Subject: arm64: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
 
-With the advent of fast random IO devices (SSDs, PMEM) and in-memory swap
-devices such as zswap, it's possible for swap to be much faster than
-filesystems, and for swapping to be preferable over thrashing filesystem
-caches.
+Extract DEBUG_WX to mm/Kconfig.debug for shared use.  Change to use
+ARCH_HAS_DEBUG_WX instead of DEBUG_WX defined by arch port.
 
-Allow setting swappiness - which defines the rough relative IO cost of
-cache misses between page cache and swap-backed pages - to reflect such
-situations by making the swap-preferred range configurable.
-
-Link: http://lkml.kernel.org/r/20200520232525.798933-4-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
+Link: http://lkml.kernel.org/r/e19709e7576f65e303245fe520cad5f7bae72763.1587455584.git.zong.li@sifive.com
+Signed-off-by: Zong Li <zong.li@sifive.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |   23 +++++++++++++++++-----
- kernel/sysctl.c                         |    3 +-
- mm/vmscan.c                             |    2 -
- 3 files changed, 21 insertions(+), 7 deletions(-)
+ arch/arm64/Kconfig       |    1 +
+ arch/arm64/Kconfig.debug |   29 -----------------------------
+ 2 files changed, 1 insertion(+), 29 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -831,14 +831,27 @@ tooling to work, you can do::
- swappiness
- ==========
+--- a/arch/arm64/Kconfig~arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined
++++ a/arch/arm64/Kconfig
+@@ -9,6 +9,7 @@ config ARM64
+ 	select ACPI_MCFG if (ACPI && PCI)
+ 	select ACPI_SPCR_TABLE if ACPI
+ 	select ACPI_PPTT if ACPI
++	select ARCH_HAS_DEBUG_WX
+ 	select ARCH_BINFMT_ELF_STATE
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+--- a/arch/arm64/Kconfig.debug~arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined
++++ a/arch/arm64/Kconfig.debug
+@@ -23,35 +23,6 @@ config ARM64_RANDOMIZE_TEXT_OFFSET
+ 	  of TEXT_OFFSET and platforms must not require a specific
+ 	  value.
  
--This control is used to define how aggressive the kernel will swap
--memory pages.  Higher values will increase aggressiveness, lower values
--decrease the amount of swap.  A value of 0 instructs the kernel not to
--initiate swap until the amount of free and file-backed pages is less
--than the high water mark in a zone.
-+This control is used to define the rough relative IO cost of swapping
-+and filesystem paging, as a value between 0 and 200. At 100, the VM
-+assumes equal IO cost and will thus apply memory pressure to the page
-+cache and swap-backed pages equally; lower values signify more
-+expensive swap IO, higher values indicates cheaper.
-+
-+Keep in mind that filesystem IO patterns under memory pressure tend to
-+be more efficient than swap's random IO. An optimal value will require
-+experimentation and will also be workload-dependent.
- 
- The default value is 60.
- 
-+For in-memory swap, like zram or zswap, as well as hybrid setups that
-+have swap on faster devices than the filesystem, values beyond 100 can
-+be considered. For example, if the random IO against the swap device
-+is on average 2x faster than IO from the filesystem, swappiness should
-+be 133 (x + 2x = 200, 2x = 133.33).
-+
-+At 0, the kernel will not initiate swap until the amount of free and
-+file-backed pages is less than the high watermark in a zone.
-+
- 
- unprivileged_userfaultfd
- ========================
---- a/kernel/sysctl.c~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
-+++ a/kernel/sysctl.c
-@@ -131,6 +131,7 @@ static unsigned long zero_ul;
- static unsigned long one_ul = 1;
- static unsigned long long_max = LONG_MAX;
- static int one_hundred = 100;
-+static int two_hundred = 200;
- static int one_thousand = 1000;
- #ifdef CONFIG_PRINTK
- static int ten_thousand = 10000;
-@@ -1391,7 +1392,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_hundred,
-+		.extra2		= &two_hundred,
- 	},
- #ifdef CONFIG_HUGETLB_PAGE
- 	{
---- a/mm/vmscan.c~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
-+++ a/mm/vmscan.c
-@@ -161,7 +161,7 @@ struct scan_control {
- #endif
- 
- /*
-- * From 0 .. 100.  Higher means more swappy.
-+ * From 0 .. 200.  Higher means more swappy.
-  */
- int vm_swappiness = 60;
- /*
-_
+-config DEBUG_WX
+-	bool "Warn on W+X mappings at boot"
+-	select PTDUMP_CORE
+-	---help---
+-	  Generate a warning if any W+X mappings are found at boot.
+-
+-	  This is useful for discovering cases where the kernel is leaving
+-	  W+X mappings after applying NX, as such mappings are a security risk.
+-	  This check also includes UXN, which should be set on all kernel
+-	  mappings.
+-
+-	  Look for a message in dmesg output like this:
+-
+-	    arm64/mm: Checked W+X mappings: passed, no W+X pages found.
+-
+-	  or like this, if the check failed:
+-
+-	    arm64/mm: Checked W+X mappings: FAILED, <N> W+X pages found.
+-
+-	  Note that even if the check fails, your kernel is possibly
+-	  still fine, as W+X mappings are not a security hole in
+-	  themselves, what they do is that they make the exploitation
+-	  of other unfixed kernel bugs easier.
+-
+-	  There is no runtime or memory usage effect of this option
+-	  once the kernel has booted up - it's a one time check.
+-
+-	  If in doubt, say "Y".
