@@ -1,121 +1,81 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix.patch
- added to -mm tree
-Date: Wed, 03 Jun 2020 14:15:26 -0700
-Message-ID: <20200603211526.wykKo7YK_%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-gup-refactor-and-de-duplicate-gup_fast-code-fix.patch removed from -mm
+ tree
+Date: Wed, 03 Jun 2020 15:06:36 -0700
+Message-ID: <20200603220636.-FVmNvso3%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36382 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726159AbgFCVP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 17:15:28 -0400
+        id S1726614AbgFCWGi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:06:38 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com
+To: airlied@linux.ie, chris@chris-wilson.co.uk, daniel@ffwll.ch, jani.nikula@linux.intel.com, jhubbard@nvidia.com, joonas.lahtinen@linux.intel.com, jrdr.linux@gmail.com, matthew.auld@intel.com, mm-commits@vger.kernel.org, rodrigo.vivi@intel.com, tvrtko.ursulin@intel.com, willy@infradead.org
 
 
 The patch titled
-     Subject: mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix
-has been added to the -mm tree.  Its filename is
-     mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix.patch
+     Subject: mm/gup: fixup gup.c for "mm/gup: refactor and de-duplicate gup_fast() code"
+has been removed from the -mm tree.  Its filename was
+     mm-gup-refactor-and-de-duplicate-gup_fast-code-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-gup-refactor-and-de-duplicate-gup_fast-code.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: fixup gup.c for "mm/gup: refactor and de-duplicate gup_fast() code"
 
-fix it for local_lock changes
+Include FOLL_FAST_ONLY in the list of flags to *not* WARN()
+on, in internal_get_user_pages_fast().
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
+Link: http://lkml.kernel.org/r/20200521233841.1279742-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: "Joonas Lahtinen" <joonas.lahtinen@linux.intel.com>
+Cc: Matthew Auld <matthew.auld@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/gup.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/swap.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix
-+++ a/mm/swap.c
-@@ -435,15 +435,17 @@ EXPORT_SYMBOL(mark_page_accessed);
-  */
- void lru_cache_add(struct page *page)
- {
--	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
-+	struct pagevec *pvec;
+--- a/mm/gup.c~mm-gup-refactor-and-de-duplicate-gup_fast-code-fix
++++ a/mm/gup.c
+@@ -2719,7 +2719,8 @@ static int internal_get_user_pages_fast(
+ 	int nr_pinned = 0, ret = 0;
  
- 	VM_BUG_ON_PAGE(PageActive(page) && PageUnevictable(page), page);
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
+ 	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
+-				       FOLL_FORCE | FOLL_PIN | FOLL_GET)))
++				       FOLL_FORCE | FOLL_PIN | FOLL_GET |
++				       FOLL_FAST_ONLY)))
+ 		return -EINVAL;
  
- 	get_page(page);
-+	local_lock(&lru_pvecs.lock);
-+	pvec = this_cpu_ptr(&lru_pvecs.lru_add);
- 	if (!pagevec_add(pvec, page) || PageCompound(page))
- 		__pagevec_lru_add(pvec);
--	put_cpu_var(lru_add_pvec);
-+	local_unlock(&lru_pvecs.lock);
- }
- EXPORT_SYMBOL(lru_cache_add);
- 
+ 	start = untagged_addr(start) & PAGE_MASK;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order-fix-2-fix.patch
-mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-maccess-unify-the-probe-kernel-arch-hooks-fix.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch
+mm-gup-refactor-and-de-duplicate-gup_fast-code.patch
+mm-gup-introduce-pin_user_pages_fast_only.patch
+drm-i915-convert-get_user_pages-pin_user_pages.patch
+mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
+khugepaged-add-self-test-fix-3.patch
+rapidio-convert-get_user_pages-pin_user_pages.patch
+mm-gup-update-pin_user_pagesrst-for-case-3-mmu-notifiers.patch
+mm-gup-introduce-pin_user_pages_locked.patch
+mm-gup-introduce-pin_user_pages_locked-v2.patch
+mm-gup-frame_vector-convert-get_user_pages-pin_user_pages.patch
+mm-gup-documentation-fix-for-pin_user_pages-apis.patch
+docs-mm-gup-pin_user_pagesrst-add-a-case-5.patch
+vhost-convert-get_user_pages-pin_user_pages.patch
