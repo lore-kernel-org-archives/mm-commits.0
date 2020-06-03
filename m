@@ -1,320 +1,177 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 103/131] mm: fix LRU balancing effect of new
- transparent huge pages
-Date: Wed, 03 Jun 2020 16:02:31 -0700
-Message-ID: <20200603230231.IgWT0YteN%akpm@linux-foundation.org>
+Subject: [patch 113/131] mm: balance LRU lists based on relative
+ thrashing
+Date: Wed, 03 Jun 2020 16:03:03 -0700
+Message-ID: <20200603230303.kSkT62Lb5%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47824 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47798 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726429AbgFCXIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:39 -0400
+        id S1726635AbgFCXIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:43 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org
 
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: fix LRU balancing effect of new transparent huge pages
+Subject: mm: balance LRU lists based on relative thrashing
 
-The reclaim code that balances between swapping and cache reclaim tries to
-predict likely reuse based on in-memory reference patterns alone.  This
-works in many cases, but when it fails it cannot detect when the cache is
-thrashing pathologically, or when we're in the middle of a swap storm.
+Since the LRUs were split into anon and file lists, the VM has been
+balancing between page cache and anonymous pages based on per-list ratios
+of scanned vs.  rotated pages.  In most cases that tips page reclaim
+towards the list that is easier to reclaim and has the fewest actively
+used pages, but there are a few problems with it:
 
-The high seek cost of rotational drives under which the algorithm evolved
-also meant that mistakes could quickly result in lockups from too
-aggressive swapping (which is predominantly random IO).  As a result, the
-balancing code has been tuned over time to a point where it mostly goes
-for page cache and defers swapping until the VM is under significant
-memory pressure.
+1. Refaults and LRU rotations are weighted the same way, even though
+   one costs IO and the other costs a bit of CPU.
 
-The resulting strategy doesn't make optimal caching decisions - where
-optimal is the least amount of IO required to execute the workload.
+2. The less we scan an LRU list based on already observed rotations,
+   the more we increase the sampling interval for new references, and
+   rotations become even more likely on that list. This can enter a
+   death spiral in which we stop looking at one list completely until
+   the other one is all but annihilated by page reclaim.
 
-The proliferation of fast random IO devices such as SSDs, in-memory
-compression such as zswap, and persistent memory technologies on the
-horizon, has made this undesirable behavior very noticable: Even in the
-presence of large amounts of cold anonymous memory and a capable swap
-device, the VM refuses to even seriously scan these pages, and can leave
-the page cache thrashing needlessly.
+Since commit a528910e12ec ("mm: thrash detection-based file cache sizing")
+we have refault detection for the page cache.  Along with swapin events,
+they are good indicators of when the file or anon list, respectively, is
+too small for its workingset and needs to grow.
 
-This series sets out to address this.  Since commit ("a528910e12ec mm:
-thrash detection-based file cache sizing") we have exact tracking of
-refault IO - the ultimate cost of reclaiming the wrong pages.  This allows
-us to use an IO cost based balancing model that is more aggressive about
-scanning anonymous memory when the cache is thrashing, while being able to
-avoid unnecessary swap storms.
+For example, if the page cache is thrashing, the cache pages need more
+time in memory, while there may be colder pages on the anonymous list. 
+Likewise, if swapped pages are faulting back in, it indicates that we
+reclaim anonymous pages too aggressively and should back off.
 
-These patches base the LRU balance on the rate of refaults on each list,
-times the relative IO cost between swap device and filesystem
-(swappiness), in order to optimize reclaim for least IO cost incurred.
+Replace LRU rotations with refaults and swapins as the basis for relative
+reclaim cost of the two LRUs.  This will have the VM target list balances
+that incur the least amount of IO on aggregate.
 
-	History
-
-I floated these changes in 2016.  At the time they were incomplete and
-full of workarounds due to a lack of infrastructure in the reclaim code:
-We didn't have PageWorkingset, we didn't have hierarchical cgroup
-statistics, and problems with the cgroup swap controller.  As swapping
-wasn't too high a priority then, the patches stalled out.  With all
-dependencies in place now, here we are again with much cleaner,
-feature-complete patches.
-
-I kept the acks for patches that stayed materially the same :-)
-
-Below is a series of test results that demonstrate certain problematic
-behavior of the current code, as well as showcase the new code's more
-predictable and appropriate balancing decisions.
-
-	Test #1: No convergence
-
-This test shows an edge case where the VM currently doesn't converge at
-all on a new file workingset with a stale anon/tmpfs set.
-
-The test sets up a cold anon set the size of 3/4 RAM, then tries to
-establish a new file set half the size of RAM (flat access pattern).
-
-The vanilla kernel refuses to even scan anon pages and never converges. 
-The file set is perpetually served from the filesystem.
-
-The first test kernel is with the series up to the workingset patch
-applied.  This allows thrashing page cache to challenge the anonymous
-workingset.  The VM then scans the lists based on the current
-scanned/rotated balancing algorithm.  It converges on a stable state where
-all cold anon pages are pushed out and the fileset is served entirely from
-cache:
-
-			    noconverge/5.7-rc5-mm	noconverge/5.7-rc5-mm-workingset
-Scanned			417719308.00 (    +0.00%)		64091155.00 (   -84.66%)
-Reclaimed		417711094.00 (    +0.00%)		61640308.00 (   -85.24%)
-Reclaim efficiency %	      100.00 (    +0.00%)		      96.18 (    -3.78%)
-Scanned file		417719308.00 (    +0.00%)		59211118.00 (   -85.83%)
-Scanned anon			0.00 (    +0.00%)	         4880037.00 (          )
-Swapouts			0.00 (    +0.00%)	         2439957.00 (          )
-Swapins				0.00 (    +0.00%)		     257.00 (          )
-Refaults		415246605.00 (    +0.00%)		59183722.00 (   -85.75%)
-Restore refaults		0.00 (    +0.00%)	        54988252.00 (          )
-
-The second test kernel is with the full patch series applied, which
-replaces the scanned/rotated ratios with refault/swapin rate-based
-balancing.  It evicts the cold anon pages more aggressively in the
-presence of a thrashing cache and the absence of swapins, and so converges
-with about 60% of the IO and reclaim activity:
-
-			noconverge/5.7-rc5-mm-workingset	noconverge/5.7-rc5-mm-lrubalance
-Scanned				64091155.00 (    +0.00%)		37579741.00 (   -41.37%)
-Reclaimed			61640308.00 (    +0.00%)		35129293.00 (   -43.01%)
-Reclaim efficiency %		      96.18 (    +0.00%)		      93.48 (    -2.78%)
-Scanned file			59211118.00 (    +0.00%)		32708385.00 (   -44.76%)
-Scanned anon			 4880037.00 (    +0.00%)		 4871356.00 (    -0.18%)
-Swapouts			 2439957.00 (    +0.00%)		 2435565.00 (    -0.18%)
-Swapins				     257.00 (    +0.00%)		     262.00 (    +1.94%)
-Refaults			59183722.00 (    +0.00%)		32675667.00 (   -44.79%)
-Restore refaults		54988252.00 (    +0.00%)		28480430.00 (   -48.21%)
-
-We're triggering this case in host sideloading scenarios: When a host's
-primary workload is not saturating the machine (primary load is usually
-driven by user activity), we can optimistically sideload a batch job; if
-user activity picks up and the primary workload needs the whole host
-during this time, we freeze the sideload and rely on it getting pushed to
-swap.  Frequently that swapping doesn't happen and the completely inactive
-sideload simply stays resident while the expanding primary worklad is
-struggling to gain ground.
-
-	Test #2: Kernel build
-
-This test is a a kernel build that is slightly memory-restricted (make -j4
-inside a 400M cgroup).
-
-Despite the very aggressive swapping of cold anon pages in test #1, this
-test shows that the new kernel carefully balances swap against cache
-refaults when both the file and the cache set are pressured.
-
-It shows the patched kernel to be slightly better at finding the coldest
-memory from the combined anon and file set to evict under pressure.  The
-result is lower aggregate reclaim and paging activity:
-
-z				    5.7-rc5-mm	5.7-rc5-mm-lrubalance
-Real time		   210.60 (    +0.00%)	   210.97 (    +0.18%)
-User time		   745.42 (    +0.00%)	   746.48 (    +0.14%)
-System time		    69.78 (    +0.00%)	    69.79 (    +0.02%)
-Scanned file		354682.00 (    +0.00%)	293661.00 (   -17.20%)
-Scanned anon		465381.00 (    +0.00%)	378144.00 (   -18.75%)
-Swapouts		185920.00 (    +0.00%)	147801.00 (   -20.50%)
-Swapins			 34583.00 (    +0.00%)	 32491.00 (    -6.05%)
-Refaults		212664.00 (    +0.00%)	172409.00 (   -18.93%)
-Restore refaults	 48861.00 (    +0.00%)	 80091.00 (   +63.91%)
-Total paging IO		433167.00 (    +0.00%)	352701.00 (   -18.58%)
-
-	Test #3: Overload
-
-This next test is not about performance, but rather about the
-predictability of the algorithm.  The current balancing behavior doesn't
-always lead to comprehensible results, which makes performance analysis
-and parameter tuning (swappiness e.g.) very difficult.
-
-The test shows the balancing behavior under equivalent anon and file
-input.  Anon and file sets are created of equal size (3/4 RAM), have the
-same access patterns (a hot-cold gradient), and synchronized access rates.
-Swappiness is raised from the default of 60 to 100 to indicate equal IO
-cost between swap and cache.
-
-With the vanilla balancing code, anon scans make up around 9% of the total
-pages scanned, or a ~1:10 ratio.  This is a surprisingly skewed ratio, and
-it's an outcome that is hard to explain given the input parameters to the
-VM.
-
-The new balancing model targets a 1:2 balance: All else being equal,
-reclaiming a file page costs one page IO - the refault; reclaiming an anon
-page costs two IOs - the swapout and the swapin.  In the test we observe a
-~1:3 balance.
-
-The scanned and paging IO numbers indicate that the anon LRU algorithm we
-have in place right now does a slightly worse job at picking the coldest
-pages compared to the file algorithm.  There is ongoing work to improve
-this, like Joonsoo's anon workingset patches; however, it's difficult to
-compare the two aging strategies when the balancing between them is
-behaving unintuitively.
-
-The slightly less efficient anon reclaim results in a deviation from the
-optimal 1:2 scan ratio we would like to see here - however, 1:3 is much
-closer to what we'd want to see in this test than the vanilla kernel's
-aging of 10+ cache pages for every anonymous one:
-
-			overload-100/5.7-rc5-mm-workingset	overload-100/5.7-rc5-mm-lrubalance-realfile
-Scanned				 533633725.00 (    +0.00%)			  595687785.00 (   +11.63%)
-Reclaimed			 494325440.00 (    +0.00%)			  518154380.00 (    +4.82%)
-Reclaim efficiency %			92.63 (    +0.00%)				 86.98 (    -6.03%)
-Scanned file			 484532894.00 (    +0.00%)			  456937722.00 (    -5.70%)
-Scanned anon			  49100831.00 (    +0.00%)			  138750063.00 (  +182.58%)
-Swapouts			   8096423.00 (    +0.00%)			   48982142.00 (  +504.98%)
-Swapins				  10027384.00 (    +0.00%)			   62325044.00 (  +521.55%)
-Refaults			 479819973.00 (    +0.00%)			  451309483.00 (    -5.94%)
-Restore refaults		 426422087.00 (    +0.00%)			  399914067.00 (    -6.22%)
-Total paging IO			 497943780.00 (    +0.00%)			  562616669.00 (   +12.99%)
-
-	Test #4: Parallel IO
-
-It's important to note that these patches only affect the situation where
-the kernel has to reclaim workingset memory, which is usually a
-transitionary period.  The vast majority of page reclaim occuring in a
-system is from trimming the ever-expanding page cache.
-
-These patches don't affect cache trimming behavior.  We never swap as long
-as we only have use-once cache moving through the file LRU, we only
-consider swapping when the cache is actively thrashing.
-
-The following test demonstrates this.  It has an anon workingset that
-takes up half of RAM and then writes a file that is twice the size of RAM
-out to disk.
-
-As the cache is funneled through the inactive file list, no anon pages are
-scanned (aside from apparently some background noise of 10 pages):
-
-					  5.7-rc5-mm		          5.7-rc5-mm-lrubalance
-Scanned			    10714722.00 (    +0.00%)		       10723445.00 (    +0.08%)
-Reclaimed		    10703596.00 (    +0.00%)		       10712166.00 (    +0.08%)
-Reclaim efficiency %		  99.90 (    +0.00%)			     99.89 (    -0.00%)
-Scanned file		    10714722.00 (    +0.00%)		       10723435.00 (    +0.08%)
-Scanned anon			   0.00 (    +0.00%)			     10.00 (          )
-Swapouts			   0.00 (    +0.00%)			      7.00 (          )
-Swapins				   0.00 (    +0.00%)			      0.00 (    +0.00%)
-Refaults			  92.00 (    +0.00%)			     41.00 (   -54.84%)
-Restore refaults		   0.00 (    +0.00%)			      0.00 (    +0.00%)
-Total paging IO			  92.00 (    +0.00%)			     48.00 (   -47.31%)
-
-
-This patch (of 14):
-
-Currently, THP are counted as single pages until they are split right
-before being swapped out.  However, at that point the VM is already in the
-middle of reclaim, and adjusting the LRU balance then is useless.
-
-Always account THP by the number of basepages, and remove the fixup from
-the splitting path.
-
-Link: http://lkml.kernel.org/r/20200520232525.798933-1-hannes@cmpxchg.org
-Link: http://lkml.kernel.org/r/20200520232525.798933-2-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20200520232525.798933-12-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+ include/linux/swap.h |    3 +--
+ mm/swap.c            |   11 +++++++----
+ mm/swap_state.c      |    5 +++++
+ mm/vmscan.c          |   39 ++++++++++-----------------------------
+ mm/workingset.c      |    4 ++++
+ 5 files changed, 27 insertions(+), 35 deletions(-)
 
---- a/mm/swap.c~mm-fix-lru-balancing-effect-of-new-transparent-huge-pages
+--- a/include/linux/swap.h~mm-balance-lru-lists-based-on-relative-thrashing
++++ a/include/linux/swap.h
+@@ -334,8 +334,7 @@ extern unsigned long nr_free_pagecache_p
+ 
+ 
+ /* linux/mm/swap.c */
+-extern void lru_note_cost(struct lruvec *lruvec, bool file,
+-			  unsigned int nr_pages);
++extern void lru_note_cost(struct page *);
+ extern void lru_cache_add(struct page *);
+ extern void lru_add_page_tail(struct page *page, struct page *page_tail,
+ 			 struct lruvec *lruvec, struct list_head *head);
+--- a/mm/swap.c~mm-balance-lru-lists-based-on-relative-thrashing
 +++ a/mm/swap.c
-@@ -279,13 +279,14 @@ void rotate_reclaimable_page(struct page
+@@ -278,12 +278,15 @@ void rotate_reclaimable_page(struct page
+ 	}
  }
  
- static void update_page_reclaim_stat(struct lruvec *lruvec,
--				     int file, int rotated)
-+				     int file, int rotated,
-+				     unsigned int nr_pages)
+-void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages)
++void lru_note_cost(struct page *page)
  {
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
- 
--	reclaim_stat->recent_scanned[file]++;
-+	reclaim_stat->recent_scanned[file] += nr_pages;
- 	if (rotated)
--		reclaim_stat->recent_rotated[file]++;
-+		reclaim_stat->recent_rotated[file] += nr_pages;
+-	if (file)
+-		lruvec->file_cost += nr_pages;
++	struct lruvec *lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
++
++	/* Record new data point */
++	if (page_is_file_lru(page))
++		lruvec->file_cost++;
+ 	else
+-		lruvec->anon_cost += nr_pages;
++		lruvec->anon_cost++;
  }
  
  static void __activate_page(struct page *page, struct lruvec *lruvec,
-@@ -302,7 +303,7 @@ static void __activate_page(struct page
- 		trace_mm_lru_activate(page);
- 
- 		__count_vm_event(PGACTIVATE);
--		update_page_reclaim_stat(lruvec, file, 1);
-+		update_page_reclaim_stat(lruvec, file, 1, hpage_nr_pages(page));
+--- a/mm/swap_state.c~mm-balance-lru-lists-based-on-relative-thrashing
++++ a/mm/swap_state.c
+@@ -440,6 +440,11 @@ struct page *__read_swap_cache_async(swp
+ 		goto fail_unlock;
  	}
- }
  
-@@ -564,7 +565,7 @@ static void lru_deactivate_file_fn(struc
++	/* XXX: Move to lru_cache_add() when it supports new vs putback */
++	spin_lock_irq(&page_pgdat(page)->lru_lock);
++	lru_note_cost(page);
++	spin_unlock_irq(&page_pgdat(page)->lru_lock);
++
+ 	/* Caller will initiate read into locked page */
+ 	SetPageWorkingset(page);
+ 	lru_cache_add(page);
+--- a/mm/vmscan.c~mm-balance-lru-lists-based-on-relative-thrashing
++++ a/mm/vmscan.c
+@@ -1958,12 +1958,6 @@ shrink_inactive_list(unsigned long nr_to
+ 	move_pages_to_lru(lruvec, &page_list);
  
- 	if (active)
- 		__count_vm_event(PGDEACTIVATE);
--	update_page_reclaim_stat(lruvec, file, 0);
-+	update_page_reclaim_stat(lruvec, file, 0, hpage_nr_pages(page));
- }
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+-	/*
+-	 * Rotating pages costs CPU without actually
+-	 * progressing toward the reclaim goal.
+-	 */
+-	lru_note_cost(lruvec, 0, stat.nr_activate[0]);
+-	lru_note_cost(lruvec, 1, stat.nr_activate[1]);
+ 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, nr_reclaimed);
+@@ -2079,11 +2073,6 @@ static void shrink_active_list(unsigned
+ 	 * Move pages back to the lru list.
+ 	 */
+ 	spin_lock_irq(&pgdat->lru_lock);
+-	/*
+-	 * Rotating pages costs CPU without actually
+-	 * progressing toward the reclaim goal.
+-	 */
+-	lru_note_cost(lruvec, file, nr_rotated);
  
- static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
-@@ -580,7 +581,7 @@ static void lru_deactivate_fn(struct pag
- 		add_page_to_lru_list(page, lruvec, lru);
+ 	nr_activate = move_pages_to_lru(lruvec, &l_active);
+ 	nr_deactivate = move_pages_to_lru(lruvec, &l_inactive);
+@@ -2298,22 +2287,23 @@ static void get_scan_count(struct lruvec
+ 	scan_balance = SCAN_FRACT;
  
- 		__count_vm_events(PGDEACTIVATE, hpage_nr_pages(page));
--		update_page_reclaim_stat(lruvec, file, 0);
-+		update_page_reclaim_stat(lruvec, file, 0, hpage_nr_pages(page));
- 	}
- }
+ 	/*
+-	 * With swappiness at 100, anonymous and file have the same priority.
+-	 * This scanning priority is essentially the inverse of IO cost.
++	 * Calculate the pressure balance between anon and file pages.
++	 *
++	 * The amount of pressure we put on each LRU is inversely
++	 * proportional to the cost of reclaiming each list, as
++	 * determined by the share of pages that are refaulting, times
++	 * the relative IO cost of bringing back a swapped out
++	 * anonymous page vs reloading a filesystem page (swappiness).
++	 *
++	 * With swappiness at 100, anon and file have equal IO cost.
+ 	 */
+ 	anon_prio = swappiness;
+ 	file_prio = 200 - anon_prio;
  
-@@ -605,7 +606,7 @@ static void lru_lazyfree_fn(struct page
+ 	/*
+-	 * OK, so we have swap space and a fair amount of page cache
+-	 * pages.  We use the recently rotated / recently scanned
+-	 * ratios to determine how valuable each cache is.
+-	 *
+ 	 * Because workloads change over time (and to avoid overflow)
+ 	 * we keep these statistics as a floating average, which ends
+-	 * up weighing recent references more than old ones.
+-	 *
+-	 * anon in [0], file in [1]
++	 * up weighing recent refaults more than old ones.
+ 	 */
  
- 		__count_vm_events(PGLAZYFREE, hpage_nr_pages(page));
- 		count_memcg_page_event(page, PGLAZYFREE);
--		update_page_reclaim_stat(lruvec, 1, 0);
-+		update_page_reclaim_stat(lruvec, 1, 0, hpage_nr_pages(page));
- 	}
- }
- 
-@@ -929,8 +930,6 @@ EXPORT_SYMBOL(__pagevec_release);
- void lru_add_page_tail(struct page *page, struct page *page_tail,
- 		       struct lruvec *lruvec, struct list_head *list)
- {
--	const int file = 0;
--
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
- 	VM_BUG_ON_PAGE(PageCompound(page_tail), page);
- 	VM_BUG_ON_PAGE(PageLRU(page_tail), page);
-@@ -956,9 +955,6 @@ void lru_add_page_tail(struct page *page
- 		add_page_to_lru_list_tail(page_tail, lruvec,
- 					  page_lru(page_tail));
+ 	anon  = lruvec_lru_size(lruvec, LRU_ACTIVE_ANON, MAX_NR_ZONES) +
+@@ -2328,15 +2318,6 @@ static void get_scan_count(struct lruvec
+ 		lruvec->file_cost /= 2;
+ 		totalcost /= 2;
  	}
