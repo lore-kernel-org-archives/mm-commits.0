@@ -1,166 +1,106 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: [folded-merged]
- mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch removed from
- -mm tree
-Date: Wed, 03 Jun 2020 15:20:28 -0700
-Message-ID: <20200603222028.E8UXb8unp%akpm@linux-foundation.org>
+ mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix.patch
+ removed from -mm tree
+Date: Wed, 03 Jun 2020 15:21:21 -0700
+Message-ID: <20200603222121.DcvRr_YCL%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56166 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726354AbgFCWUa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:20:30 -0400
+        id S1726778AbgFCWVX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:21:23 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.shi@linux.alibaba.com, aquini@redhat.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com
 
 
 The patch titled
-     Subject: mm/swap: fix livelock in __read_swap_cache_async()
+     Subject: mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
+     mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix.patch
 
-This patch was dropped because it was folded into mm-memcontrol-charge-swapin-pages-on-instantiation.patch
+This patch was dropped because it was folded into mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/swap: fix livelock in __read_swap_cache_async()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix
 
-I've only seen this livelock on one machine (repeatably, but not to
-order), and not fully analyzed it - two processes seen looping around
-getting -EEXIST from swapcache_prepare(), I guess a third (at lower
-priority?  but wanting the same cpu as one of the loopers?  preemption or
-cond_resched() not enough to let it back in?) set SWAP_HAS_CACHE, then
-went off into direct reclaim, scheduled away, and somehow could not get
-back to add the page to swap cache and let them all complete.
+fix it for local_lock changes
 
-Restore the page allocation in __read_swap_cache_async() to before the
-swapcache_prepare() call: "mm: memcontrol: charge swapin pages on
-instantiation" moved it outside the loop, which indeed looks much nicer,
-but exposed this weakness.  We used to allocate new_page once and then
-keep it across all iterations of the loop: but I think that just optimizes
-for a rare case, and complicates the flow, so go with the new simpler
-structure, with allocate+free each time around (which is more considerate
-use of the memory too).
-
-Fix the comment on the looping case, which has long been inaccurate: it's
-not a racing get_swap_page() that's the problem here.
-
-Fix the add_to_swap_cache() and mem_cgroup_charge() error recovery: not
-swap_free(), but put_swap_page() to undo SWAP_HAS_CACHE, as was done
-before; but delete_from_swap_cache() already includes it.
-
-And one more nit: I don't think it makes any difference in practice, but
-remove the "& GFP_KERNEL" mask from the mem_cgroup_charge() call:
-add_to_swap_cache() needs that, to convert gfp_mask from user and page
-cache allocation (e.g.  highmem) to radix node allocation (lowmem), but we
-don't need or usually apply that mask when charging mem_cgroup.
-
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2005212246080.8458@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Rafael Aquini <aquini@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   52 +++++++++++++++++++++++++---------------------
- 1 file changed, 29 insertions(+), 23 deletions(-)
+ mm/swap.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/swap_state.c~mm-memcontrol-charge-swapin-pages-on-instantiation-fix
-+++ a/mm/swap_state.c
-@@ -393,56 +393,62 @@ struct page *__read_swap_cache_async(swp
- 			return NULL;
+--- a/mm/swap.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix
++++ a/mm/swap.c
+@@ -435,15 +435,17 @@ EXPORT_SYMBOL(mark_page_accessed);
+  */
+ void lru_cache_add(struct page *page)
+ {
+-	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
++	struct pagevec *pvec;
  
- 		/*
-+		 * Get a new page to read into from swap.  Allocate it now,
-+		 * before marking swap_map SWAP_HAS_CACHE, when -EEXIST will
-+		 * cause any racers to loop around until we add it to cache.
-+		 */
-+		page = alloc_page_vma(gfp_mask, vma, addr);
-+		if (!page)
-+			return NULL;
-+
-+		/*
- 		 * Swap entry may have been freed since our caller observed it.
- 		 */
- 		err = swapcache_prepare(entry);
- 		if (!err)
- 			break;
+ 	VM_BUG_ON_PAGE(PageActive(page) && PageUnevictable(page), page);
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
  
--		if (err == -EEXIST) {
--			/*
--			 * We might race against get_swap_page() and stumble
--			 * across a SWAP_HAS_CACHE swap_map entry whose page
--			 * has not been brought into the swapcache yet.
--			 */
--			cond_resched();
--			continue;
--		}
-+		put_page(page);
-+		if (err != -EEXIST)
-+			return NULL;
- 
--		return NULL;
-+		/*
-+		 * We might race against __delete_from_swap_cache(), and
-+		 * stumble across a swap_map entry whose SWAP_HAS_CACHE
-+		 * has not yet been cleared.  Or race against another
-+		 * __read_swap_cache_async(), which has set SWAP_HAS_CACHE
-+		 * in swap_map, but not yet added its page to swap cache.
-+		 */
-+		cond_resched();
- 	}
- 
- 	/*
--	 * The swap entry is ours to swap in. Prepare a new page.
-+	 * The swap entry is ours to swap in. Prepare the new page.
- 	 */
- 
--	page = alloc_page_vma(gfp_mask, vma, addr);
--	if (!page)
--		goto fail_free;
--
- 	__SetPageLocked(page);
- 	__SetPageSwapBacked(page);
- 
- 	/* May fail (-ENOMEM) if XArray node allocation failed. */
--	if (add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL))
-+	if (add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL)) {
-+		put_swap_page(page, entry);
- 		goto fail_unlock;
-+	}
- 
--	if (mem_cgroup_charge(page, NULL, gfp_mask & GFP_KERNEL, false))
--		goto fail_delete;
-+	if (mem_cgroup_charge(page, NULL, gfp_mask, false)) {
-+		delete_from_swap_cache(page);
-+		goto fail_unlock;
-+	}
- 
--	/* Initiate read into locked page */
-+	/* Caller will initiate read into locked page */
- 	SetPageWorkingset(page);
- 	lru_cache_add_anon(page);
- 	*new_page_allocated = true;
- 	return page;
- 
--fail_delete:
--	delete_from_swap_cache(page);
- fail_unlock:
- 	unlock_page(page);
- 	put_page(page);
--fail_free:
--	swap_free(entry);
- 	return NULL;
+ 	get_page(page);
++	local_lock(&lru_pvecs.lock);
++	pvec = this_cpu_ptr(&lru_pvecs.lru_add);
+ 	if (!pagevec_add(pvec, page) || PageCompound(page))
+ 		__pagevec_lru_add(pvec);
+-	put_cpu_var(lru_add_pvec);
++	local_unlock(&lru_pvecs.lock);
  }
+ EXPORT_SYMBOL(lru_cache_add);
  
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memcontrol-charge-swapin-pages-on-instantiation.patch
-mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-fix.patch
+mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
+mm-add-debug_wx-support-fix.patch
+riscv-support-debug_wx-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
+arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-pre.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+linux-next-post.patch
+kernel-add-panic_on_taint-fix.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
