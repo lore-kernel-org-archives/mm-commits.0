@@ -1,149 +1,218 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 002/131] mm/memcg: optimize memory.numa_stat like
- memory.stat
-Date: Wed, 03 Jun 2020 15:56:24 -0700
-Message-ID: <20200603225624.g8J7goh5O%akpm@linux-foundation.org>
+Subject: [patch 003/131] mm/gup: move __get_user_pages_fast() down
+ a few lines in gup.c
+Date: Wed, 03 Jun 2020 15:56:27 -0700
+Message-ID: <20200603225627.KaTOZsw5O%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37608 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37652 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgFCW41 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:56:27 -0400
+        id S1725863AbgFCW4a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:56:30 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
+To: airlied@linux.ie, akpm@linux-foundation.org, chris@chris-wilson.co.uk, daniel@ffwll.ch, jani.nikula@linux.intel.com, jhubbard@nvidia.com, joonas.lahtinen@linux.intel.com, jrdr.linux@gmail.com, linux-mm@kvack.org, matthew.auld@intel.com, mm-commits@vger.kernel.org, rodrigo.vivi@intel.com, torvalds@linux-foundation.org, tvrtko.ursulin@intel.com, willy@infradead.org
 
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm/memcg: optimize memory.numa_stat like memory.stat
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: move __get_user_pages_fast() down a few lines in gup.c
 
-Currently reading memory.numa_stat traverses the underlying memcg tree
-multiple times to accumulate the stats to present the hierarchical view of
-the memcg tree.  However the kernel already maintains the hierarchical
-view of the stats and use it in memory.stat.  Just use the same mechanism
-in memory.numa_stat as well.
+Patch series "mm/gup, drm/i915: refactor gup_fast, convert to pin_user_pages()", v2.
 
-I ran a simple benchmark which reads root_mem_cgroup's memory.numa_stat
-file in the presense of 10000 memcgs.  The results are:
+In order to convert the drm/i915 driver from get_user_pages() to
+pin_user_pages(), a FOLL_PIN equivalent of __get_user_pages_fast() was
+required.  That led to refactoring __get_user_pages_fast(), with the
+following goals:
 
-Without the patch:
-$ time cat /dev/cgroup/memory/memory.numa_stat > /dev/null
+1) As above: provide a pin_user_pages*() routine for drm/i915 to call,
+   in place of __get_user_pages_fast(),
 
-real    0m0.700s
-user    0m0.001s
-sys     0m0.697s
+2) Get rid of the gup.c duplicate code for walking page tables with
+   interrupts disabled. This duplicate code is a minor maintenance
+   problem anyway.
 
-With the patch:
-$ time cat /dev/cgroup/memory/memory.numa_stat > /dev/null
+3) Make it easy for an upcoming patch from Souptick, which aims to
+   convert __get_user_pages_fast() to use a gup_flags argument, instead
+   of a bool writeable arg.  Also, if this series looks good, we can
+   ask Souptick to change the name as well, to whatever the consensus
+   is. My initial recommendation is: get_user_pages_fast_only(), to
+   match the new pin_user_pages_only().
 
-real    0m0.001s
-user    0m0.001s
-sys     0m0.000s
 
-[akpm@linux-foundation.org: avoid forcing out-of-line code generation]
-Link: http://lkml.kernel.org/r/20200304022058.248270-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+This patch (of 4):
+
+This is in order to avoid a forward declaration of
+internal_get_user_pages_fast(), in the next patch.
+
+This is code movement only--all generated code should be identical.
+
+Link: http://lkml.kernel.org/r/20200522051931.54191-1-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200519002124.2025955-1-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200519002124.2025955-2-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: "Joonas Lahtinen" <joonas.lahtinen@linux.intel.com>
+Cc: Matthew Auld <matthew.auld@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   49 +++++++++++++++++++++++-----------------------
- 1 file changed, 25 insertions(+), 24 deletions(-)
+ mm/gup.c |  132 ++++++++++++++++++++++++++---------------------------
+ 1 file changed, 66 insertions(+), 66 deletions(-)
 
---- a/mm/memcontrol.c~memcg-optimize-memorynuma_stat-like-memorystat
-+++ a/mm/memcontrol.c
-@@ -3743,7 +3743,7 @@ static int mem_cgroup_move_charge_write(
- #define LRU_ALL	     ((1 << NR_LRU_LISTS) - 1)
+--- a/mm/gup.c~mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc
++++ a/mm/gup.c
+@@ -2703,72 +2703,6 @@ static bool gup_fast_permitted(unsigned
+ }
+ #endif
  
- static unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
--					   int nid, unsigned int lru_mask)
-+				int nid, unsigned int lru_mask, bool tree)
+-/*
+- * Like get_user_pages_fast() except it's IRQ-safe in that it won't fall back to
+- * the regular GUP.
+- * Note a difference with get_user_pages_fast: this always returns the
+- * number of pages pinned, 0 if no pages were pinned.
+- *
+- * If the architecture does not support this function, simply return with no
+- * pages pinned.
+- *
+- * Careful, careful! COW breaking can go either way, so a non-write
+- * access can get ambiguous page results. If you call this function without
+- * 'write' set, you'd better be sure that you're ok with that ambiguity.
+- */
+-int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+-			  struct page **pages)
+-{
+-	unsigned long len, end;
+-	unsigned long flags;
+-	int nr_pinned = 0;
+-	/*
+-	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
+-	 * because gup fast is always a "pin with a +1 page refcount" request.
+-	 */
+-	unsigned int gup_flags = FOLL_GET;
+-
+-	if (write)
+-		gup_flags |= FOLL_WRITE;
+-
+-	start = untagged_addr(start) & PAGE_MASK;
+-	len = (unsigned long) nr_pages << PAGE_SHIFT;
+-	end = start + len;
+-
+-	if (end <= start)
+-		return 0;
+-	if (unlikely(!access_ok((void __user *)start, len)))
+-		return 0;
+-
+-	/*
+-	 * Disable interrupts.  We use the nested form as we can already have
+-	 * interrupts disabled by get_futex_key.
+-	 *
+-	 * With interrupts disabled, we block page table pages from being
+-	 * freed from under us. See struct mmu_table_batch comments in
+-	 * include/asm-generic/tlb.h for more details.
+-	 *
+-	 * We do not adopt an rcu_read_lock(.) here as we also want to
+-	 * block IPIs that come from THPs splitting.
+-	 *
+-	 * NOTE! We allow read-only gup_fast() here, but you'd better be
+-	 * careful about possible COW pages. You'll get _a_ COW page, but
+-	 * not necessarily the one you intended to get depending on what
+-	 * COW event happens after this. COW may break the page copy in a
+-	 * random direction.
+-	 */
+-
+-	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
+-	    gup_fast_permitted(start, end)) {
+-		local_irq_save(flags);
+-		gup_pgd_range(start, end, gup_flags, pages, &nr_pinned);
+-		local_irq_restore(flags);
+-	}
+-
+-	return nr_pinned;
+-}
+-EXPORT_SYMBOL_GPL(__get_user_pages_fast);
+-
+ static int __gup_longterm_unlocked(unsigned long start, int nr_pages,
+ 				   unsigned int gup_flags, struct page **pages)
  {
- 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 	unsigned long nr = 0;
-@@ -3754,13 +3754,17 @@ static unsigned long mem_cgroup_node_nr_
- 	for_each_lru(lru) {
- 		if (!(BIT(lru) & lru_mask))
- 			continue;
--		nr += lruvec_page_state_local(lruvec, NR_LRU_BASE + lru);
-+		if (tree)
-+			nr += lruvec_page_state(lruvec, NR_LRU_BASE + lru);
-+		else
-+			nr += lruvec_page_state_local(lruvec, NR_LRU_BASE + lru);
- 	}
- 	return nr;
+@@ -2848,6 +2782,72 @@ static int internal_get_user_pages_fast(
+ 	return ret;
  }
  
- static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg,
--					     unsigned int lru_mask)
-+					     unsigned int lru_mask,
-+					     bool tree)
- {
- 	unsigned long nr = 0;
- 	enum lru_list lru;
-@@ -3768,7 +3772,10 @@ static unsigned long mem_cgroup_nr_lru_p
- 	for_each_lru(lru) {
- 		if (!(BIT(lru) & lru_mask))
- 			continue;
--		nr += memcg_page_state_local(memcg, NR_LRU_BASE + lru);
-+		if (tree)
-+			nr += memcg_page_state(memcg, NR_LRU_BASE + lru);
-+		else
-+			nr += memcg_page_state_local(memcg, NR_LRU_BASE + lru);
- 	}
- 	return nr;
- }
-@@ -3788,34 +3795,28 @@ static int memcg_numa_stat_show(struct s
- 	};
- 	const struct numa_stat *stat;
- 	int nid;
--	unsigned long nr;
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
- 
- 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
--		nr = mem_cgroup_nr_lru_pages(memcg, stat->lru_mask);
--		seq_printf(m, "%s=%lu", stat->name, nr);
--		for_each_node_state(nid, N_MEMORY) {
--			nr = mem_cgroup_node_nr_lru_pages(memcg, nid,
--							  stat->lru_mask);
--			seq_printf(m, " N%d=%lu", nid, nr);
--		}
-+		seq_printf(m, "%s=%lu", stat->name,
-+			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
-+						   false));
-+		for_each_node_state(nid, N_MEMORY)
-+			seq_printf(m, " N%d=%lu", nid,
-+				   mem_cgroup_node_nr_lru_pages(memcg, nid,
-+							stat->lru_mask, false));
- 		seq_putc(m, '\n');
- 	}
- 
- 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
--		struct mem_cgroup *iter;
- 
--		nr = 0;
--		for_each_mem_cgroup_tree(iter, memcg)
--			nr += mem_cgroup_nr_lru_pages(iter, stat->lru_mask);
--		seq_printf(m, "hierarchical_%s=%lu", stat->name, nr);
--		for_each_node_state(nid, N_MEMORY) {
--			nr = 0;
--			for_each_mem_cgroup_tree(iter, memcg)
--				nr += mem_cgroup_node_nr_lru_pages(
--					iter, nid, stat->lru_mask);
--			seq_printf(m, " N%d=%lu", nid, nr);
--		}
-+		seq_printf(m, "hierarchical_%s=%lu", stat->name,
-+			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
-+						   true));
-+		for_each_node_state(nid, N_MEMORY)
-+			seq_printf(m, " N%d=%lu", nid,
-+				   mem_cgroup_node_nr_lru_pages(memcg, nid,
-+							stat->lru_mask, true));
- 		seq_putc(m, '\n');
- 	}
- 
++/*
++ * Like get_user_pages_fast() except it's IRQ-safe in that it won't fall back to
++ * the regular GUP.
++ * Note a difference with get_user_pages_fast: this always returns the
++ * number of pages pinned, 0 if no pages were pinned.
++ *
++ * If the architecture does not support this function, simply return with no
++ * pages pinned.
++ *
++ * Careful, careful! COW breaking can go either way, so a non-write
++ * access can get ambiguous page results. If you call this function without
++ * 'write' set, you'd better be sure that you're ok with that ambiguity.
++ */
++int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
++			  struct page **pages)
++{
++	unsigned long len, end;
++	unsigned long flags;
++	int nr_pinned = 0;
++	/*
++	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
++	 * because gup fast is always a "pin with a +1 page refcount" request.
++	 */
++	unsigned int gup_flags = FOLL_GET;
++
++	if (write)
++		gup_flags |= FOLL_WRITE;
++
++	start = untagged_addr(start) & PAGE_MASK;
++	len = (unsigned long) nr_pages << PAGE_SHIFT;
++	end = start + len;
++
++	if (end <= start)
++		return 0;
++	if (unlikely(!access_ok((void __user *)start, len)))
++		return 0;
++
++	/*
++	 * Disable interrupts.  We use the nested form as we can already have
++	 * interrupts disabled by get_futex_key.
++	 *
++	 * With interrupts disabled, we block page table pages from being
++	 * freed from under us. See struct mmu_table_batch comments in
++	 * include/asm-generic/tlb.h for more details.
++	 *
++	 * We do not adopt an rcu_read_lock(.) here as we also want to
++	 * block IPIs that come from THPs splitting.
++	 *
++	 * NOTE! We allow read-only gup_fast() here, but you'd better be
++	 * careful about possible COW pages. You'll get _a_ COW page, but
++	 * not necessarily the one you intended to get depending on what
++	 * COW event happens after this. COW may break the page copy in a
++	 * random direction.
++	 */
++
++	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
++	    gup_fast_permitted(start, end)) {
++		local_irq_save(flags);
++		gup_pgd_range(start, end, gup_flags, pages, &nr_pinned);
++		local_irq_restore(flags);
++	}
++
++	return nr_pinned;
++}
++EXPORT_SYMBOL_GPL(__get_user_pages_fast);
++
+ /**
+  * get_user_pages_fast() - pin user pages in memory
+  * @start:      starting user address
 _
