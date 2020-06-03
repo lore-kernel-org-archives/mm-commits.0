@@ -1,51 +1,186 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 007/131] mm/gup: might_lock_read(mmap_sem) in
- get_user_pages_fast()
-Date: Wed, 03 Jun 2020 15:56:40 -0700
-Message-ID: <20200603225640.p1jX5JqMA%akpm@linux-foundation.org>
+Subject: [patch 008/131] kasan: stop tests being eliminated as
+ dead code with FORTIFY_SOURCE
+Date: Wed, 03 Jun 2020 15:56:43 -0700
+Message-ID: <20200603225643.BSVxCW3H1%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37968 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38028 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgFCW4l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:56:41 -0400
+        id S1725863AbgFCW4o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:56:44 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jgg@ziepe.ca, jhubbard@nvidia.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, walken@google.com, willy@infradead.org
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, danielmicay@gmail.com, davidgow@google.com, dja@axtens.net, dvyukov@google.com, glider@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: might_lock_read(mmap_sem) in get_user_pages_fast()
+From: Daniel Axtens <dja@axtens.net>
+Subject: kasan: stop tests being eliminated as dead code with FORTIFY_SOURCE
 
-Instead of scattering these assertions across the drivers, do this
-assertion inside the core of get_user_pages_fast*() functions.  That also
-includes pin_user_pages_fast*() routines.
+Patch series "Fix some incompatibilites between KASAN and FORTIFY_SOURCE", v4.
 
-Add a might_lock_read(mmap_sem) call to internal_get_user_pages_fast().
+3 KASAN self-tests fail on a kernel with both KASAN and FORTIFY_SOURCE:
+memchr, memcmp and strlen.
 
-Link: http://lkml.kernel.org/r/20200522010443.1290485-1-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Reviewed-by: Matthew Wilcox <willy@infradead.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+When FORTIFY_SOURCE is on, a number of functions are replaced with
+fortified versions, which attempt to check the sizes of the operands. 
+However, these functions often directly invoke __builtin_foo() once they
+have performed the fortify check.  The compiler can detect that the
+results of these functions are not used, and knows that they have no other
+side effects, and so can eliminate them as dead code.
+
+Why are only memchr, memcmp and strlen affected?
+================================================
+
+Of string and string-like functions, kasan_test tests:
+
+ * strchr  ->  not affected, no fortified version
+ * strrchr ->  likewise
+ * strcmp  ->  likewise
+ * strncmp ->  likewise
+
+ * strnlen ->  not affected, the fortify source implementation calls the
+               underlying strnlen implementation which is instrumented, not
+               a builtin
+
+ * strlen  ->  affected, the fortify souce implementation calls a __builtin
+               version which the compiler can determine is dead.
+
+ * memchr  ->  likewise
+ * memcmp  ->  likewise
+
+ * memset ->   not affected, the compiler knows that memset writes to its
+	       first argument and therefore is not dead.
+
+Why does this not affect the functions normally?
+================================================
+
+In string.h, these functions are not marked as __pure, so the compiler
+cannot know that they do not have side effects.  If relevant functions are
+marked as __pure in string.h, we see the following warnings and the
+functions are elided:
+
+lib/test_kasan.c: In function `kasan_memchr':
+lib/test_kasan.c:606:2: warning: statement with no effect [-Wunused-value]
+  memchr(ptr, '1', size + 1);
+  ^~~~~~~~~~~~~~~~~~~~~~~~~~
+lib/test_kasan.c: In function `kasan_memcmp':
+lib/test_kasan.c:622:2: warning: statement with no effect [-Wunused-value]
+  memcmp(ptr, arr, size+1);
+  ^~~~~~~~~~~~~~~~~~~~~~~~
+lib/test_kasan.c: In function `kasan_strings':
+lib/test_kasan.c:645:2: warning: statement with no effect [-Wunused-value]
+  strchr(ptr, '1');
+  ^~~~~~~~~~~~~~~~
+...
+
+This annotation would make sense to add and could be added at any point,
+so the behaviour of test_kasan.c should change.
+
+The fix
+=======
+
+Make all the functions that are pure write their results to a global,
+which makes them live.  The strlen and memchr tests now pass.
+
+The memcmp test still fails to trigger, which is addressed in the next
+patch.
+
+[dja@axtens.net: drop patch 3]
+  Link: http://lkml.kernel.org/r/20200424145521.8203-2-dja@axtens.net
+Link: http://lkml.kernel.org/r/20200423154503.5103-1-dja@axtens.net
+Link: http://lkml.kernel.org/r/20200423154503.5103-2-dja@axtens.net
+Fixes: 0c96350a2d2f ("lib/test_kasan.c: add tests for several string/memory API functions")
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Tested-by: David Gow <davidgow@google.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/test_kasan.c |   29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
---- a/mm/gup.c~mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast
-+++ a/mm/gup.c
-@@ -2739,6 +2739,9 @@ static int internal_get_user_pages_fast(
- 				       FOLL_FAST_ONLY)))
- 		return -EINVAL;
+--- a/lib/test_kasan.c~kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source
++++ a/lib/test_kasan.c
+@@ -24,6 +24,14 @@
+ #include <asm/page.h>
  
-+	if (!(gup_flags & FOLL_FAST_ONLY))
-+		might_lock_read(&current->mm->mmap_sem);
+ /*
++ * We assign some test results to these globals to make sure the tests
++ * are not eliminated as dead code.
++ */
 +
- 	start = untagged_addr(start) & PAGE_MASK;
- 	addr = start;
- 	len = (unsigned long) nr_pages << PAGE_SHIFT;
++int kasan_int_result;
++void *kasan_ptr_result;
++
++/*
+  * Note: test functions are marked noinline so that their names appear in
+  * reports.
+  */
+@@ -622,7 +630,7 @@ static noinline void __init kasan_memchr
+ 	if (!ptr)
+ 		return;
+ 
+-	memchr(ptr, '1', size + 1);
++	kasan_ptr_result = memchr(ptr, '1', size + 1);
+ 	kfree(ptr);
+ }
+ 
+@@ -638,7 +646,7 @@ static noinline void __init kasan_memcmp
+ 		return;
+ 
+ 	memset(arr, 0, sizeof(arr));
+-	memcmp(ptr, arr, size+1);
++	kasan_int_result = memcmp(ptr, arr, size + 1);
+ 	kfree(ptr);
+ }
+ 
+@@ -661,22 +669,22 @@ static noinline void __init kasan_string
+ 	 * will likely point to zeroed byte.
+ 	 */
+ 	ptr += 16;
+-	strchr(ptr, '1');
++	kasan_ptr_result = strchr(ptr, '1');
+ 
+ 	pr_info("use-after-free in strrchr\n");
+-	strrchr(ptr, '1');
++	kasan_ptr_result = strrchr(ptr, '1');
+ 
+ 	pr_info("use-after-free in strcmp\n");
+-	strcmp(ptr, "2");
++	kasan_int_result = strcmp(ptr, "2");
+ 
+ 	pr_info("use-after-free in strncmp\n");
+-	strncmp(ptr, "2", 1);
++	kasan_int_result = strncmp(ptr, "2", 1);
+ 
+ 	pr_info("use-after-free in strlen\n");
+-	strlen(ptr);
++	kasan_int_result = strlen(ptr);
+ 
+ 	pr_info("use-after-free in strnlen\n");
+-	strnlen(ptr, 1);
++	kasan_int_result = strnlen(ptr, 1);
+ }
+ 
+ static noinline void __init kasan_bitops(void)
+@@ -743,11 +751,12 @@ static noinline void __init kasan_bitops
+ 	__test_and_change_bit(BITS_PER_LONG + BITS_PER_BYTE, bits);
+ 
+ 	pr_info("out-of-bounds in test_bit\n");
+-	(void)test_bit(BITS_PER_LONG + BITS_PER_BYTE, bits);
++	kasan_int_result = test_bit(BITS_PER_LONG + BITS_PER_BYTE, bits);
+ 
+ #if defined(clear_bit_unlock_is_negative_byte)
+ 	pr_info("out-of-bounds in clear_bit_unlock_is_negative_byte\n");
+-	clear_bit_unlock_is_negative_byte(BITS_PER_LONG + BITS_PER_BYTE, bits);
++	kasan_int_result = clear_bit_unlock_is_negative_byte(BITS_PER_LONG +
++		BITS_PER_BYTE, bits);
+ #endif
+ 	kfree(bits);
+ }
 _
