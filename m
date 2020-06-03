@@ -1,97 +1,192 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged]
- mm-reset-numa-stats-for-boot-pagesets-v3.patch removed from -mm tree
-Date: Wed, 03 Jun 2020 15:11:15 -0700
-Message-ID: <20200603221115.LbL8V-daQ%akpm@linux-foundation.org>
+Subject: [folded-merged] khugepaged-add-self-test-fix-2.patch
+ removed from -mm tree
+Date: Wed, 03 Jun 2020 15:11:58 -0700
+Message-ID: <20200603221158.28jSCBrPj%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51470 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51932 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726354AbgFCWLR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:11:17 -0400
+        id S1726354AbgFCWL7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:11:59 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.ibm.com, khlebnikov@yandex-team.ru, kirill@shutemov.name, mhocko@suse.com, mm-commits@vger.kernel.org, sandipan@linux.ibm.com, vbabka@suse.cz
+To: aneesh.kumar@linux.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-reset-numa-stats-for-boot-pagesets-v3
+     Subject: khugepaged: replace the usage of system(3) in the test
 has been removed from the -mm tree.  Its filename was
-     mm-reset-numa-stats-for-boot-pagesets-v3.patch
+     khugepaged-add-self-test-fix-2.patch
 
-This patch was dropped because it was folded into mm-reset-numa-stats-for-boot-pagesets.patch
+This patch was dropped because it was folded into khugepaged-add-self-test.patch
 
 ------------------------------------------------------
-From: Sandipan Das <sandipan@linux.ibm.com>
-Subject: mm-reset-numa-stats-for-boot-pagesets-v3
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: khugepaged: replace the usage of system(3) in the test
 
-Drop the redundant static key-based check to see if numa stats are enabled
-as suggested by Vlastimil.
+Some glibc version doesn't use CLONE_VM | CLONE_VFORK for system(3)
+implementation and on such system, we find the test case fails.  This is
+due to fork() marking all the parent page table pages read-only to do a
+COW.
 
-Link: http://lkml.kernel.org/r/20200511170356.162531-1-sandipan@linux.ibm.com
-Signed-off-by: Sandipan Das <sandipan@linux.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Avoid the usage of system(3) in the test.
+
+Link: http://lkml.kernel.org/r/20200429110727.89388-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   26 +++++++++++---------------
- 1 file changed, 11 insertions(+), 15 deletions(-)
+ tools/testing/selftests/vm/khugepaged.c |  105 ++++++++++++++++------
+ 1 file changed, 77 insertions(+), 28 deletions(-)
 
---- a/mm/page_alloc.c~mm-reset-numa-stats-for-boot-pagesets-v3
-+++ a/mm/page_alloc.c
-@@ -6247,26 +6247,22 @@ void __init setup_per_cpu_pageset(void)
+--- a/tools/testing/selftests/vm/khugepaged.c~khugepaged-add-self-test-fix-2
++++ a/tools/testing/selftests/vm/khugepaged.c
+@@ -21,6 +21,7 @@ static unsigned long page_size;
+ static int hpage_pmd_nr;
+ 
+ #define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
++#define PID_SMAPS "/proc/self/smaps"
+ 
+ enum thp_enabled {
+ 	THP_ALWAYS,
+@@ -330,56 +331,104 @@ static void adjust_settings(void)
+ 	success("OK");
+ }
+ 
+-#define CHECK_HUGE_FMT "sed -ne " \
+-	"'/^%lx/,/^AnonHugePages/{/^AnonHugePages:\\s*%ld kB/ q1}' " \
+-	"/proc/%d/smaps"
++#define MAX_LINE_LENGTH 500
+ 
+-static bool check_huge(void *p)
++static bool check_for_pattern(FILE *fp, char *pattern, char *buf)
  {
- 	struct pglist_data *pgdat;
- 	struct zone *zone;
-+	int __maybe_unused cpu;
+-	char *cmd;
++	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
++		if (!strncmp(buf, pattern, strlen(pattern)))
++			return true;
++	}
++	return false;
++}
++
++static bool check_huge(char *addr)
++{
++	bool thp = false;
+ 	int ret;
++	FILE *fp;
++	char buffer[MAX_LINE_LENGTH];
++	char addr_pattern[MAX_LINE_LENGTH];
  
- 	for_each_populated_zone(zone)
- 		setup_zone_pageset(zone);
- 
- #ifdef CONFIG_NUMA
--	if (static_branch_likely(&vm_numa_stat_key)) {
--		struct per_cpu_pageset *pcp;
--		int cpu;
--
--		/*
--		 * Unpopulated zones continue using the boot pagesets.
--		 * The numa stats for these pagesets need to be reset.
--		 * Otherwise, they will end up skewing the stats of
--		 * the nodes these zones are associated with.
--		 */
--		for_each_possible_cpu(cpu) {
--			pcp = &per_cpu(boot_pageset, cpu);
--			memset(pcp->vm_numa_stat_diff, 0,
--			       sizeof(pcp->vm_numa_stat_diff));
--		}
-+	/*
-+	 * Unpopulated zones continue using the boot pagesets.
-+	 * The numa stats for these pagesets need to be reset.
-+	 * Otherwise, they will end up skewing the stats of
-+	 * the nodes these zones are associated with.
-+	 */
-+	for_each_possible_cpu(cpu) {
-+		struct per_cpu_pageset *pcp = &per_cpu(boot_pageset, cpu);
-+		memset(pcp->vm_numa_stat_diff, 0,
-+		       sizeof(pcp->vm_numa_stat_diff));
+-	ret = asprintf(&cmd, CHECK_HUGE_FMT,
+-			(unsigned long)p, hpage_pmd_size >> 10, getpid());
+-	if (ret < 0) {
+-		perror("asprintf(CHECK_FMT)");
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08llx-", addr);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++
++	fp = fopen(PID_SMAPS, "r");
++	if (!fp) {
++		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
+ 		exit(EXIT_FAILURE);
  	}
- #endif
++	if (!check_for_pattern(fp, addr_pattern, buffer))
++		goto err_out;
  
+-	ret = system(cmd);
+-	free(cmd);
+-	if (ret < 0 || !WIFEXITED(ret)) {
+-		perror("system(check_huge)");
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "AnonHugePages:%10lld kB", hpage_pmd_size >> 10);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
+ 		exit(EXIT_FAILURE);
+ 	}
++	/*
++	 * Fetch the AnonHugePages: in the same block and check whether it got
++	 * the expected number of hugeepages next.
++	 */
++	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
++		goto err_out;
++
++	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
++		goto err_out;
+ 
+-	return WEXITSTATUS(ret);
++	thp = true;
++err_out:
++	fclose(fp);
++	return thp;
+ }
+ 
+-#define CHECK_SWAP_FMT "sed -ne " \
+-	"'/^%lx/,/^Swap:/{/^Swap:\\s*%ld kB/ q1}' " \
+-	"/proc/%d/smaps"
+ 
+-static bool check_swap(void *p, unsigned long size)
++static bool check_swap(void *addr, unsigned long size)
+ {
+-	char *cmd;
++	bool swap = false;
+ 	int ret;
++	FILE *fp;
++	char buffer[MAX_LINE_LENGTH];
++	char addr_pattern[MAX_LINE_LENGTH];
+ 
+-	ret = asprintf(&cmd, CHECK_SWAP_FMT,
+-			(unsigned long)p, size >> 10, getpid());
+-	if (ret < 0) {
+-		perror("asprintf(CHECK_SWAP)");
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08llx-", addr);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++
++	fp = fopen(PID_SMAPS, "r");
++	if (!fp) {
++		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
+ 		exit(EXIT_FAILURE);
+ 	}
++	if (!check_for_pattern(fp, addr_pattern, buffer))
++		goto err_out;
+ 
+-	ret = system(cmd);
+-	free(cmd);
+-	if (ret < 0 || !WIFEXITED(ret)) {
+-		perror("system(check_swap)");
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "Swap:%19lld kB", size >> 10);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
+ 		exit(EXIT_FAILURE);
+ 	}
++	/*
++	 * Fetch the Swap: in the same block and check whether it got
++	 * the expected number of hugeepages next.
++	 */
++	if (!check_for_pattern(fp, "Swap:", buffer))
++		goto err_out;
++
++	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
++		goto err_out;
+ 
+-	return WEXITSTATUS(ret);
++	swap = true;
++err_out:
++	fclose(fp);
++	return swap;
+ }
+ 
+ static void *alloc_mapping(void)
 _
 
-Patches currently in -mm which might be from sandipan@linux.ibm.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-mm-reset-numa-stats-for-boot-pagesets.patch
-selftests-vm-pkeys-use-sane-types-for-pkey-register.patch
-selftests-vm-pkeys-add-helpers-for-pkey-bits.patch
-selftests-vm-pkeys-use-the-correct-huge-page-size.patch
-selftests-vm-pkeys-introduce-powerpc-support-fix.patch
-selftests-vm-pkeys-override-access-right-definitions-on-powerpc-fix.patch
-selftests-vm-pkeys-use-the-correct-page-size-on-powerpc.patch
-selftests-vm-pkeys-fix-multilib-builds-for-x86.patch
+khugepaged-add-self-test.patch
