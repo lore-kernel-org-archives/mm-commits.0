@@ -1,192 +1,103 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] khugepaged-add-self-test-fix-2.patch
+Subject: [folded-merged] khugepaged-add-self-test-fix.patch
  removed from -mm tree
-Date: Wed, 03 Jun 2020 15:11:58 -0700
-Message-ID: <20200603221158.28jSCBrPj%akpm@linux-foundation.org>
+Date: Wed, 03 Jun 2020 15:11:55 -0700
+Message-ID: <20200603221155.NpQ2kF_Nt%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51932 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51892 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726354AbgFCWL7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:11:59 -0400
+        id S1726354AbgFCWL5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:11:57 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.ibm.com, mm-commits@vger.kernel.org
+To: colin.king@canonical.com, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: replace the usage of system(3) in the test
+     Subject: selftests: khugepaged: fix several spelling mistakes
 has been removed from the -mm tree.  Its filename was
-     khugepaged-add-self-test-fix-2.patch
+     khugepaged-add-self-test-fix.patch
 
 This patch was dropped because it was folded into khugepaged-add-self-test.patch
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: khugepaged: replace the usage of system(3) in the test
+From: Colin Ian King <colin.king@canonical.com>
+Subject: selftests: khugepaged: fix several spelling mistakes
 
-Some glibc version doesn't use CLONE_VM | CLONE_VFORK for system(3)
-implementation and on such system, we find the test case fails.  This is
-due to fork() marking all the parent page table pages read-only to do a
-COW.
+There a are several spelling mistakes in various messages. Fix these.
 
-Avoid the usage of system(3) in the test.
+There are three spelling mistakes in various messages. Fix these.
 
-Link: http://lkml.kernel.org/r/20200429110727.89388-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Link: http://lkml.kernel.org/r/20200420084241.65433-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/khugepaged.c |  105 ++++++++++++++++------
- 1 file changed, 77 insertions(+), 28 deletions(-)
+ tools/testing/selftests/vm/khugepaged.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/vm/khugepaged.c~khugepaged-add-self-test-fix-2
+--- a/tools/testing/selftests/vm/khugepaged.c~khugepaged-add-self-test-fix
 +++ a/tools/testing/selftests/vm/khugepaged.c
-@@ -21,6 +21,7 @@ static unsigned long page_size;
- static int hpage_pmd_nr;
+@@ -534,7 +534,7 @@ static void collapse_max_ptes_none(void)
+ 	p = alloc_mapping();
  
- #define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
-+#define PID_SMAPS "/proc/self/smaps"
- 
- enum thp_enabled {
- 	THP_ALWAYS,
-@@ -330,56 +331,104 @@ static void adjust_settings(void)
- 	success("OK");
- }
- 
--#define CHECK_HUGE_FMT "sed -ne " \
--	"'/^%lx/,/^AnonHugePages/{/^AnonHugePages:\\s*%ld kB/ q1}' " \
--	"/proc/%d/smaps"
-+#define MAX_LINE_LENGTH 500
- 
--static bool check_huge(void *p)
-+static bool check_for_pattern(FILE *fp, char *pattern, char *buf)
- {
--	char *cmd;
-+	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
-+		if (!strncmp(buf, pattern, strlen(pattern)))
-+			return true;
-+	}
-+	return false;
-+}
-+
-+static bool check_huge(char *addr)
-+{
-+	bool thp = false;
- 	int ret;
-+	FILE *fp;
-+	char buffer[MAX_LINE_LENGTH];
-+	char addr_pattern[MAX_LINE_LENGTH];
- 
--	ret = asprintf(&cmd, CHECK_HUGE_FMT,
--			(unsigned long)p, hpage_pmd_size >> 10, getpid());
--	if (ret < 0) {
--		perror("asprintf(CHECK_FMT)");
-+	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08llx-", addr);
-+	if (ret >= MAX_LINE_LENGTH) {
-+		printf("%s: Pattern is too long\n", __func__);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+
-+	fp = fopen(PID_SMAPS, "r");
-+	if (!fp) {
-+		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
- 		exit(EXIT_FAILURE);
+ 	fill_memory(p, 0, (hpage_pmd_nr - max_ptes_none - 1) * page_size);
+-	if (wait_for_scan("Do not collapse with max_ptes_none exeeded", p))
++	if (wait_for_scan("Do not collapse with max_ptes_none exceeded", p))
+ 		fail("Timeout");
+ 	else if (check_huge(p))
+ 		fail("Fail");
+@@ -573,7 +573,7 @@ static void collapse_swapin_single_pte(v
+ 		goto out;
  	}
-+	if (!check_for_pattern(fp, addr_pattern, buffer))
-+		goto err_out;
  
--	ret = system(cmd);
--	free(cmd);
--	if (ret < 0 || !WIFEXITED(ret)) {
--		perror("system(check_huge)");
-+	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "AnonHugePages:%10lld kB", hpage_pmd_size >> 10);
-+	if (ret >= MAX_LINE_LENGTH) {
-+		printf("%s: Pattern is too long\n", __func__);
- 		exit(EXIT_FAILURE);
+-	if (wait_for_scan("Collapse with swaping in single PTE entry", p))
++	if (wait_for_scan("Collapse with swapping in single PTE entry", p))
+ 		fail("Timeout");
+ 	else if (check_huge(p))
+ 		success("OK");
+@@ -604,7 +604,7 @@ static void collapse_max_ptes_swap(void)
+ 		goto out;
  	}
-+	/*
-+	 * Fetch the AnonHugePages: in the same block and check whether it got
-+	 * the expected number of hugeepages next.
-+	 */
-+	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
-+		goto err_out;
-+
-+	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
-+		goto err_out;
  
--	return WEXITSTATUS(ret);
-+	thp = true;
-+err_out:
-+	fclose(fp);
-+	return thp;
- }
+-	if (wait_for_scan("Do not collapse with max_ptes_swap exeeded", p))
++	if (wait_for_scan("Do not collapse with max_ptes_swap exceeded", p))
+ 		fail("Timeout");
+ 	else if (check_huge(p))
+ 		fail("Fail");
+@@ -651,14 +651,14 @@ static void collapse_single_pte_entry_co
+ 		fail("Fail");
+ 	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
  
--#define CHECK_SWAP_FMT "sed -ne " \
--	"'/^%lx/,/^Swap:/{/^Swap:\\s*%ld kB/ q1}' " \
--	"/proc/%d/smaps"
+-	printf("Split huge page leaving single PTE mapping compount page...");
++	printf("Split huge page leaving single PTE mapping compound page...");
+ 	madvise(p + page_size, hpage_pmd_size - page_size, MADV_DONTNEED);
+ 	if (!check_huge(p))
+ 		success("OK");
+ 	else
+ 		fail("Fail");
  
--static bool check_swap(void *p, unsigned long size)
-+static bool check_swap(void *addr, unsigned long size)
- {
--	char *cmd;
-+	bool swap = false;
- 	int ret;
-+	FILE *fp;
-+	char buffer[MAX_LINE_LENGTH];
-+	char addr_pattern[MAX_LINE_LENGTH];
+-	if (wait_for_scan("Collapse PTE table with single PTE mapping compount page", p))
++	if (wait_for_scan("Collapse PTE table with single PTE mapping compound page", p))
+ 		fail("Timeout");
+ 	else if (check_huge(p))
+ 		success("OK");
+@@ -682,7 +682,7 @@ static void collapse_full_of_compound(vo
+ 	else
+ 		fail("Fail");
  
--	ret = asprintf(&cmd, CHECK_SWAP_FMT,
--			(unsigned long)p, size >> 10, getpid());
--	if (ret < 0) {
--		perror("asprintf(CHECK_SWAP)");
-+	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08llx-", addr);
-+	if (ret >= MAX_LINE_LENGTH) {
-+		printf("%s: Pattern is too long\n", __func__);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+
-+	fp = fopen(PID_SMAPS, "r");
-+	if (!fp) {
-+		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
- 		exit(EXIT_FAILURE);
- 	}
-+	if (!check_for_pattern(fp, addr_pattern, buffer))
-+		goto err_out;
- 
--	ret = system(cmd);
--	free(cmd);
--	if (ret < 0 || !WIFEXITED(ret)) {
--		perror("system(check_swap)");
-+	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "Swap:%19lld kB", size >> 10);
-+	if (ret >= MAX_LINE_LENGTH) {
-+		printf("%s: Pattern is too long\n", __func__);
- 		exit(EXIT_FAILURE);
- 	}
-+	/*
-+	 * Fetch the Swap: in the same block and check whether it got
-+	 * the expected number of hugeepages next.
-+	 */
-+	if (!check_for_pattern(fp, "Swap:", buffer))
-+		goto err_out;
-+
-+	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
-+		goto err_out;
- 
--	return WEXITSTATUS(ret);
-+	swap = true;
-+err_out:
-+	fclose(fp);
-+	return swap;
- }
- 
- static void *alloc_mapping(void)
+-	printf("Split huge page leaving single PTE page table full of compount pages...");
++	printf("Split huge page leaving single PTE page table full of compound pages...");
+ 	madvise(p, page_size, MADV_NOHUGEPAGE);
+ 	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
+ 	if (!check_huge(p))
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
 khugepaged-add-self-test.patch
+khugepaged-introduce-max_ptes_shared-tunable-fix.patch
