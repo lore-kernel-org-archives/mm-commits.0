@@ -1,82 +1,117 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 130/131] x86: mm: use ARCH_HAS_DEBUG_WX instead of
- arch defined
-Date: Wed, 03 Jun 2020 16:03:58 -0700
-Message-ID: <20200603230358.I60ldggO7%akpm@linux-foundation.org>
+Subject: [patch 087/131] mm: memcontrol: move out cgroup swaprate
+ throttling
+Date: Wed, 03 Jun 2020 16:01:38 -0700
+Message-ID: <20200603230138.Rp1GwBUTc%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47800 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47796 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726093AbgFCXIh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:37 -0400
+        id S1726380AbgFCXIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:39 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, linux-mm@kvack.org, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, torvalds@linux-foundation.org, will@kernel.org, zong.li@sifive.com
+To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, bsingharora@gmail.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
 
-From: Zong Li <zong.li@sifive.com>
-Subject: x86: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: move out cgroup swaprate throttling
 
-Extract DEBUG_WX to mm/Kconfig.debug for shared use.  Change to use
-ARCH_HAS_DEBUG_WX instead of DEBUG_WX defined by arch port.
+The cgroup swaprate throttling is about matching new anon allocations to
+the rate of available IO when that is being throttled.  It's the io
+controller hooking into the VM, rather than a memory controller thing.
 
-Link: http://lkml.kernel.org/r/430736828d149df3f5b462d291e845ec690e0141.1587455584.git.zong.li@sifive.com
-Signed-off-by: Zong Li <zong.li@sifive.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+Rename mem_cgroup_throttle_swaprate() to cgroup_throttle_swaprate(), and
+drop the @memcg argument which is only used to check whether the preceding
+page charge has succeeded and the fault is proceeding.
+
+We could decouple the call from mem_cgroup_try_charge() here as well, but
+that would cause unnecessary churn: the following patches convert all
+callsites to a new charge API and we'll decouple as we go along.
+
+Link: http://lkml.kernel.org/r/20200508183105.225460-5-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
+Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig       |    1 +
- arch/x86/Kconfig.debug |   27 ---------------------------
- 2 files changed, 1 insertion(+), 27 deletions(-)
+ include/linux/swap.h |    6 ++----
+ mm/memcontrol.c      |    5 ++---
+ mm/swapfile.c        |   14 +++++++-------
+ 3 files changed, 11 insertions(+), 14 deletions(-)
 
---- a/arch/x86/Kconfig~x86-mm-use-arch_has_debug_wx-instead-of-arch-defined
-+++ a/arch/x86/Kconfig
-@@ -81,6 +81,7 @@ config X86
- 	select ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
- 	select ARCH_HAS_SYSCALL_WRAPPER
- 	select ARCH_HAS_UBSAN_SANITIZE_ALL
-+	select ARCH_HAS_DEBUG_WX
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
---- a/arch/x86/Kconfig.debug~x86-mm-use-arch_has_debug_wx-instead-of-arch-defined
-+++ a/arch/x86/Kconfig.debug
-@@ -72,33 +72,6 @@ config EFI_PGT_DUMP
- 	  issues with the mapping of the EFI runtime regions into that
- 	  table.
+--- a/include/linux/swap.h~mm-memcontrol-move-out-cgroup-swaprate-throttling
++++ a/include/linux/swap.h
+@@ -651,11 +651,9 @@ static inline int mem_cgroup_swappiness(
+ #endif
  
--config DEBUG_WX
--	bool "Warn on W+X mappings at boot"
--	select PTDUMP_CORE
--	---help---
--	  Generate a warning if any W+X mappings are found at boot.
--
--	  This is useful for discovering cases where the kernel is leaving
--	  W+X mappings after applying NX, as such mappings are a security risk.
--
--	  Look for a message in dmesg output like this:
--
--	    x86/mm: Checked W+X mappings: passed, no W+X pages found.
--
--	  or like this, if the check failed:
--
--	    x86/mm: Checked W+X mappings: FAILED, <N> W+X pages found.
--
--	  Note that even if the check fails, your kernel is possibly
--	  still fine, as W+X mappings are not a security hole in
--	  themselves, what they do is that they make the exploitation
--	  of other unfixed kernel bugs easier.
--
--	  There is no runtime or memory usage effect of this option
--	  once the kernel has booted up - it's a one time check.
--
--	  If in doubt, say "Y".
+ #if defined(CONFIG_SWAP) && defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
+-extern void mem_cgroup_throttle_swaprate(struct mem_cgroup *memcg, int node,
+-					 gfp_t gfp_mask);
++extern void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask);
+ #else
+-static inline void mem_cgroup_throttle_swaprate(struct mem_cgroup *memcg,
+-						int node, gfp_t gfp_mask)
++static inline void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
+ {
+ }
+ #endif
+--- a/mm/memcontrol.c~mm-memcontrol-move-out-cgroup-swaprate-throttling
++++ a/mm/memcontrol.c
+@@ -6553,12 +6553,11 @@ out:
+ int mem_cgroup_try_charge_delay(struct page *page, struct mm_struct *mm,
+ 			  gfp_t gfp_mask, struct mem_cgroup **memcgp)
+ {
+-	struct mem_cgroup *memcg;
+ 	int ret;
+ 
+ 	ret = mem_cgroup_try_charge(page, mm, gfp_mask, memcgp);
+-	memcg = *memcgp;
+-	mem_cgroup_throttle_swaprate(memcg, page_to_nid(page), gfp_mask);
++	if (*memcgp)
++		cgroup_throttle_swaprate(page, gfp_mask);
+ 	return ret;
+ }
+ 
+--- a/mm/swapfile.c~mm-memcontrol-move-out-cgroup-swaprate-throttling
++++ a/mm/swapfile.c
+@@ -3798,11 +3798,12 @@ static void free_swap_count_continuation
+ }
+ 
+ #if defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
+-void mem_cgroup_throttle_swaprate(struct mem_cgroup *memcg, int node,
+-				  gfp_t gfp_mask)
++void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
+ {
+ 	struct swap_info_struct *si, *next;
+-	if (!(gfp_mask & __GFP_IO) || !memcg)
++	int nid = page_to_nid(page);
++
++	if (!(gfp_mask & __GFP_IO))
+ 		return;
+ 
+ 	if (!blk_cgroup_congested())
+@@ -3816,11 +3817,10 @@ void mem_cgroup_throttle_swaprate(struct
+ 		return;
+ 
+ 	spin_lock(&swap_avail_lock);
+-	plist_for_each_entry_safe(si, next, &swap_avail_heads[node],
+-				  avail_lists[node]) {
++	plist_for_each_entry_safe(si, next, &swap_avail_heads[nid],
++				  avail_lists[nid]) {
+ 		if (si->bdev) {
+-			blkcg_schedule_throttle(bdev_get_queue(si->bdev),
+-						true);
++			blkcg_schedule_throttle(bdev_get_queue(si->bdev), true);
+ 			break;
+ 		}
+ 	}
+_
