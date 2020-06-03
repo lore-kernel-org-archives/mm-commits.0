@@ -1,207 +1,120 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 114/131] mm: vmscan: determine anon/file pressure
- balance at the reclaim root
-Date: Wed, 03 Jun 2020 16:03:06 -0700
-Message-ID: <20200603230306.rt82W4TLe%akpm@linux-foundation.org>
+Subject: [patch 083/131] mm: fix NUMA node file count error in
+ replace_page_cache()
+Date: Wed, 03 Jun 2020 16:01:24 -0700
+Message-ID: <20200603230124.OWzg88c1Y%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47810 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47800 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726365AbgFCXIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:39 -0400
+        id S1726303AbgFCXIi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:38 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, bsingharora@gmail.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
 
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: determine anon/file pressure balance at the reclaim root
+Subject: mm: fix NUMA node file count error in replace_page_cache()
 
-We split the LRU lists into anon and file, and we rebalance the scan
-pressure between them when one of them begins thrashing: if the file cache
-experiences workingset refaults, we increase the pressure on anonymous
-pages; if the workload is stalled on swapins, we increase the pressure on
-the file cache instead.
+Patch series "mm: memcontrol: charge swapin pages on instantiation", v2.
 
-With cgroups and their nested LRU lists, we currently don't do this
-correctly.  While recursive cgroup reclaim establishes a relative LRU
-order among the pages of all involved cgroups, LRU pressure balancing is
-done on an individual cgroup LRU level.  As a result, when one cgroup is
-thrashing on the filesystem cache while a sibling may have cold anonymous
-pages, pressure doesn't get equalized between them.
+This patch series reworks memcg to charge swapin pages directly at
+swapin time, rather than at fault time, which may be much later, or
+not happen at all.
 
-This patch moves LRU balancing decision to the root of reclaim - the same
-level where the LRU order is established.
+Changes in version 2:
+- prevent double charges on pre-allocated hugepages in khugepaged
+- leave shmem swapcache when charging fails to avoid double IO (Joonsoo)
+- fix temporary accounting bug by switching rmap<->commit (Joonsoo)
+- fix double swap charge bug in cgroup1/cgroup2 code gating
+- simplify swapin error checking (Joonsoo)
+- mm: memcontrol: document the new swap control behavior (Alex)
+- review tags
 
-It does this by tracking LRU cost recursively, so that every level of the
-cgroup tree knows the aggregate LRU cost of all memory within its domain. 
-When the page scanner calculates the scan balance for any given individual
-cgroup's LRU list, it uses the values from the ancestor cgroup that
-initiated the reclaim cycle.
+The delayed swapin charging scheme we have right now causes problems:
 
-If one sibling is then thrashing on the cache, it will tip the pressure
-balance inside its ancestors, and the next hierarchical reclaim iteration
-will go more after the anon pages in the tree.
+- Alex's per-cgroup lru_lock patches rely on pages that have been
+  isolated from the LRU to have a stable page->mem_cgroup; otherwise
+  the lock may change underneath him. Swapcache pages are charged only
+  after they are added to the LRU, and charging doesn't follow the LRU
+  isolation protocol.
 
-Link: http://lkml.kernel.org/r/20200520232525.798933-13-hannes@cmpxchg.org
+- Joonsoo's anon workingset patches need a suitable LRU at the time
+  the page enters the swap cache and displaces the non-resident
+  info. But the correct LRU is only available after charging.
+
+- It's a containment hole / DoS vector. Users can trigger arbitrarily
+  large swap readahead using MADV_WILLNEED. The memory is never
+  charged unless somebody actually touches it.
+
+- It complicates the page->mem_cgroup stabilization rules
+
+In order to charge pages directly at swapin time, the memcg code base
+needs to be prepared, and several overdue cleanups become a necessity:
+
+To charge pages at swapin time, we need to always have cgroup
+ownership tracking of swap records. We also cannot rely on
+page->mapping to tell apart page types at charge time, because that's
+only set up during a page fault.
+
+To eliminate the page->mapping dependency, memcg needs to ditch its
+private page type counters (MEMCG_CACHE, MEMCG_RSS, NR_SHMEM) in favor
+of the generic vmstat counters and accounting sites, such as
+NR_FILE_PAGES, NR_ANON_MAPPED etc.
+
+To switch to generic vmstat counters, the charge sequence must be
+adjusted such that page->mem_cgroup is set up by the time these
+counters are modified.
+
+The series is structured as follows:
+
+1. Bug fixes
+2. Decoupling charging from rmap
+3. Swap controller integration into memcg
+4. Direct swapin charging
+
+
+This patch (of 19):
+
+When replacing one page with another one in the cache, we have to decrease
+the file count of the old page's NUMA node and increase the one of the new
+NUMA node, otherwise the old node leaks the count and the new node
+eventually underflows its counter.
+
+Link: http://lkml.kernel.org/r/20200508183105.225460-1-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20200508183105.225460-2-hannes@cmpxchg.org
+Fixes: 74d609585d8b ("page cache: Add and replace pages using the XArray")
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Alex Shi <alex.shi@linux.alibaba.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Balbir Singh <bsingharora@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   13 +++++++++++
- mm/swap.c                  |   32 +++++++++++++++++++++++----
- mm/vmscan.c                |   41 ++++++++++++++---------------------
- 3 files changed, 57 insertions(+), 29 deletions(-)
+ mm/filemap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-vmscan-determine-anon-file-pressure-balance-at-the-reclaim-root
-+++ a/include/linux/memcontrol.h
-@@ -1242,6 +1242,19 @@ static inline void dec_lruvec_page_state
- 	mod_lruvec_page_state(page, idx, -1);
- }
- 
-+static inline struct lruvec *parent_lruvec(struct lruvec *lruvec)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	memcg = lruvec_memcg(lruvec);
-+	if (!memcg)
-+		return NULL;
-+	memcg = parent_mem_cgroup(memcg);
-+	if (!memcg)
-+		return NULL;
-+	return mem_cgroup_lruvec(memcg, lruvec_pgdat(lruvec));
-+}
-+
- #ifdef CONFIG_CGROUP_WRITEBACK
- 
- struct wb_domain *mem_cgroup_wb_domain(struct bdi_writeback *wb);
---- a/mm/swap.c~mm-vmscan-determine-anon-file-pressure-balance-at-the-reclaim-root
-+++ a/mm/swap.c
-@@ -282,11 +282,33 @@ void lru_note_cost(struct page *page)
- {
- 	struct lruvec *lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
- 
--	/* Record new data point */
--	if (page_is_file_lru(page))
--		lruvec->file_cost++;
--	else
--		lruvec->anon_cost++;
-+	do {
-+		unsigned long lrusize;
-+
-+		/* Record cost event */
-+		if (page_is_file_lru(page))
-+			lruvec->file_cost++;
-+		else
-+			lruvec->anon_cost++;
-+
-+		/*
-+		 * Decay previous events
-+		 *
-+		 * Because workloads change over time (and to avoid
-+		 * overflow) we keep these statistics as a floating
-+		 * average, which ends up weighing recent refaults
-+		 * more than old ones.
-+		 */
-+		lrusize = lruvec_page_state(lruvec, NR_INACTIVE_ANON) +
-+			  lruvec_page_state(lruvec, NR_ACTIVE_ANON) +
-+			  lruvec_page_state(lruvec, NR_INACTIVE_FILE) +
-+			  lruvec_page_state(lruvec, NR_ACTIVE_FILE);
-+
-+		if (lruvec->file_cost + lruvec->anon_cost > lrusize / 4) {
-+			lruvec->file_cost /= 2;
-+			lruvec->anon_cost /= 2;
-+		}
-+	} while ((lruvec = parent_lruvec(lruvec)));
- }
- 
- static void __activate_page(struct page *page, struct lruvec *lruvec,
---- a/mm/vmscan.c~mm-vmscan-determine-anon-file-pressure-balance-at-the-reclaim-root
-+++ a/mm/vmscan.c
-@@ -79,6 +79,12 @@ struct scan_control {
- 	 */
- 	struct mem_cgroup *target_mem_cgroup;
- 
-+	/*
-+	 * Scan pressure balancing between anon and file LRUs
-+	 */
-+	unsigned long	anon_cost;
-+	unsigned long	file_cost;
-+
- 	/* Can active pages be deactivated as part of reclaim? */
- #define DEACTIVATE_ANON 1
- #define DEACTIVATE_FILE 2
-@@ -2231,10 +2237,8 @@ static void get_scan_count(struct lruvec
- 	int swappiness = mem_cgroup_swappiness(memcg);
- 	u64 fraction[2];
- 	u64 denominator = 0;	/* gcc */
--	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	unsigned long anon_prio, file_prio;
- 	enum scan_balance scan_balance;
--	unsigned long anon, file;
- 	unsigned long totalcost;
- 	unsigned long ap, fp;
- 	enum lru_list lru;
-@@ -2285,7 +2289,6 @@ static void get_scan_count(struct lruvec
- 	}
- 
- 	scan_balance = SCAN_FRACT;
--
- 	/*
- 	 * Calculate the pressure balance between anon and file pages.
- 	 *
-@@ -2300,30 +2303,12 @@ static void get_scan_count(struct lruvec
- 	anon_prio = swappiness;
- 	file_prio = 200 - anon_prio;
- 
--	/*
--	 * Because workloads change over time (and to avoid overflow)
--	 * we keep these statistics as a floating average, which ends
--	 * up weighing recent refaults more than old ones.
--	 */
--
--	anon  = lruvec_lru_size(lruvec, LRU_ACTIVE_ANON, MAX_NR_ZONES) +
--		lruvec_lru_size(lruvec, LRU_INACTIVE_ANON, MAX_NR_ZONES);
--	file  = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE, MAX_NR_ZONES) +
--		lruvec_lru_size(lruvec, LRU_INACTIVE_FILE, MAX_NR_ZONES);
--
--	spin_lock_irq(&pgdat->lru_lock);
--	totalcost = lruvec->anon_cost + lruvec->file_cost;
--	if (unlikely(totalcost > (anon + file) / 4)) {
--		lruvec->anon_cost /= 2;
--		lruvec->file_cost /= 2;
--		totalcost /= 2;
--	}
-+	totalcost = sc->anon_cost + sc->file_cost;
- 	ap = anon_prio * (totalcost + 1);
--	ap /= lruvec->anon_cost + 1;
-+	ap /= sc->anon_cost + 1;
- 
- 	fp = file_prio * (totalcost + 1);
--	fp /= lruvec->file_cost + 1;
--	spin_unlock_irq(&pgdat->lru_lock);
-+	fp /= sc->file_cost + 1;
- 
- 	fraction[0] = ap;
- 	fraction[1] = fp;
-@@ -2688,6 +2673,14 @@ again:
- 	nr_scanned = sc->nr_scanned;
- 
- 	/*
-+	 * Determine the scan balance between anon and file LRUs.
-+	 */
-+	spin_lock_irq(&pgdat->lru_lock);
-+	sc->anon_cost = target_lruvec->anon_cost;
-+	sc->file_cost = target_lruvec->file_cost;
-+	spin_unlock_irq(&pgdat->lru_lock);
-+
-+	/*
- 	 * Target desirable inactive:active list ratios for the anon
- 	 * and file LRU lists.
- 	 */
+--- a/mm/filemap.c~mm-fix-numa-node-file-count-error-in-replace_page_cache
++++ a/mm/filemap.c
+@@ -808,11 +808,11 @@ int replace_page_cache_page(struct page
+ 	old->mapping = NULL;
+ 	/* hugetlb pages do not participate in page cache accounting. */
+ 	if (!PageHuge(old))
+-		__dec_node_page_state(new, NR_FILE_PAGES);
++		__dec_node_page_state(old, NR_FILE_PAGES);
+ 	if (!PageHuge(new))
+ 		__inc_node_page_state(new, NR_FILE_PAGES);
+ 	if (PageSwapBacked(old))
+-		__dec_node_page_state(new, NR_SHMEM);
++		__dec_node_page_state(old, NR_SHMEM);
+ 	if (PageSwapBacked(new))
+ 		__inc_node_page_state(new, NR_SHMEM);
+ 	xas_unlock_irqrestore(&xas, flags);
 _
