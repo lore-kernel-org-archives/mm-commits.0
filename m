@@ -1,103 +1,79 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 128/131] mm: add DEBUG_WX support
-Date: Wed, 03 Jun 2020 16:03:52 -0700
-Message-ID: <20200603230352.5Ea0perKx%akpm@linux-foundation.org>
+Subject: [patch 112/131] mm: only count actual rotations as LRU
+ reclaim cost
+Date: Wed, 03 Jun 2020 16:03:00 -0700
+Message-ID: <20200603230300.ZQd3OWiBV%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47836 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47822 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726839AbgFCXIo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:44 -0400
+        id S1726589AbgFCXIl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:41 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, linux-mm@kvack.org, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, torvalds@linux-foundation.org, will@kernel.org, zong.li@sifive.com
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org
 
-From: Zong Li <zong.li@sifive.com>
-Subject: mm: add DEBUG_WX support
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: only count actual rotations as LRU reclaim cost
 
-Patch series "Extract DEBUG_WX to shared use".
+When shrinking the active file list we rotate referenced pages only when
+they're in an executable mapping.  The others get deactivated.  When it
+comes to balancing scan pressure, though, we count all referenced pages as
+rotated, even the deactivated ones.  Yet they do not carry the same cost
+to the system: the deactivated page *might* refault later on, but the
+deactivation is tangible progress toward freeing pages; rotations on the
+other hand cost time and effort without getting any closer to freeing
+memory.
 
-Some architectures support DEBUG_WX function, it's verbatim from each
-others, so extract to mm/Kconfig.debug for shared use.
+Don't treat both events as equal.  The following patch will hook up LRU
+balancing to cache and anon refaults, which are a much more concrete cost
+signal for reclaiming one list over the other.  Thus, remove the maybe-IO
+cost bias from page references, and only note the CPU cost for actual
+rotations that prevent the pages from getting reclaimed.
 
-PPC and ARM ports don't support generic page dumper yet, so we only
-refine x86 and arm64 port in this patch series.
-
-For RISC-V port, the DEBUG_WX support depends on other patches which
-be merged already:
-  - RISC-V page table dumper
-  - Support strict kernel memory permissions for security
-
-
-This patch (of 4):
-
-Some architectures support DEBUG_WX function, it's verbatim from each
-others.  Extract to mm/Kconfig.debug for shared use.
-
-[akpm@linux-foundation.org: reword text, per Will Deacon & Zong Li]
-  Link: http://lkml.kernel.org/r/20200427194245.oxRJKj3fn%25akpm@linux-foundation.org
-[zong.li@sifive.com: remove the specific name of arm64]
-  Link: http://lkml.kernel.org/r/3a6a92ecedc54e1d0fc941398e63d504c2cd5611.1589178399.git.zong.li@sifive.com
-[zong.li@sifive.com: add MMU dependency for DEBUG_WX]
-  Link: http://lkml.kernel.org/r/4a674ac7863ff39ca91847b10e51209771f99416.1589178399.git.zong.li@sifive.com
-Link: http://lkml.kernel.org/r/cover.1587455584.git.zong.li@sifive.com
-Link: http://lkml.kernel.org/r/23980cd0f0e5d79e24a92169116407c75bcc650d.1587455584.git.zong.li@sifive.com
-Signed-off-by: Zong Li <zong.li@sifive.com>
-Suggested-by: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Link: http://lkml.kernel.org/r/20200520232525.798933-11-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig.debug |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ mm/vmscan.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/Kconfig.debug~mm-add-debug_wx-support
-+++ a/mm/Kconfig.debug
-@@ -118,6 +118,38 @@ config DEBUG_RODATA_TEST
-     ---help---
-       This option enables a testcase for the setting rodata read-only.
+--- a/mm/vmscan.c~mm-only-count-actual-rotations-as-lru-reclaim-cost
++++ a/mm/vmscan.c
+@@ -2054,7 +2054,6 @@ static void shrink_active_list(unsigned
  
-+config ARCH_HAS_DEBUG_WX
-+	bool
-+
-+config DEBUG_WX
-+	bool "Warn on W+X mappings at boot"
-+	depends on ARCH_HAS_DEBUG_WX
-+	depends on MMU
-+	select PTDUMP_CORE
-+	help
-+	  Generate a warning if any W+X mappings are found at boot.
-+
-+	  This is useful for discovering cases where the kernel is leaving W+X
-+	  mappings after applying NX, as such mappings are a security risk.
-+
-+	  Look for a message in dmesg output like this:
-+
-+	    <arch>/mm: Checked W+X mappings: passed, no W+X pages found.
-+
-+	  or like this, if the check failed:
-+
-+	    <arch>/mm: Checked W+X mappings: failed, <N> W+X pages found.
-+
-+	  Note that even if the check fails, your kernel is possibly
-+	  still fine, as W+X mappings are not a security hole in
-+	  themselves, what they do is that they make the exploitation
-+	  of other unfixed kernel bugs easier.
-+
-+	  There is no runtime or memory usage effect of this option
-+	  once the kernel has booted up - it's a one time check.
-+
-+	  If in doubt, say "Y".
-+
- config GENERIC_PTDUMP
- 	bool
+ 		if (page_referenced(page, 0, sc->target_mem_cgroup,
+ 				    &vm_flags)) {
+-			nr_rotated += hpage_nr_pages(page);
+ 			/*
+ 			 * Identify referenced, file-backed active pages and
+ 			 * give them one more trip around the active list. So
+@@ -2065,6 +2064,7 @@ static void shrink_active_list(unsigned
+ 			 * so we ignore them here.
+ 			 */
+ 			if ((vm_flags & VM_EXEC) && page_is_file_lru(page)) {
++				nr_rotated += hpage_nr_pages(page);
+ 				list_add(&page->lru, &l_active);
+ 				continue;
+ 			}
+@@ -2080,10 +2080,8 @@ static void shrink_active_list(unsigned
+ 	 */
+ 	spin_lock_irq(&pgdat->lru_lock);
+ 	/*
+-	 * Count referenced pages from currently used mappings as rotated,
+-	 * even though only some of them are actually re-activated.  This
+-	 * helps balance scan pressure between file and anonymous pages in
+-	 * get_scan_count.
++	 * Rotating pages costs CPU without actually
++	 * progressing toward the reclaim goal.
+ 	 */
+ 	lru_note_cost(lruvec, file, nr_rotated);
  
 _
