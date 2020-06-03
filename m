@@ -1,22 +1,22 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 020/131] m68k: mm: simplify detection of memory
- zone boundaries
-Date: Wed, 03 Jun 2020 15:57:32 -0700
-Message-ID: <20200603225732.xZOKALSx9%akpm@linux-foundation.org>
+Subject: [patch 021/131] parisc: simplify detection of memory zone
+ boundaries
+Date: Wed, 03 Jun 2020 15:57:37 -0700
+Message-ID: <20200603225737.dh0YOpQLO%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39256 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39352 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725821AbgFCW5f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:57:35 -0400
+        id S1725821AbgFCW5j (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:57:39 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, hoan@os.amperecomputing.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, mattst88@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@linux.ibm.com, shorne@gmail.com, tony.luck@intel.com, torvalds@linux-foundation.org, tsbogend@alpha.franken.de, vgupta@synopsys.com, ysato@users.sourceforge.jp
 
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: m68k: mm: simplify detection of memory zone boundaries
+Subject: parisc: simplify detection of memory zone boundaries
 
 free_area_init() only requires the definition of maximal PFN for each of
 the supported zone rater than calculation of actual zone sizes and the
@@ -28,7 +28,7 @@ available to all architectures.
 Using this function instead of free_area_init_node() simplifies the zone
 detection.
 
-Link: http://lkml.kernel.org/r/20200412194859.12663-11-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200412194859.12663-12-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Tested-by: Hoan Tran <hoan@os.amperecomputing.com>	[arm64]
 Cc: Baoquan He <bhe@redhat.com>
@@ -64,61 +64,33 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mm/motorola.c |   11 +++++------
- arch/m68k/mm/sun3mmu.c  |   10 +++-------
- 2 files changed, 8 insertions(+), 13 deletions(-)
+ arch/parisc/mm/init.c |   22 +++-------------------
+ 1 file changed, 3 insertions(+), 19 deletions(-)
 
---- a/arch/m68k/mm/motorola.c~m68k-mm-simplify-detection-of-memory-zone-boundaries
-+++ a/arch/m68k/mm/motorola.c
-@@ -365,7 +365,7 @@ static void __init map_node(int node)
-  */
- void __init paging_init(void)
+--- a/arch/parisc/mm/init.c~parisc-simplify-detection-of-memory-zone-boundaries
++++ a/arch/parisc/mm/init.c
+@@ -675,27 +675,11 @@ static void __init gateway_init(void)
+ 
+ static void __init parisc_bootmem_free(void)
  {
 -	unsigned long zones_size[MAX_NR_ZONES] = { 0, };
+-	unsigned long holes_size[MAX_NR_ZONES] = { 0, };
+-	unsigned long mem_start_pfn = ~0UL, mem_end_pfn = 0, mem_size_pfn = 0;
+-	int i;
 +	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0, };
- 	unsigned long min_addr, max_addr;
- 	unsigned long addr;
- 	int i;
-@@ -448,11 +448,10 @@ void __init paging_init(void)
- #ifdef DEBUG
- 	printk ("before free_area_init\n");
- #endif
--	for (i = 0; i < m68k_num_memory; i++) {
--		zones_size[ZONE_DMA] = m68k_memory[i].size >> PAGE_SHIFT;
--		free_area_init_node(i, zones_size,
--				    m68k_memory[i].addr >> PAGE_SHIFT, NULL);
-+	for (i = 0; i < m68k_num_memory; i++)
- 		if (node_present_pages(i))
- 			node_set_state(i, N_NORMAL_MEMORY);
+ 
+-	for (i = 0; i < npmem_ranges; i++) {
+-		unsigned long start = pmem_ranges[i].start_pfn;
+-		unsigned long size = pmem_ranges[i].pages;
+-		unsigned long end = start + size;
++	max_zone_pfn[0] = memblock_end_of_DRAM();
+ 
+-		if (mem_start_pfn > start)
+-			mem_start_pfn = start;
+-		if (mem_end_pfn < end)
+-			mem_end_pfn = end;
+-		mem_size_pfn += size;
 -	}
-+
-+	max_zone_pfn[ZONE_DMA] = memblock_end_of_DRAM();
-+	free_area_init(max_zone_pfn);
- }
---- a/arch/m68k/mm/sun3mmu.c~m68k-mm-simplify-detection-of-memory-zone-boundaries
-+++ a/arch/m68k/mm/sun3mmu.c
-@@ -42,7 +42,7 @@ void __init paging_init(void)
- 	unsigned long address;
- 	unsigned long next_pgtable;
- 	unsigned long bootmem_end;
--	unsigned long zones_size[MAX_NR_ZONES] = { 0, };
-+	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0, };
- 	unsigned long size;
- 
- 	empty_zero_page = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
-@@ -89,14 +89,10 @@ void __init paging_init(void)
- 	current->mm = NULL;
- 
- 	/* memory sizing is a hack stolen from motorola.c..  hope it works for us */
--	zones_size[ZONE_DMA] = ((unsigned long)high_memory - PAGE_OFFSET) >> PAGE_SHIFT;
-+	max_zone_pfn[ZONE_DMA] = ((unsigned long)high_memory) >> PAGE_SHIFT;
- 
- 	/* I really wish I knew why the following change made things better...  -- Sam */
--/*	free_area_init(zones_size); */
--	free_area_init_node(0, zones_size,
--			    (__pa(PAGE_OFFSET) >> PAGE_SHIFT) + 1, NULL);
-+	free_area_init(max_zone_pfn);
- 
- 
- }
 -
+-	zones_size[0] = mem_end_pfn - mem_start_pfn;
+-	holes_size[0] = zones_size[0] - mem_size_pfn;
