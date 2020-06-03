@@ -1,55 +1,43 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 003/131] mm/gup: move __get_user_pages_fast() down
- a few lines in gup.c
-Date: Wed, 03 Jun 2020 15:56:27 -0700
-Message-ID: <20200603225627.KaTOZsw5O%akpm@linux-foundation.org>
+Subject: [patch 004/131] mm/gup: refactor and de-duplicate
+ gup_fast() code
+Date: Wed, 03 Jun 2020 15:56:30 -0700
+Message-ID: <20200603225630.dODblpnlR%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37652 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgFCW4a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:56:30 -0400
+        id S1725863AbgFCW4d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:56:33 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: airlied@linux.ie, akpm@linux-foundation.org, chris@chris-wilson.co.uk, daniel@ffwll.ch, jani.nikula@linux.intel.com, jhubbard@nvidia.com, joonas.lahtinen@linux.intel.com, jrdr.linux@gmail.com, linux-mm@kvack.org, matthew.auld@intel.com, mm-commits@vger.kernel.org, rodrigo.vivi@intel.com, torvalds@linux-foundation.org, tvrtko.ursulin@intel.com, willy@infradead.org
 
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: move __get_user_pages_fast() down a few lines in gup.c
+Subject: mm/gup: refactor and de-duplicate gup_fast() code
 
-Patch series "mm/gup, drm/i915: refactor gup_fast, convert to pin_user_pages()", v2.
+There were two nearly identical sets of code for gup_fast() style of
+walking the page tables with interrupts disabled.  This has lead to the
+usual maintenance problems that arise from having duplicated code.
 
-In order to convert the drm/i915 driver from get_user_pages() to
-pin_user_pages(), a FOLL_PIN equivalent of __get_user_pages_fast() was
-required.  That led to refactoring __get_user_pages_fast(), with the
-following goals:
+There is already a core internal routine in gup.c for gup_fast(), so just
+enhance it very slightly: allow skipping the fall-back to "slow" (regular)
+get_user_pages(), via the new FOLL_FAST_ONLY flag.  Then, just call
+internal_get_user_pages_fast() from __get_user_pages_fast(), and adjust
+the API to match pre-existing API behavior.
 
-1) As above: provide a pin_user_pages*() routine for drm/i915 to call,
-   in place of __get_user_pages_fast(),
+There is a change in behavior from this refactoring: the nested form of
+interrupt disabling is used in all gup_fast() variants now.  That's
+because there is only one place that interrupt disabling for page walking
+is done, and so the safer form is required.  This should, if anything,
+eliminate possible (rare) bugs, because the non-nested form of enabling
+interrupts was fragile at best.
 
-2) Get rid of the gup.c duplicate code for walking page tables with
-   interrupts disabled. This duplicate code is a minor maintenance
-   problem anyway.
-
-3) Make it easy for an upcoming patch from Souptick, which aims to
-   convert __get_user_pages_fast() to use a gup_flags argument, instead
-   of a bool writeable arg.  Also, if this series looks good, we can
-   ask Souptick to change the name as well, to whatever the consensus
-   is. My initial recommendation is: get_user_pages_fast_only(), to
-   match the new pin_user_pages_only().
-
-
-This patch (of 4):
-
-This is in order to avoid a forward declaration of
-internal_get_user_pages_fast(), in the next patch.
-
-This is code movement only--all generated code should be identical.
-
-Link: http://lkml.kernel.org/r/20200522051931.54191-1-jhubbard@nvidia.com
-Link: http://lkml.kernel.org/r/20200519002124.2025955-1-jhubbard@nvidia.com
-Link: http://lkml.kernel.org/r/20200519002124.2025955-2-jhubbard@nvidia.com
+[jhubbard@nvidia.com: fixup]
+  Link: http://lkml.kernel.org/r/20200521233841.1279742-1-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200519002124.2025955-3-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
 Cc: Daniel Vetter <daniel@ffwll.ch>
@@ -64,43 +52,87 @@ Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  132 ++++++++++++++++++++++++++---------------------------
- 1 file changed, 66 insertions(+), 66 deletions(-)
+ include/linux/mm.h |    1 
+ mm/gup.c           |   61 ++++++++++++++++++++-----------------------
+ 2 files changed, 30 insertions(+), 32 deletions(-)
 
---- a/mm/gup.c~mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc
-+++ a/mm/gup.c
-@@ -2703,72 +2703,6 @@ static bool gup_fast_permitted(unsigned
- }
- #endif
+--- a/include/linux/mm.h~mm-gup-refactor-and-de-duplicate-gup_fast-code
++++ a/include/linux/mm.h
+@@ -2816,6 +2816,7 @@ struct page *follow_page(struct vm_area_
+ #define FOLL_LONGTERM	0x10000	/* mapping lifetime is indefinite: see below */
+ #define FOLL_SPLIT_PMD	0x20000	/* split huge pmd before returning */
+ #define FOLL_PIN	0x40000	/* pages must be released via unpin_user_page */
++#define FOLL_FAST_ONLY	0x80000	/* gup_fast: prevent fall-back to slow gup */
  
--/*
-- * Like get_user_pages_fast() except it's IRQ-safe in that it won't fall back to
-- * the regular GUP.
-- * Note a difference with get_user_pages_fast: this always returns the
-- * number of pages pinned, 0 if no pages were pinned.
-- *
-- * If the architecture does not support this function, simply return with no
-- * pages pinned.
-- *
-- * Careful, careful! COW breaking can go either way, so a non-write
-- * access can get ambiguous page results. If you call this function without
-- * 'write' set, you'd better be sure that you're ok with that ambiguity.
-- */
--int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
--			  struct page **pages)
--{
+ /*
+  * FOLL_PIN and FOLL_LONGTERM may be used in various combinations with each
+--- a/mm/gup.c~mm-gup-refactor-and-de-duplicate-gup_fast-code
++++ a/mm/gup.c
+@@ -2731,10 +2731,12 @@ static int internal_get_user_pages_fast(
+ 					struct page **pages)
+ {
+ 	unsigned long addr, len, end;
++	unsigned long flags;
+ 	int nr_pinned = 0, ret = 0;
+ 
+ 	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
+-				       FOLL_FORCE | FOLL_PIN | FOLL_GET)))
++				       FOLL_FORCE | FOLL_PIN | FOLL_GET |
++				       FOLL_FAST_ONLY)))
+ 		return -EINVAL;
+ 
+ 	start = untagged_addr(start) & PAGE_MASK;
+@@ -2753,16 +2755,26 @@ static int internal_get_user_pages_fast(
+ 	 * order to avoid confusing the normal COW routines. So only
+ 	 * targets that are already writable are safe to do by just
+ 	 * looking at the page tables.
++	 *
++	 * Disable interrupts. The nested form is used, in order to allow full,
++	 * general purpose use of this routine.
++	 *
++	 * With interrupts disabled, we block page table pages from being
++	 * freed from under us. See struct mmu_table_batch comments in
++	 * include/asm-generic/tlb.h for more details.
++	 *
++	 * We do not adopt an rcu_read_lock(.) here as we also want to
++	 * block IPIs that come from THPs splitting.
+ 	 */
+ 	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
+ 	    gup_fast_permitted(start, end)) {
+-		local_irq_disable();
++		local_irq_save(flags);
+ 		gup_pgd_range(addr, end, gup_flags | FOLL_WRITE, pages, &nr_pinned);
+-		local_irq_enable();
++		local_irq_restore(flags);
+ 		ret = nr_pinned;
+ 	}
+ 
+-	if (nr_pinned < nr_pages) {
++	if (nr_pinned < nr_pages && !(gup_flags & FOLL_FAST_ONLY)) {
+ 		/* Try to get the remaining pages with get_user_pages */
+ 		start += nr_pinned << PAGE_SHIFT;
+ 		pages += nr_pinned;
+@@ -2798,37 +2810,27 @@ static int internal_get_user_pages_fast(
+ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			  struct page **pages)
+ {
 -	unsigned long len, end;
 -	unsigned long flags;
 -	int nr_pinned = 0;
--	/*
--	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
--	 * because gup fast is always a "pin with a +1 page refcount" request.
--	 */
++	int nr_pinned;
+ 	/*
+ 	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
+ 	 * because gup fast is always a "pin with a +1 page refcount" request.
++	 *
++	 * FOLL_FAST_ONLY is required in order to match the API description of
++	 * this routine: no fall back to regular ("slow") GUP.
+ 	 */
 -	unsigned int gup_flags = FOLL_GET;
--
--	if (write)
--		gup_flags |= FOLL_WRITE;
--
++	unsigned int gup_flags = FOLL_GET | FOLL_FAST_ONLY;
+ 
+ 	if (write)
+ 		gup_flags |= FOLL_WRITE;
+ 
 -	start = untagged_addr(start) & PAGE_MASK;
 -	len = (unsigned long) nr_pages << PAGE_SHIFT;
 -	end = start + len;
@@ -109,8 +141,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -		return 0;
 -	if (unlikely(!access_ok((void __user *)start, len)))
 -		return 0;
--
--	/*
++	nr_pinned = internal_get_user_pages_fast(start, nr_pages, gup_flags,
++						 pages);
+ 
+ 	/*
 -	 * Disable interrupts.  We use the nested form as we can already have
 -	 * interrupts disabled by get_futex_key.
 -	 *
@@ -120,99 +154,14 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	 *
 -	 * We do not adopt an rcu_read_lock(.) here as we also want to
 -	 * block IPIs that come from THPs splitting.
--	 *
--	 * NOTE! We allow read-only gup_fast() here, but you'd better be
--	 * careful about possible COW pages. You'll get _a_ COW page, but
--	 * not necessarily the one you intended to get depending on what
--	 * COW event happens after this. COW may break the page copy in a
--	 * random direction.
--	 */
--
--	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
--	    gup_fast_permitted(start, end)) {
--		local_irq_save(flags);
--		gup_pgd_range(start, end, gup_flags, pages, &nr_pinned);
--		local_irq_restore(flags);
--	}
--
--	return nr_pinned;
--}
--EXPORT_SYMBOL_GPL(__get_user_pages_fast);
--
- static int __gup_longterm_unlocked(unsigned long start, int nr_pages,
- 				   unsigned int gup_flags, struct page **pages)
- {
-@@ -2848,6 +2782,72 @@ static int internal_get_user_pages_fast(
- 	return ret;
- }
- 
-+/*
-+ * Like get_user_pages_fast() except it's IRQ-safe in that it won't fall back to
-+ * the regular GUP.
-+ * Note a difference with get_user_pages_fast: this always returns the
-+ * number of pages pinned, 0 if no pages were pinned.
-+ *
-+ * If the architecture does not support this function, simply return with no
-+ * pages pinned.
-+ *
-+ * Careful, careful! COW breaking can go either way, so a non-write
-+ * access can get ambiguous page results. If you call this function without
-+ * 'write' set, you'd better be sure that you're ok with that ambiguity.
-+ */
-+int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-+			  struct page **pages)
-+{
-+	unsigned long len, end;
-+	unsigned long flags;
-+	int nr_pinned = 0;
-+	/*
-+	 * Internally (within mm/gup.c), gup fast variants must set FOLL_GET,
-+	 * because gup fast is always a "pin with a +1 page refcount" request.
-+	 */
-+	unsigned int gup_flags = FOLL_GET;
-+
-+	if (write)
-+		gup_flags |= FOLL_WRITE;
-+
-+	start = untagged_addr(start) & PAGE_MASK;
-+	len = (unsigned long) nr_pages << PAGE_SHIFT;
-+	end = start + len;
-+
-+	if (end <= start)
-+		return 0;
-+	if (unlikely(!access_ok((void __user *)start, len)))
-+		return 0;
-+
-+	/*
-+	 * Disable interrupts.  We use the nested form as we can already have
-+	 * interrupts disabled by get_futex_key.
-+	 *
-+	 * With interrupts disabled, we block page table pages from being
-+	 * freed from under us. See struct mmu_table_batch comments in
-+	 * include/asm-generic/tlb.h for more details.
-+	 *
-+	 * We do not adopt an rcu_read_lock(.) here as we also want to
-+	 * block IPIs that come from THPs splitting.
-+	 *
-+	 * NOTE! We allow read-only gup_fast() here, but you'd better be
-+	 * careful about possible COW pages. You'll get _a_ COW page, but
-+	 * not necessarily the one you intended to get depending on what
-+	 * COW event happens after this. COW may break the page copy in a
-+	 * random direction.
-+	 */
-+
-+	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP) &&
-+	    gup_fast_permitted(start, end)) {
-+		local_irq_save(flags);
-+		gup_pgd_range(start, end, gup_flags, pages, &nr_pinned);
-+		local_irq_restore(flags);
-+	}
-+
-+	return nr_pinned;
-+}
-+EXPORT_SYMBOL_GPL(__get_user_pages_fast);
-+
- /**
-  * get_user_pages_fast() - pin user pages in memory
-  * @start:      starting user address
-_
++	 * As specified in the API description above, this routine is not
++	 * allowed to return negative values. However, the common core
++	 * routine internal_get_user_pages_fast() *can* return -errno.
++	 * Therefore, correct for that here:
+ 	 *
+ 	 * NOTE! We allow read-only gup_fast() here, but you'd better be
+ 	 * careful about possible COW pages. You'll get _a_ COW page, but
+@@ -2836,13 +2838,8 @@ int __get_user_pages_fast(unsigned long
+ 	 * COW event happens after this. COW may break the page copy in a
+ 	 * random direction.
+ 	 */
