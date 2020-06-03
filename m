@@ -1,81 +1,63 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: [folded-merged]
- mm-gup-refactor-and-de-duplicate-gup_fast-code-fix.patch removed from -mm
- tree
-Date: Wed, 03 Jun 2020 15:06:36 -0700
-Message-ID: <20200603220636.-FVmNvso3%akpm@linux-foundation.org>
+ kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4.patch
+ removed from -mm tree
+Date: Wed, 03 Jun 2020 15:07:16 -0700
+Message-ID: <20200603220716.axZVFCCTv%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49014 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49298 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726614AbgFCWGi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:06:38 -0400
+        id S1726460AbgFCWHR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:07:17 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: airlied@linux.ie, chris@chris-wilson.co.uk, daniel@ffwll.ch, jani.nikula@linux.intel.com, jhubbard@nvidia.com, joonas.lahtinen@linux.intel.com, jrdr.linux@gmail.com, matthew.auld@intel.com, mm-commits@vger.kernel.org, rodrigo.vivi@intel.com, tvrtko.ursulin@intel.com, willy@infradead.org
+To: aryabinin@virtuozzo.com, danielmicay@gmail.com, davidgow@google.com, dja@axtens.net, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: fixup gup.c for "mm/gup: refactor and de-duplicate gup_fast() code"
+     Subject: kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4
 has been removed from the -mm tree.  Its filename was
-     mm-gup-refactor-and-de-duplicate-gup_fast-code-fix.patch
+     kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4.patch
 
-This patch was dropped because it was folded into mm-gup-refactor-and-de-duplicate-gup_fast-code.patch
+This patch was dropped because it was folded into kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source.patch
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: fixup gup.c for "mm/gup: refactor and de-duplicate gup_fast() code"
+From: Daniel Axtens <dja@axtens.net>
+Subject: kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4
 
-Include FOLL_FAST_ONLY in the list of flags to *not* WARN()
-on, in internal_get_user_pages_fast().
+drop patch 3
 
-Link: http://lkml.kernel.org/r/20200521233841.1279742-1-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: "Joonas Lahtinen" <joonas.lahtinen@linux.intel.com>
-Cc: Matthew Auld <matthew.auld@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+Link: http://lkml.kernel.org/r/20200424145521.8203-2-dja@axtens.net
+Fixes: 0c96350a2d2f ("lib/test_kasan.c: add tests for several string/memory API functions")
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Tested-by: David Gow <davidgow@google.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/test_kasan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/gup.c~mm-gup-refactor-and-de-duplicate-gup_fast-code-fix
-+++ a/mm/gup.c
-@@ -2719,7 +2719,8 @@ static int internal_get_user_pages_fast(
- 	int nr_pinned = 0, ret = 0;
+--- a/lib/test_kasan.c~kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source-v4
++++ a/lib/test_kasan.c
+@@ -645,6 +645,7 @@ static noinline void __init kasan_memcmp
+ 	if (!ptr)
+ 		return;
  
- 	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM |
--				       FOLL_FORCE | FOLL_PIN | FOLL_GET)))
-+				       FOLL_FORCE | FOLL_PIN | FOLL_GET |
-+				       FOLL_FAST_ONLY)))
- 		return -EINVAL;
- 
- 	start = untagged_addr(start) & PAGE_MASK;
++	memset(arr, 0, sizeof(arr));
+ 	kasan_int_result = memcmp(ptr, arr, size + 1);
+ 	kfree(ptr);
+ }
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from dja@axtens.net are
 
-mm-gup-move-__get_user_pages_fast-down-a-few-lines-in-gupc.patch
-mm-gup-refactor-and-de-duplicate-gup_fast-code.patch
-mm-gup-introduce-pin_user_pages_fast_only.patch
-drm-i915-convert-get_user_pages-pin_user_pages.patch
-mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
-khugepaged-add-self-test-fix-3.patch
-rapidio-convert-get_user_pages-pin_user_pages.patch
-mm-gup-update-pin_user_pagesrst-for-case-3-mmu-notifiers.patch
-mm-gup-introduce-pin_user_pages_locked.patch
-mm-gup-introduce-pin_user_pages_locked-v2.patch
-mm-gup-frame_vector-convert-get_user_pages-pin_user_pages.patch
-mm-gup-documentation-fix-for-pin_user_pages-apis.patch
-docs-mm-gup-pin_user_pagesrst-add-a-case-5.patch
-vhost-convert-get_user_pages-pin_user_pages.patch
+kasan-stop-tests-being-eliminated-as-dead-code-with-fortify_source.patch
+stringh-fix-incompatibility-between-fortify_source-and-kasan.patch
+relay-handle-alloc_percpu-returning-null-in-relay_open.patch
