@@ -1,75 +1,57 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: [folded-merged]
- khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix.patch
- removed from -mm tree
-Date: Wed, 03 Jun 2020 15:13:37 -0700
-Message-ID: <20200603221337.aJK6buZp3%akpm@linux-foundation.org>
+ khugepaged-introduce-max_ptes_shared-tunable-fix.patch removed from -mm
+ tree
+Date: Wed, 03 Jun 2020 15:14:37 -0700
+Message-ID: <20200603221437.ZFEIUtAAC%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53218 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726354AbgFCWNi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:13:38 -0400
+        id S1726594AbgFCWOi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:14:38 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com
+To: colin.king@canonical.com, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix
+     Subject: selftests: khugepaged: fix several spelling mistakes
 has been removed from the -mm tree.  Its filename was
-     khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix.patch
+     khugepaged-introduce-max_ptes_shared-tunable-fix.patch
 
-This patch was dropped because it was folded into khugepaged-allow-to-collapse-a-page-shared-across-fork.patch
+This patch was dropped because it was folded into khugepaged-introduce-max_ptes_shared-tunable.patch
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix
+From: Colin Ian King <colin.king@canonical.com>
+Subject: selftests: khugepaged: fix several spelling mistakes
 
-fix set-but-not-used warning
+There are three spelling mistakes in various messages. Fix these.
 
-Link: http://lkml.kernel.org/r/20200521145644.GA6367@ovpn-112-192.phx2.redhat.com
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/20200420084241.65433-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ tools/testing/selftests/vm/khugepaged.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~khugepaged-allow-to-collapse-a-page-shared-across-fork-fix-fix
-+++ a/mm/khugepaged.c
-@@ -528,9 +528,8 @@ static void release_pte_pages(pte_t *pte
+--- a/tools/testing/selftests/vm/khugepaged.c~khugepaged-introduce-max_ptes_shared-tunable-fix
++++ a/tools/testing/selftests/vm/khugepaged.c
+@@ -961,7 +961,7 @@ static void collapse_max_ptes_shared()
+ 		else
+ 			fail("Fail");
  
- static bool is_refcount_suitable(struct page *page)
- {
--	int expected_refcount, refcount;
-+	int expected_refcount;
- 
--	refcount = page_count(page);
- 	expected_refcount = total_mapcount(page);
- 	if (PageSwapCache(page))
- 		expected_refcount += compound_nr(page);
+-		if (wait_for_scan("Do not collapse with max_ptes_shared exeeded", p))
++		if (wait_for_scan("Do not collapse with max_ptes_shared exceeded", p))
+ 			fail("Timeout");
+ 		else if (!check_huge(p))
+ 			success("OK");
 _
 
-Patches currently in -mm which might be from cai@lca.pw are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-khugepaged-allow-to-collapse-a-page-shared-across-fork.patch
-mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch
-mm-kmemleak-silence-kcsan-splats-in-checksum.patch
-mm-frontswap-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races-v2.patch
-mm-swap_state-mark-various-intentional-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races-v2.patch
-mm-page_counter-fix-various-data-races-at-memsw.patch
-mm-memcontrol-fix-a-data-race-in-scan-count.patch
-mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-mm-mempool-fix-a-data-race-in-mempool_free.patch
-mm-util-annotate-an-data-race-at-vm_committed_as.patch
-mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
-mm-annotate-a-data-race-in-page_zonenum.patch
-mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
+khugepaged-introduce-max_ptes_shared-tunable.patch
