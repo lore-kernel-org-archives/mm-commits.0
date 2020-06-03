@@ -1,79 +1,72 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 112/131] mm: only count actual rotations as LRU
- reclaim cost
-Date: Wed, 03 Jun 2020 16:03:00 -0700
-Message-ID: <20200603230300.ZQd3OWiBV%akpm@linux-foundation.org>
+Subject: [patch 119/131] tools/vm/page_owner_sort.c: filter out
+ unneeded line
+Date: Wed, 03 Jun 2020 16:03:22 -0700
+Message-ID: <20200603230322.JNHaLaumS%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47822 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726589AbgFCXIl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:41 -0400
+        id S1726531AbgFCXIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:39 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, ch0.han@lge.com, corbet@lwn.net, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: only count actual rotations as LRU reclaim cost
+From: Changhee Han <ch0.han@lge.com>
+Subject: tools/vm/page_owner_sort.c: filter out unneeded line
 
-When shrinking the active file list we rotate referenced pages only when
-they're in an executable mapping.  The others get deactivated.  When it
-comes to balancing scan pressure, though, we count all referenced pages as
-rotated, even the deactivated ones.  Yet they do not carry the same cost
-to the system: the deactivated page *might* refault later on, but the
-deactivation is tangible progress toward freeing pages; rotations on the
-other hand cost time and effort without getting any closer to freeing
-memory.
+To see a sorted result from page_owner, there must be a tiresome
+preprocessing step before running page_owner_sort.  This patch simply
+filters out lines which start with "PFN" while reading the page owner
+report.
 
-Don't treat both events as equal.  The following patch will hook up LRU
-balancing to cache and anon refaults, which are a much more concrete cost
-signal for reclaiming one list over the other.  Thus, remove the maybe-IO
-cost bias from page references, and only note the CPU cost for actual
-rotations that prevent the pages from getting reclaimed.
-
-Link: http://lkml.kernel.org/r/20200520232525.798933-11-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20200429052940.16968-1-ch0.han@lge.com
+Signed-off-by: Changhee Han <ch0.han@lge.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Rik van Riel <riel@surriel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ Documentation/vm/page_owner.rst |    3 +--
+ tools/vm/page_owner_sort.c      |    5 +++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/vmscan.c~mm-only-count-actual-rotations-as-lru-reclaim-cost
-+++ a/mm/vmscan.c
-@@ -2054,7 +2054,6 @@ static void shrink_active_list(unsigned
+--- a/Documentation/vm/page_owner.rst~tools-vm-page_owner_sort-filter-out-unneeded-line
++++ a/Documentation/vm/page_owner.rst
+@@ -83,8 +83,7 @@ Usage
+ 4) Analyze information from page owner::
  
- 		if (page_referenced(page, 0, sc->target_mem_cgroup,
- 				    &vm_flags)) {
--			nr_rotated += hpage_nr_pages(page);
- 			/*
- 			 * Identify referenced, file-backed active pages and
- 			 * give them one more trip around the active list. So
-@@ -2065,6 +2064,7 @@ static void shrink_active_list(unsigned
- 			 * so we ignore them here.
- 			 */
- 			if ((vm_flags & VM_EXEC) && page_is_file_lru(page)) {
-+				nr_rotated += hpage_nr_pages(page);
- 				list_add(&page->lru, &l_active);
- 				continue;
- 			}
-@@ -2080,10 +2080,8 @@ static void shrink_active_list(unsigned
- 	 */
- 	spin_lock_irq(&pgdat->lru_lock);
- 	/*
--	 * Count referenced pages from currently used mappings as rotated,
--	 * even though only some of them are actually re-activated.  This
--	 * helps balance scan pressure between file and anonymous pages in
--	 * get_scan_count.
-+	 * Rotating pages costs CPU without actually
-+	 * progressing toward the reclaim goal.
- 	 */
- 	lru_note_cost(lruvec, file, nr_rotated);
+ 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
+-	grep -v ^PFN page_owner_full.txt > page_owner.txt
+-	./page_owner_sort page_owner.txt sorted_page_owner.txt
++	./page_owner_sort page_owner_full.txt sorted_page_owner.txt
+ 
+    See the result about who allocated each page
+    in the ``sorted_page_owner.txt``.
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sort-filter-out-unneeded-line
++++ a/tools/vm/page_owner_sort.c
+@@ -4,8 +4,7 @@
+  *
+  * Example use:
+  * cat /sys/kernel/debug/page_owner > page_owner_full.txt
+- * grep -v ^PFN page_owner_full.txt > page_owner.txt
+- * ./page_owner_sort page_owner.txt sorted_page_owner.txt
++ * ./page_owner_sort page_owner_full.txt sorted_page_owner.txt
+  *
+  * See Documentation/vm/page_owner.rst
+ */
+@@ -38,6 +37,8 @@ int read_block(char *buf, int buf_size,
+ 	while (buf_end - curr > 1 && fgets(curr, buf_end - curr, fin)) {
+ 		if (*curr == '\n') /* empty line */
+ 			return curr - buf;
++		if (!strncmp(curr, "PFN", 3))
++			continue;
+ 		curr += strlen(curr);
+ 	}
  
 _
