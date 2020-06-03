@@ -1,109 +1,68 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: [folded-merged]
- mm-memcontrol-switch-to-native-nr_anon_thps-counter-fix.patch removed from
- -mm tree
-Date: Wed, 03 Jun 2020 15:16:24 -0700
-Message-ID: <20200603221624.8l_Ifzcc6%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-memcontrol-convert-anon-and-file-thp-to-new-mem=5Fcgr?=
+ =?US-ASCII?Q?oup=5Fcharge-api-fix.patch?= removed from -mm tree
+Date: Wed, 03 Jun 2020 15:17:30 -0700
+Message-ID: <20200603221730.mUWTVh762%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54988 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55572 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726354AbgFCWQ0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:16:26 -0400
+        id S1726354AbgFCWRc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:17:32 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bsingharora@gmail.com, geert@linux-m68k.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org, rdunlap@infradead.org, sfr@canb.auug.org.au
+To: bsingharora@gmail.com, cai@lca.pw, hannes@cmpxchg.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm-memcontrol-switch-to-native-nr_anon_thps-counter-fix
+     Subject: mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-switch-to-native-nr_anon_thps-counter-fix.patch
+     mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
 
-This patch was dropped because it was folded into mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
+This patch was dropped because it was folded into mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm-memcontrol-switch-to-native-nr_anon_thps-counter-fix
+Subject: mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix
 
-The THP page size macros are CONFIG_TRANSPARENT_HUGEPAGE only.
+Fix crash.  If you have CONFIG_NUMA and the allocation fails, *hpage could
+contain an ERR_PTR instead of being NULL.
 
-We already ifdef most THP-related code in memcg, but not these
-particular stats. Memcg used to track the pages as they came in, and
-PageTransHuge() + hpage_nr_pages() work when THP is not compiled in.
-
-Switching to native vmstat counters, memcg doesn't see the pages, it
-only gets a count of THPs. To translate that to bytes, it has to know
-how big the THPs are - and that's only available for CONFIG_THP.
-
-Add the necessary ifdefs.  /proc/meminfo, smaps etc.  also don't show the
-THP counters when the feature is compiled out.  The event counts
-(THP_FAULT_ALLOC, THP_COLLAPSE_ALLOC) were already conditional also.
-
-Style touchup: HPAGE_PMD_NR * PAGE_SIZE is silly. Use HPAGE_PMD_SIZE.
-
-Link: http://lkml.kernel.org/r/20200512121750.GA397968@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>	[build-tested]
-Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Link: http://lkml.kernel.org/r/20200512215813.GA487759@cmpxchg.org
+Reported-by: Qian Cai <cai@lca.pw>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/khugepaged.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-switch-to-native-nr_anon_thps-counter-fix
-+++ a/mm/memcontrol.c
-@@ -1401,9 +1401,11 @@ static char *memory_stat_format(struct m
- 		       (u64)memcg_page_state(memcg, NR_WRITEBACK) *
- 		       PAGE_SIZE);
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	seq_buf_printf(&s, "anon_thp %llu\n",
- 		       (u64)memcg_page_state(memcg, NR_ANON_THPS) *
--		       HPAGE_PMD_NR * PAGE_SIZE);
-+		       HPAGE_PMD_SIZE);
-+#endif
- 
- 	for (i = 0; i < NR_LRU_LISTS; i++)
- 		seq_buf_printf(&s, "%s %llu\n", lru_list_name(i),
-@@ -3805,7 +3807,9 @@ static int memcg_numa_stat_show(struct s
- static const unsigned int memcg1_stats[] = {
- 	NR_FILE_PAGES,
- 	NR_ANON_MAPPED,
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	NR_ANON_THPS,
-+#endif
- 	NR_SHMEM,
- 	NR_FILE_MAPPED,
- 	NR_FILE_DIRTY,
-@@ -3816,7 +3820,9 @@ static const unsigned int memcg1_stats[]
- static const char *const memcg1_stat_names[] = {
- 	"cache",
- 	"rss",
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	"rss_huge",
-+#endif
- 	"shmem",
- 	"mapped_file",
- 	"dirty",
-@@ -3847,8 +3853,10 @@ static int memcg_stat_show(struct seq_fi
- 		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
- 			continue;
- 		nr = memcg_page_state_local(memcg, memcg1_stats[i]);
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 		if (memcg1_stats[i] == NR_ANON_THPS)
- 			nr *= HPAGE_PMD_NR;
-+#endif
- 		seq_printf(m, "%s %lu\n", memcg1_stat_names[i], nr * PAGE_SIZE);
- 	}
- 
+--- a/mm/khugepaged.c~mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix
++++ a/mm/khugepaged.c
+@@ -1186,7 +1186,7 @@ static void collapse_huge_page(struct mm
+ out_up_write:
+ 	up_write(&mm->mmap_sem);
+ out_nolock:
+-	if (*hpage)
++	if (!IS_ERR_OR_NULL(*hpage))
+ 		mem_cgroup_uncharge(*hpage);
+ 	trace_mm_collapse_huge_page(mm, isolated, result);
+ 	return;
+@@ -1938,7 +1938,7 @@ xa_unlocked:
+ 	unlock_page(new_page);
+ out:
+ 	VM_BUG_ON(!list_empty(&pagelist));
+-	if (*hpage)
++	if (!IS_ERR_OR_NULL(*hpage))
+ 		mem_cgroup_uncharge(*hpage);
+ 	/* TODO: tracepoints */
+ }
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -121,7 +80,6 @@ mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
 mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
 mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
 mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api-fix.patch
 mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
 mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
 mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
