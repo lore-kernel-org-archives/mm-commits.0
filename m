@@ -1,225 +1,111 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 127/131] drivers/base/memory.c: cache memory
- blocks in xarray to accelerate lookup
-Date: Wed, 03 Jun 2020 16:03:48 -0700
-Message-ID: <20200603230348.E1Nd8Cioc%akpm@linux-foundation.org>
+Subject: [patch 084/131] mm: memcontrol: fix stat-corrupting race
+ in charge moving
+Date: Wed, 03 Jun 2020 16:01:28 -0700
+Message-ID: <20200603230128.KtoTvVLG2%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47812 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47820 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725954AbgFCXIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:39 -0400
+        id S1726373AbgFCXIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:43 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cheloha@linux.ibm.com, cheloha@linux.vnet.ibm.com, david@redhat.com, gregkh@linuxfoundation.org, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, nathanl@linux.ibm.com, rafael@kernel.org, ricklind@linux.vnet.ibm.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, bsingharora@gmail.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
 
-From: Scott Cheloha <cheloha@linux.vnet.ibm.com>
-Subject: drivers/base/memory.c: cache memory blocks in xarray to accelerate lookup
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: fix stat-corrupting race in charge moving
 
-Searching for a particular memory block by id is an O(n) operation because
-each memory block's underlying device is kept in an unsorted linked list
-on the subsystem bus.
+The move_lock is a per-memcg lock, but the VM accounting code that needs
+to acquire it comes from the page and follows page->mem_cgroup under RCU
+protection.  That means that the page becomes unlocked not when we drop
+the move_lock, but when we update page->mem_cgroup.  And that assignment
+doesn't imply any memory ordering.  If that pointer write gets reordered
+against the reads of the page state - page_mapped, PageDirty etc.  the
+state may change while we rely on it being stable and we can end up
+corrupting the counters.
 
-We can cut the lookup cost to O(log n) if we cache each memory block
-in an xarray.  This time complexity improvement is significant on
-systems with many memory blocks.  For example:
+Place an SMP memory barrier to make sure we're done with all page state by
+the time the new page->mem_cgroup becomes visible.
 
-1. A 128GB POWER9 VM with 256MB memblocks has 512 blocks.  With this
-   change  memory_dev_init() completes ~12ms faster and walk_memory_blocks()
-   completes ~12ms faster.
+Also replace the open-coded move_lock with a lock_page_memcg() to make it
+more obvious what we're serializing against.
 
-Before:
-[    0.005042] memory_dev_init: adding memory blocks
-[    0.021591] memory_dev_init: added memory blocks
-[    0.022699] walk_memory_blocks: walking memory blocks
-[    0.038730] walk_memory_blocks: walked memory blocks 0-511
-
-After:
-[    0.005057] memory_dev_init: adding memory blocks
-[    0.009415] memory_dev_init: added memory blocks
-[    0.010519] walk_memory_blocks: walking memory blocks
-[    0.014135] walk_memory_blocks: walked memory blocks 0-511
-
-2. A 256GB POWER9 LPAR with 256MB memblocks has 1024 blocks.  With
-   this change memory_dev_init() completes ~88ms faster and
-   walk_memory_blocks() completes ~87ms faster.
-
-Before:
-[    0.252246] memory_dev_init: adding memory blocks
-[    0.395469] memory_dev_init: added memory blocks
-[    0.409413] walk_memory_blocks: walking memory blocks
-[    0.433028] walk_memory_blocks: walked memory blocks 0-511
-[    0.433094] walk_memory_blocks: walking memory blocks
-[    0.500244] walk_memory_blocks: walked memory blocks 131072-131583
-
-After:
-[    0.245063] memory_dev_init: adding memory blocks
-[    0.299539] memory_dev_init: added memory blocks
-[    0.313609] walk_memory_blocks: walking memory blocks
-[    0.315287] walk_memory_blocks: walked memory blocks 0-511
-[    0.315349] walk_memory_blocks: walking memory blocks
-[    0.316988] walk_memory_blocks: walked memory blocks 131072-131583
-
-3. A 32TB POWER9 LPAR with 256MB memblocks has 131072 blocks.  With
-   this change we complete memory_dev_init() ~37 minutes faster and
-   walk_memory_blocks() at least ~30 minutes faster.  The exact timing
-   for walk_memory_blocks() is  missing, though I observed that the
-   soft lockups in walk_memory_blocks() disappeared with the change,
-   suggesting that lower bound.
-
-Before:
-[   13.703907] memory_dev_init: adding blocks
-[ 2287.406099] memory_dev_init: added all blocks
-[ 2347.494986] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 2527.625378] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 2707.761977] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 2887.899975] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3068.028318] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3248.158764] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3428.287296] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3608.425357] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3788.554572] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3968.695071] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 4148.823970] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-
-After:
-[   13.696898] memory_dev_init: adding blocks
-[   15.660035] memory_dev_init: added all blocks
-(the walk_memory_blocks traces disappear)
-
-There should be no significant negative impact for machines with few
-memory blocks.  A sparse xarray has a small footprint and an O(log n)
-lookup is negligibly slower than an O(n) lookup for only the smallest
-number of memory blocks.
-
-1. A 16GB x86 machine with 128MB memblocks has 132 blocks.  With this
-   change memory_dev_init() completes ~300us faster and walk_memory_blocks()
-   completes no faster or slower.  The improvement is pretty close to noise.
-
-Before:
-[    0.224752] memory_dev_init: adding memory blocks
-[    0.227116] memory_dev_init: added memory blocks
-[    0.227183] walk_memory_blocks: walking memory blocks
-[    0.227183] walk_memory_blocks: walked memory blocks 0-131
-
-After:
-[    0.224911] memory_dev_init: adding memory blocks
-[    0.226935] memory_dev_init: added memory blocks
-[    0.227089] walk_memory_blocks: walking memory blocks
-[    0.227089] walk_memory_blocks: walked memory blocks 0-131
-
-[david@redhat.com: document the locking]
-  Link: http://lkml.kernel.org/r/bc21eec6-7251-4c91-2f57-9a0671f8d414@redhat.com
-Link: http://lkml.kernel.org/r/20200121231028.13699-1-cheloha@linux.ibm.com
-Signed-off-by: Scott Cheloha <cheloha@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Nathan Lynch <nathanl@linux.ibm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Rick Lindsley <ricklind@linux.vnet.ibm.com>
-Cc: Scott Cheloha <cheloha@linux.ibm.com>
+Link: http://lkml.kernel.org/r/20200508183105.225460-3-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   44 +++++++++++++++++++++++++++++-----------
- 1 file changed, 32 insertions(+), 12 deletions(-)
+ mm/memcontrol.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
---- a/drivers/base/memory.c~drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup
-+++ a/drivers/base/memory.c
-@@ -21,6 +21,7 @@
- #include <linux/mm.h>
- #include <linux/stat.h>
- #include <linux/slab.h>
-+#include <linux/xarray.h>
- 
- #include <linux/atomic.h>
- #include <linux/uaccess.h>
-@@ -74,6 +75,13 @@ static struct bus_type memory_subsys = {
- 	.offline = memory_subsys_offline,
- };
- 
-+/*
-+ * Memory blocks are cached in a local radix tree to avoid
-+ * a costly linear search for the corresponding device on
-+ * the subsystem bus.
-+ */
-+static DEFINE_XARRAY(memory_blocks);
-+
- static BLOCKING_NOTIFIER_HEAD(memory_chain);
- 
- int register_memory_notifier(struct notifier_block *nb)
-@@ -489,22 +497,23 @@ int __weak arch_get_memory_phys_device(u
- 	return 0;
- }
- 
--/* A reference for the returned memory block device is acquired. */
-+/*
-+ * A reference for the returned memory block device is acquired.
-+ *
-+ * Called under device_hotplug_lock.
-+ */
- static struct memory_block *find_memory_block_by_id(unsigned long block_id)
+--- a/mm/memcontrol.c~mm-memcontrol-fix-stat-corrupting-race-in-charge-moving
++++ a/mm/memcontrol.c
+@@ -5432,7 +5432,6 @@ static int mem_cgroup_move_account(struc
  {
--	struct device *dev;
-+	struct memory_block *mem;
+ 	struct lruvec *from_vec, *to_vec;
+ 	struct pglist_data *pgdat;
+-	unsigned long flags;
+ 	unsigned int nr_pages = compound ? hpage_nr_pages(page) : 1;
+ 	int ret;
+ 	bool anon;
+@@ -5459,18 +5458,13 @@ static int mem_cgroup_move_account(struc
+ 	from_vec = mem_cgroup_lruvec(from, pgdat);
+ 	to_vec = mem_cgroup_lruvec(to, pgdat);
  
--	dev = subsys_find_device_by_id(&memory_subsys, block_id, NULL);
--	return dev ? to_memory_block(dev) : NULL;
-+	mem = xa_load(&memory_blocks, block_id);
-+	if (mem)
-+		get_device(&mem->dev);
-+	return mem;
- }
+-	spin_lock_irqsave(&from->move_lock, flags);
++	lock_page_memcg(page);
  
- /*
-- * For now, we have a linear search to go find the appropriate
-- * memory_block corresponding to a particular phys_index. If
-- * this gets to be a real problem, we can always use a radix
-- * tree or something here.
-- *
-- * This could be made generic for all device subsystems.
-+ * Called under device_hotplug_lock.
-  */
- struct memory_block *find_memory_block(struct mem_section *section)
- {
-@@ -548,9 +557,16 @@ int register_memory(struct memory_block
- 	memory->dev.offline = memory->state == MEM_OFFLINE;
+ 	if (!anon && page_mapped(page)) {
+ 		__mod_lruvec_state(from_vec, NR_FILE_MAPPED, -nr_pages);
+ 		__mod_lruvec_state(to_vec, NR_FILE_MAPPED, nr_pages);
+ 	}
  
- 	ret = device_register(&memory->dev);
--	if (ret)
-+	if (ret) {
- 		put_device(&memory->dev);
--
-+		return ret;
-+	}
-+	ret = xa_err(xa_store(&memory_blocks, memory->dev.id, memory,
-+			      GFP_KERNEL));
-+	if (ret) {
-+		put_device(&memory->dev);
-+		device_unregister(&memory->dev);
-+	}
- 	return ret;
- }
+-	/*
+-	 * move_lock grabbed above and caller set from->moving_account, so
+-	 * mod_memcg_page_state will serialize updates to PageDirty.
+-	 * So mapping should be stable for dirty pages.
+-	 */
+ 	if (!anon && PageDirty(page)) {
+ 		struct address_space *mapping = page_mapping(page);
  
-@@ -604,6 +620,8 @@ static void unregister_memory(struct mem
- 	if (WARN_ON_ONCE(memory->dev.bus != &memory_subsys))
- 		return;
+@@ -5486,15 +5480,23 @@ static int mem_cgroup_move_account(struc
+ 	}
  
-+	WARN_ON(xa_erase(&memory_blocks, memory->dev.id) == NULL);
-+
- 	/* drop the ref. we got via find_memory_block() */
- 	put_device(&memory->dev);
- 	device_unregister(&memory->dev);
-@@ -750,6 +768,8 @@ void __init memory_dev_init(void)
-  *
-  * In case func() returns an error, walking is aborted and the error is
-  * returned.
-+ *
-+ * Called under device_hotplug_lock.
-  */
- int walk_memory_blocks(unsigned long start, unsigned long size,
- 		       void *arg, walk_memory_blocks_func_t func)
+ 	/*
++	 * All state has been migrated, let's switch to the new memcg.
++	 *
+ 	 * It is safe to change page->mem_cgroup here because the page
+-	 * is referenced, charged, and isolated - we can't race with
+-	 * uncharging, charging, migration, or LRU putback.
++	 * is referenced, charged, isolated, and locked: we can't race
++	 * with (un)charging, migration, LRU putback, or anything else
++	 * that would rely on a stable page->mem_cgroup.
++	 *
++	 * Note that lock_page_memcg is a memcg lock, not a page lock,
++	 * to save space. As soon as we switch page->mem_cgroup to a
++	 * new memcg that isn't locked, the above state can change
++	 * concurrently again. Make sure we're truly done with it.
+ 	 */
++	smp_mb();
+ 
+-	/* caller should have done css_get */
+-	page->mem_cgroup = to;
++	page->mem_cgroup = to; 	/* caller should have done css_get */
+ 
+-	spin_unlock_irqrestore(&from->move_lock, flags);
++	__unlock_page_memcg(from);
+ 
+ 	ret = 0;
+ 
 _
