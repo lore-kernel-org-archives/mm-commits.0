@@ -1,123 +1,166 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: [folded-merged]
- =?US-ASCII?Q?mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-?=
- =?US-ASCII?Q?control-fix-v2.patch?= removed from -mm tree
-Date: Wed, 03 Jun 2020 15:19:24 -0700
-Message-ID: <20200603221924.LEk1WY25w%akpm@linux-foundation.org>
+ mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch removed from
+ -mm tree
+Date: Wed, 03 Jun 2020 15:20:28 -0700
+Message-ID: <20200603222028.E8UXb8unp%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55974 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56166 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726354AbgFCWTZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:19:25 -0400
+        id S1726354AbgFCWUa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:20:30 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org
+To: alex.shi@linux.alibaba.com, aquini@redhat.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Re: mm: mkfs.ext4 invoked oom-killer on i386 - pagecache_get_page
+     Subject: mm/swap: fix livelock in __read_swap_cache_async()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2.patch
+     mm-memcontrol-charge-swapin-pages-on-instantiation-fix.patch
 
-This patch was dropped because it was folded into mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
+This patch was dropped because it was folded into mm-memcontrol-charge-swapin-pages-on-instantiation.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: Re: mm: mkfs.ext4 invoked oom-killer on i386 - pagecache_get_page
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/swap: fix livelock in __read_swap_cache_async()
 
-Fix crash with cgroup_disable=memory:
+I've only seen this livelock on one machine (repeatably, but not to
+order), and not fully analyzed it - two processes seen looping around
+getting -EEXIST from swapcache_prepare(), I guess a third (at lower
+priority?  but wanting the same cpu as one of the loopers?  preemption or
+cond_resched() not enough to let it back in?) set SWAP_HAS_CACHE, then
+went off into direct reclaim, scheduled away, and somehow could not get
+back to add the page to swap cache and let them all complete.
 
-> > > > + mkfs -t ext4 /dev/disk/by-id/ata-TOSHIBA_MG04ACA100N_Y8NRK0BPF6XF
-> > > > mke2fs 1.43.8 (1-Jan-2018)
-> > > > Creating filesystem with 244190646 4k blocks and 61054976 inodes
-> > > > Filesystem UUID: 3bb1a285-2cb4-44b4-b6e8-62548f3ac620
-> > > > Superblock backups stored on blocks:
-> > > > 32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208,
-> > > > 4096000, 7962624, 11239424, 20480000, 23887872, 71663616, 78675968,
-> > > > 102400000, 214990848
-> > > > Allocating group tables:    0/7453                           done
-> > > > Writing inode tables:    0/7453                           done
-> > > > Creating journal (262144 blocks): [   35.502102] BUG: kernel NULL
-> > > > pointer dereference, address: 000000c8
-> > > > [   35.508372] #PF: supervisor read access in kernel mode
-> > > > [   35.513506] #PF: error_code(0x0000) - not-present page
-> > > > [   35.518638] *pde = 00000000
-> > > > [   35.521514] Oops: 0000 [#1] SMP
-> > > > [   35.524652] CPU: 0 PID: 145 Comm: kswapd0 Not tainted
-> > > > 5.7.0-rc6-next-20200519+ #1
-> > > > [   35.532121] Hardware name: Supermicro SYS-5019S-ML/X11SSH-F, BIOS
-> > > > 2.2 05/23/2018
-> > > > [   35.539507] EIP: mem_cgroup_get_nr_swap_pages+0x28/0x60
+Restore the page allocation in __read_swap_cache_async() to before the
+swapcache_prepare() call: "mm: memcontrol: charge swapin pages on
+instantiation" moved it outside the loop, which indeed looks much nicer,
+but exposed this weakness.  We used to allocate new_page once and then
+keep it across all iterations of the loop: but I think that just optimizes
+for a rare case, and complicates the flow, so go with the new simpler
+structure, with allocate+free each time around (which is more considerate
+use of the memory too).
 
-Swap accounting used to be implied-disabled when the cgroup controller was
-disabled.  Restore that for the new cgroup_memory_noswap, so that we bail
-out of this function instead of dereferencing a NULL memcg.
+Fix the comment on the looping case, which has long been inaccurate: it's
+not a racing get_swap_page() that's the problem here.
 
-Link: http://lkml.kernel.org/r/20200521215855.GB815153@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Debugged-by: Hugh Dickins <hughd@google.com>
-Debugged-by: Michal Hocko <mhocko@kernel.org>
+Fix the add_to_swap_cache() and mem_cgroup_charge() error recovery: not
+swap_free(), but put_swap_page() to undo SWAP_HAS_CACHE, as was done
+before; but delete_from_swap_cache() already includes it.
+
+And one more nit: I don't think it makes any difference in practice, but
+remove the "& GFP_KERNEL" mask from the mem_cgroup_charge() call:
+add_to_swap_cache() needs that, to convert gfp_mask from user and page
+cache allocation (e.g.  highmem) to radix node allocation (lowmem), but we
+don't need or usually apply that mask when charging mem_cgroup.
+
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2005212246080.8458@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alex Shi <alex.shi@linux.alibaba.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/swap_state.c |   52 +++++++++++++++++++++++++---------------------
+ 1 file changed, 29 insertions(+), 23 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control-fix-v2
-+++ a/mm/memcontrol.c
-@@ -7243,7 +7243,11 @@ static struct cftype memsw_files[] = {
+--- a/mm/swap_state.c~mm-memcontrol-charge-swapin-pages-on-instantiation-fix
++++ a/mm/swap_state.c
+@@ -393,56 +393,62 @@ struct page *__read_swap_cache_async(swp
+ 			return NULL;
  
- static int __init mem_cgroup_swap_init(void)
- {
--	if (mem_cgroup_disabled() || cgroup_memory_noswap)
-+	/* No memory control -> no swap control */
-+	if (mem_cgroup_disabled())
-+		cgroup_memory_noswap = true;
+ 		/*
++		 * Get a new page to read into from swap.  Allocate it now,
++		 * before marking swap_map SWAP_HAS_CACHE, when -EEXIST will
++		 * cause any racers to loop around until we add it to cache.
++		 */
++		page = alloc_page_vma(gfp_mask, vma, addr);
++		if (!page)
++			return NULL;
 +
-+	if (cgroup_memory_noswap)
- 		return 0;
++		/*
+ 		 * Swap entry may have been freed since our caller observed it.
+ 		 */
+ 		err = swapcache_prepare(entry);
+ 		if (!err)
+ 			break;
  
- 	WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys, swap_files));
+-		if (err == -EEXIST) {
+-			/*
+-			 * We might race against get_swap_page() and stumble
+-			 * across a SWAP_HAS_CACHE swap_map entry whose page
+-			 * has not been brought into the swapcache yet.
+-			 */
+-			cond_resched();
+-			continue;
+-		}
++		put_page(page);
++		if (err != -EEXIST)
++			return NULL;
+ 
+-		return NULL;
++		/*
++		 * We might race against __delete_from_swap_cache(), and
++		 * stumble across a swap_map entry whose SWAP_HAS_CACHE
++		 * has not yet been cleared.  Or race against another
++		 * __read_swap_cache_async(), which has set SWAP_HAS_CACHE
++		 * in swap_map, but not yet added its page to swap cache.
++		 */
++		cond_resched();
+ 	}
+ 
+ 	/*
+-	 * The swap entry is ours to swap in. Prepare a new page.
++	 * The swap entry is ours to swap in. Prepare the new page.
+ 	 */
+ 
+-	page = alloc_page_vma(gfp_mask, vma, addr);
+-	if (!page)
+-		goto fail_free;
+-
+ 	__SetPageLocked(page);
+ 	__SetPageSwapBacked(page);
+ 
+ 	/* May fail (-ENOMEM) if XArray node allocation failed. */
+-	if (add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL))
++	if (add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL)) {
++		put_swap_page(page, entry);
+ 		goto fail_unlock;
++	}
+ 
+-	if (mem_cgroup_charge(page, NULL, gfp_mask & GFP_KERNEL, false))
+-		goto fail_delete;
++	if (mem_cgroup_charge(page, NULL, gfp_mask, false)) {
++		delete_from_swap_cache(page);
++		goto fail_unlock;
++	}
+ 
+-	/* Initiate read into locked page */
++	/* Caller will initiate read into locked page */
+ 	SetPageWorkingset(page);
+ 	lru_cache_add_anon(page);
+ 	*new_page_allocated = true;
+ 	return page;
+ 
+-fail_delete:
+-	delete_from_swap_cache(page);
+ fail_unlock:
+ 	unlock_page(page);
+ 	put_page(page);
+-fail_free:
+-	swap_free(entry);
+ 	return NULL;
+ }
+ 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-fix-numa-node-file-count-error-in-replace_page_cache.patch
-mm-memcontrol-fix-stat-corrupting-race-in-charge-moving.patch
-mm-memcontrol-drop-compound-parameter-from-memcg-charging-api.patch
-mm-shmem-remove-rare-optimization-when-swapin-races-with-hole-punching.patch
-mm-memcontrol-move-out-cgroup-swaprate-throttling.patch
-mm-memcontrol-convert-page-cache-to-a-new-mem_cgroup_charge-api.patch
-mm-memcontrol-prepare-uncharging-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-move_account-for-removal-of-private-page-type-counters.patch
-mm-memcontrol-prepare-cgroup-vmstat-infrastructure-for-native-anon-counters.patch
-mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters.patch
-mm-memcontrol-switch-to-native-nr_anon_mapped-counter.patch
-mm-memcontrol-switch-to-native-nr_anon_thps-counter.patch
-mm-memcontrol-convert-anon-and-file-thp-to-new-mem_cgroup_charge-api.patch
-mm-memcontrol-drop-unused-try-commit-cancel-charge-api.patch
-mm-memcontrol-prepare-swap-controller-setup-for-integration.patch
-mm-memcontrol-make-swap-tracking-an-integral-part-of-memory-control.patch
 mm-memcontrol-charge-swapin-pages-on-instantiation.patch
-mm-memcontrol-delete-unused-lrucare-handling.patch
-mm-memcontrol-update-page-mem_cgroup-stability-rules.patch
-mm-fix-lru-balancing-effect-of-new-transparent-huge-pages.patch
-mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
-mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset.patch
-mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
-mm-workingset-let-cache-workingset-challenge-anon.patch
-mm-remove-use-once-cache-bias-from-lru-balancing.patch
-mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count.patch
-mm-base-lru-balancing-on-an-explicit-cost-model.patch
-mm-deactivations-shouldnt-bias-the-lru-balance.patch
-mm-only-count-actual-rotations-as-lru-reclaim-cost.patch
-mm-balance-lru-lists-based-on-relative-thrashing.patch
-mm-vmscan-determine-anon-file-pressure-balance-at-the-reclaim-root.patch
-mm-vmscan-reclaim-writepage-is-io-cost.patch
-mm-vmscan-limit-the-range-of-lru-type-balancing.patch
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-fix.patch
