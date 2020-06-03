@@ -1,106 +1,79 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: [folded-merged]
- mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix.patch
- removed from -mm tree
-Date: Wed, 03 Jun 2020 15:21:21 -0700
-Message-ID: <20200603222121.DcvRr_YCL%akpm@linux-foundation.org>
+ mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch removed from -mm
+ tree
+Date: Wed, 03 Jun 2020 15:21:44 -0700
+Message-ID: <20200603222144.RRrTCwfkf%akpm@linux-foundation.org>
 References: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56326 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56400 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726778AbgFCWVX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:21:23 -0400
+        id S1726749AbgFCWVp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:21:45 -0400
 In-Reply-To: <20200602130930.8e8f10fa6f19e3766e70921f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com
+To: cai@lca.pw, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix
+     Subject: mm-deactivations-shouldnt-bias-the-lru-balance-fix
 has been removed from the -mm tree.  Its filename was
-     mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix.patch
+     mm-deactivations-shouldnt-bias-the-lru-balance-fix.patch
 
-This patch was dropped because it was folded into mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
+This patch was dropped because it was folded into mm-deactivations-shouldnt-bias-the-lru-balance.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix
+From: Qian Cai <cai@lca.pw>
+Subject: mm-deactivations-shouldnt-bias-the-lru-balance-fix
 
-fix it for local_lock changes
+fix set-but-not-used warning
 
+Link: http://lkml.kernel.org/r/20200522133335.GA624@Qians-MacBook-Air.local
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/swap.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/swap.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file-fix
+--- a/mm/swap.c~mm-deactivations-shouldnt-bias-the-lru-balance-fix
 +++ a/mm/swap.c
-@@ -435,15 +435,17 @@ EXPORT_SYMBOL(mark_page_accessed);
-  */
- void lru_cache_add(struct page *page)
+@@ -472,7 +472,7 @@ void lru_cache_add_active_or_unevictable
+ static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruvec,
+ 			      void *arg)
  {
--	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
-+	struct pagevec *pvec;
+-	int lru, file;
++	int lru;
+ 	bool active;
  
- 	VM_BUG_ON_PAGE(PageActive(page) && PageUnevictable(page), page);
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
+ 	if (!PageLRU(page))
+@@ -486,7 +486,6 @@ static void lru_deactivate_file_fn(struc
+ 		return;
  
- 	get_page(page);
-+	local_lock(&lru_pvecs.lock);
-+	pvec = this_cpu_ptr(&lru_pvecs.lru_add);
- 	if (!pagevec_add(pvec, page) || PageCompound(page))
- 		__pagevec_lru_add(pvec);
--	put_cpu_var(lru_add_pvec);
-+	local_unlock(&lru_pvecs.lock);
- }
- EXPORT_SYMBOL(lru_cache_add);
+ 	active = PageActive(page);
+-	file = page_is_file_lru(page);
+ 	lru = page_lru_base_type(page);
  
+ 	del_page_from_lru_list(page, lruvec, lru + active);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cai@lca.pw are
 
-mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
-mm-add-debug_wx-support-fix.patch
-riscv-support-debug_wx-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations-fix.patch
-arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
-kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-maccess-unify-the-probe-kernel-arch-hooks-fix.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-deactivations-shouldnt-bias-the-lru-balance.patch
+mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+mm-frontswap-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races.patch
+mm-page_io-mark-various-intentional-data-races-v2.patch
+mm-swap_state-mark-various-intentional-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races.patch
+mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+mm-page_counter-fix-various-data-races-at-memsw.patch
+mm-memcontrol-fix-a-data-race-in-scan-count.patch
+mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+mm-mempool-fix-a-data-race-in-mempool_free.patch
+mm-util-annotate-an-data-race-at-vm_committed_as.patch
+mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+mm-annotate-a-data-race-in-page_zonenum.patch
+mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
