@@ -1,44 +1,82 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 082/131] mm/vmscan: update the comment of
- should_continue_reclaim()
-Date: Wed, 03 Jun 2020 16:01:21 -0700
-Message-ID: <20200603230121.hu-1pX3rV%akpm@linux-foundation.org>
+Subject: [patch 120/131] mm, mempolicy: fix up gup usage in
+ lookup_node
+Date: Wed, 03 Jun 2020 16:03:25 -0700
+Message-ID: <20200603230325.hku-0B8kS%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43842 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725821AbgFCXBX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:01:23 -0400
+        id S1726013AbgFCXIg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:36 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chenqiwu@xiaomi.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, qiwuchen55@gmail.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, peterx@redhat.com, torvalds@linux-foundation.org
 
-From: Qiwu Chen <qiwuchen55@gmail.com>
-Subject: mm/vmscan: update the comment of should_continue_reclaim()
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, mempolicy: fix up gup usage in lookup_node
 
-try_to_compact_zone() has been replaced by try_to_compact_pages(), which
-is necessary to be updated in the comment of should_continue_reclaim().
+ba841078cd05 ("mm/mempolicy: Allow lookup_node() to handle fatal signal")
+has added a special casing for 0 return value because that was a possible
+gup return value when interrupted by fatal signal.  This has been fixed by
+ae46d2aa6a7f ("mm/gup: Let __get_user_pages_locked() return -EINTR for
+fatal signal") in the mean time so ba841078cd05 can be reverted.
 
-Link: http://lkml.kernel.org/r/20200501034907.22991-1-chenqiwu@xiaomi.com
-Signed-off-by: Qiwu Chen <chenqiwu@xiaomi.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+This patch however doesn't go all the way to revert it because the check
+for 0 is wrong and confusing here.  Firstly it is inherently unsafe to
+access the page when get_user_pages_locked returns 0 (aka no page
+returned).
+
+Fortunatelly this will not happen because get_user_pages_locked will not
+return 0 when nr_pages > 0 unless FOLL_NOWAIT is specified which is not
+the case here.  Document this potential error code in gup code while we
+are at it.
+
+Link: http://lkml.kernel.org/r/20200421071026.18394-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c       |    5 +++++
+ mm/mempolicy.c |    5 +----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-update-the-comment-of-should_continue_reclaim
-+++ a/mm/vmscan.c
-@@ -2577,7 +2577,7 @@ static bool in_reclaim_compaction(struct
-  * Reclaim/compaction is used for high-order allocation requests. It reclaims
-  * order-0 pages before compacting the zone. should_continue_reclaim() returns
-  * true if more pages should be reclaimed such that when the page allocator
-- * calls try_to_compact_zone() that it will have enough free pages to succeed.
-+ * calls try_to_compact_pages() that it will have enough free pages to succeed.
-  * It will give up earlier than that if there is difficulty reclaiming pages.
-  */
- static inline bool should_continue_reclaim(struct pglist_data *pgdat,
+--- a/mm/gup.c~mm-mempolicy-fix-up-gup-usage-in-lookup_node
++++ a/mm/gup.c
+@@ -989,6 +989,7 @@ static int check_vma_flags(struct vm_are
+  * -- If nr_pages is >0, but no pages were pinned, returns -errno.
+  * -- If nr_pages is >0, and some pages were pinned, returns the number of
+  *    pages pinned. Again, this may be less than nr_pages.
++ * -- 0 return value is possible when the fault would need to be retried.
+  *
+  * The caller is responsible for releasing returned @pages, via put_page().
+  *
+@@ -1265,6 +1266,10 @@ retry:
+ }
+ EXPORT_SYMBOL_GPL(fixup_user_fault);
+ 
++/*
++ * Please note that this function, unlike __get_user_pages will not
++ * return 0 for nr_pages > 0 without FOLL_NOWAIT
++ */
+ static __always_inline long __get_user_pages_locked(struct task_struct *tsk,
+ 						struct mm_struct *mm,
+ 						unsigned long start,
+--- a/mm/mempolicy.c~mm-mempolicy-fix-up-gup-usage-in-lookup_node
++++ a/mm/mempolicy.c
+@@ -927,10 +927,7 @@ static int lookup_node(struct mm_struct
+ 
+ 	int locked = 1;
+ 	err = get_user_pages_locked(addr & PAGE_MASK, 1, 0, &p, &locked);
+-	if (err == 0) {
+-		/* E.g. GUP interrupted by fatal signal */
+-		err = -EFAULT;
+-	} else if (err > 0) {
++	if (err > 0) {
+ 		err = page_to_nid(p);
+ 		put_page(p);
+ 	}
 _
