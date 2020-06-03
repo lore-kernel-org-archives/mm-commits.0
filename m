@@ -1,303 +1,109 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 092/131] mm: memcontrol: switch to native
- NR_FILE_PAGES and NR_SHMEM counters
-Date: Wed, 03 Jun 2020 16:01:54 -0700
-Message-ID: <20200603230154.nf75Itrgi%akpm@linux-foundation.org>
+Subject: [patch 118/131] mm: swap: memcg: fix memcg stats for huge
+ pages
+Date: Wed, 03 Jun 2020 16:03:19 -0700
+Message-ID: <20200603230319.autuB2_8q%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47798 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47796 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726385AbgFCXIi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:38 -0400
+        id S1726600AbgFCXIl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:41 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.shi@linux.alibaba.com, bsingharora@gmail.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: switch to native NR_FILE_PAGES and NR_SHMEM counters
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: swap: memcg: fix memcg stats for huge pages
 
-Memcg maintains private MEMCG_CACHE and NR_SHMEM counters.  This
-divergence from the generic VM accounting means unnecessary code overhead,
-and creates a dependency for memcg that page->mapping is set up at the
-time of charging, so that page types can be told apart.
+The commit 2262185c5b28 ("mm: per-cgroup memory reclaim stats") added
+PGLAZYFREE, PGACTIVATE & PGDEACTIVATE stats for cgroups but missed
+couple of places and PGLAZYFREE missed huge page handling. Fix that.
+Also for PGLAZYFREE use the irq-unsafe function to update as the irq is
+already disabled.
 
-Convert the generic accounting sites to mod_lruvec_page_state and friends
-to maintain the per-cgroup vmstat counters of NR_FILE_PAGES and NR_SHMEM. 
-The page is already locked in these places, so page->mem_cgroup is stable;
-we only need minimal tweaks of two mem_cgroup_migrate() calls to ensure
-it's set up in time.
-
-Then replace MEMCG_CACHE with NR_FILE_PAGES and delete the private
-NR_SHMEM accounting sites.
-
-Link: http://lkml.kernel.org/r/20200508183105.225460-10-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+Link: http://lkml.kernel.org/r/20200527182947.251343-1-shakeelb@google.com
+Fixes: 2262185c5b28 ("mm: per-cgroup memory reclaim stats")
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 +--
- mm/filemap.c               |   17 +++++++++--------
- mm/khugepaged.c            |   16 +++++++++++-----
- mm/memcontrol.c            |   28 +++++++++++-----------------
- mm/migrate.c               |   15 +++++++++++----
- mm/shmem.c                 |   14 +++++++-------
- 6 files changed, 50 insertions(+), 43 deletions(-)
+ mm/swap.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters
-+++ a/include/linux/memcontrol.h
-@@ -29,8 +29,7 @@ struct kmem_cache;
+--- a/mm/swap.c~mm-swap-memcg-fix-memcg-stats-for-huge-pages
++++ a/mm/swap.c
+@@ -320,6 +320,7 @@ static void __activate_page(struct page
+ {
+ 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+ 		int lru = page_lru_base_type(page);
++		int nr_pages = hpage_nr_pages(page);
  
- /* Cgroup-specific page state, on top of universal node page state */
- enum memcg_stat_item {
--	MEMCG_CACHE = NR_VM_NODE_STAT_ITEMS,
--	MEMCG_RSS,
-+	MEMCG_RSS = NR_VM_NODE_STAT_ITEMS,
- 	MEMCG_RSS_HUGE,
- 	MEMCG_SWAP,
- 	MEMCG_SOCK,
---- a/mm/filemap.c~mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters
-+++ a/mm/filemap.c
-@@ -199,9 +199,9 @@ static void unaccount_page_cache_page(st
+ 		del_page_from_lru_list(page, lruvec, lru);
+ 		SetPageActive(page);
+@@ -327,7 +328,9 @@ static void __activate_page(struct page
+ 		add_page_to_lru_list(page, lruvec, lru);
+ 		trace_mm_lru_activate(page);
  
- 	nr = hpage_nr_pages(page);
+-		__count_vm_events(PGACTIVATE, hpage_nr_pages(page));
++		__count_vm_events(PGACTIVATE, nr_pages);
++		__count_memcg_events(lruvec_memcg(lruvec), PGACTIVATE,
++				     nr_pages);
+ 	}
+ }
  
--	__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, -nr);
-+	__mod_lruvec_page_state(page, NR_FILE_PAGES, -nr);
- 	if (PageSwapBacked(page)) {
--		__mod_node_page_state(page_pgdat(page), NR_SHMEM, -nr);
-+		__mod_lruvec_page_state(page, NR_SHMEM, -nr);
- 		if (PageTransHuge(page))
- 			__dec_node_page_state(page, NR_SHMEM_THPS);
- 	} else if (PageTransHuge(page)) {
-@@ -802,21 +802,22 @@ int replace_page_cache_page(struct page
- 	new->mapping = mapping;
- 	new->index = offset;
- 
-+	mem_cgroup_migrate(old, new);
-+
- 	xas_lock_irqsave(&xas, flags);
- 	xas_store(&xas, new);
- 
- 	old->mapping = NULL;
- 	/* hugetlb pages do not participate in page cache accounting. */
- 	if (!PageHuge(old))
--		__dec_node_page_state(old, NR_FILE_PAGES);
-+		__dec_lruvec_page_state(old, NR_FILE_PAGES);
- 	if (!PageHuge(new))
--		__inc_node_page_state(new, NR_FILE_PAGES);
-+		__inc_lruvec_page_state(new, NR_FILE_PAGES);
- 	if (PageSwapBacked(old))
--		__dec_node_page_state(old, NR_SHMEM);
-+		__dec_lruvec_page_state(old, NR_SHMEM);
- 	if (PageSwapBacked(new))
--		__inc_node_page_state(new, NR_SHMEM);
-+		__inc_lruvec_page_state(new, NR_SHMEM);
- 	xas_unlock_irqrestore(&xas, flags);
--	mem_cgroup_migrate(old, new);
- 	if (freepage)
- 		freepage(old);
- 	put_page(old);
-@@ -867,7 +868,7 @@ static int __add_to_page_cache_locked(st
- 
- 		/* hugetlb pages do not participate in page cache accounting */
- 		if (!huge)
--			__inc_node_page_state(page, NR_FILE_PAGES);
-+			__inc_lruvec_page_state(page, NR_FILE_PAGES);
- unlock:
- 		xas_unlock_irq(&xas);
- 	} while (xas_nomem(&xas, gfp_mask & GFP_RECLAIM_MASK));
---- a/mm/khugepaged.c~mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters
-+++ a/mm/khugepaged.c
-@@ -1844,12 +1844,18 @@ out_unlock:
+@@ -565,8 +568,11 @@ static void lru_deactivate_file_fn(struc
+ 		__count_vm_events(PGROTATED, nr_pages);
  	}
  
- 	if (nr_none) {
--		struct zone *zone = page_zone(new_page);
--
--		__mod_node_page_state(zone->zone_pgdat, NR_FILE_PAGES, nr_none);
-+		struct lruvec *lruvec;
-+		/*
-+		 * XXX: We have started try_charge and pinned the
-+		 * memcg, but the page isn't committed yet so we
-+		 * cannot use mod_lruvec_page_state(). This hackery
-+		 * will be cleaned up when remove the page->mapping
-+		 * dependency from memcg and fully charge above.
-+		 */
-+		lruvec = mem_cgroup_lruvec(memcg, page_pgdat(new_page));
-+		__mod_lruvec_state(lruvec, NR_FILE_PAGES, nr_none);
- 		if (is_shmem)
--			__mod_node_page_state(zone->zone_pgdat,
--					      NR_SHMEM, nr_none);
-+			__mod_lruvec_state(lruvec, NR_SHMEM, nr_none);
+-	if (active)
++	if (active) {
+ 		__count_vm_events(PGDEACTIVATE, nr_pages);
++		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
++				     nr_pages);
++	}
+ }
+ 
+ static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
+@@ -574,13 +580,16 @@ static void lru_deactivate_fn(struct pag
+ {
+ 	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
+ 		int lru = page_lru_base_type(page);
++		int nr_pages = hpage_nr_pages(page);
+ 
+ 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
+ 		ClearPageActive(page);
+ 		ClearPageReferenced(page);
+ 		add_page_to_lru_list(page, lruvec, lru);
+ 
+-		__count_vm_events(PGDEACTIVATE, hpage_nr_pages(page));
++		__count_vm_events(PGDEACTIVATE, nr_pages);
++		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
++				     nr_pages);
  	}
+ }
  
- xa_locked:
---- a/mm/memcontrol.c~mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters
-+++ a/mm/memcontrol.c
-@@ -842,11 +842,6 @@ static void mem_cgroup_charge_statistics
- 	 */
- 	if (PageAnon(page))
- 		__mod_memcg_state(memcg, MEMCG_RSS, nr_pages);
--	else {
--		__mod_memcg_state(memcg, MEMCG_CACHE, nr_pages);
--		if (PageSwapBacked(page))
--			__mod_memcg_state(memcg, NR_SHMEM, nr_pages);
--	}
+@@ -590,6 +599,7 @@ static void lru_lazyfree_fn(struct page
+ 	if (PageLRU(page) && PageAnon(page) && PageSwapBacked(page) &&
+ 	    !PageSwapCache(page) && !PageUnevictable(page)) {
+ 		bool active = PageActive(page);
++		int nr_pages = hpage_nr_pages(page);
  
- 	if (abs(nr_pages) > 1) {
- 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
-@@ -1392,7 +1387,7 @@ static char *memory_stat_format(struct m
- 		       (u64)memcg_page_state(memcg, MEMCG_RSS) *
- 		       PAGE_SIZE);
- 	seq_buf_printf(&s, "file %llu\n",
--		       (u64)memcg_page_state(memcg, MEMCG_CACHE) *
-+		       (u64)memcg_page_state(memcg, NR_FILE_PAGES) *
- 		       PAGE_SIZE);
- 	seq_buf_printf(&s, "kernel_stack %llu\n",
- 		       (u64)memcg_page_state(memcg, MEMCG_KERNEL_STACK_KB) *
-@@ -3357,7 +3352,7 @@ static unsigned long mem_cgroup_usage(st
- 	unsigned long val;
+ 		del_page_from_lru_list(page, lruvec,
+ 				       LRU_INACTIVE_ANON + active);
+@@ -603,8 +613,9 @@ static void lru_lazyfree_fn(struct page
+ 		ClearPageSwapBacked(page);
+ 		add_page_to_lru_list(page, lruvec, LRU_INACTIVE_FILE);
  
- 	if (mem_cgroup_is_root(memcg)) {
--		val = memcg_page_state(memcg, MEMCG_CACHE) +
-+		val = memcg_page_state(memcg, NR_FILE_PAGES) +
- 			memcg_page_state(memcg, MEMCG_RSS);
- 		if (swap)
- 			val += memcg_page_state(memcg, MEMCG_SWAP);
-@@ -3828,7 +3823,7 @@ static int memcg_numa_stat_show(struct s
- #endif /* CONFIG_NUMA */
- 
- static const unsigned int memcg1_stats[] = {
--	MEMCG_CACHE,
-+	NR_FILE_PAGES,
- 	MEMCG_RSS,
- 	MEMCG_RSS_HUGE,
- 	NR_SHMEM,
-@@ -5461,6 +5456,14 @@ static int mem_cgroup_move_account(struc
- 	lock_page_memcg(page);
- 
- 	if (!PageAnon(page)) {
-+		__mod_lruvec_state(from_vec, NR_FILE_PAGES, -nr_pages);
-+		__mod_lruvec_state(to_vec, NR_FILE_PAGES, nr_pages);
-+
-+		if (PageSwapBacked(page)) {
-+			__mod_lruvec_state(from_vec, NR_SHMEM, -nr_pages);
-+			__mod_lruvec_state(to_vec, NR_SHMEM, nr_pages);
-+		}
-+
- 		if (page_mapped(page)) {
- 			__mod_lruvec_state(from_vec, NR_FILE_MAPPED, -nr_pages);
- 			__mod_lruvec_state(to_vec, NR_FILE_MAPPED, nr_pages);
-@@ -6673,10 +6676,8 @@ struct uncharge_gather {
- 	unsigned long nr_pages;
- 	unsigned long pgpgout;
- 	unsigned long nr_anon;
--	unsigned long nr_file;
- 	unsigned long nr_kmem;
- 	unsigned long nr_huge;
--	unsigned long nr_shmem;
- 	struct page *dummy_page;
- };
- 
-@@ -6700,9 +6701,7 @@ static void uncharge_batch(const struct
- 
- 	local_irq_save(flags);
- 	__mod_memcg_state(ug->memcg, MEMCG_RSS, -ug->nr_anon);
--	__mod_memcg_state(ug->memcg, MEMCG_CACHE, -ug->nr_file);
- 	__mod_memcg_state(ug->memcg, MEMCG_RSS_HUGE, -ug->nr_huge);
--	__mod_memcg_state(ug->memcg, NR_SHMEM, -ug->nr_shmem);
- 	__count_memcg_events(ug->memcg, PGPGOUT, ug->pgpgout);
- 	__this_cpu_add(ug->memcg->vmstats_percpu->nr_page_events, ug->nr_pages);
- 	memcg_check_events(ug->memcg, ug->dummy_page);
-@@ -6743,11 +6742,6 @@ static void uncharge_page(struct page *p
- 			ug->nr_huge += nr_pages;
- 		if (PageAnon(page))
- 			ug->nr_anon += nr_pages;
--		else {
--			ug->nr_file += nr_pages;
--			if (PageSwapBacked(page))
--				ug->nr_shmem += nr_pages;
--		}
- 		ug->pgpgout++;
- 	} else {
- 		ug->nr_kmem += nr_pages;
---- a/mm/migrate.c~mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters
-+++ a/mm/migrate.c
-@@ -490,11 +490,18 @@ int migrate_page_move_mapping(struct add
- 	 * are mapped to swap space.
- 	 */
- 	if (newzone != oldzone) {
--		__dec_node_state(oldzone->zone_pgdat, NR_FILE_PAGES);
--		__inc_node_state(newzone->zone_pgdat, NR_FILE_PAGES);
-+		struct lruvec *old_lruvec, *new_lruvec;
-+		struct mem_cgroup *memcg;
-+
-+		memcg = page_memcg(page);
-+		old_lruvec = mem_cgroup_lruvec(memcg, oldzone->zone_pgdat);
-+		new_lruvec = mem_cgroup_lruvec(memcg, newzone->zone_pgdat);
-+
-+		__dec_lruvec_state(old_lruvec, NR_FILE_PAGES);
-+		__inc_lruvec_state(new_lruvec, NR_FILE_PAGES);
- 		if (PageSwapBacked(page) && !PageSwapCache(page)) {
--			__dec_node_state(oldzone->zone_pgdat, NR_SHMEM);
--			__inc_node_state(newzone->zone_pgdat, NR_SHMEM);
-+			__dec_lruvec_state(old_lruvec, NR_SHMEM);
-+			__inc_lruvec_state(new_lruvec, NR_SHMEM);
- 		}
- 		if (dirty && mapping_cap_account_dirty(mapping)) {
- 			__dec_node_state(oldzone->zone_pgdat, NR_FILE_DIRTY);
---- a/mm/shmem.c~mm-memcontrol-switch-to-native-nr_file_pages-and-nr_shmem-counters
-+++ a/mm/shmem.c
-@@ -653,8 +653,8 @@ next:
- 			__inc_node_page_state(page, NR_SHMEM_THPS);
- 		}
- 		mapping->nrpages += nr;
--		__mod_node_page_state(page_pgdat(page), NR_FILE_PAGES, nr);
--		__mod_node_page_state(page_pgdat(page), NR_SHMEM, nr);
-+		__mod_lruvec_page_state(page, NR_FILE_PAGES, nr);
-+		__mod_lruvec_page_state(page, NR_SHMEM, nr);
- unlock:
- 		xas_unlock_irq(&xas);
- 	} while (xas_nomem(&xas, gfp));
-@@ -685,8 +685,8 @@ static void shmem_delete_from_page_cache
- 	error = shmem_replace_entry(mapping, page->index, page, radswap);
- 	page->mapping = NULL;
- 	mapping->nrpages--;
--	__dec_node_page_state(page, NR_FILE_PAGES);
--	__dec_node_page_state(page, NR_SHMEM);
-+	__dec_lruvec_page_state(page, NR_FILE_PAGES);
-+	__dec_lruvec_page_state(page, NR_SHMEM);
- 	xa_unlock_irq(&mapping->i_pages);
- 	put_page(page);
- 	BUG_ON(error);
-@@ -1593,8 +1593,9 @@ static int shmem_replace_page(struct pag
- 	xa_lock_irq(&swap_mapping->i_pages);
- 	error = shmem_replace_entry(swap_mapping, swap_index, oldpage, newpage);
- 	if (!error) {
--		__inc_node_page_state(newpage, NR_FILE_PAGES);
--		__dec_node_page_state(oldpage, NR_FILE_PAGES);
-+		mem_cgroup_migrate(oldpage, newpage);
-+		__inc_lruvec_page_state(newpage, NR_FILE_PAGES);
-+		__dec_lruvec_page_state(oldpage, NR_FILE_PAGES);
+-		__count_vm_events(PGLAZYFREE, hpage_nr_pages(page));
+-		count_memcg_page_event(page, PGLAZYFREE);
++		__count_vm_events(PGLAZYFREE, nr_pages);
++		__count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE,
++				     nr_pages);
  	}
- 	xa_unlock_irq(&swap_mapping->i_pages);
+ }
  
-@@ -1606,7 +1607,6 @@ static int shmem_replace_page(struct pag
- 		 */
- 		oldpage = newpage;
- 	} else {
--		mem_cgroup_migrate(oldpage, newpage);
- 		lru_cache_add_anon(newpage);
- 		*pagep = newpage;
- 	}
 _
