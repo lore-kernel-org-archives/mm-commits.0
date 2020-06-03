@@ -1,152 +1,94 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 126/131] mm/thp: rename pmd_mknotpresent() as
- pmd_mkinvalid()
-Date: Wed, 03 Jun 2020 16:03:45 -0700
-Message-ID: <20200603230345.ykL3hVHgo%akpm@linux-foundation.org>
+Subject: [patch 107/131] mm: workingset: let cache workingset
+ challenge anon
+Date: Wed, 03 Jun 2020 16:02:43 -0700
+Message-ID: <20200603230243.qOH5GPfRo%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47832 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726380AbgFCXIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:43 -0400
+        id S1726154AbgFCXIk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:40 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anshuman.khandual@arm.com, benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, hpa@zytor.com, linux-mm@kvack.org, linux@armlinux.org.uk, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, torvalds@linux-foundation.org, tsbogend@alpha.franken.de, vgupta@synopsys.com, will@kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org
 
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/thp: rename pmd_mknotpresent() as pmd_mkinvalid()
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: workingset: let cache workingset challenge anon
 
-pmd_present() is expected to test positive after pmdp_mknotpresent() as
-the PMD entry still points to a valid huge page in memory. 
-pmdp_mknotpresent() implies that given PMD entry is just invalidated from
-MMU perspective while still holding on to pmd_page() referred valid huge
-page thus also clearing pmd_present() test.  This creates the following
-situation which is counter intuitive.
+We activate cache refaults with reuse distances in pages smaller than the
+size of the total cache.  This allows new pages with competitive access
+frequencies to establish themselves, as well as challenge and potentially
+displace pages on the active list that have gone cold.
 
-[pmd_present(pmd_mknotpresent(pmd)) = true]
+However, that assumes that active cache can only replace other active
+cache in a competition for the hottest memory.  This is not a great
+default assumption.  The page cache might be thrashing while there are
+enough completely cold and unused anonymous pages sitting around that we'd
+only have to write to swap once to stop all IO from the cache.
 
-This renames pmd_mknotpresent() as pmd_mkinvalid() reflecting the helper's
-functionality more accurately while changing the above mentioned situation
-as follows.  This does not create any functional change.
+Activate cache refaults when their reuse distance in pages is smaller than
+the total userspace workingset, including anonymous pages.
 
-[pmd_present(pmd_mkinvalid(pmd)) = true]
+Reclaim can still decide how to balance pressure among the two LRUs
+depending on the IO situation.  Rotational drives will prefer avoiding
+random IO from swap and go harder after cache.  But fundamentally, hot
+cache should be able to compete with anon pages for a place in RAM.
 
-This is not applicable for platforms that define own pmdp_invalidate() via
-__HAVE_ARCH_PMDP_INVALIDATE.  Suggestion for renaming came during a
-previous discussion here.
-
-https://patchwork.kernel.org/patch/11019637/
-
-[anshuman.khandual@arm.com: change pmd_mknotvalid() to pmd_mkinvalid() per Will]
-  Link: http://lkml.kernel.org/r/1587520326-10099-3-git-send-email-anshuman.khandual@arm.com
-Link: http://lkml.kernel.org/r/1584680057-13753-3-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Will Deacon <will@kernel.org>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
+Link: http://lkml.kernel.org/r/20200520232525.798933-6-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/hugepage.h       |    2 +-
- arch/arm/include/asm/pgtable-3level.h |    2 +-
- arch/arm64/include/asm/pgtable.h      |    2 +-
- arch/mips/include/asm/pgtable.h       |    2 +-
- arch/x86/include/asm/pgtable.h        |    2 +-
- arch/x86/mm/kmmio.c                   |    2 +-
- mm/pgtable-generic.c                  |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ mm/workingset.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
---- a/arch/arc/include/asm/hugepage.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/arc/include/asm/hugepage.h
-@@ -26,7 +26,7 @@ static inline pmd_t pte_pmd(pte_t pte)
- #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
- #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
- #define pmd_mkhuge(pmd)		pte_pmd(pte_mkhuge(pmd_pte(pmd)))
--#define pmd_mknotpresent(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
-+#define pmd_mkinvalid(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
- #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+--- a/mm/workingset.c~mm-workingset-let-cache-workingset-challenge-anon
++++ a/mm/workingset.c
+@@ -277,8 +277,8 @@ void workingset_refault(struct page *pag
+ 	struct mem_cgroup *eviction_memcg;
+ 	struct lruvec *eviction_lruvec;
+ 	unsigned long refault_distance;
++	unsigned long workingset_size;
+ 	struct pglist_data *pgdat;
+-	unsigned long active_file;
+ 	struct mem_cgroup *memcg;
+ 	unsigned long eviction;
+ 	struct lruvec *lruvec;
+@@ -310,7 +310,6 @@ void workingset_refault(struct page *pag
+ 		goto out;
+ 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
+ 	refault = atomic_long_read(&eviction_lruvec->inactive_age);
+-	active_file = lruvec_page_state(eviction_lruvec, NR_ACTIVE_FILE);
  
- #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
---- a/arch/arm64/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -366,7 +366,7 @@ static inline int pmd_protnone(pmd_t pmd
- #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
- #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
- #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
--#define pmd_mknotpresent(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
-+#define pmd_mkinvalid(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
+ 	/*
+ 	 * Calculate the refault distance
+@@ -345,10 +344,18 @@ void workingset_refault(struct page *pag
  
- #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
+ 	/*
+ 	 * Compare the distance to the existing workingset size. We
+-	 * don't act on pages that couldn't stay resident even if all
+-	 * the memory was available to the page cache.
++	 * don't activate pages that couldn't stay resident even if
++	 * all the memory was available to the page cache. Whether
++	 * cache can compete with anon or not depends on having swap.
+ 	 */
+-	if (refault_distance > active_file)
++	workingset_size = lruvec_page_state(eviction_lruvec, NR_ACTIVE_FILE);
++	if (mem_cgroup_get_nr_swap_pages(memcg) > 0) {
++		workingset_size += lruvec_page_state(eviction_lruvec,
++						     NR_INACTIVE_ANON);
++		workingset_size += lruvec_page_state(eviction_lruvec,
++						     NR_ACTIVE_ANON);
++	}
++	if (refault_distance > workingset_size)
+ 		goto out;
  
---- a/arch/arm/include/asm/pgtable-3level.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/arm/include/asm/pgtable-3level.h
-@@ -221,7 +221,7 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
- #define pmdp_establish generic_pmdp_establish
- 
- /* represent a notpresent pmd by faulting entry, this is used by pmdp_invalidate */
--static inline pmd_t pmd_mknotpresent(pmd_t pmd)
-+static inline pmd_t pmd_mkinvalid(pmd_t pmd)
- {
- 	return __pmd(pmd_val(pmd) & ~L_PMD_SECT_VALID);
- }
---- a/arch/mips/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -631,7 +631,7 @@ static inline pmd_t pmd_modify(pmd_t pmd
- 	return pmd;
- }
- 
--static inline pmd_t pmd_mknotpresent(pmd_t pmd)
-+static inline pmd_t pmd_mkinvalid(pmd_t pmd)
- {
- 	pmd_val(pmd) &= ~(_PAGE_PRESENT | _PAGE_VALID | _PAGE_DIRTY);
- 
---- a/arch/x86/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -624,7 +624,7 @@ static inline pud_t pfn_pud(unsigned lon
- 	return __pud(pfn | check_pgprot(pgprot));
- }
- 
--static inline pmd_t pmd_mknotpresent(pmd_t pmd)
-+static inline pmd_t pmd_mkinvalid(pmd_t pmd)
- {
- 	return pfn_pmd(pmd_pfn(pmd),
- 		      __pgprot(pmd_flags(pmd) & ~(_PAGE_PRESENT|_PAGE_PROTNONE)));
---- a/arch/x86/mm/kmmio.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/x86/mm/kmmio.c
-@@ -130,7 +130,7 @@ static void clear_pmd_presence(pmd_t *pm
- 	pmdval_t v = pmd_val(*pmd);
- 	if (clear) {
- 		*old = v;
--		new_pmd = pmd_mknotpresent(*pmd);
-+		new_pmd = pmd_mkinvalid(*pmd);
- 	} else {
- 		/* Presume this has been called with clear==true previously */
- 		new_pmd = __pmd(*old);
---- a/mm/pgtable-generic.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/mm/pgtable-generic.c
-@@ -194,7 +194,7 @@ pgtable_t pgtable_trans_huge_withdraw(st
- pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 		     pmd_t *pmdp)
- {
--	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mknotpresent(*pmdp));
-+	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mkinvalid(*pmdp));
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return old;
- }
+ 	SetPageActive(page);
 _
