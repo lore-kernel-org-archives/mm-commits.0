@@ -1,318 +1,152 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 110/131] mm: base LRU balancing on an explicit
- cost model
-Date: Wed, 03 Jun 2020 16:02:53 -0700
-Message-ID: <20200603230253._MC-eONlj%akpm@linux-foundation.org>
+Subject: [patch 126/131] mm/thp: rename pmd_mknotpresent() as
+ pmd_mkinvalid()
+Date: Wed, 03 Jun 2020 16:03:45 -0700
+Message-ID: <20200603230345.ykL3hVHgo%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47858 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726170AbgFCXIl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:41 -0400
+        id S1726380AbgFCXIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:43 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, anshuman.khandual@arm.com, benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, hpa@zytor.com, linux-mm@kvack.org, linux@armlinux.org.uk, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, torvalds@linux-foundation.org, tsbogend@alpha.franken.de, vgupta@synopsys.com, will@kernel.org
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: base LRU balancing on an explicit cost model
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/thp: rename pmd_mknotpresent() as pmd_mkinvalid()
 
-Currently, scan pressure between the anon and file LRU lists is balanced
-based on a mixture of reclaim efficiency and a somewhat vague notion of
-"value" of having certain pages in memory over others.  That concept of
-value is problematic, because it has caused us to count any event that
-remotely makes one LRU list more or less preferrable for reclaim, even
-when these events are not directly comparable and impose very different
-costs on the system.  One example is referenced file pages that we still
-deactivate and referenced anonymous pages that we actually rotate back to
-the head of the list.
+pmd_present() is expected to test positive after pmdp_mknotpresent() as
+the PMD entry still points to a valid huge page in memory. 
+pmdp_mknotpresent() implies that given PMD entry is just invalidated from
+MMU perspective while still holding on to pmd_page() referred valid huge
+page thus also clearing pmd_present() test.  This creates the following
+situation which is counter intuitive.
 
-There is also conceptual overlap with the LRU algorithm itself.  By
-rotating recently used pages instead of reclaiming them, the algorithm
-already biases the applied scan pressure based on page value.  Thus, when
-rebalancing scan pressure due to rotations, we should think of reclaim
-cost, and leave assessing the page value to the LRU algorithm.
+[pmd_present(pmd_mknotpresent(pmd)) = true]
 
-Lastly, considering both value-increasing as well as value-decreasing
-events can sometimes cause the same type of event to be counted twice,
-i.e.  how rotating a page increases the LRU value, while reclaiming it
-succesfully decreases the value.  In itself this will balance out fine,
-but it quietly skews the impact of events that are only recorded once.
+This renames pmd_mknotpresent() as pmd_mkinvalid() reflecting the helper's
+functionality more accurately while changing the above mentioned situation
+as follows.  This does not create any functional change.
 
-The abstract metric of "value", the murky relationship with the LRU
-algorithm, and accounting both negative and positive events make the
-current pressure balancing model hard to reason about and modify.
+[pmd_present(pmd_mkinvalid(pmd)) = true]
 
-This patch switches to a balancing model of accounting the concrete,
-actually observed cost of reclaiming one LRU over another.  For now, that
-cost includes pages that are scanned but rotated back to the list head. 
-Subsequent patches will add consideration for IO caused by refaulting of
-recently evicted pages.
+This is not applicable for platforms that define own pmdp_invalidate() via
+__HAVE_ARCH_PMDP_INVALIDATE.  Suggestion for renaming came during a
+previous discussion here.
 
-Replace struct zone_reclaim_stat with two cost counters in the lruvec, and
-make everything that affects cost go through a new lru_note_cost()
-function.
+https://patchwork.kernel.org/patch/11019637/
 
-Link: http://lkml.kernel.org/r/20200520232525.798933-9-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
+[anshuman.khandual@arm.com: change pmd_mknotvalid() to pmd_mkinvalid() per Will]
+  Link: http://lkml.kernel.org/r/1587520326-10099-3-git-send-email-anshuman.khandual@arm.com
+Link: http://lkml.kernel.org/r/1584680057-13753-3-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Will Deacon <will@kernel.org>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   21 ++++++------------
- include/linux/swap.h   |    2 +
- mm/memcontrol.c        |   18 +++++----------
- mm/swap.c              |   21 +++++++-----------
- mm/vmscan.c            |   44 +++++++++++++++++++--------------------
- 5 files changed, 46 insertions(+), 60 deletions(-)
+ arch/arc/include/asm/hugepage.h       |    2 +-
+ arch/arm/include/asm/pgtable-3level.h |    2 +-
+ arch/arm64/include/asm/pgtable.h      |    2 +-
+ arch/mips/include/asm/pgtable.h       |    2 +-
+ arch/x86/include/asm/pgtable.h        |    2 +-
+ arch/x86/mm/kmmio.c                   |    2 +-
+ mm/pgtable-generic.c                  |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/include/linux/mmzone.h~mm-base-lru-balancing-on-an-explicit-cost-model
-+++ a/include/linux/mmzone.h
-@@ -242,19 +242,6 @@ static inline bool is_active_lru(enum lr
- 	return (lru == LRU_ACTIVE_ANON || lru == LRU_ACTIVE_FILE);
- }
+--- a/arch/arc/include/asm/hugepage.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
++++ a/arch/arc/include/asm/hugepage.h
+@@ -26,7 +26,7 @@ static inline pmd_t pte_pmd(pte_t pte)
+ #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
+ #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
+ #define pmd_mkhuge(pmd)		pte_pmd(pte_mkhuge(pmd_pte(pmd)))
+-#define pmd_mknotpresent(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
++#define pmd_mkinvalid(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
+ #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
  
--struct zone_reclaim_stat {
--	/*
--	 * The pageout code in vmscan.c keeps track of how many of the
--	 * mem/swap backed and file backed pages are referenced.
--	 * The higher the rotated/scanned ratio, the more valuable
--	 * that cache is.
--	 *
--	 * The anon LRU stats live in [0], file LRU stats in [1]
--	 */
--	unsigned long		recent_rotated[2];
--	unsigned long		recent_scanned[2];
--};
--
- enum lruvec_flags {
- 	LRUVEC_CONGESTED,		/* lruvec has many dirty pages
- 					 * backed by a congested BDI
-@@ -263,7 +250,13 @@ enum lruvec_flags {
+ #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
+--- a/arch/arm64/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -366,7 +366,7 @@ static inline int pmd_protnone(pmd_t pmd
+ #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+ #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
+ #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
+-#define pmd_mknotpresent(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
++#define pmd_mkinvalid(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
  
- struct lruvec {
- 	struct list_head		lists[NR_LRU_LISTS];
--	struct zone_reclaim_stat	reclaim_stat;
-+	/*
-+	 * These track the cost of reclaiming one LRU - file or anon -
-+	 * over the other. As the observed cost of reclaiming one LRU
-+	 * increases, the reclaim scan balance tips toward the other.
-+	 */
-+	unsigned long			anon_cost;
-+	unsigned long			file_cost;
- 	/* Evictions & activations on the inactive file list */
- 	atomic_long_t			inactive_age;
- 	/* Refaults at the time of last reclaim cycle */
---- a/include/linux/swap.h~mm-base-lru-balancing-on-an-explicit-cost-model
-+++ a/include/linux/swap.h
-@@ -334,6 +334,8 @@ extern unsigned long nr_free_pagecache_p
+ #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
  
+--- a/arch/arm/include/asm/pgtable-3level.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -221,7 +221,7 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
+ #define pmdp_establish generic_pmdp_establish
  
- /* linux/mm/swap.c */
-+extern void lru_note_cost(struct lruvec *lruvec, bool file,
-+			  unsigned int nr_pages);
- extern void lru_cache_add(struct page *);
- extern void lru_add_page_tail(struct page *page, struct page *page_tail,
- 			 struct lruvec *lruvec, struct list_head *head);
---- a/mm/memcontrol.c~mm-base-lru-balancing-on-an-explicit-cost-model
-+++ a/mm/memcontrol.c
-@@ -3853,23 +3853,17 @@ static int memcg_stat_show(struct seq_fi
- 	{
- 		pg_data_t *pgdat;
- 		struct mem_cgroup_per_node *mz;
--		struct zone_reclaim_stat *rstat;
--		unsigned long recent_rotated[2] = {0, 0};
--		unsigned long recent_scanned[2] = {0, 0};
-+		unsigned long anon_cost = 0;
-+		unsigned long file_cost = 0;
- 
- 		for_each_online_pgdat(pgdat) {
- 			mz = mem_cgroup_nodeinfo(memcg, pgdat->node_id);
--			rstat = &mz->lruvec.reclaim_stat;
- 
--			recent_rotated[0] += rstat->recent_rotated[0];
--			recent_rotated[1] += rstat->recent_rotated[1];
--			recent_scanned[0] += rstat->recent_scanned[0];
--			recent_scanned[1] += rstat->recent_scanned[1];
-+			anon_cost += mz->lruvec.anon_cost;
-+			file_cost += mz->lruvec.file_cost;
- 		}
--		seq_printf(m, "recent_rotated_anon %lu\n", recent_rotated[0]);
--		seq_printf(m, "recent_rotated_file %lu\n", recent_rotated[1]);
--		seq_printf(m, "recent_scanned_anon %lu\n", recent_scanned[0]);
--		seq_printf(m, "recent_scanned_file %lu\n", recent_scanned[1]);
-+		seq_printf(m, "anon_cost %lu\n", anon_cost);
-+		seq_printf(m, "file_cost %lu\n", file_cost);
- 	}
- #endif
- 
---- a/mm/swap.c~mm-base-lru-balancing-on-an-explicit-cost-model
-+++ a/mm/swap.c
-@@ -278,15 +278,12 @@ void rotate_reclaimable_page(struct page
- 	}
- }
- 
--static void update_page_reclaim_stat(struct lruvec *lruvec,
--				     int file, int rotated,
--				     unsigned int nr_pages)
--{
--	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
--
--	reclaim_stat->recent_scanned[file] += nr_pages;
--	if (rotated)
--		reclaim_stat->recent_rotated[file] += nr_pages;
-+void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages)
-+{
-+	if (file)
-+		lruvec->file_cost += nr_pages;
-+	else
-+		lruvec->anon_cost += nr_pages;
- }
- 
- static void __activate_page(struct page *page, struct lruvec *lruvec,
-@@ -541,7 +538,7 @@ static void lru_deactivate_file_fn(struc
- 
- 	if (active)
- 		__count_vm_event(PGDEACTIVATE);
--	update_page_reclaim_stat(lruvec, file, 0, hpage_nr_pages(page));
-+	lru_note_cost(lruvec, !file, hpage_nr_pages(page));
- }
- 
- static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
-@@ -557,7 +554,7 @@ static void lru_deactivate_fn(struct pag
- 		add_page_to_lru_list(page, lruvec, lru);
- 
- 		__count_vm_events(PGDEACTIVATE, hpage_nr_pages(page));
--		update_page_reclaim_stat(lruvec, file, 0, hpage_nr_pages(page));
-+		lru_note_cost(lruvec, !file, hpage_nr_pages(page));
- 	}
- }
- 
-@@ -582,7 +579,7 @@ static void lru_lazyfree_fn(struct page
- 
- 		__count_vm_events(PGLAZYFREE, hpage_nr_pages(page));
- 		count_memcg_page_event(page, PGLAZYFREE);
--		update_page_reclaim_stat(lruvec, 1, 0, hpage_nr_pages(page));
-+		lru_note_cost(lruvec, 0, hpage_nr_pages(page));
- 	}
- }
- 
---- a/mm/vmscan.c~mm-base-lru-balancing-on-an-explicit-cost-model
-+++ a/mm/vmscan.c
-@@ -1916,7 +1916,6 @@ shrink_inactive_list(unsigned long nr_to
- 	bool file = is_file_lru(lru);
- 	enum vm_event_item item;
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
--	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
- 	bool stalled = false;
- 
- 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
-@@ -1940,7 +1939,6 @@ shrink_inactive_list(unsigned long nr_to
- 				     &nr_scanned, sc, lru);
- 
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
--	reclaim_stat->recent_scanned[file] += nr_taken;
- 	item = current_is_kswapd() ? PGSCAN_KSWAPD : PGSCAN_DIRECT;
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, nr_scanned);
-@@ -1960,8 +1958,12 @@ shrink_inactive_list(unsigned long nr_to
- 	move_pages_to_lru(lruvec, &page_list);
- 
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
--	reclaim_stat->recent_rotated[0] += stat.nr_activate[0];
--	reclaim_stat->recent_rotated[1] += stat.nr_activate[1];
-+	/*
-+	 * Rotating pages costs CPU without actually
-+	 * progressing toward the reclaim goal.
-+	 */
-+	lru_note_cost(lruvec, 0, stat.nr_activate[0]);
-+	lru_note_cost(lruvec, 1, stat.nr_activate[1]);
- 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, nr_reclaimed);
-@@ -2013,7 +2015,6 @@ static void shrink_active_list(unsigned
- 	LIST_HEAD(l_active);
- 	LIST_HEAD(l_inactive);
- 	struct page *page;
--	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
- 	unsigned nr_deactivate, nr_activate;
- 	unsigned nr_rotated = 0;
- 	int file = is_file_lru(lru);
-@@ -2027,7 +2028,6 @@ static void shrink_active_list(unsigned
- 				     &nr_scanned, sc, lru);
- 
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
--	reclaim_stat->recent_scanned[file] += nr_taken;
- 
- 	__count_vm_events(PGREFILL, nr_scanned);
- 	__count_memcg_events(lruvec_memcg(lruvec), PGREFILL, nr_scanned);
-@@ -2085,7 +2085,7 @@ static void shrink_active_list(unsigned
- 	 * helps balance scan pressure between file and anonymous pages in
- 	 * get_scan_count.
- 	 */
--	reclaim_stat->recent_rotated[file] += nr_rotated;
-+	lru_note_cost(lruvec, file, nr_rotated);
- 
- 	nr_activate = move_pages_to_lru(lruvec, &l_active);
- 	nr_deactivate = move_pages_to_lru(lruvec, &l_inactive);
-@@ -2242,13 +2242,13 @@ static void get_scan_count(struct lruvec
+ /* represent a notpresent pmd by faulting entry, this is used by pmdp_invalidate */
+-static inline pmd_t pmd_mknotpresent(pmd_t pmd)
++static inline pmd_t pmd_mkinvalid(pmd_t pmd)
  {
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	int swappiness = mem_cgroup_swappiness(memcg);
--	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
- 	u64 fraction[2];
- 	u64 denominator = 0;	/* gcc */
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	unsigned long anon_prio, file_prio;
- 	enum scan_balance scan_balance;
- 	unsigned long anon, file;
-+	unsigned long totalcost;
- 	unsigned long ap, fp;
- 	enum lru_list lru;
+ 	return __pmd(pmd_val(pmd) & ~L_PMD_SECT_VALID);
+ }
+--- a/arch/mips/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
++++ a/arch/mips/include/asm/pgtable.h
+@@ -631,7 +631,7 @@ static inline pmd_t pmd_modify(pmd_t pmd
+ 	return pmd;
+ }
  
-@@ -2324,26 +2324,26 @@ static void get_scan_count(struct lruvec
- 		lruvec_lru_size(lruvec, LRU_INACTIVE_FILE, MAX_NR_ZONES);
+-static inline pmd_t pmd_mknotpresent(pmd_t pmd)
++static inline pmd_t pmd_mkinvalid(pmd_t pmd)
+ {
+ 	pmd_val(pmd) &= ~(_PAGE_PRESENT | _PAGE_VALID | _PAGE_DIRTY);
  
- 	spin_lock_irq(&pgdat->lru_lock);
--	if (unlikely(reclaim_stat->recent_scanned[0] > anon / 4)) {
--		reclaim_stat->recent_scanned[0] /= 2;
--		reclaim_stat->recent_rotated[0] /= 2;
--	}
--
--	if (unlikely(reclaim_stat->recent_scanned[1] > file / 4)) {
--		reclaim_stat->recent_scanned[1] /= 2;
--		reclaim_stat->recent_rotated[1] /= 2;
-+	totalcost = lruvec->anon_cost + lruvec->file_cost;
-+	if (unlikely(totalcost > (anon + file) / 4)) {
-+		lruvec->anon_cost /= 2;
-+		lruvec->file_cost /= 2;
-+		totalcost /= 2;
- 	}
+--- a/arch/x86/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
++++ a/arch/x86/include/asm/pgtable.h
+@@ -624,7 +624,7 @@ static inline pud_t pfn_pud(unsigned lon
+ 	return __pud(pfn | check_pgprot(pgprot));
+ }
  
- 	/*
- 	 * The amount of pressure on anon vs file pages is inversely
--	 * proportional to the fraction of recently scanned pages on
--	 * each list that were recently referenced and in active use.
-+	 * proportional to the assumed cost of reclaiming each list,
-+	 * as determined by the share of pages that are likely going
-+	 * to refault or rotate on each list (recently referenced),
-+	 * times the relative IO cost of bringing back a swapped out
-+	 * anonymous page vs reloading a filesystem page (swappiness).
- 	 */
--	ap = anon_prio * (reclaim_stat->recent_scanned[0] + 1);
--	ap /= reclaim_stat->recent_rotated[0] + 1;
-+	ap = anon_prio * (totalcost + 1);
-+	ap /= lruvec->anon_cost + 1;
- 
--	fp = file_prio * (reclaim_stat->recent_scanned[1] + 1);
--	fp /= reclaim_stat->recent_rotated[1] + 1;
-+	fp = file_prio * (totalcost + 1);
-+	fp /= lruvec->file_cost + 1;
- 	spin_unlock_irq(&pgdat->lru_lock);
- 
- 	fraction[0] = ap;
+-static inline pmd_t pmd_mknotpresent(pmd_t pmd)
++static inline pmd_t pmd_mkinvalid(pmd_t pmd)
+ {
+ 	return pfn_pmd(pmd_pfn(pmd),
+ 		      __pgprot(pmd_flags(pmd) & ~(_PAGE_PRESENT|_PAGE_PROTNONE)));
+--- a/arch/x86/mm/kmmio.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
++++ a/arch/x86/mm/kmmio.c
+@@ -130,7 +130,7 @@ static void clear_pmd_presence(pmd_t *pm
+ 	pmdval_t v = pmd_val(*pmd);
+ 	if (clear) {
+ 		*old = v;
+-		new_pmd = pmd_mknotpresent(*pmd);
++		new_pmd = pmd_mkinvalid(*pmd);
+ 	} else {
+ 		/* Presume this has been called with clear==true previously */
+ 		new_pmd = __pmd(*old);
+--- a/mm/pgtable-generic.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
++++ a/mm/pgtable-generic.c
+@@ -194,7 +194,7 @@ pgtable_t pgtable_trans_huge_withdraw(st
+ pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 		     pmd_t *pmdp)
+ {
+-	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mknotpresent(*pmdp));
++	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mkinvalid(*pmdp));
+ 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return old;
+ }
 _
