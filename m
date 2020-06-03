@@ -1,105 +1,58 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 111/131] mm: deactivations shouldn't bias the LRU
- balance
-Date: Wed, 03 Jun 2020 16:02:57 -0700
-Message-ID: <20200603230257.5Jj_xOJV8%akpm@linux-foundation.org>
+Subject: [patch 121/131] include/linux/memblock.h: fix minor typo
+ and unclear comment
+Date: Wed, 03 Jun 2020 16:03:28 -0700
+Message-ID: <20200603230328.Z7PnzTsuY%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47820 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726434AbgFCXIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726516AbgFCXIj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 3 Jun 2020 19:08:39 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cai@lca.pw, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, chenqiwu@xiaomi.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, rppt@linux.ibm.com, torvalds@linux-foundation.org
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: deactivations shouldn't bias the LRU balance
+From: chenqiwu <chenqiwu@xiaomi.com>
+Subject: include/linux/memblock.h: fix minor typo and unclear comment
 
-Operations like MADV_FREE, FADV_DONTNEED etc.  currently move any affected
-active pages to the inactive list to accelerate their reclaim (good) but
-also steer page reclaim toward that LRU type, or away from the other
-(bad).
+Fix a minor typo "usabe->usable" for the current discription of member
+variable "memory" in struct memblock.
 
-The reason why this is undesirable is that such operations are not part of
-the regular page aging cycle, and rather a fluke that doesn't say much
-about the remaining pages on that list; they might all be in heavy use,
-and once the chunk of easy victims has been purged, the VM continues to
-apply elevated pressure on those remaining hot pages.  The other LRU,
-meanwhile, might have easily reclaimable pages, and there was never a need
-to steer away from it in the first place.
+BTW, I think it's unclear the member variable "base" in struct
+memblock_type is currently described as the physical address of memory
+region, change it to base address of the region is clearer since the
+variable is decorated as phys_addr_t.
 
-As the previous patch outlined, we should focus on recording actually
-observed cost to steer the balance rather than speculating about the
-potential value of one LRU list over the other.  In that spirit, leave
-explicitely deactivated pages to the LRU algorithm to pick up, and let
-rotations decide which list is the easiest to reclaim.
-
-[cai@lca.pw: fix set-but-not-used warning]
-  Link: http://lkml.kernel.org/r/20200522133335.GA624@Qians-MacBook-Air.local
-Link: http://lkml.kernel.org/r/20200520232525.798933-10-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Qian Cai <cai@lca.pw>
+Link: http://lkml.kernel.org/r/1588846952-32166-1-git-send-email-qiwuchen55@gmail.com
+Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ include/linux/memblock.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swap.c~mm-deactivations-shouldnt-bias-the-lru-balance
-+++ a/mm/swap.c
-@@ -498,7 +498,7 @@ void lru_cache_add_active_or_unevictable
- static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruvec,
- 			      void *arg)
- {
--	int lru, file;
-+	int lru;
- 	bool active;
+--- a/include/linux/memblock.h~mm-memblock-fix-minor-typo-and-unclear-comment
++++ a/include/linux/memblock.h
+@@ -41,7 +41,7 @@ enum memblock_flags {
  
- 	if (!PageLRU(page))
-@@ -512,7 +512,6 @@ static void lru_deactivate_file_fn(struc
- 		return;
- 
- 	active = PageActive(page);
--	file = page_is_file_lru(page);
- 	lru = page_lru_base_type(page);
- 
- 	del_page_from_lru_list(page, lruvec, lru + active);
-@@ -538,14 +537,12 @@ static void lru_deactivate_file_fn(struc
- 
- 	if (active)
- 		__count_vm_event(PGDEACTIVATE);
--	lru_note_cost(lruvec, !file, hpage_nr_pages(page));
- }
- 
- static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
- 			    void *arg)
- {
- 	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
--		int file = page_is_file_lru(page);
- 		int lru = page_lru_base_type(page);
- 
- 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
-@@ -554,7 +551,6 @@ static void lru_deactivate_fn(struct pag
- 		add_page_to_lru_list(page, lruvec, lru);
- 
- 		__count_vm_events(PGDEACTIVATE, hpage_nr_pages(page));
--		lru_note_cost(lruvec, !file, hpage_nr_pages(page));
- 	}
- }
- 
-@@ -579,7 +575,6 @@ static void lru_lazyfree_fn(struct page
- 
- 		__count_vm_events(PGLAZYFREE, hpage_nr_pages(page));
- 		count_memcg_page_event(page, PGLAZYFREE);
--		lru_note_cost(lruvec, 0, hpage_nr_pages(page));
- 	}
- }
- 
+ /**
+  * struct memblock_region - represents a memory region
+- * @base: physical address of the region
++ * @base: base address of the region
+  * @size: size of the region
+  * @flags: memory region attributes
+  * @nid: NUMA node id
+@@ -75,7 +75,7 @@ struct memblock_type {
+  * struct memblock - memblock allocator metadata
+  * @bottom_up: is bottom up direction?
+  * @current_limit: physical address of the current allocation limit
+- * @memory: usabe memory regions
++ * @memory: usable memory regions
+  * @reserved: reserved memory regions
+  * @physmem: all physical memory
+  */
 _
