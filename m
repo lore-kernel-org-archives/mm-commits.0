@@ -1,75 +1,86 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 037/131] mm,page_alloc,cma: conditionally prefer
- cma pageblocks for movable allocations
-Date: Wed, 03 Jun 2020 15:58:42 -0700
-Message-ID: <20200603225842.xxpO4hJHh%akpm@linux-foundation.org>
+Subject: [patch 038/131] mm/page_alloc.c: remove unused
+ free_bootmem_with_active_regions
+Date: Wed, 03 Jun 2020 15:58:45 -0700
+Message-ID: <20200603225845.bl1x-DoqK%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40730 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725821AbgFCW6p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:58:45 -0400
+        id S1725821AbgFCW6r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:58:47 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anshuman.khandual@arm.com, cai@lca.pw, guro@fb.com, js1304@gmail.com, linux-mm@kvack.org, mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, bhe@redhat.com, david@redhat.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Roman Gushchin <guro@fb.com>
-Subject: mm,page_alloc,cma: conditionally prefer cma pageblocks for movable allocations
+From: Baoquan He <bhe@redhat.com>
+Subject: mm/page_alloc.c: remove unused free_bootmem_with_active_regions
 
-Currently a cma area is barely used by the page allocator because it's
-used only as a fallback from movable, however kswapd tries hard to make
-sure that the fallback path isn't used.
+Since commit 397dc00e249ec64e10 ("mips: sgi-ip27: switch from DISCONTIGMEM
+to SPARSEMEM"), the last caller of free_bootmem_with_active_regions() was
+gone.  Now no user calls it any more.
 
-This results in a system evicting memory and pushing data into swap, while
-lots of CMA memory is still available.  This happens despite the fact that
-alloc_contig_range is perfectly capable of moving any movable allocations
-out of the way of an allocation.
+Let's remove it.
 
-To effectively use the cma area let's alter the rules: if the zone has
-more free cma pages than the half of total free pages in the zone, use cma
-pageblocks first and fallback to movable blocks in the case of failure.
-
-[guro@fb.com: ifdef the cma-specific code]
-  Link: http://lkml.kernel.org/r/20200311225832.GA178154@carbon.DHCP.thefacebook.com
-Link: http://lkml.kernel.org/r/20200306150102.3e77354b@imladris.surriel.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Co-developed-by: Rik van Riel <riel@surriel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
+Link: http://lkml.kernel.org/r/20200402143455.5145-1-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ include/linux/mm.h |    4 ----
+ mm/page_alloc.c    |   25 -------------------------
+ 2 files changed, 29 deletions(-)
 
---- a/mm/page_alloc.c~mmpage_alloccma-conditionally-prefer-cma-pageblocks-for-movable-allocations
-+++ a/mm/page_alloc.c
-@@ -2752,6 +2752,20 @@ __rmqueue(struct zone *zone, unsigned in
- {
- 	struct page *page;
+--- a/include/linux/mm.h~mm-remove-unused-free_bootmem_with_active_regions
++++ a/include/linux/mm.h
+@@ -2415,8 +2415,6 @@ static inline unsigned long get_num_phys
+  * 	memblock_add_node(base, size, nid)
+  * free_area_init(max_zone_pfns);
+  *
+- * free_bootmem_with_active_regions() calls free_bootmem_node() for each
+- * registered physical page range.  Similarly
+  * sparse_memory_present_with_active_regions() calls memory_present() for
+  * each range when SPARSEMEM is enabled.
+  */
+@@ -2429,8 +2427,6 @@ extern unsigned long absent_pages_in_ran
+ extern void get_pfn_range_for_nid(unsigned int nid,
+ 			unsigned long *start_pfn, unsigned long *end_pfn);
+ extern unsigned long find_min_pfn_with_active_regions(void);
+-extern void free_bootmem_with_active_regions(int nid,
+-						unsigned long max_low_pfn);
+ extern void sparse_memory_present_with_active_regions(int nid);
  
-+#ifdef CONFIG_CMA
-+	/*
-+	 * Balance movable allocations between regular and CMA areas by
-+	 * allocating from CMA when over half of the zone's free memory
-+	 * is in the CMA area.
-+	 */
-+	if (migratetype == MIGRATE_MOVABLE &&
-+	    zone_page_state(zone, NR_FREE_CMA_PAGES) >
-+	    zone_page_state(zone, NR_FREE_PAGES) / 2) {
-+		page = __rmqueue_cma_fallback(zone, order);
-+		if (page)
-+			return page;
-+	}
-+#endif
- retry:
- 	page = __rmqueue_smallest(zone, order, migratetype);
- 	if (unlikely(!page)) {
-_
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+--- a/mm/page_alloc.c~mm-remove-unused-free_bootmem_with_active_regions
++++ a/mm/page_alloc.c
+@@ -6296,31 +6296,6 @@ void __meminit init_currently_empty_zone
+ }
+ 
+ /**
+- * free_bootmem_with_active_regions - Call memblock_free_early_nid for each active range
+- * @nid: The node to free memory on. If MAX_NUMNODES, all nodes are freed.
+- * @max_low_pfn: The highest PFN that will be passed to memblock_free_early_nid
+- *
+- * If an architecture guarantees that all ranges registered contain no holes
+- * and may be freed, this this function may be used instead of calling
+- * memblock_free_early_nid() manually.
+- */
+-void __init free_bootmem_with_active_regions(int nid, unsigned long max_low_pfn)
+-{
+-	unsigned long start_pfn, end_pfn;
+-	int i, this_nid;
+-
+-	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, &this_nid) {
+-		start_pfn = min(start_pfn, max_low_pfn);
+-		end_pfn = min(end_pfn, max_low_pfn);
+-
+-		if (start_pfn < end_pfn)
+-			memblock_free_early_nid(PFN_PHYS(start_pfn),
+-					(end_pfn - start_pfn) << PAGE_SHIFT,
+-					this_nid);
+-	}
+-}
