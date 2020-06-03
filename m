@@ -1,109 +1,76 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 118/131] mm: swap: memcg: fix memcg stats for huge
- pages
-Date: Wed, 03 Jun 2020 16:03:19 -0700
-Message-ID: <20200603230319.autuB2_8q%akpm@linux-foundation.org>
+Subject: [patch 108/131] mm: remove use-once cache bias from LRU
+ balancing
+Date: Wed, 03 Jun 2020 16:02:46 -0700
+Message-ID: <20200603230246.9AcH95qsl%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47796 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726600AbgFCXIl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:08:41 -0400
+        id S1726836AbgFCXIn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:08:43 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, shakeelb@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org
 
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: swap: memcg: fix memcg stats for huge pages
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: remove use-once cache bias from LRU balancing
 
-The commit 2262185c5b28 ("mm: per-cgroup memory reclaim stats") added
-PGLAZYFREE, PGACTIVATE & PGDEACTIVATE stats for cgroups but missed
-couple of places and PGLAZYFREE missed huge page handling. Fix that.
-Also for PGLAZYFREE use the irq-unsafe function to update as the irq is
-already disabled.
+When the splitlru patches divided page cache and swap-backed pages into
+separate LRU lists, the pressure balance between the lists was biased to
+account for the fact that streaming IO can cause memory pressure with a
+flood of pages that are used only once.  New page cache additions would
+tip the balance toward the file LRU, and repeat access would neutralize
+that bias again.  This ensured that page reclaim would always go for
+used-once cache first.
 
-Link: http://lkml.kernel.org/r/20200527182947.251343-1-shakeelb@google.com
-Fixes: 2262185c5b28 ("mm: per-cgroup memory reclaim stats")
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Since e9868505987a ("mm,vmscan: only evict file pages when we have
+plenty"), page reclaim generally skips over swap-backed memory entirely as
+long as there is used-once cache present, and will apply the LRU balancing
+when only repeatedly accessed cache pages are left - at which point the
+previous use-once bias will have been neutralized.  This makes the
+use-once cache balancing bias unnecessary.
+
+Link: http://lkml.kernel.org/r/20200520232525.798933-7-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ mm/swap.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/mm/swap.c~mm-swap-memcg-fix-memcg-stats-for-huge-pages
+--- a/mm/swap.c~mm-remove-use-once-cache-bias-from-lru-balancing
 +++ a/mm/swap.c
-@@ -320,6 +320,7 @@ static void __activate_page(struct page
+@@ -293,7 +293,6 @@ static void __activate_page(struct page
+ 			    void *arg)
  {
  	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+-		int file = page_is_file_lru(page);
  		int lru = page_lru_base_type(page);
-+		int nr_pages = hpage_nr_pages(page);
  
  		del_page_from_lru_list(page, lruvec, lru);
- 		SetPageActive(page);
-@@ -327,7 +328,9 @@ static void __activate_page(struct page
- 		add_page_to_lru_list(page, lruvec, lru);
+@@ -303,7 +302,6 @@ static void __activate_page(struct page
  		trace_mm_lru_activate(page);
  
--		__count_vm_events(PGACTIVATE, hpage_nr_pages(page));
-+		__count_vm_events(PGACTIVATE, nr_pages);
-+		__count_memcg_events(lruvec_memcg(lruvec), PGACTIVATE,
-+				     nr_pages);
+ 		__count_vm_event(PGACTIVATE);
+-		update_page_reclaim_stat(lruvec, file, 1, hpage_nr_pages(page));
  	}
  }
  
-@@ -565,8 +568,11 @@ static void lru_deactivate_file_fn(struc
- 		__count_vm_events(PGROTATED, nr_pages);
- 	}
+@@ -975,9 +973,6 @@ static void __pagevec_lru_add_fn(struct
  
--	if (active)
-+	if (active) {
- 		__count_vm_events(PGDEACTIVATE, nr_pages);
-+		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
-+				     nr_pages);
-+	}
- }
- 
- static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
-@@ -574,13 +580,16 @@ static void lru_deactivate_fn(struct pag
- {
- 	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
- 		int lru = page_lru_base_type(page);
-+		int nr_pages = hpage_nr_pages(page);
- 
- 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
- 		ClearPageActive(page);
- 		ClearPageReferenced(page);
- 		add_page_to_lru_list(page, lruvec, lru);
- 
--		__count_vm_events(PGDEACTIVATE, hpage_nr_pages(page));
-+		__count_vm_events(PGDEACTIVATE, nr_pages);
-+		__count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE,
-+				     nr_pages);
- 	}
- }
- 
-@@ -590,6 +599,7 @@ static void lru_lazyfree_fn(struct page
- 	if (PageLRU(page) && PageAnon(page) && PageSwapBacked(page) &&
- 	    !PageSwapCache(page) && !PageUnevictable(page)) {
- 		bool active = PageActive(page);
-+		int nr_pages = hpage_nr_pages(page);
- 
- 		del_page_from_lru_list(page, lruvec,
- 				       LRU_INACTIVE_ANON + active);
-@@ -603,8 +613,9 @@ static void lru_lazyfree_fn(struct page
- 		ClearPageSwapBacked(page);
- 		add_page_to_lru_list(page, lruvec, LRU_INACTIVE_FILE);
- 
--		__count_vm_events(PGLAZYFREE, hpage_nr_pages(page));
--		count_memcg_page_event(page, PGLAZYFREE);
-+		__count_vm_events(PGLAZYFREE, nr_pages);
-+		__count_memcg_events(lruvec_memcg(lruvec), PGLAZYFREE,
-+				     nr_pages);
- 	}
- }
- 
+ 	if (page_evictable(page)) {
+ 		lru = page_lru(page);
+-		update_page_reclaim_stat(lruvec, is_file_lru(lru),
+-					 PageActive(page),
+-					 hpage_nr_pages(page));
+ 		if (was_unevictable)
+ 			count_vm_event(UNEVICTABLE_PGRESCUED);
+ 	} else {
 _
