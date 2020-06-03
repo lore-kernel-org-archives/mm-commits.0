@@ -1,69 +1,103 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 048/131] mm/page_alloc: restrict and formalize
- compound_page_dtors[]
-Date: Wed, 03 Jun 2020 15:59:17 -0700
-Message-ID: <20200603225917._dZfZ5SQB%akpm@linux-foundation.org>
+Subject: [patch 049/131] mm/pagealloc.c: call touch_nmi_watchdog()
+ on max order boundaries in deferred init
+Date: Wed, 03 Jun 2020 15:59:20 -0700
+Message-ID: <20200603225920.fbzmRRTEg%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41350 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41398 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725821AbgFCW7S (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:59:18 -0400
+        id S1725821AbgFCW7W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:59:22 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anshuman.khandual@arm.com, david@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, david@redhat.com, jmorris@namei.org, ktkhai@virtuozzo.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, sashal@kernel.org, shile.zhang@linux.alibaba.com, stable@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz, yiwei@redhat.com
 
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/page_alloc: restrict and formalize compound_page_dtors[]
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: mm/pagealloc.c: call touch_nmi_watchdog() on max order boundaries in deferred init
 
-Restrict elements in compound_page_dtors[] array per NR_COMPOUND_DTORS and
-explicitly position them according to enum compound_dtor_id.  This
-improves protection against possible misalignment between
-compound_page_dtors[] and enum compound_dtor_id later on.
+Patch series "initialize deferred pages with interrupts enabled", v4.
 
-Link: http://lkml.kernel.org/r/1589795958-19317-1-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Keep interrupts enabled during deferred page initialization in order to
+make code more modular and allow jiffies to update.
+
+Original approach, and discussion can be found here:
+ http://lkml.kernel.org/r/20200311123848.118638-1-shile.zhang@linux.alibaba.com
+
+
+This patch (of 3):
+
+deferred_init_memmap() disables interrupts the entire time, so it calls
+touch_nmi_watchdog() periodically to avoid soft lockup splats.  Soon it
+will run with interrupts enabled, at which point cond_resched() should be
+used instead.
+
+deferred_grow_zone() makes the same watchdog calls through code shared
+with deferred init but will continue to run with interrupts disabled, so
+it can't call cond_resched().
+
+Pull the watchdog calls up to these two places to allow the first to be
+changed later, independently of the second.  The frequency reduces from
+twice per pageblock (init and free) to once per max order block.
+
+Link: http://lkml.kernel.org/r/20200403140952.17177-2-pasha.tatashin@soleen.com
+Fixes: 3a2d7fa8a3d5 ("mm: disable interrupts while initializing deferred pages")
+Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Yiqian Wei <yiwei@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/page_alloc.c    |   10 +++++-----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-page_alloc-restrict-and-formalize-compound_page_dtors
-+++ a/include/linux/mm.h
-@@ -867,7 +867,7 @@ enum compound_dtor_id {
- #endif
- 	NR_COMPOUND_DTORS,
- };
--extern compound_page_dtor * const compound_page_dtors[];
-+extern compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS];
- 
- static inline void set_compound_page_dtor(struct page *page,
- 		enum compound_dtor_id compound_dtor)
---- a/mm/page_alloc.c~mm-page_alloc-restrict-and-formalize-compound_page_dtors
+--- a/mm/page_alloc.c~mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init
 +++ a/mm/page_alloc.c
-@@ -302,14 +302,14 @@ const char * const migratetype_names[MIG
- #endif
- };
+@@ -1693,7 +1693,6 @@ static void __init deferred_free_pages(u
+ 		} else if (!(pfn & nr_pgmask)) {
+ 			deferred_free_range(pfn - nr_free, nr_free);
+ 			nr_free = 1;
+-			touch_nmi_watchdog();
+ 		} else {
+ 			nr_free++;
+ 		}
+@@ -1723,7 +1722,6 @@ static unsigned long  __init deferred_in
+ 			continue;
+ 		} else if (!page || !(pfn & nr_pgmask)) {
+ 			page = pfn_to_page(pfn);
+-			touch_nmi_watchdog();
+ 		} else {
+ 			page++;
+ 		}
+@@ -1863,8 +1861,10 @@ static int __init deferred_init_memmap(v
+ 	 * that we can avoid introducing any issues with the buddy
+ 	 * allocator.
+ 	 */
+-	while (spfn < epfn)
++	while (spfn < epfn) {
+ 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
++		touch_nmi_watchdog();
++	}
+ zone_empty:
+ 	pgdat_resize_unlock(pgdat, &flags);
  
--compound_page_dtor * const compound_page_dtors[] = {
--	NULL,
--	free_compound_page,
-+compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS] = {
-+	[NULL_COMPOUND_DTOR] = NULL,
-+	[COMPOUND_PAGE_DTOR] = free_compound_page,
- #ifdef CONFIG_HUGETLB_PAGE
--	free_huge_page,
-+	[HUGETLB_PAGE_DTOR] = free_huge_page,
- #endif
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	free_transhuge_page,
-+	[TRANSHUGE_PAGE_DTOR] = free_transhuge_page,
- #endif
- };
+@@ -1948,6 +1948,7 @@ deferred_grow_zone(struct zone *zone, un
+ 		first_deferred_pfn = spfn;
  
+ 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
++		touch_nmi_watchdog();
+ 
+ 		/* We should only stop along section boundaries */
+ 		if ((first_deferred_pfn ^ spfn) < PAGES_PER_SECTION)
 _
