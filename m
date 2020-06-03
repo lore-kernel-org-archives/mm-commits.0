@@ -1,106 +1,98 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 046/131] mm/page_alloc.c: reset numa stats for
- boot pagesets
-Date: Wed, 03 Jun 2020 15:59:11 -0700
-Message-ID: <20200603225911.XXc_Z8w9i%akpm@linux-foundation.org>
+Subject: [patch 047/131] mm, page_alloc: reset the
+ zone->watermark_boost early
+Date: Wed, 03 Jun 2020 15:59:14 -0700
+Message-ID: <20200603225914.E66bk3LLS%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41240 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41296 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725821AbgFCW7M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 18:59:12 -0400
+        id S1725821AbgFCW7R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 18:59:17 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com, khlebnikov@yandex-team.ru, kirill@shutemov.name, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, sandipan@linux.ibm.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, bhe@redhat.com, charante@codeaurora.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vinmenon@codeaurora.org
 
-From: Sandipan Das <sandipan@linux.ibm.com>
-Subject: mm/page_alloc.c: reset numa stats for boot pagesets
+From: Charan Teja Reddy <charante@codeaurora.org>
+Subject: mm, page_alloc: reset the zone->watermark_boost early
 
-Initially, the per-cpu pagesets of each zone are set to the boot pagesets.
-The real pagesets are allocated later but before that happens, page
-allocations do occur and the numa stats for the boot pagesets get
-incremented since they are common to all zones at that point.
+Updating the zone watermarks by any means, like min_free_kbytes,
+water_mark_scale_factor etc, when ->watermark_boost is set will result in
+higher low and high watermarks than the user asked.
 
-The real pagesets, however, are allocated for the populated zones only. 
-Unpopulated zones, like those associated with memory-less nodes, continue
-using the boot pageset and end up skewing the numa stats of the
-corresponding node.
+Below are the steps to reproduce the problem on system setup of Android
+kernel running on Snapdragon hardware.
 
-E.g.
+1) Default settings of the system are as below:
 
-  $ numactl -H
-  available: 2 nodes (0-1)
-  node 0 cpus: 0 1 2 3
-  node 0 size: 0 MB
-  node 0 free: 0 MB
-  node 1 cpus: 4 5 6 7
-  node 1 size: 8131 MB
-  node 1 free: 6980 MB
-  node distances:
-  node   0   1
-    0:  10  40
-    1:  40  10
+   #cat /proc/sys/vm/min_free_kbytes = 5162
+   #cat /proc/zoneinfo | grep -e boost -e low -e "high " -e min -e Node
+	Node 0, zone   Normal
+		min      797
+		low      8340
+		high     8539
 
-  $ numastat
-                             node0           node1
-  numa_hit                     108           56495
-  numa_miss                      0               0
-  numa_foreign                   0               0
-  interleave_hit                 0            4537
-  local_node                   108           31547
-  other_node                     0           24948
+2) Monitor the zone->watermark_boost(by adding a debug print in the
+   kernel) and whenever it is greater than zero value, write the same
+   value of min_free_kbytes obtained from step 1.
 
-Hence, the boot pageset stats need to be cleared after the real pagesets
-are allocated.
+   #echo 5162 > /proc/sys/vm/min_free_kbytes
 
-After this point, the stats of the boot pagesets do not change as page
-allocations requested for a memory-less node will either fail (if
-__GFP_THISNODE is used) or get fulfilled by a preferred zone of a
-different node based on the fallback zonelist.
+3) Then read the zone watermarks in the system while the
+   ->watermark_boost is zero.  This should show the same values of
+   watermarks as step 1 but shown a higher values than asked.
 
-[sandipan@linux.ibm.com: v3]
-  Link: http://lkml.kernel.org/r/20200511170356.162531-1-sandipan@linux.ibm.com
-Link: http://lkml.kernel.org/r/9c9c2d1b15e37f6e6bf32f99e3100035e90c4ac9.1588868430.git.sandipan@linux.ibm.com
-Signed-off-by: Sandipan Das <sandipan@linux.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+   #cat /proc/zoneinfo | grep -e boost -e low -e "high " -e min -e Node
+	Node 0, zone   Normal
+		min      797
+		low      21148
+		high     21347
+
+These higher values are because of updating the zone watermarks using the
+macro min_wmark_pages(zone) which also adds the zone->watermark_boost.
+
+	#define min_wmark_pages(z) (z->_watermark[WMARK_MIN] +
+					z->watermark_boost)
+
+So the steps that lead to the issue are:
+
+1) On the extfrag event, watermarks are boosted by storing the required
+   value in ->watermark_boost.
+
+2) User tries to update the zone watermarks level in the system through
+   min_free_kbytes or watermark_scale_factor.
+
+3) Later, when kswapd woke up, it resets the zone->watermark_boost to
+   zero.
+
+In step 2), we use the min_wmark_pages() macro to store the watermarks
+in the zone structure thus the values are always offsetted by
+->watermark_boost value. This can be avoided by resetting the
+->watermark_boost to zero before it is used.
+
+Link: http://lkml.kernel.org/r/1589457511-4255-1-git-send-email-charante@codeaurora.org
+Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-reset-numa-stats-for-boot-pagesets
+--- a/mm/page_alloc.c~mm-page_alloc-reset-the-zone-watermark_boost-early
 +++ a/mm/page_alloc.c
-@@ -6250,10 +6250,25 @@ void __init setup_per_cpu_pageset(void)
- {
- 	struct pglist_data *pgdat;
- 	struct zone *zone;
-+	int __maybe_unused cpu;
+@@ -7788,9 +7788,9 @@ static void __setup_per_zone_wmarks(void
+ 			    mult_frac(zone_managed_pages(zone),
+ 				      watermark_scale_factor, 10000));
  
- 	for_each_populated_zone(zone)
- 		setup_zone_pageset(zone);
++		zone->watermark_boost = 0;
+ 		zone->_watermark[WMARK_LOW]  = min_wmark_pages(zone) + tmp;
+ 		zone->_watermark[WMARK_HIGH] = min_wmark_pages(zone) + tmp * 2;
+-		zone->watermark_boost = 0;
  
-+#ifdef CONFIG_NUMA
-+	/*
-+	 * Unpopulated zones continue using the boot pagesets.
-+	 * The numa stats for these pagesets need to be reset.
-+	 * Otherwise, they will end up skewing the stats of
-+	 * the nodes these zones are associated with.
-+	 */
-+	for_each_possible_cpu(cpu) {
-+		struct per_cpu_pageset *pcp = &per_cpu(boot_pageset, cpu);
-+		memset(pcp->vm_numa_stat_diff, 0,
-+		       sizeof(pcp->vm_numa_stat_diff));
-+	}
-+#endif
-+
- 	for_each_online_pgdat(pgdat)
- 		pgdat->per_cpu_nodestats =
- 			alloc_percpu(struct per_cpu_nodestat);
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+ 	}
 _
