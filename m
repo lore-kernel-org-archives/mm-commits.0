@@ -1,115 +1,42 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 059/131] padata: document multithreaded jobs
-Date: Wed, 03 Jun 2020 15:59:59 -0700
-Message-ID: <20200603225959.hUDNbftmQ%akpm@linux-foundation.org>
+Subject: [patch 060/131] mm/page_alloc.c: add missing newline
+Date: Wed, 03 Jun 2020 16:00:02 -0700
+Message-ID: <20200603230002.GQYWdKrjK%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42226 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42340 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725821AbgFCXAB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Jun 2020 19:00:01 -0400
+        id S1725821AbgFCXAD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Jun 2020 19:00:03 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.williamson@redhat.com, alexander.h.duyck@linux.intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com, david@redhat.com, elliott@hpe.com, herbert@gondor.apana.org.au, jgg@ziepe.ca, josh@joshtriplett.org, ktkhai@virtuozzo.com, linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, pavel@ucw.cz, peterz@infradead.org, rdunlap@infradead.org, shile.zhang@linux.alibaba.com, steffen.klassert@secunet.com, steven.sistare@oracle.com, tj@kernel.org, torvalds@linux-foundation.org, ziy@nvidia.com
+To: akpm@linux-foundation.org, chentao107@huawei.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Daniel Jordan <daniel.m.jordan@oracle.com>
-Subject: padata: document multithreaded jobs
+From: Chen Tao <chentao107@huawei.com>
+Subject: mm/page_alloc.c: add missing newline
 
-Add Documentation for multithreaded jobs.
+Add missing line breaks on pr_warn().
 
-Link: http://lkml.kernel.org/r/20200527173608.2885243-9-daniel.m.jordan@oracle.com
-Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Tested-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Robert Elliott <elliott@hpe.com>
-Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: http://lkml.kernel.org/r/20200603063547.235825-1-chentao107@huawei.com
+Signed-off-by: Chen Tao <chentao107@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/padata.rst |   41 +++++++++++++++++++++-------
- 1 file changed, 31 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/core-api/padata.rst~padata-document-multithreaded-jobs
-+++ a/Documentation/core-api/padata.rst
-@@ -4,23 +4,26 @@
- The padata parallel execution mechanism
- =======================================
+--- a/mm/page_alloc.c~mm-page_allocc-add-missing-line-breaks
++++ a/mm/page_alloc.c
+@@ -7182,7 +7182,7 @@ static void __init find_zone_movable_pfn
+ 		}
  
--:Date: December 2019
-+:Date: May 2020
+ 		if (mem_below_4gb_not_mirrored)
+-			pr_warn("This configuration results in unmirrored kernel memory.");
++			pr_warn("This configuration results in unmirrored kernel memory.\n");
  
- Padata is a mechanism by which the kernel can farm jobs out to be done in
--parallel on multiple CPUs while retaining their ordering.  It was developed for
--use with the IPsec code, which needs to be able to perform encryption and
--decryption on large numbers of packets without reordering those packets.  The
--crypto developers made a point of writing padata in a sufficiently general
--fashion that it could be put to other uses as well.
-+parallel on multiple CPUs while optionally retaining their ordering.
- 
--Usage
--=====
-+It was originally developed for IPsec, which needs to perform encryption and
-+decryption on large numbers of packets without reordering those packets.  This
-+is currently the sole consumer of padata's serialized job support.
-+
-+Padata also supports multithreaded jobs, splitting up the job evenly while load
-+balancing and coordinating between threads.
-+
-+Running Serialized Jobs
-+=======================
- 
- Initializing
- ------------
- 
--The first step in using padata is to set up a padata_instance structure for
--overall control of how jobs are to be run::
-+The first step in using padata to run serialized jobs is to set up a
-+padata_instance structure for overall control of how jobs are to be run::
- 
-     #include <linux/padata.h>
- 
-@@ -162,6 +165,24 @@ functions that correspond to the allocat
- It is the user's responsibility to ensure all outstanding jobs are complete
- before any of the above are called.
- 
-+Running Multithreaded Jobs
-+==========================
-+
-+A multithreaded job has a main thread and zero or more helper threads, with the
-+main thread participating in the job and then waiting until all helpers have
-+finished.  padata splits the job into units called chunks, where a chunk is a
-+piece of the job that one thread completes in one call to the thread function.
-+
-+A user has to do three things to run a multithreaded job.  First, describe the
-+job by defining a padata_mt_job structure, which is explained in the Interface
-+section.  This includes a pointer to the thread function, which padata will
-+call each time it assigns a job chunk to a thread.  Then, define the thread
-+function, which accepts three arguments, ``start``, ``end``, and ``arg``, where
-+the first two delimit the range that the thread operates on and the last is a
-+pointer to the job's shared state, if any.  Prepare the shared state, which is
-+typically allocated on the main thread's stack.  Last, call
-+padata_do_multithreaded(), which will return once the job is finished.
-+
- Interface
- =========
- 
+ 		goto out2;
+ 	}
 _
