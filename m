@@ -1,205 +1,161 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 040/127] kmap: consolidate kmap_prot definitions
-Date: Thu, 04 Jun 2020 16:48:18 -0700
-Message-ID: <20200604234818.lUfDFddWq%akpm@linux-foundation.org>
+Subject: [patch 041/127] mm: add kvfree_sensitive() for freeing
+ sensitive data objects
+Date: Thu, 04 Jun 2020 16:48:21 -0700
+Message-ID: <20200604234821.eW1nawh1U%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44534 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44650 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725930AbgFDXsV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:48:21 -0400
+        id S1725930AbgFDXsX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:48:23 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, bp@alien8.de, chris@zankel.net, christian.koenig@amd.com, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, dave.hansen@linux.intel.com, davem@davemloft.net, deller@gmx.de, hch@infradead.org, hpa@zytor.com, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, linux-mm@kvack.org, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, paulus@samba.org, peterz@infradead.org, tglx@linutronix.de, torvalds@linux-foundation.org, tsbogend@alpha.franken.de, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, dhowells@redhat.com, ebiggers@google.com, jarkko.sakkinen@linux.intel.com, jmorris@namei.org, joe@perches.com, linux-mm@kvack.org, longman@redhat.com, mm-commits@vger.kernel.org, rientjes@google.com, serge@hallyn.com, torvalds@linux-foundation.org, urezki@gmail.com, willy@infradead.org
 
-=46rom: Ira Weiny <ira.weiny@intel.com>
-Subject: kmap: consolidate kmap_prot definitions
+From: Waiman Long <longman@redhat.com>
+Subject: mm: add kvfree_sensitive() for freeing sensitive data objects
 
-Most architectures define kmap_prot to be PAGE_KERNEL.
+For kvmalloc'ed data object that contains sensitive information like
+cryptographic keys, we need to make sure that the buffer is always cleared
+before freeing it.  Using memset() alone for buffer clearing may not
+provide certainty as the compiler may compile it away.  To be sure, the
+special memzero_explicit() has to be used.
 
-Let sparc and xtensa define there own and define PAGE_KERNEL as the
-default if not overridden.
+This patch introduces a new kvfree_sensitive() for freeing those sensitive
+data objects allocated by kvmalloc().  The relevant places where
+kvfree_sensitive() can be used are modified to use it.
 
-[akpm@linux-foundation.org: coding style fixes]
-Link: http://lkml.kernel.org/r/20200507150004.1423069-16-ira.weiny@intel.com
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20200407200318.11711-1-longman@redhat.com
+Fixes: 4f0882491a14 ("KEYS: Avoid false positive ENOMEM error on key read")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Reviewed-by: Eric Biggers <ebiggers@google.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Uladzislau Rezki <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/highmem.h        |    3 ---
- arch/arm/include/asm/highmem.h        |    2 --
- arch/csky/include/asm/highmem.h       |    2 --
- arch/microblaze/include/asm/highmem.h |    1 -
- arch/mips/include/asm/highmem.h       |    2 --
- arch/nds32/include/asm/highmem.h      |    1 -
- arch/powerpc/include/asm/highmem.h    |    1 -
- arch/sparc/include/asm/highmem.h      |    3 ++-
- arch/sparc/mm/highmem.c               |    4 ----
- arch/x86/include/asm/fixmap.h         |    1 -
- include/linux/highmem.h               |    4 ++++
- 11 files changed, 6 insertions(+), 18 deletions(-)
+ include/linux/mm.h       |    1 +
+ mm/util.c                |   18 ++++++++++++++++++
+ security/keys/internal.h |   11 -----------
+ security/keys/keyctl.c   |   16 +++++-----------
+ 4 files changed, 24 insertions(+), 22 deletions(-)
 
---- a/arch/arc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/arc/include/asm/highmem.h
-@@ -25,9 +25,6 @@
- #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
- #define PKMAP_NR(virt)		(((virt) - PKMAP_BASE) >> PAGE_SHIFT)
-=20
--#define kmap_prot		PAGE_KERNEL
--
--
- #include <asm/cacheflush.h>
-=20
- extern void kmap_init(void);
---- a/arch/arm/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/arm/include/asm/highmem.h
-@@ -10,8 +10,6 @@
- #define PKMAP_NR(virt)		(((virt) - PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
-=20
--#define kmap_prot		PAGE_KERNEL
--
- #define flush_cache_kmaps() \
- 	do { \
- 		if (cache_is_vivt()) \
---- a/arch/csky/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/csky/include/asm/highmem.h
-@@ -38,8 +38,6 @@ extern void *kmap_atomic_pfn(unsigned lo
-=20
- extern void kmap_init(void);
-=20
--#define kmap_prot PAGE_KERNEL
--
- #endif /* __KERNEL__ */
-=20
- #endif /* __ASM_CSKY_HIGHMEM_H */
---- a/arch/microblaze/include/asm/highmem.h~kmap-consolidate-kmap_prot-defi=
-nitions
-+++ a/arch/microblaze/include/asm/highmem.h
-@@ -25,7 +25,6 @@
- #include <linux/uaccess.h>
- #include <asm/fixmap.h>
-=20
--#define kmap_prot		PAGE_KERNEL
- extern pte_t *kmap_pte;
- extern pte_t *pkmap_page_table;
-=20
---- a/arch/mips/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/mips/include/asm/highmem.h
-@@ -54,8 +54,6 @@ extern void *kmap_atomic_pfn(unsigned lo
-=20
- extern void kmap_init(void);
-=20
--#define kmap_prot PAGE_KERNEL
--
- #endif /* __KERNEL__ */
-=20
- #endif /* _ASM_HIGHMEM_H */
---- a/arch/nds32/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitio=
-ns
-+++ a/arch/nds32/include/asm/highmem.h
-@@ -32,7 +32,6 @@
- #define LAST_PKMAP_MASK		(LAST_PKMAP - 1)
- #define PKMAP_NR(virt)		(((virt) - (PKMAP_BASE)) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
--#define kmap_prot		PAGE_KERNEL
-=20
- static inline void flush_cache_kmaps(void)
- {
---- a/arch/powerpc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definit=
-ions
-+++ a/arch/powerpc/include/asm/highmem.h
-@@ -29,7 +29,6 @@
- #include <asm/page.h>
- #include <asm/fixmap.h>
-=20
--#define kmap_prot		PAGE_KERNEL
- extern pte_t *kmap_pte;
- extern pte_t *pkmap_page_table;
-=20
---- a/arch/sparc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitio=
-ns
-+++ a/arch/sparc/include/asm/highmem.h
-@@ -25,11 +25,12 @@
- #include <asm/vaddrs.h>
- #include <asm/kmap_types.h>
- #include <asm/pgtable.h>
-+#include <asm/pgtsrmmu.h>
-=20
- /* declarations for highmem.c */
- extern unsigned long highstart_pfn, highend_pfn;
-=20
--extern pgprot_t kmap_prot;
-+#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE)
- extern pte_t *pkmap_page_table;
-=20
- void kmap_init(void) __init;
---- a/arch/sparc/mm/highmem.c~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/sparc/mm/highmem.c
-@@ -32,9 +32,6 @@
- #include <asm/pgalloc.h>
- #include <asm/vaddrs.h>
-=20
--pgprot_t kmap_prot;
--EXPORT_SYMBOL(kmap_prot);
--
- static pte_t *kmap_pte;
-=20
- void __init kmap_init(void)
-@@ -51,7 +48,6 @@ void __init kmap_init(void)
-=20
-         /* cache the first kmap pte */
-         kmap_pte =3D pte_offset_kernel(dir, address);
--        kmap_prot =3D __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
+--- a/include/linux/mm.h~mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects
++++ a/include/linux/mm.h
+@@ -776,6 +776,7 @@ static inline void *kvcalloc(size_t n, s
  }
-=20
- void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
---- a/arch/x86/include/asm/fixmap.h~kmap-consolidate-kmap_prot-definitions
-+++ a/arch/x86/include/asm/fixmap.h
-@@ -152,7 +152,6 @@ extern void reserve_top_address(unsigned
- extern int fixmaps_set;
-=20
- extern pte_t *kmap_pte;
--#define kmap_prot PAGE_KERNEL
- extern pte_t *pkmap_page_table;
-=20
- void __native_set_fixmap(enum fixed_addresses idx, pte_t pte);
---- a/include/linux/highmem.h~kmap-consolidate-kmap_prot-definitions
-+++ a/include/linux/highmem.h
-@@ -40,6 +40,10 @@ extern void kunmap_atomic_high(void *kva
- static inline void kmap_flush_tlb(unsigned long addr) { }
- #endif
-=20
-+#ifndef kmap_prot
-+#define kmap_prot PAGE_KERNEL
-+#endif
+ 
+ extern void kvfree(const void *addr);
++extern void kvfree_sensitive(const void *addr, size_t len);
+ 
+ /*
+  * Mapcount of compound page as a whole, does not include mapped sub-pages.
+--- a/mm/util.c~mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects
++++ a/mm/util.c
+@@ -604,6 +604,24 @@ void kvfree(const void *addr)
+ }
+ EXPORT_SYMBOL(kvfree);
+ 
++/**
++ * kvfree_sensitive - Free a data object containing sensitive information.
++ * @addr: address of the data object to be freed.
++ * @len: length of the data object.
++ *
++ * Use the special memzero_explicit() function to clear the content of a
++ * kvmalloc'ed object containing sensitive data to make sure that the
++ * compiler won't optimize out the data clearing.
++ */
++void kvfree_sensitive(const void *addr, size_t len)
++{
++	if (likely(!ZERO_OR_NULL_PTR(addr))) {
++		memzero_explicit((void *)addr, len);
++		kvfree(addr);
++	}
++}
++EXPORT_SYMBOL(kvfree_sensitive);
 +
- void *kmap_high(struct page *page);
- static inline void *kmap(struct page *page)
+ static inline void *__page_rmapping(struct page *page)
  {
+ 	unsigned long mapping;
+--- a/security/keys/internal.h~mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects
++++ a/security/keys/internal.h
+@@ -350,15 +350,4 @@ static inline void key_check(const struc
+ #define key_check(key) do {} while(0)
+ 
+ #endif
+-
+-/*
+- * Helper function to clear and free a kvmalloc'ed memory object.
+- */
+-static inline void __kvzfree(const void *addr, size_t len)
+-{
+-	if (addr) {
+-		memset((void *)addr, 0, len);
+-		kvfree(addr);
+-	}
+-}
+ #endif /* _INTERNAL_H */
+--- a/security/keys/keyctl.c~mm-add-kvfree_sensitive-for-freeing-sensitive-data-objects
++++ a/security/keys/keyctl.c
+@@ -142,10 +142,7 @@ SYSCALL_DEFINE5(add_key, const char __us
+ 
+ 	key_ref_put(keyring_ref);
+  error3:
+-	if (payload) {
+-		memzero_explicit(payload, plen);
+-		kvfree(payload);
+-	}
++	kvfree_sensitive(payload, plen);
+  error2:
+ 	kfree(description);
+  error:
+@@ -360,7 +357,7 @@ long keyctl_update_key(key_serial_t id,
+ 
+ 	key_ref_put(key_ref);
+ error2:
+-	__kvzfree(payload, plen);
++	kvfree_sensitive(payload, plen);
+ error:
+ 	return ret;
+ }
+@@ -914,7 +911,7 @@ can_read_key:
+ 		 */
+ 		if (ret > key_data_len) {
+ 			if (unlikely(key_data))
+-				__kvzfree(key_data, key_data_len);
++				kvfree_sensitive(key_data, key_data_len);
+ 			key_data_len = ret;
+ 			continue;	/* Allocate buffer */
+ 		}
+@@ -923,7 +920,7 @@ can_read_key:
+ 			ret = -EFAULT;
+ 		break;
+ 	}
+-	__kvzfree(key_data, key_data_len);
++	kvfree_sensitive(key_data, key_data_len);
+ 
+ key_put_out:
+ 	key_put(key);
+@@ -1225,10 +1222,7 @@ long keyctl_instantiate_key_common(key_s
+ 		keyctl_change_reqkey_auth(NULL);
+ 
+ error2:
+-	if (payload) {
+-		memzero_explicit(payload, plen);
+-		kvfree(payload);
+-	}
++	kvfree_sensitive(payload, plen);
+ error:
+ 	return ret;
+ }
 _
