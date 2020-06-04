@@ -1,27 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 019/127] sh: add support for folded p4d page
- tables
-Date: Thu, 04 Jun 2020 16:46:56 -0700
-Message-ID: <20200604234656.r8z6rn0ys%akpm@linux-foundation.org>
+Subject: [patch 020/127] unicore32: remove __ARCH_USE_5LEVEL_HACK
+Date: Thu, 04 Jun 2020 16:47:00 -0700
+Message-ID: <20200604234700.v2giXXtT2%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42362 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42474 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725955AbgFDXq6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:46:58 -0400
+        id S1725955AbgFDXrD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:47:03 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, arnd@arndb.de, bcain@codeaurora.org, benh@kernel.crashing.org, catalin.marinas@arm.com, christophe.leroy@c-s.fr, dalias@libc.org, fenghua.yu@intel.com, geert+renesas@glider.be, gxt@pku.edu.cn, james.morse@arm.com, jonas@southpole.se, julien.thierry.kdev@gmail.com, ley.foon.tan@intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, maz@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, rppt@linux.ibm.com, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, suzuki.poulose@arm.com, tony.luck@intel.com, torvalds@linux-foundation.org, will@kernel.org, ysato@users.sourceforge.jp
 
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: sh: add support for folded p4d page tables
+Subject: unicore32: remove __ARCH_USE_5LEVEL_HACK
 
-Implement primitives necessary for the 4th level folding, add walks of p4d
-level where appropriate and remove usage of __ARCH_USE_5LEVEL_HACK.
+The unicore32 architecture has 2 level page tables and
+asm-generic/pgtable-nopmd.h and explicit casts from pud_t to pgd_t for
+page table folding.
 
-Link: http://lkml.kernel.org/r/20200414153455.21744-12-rppt@kernel.org
+Add p4d walk in the only place that actually unfolds the pud level and
+remove __ARCH_USE_5LEVEL_HACK.
+
+Link: http://lkml.kernel.org/r/20200414153455.21744-13-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -49,296 +52,33 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/pgtable-2level.h |    1 
- arch/sh/include/asm/pgtable-3level.h |    1 
- arch/sh/kernel/io_trapped.c          |    7 +++++-
- arch/sh/mm/cache-sh4.c               |    4 ++-
- arch/sh/mm/cache-sh5.c               |    7 +++++-
- arch/sh/mm/fault.c                   |   26 ++++++++++++++++++++---
- arch/sh/mm/hugetlbpage.c             |   28 ++++++++++++++++---------
- arch/sh/mm/init.c                    |    9 +++++++-
- arch/sh/mm/kmap.c                    |    2 -
- arch/sh/mm/tlbex_32.c                |    6 ++++-
- arch/sh/mm/tlbex_64.c                |    7 +++++-
- 11 files changed, 76 insertions(+), 22 deletions(-)
+ arch/unicore32/include/asm/pgtable.h |    1 -
+ arch/unicore32/kernel/hibernate.c    |    4 +++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/arch/sh/include/asm/pgtable-2level.h~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/include/asm/pgtable-2level.h
-@@ -2,7 +2,6 @@
- #ifndef __ASM_SH_PGTABLE_2LEVEL_H
- #define __ASM_SH_PGTABLE_2LEVEL_H
+--- a/arch/unicore32/include/asm/pgtable.h~unicore32-remove-__arch_use_5level_hack
++++ a/arch/unicore32/include/asm/pgtable.h
+@@ -9,7 +9,6 @@
+ #ifndef __UNICORE_PGTABLE_H__
+ #define __UNICORE_PGTABLE_H__
  
 -#define __ARCH_USE_5LEVEL_HACK
  #include <asm-generic/pgtable-nopmd.h>
+ #include <asm/cpu-single.h>
  
- /*
---- a/arch/sh/include/asm/pgtable-3level.h~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/include/asm/pgtable-3level.h
-@@ -2,7 +2,6 @@
- #ifndef __ASM_SH_PGTABLE_3LEVEL_H
- #define __ASM_SH_PGTABLE_3LEVEL_H
- 
--#define __ARCH_USE_5LEVEL_HACK
- #include <asm-generic/pgtable-nopud.h>
- 
- /*
---- a/arch/sh/kernel/io_trapped.c~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/kernel/io_trapped.c
-@@ -136,6 +136,7 @@ EXPORT_SYMBOL_GPL(match_trapped_io_handl
- static struct trapped_io *lookup_tiop(unsigned long address)
+--- a/arch/unicore32/kernel/hibernate.c~unicore32-remove-__arch_use_5level_hack
++++ a/arch/unicore32/kernel/hibernate.c
+@@ -33,9 +33,11 @@ struct swsusp_arch_regs swsusp_arch_regs
+ static pmd_t *resume_one_md_table_init(pgd_t *pgd)
  {
- 	pgd_t *pgd_k;
-+	p4d_t *p4d_k;
- 	pud_t *pud_k;
- 	pmd_t *pmd_k;
- 	pte_t *pte_k;
-@@ -145,7 +146,11 @@ static struct trapped_io *lookup_tiop(un
- 	if (!pgd_present(*pgd_k))
- 		return NULL;
- 
--	pud_k = pud_offset(pgd_k, address);
-+	p4d_k = p4d_offset(pgd_k, address);
-+	if (!p4d_present(*p4d_k))
-+		return NULL;
-+
-+	pud_k = pud_offset(p4d_k, address);
- 	if (!pud_present(*pud_k))
- 		return NULL;
- 
---- a/arch/sh/mm/cache-sh4.c~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/mm/cache-sh4.c
-@@ -209,6 +209,7 @@ static void sh4_flush_cache_page(void *a
- 	unsigned long address, pfn, phys;
- 	int map_coherent = 0;
- 	pgd_t *pgd;
-+	p4d_t *p4d;
  	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-@@ -224,7 +225,8 @@ static void sh4_flush_cache_page(void *a
- 		return;
- 
- 	pgd = pgd_offset(vma->vm_mm, address);
--	pud = pud_offset(pgd, address);
-+	p4d = p4d_offset(pgd, address);
-+	pud = pud_offset(p4d, address);
- 	pmd = pmd_offset(pud, address);
- 	pte = pte_offset_kernel(pmd, address);
- 
---- a/arch/sh/mm/cache-sh5.c~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/mm/cache-sh5.c
-@@ -383,6 +383,7 @@ static void sh64_dcache_purge_user_pages
- 				unsigned long addr, unsigned long end)
- {
- 	pgd_t *pgd;
 +	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-@@ -397,7 +398,11 @@ static void sh64_dcache_purge_user_pages
- 	if (pgd_bad(*pgd))
- 		return;
+ 	pmd_t *pmd_table;
  
--	pud = pud_offset(pgd, addr);
-+	p4d = p4d_offset(pgd, addr);
-+	if (p4d_none(*p4d) || p4d_bad(*p4d))
-+		return;
-+
-+	pud = pud_offset(p4d, addr);
- 	if (pud_none(*pud) || pud_bad(*pud))
- 		return;
+-	pud = pud_offset(pgd, 0);
++	p4d = p4d_offset(pgd, 0);
++	pud = pud_offset(p4d, 0);
+ 	pmd_table = pmd_offset(pud, 0);
  
---- a/arch/sh/mm/fault.c~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/mm/fault.c
-@@ -53,6 +53,7 @@ static void show_pte(struct mm_struct *m
- 		 (u64)pgd_val(*pgd));
- 
- 	do {
-+		p4d_t *p4d;
- 		pud_t *pud;
- 		pmd_t *pmd;
- 		pte_t *pte;
-@@ -65,7 +66,20 @@ static void show_pte(struct mm_struct *m
- 			break;
- 		}
- 
--		pud = pud_offset(pgd, addr);
-+		p4d = p4d_offset(pgd, addr);
-+		if (PTRS_PER_P4D != 1)
-+			pr_cont(", *p4d=%0*Lx", (u32)(sizeof(*p4d) * 2),
-+			        (u64)p4d_val(*p4d));
-+
-+		if (p4d_none(*p4d))
-+			break;
-+
-+		if (p4d_bad(*p4d)) {
-+			pr_cont("(bad)");
-+			break;
-+		}
-+
-+		pud = pud_offset(p4d, addr);
- 		if (PTRS_PER_PUD != 1)
- 			pr_cont(", *pud=%0*llx", (u32)(sizeof(*pud) * 2),
- 				(u64)pud_val(*pud));
-@@ -107,6 +121,7 @@ static inline pmd_t *vmalloc_sync_one(pg
- {
- 	unsigned index = pgd_index(address);
- 	pgd_t *pgd_k;
-+	p4d_t *p4d, *p4d_k;
- 	pud_t *pud, *pud_k;
- 	pmd_t *pmd, *pmd_k;
- 
-@@ -116,8 +131,13 @@ static inline pmd_t *vmalloc_sync_one(pg
- 	if (!pgd_present(*pgd_k))
- 		return NULL;
- 
--	pud = pud_offset(pgd, address);
--	pud_k = pud_offset(pgd_k, address);
-+	p4d = p4d_offset(pgd, address);
-+	p4d_k = p4d_offset(pgd_k, address);
-+	if (!p4d_present(*p4d_k))
-+		return NULL;
-+
-+	pud = pud_offset(p4d, address);
-+	pud_k = pud_offset(p4d_k, address);
- 	if (!pud_present(*pud_k))
- 		return NULL;
- 
---- a/arch/sh/mm/hugetlbpage.c~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/mm/hugetlbpage.c
-@@ -26,17 +26,21 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 			unsigned long addr, unsigned long sz)
- {
- 	pgd_t *pgd;
-+	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte = NULL;
- 
- 	pgd = pgd_offset(mm, addr);
- 	if (pgd) {
--		pud = pud_alloc(mm, pgd, addr);
--		if (pud) {
--			pmd = pmd_alloc(mm, pud, addr);
--			if (pmd)
--				pte = pte_alloc_map(mm, pmd, addr);
-+		p4d = p4d_alloc(mm, pgd, addr);
-+		if (p4d) {
-+			pud = pud_alloc(mm, p4d, addr);
-+			if (pud) {
-+				pmd = pmd_alloc(mm, pud, addr);
-+				if (pmd)
-+					pte = pte_alloc_map(mm, pmd, addr);
-+			}
- 		}
- 	}
- 
-@@ -47,17 +51,21 @@ pte_t *huge_pte_offset(struct mm_struct
- 		       unsigned long addr, unsigned long sz)
- {
- 	pgd_t *pgd;
-+	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte = NULL;
- 
- 	pgd = pgd_offset(mm, addr);
- 	if (pgd) {
--		pud = pud_offset(pgd, addr);
--		if (pud) {
--			pmd = pmd_offset(pud, addr);
--			if (pmd)
--				pte = pte_offset_map(pmd, addr);
-+		p4d = p4d_offset(pgd, addr);
-+		if (p4d) {
-+			pud = pud_offset(p4d, addr);
-+			if (pud) {
-+				pmd = pmd_offset(pud, addr);
-+				if (pmd)
-+					pte = pte_offset_map(pmd, addr);
-+			}
- 		}
- 	}
- 
---- a/arch/sh/mm/init.c~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/mm/init.c
-@@ -45,6 +45,7 @@ void __init __weak plat_mem_setup(void)
- static pte_t *__get_pte_phys(unsigned long addr)
- {
- 	pgd_t *pgd;
-+	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 
-@@ -54,7 +55,13 @@ static pte_t *__get_pte_phys(unsigned lo
- 		return NULL;
- 	}
- 
--	pud = pud_alloc(NULL, pgd, addr);
-+	p4d = p4d_alloc(NULL, pgd, addr);
-+	if (unlikely(!p4d)) {
-+		p4d_ERROR(*p4d);
-+		return NULL;
-+	}
-+
-+	pud = pud_alloc(NULL, p4d, addr);
- 	if (unlikely(!pud)) {
- 		pud_ERROR(*pud);
- 		return NULL;
---- a/arch/sh/mm/kmap.c~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/mm/kmap.c
-@@ -15,7 +15,7 @@
- #include <asm/cacheflush.h>
- 
- #define kmap_get_fixmap_pte(vaddr)                                     \
--	pte_offset_kernel(pmd_offset(pud_offset(pgd_offset_k(vaddr), (vaddr)), (vaddr)), (vaddr))
-+	pte_offset_kernel(pmd_offset(pud_offset(p4d_offset(pgd_offset_k(vaddr), (vaddr)), (vaddr)), (vaddr)), vaddr)
- 
- static pte_t *kmap_coherent_pte;
- 
---- a/arch/sh/mm/tlbex_32.c~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/mm/tlbex_32.c
-@@ -23,6 +23,7 @@ handle_tlbmiss(struct pt_regs *regs, uns
- 	       unsigned long address)
- {
- 	pgd_t *pgd;
-+	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-@@ -42,7 +43,10 @@ handle_tlbmiss(struct pt_regs *regs, uns
- 		pgd = pgd_offset(current->mm, address);
- 	}
- 
--	pud = pud_offset(pgd, address);
-+	p4d = p4d_offset(pgd, address);
-+	if (p4d_none_or_clear_bad(p4d))
-+		return 1;
-+	pud = pud_offset(p4d, address);
- 	if (pud_none_or_clear_bad(pud))
- 		return 1;
- 	pmd = pmd_offset(pud, address);
---- a/arch/sh/mm/tlbex_64.c~sh-add-support-for-folded-p4d-page-tables
-+++ a/arch/sh/mm/tlbex_64.c
-@@ -44,6 +44,7 @@ static int handle_tlbmiss(unsigned long
- 			  unsigned long address)
- {
- 	pgd_t *pgd;
-+	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-@@ -58,7 +59,11 @@ static int handle_tlbmiss(unsigned long
- 		pgd = pgd_offset(current->mm, address);
- 	}
- 
--	pud = pud_offset(pgd, address);
-+	p4d = p4d_offset(pgd, address);
-+	if (p4d_none(*p4d) || !p4d_present(*p4d))
-+		return 1;
-+
-+	pud = pud_offset(p4d, address);
- 	if (pud_none(*pud) || !pud_present(*pud))
- 		return 1;
- 
+ 	return pmd_table;
 _
