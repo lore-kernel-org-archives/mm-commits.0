@@ -1,340 +1,1051 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- padata-add-basic-support-for-multithreaded-jobs.patch removed from -mm tree
-Date: Thu, 04 Jun 2020 10:18:38 -0700
-Message-ID: <20200604171838.CKbd2i4vp%akpm@linux-foundation.org>
+Subject: [merged] khugepaged-add-self-test.patch removed from -mm
+ tree
+Date: Thu, 04 Jun 2020 10:18:51 -0700
+Message-ID: <20200604171851.EdYKRPdY7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40346 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40696 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730126AbgFDRSl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:18:41 -0400
+        id S1730007AbgFDRSx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:18:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.williamson@redhat.com, alexander.h.duyck@linux.intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com, david@redhat.com, elliott@hpe.com, herbert@gondor.apana.org.au, jgg@ziepe.ca, josh@joshtriplett.org, ktkhai@virtuozzo.com, mhocko@kernel.org, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, pavel@ucw.cz, peterz@infradead.org, rdunlap@infradead.org, shile.zhang@linux.alibaba.com, steffen.klassert@secunet.com, steven.sistare@oracle.com, tj@kernel.org, ziy@nvidia.com
+To: aarcange@redhat.com, aneesh.kumar@linux.ibm.com, colin.king@canonical.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, william.kucharski@oracle.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: padata: add basic support for multithreaded jobs
+     Subject: khugepaged: add self test
 has been removed from the -mm tree.  Its filename was
-     padata-add-basic-support-for-multithreaded-jobs.patch
+     khugepaged-add-self-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Jordan <daniel.m.jordan@oracle.com>
-Subject: padata: add basic support for multithreaded jobs
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: khugepaged: add self test
 
-Sometimes the kernel doesn't take full advantage of system memory
-bandwidth, leading to a single CPU spending excessive time in
-initialization paths where the data scales with memory size.
+Patch series "thp/khugepaged improvements and CoW semantics", v4.
 
-Multithreading naturally addresses this problem.
+The patchset adds khugepaged selftest (anon-THP only for now), expands
+cases khugepaged can handle and switches anon-THP copy-on-write handling
+to 4k.
 
-Extend padata, a framework that handles many parallel yet singlethreaded
-jobs, to also handle multithreaded jobs by adding support for splitting up
-the work evenly, specifying a minimum amount of work that's appropriate
-for one helper thread to do, load balancing between helpers, and
-coordinating them.
+This patch (of 8):
 
-This is inspired by work from Pavel Tatashin and Steve Sistare.
+The test checks if khugepaged is able to recover huge page where we expect
+to do so.  It only covers anon-THP for now.
 
-Link: http://lkml.kernel.org/r/20200527173608.2885243-5-daniel.m.jordan@oracle.com
-Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Tested-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Robert Elliott <elliott@hpe.com>
-Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Currently the test shows few failures.  They are going to be addressed by
+the following patches.
+
+[colin.king@canonical.com: fix several spelling mistakes]
+  Link: http://lkml.kernel.org/r/20200420084241.65433-1-colin.king@canonical.com
+[aneesh.kumar@linux.ibm.com: replace the usage of system(3) in the test]
+  Link: http://lkml.kernel.org/r/20200429110727.89388-1-aneesh.kumar@linux.ibm.com
+[kirill@shutemov.name: fixup for issues I've noticed]
+  Link: http://lkml.kernel.org/r/20200429124816.jp272trghrzxx5j5@box
+[jhubbard@nvidia.com: add khugepaged to .gitignore]
+  Link: http://lkml.kernel.org/r/20200517002509.362401-1-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200416160026.16538-1-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/20200416160026.16538-2-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Tested-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/padata.h |   29 +++++++
- kernel/padata.c        |  152 ++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 178 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/.gitignore   |    1 
+ tools/testing/selftests/vm/Makefile     |    1 
+ tools/testing/selftests/vm/khugepaged.c |  952 ++++++++++++++++++++++
+ 3 files changed, 954 insertions(+)
 
---- a/include/linux/padata.h~padata-add-basic-support-for-multithreaded-jobs
-+++ a/include/linux/padata.h
-@@ -4,6 +4,9 @@
-  *
-  * Copyright (C) 2008, 2009 secunet Security Networks AG
-  * Copyright (C) 2008, 2009 Steffen Klassert <steffen.klassert@secunet.com>
-+ *
-+ * Copyright (c) 2020 Oracle and/or its affiliates.
-+ * Author: Daniel Jordan <daniel.m.jordan@oracle.com>
-  */
- 
- #ifndef PADATA_H
-@@ -131,6 +134,31 @@ struct padata_shell {
- };
- 
- /**
-+ * struct padata_mt_job - represents one multithreaded job
-+ *
-+ * @thread_fn: Called for each chunk of work that a padata thread does.
-+ * @fn_arg: The thread function argument.
-+ * @start: The start of the job (units are job-specific).
-+ * @size: size of this node's work (units are job-specific).
-+ * @align: Ranges passed to the thread function fall on this boundary, with the
-+ *         possible exceptions of the beginning and end of the job.
-+ * @min_chunk: The minimum chunk size in job-specific units.  This allows
-+ *             the client to communicate the minimum amount of work that's
-+ *             appropriate for one worker thread to do at once.
-+ * @max_threads: Max threads to use for the job, actual number may be less
-+ *               depending on task size and minimum chunk size.
-+ */
-+struct padata_mt_job {
-+	void (*thread_fn)(unsigned long start, unsigned long end, void *arg);
-+	void			*fn_arg;
-+	unsigned long		start;
-+	unsigned long		size;
-+	unsigned long		align;
-+	unsigned long		min_chunk;
-+	int			max_threads;
+--- a/tools/testing/selftests/vm/.gitignore~khugepaged-add-self-test
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -1,6 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ hugepage-mmap
+ hugepage-shm
++khugepaged
+ map_hugetlb
+ map_populate
+ thuge-gen
+--- /dev/null
++++ a/tools/testing/selftests/vm/khugepaged.c
+@@ -0,0 +1,952 @@
++#define _GNU_SOURCE
++#include <fcntl.h>
++#include <limits.h>
++#include <signal.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <stdbool.h>
++#include <string.h>
++#include <unistd.h>
++
++#include <sys/mman.h>
++#include <sys/wait.h>
++
++#ifndef MADV_PAGEOUT
++#define MADV_PAGEOUT 21
++#endif
++
++#define BASE_ADDR ((void *)(1UL << 30))
++static unsigned long hpage_pmd_size;
++static unsigned long page_size;
++static int hpage_pmd_nr;
++
++#define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
++#define PID_SMAPS "/proc/self/smaps"
++
++enum thp_enabled {
++	THP_ALWAYS,
++	THP_MADVISE,
++	THP_NEVER,
 +};
 +
-+/**
-  * struct padata_instance - The overall control structure.
-  *
-  * @cpu_online_node: Linkage for CPU online callback.
-@@ -173,6 +201,7 @@ extern void padata_free_shell(struct pad
- extern int padata_do_parallel(struct padata_shell *ps,
- 			      struct padata_priv *padata, int *cb_cpu);
- extern void padata_do_serial(struct padata_priv *padata);
-+extern void __init padata_do_multithreaded(struct padata_mt_job *job);
- extern int padata_set_cpumask(struct padata_instance *pinst, int cpumask_type,
- 			      cpumask_var_t cpumask);
- extern int padata_start(struct padata_instance *pinst);
---- a/kernel/padata.c~padata-add-basic-support-for-multithreaded-jobs
-+++ a/kernel/padata.c
-@@ -7,6 +7,9 @@
-  * Copyright (C) 2008, 2009 secunet Security Networks AG
-  * Copyright (C) 2008, 2009 Steffen Klassert <steffen.klassert@secunet.com>
-  *
-+ * Copyright (c) 2020 Oracle and/or its affiliates.
-+ * Author: Daniel Jordan <daniel.m.jordan@oracle.com>
-+ *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms and conditions of the GNU General Public License,
-  * version 2, as published by the Free Software Foundation.
-@@ -21,6 +24,7 @@
-  * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-  */
- 
-+#include <linux/completion.h>
- #include <linux/export.h>
- #include <linux/cpumask.h>
- #include <linux/err.h>
-@@ -32,6 +36,8 @@
- #include <linux/sysfs.h>
- #include <linux/rcupdate.h>
- 
-+#define	PADATA_WORK_ONSTACK	1	/* Work's memory is on stack */
-+
- struct padata_work {
- 	struct work_struct	pw_work;
- 	struct list_head	pw_list;  /* padata_free_works linkage */
-@@ -42,7 +48,17 @@ static DEFINE_SPINLOCK(padata_works_lock
- static struct padata_work *padata_works;
- static LIST_HEAD(padata_free_works);
- 
-+struct padata_mt_job_state {
-+	spinlock_t		lock;
-+	struct completion	completion;
-+	struct padata_mt_job	*job;
-+	int			nworks;
-+	int			nworks_fini;
-+	unsigned long		chunk_size;
++static const char *thp_enabled_strings[] = {
++	"always",
++	"madvise",
++	"never",
++	NULL
 +};
 +
- static void padata_free_pd(struct parallel_data *pd);
-+static void __init padata_mt_helper(struct work_struct *work);
- 
- static int padata_index_to_cpu(struct parallel_data *pd, int cpu_index)
- {
-@@ -81,18 +97,56 @@ static struct padata_work *padata_work_a
- }
- 
- static void padata_work_init(struct padata_work *pw, work_func_t work_fn,
--			     void *data)
-+			     void *data, int flags)
- {
--	INIT_WORK(&pw->pw_work, work_fn);
-+	if (flags & PADATA_WORK_ONSTACK)
-+		INIT_WORK_ONSTACK(&pw->pw_work, work_fn);
-+	else
-+		INIT_WORK(&pw->pw_work, work_fn);
- 	pw->pw_data = data;
- }
- 
-+static int __init padata_work_alloc_mt(int nworks, void *data,
-+				       struct list_head *head)
++enum thp_defrag {
++	THP_DEFRAG_ALWAYS,
++	THP_DEFRAG_DEFER,
++	THP_DEFRAG_DEFER_MADVISE,
++	THP_DEFRAG_MADVISE,
++	THP_DEFRAG_NEVER,
++};
++
++static const char *thp_defrag_strings[] = {
++	"always",
++	"defer",
++	"defer+madvise",
++	"madvise",
++	"never",
++	NULL
++};
++
++enum shmem_enabled {
++	SHMEM_ALWAYS,
++	SHMEM_WITHIN_SIZE,
++	SHMEM_ADVISE,
++	SHMEM_NEVER,
++	SHMEM_DENY,
++	SHMEM_FORCE,
++};
++
++static const char *shmem_enabled_strings[] = {
++	"always",
++	"within_size",
++	"advise",
++	"never",
++	"deny",
++	"force",
++	NULL
++};
++
++struct khugepaged_settings {
++	bool defrag;
++	unsigned int alloc_sleep_millisecs;
++	unsigned int scan_sleep_millisecs;
++	unsigned int max_ptes_none;
++	unsigned int max_ptes_swap;
++	unsigned long pages_to_scan;
++};
++
++struct settings {
++	enum thp_enabled thp_enabled;
++	enum thp_defrag thp_defrag;
++	enum shmem_enabled shmem_enabled;
++	bool debug_cow;
++	bool use_zero_page;
++	struct khugepaged_settings khugepaged;
++};
++
++static struct settings default_settings = {
++	.thp_enabled = THP_MADVISE,
++	.thp_defrag = THP_DEFRAG_ALWAYS,
++	.shmem_enabled = SHMEM_NEVER,
++	.debug_cow = 0,
++	.use_zero_page = 0,
++	.khugepaged = {
++		.defrag = 1,
++		.alloc_sleep_millisecs = 10,
++		.scan_sleep_millisecs = 10,
++	},
++};
++
++static struct settings saved_settings;
++static bool skip_settings_restore;
++
++static int exit_status;
++
++static void success(const char *msg)
++{
++	printf(" \e[32m%s\e[0m\n", msg);
++}
++
++static void fail(const char *msg)
++{
++	printf(" \e[31m%s\e[0m\n", msg);
++	exit_status++;
++}
++
++static int read_file(const char *path, char *buf, size_t buflen)
++{
++	int fd;
++	ssize_t numread;
++
++	fd = open(path, O_RDONLY);
++	if (fd == -1)
++		return 0;
++
++	numread = read(fd, buf, buflen - 1);
++	if (numread < 1) {
++		close(fd);
++		return 0;
++	}
++
++	buf[numread] = '\0';
++	close(fd);
++
++	return (unsigned int) numread;
++}
++
++static int write_file(const char *path, const char *buf, size_t buflen)
++{
++	int fd;
++	ssize_t numwritten;
++
++	fd = open(path, O_WRONLY);
++	if (fd == -1)
++		return 0;
++
++	numwritten = write(fd, buf, buflen - 1);
++	close(fd);
++	if (numwritten < 1)
++		return 0;
++
++	return (unsigned int) numwritten;
++}
++
++static int read_string(const char *name, const char *strings[])
++{
++	char path[PATH_MAX];
++	char buf[256];
++	char *c;
++	int ret;
++
++	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
++	if (ret >= PATH_MAX) {
++		printf("%s: Pathname is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++	if (!read_file(path, buf, sizeof(buf))) {
++		perror(path);
++		exit(EXIT_FAILURE);
++	}
++
++	c = strchr(buf, '[');
++	if (!c) {
++		printf("%s: Parse failure\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++	c++;
++	memmove(buf, c, sizeof(buf) - (c - buf));
++
++	c = strchr(buf, ']');
++	if (!c) {
++		printf("%s: Parse failure\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++	*c = '\0';
++
++	ret = 0;
++	while (strings[ret]) {
++		if (!strcmp(strings[ret], buf))
++			return ret;
++		ret++;
++	}
++
++	printf("Failed to parse %s\n", name);
++	exit(EXIT_FAILURE);
++}
++
++static void write_string(const char *name, const char *val)
++{
++	char path[PATH_MAX];
++	int ret;
++
++	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
++	if (ret >= PATH_MAX) {
++		printf("%s: Pathname is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++	if (!write_file(path, val, strlen(val) + 1)) {
++		perror(path);
++		exit(EXIT_FAILURE);
++	}
++}
++
++static const unsigned long read_num(const char *name)
++{
++	char path[PATH_MAX];
++	char buf[21];
++	int ret;
++
++	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
++	if (ret >= PATH_MAX) {
++		printf("%s: Pathname is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++	ret = read_file(path, buf, sizeof(buf));
++	if (ret < 0) {
++		perror("read_file(read_num)");
++		exit(EXIT_FAILURE);
++	}
++
++	return strtoul(buf, NULL, 10);
++}
++
++static void write_num(const char *name, unsigned long num)
++{
++	char path[PATH_MAX];
++	char buf[21];
++	int ret;
++
++	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
++	if (ret >= PATH_MAX) {
++		printf("%s: Pathname is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++	sprintf(buf, "%ld", num);
++	if (!write_file(path, buf, strlen(buf) + 1)) {
++		perror(path);
++		exit(EXIT_FAILURE);
++	}
++}
++
++static void write_settings(struct settings *settings)
++{
++	struct khugepaged_settings *khugepaged = &settings->khugepaged;
++
++	write_string("enabled", thp_enabled_strings[settings->thp_enabled]);
++	write_string("defrag", thp_defrag_strings[settings->thp_defrag]);
++	write_string("shmem_enabled",
++			shmem_enabled_strings[settings->shmem_enabled]);
++	write_num("debug_cow", settings->debug_cow);
++	write_num("use_zero_page", settings->use_zero_page);
++
++	write_num("khugepaged/defrag", khugepaged->defrag);
++	write_num("khugepaged/alloc_sleep_millisecs",
++			khugepaged->alloc_sleep_millisecs);
++	write_num("khugepaged/scan_sleep_millisecs",
++			khugepaged->scan_sleep_millisecs);
++	write_num("khugepaged/max_ptes_none", khugepaged->max_ptes_none);
++	write_num("khugepaged/max_ptes_swap", khugepaged->max_ptes_swap);
++	write_num("khugepaged/pages_to_scan", khugepaged->pages_to_scan);
++}
++
++static void restore_settings(int sig)
++{
++	if (skip_settings_restore)
++		goto out;
++
++	printf("Restore THP and khugepaged settings...");
++	write_settings(&saved_settings);
++	success("OK");
++	if (sig)
++		exit(EXIT_FAILURE);
++out:
++	exit(exit_status);
++}
++
++static void save_settings(void)
++{
++	printf("Save THP and khugepaged settings...");
++	saved_settings = (struct settings) {
++		.thp_enabled = read_string("enabled", thp_enabled_strings),
++		.thp_defrag = read_string("defrag", thp_defrag_strings),
++		.shmem_enabled =
++			read_string("shmem_enabled", shmem_enabled_strings),
++		.debug_cow = read_num("debug_cow"),
++		.use_zero_page = read_num("use_zero_page"),
++	};
++	saved_settings.khugepaged = (struct khugepaged_settings) {
++		.defrag = read_num("khugepaged/defrag"),
++		.alloc_sleep_millisecs =
++			read_num("khugepaged/alloc_sleep_millisecs"),
++		.scan_sleep_millisecs =
++			read_num("khugepaged/scan_sleep_millisecs"),
++		.max_ptes_none = read_num("khugepaged/max_ptes_none"),
++		.max_ptes_swap = read_num("khugepaged/max_ptes_swap"),
++		.pages_to_scan = read_num("khugepaged/pages_to_scan"),
++	};
++	success("OK");
++
++	signal(SIGTERM, restore_settings);
++	signal(SIGINT, restore_settings);
++	signal(SIGHUP, restore_settings);
++	signal(SIGQUIT, restore_settings);
++}
++
++static void adjust_settings(void)
++{
++
++	printf("Adjust settings...");
++	write_settings(&default_settings);
++	success("OK");
++}
++
++#define MAX_LINE_LENGTH 500
++
++static bool check_for_pattern(FILE *fp, char *pattern, char *buf)
++{
++	while (fgets(buf, MAX_LINE_LENGTH, fp) != NULL) {
++		if (!strncmp(buf, pattern, strlen(pattern)))
++			return true;
++	}
++	return false;
++}
++
++static bool check_huge(void *addr)
++{
++	bool thp = false;
++	int ret;
++	FILE *fp;
++	char buffer[MAX_LINE_LENGTH];
++	char addr_pattern[MAX_LINE_LENGTH];
++
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08lx-",
++		       (unsigned long) addr);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++
++	fp = fopen(PID_SMAPS, "r");
++	if (!fp) {
++		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
++		exit(EXIT_FAILURE);
++	}
++	if (!check_for_pattern(fp, addr_pattern, buffer))
++		goto err_out;
++
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "AnonHugePages:%10ld kB",
++		       hpage_pmd_size >> 10);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++	/*
++	 * Fetch the AnonHugePages: in the same block and check whether it got
++	 * the expected number of hugeepages next.
++	 */
++	if (!check_for_pattern(fp, "AnonHugePages:", buffer))
++		goto err_out;
++
++	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
++		goto err_out;
++
++	thp = true;
++err_out:
++	fclose(fp);
++	return thp;
++}
++
++
++static bool check_swap(void *addr, unsigned long size)
++{
++	bool swap = false;
++	int ret;
++	FILE *fp;
++	char buffer[MAX_LINE_LENGTH];
++	char addr_pattern[MAX_LINE_LENGTH];
++
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "%08lx-",
++		       (unsigned long) addr);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++
++	fp = fopen(PID_SMAPS, "r");
++	if (!fp) {
++		printf("%s: Failed to open file %s\n", __func__, PID_SMAPS);
++		exit(EXIT_FAILURE);
++	}
++	if (!check_for_pattern(fp, addr_pattern, buffer))
++		goto err_out;
++
++	ret = snprintf(addr_pattern, MAX_LINE_LENGTH, "Swap:%19ld kB",
++		       size >> 10);
++	if (ret >= MAX_LINE_LENGTH) {
++		printf("%s: Pattern is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++	/*
++	 * Fetch the Swap: in the same block and check whether it got
++	 * the expected number of hugeepages next.
++	 */
++	if (!check_for_pattern(fp, "Swap:", buffer))
++		goto err_out;
++
++	if (strncmp(buffer, addr_pattern, strlen(addr_pattern)))
++		goto err_out;
++
++	swap = true;
++err_out:
++	fclose(fp);
++	return swap;
++}
++
++static void *alloc_mapping(void)
++{
++	void *p;
++
++	p = mmap(BASE_ADDR, hpage_pmd_size, PROT_READ | PROT_WRITE,
++			MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (p != BASE_ADDR) {
++		printf("Failed to allocate VMA at %p\n", BASE_ADDR);
++		exit(EXIT_FAILURE);
++	}
++
++	return p;
++}
++
++static void fill_memory(int *p, unsigned long start, unsigned long end)
 +{
 +	int i;
 +
-+	spin_lock(&padata_works_lock);
-+	/* Start at 1 because the current task participates in the job. */
-+	for (i = 1; i < nworks; ++i) {
-+		struct padata_work *pw = padata_work_alloc();
++	for (i = start / page_size; i < end / page_size; i++)
++		p[i * page_size / sizeof(*p)] = i + 0xdead0000;
++}
 +
-+		if (!pw)
++static void validate_memory(int *p, unsigned long start, unsigned long end)
++{
++	int i;
++
++	for (i = start / page_size; i < end / page_size; i++) {
++		if (p[i * page_size / sizeof(*p)] != i + 0xdead0000) {
++			printf("Page %d is corrupted: %#x\n",
++					i, p[i * page_size / sizeof(*p)]);
++			exit(EXIT_FAILURE);
++		}
++	}
++}
++
++#define TICK 500000
++static bool wait_for_scan(const char *msg, char *p)
++{
++	int full_scans;
++	int timeout = 6; /* 3 seconds */
++
++	/* Sanity check */
++	if (check_huge(p)) {
++		printf("Unexpected huge page\n");
++		exit(EXIT_FAILURE);
++	}
++
++	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
++
++	/* Wait until the second full_scan completed */
++	full_scans = read_num("khugepaged/full_scans") + 2;
++
++	printf("%s...", msg);
++	while (timeout--) {
++		if (check_huge(p))
 +			break;
-+		padata_work_init(pw, padata_mt_helper, data, 0);
-+		list_add(&pw->pw_list, head);
++		if (read_num("khugepaged/full_scans") >= full_scans)
++			break;
++		printf(".");
++		usleep(TICK);
 +	}
-+	spin_unlock(&padata_works_lock);
 +
-+	return i;
++	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
++
++	return !timeout;
 +}
 +
- static void padata_work_free(struct padata_work *pw)
- {
- 	lockdep_assert_held(&padata_works_lock);
- 	list_add(&pw->pw_list, &padata_free_works);
- }
++static void alloc_at_fault(void)
++{
++	struct settings settings = default_settings;
++	char *p;
++
++	settings.thp_enabled = THP_ALWAYS;
++	write_settings(&settings);
++
++	p = alloc_mapping();
++	*p = 1;
++	printf("Allocate huge page on fault...");
++	if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++
++	write_settings(&default_settings);
++
++	madvise(p, page_size, MADV_DONTNEED);
++	printf("Split huge PMD on MADV_DONTNEED...");
++	if (!check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_full(void)
++{
++	void *p;
++
++	p = alloc_mapping();
++	fill_memory(p, 0, hpage_pmd_size);
++	if (wait_for_scan("Collapse fully populated PTE table", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	validate_memory(p, 0, hpage_pmd_size);
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_empty(void)
++{
++	void *p;
++
++	p = alloc_mapping();
++	if (wait_for_scan("Do not collapse empty PTE table", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		fail("Fail");
++	else
++		success("OK");
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_single_pte_entry(void)
++{
++	void *p;
++
++	p = alloc_mapping();
++	fill_memory(p, 0, page_size);
++	if (wait_for_scan("Collapse PTE table with single PTE entry present", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	validate_memory(p, 0, page_size);
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_max_ptes_none(void)
++{
++	int max_ptes_none = hpage_pmd_nr / 2;
++	struct settings settings = default_settings;
++	void *p;
++
++	settings.khugepaged.max_ptes_none = max_ptes_none;
++	write_settings(&settings);
++
++	p = alloc_mapping();
++
++	fill_memory(p, 0, (hpage_pmd_nr - max_ptes_none - 1) * page_size);
++	if (wait_for_scan("Do not collapse with max_ptes_none exceeded", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		fail("Fail");
++	else
++		success("OK");
++	validate_memory(p, 0, (hpage_pmd_nr - max_ptes_none - 1) * page_size);
++
++	fill_memory(p, 0, (hpage_pmd_nr - max_ptes_none) * page_size);
++	if (wait_for_scan("Collapse with max_ptes_none PTEs empty", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	validate_memory(p, 0, (hpage_pmd_nr - max_ptes_none) * page_size);
++
++	munmap(p, hpage_pmd_size);
++	write_settings(&default_settings);
++}
++
++static void collapse_swapin_single_pte(void)
++{
++	void *p;
++	p = alloc_mapping();
++	fill_memory(p, 0, hpage_pmd_size);
++
++	printf("Swapout one page...");
++	if (madvise(p, page_size, MADV_PAGEOUT)) {
++		perror("madvise(MADV_PAGEOUT)");
++		exit(EXIT_FAILURE);
++	}
++	if (check_swap(p, page_size)) {
++		success("OK");
++	} else {
++		fail("Fail");
++		goto out;
++	}
++
++	if (wait_for_scan("Collapse with swapping in single PTE entry", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	validate_memory(p, 0, hpage_pmd_size);
++out:
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_max_ptes_swap(void)
++{
++	int max_ptes_swap = read_num("khugepaged/max_ptes_swap");
++	void *p;
++
++	p = alloc_mapping();
++
++	fill_memory(p, 0, hpage_pmd_size);
++	printf("Swapout %d of %d pages...", max_ptes_swap + 1, hpage_pmd_nr);
++	if (madvise(p, (max_ptes_swap + 1) * page_size, MADV_PAGEOUT)) {
++		perror("madvise(MADV_PAGEOUT)");
++		exit(EXIT_FAILURE);
++	}
++	if (check_swap(p, (max_ptes_swap + 1) * page_size)) {
++		success("OK");
++	} else {
++		fail("Fail");
++		goto out;
++	}
++
++	if (wait_for_scan("Do not collapse with max_ptes_swap exceeded", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		fail("Fail");
++	else
++		success("OK");
++	validate_memory(p, 0, hpage_pmd_size);
++
++	fill_memory(p, 0, hpage_pmd_size);
++	printf("Swapout %d of %d pages...", max_ptes_swap, hpage_pmd_nr);
++	if (madvise(p, max_ptes_swap * page_size, MADV_PAGEOUT)) {
++		perror("madvise(MADV_PAGEOUT)");
++		exit(EXIT_FAILURE);
++	}
++	if (check_swap(p, max_ptes_swap * page_size)) {
++		success("OK");
++	} else {
++		fail("Fail");
++		goto out;
++	}
++
++	if (wait_for_scan("Collapse with max_ptes_swap pages swapped out", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	validate_memory(p, 0, hpage_pmd_size);
++out:
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_single_pte_entry_compound(void)
++{
++	void *p;
++
++	p = alloc_mapping();
++
++	printf("Allocate huge page...");
++	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
++	fill_memory(p, 0, hpage_pmd_size);
++	if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
++
++	printf("Split huge page leaving single PTE mapping compound page...");
++	madvise(p + page_size, hpage_pmd_size - page_size, MADV_DONTNEED);
++	if (!check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++
++	if (wait_for_scan("Collapse PTE table with single PTE mapping compound page", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	validate_memory(p, 0, page_size);
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_full_of_compound(void)
++{
++	void *p;
++
++	p = alloc_mapping();
++
++	printf("Allocate huge page...");
++	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
++	fill_memory(p, 0, hpage_pmd_size);
++	if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++
++	printf("Split huge page leaving single PTE page table full of compound pages...");
++	madvise(p, page_size, MADV_NOHUGEPAGE);
++	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
++	if (!check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++
++	if (wait_for_scan("Collapse PTE table full of compound pages", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	validate_memory(p, 0, hpage_pmd_size);
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_compound_extreme(void)
++{
++	void *p;
++	int i;
++
++	p = alloc_mapping();
++	for (i = 0; i < hpage_pmd_nr; i++) {
++		printf("\rConstruct PTE page table full of different PTE-mapped compound pages %3d/%d...",
++				i + 1, hpage_pmd_nr);
++
++		madvise(BASE_ADDR, hpage_pmd_size, MADV_HUGEPAGE);
++		fill_memory(BASE_ADDR, 0, hpage_pmd_size);
++		if (!check_huge(BASE_ADDR)) {
++			printf("Failed to allocate huge page\n");
++			exit(EXIT_FAILURE);
++		}
++		madvise(BASE_ADDR, hpage_pmd_size, MADV_NOHUGEPAGE);
++
++		p = mremap(BASE_ADDR - i * page_size,
++				i * page_size + hpage_pmd_size,
++				(i + 1) * page_size,
++				MREMAP_MAYMOVE | MREMAP_FIXED,
++				BASE_ADDR + 2 * hpage_pmd_size);
++		if (p == MAP_FAILED) {
++			perror("mremap+unmap");
++			exit(EXIT_FAILURE);
++		}
++
++		p = mremap(BASE_ADDR + 2 * hpage_pmd_size,
++				(i + 1) * page_size,
++				(i + 1) * page_size + hpage_pmd_size,
++				MREMAP_MAYMOVE | MREMAP_FIXED,
++				BASE_ADDR - (i + 1) * page_size);
++		if (p == MAP_FAILED) {
++			perror("mremap+alloc");
++			exit(EXIT_FAILURE);
++		}
++	}
++
++	munmap(BASE_ADDR, hpage_pmd_size);
++	fill_memory(p, 0, hpage_pmd_size);
++	if (!check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++
++	if (wait_for_scan("Collapse PTE table full of different compound pages", p))
++		fail("Timeout");
++	else if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++
++	validate_memory(p, 0, hpage_pmd_size);
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_fork(void)
++{
++	int wstatus;
++	void *p;
++
++	p = alloc_mapping();
++
++	printf("Allocate small page...");
++	fill_memory(p, 0, page_size);
++	if (!check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++
++	printf("Share small page over fork()...");
++	if (!fork()) {
++		/* Do not touch settings on child exit */
++		skip_settings_restore = true;
++		exit_status = 0;
++
++		if (!check_huge(p))
++			success("OK");
++		else
++			fail("Fail");
++
++		fill_memory(p, page_size, 2 * page_size);
++
++		if (wait_for_scan("Collapse PTE table with single page shared with parent process", p))
++			fail("Timeout");
++		else if (check_huge(p))
++			success("OK");
++		else
++			fail("Fail");
++
++		validate_memory(p, 0, page_size);
++		munmap(p, hpage_pmd_size);
++		exit(exit_status);
++	}
++
++	wait(&wstatus);
++	exit_status += WEXITSTATUS(wstatus);
++
++	printf("Check if parent still has small page...");
++	if (!check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	validate_memory(p, 0, page_size);
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_fork_compound(void)
++{
++	int wstatus;
++	void *p;
++
++	p = alloc_mapping();
++
++	printf("Allocate huge page...");
++	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
++	fill_memory(p, 0, hpage_pmd_size);
++	if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++
++	printf("Share huge page over fork()...");
++	if (!fork()) {
++		/* Do not touch settings on child exit */
++		skip_settings_restore = true;
++		exit_status = 0;
++
++		if (check_huge(p))
++			success("OK");
++		else
++			fail("Fail");
++
++		printf("Split huge page PMD in child process...");
++		madvise(p, page_size, MADV_NOHUGEPAGE);
++		madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
++		if (!check_huge(p))
++			success("OK");
++		else
++			fail("Fail");
++		fill_memory(p, 0, page_size);
++
++		if (wait_for_scan("Collapse PTE table full of compound pages in child", p))
++			fail("Timeout");
++		else if (check_huge(p))
++			success("OK");
++		else
++			fail("Fail");
++
++		validate_memory(p, 0, hpage_pmd_size);
++		munmap(p, hpage_pmd_size);
++		exit(exit_status);
++	}
++
++	wait(&wstatus);
++	exit_status += WEXITSTATUS(wstatus);
++
++	printf("Check if parent still has huge page...");
++	if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	validate_memory(p, 0, hpage_pmd_size);
++	munmap(p, hpage_pmd_size);
++}
++
++int main(void)
++{
++	setbuf(stdout, NULL);
++
++	page_size = getpagesize();
++	hpage_pmd_size = read_num("hpage_pmd_size");
++	hpage_pmd_nr = hpage_pmd_size / page_size;
++
++	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
++	default_settings.khugepaged.max_ptes_swap = hpage_pmd_nr / 8;
++	default_settings.khugepaged.pages_to_scan = hpage_pmd_nr * 8;
++
++	save_settings();
++	adjust_settings();
++
++	alloc_at_fault();
++	collapse_full();
++	collapse_empty();
++	collapse_single_pte_entry();
++	collapse_max_ptes_none();
++	collapse_swapin_single_pte();
++	collapse_max_ptes_swap();
++	collapse_single_pte_entry_compound();
++	collapse_full_of_compound();
++	collapse_compound_extreme();
++	collapse_fork();
++	collapse_fork_compound();
++
++	restore_settings(0);
++}
+--- a/tools/testing/selftests/vm/Makefile~khugepaged-add-self-test
++++ a/tools/testing/selftests/vm/Makefile
+@@ -20,6 +20,7 @@ TEST_GEN_FILES += on-fault-limit
+ TEST_GEN_FILES += thuge-gen
+ TEST_GEN_FILES += transhuge-stress
+ TEST_GEN_FILES += userfaultfd
++TEST_GEN_FILES += khugepaged
  
-+static void __init padata_works_free(struct list_head *works)
-+{
-+	struct padata_work *cur, *next;
-+
-+	if (list_empty(works))
-+		return;
-+
-+	spin_lock(&padata_works_lock);
-+	list_for_each_entry_safe(cur, next, works, pw_list) {
-+		list_del(&cur->pw_list);
-+		padata_work_free(cur);
-+	}
-+	spin_unlock(&padata_works_lock);
-+}
-+
- static void padata_parallel_worker(struct work_struct *parallel_work)
- {
- 	struct padata_work *pw = container_of(parallel_work, struct padata_work,
-@@ -168,7 +222,7 @@ int padata_do_parallel(struct padata_she
- 	pw = padata_work_alloc();
- 	spin_unlock(&padata_works_lock);
- 	if (pw) {
--		padata_work_init(pw, padata_parallel_worker, padata);
-+		padata_work_init(pw, padata_parallel_worker, padata, 0);
- 		queue_work(pinst->parallel_wq, &pw->pw_work);
- 	} else {
- 		/* Maximum works limit exceeded, run in the current task. */
-@@ -409,6 +463,98 @@ out:
- 	return err;
- }
- 
-+static void __init padata_mt_helper(struct work_struct *w)
-+{
-+	struct padata_work *pw = container_of(w, struct padata_work, pw_work);
-+	struct padata_mt_job_state *ps = pw->pw_data;
-+	struct padata_mt_job *job = ps->job;
-+	bool done;
-+
-+	spin_lock(&ps->lock);
-+
-+	while (job->size > 0) {
-+		unsigned long start, size, end;
-+
-+		start = job->start;
-+		/* So end is chunk size aligned if enough work remains. */
-+		size = roundup(start + 1, ps->chunk_size) - start;
-+		size = min(size, job->size);
-+		end = start + size;
-+
-+		job->start = end;
-+		job->size -= size;
-+
-+		spin_unlock(&ps->lock);
-+		job->thread_fn(start, end, job->fn_arg);
-+		spin_lock(&ps->lock);
-+	}
-+
-+	++ps->nworks_fini;
-+	done = (ps->nworks_fini == ps->nworks);
-+	spin_unlock(&ps->lock);
-+
-+	if (done)
-+		complete(&ps->completion);
-+}
-+
-+/**
-+ * padata_do_multithreaded - run a multithreaded job
-+ * @job: Description of the job.
-+ *
-+ * See the definition of struct padata_mt_job for more details.
-+ */
-+void __init padata_do_multithreaded(struct padata_mt_job *job)
-+{
-+	/* In case threads finish at different times. */
-+	static const unsigned long load_balance_factor = 4;
-+	struct padata_work my_work, *pw;
-+	struct padata_mt_job_state ps;
-+	LIST_HEAD(works);
-+	int nworks;
-+
-+	if (job->size == 0)
-+		return;
-+
-+	/* Ensure at least one thread when size < min_chunk. */
-+	nworks = max(job->size / job->min_chunk, 1ul);
-+	nworks = min(nworks, job->max_threads);
-+
-+	if (nworks == 1) {
-+		/* Single thread, no coordination needed, cut to the chase. */
-+		job->thread_fn(job->start, job->start + job->size, job->fn_arg);
-+		return;
-+	}
-+
-+	spin_lock_init(&ps.lock);
-+	init_completion(&ps.completion);
-+	ps.job	       = job;
-+	ps.nworks      = padata_work_alloc_mt(nworks, &ps, &works);
-+	ps.nworks_fini = 0;
-+
-+	/*
-+	 * Chunk size is the amount of work a helper does per call to the
-+	 * thread function.  Load balance large jobs between threads by
-+	 * increasing the number of chunks, guarantee at least the minimum
-+	 * chunk size from the caller, and honor the caller's alignment.
-+	 */
-+	ps.chunk_size = job->size / (ps.nworks * load_balance_factor);
-+	ps.chunk_size = max(ps.chunk_size, job->min_chunk);
-+	ps.chunk_size = roundup(ps.chunk_size, job->align);
-+
-+	list_for_each_entry(pw, &works, pw_list)
-+		queue_work(system_unbound_wq, &pw->pw_work);
-+
-+	/* Use the current thread, which saves starting a workqueue worker. */
-+	padata_work_init(&my_work, padata_mt_helper, &ps, PADATA_WORK_ONSTACK);
-+	padata_mt_helper(&my_work.pw_work);
-+
-+	/* Wait for all the helpers to finish. */
-+	wait_for_completion(&ps.completion);
-+
-+	destroy_work_on_stack(&my_work.pw_work);
-+	padata_works_free(&works);
-+}
-+
- static void __padata_list_init(struct padata_list *pd_list)
- {
- 	INIT_LIST_HEAD(&pd_list->list);
+ ifneq (,$(filter $(MACHINE),arm64 ia64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sh64 sparc64 x86_64))
+ TEST_GEN_FILES += va_128TBswitch
 _
 
-Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
