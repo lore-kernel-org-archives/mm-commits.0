@@ -1,119 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] docs-vm-update-memory-models-documentation.patch
- removed from -mm tree
-Date: Thu, 04 Jun 2020 10:17:39 -0700
-Message-ID: <20200604171739.apgAmGElN%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch removed from
+ -mm tree
+Date: Thu, 04 Jun 2020 10:17:43 -0700
+Message-ID: <20200604171743.1mNhPbM59%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39176 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39246 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729999AbgFDRRl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:17:41 -0400
+        id S1729999AbgFDRRo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:17:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, hoan@os.amperecomputing.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, mattst88@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@linux.ibm.com, shorne@gmail.com, tony.luck@intel.com, tsbogend@alpha.franken.de, vgupta@synopsys.com, ysato@users.sourceforge.jp
+To: anshuman.khandual@arm.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com, rientjes@google.com
 
 
 The patch titled
-     Subject: docs/vm: update memory-models documentation
+     Subject: mm/page_alloc.c: bad_[reason|flags] is not necessary when PageHWPoison
 has been removed from the -mm tree.  Its filename was
-     docs-vm-update-memory-models-documentation.patch
+     mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: docs/vm: update memory-models documentation
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: mm/page_alloc.c: bad_[reason|flags] is not necessary when PageHWPoison
 
-To reflect the updates to free_area_init() family of functions.
+Patch series "mm/page_alloc.c: cleanup on check page", v3.
 
-Link: http://lkml.kernel.org/r/20200412194859.12663-22-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Tested-by: Hoan Tran <hoan@os.amperecomputing.com>	[arm64]
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: Guan Xuetao <gxt@pku.edu.cn>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+This patchset does some cleanup related to check page.
+
+1. Remove unnecessary bad_reason assignment
+2. Remove bad_flags to bad_page()
+3. Rename function for naming convention
+4. Extract common part to check page
+
+Thanks for suggestions from David Rientjes and Anshuman Khandual.
+
+
+This patch (of 5):
+
+Since function returns directly, bad_[reason|flags] is not used any where.
+And move this to the first.
+
+This is a following cleanup for commit e570f56cccd21 ("mm:
+check_new_page_bad() directly returns in __PG_HWPOISON case")
+
+Link: http://lkml.kernel.org/r/20200411220357.9636-2-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/memory-model.rst |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
---- a/Documentation/vm/memory-model.rst~docs-vm-update-memory-models-documentation
-+++ a/Documentation/vm/memory-model.rst
-@@ -46,11 +46,10 @@ maps the entire physical memory. For mos
- have entries in the `mem_map` array. The `struct page` objects
- corresponding to the holes are never fully initialized.
+--- a/mm/page_alloc.c~mm-page_allocc-bad_-is-not-necessary-when-pagehwpoison
++++ a/mm/page_alloc.c
+@@ -2097,19 +2097,17 @@ static void check_new_page_bad(struct pa
+ 	const char *bad_reason = NULL;
+ 	unsigned long bad_flags = 0;
  
--To allocate the `mem_map` array, architecture specific setup code
--should call :c:func:`free_area_init_node` function or its convenience
--wrapper :c:func:`free_area_init`. Yet, the mappings array is not
--usable until the call to :c:func:`memblock_free_all` that hands all
--the memory to the page allocator.
-+To allocate the `mem_map` array, architecture specific setup code should
-+call :c:func:`free_area_init` function. Yet, the mappings array is not
-+usable until the call to :c:func:`memblock_free_all` that hands all the
-+memory to the page allocator.
- 
- If an architecture enables `CONFIG_ARCH_HAS_HOLES_MEMORYMODEL` option,
- it may free parts of the `mem_map` array that do not cover the
++	if (unlikely(page->flags & __PG_HWPOISON)) {
++		/* Don't complain about hwpoisoned pages */
++		page_mapcount_reset(page); /* remove PageBuddy */
++		return;
++	}
+ 	if (unlikely(atomic_read(&page->_mapcount) != -1))
+ 		bad_reason = "nonzero mapcount";
+ 	if (unlikely(page->mapping != NULL))
+ 		bad_reason = "non-NULL mapping";
+ 	if (unlikely(page_ref_count(page) != 0))
+ 		bad_reason = "nonzero _refcount";
+-	if (unlikely(page->flags & __PG_HWPOISON)) {
+-		bad_reason = "HWPoisoned (hardware-corrupted)";
+-		bad_flags = __PG_HWPOISON;
+-		/* Don't complain about hwpoisoned pages */
+-		page_mapcount_reset(page); /* remove PageBuddy */
+-		return;
+-	}
+ 	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_PREP)) {
+ 		bad_reason = "PAGE_FLAGS_CHECK_AT_PREP flag set";
+ 		bad_flags = PAGE_FLAGS_CHECK_AT_PREP;
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-h8300-remove-usage-of-__arch_use_5level_hack.patch
-arm-add-support-for-folded-p4d-page-tables.patch
-arm-add-support-for-folded-p4d-page-tables-fix.patch
-arm64-add-support-for-folded-p4d-page-tables.patch
-hexagon-remove-__arch_use_5level_hack.patch
-ia64-add-support-for-folded-p4d-page-tables.patch
-nios2-add-support-for-folded-p4d-page-tables.patch
-openrisc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch
-sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
-sh-add-support-for-folded-p4d-page-tables.patch
-unicore32-remove-__arch_use_5level_hack.patch
-asm-generic-remove-pgtable-nop4d-hackh.patch
-mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
-mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
-mm-introduce-include-linux-pgtableh.patch
-mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
-csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
-m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
-m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic-fix.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix.patch
-mm-consolidate-pte_index-and-pte_offset_-definitions.patch
-mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
-mm-consolidate-pud_index-and-pud_offset-definitions.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions.patch
+bitops-simplify-get_count_order_long.patch
+bitops-use-the-same-mechanism-for-get_count_order.patch
+lib-test-get_count_order-long-in-test_bitopsc.patch
