@@ -1,169 +1,237 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch removed from -mm
- tree
-Date: Thu, 04 Jun 2020 10:21:30 -0700
-Message-ID: <20200604172130.F-v57wNGm%akpm@linux-foundation.org>
+ =?US-ASCII?Q?drivers-base-memoryc-cache-memory-blocks-in-xarray-to-acc?=
+ =?US-ASCII?Q?elerate-lookup.patch?= removed from -mm tree
+Date: Thu, 04 Jun 2020 10:21:33 -0700
+Message-ID: <20200604172133.K01PQDjvA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43444 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43502 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730050AbgFDRVc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:21:32 -0400
+        id S1730050AbgFDRVf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:21:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, hpa@zytor.com, linux@armlinux.org.uk, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tsbogend@alpha.franken.de, vgupta@synopsys.com, will@kernel.org
+To: cheloha@linux.ibm.com, cheloha@linux.vnet.ibm.com, david@redhat.com, gregkh@linuxfoundation.org, mhocko@suse.com, mm-commits@vger.kernel.org, nathanl@linux.ibm.com, rafael@kernel.org, ricklind@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: mm/thp: rename pmd_mknotpresent() as pmd_mkinvalid()
+     Subject: drivers/base/memory.c: cache memory blocks in xarray to accelerate lookup
 has been removed from the -mm tree.  Its filename was
-     mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid.patch
+     drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/thp: rename pmd_mknotpresent() as pmd_mkinvalid()
+From: Scott Cheloha <cheloha@linux.vnet.ibm.com>
+Subject: drivers/base/memory.c: cache memory blocks in xarray to accelerate lookup
 
-pmd_present() is expected to test positive after pmdp_mknotpresent() as
-the PMD entry still points to a valid huge page in memory. 
-pmdp_mknotpresent() implies that given PMD entry is just invalidated from
-MMU perspective while still holding on to pmd_page() referred valid huge
-page thus also clearing pmd_present() test.  This creates the following
-situation which is counter intuitive.
+Searching for a particular memory block by id is an O(n) operation because
+each memory block's underlying device is kept in an unsorted linked list
+on the subsystem bus.
 
-[pmd_present(pmd_mknotpresent(pmd)) = true]
+We can cut the lookup cost to O(log n) if we cache each memory block
+in an xarray.  This time complexity improvement is significant on
+systems with many memory blocks.  For example:
 
-This renames pmd_mknotpresent() as pmd_mkinvalid() reflecting the helper's
-functionality more accurately while changing the above mentioned situation
-as follows.  This does not create any functional change.
+1. A 128GB POWER9 VM with 256MB memblocks has 512 blocks.  With this
+   change  memory_dev_init() completes ~12ms faster and walk_memory_blocks()
+   completes ~12ms faster.
 
-[pmd_present(pmd_mkinvalid(pmd)) = true]
+Before:
+[    0.005042] memory_dev_init: adding memory blocks
+[    0.021591] memory_dev_init: added memory blocks
+[    0.022699] walk_memory_blocks: walking memory blocks
+[    0.038730] walk_memory_blocks: walked memory blocks 0-511
 
-This is not applicable for platforms that define own pmdp_invalidate() via
-__HAVE_ARCH_PMDP_INVALIDATE.  Suggestion for renaming came during a
-previous discussion here.
+After:
+[    0.005057] memory_dev_init: adding memory blocks
+[    0.009415] memory_dev_init: added memory blocks
+[    0.010519] walk_memory_blocks: walking memory blocks
+[    0.014135] walk_memory_blocks: walked memory blocks 0-511
 
-https://patchwork.kernel.org/patch/11019637/
+2. A 256GB POWER9 LPAR with 256MB memblocks has 1024 blocks.  With
+   this change memory_dev_init() completes ~88ms faster and
+   walk_memory_blocks() completes ~87ms faster.
 
-[anshuman.khandual@arm.com: change pmd_mknotvalid() to pmd_mkinvalid() per Will]
-  Link: http://lkml.kernel.org/r/1587520326-10099-3-git-send-email-anshuman.khandual@arm.com
-Link: http://lkml.kernel.org/r/1584680057-13753-3-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Will Deacon <will@kernel.org>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
+Before:
+[    0.252246] memory_dev_init: adding memory blocks
+[    0.395469] memory_dev_init: added memory blocks
+[    0.409413] walk_memory_blocks: walking memory blocks
+[    0.433028] walk_memory_blocks: walked memory blocks 0-511
+[    0.433094] walk_memory_blocks: walking memory blocks
+[    0.500244] walk_memory_blocks: walked memory blocks 131072-131583
+
+After:
+[    0.245063] memory_dev_init: adding memory blocks
+[    0.299539] memory_dev_init: added memory blocks
+[    0.313609] walk_memory_blocks: walking memory blocks
+[    0.315287] walk_memory_blocks: walked memory blocks 0-511
+[    0.315349] walk_memory_blocks: walking memory blocks
+[    0.316988] walk_memory_blocks: walked memory blocks 131072-131583
+
+3. A 32TB POWER9 LPAR with 256MB memblocks has 131072 blocks.  With
+   this change we complete memory_dev_init() ~37 minutes faster and
+   walk_memory_blocks() at least ~30 minutes faster.  The exact timing
+   for walk_memory_blocks() is  missing, though I observed that the
+   soft lockups in walk_memory_blocks() disappeared with the change,
+   suggesting that lower bound.
+
+Before:
+[   13.703907] memory_dev_init: adding blocks
+[ 2287.406099] memory_dev_init: added all blocks
+[ 2347.494986] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 2527.625378] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 2707.761977] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 2887.899975] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3068.028318] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3248.158764] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3428.287296] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3608.425357] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3788.554572] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 3968.695071] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+[ 4148.823970] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
+
+After:
+[   13.696898] memory_dev_init: adding blocks
+[   15.660035] memory_dev_init: added all blocks
+(the walk_memory_blocks traces disappear)
+
+There should be no significant negative impact for machines with few
+memory blocks.  A sparse xarray has a small footprint and an O(log n)
+lookup is negligibly slower than an O(n) lookup for only the smallest
+number of memory blocks.
+
+1. A 16GB x86 machine with 128MB memblocks has 132 blocks.  With this
+   change memory_dev_init() completes ~300us faster and walk_memory_blocks()
+   completes no faster or slower.  The improvement is pretty close to noise.
+
+Before:
+[    0.224752] memory_dev_init: adding memory blocks
+[    0.227116] memory_dev_init: added memory blocks
+[    0.227183] walk_memory_blocks: walking memory blocks
+[    0.227183] walk_memory_blocks: walked memory blocks 0-131
+
+After:
+[    0.224911] memory_dev_init: adding memory blocks
+[    0.226935] memory_dev_init: added memory blocks
+[    0.227089] walk_memory_blocks: walking memory blocks
+[    0.227089] walk_memory_blocks: walked memory blocks 0-131
+
+[david@redhat.com: document the locking]
+  Link: http://lkml.kernel.org/r/bc21eec6-7251-4c91-2f57-9a0671f8d414@redhat.com
+Link: http://lkml.kernel.org/r/20200121231028.13699-1-cheloha@linux.ibm.com
+Signed-off-by: Scott Cheloha <cheloha@linux.ibm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Nathan Lynch <nathanl@linux.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Rick Lindsley <ricklind@linux.vnet.ibm.com>
+Cc: Scott Cheloha <cheloha@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/hugepage.h       |    2 +-
- arch/arm/include/asm/pgtable-3level.h |    2 +-
- arch/arm64/include/asm/pgtable.h      |    2 +-
- arch/mips/include/asm/pgtable.h       |    2 +-
- arch/x86/include/asm/pgtable.h        |    2 +-
- arch/x86/mm/kmmio.c                   |    2 +-
- mm/pgtable-generic.c                  |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/base/memory.c |   44 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 32 insertions(+), 12 deletions(-)
 
---- a/arch/arc/include/asm/hugepage.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/arc/include/asm/hugepage.h
-@@ -26,7 +26,7 @@ static inline pmd_t pte_pmd(pte_t pte)
- #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
- #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
- #define pmd_mkhuge(pmd)		pte_pmd(pte_mkhuge(pmd_pte(pmd)))
--#define pmd_mknotpresent(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
-+#define pmd_mkinvalid(pmd)	pte_pmd(pte_mknotpresent(pmd_pte(pmd)))
- #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+--- a/drivers/base/memory.c~drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup
++++ a/drivers/base/memory.c
+@@ -21,6 +21,7 @@
+ #include <linux/mm.h>
+ #include <linux/stat.h>
+ #include <linux/slab.h>
++#include <linux/xarray.h>
  
- #define pmd_write(pmd)		pte_write(pmd_pte(pmd))
---- a/arch/arm64/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -366,7 +366,7 @@ static inline int pmd_protnone(pmd_t pmd
- #define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
- #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
- #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
--#define pmd_mknotpresent(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
-+#define pmd_mkinvalid(pmd)	(__pmd(pmd_val(pmd) & ~PMD_SECT_VALID))
+ #include <linux/atomic.h>
+ #include <linux/uaccess.h>
+@@ -74,6 +75,13 @@ static struct bus_type memory_subsys = {
+ 	.offline = memory_subsys_offline,
+ };
  
- #define pmd_thp_or_huge(pmd)	(pmd_huge(pmd) || pmd_trans_huge(pmd))
++/*
++ * Memory blocks are cached in a local radix tree to avoid
++ * a costly linear search for the corresponding device on
++ * the subsystem bus.
++ */
++static DEFINE_XARRAY(memory_blocks);
++
+ static BLOCKING_NOTIFIER_HEAD(memory_chain);
  
---- a/arch/arm/include/asm/pgtable-3level.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/arm/include/asm/pgtable-3level.h
-@@ -221,7 +221,7 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
- #define pmdp_establish generic_pmdp_establish
- 
- /* represent a notpresent pmd by faulting entry, this is used by pmdp_invalidate */
--static inline pmd_t pmd_mknotpresent(pmd_t pmd)
-+static inline pmd_t pmd_mkinvalid(pmd_t pmd)
- {
- 	return __pmd(pmd_val(pmd) & ~L_PMD_SECT_VALID);
- }
---- a/arch/mips/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -631,7 +631,7 @@ static inline pmd_t pmd_modify(pmd_t pmd
- 	return pmd;
+ int register_memory_notifier(struct notifier_block *nb)
+@@ -489,22 +497,23 @@ int __weak arch_get_memory_phys_device(u
+ 	return 0;
  }
  
--static inline pmd_t pmd_mknotpresent(pmd_t pmd)
-+static inline pmd_t pmd_mkinvalid(pmd_t pmd)
+-/* A reference for the returned memory block device is acquired. */
++/*
++ * A reference for the returned memory block device is acquired.
++ *
++ * Called under device_hotplug_lock.
++ */
+ static struct memory_block *find_memory_block_by_id(unsigned long block_id)
  {
- 	pmd_val(pmd) &= ~(_PAGE_PRESENT | _PAGE_VALID | _PAGE_DIRTY);
+-	struct device *dev;
++	struct memory_block *mem;
  
---- a/arch/x86/include/asm/pgtable.h~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -624,7 +624,7 @@ static inline pud_t pfn_pud(unsigned lon
- 	return __pud(pfn | check_pgprot(pgprot));
+-	dev = subsys_find_device_by_id(&memory_subsys, block_id, NULL);
+-	return dev ? to_memory_block(dev) : NULL;
++	mem = xa_load(&memory_blocks, block_id);
++	if (mem)
++		get_device(&mem->dev);
++	return mem;
  }
  
--static inline pmd_t pmd_mknotpresent(pmd_t pmd)
-+static inline pmd_t pmd_mkinvalid(pmd_t pmd)
+ /*
+- * For now, we have a linear search to go find the appropriate
+- * memory_block corresponding to a particular phys_index. If
+- * this gets to be a real problem, we can always use a radix
+- * tree or something here.
+- *
+- * This could be made generic for all device subsystems.
++ * Called under device_hotplug_lock.
+  */
+ struct memory_block *find_memory_block(struct mem_section *section)
  {
- 	return pfn_pmd(pmd_pfn(pmd),
- 		      __pgprot(pmd_flags(pmd) & ~(_PAGE_PRESENT|_PAGE_PROTNONE)));
---- a/arch/x86/mm/kmmio.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/arch/x86/mm/kmmio.c
-@@ -130,7 +130,7 @@ static void clear_pmd_presence(pmd_t *pm
- 	pmdval_t v = pmd_val(*pmd);
- 	if (clear) {
- 		*old = v;
--		new_pmd = pmd_mknotpresent(*pmd);
-+		new_pmd = pmd_mkinvalid(*pmd);
- 	} else {
- 		/* Presume this has been called with clear==true previously */
- 		new_pmd = __pmd(*old);
---- a/mm/pgtable-generic.c~mm-thp-rename-pmd_mknotpresent-as-pmd_mknotvalid
-+++ a/mm/pgtable-generic.c
-@@ -194,7 +194,7 @@ pgtable_t pgtable_trans_huge_withdraw(st
- pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 		     pmd_t *pmdp)
- {
--	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mknotpresent(*pmdp));
-+	pmd_t old = pmdp_establish(vma, address, pmdp, pmd_mkinvalid(*pmdp));
- 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return old;
+@@ -548,9 +557,16 @@ int register_memory(struct memory_block
+ 	memory->dev.offline = memory->state == MEM_OFFLINE;
+ 
+ 	ret = device_register(&memory->dev);
+-	if (ret)
++	if (ret) {
+ 		put_device(&memory->dev);
+-
++		return ret;
++	}
++	ret = xa_err(xa_store(&memory_blocks, memory->dev.id, memory,
++			      GFP_KERNEL));
++	if (ret) {
++		put_device(&memory->dev);
++		device_unregister(&memory->dev);
++	}
+ 	return ret;
  }
+ 
+@@ -604,6 +620,8 @@ static void unregister_memory(struct mem
+ 	if (WARN_ON_ONCE(memory->dev.bus != &memory_subsys))
+ 		return;
+ 
++	WARN_ON(xa_erase(&memory_blocks, memory->dev.id) == NULL);
++
+ 	/* drop the ref. we got via find_memory_block() */
+ 	put_device(&memory->dev);
+ 	device_unregister(&memory->dev);
+@@ -750,6 +768,8 @@ void __init memory_dev_init(void)
+  *
+  * In case func() returns an error, walking is aborted and the error is
+  * returned.
++ *
++ * Called under device_hotplug_lock.
+  */
+ int walk_memory_blocks(unsigned long start, unsigned long size,
+ 		       void *arg, walk_memory_blocks_func_t func)
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
-
-mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
-mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
-x86-mm-define-mm_p4d_folded.patch
-mm-debug-add-tests-validating-architecture-page-table-helpers.patch
-mm-debug-add-tests-validating-architecture-page-table-helpers-v17.patch
-mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
+Patches currently in -mm which might be from cheloha@linux.vnet.ibm.com are
