@@ -1,39 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-simplify-find_min_pfn_with_active_regions.patch removed from -mm tree
-Date: Thu, 04 Jun 2020 10:17:35 -0700
-Message-ID: <20200604171735.IEkXNdwan%akpm@linux-foundation.org>
+Subject: [merged] docs-vm-update-memory-models-documentation.patch
+ removed from -mm tree
+Date: Thu, 04 Jun 2020 10:17:39 -0700
+Message-ID: <20200604171739.apgAmGElN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39102 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39176 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730014AbgFDRRh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:17:37 -0400
+        id S1729999AbgFDRRl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:17:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, hoan@os.amperecomputing.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, mattst88@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@linux.ibm.com, shorne@gmail.com, tony.luck@intel.com, tsbogend@alpha.franken.de, vgupta@synopsys.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm: simplify find_min_pfn_with_active_regions()
+     Subject: docs/vm: update memory-models documentation
 has been removed from the -mm tree.  Its filename was
-     mm-simplify-find_min_pfn_with_active_regions.patch
+     docs-vm-update-memory-models-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: simplify find_min_pfn_with_active_regions()
+Subject: docs/vm: update memory-models documentation
 
-find_min_pfn_with_active_regions() calls find_min_pfn_for_node() with nid
-parameter set to MAX_NUMNODES.  This makes the find_min_pfn_for_node()
-traverse all memblock memory regions although the first PFN in the system
-can be easily found with memblock_start_of_DRAM().
+To reflect the updates to free_area_init() family of functions.
 
-Use memblock_start_of_DRAM() in find_min_pfn_with_active_regions() and drop
-now unused find_min_pfn_for_node().
-
-Link: http://lkml.kernel.org/r/20200412194859.12663-21-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200412194859.12663-22-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Tested-by: Hoan Tran <hoan@os.amperecomputing.com>	[arm64]
 Cc: Baoquan He <bhe@redhat.com>
@@ -69,45 +63,27 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 +-------------------
- 1 file changed, 1 insertion(+), 19 deletions(-)
+ Documentation/vm/memory-model.rst |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-simplify-find_min_pfn_with_active_regions
-+++ a/mm/page_alloc.c
-@@ -7066,24 +7066,6 @@ unsigned long __init node_map_pfn_alignm
- 	return ~accl_mask + 1;
- }
+--- a/Documentation/vm/memory-model.rst~docs-vm-update-memory-models-documentation
++++ a/Documentation/vm/memory-model.rst
+@@ -46,11 +46,10 @@ maps the entire physical memory. For mos
+ have entries in the `mem_map` array. The `struct page` objects
+ corresponding to the holes are never fully initialized.
  
--/* Find the lowest pfn for a node */
--static unsigned long __init find_min_pfn_for_node(int nid)
--{
--	unsigned long min_pfn = ULONG_MAX;
--	unsigned long start_pfn;
--	int i;
--
--	for_each_mem_pfn_range(i, nid, &start_pfn, NULL, NULL)
--		min_pfn = min(min_pfn, start_pfn);
--
--	if (min_pfn == ULONG_MAX) {
--		pr_warn("Could not find start_pfn for node %d\n", nid);
--		return 0;
--	}
--
--	return min_pfn;
--}
--
- /**
-  * find_min_pfn_with_active_regions - Find the minimum PFN registered
-  *
-@@ -7092,7 +7074,7 @@ static unsigned long __init find_min_pfn
-  */
- unsigned long __init find_min_pfn_with_active_regions(void)
- {
--	return find_min_pfn_for_node(MAX_NUMNODES);
-+	return PHYS_PFN(memblock_start_of_DRAM());
- }
+-To allocate the `mem_map` array, architecture specific setup code
+-should call :c:func:`free_area_init_node` function or its convenience
+-wrapper :c:func:`free_area_init`. Yet, the mappings array is not
+-usable until the call to :c:func:`memblock_free_all` that hands all
+-the memory to the page allocator.
++To allocate the `mem_map` array, architecture specific setup code should
++call :c:func:`free_area_init` function. Yet, the mappings array is not
++usable until the call to :c:func:`memblock_free_all` that hands all the
++memory to the page allocator.
  
- /*
+ If an architecture enables `CONFIG_ARCH_HAS_HOLES_MEMORYMODEL` option,
+ it may free parts of the `mem_map` array that do not cover the
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
