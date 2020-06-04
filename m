@@ -1,81 +1,97 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
- removed from -mm tree
-Date: Thu, 04 Jun 2020 10:21:25 -0700
-Message-ID: <20200604172125.E5xaGp1R9%akpm@linux-foundation.org>
+ powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch removed from -mm
+ tree
+Date: Thu, 04 Jun 2020 10:21:27 -0700
+Message-ID: <20200604172127.FPzJ8Utga%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43352 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43386 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730050AbgFDRV1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:21:27 -0400
+        id S1730050AbgFDRV2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:21:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, daniel.m.jordan@oracle.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com
+To: anshuman.khandual@arm.com, benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com, dave.hansen@linux.intel.com, hpa@zytor.com, linux@armlinux.org.uk, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tsbogend@alpha.franken.de, vgupta@synopsys.com, will@kernel.org
 
 
 The patch titled
-     Subject: mm: thp: don't need to drain lru cache when splitting and mlocking THP
+     Subject: powerpc/mm: drop platform defined pmd_mknotpresent()
 has been removed from the -mm tree.  Its filename was
-     mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
+     powerpc-mm-drop-platform-defined-pmd_mknotpresent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm: thp: don't need to drain lru cache when splitting and mlocking THP
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: powerpc/mm: drop platform defined pmd_mknotpresent()
 
-Since commit 8f182270dfec ("mm/swap.c: flush lru pvecs on compound page
-arrival") THP would not stay in pagevec anymore.  So the optimization made
-by commit d965432234db ("thp: increase split_huge_page() success rate")
-doesn't make sense anymore, which tries to unpin munlocked THPs from
-pagevec by draining pagevec.
+Patch series "mm/thp: Rename pmd_mknotpresent() as pmd_mknotvalid()", v2.
 
-Draining lru cache before isolating THP in mlock path is also unnecessary.
-b676b293fb48 ("mm, thp: fix mapped pages avoiding unevictable list on
-mlock") added it and 9a73f61bdb8a ("thp, mlock: do not mlock PTE-mapped
-file huge pages") accidentally carried it over after the above
-optimization went in.
+This series renames pmd_mknotpresent() as pmd_mknotvalid().  Before that
+it drops an existing pmd_mknotpresent() definition from powerpc platform
+which was never required as it defines it's pmdp_invalidate() through
+subscribing __HAVE_ARCH_PMDP_INVALIDATE.  This does not create any
+functional change.
 
-Link: http://lkml.kernel.org/r/1585946493-7531-1-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+This rename was suggested by Catalin during a previous discussion while we
+were trying to change the THP helpers on arm64 platform for migration.
+
+https://patchwork.kernel.org/patch/11019637/
+
+
+This patch (of 2):
+
+Platform needs to define pmd_mknotpresent() for generic pmdp_invalidate()
+only when __HAVE_ARCH_PMDP_INVALIDATE is not subscribed.  Otherwise
+platform specific pmd_mknotpresent() is not required.  Hence just drop it.
+
+Link: http://lkml.kernel.org/r/1587520326-10099-1-git-send-email-anshuman.khandual@arm.com
+Link: http://lkml.kernel.org/r/1584680057-13753-1-git-send-email-anshuman.khandual@arm.com
+Link: http://lkml.kernel.org/r/1584680057-13753-2-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 -------
- 1 file changed, 7 deletions(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp
-+++ a/mm/huge_memory.c
-@@ -1378,7 +1378,6 @@ struct page *follow_trans_huge_pmd(struc
- 			goto skip_mlock;
- 		if (!trylock_page(page))
- 			goto skip_mlock;
--		lru_add_drain();
- 		if (page->mapping && !PageDoubleMap(page))
- 			mlock_vma_page(page);
- 		unlock_page(page);
-@@ -2582,7 +2581,6 @@ int split_huge_page_to_list(struct page
- 	struct anon_vma *anon_vma = NULL;
- 	struct address_space *mapping = NULL;
- 	int count, mapcount, extra_pins, ret;
--	bool mlocked;
- 	unsigned long flags;
- 	pgoff_t end;
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-drop-platform-defined-pmd_mknotpresent
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1168,10 +1168,6 @@ static inline int pmd_large(pmd_t pmd)
+ 	return !!(pmd_raw(pmd) & cpu_to_be64(_PAGE_PTE));
+ }
  
-@@ -2641,14 +2639,9 @@ int split_huge_page_to_list(struct page
- 		goto out_unlock;
- 	}
- 
--	mlocked = PageMlocked(head);
- 	unmap_page(head);
- 	VM_BUG_ON_PAGE(compound_mapcount(head), head);
- 
--	/* Make sure the page is not on per-CPU pagevec as it takes pin */
--	if (mlocked)
--		lru_add_drain();
+-static inline pmd_t pmd_mknotpresent(pmd_t pmd)
+-{
+-	return __pmd(pmd_val(pmd) & ~_PAGE_PRESENT);
+-}
+ /*
+  * For radix we should always find H_PAGE_HASHPTE zero. Hence
+  * the below will work for radix too
+_
+
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
+
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
+x86-mm-define-mm_p4d_folded.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v17.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
