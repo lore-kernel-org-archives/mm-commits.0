@@ -1,87 +1,100 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 042/127] mm/memory_hotplug: refrain from adding
- memory into an impossible node
-Date: Thu, 04 Jun 2020 16:48:25 -0700
-Message-ID: <20200604234825.k2EkkZ9bD%akpm@linux-foundation.org>
+Subject: [patch 043/127] powerpc/pseries/hotplug-memory: stop
+ checking is_mem_section_removable()
+Date: Thu, 04 Jun 2020 16:48:28 -0700
+Message-ID: <20200604234828.9QfSL0WRV%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44750 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725930AbgFDXs0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:48:26 -0400
+        id S1725930AbgFDXsb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:48:31 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@redhat.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vishal.l.verma@intel.com
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, nfont@linux.vnet.ibm.com, osalvador@suse.de, paulus@samba.org, richard.weiyang@gmail.com, torvalds@linux-foundation.org
 
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: mm/memory_hotplug: refrain from adding memory into an impossible node
+From: David Hildenbrand <david@redhat.com>
+Subject: powerpc/pseries/hotplug-memory: stop checking is_mem_section_removable()
 
-A misbehaving qemu created a situation where the ACPI SRAT table
-advertised one fewer proximity domains than intended.  The NFIT table did
-describe all the expected proximity domains.  This caused the device dax
-driver to assign an impossible target_node to the device, and when
-hotplugged as system memory, this would fail with the following signature:
+In commit 53cdc1cb29e8 ("drivers/base/memory.c: indicate all memory blocks
+as removable"), the user space interface to compute whether a memory block
+can be offlined (exposed via /sys/devices/system/memory/memoryX/removable)
+has effectively been deprecated.  We want to remove the leftovers of the
+kernel implementation.
 
-  [  +0.001627] BUG: kernel NULL pointer dereference, address: 0000000000000088
-  [  +0.001331] #PF: supervisor read access in kernel mode
-  [  +0.000975] #PF: error_code(0x0000) - not-present page
-  [  +0.000976] PGD 80000001767d4067 P4D 80000001767d4067 PUD 10e0c4067 PMD 0
-  [  +0.001338] Oops: 0000 [#1] SMP PTI
-  [  +0.000676] CPU: 4 PID: 22737 Comm: kswapd3 Tainted: G           O      5.6.0-rc5 #9
-  [  +0.001457] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
-      BIOS rel-1.13.0-0-gf21b5a4aeb02-prebuilt.qemu.org 04/01/2014
-  [  +0.001990] RIP: 0010:prepare_kswapd_sleep+0x7c/0xc0
-  [  +0.000780] Code: 89 df e8 87 fd ff ff 89 c2 31 c0 84 d2 74 e6 0f 1f 44
-                      00 00 48 8b 05 fb af 7a 01 48 63 93 88 1d 01 00 48 8b
-		      84 d0 20 0f 00 00 <48> 3b 98 88 00 00 00 75 28 f0 80 a0
-		      80 00 00 00 fe f0 80 a3 38 20
-  [  +0.002877] RSP: 0018:ffffc900017a3e78 EFLAGS: 00010202
-  [  +0.000805] RAX: 0000000000000000 RBX: ffff8881209e0000 RCX: 0000000000000000
-  [  +0.001115] RDX: 0000000000000003 RSI: 0000000000000000 RDI: ffff8881209e0e80
-  [  +0.001098] RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000008000
-  [  +0.001092] R10: 0000000000000000 R11: 0000000000000003 R12: 0000000000000003
-  [  +0.001092] R13: 0000000000000003 R14: 0000000000000000 R15: ffffc900017a3ec8
-  [  +0.001091] FS:  0000000000000000(0000) GS:ffff888318c00000(0000) knlGS:0000000000000000
-  [  +0.001275] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  [  +0.000882] CR2: 0000000000000088 CR3: 0000000120b50002 CR4: 00000000001606e0
-  [  +0.001095] Call Trace:
-  [  +0.000388]  kswapd+0x103/0x520
-  [  +0.000494]  ? finish_wait+0x80/0x80
-  [  +0.000547]  ? balance_pgdat+0x5a0/0x5a0
-  [  +0.000607]  kthread+0x120/0x140
-  [  +0.000508]  ? kthread_create_on_node+0x60/0x60
-  [  +0.000706]  ret_from_fork+0x3a/0x50
+When offlining a memory block (mm/memory_hotplug.c:__offline_pages()),
+we'll start by:
+1. Testing if it contains any holes, and reject if so
+2. Testing if pages belong to different zones, and reject if so
+3. Isolating the page range, checking if it contains any unmovable pages
 
-Add a check in the add_memory path to fail if the node to which we are
-adding memory is in the node_possible_map
+Using is_mem_section_removable() before trying to offline is not only
+racy, it can easily result in false positives/negatives.  Let's stop
+manually checking is_mem_section_removable(), and let device_offline()
+handle it completely instead.  We can remove the racy
+is_mem_section_removable() implementation next.
 
-Link: http://lkml.kernel.org/r/20200416225438.15208-1-vishal.l.verma@intel.com
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+We now take more locks (e.g., memory hotplug lock when offlining and the
+zone lock when isolating), but maybe we should optimize that
+implementation instead if this ever becomes a real problem (after all,
+memory unplug is already an expensive operation).  We started using
+is_mem_section_removable() in commit 51925fb3c5c9 ("powerpc/pseries:
+Implement memory hotplug remove in the kernel"), with the initial
+hotremove support of lmbs.
+
+Link: http://lkml.kernel.org/r/20200407135416.24093-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/powerpc/platforms/pseries/hotplug-memory.c |   26 +-------------
+ 1 file changed, 3 insertions(+), 23 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-refrain-from-adding-memory-into-an-impossible-node
-+++ a/mm/memory_hotplug.c
-@@ -1017,6 +1017,11 @@ int __ref add_memory_resource(int nid, s
- 	if (ret)
- 		return ret;
+--- a/arch/powerpc/platforms/pseries/hotplug-memory.c~powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable
++++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
+@@ -337,39 +337,19 @@ static int pseries_remove_mem_node(struc
  
-+	if (!node_possible(nid)) {
-+		WARN(1, "node %d was absent from the node_possible_map\n", nid);
-+		return -EINVAL;
-+	}
-+
- 	mem_hotplug_begin();
+ static bool lmb_is_removable(struct drmem_lmb *lmb)
+ {
+-	int i, scns_per_block;
+-	bool rc = true;
+-	unsigned long pfn, block_sz;
+-	u64 phys_addr;
+-
+ 	if (!(lmb->flags & DRCONF_MEM_ASSIGNED))
+ 		return false;
  
+-	block_sz = memory_block_size_bytes();
+-	scns_per_block = block_sz / MIN_MEMORY_BLOCK_SIZE;
+-	phys_addr = lmb->base_addr;
+-
+ #ifdef CONFIG_FA_DUMP
  	/*
-_
+ 	 * Don't hot-remove memory that falls in fadump boot memory area
+ 	 * and memory that is reserved for capturing old kernel memory.
+ 	 */
+-	if (is_fadump_memory_area(phys_addr, block_sz))
++	if (is_fadump_memory_area(lmb->base_addr, memory_block_size_bytes()))
+ 		return false;
+ #endif
+-
+-	for (i = 0; i < scns_per_block; i++) {
+-		pfn = PFN_DOWN(phys_addr);
+-		if (!pfn_in_present_section(pfn)) {
+-			phys_addr += MIN_MEMORY_BLOCK_SIZE;
+-			continue;
+-		}
+-
+-		rc = rc && is_mem_section_removable(pfn, PAGES_PER_SECTION);
+-		phys_addr += MIN_MEMORY_BLOCK_SIZE;
+-	}
