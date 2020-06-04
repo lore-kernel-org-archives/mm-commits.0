@@ -1,79 +1,90 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 093/127] include/linux/seq_file.h: introduce
- DEFINE_SEQ_ATTRIBUTE() helper macro
-Date: Thu, 04 Jun 2020 16:51:05 -0700
-Message-ID: <20200604235105.3xun8HesA%akpm@linux-foundation.org>
+Subject: [patch 097/127] exec: open code copy_string_kernel
+Date: Thu, 04 Jun 2020 16:51:18 -0700
+Message-ID: <20200604235118.7QWRd3RgW%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49390 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726022AbgFDXvO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:51:14 -0400
+        id S1726022AbgFDXvT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:51:19 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anil.s.keshavamurthy@intel.com, davem@davemloft.net, gregkh@linuxfoundation.org, linux-mm@kvack.org, mhiramat@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, wangkefeng.wang@huawei.com
+To: akpm@linux-foundation.org, hch@lst.de, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: include/linux/seq_file.h: introduce DEFINE_SEQ_ATTRIBUTE() helper macro
+From: Christoph Hellwig <hch@lst.de>
+Subject: exec: open code copy_string_kernel
 
-Patch series "seq_file: Introduce DEFINE_SEQ_ATTRIBUTE() helper macro".
+Currently copy_string_kernel is just a wrapper around copy_strings that
+simplifies the calling conventions and uses set_fs to allow passing a
+kernel pointer.  But due to the fact the we only need to handle a single
+kernel argument pointer, the logic can be sigificantly simplified while
+getting rid of the set_fs.
 
-As discussed in
-https://lore.kernel.org/lkml/20191129222310.GA3712618@kroah.com/, we could
-introduce a new helper macro to reduce losts of boilerplate code, vmstat
-and kprobes is the example which covert to use it, if this is accepted, I
-will send out more cleanups.
-
-
-This patch (of 3):
-
-Introduce DEFINE_SEQ_ATTRIBUTE() helper macro to decrease code duplication.
-
-[akpm@linux-foundation.org: coding style fixes]
-Link: http://lkml.kernel.org/r/20200509064031.181091-1-wangkefeng.wang@huawei.com
-Link: http://lkml.kernel.org/r/20200509064031.181091-2-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/20200501104105.2621149-3-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/seq_file.h |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ fs/exec.c |   45 +++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 35 insertions(+), 10 deletions(-)
 
---- a/include/linux/seq_file.h~seq_file-introduce-define_seq_attribute-helper-macro
-+++ a/include/linux/seq_file.h
-@@ -145,6 +145,25 @@ void *__seq_open_private(struct file *,
- int seq_open_private(struct file *, const struct seq_operations *, int);
- int seq_release_private(struct inode *, struct file *);
+--- a/fs/exec.c~exec-open-code-copy_string_kernel
++++ a/fs/exec.c
+@@ -592,17 +592,42 @@ out:
+  */
+ int copy_string_kernel(const char *arg, struct linux_binprm *bprm)
+ {
+-	int r;
+-	mm_segment_t oldfs = get_fs();
+-	struct user_arg_ptr argv = {
+-		.ptr.native = (const char __user *const  __user *)&arg,
+-	};
+-
+-	set_fs(KERNEL_DS);
+-	r = copy_strings(1, argv, bprm);
+-	set_fs(oldfs);
++	int len = strnlen(arg, MAX_ARG_STRLEN) + 1 /* terminating NUL */;
++	unsigned long pos = bprm->p;
  
-+#define DEFINE_SEQ_ATTRIBUTE(__name)					\
-+static int __name ## _open(struct inode *inode, struct file *file)	\
-+{									\
-+	int ret = seq_open(file, &__name ## _sops);			\
-+	if (!ret && inode->i_private) {					\
-+		struct seq_file *seq_f = file->private_data;		\
-+		seq_f->private = inode->i_private;			\
-+	}								\
-+	return ret;							\
-+}									\
-+									\
-+static const struct file_operations __name ## _fops = {			\
-+	.owner		= THIS_MODULE,					\
-+	.open		= __name ## _open,				\
-+	.read		= seq_read,					\
-+	.llseek		= seq_lseek,					\
-+	.release	= seq_release,					\
-+}
+-	return r;
++	if (len == 0)
++		return -EFAULT;
++	if (!valid_arg_len(bprm, len))
++		return -E2BIG;
 +
- #define DEFINE_SHOW_ATTRIBUTE(__name)					\
- static int __name ## _open(struct inode *inode, struct file *file)	\
- {									\
++	/* We're going to work our way backwards. */
++	arg += len;
++	bprm->p -= len;
++	if (IS_ENABLED(CONFIG_MMU) && bprm->p < bprm->argmin)
++		return -E2BIG;
++
++	while (len > 0) {
++		unsigned int bytes_to_copy = min_t(unsigned int, len,
++				min_not_zero(offset_in_page(pos), PAGE_SIZE));
++		struct page *page;
++		char *kaddr;
++
++		pos -= bytes_to_copy;
++		arg -= bytes_to_copy;
++		len -= bytes_to_copy;
++
++		page = get_arg_page(bprm, pos, 1);
++		if (!page)
++			return -E2BIG;
++		kaddr = kmap_atomic(page);
++		flush_arg_page(bprm, pos & PAGE_MASK, page);
++		memcpy(kaddr + offset_in_page(pos), arg, bytes_to_copy);
++		flush_kernel_dcache_page(page);
++		kunmap_atomic(kaddr);
++		put_arg_page(page);
++	}
++
++	return 0;
+ }
+ EXPORT_SYMBOL(copy_string_kernel);
+ 
 _
