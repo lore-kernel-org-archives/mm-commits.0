@@ -1,121 +1,253 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-f?=
- =?US-ASCII?Q?ile-workingset.patch?= removed from -mm tree
-Date: Thu, 04 Jun 2020 10:20:44 -0700
-Message-ID: <20200604172044.V368a7GTT%akpm@linux-foundation.org>
+ mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch removed
+ from -mm tree
+Date: Thu, 04 Jun 2020 10:20:47 -0700
+Message-ID: <20200604172047.DZEVG8X75%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42712 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42748 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730076AbgFDRUp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:20:45 -0400
+        id S1730072AbgFDRUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:20:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com
 
 
 The patch titled
-     Subject: mm: allow swappiness that prefers reclaiming anon over the file workingset
+     Subject: mm: fold and remove lru_cache_add_anon() and lru_cache_add_file()
 has been removed from the -mm tree.  Its filename was
-     mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset.patch
+     mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: allow swappiness that prefers reclaiming anon over the file workingset
+Subject: mm: fold and remove lru_cache_add_anon() and lru_cache_add_file()
 
-With the advent of fast random IO devices (SSDs, PMEM) and in-memory swap
-devices such as zswap, it's possible for swap to be much faster than
-filesystems, and for swapping to be preferable over thrashing filesystem
-caches.
+They're the same function, and for the purpose of all callers they are
+equivalent to lru_cache_add().
 
-Allow setting swappiness - which defines the rough relative IO cost of
-cache misses between page cache and swap-backed pages - to reflect such
-situations by making the swap-preferred range configurable.
-
-Link: http://lkml.kernel.org/r/20200520232525.798933-4-hannes@cmpxchg.org
+[akpm@linux-foundation.org: fix it for local_lock changes]
+Link: http://lkml.kernel.org/r/20200520232525.798933-5-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Rik van Riel <riel@surriel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |   23 +++++++++++++++++-----
- kernel/sysctl.c                         |    3 +-
- mm/vmscan.c                             |    2 -
- 3 files changed, 21 insertions(+), 7 deletions(-)
+ fs/cifs/file.c       |   10 ++++-----
+ fs/fuse/dev.c        |    2 -
+ include/linux/swap.h |    2 -
+ mm/khugepaged.c      |    8 +------
+ mm/memory.c          |    2 -
+ mm/shmem.c           |    6 ++---
+ mm/swap.c            |   42 +++++++++--------------------------------
+ mm/swap_state.c      |    2 -
+ 8 files changed, 23 insertions(+), 51 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -831,14 +831,27 @@ tooling to work, you can do::
- swappiness
- ==========
+--- a/fs/cifs/file.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
++++ a/fs/cifs/file.c
+@@ -4162,7 +4162,7 @@ cifs_readv_complete(struct work_struct *
+ 	for (i = 0; i < rdata->nr_pages; i++) {
+ 		struct page *page = rdata->pages[i];
  
--This control is used to define how aggressive the kernel will swap
--memory pages.  Higher values will increase aggressiveness, lower values
--decrease the amount of swap.  A value of 0 instructs the kernel not to
--initiate swap until the amount of free and file-backed pages is less
--than the high water mark in a zone.
-+This control is used to define the rough relative IO cost of swapping
-+and filesystem paging, as a value between 0 and 200. At 100, the VM
-+assumes equal IO cost and will thus apply memory pressure to the page
-+cache and swap-backed pages equally; lower values signify more
-+expensive swap IO, higher values indicates cheaper.
-+
-+Keep in mind that filesystem IO patterns under memory pressure tend to
-+be more efficient than swap's random IO. An optimal value will require
-+experimentation and will also be workload-dependent.
+-		lru_cache_add_file(page);
++		lru_cache_add(page);
  
- The default value is 60.
+ 		if (rdata->result == 0 ||
+ 		    (rdata->result == -EAGAIN && got_bytes)) {
+@@ -4232,7 +4232,7 @@ readpages_fill_pages(struct TCP_Server_I
+ 			 * fill them until the writes are flushed.
+ 			 */
+ 			zero_user(page, 0, PAGE_SIZE);
+-			lru_cache_add_file(page);
++			lru_cache_add(page);
+ 			flush_dcache_page(page);
+ 			SetPageUptodate(page);
+ 			unlock_page(page);
+@@ -4242,7 +4242,7 @@ readpages_fill_pages(struct TCP_Server_I
+ 			continue;
+ 		} else {
+ 			/* no need to hold page hostage */
+-			lru_cache_add_file(page);
++			lru_cache_add(page);
+ 			unlock_page(page);
+ 			put_page(page);
+ 			rdata->pages[i] = NULL;
+@@ -4437,7 +4437,7 @@ static int cifs_readpages(struct file *f
+ 			/* best to give up if we're out of mem */
+ 			list_for_each_entry_safe(page, tpage, &tmplist, lru) {
+ 				list_del(&page->lru);
+-				lru_cache_add_file(page);
++				lru_cache_add(page);
+ 				unlock_page(page);
+ 				put_page(page);
+ 			}
+@@ -4475,7 +4475,7 @@ static int cifs_readpages(struct file *f
+ 			add_credits_and_wake_if(server, &rdata->credits, 0);
+ 			for (i = 0; i < rdata->nr_pages; i++) {
+ 				page = rdata->pages[i];
+-				lru_cache_add_file(page);
++				lru_cache_add(page);
+ 				unlock_page(page);
+ 				put_page(page);
+ 			}
+--- a/fs/fuse/dev.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
++++ a/fs/fuse/dev.c
+@@ -840,7 +840,7 @@ static int fuse_try_move_page(struct fus
+ 	get_page(newpage);
  
-+For in-memory swap, like zram or zswap, as well as hybrid setups that
-+have swap on faster devices than the filesystem, values beyond 100 can
-+be considered. For example, if the random IO against the swap device
-+is on average 2x faster than IO from the filesystem, swappiness should
-+be 133 (x + 2x = 200, 2x = 133.33).
-+
-+At 0, the kernel will not initiate swap until the amount of free and
-+file-backed pages is less than the high watermark in a zone.
-+
+ 	if (!(buf->flags & PIPE_BUF_FLAG_LRU))
+-		lru_cache_add_file(newpage);
++		lru_cache_add(newpage);
  
- unprivileged_userfaultfd
- ========================
---- a/kernel/sysctl.c~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
-+++ a/kernel/sysctl.c
-@@ -131,6 +131,7 @@ static unsigned long zero_ul;
- static unsigned long one_ul = 1;
- static unsigned long long_max = LONG_MAX;
- static int one_hundred = 100;
-+static int two_hundred = 200;
- static int one_thousand = 1000;
- #ifdef CONFIG_PRINTK
- static int ten_thousand = 10000;
-@@ -1391,7 +1392,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_hundred,
-+		.extra2		= &two_hundred,
- 	},
- #ifdef CONFIG_HUGETLB_PAGE
- 	{
---- a/mm/vmscan.c~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
-+++ a/mm/vmscan.c
-@@ -161,7 +161,7 @@ struct scan_control {
- #endif
+ 	err = 0;
+ 	spin_lock(&cs->req->waitq.lock);
+--- a/include/linux/swap.h~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
++++ a/include/linux/swap.h
+@@ -335,8 +335,6 @@ extern unsigned long nr_free_pagecache_p
  
- /*
-- * From 0 .. 100.  Higher means more swappy.
-+ * From 0 .. 200.  Higher means more swappy.
+ /* linux/mm/swap.c */
+ extern void lru_cache_add(struct page *);
+-extern void lru_cache_add_anon(struct page *page);
+-extern void lru_cache_add_file(struct page *page);
+ extern void lru_add_page_tail(struct page *page, struct page *page_tail,
+ 			 struct lruvec *lruvec, struct list_head *head);
+ extern void activate_page(struct page *);
+--- a/mm/khugepaged.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
++++ a/mm/khugepaged.c
+@@ -1879,13 +1879,9 @@ xa_unlocked:
+ 
+ 		SetPageUptodate(new_page);
+ 		page_ref_add(new_page, HPAGE_PMD_NR - 1);
+-
+-		if (is_shmem) {
++		if (is_shmem)
+ 			set_page_dirty(new_page);
+-			lru_cache_add_anon(new_page);
+-		} else {
+-			lru_cache_add_file(new_page);
+-		}
++		lru_cache_add(new_page);
+ 
+ 		/*
+ 		 * Remove pte page tables, so we can re-fault the page as huge.
+--- a/mm/memory.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
++++ a/mm/memory.c
+@@ -3139,7 +3139,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 				if (err)
+ 					goto out_page;
+ 
+-				lru_cache_add_anon(page);
++				lru_cache_add(page);
+ 				swap_readpage(page, true);
+ 			}
+ 		} else {
+--- a/mm/shmem.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
++++ a/mm/shmem.c
+@@ -1609,7 +1609,7 @@ static int shmem_replace_page(struct pag
+ 		 */
+ 		oldpage = newpage;
+ 	} else {
+-		lru_cache_add_anon(newpage);
++		lru_cache_add(newpage);
+ 		*pagep = newpage;
+ 	}
+ 
+@@ -1860,7 +1860,7 @@ alloc_nohuge:
+ 					charge_mm);
+ 	if (error)
+ 		goto unacct;
+-	lru_cache_add_anon(page);
++	lru_cache_add(page);
+ 
+ 	spin_lock_irq(&info->lock);
+ 	info->alloced += compound_nr(page);
+@@ -2376,7 +2376,7 @@ static int shmem_mfill_atomic_pte(struct
+ 	if (!pte_none(*dst_pte))
+ 		goto out_release_unlock;
+ 
+-	lru_cache_add_anon(page);
++	lru_cache_add(page);
+ 
+ 	spin_lock_irq(&info->lock);
+ 	info->alloced++;
+--- a/mm/swap.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
++++ a/mm/swap.c
+@@ -424,37 +424,6 @@ void mark_page_accessed(struct page *pag
+ }
+ EXPORT_SYMBOL(mark_page_accessed);
+ 
+-static void __lru_cache_add(struct page *page)
+-{
+-	struct pagevec *pvec;
+-
+-	local_lock(&lru_pvecs.lock);
+-	pvec = this_cpu_ptr(&lru_pvecs.lru_add);
+-	get_page(page);
+-	if (!pagevec_add(pvec, page) || PageCompound(page))
+-		__pagevec_lru_add(pvec);
+-	local_unlock(&lru_pvecs.lock);
+-}
+-
+-/**
+- * lru_cache_add_anon - add a page to the page lists
+- * @page: the page to add
+- */
+-void lru_cache_add_anon(struct page *page)
+-{
+-	if (PageActive(page))
+-		ClearPageActive(page);
+-	__lru_cache_add(page);
+-}
+-
+-void lru_cache_add_file(struct page *page)
+-{
+-	if (PageActive(page))
+-		ClearPageActive(page);
+-	__lru_cache_add(page);
+-}
+-EXPORT_SYMBOL(lru_cache_add_file);
+-
+ /**
+  * lru_cache_add - add a page to a page list
+  * @page: the page to be added to the LRU.
+@@ -466,10 +435,19 @@ EXPORT_SYMBOL(lru_cache_add_file);
   */
- int vm_swappiness = 60;
- /*
+ void lru_cache_add(struct page *page)
+ {
++	struct pagevec *pvec;
++
+ 	VM_BUG_ON_PAGE(PageActive(page) && PageUnevictable(page), page);
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
+-	__lru_cache_add(page);
++
++	get_page(page);
++	local_lock(&lru_pvecs.lock);
++	pvec = this_cpu_ptr(&lru_pvecs.lru_add);
++	if (!pagevec_add(pvec, page) || PageCompound(page))
++		__pagevec_lru_add(pvec);
++	local_unlock(&lru_pvecs.lock);
+ }
++EXPORT_SYMBOL(lru_cache_add);
+ 
+ /**
+  * lru_cache_add_active_or_unevictable
+--- a/mm/swap_state.c~mm-fold-and-remove-lru_cache_add_anon-and-lru_cache_add_file
++++ a/mm/swap_state.c
+@@ -442,7 +442,7 @@ struct page *__read_swap_cache_async(swp
+ 
+ 	/* Caller will initiate read into locked page */
+ 	SetPageWorkingset(page);
+-	lru_cache_add_anon(page);
++	lru_cache_add(page);
+ 	*new_page_allocated = true;
+ 	return page;
+ 
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
