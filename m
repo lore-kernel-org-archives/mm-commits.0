@@ -1,102 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-call-cond_resched-from-deferred_init_memmap.patch removed from -mm tree
-Date: Thu, 04 Jun 2020 10:18:29 -0700
-Message-ID: <20200604171829.2a2P11QAF%akpm@linux-foundation.org>
+Subject: [merged] padata-remove-exit-routine.patch removed from
+ -mm tree
+Date: Thu, 04 Jun 2020 10:18:32 -0700
+Message-ID: <20200604171832.ExH0nD1eX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40084 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40144 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730088AbgFDRSa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:18:30 -0400
+        id S1730088AbgFDRSe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:18:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, daniel.m.jordan@oracle.com, david@redhat.com, jmorris@namei.org, ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, pasha.tatashin@soleen.com, sashal@kernel.org, shile.zhang@linux.alibaba.com, stable@vger.kernel.org, vbabka@suse.cz, yiwei@redhat.com
+To: alex.williamson@redhat.com, alexander.h.duyck@linux.intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com, david@redhat.com, elliott@hpe.com, herbert@gondor.apana.org.au, jgg@ziepe.ca, josh@joshtriplett.org, ktkhai@virtuozzo.com, mhocko@kernel.org, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, pavel@ucw.cz, peterz@infradead.org, rdunlap@infradead.org, shile.zhang@linux.alibaba.com, steffen.klassert@secunet.com, steven.sistare@oracle.com, tj@kernel.org, ziy@nvidia.com
 
 
 The patch titled
-     Subject: mm: call cond_resched() from deferred_init_memmap()
+     Subject: padata: remove exit routine
 has been removed from the -mm tree.  Its filename was
-     mm-call-cond_resched-from-deferred_init_memmap.patch
+     padata-remove-exit-routine.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm: call cond_resched() from deferred_init_memmap()
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: padata: remove exit routine
 
-Now that deferred pages are initialized with interrupts enabled we can
-replace touch_nmi_watchdog() with cond_resched(), as it was before
-3a2d7fa8a3d5.
+Patch series "padata: parallelize deferred page init", v3.
 
-For now, we cannot do the same in deferred_grow_zone() as it is still
-initializes pages with interrupts disabled.
+Deferred struct page init is a bottleneck in kernel boot--the biggest for
+us and probably others.  Optimizing it maximizes availability for
+large-memory systems and allows spinning up short-lived VMs as needed
+without having to leave them running.  It also benefits bare metal
+machines hosting VMs that are sensitive to downtime.  In projects such as
+VMM Fast Restart[1], where guest state is preserved across kexec reboot,
+it helps prevent application and network timeouts in the guests.
 
-This change fixes RCU problem described in
-https://lkml.kernel.org/r/20200401104156.11564-2-david@redhat.com
+So, multithread deferred init to take full advantage of system memory
+bandwidth.
 
-[   60.474005] rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
-[   60.475000] rcu:  1-...0: (0 ticks this GP) idle=02a/1/0x4000000000000000 softirq=1/1 fqs=15000
-[   60.475000] rcu:  (detected by 0, t=60002 jiffies, g=-1199, q=1)
-[   60.475000] Sending NMI from CPU 0 to CPUs 1:
-[    1.760091] NMI backtrace for cpu 1
-[    1.760091] CPU: 1 PID: 20 Comm: pgdatinit0 Not tainted 4.18.0-147.9.1.el8_1.x86_64 #1
-[    1.760091] Hardware name: Red Hat KVM, BIOS 1.13.0-1.module+el8.2.0+5520+4e5817f3 04/01/2014
-[    1.760091] RIP: 0010:__init_single_page.isra.65+0x10/0x4f
-[    1.760091] Code: 48 83 cf 63 48 89 f8 0f 1f 40 00 48 89 c6 48 89 d7 e8 6b 18 80 ff 66 90 5b c3 31 c0 b9 10 00 00 00 49 89 f8 48 c1 e6 33 f3 ab <b8> 07 00 00 00 48 c1 e2 36 41 c7 40 34 01 00 00 00 48 c1 e0 33 41
-[    1.760091] RSP: 0000:ffffba783123be40 EFLAGS: 00000006
-[    1.760091] RAX: 0000000000000000 RBX: fffffad34405e300 RCX: 0000000000000000
-[    1.760091] RDX: 0000000000000000 RSI: 0010000000000000 RDI: fffffad34405e340
-[    1.760091] RBP: 0000000033f3177e R08: fffffad34405e300 R09: 0000000000000002
-[    1.760091] R10: 000000000000002b R11: ffff98afb691a500 R12: 0000000000000002
-[    1.760091] R13: 0000000000000000 R14: 000000003f03ea00 R15: 000000003e10178c
-[    1.760091] FS:  0000000000000000(0000) GS:ffff9c9ebeb00000(0000) knlGS:0000000000000000
-[    1.760091] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    1.760091] CR2: 00000000ffffffff CR3: 000000a1cf20a001 CR4: 00000000003606e0
-[    1.760091] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[    1.760091] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[    1.760091] Call Trace:
-[    1.760091]  deferred_init_pages+0x8f/0xbf
-[    1.760091]  deferred_init_memmap+0x184/0x29d
-[    1.760091]  ? deferred_free_pages.isra.97+0xba/0xba
-[    1.760091]  kthread+0x112/0x130
-[    1.760091]  ? kthread_flush_work_fn+0x10/0x10
-[    1.760091]  ret_from_fork+0x35/0x40
-[   89.123011] node 0 initialised, 1055935372 pages in 88650ms
+Extend padata, a framework that handles many parallel singlethreaded jobs,
+to handle multithreaded jobs as well by adding support for splitting up
+the work evenly, specifying a minimum amount of work that's appropriate
+for one helper thread to do, load balancing between helpers, and
+coordinating them.  More documentation in patches 4 and 8.
 
-Link: http://lkml.kernel.org/r/20200403140952.17177-4-pasha.tatashin@soleen.com
-Fixes: 3a2d7fa8a3d5 ("mm: disable interrupts while initializing deferred pages")
-Reported-by: Yiqian Wei <yiwei@redhat.com>
-Tested-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+This series is the first step in a project to address other memory
+proportional bottlenecks in the kernel such as pmem struct page init, vfio
+page pinning, hugetlb fallocate, and munmap.  Deferred page init doesn't
+require concurrency limits, resource control, or priority adjustments like
+these other users will because it happens during boot when the system is
+otherwise idle and waiting for page init to finish.
+
+This has been run on a variety of x86 systems and speeds up kernel boot by
+4% to 49%, saving up to 1.6 out of 4 seconds.  Patch 6 has more numbers.
+
+
+This patch (of 8):
+
+padata_driver_exit() is unnecessary because padata isn't built as a module
+and doesn't exit.
+
+padata's init routine will soon allocate memory, so getting rid of the
+exit function now avoids pointless code to free it.
+
+Link: http://lkml.kernel.org/r/20200527173608.2885243-1-daniel.m.jordan@oracle.com
+Link: http://lkml.kernel.org/r/20200527173608.2885243-2-daniel.m.jordan@oracle.com
+Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Tested-by: Josh Triplett <josh@joshtriplett.org>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: James Morris <jmorris@namei.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Sasha Levin <sashal@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Robert Elliott <elliott@hpe.com>
 Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[4.17+]
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: Steven Sistare <steven.sistare@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/padata.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/mm/page_alloc.c~mm-call-cond_resched-from-deferred_init_memmap
-+++ a/mm/page_alloc.c
-@@ -1870,7 +1870,7 @@ static int __init deferred_init_memmap(v
- 	 */
- 	while (spfn < epfn) {
- 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
--		touch_nmi_watchdog();
-+		cond_resched();
- 	}
- zone_empty:
- 	/* Sanity check that the next zone really is unpopulated */
+--- a/kernel/padata.c~padata-remove-exit-routine
++++ a/kernel/padata.c
+@@ -1074,10 +1074,4 @@ static __init int padata_driver_init(voi
+ }
+ module_init(padata_driver_init);
+ 
+-static __exit void padata_driver_exit(void)
+-{
+-	cpuhp_remove_multi_state(CPUHP_PADATA_DEAD);
+-	cpuhp_remove_multi_state(hp_online);
+-}
+-module_exit(padata_driver_exit);
+ #endif
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
