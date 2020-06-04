@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
- removed from -mm tree
-Date: Thu, 04 Jun 2020 10:16:47 -0700
-Message-ID: <20200604171647.9TP0bufJR%akpm@linux-foundation.org>
+ m68k-mm-simplify-detection-of-memory-zone-boundaries.patch removed from -mm
+ tree
+Date: Thu, 04 Jun 2020 10:16:55 -0700
+Message-ID: <20200604171655.MRAEMF6nj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38054 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730073AbgFDRQt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:16:49 -0400
+        id S1730086AbgFDRQ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:16:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, hoan@os.amperecomputing.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, mattst88@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@linux.ibm.com, shorne@gmail.com, tony.luck@intel.com, tsbogend@alpha.franken.de, vgupta@synopsys.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: arm64: simplify detection of memory zone boundaries for UMA configs
+     Subject: m68k: mm: simplify detection of memory zone boundaries
 has been removed from the -mm tree.  Its filename was
-     arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs.patch
+     m68k-mm-simplify-detection-of-memory-zone-boundaries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: arm64: simplify detection of memory zone boundaries for UMA configs
+Subject: m68k: mm: simplify detection of memory zone boundaries
 
-The free_area_init() function only requires the definition of maximal PFN
-for each of the supported zone rater than calculation of actual zone sizes
-and the sizes of the holes between the zones.
+free_area_init() only requires the definition of maximal PFN for each of
+the supported zone rater than calculation of actual zone sizes and the
+sizes of the holes between the zones.
 
 After removal of CONFIG_HAVE_MEMBLOCK_NODE_MAP the free_area_init() is
 available to all architectures.
@@ -36,12 +36,12 @@ available to all architectures.
 Using this function instead of free_area_init_node() simplifies the zone
 detection.
 
-Link: http://lkml.kernel.org/r/20200412194859.12663-9-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200412194859.12663-11-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Tested-by: Hoan Tran <hoan@os.amperecomputing.com>	[arm64]
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Brian Cain <bcain@codeaurora.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Greentime Hu <green.hu@gmail.com>
@@ -72,79 +72,65 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/init.c |   54 -----------------------------------------
- 1 file changed, 54 deletions(-)
+ arch/m68k/mm/motorola.c |   11 +++++------
+ arch/m68k/mm/sun3mmu.c  |   10 +++-------
+ 2 files changed, 8 insertions(+), 13 deletions(-)
 
---- a/arch/arm64/mm/init.c~arm64-simplify-detection-of-memory-zone-boundaries-for-uma-configs
-+++ a/arch/arm64/mm/init.c
-@@ -192,8 +192,6 @@ static phys_addr_t __init max_zone_phys(
- 	return min(offset + (1ULL << zone_bits), memblock_end_of_DRAM());
- }
- 
--#ifdef CONFIG_NUMA
--
- static void __init zone_sizes_init(unsigned long min, unsigned long max)
+--- a/arch/m68k/mm/motorola.c~m68k-mm-simplify-detection-of-memory-zone-boundaries
++++ a/arch/m68k/mm/motorola.c
+@@ -365,7 +365,7 @@ static void __init map_node(int node)
+  */
+ void __init paging_init(void)
  {
- 	unsigned long max_zone_pfns[MAX_NR_ZONES]  = {0};
-@@ -209,58 +207,6 @@ static void __init zone_sizes_init(unsig
- 	free_area_init(max_zone_pfns);
- }
- 
--#else
--
--static void __init zone_sizes_init(unsigned long min, unsigned long max)
--{
--	struct memblock_region *reg;
--	unsigned long zone_size[MAX_NR_ZONES], zhole_size[MAX_NR_ZONES];
--	unsigned long __maybe_unused max_dma, max_dma32;
--
--	memset(zone_size, 0, sizeof(zone_size));
--
--	max_dma = max_dma32 = min;
--#ifdef CONFIG_ZONE_DMA
--	max_dma = max_dma32 = PFN_DOWN(arm64_dma_phys_limit);
--	zone_size[ZONE_DMA] = max_dma - min;
--#endif
--#ifdef CONFIG_ZONE_DMA32
--	max_dma32 = PFN_DOWN(arm64_dma32_phys_limit);
--	zone_size[ZONE_DMA32] = max_dma32 - max_dma;
--#endif
--	zone_size[ZONE_NORMAL] = max - max_dma32;
--
--	memcpy(zhole_size, zone_size, sizeof(zhole_size));
--
--	for_each_memblock(memory, reg) {
--		unsigned long start = memblock_region_memory_base_pfn(reg);
--		unsigned long end = memblock_region_memory_end_pfn(reg);
--
--#ifdef CONFIG_ZONE_DMA
--		if (start >= min && start < max_dma) {
--			unsigned long dma_end = min(end, max_dma);
--			zhole_size[ZONE_DMA] -= dma_end - start;
--			start = dma_end;
--		}
--#endif
--#ifdef CONFIG_ZONE_DMA32
--		if (start >= max_dma && start < max_dma32) {
--			unsigned long dma32_end = min(end, max_dma32);
--			zhole_size[ZONE_DMA32] -= dma32_end - start;
--			start = dma32_end;
--		}
--#endif
--		if (start >= max_dma32 && start < max) {
--			unsigned long normal_end = min(end, max);
--			zhole_size[ZONE_NORMAL] -= normal_end - start;
--		}
+-	unsigned long zones_size[MAX_NR_ZONES] = { 0, };
++	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0, };
+ 	unsigned long min_addr, max_addr;
+ 	unsigned long addr;
+ 	int i;
+@@ -448,11 +448,10 @@ void __init paging_init(void)
+ #ifdef DEBUG
+ 	printk ("before free_area_init\n");
+ #endif
+-	for (i = 0; i < m68k_num_memory; i++) {
+-		zones_size[ZONE_DMA] = m68k_memory[i].size >> PAGE_SHIFT;
+-		free_area_init_node(i, zones_size,
+-				    m68k_memory[i].addr >> PAGE_SHIFT, NULL);
++	for (i = 0; i < m68k_num_memory; i++)
+ 		if (node_present_pages(i))
+ 			node_set_state(i, N_NORMAL_MEMORY);
 -	}
++
++	max_zone_pfn[ZONE_DMA] = memblock_end_of_DRAM();
++	free_area_init(max_zone_pfn);
+ }
+--- a/arch/m68k/mm/sun3mmu.c~m68k-mm-simplify-detection-of-memory-zone-boundaries
++++ a/arch/m68k/mm/sun3mmu.c
+@@ -42,7 +42,7 @@ void __init paging_init(void)
+ 	unsigned long address;
+ 	unsigned long next_pgtable;
+ 	unsigned long bootmem_end;
+-	unsigned long zones_size[MAX_NR_ZONES] = { 0, };
++	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0, };
+ 	unsigned long size;
+ 
+ 	empty_zero_page = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+@@ -89,14 +89,10 @@ void __init paging_init(void)
+ 	current->mm = NULL;
+ 
+ 	/* memory sizing is a hack stolen from motorola.c..  hope it works for us */
+-	zones_size[ZONE_DMA] = ((unsigned long)high_memory - PAGE_OFFSET) >> PAGE_SHIFT;
++	max_zone_pfn[ZONE_DMA] = ((unsigned long)high_memory) >> PAGE_SHIFT;
+ 
+ 	/* I really wish I knew why the following change made things better...  -- Sam */
+-/*	free_area_init(zones_size); */
+-	free_area_init_node(0, zones_size,
+-			    (__pa(PAGE_OFFSET) >> PAGE_SHIFT) + 1, NULL);
++	free_area_init(max_zone_pfn);
+ 
+ 
+ }
 -
--	free_area_init_node(0, zone_size, min, zhole_size);
--}
 -
--#endif /* CONFIG_NUMA */
--
- int pfn_valid(unsigned long pfn)
- {
- 	phys_addr_t addr = pfn << PAGE_SHIFT;
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
