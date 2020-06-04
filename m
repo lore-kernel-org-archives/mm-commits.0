@@ -1,77 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
- removed from -mm tree
-Date: Thu, 04 Jun 2020 16:06:58 -0700
-Message-ID: <20200604230658.2ikZMV9O7%akpm@linux-foundation.org>
+ arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch removed from
+ -mm tree
+Date: Thu, 04 Jun 2020 16:08:29 -0700
+Message-ID: <20200604230829.pk55Ybix8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55888 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56062 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgFDXHA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:07:00 -0400
+        id S1725863AbgFDXIb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:08:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anshuman.khandual@arm.com, cai@lca.pw, catalin.marinas@arm.com, christophe.leroy@c-s.fr, gerald.schaefer@de.ibm.com, mingo@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ira.weiny@intel.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm-debug-add-tests-validating-architecture-page-table-helpers-v18
+     Subject: arch-kunmap-remove-duplicate-kunmap-implementations-fix
 has been removed from the -mm tree.  Its filename was
-     mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
+     arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
 
-This patch was dropped because it was folded into mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+This patch was dropped because it was folded into arch-kunmap-remove-duplicate-kunmap-implementations.patch
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm-debug-add-tests-validating-architecture-page-table-helpers-v18
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch-kunmap-remove-duplicate-kunmap-implementations-fix
 
-update CONFIG_DEBUG_VM_PGTABLE's help section as required
+fix CONFIG_HIGHMEM=n build on various architectures
 
-Link: http://lkml.kernel.org/r/1588564865-31160-3-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ include/linux/highmem.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/lib/Kconfig.debug~mm-debug-add-tests-validating-architecture-page-table-helpers-v18
-+++ a/lib/Kconfig.debug
-@@ -702,9 +702,8 @@ config DEBUG_VM_PGFLAGS
- config DEBUG_VM_PGTABLE
- 	bool "Debug arch page table for semantics compliance"
- 	depends on MMU
--	depends on !IA64 && !ARM
--	depends on ARCH_HAS_DEBUG_VM_PGTABLE || EXPERT
--	default y if ARCH_HAS_DEBUG_VM_PGTABLE && DEBUG_VM
-+	depends on ARCH_HAS_DEBUG_VM_PGTABLE
-+	default y if DEBUG_VM
- 	help
- 	  This option provides a debug method which can be used to test
- 	  architecture page table helper functions on various platforms in
-@@ -712,9 +711,7 @@ config DEBUG_VM_PGTABLE
- 	  will help architecture code in making sure that any changes or
- 	  new additions of these helpers still conform to expected
- 	  semantics of the generic MM. Platforms will have to opt in for
--	  this through ARCH_HAS_DEBUG_VM_PGTABLE. Although it can also be
--	  enabled through EXPERT without requiring code change. This test
--	  is disabled on IA64 and ARM platforms where it fails to build.
-+	  this through ARCH_HAS_DEBUG_VM_PGTABLE.
+--- a/include/linux/highmem.h~arch-kunmap-remove-duplicate-kunmap-implementations-fix
++++ a/include/linux/highmem.h
+@@ -53,6 +53,7 @@ static inline void *kmap(struct page *pa
+ }
  
- 	  If unsure, say N.
+ void kunmap_high(struct page *page);
++
+ static inline void kunmap(struct page *page)
+ {
+ 	might_sleep();
+@@ -111,6 +112,10 @@ static inline void *kmap(struct page *pa
+ 	return page_address(page);
+ }
  
++static inline void kunmap_high(struct page *page)
++{
++}
++
+ static inline void kunmap(struct page *page)
+ {
+ }
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-mm-define-mm_p4d_folded.patch
-mm-debug-add-tests-validating-architecture-page-table-helpers.patch
-mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
-mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
+arch-kunmap-remove-duplicate-kunmap-implementations.patch
+arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-pre.patch
+linux-next-rejects.patch
+linux-next-post.patch
+kernel-add-panic_on_taint-fix.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
