@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-fix-a-typo-in-comment.patch added to -mm
- tree
-Date: Thu, 04 Jun 2020 11:03:37 -0700
-Message-ID: <20200604180337.lQ_-QH1oI%akpm@linux-foundation.org>
+Subject: + memory_hotplug-disable-the-functionality-for-32b.patch
+ added to -mm tree
+Date: Thu, 04 Jun 2020 12:59:13 -0700
+Message-ID: <20200604195913.KsECDwHeH%akpm@linux-foundation.org>
 References: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38268 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57112 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730055AbgFDSDi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 14:03:38 -0400
+        id S1726026AbgFDT7P (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 15:59:15 -0400
 In-Reply-To: <20200603155549.e041363450869eaae4c7f05b@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, david@redhat.com, hch@lst.de, jtp.park@samsung.com, mm-commits@vger.kernel.org
+To: bhe@redhat.com, david@redhat.com, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, osalvador@suse.de, richardw.yang@linux.intel.com, robin.murphy@arm.com, vamshi.k.sthambamkadi@gmail.com
 
 
 The patch titled
-     Subject: mm/vmalloc: fix a typo in comment
+     Subject: mm/memory_hotplug: disable the functionality for 32b
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-fix-a-typo-in-comment.patch
+     memory_hotplug-disable-the-functionality-for-32b.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-a-typo-in-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory_hotplug-disable-the-functionality-for-32b.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-a-typo-in-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory_hotplug-disable-the-functionality-for-32b.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,36 +38,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jeongtae Park <jtp.park@samsung.com>
-Subject: mm/vmalloc: fix a typo in comment
+From: Michal Hocko <mhocko@kernel.org>
+Subject: mm/memory_hotplug: disable the functionality for 32b
 
-There is a typo in comment, fix it.
-"nother" -> "another"
+Memory hotlug is broken for 32b systems at least since c6f03e2903c9 ("mm,
+memory_hotplug: remove zone restrictions") which has considerably reworked
+how can be memory associated with movable/kernel zones.  The same is not
+really trivial to achieve in 32b where only lowmem is the kernel zone. 
+While we can tweak this immediate problem around there are likely other
+land mines hidden at other places.
 
-Link: http://lkml.kernel.org/r/20200604185239.20765-1-jtp.park@samsung.com
-Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Christoph Hellwig <hch@lst.de>
+It is also quite dubious that there is a real usecase for the memory
+hotplug on 32b in the first place.  Low memory is just too small to be
+hotplugable (for hot add) and generally unusable for hotremove.  Adding
+more memory to highmem is also dubious because it would increase the low
+mem or vmalloc space pressure for memmaps.
+
+Restrict the functionality to 64b systems.  This will help future
+development to focus on usecases that have real life application.  We can
+remove this restriction in future in presence of a real life usecase of
+course but until then make it explicit that hotplug on 32b is broken and
+requires a non trivial amount of work to fix.
+
+Robin said:
+
+: 32-bit Arm doesn't support memory hotplug, and as far as I'm aware there's
+: little likelihood of it ever wanting to.  FWIW it looks like SuperH is the
+: only pure-32-bit architecture to have hotplug support at all.
+
+Link: http://lkml.kernel.org/r/20200218100532.GA4151@dhcp22.suse.cz
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=206401
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Wei Yang <richardw.yang@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Vamshi K Sthambamkadi <vamshi.k.sthambamkadi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-fix-a-typo-in-comment
-+++ a/mm/vmalloc.c
-@@ -2317,7 +2317,7 @@ static inline void __vfree_deferred(cons
- 	 * Use raw_cpu_ptr() because this can be called from preemptible
- 	 * context. Preemption is absolutely fine here, because the llist_add()
- 	 * implementation is lockless, so it works even if we are adding to
--	 * nother cpu's list.  schedule_work() should be fine with this too.
-+	 * another cpu's list. schedule_work() should be fine with this too.
- 	 */
- 	struct vfree_deferred *p = raw_cpu_ptr(&vfree_deferred);
+--- a/mm/Kconfig~memory_hotplug-disable-the-functionality-for-32b
++++ a/mm/Kconfig
+@@ -155,6 +155,7 @@ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
+ 	depends on SPARSEMEM || X86_64_ACPI_NUMA
+ 	depends on ARCH_ENABLE_MEMORY_HOTPLUG
++	depends on 64BIT || BROKEN
+ 	select NUMA_KEEP_MEMINFO if NUMA
  
+ config MEMORY_HOTPLUG_SPARSE
 _
 
-Patches currently in -mm which might be from jtp.park@samsung.com are
+Patches currently in -mm which might be from mhocko@kernel.org are
 
-mm-vmalloc-fix-a-typo-in-comment.patch
+memory_hotplug-disable-the-functionality-for-32b.patch
