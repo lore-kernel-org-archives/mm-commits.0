@@ -1,50 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-change-cow-semantics-for-anon-thp.patch
- removed from -mm tree
-Date: Thu, 04 Jun 2020 10:19:06 -0700
-Message-ID: <20200604171906.v3z9iIQ68%akpm@linux-foundation.org>
+Subject: [merged]
+ khugepaged-introduce-max_ptes_shared-tunable.patch removed from -mm tree
+Date: Thu, 04 Jun 2020 10:19:09 -0700
+Message-ID: <20200604171909.NJuf6MAub%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40906 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730043AbgFDRTI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:19:08 -0400
+        id S1730043AbgFDRTM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:19:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, william.kucharski@oracle.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
+To: aarcange@redhat.com, colin.king@canonical.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, william.kucharski@oracle.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: thp: change CoW semantics for anon-THP
+     Subject: khugepaged: introduce 'max_ptes_shared' tunable
 has been removed from the -mm tree.  Its filename was
-     thp-change-cow-semantics-for-anon-thp.patch
+     khugepaged-introduce-max_ptes_shared-tunable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: change CoW semantics for anon-THP
+Subject: khugepaged: introduce 'max_ptes_shared' tunable
 
-Currently we have different copy-on-write semantics for anon- and
-file-THP.  For anon-THP we try to allocate huge page on the write fault,
-but on file-THP we split PMD and allocate 4k page.
+'max_ptes_shared' specifies how many pages can be shared across multiple
+processes.  Exceeding the number would block the collapse::
 
-Arguably, file-THP semantics is more desirable: we don't necessary want to
-unshare full PMD range from the parent on the first access.  This is the
-primary reason THP is unusable for some workloads, like Redis.
+	/sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_shared
 
-The original THP refcounting didn't allow to have PTE-mapped compound
-pages, so we had no options, but to allocate huge page on CoW (with
-fallback to 512 4k pages).
+A higher value may increase memory footprint for some workloads.
 
-The current refcounting doesn't have such limitations and we can cut a lot
-of complex code out of fault path.
+By default, at least half of pages has to be not shared.
 
-khugepaged is now able to recover THP from such ranges if the
-configuration allows.
-
-Link: http://lkml.kernel.org/r/20200416160026.16538-8-kirill.shutemov@linux.intel.com
+[colin.king@canonical.com: fix several spelling mistakes]
+  Link: http://lkml.kernel.org/r/20200420084241.65433-1-colin.king@canonical.com
+Link: http://lkml.kernel.org/r/20200416160026.16538-9-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Tested-by: Zi Yan <ziy@nvidia.com>
@@ -56,300 +50,305 @@ Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |  250 ++++-----------------------------------------
- 1 file changed, 25 insertions(+), 225 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |    7 +
+ include/trace/events/huge_memory.h         |    3 
+ mm/khugepaged.c                            |   52 ++++++++++-
+ tools/testing/selftests/vm/khugepaged.c    |   83 +++++++++++++++++++
+ 4 files changed, 140 insertions(+), 5 deletions(-)
 
---- a/mm/huge_memory.c~thp-change-cow-semantics-for-anon-thp
-+++ a/mm/huge_memory.c
-@@ -1255,263 +1255,63 @@ unlock:
- 	spin_unlock(vmf->ptl);
- }
+--- a/Documentation/admin-guide/mm/transhuge.rst~khugepaged-introduce-max_ptes_shared-tunable
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -220,6 +220,13 @@ memory. A lower value can prevent THPs f
+ collapsed, resulting fewer pages being collapsed into
+ THPs, and lower memory access performance.
  
--static vm_fault_t do_huge_pmd_wp_page_fallback(struct vm_fault *vmf,
--			pmd_t orig_pmd, struct page *page)
--{
--	struct vm_area_struct *vma = vmf->vma;
--	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
--	struct mem_cgroup *memcg;
--	pgtable_t pgtable;
--	pmd_t _pmd;
--	int i;
--	vm_fault_t ret = 0;
--	struct page **pages;
--	struct mmu_notifier_range range;
--
--	pages = kmalloc_array(HPAGE_PMD_NR, sizeof(struct page *),
--			      GFP_KERNEL);
--	if (unlikely(!pages)) {
--		ret |= VM_FAULT_OOM;
--		goto out;
--	}
--
--	for (i = 0; i < HPAGE_PMD_NR; i++) {
--		pages[i] = alloc_page_vma_node(GFP_HIGHUSER_MOVABLE, vma,
--					       vmf->address, page_to_nid(page));
--		if (unlikely(!pages[i] ||
--			     mem_cgroup_try_charge_delay(pages[i], vma->vm_mm,
--				     GFP_KERNEL, &memcg, false))) {
--			if (pages[i])
--				put_page(pages[i]);
--			while (--i >= 0) {
--				memcg = (void *)page_private(pages[i]);
--				set_page_private(pages[i], 0);
--				mem_cgroup_cancel_charge(pages[i], memcg,
--						false);
--				put_page(pages[i]);
--			}
--			kfree(pages);
--			ret |= VM_FAULT_OOM;
--			goto out;
--		}
--		set_page_private(pages[i], (unsigned long)memcg);
--	}
--
--	for (i = 0; i < HPAGE_PMD_NR; i++) {
--		copy_user_highpage(pages[i], page + i,
--				   haddr + PAGE_SIZE * i, vma);
--		__SetPageUptodate(pages[i]);
--		cond_resched();
--	}
--
--	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
--				haddr, haddr + HPAGE_PMD_SIZE);
--	mmu_notifier_invalidate_range_start(&range);
--
--	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
--	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd)))
--		goto out_free_pages;
--	VM_BUG_ON_PAGE(!PageHead(page), page);
--
--	/*
--	 * Leave pmd empty until pte is filled note we must notify here as
--	 * concurrent CPU thread might write to new page before the call to
--	 * mmu_notifier_invalidate_range_end() happens which can lead to a
--	 * device seeing memory write in different order than CPU.
--	 *
--	 * See Documentation/vm/mmu_notifier.rst
--	 */
--	pmdp_huge_clear_flush_notify(vma, haddr, vmf->pmd);
--
--	pgtable = pgtable_trans_huge_withdraw(vma->vm_mm, vmf->pmd);
--	pmd_populate(vma->vm_mm, &_pmd, pgtable);
--
--	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
--		pte_t entry;
--		entry = mk_pte(pages[i], vma->vm_page_prot);
--		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
--		memcg = (void *)page_private(pages[i]);
--		set_page_private(pages[i], 0);
--		page_add_new_anon_rmap(pages[i], vmf->vma, haddr, false);
--		mem_cgroup_commit_charge(pages[i], memcg, false, false);
--		lru_cache_add_active_or_unevictable(pages[i], vma);
--		vmf->pte = pte_offset_map(&_pmd, haddr);
--		VM_BUG_ON(!pte_none(*vmf->pte));
--		set_pte_at(vma->vm_mm, haddr, vmf->pte, entry);
--		pte_unmap(vmf->pte);
--	}
--	kfree(pages);
--
--	smp_wmb(); /* make pte visible before pmd */
--	pmd_populate(vma->vm_mm, vmf->pmd, pgtable);
--	page_remove_rmap(page, true);
--	spin_unlock(vmf->ptl);
--
--	/*
--	 * No need to double call mmu_notifier->invalidate_range() callback as
--	 * the above pmdp_huge_clear_flush_notify() did already call it.
--	 */
--	mmu_notifier_invalidate_range_only_end(&range);
--
--	ret |= VM_FAULT_WRITE;
--	put_page(page);
--
--out:
--	return ret;
--
--out_free_pages:
--	spin_unlock(vmf->ptl);
--	mmu_notifier_invalidate_range_end(&range);
--	for (i = 0; i < HPAGE_PMD_NR; i++) {
--		memcg = (void *)page_private(pages[i]);
--		set_page_private(pages[i], 0);
--		mem_cgroup_cancel_charge(pages[i], memcg, false);
--		put_page(pages[i]);
--	}
--	kfree(pages);
--	goto out;
--}
--
- vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf, pmd_t orig_pmd)
++``max_ptes_shared`` specifies how many pages can be shared across multiple
++processes. Exceeding the number would block the collapse::
++
++	/sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_shared
++
++A higher value may increase memory footprint for some workloads.
++
+ Boot parameter
+ ==============
+ 
+--- a/include/trace/events/huge_memory.h~khugepaged-introduce-max_ptes_shared-tunable
++++ a/include/trace/events/huge_memory.h
+@@ -12,6 +12,8 @@
+ 	EM( SCAN_SUCCEED,		"succeeded")			\
+ 	EM( SCAN_PMD_NULL,		"pmd_null")			\
+ 	EM( SCAN_EXCEED_NONE_PTE,	"exceed_none_pte")		\
++	EM( SCAN_EXCEED_SWAP_PTE,	"exceed_swap_pte")		\
++	EM( SCAN_EXCEED_SHARED_PTE,	"exceed_shared_pte")		\
+ 	EM( SCAN_PTE_NON_PRESENT,	"pte_non_present")		\
+ 	EM( SCAN_PTE_UFFD_WP,		"pte_uffd_wp")			\
+ 	EM( SCAN_PAGE_RO,		"no_writable_page")		\
+@@ -31,7 +33,6 @@
+ 	EM( SCAN_DEL_PAGE_LRU,		"could_not_delete_page_from_lru")\
+ 	EM( SCAN_ALLOC_HUGE_PAGE_FAIL,	"alloc_huge_page_failed")	\
+ 	EM( SCAN_CGROUP_CHARGE_FAIL,	"ccgroup_charge_failed")	\
+-	EM( SCAN_EXCEED_SWAP_PTE,	"exceed_swap_pte")		\
+ 	EM( SCAN_TRUNCATED,		"truncated")			\
+ 	EMe(SCAN_PAGE_HAS_PRIVATE,	"page_has_private")		\
+ 
+--- a/mm/khugepaged.c~khugepaged-introduce-max_ptes_shared-tunable
++++ a/mm/khugepaged.c
+@@ -28,6 +28,8 @@ enum scan_result {
+ 	SCAN_SUCCEED,
+ 	SCAN_PMD_NULL,
+ 	SCAN_EXCEED_NONE_PTE,
++	SCAN_EXCEED_SWAP_PTE,
++	SCAN_EXCEED_SHARED_PTE,
+ 	SCAN_PTE_NON_PRESENT,
+ 	SCAN_PTE_UFFD_WP,
+ 	SCAN_PAGE_RO,
+@@ -47,7 +49,6 @@ enum scan_result {
+ 	SCAN_DEL_PAGE_LRU,
+ 	SCAN_ALLOC_HUGE_PAGE_FAIL,
+ 	SCAN_CGROUP_CHARGE_FAIL,
+-	SCAN_EXCEED_SWAP_PTE,
+ 	SCAN_TRUNCATED,
+ 	SCAN_PAGE_HAS_PRIVATE,
+ };
+@@ -72,6 +73,7 @@ static DECLARE_WAIT_QUEUE_HEAD(khugepage
+  */
+ static unsigned int khugepaged_max_ptes_none __read_mostly;
+ static unsigned int khugepaged_max_ptes_swap __read_mostly;
++static unsigned int khugepaged_max_ptes_shared __read_mostly;
+ 
+ #define MM_SLOTS_HASH_BITS 10
+ static __read_mostly DEFINE_HASHTABLE(mm_slots_hash, MM_SLOTS_HASH_BITS);
+@@ -291,15 +293,43 @@ static struct kobj_attribute khugepaged_
+ 	__ATTR(max_ptes_swap, 0644, khugepaged_max_ptes_swap_show,
+ 	       khugepaged_max_ptes_swap_store);
+ 
++static ssize_t khugepaged_max_ptes_shared_show(struct kobject *kobj,
++					     struct kobj_attribute *attr,
++					     char *buf)
++{
++	return sprintf(buf, "%u\n", khugepaged_max_ptes_shared);
++}
++
++static ssize_t khugepaged_max_ptes_shared_store(struct kobject *kobj,
++					      struct kobj_attribute *attr,
++					      const char *buf, size_t count)
++{
++	int err;
++	unsigned long max_ptes_shared;
++
++	err  = kstrtoul(buf, 10, &max_ptes_shared);
++	if (err || max_ptes_shared > HPAGE_PMD_NR-1)
++		return -EINVAL;
++
++	khugepaged_max_ptes_shared = max_ptes_shared;
++
++	return count;
++}
++
++static struct kobj_attribute khugepaged_max_ptes_shared_attr =
++	__ATTR(max_ptes_shared, 0644, khugepaged_max_ptes_shared_show,
++	       khugepaged_max_ptes_shared_store);
++
+ static struct attribute *khugepaged_attr[] = {
+ 	&khugepaged_defrag_attr.attr,
+ 	&khugepaged_max_ptes_none_attr.attr,
++	&khugepaged_max_ptes_swap_attr.attr,
++	&khugepaged_max_ptes_shared_attr.attr,
+ 	&pages_to_scan_attr.attr,
+ 	&pages_collapsed_attr.attr,
+ 	&full_scans_attr.attr,
+ 	&scan_sleep_millisecs_attr.attr,
+ 	&alloc_sleep_millisecs_attr.attr,
+-	&khugepaged_max_ptes_swap_attr.attr,
+ 	NULL,
+ };
+ 
+@@ -359,6 +389,7 @@ int __init khugepaged_init(void)
+ 	khugepaged_pages_to_scan = HPAGE_PMD_NR * 8;
+ 	khugepaged_max_ptes_none = HPAGE_PMD_NR - 1;
+ 	khugepaged_max_ptes_swap = HPAGE_PMD_NR / 8;
++	khugepaged_max_ptes_shared = HPAGE_PMD_NR / 2;
+ 
+ 	return 0;
+ }
+@@ -557,7 +588,7 @@ static int __collapse_huge_page_isolate(
  {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *page = NULL, *new_page;
--	struct mem_cgroup *memcg;
-+	struct page *page;
- 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
--	struct mmu_notifier_range range;
--	gfp_t huge_gfp;			/* for allocation and charge */
--	vm_fault_t ret = 0;
+ 	struct page *page = NULL;
+ 	pte_t *_pte;
+-	int none_or_zero = 0, result = 0, referenced = 0;
++	int none_or_zero = 0, shared = 0, result = 0, referenced = 0;
+ 	bool writable = false;
  
- 	vmf->ptl = pmd_lockptr(vma->vm_mm, vmf->pmd);
- 	VM_BUG_ON_VMA(!vma->anon_vma, vma);
-+
- 	if (is_huge_zero_pmd(orig_pmd))
--		goto alloc;
-+		goto fallback;
-+
- 	spin_lock(vmf->ptl);
--	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd)))
--		goto out_unlock;
-+
-+	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd))) {
-+		spin_unlock(vmf->ptl);
-+		return 0;
-+	}
+ 	for (_pte = pte; _pte < pte+HPAGE_PMD_NR;
+@@ -585,6 +616,12 @@ static int __collapse_huge_page_isolate(
  
- 	page = pmd_page(orig_pmd);
- 	VM_BUG_ON_PAGE(!PageCompound(page) || !PageHead(page), page);
--	/*
--	 * We can only reuse the page if nobody else maps the huge page or it's
--	 * part.
--	 */
+ 		VM_BUG_ON_PAGE(!PageAnon(page), page);
+ 
++		if (page_mapcount(page) > 1 &&
++				++shared > khugepaged_max_ptes_shared) {
++			result = SCAN_EXCEED_SHARED_PTE;
++			goto out;
++		}
 +
-+	/* Lock page for reuse_swap_page() */
- 	if (!trylock_page(page)) {
- 		get_page(page);
- 		spin_unlock(vmf->ptl);
- 		lock_page(page);
- 		spin_lock(vmf->ptl);
- 		if (unlikely(!pmd_same(*vmf->pmd, orig_pmd))) {
-+			spin_unlock(vmf->ptl);
- 			unlock_page(page);
- 			put_page(page);
--			goto out_unlock;
-+			return 0;
+ 		if (PageCompound(page)) {
+ 			struct page *p;
+ 			page = compound_head(page);
+@@ -1168,7 +1205,8 @@ static int khugepaged_scan_pmd(struct mm
+ {
+ 	pmd_t *pmd;
+ 	pte_t *pte, *_pte;
+-	int ret = 0, none_or_zero = 0, result = 0, referenced = 0;
++	int ret = 0, result = 0, referenced = 0;
++	int none_or_zero = 0, shared = 0;
+ 	struct page *page = NULL;
+ 	unsigned long _address;
+ 	spinlock_t *ptl;
+@@ -1240,6 +1278,12 @@ static int khugepaged_scan_pmd(struct mm
+ 			goto out_unmap;
  		}
- 		put_page(page);
- 	}
+ 
++		if (page_mapcount(page) > 1 &&
++				++shared > khugepaged_max_ptes_shared) {
++			result = SCAN_EXCEED_SHARED_PTE;
++			goto out_unmap;
++		}
 +
-+	/*
-+	 * We can only reuse the page if nobody else maps the huge page or it's
-+	 * part.
-+	 */
- 	if (reuse_swap_page(page, NULL)) {
- 		pmd_t entry;
- 		entry = pmd_mkyoung(orig_pmd);
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
--		if (pmdp_set_access_flags(vma, haddr, vmf->pmd, entry,  1))
-+		if (pmdp_set_access_flags(vma, haddr, vmf->pmd, entry, 1))
- 			update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
--		ret |= VM_FAULT_WRITE;
- 		unlock_page(page);
--		goto out_unlock;
--	}
--	unlock_page(page);
--	get_page(page);
--	spin_unlock(vmf->ptl);
--alloc:
--	if (__transparent_hugepage_enabled(vma) &&
--	    !transparent_hugepage_debug_cow()) {
--		huge_gfp = alloc_hugepage_direct_gfpmask(vma);
--		new_page = alloc_hugepage_vma(huge_gfp, vma, haddr, HPAGE_PMD_ORDER);
--	} else
--		new_page = NULL;
--
--	if (likely(new_page)) {
--		prep_transhuge_page(new_page);
--	} else {
--		if (!page) {
--			split_huge_pmd(vma, vmf->pmd, vmf->address);
--			ret |= VM_FAULT_FALLBACK;
--		} else {
--			ret = do_huge_pmd_wp_page_fallback(vmf, orig_pmd, page);
--			if (ret & VM_FAULT_OOM) {
--				split_huge_pmd(vma, vmf->pmd, vmf->address);
--				ret |= VM_FAULT_FALLBACK;
--			}
--			put_page(page);
--		}
--		count_vm_event(THP_FAULT_FALLBACK);
--		goto out;
--	}
--
--	if (unlikely(mem_cgroup_try_charge_delay(new_page, vma->vm_mm,
--					huge_gfp, &memcg, true))) {
--		put_page(new_page);
--		split_huge_pmd(vma, vmf->pmd, vmf->address);
--		if (page)
--			put_page(page);
--		ret |= VM_FAULT_FALLBACK;
--		count_vm_event(THP_FAULT_FALLBACK);
--		count_vm_event(THP_FAULT_FALLBACK_CHARGE);
--		goto out;
--	}
--
--	count_vm_event(THP_FAULT_ALLOC);
--	count_memcg_events(memcg, THP_FAULT_ALLOC, 1);
--
--	if (!page)
--		clear_huge_page(new_page, vmf->address, HPAGE_PMD_NR);
--	else
--		copy_user_huge_page(new_page, page, vmf->address,
--				    vma, HPAGE_PMD_NR);
--	__SetPageUptodate(new_page);
--
--	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
--				haddr, haddr + HPAGE_PMD_SIZE);
--	mmu_notifier_invalidate_range_start(&range);
--
--	spin_lock(vmf->ptl);
--	if (page)
--		put_page(page);
--	if (unlikely(!pmd_same(*vmf->pmd, orig_pmd))) {
- 		spin_unlock(vmf->ptl);
--		mem_cgroup_cancel_charge(new_page, memcg, true);
--		put_page(new_page);
--		goto out_mn;
--	} else {
--		pmd_t entry;
--		entry = mk_huge_pmd(new_page, vma->vm_page_prot);
--		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
--		pmdp_huge_clear_flush_notify(vma, haddr, vmf->pmd);
--		page_add_new_anon_rmap(new_page, vma, haddr, true);
--		mem_cgroup_commit_charge(new_page, memcg, false, true);
--		lru_cache_add_active_or_unevictable(new_page, vma);
--		set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
--		update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
--		if (!page) {
--			add_mm_counter(vma->vm_mm, MM_ANONPAGES, HPAGE_PMD_NR);
--		} else {
--			VM_BUG_ON_PAGE(!PageHead(page), page);
--			page_remove_rmap(page, true);
--			put_page(page);
--		}
--		ret |= VM_FAULT_WRITE;
-+		return VM_FAULT_WRITE;
- 	}
-+
-+	unlock_page(page);
- 	spin_unlock(vmf->ptl);
--out_mn:
--	/*
--	 * No need to double call mmu_notifier->invalidate_range() callback as
--	 * the above pmdp_huge_clear_flush_notify() did already call it.
--	 */
--	mmu_notifier_invalidate_range_only_end(&range);
--out:
--	return ret;
--out_unlock:
--	spin_unlock(vmf->ptl);
--	return ret;
-+fallback:
-+	__split_huge_pmd(vma, vmf->pmd, vmf->address, false, NULL);
-+	return VM_FAULT_FALLBACK;
+ 		page = compound_head(page);
+ 
+ 		/*
+--- a/tools/testing/selftests/vm/khugepaged.c~khugepaged-introduce-max_ptes_shared-tunable
++++ a/tools/testing/selftests/vm/khugepaged.c
+@@ -78,6 +78,7 @@ struct khugepaged_settings {
+ 	unsigned int scan_sleep_millisecs;
+ 	unsigned int max_ptes_none;
+ 	unsigned int max_ptes_swap;
++	unsigned int max_ptes_shared;
+ 	unsigned long pages_to_scan;
+ };
+ 
+@@ -277,6 +278,7 @@ static void write_settings(struct settin
+ 			khugepaged->scan_sleep_millisecs);
+ 	write_num("khugepaged/max_ptes_none", khugepaged->max_ptes_none);
+ 	write_num("khugepaged/max_ptes_swap", khugepaged->max_ptes_swap);
++	write_num("khugepaged/max_ptes_shared", khugepaged->max_ptes_shared);
+ 	write_num("khugepaged/pages_to_scan", khugepaged->pages_to_scan);
  }
  
- /*
+@@ -313,6 +315,7 @@ static void save_settings(void)
+ 			read_num("khugepaged/scan_sleep_millisecs"),
+ 		.max_ptes_none = read_num("khugepaged/max_ptes_none"),
+ 		.max_ptes_swap = read_num("khugepaged/max_ptes_swap"),
++		.max_ptes_shared = read_num("khugepaged/max_ptes_shared"),
+ 		.pages_to_scan = read_num("khugepaged/pages_to_scan"),
+ 	};
+ 	success("OK");
+@@ -896,12 +899,90 @@ static void collapse_fork_compound(void)
+ 			fail("Fail");
+ 		fill_memory(p, 0, page_size);
+ 
++		write_num("khugepaged/max_ptes_shared", hpage_pmd_nr - 1);
+ 		if (wait_for_scan("Collapse PTE table full of compound pages in child", p))
+ 			fail("Timeout");
+ 		else if (check_huge(p))
+ 			success("OK");
+ 		else
+ 			fail("Fail");
++		write_num("khugepaged/max_ptes_shared",
++				default_settings.khugepaged.max_ptes_shared);
++
++		validate_memory(p, 0, hpage_pmd_size);
++		munmap(p, hpage_pmd_size);
++		exit(exit_status);
++	}
++
++	wait(&wstatus);
++	exit_status += WEXITSTATUS(wstatus);
++
++	printf("Check if parent still has huge page...");
++	if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++	validate_memory(p, 0, hpage_pmd_size);
++	munmap(p, hpage_pmd_size);
++}
++
++static void collapse_max_ptes_shared()
++{
++	int max_ptes_shared = read_num("khugepaged/max_ptes_shared");
++	int wstatus;
++	void *p;
++
++	p = alloc_mapping();
++
++	printf("Allocate huge page...");
++	madvise(p, hpage_pmd_size, MADV_HUGEPAGE);
++	fill_memory(p, 0, hpage_pmd_size);
++	if (check_huge(p))
++		success("OK");
++	else
++		fail("Fail");
++
++	printf("Share huge page over fork()...");
++	if (!fork()) {
++		/* Do not touch settings on child exit */
++		skip_settings_restore = true;
++		exit_status = 0;
++
++		if (check_huge(p))
++			success("OK");
++		else
++			fail("Fail");
++
++		printf("Trigger CoW on page %d of %d...",
++				hpage_pmd_nr - max_ptes_shared - 1, hpage_pmd_nr);
++		fill_memory(p, 0, (hpage_pmd_nr - max_ptes_shared - 1) * page_size);
++		if (!check_huge(p))
++			success("OK");
++		else
++			fail("Fail");
++
++		if (wait_for_scan("Do not collapse with max_ptes_shared exceeded", p))
++			fail("Timeout");
++		else if (!check_huge(p))
++			success("OK");
++		else
++			fail("Fail");
++
++		printf("Trigger CoW on page %d of %d...",
++				hpage_pmd_nr - max_ptes_shared, hpage_pmd_nr);
++		fill_memory(p, 0, (hpage_pmd_nr - max_ptes_shared) * page_size);
++		if (!check_huge(p))
++			success("OK");
++		else
++			fail("Fail");
++
++
++		if (wait_for_scan("Collapse with max_ptes_shared PTEs shared", p))
++			fail("Timeout");
++		else if (check_huge(p))
++			success("OK");
++		else
++			fail("Fail");
+ 
+ 		validate_memory(p, 0, hpage_pmd_size);
+ 		munmap(p, hpage_pmd_size);
+@@ -930,6 +1011,7 @@ int main(void)
+ 
+ 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
+ 	default_settings.khugepaged.max_ptes_swap = hpage_pmd_nr / 8;
++	default_settings.khugepaged.max_ptes_shared = hpage_pmd_nr / 2;
+ 	default_settings.khugepaged.pages_to_scan = hpage_pmd_nr * 8;
+ 
+ 	save_settings();
+@@ -947,6 +1029,7 @@ int main(void)
+ 	collapse_compound_extreme();
+ 	collapse_fork();
+ 	collapse_fork_compound();
++	collapse_max_ptes_shared();
+ 
+ 	restore_settings(0);
+ }
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
