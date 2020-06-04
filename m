@@ -1,110 +1,113 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-reset-the-zone-watermark_boost-early.patch removed from -mm
- tree
-Date: Thu, 04 Jun 2020 10:18:19 -0700
-Message-ID: <20200604171819.UbN9gjnQF%akpm@linux-foundation.org>
+ mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init.patch
+ removed from -mm tree
+Date: Thu, 04 Jun 2020 10:18:23 -0700
+Message-ID: <20200604171823.7hBQJ8Hc_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39874 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730116AbgFDRSU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:18:20 -0400
+        id S1730088AbgFDRSY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:18:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, charante@codeaurora.org, mm-commits@vger.kernel.org, vinmenon@codeaurora.org
+To: dan.j.williams@intel.com, daniel.m.jordan@oracle.com, david@redhat.com, jmorris@namei.org, ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, sashal@kernel.org, shile.zhang@linux.alibaba.com, stable@vger.kernel.org, vbabka@suse.cz, yiwei@redhat.com
 
 
 The patch titled
-     Subject: mm, page_alloc: reset the zone->watermark_boost early
+     Subject: mm/pagealloc.c: call touch_nmi_watchdog() on max order boundaries in deferred init
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-reset-the-zone-watermark_boost-early.patch
+     mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm, page_alloc: reset the zone->watermark_boost early
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: mm/pagealloc.c: call touch_nmi_watchdog() on max order boundaries in deferred init
 
-Updating the zone watermarks by any means, like min_free_kbytes,
-water_mark_scale_factor etc, when ->watermark_boost is set will result in
-higher low and high watermarks than the user asked.
+Patch series "initialize deferred pages with interrupts enabled", v4.
 
-Below are the steps to reproduce the problem on system setup of Android
-kernel running on Snapdragon hardware.
+Keep interrupts enabled during deferred page initialization in order to
+make code more modular and allow jiffies to update.
 
-1) Default settings of the system are as below:
+Original approach, and discussion can be found here:
+ http://lkml.kernel.org/r/20200311123848.118638-1-shile.zhang@linux.alibaba.com
 
-   #cat /proc/sys/vm/min_free_kbytes = 5162
-   #cat /proc/zoneinfo | grep -e boost -e low -e "high " -e min -e Node
-	Node 0, zone   Normal
-		min      797
-		low      8340
-		high     8539
 
-2) Monitor the zone->watermark_boost(by adding a debug print in the
-   kernel) and whenever it is greater than zero value, write the same
-   value of min_free_kbytes obtained from step 1.
+This patch (of 3):
 
-   #echo 5162 > /proc/sys/vm/min_free_kbytes
+deferred_init_memmap() disables interrupts the entire time, so it calls
+touch_nmi_watchdog() periodically to avoid soft lockup splats.  Soon it
+will run with interrupts enabled, at which point cond_resched() should be
+used instead.
 
-3) Then read the zone watermarks in the system while the
-   ->watermark_boost is zero.  This should show the same values of
-   watermarks as step 1 but shown a higher values than asked.
+deferred_grow_zone() makes the same watchdog calls through code shared
+with deferred init but will continue to run with interrupts disabled, so
+it can't call cond_resched().
 
-   #cat /proc/zoneinfo | grep -e boost -e low -e "high " -e min -e Node
-	Node 0, zone   Normal
-		min      797
-		low      21148
-		high     21347
+Pull the watchdog calls up to these two places to allow the first to be
+changed later, independently of the second.  The frequency reduces from
+twice per pageblock (init and free) to once per max order block.
 
-These higher values are because of updating the zone watermarks using the
-macro min_wmark_pages(zone) which also adds the zone->watermark_boost.
-
-	#define min_wmark_pages(z) (z->_watermark[WMARK_MIN] +
-					z->watermark_boost)
-
-So the steps that lead to the issue are:
-
-1) On the extfrag event, watermarks are boosted by storing the required
-   value in ->watermark_boost.
-
-2) User tries to update the zone watermarks level in the system through
-   min_free_kbytes or watermark_scale_factor.
-
-3) Later, when kswapd woke up, it resets the zone->watermark_boost to
-   zero.
-
-In step 2), we use the min_wmark_pages() macro to store the watermarks
-in the zone structure thus the values are always offsetted by
-->watermark_boost value. This can be avoided by resetting the
-->watermark_boost to zero before it is used.
-
-Link: http://lkml.kernel.org/r/1589457511-4255-1-git-send-email-charante@codeaurora.org
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Link: http://lkml.kernel.org/r/20200403140952.17177-2-pasha.tatashin@soleen.com
+Fixes: 3a2d7fa8a3d5 ("mm: disable interrupts while initializing deferred pages")
+Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Yiqian Wei <yiwei@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-reset-the-zone-watermark_boost-early
+--- a/mm/page_alloc.c~mm-call-touch_nmi_watchdog-on-max-order-boundaries-in-deferred-init
 +++ a/mm/page_alloc.c
-@@ -7788,9 +7788,9 @@ static void __setup_per_zone_wmarks(void
- 			    mult_frac(zone_managed_pages(zone),
- 				      watermark_scale_factor, 10000));
+@@ -1693,7 +1693,6 @@ static void __init deferred_free_pages(u
+ 		} else if (!(pfn & nr_pgmask)) {
+ 			deferred_free_range(pfn - nr_free, nr_free);
+ 			nr_free = 1;
+-			touch_nmi_watchdog();
+ 		} else {
+ 			nr_free++;
+ 		}
+@@ -1723,7 +1722,6 @@ static unsigned long  __init deferred_in
+ 			continue;
+ 		} else if (!page || !(pfn & nr_pgmask)) {
+ 			page = pfn_to_page(pfn);
+-			touch_nmi_watchdog();
+ 		} else {
+ 			page++;
+ 		}
+@@ -1863,8 +1861,10 @@ static int __init deferred_init_memmap(v
+ 	 * that we can avoid introducing any issues with the buddy
+ 	 * allocator.
+ 	 */
+-	while (spfn < epfn)
++	while (spfn < epfn) {
+ 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
++		touch_nmi_watchdog();
++	}
+ zone_empty:
+ 	pgdat_resize_unlock(pgdat, &flags);
  
-+		zone->watermark_boost = 0;
- 		zone->_watermark[WMARK_LOW]  = min_wmark_pages(zone) + tmp;
- 		zone->_watermark[WMARK_HIGH] = min_wmark_pages(zone) + tmp * 2;
--		zone->watermark_boost = 0;
+@@ -1948,6 +1948,7 @@ deferred_grow_zone(struct zone *zone, un
+ 		first_deferred_pfn = spfn;
  
- 		spin_unlock_irqrestore(&zone->lock, flags);
- 	}
+ 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
++		touch_nmi_watchdog();
+ 
+ 		/* We should only stop along section boundaries */
+ 		if ((first_deferred_pfn ^ spfn) < PAGES_PER_SECTION)
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
-
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
