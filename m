@@ -1,68 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch removed from
- -mm tree
-Date: Thu, 04 Jun 2020 16:08:29 -0700
-Message-ID: <20200604230829.pk55Ybix8%akpm@linux-foundation.org>
+ arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch removed
+ from -mm tree
+Date: Thu, 04 Jun 2020 16:09:02 -0700
+Message-ID: <20200604230902.4eKLCJhGI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56062 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56126 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgFDXIb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:08:31 -0400
+        id S1725863AbgFDXJE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:09:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ira.weiny@intel.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, ira.weiny@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch-kunmap-remove-duplicate-kunmap-implementations-fix
+     Subject: arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     arch-kunmap-remove-duplicate-kunmap-implementations-fix.patch
+     arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into arch-kunmap-remove-duplicate-kunmap-implementations.patch
+This patch was dropped because it was folded into arch-kmap_atomic-consolidate-duplicate-code.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch-kunmap-remove-duplicate-kunmap-implementations-fix
+Subject: arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes
 
-fix CONFIG_HIGHMEM=n build on various architectures
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+#289: FILE: arch/nds32/mm/highmem.c:35:
++EXPORT_SYMBOL(kmap_atomic_high);
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+total: 0 errors, 1 warnings, 353 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/arch-kmap_atomic-consolidate-duplicate-code.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/nds32/mm/highmem.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/include/linux/highmem.h~arch-kunmap-remove-duplicate-kunmap-implementations-fix
-+++ a/include/linux/highmem.h
-@@ -53,6 +53,7 @@ static inline void *kmap(struct page *pa
+--- a/arch/nds32/mm/highmem.c~arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes
++++ a/arch/nds32/mm/highmem.c
+@@ -31,7 +31,6 @@ void *kmap_atomic_high(struct page *page
+ 	__nds32__isb();
+ 	return (void *)vaddr;
  }
+-
+ EXPORT_SYMBOL(kmap_atomic_high);
  
- void kunmap_high(struct page *page);
-+
- static inline void kunmap(struct page *page)
- {
- 	might_sleep();
-@@ -111,6 +112,10 @@ static inline void *kmap(struct page *pa
- 	return page_address(page);
+ void __kunmap_atomic(void *kvaddr)
+@@ -48,5 +47,4 @@ void __kunmap_atomic(void *kvaddr)
+ 	pagefault_enable();
+ 	preempt_enable();
  }
- 
-+static inline void kunmap_high(struct page *page)
-+{
-+}
-+
- static inline void kunmap(struct page *page)
- {
- }
+-
+ EXPORT_SYMBOL(__kunmap_atomic);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arch-kunmap-remove-duplicate-kunmap-implementations.patch
-arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
+arch-kmap_atomic-consolidate-duplicate-code.patch
 arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes.patch
 kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
 mm-replace-zero-length-array-with-flexible-array-member-fix.patch
