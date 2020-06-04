@@ -1,104 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-workingset-let-cache-workingset-challenge-anon.patch removed from -mm
+ mm-remove-use-once-cache-bias-from-lru-balancing.patch removed from -mm
  tree
-Date: Thu, 04 Jun 2020 10:20:49 -0700
-Message-ID: <20200604172049.aGJfxEI9v%akpm@linux-foundation.org>
+Date: Thu, 04 Jun 2020 10:20:51 -0700
+Message-ID: <20200604172051.KSCzKV-VU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42804 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730072AbgFDRUv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:20:51 -0400
+        id S1730072AbgFDRUw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:20:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com
 
 
 The patch titled
-     Subject: mm: workingset: let cache workingset challenge anon
+     Subject: mm: remove use-once cache bias from LRU balancing
 has been removed from the -mm tree.  Its filename was
-     mm-workingset-let-cache-workingset-challenge-anon.patch
+     mm-remove-use-once-cache-bias-from-lru-balancing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: workingset: let cache workingset challenge anon
+Subject: mm: remove use-once cache bias from LRU balancing
 
-We activate cache refaults with reuse distances in pages smaller than the
-size of the total cache.  This allows new pages with competitive access
-frequencies to establish themselves, as well as challenge and potentially
-displace pages on the active list that have gone cold.
+When the splitlru patches divided page cache and swap-backed pages into
+separate LRU lists, the pressure balance between the lists was biased to
+account for the fact that streaming IO can cause memory pressure with a
+flood of pages that are used only once.  New page cache additions would
+tip the balance toward the file LRU, and repeat access would neutralize
+that bias again.  This ensured that page reclaim would always go for
+used-once cache first.
 
-However, that assumes that active cache can only replace other active
-cache in a competition for the hottest memory.  This is not a great
-default assumption.  The page cache might be thrashing while there are
-enough completely cold and unused anonymous pages sitting around that we'd
-only have to write to swap once to stop all IO from the cache.
+Since e9868505987a ("mm,vmscan: only evict file pages when we have
+plenty"), page reclaim generally skips over swap-backed memory entirely as
+long as there is used-once cache present, and will apply the LRU balancing
+when only repeatedly accessed cache pages are left - at which point the
+previous use-once bias will have been neutralized.  This makes the
+use-once cache balancing bias unnecessary.
 
-Activate cache refaults when their reuse distance in pages is smaller than
-the total userspace workingset, including anonymous pages.
-
-Reclaim can still decide how to balance pressure among the two LRUs
-depending on the IO situation.  Rotational drives will prefer avoiding
-random IO from swap and go harder after cache.  But fundamentally, hot
-cache should be able to compete with anon pages for a place in RAM.
-
-Link: http://lkml.kernel.org/r/20200520232525.798933-6-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20200520232525.798933-7-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/swap.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/mm/workingset.c~mm-workingset-let-cache-workingset-challenge-anon
-+++ a/mm/workingset.c
-@@ -277,8 +277,8 @@ void workingset_refault(struct page *pag
- 	struct mem_cgroup *eviction_memcg;
- 	struct lruvec *eviction_lruvec;
- 	unsigned long refault_distance;
-+	unsigned long workingset_size;
- 	struct pglist_data *pgdat;
--	unsigned long active_file;
- 	struct mem_cgroup *memcg;
- 	unsigned long eviction;
- 	struct lruvec *lruvec;
-@@ -310,7 +310,6 @@ void workingset_refault(struct page *pag
- 		goto out;
- 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
- 	refault = atomic_long_read(&eviction_lruvec->inactive_age);
--	active_file = lruvec_page_state(eviction_lruvec, NR_ACTIVE_FILE);
+--- a/mm/swap.c~mm-remove-use-once-cache-bias-from-lru-balancing
++++ a/mm/swap.c
+@@ -293,7 +293,6 @@ static void __activate_page(struct page
+ 			    void *arg)
+ {
+ 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+-		int file = page_is_file_lru(page);
+ 		int lru = page_lru_base_type(page);
  
- 	/*
- 	 * Calculate the refault distance
-@@ -345,10 +344,18 @@ void workingset_refault(struct page *pag
+ 		del_page_from_lru_list(page, lruvec, lru);
+@@ -303,7 +302,6 @@ static void __activate_page(struct page
+ 		trace_mm_lru_activate(page);
  
- 	/*
- 	 * Compare the distance to the existing workingset size. We
--	 * don't act on pages that couldn't stay resident even if all
--	 * the memory was available to the page cache.
-+	 * don't activate pages that couldn't stay resident even if
-+	 * all the memory was available to the page cache. Whether
-+	 * cache can compete with anon or not depends on having swap.
- 	 */
--	if (refault_distance > active_file)
-+	workingset_size = lruvec_page_state(eviction_lruvec, NR_ACTIVE_FILE);
-+	if (mem_cgroup_get_nr_swap_pages(memcg) > 0) {
-+		workingset_size += lruvec_page_state(eviction_lruvec,
-+						     NR_INACTIVE_ANON);
-+		workingset_size += lruvec_page_state(eviction_lruvec,
-+						     NR_ACTIVE_ANON);
-+	}
-+	if (refault_distance > workingset_size)
- 		goto out;
+ 		__count_vm_event(PGACTIVATE);
+-		update_page_reclaim_stat(lruvec, file, 1, hpage_nr_pages(page));
+ 	}
+ }
  
- 	SetPageActive(page);
+@@ -975,9 +973,6 @@ static void __pagevec_lru_add_fn(struct
+ 
+ 	if (page_evictable(page)) {
+ 		lru = page_lru(page);
+-		update_page_reclaim_stat(lruvec, is_file_lru(lru),
+-					 PageActive(page),
+-					 hpage_nr_pages(page));
+ 		if (was_unevictable)
+ 			count_vm_event(UNEVICTABLE_PGRESCUED);
+ 	} else {
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
