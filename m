@@ -1,114 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-deactivations-shouldnt-bias-the-lru-balance.patch removed from -mm tree
-Date: Thu, 04 Jun 2020 10:20:57 -0700
-Message-ID: <20200604172057.WNxubrexK%akpm@linux-foundation.org>
+Subject: [merged] mm-vmscan-reclaim-writepage-is-io-cost.patch
+ removed from -mm tree
+Date: Thu, 04 Jun 2020 10:21:06 -0700
+Message-ID: <20200604172106.pWT4wghET%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42934 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43108 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730072AbgFDRU7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:20:59 -0400
+        id S1730078AbgFDRVH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:21:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cai@lca.pw, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com
+To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com
 
 
 The patch titled
-     Subject: mm: deactivations shouldn't bias the LRU balance
+     Subject: mm: vmscan: reclaim writepage is IO cost
 has been removed from the -mm tree.  Its filename was
-     mm-deactivations-shouldnt-bias-the-lru-balance.patch
+     mm-vmscan-reclaim-writepage-is-io-cost.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: deactivations shouldn't bias the LRU balance
+Subject: mm: vmscan: reclaim writepage is IO cost
 
-Operations like MADV_FREE, FADV_DONTNEED etc.  currently move any affected
-active pages to the inactive list to accelerate their reclaim (good) but
-also steer page reclaim toward that LRU type, or away from the other
-(bad).
+The VM tries to balance reclaim pressure between anon and file so as to
+reduce the amount of IO incurred due to the memory shortage.  It already
+counts refaults and swapins, but in addition it should also count
+writepage calls during reclaim.
 
-The reason why this is undesirable is that such operations are not part of
-the regular page aging cycle, and rather a fluke that doesn't say much
-about the remaining pages on that list; they might all be in heavy use,
-and once the chunk of easy victims has been purged, the VM continues to
-apply elevated pressure on those remaining hot pages.  The other LRU,
-meanwhile, might have easily reclaimable pages, and there was never a need
-to steer away from it in the first place.
+For swap, this is obvious: it's IO that wouldn't have occurred if the
+anonymous memory hadn't been under memory pressure.  From a relative
+balancing point of view this makes sense as well: even if anon is cold and
+reclaimable, a cache that isn't thrashing may have equally cold pages that
+don't require IO to reclaim.
 
-As the previous patch outlined, we should focus on recording actually
-observed cost to steer the balance rather than speculating about the
-potential value of one LRU list over the other.  In that spirit, leave
-explicitely deactivated pages to the LRU algorithm to pick up, and let
-rotations decide which list is the easiest to reclaim.
+For file writeback, it's trickier: some of the reclaim writepage IO would
+have likely occurred anyway due to dirty expiration.  But not all of it -
+premature writeback reduces batching and generates additional writes. 
+Since the flushers are already woken up by the time the VM starts writing
+cache pages one by one, let's assume that we'e likely causing writes that
+wouldn't have happened without memory pressure.  In addition, the per-page
+cost of IO would have probably been much cheaper if written in larger
+batches from the flusher thread rather than the single-page-writes from
+kswapd.
 
-[cai@lca.pw: fix set-but-not-used warning]
-  Link: http://lkml.kernel.org/r/20200522133335.GA624@Qians-MacBook-Air.local
-Link: http://lkml.kernel.org/r/20200520232525.798933-10-hannes@cmpxchg.org
+For our purposes - getting the trend right to accelerate convergence on a
+stable state that doesn't require paging at all - this is sufficiently
+accurate.  If we later wanted to optimize for sustained thrashing, we can
+still refine the measurements.
+
+Count all writepage calls from kswapd as IO cost toward the LRU that the
+page belongs to.
+
+Why do this dynamically?  Don't we know in advance that anon pages require
+IO to reclaim, and so could build in a static bias?
+
+First, scanning is not the same as reclaiming.  If all the anon pages are
+referenced, we may not swap for a while just because we're scanning the
+anon list.  During this time, however, it's important that we age
+anonymous memory and the page cache at the same rate so that their
+hot-cold gradients are comparable.  Everything else being equal, we still
+want to reclaim the coldest memory overall.
+
+Second, we keep copies in swap unless the page changes.  If there is
+swap-backed data that's mostly read (tmpfs file) and has been swapped out
+before, we can reclaim it without incurring additional IO.
+
+Link: http://lkml.kernel.org/r/20200520232525.798933-14-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@surriel.com>
-Cc: Qian Cai <cai@lca.pw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ include/linux/swap.h   |    4 +++-
+ include/linux/vmstat.h |    1 +
+ mm/swap.c              |   16 ++++++++++------
+ mm/swap_state.c        |    2 +-
+ mm/vmscan.c            |    3 +++
+ mm/workingset.c        |    2 +-
+ 6 files changed, 19 insertions(+), 9 deletions(-)
 
---- a/mm/swap.c~mm-deactivations-shouldnt-bias-the-lru-balance
+--- a/include/linux/swap.h~mm-vmscan-reclaim-writepage-is-io-cost
++++ a/include/linux/swap.h
+@@ -334,7 +334,9 @@ extern unsigned long nr_free_pagecache_p
+ 
+ 
+ /* linux/mm/swap.c */
+-extern void lru_note_cost(struct page *);
++extern void lru_note_cost(struct lruvec *lruvec, bool file,
++			  unsigned int nr_pages);
++extern void lru_note_cost_page(struct page *);
+ extern void lru_cache_add(struct page *);
+ extern void lru_add_page_tail(struct page *page, struct page *page_tail,
+ 			 struct lruvec *lruvec, struct list_head *head);
+--- a/include/linux/vmstat.h~mm-vmscan-reclaim-writepage-is-io-cost
++++ a/include/linux/vmstat.h
+@@ -26,6 +26,7 @@ struct reclaim_stat {
+ 	unsigned nr_congested;
+ 	unsigned nr_writeback;
+ 	unsigned nr_immediate;
++	unsigned nr_pageout;
+ 	unsigned nr_activate[2];
+ 	unsigned nr_ref_keep;
+ 	unsigned nr_unmap_fail;
+--- a/mm/swap.c~mm-vmscan-reclaim-writepage-is-io-cost
 +++ a/mm/swap.c
-@@ -498,7 +498,7 @@ void lru_cache_add_active_or_unevictable
- static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruvec,
- 			      void *arg)
- {
--	int lru, file;
-+	int lru;
- 	bool active;
- 
- 	if (!PageLRU(page))
-@@ -512,7 +512,6 @@ static void lru_deactivate_file_fn(struc
- 		return;
- 
- 	active = PageActive(page);
--	file = page_is_file_lru(page);
- 	lru = page_lru_base_type(page);
- 
- 	del_page_from_lru_list(page, lruvec, lru + active);
-@@ -538,14 +537,12 @@ static void lru_deactivate_file_fn(struc
- 
- 	if (active)
- 		__count_vm_event(PGDEACTIVATE);
--	lru_note_cost(lruvec, !file, hpage_nr_pages(page));
+@@ -278,18 +278,16 @@ void rotate_reclaimable_page(struct page
+ 	}
  }
  
- static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
+-void lru_note_cost(struct page *page)
++void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages)
+ {
+-	struct lruvec *lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
+-
+ 	do {
+ 		unsigned long lrusize;
+ 
+ 		/* Record cost event */
+-		if (page_is_file_lru(page))
+-			lruvec->file_cost++;
++		if (file)
++			lruvec->file_cost += nr_pages;
+ 		else
+-			lruvec->anon_cost++;
++			lruvec->anon_cost += nr_pages;
+ 
+ 		/*
+ 		 * Decay previous events
+@@ -311,6 +309,12 @@ void lru_note_cost(struct page *page)
+ 	} while ((lruvec = parent_lruvec(lruvec)));
+ }
+ 
++void lru_note_cost_page(struct page *page)
++{
++	lru_note_cost(mem_cgroup_page_lruvec(page, page_pgdat(page)),
++		      page_is_file_lru(page), hpage_nr_pages(page));
++}
++
+ static void __activate_page(struct page *page, struct lruvec *lruvec,
  			    void *arg)
  {
- 	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
--		int file = page_is_file_lru(page);
- 		int lru = page_lru_base_type(page);
+--- a/mm/swap_state.c~mm-vmscan-reclaim-writepage-is-io-cost
++++ a/mm/swap_state.c
+@@ -442,7 +442,7 @@ struct page *__read_swap_cache_async(swp
  
- 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
-@@ -554,7 +551,6 @@ static void lru_deactivate_fn(struct pag
- 		add_page_to_lru_list(page, lruvec, lru);
+ 	/* XXX: Move to lru_cache_add() when it supports new vs putback */
+ 	spin_lock_irq(&page_pgdat(page)->lru_lock);
+-	lru_note_cost(page);
++	lru_note_cost_page(page);
+ 	spin_unlock_irq(&page_pgdat(page)->lru_lock);
  
- 		__count_vm_events(PGDEACTIVATE, hpage_nr_pages(page));
--		lru_note_cost(lruvec, !file, hpage_nr_pages(page));
+ 	/* Caller will initiate read into locked page */
+--- a/mm/vmscan.c~mm-vmscan-reclaim-writepage-is-io-cost
++++ a/mm/vmscan.c
+@@ -1359,6 +1359,8 @@ static unsigned int shrink_page_list(str
+ 			case PAGE_ACTIVATE:
+ 				goto activate_locked;
+ 			case PAGE_SUCCESS:
++				stat->nr_pageout += hpage_nr_pages(page);
++
+ 				if (PageWriteback(page))
+ 					goto keep;
+ 				if (PageDirty(page))
+@@ -1964,6 +1966,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	move_pages_to_lru(lruvec, &page_list);
+ 
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
++	lru_note_cost(lruvec, file, stat.nr_pageout);
+ 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, nr_reclaimed);
+--- a/mm/workingset.c~mm-vmscan-reclaim-writepage-is-io-cost
++++ a/mm/workingset.c
+@@ -367,7 +367,7 @@ void workingset_refault(struct page *pag
+ 		SetPageWorkingset(page);
+ 		/* XXX: Move to lru_cache_add() when it supports new vs putback */
+ 		spin_lock_irq(&page_pgdat(page)->lru_lock);
+-		lru_note_cost(page);
++		lru_note_cost_page(page);
+ 		spin_unlock_irq(&page_pgdat(page)->lru_lock);
+ 		inc_lruvec_state(lruvec, WORKINGSET_RESTORE);
  	}
- }
- 
-@@ -579,7 +575,6 @@ static void lru_lazyfree_fn(struct page
- 
- 		__count_vm_events(PGLAZYFREE, hpage_nr_pages(page));
- 		count_memcg_page_event(page, PGLAZYFREE);
--		lru_note_cost(lruvec, 0, hpage_nr_pages(page));
- 	}
- }
- 
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
