@@ -1,72 +1,78 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 050/127] mm/memory_hotplug: disable the
- functionality for 32b
-Date: Thu, 04 Jun 2020 16:48:51 -0700
-Message-ID: <20200604234851.FvqR8M-jA%akpm@linux-foundation.org>
+Subject: [patch 051/127] mm: replace zero-length array with
+ flexible-array member
+Date: Thu, 04 Jun 2020 16:48:55 -0700
+Message-ID: <20200604234855.5dbPHRqD1%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45522 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45626 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725930AbgFDXsy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:48:54 -0400
+        id S1725930AbgFDXs4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:48:56 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhe@redhat.com, david@redhat.com, linux-mm@kvack.org, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, osalvador@suse.de, richardw.yang@linux.intel.com, robin.murphy@arm.com, torvalds@linux-foundation.org, vamshi.k.sthambamkadi@gmail.com
+To: akpm@linux-foundation.org, bhe@redhat.com, cai@lca.pw, chenqiwu@xiaomi.com, david@redhat.com, linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, richard.weiyang@gmail.com, torvalds@linux-foundation.org, willy@infradead.org, yang.shi@linux.alibaba.com
 
-From: Michal Hocko <mhocko@kernel.org>
-Subject: mm/memory_hotplug: disable the functionality for 32b
+From: chenqiwu <chenqiwu@xiaomi.com>
+Subject: mm: replace zero-length array with flexible-array member
 
-Memory hotlug is broken for 32b systems at least since c6f03e2903c9 ("mm,
-memory_hotplug: remove zone restrictions") which has considerably reworked
-how can be memory associated with movable/kernel zones.  The same is not
-really trivial to achieve in 32b where only lowmem is the kernel zone. 
-While we can tweak this immediate problem around there are likely other
-land mines hidden at other places.
+The current codebase makes use of the zero-length array language extension
+to the C90 standard, but the preferred mechanism to declare
+variable-length types such as these ones is a flexible array member[1][2],
+introduced in C99:
 
-It is also quite dubious that there is a real usecase for the memory
-hotplug on 32b in the first place.  Low memory is just too small to be
-hotplugable (for hot add) and generally unusable for hotremove.  Adding
-more memory to highmem is also dubious because it would increase the low
-mem or vmalloc space pressure for memmaps.
+struct foo {
+        int stuff;
+        struct boo array[];
+};
 
-Restrict the functionality to 64b systems.  This will help future
-development to focus on usecases that have real life application.  We can
-remove this restriction in future in presence of a real life usecase of
-course but until then make it explicit that hotplug on 32b is broken and
-requires a non trivial amount of work to fix.
+By making use of the mechanism above, we will get a compiler warning in
+case the flexible array does not occur last in the structure, which will
+help us prevent some kind of undefined behavior bugs from being
+inadvertently introduced[3] to the codebase from now on.
 
-Robin said:
+Also, notice that, dynamic memory allocations won't be affected by this
+change:
 
-: 32-bit Arm doesn't support memory hotplug, and as far as I'm aware there's
-: little likelihood of it ever wanting to.  FWIW it looks like SuperH is the
-: only pure-32-bit architecture to have hotplug support at all.
+"Flexible array members have incomplete type, and so the sizeof operator
+may not be applied.  As a quirk of the original implementation of
+zero-length arrays, sizeof evaluates to zero."[1]
 
-Link: http://lkml.kernel.org/r/20200218100532.GA4151@dhcp22.suse.cz
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=206401
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Wei Yang <richardw.yang@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Vamshi K Sthambamkadi <vamshi.k.sthambamkadi@gmail.com>
+This issue was found with the help of Coccinelle.
+
+[1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+[2] https://github.com/KSPP/linux/issues/21
+[3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+[akpm@linux-foundation.org: fix build]
+Link: http://lkml.kernel.org/r/1586599916-15456-1-git-send-email-qiwuchen55@gmail.com
+Signed-off-by: chenqiwu <chenqiwu@xiaomi.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/Kconfig~memory_hotplug-disable-the-functionality-for-32b
-+++ a/mm/Kconfig
-@@ -158,6 +158,7 @@ config MEMORY_HOTPLUG
- 	bool "Allow for memory hot-add"
- 	depends on SPARSEMEM || X86_64_ACPI_NUMA
- 	depends on ARCH_ENABLE_MEMORY_HOTPLUG
-+	depends on 64BIT || BROKEN
- 	select NUMA_KEEP_MEMINFO if NUMA
- 
- config MEMORY_HOTPLUG_SPARSE
+--- a/include/linux/mm.h~mm-replace-zero-length-array-with-flexible-array-member
++++ a/include/linux/mm.h
+@@ -1726,7 +1726,7 @@ struct frame_vector {
+ 	unsigned int nr_frames;	/* Number of frames stored in ptrs array */
+ 	bool got_ref;		/* Did we pin pages by getting page ref? */
+ 	bool is_pfns;		/* Does array contain pages or pfns? */
+-	void *ptrs[0];		/* Array of pinned pfns / pages. Use
++	void *ptrs[];		/* Array of pinned pfns / pages. Use
+ 				 * pfns_vector_pages() or pfns_vector_pfns()
+ 				 * for access */
+ };
 _
