@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- x86-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch removed from -mm
- tree
-Date: Thu, 04 Jun 2020 10:21:39 -0700
-Message-ID: <20200604172139.IOwKD-z9C%akpm@linux-foundation.org>
+ arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch removed from
+ -mm tree
+Date: Thu, 04 Jun 2020 10:21:41 -0700
+Message-ID: <20200604172141.t9vt8lzLX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43618 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730050AbgFDRVk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:21:40 -0400
+        id S1730050AbgFDRVn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:21:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: x86: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
+     Subject: arm64: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
 has been removed from the -mm tree.  Its filename was
-     x86-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
+     arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Zong Li <zong.li@sifive.com>
-Subject: x86: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
+Subject: arm64: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
 
 Extract DEBUG_WX to mm/Kconfig.debug for shared use.  Change to use
 ARCH_HAS_DEBUG_WX instead of DEBUG_WX defined by arch port.
 
-Link: http://lkml.kernel.org/r/430736828d149df3f5b462d291e845ec690e0141.1587455584.git.zong.li@sifive.com
+Link: http://lkml.kernel.org/r/e19709e7576f65e303245fe520cad5f7bae72763.1587455584.git.zong.li@sifive.com
 Signed-off-by: Zong Li <zong.li@sifive.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -42,25 +42,25 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig       |    1 +
- arch/x86/Kconfig.debug |   27 ---------------------------
- 2 files changed, 1 insertion(+), 27 deletions(-)
+ arch/arm64/Kconfig       |    1 +
+ arch/arm64/Kconfig.debug |   29 -----------------------------
+ 2 files changed, 1 insertion(+), 29 deletions(-)
 
---- a/arch/x86/Kconfig~x86-mm-use-arch_has_debug_wx-instead-of-arch-defined
-+++ a/arch/x86/Kconfig
-@@ -81,6 +81,7 @@ config X86
- 	select ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
- 	select ARCH_HAS_SYSCALL_WRAPPER
- 	select ARCH_HAS_UBSAN_SANITIZE_ALL
+--- a/arch/arm64/Kconfig~arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined
++++ a/arch/arm64/Kconfig
+@@ -9,6 +9,7 @@ config ARM64
+ 	select ACPI_MCFG if (ACPI && PCI)
+ 	select ACPI_SPCR_TABLE if ACPI
+ 	select ACPI_PPTT if ACPI
 +	select ARCH_HAS_DEBUG_WX
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
---- a/arch/x86/Kconfig.debug~x86-mm-use-arch_has_debug_wx-instead-of-arch-defined
-+++ a/arch/x86/Kconfig.debug
-@@ -72,33 +72,6 @@ config EFI_PGT_DUMP
- 	  issues with the mapping of the EFI runtime regions into that
- 	  table.
+ 	select ARCH_BINFMT_ELF_STATE
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+--- a/arch/arm64/Kconfig.debug~arm64-mm-use-arch_has_debug_wx-instead-of-arch-defined
++++ a/arch/arm64/Kconfig.debug
+@@ -23,35 +23,6 @@ config ARM64_RANDOMIZE_TEXT_OFFSET
+ 	  of TEXT_OFFSET and platforms must not require a specific
+ 	  value.
  
 -config DEBUG_WX
 -	bool "Warn on W+X mappings at boot"
@@ -70,14 +70,16 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -
 -	  This is useful for discovering cases where the kernel is leaving
 -	  W+X mappings after applying NX, as such mappings are a security risk.
+-	  This check also includes UXN, which should be set on all kernel
+-	  mappings.
 -
 -	  Look for a message in dmesg output like this:
 -
--	    x86/mm: Checked W+X mappings: passed, no W+X pages found.
+-	    arm64/mm: Checked W+X mappings: passed, no W+X pages found.
 -
 -	  or like this, if the check failed:
 -
--	    x86/mm: Checked W+X mappings: FAILED, <N> W+X pages found.
+-	    arm64/mm: Checked W+X mappings: FAILED, <N> W+X pages found.
 -
 -	  Note that even if the check fails, your kernel is possibly
 -	  still fine, as W+X mappings are not a security hole in
