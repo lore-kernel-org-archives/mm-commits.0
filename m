@@ -1,237 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- =?US-ASCII?Q?drivers-base-memoryc-cache-memory-blocks-in-xarray-to-acc?=
- =?US-ASCII?Q?elerate-lookup.patch?= removed from -mm tree
-Date: Thu, 04 Jun 2020 10:21:33 -0700
-Message-ID: <20200604172133.K01PQDjvA%akpm@linux-foundation.org>
+Subject: [merged] mm-add-debug_wx-support.patch removed from -mm
+ tree
+Date: Thu, 04 Jun 2020 10:21:35 -0700
+Message-ID: <20200604172135.cLQSycpea%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43502 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43536 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730050AbgFDRVf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:21:35 -0400
+        id S1730050AbgFDRVh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:21:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cheloha@linux.ibm.com, cheloha@linux.vnet.ibm.com, david@redhat.com, gregkh@linuxfoundation.org, mhocko@suse.com, mm-commits@vger.kernel.org, nathanl@linux.ibm.com, rafael@kernel.org, ricklind@linux.vnet.ibm.com
+To: bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: drivers/base/memory.c: cache memory blocks in xarray to accelerate lookup
+     Subject: mm: add DEBUG_WX support
 has been removed from the -mm tree.  Its filename was
-     drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup.patch
+     mm-add-debug_wx-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Scott Cheloha <cheloha@linux.vnet.ibm.com>
-Subject: drivers/base/memory.c: cache memory blocks in xarray to accelerate lookup
+From: Zong Li <zong.li@sifive.com>
+Subject: mm: add DEBUG_WX support
 
-Searching for a particular memory block by id is an O(n) operation because
-each memory block's underlying device is kept in an unsorted linked list
-on the subsystem bus.
+Patch series "Extract DEBUG_WX to shared use".
 
-We can cut the lookup cost to O(log n) if we cache each memory block
-in an xarray.  This time complexity improvement is significant on
-systems with many memory blocks.  For example:
+Some architectures support DEBUG_WX function, it's verbatim from each
+others, so extract to mm/Kconfig.debug for shared use.
 
-1. A 128GB POWER9 VM with 256MB memblocks has 512 blocks.  With this
-   change  memory_dev_init() completes ~12ms faster and walk_memory_blocks()
-   completes ~12ms faster.
+PPC and ARM ports don't support generic page dumper yet, so we only
+refine x86 and arm64 port in this patch series.
 
-Before:
-[    0.005042] memory_dev_init: adding memory blocks
-[    0.021591] memory_dev_init: added memory blocks
-[    0.022699] walk_memory_blocks: walking memory blocks
-[    0.038730] walk_memory_blocks: walked memory blocks 0-511
+For RISC-V port, the DEBUG_WX support depends on other patches which
+be merged already:
+  - RISC-V page table dumper
+  - Support strict kernel memory permissions for security
 
-After:
-[    0.005057] memory_dev_init: adding memory blocks
-[    0.009415] memory_dev_init: added memory blocks
-[    0.010519] walk_memory_blocks: walking memory blocks
-[    0.014135] walk_memory_blocks: walked memory blocks 0-511
 
-2. A 256GB POWER9 LPAR with 256MB memblocks has 1024 blocks.  With
-   this change memory_dev_init() completes ~88ms faster and
-   walk_memory_blocks() completes ~87ms faster.
+This patch (of 4):
 
-Before:
-[    0.252246] memory_dev_init: adding memory blocks
-[    0.395469] memory_dev_init: added memory blocks
-[    0.409413] walk_memory_blocks: walking memory blocks
-[    0.433028] walk_memory_blocks: walked memory blocks 0-511
-[    0.433094] walk_memory_blocks: walking memory blocks
-[    0.500244] walk_memory_blocks: walked memory blocks 131072-131583
+Some architectures support DEBUG_WX function, it's verbatim from each
+others.  Extract to mm/Kconfig.debug for shared use.
 
-After:
-[    0.245063] memory_dev_init: adding memory blocks
-[    0.299539] memory_dev_init: added memory blocks
-[    0.313609] walk_memory_blocks: walking memory blocks
-[    0.315287] walk_memory_blocks: walked memory blocks 0-511
-[    0.315349] walk_memory_blocks: walking memory blocks
-[    0.316988] walk_memory_blocks: walked memory blocks 131072-131583
-
-3. A 32TB POWER9 LPAR with 256MB memblocks has 131072 blocks.  With
-   this change we complete memory_dev_init() ~37 minutes faster and
-   walk_memory_blocks() at least ~30 minutes faster.  The exact timing
-   for walk_memory_blocks() is  missing, though I observed that the
-   soft lockups in walk_memory_blocks() disappeared with the change,
-   suggesting that lower bound.
-
-Before:
-[   13.703907] memory_dev_init: adding blocks
-[ 2287.406099] memory_dev_init: added all blocks
-[ 2347.494986] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 2527.625378] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 2707.761977] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 2887.899975] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3068.028318] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3248.158764] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3428.287296] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3608.425357] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3788.554572] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 3968.695071] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-[ 4148.823970] [c000000014c5bb60] [c000000000869af4] walk_memory_blocks+0x94/0x160
-
-After:
-[   13.696898] memory_dev_init: adding blocks
-[   15.660035] memory_dev_init: added all blocks
-(the walk_memory_blocks traces disappear)
-
-There should be no significant negative impact for machines with few
-memory blocks.  A sparse xarray has a small footprint and an O(log n)
-lookup is negligibly slower than an O(n) lookup for only the smallest
-number of memory blocks.
-
-1. A 16GB x86 machine with 128MB memblocks has 132 blocks.  With this
-   change memory_dev_init() completes ~300us faster and walk_memory_blocks()
-   completes no faster or slower.  The improvement is pretty close to noise.
-
-Before:
-[    0.224752] memory_dev_init: adding memory blocks
-[    0.227116] memory_dev_init: added memory blocks
-[    0.227183] walk_memory_blocks: walking memory blocks
-[    0.227183] walk_memory_blocks: walked memory blocks 0-131
-
-After:
-[    0.224911] memory_dev_init: adding memory blocks
-[    0.226935] memory_dev_init: added memory blocks
-[    0.227089] walk_memory_blocks: walking memory blocks
-[    0.227089] walk_memory_blocks: walked memory blocks 0-131
-
-[david@redhat.com: document the locking]
-  Link: http://lkml.kernel.org/r/bc21eec6-7251-4c91-2f57-9a0671f8d414@redhat.com
-Link: http://lkml.kernel.org/r/20200121231028.13699-1-cheloha@linux.ibm.com
-Signed-off-by: Scott Cheloha <cheloha@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Nathan Lynch <nathanl@linux.ibm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Rick Lindsley <ricklind@linux.vnet.ibm.com>
-Cc: Scott Cheloha <cheloha@linux.ibm.com>
+[akpm@linux-foundation.org: reword text, per Will Deacon & Zong Li]
+  Link: http://lkml.kernel.org/r/20200427194245.oxRJKj3fn%25akpm@linux-foundation.org
+[zong.li@sifive.com: remove the specific name of arm64]
+  Link: http://lkml.kernel.org/r/3a6a92ecedc54e1d0fc941398e63d504c2cd5611.1589178399.git.zong.li@sifive.com
+[zong.li@sifive.com: add MMU dependency for DEBUG_WX]
+  Link: http://lkml.kernel.org/r/4a674ac7863ff39ca91847b10e51209771f99416.1589178399.git.zong.li@sifive.com
+Link: http://lkml.kernel.org/r/cover.1587455584.git.zong.li@sifive.com
+Link: http://lkml.kernel.org/r/23980cd0f0e5d79e24a92169116407c75bcc650d.1587455584.git.zong.li@sifive.com
+Signed-off-by: Zong Li <zong.li@sifive.com>
+Suggested-by: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   44 +++++++++++++++++++++++++++++-----------
- 1 file changed, 32 insertions(+), 12 deletions(-)
+ mm/Kconfig.debug |   32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
---- a/drivers/base/memory.c~drivers-base-memoryc-cache-memory-blocks-in-xarray-to-accelerate-lookup
-+++ a/drivers/base/memory.c
-@@ -21,6 +21,7 @@
- #include <linux/mm.h>
- #include <linux/stat.h>
- #include <linux/slab.h>
-+#include <linux/xarray.h>
+--- a/mm/Kconfig.debug~mm-add-debug_wx-support
++++ a/mm/Kconfig.debug
+@@ -118,6 +118,38 @@ config DEBUG_RODATA_TEST
+     ---help---
+       This option enables a testcase for the setting rodata read-only.
  
- #include <linux/atomic.h>
- #include <linux/uaccess.h>
-@@ -74,6 +75,13 @@ static struct bus_type memory_subsys = {
- 	.offline = memory_subsys_offline,
- };
- 
-+/*
-+ * Memory blocks are cached in a local radix tree to avoid
-+ * a costly linear search for the corresponding device on
-+ * the subsystem bus.
-+ */
-+static DEFINE_XARRAY(memory_blocks);
++config ARCH_HAS_DEBUG_WX
++	bool
 +
- static BLOCKING_NOTIFIER_HEAD(memory_chain);
- 
- int register_memory_notifier(struct notifier_block *nb)
-@@ -489,22 +497,23 @@ int __weak arch_get_memory_phys_device(u
- 	return 0;
- }
- 
--/* A reference for the returned memory block device is acquired. */
-+/*
-+ * A reference for the returned memory block device is acquired.
-+ *
-+ * Called under device_hotplug_lock.
-+ */
- static struct memory_block *find_memory_block_by_id(unsigned long block_id)
- {
--	struct device *dev;
-+	struct memory_block *mem;
- 
--	dev = subsys_find_device_by_id(&memory_subsys, block_id, NULL);
--	return dev ? to_memory_block(dev) : NULL;
-+	mem = xa_load(&memory_blocks, block_id);
-+	if (mem)
-+		get_device(&mem->dev);
-+	return mem;
- }
- 
- /*
-- * For now, we have a linear search to go find the appropriate
-- * memory_block corresponding to a particular phys_index. If
-- * this gets to be a real problem, we can always use a radix
-- * tree or something here.
-- *
-- * This could be made generic for all device subsystems.
-+ * Called under device_hotplug_lock.
-  */
- struct memory_block *find_memory_block(struct mem_section *section)
- {
-@@ -548,9 +557,16 @@ int register_memory(struct memory_block
- 	memory->dev.offline = memory->state == MEM_OFFLINE;
- 
- 	ret = device_register(&memory->dev);
--	if (ret)
-+	if (ret) {
- 		put_device(&memory->dev);
--
-+		return ret;
-+	}
-+	ret = xa_err(xa_store(&memory_blocks, memory->dev.id, memory,
-+			      GFP_KERNEL));
-+	if (ret) {
-+		put_device(&memory->dev);
-+		device_unregister(&memory->dev);
-+	}
- 	return ret;
- }
- 
-@@ -604,6 +620,8 @@ static void unregister_memory(struct mem
- 	if (WARN_ON_ONCE(memory->dev.bus != &memory_subsys))
- 		return;
- 
-+	WARN_ON(xa_erase(&memory_blocks, memory->dev.id) == NULL);
++config DEBUG_WX
++	bool "Warn on W+X mappings at boot"
++	depends on ARCH_HAS_DEBUG_WX
++	depends on MMU
++	select PTDUMP_CORE
++	help
++	  Generate a warning if any W+X mappings are found at boot.
 +
- 	/* drop the ref. we got via find_memory_block() */
- 	put_device(&memory->dev);
- 	device_unregister(&memory->dev);
-@@ -750,6 +768,8 @@ void __init memory_dev_init(void)
-  *
-  * In case func() returns an error, walking is aborted and the error is
-  * returned.
-+ *
-+ * Called under device_hotplug_lock.
-  */
- int walk_memory_blocks(unsigned long start, unsigned long size,
- 		       void *arg, walk_memory_blocks_func_t func)
++	  This is useful for discovering cases where the kernel is leaving W+X
++	  mappings after applying NX, as such mappings are a security risk.
++
++	  Look for a message in dmesg output like this:
++
++	    <arch>/mm: Checked W+X mappings: passed, no W+X pages found.
++
++	  or like this, if the check failed:
++
++	    <arch>/mm: Checked W+X mappings: failed, <N> W+X pages found.
++
++	  Note that even if the check fails, your kernel is possibly
++	  still fine, as W+X mappings are not a security hole in
++	  themselves, what they do is that they make the exploitation
++	  of other unfixed kernel bugs easier.
++
++	  There is no runtime or memory usage effect of this option
++	  once the kernel has booted up - it's a one time check.
++
++	  If in doubt, say "Y".
++
+ config GENERIC_PTDUMP
+ 	bool
+ 
 _
 
-Patches currently in -mm which might be from cheloha@linux.vnet.ibm.com are
+Patches currently in -mm which might be from zong.li@sifive.com are
