@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] riscv-support-debug_wx.patch removed from -mm
+Subject: [merged]
+ x86-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch removed from -mm
  tree
-Date: Thu, 04 Jun 2020 10:21:37 -0700
-Message-ID: <20200604172137.h99Tsq_fh%akpm@linux-foundation.org>
+Date: Thu, 04 Jun 2020 10:21:39 -0700
+Message-ID: <20200604172139.IOwKD-z9C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43576 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43618 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730050AbgFDRVi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:21:38 -0400
+        id S1730050AbgFDRVk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:21:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bp@alien8.de, catalin.marinas@arm.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, palmer@dabbelt.com, paul.walmsley@sifive.com, tglx@linutronix.de, will@kernel.org, zong.li@sifive.com
 
 
 The patch titled
-     Subject: riscv: support DEBUG_WX
+     Subject: x86: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
 has been removed from the -mm tree.  Its filename was
-     riscv-support-debug_wx.patch
+     x86-mm-use-arch_has_debug_wx-instead-of-arch-defined.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Zong Li <zong.li@sifive.com>
-Subject: riscv: support DEBUG_WX
+Subject: x86: mm: use ARCH_HAS_DEBUG_WX instead of arch defined
 
-Support DEBUG_WX to check whether there are mapping with write and execute
-permission at the same time.
+Extract DEBUG_WX to mm/Kconfig.debug for shared use.  Change to use
+ARCH_HAS_DEBUG_WX instead of DEBUG_WX defined by arch port.
 
-[akpm@linux-foundation.org: replace macros with C]
-Link: http://lkml.kernel.org/r/282e266311bced080bc6f7c255b92f87c1eb65d6.1587455584.git.zong.li@sifive.com
+Link: http://lkml.kernel.org/r/430736828d149df3f5b462d291e845ec690e0141.1587455584.git.zong.li@sifive.com
 Signed-off-by: Zong Li <zong.li@sifive.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -42,58 +42,49 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/Kconfig              |    1 +
- arch/riscv/include/asm/ptdump.h |   11 +++++++++++
- arch/riscv/mm/init.c            |    3 +++
- 3 files changed, 15 insertions(+)
+ arch/x86/Kconfig       |    1 +
+ arch/x86/Kconfig.debug |   27 ---------------------------
+ 2 files changed, 1 insertion(+), 27 deletions(-)
 
---- a/arch/riscv/include/asm/ptdump.h~riscv-support-debug_wx
-+++ a/arch/riscv/include/asm/ptdump.h
-@@ -8,4 +8,15 @@
- 
- void ptdump_check_wx(void);
- 
-+#ifdef CONFIG_DEBUG_WX
-+static inline void debug_checkwx(void)
-+{
-+	ptdump_check_wx();
-+}
-+#else
-+static inline void debug_checkwx(void)
-+{
-+}
-+#endif
-+
- #endif /* _ASM_RISCV_PTDUMP_H */
---- a/arch/riscv/Kconfig~riscv-support-debug_wx
-+++ a/arch/riscv/Kconfig
-@@ -16,6 +16,7 @@ config RISCV
- 	select OF_EARLY_FLATTREE
- 	select OF_IRQ
- 	select ARCH_HAS_BINFMT_FLAT
+--- a/arch/x86/Kconfig~x86-mm-use-arch_has_debug_wx-instead-of-arch-defined
++++ a/arch/x86/Kconfig
+@@ -81,6 +81,7 @@ config X86
+ 	select ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
+ 	select ARCH_HAS_SYSCALL_WRAPPER
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
 +	select ARCH_HAS_DEBUG_WX
- 	select ARCH_WANT_FRAME_POINTERS
- 	select CLONE_BACKWARDS
- 	select COMMON_CLK
---- a/arch/riscv/mm/init.c~riscv-support-debug_wx
-+++ a/arch/riscv/mm/init.c
-@@ -19,6 +19,7 @@
- #include <asm/sections.h>
- #include <asm/pgtable.h>
- #include <asm/io.h>
-+#include <asm/ptdump.h>
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+--- a/arch/x86/Kconfig.debug~x86-mm-use-arch_has_debug_wx-instead-of-arch-defined
++++ a/arch/x86/Kconfig.debug
+@@ -72,33 +72,6 @@ config EFI_PGT_DUMP
+ 	  issues with the mapping of the EFI runtime regions into that
+ 	  table.
  
- #include "../kernel/head.h"
- 
-@@ -514,6 +515,8 @@ void mark_rodata_ro(void)
- 	set_memory_ro(rodata_start, (data_start - rodata_start) >> PAGE_SHIFT);
- 	set_memory_nx(rodata_start, (data_start - rodata_start) >> PAGE_SHIFT);
- 	set_memory_nx(data_start, (max_low - data_start) >> PAGE_SHIFT);
-+
-+	debug_checkwx();
- }
- #endif
- 
-_
-
-Patches currently in -mm which might be from zong.li@sifive.com are
+-config DEBUG_WX
+-	bool "Warn on W+X mappings at boot"
+-	select PTDUMP_CORE
+-	---help---
+-	  Generate a warning if any W+X mappings are found at boot.
+-
+-	  This is useful for discovering cases where the kernel is leaving
+-	  W+X mappings after applying NX, as such mappings are a security risk.
+-
+-	  Look for a message in dmesg output like this:
+-
+-	    x86/mm: Checked W+X mappings: passed, no W+X pages found.
+-
+-	  or like this, if the check failed:
+-
+-	    x86/mm: Checked W+X mappings: FAILED, <N> W+X pages found.
+-
+-	  Note that even if the check fails, your kernel is possibly
+-	  still fine, as W+X mappings are not a security hole in
+-	  themselves, what they do is that they make the exploitation
+-	  of other unfixed kernel bugs easier.
+-
+-	  There is no runtime or memory usage effect of this option
+-	  once the kernel has booted up - it's a one time check.
+-
+-	  If in doubt, say "Y".
