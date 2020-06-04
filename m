@@ -1,71 +1,94 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 082/127] include/linux/bitops.h: avoid clang
- shift-count-overflow warnings
-Date: Thu, 04 Jun 2020 16:50:30 -0700
-Message-ID: <20200604235030.yleyQRuST%akpm@linux-foundation.org>
+Subject: [patch 083/127] checkpatch: additional MAINTAINER section
+ entry ordering checks
+Date: Thu, 04 Jun 2020 16:50:33 -0700
+Message-ID: <20200604235033.TlsBhkPhV%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48322 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48426 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725943AbgFDXuc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:50:32 -0400
+        id S1725943AbgFDXuf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:50:35 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, arnd@arndb.de, christian.brauner@ubuntu.com, jpoimboe@redhat.com, linux-mm@kvack.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, ndesaulniers@google.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, andy.shevchenko@gmail.com, joe@perches.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: include/linux/bitops.h: avoid clang shift-count-overflow warnings
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: additional MAINTAINER section entry ordering checks
 
-Clang normally does not warn about certain issues in inline functions when
-it only happens in an eliminated code path. However if something else
-goes wrong, it does tend to complain about the definition of hweight_long()
-on 32-bit targets:
+There is a preferred order for the entries in MAINTAINERS sections.
 
-include/linux/bitops.h:75:41: error: shift count >= width of type [-Werror,-Wshift-count-overflow]
-        return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
-                                               ^~~~~~~~~~~~
-include/asm-generic/bitops/const_hweight.h:29:49: note: expanded from macro 'hweight64'
- define hweight64(w) (__builtin_constant_p(w) ? __const_hweight64(w) : __arch_hweight64(w))
-                                                ^~~~~~~~~~~~~~~~~~~~
-include/asm-generic/bitops/const_hweight.h:21:76: note: expanded from macro '__const_hweight64'
- define __const_hweight64(w) (__const_hweight32(w) + __const_hweight32((w) >> 32))
-                                                                           ^  ~~
-include/asm-generic/bitops/const_hweight.h:20:49: note: expanded from macro '__const_hweight32'
- define __const_hweight32(w) (__const_hweight16(w) + __const_hweight16((w) >> 16))
-                                                ^
-include/asm-generic/bitops/const_hweight.h:19:72: note: expanded from macro '__const_hweight16'
- define __const_hweight16(w) (__const_hweight8(w)  + __const_hweight8((w)  >> 8 ))
-                                                                       ^
-include/asm-generic/bitops/const_hweight.h:12:9: note: expanded from macro '__const_hweight8'
-          (!!((w) & (1ULL << 2))) +     \
+See:
 
-Adding an explicit cast to __u64 avoids that warning and makes it easier
-to read other output.
+commit 3b50142d8528 ("MAINTAINERS: sort field names for all entries")
+and
+commit 6680125ea5a2 ("MAINTAINERS: list the section entries in the preferred order")
 
-Link: http://lkml.kernel.org/r/20200505135513.65265-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
+Add checkpatch tests to try to keep that ordering.
+
+Link: http://lkml.kernel.org/r/17677130b3ca62d79817e6a22546bad39d7e81b4.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   45 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 37 insertions(+), 8 deletions(-)
 
---- a/include/linux/bitops.h~bitops-avoid-clang-shift-count-overflow-warnings
-+++ a/include/linux/bitops.h
-@@ -72,7 +72,7 @@ static inline int get_bitmask_order(unsi
+--- a/scripts/checkpatch.pl~checkpatch-additional-maintainer-section-entry-ordering-checks
++++ a/scripts/checkpatch.pl
+@@ -3062,14 +3062,43 @@ sub process {
+ 			#print "is_start<$is_start> is_end<$is_end> length<$length>\n";
+ 		}
  
- static __always_inline unsigned long hweight_long(unsigned long w)
- {
--	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
-+	return sizeof(w) == 4 ? hweight32(w) : hweight64((__u64)w);
- }
+-# check for MAINTAINERS entries that don't have the right form
+-		if ($realfile =~ /^MAINTAINERS$/ &&
+-		    $rawline =~ /^\+[A-Z]:/ &&
+-		    $rawline !~ /^\+[A-Z]:\t\S/) {
+-			if (WARN("MAINTAINERS_STYLE",
+-				 "MAINTAINERS entries use one tab after TYPE:\n" . $herecurr) &&
+-			    $fix) {
+-				$fixed[$fixlinenr] =~ s/^(\+[A-Z]):\s*/$1:\t/;
++# check MAINTAINERS entries
++		if ($realfile =~ /^MAINTAINERS$/) {
++# check MAINTAINERS entries for the right form
++			if ($rawline =~ /^\+[A-Z]:/ &&
++			    $rawline !~ /^\+[A-Z]:\t\S/) {
++				if (WARN("MAINTAINERS_STYLE",
++					 "MAINTAINERS entries use one tab after TYPE:\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/^(\+[A-Z]):\s*/$1:\t/;
++				}
++			}
++# check MAINTAINERS entries for the right ordering too
++			my $preferred_order = 'MRLSWQBCPTFXNK';
++			if ($rawline =~ /^\+[A-Z]:/ &&
++			    $prevrawline =~ /^[\+ ][A-Z]:/) {
++				$rawline =~ /^\+([A-Z]):\s*(.*)/;
++				my $cur = $1;
++				my $curval = $2;
++				$prevrawline =~ /^[\+ ]([A-Z]):\s*(.*)/;
++				my $prev = $1;
++				my $prevval = $2;
++				my $curindex = index($preferred_order, $cur);
++				my $previndex = index($preferred_order, $prev);
++				if ($curindex < 0) {
++					WARN("MAINTAINERS_STYLE",
++					     "Unknown MAINTAINERS entry type: '$cur'\n" . $herecurr);
++				} else {
++					if ($previndex >= 0 && $curindex < $previndex) {
++						WARN("MAINTAINERS_STYLE",
++						     "Misordered MAINTAINERS entry - list '$cur:' before '$prev:'\n" . $hereprev);
++					} elsif ((($prev eq 'F' && $cur eq 'F') ||
++						  ($prev eq 'X' && $cur eq 'X')) &&
++						 ($prevval cmp $curval) > 0) {
++						WARN("MAINTAINERS_STYLE",
++						     "Misordered MAINTAINERS entry - list file patterns in alphabetic order\n" . $hereprev);
++					}
++				}
+ 			}
+ 		}
  
- /**
 _
