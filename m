@@ -1,94 +1,115 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-remove-unused-free_bootmem_with_active_regions.patch removed from -mm
- tree
-Date: Thu, 04 Jun 2020 10:17:58 -0700
-Message-ID: <20200604171758.Me9xna86p%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-page=5Fallocc-only-tune-sysctl=5Flowmem=5Freserve=5Frat?=
+ =?US-ASCII?Q?io-value-once-when-changing-it.patch?= removed from -mm tree
+Date: Thu, 04 Jun 2020 10:18:00 -0700
+Message-ID: <20200604171800.1rCSmtv-o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39530 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39552 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729999AbgFDRR7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:17:59 -0400
+        id S1729999AbgFDRSB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:18:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: bhe@redhat.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, mm-commits@vger.kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: mm/page_alloc.c: remove unused free_bootmem_with_active_regions
+     Subject: mm/page_alloc.c: only tune sysctl_lowmem_reserve_ratio value once when changing it
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unused-free_bootmem_with_active_regions.patch
+     mm-page_allocc-only-tune-sysctl_lowmem_reserve_ratio-value-once-when-changing-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/page_alloc.c: remove unused free_bootmem_with_active_regions
+Subject: mm/page_alloc.c: only tune sysctl_lowmem_reserve_ratio value once when changing it
 
-Since commit 397dc00e249ec64e10 ("mips: sgi-ip27: switch from DISCONTIGMEM
-to SPARSEMEM"), the last caller of free_bootmem_with_active_regions() was
-gone.  Now no user calls it any more.
+Patch series "improvements about lowmem_reserve and /proc/zoneinfo", v2.
 
-Let's remove it.
 
-Link: http://lkml.kernel.org/r/20200402143455.5145-1-bhe@redhat.com
+This patch (of 3):
+
+When people write to /proc/sys/vm/lowmem_reserve_ratio to change
+sysctl_lowmem_reserve_ratio[], setup_per_zone_lowmem_reserve() is called
+to recalculate all ->lowmem_reserve[] for each zone of all nodes as below:
+
+static void setup_per_zone_lowmem_reserve(void)
+{
+...
+	for_each_online_pgdat(pgdat) {
+		for (j = 0; j < MAX_NR_ZONES; j++) {
+			...
+			while (idx) {
+				...
+				if (sysctl_lowmem_reserve_ratio[idx] < 1) {
+					sysctl_lowmem_reserve_ratio[idx] = 0;
+					lower_zone->lowmem_reserve[j] = 0;
+                                } else {
+				...
+			}
+		}
+	}
+}
+
+Meanwhile, here, sysctl_lowmem_reserve_ratio[idx] will be tuned if its
+value is smaller than '1'.  As we know, sysctl_lowmem_reserve_ratio[] is
+set for zone without regarding to which node it belongs to.  That means
+the tuning will be done on all nodes, even though it has been done in the
+first node.
+
+And the tuning will be done too even when init_per_zone_wmark_min() calls
+setup_per_zone_lowmem_reserve(), where actually nobody tries to change
+sysctl_lowmem_reserve_ratio[].
+
+So now move the tuning into lowmem_reserve_ratio_sysctl_handler(), to make
+code logic more reasonable.
+
+Link: http://lkml.kernel.org/r/20200402140113.3696-1-bhe@redhat.com
+Link: http://lkml.kernel.org/r/20200402140113.3696-2-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ----
- mm/page_alloc.c    |   25 -------------------------
- 2 files changed, 29 deletions(-)
+ mm/page_alloc.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-unused-free_bootmem_with_active_regions
-+++ a/include/linux/mm.h
-@@ -2415,8 +2415,6 @@ static inline unsigned long get_num_phys
-  * 	memblock_add_node(base, size, nid)
-  * free_area_init(max_zone_pfns);
-  *
-- * free_bootmem_with_active_regions() calls free_bootmem_node() for each
-- * registered physical page range.  Similarly
-  * sparse_memory_present_with_active_regions() calls memory_present() for
-  * each range when SPARSEMEM is enabled.
-  */
-@@ -2429,8 +2427,6 @@ extern unsigned long absent_pages_in_ran
- extern void get_pfn_range_for_nid(unsigned int nid,
- 			unsigned long *start_pfn, unsigned long *end_pfn);
- extern unsigned long find_min_pfn_with_active_regions(void);
--extern void free_bootmem_with_active_regions(int nid,
--						unsigned long max_low_pfn);
- extern void sparse_memory_present_with_active_regions(int nid);
- 
- #ifndef CONFIG_NEED_MULTIPLE_NODES
---- a/mm/page_alloc.c~mm-remove-unused-free_bootmem_with_active_regions
+--- a/mm/page_alloc.c~mm-page_allocc-only-tune-sysctl_lowmem_reserve_ratio-value-once-when-changing-it
 +++ a/mm/page_alloc.c
-@@ -6296,31 +6296,6 @@ void __meminit init_currently_empty_zone
- }
+@@ -7704,8 +7704,7 @@ static void setup_per_zone_lowmem_reserv
+ 				idx--;
+ 				lower_zone = pgdat->node_zones + idx;
  
- /**
-- * free_bootmem_with_active_regions - Call memblock_free_early_nid for each active range
-- * @nid: The node to free memory on. If MAX_NUMNODES, all nodes are freed.
-- * @max_low_pfn: The highest PFN that will be passed to memblock_free_early_nid
-- *
-- * If an architecture guarantees that all ranges registered contain no holes
-- * and may be freed, this this function may be used instead of calling
-- * memblock_free_early_nid() manually.
-- */
--void __init free_bootmem_with_active_regions(int nid, unsigned long max_low_pfn)
--{
--	unsigned long start_pfn, end_pfn;
--	int i, this_nid;
--
--	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, &this_nid) {
--		start_pfn = min(start_pfn, max_low_pfn);
--		end_pfn = min(end_pfn, max_low_pfn);
--
--		if (start_pfn < end_pfn)
--			memblock_free_early_nid(PFN_PHYS(start_pfn),
--					(end_pfn - start_pfn) << PAGE_SHIFT,
--					this_nid);
--	}
--}
+-				if (sysctl_lowmem_reserve_ratio[idx] < 1) {
+-					sysctl_lowmem_reserve_ratio[idx] = 0;
++				if (!sysctl_lowmem_reserve_ratio[idx]) {
+ 					lower_zone->lowmem_reserve[j] = 0;
+ 				} else {
+ 					lower_zone->lowmem_reserve[j] =
+@@ -7970,7 +7969,15 @@ int sysctl_min_slab_ratio_sysctl_handler
+ int lowmem_reserve_ratio_sysctl_handler(struct ctl_table *table, int write,
+ 	void __user *buffer, size_t *length, loff_t *ppos)
+ {
++	int i;
++
+ 	proc_dointvec_minmax(table, write, buffer, length, ppos);
++
++	for (i = 0; i < MAX_NR_ZONES; i++) {
++		if (sysctl_lowmem_reserve_ratio[i] < 1)
++			sysctl_lowmem_reserve_ratio[i] = 0;
++	}
++
+ 	setup_per_zone_lowmem_reserve();
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from bhe@redhat.com are
