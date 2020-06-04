@@ -1,91 +1,101 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-replace-zero-length-array-with-flexible-array-member-fix.patch removed
- from -mm tree
-Date: Thu, 04 Jun 2020 16:19:26 -0700
-Message-ID: <20200604231926.w2RVfRqRH%akpm@linux-foundation.org>
+ mm-ksm-fix-a-typo-in-comment-alreaady-already-v2.patch removed from -mm
+ tree
+Date: Thu, 04 Jun 2020 16:20:02 -0700
+Message-ID: <20200604232002.QeDBR_r6p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57958 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57994 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgFDXT1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:19:27 -0400
+        id S1725863AbgFDXUE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:20:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhe@redhat.com, cai@lca.pw, chenqiwu@xiaomi.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, richard.weiyang@gmail.com, willy@infradead.org, yang.shi@linux.alibaba.com
+To: ethp@qq.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com
 
 
 The patch titled
-     Subject: mm-replace-zero-length-array-with-flexible-array-member-fix
+     Subject: mm: ksm: fix a typo in comment "alreaady"->"already"
 has been removed from the -mm tree.  Its filename was
-     mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+     mm-ksm-fix-a-typo-in-comment-alreaady-already-v2.patch
 
-This patch was dropped because it was folded into mm-replace-zero-length-array-with-flexible-array-member.patch
+This patch was dropped because it was folded into mm-ksm-fix-a-typo-in-comment-alreaady-already.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-replace-zero-length-array-with-flexible-array-member-fix
+From: Ethon Paul <ethp@qq.com>
+Subject: mm: ksm: fix a typo in comment "alreaady"->"already"
 
-fix build:
+There are some typos in comment, fix them.
 
-./include/linux/mmzone.h:1143:16: error: flexible array member in a struct with no named members
+s/wrprotected/write protected
+s/undeflow/underflow
 
-Cc: Baoquan He <bhe@redhat.com>
-Cc: chenqiwu <chenqiwu@xiaomi.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/20200411023644.15145-1-ethp@qq.com
+Signed-off-by: Ethon Paul <ethp@qq.com>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/ksm.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/mmzone.h~mm-replace-zero-length-array-with-flexible-array-member-fix
-+++ a/include/linux/mmzone.h
-@@ -1147,7 +1147,7 @@ struct mem_section_usage {
- 	DECLARE_BITMAP(subsection_map, SUBSECTIONS_PER_SECTION);
- #endif
- 	/* See declaration of similar field in struct zone */
--	unsigned long pageblock_flags[];
-+	unsigned long pageblock_flags[0];
- };
- 
- void subsection_map_init(unsigned long pfn, unsigned long nr_pages);
+--- a/mm/ksm.c~mm-ksm-fix-a-typo-in-comment-alreaady-already-v2
++++ a/mm/ksm.c
+@@ -612,7 +612,7 @@ static struct stable_node *alloc_stable_
+ 		 * Move the old stable node to the second dimension
+ 		 * queued in the hlist_dup. The invariant is that all
+ 		 * dup stable_nodes in the chain->hlist point to pages
+-		 * that are wrprotected and have the exact same
++		 * that are write protected and have the exact same
+ 		 * content.
+ 		 */
+ 		stable_node_chain_add_dup(dup, chain);
+@@ -1608,7 +1608,7 @@ again:
+ 			 * continue. All KSM pages belonging to the
+ 			 * stable_node dups in a stable_node chain
+ 			 * have the same content and they're
+-			 * wrprotected at all times. Any will work
++			 * write protected at all times. Any will work
+ 			 * fine to continue the walk.
+ 			 */
+ 			tree_page = get_ksm_page(stable_node_any,
+@@ -1843,7 +1843,7 @@ again:
+ 			 * continue. All KSM pages belonging to the
+ 			 * stable_node dups in a stable_node chain
+ 			 * have the same content and they're
+-			 * wrprotected at all times. Any will work
++			 * write protected at all times. Any will work
+ 			 * fine to continue the walk.
+ 			 */
+ 			tree_page = get_ksm_page(stable_node_any,
+@@ -2001,7 +2001,7 @@ static void stable_tree_append(struct rm
+ 	 * duplicate. page_migration could break later if rmap breaks,
+ 	 * so we can as well crash here. We really need to check for
+ 	 * rmap_hlist_len == STABLE_NODE_CHAIN, but we can as well check
+-	 * for other negative values as an undeflow if detected here
++	 * for other negative values as an underflow if detected here
+ 	 * for the first time (and not when decreasing rmap_hlist_len)
+ 	 * would be sign of memory corruption in the stable_node.
+ 	 */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ethp@qq.com are
 
-mm-replace-zero-length-array-with-flexible-array-member.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix.patch
-seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-pre.patch
-linux-next-rejects.patch
-linux-next-post.patch
-kernel-add-panic_on_taint-fix.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-maccess-unify-the-probe-kernel-arch-hooks-fix.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-memory_hotplug-fix-a-typo-in-comment-recoreded-recorded.patch
+mm-ksm-fix-a-typo-in-comment-alreaady-already.patch
+mm-mmap-fix-a-typo-in-comment-compatbility-compatibility.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained.patch
+mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2.patch
+mm-vmsan-fix-some-typos-in-comment.patch
+mm-compaction-fix-a-typo-in-comment-pessemistic-pessimistic.patch
+mm-memblock-fix-a-typo-in-comment-implict-implicit.patch
+mm-list_lru-fix-a-typo-in-comment-numbesr-numbers.patch
+mm-filemap-fix-a-typo-in-comment-unneccssary-unnecessary.patch
+mm-frontswap-fix-some-typos-in-frontswapc.patch
+mm-memcg-fix-some-typos-in-memcontrolc.patch
+mm-fix-a-typo-in-comment-strucure-structure.patch
+mm-slub-fix-a-typo-in-comment-disambiguiation-disambiguation.patch
+mm-sparse-fix-a-typo-in-comment-convienence-convenience.patch
+mm-page-writeback-fix-a-typo-in-comment-effictive-effective.patch
+mm-memory-fix-a-typo-in-comment-attampt-attempt.patch
