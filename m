@@ -1,67 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- =?US-ASCII?Q?mm-vmstatc-do-not-show-lowmem-reserve-protection-information?=
- =?US-ASCII?Q?-of-empty-zone.patch?= removed from -mm tree
-Date: Thu, 04 Jun 2020 10:18:05 -0700
-Message-ID: <20200604171805.pEgxMBAd4%akpm@linux-foundation.org>
+ mm-page_allocc-clear-out-zone-lowmem_reserve-if-the-zone-is-empty.patch
+ removed from -mm tree
+Date: Thu, 04 Jun 2020 10:18:03 -0700
+Message-ID: <20200604171803.P5VL6pFou%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39608 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39586 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730104AbgFDRSG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:18:06 -0400
+        id S1729999AbgFDRSE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:18:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bhe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmstat.c: do not show lowmem reserve protection information of empty zone
+     Subject: mm/page_alloc.c: clear out zone->lowmem_reserve[] if the zone is empty
 has been removed from the -mm tree.  Its filename was
-     mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone.patch
+     mm-page_allocc-clear-out-zone-lowmem_reserve-if-the-zone-is-empty.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mm/vmstat.c: do not show lowmem reserve protection information of empty zone
+Subject: mm/page_alloc.c: clear out zone->lowmem_reserve[] if the zone is empty
 
-Because the lowmem reserve protection of a zone can't tell anything if the
-zone is empty, except of adding one more line in /proc/zoneinfo.
+When requesting memory allocation from a specific zone is not satisfied,
+it will fall to lower zone to try allocating memory.  In this case, lower
+zone's ->lowmem_reserve[] will help protect its own memory resource.  The
+higher the relevant ->lowmem_reserve[] is, the harder the upper zone can
+get memory from this lower zone.
 
-Let's remove it from that zone's showing.
+However, this protection mechanism should be applied to populated zone,
+but not an empty zone. So filling ->lowmem_reserve[] for empty zone is
+not necessary, and may mislead people that it's valid data in that zone.
 
-Link: http://lkml.kernel.org/r/20200402140113.3696-4-bhe@redhat.com
+Node 2, zone      DMA
+  pages free     0
+        min      0
+        low      0
+        high     0
+        spanned  0
+        present  0
+        managed  0
+        protection: (0, 0, 1024, 1024)
+Node 2, zone    DMA32
+  pages free     0
+        min      0
+        low      0
+        high     0
+        spanned  0
+        present  0
+        managed  0
+        protection: (0, 0, 1024, 1024)
+Node 2, zone   Normal
+  per-node stats
+      nr_inactive_anon 0
+      nr_active_anon 143
+      nr_inactive_file 0
+      nr_active_file 0
+      nr_unevictable 0
+      nr_slab_reclaimable 45
+      nr_slab_unreclaimable 254
+
+Here clear out zone->lowmem_reserve[] if zone is empty.
+
+Link: http://lkml.kernel.org/r/20200402140113.3696-3-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/vmstat.c~mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone
-+++ a/mm/vmstat.c
-@@ -1592,6 +1592,12 @@ static void zoneinfo_show_print(struct s
- 		   zone->present_pages,
- 		   zone_managed_pages(zone));
+--- a/mm/page_alloc.c~mm-page_allocc-clear-out-zone-lowmem_reserve-if-the-zone-is-empty
++++ a/mm/page_alloc.c
+@@ -7704,8 +7704,10 @@ static void setup_per_zone_lowmem_reserv
+ 				idx--;
+ 				lower_zone = pgdat->node_zones + idx;
  
-+	/* If unpopulated, no other information is useful */
-+	if (!populated_zone(zone)) {
-+		seq_putc(m, '\n');
-+		return;
-+	}
-+
- 	seq_printf(m,
- 		   "\n        protection: (%ld",
- 		   zone->lowmem_reserve[0]);
-@@ -1599,12 +1605,6 @@ static void zoneinfo_show_print(struct s
- 		seq_printf(m, ", %ld", zone->lowmem_reserve[i]);
- 	seq_putc(m, ')');
- 
--	/* If unpopulated, no other information is useful */
--	if (!populated_zone(zone)) {
--		seq_putc(m, '\n');
--		return;
--	}
+-				if (!sysctl_lowmem_reserve_ratio[idx]) {
++				if (!sysctl_lowmem_reserve_ratio[idx] ||
++				    !zone_managed_pages(lower_zone)) {
+ 					lower_zone->lowmem_reserve[j] = 0;
++					continue;
+ 				} else {
+ 					lower_zone->lowmem_reserve[j] =
+ 						managed_pages / sysctl_lowmem_reserve_ratio[idx];
+_
+
+Patches currently in -mm which might be from bhe@redhat.com are
