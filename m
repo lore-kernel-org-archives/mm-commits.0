@@ -1,63 +1,61 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count.patch
- removed from -mm tree
-Date: Thu, 04 Jun 2020 10:20:53 -0700
-Message-ID: <20200604172053.B3IwpvDjw%akpm@linux-foundation.org>
+ mm-balance-lru-lists-based-on-relative-thrashing.patch removed from -mm
+ tree
+Date: Thu, 04 Jun 2020 10:21:02 -0700
+Message-ID: <20200604172102.t009tiGcG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42872 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730072AbgFDRUz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:20:55 -0400
+        id S1730142AbgFDRVD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:21:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com
 
 
 The patch titled
-     Subject: mm: vmscan: drop unnecessary div0 avoidance rounding in get_scan_count()
+     Subject: mm: balance LRU lists based on relative thrashing
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count.patch
+     mm-balance-lru-lists-based-on-relative-thrashing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: drop unnecessary div0 avoidance rounding in get_scan_count()
+Subject: mm: balance LRU lists based on relative thrashing
 
-When we calculate the relative scan pressure between the anon and file LRU
-lists, we have to assume that reclaim_stat can contain zeroes.  To avoid
-div0 crashes, we add 1 to all denominators like so:
+Since the LRUs were split into anon and file lists, the VM has been
+balancing between page cache and anonymous pages based on per-list ratios
+of scanned vs.  rotated pages.  In most cases that tips page reclaim
+towards the list that is easier to reclaim and has the fewest actively
+used pages, but there are a few problems with it:
 
-        anon_prio = swappiness;
-        file_prio = 200 - anon_prio;
+1. Refaults and LRU rotations are weighted the same way, even though
+   one costs IO and the other costs a bit of CPU.
 
-	[...]
+2. The less we scan an LRU list based on already observed rotations,
+   the more we increase the sampling interval for new references, and
+   rotations become even more likely on that list. This can enter a
+   death spiral in which we stop looking at one list completely until
+   the other one is all but annihilated by page reclaim.
 
-        /*
-         * The amount of pressure on anon vs file pages is inversely
-         * proportional to the fraction of recently scanned pages on
-         * each list that were recently referenced and in active use.
-         */
-        ap = anon_prio * (reclaim_stat->recent_scanned[0] + 1);
-        ap /= reclaim_stat->recent_rotated[0] + 1;
+Since commit a528910e12ec ("mm: thrash detection-based file cache sizing")
+we have refault detection for the page cache.  Along with swapin events,
+they are good indicators of when the file or anon list, respectively, is
+too small for its workingset and needs to grow.
 
-        fp = file_prio * (reclaim_stat->recent_scanned[1] + 1);
-        fp /= reclaim_stat->recent_rotated[1] + 1;
-        spin_unlock_irq(&pgdat->lru_lock);
+For example, if the page cache is thrashing, the cache pages need more
+time in memory, while there may be colder pages on the anonymous list. 
+Likewise, if swapped pages are faulting back in, it indicates that we
+reclaim anonymous pages too aggressively and should back off.
 
-        fraction[0] = ap;
-        fraction[1] = fp;
-        denominator = ap + fp + 1;
+Replace LRU rotations with refaults and swapins as the basis for relative
+reclaim cost of the two LRUs.  This will have the VM target list balances
+that incur the least amount of IO on aggregate.
 
-While reclaim_stat can contain 0, it's not actually possible for ap + fp
-to be 0.  One of anon_prio or file_prio could be zero, but they must still
-add up to 200.  And the reclaim_stat fraction, due to the +1 in there, is
-always at least 1.  So if one of the two numerators is 0, the other one
-can't be.  ap + fp is always at least 1.  Drop the + 1.
-
-Link: http://lkml.kernel.org/r/20200520232525.798933-8-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20200520232525.798933-12-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -66,20 +64,150 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swap.h |    3 +--
+ mm/swap.c            |   11 +++++++----
+ mm/swap_state.c      |    5 +++++
+ mm/vmscan.c          |   39 ++++++++++-----------------------------
+ mm/workingset.c      |    4 ++++
+ 5 files changed, 27 insertions(+), 35 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-drop-unnecessary-div0-avoidance-rounding-in-get_scan_count
-+++ a/mm/vmscan.c
-@@ -2348,7 +2348,7 @@ static void get_scan_count(struct lruvec
+--- a/include/linux/swap.h~mm-balance-lru-lists-based-on-relative-thrashing
++++ a/include/linux/swap.h
+@@ -334,8 +334,7 @@ extern unsigned long nr_free_pagecache_p
  
- 	fraction[0] = ap;
- 	fraction[1] = fp;
--	denominator = ap + fp + 1;
-+	denominator = ap + fp;
+ 
+ /* linux/mm/swap.c */
+-extern void lru_note_cost(struct lruvec *lruvec, bool file,
+-			  unsigned int nr_pages);
++extern void lru_note_cost(struct page *);
+ extern void lru_cache_add(struct page *);
+ extern void lru_add_page_tail(struct page *page, struct page *page_tail,
+ 			 struct lruvec *lruvec, struct list_head *head);
+--- a/mm/swap.c~mm-balance-lru-lists-based-on-relative-thrashing
++++ a/mm/swap.c
+@@ -278,12 +278,15 @@ void rotate_reclaimable_page(struct page
+ 	}
+ }
+ 
+-void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages)
++void lru_note_cost(struct page *page)
+ {
+-	if (file)
+-		lruvec->file_cost += nr_pages;
++	struct lruvec *lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
++
++	/* Record new data point */
++	if (page_is_file_lru(page))
++		lruvec->file_cost++;
+ 	else
+-		lruvec->anon_cost += nr_pages;
++		lruvec->anon_cost++;
+ }
+ 
+ static void __activate_page(struct page *page, struct lruvec *lruvec,
+--- a/mm/swap_state.c~mm-balance-lru-lists-based-on-relative-thrashing
++++ a/mm/swap_state.c
+@@ -440,6 +440,11 @@ struct page *__read_swap_cache_async(swp
+ 		goto fail_unlock;
+ 	}
+ 
++	/* XXX: Move to lru_cache_add() when it supports new vs putback */
++	spin_lock_irq(&page_pgdat(page)->lru_lock);
++	lru_note_cost(page);
++	spin_unlock_irq(&page_pgdat(page)->lru_lock);
++
+ 	/* Caller will initiate read into locked page */
+ 	SetPageWorkingset(page);
+ 	lru_cache_add(page);
+--- a/mm/vmscan.c~mm-balance-lru-lists-based-on-relative-thrashing
++++ a/mm/vmscan.c
+@@ -1958,12 +1958,6 @@ shrink_inactive_list(unsigned long nr_to
+ 	move_pages_to_lru(lruvec, &page_list);
+ 
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+-	/*
+-	 * Rotating pages costs CPU without actually
+-	 * progressing toward the reclaim goal.
+-	 */
+-	lru_note_cost(lruvec, 0, stat.nr_activate[0]);
+-	lru_note_cost(lruvec, 1, stat.nr_activate[1]);
+ 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
+ 	if (!cgroup_reclaim(sc))
+ 		__count_vm_events(item, nr_reclaimed);
+@@ -2079,11 +2073,6 @@ static void shrink_active_list(unsigned
+ 	 * Move pages back to the lru list.
+ 	 */
+ 	spin_lock_irq(&pgdat->lru_lock);
+-	/*
+-	 * Rotating pages costs CPU without actually
+-	 * progressing toward the reclaim goal.
+-	 */
+-	lru_note_cost(lruvec, file, nr_rotated);
+ 
+ 	nr_activate = move_pages_to_lru(lruvec, &l_active);
+ 	nr_deactivate = move_pages_to_lru(lruvec, &l_inactive);
+@@ -2298,22 +2287,23 @@ static void get_scan_count(struct lruvec
+ 	scan_balance = SCAN_FRACT;
+ 
+ 	/*
+-	 * With swappiness at 100, anonymous and file have the same priority.
+-	 * This scanning priority is essentially the inverse of IO cost.
++	 * Calculate the pressure balance between anon and file pages.
++	 *
++	 * The amount of pressure we put on each LRU is inversely
++	 * proportional to the cost of reclaiming each list, as
++	 * determined by the share of pages that are refaulting, times
++	 * the relative IO cost of bringing back a swapped out
++	 * anonymous page vs reloading a filesystem page (swappiness).
++	 *
++	 * With swappiness at 100, anon and file have equal IO cost.
+ 	 */
+ 	anon_prio = swappiness;
+ 	file_prio = 200 - anon_prio;
+ 
+ 	/*
+-	 * OK, so we have swap space and a fair amount of page cache
+-	 * pages.  We use the recently rotated / recently scanned
+-	 * ratios to determine how valuable each cache is.
+-	 *
+ 	 * Because workloads change over time (and to avoid overflow)
+ 	 * we keep these statistics as a floating average, which ends
+-	 * up weighing recent references more than old ones.
+-	 *
+-	 * anon in [0], file in [1]
++	 * up weighing recent refaults more than old ones.
+ 	 */
+ 
+ 	anon  = lruvec_lru_size(lruvec, LRU_ACTIVE_ANON, MAX_NR_ZONES) +
+@@ -2328,15 +2318,6 @@ static void get_scan_count(struct lruvec
+ 		lruvec->file_cost /= 2;
+ 		totalcost /= 2;
+ 	}
+-
+-	/*
+-	 * The amount of pressure on anon vs file pages is inversely
+-	 * proportional to the assumed cost of reclaiming each list,
+-	 * as determined by the share of pages that are likely going
+-	 * to refault or rotate on each list (recently referenced),
+-	 * times the relative IO cost of bringing back a swapped out
+-	 * anonymous page vs reloading a filesystem page (swappiness).
+-	 */
+ 	ap = anon_prio * (totalcost + 1);
+ 	ap /= lruvec->anon_cost + 1;
+ 
+--- a/mm/workingset.c~mm-balance-lru-lists-based-on-relative-thrashing
++++ a/mm/workingset.c
+@@ -365,6 +365,10 @@ void workingset_refault(struct page *pag
+ 	/* Page was active prior to eviction */
+ 	if (workingset) {
+ 		SetPageWorkingset(page);
++		/* XXX: Move to lru_cache_add() when it supports new vs putback */
++		spin_lock_irq(&page_pgdat(page)->lru_lock);
++		lru_note_cost(page);
++		spin_unlock_irq(&page_pgdat(page)->lru_lock);
+ 		inc_lruvec_state(lruvec, WORKINGSET_RESTORE);
+ 	}
  out:
- 	for_each_evictable_lru(lru) {
- 		int file = is_file_lru(lru);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
