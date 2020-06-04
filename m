@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- unicore32-simplify-detection-of-memory-zone-boundaries.patch removed from
- -mm tree
-Date: Thu, 04 Jun 2020 10:17:07 -0700
-Message-ID: <20200604171707.kYVt27PMp%akpm@linux-foundation.org>
+ xtensa-simplify-detection-of-memory-zone-boundaries.patch removed from -mm
+ tree
+Date: Thu, 04 Jun 2020 10:17:11 -0700
+Message-ID: <20200604171711.DyqVF40fi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38492 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38580 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730014AbgFDRRL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:17:11 -0400
+        id S1730014AbgFDRRO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:17:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, hoan@os.amperecomputing.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, mattst88@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@linux.ibm.com, shorne@gmail.com, tony.luck@intel.com, tsbogend@alpha.franken.de, vgupta@synopsys.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: unicore32: simplify detection of memory zone boundaries
+     Subject: xtensa: simplify detection of memory zone boundaries
 has been removed from the -mm tree.  Its filename was
-     unicore32-simplify-detection-of-memory-zone-boundaries.patch
+     xtensa-simplify-detection-of-memory-zone-boundaries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: unicore32: simplify detection of memory zone boundaries
+Subject: xtensa: simplify detection of memory zone boundaries
 
 free_area_init() only requires the definition of maximal PFN for each of
 the supported zone rater than calculation of actual zone sizes and the
@@ -36,7 +36,7 @@ available to all architectures.
 Using this function instead of free_area_init_node() simplifies the zone
 detection.
 
-Link: http://lkml.kernel.org/r/20200412194859.12663-14-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200412194859.12663-15-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Tested-by: Hoan Tran <hoan@os.amperecomputing.com>	[arm64]
 Cc: Baoquan He <bhe@redhat.com>
@@ -72,135 +72,29 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/include/asm/memory.h  |    2 -
- arch/unicore32/include/mach/memory.h |    6 +--
- arch/unicore32/kernel/pci.c          |   14 +-------
- arch/unicore32/mm/init.c             |   43 +++++--------------------
- 4 files changed, 15 insertions(+), 50 deletions(-)
+ arch/xtensa/mm/init.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/unicore32/include/asm/memory.h~unicore32-simplify-detection-of-memory-zone-boundaries
-+++ a/arch/unicore32/include/asm/memory.h
-@@ -60,7 +60,7 @@
- #ifndef __ASSEMBLY__
- 
- #ifndef arch_adjust_zones
--#define arch_adjust_zones(size, holes) do { } while (0)
-+#define arch_adjust_zones(max_zone_pfn) do { } while (0)
- #endif
- 
- /*
---- a/arch/unicore32/include/mach/memory.h~unicore32-simplify-detection-of-memory-zone-boundaries
-+++ a/arch/unicore32/include/mach/memory.h
-@@ -25,10 +25,10 @@
- 
- #if !defined(__ASSEMBLY__) && defined(CONFIG_PCI)
- 
--void puv3_pci_adjust_zones(unsigned long *size, unsigned long *holes);
-+void puv3_pci_adjust_zones(unsigned long *max_zone_pfn);
- 
--#define arch_adjust_zones(size, holes) \
--	puv3_pci_adjust_zones(size, holes)
-+#define arch_adjust_zones(max_zone_pfn) \
-+	puv3_pci_adjust_zones(max_zone_pfn)
- 
- #endif
- 
---- a/arch/unicore32/kernel/pci.c~unicore32-simplify-detection-of-memory-zone-boundaries
-+++ a/arch/unicore32/kernel/pci.c
-@@ -133,21 +133,11 @@ static int pci_puv3_map_irq(const struct
-  * This is really ugly and we need a better way of specifying
-  * DMA-capable regions of memory.
-  */
--void __init puv3_pci_adjust_zones(unsigned long *zone_size,
--	unsigned long *zhole_size)
-+void __init puv3_pci_adjust_zones(unsigned long max_zone_pfn)
+--- a/arch/xtensa/mm/init.c~xtensa-simplify-detection-of-memory-zone-boundaries
++++ a/arch/xtensa/mm/init.c
+@@ -70,13 +70,13 @@ void __init bootmem_init(void)
+ void __init zones_init(void)
  {
- 	unsigned int sz = SZ_128M >> PAGE_SHIFT;
- 
--	/*
--	 * Only adjust if > 128M on current system
--	 */
--	if (zone_size[0] <= sz)
--		return;
--
--	zone_size[1] = zone_size[0] - sz;
--	zone_size[0] = sz;
--	zhole_size[1] = zhole_size[0];
--	zhole_size[0] = 0;
-+	max_zone_pfn[ZONE_DMA] = sz;
- }
- 
- /*
---- a/arch/unicore32/mm/init.c~unicore32-simplify-detection-of-memory-zone-boundaries
-+++ a/arch/unicore32/mm/init.c
-@@ -61,46 +61,21 @@ static void __init find_limits(unsigned
- 	}
- }
- 
--static void __init uc32_bootmem_free(unsigned long min, unsigned long max_low,
--	unsigned long max_high)
-+static void __init uc32_bootmem_free(unsigned long max_low)
- {
--	unsigned long zone_size[MAX_NR_ZONES], zhole_size[MAX_NR_ZONES];
--	struct memblock_region *reg;
-+	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
- 
--	/*
--	 * initialise the zones.
--	 */
--	memset(zone_size, 0, sizeof(zone_size));
--
--	/*
--	 * The memory size has already been determined.  If we need
--	 * to do anything fancy with the allocation of this memory
--	 * to the zones, now is the time to do it.
--	 */
--	zone_size[0] = max_low - min;
--
--	/*
--	 * Calculate the size of the holes.
--	 *  holes = node_size - sum(bank_sizes)
--	 */
--	memcpy(zhole_size, zone_size, sizeof(zhole_size));
--	for_each_memblock(memory, reg) {
--		unsigned long start = memblock_region_memory_base_pfn(reg);
--		unsigned long end = memblock_region_memory_end_pfn(reg);
--
--		if (start < max_low) {
--			unsigned long low_end = min(end, max_low);
--			zhole_size[0] -= low_end - start;
--		}
--	}
-+	max_zone_pfn[ZONE_DMA] = max_low;
-+	max_zone_pfn[ZONE_NORMAL] = max_low;
- 
- 	/*
- 	 * Adjust the sizes according to any special requirements for
- 	 * this machine type.
-+	 * This might lower ZONE_DMA limit.
- 	 */
--	arch_adjust_zones(zone_size, zhole_size);
-+	arch_adjust_zones(max_zone_pfn);
- 
--	free_area_init_node(0, zone_size, min, zhole_size);
+ 	/* All pages are DMA-able, so we put them all in the DMA zone. */
+-	unsigned long zones_size[MAX_NR_ZONES] = {
+-		[ZONE_NORMAL] = max_low_pfn - ARCH_PFN_OFFSET,
++	unsigned long max_zone_pfn[MAX_NR_ZONES] = {
++		[ZONE_NORMAL] = max_low_pfn,
+ #ifdef CONFIG_HIGHMEM
+-		[ZONE_HIGHMEM] = max_pfn - max_low_pfn,
++		[ZONE_HIGHMEM] = max_pfn,
+ #endif
+ 	};
+-	free_area_init_node(0, zones_size, ARCH_PFN_OFFSET, NULL);
 +	free_area_init(max_zone_pfn);
  }
  
- int pfn_valid(unsigned long pfn)
-@@ -176,11 +151,11 @@ void __init bootmem_init(void)
- 	sparse_init();
- 
- 	/*
--	 * Now free the memory - free_area_init_node needs
-+	 * Now free the memory - free_area_init needs
- 	 * the sparse mem_map arrays initialized by sparse_init()
- 	 * for memmap_init_zone(), otherwise all PFNs are invalid.
- 	 */
--	uc32_bootmem_free(min, max_low, max_high);
-+	uc32_bootmem_free(max_low);
- 
- 	high_memory = __va((max_low << PAGE_SHIFT) - 1) + 1;
- 
+ #ifdef CONFIG_HIGHMEM
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
