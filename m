@@ -1,78 +1,58 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- =?US-ASCII?Q?mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-ch?=
- =?US-ASCII?Q?eckpatch-fixes.patch?= removed from -mm tree
-Date: Thu, 04 Jun 2020 16:20:35 -0700
-Message-ID: <20200604232035.wXQMb5QJG%akpm@linux-foundation.org>
+ lib-test-get_count_order-long-in-test_bitopsc-fix.patch removed from -mm
+ tree
+Date: Thu, 04 Jun 2020 16:21:46 -0700
+Message-ID: <20200604232146.XlmWVGLtP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58130 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgFDXUh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:20:37 -0400
+        id S1725863AbgFDXVs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:21:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ethp@qq.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
 
 
 The patch titled
-     Subject: mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes
+     Subject: lib-test-get_count_order-long-in-test_bitopsc-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
+     lib-test-get_count_order-long-in-test_bitopsc-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-fix-a-typo-in-comment-manitained-maintained.patch
+This patch was dropped because it was folded into lib-test-get_count_order-long-in-test_bitopsc.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes
+Subject: lib-test-get_count_order-long-in-test_bitopsc-fix
 
-WARNING: line over 80 characters
-#65: FILE: mm/hugetlb.c:4469:
-+	 * an active hugepage in pagecache. This goto expects the 2nd page fault,
+define local `i'
 
-total: 0 errors, 1 warnings, 48 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Ethon Paul <ethp@qq.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/test_bitops.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes
-+++ a/mm/hugetlb.c
-@@ -4580,9 +4580,9 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 	/*
- 	 * entry could be a migration/hwpoison entry at this point, so this
- 	 * check prevents the kernel from going below assuming that we have
--	 * an active hugepage in pagecache. This goto expects the 2nd page fault,
--	 * and is_hugetlb_entry_(migration|hwpoisoned) check will properly
--	 * handle it.
-+	 * an active hugepage in pagecache. This goto expects the 2nd page
-+	 * fault, and is_hugetlb_entry_(migration|hwpoisoned) check will
-+	 * properly handle it.
- 	 */
- 	if (!pte_present(entry))
- 		goto out_mutex;
+--- a/lib/test_bitops.c~lib-test-get_count_order-long-in-test_bitopsc-fix
++++ a/lib/test_bitops.c
+@@ -50,6 +50,8 @@ unsigned long order_comb_long[][2] = {
+ 
+ static int __init test_bitops_startup(void)
+ {
++	int i;
++
+ 	pr_warn("Loaded test module\n");
+ 	set_bit(BITOPS_4, g_bitmap);
+ 	set_bit(BITOPS_7, g_bitmap);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+lib-test-get_count_order-long-in-test_bitopsc.patch
 seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
 drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
 mm.patch
