@@ -1,171 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs.patch
+ mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
  removed from -mm tree
-Date: Thu, 04 Jun 2020 10:21:23 -0700
-Message-ID: <20200604172123.WdR8i1EYC%akpm@linux-foundation.org>
+Date: Thu, 04 Jun 2020 10:21:25 -0700
+Message-ID: <20200604172125.E5xaGp1R9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43330 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43352 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730050AbgFDRVZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:21:25 -0400
+        id S1730050AbgFDRV1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:21:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cg.chen@huawei.com, chenjie6@huawei.com, hushijie3@huawei.com, lkp@intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, nixiaoming@huawei.com, wangkefeng.wang@huawei.com, will@kernel.org, yangerkun@huawei.com
+To: aarcange@redhat.com, daniel.m.jordan@oracle.com, hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: hugetlbfs: get unmapped area below TASK_UNMAPPED_BASE for hugetlbfs
+     Subject: mm: thp: don't need to drain lru cache when splitting and mlocking THP
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs.patch
+     mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shijie Hu <hushijie3@huawei.com>
-Subject: hugetlbfs: get unmapped area below TASK_UNMAPPED_BASE for hugetlbfs
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm: thp: don't need to drain lru cache when splitting and mlocking THP
 
-In a 32-bit program, running on arm64 architecture.  When the address
-space below mmap base is completely exhausted, shmat() for huge pages will
-return ENOMEM, but shmat() for normal pages can still success on no-legacy
-mode.  This seems not fair.
+Since commit 8f182270dfec ("mm/swap.c: flush lru pvecs on compound page
+arrival") THP would not stay in pagevec anymore.  So the optimization made
+by commit d965432234db ("thp: increase split_huge_page() success rate")
+doesn't make sense anymore, which tries to unpin munlocked THPs from
+pagevec by draining pagevec.
 
-For normal pages, the calling trace of get_unmapped_area() is:
+Draining lru cache before isolating THP in mlock path is also unnecessary.
+b676b293fb48 ("mm, thp: fix mapped pages avoiding unevictable list on
+mlock") added it and 9a73f61bdb8a ("thp, mlock: do not mlock PTE-mapped
+file huge pages") accidentally carried it over after the above
+optimization went in.
 
-	=> mm->get_unmapped_area()
-	if on legacy mode,
-		=> arch_get_unmapped_area()
-			=> vm_unmapped_area()
-	if on no-legacy mode,
-		=> arch_get_unmapped_area_topdown()
-			=> vm_unmapped_area()
-
-For huge pages, the calling trace of get_unmapped_area() is:
-
-	=> file->f_op->get_unmapped_area()
-		=> hugetlb_get_unmapped_area()
-			=> vm_unmapped_area()
-
-To solve this issue, we only need to make hugetlb_get_unmapped_area() take
-the same way as mm->get_unmapped_area().  Add *bottomup() and *topdown()
-for hugetlbfs, and check current mm->get_unmapped_area() to decide which
-one to use.  If mm->get_unmapped_area is equal to
-arch_get_unmapped_area_topdown(), hugetlb_get_unmapped_area() calls
-topdown routine, otherwise calls bottomup routine.
-
-Link: http://lkml.kernel.org/r/20200518065338.113664-1-hushijie3@huawei.com
-Signed-off-by: Shijie Hu <hushijie3@huawei.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: kbuild test robot <lkp@intel.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: yangerkun <yangerkun@huawei.com>
-Cc: ChenGang <cg.chen@huawei.com>
-Cc: Chen Jie <chenjie6@huawei.com>
+Link: http://lkml.kernel.org/r/1585946493-7531-1-git-send-email-yang.shi@linux.alibaba.com
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   67 ++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 59 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs
-+++ a/fs/hugetlbfs/inode.c
-@@ -38,6 +38,7 @@
- #include <linux/uio.h>
+--- a/mm/huge_memory.c~mm-thp-dont-need-drain-lru-cache-when-splitting-and-mlocking-thp
++++ a/mm/huge_memory.c
+@@ -1378,7 +1378,6 @@ struct page *follow_trans_huge_pmd(struc
+ 			goto skip_mlock;
+ 		if (!trylock_page(page))
+ 			goto skip_mlock;
+-		lru_add_drain();
+ 		if (page->mapping && !PageDoubleMap(page))
+ 			mlock_vma_page(page);
+ 		unlock_page(page);
+@@ -2582,7 +2581,6 @@ int split_huge_page_to_list(struct page
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct address_space *mapping = NULL;
+ 	int count, mapcount, extra_pins, ret;
+-	bool mlocked;
+ 	unsigned long flags;
+ 	pgoff_t end;
  
- #include <linux/uaccess.h>
-+#include <linux/sched/mm.h>
- 
- static const struct super_operations hugetlbfs_ops;
- static const struct address_space_operations hugetlbfs_aops;
-@@ -191,13 +192,60 @@ out:
- 
- #ifndef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
- static unsigned long
-+hugetlb_get_unmapped_area_bottomup(struct file *file, unsigned long addr,
-+		unsigned long len, unsigned long pgoff, unsigned long flags)
-+{
-+	struct hstate *h = hstate_file(file);
-+	struct vm_unmapped_area_info info;
-+
-+	info.flags = 0;
-+	info.length = len;
-+	info.low_limit = current->mm->mmap_base;
-+	info.high_limit = TASK_SIZE;
-+	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
-+	info.align_offset = 0;
-+	return vm_unmapped_area(&info);
-+}
-+
-+static unsigned long
-+hugetlb_get_unmapped_area_topdown(struct file *file, unsigned long addr,
-+		unsigned long len, unsigned long pgoff, unsigned long flags)
-+{
-+	struct hstate *h = hstate_file(file);
-+	struct vm_unmapped_area_info info;
-+
-+	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
-+	info.length = len;
-+	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
-+	info.high_limit = current->mm->mmap_base;
-+	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
-+	info.align_offset = 0;
-+	addr = vm_unmapped_area(&info);
-+
-+	/*
-+	 * A failed mmap() very likely causes application failure,
-+	 * so fall back to the bottom-up function here. This scenario
-+	 * can happen with large stack limits and large mmap()
-+	 * allocations.
-+	 */
-+	if (unlikely(offset_in_page(addr))) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.flags = 0;
-+		info.low_limit = current->mm->mmap_base;
-+		info.high_limit = TASK_SIZE;
-+		addr = vm_unmapped_area(&info);
-+	}
-+
-+	return addr;
-+}
-+
-+static unsigned long
- hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
- 		unsigned long len, unsigned long pgoff, unsigned long flags)
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
- 	struct hstate *h = hstate_file(file);
--	struct vm_unmapped_area_info info;
- 
- 	if (len & ~huge_page_mask(h))
- 		return -EINVAL;
-@@ -218,13 +266,16 @@ hugetlb_get_unmapped_area(struct file *f
- 			return addr;
+@@ -2641,14 +2639,9 @@ int split_huge_page_to_list(struct page
+ 		goto out_unlock;
  	}
  
--	info.flags = 0;
--	info.length = len;
--	info.low_limit = TASK_UNMAPPED_BASE;
--	info.high_limit = TASK_SIZE;
--	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
--	info.align_offset = 0;
--	return vm_unmapped_area(&info);
-+	/*
-+	 * Use mm->get_unmapped_area value as a hint to use topdown routine.
-+	 * If architectures have special needs, they should define their own
-+	 * version of hugetlb_get_unmapped_area.
-+	 */
-+	if (mm->get_unmapped_area == arch_get_unmapped_area_topdown)
-+		return hugetlb_get_unmapped_area_topdown(file, addr, len,
-+				pgoff, flags);
-+	return hugetlb_get_unmapped_area_bottomup(file, addr, len,
-+			pgoff, flags);
- }
- #endif
+-	mlocked = PageMlocked(head);
+ 	unmap_page(head);
+ 	VM_BUG_ON_PAGE(compound_mapcount(head), head);
  
-_
-
-Patches currently in -mm which might be from hushijie3@huawei.com are
+-	/* Make sure the page is not on per-CPU pagevec as it takes pin */
+-	if (mlocked)
+-		lru_add_drain();
