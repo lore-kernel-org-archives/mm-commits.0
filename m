@@ -1,71 +1,142 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- khugepaged-drain-lru-add-pagevec-after-swapin.patch removed from -mm tree
-Date: Thu, 04 Jun 2020 10:18:59 -0700
-Message-ID: <20200604171859.Z35fKvDdk%akpm@linux-foundation.org>
+ khugepaged-allow-to-collapse-a-page-shared-across-fork.patch removed from
+ -mm tree
+Date: Thu, 04 Jun 2020 10:19:02 -0700
+Message-ID: <20200604171902.nAlWnhhmM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40798 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730043AbgFDRTA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:19:00 -0400
+        id S1730043AbgFDRTD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:19:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, william.kucharski@oracle.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: khugepaged: drain LRU add pagevec after swapin
+     Subject: khugepaged: allow to collapse a page shared across fork
 has been removed from the -mm tree.  Its filename was
-     khugepaged-drain-lru-add-pagevec-after-swapin.patch
+     khugepaged-allow-to-collapse-a-page-shared-across-fork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: drain LRU add pagevec after swapin
+Subject: khugepaged: allow to collapse a page shared across fork
 
-collapse_huge_page() tries to swap in pages that are part of the PMD
-range.  Just swapped in page goes though LRU add cache.  The cache gets
-extra reference on the page.
+The page can be included into collapse as long as it doesn't have extra
+pins (from GUP or otherwise).
 
-The extra reference can lead to the collapse fail: the following
-__collapse_huge_page_isolate() would check refcount and abort collapse
-seeing unexpected refcount.
+Logic to check the refcount is moved to a separate function.  For pages in
+swap cache, add compound_nr(page) to the expected refcount, in order to
+handle the compound page case.  This is in preparation for the following
+patch.
 
-The fix is to drain local LRU add cache in
-__collapse_huge_page_swapin() if we successfully swapped in any pages.
+VM_BUG_ON_PAGE() was removed from __collapse_huge_page_copy() as the
+invariant it checks is no longer valid: the source can be mapped multiple
+times now.
 
-Link: http://lkml.kernel.org/r/20200416160026.16538-5-kirill.shutemov@linux.intel.com
+[yang.shi@linux.alibaba.com: remove error message when checking external pins]
+  Link: http://lkml.kernel.org/r/1589317383-9595-1-git-send-email-yang.shi@linux.alibaba.com
+[cai@lca.pw: fix set-but-not-used warning]
+  Link: http://lkml.kernel.org/r/20200521145644.GA6367@ovpn-112-192.phx2.redhat.com
+Link: http://lkml.kernel.org/r/20200416160026.16538-6-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
 Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Tested-by: Zi Yan <ziy@nvidia.com>
 Acked-by: Yang Shi <yang.shi@linux.alibaba.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/khugepaged.c |   46 +++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 37 insertions(+), 9 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-drain-lru-add-pagevec-after-swapin
+--- a/mm/khugepaged.c~khugepaged-allow-to-collapse-a-page-shared-across-fork
 +++ a/mm/khugepaged.c
-@@ -931,6 +931,11 @@ static bool __collapse_huge_page_swapin(
+@@ -526,6 +526,17 @@ static void release_pte_pages(pte_t *pte
  	}
- 	vmf.pte--;
- 	pte_unmap(vmf.pte);
-+
-+	/* Drain LRU add pagevec to remove extra pin on the swapped in pages */
-+	if (swapped_in)
-+		lru_add_drain();
-+
- 	trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 1);
- 	return true;
  }
+ 
++static bool is_refcount_suitable(struct page *page)
++{
++	int expected_refcount;
++
++	expected_refcount = total_mapcount(page);
++	if (PageSwapCache(page))
++		expected_refcount += compound_nr(page);
++
++	return page_count(page) == expected_refcount;
++}
++
+ static int __collapse_huge_page_isolate(struct vm_area_struct *vma,
+ 					unsigned long address,
+ 					pte_t *pte)
+@@ -578,11 +589,17 @@ static int __collapse_huge_page_isolate(
+ 		}
+ 
+ 		/*
+-		 * cannot use mapcount: can't collapse if there's a gup pin.
+-		 * The page must only be referenced by the scanned process
+-		 * and page swap cache.
++		 * Check if the page has any GUP (or other external) pins.
++		 *
++		 * The page table that maps the page has been already unlinked
++		 * from the page table tree and this process cannot get
++		 * an additinal pin on the page.
++		 *
++		 * New pins can come later if the page is shared across fork,
++		 * but not from this process. The other process cannot write to
++		 * the page, only trigger CoW.
+ 		 */
+-		if (page_count(page) != 1 + PageSwapCache(page)) {
++		if (!is_refcount_suitable(page)) {
+ 			unlock_page(page);
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out;
+@@ -669,7 +686,6 @@ static void __collapse_huge_page_copy(pt
+ 		} else {
+ 			src_page = pte_page(pteval);
+ 			copy_user_highpage(page, src_page, address, vma);
+-			VM_BUG_ON_PAGE(page_mapcount(src_page) != 1, src_page);
+ 			release_pte_page(src_page);
+ 			/*
+ 			 * ptl mostly unnecessary, but preempt has to
+@@ -1221,11 +1237,23 @@ static int khugepaged_scan_pmd(struct mm
+ 		}
+ 
+ 		/*
+-		 * cannot use mapcount: can't collapse if there's a gup pin.
+-		 * The page must only be referenced by the scanned process
+-		 * and page swap cache.
++		 * Check if the page has any GUP (or other external) pins.
++		 *
++		 * Here the check is racy it may see totmal_mapcount > refcount
++		 * in some cases.
++		 * For example, one process with one forked child process.
++		 * The parent has the PMD split due to MADV_DONTNEED, then
++		 * the child is trying unmap the whole PMD, but khugepaged
++		 * may be scanning the parent between the child has
++		 * PageDoubleMap flag cleared and dec the mapcount.  So
++		 * khugepaged may see total_mapcount > refcount.
++		 *
++		 * But such case is ephemeral we could always retry collapse
++		 * later.  However it may report false positive if the page
++		 * has excessive GUP pins (i.e. 512).  Anyway the same check
++		 * will be done again later the risk seems low.
+ 		 */
+-		if (page_count(page) != 1 + PageSwapCache(page)) {
++		if (!is_refcount_suitable(page)) {
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out_unmap;
+ 		}
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
