@@ -1,48 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+ mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
  removed from -mm tree
-Date: Thu, 04 Jun 2020 10:17:23 -0700
-Message-ID: <20200604171723.ZC6qn96JG%akpm@linux-foundation.org>
+Date: Thu, 04 Jun 2020 10:17:27 -0700
+Message-ID: <20200604171727.7oHAq4mBA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38840 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38932 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730014AbgFDRRZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:17:25 -0400
+        id S1730014AbgFDRR3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:17:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, hoan@os.amperecomputing.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, linux@roeck-us.net, mattst88@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@linux.ibm.com, shorne@gmail.com, tony.luck@intel.com, tsbogend@alpha.franken.de, vgupta@synopsys.com, ysato@users.sourceforge.jp
+To: bcain@codeaurora.org, bhe@redhat.com, catalin.marinas@arm.com, corbet@lwn.net, dalias@libc.org, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, hoan@os.amperecomputing.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, mattst88@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@linux.ibm.com, shorne@gmail.com, tony.luck@intel.com, tsbogend@alpha.franken.de, vgupta@synopsys.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm: free_area_init: allow defining max_zone_pfn in descending order
+     Subject: mm: rename free_area_init_node() to free_area_init_memoryless_node()
 has been removed from the -mm tree.  Its filename was
-     mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order.patch
+     mm-rename-free_area_init_node-to-free_area_init_memoryless_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: free_area_init: allow defining max_zone_pfn in descending order
+Subject: mm: rename free_area_init_node() to free_area_init_memoryless_node()
 
-Some architectures (e.g.  ARC) have the ZONE_HIGHMEM zone below the
-ZONE_NORMAL.  Allowing free_area_init() parse max_zone_pfn array even it
-is sorted in descending order allows using free_area_init() on such
-architectures.
+free_area_init_node() is only used by x86 to initialize a memory-less
+nodes.  Make its name reflect this and drop all the function parameters
+except node ID as they are anyway zero.
 
-Add top -> down traversal of max_zone_pfn array in free_area_init() and
-use the latter in ARC node/zone initialization.
-
-[rppt@kernel.org: ARC fix]
-  Link: http://lkml.kernel.org/r/20200504153901.GM14260@kernel.org
-[rppt@linux.ibm.com: arc: free_area_init(): take into account PAE40 mode]
-  Link: http://lkml.kernel.org/r/20200507205900.GH683243@linux.ibm.com
-[akpm@linux-foundation.org: declare arch_has_descending_max_zone_pfns()]
-Link: http://lkml.kernel.org/r/20200412194859.12663-18-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200412194859.12663-19-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
 Tested-by: Hoan Tran <hoan@os.amperecomputing.com>	[arm64]
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Brian Cain <bcain@codeaurora.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -72,172 +63,72 @@ Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Vineet Gupta <vgupta@synopsys.com>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/mm/init.c |   41 ++++++++++++-----------------------------
- include/linux/mm.h |    1 +
- mm/page_alloc.c    |   26 +++++++++++++++++++++-----
- 3 files changed, 34 insertions(+), 34 deletions(-)
+ arch/x86/mm/numa.c |    5 +----
+ include/linux/mm.h |    9 +++------
+ mm/page_alloc.c    |    7 ++-----
+ 3 files changed, 6 insertions(+), 15 deletions(-)
 
---- a/arch/arc/mm/init.c~mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order
-+++ a/arch/arc/mm/init.c
-@@ -63,11 +63,13 @@ void __init early_init_dt_add_memory_arc
+--- a/arch/x86/mm/numa.c~mm-rename-free_area_init_node-to-free_area_init_memoryless_node
++++ a/arch/x86/mm/numa.c
+@@ -737,12 +737,9 @@ void __init x86_numa_init(void)
  
- 		low_mem_sz = size;
- 		in_use = 1;
-+		memblock_add_node(base, size, 0);
- 	} else {
- #ifdef CONFIG_HIGHMEM
- 		high_mem_start = base;
- 		high_mem_sz = size;
- 		in_use = 1;
-+		memblock_add_node(base, size, 1);
- #endif
- 	}
- 
-@@ -75,6 +77,11 @@ void __init early_init_dt_add_memory_arc
- 		base, TO_MB(size), !in_use ? "Not used":"");
- }
- 
-+bool arch_has_descending_max_zone_pfns(void)
-+{
-+	return !IS_ENABLED(CONFIG_ARC_HAS_PAE40);
-+}
-+
- /*
-  * First memory setup routine called from setup_arch()
-  * 1. setup swapper's mm @init_mm
-@@ -83,8 +90,7 @@ void __init early_init_dt_add_memory_arc
-  */
- void __init setup_arch_memory(void)
+ static void __init init_memory_less_node(int nid)
  {
--	unsigned long zones_size[MAX_NR_ZONES];
--	unsigned long zones_holes[MAX_NR_ZONES];
-+	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
- 
- 	init_mm.start_code = (unsigned long)_text;
- 	init_mm.end_code = (unsigned long)_etext;
-@@ -115,7 +121,6 @@ void __init setup_arch_memory(void)
- 	 * the crash
- 	 */
- 
--	memblock_add_node(low_mem_start, low_mem_sz, 0);
- 	memblock_reserve(CONFIG_LINUX_LINK_BASE,
- 			 __pa(_end) - CONFIG_LINUX_LINK_BASE);
- 
-@@ -133,22 +138,7 @@ void __init setup_arch_memory(void)
- 	memblock_dump_all();
- 
- 	/*----------------- node/zones setup --------------------------*/
--	memset(zones_size, 0, sizeof(zones_size));
--	memset(zones_holes, 0, sizeof(zones_holes));
+-	unsigned long zones_size[MAX_NR_ZONES] = {0};
+-	unsigned long zholes_size[MAX_NR_ZONES] = {0};
 -
--	zones_size[ZONE_NORMAL] = max_low_pfn - min_low_pfn;
--	zones_holes[ZONE_NORMAL] = 0;
--
--	/*
--	 * We can't use the helper free_area_init(zones[]) because it uses
--	 * PAGE_OFFSET to compute the @min_low_pfn which would be wrong
--	 * when our kernel doesn't start at PAGE_OFFSET, i.e.
--	 * PAGE_OFFSET != CONFIG_LINUX_RAM_BASE
--	 */
--	free_area_init_node(0,			/* node-id */
--			    zones_size,		/* num pages per zone */
--			    min_low_pfn,	/* first pfn of node */
--			    zones_holes);	/* holes */
-+	max_zone_pfn[ZONE_NORMAL] = max_low_pfn;
+ 	/* Allocate and initialize node data. Memory-less node is now online.*/
+ 	alloc_node_data(nid);
+-	free_area_init_node(nid, zones_size, 0, zholes_size);
++	free_area_init_memoryless_node(nid);
  
- #ifdef CONFIG_HIGHMEM
  	/*
-@@ -168,20 +158,13 @@ void __init setup_arch_memory(void)
- 	min_high_pfn = PFN_DOWN(high_mem_start);
- 	max_high_pfn = PFN_DOWN(high_mem_start + high_mem_sz);
- 
--	zones_size[ZONE_NORMAL] = 0;
--	zones_holes[ZONE_NORMAL] = 0;
--
--	zones_size[ZONE_HIGHMEM] = max_high_pfn - min_high_pfn;
--	zones_holes[ZONE_HIGHMEM] = 0;
--
--	free_area_init_node(1,			/* node-id */
--			    zones_size,		/* num pages per zone */
--			    min_high_pfn,	/* first pfn of node */
--			    zones_holes);	/* holes */
-+	max_zone_pfn[ZONE_HIGHMEM] = max_high_pfn;
- 
- 	high_memory = (void *)(min_high_pfn << PAGE_SHIFT);
- 	kmap_init();
- #endif
-+
-+	free_area_init(max_zone_pfn);
+ 	 * All zonelists will be built later in start_kernel() after per cpu
+--- a/include/linux/mm.h~mm-rename-free_area_init_node-to-free_area_init_memoryless_node
++++ a/include/linux/mm.h
+@@ -2329,8 +2329,7 @@ static inline spinlock_t *pud_lock(struc
  }
+ 
+ extern void __init pagecache_init(void);
+-extern void __init free_area_init_node(int nid, unsigned long * zones_size,
+-		unsigned long zone_start_pfn, unsigned long *zholes_size);
++extern void __init free_area_init_memoryless_node(int nid);
+ extern void free_initmem(void);
  
  /*
---- a/include/linux/mm.h~mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order
-+++ a/include/linux/mm.h
-@@ -2473,6 +2473,7 @@ extern void setup_per_cpu_pageset(void);
- extern int min_free_kbytes;
- extern int watermark_boost_factor;
- extern int watermark_scale_factor;
-+extern bool arch_has_descending_max_zone_pfns(void);
+@@ -2402,10 +2401,8 @@ static inline unsigned long get_num_phys
  
- /* nommu.c */
- extern atomic_long_t mmap_pages_allocated;
---- a/mm/page_alloc.c~mm-free_area_init-allow-defining-max_zone_pfn-in-descending-order
+ /*
+  * Using memblock node mappings, an architecture may initialise its
+- * zones, allocate the backing mem_map and account for memory holes in a more
+- * architecture independent manner. This is a substitute for creating the
+- * zone_sizes[] and zholes_size[] arrays and passing them to
+- * free_area_init_node()
++ * zones, allocate the backing mem_map and account for memory holes in an
++ * architecture independent manner.
+  *
+  * An architecture is expected to register range of page frames backed by
+  * physical memory with memblock_add[_node]() before calling
+--- a/mm/page_alloc.c~mm-rename-free_area_init_node-to-free_area_init_memoryless_node
 +++ a/mm/page_alloc.c
-@@ -7408,6 +7408,15 @@ static void check_for_memory(pg_data_t *
- 	}
+@@ -6974,12 +6974,9 @@ static void __init __free_area_init_node
+ 	free_area_init_core(pgdat);
  }
  
-+/*
-+ * Some architecturs, e.g. ARC may have ZONE_HIGHMEM below ZONE_NORMAL. For
-+ * such cases we allow max_zone_pfn sorted in the descending order
-+ */
-+bool __weak arch_has_descending_max_zone_pfns(void)
-+{
-+	return false;
-+}
-+
- /**
-  * free_area_init - Initialise all pg_data_t and zone data
-  * @max_zone_pfn: an array of max PFNs for each zone
-@@ -7424,7 +7433,8 @@ static void check_for_memory(pg_data_t *
- void __init free_area_init(unsigned long *max_zone_pfn)
+-void __init free_area_init_node(int nid, unsigned long *zones_size,
+-				unsigned long node_start_pfn,
+-				unsigned long *zholes_size)
++void __init free_area_init_memoryless_node(int nid)
  {
- 	unsigned long start_pfn, end_pfn;
--	int i, nid;
-+	int i, nid, zone;
-+	bool descending;
+-	__free_area_init_node(nid, zones_size, node_start_pfn, zholes_size,
+-			      true);
++	__free_area_init_node(nid, NULL, 0, NULL, false);
+ }
  
- 	/* Record where the zone boundaries are */
- 	memset(arch_zone_lowest_possible_pfn, 0,
-@@ -7433,14 +7443,20 @@ void __init free_area_init(unsigned long
- 				sizeof(arch_zone_highest_possible_pfn));
- 
- 	start_pfn = find_min_pfn_with_active_regions();
-+	descending = arch_has_descending_max_zone_pfns();
- 
- 	for (i = 0; i < MAX_NR_ZONES; i++) {
--		if (i == ZONE_MOVABLE)
-+		if (descending)
-+			zone = MAX_NR_ZONES - i - 1;
-+		else
-+			zone = i;
-+
-+		if (zone == ZONE_MOVABLE)
- 			continue;
- 
--		end_pfn = max(max_zone_pfn[i], start_pfn);
--		arch_zone_lowest_possible_pfn[i] = start_pfn;
--		arch_zone_highest_possible_pfn[i] = end_pfn;
-+		end_pfn = max(max_zone_pfn[zone], start_pfn);
-+		arch_zone_lowest_possible_pfn[zone] = start_pfn;
-+		arch_zone_highest_possible_pfn[zone] = end_pfn;
- 
- 		start_pfn = end_pfn;
- 	}
+ #if !defined(CONFIG_FLAT_NODE_MEM_MAP)
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
