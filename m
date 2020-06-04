@@ -1,39 +1,43 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
- removed from -mm tree
-Date: Thu, 04 Jun 2020 10:20:41 -0700
-Message-ID: <20200604172041.cpHrICO6-%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-f?=
+ =?US-ASCII?Q?ile-workingset.patch?= removed from -mm tree
+Date: Thu, 04 Jun 2020 10:20:44 -0700
+Message-ID: <20200604172044.V368a7GTT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42684 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730014AbgFDRUn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:20:43 -0400
+        id S1730076AbgFDRUp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:20:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, riel@surriel.com
 
 
 The patch titled
-     Subject: mm: keep separate anon and file statistics on page reclaim activity
+     Subject: mm: allow swappiness that prefers reclaiming anon over the file workingset
 has been removed from the -mm tree.  Its filename was
-     mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity.patch
+     mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: keep separate anon and file statistics on page reclaim activity
+Subject: mm: allow swappiness that prefers reclaiming anon over the file workingset
 
-Having statistics on pages scanned and pages reclaimed for both anon and
-file pages makes it easier to evaluate changes to LRU balancing.
+With the advent of fast random IO devices (SSDs, PMEM) and in-memory swap
+devices such as zswap, it's possible for swap to be much faster than
+filesystems, and for swapping to be preferable over thrashing filesystem
+caches.
 
-While at it, clean up the stat-keeping mess for isolation, putback,
-reclaim stats etc.  a bit: first the physical LRU operation (isolation and
-putback), followed by vmstats, reclaim_stats, and then vm events.
+Allow setting swappiness - which defines the rough relative IO cost of
+cache misses between page cache and swap-backed pages - to reflect such
+situations by making the swap-preferred range configurable.
 
-Link: http://lkml.kernel.org/r/20200520232525.798933-3-hannes@cmpxchg.org
+Link: http://lkml.kernel.org/r/20200520232525.798933-4-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -42,63 +46,76 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    4 ++++
- mm/vmscan.c                   |   17 +++++++++--------
- mm/vmstat.c                   |    4 ++++
- 3 files changed, 17 insertions(+), 8 deletions(-)
+ Documentation/admin-guide/sysctl/vm.rst |   23 +++++++++++++++++-----
+ kernel/sysctl.c                         |    3 +-
+ mm/vmscan.c                             |    2 -
+ 3 files changed, 21 insertions(+), 7 deletions(-)
 
---- a/include/linux/vm_event_item.h~mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity
-+++ a/include/linux/vm_event_item.h
-@@ -35,6 +35,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGSCAN_KSWAPD,
- 		PGSCAN_DIRECT,
- 		PGSCAN_DIRECT_THROTTLE,
-+		PGSCAN_ANON,
-+		PGSCAN_FILE,
-+		PGSTEAL_ANON,
-+		PGSTEAL_FILE,
- #ifdef CONFIG_NUMA
- 		PGSCAN_ZONE_RECLAIM_FAILED,
- #endif
---- a/mm/vmscan.c~mm-keep-separate-anon-and-file-statistics-on-page-reclaim-activity
+--- a/Documentation/admin-guide/sysctl/vm.rst~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -831,14 +831,27 @@ tooling to work, you can do::
+ swappiness
+ ==========
+ 
+-This control is used to define how aggressive the kernel will swap
+-memory pages.  Higher values will increase aggressiveness, lower values
+-decrease the amount of swap.  A value of 0 instructs the kernel not to
+-initiate swap until the amount of free and file-backed pages is less
+-than the high water mark in a zone.
++This control is used to define the rough relative IO cost of swapping
++and filesystem paging, as a value between 0 and 200. At 100, the VM
++assumes equal IO cost and will thus apply memory pressure to the page
++cache and swap-backed pages equally; lower values signify more
++expensive swap IO, higher values indicates cheaper.
++
++Keep in mind that filesystem IO patterns under memory pressure tend to
++be more efficient than swap's random IO. An optimal value will require
++experimentation and will also be workload-dependent.
+ 
+ The default value is 60.
+ 
++For in-memory swap, like zram or zswap, as well as hybrid setups that
++have swap on faster devices than the filesystem, values beyond 100 can
++be considered. For example, if the random IO against the swap device
++is on average 2x faster than IO from the filesystem, swappiness should
++be 133 (x + 2x = 200, 2x = 133.33).
++
++At 0, the kernel will not initiate swap until the amount of free and
++file-backed pages is less than the high watermark in a zone.
++
+ 
+ unprivileged_userfaultfd
+ ========================
+--- a/kernel/sysctl.c~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
++++ a/kernel/sysctl.c
+@@ -131,6 +131,7 @@ static unsigned long zero_ul;
+ static unsigned long one_ul = 1;
+ static unsigned long long_max = LONG_MAX;
+ static int one_hundred = 100;
++static int two_hundred = 200;
+ static int one_thousand = 1000;
+ #ifdef CONFIG_PRINTK
+ static int ten_thousand = 10000;
+@@ -1391,7 +1392,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &one_hundred,
++		.extra2		= &two_hundred,
+ 	},
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	{
+--- a/mm/vmscan.c~mm-allow-swappiness-that-prefers-reclaiming-anon-over-the-file-workingset
 +++ a/mm/vmscan.c
-@@ -1913,7 +1913,7 @@ shrink_inactive_list(unsigned long nr_to
- 	unsigned int nr_reclaimed = 0;
- 	unsigned long nr_taken;
- 	struct reclaim_stat stat;
--	int file = is_file_lru(lru);
-+	bool file = is_file_lru(lru);
- 	enum vm_event_item item;
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
-@@ -1941,11 +1941,12 @@ shrink_inactive_list(unsigned long nr_to
+@@ -161,7 +161,7 @@ struct scan_control {
+ #endif
  
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
- 	reclaim_stat->recent_scanned[file] += nr_taken;
--
- 	item = current_is_kswapd() ? PGSCAN_KSWAPD : PGSCAN_DIRECT;
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, nr_scanned);
- 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
-+	__count_vm_events(PGSCAN_ANON + file, nr_scanned);
-+
- 	spin_unlock_irq(&pgdat->lru_lock);
- 
- 	if (nr_taken == 0)
-@@ -1956,16 +1957,16 @@ shrink_inactive_list(unsigned long nr_to
- 
- 	spin_lock_irq(&pgdat->lru_lock);
- 
-+	move_pages_to_lru(lruvec, &page_list);
-+
-+	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
-+	reclaim_stat->recent_rotated[0] += stat.nr_activate[0];
-+	reclaim_stat->recent_rotated[1] += stat.nr_activate[1];
- 	item = current_is_kswapd() ? PGSTEAL_KSWAPD : PGSTEAL_DIRECT;
- 	if (!cgroup_reclaim(sc))
- 		__count_vm_events(item, nr_reclaimed);
- 	__count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
--	reclaim_stat->recent_rotated[0] += stat.nr_activate[0];
--	reclaim_stat->recent_rotated[1] += stat.nr_activate[1];
--
--	move_pages_to_lru(lruvec, &page_list);
+ /*
+- * From 0 .. 100.  Higher means more swappy.
++ * From 0 .. 200.  Higher means more swappy.
+  */
+ int vm_swappiness = 60;
+ /*
+_
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
