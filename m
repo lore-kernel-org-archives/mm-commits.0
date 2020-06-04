@@ -1,71 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch removed from
- -mm tree
-Date: Thu, 04 Jun 2020 16:19:01 -0700
-Message-ID: <20200604231901.5JbfKfZqN%akpm@linux-foundation.org>
+ mm-replace-zero-length-array-with-flexible-array-member-fix.patch removed
+ from -mm tree
+Date: Thu, 04 Jun 2020 16:19:26 -0700
+Message-ID: <20200604231926.w2RVfRqRH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57930 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57958 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgFDXTD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:19:03 -0400
+        id S1725863AbgFDXT1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:19:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ira.weiny@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bhe@redhat.com, cai@lca.pw, chenqiwu@xiaomi.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, richard.weiyang@gmail.com, willy@infradead.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: kmap-consolidate-kmap_prot-definitions-checkpatch-fixes
+     Subject: mm-replace-zero-length-array-with-flexible-array-member-fix
 has been removed from the -mm tree.  Its filename was
-     kmap-consolidate-kmap_prot-definitions-checkpatch-fixes.patch
+     mm-replace-zero-length-array-with-flexible-array-member-fix.patch
 
-This patch was dropped because it was folded into kmap-consolidate-kmap_prot-definitions.patch
+This patch was dropped because it was folded into mm-replace-zero-length-array-with-flexible-array-member.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kmap-consolidate-kmap_prot-definitions-checkpatch-fixes
+Subject: mm-replace-zero-length-array-with-flexible-array-member-fix
 
-WARNING: macros should not use a trailing semicolon
-#134: FILE: arch/sparc/include/asm/highmem.h:33:
-+#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
+fix build:
 
-total: 0 errors, 1 warnings, 100 lines checked
+./include/linux/mmzone.h:1143:16: error: flexible array member in a struct with no named members
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/kmap-consolidate-kmap_prot-definitions.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: chenqiwu <chenqiwu@xiaomi.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/highmem.h |    2 +-
+ include/linux/mmzone.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sparc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions-checkpatch-fixes
-+++ a/arch/sparc/include/asm/highmem.h
-@@ -30,7 +30,7 @@
- /* declarations for highmem.c */
- extern unsigned long highstart_pfn, highend_pfn;
+--- a/include/linux/mmzone.h~mm-replace-zero-length-array-with-flexible-array-member-fix
++++ a/include/linux/mmzone.h
+@@ -1147,7 +1147,7 @@ struct mem_section_usage {
+ 	DECLARE_BITMAP(subsection_map, SUBSECTIONS_PER_SECTION);
+ #endif
+ 	/* See declaration of similar field in struct zone */
+-	unsigned long pageblock_flags[];
++	unsigned long pageblock_flags[0];
+ };
  
--#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
-+#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE)
- extern pte_t *pkmap_page_table;
- 
- void kmap_init(void) __init;
+ void subsection_map_init(unsigned long pfn, unsigned long nr_pages);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kmap-consolidate-kmap_prot-definitions.patch
-mm-replace-zero-length-array-with-flexible-array-member-fix.patch
+mm-replace-zero-length-array-with-flexible-array-member.patch
 mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2-checkpatch-fixes.patch
 lib-test-get_count_order-long-in-test_bitopsc-fix.patch
 seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
