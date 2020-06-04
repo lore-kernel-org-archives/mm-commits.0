@@ -1,69 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- checkpatch-use-patch-subject-when-reading-from-stdin-fix.patch removed from
- -mm tree
-Date: Thu, 04 Jun 2020 16:23:01 -0700
-Message-ID: <20200604232301.6ZCOS6SfT%akpm@linux-foundation.org>
+ seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Thu, 04 Jun 2020 16:23:36 -0700
+Message-ID: <20200604232336.VOXfOId_Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58870 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59472 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgFDXXD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:23:03 -0400
+        id S1725863AbgFDXXj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:23:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert+renesas@glider.be, joe@perches.com, konstantin@linuxfoundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com
 
 
 The patch titled
-     Subject: checkpatch-use-patch-subject-when-reading-from-stdin-fix
+     Subject: seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     checkpatch-use-patch-subject-when-reading-from-stdin-fix.patch
+     seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into checkpatch-use-patch-subject-when-reading-from-stdin.patch
+This patch was dropped because it was folded into seq_file-introduce-define_seq_attribute-helper-macro.patch
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch-use-patch-subject-when-reading-from-stdin-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes
 
-reduce cpu usage
+WARNING: suspect code indent for conditional statements (8, 24)
+#43: FILE: include/linux/seq_file.h:152:
++	if (!ret && inode->i_private) {					\
++			struct seq_file *seq_f = file->private_data;	\
 
-Link: http://lkml.kernel.org/r/c9d89bb24c7414142414c60371e210fdcf4617d2.camel@perches.com
-Cc: Joe Perches <joe@perches.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Joe Perches <joe@perches.com>
-Cc: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
+total: 0 errors, 1 warnings, 25 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/seq_file-introduce-define_seq_attribute-helper-macro.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/seq_file.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-use-patch-subject-when-reading-from-stdin-fix
-+++ a/scripts/checkpatch.pl
-@@ -1063,11 +1063,8 @@ for my $filename (@ARGV) {
- 	}
- 	while (<$FILE>) {
- 		chomp;
--		if ($vname eq 'Your patch') {
--			my ($subject) = $_ =~ /^Subject:\s*(.*)/;
--			$vname = '"' . $subject . '"' if $subject;
--		}
- 		push(@rawlines, $_);
-+		$vname = qq("$1") if ($filename eq '-' && $_ =~ m/^Subject:\s+(.+)/i);
- 	}
- 	close($FILE);
- 
+--- a/include/linux/seq_file.h~seq_file-introduce-define_seq_attribute-helper-macro-checkpatch-fixes
++++ a/include/linux/seq_file.h
+@@ -150,8 +150,8 @@ static int __name ## _open(struct inode
+ {									\
+ 	int ret = seq_open(file, &__name ## _sops);			\
+ 	if (!ret && inode->i_private) {					\
+-			struct seq_file *seq_f = file->private_data;	\
+-			seq_f->private = inode->i_private;		\
++		struct seq_file *seq_f = file->private_data;		\
++		seq_f->private = inode->i_private;			\
+ 	}								\
+ 	return ret;							\
+ }									\
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-get_maintainer-add-email-addresses-from-yaml-files.patch
-get_maintainer-fix-unexpected-behavior-for-path-to-file-double-slashes.patch
-percpu_ref-use-a-more-common-logging-style.patch
-checkpatch-additional-maintainer-section-entry-ordering-checks.patch
-checkpatch-look-for-c99-comments-in-ctx_locate_comment.patch
-checkpatch-disallow-git-and-file-fix.patch
-checkpatch-use-patch-subject-when-reading-from-stdin.patch
-fs-seq_filec-seq_read-update-pr_info_ratelimited.patch
-checkpatch-test-git_dir-changes.patch
+seq_file-introduce-define_seq_attribute-helper-macro.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-pre.patch
+linux-next-rejects.patch
+linux-next-post.patch
+kernel-add-panic_on_taint-fix.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+sh-convert-ins-outs-macros-to-inline-functions-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
