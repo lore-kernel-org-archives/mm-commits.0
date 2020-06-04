@@ -1,125 +1,52 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 089/127] init: allow distribution configuration of
- default init
-Date: Thu, 04 Jun 2020 16:50:53 -0700
-Message-ID: <20200604235053.GlX7y0Oxk%akpm@linux-foundation.org>
+Subject: [patch 090/127] fat: don't allow to mount if the FAT
+ length == 0
+Date: Thu, 04 Jun 2020 16:50:56 -0700
+Message-ID: <20200604235056.ras4DFMTz%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49026 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725930AbgFDXuy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:50:54 -0400
+        id S1725930AbgFDXu6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:50:58 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris@chrisdown.name, gregkh@linuxfoundation.org, linux-mm@kvack.org, mhiramat@kernel.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dvyukov@google.com, elver@google.com, hirofumi@mail.parknet.co.jp, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Chris Down <chris@chrisdown.name>
-Subject: init: allow distribution configuration of default init
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: don't allow to mount if the FAT length == 0
 
-Some init systems (eg.  systemd) have init at their own paths, for
-example, /usr/lib/systemd/systemd.  A compatibility symlink to one of the
-hardcoded init paths is provided by another package, usually named
-something like systemd-sysvcompat or similar.
+If FAT length == 0, the image doesn't have any data. And it can be the
+cause of overlapping the root dir and FAT entries.
 
-Currently distro maintainers who are hands-off on the bootloader are more
-or less required to include those compatibility links as part of their
-base distribution, because it's hard to migrate away from them since
-there's a risk some users will not get the message to set init= on the
-kernel command line appropriately.
+Also Windows treats it as invalid format.
 
-Moreover, for distributions where the init system is something the
-distribution itself is opinionated about (eg.  Arch, which has systemd in
-the required `base` package), we could usually reasonably configure this
-ahead of time when building the distribution kernel.  However, we
-currently simply don't have any way to configure the kernel to do this. 
-Here's an example discussion where removing sysvcompat was discussed by
-distro maintainers[0].
-
-This patch adds a new Kconfig tunable, CONFIG_DEFAULT_INIT, which if set
-is tried before the hardcoded fallback list.  So the order of precedence
-is now thus:
-
-1. init= on command line (on failure: panic)
-2. CONFIG_DEFAULT_INIT (on failure: try #3)
-3. Hardcoded fallback list (on failure: panic)
-
-This new config parameter will allow distribution maintainers to move away
-from these compatibility links safely, without having to worry that their
-users might not have the right init=.
-
-There are also two other benefits of this over having the distribution
-maintain a symlink:
-
-1. One of the value propositions over simply having distributions
-   maintain a /sbin/init symlink via a package is that it also frees
-   distributions which have a preferred default, but not mandatory, init
-   system from having their package manager fight with their users for
-   control of /{s,}bin/init.  Instead, the distribution simply makes
-   their preference known in CONFIG_DEFAULT_INIT, and if the user
-   installs another init system and uninstalls the default one they can
-   still make use of /{s,}bin/init and friends for their own uses. This
-   makes more cases Just Work(tm) without the user having to perform
-   extra configuration via init=.
-
-2. Since before this we don't know which path the distribution actually
-   _intends_ to serve init from, we don't pr_err if it is simply
-   missing, and usually will just silently put the user in a /bin/sh
-   shell. Now that the distribution can make a declaration of intent, we
-   can be more vocal when this init system fails to launch for any
-   reason, even if it's simply because no file exists at that location,
-   speeding up the palaver of init/mount dependency/etc debugging a bit.
-
-[0]: https://lists.archlinux.org/pipermail/arch-dev-public/2019-January/029435.html
-
-Link: http://lkml.kernel.org/r/20200522160234.GA1487022@chrisdown.name
-Signed-off-by: Chris Down <chris@chrisdown.name>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Link: http://lkml.kernel.org/r/87r1wz8mrd.fsf@mail.parknet.co.jp
+Reported-by: syzbot+6f1624f937d9d6911e2d@syzkaller.appspotmail.com
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   10 ++++++++++
- init/main.c  |   10 ++++++++++
- 2 files changed, 20 insertions(+)
+ fs/fat/inode.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/init/Kconfig~init-allow-distribution-configuration-of-default-init
-+++ a/init/Kconfig
-@@ -260,6 +260,16 @@ config KERNEL_UNCOMPRESSED
- 
- endchoice
- 
-+config DEFAULT_INIT
-+	string "Default init path"
-+	default ""
-+	help
-+	  This option determines the default init for the system if no init=
-+	  option is passed on the kernel command line. If the requested path is
-+	  not present, we will still then move on to attempting further
-+	  locations (e.g. /sbin/init, etc). If this is empty, we will just use
-+	  the fallback list when init= is not passed.
-+
- config DEFAULT_HOSTNAME
- 	string "Default hostname"
- 	default "(none)"
---- a/init/main.c~init-allow-distribution-configuration-of-default-init
-+++ a/init/main.c
-@@ -1433,6 +1433,16 @@ static int __ref kernel_init(void *unuse
- 		panic("Requested init %s failed (error %d).",
- 		      execute_command, ret);
+--- a/fs/fat/inode.c~fat-dont-allow-to-mount-if-the-fat-length-==-0
++++ a/fs/fat/inode.c
+@@ -1519,6 +1519,12 @@ static int fat_read_bpb(struct super_blo
+ 		goto out;
  	}
-+
-+	if (CONFIG_DEFAULT_INIT[0] != '\0') {
-+		ret = run_init_process(CONFIG_DEFAULT_INIT);
-+		if (ret)
-+			pr_err("Default init %s failed (error %d)\n",
-+			       CONFIG_DEFAULT_INIT, ret);
-+		else
-+			return 0;
+ 
++	if (bpb->fat_fat_length == 0 && bpb->fat32_length == 0) {
++		if (!silent)
++			fat_msg(sb, KERN_ERR, "bogus number of FAT sectors");
++		goto out;
 +	}
 +
- 	if (!try_to_run_init_process("/sbin/init") ||
- 	    !try_to_run_init_process("/etc/init") ||
- 	    !try_to_run_init_process("/bin/init") ||
+ 	error = 0;
+ 
+ out:
 _
