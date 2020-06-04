@@ -1,83 +1,107 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-ksm-fix-a-typo-in-comment-alreaady-already-v2.patch removed from -mm
- tree
-Date: Thu, 04 Jun 2020 16:20:02 -0700
-Message-ID: <20200604232002.QeDBR_r6p%akpm@linux-foundation.org>
+ mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2.patch removed
+ from -mm tree
+Date: Thu, 04 Jun 2020 16:20:32 -0700
+Message-ID: <20200604232032.Vqk0_qZRd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57994 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58106 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725863AbgFDXUE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:20:04 -0400
+        id S1725863AbgFDXUe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:20:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ethp@qq.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com
 
 
 The patch titled
-     Subject: mm: ksm: fix a typo in comment "alreaady"->"already"
+     Subject: mm/hugetlb: fix a typo in comment "manitained"->"maintained"
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-fix-a-typo-in-comment-alreaady-already-v2.patch
+     mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2.patch
 
-This patch was dropped because it was folded into mm-ksm-fix-a-typo-in-comment-alreaady-already.patch
+This patch was dropped because it was folded into mm-hugetlb-fix-a-typo-in-comment-manitained-maintained.patch
 
 ------------------------------------------------------
 From: Ethon Paul <ethp@qq.com>
-Subject: mm: ksm: fix a typo in comment "alreaady"->"already"
+Subject: mm/hugetlb: fix a typo in comment "manitained"->"maintained"
 
 There are some typos in comment, fix them.
 
-s/wrprotected/write protected
-s/undeflow/underflow
+line 83, s/mased on/based on
+line 472, s/ruturns/returns
+line 987, s/reverves/reserves
+line 1489, s/ Otherwse/Otherwise
+line 4431, s/a active/an active
 
-Link: http://lkml.kernel.org/r/20200411023644.15145-1-ethp@qq.com
+Link: http://lkml.kernel.org/r/20200411022446.14937-1-ethp@qq.com
 Signed-off-by: Ethon Paul <ethp@qq.com>
 Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   10 +++++-----
+ mm/mmap.c    |    2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-fix-a-typo-in-comment-alreaady-already-v2
-+++ a/mm/ksm.c
-@@ -612,7 +612,7 @@ static struct stable_node *alloc_stable_
- 		 * Move the old stable node to the second dimension
- 		 * queued in the hlist_dup. The invariant is that all
- 		 * dup stable_nodes in the chain->hlist point to pages
--		 * that are wrprotected and have the exact same
-+		 * that are write protected and have the exact same
- 		 * content.
+--- a/mm/hugetlb.c~mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2
++++ a/mm/hugetlb.c
+@@ -85,7 +85,7 @@ static inline void unlock_or_release_sub
+ 	spin_unlock(&spool->lock);
+ 
+ 	/* If no pages are used, and no other handles to the subpool
+-	 * remain, give up any reservations mased on minimum size and
++	 * remain, give up any reservations based on minimum size and
+ 	 * free the subpool */
+ 	if (free) {
+ 		if (spool->min_hpages != -1)
+@@ -473,7 +473,7 @@ out_of_memory:
+  *
+  * Return the number of new huge pages added to the map.  This number is greater
+  * than or equal to zero.  If file_region entries needed to be allocated for
+- * this operation and we were not able to allocate, it ruturns -ENOMEM.
++ * this operation and we were not able to allocate, it returns -ENOMEM.
+  * region_add of regions of length 1 never allocate file_regions and cannot
+  * fail; region_chg will always allocate at least 1 entry and a region_add for
+  * 1 page will only require at most 1 entry.
+@@ -988,7 +988,7 @@ static bool vma_has_reserves(struct vm_a
+ 		 * We know VM_NORESERVE is not set.  Therefore, there SHOULD
+ 		 * be a region map for all pages.  The only situation where
+ 		 * there is no region map is if a hole was punched via
+-		 * fallocate.  In this case, there really are no reverves to
++		 * fallocate.  In this case, there really are no reserves to
+ 		 * use.  This situation is indicated if chg != 0.
  		 */
- 		stable_node_chain_add_dup(dup, chain);
-@@ -1608,7 +1608,7 @@ again:
- 			 * continue. All KSM pages belonging to the
- 			 * stable_node dups in a stable_node chain
- 			 * have the same content and they're
--			 * wrprotected at all times. Any will work
-+			 * write protected at all times. Any will work
- 			 * fine to continue the walk.
- 			 */
- 			tree_page = get_ksm_page(stable_node_any,
-@@ -1843,7 +1843,7 @@ again:
- 			 * continue. All KSM pages belonging to the
- 			 * stable_node dups in a stable_node chain
- 			 * have the same content and they're
--			 * wrprotected at all times. Any will work
-+			 * write protected at all times. Any will work
- 			 * fine to continue the walk.
- 			 */
- 			tree_page = get_ksm_page(stable_node_any,
-@@ -2001,7 +2001,7 @@ static void stable_tree_append(struct rm
- 	 * duplicate. page_migration could break later if rmap breaks,
- 	 * so we can as well crash here. We really need to check for
- 	 * rmap_hlist_len == STABLE_NODE_CHAIN, but we can as well check
--	 * for other negative values as an undeflow if detected here
-+	 * for other negative values as an underflow if detected here
- 	 * for the first time (and not when decreasing rmap_hlist_len)
- 	 * would be sign of memory corruption in the stable_node.
+ 		if (chg)
+@@ -1519,7 +1519,7 @@ static void prep_compound_gigantic_page(
+ 		 * For gigantic hugepages allocated through bootmem at
+ 		 * boot, it's safer to be consistent with the not-gigantic
+ 		 * hugepages and clear the PG_reserved bit from all tail pages
+-		 * too.  Otherwse drivers using get_user_pages() to access tail
++		 * too.  Otherwise drivers using get_user_pages() to access tail
+ 		 * pages may get the reference counting wrong if they see
+ 		 * PG_reserved set on a tail page (despite the head page not
+ 		 * having PG_reserved set).  Enforcing this consistency between
+@@ -4580,7 +4580,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
+ 	/*
+ 	 * entry could be a migration/hwpoison entry at this point, so this
+ 	 * check prevents the kernel from going below assuming that we have
+-	 * a active hugepage in pagecache. This goto expects the 2nd page fault,
++	 * an active hugepage in pagecache. This goto expects the 2nd page fault,
+ 	 * and is_hugetlb_entry_(migration|hwpoisoned) check will properly
+ 	 * handle it.
  	 */
+--- a/mm/mmap.c~mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2
++++ a/mm/mmap.c
+@@ -1207,7 +1207,7 @@ struct vm_area_struct *vma_merge(struct
+ }
+ 
+ /*
+- * Rough compatbility check to quickly see if it's even worth looking
++ * Rough compatibility check to quickly see if it's even worth looking
+  * at sharing an anon_vma.
+  *
+  * They need to have the same vm_file, and the flags can only differ
 _
 
 Patches currently in -mm which might be from ethp@qq.com are
@@ -86,7 +110,6 @@ mm-memory_hotplug-fix-a-typo-in-comment-recoreded-recorded.patch
 mm-ksm-fix-a-typo-in-comment-alreaady-already.patch
 mm-mmap-fix-a-typo-in-comment-compatbility-compatibility.patch
 mm-hugetlb-fix-a-typo-in-comment-manitained-maintained.patch
-mm-hugetlb-fix-a-typo-in-comment-manitained-maintained-v2.patch
 mm-vmsan-fix-some-typos-in-comment.patch
 mm-compaction-fix-a-typo-in-comment-pessemistic-pessimistic.patch
 mm-memblock-fix-a-typo-in-comment-implict-implicit.patch
