@@ -1,64 +1,150 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch removed from -mm
- tree
-Date: Thu, 04 Jun 2020 10:19:40 -0700
-Message-ID: <20200604171940.sV92P672j%akpm@linux-foundation.org>
+ mm-vmscan-count-layzfree-pages-and-fix-nr_isolated_-mismatch.patch removed
+ from -mm tree
+Date: Thu, 04 Jun 2020 10:19:42 -0700
+Message-ID: <20200604171942.KxKmXJiLS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41594 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41682 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730043AbgFDRTl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:19:41 -0400
+        id S1730043AbgFDRTn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:19:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhe@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
+To: hannes@cmpxchg.org, jaewon31.kim@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org, shli@fb.com, ytk.lee@samsung.com
 
 
 The patch titled
-     Subject: mm/vmscan.c: use update_lru_size() in update_lru_sizes()
+     Subject: mm/vmscan: count layzfree pages and fix nr_isolated_* mismatch
 has been removed from the -mm tree.  Its filename was
-     mm-vmscanc-use-update_lru_size-in-update_lru_sizes.patch
+     mm-vmscan-count-layzfree-pages-and-fix-nr_isolated_-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/vmscan.c: use update_lru_size() in update_lru_sizes()
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: mm/vmscan: count layzfree pages and fix nr_isolated_* mismatch
 
-We already defined the helper update_lru_size().
+Fix an nr_isolate_* mismatch problem between cma and dirty lazyfree pages.
 
-Let's use this to reduce code duplication.
+If try_to_unmap_one is used for reclaim and it detects a dirty lazyfree
+page, then the lazyfree page is changed to a normal anon page having
+SwapBacked by commit 802a3a92ad7a ("mm: reclaim MADV_FREE pages").  Even
+with the change, reclaim context correctly counts isolated files because
+it uses is_file_lru to distinguish file.  And the change to anon is not
+happened if try_to_unmap_one is used for migration.  So migration context
+like compaction also correctly counts isolated files even though it uses
+page_is_file_lru insted of is_file_lru.  Recently page_is_file_cache was
+renamed to page_is_file_lru by commit 9de4f22a60f7 ("mm: code cleanup for
+MADV_FREE").
 
-Link: http://lkml.kernel.org/r/20200331221550.1011-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+But the nr_isolate_* mismatch problem happens on cma alloc.  There is
+reclaim_clean_pages_from_list which is being used only by cma.  It was
+introduced by commit 02c6de8d757c ("mm: cma: discard clean pages during
+contiguous allocation instead of migration") to reclaim clean file pages
+without migration.  The cma alloc uses both reclaim_clean_pages_from_list
+and migrate_pages, and it uses page_is_file_lru to count isolated files. 
+If there are dirty lazyfree pages allocated from cma memory region, the
+pages are counted as isolated file at the beginging but are counted as
+isolated anon after finished.
+
+Mem-Info:
+Node 0 active_anon:3045904kB inactive_anon:611448kB active_file:14892kB inactive_file:205636kB unevictable:10416kB isolated(anon):0kB isolated(file):37664kB mapped:630216kB dirty:384kB writeback:0kB shmem:42576kB writeback_tmp:0kB unstable:0kB all_unreclaimable? no
+
+Like log above, there were too much isolated files, 37664kB, which
+triggers too_many_isolated in reclaim even when there is no actually
+isolated file in system wide.  It could be reproducible by running two
+programs, writing on MADV_FREE page and doing cma alloc, respectively. 
+Although isolated anon is 0, I found that the internal value of isolated
+anon was the negative value of isolated file.
+
+Fix this by compensating the isolated count for both LRU lists.  Count
+non-discarded lazyfree pages in shrink_page_list, then compensate the
+counted number in reclaim_clean_pages_from_list.
+
+Link: http://lkml.kernel.org/r/20200426011718.30246-1-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Reported-by: Yong-Taek Lee <ytk.lee@samsung.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Shaohua Li <shli@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/vmstat.h |    1 +
+ mm/vmscan.c            |   26 ++++++++++++++++++++------
+ 2 files changed, 21 insertions(+), 6 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscanc-use-update_lru_size-in-update_lru_sizes
-+++ a/mm/vmscan.c
-@@ -1602,10 +1602,7 @@ static __always_inline void update_lru_s
- 		if (!nr_zone_taken[zid])
- 			continue;
+--- a/include/linux/vmstat.h~mm-vmscan-count-layzfree-pages-and-fix-nr_isolated_-mismatch
++++ a/include/linux/vmstat.h
+@@ -29,6 +29,7 @@ struct reclaim_stat {
+ 	unsigned nr_activate[2];
+ 	unsigned nr_ref_keep;
+ 	unsigned nr_unmap_fail;
++	unsigned nr_lazyfree_fail;
+ };
  
--		__update_lru_size(lruvec, lru, zid, -nr_zone_taken[zid]);
--#ifdef CONFIG_MEMCG
--		mem_cgroup_update_lru_size(lruvec, lru, zid, -nr_zone_taken[zid]);
--#endif
-+		update_lru_size(lruvec, lru, zid, -nr_zone_taken[zid]);
+ enum writeback_stat_item {
+--- a/mm/vmscan.c~mm-vmscan-count-layzfree-pages-and-fix-nr_isolated_-mismatch
++++ a/mm/vmscan.c
+@@ -1295,11 +1295,15 @@ static unsigned long shrink_page_list(st
+ 		 */
+ 		if (page_mapped(page)) {
+ 			enum ttu_flags flags = ttu_flags | TTU_BATCH_FLUSH;
++			bool was_swapbacked = PageSwapBacked(page);
+ 
+ 			if (unlikely(PageTransHuge(page)))
+ 				flags |= TTU_SPLIT_HUGE_PMD;
++
+ 			if (!try_to_unmap(page, flags)) {
+ 				stat->nr_unmap_fail += nr_pages;
++				if (!was_swapbacked && PageSwapBacked(page))
++					stat->nr_lazyfree_fail += nr_pages;
+ 				goto activate_locked;
+ 			}
+ 		}
+@@ -1491,8 +1495,8 @@ unsigned long reclaim_clean_pages_from_l
+ 		.priority = DEF_PRIORITY,
+ 		.may_unmap = 1,
+ 	};
+-	struct reclaim_stat dummy_stat;
+-	unsigned long ret;
++	struct reclaim_stat stat;
++	unsigned long nr_reclaimed;
+ 	struct page *page, *next;
+ 	LIST_HEAD(clean_pages);
+ 
+@@ -1504,11 +1508,21 @@ unsigned long reclaim_clean_pages_from_l
+ 		}
  	}
  
+-	ret = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
+-			TTU_IGNORE_ACCESS, &dummy_stat, true);
++	nr_reclaimed = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
++			TTU_IGNORE_ACCESS, &stat, true);
+ 	list_splice(&clean_pages, page_list);
+-	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, -ret);
+-	return ret;
++	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, -nr_reclaimed);
++	/*
++	 * Since lazyfree pages are isolated from file LRU from the beginning,
++	 * they will rotate back to anonymous LRU in the end if it failed to
++	 * discard so isolated count will be mismatched.
++	 * Compensate the isolated count for both LRU lists.
++	 */
++	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_ANON,
++			    stat.nr_lazyfree_fail);
++	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE,
++			    -stat.nr_lazyfree_fail);
++	return nr_reclaimed;
  }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
-
-bitops-simplify-get_count_order_long.patch
-bitops-use-the-same-mechanism-for-get_count_order.patch
-lib-test-get_count_order-long-in-test_bitopsc.patch
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
