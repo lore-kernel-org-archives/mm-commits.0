@@ -1,30 +1,28 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 020/127] unicore32: remove __ARCH_USE_5LEVEL_HACK
-Date: Thu, 04 Jun 2020 16:47:00 -0700
-Message-ID: <20200604234700.v2giXXtT2%akpm@linux-foundation.org>
+Subject: [patch 021/127] asm-generic: remove pgtable-nop4d-hack.h
+Date: Thu, 04 Jun 2020 16:47:04 -0700
+Message-ID: <20200604234704.CcoW6gb9l%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42474 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42582 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725955AbgFDXrD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:47:03 -0400
+        id S1725955AbgFDXrG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:47:06 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, arnd@arndb.de, bcain@codeaurora.org, benh@kernel.crashing.org, catalin.marinas@arm.com, christophe.leroy@c-s.fr, dalias@libc.org, fenghua.yu@intel.com, geert+renesas@glider.be, gxt@pku.edu.cn, james.morse@arm.com, jonas@southpole.se, julien.thierry.kdev@gmail.com, ley.foon.tan@intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, maz@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org, rppt@linux.ibm.com, shorne@gmail.com, stefan.kristiansson@saunalahti.fi, suzuki.poulose@arm.com, tony.luck@intel.com, torvalds@linux-foundation.org, will@kernel.org, ysato@users.sourceforge.jp
 
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: unicore32: remove __ARCH_USE_5LEVEL_HACK
+Subject: asm-generic: remove pgtable-nop4d-hack.h
 
-The unicore32 architecture has 2 level page tables and
-asm-generic/pgtable-nopmd.h and explicit casts from pud_t to pgd_t for
-page table folding.
+No architecture defines __ARCH_USE_5LEVEL_HACK and therefore
+pgtable-nop4d-hack.h will be never actually included.
 
-Add p4d walk in the only place that actually unfolds the pud level and
-remove __ARCH_USE_5LEVEL_HACK.
+Remove it.
 
-Link: http://lkml.kernel.org/r/20200414153455.21744-13-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200414153455.21744-14-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -52,33 +50,71 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/include/asm/pgtable.h |    1 -
- arch/unicore32/kernel/hibernate.c    |    4 +++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ include/asm-generic/pgtable-nop4d-hack.h |   64 ---------------------
+ include/asm-generic/pgtable-nopud.h      |    4 -
+ 2 files changed, 68 deletions(-)
 
---- a/arch/unicore32/include/asm/pgtable.h~unicore32-remove-__arch_use_5level_hack
-+++ a/arch/unicore32/include/asm/pgtable.h
-@@ -9,7 +9,6 @@
- #ifndef __UNICORE_PGTABLE_H__
- #define __UNICORE_PGTABLE_H__
- 
--#define __ARCH_USE_5LEVEL_HACK
- #include <asm-generic/pgtable-nopmd.h>
- #include <asm/cpu-single.h>
- 
---- a/arch/unicore32/kernel/hibernate.c~unicore32-remove-__arch_use_5level_hack
-+++ a/arch/unicore32/kernel/hibernate.c
-@@ -33,9 +33,11 @@ struct swsusp_arch_regs swsusp_arch_regs
- static pmd_t *resume_one_md_table_init(pgd_t *pgd)
- {
- 	pud_t *pud;
-+	p4d_t *p4d;
- 	pmd_t *pmd_table;
- 
--	pud = pud_offset(pgd, 0);
-+	p4d = p4d_offset(pgd, 0);
-+	pud = pud_offset(p4d, 0);
- 	pmd_table = pmd_offset(pud, 0);
- 
- 	return pmd_table;
-_
+--- a/include/asm-generic/pgtable-nop4d-hack.h
++++ /dev/null
+@@ -1,64 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _PGTABLE_NOP4D_HACK_H
+-#define _PGTABLE_NOP4D_HACK_H
+-
+-#ifndef __ASSEMBLY__
+-#include <asm-generic/5level-fixup.h>
+-
+-#define __PAGETABLE_PUD_FOLDED 1
+-
+-/*
+- * Having the pud type consist of a pgd gets the size right, and allows
+- * us to conceptually access the pgd entry that this pud is folded into
+- * without casting.
+- */
+-typedef struct { pgd_t pgd; } pud_t;
+-
+-#define PUD_SHIFT	PGDIR_SHIFT
+-#define PTRS_PER_PUD	1
+-#define PUD_SIZE	(1UL << PUD_SHIFT)
+-#define PUD_MASK	(~(PUD_SIZE-1))
+-
+-/*
+- * The "pgd_xxx()" functions here are trivial for a folded two-level
+- * setup: the pud is never bad, and a pud always exists (as it's folded
+- * into the pgd entry)
+- */
+-static inline int pgd_none(pgd_t pgd)		{ return 0; }
+-static inline int pgd_bad(pgd_t pgd)		{ return 0; }
+-static inline int pgd_present(pgd_t pgd)	{ return 1; }
+-static inline void pgd_clear(pgd_t *pgd)	{ }
+-#define pud_ERROR(pud)				(pgd_ERROR((pud).pgd))
+-
+-#define pgd_populate(mm, pgd, pud)		do { } while (0)
+-#define pgd_populate_safe(mm, pgd, pud)		do { } while (0)
+-/*
+- * (puds are folded into pgds so this doesn't get actually called,
+- * but the define is needed for a generic inline function.)
+- */
+-#define set_pgd(pgdptr, pgdval)	set_pud((pud_t *)(pgdptr), (pud_t) { pgdval })
+-
+-static inline pud_t *pud_offset(pgd_t *pgd, unsigned long address)
+-{
+-	return (pud_t *)pgd;
+-}
+-
+-#define pud_val(x)				(pgd_val((x).pgd))
+-#define __pud(x)				((pud_t) { __pgd(x) })
+-
+-#define pgd_page(pgd)				(pud_page((pud_t){ pgd }))
+-#define pgd_page_vaddr(pgd)			(pud_page_vaddr((pud_t){ pgd }))
+-
+-/*
+- * allocating and freeing a pud is trivial: the 1-entry pud is
+- * inside the pgd, so has no extra memory associated with it.
+- */
+-#define pud_alloc_one(mm, address)		NULL
+-#define pud_free(mm, x)				do { } while (0)
+-#define __pud_free_tlb(tlb, x, a)		do { } while (0)
+-
+-#undef  pud_addr_end
+-#define pud_addr_end(addr, end)			(end)
