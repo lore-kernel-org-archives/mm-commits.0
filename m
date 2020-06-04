@@ -1,170 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-parallelize-deferred_init_memmap.patch
- removed from -mm tree
-Date: Thu, 04 Jun 2020 10:18:43 -0700
-Message-ID: <20200604171843.HNgS-c4fe%akpm@linux-foundation.org>
+Subject: [merged]
+ padata-add-basic-support-for-multithreaded-jobs.patch removed from -mm tree
+Date: Thu, 04 Jun 2020 10:18:38 -0700
+Message-ID: <20200604171838.CKbd2i4vp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40480 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40346 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730007AbgFDRSq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:18:46 -0400
+        id S1730126AbgFDRSl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:18:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alex.williamson@redhat.com, alexander.h.duyck@linux.intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com, david@redhat.com, elliott@hpe.com, herbert@gondor.apana.org.au, jgg@ziepe.ca, josh@joshtriplett.org, ktkhai@virtuozzo.com, mhocko@kernel.org, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, pavel@ucw.cz, peterz@infradead.org, rdunlap@infradead.org, shile.zhang@linux.alibaba.com, steffen.klassert@secunet.com, steven.sistare@oracle.com, tj@kernel.org, ziy@nvidia.com
 
 
 The patch titled
-     Subject: mm: parallelize deferred_init_memmap()
+     Subject: padata: add basic support for multithreaded jobs
 has been removed from the -mm tree.  Its filename was
-     mm-parallelize-deferred_init_memmap.patch
+     padata-add-basic-support-for-multithreaded-jobs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Daniel Jordan <daniel.m.jordan@oracle.com>
-Subject: mm: parallelize deferred_init_memmap()
+Subject: padata: add basic support for multithreaded jobs
 
-Deferred struct page init is a significant bottleneck in kernel boot. 
-Optimizing it maximizes availability for large-memory systems and allows
-spinning up short-lived VMs as needed without having to leave them
-running.  It also benefits bare metal machines hosting VMs that are
-sensitive to downtime.  In projects such as VMM Fast Restart[1], where
-guest state is preserved across kexec reboot, it helps prevent application
-and network timeouts in the guests.
+Sometimes the kernel doesn't take full advantage of system memory
+bandwidth, leading to a single CPU spending excessive time in
+initialization paths where the data scales with memory size.
 
-Multithread to take full advantage of system memory bandwidth.
+Multithreading naturally addresses this problem.
 
-The maximum number of threads is capped at the number of CPUs on the node
-because speedups always improve with additional threads on every system
-tested, and at this phase of boot, the system is otherwise idle and
-waiting on page init to finish.
+Extend padata, a framework that handles many parallel yet singlethreaded
+jobs, to also handle multithreaded jobs by adding support for splitting up
+the work evenly, specifying a minimum amount of work that's appropriate
+for one helper thread to do, load balancing between helpers, and
+coordinating them.
 
-Helper threads operate on section-aligned ranges to both avoid false
-sharing when setting the pageblock's migrate type and to avoid accessing
-uninitialized buddy pages, though max order alignment is enough for the
-latter.
+This is inspired by work from Pavel Tatashin and Steve Sistare.
 
-The minimum chunk size is also a section.  There was benefit to using
-multiple threads even on relatively small memory (1G) systems, and this is
-the smallest size that the alignment allows.
-
-The time (milliseconds) is the slowest node to initialize since boot
-blocks until all nodes finish.  intel_pstate is loaded in active mode
-without hwp and with turbo enabled, and intel_idle is active as well.
-
-    Intel(R) Xeon(R) Platinum 8167M CPU @ 2.00GHz (Skylake, bare metal)
-      2 nodes * 26 cores * 2 threads = 104 CPUs
-      384G/node = 768G memory
-
-                   kernel boot                 deferred init
-                   ------------------------    ------------------------
-    node% (thr)    speedup  time_ms (stdev)    speedup  time_ms (stdev)
-          (  0)         --   4089.7 (  8.1)         --   1785.7 (  7.6)
-       2% (  1)       1.7%   4019.3 (  1.5)       3.8%   1717.7 ( 11.8)
-      12% (  6)      34.9%   2662.7 (  2.9)      79.9%    359.3 (  0.6)
-      25% ( 13)      39.9%   2459.0 (  3.6)      91.2%    157.0 (  0.0)
-      37% ( 19)      39.2%   2485.0 ( 29.7)      90.4%    172.0 ( 28.6)
-      50% ( 26)      39.3%   2482.7 ( 25.7)      90.3%    173.7 ( 30.0)
-      75% ( 39)      39.0%   2495.7 (  5.5)      89.4%    190.0 (  1.0)
-     100% ( 52)      40.2%   2443.7 (  3.8)      92.3%    138.0 (  1.0)
-
-    Intel(R) Xeon(R) CPU E5-2699C v4 @ 2.20GHz (Broadwell, kvm guest)
-      1 node * 16 cores * 2 threads = 32 CPUs
-      192G/node = 192G memory
-
-                   kernel boot                 deferred init
-                   ------------------------    ------------------------
-    node% (thr)    speedup  time_ms (stdev)    speedup  time_ms (stdev)
-          (  0)         --   1988.7 (  9.6)         --   1096.0 ( 11.5)
-       3% (  1)       1.1%   1967.0 ( 17.6)       0.3%   1092.7 ( 11.0)
-      12% (  4)      41.1%   1170.3 ( 14.2)      73.8%    287.0 (  3.6)
-      25% (  8)      47.1%   1052.7 ( 21.9)      83.9%    177.0 ( 13.5)
-      38% ( 12)      48.9%   1016.3 ( 12.1)      86.8%    144.7 (  1.5)
-      50% ( 16)      48.9%   1015.7 (  8.1)      87.8%    134.0 (  4.4)
-      75% ( 24)      49.1%   1012.3 (  3.1)      88.1%    130.3 (  2.3)
-     100% ( 32)      49.5%   1004.0 (  5.3)      88.5%    125.7 (  2.1)
-
-    Intel(R) Xeon(R) CPU E5-2699 v3 @ 2.30GHz (Haswell, bare metal)
-      2 nodes * 18 cores * 2 threads = 72 CPUs
-      128G/node = 256G memory
-
-                   kernel boot                 deferred init
-                   ------------------------    ------------------------
-    node% (thr)    speedup  time_ms (stdev)    speedup  time_ms (stdev)
-          (  0)         --   1680.0 (  4.6)         --    627.0 (  4.0)
-       3% (  1)       0.3%   1675.7 (  4.5)      -0.2%    628.0 (  3.6)
-      11% (  4)      25.6%   1250.7 (  2.1)      67.9%    201.0 (  0.0)
-      25% (  9)      30.7%   1164.0 ( 17.3)      81.8%    114.3 ( 17.7)
-      36% ( 13)      31.4%   1152.7 ( 10.8)      84.0%    100.3 ( 17.9)
-      50% ( 18)      31.5%   1150.7 (  9.3)      83.9%    101.0 ( 14.1)
-      75% ( 27)      31.7%   1148.0 (  5.6)      84.5%     97.3 (  6.4)
-     100% ( 36)      32.0%   1142.3 (  4.0)      85.6%     90.0 (  1.0)
-
-    AMD EPYC 7551 32-Core Processor (Zen, kvm guest)
-      1 node * 8 cores * 2 threads = 16 CPUs
-      64G/node = 64G memory
-
-                   kernel boot                 deferred init
-                   ------------------------    ------------------------
-    node% (thr)    speedup  time_ms (stdev)    speedup  time_ms (stdev)
-          (  0)         --   1029.3 ( 25.1)         --    240.7 (  1.5)
-       6% (  1)      -0.6%   1036.0 (  7.8)      -2.2%    246.0 (  0.0)
-      12% (  2)      11.8%    907.7 (  8.6)      44.7%    133.0 (  1.0)
-      25% (  4)      13.9%    886.0 ( 10.6)      62.6%     90.0 (  6.0)
-      38% (  6)      17.8%    845.7 ( 14.2)      69.1%     74.3 (  3.8)
-      50% (  8)      16.8%    856.0 ( 22.1)      72.9%     65.3 (  5.7)
-      75% ( 12)      15.4%    871.0 ( 29.2)      79.8%     48.7 (  7.4)
-     100% ( 16)      21.0%    813.7 ( 21.0)      80.5%     47.0 (  5.2)
-
-Server-oriented distros that enable deferred page init sometimes run in
-small VMs, and they still benefit even though the fraction of boot time
-saved is smaller:
-
-    AMD EPYC 7551 32-Core Processor (Zen, kvm guest)
-      1 node * 2 cores * 2 threads = 4 CPUs
-      16G/node = 16G memory
-
-                   kernel boot                 deferred init
-                   ------------------------    ------------------------
-    node% (thr)    speedup  time_ms (stdev)    speedup  time_ms (stdev)
-          (  0)         --    716.0 ( 14.0)         --     49.7 (  0.6)
-      25% (  1)       1.8%    703.0 (  5.3)      -4.0%     51.7 (  0.6)
-      50% (  2)       1.6%    704.7 (  1.2)      43.0%     28.3 (  0.6)
-      75% (  3)       2.7%    696.7 ( 13.1)      49.7%     25.0 (  0.0)
-     100% (  4)       4.1%    687.0 ( 10.4)      55.7%     22.0 (  0.0)
-
-    Intel(R) Xeon(R) CPU E5-2699 v3 @ 2.30GHz (Haswell, kvm guest)
-      1 node * 2 cores * 2 threads = 4 CPUs
-      14G/node = 14G memory
-
-                   kernel boot                 deferred init
-                   ------------------------    ------------------------
-    node% (thr)    speedup  time_ms (stdev)    speedup  time_ms (stdev)
-          (  0)         --    787.7 (  6.4)         --    122.3 (  0.6)
-      25% (  1)       0.2%    786.3 ( 10.8)      -2.5%    125.3 (  2.1)
-      50% (  2)       5.9%    741.0 ( 13.9)      37.6%     76.3 ( 19.7)
-      75% (  3)       8.3%    722.0 ( 19.0)      49.9%     61.3 (  3.2)
-     100% (  4)       9.3%    714.7 (  9.5)      56.4%     53.3 (  1.5)
-
-On Josh's 96-CPU and 192G memory system:
-
-    Without this patch series:
-    [    0.487132] node 0 initialised, 23398907 pages in 292ms
-    [    0.499132] node 1 initialised, 24189223 pages in 304ms
-    ...
-    [    0.629376] Run /sbin/init as init process
-
-    With this patch series:
-    [    0.231435] node 1 initialised, 24189223 pages in 32ms
-    [    0.236718] node 0 initialised, 23398907 pages in 36ms
-
-[1] https://static.sched.com/hosted_files/kvmforum2019/66/VMM-fast-restart_kvmforum2019.pdf
-
-Link: http://lkml.kernel.org/r/20200527173608.2885243-7-daniel.m.jordan@oracle.com
+Link: http://lkml.kernel.org/r/20200527173608.2885243-5-daniel.m.jordan@oracle.com
 Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
 Tested-by: Josh Triplett <josh@joshtriplett.org>
-Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -187,107 +65,276 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig      |    6 +++---
- mm/page_alloc.c |   46 ++++++++++++++++++++++++++++++++++++++++------
- 2 files changed, 43 insertions(+), 9 deletions(-)
+ include/linux/padata.h |   29 +++++++
+ kernel/padata.c        |  152 ++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 178 insertions(+), 3 deletions(-)
 
---- a/mm/Kconfig~mm-parallelize-deferred_init_memmap
-+++ a/mm/Kconfig
-@@ -747,13 +747,13 @@ config DEFERRED_STRUCT_PAGE_INIT
- 	depends on SPARSEMEM
- 	depends on !NEED_PER_CPU_KM
- 	depends on 64BIT
-+	select PADATA
- 	help
- 	  Ordinarily all struct pages are initialised during early boot in a
- 	  single thread. On very large machines this can take a considerable
- 	  amount of time. If this option is set, large machines will bring up
--	  a subset of memmap at boot and then initialise the rest in parallel
--	  by starting one-off "pgdatinitX" kernel thread for each node X. This
--	  has a potential performance impact on processes running early in the
-+	  a subset of memmap at boot and then initialise the rest in parallel.
-+	  This has a potential performance impact on tasks running early in the
- 	  lifetime of the system until these kthreads finish the
- 	  initialisation.
+--- a/include/linux/padata.h~padata-add-basic-support-for-multithreaded-jobs
++++ a/include/linux/padata.h
+@@ -4,6 +4,9 @@
+  *
+  * Copyright (C) 2008, 2009 secunet Security Networks AG
+  * Copyright (C) 2008, 2009 Steffen Klassert <steffen.klassert@secunet.com>
++ *
++ * Copyright (c) 2020 Oracle and/or its affiliates.
++ * Author: Daniel Jordan <daniel.m.jordan@oracle.com>
+  */
  
---- a/mm/page_alloc.c~mm-parallelize-deferred_init_memmap
-+++ a/mm/page_alloc.c
-@@ -68,6 +68,7 @@
- #include <linux/lockdep.h>
- #include <linux/nmi.h>
- #include <linux/psi.h>
-+#include <linux/padata.h>
+ #ifndef PADATA_H
+@@ -131,6 +134,31 @@ struct padata_shell {
+ };
  
- #include <asm/sections.h>
- #include <asm/tlbflush.h>
-@@ -1815,6 +1816,26 @@ deferred_init_maxorder(u64 *i, struct zo
- 	return nr_pages;
+ /**
++ * struct padata_mt_job - represents one multithreaded job
++ *
++ * @thread_fn: Called for each chunk of work that a padata thread does.
++ * @fn_arg: The thread function argument.
++ * @start: The start of the job (units are job-specific).
++ * @size: size of this node's work (units are job-specific).
++ * @align: Ranges passed to the thread function fall on this boundary, with the
++ *         possible exceptions of the beginning and end of the job.
++ * @min_chunk: The minimum chunk size in job-specific units.  This allows
++ *             the client to communicate the minimum amount of work that's
++ *             appropriate for one worker thread to do at once.
++ * @max_threads: Max threads to use for the job, actual number may be less
++ *               depending on task size and minimum chunk size.
++ */
++struct padata_mt_job {
++	void (*thread_fn)(unsigned long start, unsigned long end, void *arg);
++	void			*fn_arg;
++	unsigned long		start;
++	unsigned long		size;
++	unsigned long		align;
++	unsigned long		min_chunk;
++	int			max_threads;
++};
++
++/**
+  * struct padata_instance - The overall control structure.
+  *
+  * @cpu_online_node: Linkage for CPU online callback.
+@@ -173,6 +201,7 @@ extern void padata_free_shell(struct pad
+ extern int padata_do_parallel(struct padata_shell *ps,
+ 			      struct padata_priv *padata, int *cb_cpu);
+ extern void padata_do_serial(struct padata_priv *padata);
++extern void __init padata_do_multithreaded(struct padata_mt_job *job);
+ extern int padata_set_cpumask(struct padata_instance *pinst, int cpumask_type,
+ 			      cpumask_var_t cpumask);
+ extern int padata_start(struct padata_instance *pinst);
+--- a/kernel/padata.c~padata-add-basic-support-for-multithreaded-jobs
++++ a/kernel/padata.c
+@@ -7,6 +7,9 @@
+  * Copyright (C) 2008, 2009 secunet Security Networks AG
+  * Copyright (C) 2008, 2009 Steffen Klassert <steffen.klassert@secunet.com>
+  *
++ * Copyright (c) 2020 Oracle and/or its affiliates.
++ * Author: Daniel Jordan <daniel.m.jordan@oracle.com>
++ *
+  * This program is free software; you can redistribute it and/or modify it
+  * under the terms and conditions of the GNU General Public License,
+  * version 2, as published by the Free Software Foundation.
+@@ -21,6 +24,7 @@
+  * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+  */
+ 
++#include <linux/completion.h>
+ #include <linux/export.h>
+ #include <linux/cpumask.h>
+ #include <linux/err.h>
+@@ -32,6 +36,8 @@
+ #include <linux/sysfs.h>
+ #include <linux/rcupdate.h>
+ 
++#define	PADATA_WORK_ONSTACK	1	/* Work's memory is on stack */
++
+ struct padata_work {
+ 	struct work_struct	pw_work;
+ 	struct list_head	pw_list;  /* padata_free_works linkage */
+@@ -42,7 +48,17 @@ static DEFINE_SPINLOCK(padata_works_lock
+ static struct padata_work *padata_works;
+ static LIST_HEAD(padata_free_works);
+ 
++struct padata_mt_job_state {
++	spinlock_t		lock;
++	struct completion	completion;
++	struct padata_mt_job	*job;
++	int			nworks;
++	int			nworks_fini;
++	unsigned long		chunk_size;
++};
++
+ static void padata_free_pd(struct parallel_data *pd);
++static void __init padata_mt_helper(struct work_struct *work);
+ 
+ static int padata_index_to_cpu(struct parallel_data *pd, int cpu_index)
+ {
+@@ -81,18 +97,56 @@ static struct padata_work *padata_work_a
  }
  
-+static void __init
-+deferred_init_memmap_chunk(unsigned long start_pfn, unsigned long end_pfn,
-+			   void *arg)
+ static void padata_work_init(struct padata_work *pw, work_func_t work_fn,
+-			     void *data)
++			     void *data, int flags)
+ {
+-	INIT_WORK(&pw->pw_work, work_fn);
++	if (flags & PADATA_WORK_ONSTACK)
++		INIT_WORK_ONSTACK(&pw->pw_work, work_fn);
++	else
++		INIT_WORK(&pw->pw_work, work_fn);
+ 	pw->pw_data = data;
+ }
+ 
++static int __init padata_work_alloc_mt(int nworks, void *data,
++				       struct list_head *head)
 +{
-+	unsigned long spfn, epfn;
-+	struct zone *zone = arg;
-+	u64 i;
++	int i;
 +
-+	deferred_init_mem_pfn_range_in_zone(&i, zone, &spfn, &epfn, start_pfn);
++	spin_lock(&padata_works_lock);
++	/* Start at 1 because the current task participates in the job. */
++	for (i = 1; i < nworks; ++i) {
++		struct padata_work *pw = padata_work_alloc();
 +
-+	/*
-+	 * Initialize and free pages in MAX_ORDER sized increments so that we
-+	 * can avoid introducing any issues with the buddy allocator.
-+	 */
-+	while (spfn < end_pfn) {
-+		deferred_init_maxorder(&i, zone, &spfn, &epfn);
-+		cond_resched();
++		if (!pw)
++			break;
++		padata_work_init(pw, padata_mt_helper, data, 0);
++		list_add(&pw->pw_list, head);
 +	}
++	spin_unlock(&padata_works_lock);
++
++	return i;
 +}
 +
- /* Initialise remaining memory on a node */
- static int __init deferred_init_memmap(void *data)
+ static void padata_work_free(struct padata_work *pw)
  {
-@@ -1824,7 +1845,7 @@ static int __init deferred_init_memmap(v
- 	unsigned long first_init_pfn, flags;
- 	unsigned long start = jiffies;
- 	struct zone *zone;
--	int zid;
-+	int zid, max_threads;
- 	u64 i;
+ 	lockdep_assert_held(&padata_works_lock);
+ 	list_add(&pw->pw_list, &padata_free_works);
+ }
  
- 	/* Bind memory initialisation thread to a local node if possible */
-@@ -1864,13 +1885,26 @@ static int __init deferred_init_memmap(v
- 		goto zone_empty;
++static void __init padata_works_free(struct list_head *works)
++{
++	struct padata_work *cur, *next;
++
++	if (list_empty(works))
++		return;
++
++	spin_lock(&padata_works_lock);
++	list_for_each_entry_safe(cur, next, works, pw_list) {
++		list_del(&cur->pw_list);
++		padata_work_free(cur);
++	}
++	spin_unlock(&padata_works_lock);
++}
++
+ static void padata_parallel_worker(struct work_struct *parallel_work)
+ {
+ 	struct padata_work *pw = container_of(parallel_work, struct padata_work,
+@@ -168,7 +222,7 @@ int padata_do_parallel(struct padata_she
+ 	pw = padata_work_alloc();
+ 	spin_unlock(&padata_works_lock);
+ 	if (pw) {
+-		padata_work_init(pw, padata_parallel_worker, padata);
++		padata_work_init(pw, padata_parallel_worker, padata, 0);
+ 		queue_work(pinst->parallel_wq, &pw->pw_work);
+ 	} else {
+ 		/* Maximum works limit exceeded, run in the current task. */
+@@ -409,6 +463,98 @@ out:
+ 	return err;
+ }
  
- 	/*
--	 * Initialize and free pages in MAX_ORDER sized increments so
--	 * that we can avoid introducing any issues with the buddy
--	 * allocator.
-+	 * More CPUs always led to greater speedups on tested systems, up to
-+	 * all the nodes' CPUs.  Use all since the system is otherwise idle now.
- 	 */
-+	max_threads = max(cpumask_weight(cpumask), 1u);
++static void __init padata_mt_helper(struct work_struct *w)
++{
++	struct padata_work *pw = container_of(w, struct padata_work, pw_work);
++	struct padata_mt_job_state *ps = pw->pw_data;
++	struct padata_mt_job *job = ps->job;
++	bool done;
 +
- 	while (spfn < epfn) {
--		deferred_init_maxorder(&i, zone, &spfn, &epfn);
--		cond_resched();
-+		unsigned long epfn_align = ALIGN(epfn, PAGES_PER_SECTION);
-+		struct padata_mt_job job = {
-+			.thread_fn   = deferred_init_memmap_chunk,
-+			.fn_arg      = zone,
-+			.start       = spfn,
-+			.size        = epfn_align - spfn,
-+			.align       = PAGES_PER_SECTION,
-+			.min_chunk   = PAGES_PER_SECTION,
-+			.max_threads = max_threads,
-+		};
++	spin_lock(&ps->lock);
 +
-+		padata_do_multithreaded(&job);
-+		deferred_init_mem_pfn_range_in_zone(&i, zone, &spfn, &epfn,
-+						    epfn_align);
- 	}
- zone_empty:
- 	/* Sanity check that the next zone really is unpopulated */
++	while (job->size > 0) {
++		unsigned long start, size, end;
++
++		start = job->start;
++		/* So end is chunk size aligned if enough work remains. */
++		size = roundup(start + 1, ps->chunk_size) - start;
++		size = min(size, job->size);
++		end = start + size;
++
++		job->start = end;
++		job->size -= size;
++
++		spin_unlock(&ps->lock);
++		job->thread_fn(start, end, job->fn_arg);
++		spin_lock(&ps->lock);
++	}
++
++	++ps->nworks_fini;
++	done = (ps->nworks_fini == ps->nworks);
++	spin_unlock(&ps->lock);
++
++	if (done)
++		complete(&ps->completion);
++}
++
++/**
++ * padata_do_multithreaded - run a multithreaded job
++ * @job: Description of the job.
++ *
++ * See the definition of struct padata_mt_job for more details.
++ */
++void __init padata_do_multithreaded(struct padata_mt_job *job)
++{
++	/* In case threads finish at different times. */
++	static const unsigned long load_balance_factor = 4;
++	struct padata_work my_work, *pw;
++	struct padata_mt_job_state ps;
++	LIST_HEAD(works);
++	int nworks;
++
++	if (job->size == 0)
++		return;
++
++	/* Ensure at least one thread when size < min_chunk. */
++	nworks = max(job->size / job->min_chunk, 1ul);
++	nworks = min(nworks, job->max_threads);
++
++	if (nworks == 1) {
++		/* Single thread, no coordination needed, cut to the chase. */
++		job->thread_fn(job->start, job->start + job->size, job->fn_arg);
++		return;
++	}
++
++	spin_lock_init(&ps.lock);
++	init_completion(&ps.completion);
++	ps.job	       = job;
++	ps.nworks      = padata_work_alloc_mt(nworks, &ps, &works);
++	ps.nworks_fini = 0;
++
++	/*
++	 * Chunk size is the amount of work a helper does per call to the
++	 * thread function.  Load balance large jobs between threads by
++	 * increasing the number of chunks, guarantee at least the minimum
++	 * chunk size from the caller, and honor the caller's alignment.
++	 */
++	ps.chunk_size = job->size / (ps.nworks * load_balance_factor);
++	ps.chunk_size = max(ps.chunk_size, job->min_chunk);
++	ps.chunk_size = roundup(ps.chunk_size, job->align);
++
++	list_for_each_entry(pw, &works, pw_list)
++		queue_work(system_unbound_wq, &pw->pw_work);
++
++	/* Use the current thread, which saves starting a workqueue worker. */
++	padata_work_init(&my_work, padata_mt_helper, &ps, PADATA_WORK_ONSTACK);
++	padata_mt_helper(&my_work.pw_work);
++
++	/* Wait for all the helpers to finish. */
++	wait_for_completion(&ps.completion);
++
++	destroy_work_on_stack(&my_work.pw_work);
++	padata_works_free(&works);
++}
++
+ static void __padata_list_init(struct padata_list *pd_list)
+ {
+ 	INIT_LIST_HEAD(&pd_list->list);
 _
 
 Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
