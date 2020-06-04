@@ -1,121 +1,102 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-initialize-deferred-pages-with-interrupts-enabled.patch removed from -mm
- tree
-Date: Thu, 04 Jun 2020 10:18:26 -0700
-Message-ID: <20200604171826.Rlcuwa_R4%akpm@linux-foundation.org>
+ mm-call-cond_resched-from-deferred_init_memmap.patch removed from -mm tree
+Date: Thu, 04 Jun 2020 10:18:29 -0700
+Message-ID: <20200604171829.2a2P11QAF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40024 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40084 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730088AbgFDRS1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:18:27 -0400
+        id S1730088AbgFDRSa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:18:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, daniel.m.jordan@oracle.com, david@redhat.com, jmorris@namei.org, ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, sashal@kernel.org, shile.zhang@linux.alibaba.com, stable@vger.kernel.org, vbabka@suse.cz, yiwei@redhat.com
+To: dan.j.williams@intel.com, daniel.m.jordan@oracle.com, david@redhat.com, jmorris@namei.org, ktkhai@virtuozzo.com, mhocko@suse.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, pasha.tatashin@soleen.com, sashal@kernel.org, shile.zhang@linux.alibaba.com, stable@vger.kernel.org, vbabka@suse.cz, yiwei@redhat.com
 
 
 The patch titled
-     Subject: mm: initialize deferred pages with interrupts enabled
+     Subject: mm: call cond_resched() from deferred_init_memmap()
 has been removed from the -mm tree.  Its filename was
-     mm-initialize-deferred-pages-with-interrupts-enabled.patch
+     mm-call-cond_resched-from-deferred_init_memmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Subject: mm: initialize deferred pages with interrupts enabled
+Subject: mm: call cond_resched() from deferred_init_memmap()
 
-Initializing struct pages is a long task and keeping interrupts disabled
-for the duration of this operation introduces a number of problems.
+Now that deferred pages are initialized with interrupts enabled we can
+replace touch_nmi_watchdog() with cond_resched(), as it was before
+3a2d7fa8a3d5.
 
-1. jiffies are not updated for long period of time, and thus incorrect time
-   is reported. See proposed solution and discussion here:
-   lkml/20200311123848.118638-1-shile.zhang@linux.alibaba.com
-2. It prevents farther improving deferred page initialization by allowing
-   intra-node multi-threading.
+For now, we cannot do the same in deferred_grow_zone() as it is still
+initializes pages with interrupts disabled.
 
-We are keeping interrupts disabled to solve a rather theoretical problem
-that was never observed in real world (See 3a2d7fa8a3d5).
+This change fixes RCU problem described in
+https://lkml.kernel.org/r/20200401104156.11564-2-david@redhat.com
 
-Let's keep interrupts enabled. In case we ever encounter a scenario where
-an interrupt thread wants to allocate large amount of memory this early in
-boot we can deal with that by growing zone (see deferred_grow_zone()) by
-the needed amount before starting deferred_init_memmap() threads.
+[   60.474005] rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
+[   60.475000] rcu:  1-...0: (0 ticks this GP) idle=02a/1/0x4000000000000000 softirq=1/1 fqs=15000
+[   60.475000] rcu:  (detected by 0, t=60002 jiffies, g=-1199, q=1)
+[   60.475000] Sending NMI from CPU 0 to CPUs 1:
+[    1.760091] NMI backtrace for cpu 1
+[    1.760091] CPU: 1 PID: 20 Comm: pgdatinit0 Not tainted 4.18.0-147.9.1.el8_1.x86_64 #1
+[    1.760091] Hardware name: Red Hat KVM, BIOS 1.13.0-1.module+el8.2.0+5520+4e5817f3 04/01/2014
+[    1.760091] RIP: 0010:__init_single_page.isra.65+0x10/0x4f
+[    1.760091] Code: 48 83 cf 63 48 89 f8 0f 1f 40 00 48 89 c6 48 89 d7 e8 6b 18 80 ff 66 90 5b c3 31 c0 b9 10 00 00 00 49 89 f8 48 c1 e6 33 f3 ab <b8> 07 00 00 00 48 c1 e2 36 41 c7 40 34 01 00 00 00 48 c1 e0 33 41
+[    1.760091] RSP: 0000:ffffba783123be40 EFLAGS: 00000006
+[    1.760091] RAX: 0000000000000000 RBX: fffffad34405e300 RCX: 0000000000000000
+[    1.760091] RDX: 0000000000000000 RSI: 0010000000000000 RDI: fffffad34405e340
+[    1.760091] RBP: 0000000033f3177e R08: fffffad34405e300 R09: 0000000000000002
+[    1.760091] R10: 000000000000002b R11: ffff98afb691a500 R12: 0000000000000002
+[    1.760091] R13: 0000000000000000 R14: 000000003f03ea00 R15: 000000003e10178c
+[    1.760091] FS:  0000000000000000(0000) GS:ffff9c9ebeb00000(0000) knlGS:0000000000000000
+[    1.760091] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    1.760091] CR2: 00000000ffffffff CR3: 000000a1cf20a001 CR4: 00000000003606e0
+[    1.760091] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    1.760091] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    1.760091] Call Trace:
+[    1.760091]  deferred_init_pages+0x8f/0xbf
+[    1.760091]  deferred_init_memmap+0x184/0x29d
+[    1.760091]  ? deferred_free_pages.isra.97+0xba/0xba
+[    1.760091]  kthread+0x112/0x130
+[    1.760091]  ? kthread_flush_work_fn+0x10/0x10
+[    1.760091]  ret_from_fork+0x35/0x40
+[   89.123011] node 0 initialised, 1055935372 pages in 88650ms
 
-Before:
-[    1.232459] node 0 initialised, 12058412 pages in 1ms
-
-After:
-[    1.632580] node 0 initialised, 12051227 pages in 436ms
-
-Link: http://lkml.kernel.org/r/20200403140952.17177-3-pasha.tatashin@soleen.com
+Link: http://lkml.kernel.org/r/20200403140952.17177-4-pasha.tatashin@soleen.com
 Fixes: 3a2d7fa8a3d5 ("mm: disable interrupts while initializing deferred pages")
-Reported-by: Shile Zhang <shile.zhang@linux.alibaba.com>
+Reported-by: Yiqian Wei <yiwei@redhat.com>
+Tested-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Pavel Tatashin <pasha.tatashin@soleen.com>
 Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: James Morris <jmorris@namei.org>
 Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
 Cc: Sasha Levin <sashal@kernel.org>
-Cc: Yiqian Wei <yiwei@redhat.com>
+Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>	[4.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 ++
- mm/page_alloc.c        |   20 +++++++-------------
- 2 files changed, 9 insertions(+), 13 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-initialize-deferred-pages-with-interrupts-enabled
-+++ a/include/linux/mmzone.h
-@@ -680,6 +680,8 @@ typedef struct pglist_data {
- 	/*
- 	 * Must be held any time you expect node_start_pfn,
- 	 * node_present_pages, node_spanned_pages or nr_zones to stay constant.
-+	 * Also synchronizes pgdat->first_deferred_pfn during deferred page
-+	 * init.
- 	 *
- 	 * pgdat_resize_lock() and pgdat_resize_unlock() are provided to
- 	 * manipulate node_size_lock without checking for CONFIG_MEMORY_HOTPLUG
---- a/mm/page_alloc.c~mm-initialize-deferred-pages-with-interrupts-enabled
+--- a/mm/page_alloc.c~mm-call-cond_resched-from-deferred_init_memmap
 +++ a/mm/page_alloc.c
-@@ -1844,6 +1844,13 @@ static int __init deferred_init_memmap(v
- 	BUG_ON(pgdat->first_deferred_pfn > pgdat_end_pfn(pgdat));
- 	pgdat->first_deferred_pfn = ULONG_MAX;
- 
-+	/*
-+	 * Once we unlock here, the zone cannot be grown anymore, thus if an
-+	 * interrupt thread must allocate this early in boot, zone must be
-+	 * pre-grown prior to start of deferred page initialization.
-+	 */
-+	pgdat_resize_unlock(pgdat, &flags);
-+
- 	/* Only the highest zone is deferred so find it */
- 	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
- 		zone = pgdat->node_zones + zid;
-@@ -1866,8 +1873,6 @@ static int __init deferred_init_memmap(v
- 		touch_nmi_watchdog();
+@@ -1870,7 +1870,7 @@ static int __init deferred_init_memmap(v
+ 	 */
+ 	while (spfn < epfn) {
+ 		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
+-		touch_nmi_watchdog();
++		cond_resched();
  	}
  zone_empty:
--	pgdat_resize_unlock(pgdat, &flags);
--
  	/* Sanity check that the next zone really is unpopulated */
- 	WARN_ON(++zid < MAX_NR_ZONES && populated_zone(++zone));
- 
-@@ -1910,17 +1915,6 @@ deferred_grow_zone(struct zone *zone, un
- 	pgdat_resize_lock(pgdat, &flags);
- 
- 	/*
--	 * If deferred pages have been initialized while we were waiting for
--	 * the lock, return true, as the zone was grown.  The caller will retry
--	 * this zone.  We won't return to this function since the caller also
--	 * has this static branch.
--	 */
--	if (!static_branch_unlikely(&deferred_pages)) {
--		pgdat_resize_unlock(pgdat, &flags);
--		return true;
--	}
+_
+
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
