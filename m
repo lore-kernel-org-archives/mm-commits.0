@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 117/127] selftests/vm/pkeys: improve checks to
- determine pkey support
-Date: Thu, 04 Jun 2020 16:52:25 -0700
-Message-ID: <20200604235225.U0zFMJf3c%akpm@linux-foundation.org>
+Subject: [patch 118/127] selftests/vm/pkeys: associate key on a
+ mapped page and detect access violation
+Date: Thu, 04 Jun 2020 16:52:29 -0700
+Message-ID: <20200604235229.ncMqaH4mT%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51694 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51800 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725943AbgFDXw2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:52:28 -0400
+        id S1725943AbgFDXwa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:52:30 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com, dave.hansen@intel.com, desnesn@linux.vnet.ibm.com, fweimer@redhat.com, linux-mm@kvack.org, linuxram@us.ibm.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org, torvalds@linux-foundation.org
 
 From: Ram Pai <linuxram@us.ibm.com>
-Subject: selftests/vm/pkeys: improve checks to determine pkey support
+Subject: selftests/vm/pkeys: associate key on a mapped page and detect access violation
 
-For the pkeys subsystem to work, both the CPU and the kernel need to have
-support.  So, additionally check if the kernel supports pkeys apart from
-the CPU feature checks.
+Detect access-violation on a page to which access-disabled key is
+associated much after the page is mapped.
 
-Link: http://lkml.kernel.org/r/8fb76c63ebdadcf068ecd2d23731032e195cd364.1585646528.git.sandipan@linux.ibm.com
+Link: http://lkml.kernel.org/r/4a19cf9252c03dd883887e9002881599e6900d06.1585646528.git.sandipan@linux.ibm.com
 Signed-off-by: Ram Pai <linuxram@us.ibm.com>
-Signed-off-by: Sandipan Das <sandipan@linux.ibm.com>
 Acked-by: Dave Hansen <dave.hansen@intel.com>
+Signed-off: Sandipan Das <sandipan@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Florian Weimer <fweimer@redhat.com>
 Cc: "Desnes A. Nunes do Rosario" <desnesn@linux.vnet.ibm.com>
@@ -39,105 +38,42 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/pkey-helpers.h    |   30 +++++++++++++++++
- tools/testing/selftests/vm/pkey-powerpc.h    |    3 +
- tools/testing/selftests/vm/pkey-x86.h        |    2 -
- tools/testing/selftests/vm/protection_keys.c |    7 ++-
- 4 files changed, 37 insertions(+), 5 deletions(-)
+ tools/testing/selftests/vm/protection_keys.c |   19 +++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
---- a/tools/testing/selftests/vm/pkey-helpers.h~selftests-vm-pkeys-improve-checks-to-determine-pkey-support
-+++ a/tools/testing/selftests/vm/pkey-helpers.h
-@@ -76,6 +76,8 @@ extern void abort_hooks(void);
- 
- __attribute__((noinline)) int read_ptr(int *ptr);
- void expected_pkey_fault(int pkey);
-+int sys_pkey_alloc(unsigned long flags, unsigned long init_val);
-+int sys_pkey_free(unsigned long pkey);
- 
- #if defined(__i386__) || defined(__x86_64__) /* arch */
- #include "pkey-x86.h"
-@@ -186,4 +188,32 @@ static inline u32 *siginfo_get_pkey_ptr(
- #endif
- }
- 
-+static inline int kernel_has_pkeys(void)
-+{
-+	/* try allocating a key and see if it succeeds */
-+	int ret = sys_pkey_alloc(0, 0);
-+	if (ret <= 0) {
-+		return 0;
-+	}
-+	sys_pkey_free(ret);
-+	return 1;
-+}
-+
-+static inline int is_pkeys_supported(void)
-+{
-+	/* check if the cpu supports pkeys */
-+	if (!cpu_has_pkeys()) {
-+		dprintf1("SKIP: %s: no CPU support\n", __func__);
-+		return 0;
-+	}
-+
-+	/* check if the kernel supports pkeys */
-+	if (!kernel_has_pkeys()) {
-+		dprintf1("SKIP: %s: no kernel support\n", __func__);
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
- #endif /* _PKEYS_HELPER_H */
---- a/tools/testing/selftests/vm/pkey-powerpc.h~selftests-vm-pkeys-improve-checks-to-determine-pkey-support
-+++ a/tools/testing/selftests/vm/pkey-powerpc.h
-@@ -64,8 +64,9 @@ static inline void __write_pkey_reg(u64
- 			__func__, __read_pkey_reg(), pkey_reg);
- }
- 
--static inline int cpu_has_pku(void)
-+static inline int cpu_has_pkeys(void)
- {
-+	/* No simple way to determine this */
- 	return 1;
- }
- 
---- a/tools/testing/selftests/vm/pkey-x86.h~selftests-vm-pkeys-improve-checks-to-determine-pkey-support
-+++ a/tools/testing/selftests/vm/pkey-x86.h
-@@ -97,7 +97,7 @@ static inline void __cpuid(unsigned int
- #define X86_FEATURE_PKU        (1<<3) /* Protection Keys for Userspace */
- #define X86_FEATURE_OSPKE      (1<<4) /* OS Protection Keys Enable */
- 
--static inline int cpu_has_pku(void)
-+static inline int cpu_has_pkeys(void)
- {
- 	unsigned int eax;
- 	unsigned int ebx;
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-improve-checks-to-determine-pkey-support
+--- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-associate-key-on-a-mapped-page-and-detect-access-violation
 +++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -1378,7 +1378,7 @@ void test_mprotect_pkey_on_unsupported_c
- 	int size = PAGE_SIZE;
- 	int sret;
- 
--	if (cpu_has_pku()) {
-+	if (cpu_has_pkeys()) {
- 		dprintf1("SKIP: %s: no CPU support\n", __func__);
- 		return;
- 	}
-@@ -1447,12 +1447,13 @@ void pkey_setup_shadow(void)
- int main(void)
+@@ -984,6 +984,24 @@ void test_read_of_access_disabled_region
+ 	dprintf1("*ptr: %d\n", ptr_contents);
+ 	expected_pkey_fault(pkey);
+ }
++
++void test_read_of_access_disabled_region_with_page_already_mapped(int *ptr,
++		u16 pkey)
++{
++	int ptr_contents;
++
++	dprintf1("disabling access to PKEY[%02d], doing read @ %p\n",
++				pkey, ptr);
++	ptr_contents = read_ptr(ptr);
++	dprintf1("reading ptr before disabling the read : %d\n",
++			ptr_contents);
++	read_pkey_reg();
++	pkey_access_deny(pkey);
++	ptr_contents = read_ptr(ptr);
++	dprintf1("*ptr: %d\n", ptr_contents);
++	expected_pkey_fault(pkey);
++}
++
+ void test_write_of_write_disabled_region(int *ptr, u16 pkey)
  {
- 	int nr_iterations = 22;
-+	int pkeys_supported = is_pkeys_supported();
- 
- 	setup_handlers();
- 
--	printf("has pku: %d\n", cpu_has_pku());
-+	printf("has pkeys: %d\n", pkeys_supported);
- 
--	if (!cpu_has_pku()) {
-+	if (!pkeys_supported) {
- 		int size = PAGE_SIZE;
- 		int *ptr;
- 
+ 	dprintf1("disabling write access to PKEY[%02d], doing write\n", pkey);
+@@ -1390,6 +1408,7 @@ void test_mprotect_pkey_on_unsupported_c
+ void (*pkey_tests[])(int *ptr, u16 pkey) = {
+ 	test_read_of_write_disabled_region,
+ 	test_read_of_access_disabled_region,
++	test_read_of_access_disabled_region_with_page_already_mapped,
+ 	test_write_of_write_disabled_region,
+ 	test_write_of_access_disabled_region,
+ 	test_kernel_write_of_access_disabled_region,
 _
