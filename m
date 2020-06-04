@@ -1,103 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-dont-track-number-of-pages-during-deferred-initialization.patch removed
- from -mm tree
-Date: Thu, 04 Jun 2020 10:18:40 -0700
-Message-ID: <20200604171840.irqrwfyWQ%akpm@linux-foundation.org>
+ khugepaged-drain-all-lru-caches-before-scanning-pages.patch removed from
+ -mm tree
+Date: Thu, 04 Jun 2020 10:18:57 -0700
+Message-ID: <20200604171857.L33lzCkPF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40414 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40768 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730007AbgFDRSm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:18:42 -0400
+        id S1730043AbgFDRS7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:18:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.williamson@redhat.com, alexander.h.duyck@linux.intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com, david@redhat.com, elliott@hpe.com, herbert@gondor.apana.org.au, jgg@ziepe.ca, josh@joshtriplett.org, ktkhai@virtuozzo.com, mhocko@kernel.org, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, pavel@ucw.cz, peterz@infradead.org, rdunlap@infradead.org, shile.zhang@linux.alibaba.com, steffen.klassert@secunet.com, steven.sistare@oracle.com, tj@kernel.org, ziy@nvidia.com
+To: aarcange@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, william.kucharski@oracle.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
 
 
 The patch titled
-     Subject: mm: don't track number of pages during deferred initialization
+     Subject: khugepaged: drain all LRU caches before scanning pages
 has been removed from the -mm tree.  Its filename was
-     mm-dont-track-number-of-pages-during-deferred-initialization.patch
+     khugepaged-drain-all-lru-caches-before-scanning-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Jordan <daniel.m.jordan@oracle.com>
-Subject: mm: don't track number of pages during deferred initialization
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: khugepaged: drain all LRU caches before scanning pages
 
-Deferred page init used to report the number of pages initialized:
+Having a page in LRU add cache offsets page refcount and gives
+false-negative on PageLRU().  It reduces collapse success rate.
 
-  node 0 initialised, 32439114 pages in 97ms
+Drain all LRU add caches before scanning.  It happens relatively rare and
+should not disturb the system too much.
 
-Tracking this makes the code more complicated when using multiple threads.
-Given that the statistic probably has limited value, especially since a
-zone grows on demand so that the page count can vary, just remove it.
-
-The boot message now looks like
-
-  node 0 deferred pages initialised in 97ms
-
-Link: http://lkml.kernel.org/r/20200527173608.2885243-6-daniel.m.jordan@oracle.com
-Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Suggested-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Robert Elliott <elliott@hpe.com>
-Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: http://lkml.kernel.org/r/20200416160026.16538-4-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Tested-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/khugepaged.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/page_alloc.c~mm-dont-track-number-of-pages-during-deferred-initialization
-+++ a/mm/page_alloc.c
-@@ -1820,7 +1820,7 @@ static int __init deferred_init_memmap(v
- {
- 	pg_data_t *pgdat = data;
- 	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
--	unsigned long spfn = 0, epfn = 0, nr_pages = 0;
-+	unsigned long spfn = 0, epfn = 0;
- 	unsigned long first_init_pfn, flags;
- 	unsigned long start = jiffies;
- 	struct zone *zone;
-@@ -1869,15 +1869,15 @@ static int __init deferred_init_memmap(v
- 	 * allocator.
- 	 */
- 	while (spfn < epfn) {
--		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
-+		deferred_init_maxorder(&i, zone, &spfn, &epfn);
- 		cond_resched();
- 	}
- zone_empty:
- 	/* Sanity check that the next zone really is unpopulated */
- 	WARN_ON(++zid < MAX_NR_ZONES && populated_zone(++zone));
+--- a/mm/khugepaged.c~khugepaged-drain-all-lru-caches-before-scanning-pages
++++ a/mm/khugepaged.c
+@@ -2079,6 +2079,8 @@ static void khugepaged_do_scan(void)
  
--	pr_info("node %d initialised, %lu pages in %ums\n",
--		pgdat->node_id,	nr_pages, jiffies_to_msecs(jiffies - start));
-+	pr_info("node %d deferred pages initialised in %ums\n",
-+		pgdat->node_id, jiffies_to_msecs(jiffies - start));
+ 	barrier(); /* write khugepaged_pages_to_scan to local stack */
  
- 	pgdat_init_report_one_done();
- 	return 0;
++	lru_add_drain_all();
++
+ 	while (progress < pages) {
+ 		if (!khugepaged_prealloc_page(&hpage, &wait))
+ 			break;
 _
 
-Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
