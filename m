@@ -1,67 +1,58 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 070/127] zcomp: Use ARRAY_SIZE() for backends list
-Date: Thu, 04 Jun 2020 16:49:52 -0700
-Message-ID: <20200604234952.C4Tx4TZW0%akpm@linux-foundation.org>
+Subject: [patch 071/127] proc: rename "catch" function argument
+Date: Thu, 04 Jun 2020 16:49:55 -0700
+Message-ID: <20200604234955.9KOkCzDj8%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47200 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47280 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725930AbgFDXtx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 19:49:53 -0400
+        id S1725930AbgFDXt4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 19:49:56 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, axboe@kernel.dk, linux-mm@kvack.org, minchan@kernel.org, mm-commits@vger.kernel.org, sergey.senozhatsky.work@gmail.com, torvalds@linux-foundation.org
+To: adobriyan@gmail.com, akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: zcomp: Use ARRAY_SIZE() for backends list
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: rename "catch" function argument
 
-Instead of keeping NULL terminated array switch to use ARRAY_SIZE()
-which helps to further clean up.
+"catch" is reserved keyword in C++, rename it to something both gcc and
+g++ accept.
 
-Link: http://lkml.kernel.org/r/20200508100758.51644-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Rename "ign" for symmetry.
+
+Link: http://lkml.kernel.org/r/20200331210905.GA31680@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/proc/array.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zcomp-use-array_size-for-backends-list
-+++ a/drivers/block/zram/zcomp.c
-@@ -29,7 +29,6 @@ static const char * const backends[] = {
- #if IS_ENABLED(CONFIG_CRYPTO_ZSTD)
- 	"zstd",
- #endif
--	NULL
- };
+--- a/fs/proc/array.c~proc-rename-catch-function-argument
++++ a/fs/proc/array.c
+@@ -248,8 +248,8 @@ void render_sigset_t(struct seq_file *m,
+ 	seq_putc(m, '\n');
+ }
  
- static void zcomp_strm_free(struct zcomp_strm *zstrm)
-@@ -64,7 +63,7 @@ bool zcomp_available_algorithm(const cha
+-static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *ign,
+-				    sigset_t *catch)
++static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *sigign,
++				    sigset_t *sigcatch)
  {
+ 	struct k_sigaction *k;
  	int i;
+@@ -257,9 +257,9 @@ static void collect_sigign_sigcatch(stru
+ 	k = p->sighand->action;
+ 	for (i = 1; i <= _NSIG; ++i, ++k) {
+ 		if (k->sa.sa_handler == SIG_IGN)
+-			sigaddset(ign, i);
++			sigaddset(sigign, i);
+ 		else if (k->sa.sa_handler != SIG_DFL)
+-			sigaddset(catch, i);
++			sigaddset(sigcatch, i);
+ 	}
+ }
  
--	i = __sysfs_match_string(backends, -1, comp);
-+	i = sysfs_match_string(backends, comp);
- 	if (i >= 0)
- 		return true;
- 
-@@ -83,9 +82,9 @@ ssize_t zcomp_available_show(const char
- {
- 	bool known_algorithm = false;
- 	ssize_t sz = 0;
--	int i = 0;
-+	int i;
- 
--	for (; backends[i]; i++) {
-+	for (i = 0; i < ARRAY_SIZE(backends); i++) {
- 		if (!strcmp(comp, backends[i])) {
- 			known_algorithm = true;
- 			sz += scnprintf(buf + sz, PAGE_SIZE - sz - 2,
 _
