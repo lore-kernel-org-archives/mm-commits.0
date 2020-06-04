@@ -1,128 +1,103 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- khugepaged-do-not-stop-collapse-if-less-than-half-ptes-are-referenced.patch
- removed from -mm tree
-Date: Thu, 04 Jun 2020 10:18:54 -0700
-Message-ID: <20200604171854.Wj1FkCL7h%akpm@linux-foundation.org>
+ mm-dont-track-number-of-pages-during-deferred-initialization.patch removed
+ from -mm tree
+Date: Thu, 04 Jun 2020 10:18:40 -0700
+Message-ID: <20200604171840.irqrwfyWQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40732 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40414 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730007AbgFDRSz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:18:55 -0400
+        id S1730007AbgFDRSm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:18:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, william.kucharski@oracle.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
+To: alex.williamson@redhat.com, alexander.h.duyck@linux.intel.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com, david@redhat.com, elliott@hpe.com, herbert@gondor.apana.org.au, jgg@ziepe.ca, josh@joshtriplett.org, ktkhai@virtuozzo.com, mhocko@kernel.org, mm-commits@vger.kernel.org, pasha.tatashin@soleen.com, pavel@ucw.cz, peterz@infradead.org, rdunlap@infradead.org, shile.zhang@linux.alibaba.com, steffen.klassert@secunet.com, steven.sistare@oracle.com, tj@kernel.org, ziy@nvidia.com
 
 
 The patch titled
-     Subject: khugepaged: do not stop collapse if less than half PTEs are referenced
+     Subject: mm: don't track number of pages during deferred initialization
 has been removed from the -mm tree.  Its filename was
-     khugepaged-do-not-stop-collapse-if-less-than-half-ptes-are-referenced.patch
+     mm-dont-track-number-of-pages-during-deferred-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: do not stop collapse if less than half PTEs are referenced
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: mm: don't track number of pages during deferred initialization
 
-__collapse_huge_page_swapin() checks the number of referenced PTE to
-decide if the memory range is hot enough to justify swapin.
+Deferred page init used to report the number of pages initialized:
 
-We have few problems with the approach:
+  node 0 initialised, 32439114 pages in 97ms
 
- - It is way too late: we can do the check much earlier and safe time.
-   khugepaged_scan_pmd() already knows if we have any pages to swap in
-   and number of referenced page.
+Tracking this makes the code more complicated when using multiple threads.
+Given that the statistic probably has limited value, especially since a
+zone grows on demand so that the page count can vary, just remove it.
 
- - It stops collapse altogether if there's not enough referenced pages,
-   not only swappingin.
+The boot message now looks like
 
-Fix it by making the right check early. We also can avoid additional
-page table scanning if khugepaged_scan_pmd() haven't found any swap
-entries.
+  node 0 deferred pages initialised in 97ms
 
-Link: http://lkml.kernel.org/r/20200416160026.16538-3-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Fixes: 0db501f7a34c ("mm, thp: convert from optimistic swapin collapsing to conservative")
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Tested-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+Link: http://lkml.kernel.org/r/20200527173608.2885243-6-daniel.m.jordan@oracle.com
+Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Suggested-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Robert Elliott <elliott@hpe.com>
+Cc: Shile Zhang <shile.zhang@linux.alibaba.com>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: Steven Sistare <steven.sistare@oracle.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   27 +++++++++++----------------
- 1 file changed, 11 insertions(+), 16 deletions(-)
+ mm/page_alloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-do-not-stop-collapse-if-less-than-half-ptes-are-referenced
-+++ a/mm/khugepaged.c
-@@ -899,11 +899,6 @@ static bool __collapse_huge_page_swapin(
- 		.pgoff = linear_page_index(vma, address),
- 	};
- 
--	/* we only decide to swapin, if there is enough young ptes */
--	if (referenced < HPAGE_PMD_NR/2) {
--		trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
--		return false;
--	}
- 	vmf.pte = pte_offset_map(pmd, address);
- 	for (; vmf.address < address + HPAGE_PMD_NR*PAGE_SIZE;
- 			vmf.pte++, vmf.address += PAGE_SIZE) {
-@@ -943,7 +938,7 @@ static bool __collapse_huge_page_swapin(
- static void collapse_huge_page(struct mm_struct *mm,
- 				   unsigned long address,
- 				   struct page **hpage,
--				   int node, int referenced)
-+				   int node, int referenced, int unmapped)
+--- a/mm/page_alloc.c~mm-dont-track-number-of-pages-during-deferred-initialization
++++ a/mm/page_alloc.c
+@@ -1820,7 +1820,7 @@ static int __init deferred_init_memmap(v
  {
- 	pmd_t *pmd, _pmd;
- 	pte_t *pte;
-@@ -1000,7 +995,8 @@ static void collapse_huge_page(struct mm
- 	 * If it fails, we release mmap_sem and jump out_nolock.
- 	 * Continuing to collapse causes inconsistency.
+ 	pg_data_t *pgdat = data;
+ 	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
+-	unsigned long spfn = 0, epfn = 0, nr_pages = 0;
++	unsigned long spfn = 0, epfn = 0;
+ 	unsigned long first_init_pfn, flags;
+ 	unsigned long start = jiffies;
+ 	struct zone *zone;
+@@ -1869,15 +1869,15 @@ static int __init deferred_init_memmap(v
+ 	 * allocator.
  	 */
--	if (!__collapse_huge_page_swapin(mm, vma, address, pmd, referenced)) {
-+	if (unmapped && !__collapse_huge_page_swapin(mm, vma, address,
-+						     pmd, referenced)) {
- 		mem_cgroup_cancel_charge(new_page, memcg, true);
- 		up_read(&mm->mmap_sem);
- 		goto out_nolock;
-@@ -1233,22 +1229,21 @@ static int khugepaged_scan_pmd(struct mm
- 		    mmu_notifier_test_young(vma->vm_mm, address))
- 			referenced++;
+ 	while (spfn < epfn) {
+-		nr_pages += deferred_init_maxorder(&i, zone, &spfn, &epfn);
++		deferred_init_maxorder(&i, zone, &spfn, &epfn);
+ 		cond_resched();
  	}
--	if (writable) {
--		if (referenced) {
--			result = SCAN_SUCCEED;
--			ret = 1;
--		} else {
--			result = SCAN_LACK_REFERENCED_PAGE;
--		}
--	} else {
-+	if (!writable) {
- 		result = SCAN_PAGE_RO;
-+	} else if (!referenced || (unmapped && referenced < HPAGE_PMD_NR/2)) {
-+		result = SCAN_LACK_REFERENCED_PAGE;
-+	} else {
-+		result = SCAN_SUCCEED;
-+		ret = 1;
- 	}
- out_unmap:
- 	pte_unmap_unlock(pte, ptl);
- 	if (ret) {
- 		node = khugepaged_find_target_node();
- 		/* collapse_huge_page will return with the mmap_sem released */
--		collapse_huge_page(mm, address, hpage, node, referenced);
-+		collapse_huge_page(mm, address, hpage, node,
-+				referenced, unmapped);
- 	}
- out:
- 	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
+ zone_empty:
+ 	/* Sanity check that the next zone really is unpopulated */
+ 	WARN_ON(++zid < MAX_NR_ZONES && populated_zone(++zone));
+ 
+-	pr_info("node %d initialised, %lu pages in %ums\n",
+-		pgdat->node_id,	nr_pages, jiffies_to_msecs(jiffies - start));
++	pr_info("node %d deferred pages initialised in %ums\n",
++		pgdat->node_id, jiffies_to_msecs(jiffies - start));
+ 
+ 	pgdat_init_report_one_done();
+ 	return 0;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
