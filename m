@@ -1,108 +1,171 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- sparc32-register-memory-occupied-by-kernel-as-memblockmemory.patch removed
- from -mm tree
-Date: Thu, 04 Jun 2020 10:21:21 -0700
-Message-ID: <20200604172121.9Coq1NbIT%akpm@linux-foundation.org>
+ hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs.patch
+ removed from -mm tree
+Date: Thu, 04 Jun 2020 10:21:23 -0700
+Message-ID: <20200604172123.WdR8i1EYC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43304 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43330 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730050AbgFDRVX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:21:23 -0400
+        id S1730050AbgFDRVZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:21:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, linux@roeck-us.net, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+To: cg.chen@huawei.com, chenjie6@huawei.com, hushijie3@huawei.com, lkp@intel.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, nixiaoming@huawei.com, wangkefeng.wang@huawei.com, will@kernel.org, yangerkun@huawei.com
 
 
 The patch titled
-     Subject: sparc32: register memory occupied by kernel as memblock.memory
+     Subject: hugetlbfs: get unmapped area below TASK_UNMAPPED_BASE for hugetlbfs
 has been removed from the -mm tree.  Its filename was
-     sparc32-register-memory-occupied-by-kernel-as-memblockmemory.patch
+     hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: sparc32: register memory occupied by kernel as memblock.memory
+From: Shijie Hu <hushijie3@huawei.com>
+Subject: hugetlbfs: get unmapped area below TASK_UNMAPPED_BASE for hugetlbfs
 
-sparc32 never registered the memory occupied by the kernel image with
-memblock_add() and it only reserved this memory with meblock_reserve().
+In a 32-bit program, running on arm64 architecture.  When the address
+space below mmap base is completely exhausted, shmat() for huge pages will
+return ENOMEM, but shmat() for normal pages can still success on no-legacy
+mode.  This seems not fair.
 
-With openbios as system firmware, the memory occupied by the kernel is
-reserved in openbios and removed from mem.available.  The prom setup code
-in the kernel uses mem.available to set up the memory banks and
-essentially there is a hole for the memory occupied by the kernel image.
+For normal pages, the calling trace of get_unmapped_area() is:
 
-Later in bootmem_init() this memory is memblock_reserve()d.
+	=> mm->get_unmapped_area()
+	if on legacy mode,
+		=> arch_get_unmapped_area()
+			=> vm_unmapped_area()
+	if on no-legacy mode,
+		=> arch_get_unmapped_area_topdown()
+			=> vm_unmapped_area()
 
-Up until recently, memmap initialization would call __init_single_page()
-for the pages in that hole, the free_low_memory_core_early() would mark
-them as reserved and everything would be Ok.
+For huge pages, the calling trace of get_unmapped_area() is:
 
-After the change in memmap initialization introduced by the commit "mm:
-memmap_init: iterate over memblock regions rather that check each PFN",
-the hole is skipped and the page structs for it are not initialized.  And
-when they are passed from memblock to page allocator as reserved, the
-latter gets confused.
+	=> file->f_op->get_unmapped_area()
+		=> hugetlb_get_unmapped_area()
+			=> vm_unmapped_area()
 
-Simply registering the memory occupied by the kernel with memblock_add()
-resolves this issue.
+To solve this issue, we only need to make hugetlb_get_unmapped_area() take
+the same way as mm->get_unmapped_area().  Add *bottomup() and *topdown()
+for hugetlbfs, and check current mm->get_unmapped_area() to decide which
+one to use.  If mm->get_unmapped_area is equal to
+arch_get_unmapped_area_topdown(), hugetlb_get_unmapped_area() calls
+topdown routine, otherwise calls bottomup routine.
 
-Tested on qemu-system-sparc with Debian Etch [1] userspace.
-
-[1] https://people.debian.org/~aurel32/qemu/sparc/debian_etch_sparc_small.qcow2
-
-Link: https://lkml.kernel.org/r/20200517000050.GA87467@roeck-us.nlllllet/
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Guenter Roeck <linux@roeck-us.net>
+Link: http://lkml.kernel.org/r/20200518065338.113664-1-hushijie3@huawei.com
+Signed-off-by: Shijie Hu <hushijie3@huawei.com>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: yangerkun <yangerkun@huawei.com>
+Cc: ChenGang <cg.chen@huawei.com>
+Cc: Chen Jie <chenjie6@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/init_32.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/hugetlbfs/inode.c |   67 ++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 59 insertions(+), 8 deletions(-)
 
---- a/arch/sparc/mm/init_32.c~sparc32-register-memory-occupied-by-kernel-as-memblockmemory
-+++ a/arch/sparc/mm/init_32.c
-@@ -193,6 +193,7 @@ unsigned long __init bootmem_init(unsign
- 	/* Reserve the kernel text/data/bss. */
- 	size = (start_pfn << PAGE_SHIFT) - phys_base;
- 	memblock_reserve(phys_base, size);
-+	memblock_add(phys_base, size);
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-get-unmapped-area-below-task_unmapped_base-for-hugetlbfs
++++ a/fs/hugetlbfs/inode.c
+@@ -38,6 +38,7 @@
+ #include <linux/uio.h>
  
- 	size = memblock_phys_mem_size() - memblock_reserved_size();
- 	*pages_avail = (size >> PAGE_SHIFT) - high_pages;
+ #include <linux/uaccess.h>
++#include <linux/sched/mm.h>
+ 
+ static const struct super_operations hugetlbfs_ops;
+ static const struct address_space_operations hugetlbfs_aops;
+@@ -191,13 +192,60 @@ out:
+ 
+ #ifndef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ static unsigned long
++hugetlb_get_unmapped_area_bottomup(struct file *file, unsigned long addr,
++		unsigned long len, unsigned long pgoff, unsigned long flags)
++{
++	struct hstate *h = hstate_file(file);
++	struct vm_unmapped_area_info info;
++
++	info.flags = 0;
++	info.length = len;
++	info.low_limit = current->mm->mmap_base;
++	info.high_limit = TASK_SIZE;
++	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
++	info.align_offset = 0;
++	return vm_unmapped_area(&info);
++}
++
++static unsigned long
++hugetlb_get_unmapped_area_topdown(struct file *file, unsigned long addr,
++		unsigned long len, unsigned long pgoff, unsigned long flags)
++{
++	struct hstate *h = hstate_file(file);
++	struct vm_unmapped_area_info info;
++
++	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
++	info.length = len;
++	info.low_limit = max(PAGE_SIZE, mmap_min_addr);
++	info.high_limit = current->mm->mmap_base;
++	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
++	info.align_offset = 0;
++	addr = vm_unmapped_area(&info);
++
++	/*
++	 * A failed mmap() very likely causes application failure,
++	 * so fall back to the bottom-up function here. This scenario
++	 * can happen with large stack limits and large mmap()
++	 * allocations.
++	 */
++	if (unlikely(offset_in_page(addr))) {
++		VM_BUG_ON(addr != -ENOMEM);
++		info.flags = 0;
++		info.low_limit = current->mm->mmap_base;
++		info.high_limit = TASK_SIZE;
++		addr = vm_unmapped_area(&info);
++	}
++
++	return addr;
++}
++
++static unsigned long
+ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 		unsigned long len, unsigned long pgoff, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+ 	struct hstate *h = hstate_file(file);
+-	struct vm_unmapped_area_info info;
+ 
+ 	if (len & ~huge_page_mask(h))
+ 		return -EINVAL;
+@@ -218,13 +266,16 @@ hugetlb_get_unmapped_area(struct file *f
+ 			return addr;
+ 	}
+ 
+-	info.flags = 0;
+-	info.length = len;
+-	info.low_limit = TASK_UNMAPPED_BASE;
+-	info.high_limit = TASK_SIZE;
+-	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+-	info.align_offset = 0;
+-	return vm_unmapped_area(&info);
++	/*
++	 * Use mm->get_unmapped_area value as a hint to use topdown routine.
++	 * If architectures have special needs, they should define their own
++	 * version of hugetlb_get_unmapped_area.
++	 */
++	if (mm->get_unmapped_area == arch_get_unmapped_area_topdown)
++		return hugetlb_get_unmapped_area_topdown(file, addr, len,
++				pgoff, flags);
++	return hugetlb_get_unmapped_area_bottomup(file, addr, len,
++			pgoff, flags);
+ }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
-
-h8300-remove-usage-of-__arch_use_5level_hack.patch
-arm-add-support-for-folded-p4d-page-tables.patch
-arm-add-support-for-folded-p4d-page-tables-fix.patch
-arm64-add-support-for-folded-p4d-page-tables.patch
-hexagon-remove-__arch_use_5level_hack.patch
-ia64-add-support-for-folded-p4d-page-tables.patch
-nios2-add-support-for-folded-p4d-page-tables.patch
-openrisc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables.patch
-powerpc-add-support-for-folded-p4d-page-tables-fix-2.patch
-sh-drop-__pxd_offset-macros-that-duplicate-pxd_index-ones.patch
-sh-add-support-for-folded-p4d-page-tables.patch
-unicore32-remove-__arch_use_5level_hack.patch
-asm-generic-remove-pgtable-nop4d-hackh.patch
-mm-remove-__arch_has_5level_hack-and-include-asm-generic-5level-fixuph.patch
-mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
-mm-introduce-include-linux-pgtableh.patch
-mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
-csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
-m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
-m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic-fix.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix.patch
-mm-consolidate-pte_index-and-pte_offset_-definitions.patch
-mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
-mm-consolidate-pud_index-and-pud_offset-definitions.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions.patch
+Patches currently in -mm which might be from hushijie3@huawei.com are
