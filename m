@@ -1,150 +1,260 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-count-layzfree-pages-and-fix-nr_isolated_-mismatch.patch removed
- from -mm tree
-Date: Thu, 04 Jun 2020 10:19:42 -0700
-Message-ID: <20200604171942.KxKmXJiLS%akpm@linux-foundation.org>
+ mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range.patch
+ removed from -mm tree
+Date: Thu, 04 Jun 2020 10:19:32 -0700
+Message-ID: <20200604171932.ggb1C2lRg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41682 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41410 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730043AbgFDRTn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 4 Jun 2020 13:19:43 -0400
+        id S1730043AbgFDRTf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Jun 2020 13:19:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, jaewon31.kim@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org, shli@fb.com, ytk.lee@samsung.com
+To: anshuman.khandual@arm.com, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, fenghua.yu@intel.com, gor@linux.ibm.com, heiko.carstens@de.ibm.com, hpa@zytor.com, James.Bottomley@HansenPartnership.com, linux@armlinux.org.uk, mike.kravetz@oracle.com, mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, palmer@dabbelt.com, paul.walmsley@sifive.com, paulus@samba.org, tglx@linutronix.de, tony.luck@intel.com, tsbogend@alpha.franken.de, will@kernel.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm/vmscan: count layzfree pages and fix nr_isolated_* mismatch
+     Subject: mm/hugetlb: define a generic fallback for is_hugepage_only_range()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-count-layzfree-pages-and-fix-nr_isolated_-mismatch.patch
+     mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jaewon Kim <jaewon31.kim@samsung.com>
-Subject: mm/vmscan: count layzfree pages and fix nr_isolated_* mismatch
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/hugetlb: define a generic fallback for is_hugepage_only_range()
 
-Fix an nr_isolate_* mismatch problem between cma and dirty lazyfree pages.
+There are multiple similar definitions for is_hugepage_only_range() on
+various platforms.  Lets just add it's generic fallback definition for
+platforms that do not override.  This help reduce code duplication.
 
-If try_to_unmap_one is used for reclaim and it detects a dirty lazyfree
-page, then the lazyfree page is changed to a normal anon page having
-SwapBacked by commit 802a3a92ad7a ("mm: reclaim MADV_FREE pages").  Even
-with the change, reclaim context correctly counts isolated files because
-it uses is_file_lru to distinguish file.  And the change to anon is not
-happened if try_to_unmap_one is used for migration.  So migration context
-like compaction also correctly counts isolated files even though it uses
-page_is_file_lru insted of is_file_lru.  Recently page_is_file_cache was
-renamed to page_is_file_lru by commit 9de4f22a60f7 ("mm: code cleanup for
-MADV_FREE").
-
-But the nr_isolate_* mismatch problem happens on cma alloc.  There is
-reclaim_clean_pages_from_list which is being used only by cma.  It was
-introduced by commit 02c6de8d757c ("mm: cma: discard clean pages during
-contiguous allocation instead of migration") to reclaim clean file pages
-without migration.  The cma alloc uses both reclaim_clean_pages_from_list
-and migrate_pages, and it uses page_is_file_lru to count isolated files. 
-If there are dirty lazyfree pages allocated from cma memory region, the
-pages are counted as isolated file at the beginging but are counted as
-isolated anon after finished.
-
-Mem-Info:
-Node 0 active_anon:3045904kB inactive_anon:611448kB active_file:14892kB inactive_file:205636kB unevictable:10416kB isolated(anon):0kB isolated(file):37664kB mapped:630216kB dirty:384kB writeback:0kB shmem:42576kB writeback_tmp:0kB unstable:0kB all_unreclaimable? no
-
-Like log above, there were too much isolated files, 37664kB, which
-triggers too_many_isolated in reclaim even when there is no actually
-isolated file in system wide.  It could be reproducible by running two
-programs, writing on MADV_FREE page and doing cma alloc, respectively. 
-Although isolated anon is 0, I found that the internal value of isolated
-anon was the negative value of isolated file.
-
-Fix this by compensating the isolated count for both LRU lists.  Count
-non-discarded lazyfree pages in shrink_page_list, then compensate the
-counted number in reclaim_clean_pages_from_list.
-
-Link: http://lkml.kernel.org/r/20200426011718.30246-1-jaewon31.kim@samsung.com
-Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
-Reported-by: Yong-Taek Lee <ytk.lee@samsung.com>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Shaohua Li <shli@fb.com>
+Link: http://lkml.kernel.org/r/1588907271-11920-3-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    1 +
- mm/vmscan.c            |   26 ++++++++++++++++++++------
- 2 files changed, 21 insertions(+), 6 deletions(-)
+ arch/arm/include/asm/hugetlb.h     |    6 ------
+ arch/arm64/include/asm/hugetlb.h   |    6 ------
+ arch/ia64/include/asm/hugetlb.h    |    1 +
+ arch/mips/include/asm/hugetlb.h    |    7 -------
+ arch/parisc/include/asm/hugetlb.h  |    6 ------
+ arch/powerpc/include/asm/hugetlb.h |    1 +
+ arch/riscv/include/asm/hugetlb.h   |    6 ------
+ arch/s390/include/asm/hugetlb.h    |    7 -------
+ arch/sh/include/asm/hugetlb.h      |    6 ------
+ arch/sparc/include/asm/hugetlb.h   |    6 ------
+ arch/x86/include/asm/hugetlb.h     |    6 ------
+ include/linux/hugetlb.h            |    9 +++++++++
+ 12 files changed, 11 insertions(+), 56 deletions(-)
 
---- a/include/linux/vmstat.h~mm-vmscan-count-layzfree-pages-and-fix-nr_isolated_-mismatch
-+++ a/include/linux/vmstat.h
-@@ -29,6 +29,7 @@ struct reclaim_stat {
- 	unsigned nr_activate[2];
- 	unsigned nr_ref_keep;
- 	unsigned nr_unmap_fail;
-+	unsigned nr_lazyfree_fail;
- };
+--- a/arch/arm64/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/arm64/include/asm/hugetlb.h
+@@ -17,12 +17,6 @@
+ extern bool arch_hugetlb_migration_supported(struct hstate *h);
+ #endif
  
- enum writeback_stat_item {
---- a/mm/vmscan.c~mm-vmscan-count-layzfree-pages-and-fix-nr_isolated_-mismatch
-+++ a/mm/vmscan.c
-@@ -1295,11 +1295,15 @@ static unsigned long shrink_page_list(st
- 		 */
- 		if (page_mapped(page)) {
- 			enum ttu_flags flags = ttu_flags | TTU_BATCH_FLUSH;
-+			bool was_swapbacked = PageSwapBacked(page);
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr, unsigned long len)
+-{
+-	return 0;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ 	clear_bit(PG_dcache_clean, &page->flags);
+--- a/arch/arm/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/arm/include/asm/hugetlb.h
+@@ -14,12 +14,6 @@
+ #include <asm/hugetlb-3level.h>
+ #include <asm-generic/hugetlb.h>
  
- 			if (unlikely(PageTransHuge(page)))
- 				flags |= TTU_SPLIT_HUGE_PMD;
-+
- 			if (!try_to_unmap(page, flags)) {
- 				stat->nr_unmap_fail += nr_pages;
-+				if (!was_swapbacked && PageSwapBacked(page))
-+					stat->nr_lazyfree_fail += nr_pages;
- 				goto activate_locked;
- 			}
- 		}
-@@ -1491,8 +1495,8 @@ unsigned long reclaim_clean_pages_from_l
- 		.priority = DEF_PRIORITY,
- 		.may_unmap = 1,
- 	};
--	struct reclaim_stat dummy_stat;
--	unsigned long ret;
-+	struct reclaim_stat stat;
-+	unsigned long nr_reclaimed;
- 	struct page *page, *next;
- 	LIST_HEAD(clean_pages);
- 
-@@ -1504,11 +1508,21 @@ unsigned long reclaim_clean_pages_from_l
- 		}
- 	}
- 
--	ret = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
--			TTU_IGNORE_ACCESS, &dummy_stat, true);
-+	nr_reclaimed = shrink_page_list(&clean_pages, zone->zone_pgdat, &sc,
-+			TTU_IGNORE_ACCESS, &stat, true);
- 	list_splice(&clean_pages, page_list);
--	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, -ret);
--	return ret;
-+	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE, -nr_reclaimed);
-+	/*
-+	 * Since lazyfree pages are isolated from file LRU from the beginning,
-+	 * they will rotate back to anonymous LRU in the end if it failed to
-+	 * discard so isolated count will be mismatched.
-+	 * Compensate the isolated count for both LRU lists.
-+	 */
-+	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_ANON,
-+			    stat.nr_lazyfree_fail);
-+	mod_node_page_state(zone->zone_pgdat, NR_ISOLATED_FILE,
-+			    -stat.nr_lazyfree_fail);
-+	return nr_reclaimed;
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr, unsigned long len)
+-{
+-	return 0;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ 	clear_bit(PG_dcache_clean, &page->flags);
+--- a/arch/ia64/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/ia64/include/asm/hugetlb.h
+@@ -20,6 +20,7 @@ static inline int is_hugepage_only_range
+ 	return (REGION_NUMBER(addr) == RGN_HPAGE ||
+ 		REGION_NUMBER((addr)+(len)-1) == RGN_HPAGE);
  }
++#define is_hugepage_only_range is_hugepage_only_range
  
+ #define __HAVE_ARCH_HUGE_PTEP_CLEAR_FLUSH
+ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+--- a/arch/mips/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/mips/include/asm/hugetlb.h
+@@ -11,13 +11,6 @@
+ 
+ #include <asm/page.h>
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len)
+-{
+-	return 0;
+-}
+-
+ #define __HAVE_ARCH_PREPARE_HUGEPAGE_RANGE
+ static inline int prepare_hugepage_range(struct file *file,
+ 					 unsigned long addr,
+--- a/arch/parisc/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/parisc/include/asm/hugetlb.h
+@@ -12,12 +12,6 @@ void set_huge_pte_at(struct mm_struct *m
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep);
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len) {
+-	return 0;
+-}
+-
  /*
+  * If the arch doesn't supply something else, assume that hugepage
+  * size aligned regions are ok without further preparation.
+--- a/arch/powerpc/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/powerpc/include/asm/hugetlb.h
+@@ -30,6 +30,7 @@ static inline int is_hugepage_only_range
+ 		return slice_is_hugepage_only_range(mm, addr, len);
+ 	return 0;
+ }
++#define is_hugepage_only_range is_hugepage_only_range
+ 
+ #define __HAVE_ARCH_HUGETLB_FREE_PGD_RANGE
+ void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
+--- a/arch/riscv/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/riscv/include/asm/hugetlb.h
+@@ -5,12 +5,6 @@
+ #include <asm-generic/hugetlb.h>
+ #include <asm/page.h>
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len) {
+-	return 0;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+--- a/arch/s390/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/s390/include/asm/hugetlb.h
+@@ -21,13 +21,6 @@ pte_t huge_ptep_get(pte_t *ptep);
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 			      unsigned long addr, pte_t *ptep);
+ 
+-static inline bool is_hugepage_only_range(struct mm_struct *mm,
+-					  unsigned long addr,
+-					  unsigned long len)
+-{
+-	return false;
+-}
+-
+ /*
+  * If the arch doesn't supply something else, assume that hugepage
+  * size aligned regions are ok without further preparation.
+--- a/arch/sh/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/sh/include/asm/hugetlb.h
+@@ -5,12 +5,6 @@
+ #include <asm/cacheflush.h>
+ #include <asm/page.h>
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len) {
+-	return 0;
+-}
+-
+ /*
+  * If the arch doesn't supply something else, assume that hugepage
+  * size aligned regions are ok without further preparation.
+--- a/arch/sparc/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/sparc/include/asm/hugetlb.h
+@@ -20,12 +20,6 @@ void set_huge_pte_at(struct mm_struct *m
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep);
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len) {
+-	return 0;
+-}
+-
+ #define __HAVE_ARCH_HUGE_PTEP_CLEAR_FLUSH
+ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 					 unsigned long addr, pte_t *ptep)
+--- a/arch/x86/include/asm/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/arch/x86/include/asm/hugetlb.h
+@@ -7,12 +7,6 @@
+ 
+ #define hugepages_supported() boot_cpu_has(X86_FEATURE_PSE)
+ 
+-static inline int is_hugepage_only_range(struct mm_struct *mm,
+-					 unsigned long addr,
+-					 unsigned long len) {
+-	return 0;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+--- a/include/linux/hugetlb.h~mm-hugetlb-define-a-generic-fallback-for-is_hugepage_only_range
++++ a/include/linux/hugetlb.h
+@@ -591,6 +591,15 @@ static inline unsigned int blocks_per_hu
+ 
+ #include <asm/hugetlb.h>
+ 
++#ifndef is_hugepage_only_range
++static inline int is_hugepage_only_range(struct mm_struct *mm,
++					unsigned long addr, unsigned long len)
++{
++	return 0;
++}
++#define is_hugepage_only_range is_hugepage_only_range
++#endif
++
+ #ifndef arch_make_huge_pte
+ static inline pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
+ 				       struct page *page, int writable)
 _
 
-Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
+
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
+mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
+x86-mm-define-mm_p4d_folded.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v17.patch
+mm-debug-add-tests-validating-architecture-page-table-helpers-v18.patch
