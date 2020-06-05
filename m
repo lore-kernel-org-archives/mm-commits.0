@@ -1,61 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fat-dont-allow-to-mount-if-the-fat-length-==-0.patch removed from -mm tree
-Date: Fri, 05 Jun 2020 13:19:39 -0700
-Message-ID: <20200605201939.UB__JXs5T%akpm@linux-foundation.org>
+ fs-seq_filec-seq_read-update-pr_info_ratelimited.patch removed from -mm
+ tree
+Date: Fri, 05 Jun 2020 13:19:42 -0700
+Message-ID: <20200605201942.LZ3c5rQ2p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45734 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45762 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728083AbgFEUTj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:19:39 -0400
+        id S1728149AbgFEUTm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:19:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, elver@google.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org, vvs@virtuozzo.com
 
 
 The patch titled
-     Subject: fat: don't allow to mount if the FAT length == 0
+     Subject: fs/seq_file.c: seq_read: Update pr_info_ratelimited
 has been removed from the -mm tree.  Its filename was
-     fat-dont-allow-to-mount-if-the-fat-length-==-0.patch
+     fs-seq_filec-seq_read-update-pr_info_ratelimited.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fat: don't allow to mount if the FAT length == 0
+From: Joe Perches <joe@perches.com>
+Subject: fs/seq_file.c: seq_read: Update pr_info_ratelimited
 
-If FAT length == 0, the image doesn't have any data. And it can be the
-cause of overlapping the root dir and FAT entries.
+Use a more common logging style.
 
-Also Windows treats it as invalid format.
+Add and use pr_fmt, coalesce the format string, align arguments,
+use better grammar.
 
-Link: http://lkml.kernel.org/r/87r1wz8mrd.fsf@mail.parknet.co.jp
-Reported-by: syzbot+6f1624f937d9d6911e2d@syzkaller.appspotmail.com
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/96ff603230ca1bd60034c36519be3930c3a3a226.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Vasily Averin <vvs@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/seq_file.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/fs/fat/inode.c~fat-dont-allow-to-mount-if-the-fat-length-==-0
-+++ a/fs/fat/inode.c
-@@ -1519,6 +1519,12 @@ static int fat_read_bpb(struct super_blo
- 		goto out;
- 	}
+--- a/fs/seq_file.c~fs-seq_filec-seq_read-update-pr_info_ratelimited
++++ a/fs/seq_file.c
+@@ -6,6 +6,8 @@
+  * initial implementation -- AV, Oct 2001.
+  */
  
-+	if (bpb->fat_fat_length == 0 && bpb->fat32_length == 0) {
-+		if (!silent)
-+			fat_msg(sb, KERN_ERR, "bogus number of FAT sectors");
-+		goto out;
-+	}
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
- 	error = 0;
+ #include <linux/cache.h>
+ #include <linux/fs.h>
+ #include <linux/export.h>
+@@ -233,9 +235,8 @@ Fill:
  
- out:
+ 		p = m->op->next(m, p, &m->index);
+ 		if (pos == m->index) {
+-			pr_info_ratelimited("buggy seq_file .next function %ps "
+-				"did not updated position index\n",
+-				m->op->next);
++			pr_info_ratelimited("buggy .next function %ps did not update position index\n",
++					    m->op->next);
+ 			m->index++;
+ 		}
+ 		if (!p || IS_ERR(p)) {
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from joe@perches.com are
+
+checkpatch-test-git_dir-changes.patch
