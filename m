@@ -1,56 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-binfmt_elf-remove-redundant-elf_map-ifndef.patch removed from -mm tree
-Date: Fri, 05 Jun 2020 13:19:30 -0700
-Message-ID: <20200605201930.Jvs4lox5f%akpm@linux-foundation.org>
+Subject: [merged] elfnote-mark-all-note-sections-shf_alloc.patch
+ removed from -mm tree
+Date: Fri, 05 Jun 2020 13:19:32 -0700
+Message-ID: <20200605201932.5HVsxpsw_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45606 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45648 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728126AbgFEUTa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:19:30 -0400
+        id S1728126AbgFEUTe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:19:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ailiop@suse.com, mm-commits@vger.kernel.org
+To: ilie.halip@gmail.com, jeremy@goop.org, maskray@google.com, mm-commits@vger.kernel.org, natechancellor@gmail.com, ndesaulniers@google.com, tglx@linutronix.de, vincenzo.frascino@arm.com
 
 
 The patch titled
-     Subject: fs/binfmt_elf: remove redundant elf_map ifndef
+     Subject: elfnote: mark all .note sections SHF_ALLOC
 has been removed from the -mm tree.  Its filename was
-     fs-binfmt_elf-remove-redundant-elf_map-ifndef.patch
+     elfnote-mark-all-note-sections-shf_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Anthony Iliopoulos <ailiop@suse.com>
-Subject: fs/binfmt_elf: remove redundant elf_map ifndef
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: elfnote: mark all .note sections SHF_ALLOC
 
-The ifndef was added a long time ago to support archs that would define
-their own mapping function.  The last user was the metag arch which was
-removed from the tree, and as such there are no users left.  Let's kill
-it.
+ELFNOTE_START allows callers to specify flags for .pushsection assembler
+directives.  All callsites but ELF_NOTE use "a" for SHF_ALLOC.  For vdso's
+that explicitly use ELF_NOTE_START and BUILD_SALT, the same section is
+specified twice after preprocessing, once with "a" flag, once without. 
+Example:
 
-Link: http://lkml.kernel.org/r/20200402161543.4119-1-ailiop@suse.com
-Signed-off-by: Anthony Iliopoulos <ailiop@suse.com>
+.pushsection .note.Linux, "a", @note ;
+.pushsection .note.Linux, "", @note ;
+
+While GNU as allows this ordering, it warns for the opposite ordering,
+making these directives position dependent.  We'd prefer not to precisely
+match this behavior in Clang's integrated assembler.  Instead, the non
+__ASSEMBLY__ definition of ELF_NOTE uses
+__attribute__((section(".note.Linux"))) which is created with SHF_ALLOC,
+so let's make the __ASSEMBLY__ definition of ELF_NOTE consistent with C
+and just always use "a" flag.
+
+This allows Clang to assemble a working mainline (5.6) kernel via:
+$ make CC=clang AS=clang
+
+Link: https://github.com/ClangBuiltLinux/linux/issues/913
+Link: http://lkml.kernel.org/r/20200325231250.99205-1-ndesaulniers@google.com
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Debugged-by: Ilie Halip <ilie.halip@gmail.com>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
+Reviewed-by: Fangrui Song <maskray@google.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/elfnote.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/binfmt_elf.c~fs-binfmt_elf-remove-redundant-elf_map-ifndef
-+++ a/fs/binfmt_elf.c
-@@ -353,8 +353,6 @@ create_elf_tables(struct linux_binprm *b
- 	return 0;
- }
+--- a/include/linux/elfnote.h~elfnote-mark-all-note-sections-shf_alloc
++++ a/include/linux/elfnote.h
+@@ -54,7 +54,7 @@
+ .popsection				;
  
--#ifndef elf_map
--
- static unsigned long elf_map(struct file *filep, unsigned long addr,
- 		const struct elf_phdr *eppnt, int prot, int type,
- 		unsigned long total_size)
-@@ -394,8 +392,6 @@ static unsigned long elf_map(struct file
- 	return(map_addr);
- }
+ #define ELFNOTE(name, type, desc)		\
+-	ELFNOTE_START(name, type, "")		\
++	ELFNOTE_START(name, type, "a")		\
+ 		desc			;	\
+ 	ELFNOTE_END
  
--#endif /* !elf_map */
+_
+
+Patches currently in -mm which might be from ndesaulniers@google.com are
