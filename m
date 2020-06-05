@@ -1,51 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-pre.patch removed from -mm tree
-Date: Fri, 05 Jun 2020 12:57:37 -0700
-Message-ID: <20200605195737.BkpCXIjr9%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-post.patch removed from -mm tree
+Date: Fri, 05 Jun 2020 12:58:17 -0700
+Message-ID: <20200605195817.DTtTajr6H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54386 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55056 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727863AbgFET5i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 15:57:38 -0400
+        id S1727863AbgFET6T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 15:58:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-pre
+     Subject: linux-next-post
 has been removed from the -mm tree.  Its filename was
-     linux-next-pre.patch
+     linux-next-post.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-pre
+Subject: linux-next-post
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/sysctl.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/kernel/sysctl.c~linux-next-pre
+--- a/kernel/sysctl.c~linux-next-post
 +++ a/kernel/sysctl.c
-@@ -131,7 +131,6 @@ static unsigned long zero_ul;
+@@ -118,6 +118,7 @@ static unsigned long zero_ul;
  static unsigned long one_ul = 1;
  static unsigned long long_max = LONG_MAX;
  static int one_hundred = 100;
--static int two_hundred = 200;
++static int two_hundred = 200;
  static int one_thousand = 1000;
  #ifdef CONFIG_PRINTK
  static int ten_thousand = 10000;
-@@ -1392,7 +1391,7 @@ static struct ctl_table vm_table[] = {
+@@ -2732,7 +2733,7 @@ static struct ctl_table vm_table[] = {
  		.mode		= 0644,
  		.proc_handler	= proc_dointvec_minmax,
  		.extra1		= SYSCTL_ZERO,
--		.extra2		= &two_hundred,
-+		.extra2		= &one_hundred,
+-		.extra2		= &one_hundred,
++		.extra2		= &two_hundred,
  	},
  #ifdef CONFIG_HUGETLB_PAGE
  	{
@@ -56,7 +56,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
 mm.patch
 ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-post.patch
 kernel-add-panic_on_taint-fix.patch
 mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
 mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
