@@ -1,71 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-disallow-git-and-file-fix.patch
- removed from -mm tree
-Date: Fri, 05 Jun 2020 13:19:26 -0700
-Message-ID: <20200605201926.8lu7ODofJ%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-use-patch-subject-when-reading-from-stdin.patch removed from -mm
+ tree
+Date: Fri, 05 Jun 2020 13:19:28 -0700
+Message-ID: <20200605201928.d5MP1HMln%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45550 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45580 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728088AbgFEUT0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:19:26 -0400
+        id S1728126AbgFEUT3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:19:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: geert+renesas@glider.be, joe@perches.com, konstantin@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: disallow --git and --file/--fix
+     Subject: checkpatch: use patch subject when reading from stdin
 has been removed from the -mm tree.  Its filename was
-     checkpatch-disallow-git-and-file-fix.patch
+     checkpatch-use-patch-subject-when-reading-from-stdin.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: disallow --git and --file/--fix
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: checkpatch: use patch subject when reading from stdin
 
-Don't allow these options to be combined.
+While "git am" can apply an mbox file containing multiple patches (e.g. 
+as created by b4[1], or a patch bundle downloaded from patchwork),
+checkpatch does not have proper support for that.  When operating on an
+mbox, checkpatch will merge all detected tags, and complain falsely about
+duplicates:
 
-Miscellanea:
+    WARNING: Duplicate signature
 
-o Add missing $P: to some die("reason message") output
+As modifying checkpatch to reset state in between each patch is a lot of
+work, a simple solution is splitting the mbox into individual patches, and
+invoking checkpatch for each of them.  Fortunately checkpatch can read a
+patch from stdin, so the classic "formail" tool can be used to split the
+mbox, and pipe all individual patches to checkpatch:
 
-Link: http://lkml.kernel.org/r/3dc7bdaa58490f5906efc11a4d6113e42a087723.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+    formail -s scripts/checkpatch.pl < my-mbox
+
+However, when reading a patch file from standard input, checkpatch calls
+it "Your patch", and reports its state as:
+
+    Your patch has style problems, please review.
+
+or:
+
+    Your patch has no obvious style problems and is ready for submission.
+
+Hence it can be difficult to identify which patches need to be reviewed
+and improved.
+
+Fix this by replacing "Your patch" by (the first line of) the email
+subject, if present.
+
+Note that "git mailsplit" can also be used to split an mbox, but it will
+create individual files for each patch, thus requiring cleanup afterwards.
+Formail does not have this disadvantage.
+
+[1] https://git.kernel.org/pub/scm/utils/b4/b4.git
+
+[joe@perches.com: reduce cpu usage]
+  Link: http://lkml.kernel.org/r/c9d89bb24c7414142414c60371e210fdcf4617d2.camel@perches.com
+Link: http://lkml.kernel.org/r/20200505132613.17452-1-geert+renesas@glider.be
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Joe Perches <joe@perches.com>
+Cc: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/scripts/checkpatch.pl~checkpatch-disallow-git-and-file-fix
+--- a/scripts/checkpatch.pl~checkpatch-use-patch-subject-when-reading-from-stdin
 +++ a/scripts/checkpatch.pl
-@@ -246,6 +246,8 @@ list_types(0) if ($list_types);
- $fix = 1 if ($fix_inplace);
- $check_orig = $check;
+@@ -1062,6 +1062,7 @@ for my $filename (@ARGV) {
+ 	while (<$FILE>) {
+ 		chomp;
+ 		push(@rawlines, $_);
++		$vname = qq("$1") if ($filename eq '-' && $_ =~ m/^Subject:\s+(.+)/i);
+ 	}
+ 	close($FILE);
  
-+die "$P: --git cannot be used with --file or --fix\n" if ($git && ($file || $fix));
-+
- my $exit = 0;
- 
- my $perl_version_ok = 1;
-@@ -269,11 +271,11 @@ if ($color =~ /^[01]$/) {
- } elsif ($color =~ /^auto$/i) {
- 	$color = (-t STDOUT);
- } else {
--	die "Invalid color mode: $color\n";
-+	die "$P: Invalid color mode: $color\n";
- }
- 
- # skip TAB size 1 to avoid additional checks on $tabsize - 1
--die "Invalid TAB size: $tabsize\n" if ($tabsize < 2);
-+die "$P: Invalid TAB size: $tabsize\n" if ($tabsize < 2);
- 
- sub hash_save_array_words {
- 	my ($hashRef, $arrayRef) = @_;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
-
-checkpatch-test-git_dir-changes.patch
+Patches currently in -mm which might be from geert+renesas@glider.be are
