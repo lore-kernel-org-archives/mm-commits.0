@@ -1,65 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-flex_proportionsc-cleanup-__fprop_inc_percpu_max.patch removed from -mm
+ bitops-avoid-clang-shift-count-overflow-warnings.patch removed from -mm
  tree
-Date: Fri, 05 Jun 2020 13:19:13 -0700
-Message-ID: <20200605201913.019yRTN8Q%akpm@linux-foundation.org>
+Date: Fri, 05 Jun 2020 13:19:18 -0700
+Message-ID: <20200605201918.u85zEUtJ9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45362 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45426 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728041AbgFEUTP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:19:15 -0400
+        id S1728225AbgFEUTT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:19:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org, tan.hu@zte.com.cn, wang.liang82@zte.com.cn, wang.yi59@zte.com.cn, xue.zhihong@zte.com.cn
+To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, christian.brauner@ubuntu.com, jpoimboe@redhat.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, ndesaulniers@google.com
 
 
 The patch titled
-     Subject: lib/flex_proportions.c: cleanup __fprop_inc_percpu_max
+     Subject: include/linux/bitops.h: avoid clang shift-count-overflow warnings
 has been removed from the -mm tree.  Its filename was
-     lib-flex_proportionsc-cleanup-__fprop_inc_percpu_max.patch
+     bitops-avoid-clang-shift-count-overflow-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tan Hu <tan.hu@zte.com.cn>
-Subject: lib/flex_proportions.c: cleanup __fprop_inc_percpu_max
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: include/linux/bitops.h: avoid clang shift-count-overflow warnings
 
-If the given type has fraction smaller than max_frac/FPROP_FRAC_BASE, the
-code could be modified to call __fprop_inc_percpu() directly and easier to
-understand.  After this patch, fprop_reflect_period_percpu() will be
-called twice, and quicky return on pl->period == p->period test, so it
-would not result to significant downside of performance.
+Clang normally does not warn about certain issues in inline functions when
+it only happens in an eliminated code path. However if something else
+goes wrong, it does tend to complain about the definition of hweight_long()
+on 32-bit targets:
 
-Thanks for Jan's guidance.
+include/linux/bitops.h:75:41: error: shift count >= width of type [-Werror,-Wshift-count-overflow]
+        return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
+                                               ^~~~~~~~~~~~
+include/asm-generic/bitops/const_hweight.h:29:49: note: expanded from macro 'hweight64'
+ define hweight64(w) (__builtin_constant_p(w) ? __const_hweight64(w) : __arch_hweight64(w))
+                                                ^~~~~~~~~~~~~~~~~~~~
+include/asm-generic/bitops/const_hweight.h:21:76: note: expanded from macro '__const_hweight64'
+ define __const_hweight64(w) (__const_hweight32(w) + __const_hweight32((w) >> 32))
+                                                                           ^  ~~
+include/asm-generic/bitops/const_hweight.h:20:49: note: expanded from macro '__const_hweight32'
+ define __const_hweight32(w) (__const_hweight16(w) + __const_hweight16((w) >> 16))
+                                                ^
+include/asm-generic/bitops/const_hweight.h:19:72: note: expanded from macro '__const_hweight16'
+ define __const_hweight16(w) (__const_hweight8(w)  + __const_hweight8((w)  >> 8 ))
+                                                                       ^
+include/asm-generic/bitops/const_hweight.h:12:9: note: expanded from macro '__const_hweight8'
+          (!!((w) & (1ULL << 2))) +     \
 
-Link: http://lkml.kernel.org/r/1589004753-27554-1-git-send-email-tan.hu@zte.com.cn
-Signed-off-by: Tan Hu <tan.hu@zte.com.cn>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: <xue.zhihong@zte.com.cn>
-Cc: Yi Wang <wang.yi59@zte.com.cn>
-Cc: <wang.liang82@zte.com.cn>
+Adding an explicit cast to __u64 avoids that warning and makes it easier
+to read other output.
+
+Link: http://lkml.kernel.org/r/20200505135513.65265-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/flex_proportions.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/bitops.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/flex_proportions.c~lib-flex_proportionsc-cleanup-__fprop_inc_percpu_max
-+++ a/lib/flex_proportions.c
-@@ -266,8 +266,7 @@ void __fprop_inc_percpu_max(struct fprop
- 		if (numerator >
- 		    (((u64)denominator) * max_frac) >> FPROP_FRAC_SHIFT)
- 			return;
--	} else
--		fprop_reflect_period_percpu(p, pl);
--	percpu_counter_add_batch(&pl->events, 1, PROP_BATCH);
--	percpu_counter_add(&p->events, 1);
-+	}
-+
-+	__fprop_inc_percpu(p, pl);
+--- a/include/linux/bitops.h~bitops-avoid-clang-shift-count-overflow-warnings
++++ a/include/linux/bitops.h
+@@ -72,7 +72,7 @@ static inline int get_bitmask_order(unsi
+ 
+ static __always_inline unsigned long hweight_long(unsigned long w)
+ {
+-	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
++	return sizeof(w) == 4 ? hweight32(w) : hweight64((__u64)w);
  }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from tan.hu@zte.com.cn are
+Patches currently in -mm which might be from arnd@arndb.de are
