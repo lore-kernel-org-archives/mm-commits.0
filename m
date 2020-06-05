@@ -1,108 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable.patch
+Subject: [merged] kmap-consolidate-kmap_prot-definitions.patch
  removed from -mm tree
-Date: Fri, 05 Jun 2020 13:17:53 -0700
-Message-ID: <20200605201753.E9drunYSg%akpm@linux-foundation.org>
+Date: Fri, 05 Jun 2020 13:17:44 -0700
+Message-ID: <20200605201744.nTGDpqBsM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43734 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43536 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727087AbgFEURz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:17:55 -0400
+        id S1728215AbgFEURq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:17:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, nfont@linux.vnet.ibm.com, osalvador@suse.de, paulus@samba.org, richard.weiyang@gmail.com
+To: benh@kernel.crashing.org, bp@alien8.de, chris@zankel.net, christian.koenig@amd.com, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, dave.hansen@linux.intel.com, davem@davemloft.net, deller@gmx.de, hch@infradead.org, hpa@zytor.com, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, paulus@samba.org, peterz@infradead.org, tglx@linutronix.de, tsbogend@alpha.franken.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: powerpc/pseries/hotplug-memory: stop checking is_mem_section_removable()
+     Subject: kmap: consolidate kmap_prot definitions
 has been removed from the -mm tree.  Its filename was
-     powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable.patch
+     kmap-consolidate-kmap_prot-definitions.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: powerpc/pseries/hotplug-memory: stop checking is_mem_section_removable()
+=46rom: Ira Weiny <ira.weiny@intel.com>
+Subject: kmap: consolidate kmap_prot definitions
 
-In commit 53cdc1cb29e8 ("drivers/base/memory.c: indicate all memory blocks
-as removable"), the user space interface to compute whether a memory block
-can be offlined (exposed via /sys/devices/system/memory/memoryX/removable)
-has effectively been deprecated.  We want to remove the leftovers of the
-kernel implementation.
+Most architectures define kmap_prot to be PAGE_KERNEL.
 
-When offlining a memory block (mm/memory_hotplug.c:__offline_pages()),
-we'll start by:
-1. Testing if it contains any holes, and reject if so
-2. Testing if pages belong to different zones, and reject if so
-3. Isolating the page range, checking if it contains any unmovable pages
+Let sparc and xtensa define there own and define PAGE_KERNEL as the
+default if not overridden.
 
-Using is_mem_section_removable() before trying to offline is not only
-racy, it can easily result in false positives/negatives.  Let's stop
-manually checking is_mem_section_removable(), and let device_offline()
-handle it completely instead.  We can remove the racy
-is_mem_section_removable() implementation next.
-
-We now take more locks (e.g., memory hotplug lock when offlining and the
-zone lock when isolating), but maybe we should optimize that
-implementation instead if this ever becomes a real problem (after all,
-memory unplug is already an expensive operation).  We started using
-is_mem_section_removable() in commit 51925fb3c5c9 ("powerpc/pseries:
-Implement memory hotplug remove in the kernel"), with the initial
-hotremove support of lmbs.
-
-Link: http://lkml.kernel.org/r/20200407135416.24093-2-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+[akpm@linux-foundation.org: coding style fixes]
+Link: http://lkml.kernel.org/r/20200507150004.1423069-16-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/hotplug-memory.c |   26 +-------------
- 1 file changed, 3 insertions(+), 23 deletions(-)
+ arch/arc/include/asm/highmem.h        |    3 ---
+ arch/arm/include/asm/highmem.h        |    2 --
+ arch/csky/include/asm/highmem.h       |    2 --
+ arch/microblaze/include/asm/highmem.h |    1 -
+ arch/mips/include/asm/highmem.h       |    2 --
+ arch/nds32/include/asm/highmem.h      |    1 -
+ arch/powerpc/include/asm/highmem.h    |    1 -
+ arch/sparc/include/asm/highmem.h      |    3 ++-
+ arch/sparc/mm/highmem.c               |    4 ----
+ arch/x86/include/asm/fixmap.h         |    1 -
+ include/linux/highmem.h               |    4 ++++
+ 11 files changed, 6 insertions(+), 18 deletions(-)
 
---- a/arch/powerpc/platforms/pseries/hotplug-memory.c~powerpc-pseries-hotplug-memory-stop-checking-is_mem_section_removable
-+++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
-@@ -337,39 +337,19 @@ static int pseries_remove_mem_node(struc
- 
- static bool lmb_is_removable(struct drmem_lmb *lmb)
+--- a/arch/arc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
++++ a/arch/arc/include/asm/highmem.h
+@@ -25,9 +25,6 @@
+ #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ #define PKMAP_NR(virt)		(((virt) - PKMAP_BASE) >> PAGE_SHIFT)
+=20
+-#define kmap_prot		PAGE_KERNEL
+-
+-
+ #include <asm/cacheflush.h>
+=20
+ extern void kmap_init(void);
+--- a/arch/arm/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
++++ a/arch/arm/include/asm/highmem.h
+@@ -10,8 +10,6 @@
+ #define PKMAP_NR(virt)		(((virt) - PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
+=20
+-#define kmap_prot		PAGE_KERNEL
+-
+ #define flush_cache_kmaps() \
+ 	do { \
+ 		if (cache_is_vivt()) \
+--- a/arch/csky/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
++++ a/arch/csky/include/asm/highmem.h
+@@ -38,8 +38,6 @@ extern void *kmap_atomic_pfn(unsigned lo
+=20
+ extern void kmap_init(void);
+=20
+-#define kmap_prot PAGE_KERNEL
+-
+ #endif /* __KERNEL__ */
+=20
+ #endif /* __ASM_CSKY_HIGHMEM_H */
+--- a/arch/microblaze/include/asm/highmem.h~kmap-consolidate-kmap_prot-defi=
+nitions
++++ a/arch/microblaze/include/asm/highmem.h
+@@ -25,7 +25,6 @@
+ #include <linux/uaccess.h>
+ #include <asm/fixmap.h>
+=20
+-#define kmap_prot		PAGE_KERNEL
+ extern pte_t *kmap_pte;
+ extern pte_t *pkmap_page_table;
+=20
+--- a/arch/mips/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions
++++ a/arch/mips/include/asm/highmem.h
+@@ -54,8 +54,6 @@ extern void *kmap_atomic_pfn(unsigned lo
+=20
+ extern void kmap_init(void);
+=20
+-#define kmap_prot PAGE_KERNEL
+-
+ #endif /* __KERNEL__ */
+=20
+ #endif /* _ASM_HIGHMEM_H */
+--- a/arch/nds32/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitio=
+ns
++++ a/arch/nds32/include/asm/highmem.h
+@@ -32,7 +32,6 @@
+ #define LAST_PKMAP_MASK		(LAST_PKMAP - 1)
+ #define PKMAP_NR(virt)		(((virt) - (PKMAP_BASE)) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
+-#define kmap_prot		PAGE_KERNEL
+=20
+ static inline void flush_cache_kmaps(void)
  {
--	int i, scns_per_block;
--	bool rc = true;
--	unsigned long pfn, block_sz;
--	u64 phys_addr;
+--- a/arch/powerpc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definit=
+ions
++++ a/arch/powerpc/include/asm/highmem.h
+@@ -29,7 +29,6 @@
+ #include <asm/page.h>
+ #include <asm/fixmap.h>
+=20
+-#define kmap_prot		PAGE_KERNEL
+ extern pte_t *kmap_pte;
+ extern pte_t *pkmap_page_table;
+=20
+--- a/arch/sparc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitio=
+ns
++++ a/arch/sparc/include/asm/highmem.h
+@@ -25,11 +25,12 @@
+ #include <asm/vaddrs.h>
+ #include <asm/kmap_types.h>
+ #include <asm/pgtable.h>
++#include <asm/pgtsrmmu.h>
+=20
+ /* declarations for highmem.c */
+ extern unsigned long highstart_pfn, highend_pfn;
+=20
+-extern pgprot_t kmap_prot;
++#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE)
+ extern pte_t *pkmap_page_table;
+=20
+ void kmap_init(void) __init;
+--- a/arch/sparc/mm/highmem.c~kmap-consolidate-kmap_prot-definitions
++++ a/arch/sparc/mm/highmem.c
+@@ -32,9 +32,6 @@
+ #include <asm/pgalloc.h>
+ #include <asm/vaddrs.h>
+=20
+-pgprot_t kmap_prot;
+-EXPORT_SYMBOL(kmap_prot);
 -
- 	if (!(lmb->flags & DRCONF_MEM_ASSIGNED))
- 		return false;
- 
--	block_sz = memory_block_size_bytes();
--	scns_per_block = block_sz / MIN_MEMORY_BLOCK_SIZE;
--	phys_addr = lmb->base_addr;
--
- #ifdef CONFIG_FA_DUMP
- 	/*
- 	 * Don't hot-remove memory that falls in fadump boot memory area
- 	 * and memory that is reserved for capturing old kernel memory.
- 	 */
--	if (is_fadump_memory_area(phys_addr, block_sz))
-+	if (is_fadump_memory_area(lmb->base_addr, memory_block_size_bytes()))
- 		return false;
+ static pte_t *kmap_pte;
+=20
+ void __init kmap_init(void)
+@@ -51,7 +48,6 @@ void __init kmap_init(void)
+=20
+         /* cache the first kmap pte */
+         kmap_pte =3D pte_offset_kernel(dir, address);
+-        kmap_prot =3D __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
+ }
+=20
+ void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
+--- a/arch/x86/include/asm/fixmap.h~kmap-consolidate-kmap_prot-definitions
++++ a/arch/x86/include/asm/fixmap.h
+@@ -152,7 +152,6 @@ extern void reserve_top_address(unsigned
+ extern int fixmaps_set;
+=20
+ extern pte_t *kmap_pte;
+-#define kmap_prot PAGE_KERNEL
+ extern pte_t *pkmap_page_table;
+=20
+ void __native_set_fixmap(enum fixed_addresses idx, pte_t pte);
+--- a/include/linux/highmem.h~kmap-consolidate-kmap_prot-definitions
++++ a/include/linux/highmem.h
+@@ -40,6 +40,10 @@ extern void kunmap_atomic_high(void *kva
+ static inline void kmap_flush_tlb(unsigned long addr) { }
  #endif
--
--	for (i = 0; i < scns_per_block; i++) {
--		pfn = PFN_DOWN(phys_addr);
--		if (!pfn_in_present_section(pfn)) {
--			phys_addr += MIN_MEMORY_BLOCK_SIZE;
--			continue;
--		}
--
--		rc = rc && is_mem_section_removable(pfn, PAGES_PER_SECTION);
--		phys_addr += MIN_MEMORY_BLOCK_SIZE;
--	}
+=20
++#ifndef kmap_prot
++#define kmap_prot PAGE_KERNEL
++#endif
++
+ void *kmap_high(struct page *page);
+ static inline void *kmap(struct page *page)
+ {
+_
+
+Patches currently in -mm which might be from ira.weiny@intel.com are
