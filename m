@@ -1,97 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memory_hotplug-refrain-from-adding-memory-into-an-impossible-node.patch
+Subject: [merged] parisc-kmap-remove-duplicate-kmap-code.patch
  removed from -mm tree
-Date: Fri, 05 Jun 2020 13:17:50 -0700
-Message-ID: <20200605201750.WT3gnOC0Z%akpm@linux-foundation.org>
+Date: Fri, 05 Jun 2020 13:17:39 -0700
+Message-ID: <20200605201739._MNjAFgW2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43684 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43378 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728069AbgFEURv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:17:51 -0400
+        id S1728163AbgFEURl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:17:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, vishal.l.verma@intel.com
+To: benh@kernel.crashing.org, bp@alien8.de, chris@zankel.net, christian.koenig@amd.com, dan.j.williams@intel.com, daniel.vetter@ffwll.ch, dave.hansen@linux.intel.com, davem@davemloft.net, deller@gmx.de, hch@lst.de, hpa@zytor.com, ira.weiny@intel.com, James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com, luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org, paulus@samba.org, peterz@infradead.org, tglx@linutronix.de, tsbogend@alpha.franken.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm/memory_hotplug: refrain from adding memory into an impossible node
+     Subject: parisc/kmap: remove duplicate kmap code
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-refrain-from-adding-memory-into-an-impossible-node.patch
+     parisc-kmap-remove-duplicate-kmap-code.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: mm/memory_hotplug: refrain from adding memory into an impossible node
+=46rom: Ira Weiny <ira.weiny@intel.com>
+Subject: parisc/kmap: remove duplicate kmap code
 
-A misbehaving qemu created a situation where the ACPI SRAT table
-advertised one fewer proximity domains than intended.  The NFIT table did
-describe all the expected proximity domains.  This caused the device dax
-driver to assign an impossible target_node to the device, and when
-hotplugged as system memory, this would fail with the following signature:
+parisc reimplements the kmap calls except to flush it's dcache.  This is
+arguably an abuse of kmap but regardless it is messy and confusing.
 
-  [  +0.001627] BUG: kernel NULL pointer dereference, address: 0000000000000088
-  [  +0.001331] #PF: supervisor read access in kernel mode
-  [  +0.000975] #PF: error_code(0x0000) - not-present page
-  [  +0.000976] PGD 80000001767d4067 P4D 80000001767d4067 PUD 10e0c4067 PMD 0
-  [  +0.001338] Oops: 0000 [#1] SMP PTI
-  [  +0.000676] CPU: 4 PID: 22737 Comm: kswapd3 Tainted: G           O      5.6.0-rc5 #9
-  [  +0.001457] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
-      BIOS rel-1.13.0-0-gf21b5a4aeb02-prebuilt.qemu.org 04/01/2014
-  [  +0.001990] RIP: 0010:prepare_kswapd_sleep+0x7c/0xc0
-  [  +0.000780] Code: 89 df e8 87 fd ff ff 89 c2 31 c0 84 d2 74 e6 0f 1f 44
-                      00 00 48 8b 05 fb af 7a 01 48 63 93 88 1d 01 00 48 8b
-		      84 d0 20 0f 00 00 <48> 3b 98 88 00 00 00 75 28 f0 80 a0
-		      80 00 00 00 fe f0 80 a3 38 20
-  [  +0.002877] RSP: 0018:ffffc900017a3e78 EFLAGS: 00010202
-  [  +0.000805] RAX: 0000000000000000 RBX: ffff8881209e0000 RCX: 0000000000000000
-  [  +0.001115] RDX: 0000000000000003 RSI: 0000000000000000 RDI: ffff8881209e0e80
-  [  +0.001098] RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000008000
-  [  +0.001092] R10: 0000000000000000 R11: 0000000000000003 R12: 0000000000000003
-  [  +0.001092] R13: 0000000000000003 R14: 0000000000000000 R15: ffffc900017a3ec8
-  [  +0.001091] FS:  0000000000000000(0000) GS:ffff888318c00000(0000) knlGS:0000000000000000
-  [  +0.001275] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  [  +0.000882] CR2: 0000000000000088 CR3: 0000000120b50002 CR4: 00000000001606e0
-  [  +0.001095] Call Trace:
-  [  +0.000388]  kswapd+0x103/0x520
-  [  +0.000494]  ? finish_wait+0x80/0x80
-  [  +0.000547]  ? balance_pgdat+0x5a0/0x5a0
-  [  +0.000607]  kthread+0x120/0x140
-  [  +0.000508]  ? kthread_create_on_node+0x60/0x60
-  [  +0.000706]  ret_from_fork+0x3a/0x50
+Remove the duplicate code and have parisc define ARCH_HAS_FLUSH_ON_KUNMAP
+for a kunmap_flush_on_unmap() architecture specific call to flush the
+cache.
 
-Add a check in the add_memory path to fail if the node to which we are
-adding memory is in the node_possible_map
-
-Link: http://lkml.kernel.org/r/20200416225438.15208-1-vishal.l.verma@intel.com
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: http://lkml.kernel.org/r/20200507150004.1423069-14-ira.weiny@intel.com
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/parisc/include/asm/cacheflush.h |   28 +------------------------
+ include/linux/highmem.h              |   10 ++++++--
+ 2 files changed, 9 insertions(+), 29 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-refrain-from-adding-memory-into-an-impossible-node
-+++ a/mm/memory_hotplug.c
-@@ -1017,6 +1017,11 @@ int __ref add_memory_resource(int nid, s
- 	if (ret)
- 		return ret;
- 
-+	if (!node_possible(nid)) {
-+		WARN(1, "node %d was absent from the node_possible_map\n", nid);
-+		return -EINVAL;
-+	}
-+
- 	mem_hotplug_begin();
- 
+--- a/arch/parisc/include/asm/cacheflush.h~parisc-kmap-remove-duplicate-kma=
+p-code
++++ a/arch/parisc/include/asm/cacheflush.h
+@@ -100,35 +100,11 @@ flush_anon_page(struct vm_area_struct *v
+ 	}
+ }
+=20
+-#include <asm/kmap_types.h>
+-
+-#define ARCH_HAS_KMAP
+-
+-static inline void *kmap(struct page *page)
+-{
+-	might_sleep();
+-	return page_address(page);
+-}
+-
+-static inline void kunmap(struct page *page)
+-{
+-	flush_kernel_dcache_page_addr(page_address(page));
+-}
+-
+-static inline void *kmap_atomic(struct page *page)
+-{
+-	preempt_disable();
+-	pagefault_disable();
+-	return page_address(page);
+-}
+-
+-static inline void kunmap_atomic_high(void *addr)
++#define ARCH_HAS_FLUSH_ON_KUNMAP
++static inline void kunmap_flush_on_unmap(void *addr)
+ {
+ 	flush_kernel_dcache_page_addr(addr);
+ }
+=20
+-#define kmap_atomic_prot(page, prot)	kmap_atomic(page)
+-#define kmap_atomic_pfn(pfn)	kmap_atomic(pfn_to_page(pfn))
+-
+ #endif /* _PARISC_CACHEFLUSH_H */
+=20
+--- a/include/linux/highmem.h~parisc-kmap-remove-duplicate-kmap-code
++++ a/include/linux/highmem.h
+@@ -130,7 +130,6 @@ static inline struct page *kmap_to_page(
+=20
+ static inline unsigned long totalhigh_pages(void) { return 0UL; }
+=20
+-#ifndef ARCH_HAS_KMAP
+ static inline void *kmap(struct page *page)
+ {
+ 	might_sleep();
+@@ -143,6 +142,9 @@ static inline void kunmap_high(struct pa
+=20
+ static inline void kunmap(struct page *page)
+ {
++#ifdef ARCH_HAS_FLUSH_ON_KUNMAP
++	kunmap_flush_on_unmap(page_address(page));
++#endif
+ }
+=20
+ static inline void *kmap_atomic(struct page *page)
+@@ -156,15 +158,17 @@ static inline void *kmap_atomic(struct p
+ static inline void kunmap_atomic_high(void *addr)
+ {
  	/*
+-	 * Nothing to do in the CONFIG_HIGHMEM=3Dn case as kunmap_atomic()
++	 * Mostly nothing to do in the CONFIG_HIGHMEM=3Dn case as kunmap_atomic()
+ 	 * handles re-enabling faults + preemption
+ 	 */
++#ifdef ARCH_HAS_FLUSH_ON_KUNMAP
++	kunmap_flush_on_unmap(addr);
++#endif
+ }
+=20
+ #define kmap_atomic_pfn(pfn)	kmap_atomic(pfn_to_page(pfn))
+=20
+ #define kmap_flush_unused()	do {} while(0)
+-#endif
+=20
+ #endif /* CONFIG_HIGHMEM */
+=20
 _
 
-Patches currently in -mm which might be from vishal.l.verma@intel.com are
+Patches currently in -mm which might be from ira.weiny@intel.com are
