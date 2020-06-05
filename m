@@ -1,119 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- rapidio-convert-get_user_pages-pin_user_pages.patch removed from -mm tree
-Date: Fri, 05 Jun 2020 13:19:56 -0700
-Message-ID: <20200605201956.lCjvFQRlu%akpm@linux-foundation.org>
+ relay-handle-alloc_percpu-returning-null-in-relay_open.patch removed from
+ -mm tree
+Date: Fri, 05 Jun 2020 13:19:58 -0700
+Message-ID: <20200605201958.bn9Do31Yk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46002 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46040 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728063AbgFEUT5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:19:57 -0400
+        id S1728025AbgFEUT7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:19:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.bou9@gmail.com, dan.carpenter@oracle.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, mporter@kernel.crashing.org, sumit.semwal@linaro.org
+To: ajd@linux.ibm.com, akash.goel@intel.com, carnil@debian.org, dja@axtens.net, linux@roeck-us.net, mm-commits@vger.kernel.org, mpe@ellerman.id.au, rientjes@google.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: convert get_user_pages() --> pin_user_pages()
+     Subject: kernel/relay.c: handle alloc_percpu returning NULL in relay_open
 has been removed from the -mm tree.  Its filename was
-     rapidio-convert-get_user_pages-pin_user_pages.patch
+     relay-handle-alloc_percpu-returning-null-in-relay_open.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: rapidio: convert get_user_pages() --> pin_user_pages()
+From: Daniel Axtens <dja@axtens.net>
+Subject: kernel/relay.c: handle alloc_percpu returning NULL in relay_open
 
-This code was using get_user_pages_fast(), in a "Case 2" scenario
-(DMA/RDMA), using the categorization from [1].  That means that it's time
-to convert the get_user_pages_fast() + put_page() calls to
-pin_user_pages_fast() + unpin_user_pages() calls.
+alloc_percpu() may return NULL, which means chan->buf may be set to NULL. 
+In that case, when we do *per_cpu_ptr(chan->buf, ...), we dereference an
+invalid pointer:
 
-There is some helpful background in [2]: basically, this is a small
-part of fixing a long-standing disconnect between pinning pages, and
-file systems' use of those pages.
+BUG: Unable to handle kernel data access at 0x7dae0000
+Faulting instruction address: 0xc0000000003f3fec
+...
+NIP [c0000000003f3fec] relay_open+0x29c/0x600
+LR [c0000000003f3fc0] relay_open+0x270/0x600
+Call Trace:
+[c000000054353a70] [c0000000003f3fb4] relay_open+0x264/0x600 (unreliable)
+[c000000054353b00] [c000000000451764] __blk_trace_setup+0x254/0x600
+[c000000054353bb0] [c000000000451b78] blk_trace_setup+0x68/0xa0
+[c000000054353c10] [c0000000010da77c] sg_ioctl+0x7bc/0x2e80
+[c000000054353cd0] [c000000000758cbc] do_vfs_ioctl+0x13c/0x1300
+[c000000054353d90] [c000000000759f14] ksys_ioctl+0x94/0x130
+[c000000054353de0] [c000000000759ff8] sys_ioctl+0x48/0xb0
+[c000000054353e20] [c00000000000bcd0] system_call+0x5c/0x68
 
-[1] Documentation/core-api/pin_user_pages.rst
+Check if alloc_percpu returns NULL.
 
-[2] "Explicit pinning of user-space pages":
-    https://lwn.net/Articles/807108/
+This was found by syzkaller both on x86 and powerpc, and the reproducer it
+found on powerpc is capable of hitting the issue as an unprivileged user.
 
-Link: http://lkml.kernel.org/r/20200517235620.205225-3-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Link: http://lkml.kernel.org/r/20191219121256.26480-1-dja@axtens.net
+Fixes: 017c59c042d0 ("relay: Use per CPU constructs for the relay channel buffer pointers")
+Signed-off-by: Daniel Axtens <dja@axtens.net>
+Reviewed-by: Michael Ellerman <mpe@ellerman.id.au>
+Reviewed-by: Andrew Donnellan <ajd@linux.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Reported-by: syzbot+1e925b4b836afe85a1c6@syzkaller-ppc64.appspotmail.com
+Reported-by: syzbot+587b2421926808309d21@syzkaller-ppc64.appspotmail.com
+Reported-by: syzbot+58320b7171734bf79d26@syzkaller.appspotmail.com
+Reported-by: syzbot+d6074fb08bdb2e010520@syzkaller.appspotmail.com
+Cc: Akash Goel <akash.goel@intel.com>
+Cc: Andrew Donnellan <ajd@linux.ibm.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Salvatore Bonaccorso <carnil@debian.org>
+Cc: <stable@vger.kernel.org>	[4.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ kernel/relay.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-convert-get_user_pages-pin_user_pages
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -572,14 +572,12 @@ static void dma_req_free(struct kref *re
- 	struct mport_dma_req *req = container_of(ref, struct mport_dma_req,
- 			refcount);
- 	struct mport_cdev_priv *priv = req->priv;
--	unsigned int i;
+--- a/kernel/relay.c~relay-handle-alloc_percpu-returning-null-in-relay_open
++++ a/kernel/relay.c
+@@ -581,6 +581,11 @@ struct rchan *relay_open(const char *bas
+ 		return NULL;
  
- 	dma_unmap_sg(req->dmach->device->dev,
- 		     req->sgt.sgl, req->sgt.nents, req->dir);
- 	sg_free_table(&req->sgt);
- 	if (req->page_list) {
--		for (i = 0; i < req->nr_pages; i++)
--			put_page(req->page_list[i]);
-+		unpin_user_pages(req->page_list, req->nr_pages);
- 		kfree(req->page_list);
- 	}
- 
-@@ -815,7 +813,7 @@ rio_dma_transfer(struct file *filp, u32
- 	struct mport_dma_req *req;
- 	struct mport_dev *md = priv->md;
- 	struct dma_chan *chan;
--	int i, ret;
-+	int ret;
- 	int nents;
- 
- 	if (xfer->length == 0)
-@@ -862,7 +860,7 @@ rio_dma_transfer(struct file *filp, u32
- 			goto err_req;
- 		}
- 
--		pinned = get_user_pages_fast(
-+		pinned = pin_user_pages_fast(
- 				(unsigned long)xfer->loc_addr & PAGE_MASK,
- 				nr_pages,
- 				dir == DMA_FROM_DEVICE ? FOLL_WRITE : 0,
-@@ -870,7 +868,7 @@ rio_dma_transfer(struct file *filp, u32
- 
- 		if (pinned != nr_pages) {
- 			if (pinned < 0) {
--				rmcd_error("get_user_pages_unlocked err=%ld",
-+				rmcd_error("pin_user_pages_fast err=%ld",
- 					   pinned);
- 				nr_pages = 0;
- 			} else
-@@ -951,8 +949,7 @@ rio_dma_transfer(struct file *filp, u32
- 
- err_pg:
- 	if (!req->page_list) {
--		for (i = 0; i < nr_pages; i++)
--			put_page(page_list[i]);
-+		unpin_user_pages(page_list, nr_pages);
- 		kfree(page_list);
- 	}
- err_req:
+ 	chan->buf = alloc_percpu(struct rchan_buf *);
++	if (!chan->buf) {
++		kfree(chan);
++		return NULL;
++	}
++
+ 	chan->version = RELAYFS_CHANNEL_VERSION;
+ 	chan->n_subbufs = n_subbufs;
+ 	chan->subbuf_size = subbuf_size;
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
-
-mm-gup-update-pin_user_pagesrst-for-case-3-mmu-notifiers.patch
-mm-gup-introduce-pin_user_pages_locked.patch
-mm-gup-introduce-pin_user_pages_locked-v2.patch
-mm-gup-frame_vector-convert-get_user_pages-pin_user_pages.patch
-mm-gup-documentation-fix-for-pin_user_pages-apis.patch
-docs-mm-gup-pin_user_pagesrst-add-a-case-5.patch
-vhost-convert-get_user_pages-pin_user_pages.patch
+Patches currently in -mm which might be from dja@axtens.net are
