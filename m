@@ -1,35 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- selftests-vm-pkeys-test-correct-behaviour-of-pkey-0.patch removed from -mm
- tree
-Date: Fri, 05 Jun 2020 13:21:03 -0700
-Message-ID: <20200605202103.At53eRKb7%akpm@linux-foundation.org>
+ selftests-vm-pkeys-override-access-right-definitions-on-powerpc.patch
+ removed from -mm tree
+Date: Fri, 05 Jun 2020 13:21:06 -0700
+Message-ID: <20200605202106.BvHtSE9W1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47500 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47574 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728082AbgFEUVE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:21:04 -0400
+        id S1728082AbgFEUVH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:21:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com, dave.hansen@intel.com, desnesn@linux.vnet.ibm.com, fweimer@redhat.com, linuxram@us.ibm.com, mhocko@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: selftests/vm/pkeys: test correct behaviour of pkey-0
+     Subject: selftests/vm/pkeys: override access right definitions on powerpc
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-pkeys-test-correct-behaviour-of-pkey-0.patch
+     selftests-vm-pkeys-override-access-right-definitions-on-powerpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ram Pai <linuxram@us.ibm.com>
-Subject: selftests/vm/pkeys: test correct behaviour of pkey-0
+Subject: selftests/vm/pkeys: override access right definitions on powerpc
 
-Ensure that pkey-0 is allocated on start and that it can be attached
-dynamically in various modes, without failures.
+Some platforms hardcode the x86 values for PKEY_DISABLE_ACCESS
+and PKEY_DISABLE_WRITE such as those in:
+ /usr/include/bits/mman-shared.h.
 
-Link: http://lkml.kernel.org/r/9b7c54a9b4261894fe0c7e884c70b87214ff8fbb.1585646528.git.sandipan@linux.ibm.com
+This overrides the definitions with correct values for powerpc.
+
+[sandipan@linux.ibm.com: fix powerpc access right definitions]
+  Link: http://lkml.kernel.org/r/1ba86fd8a94f38131cfe2d9f277001dd1ad1d34e.1588959697.git.sandipan@linux.ibm.com
+Link: http://lkml.kernel.org/r/f6eb38cb3a1e12eb2cdc9da6300bc5a5dfba0db9.1585646528.git.sandipan@linux.ibm.com
 Signed-off-by: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Sandipan Das <sandipan@linux.ibm.com>
 Acked-by: Dave Hansen <dave.hansen@intel.com>
@@ -46,78 +51,29 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/protection_keys.c |   53 +++++++++++++++++
- 1 file changed, 53 insertions(+)
+ tools/testing/selftests/vm/pkey-powerpc.h |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-test-correct-behaviour-of-pkey-0
-+++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -964,6 +964,58 @@ __attribute__((noinline)) int read_ptr(i
- 	return *ptr;
- }
+--- a/tools/testing/selftests/vm/pkey-powerpc.h~selftests-vm-pkeys-override-access-right-definitions-on-powerpc
++++ a/tools/testing/selftests/vm/pkey-powerpc.h
+@@ -16,13 +16,11 @@
+ #define fpregs			fp_regs
+ #define si_pkey_offset		0x20
  
-+void test_pkey_alloc_free_attach_pkey0(int *ptr, u16 pkey)
-+{
-+	int i, err;
-+	int max_nr_pkey_allocs;
-+	int alloced_pkeys[NR_PKEYS];
-+	int nr_alloced = 0;
-+	long size;
-+
-+	pkey_assert(pkey_last_malloc_record);
-+	size = pkey_last_malloc_record->size;
-+	/*
-+	 * This is a bit of a hack.  But mprotect() requires
-+	 * huge-page-aligned sizes when operating on hugetlbfs.
-+	 * So, make sure that we use something that's a multiple
-+	 * of a huge page when we can.
-+	 */
-+	if (size >= HPAGE_SIZE)
-+		size = HPAGE_SIZE;
-+
-+	/* allocate every possible key and make sure key-0 never got allocated */
-+	max_nr_pkey_allocs = NR_PKEYS;
-+	for (i = 0; i < max_nr_pkey_allocs; i++) {
-+		int new_pkey = alloc_pkey();
-+		pkey_assert(new_pkey != 0);
-+
-+		if (new_pkey < 0)
-+			break;
-+		alloced_pkeys[nr_alloced++] = new_pkey;
-+	}
-+	/* free all the allocated keys */
-+	for (i = 0; i < nr_alloced; i++) {
-+		int free_ret;
-+
-+		if (!alloced_pkeys[i])
-+			continue;
-+		free_ret = sys_pkey_free(alloced_pkeys[i]);
-+		pkey_assert(!free_ret);
-+	}
-+
-+	/* attach key-0 in various modes */
-+	err = sys_mprotect_pkey(ptr, size, PROT_READ, 0);
-+	pkey_assert(!err);
-+	err = sys_mprotect_pkey(ptr, size, PROT_WRITE, 0);
-+	pkey_assert(!err);
-+	err = sys_mprotect_pkey(ptr, size, PROT_EXEC, 0);
-+	pkey_assert(!err);
-+	err = sys_mprotect_pkey(ptr, size, PROT_READ|PROT_WRITE, 0);
-+	pkey_assert(!err);
-+	err = sys_mprotect_pkey(ptr, size, PROT_READ|PROT_WRITE|PROT_EXEC, 0);
-+	pkey_assert(!err);
-+}
-+
- void test_read_of_write_disabled_region(int *ptr, u16 pkey)
- {
- 	int ptr_contents;
-@@ -1448,6 +1500,7 @@ void (*pkey_tests[])(int *ptr, u16 pkey)
- 	test_pkey_syscalls_on_non_allocated_pkey,
- 	test_pkey_syscalls_bad_args,
- 	test_pkey_alloc_exhaust,
-+	test_pkey_alloc_free_attach_pkey0,
- };
+-#ifndef PKEY_DISABLE_ACCESS
+-# define PKEY_DISABLE_ACCESS	0x3  /* disable read and write */
+-#endif
++#undef PKEY_DISABLE_ACCESS
++#define PKEY_DISABLE_ACCESS	0x3  /* disable read and write */
  
- void run_tests_once(void)
+-#ifndef PKEY_DISABLE_WRITE
+-# define PKEY_DISABLE_WRITE	0x2
+-#endif
++#undef PKEY_DISABLE_WRITE
++#define PKEY_DISABLE_WRITE	0x2
+ 
+ #define NR_PKEYS		32
+ #define NR_RESERVED_PKEYS_4K	27 /* pkey-0, pkey-1, exec-only-pkey
 _
 
 Patches currently in -mm which might be from linuxram@us.ibm.com are
