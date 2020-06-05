@@ -1,147 +1,146 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplug-remove-is_mem_section_removable.patch removed from -mm
- tree
-Date: Fri, 05 Jun 2020 13:17:56 -0700
-Message-ID: <20200605201756.jOvJ5JhLm%akpm@linux-foundation.org>
+ mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch removed
+ from -mm tree
+Date: Fri, 05 Jun 2020 13:17:58 -0700
+Message-ID: <20200605201758.cyHXv8JoD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43794 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43838 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727087AbgFEUR5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:17:57 -0400
+        id S1727087AbgFEUR7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:17:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, bhe@redhat.com, david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, osalvador@suse.de, richard.weiyang@gmail.com
+To: anshuman.khandual@arm.com, bhe@redhat.com, david@redhat.com, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de, pankaj.gupta.linux@gmail.com, rppt@linux.ibm.com
 
 
 The patch titled
-     Subject: mm/memory_hotplug: remove is_mem_section_removable()
+     Subject: mm/memory_hotplug: set node_start_pfn of hotadded pgdat to 0
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-remove-is_mem_section_removable.patch
+     mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: remove is_mem_section_removable()
+Subject: mm/memory_hotplug: set node_start_pfn of hotadded pgdat to 0
 
-Fortunately, all users of is_mem_section_removable() are gone.  Get rid of
-it, including some now unnecessary functions.
+Patch series "mm/memory_hotplug: handle memblocks only with
+CONFIG_ARCH_KEEP_MEMBLOCK", v1.
 
-Link: http://lkml.kernel.org/r/20200407135416.24093-3-david@redhat.com
+A hotadded node/pgdat will span no pages at all, until memory is moved to
+the zone/node via move_pfn_range_to_zone() -> resize_pgdat_range - e.g.,
+when onlining memory blocks.  We don't have to initialize the
+node_start_pfn to the memory we are adding.
+
+
+This patch (of 2):
+
+Especially, there is an inconsistency:
+- Hotplugging memory to a memory-less node with cpus: node_start_pf ==  0
+- Offlining and removing last memory from a node: node_start_pfn == 0
+- Hotplugging memory to a memory-less node without cpus: node_start_pfn != 0
+
+As soon as memory is onlined, node_start_pfn is overwritten with the
+actual start.  E.g., when adding two DIMMs but only onlining one of both,
+only that DIMM (with online memory blocks) is spanned by the node.
+
+Currently, the validity of node_start_pfn really is linked to
+node_spanned_pages != 0.  With node_spanned_pages == 0 (e.g., before
+onlining memory), it has no meaning.
+
+So let's stop setting node_start_pfn, just to be overwritten via
+move_pfn_range_to_zone().  This avoids confusion when looking at the code,
+wondering which magic will be performed with the node_start_pfn in this
+function, when hotadding a pgdat.
+
+Link: http://lkml.kernel.org/r/20200422155353.25381-1-david@redhat.com
+Link: http://lkml.kernel.org/r/20200422155353.25381-2-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    7 --
- mm/memory_hotplug.c            |   75 -------------------------------
- 2 files changed, 82 deletions(-)
+ mm/memory_hotplug.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-remove-is_mem_section_removable
-+++ a/include/linux/memory_hotplug.h
-@@ -314,19 +314,12 @@ static inline void pgdat_resize_init(str
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
- 
--extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
- extern void try_offline_node(int nid);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern int remove_memory(int nid, u64 start, u64 size);
- extern void __remove_memory(int nid, u64 start, u64 size);
- 
- #else
--static inline bool is_mem_section_removable(unsigned long pfn,
--					unsigned long nr_pages)
--{
--	return false;
--}
--
- static inline void try_offline_node(int nid) {}
- 
- static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-is_mem_section_removable
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-set-node_start_pfn-of-hotadded-pgdat-to-0
 +++ a/mm/memory_hotplug.c
-@@ -1114,81 +1114,6 @@ EXPORT_SYMBOL_GPL(add_memory);
+@@ -862,10 +862,9 @@ static void reset_node_present_pages(pg_
+ }
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-- * A free page on the buddy free lists (not the per-cpu lists) has PageBuddy
-- * set and the size of the free page is given by page_order(). Using this,
-- * the function determines if the pageblock contains only free pages.
-- * Due to buddy contraints, a free page at least the size of a pageblock will
-- * be located at the start of the pageblock
-- */
--static inline int pageblock_free(struct page *page)
--{
--	return PageBuddy(page) && page_order(page) >= pageblock_order;
--}
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+-static pg_data_t __ref *hotadd_new_pgdat(int nid, u64 start)
++static pg_data_t __ref *hotadd_new_pgdat(int nid)
+ {
+ 	struct pglist_data *pgdat;
+-	unsigned long start_pfn = PFN_DOWN(start);
+ 
+ 	pgdat = NODE_DATA(nid);
+ 	if (!pgdat) {
+@@ -895,9 +894,8 @@ static pg_data_t __ref *hotadd_new_pgdat
+ 	}
+ 
+ 	/* we can use NODE_DATA(nid) from here */
 -
--/* Return the pfn of the start of the next active pageblock after a given pfn */
--static unsigned long next_active_pageblock(unsigned long pfn)
--{
--	struct page *page = pfn_to_page(pfn);
--
--	/* Ensure the starting page is pageblock-aligned */
--	BUG_ON(pfn & (pageblock_nr_pages - 1));
--
--	/* If the entire pageblock is free, move to the end of free page */
--	if (pageblock_free(page)) {
--		int order;
--		/* be careful. we don't have locks, page_order can be changed.*/
--		order = page_order(page);
--		if ((order < MAX_ORDER) && (order >= pageblock_order))
--			return pfn + (1 << order);
--	}
--
--	return pfn + pageblock_nr_pages;
--}
--
--static bool is_pageblock_removable_nolock(unsigned long pfn)
--{
--	struct page *page = pfn_to_page(pfn);
--	struct zone *zone;
--
--	/*
--	 * We have to be careful here because we are iterating over memory
--	 * sections which are not zone aware so we might end up outside of
--	 * the zone but still within the section.
--	 * We have to take care about the node as well. If the node is offline
--	 * its NODE_DATA will be NULL - see page_zone.
--	 */
--	if (!node_online(page_to_nid(page)))
--		return false;
--
--	zone = page_zone(page);
--	pfn = page_to_pfn(page);
--	if (!zone_spans_pfn(zone, pfn))
--		return false;
--
--	return !has_unmovable_pages(zone, page, MIGRATE_MOVABLE,
--				    MEMORY_OFFLINE);
--}
--
--/* Checks if this range of memory is likely to be hot-removable. */
--bool is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
--{
--	unsigned long end_pfn, pfn;
--
--	end_pfn = min(start_pfn + nr_pages,
--			zone_end_pfn(page_zone(pfn_to_page(start_pfn))));
--
--	/* Check the starting page of each pageblock within the range */
--	for (pfn = start_pfn; pfn < end_pfn; pfn = next_active_pageblock(pfn)) {
--		if (!is_pageblock_removable_nolock(pfn))
--			return false;
--		cond_resched();
--	}
--
--	/* All pageblocks in the memory block are likely to be hot-removable */
--	return true;
--}
+ 	pgdat->node_id = nid;
+-	pgdat->node_start_pfn = start_pfn;
++	pgdat->node_start_pfn = 0;
+ 
+ 	/* init node's zones as empty zones, we don't have any present pages.*/
+ 	free_area_init_core_hotplug(nid);
+@@ -932,7 +930,6 @@ static void rollback_node_hotadd(int nid
+ /**
+  * try_online_node - online a node if offlined
+  * @nid: the node ID
+- * @start: start addr of the node
+  * @set_node_online: Whether we want to online the node
+  * called by cpu_up() to online a node without onlined memory.
+  *
+@@ -941,7 +938,7 @@ static void rollback_node_hotadd(int nid
+  * 0 -> the node is already online
+  * -ENOMEM -> the node could not be allocated
+  */
+-static int __try_online_node(int nid, u64 start, bool set_node_online)
++static int __try_online_node(int nid, bool set_node_online)
+ {
+ 	pg_data_t *pgdat;
+ 	int ret = 1;
+@@ -949,7 +946,7 @@ static int __try_online_node(int nid, u6
+ 	if (node_online(nid))
+ 		return 0;
+ 
+-	pgdat = hotadd_new_pgdat(nid, start);
++	pgdat = hotadd_new_pgdat(nid);
+ 	if (!pgdat) {
+ 		pr_err("Cannot online node %d due to NULL pgdat\n", nid);
+ 		ret = -ENOMEM;
+@@ -973,7 +970,7 @@ int try_online_node(int nid)
+ 	int ret;
+ 
+ 	mem_hotplug_begin();
+-	ret =  __try_online_node(nid, 0, true);
++	ret =  __try_online_node(nid, true);
+ 	mem_hotplug_done();
+ 	return ret;
+ }
+@@ -1032,7 +1029,7 @@ int __ref add_memory_resource(int nid, s
+ 	 */
+ 	memblock_add_node(start, size, nid);
+ 
+-	ret = __try_online_node(nid, start, false);
++	ret = __try_online_node(nid, false);
+ 	if (ret < 0)
+ 		goto error;
+ 	new_node = ret;
+_
+
+Patches currently in -mm which might be from david@redhat.com are
