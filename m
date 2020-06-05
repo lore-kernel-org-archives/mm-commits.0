@@ -1,79 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-look-for-c99-comments-in-ctx_locate_comment.patch removed from
- -mm tree
-Date: Fri, 05 Jun 2020 13:19:23 -0700
-Message-ID: <20200605201923.JPvSEezUs%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-disallow-git-and-file-fix.patch
+ removed from -mm tree
+Date: Fri, 05 Jun 2020 13:19:26 -0700
+Message-ID: <20200605201926.8lu7ODofJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45516 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45550 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728225AbgFEUTY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:19:24 -0400
+        id S1728088AbgFEUT0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:19:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@google.com, apw@canonical.com, dvyukov@google.com, elver@google.com, glider@google.com, joe@perches.com, mm-commits@vger.kernel.org, paulmck@kernel.org, will@kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: look for c99 comments in ctx_locate_comment
+     Subject: checkpatch: disallow --git and --file/--fix
 has been removed from the -mm tree.  Its filename was
-     checkpatch-look-for-c99-comments-in-ctx_locate_comment.patch
+     checkpatch-disallow-git-and-file-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: look for c99 comments in ctx_locate_comment
+Subject: checkpatch: disallow --git and --file/--fix
 
-Some checks look for comments around a specific function like
-read_barrier_depends.
+Don't allow these options to be combined.
 
-Extend the check to support both c89 and c90 comment styles.
+Miscellanea:
 
-	c89 /* comment */
-or
-	c99 // comment
+o Add missing $P: to some die("reason message") output
 
-For c99 comments, only look a 3 single lines, the line being scanned,
-the line above and the line below the line being scanned rather than
-the patch diff context.
-
-Link: http://lkml.kernel.org/r/65cb075435d2f385a53c77571b491b2b09faaf8e.camel@perches.com
+Link: http://lkml.kernel.org/r/3dc7bdaa58490f5906efc11a4d6113e42a087723.camel@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: Paul E. McKenney <paulmck@kernel.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-look-for-c99-comments-in-ctx_locate_comment
+--- a/scripts/checkpatch.pl~checkpatch-disallow-git-and-file-fix
 +++ a/scripts/checkpatch.pl
-@@ -1676,8 +1676,16 @@ sub ctx_statement_level {
- sub ctx_locate_comment {
- 	my ($first_line, $end_line) = @_;
+@@ -246,6 +246,8 @@ list_types(0) if ($list_types);
+ $fix = 1 if ($fix_inplace);
+ $check_orig = $check;
  
-+	# If c99 comment on the current line, or the line before or after
-+	my ($current_comment) = ($rawlines[$end_line - 1] =~ m@^\+.*(//.*$)@);
-+	return $current_comment if (defined $current_comment);
-+	($current_comment) = ($rawlines[$end_line - 2] =~ m@^[\+ ].*(//.*$)@);
-+	return $current_comment if (defined $current_comment);
-+	($current_comment) = ($rawlines[$end_line] =~ m@^[\+ ].*(//.*$)@);
-+	return $current_comment if (defined $current_comment);
++die "$P: --git cannot be used with --file or --fix\n" if ($git && ($file || $fix));
 +
- 	# Catch a comment on the end of the line itself.
--	my ($current_comment) = ($rawlines[$end_line - 1] =~ m@.*(/\*.*\*/)\s*(?:\\\s*)?$@);
-+	($current_comment) = ($rawlines[$end_line - 1] =~ m@.*(/\*.*\*/)\s*(?:\\\s*)?$@);
- 	return $current_comment if (defined $current_comment);
+ my $exit = 0;
  
- 	# Look through the context and try and figure out if there is a
+ my $perl_version_ok = 1;
+@@ -269,11 +271,11 @@ if ($color =~ /^[01]$/) {
+ } elsif ($color =~ /^auto$/i) {
+ 	$color = (-t STDOUT);
+ } else {
+-	die "Invalid color mode: $color\n";
++	die "$P: Invalid color mode: $color\n";
+ }
+ 
+ # skip TAB size 1 to avoid additional checks on $tabsize - 1
+-die "Invalid TAB size: $tabsize\n" if ($tabsize < 2);
++die "$P: Invalid TAB size: $tabsize\n" if ($tabsize < 2);
+ 
+ sub hash_save_array_words {
+ 	my ($hashRef, $arrayRef) = @_;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
