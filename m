@@ -1,72 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- usb-core-kcov-collect-coverage-from-usb-complete-callback.patch removed
- from -mm tree
-Date: Fri, 05 Jun 2020 13:16:30 -0700
-Message-ID: <20200605201630.R9FHnucA5%akpm@linux-foundation.org>
+ mm-utilc-remove-the-vm_warn_once-for-vm_committed_as-underflow-check.patch
+ removed from -mm tree
+Date: Fri, 05 Jun 2020 13:16:32 -0700
+Message-ID: <20200605201632.QKSPZMekb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41184 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41222 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727087AbgFEUQc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:16:32 -0400
+        id S1727087AbgFEUQe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:16:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@gmail.com, andreyknvl@google.com, dvyukov@google.com, elver@google.com, glider@google.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org, stern@rowland.harvard.edu
+To: andi.kleen@intel.com, cai@lca.pw, feng.tang@intel.com, hannes@cmpxchg.org, keescook@chromium.org, koct9i@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: usb: core: kcov: collect coverage from usb complete callback
+     Subject: mm/util.c: remove the VM_WARN_ONCE for vm_committed_as underflow check
 has been removed from the -mm tree.  Its filename was
-     usb-core-kcov-collect-coverage-from-usb-complete-callback.patch
+     mm-utilc-remove-the-vm_warn_once-for-vm_committed_as-underflow-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: usb: core: kcov: collect coverage from usb complete callback
+From: Feng Tang <feng.tang@intel.com>
+Subject: mm/util.c: remove the VM_WARN_ONCE for vm_committed_as underflow check
 
-This patch adds kcov_remote_start/stop() callbacks around the urb
-complete() callback that is executed in softirq context when dummy_hcd is
-in use.  As the result, kcov can be used to collect coverage from those
-callbacks, which is used to facilitate coverage-guided fuzzing with
-syzkaller.
+This check was added by 82f71ae4a2b8 ("mm: catch memory commitment
+underflow") in 2014 to have a safety check for issues which have been
+fixed.  And there has been few report caught by it, as described in its
+commit log:
 
-Link: http://lkml.kernel.org/r/4520671eeb604adbc2432c248b0c07fbaa5519ef.1585233617.git.andreyknvl@google.com
-Link: http://lkml.kernel.org/r/2821d497ac1cdc0efb5e00df30271e4a67fc8009.1584655448.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Marco Elver <elver@google.com>
+: This shouldn't happen any more - the previous two patches fixed
+: the committed_as underflow issues.
+
+But it was really found by Qian Cai when he used the LTP memory stress
+suite to test a RFC patchset, which tries to improve scalability of
+per-cpu counter 'vm_committed_as', by chosing a bigger 'batch' number for
+loose overcommit policies (OVERCOMMIT_ALWAYS and OVERCOMMIT_GUESS), while
+keeping current number for OVERCOMMIT_NEVER.
+
+With that patchset, when system firstly uses a loose policy, the
+'vm_committed_as' count could be a big negative value, as its big 'batch'
+number allows a big deviation, then when the policy is changed to
+OVERCOMMIT_NEVER, the 'batch' will be decreased to a much smaller value,
+thus hits this WARN check.
+
+To mitigate this, one proposed solution is to queue work on all online
+CPUs to do a local sync for 'vm_committed_as' when changing policy to
+OVERCOMMIT_NEVER, plus some global syncing to garante the case won't be
+hit.
+
+But this solution is costy and slow, given this check hasn't shown real
+trouble or benefit, simply drop it from one hot path of MM.  And perf
+stats does show some tiny saving for removing it.
+
+Link: http://lkml.kernel.org/r/20200603094804.GB89848@shbuild999.sh.intel.com
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Reported-by: Qian Cai <cai@lca.pw>
+Reviewed-by: Qian Cai <cai@lca.pw>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hcd.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/util.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/drivers/usb/core/hcd.c~usb-core-kcov-collect-coverage-from-usb-complete-callback
-+++ a/drivers/usb/core/hcd.c
-@@ -31,6 +31,7 @@
- #include <linux/types.h>
- #include <linux/genalloc.h>
- #include <linux/io.h>
-+#include <linux/kcov.h>
+--- a/mm/util.c~mm-utilc-remove-the-vm_warn_once-for-vm_committed_as-underflow-check
++++ a/mm/util.c
+@@ -796,10 +796,6 @@ int __vm_enough_memory(struct mm_struct
+ {
+ 	long allowed;
  
- #include <linux/phy/phy.h>
- #include <linux/usb.h>
-@@ -1645,7 +1646,9 @@ static void __usb_hcd_giveback_urb(struc
- 
- 	/* pass ownership to the completion handler */
- 	urb->status = status;
-+	kcov_remote_start_usb((u64)urb->dev->bus->busnum);
- 	urb->complete(urb);
-+	kcov_remote_stop();
- 
- 	usb_anchor_resume_wakeups(anchor);
- 	atomic_dec(&urb->use_count);
-_
-
-Patches currently in -mm which might be from andreyknvl@google.com are
+-	VM_WARN_ONCE(percpu_counter_read(&vm_committed_as) <
+-			-(s64)vm_committed_as_batch * num_online_cpus(),
+-			"memory commitment underflow");
