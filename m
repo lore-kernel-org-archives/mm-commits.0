@@ -1,70 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-seq_filec-seq_read-update-pr_info_ratelimited.patch removed from -mm
+ seq_file-introduce-define_seq_attribute-helper-macro.patch removed from -mm
  tree
-Date: Fri, 05 Jun 2020 13:19:42 -0700
-Message-ID: <20200605201942.LZ3c5rQ2p%akpm@linux-foundation.org>
+Date: Fri, 05 Jun 2020 13:19:44 -0700
+Message-ID: <20200605201944._DMyHvMWM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45762 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45792 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728149AbgFEUTm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:19:42 -0400
+        id S1728083AbgFEUTp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:19:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org, vvs@virtuozzo.com
+To: anil.s.keshavamurthy@intel.com, davem@davemloft.net, gregkh@linuxfoundation.org, mhiramat@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, wangkefeng.wang@huawei.com
 
 
 The patch titled
-     Subject: fs/seq_file.c: seq_read: Update pr_info_ratelimited
+     Subject: include/linux/seq_file.h: introduce DEFINE_SEQ_ATTRIBUTE() helper macro
 has been removed from the -mm tree.  Its filename was
-     fs-seq_filec-seq_read-update-pr_info_ratelimited.patch
+     seq_file-introduce-define_seq_attribute-helper-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: fs/seq_file.c: seq_read: Update pr_info_ratelimited
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: include/linux/seq_file.h: introduce DEFINE_SEQ_ATTRIBUTE() helper macro
 
-Use a more common logging style.
+Patch series "seq_file: Introduce DEFINE_SEQ_ATTRIBUTE() helper macro".
 
-Add and use pr_fmt, coalesce the format string, align arguments,
-use better grammar.
+As discussed in
+https://lore.kernel.org/lkml/20191129222310.GA3712618@kroah.com/, we could
+introduce a new helper macro to reduce losts of boilerplate code, vmstat
+and kprobes is the example which covert to use it, if this is accepted, I
+will send out more cleanups.
 
-Link: http://lkml.kernel.org/r/96ff603230ca1bd60034c36519be3930c3a3a226.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Vasily Averin <vvs@virtuozzo.com>
+
+This patch (of 3):
+
+Introduce DEFINE_SEQ_ATTRIBUTE() helper macro to decrease code duplication.
+
+[akpm@linux-foundation.org: coding style fixes]
+Link: http://lkml.kernel.org/r/20200509064031.181091-1-wangkefeng.wang@huawei.com
+Link: http://lkml.kernel.org/r/20200509064031.181091-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/seq_file.h |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
---- a/fs/seq_file.c~fs-seq_filec-seq_read-update-pr_info_ratelimited
-+++ a/fs/seq_file.c
-@@ -6,6 +6,8 @@
-  * initial implementation -- AV, Oct 2001.
-  */
+--- a/include/linux/seq_file.h~seq_file-introduce-define_seq_attribute-helper-macro
++++ a/include/linux/seq_file.h
+@@ -145,6 +145,25 @@ void *__seq_open_private(struct file *,
+ int seq_open_private(struct file *, const struct seq_operations *, int);
+ int seq_release_private(struct inode *, struct file *);
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#define DEFINE_SEQ_ATTRIBUTE(__name)					\
++static int __name ## _open(struct inode *inode, struct file *file)	\
++{									\
++	int ret = seq_open(file, &__name ## _sops);			\
++	if (!ret && inode->i_private) {					\
++		struct seq_file *seq_f = file->private_data;		\
++		seq_f->private = inode->i_private;			\
++	}								\
++	return ret;							\
++}									\
++									\
++static const struct file_operations __name ## _fops = {			\
++	.owner		= THIS_MODULE,					\
++	.open		= __name ## _open,				\
++	.read		= seq_read,					\
++	.llseek		= seq_lseek,					\
++	.release	= seq_release,					\
++}
 +
- #include <linux/cache.h>
- #include <linux/fs.h>
- #include <linux/export.h>
-@@ -233,9 +235,8 @@ Fill:
- 
- 		p = m->op->next(m, p, &m->index);
- 		if (pos == m->index) {
--			pr_info_ratelimited("buggy seq_file .next function %ps "
--				"did not updated position index\n",
--				m->op->next);
-+			pr_info_ratelimited("buggy .next function %ps did not update position index\n",
-+					    m->op->next);
- 			m->index++;
- 		}
- 		if (!p || IS_ERR(p)) {
+ #define DEFINE_SHOW_ATTRIBUTE(__name)					\
+ static int __name ## _open(struct inode *inode, struct file *file)	\
+ {									\
 _
 
-Patches currently in -mm which might be from joe@perches.com are
-
-checkpatch-test-git_dir-changes.patch
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
