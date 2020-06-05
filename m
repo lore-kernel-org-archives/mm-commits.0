@@ -1,104 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-additional-maintainer-section-entry-ordering-checks.patch
- removed from -mm tree
-Date: Fri, 05 Jun 2020 13:19:21 -0700
-Message-ID: <20200605201921.MMkiRMQwm%akpm@linux-foundation.org>
+ checkpatch-look-for-c99-comments-in-ctx_locate_comment.patch removed from
+ -mm tree
+Date: Fri, 05 Jun 2020 13:19:23 -0700
+Message-ID: <20200605201923.JPvSEezUs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45472 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45516 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728225AbgFEUTW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:19:22 -0400
+        id S1728225AbgFEUTY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:19:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andy.shevchenko@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
+To: andreyknvl@google.com, apw@canonical.com, dvyukov@google.com, elver@google.com, glider@google.com, joe@perches.com, mm-commits@vger.kernel.org, paulmck@kernel.org, will@kernel.org
 
 
 The patch titled
-     Subject: checkpatch: additional MAINTAINER section entry ordering checks
+     Subject: checkpatch: look for c99 comments in ctx_locate_comment
 has been removed from the -mm tree.  Its filename was
-     checkpatch-additional-maintainer-section-entry-ordering-checks.patch
+     checkpatch-look-for-c99-comments-in-ctx_locate_comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: additional MAINTAINER section entry ordering checks
+Subject: checkpatch: look for c99 comments in ctx_locate_comment
 
-There is a preferred order for the entries in MAINTAINERS sections.
+Some checks look for comments around a specific function like
+read_barrier_depends.
 
-See:
+Extend the check to support both c89 and c90 comment styles.
 
-commit 3b50142d8528 ("MAINTAINERS: sort field names for all entries")
-and
-commit 6680125ea5a2 ("MAINTAINERS: list the section entries in the preferred order")
+	c89 /* comment */
+or
+	c99 // comment
 
-Add checkpatch tests to try to keep that ordering.
+For c99 comments, only look a 3 single lines, the line being scanned,
+the line above and the line below the line being scanned rather than
+the patch diff context.
 
-Link: http://lkml.kernel.org/r/17677130b3ca62d79817e6a22546bad39d7e81b4.camel@perches.com
+Link: http://lkml.kernel.org/r/65cb075435d2f385a53c77571b491b2b09faaf8e.camel@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Tested-by: Paul E. McKenney <paulmck@kernel.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   45 ++++++++++++++++++++++++++++++++--------
- 1 file changed, 37 insertions(+), 8 deletions(-)
+ scripts/checkpatch.pl |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-additional-maintainer-section-entry-ordering-checks
+--- a/scripts/checkpatch.pl~checkpatch-look-for-c99-comments-in-ctx_locate_comment
 +++ a/scripts/checkpatch.pl
-@@ -3062,14 +3062,43 @@ sub process {
- 			#print "is_start<$is_start> is_end<$is_end> length<$length>\n";
- 		}
+@@ -1676,8 +1676,16 @@ sub ctx_statement_level {
+ sub ctx_locate_comment {
+ 	my ($first_line, $end_line) = @_;
  
--# check for MAINTAINERS entries that don't have the right form
--		if ($realfile =~ /^MAINTAINERS$/ &&
--		    $rawline =~ /^\+[A-Z]:/ &&
--		    $rawline !~ /^\+[A-Z]:\t\S/) {
--			if (WARN("MAINTAINERS_STYLE",
--				 "MAINTAINERS entries use one tab after TYPE:\n" . $herecurr) &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/^(\+[A-Z]):\s*/$1:\t/;
-+# check MAINTAINERS entries
-+		if ($realfile =~ /^MAINTAINERS$/) {
-+# check MAINTAINERS entries for the right form
-+			if ($rawline =~ /^\+[A-Z]:/ &&
-+			    $rawline !~ /^\+[A-Z]:\t\S/) {
-+				if (WARN("MAINTAINERS_STYLE",
-+					 "MAINTAINERS entries use one tab after TYPE:\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/^(\+[A-Z]):\s*/$1:\t/;
-+				}
-+			}
-+# check MAINTAINERS entries for the right ordering too
-+			my $preferred_order = 'MRLSWQBCPTFXNK';
-+			if ($rawline =~ /^\+[A-Z]:/ &&
-+			    $prevrawline =~ /^[\+ ][A-Z]:/) {
-+				$rawline =~ /^\+([A-Z]):\s*(.*)/;
-+				my $cur = $1;
-+				my $curval = $2;
-+				$prevrawline =~ /^[\+ ]([A-Z]):\s*(.*)/;
-+				my $prev = $1;
-+				my $prevval = $2;
-+				my $curindex = index($preferred_order, $cur);
-+				my $previndex = index($preferred_order, $prev);
-+				if ($curindex < 0) {
-+					WARN("MAINTAINERS_STYLE",
-+					     "Unknown MAINTAINERS entry type: '$cur'\n" . $herecurr);
-+				} else {
-+					if ($previndex >= 0 && $curindex < $previndex) {
-+						WARN("MAINTAINERS_STYLE",
-+						     "Misordered MAINTAINERS entry - list '$cur:' before '$prev:'\n" . $hereprev);
-+					} elsif ((($prev eq 'F' && $cur eq 'F') ||
-+						  ($prev eq 'X' && $cur eq 'X')) &&
-+						 ($prevval cmp $curval) > 0) {
-+						WARN("MAINTAINERS_STYLE",
-+						     "Misordered MAINTAINERS entry - list file patterns in alphabetic order\n" . $hereprev);
-+					}
-+				}
- 			}
- 		}
++	# If c99 comment on the current line, or the line before or after
++	my ($current_comment) = ($rawlines[$end_line - 1] =~ m@^\+.*(//.*$)@);
++	return $current_comment if (defined $current_comment);
++	($current_comment) = ($rawlines[$end_line - 2] =~ m@^[\+ ].*(//.*$)@);
++	return $current_comment if (defined $current_comment);
++	($current_comment) = ($rawlines[$end_line] =~ m@^[\+ ].*(//.*$)@);
++	return $current_comment if (defined $current_comment);
++
+ 	# Catch a comment on the end of the line itself.
+-	my ($current_comment) = ($rawlines[$end_line - 1] =~ m@.*(/\*.*\*/)\s*(?:\\\s*)?$@);
++	($current_comment) = ($rawlines[$end_line - 1] =~ m@.*(/\*.*\*/)\s*(?:\\\s*)?$@);
+ 	return $current_comment if (defined $current_comment);
  
+ 	# Look through the context and try and figure out if there is a
 _
 
 Patches currently in -mm which might be from joe@perches.com are
