@@ -1,176 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-make-a-test-module-with-set-clear-bit.patch
+Subject: [merged]
+ checkpatch-additional-maintainer-section-entry-ordering-checks.patch
  removed from -mm tree
-Date: Fri, 05 Jun 2020 13:19:15 -0700
-Message-ID: <20200605201915.Qfk5mFdMe%akpm@linux-foundation.org>
+Date: Fri, 05 Jun 2020 13:19:21 -0700
+Message-ID: <20200605201921.MMkiRMQwm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45388 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45472 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728041AbgFEUTQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:19:16 -0400
+        id S1728225AbgFEUTW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:19:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@intel.com, bp@alien8.de, christian.brauner@ubuntu.com, dan.j.williams@intel.com, jesse.brandeburg@intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, peterz@infradead.org, richard.weiyang@gmail.com, tglx@linutronix.de
+To: andy.shevchenko@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: make a test module with set/clear bit
+     Subject: checkpatch: additional MAINTAINER section entry ordering checks
 has been removed from the -mm tree.  Its filename was
-     lib-make-a-test-module-with-set-clear-bit.patch
+     checkpatch-additional-maintainer-section-entry-ordering-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Subject: lib: make a test module with set/clear bit
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: additional MAINTAINER section entry ordering checks
 
-Test some bit clears/sets to make sure assembly doesn't change, and that
-the set_bit and clear_bit functions work and don't cause sparse warnings.
+There is a preferred order for the entries in MAINTAINERS sections.
 
-Instruct Kbuild to build this file with extra warning level -Wextra, to
-catch new issues, and also doesn't hurt to build with C=1.
+See:
 
-This was used to test changes to arch/x86/include/asm/bitops.h.
+commit 3b50142d8528 ("MAINTAINERS: sort field names for all entries")
+and
+commit 6680125ea5a2 ("MAINTAINERS: list the section entries in the preferred order")
 
-In particular, sparse (C=1) was very concerned when the last bit before a
-natural boundary, like 7, or 31, was being tested, as this causes sign
-extension (0xffffff7f) for instance when clearing bit 7.
+Add checkpatch tests to try to keep that ordering.
 
-Recommended usage:
-make defconfig
-scripts/config -m CONFIG_TEST_BITOPS
-make modules_prepare
-make C=1 W=1 lib/test_bitops.ko
-objdump -S -d lib/test_bitops.ko
-insmod lib/test_bitops.ko
-rmmod lib/test_bitops.ko
-<check dmesg>, there should be no compiler/sparse warnings and no
-error messages in log.
-
-Link: http://lkml.kernel.org/r/20200310221747.2848474-2-jesse.brandeburg@intel.com
-Signed-off-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-CcL Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Link: http://lkml.kernel.org/r/17677130b3ca62d79817e6a22546bad39d7e81b4.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug                  |   13 +++++
- lib/Makefile                       |    2 
- lib/test_bitops.c                  |   60 +++++++++++++++++++++++++++
- tools/testing/selftests/lib/config |    1 
- 4 files changed, 76 insertions(+)
+ scripts/checkpatch.pl |   45 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 37 insertions(+), 8 deletions(-)
 
---- a/lib/Kconfig.debug~lib-make-a-test-module-with-set-clear-bit
-+++ a/lib/Kconfig.debug
-@@ -2022,6 +2022,19 @@ config TEST_LKM
+--- a/scripts/checkpatch.pl~checkpatch-additional-maintainer-section-entry-ordering-checks
++++ a/scripts/checkpatch.pl
+@@ -3062,14 +3062,43 @@ sub process {
+ 			#print "is_start<$is_start> is_end<$is_end> length<$length>\n";
+ 		}
  
- 	  If unsure, say N.
+-# check for MAINTAINERS entries that don't have the right form
+-		if ($realfile =~ /^MAINTAINERS$/ &&
+-		    $rawline =~ /^\+[A-Z]:/ &&
+-		    $rawline !~ /^\+[A-Z]:\t\S/) {
+-			if (WARN("MAINTAINERS_STYLE",
+-				 "MAINTAINERS entries use one tab after TYPE:\n" . $herecurr) &&
+-			    $fix) {
+-				$fixed[$fixlinenr] =~ s/^(\+[A-Z]):\s*/$1:\t/;
++# check MAINTAINERS entries
++		if ($realfile =~ /^MAINTAINERS$/) {
++# check MAINTAINERS entries for the right form
++			if ($rawline =~ /^\+[A-Z]:/ &&
++			    $rawline !~ /^\+[A-Z]:\t\S/) {
++				if (WARN("MAINTAINERS_STYLE",
++					 "MAINTAINERS entries use one tab after TYPE:\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/^(\+[A-Z]):\s*/$1:\t/;
++				}
++			}
++# check MAINTAINERS entries for the right ordering too
++			my $preferred_order = 'MRLSWQBCPTFXNK';
++			if ($rawline =~ /^\+[A-Z]:/ &&
++			    $prevrawline =~ /^[\+ ][A-Z]:/) {
++				$rawline =~ /^\+([A-Z]):\s*(.*)/;
++				my $cur = $1;
++				my $curval = $2;
++				$prevrawline =~ /^[\+ ]([A-Z]):\s*(.*)/;
++				my $prev = $1;
++				my $prevval = $2;
++				my $curindex = index($preferred_order, $cur);
++				my $previndex = index($preferred_order, $prev);
++				if ($curindex < 0) {
++					WARN("MAINTAINERS_STYLE",
++					     "Unknown MAINTAINERS entry type: '$cur'\n" . $herecurr);
++				} else {
++					if ($previndex >= 0 && $curindex < $previndex) {
++						WARN("MAINTAINERS_STYLE",
++						     "Misordered MAINTAINERS entry - list '$cur:' before '$prev:'\n" . $hereprev);
++					} elsif ((($prev eq 'F' && $cur eq 'F') ||
++						  ($prev eq 'X' && $cur eq 'X')) &&
++						 ($prevval cmp $curval) > 0) {
++						WARN("MAINTAINERS_STYLE",
++						     "Misordered MAINTAINERS entry - list file patterns in alphabetic order\n" . $hereprev);
++					}
++				}
+ 			}
+ 		}
  
-+config TEST_BITOPS
-+	tristate "Test module for compilation of clear_bit/set_bit operations"
-+	depends on m
-+	help
-+	  This builds the "test_bitops" module that is much like the
-+	  TEST_LKM module except that it does a basic exercise of the
-+	  clear_bit and set_bit macros to make sure there are no compiler
-+	  warnings from C=1 sparse checker or -Wextra compilations. It has
-+	  no dependencies and doesn't run or load unless explicitly requested
-+	  by name.  for example: modprobe test_bitops.
-+
-+	  If unsure, say N.
-+
- config TEST_VMALLOC
- 	tristate "Test module for stress/performance analysis of vmalloc allocator"
- 	default n
---- a/lib/Makefile~lib-make-a-test-module-with-set-clear-bit
-+++ a/lib/Makefile
-@@ -56,6 +56,8 @@ obj-y += kstrtox.o
- obj-$(CONFIG_FIND_BIT_BENCHMARK) += find_bit_benchmark.o
- obj-$(CONFIG_TEST_BPF) += test_bpf.o
- obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
-+obj-$(CONFIG_TEST_BITOPS) += test_bitops.o
-+CFLAGS_test_bitops.o += -Werror
- obj-$(CONFIG_TEST_SYSCTL) += test_sysctl.o
- obj-$(CONFIG_TEST_HASH) += test_hash.o test_siphash.o
- obj-$(CONFIG_TEST_IDA) += test_ida.o
---- /dev/null
-+++ a/lib/test_bitops.c
-@@ -0,0 +1,60 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Copyright (C) 2020 Intel Corporation
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/printk.h>
-+
-+/* a tiny module only meant to test set/clear_bit */
-+
-+/* use an enum because thats the most common BITMAP usage */
-+enum bitops_fun {
-+	BITOPS_4 = 4,
-+	BITOPS_7 = 7,
-+	BITOPS_11 = 11,
-+	BITOPS_31 = 31,
-+	BITOPS_88 = 88,
-+	BITOPS_LAST = 255,
-+	BITOPS_LENGTH = 256
-+};
-+
-+static DECLARE_BITMAP(g_bitmap, BITOPS_LENGTH);
-+
-+static int __init test_bitops_startup(void)
-+{
-+	pr_warn("Loaded test module\n");
-+	set_bit(BITOPS_4, g_bitmap);
-+	set_bit(BITOPS_7, g_bitmap);
-+	set_bit(BITOPS_11, g_bitmap);
-+	set_bit(BITOPS_31, g_bitmap);
-+	set_bit(BITOPS_88, g_bitmap);
-+	return 0;
-+}
-+
-+static void __exit test_bitops_unstartup(void)
-+{
-+	int bit_set;
-+
-+	clear_bit(BITOPS_4, g_bitmap);
-+	clear_bit(BITOPS_7, g_bitmap);
-+	clear_bit(BITOPS_11, g_bitmap);
-+	clear_bit(BITOPS_31, g_bitmap);
-+	clear_bit(BITOPS_88, g_bitmap);
-+
-+	bit_set = find_first_bit(g_bitmap, BITOPS_LAST);
-+	if (bit_set != BITOPS_LAST)
-+		pr_err("ERROR: FOUND SET BIT %d\n", bit_set);
-+
-+	pr_warn("Unloaded test module\n");
-+}
-+
-+module_init(test_bitops_startup);
-+module_exit(test_bitops_unstartup);
-+
-+MODULE_AUTHOR("Jesse Brandeburg <jesse.brandeburg@intel.com>");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Bit testing module");
---- a/tools/testing/selftests/lib/config~lib-make-a-test-module-with-set-clear-bit
-+++ a/tools/testing/selftests/lib/config
-@@ -2,3 +2,4 @@ CONFIG_TEST_PRINTF=m
- CONFIG_TEST_BITMAP=m
- CONFIG_PRIME_NUMBERS=m
- CONFIG_TEST_STRSCPY=m
-+CONFIG_TEST_BITOPS=m
 _
 
-Patches currently in -mm which might be from jesse.brandeburg@intel.com are
+Patches currently in -mm which might be from joe@perches.com are
+
+checkpatch-test-git_dir-changes.patch
