@@ -1,135 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- init-allow-distribution-configuration-of-default-init.patch removed from
- -mm tree
-Date: Fri, 05 Jun 2020 13:19:35 -0700
-Message-ID: <20200605201935.Sz6WEW8nz%akpm@linux-foundation.org>
+Subject: [merged] fat-improve-the-readahead-for-fat-entries.patch
+ removed from -mm tree
+Date: Fri, 05 Jun 2020 13:19:37 -0700
+Message-ID: <20200605201937.cVlDBJ2Ip%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45684 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45708 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728083AbgFEUTh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 16:19:37 -0400
+        id S1728083AbgFEUTi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 16:19:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chrisdown.name, gregkh@linuxfoundation.org, mhiramat@kernel.org, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, hyeongseok.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init: allow distribution configuration of default init
+     Subject: fat: improve the readahead for FAT entries
 has been removed from the -mm tree.  Its filename was
-     init-allow-distribution-configuration-of-default-init.patch
+     fat-improve-the-readahead-for-fat-entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chris Down <chris@chrisdown.name>
-Subject: init: allow distribution configuration of default init
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: improve the readahead for FAT entries
 
-Some init systems (eg.  systemd) have init at their own paths, for
-example, /usr/lib/systemd/systemd.  A compatibility symlink to one of the
-hardcoded init paths is provided by another package, usually named
-something like systemd-sysvcompat or similar.
+Current readahead for FAT entries is very simple but is having some flaws,
+so it is not working well for some environments.  This patch improves the
+readahead more or less.
 
-Currently distro maintainers who are hands-off on the bootloader are more
-or less required to include those compatibility links as part of their
-base distribution, because it's hard to migrate away from them since
-there's a risk some users will not get the message to set init= on the
-kernel command line appropriately.
+The key points of modification are,
 
-Moreover, for distributions where the init system is something the
-distribution itself is opinionated about (eg.  Arch, which has systemd in
-the required `base` package), we could usually reasonably configure this
-ahead of time when building the distribution kernel.  However, we
-currently simply don't have any way to configure the kernel to do this. 
-Here's an example discussion where removing sysvcompat was discussed by
-distro maintainers[0].
+  - make the readahead size tunable by using bdi->ra_pages
+  - care the bdi->io_pages to avoid the small size I/O request
+  - update readahead window before fully exhausting
 
-This patch adds a new Kconfig tunable, CONFIG_DEFAULT_INIT, which if set
-is tried before the hardcoded fallback list.  So the order of precedence
-is now thus:
+With this patch, on slow USB connected 2TB hdd:
 
-1. init= on command line (on failure: panic)
-2. CONFIG_DEFAULT_INIT (on failure: try #3)
-3. Hardcoded fallback list (on failure: panic)
+[before]
+383.18sec
 
-This new config parameter will allow distribution maintainers to move away
-from these compatibility links safely, without having to worry that their
-users might not have the right init=.
+[after]
+51.03sec
 
-There are also two other benefits of this over having the distribution
-maintain a symlink:
-
-1. One of the value propositions over simply having distributions
-   maintain a /sbin/init symlink via a package is that it also frees
-   distributions which have a preferred default, but not mandatory, init
-   system from having their package manager fight with their users for
-   control of /{s,}bin/init.  Instead, the distribution simply makes
-   their preference known in CONFIG_DEFAULT_INIT, and if the user
-   installs another init system and uninstalls the default one they can
-   still make use of /{s,}bin/init and friends for their own uses. This
-   makes more cases Just Work(tm) without the user having to perform
-   extra configuration via init=.
-
-2. Since before this we don't know which path the distribution actually
-   _intends_ to serve init from, we don't pr_err if it is simply
-   missing, and usually will just silently put the user in a /bin/sh
-   shell. Now that the distribution can make a declaration of intent, we
-   can be more vocal when this init system fails to launch for any
-   reason, even if it's simply because no file exists at that location,
-   speeding up the palaver of init/mount dependency/etc debugging a bit.
-
-[0]: https://lists.archlinux.org/pipermail/arch-dev-public/2019-January/029435.html
-
-Link: http://lkml.kernel.org/r/20200522160234.GA1487022@chrisdown.name
-Signed-off-by: Chris Down <chris@chrisdown.name>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Link: http://lkml.kernel.org/r/87d08e1dlh.fsf@mail.parknet.co.jp
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Tested-by: hyeongseok.kim <hyeongseok.kim@lge.com>
+Reviewed-by: hyeongseok.kim <hyeongseok.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   10 ++++++++++
- init/main.c  |   10 ++++++++++
- 2 files changed, 20 insertions(+)
+ fs/fat/fatent.c |  103 +++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 75 insertions(+), 28 deletions(-)
 
---- a/init/Kconfig~init-allow-distribution-configuration-of-default-init
-+++ a/init/Kconfig
-@@ -260,6 +260,16 @@ config KERNEL_UNCOMPRESSED
+--- a/fs/fat/fatent.c~fat-improve-the-readahead-for-fat-entries
++++ a/fs/fat/fatent.c
+@@ -632,20 +632,80 @@ error:
+ }
+ EXPORT_SYMBOL_GPL(fat_free_clusters);
  
- endchoice
+-/* 128kb is the whole sectors for FAT12 and FAT16 */
+-#define FAT_READA_SIZE		(128 * 1024)
++struct fatent_ra {
++	sector_t cur;
++	sector_t limit;
++
++	unsigned int ra_blocks;
++	sector_t ra_advance;
++	sector_t ra_next;
++	sector_t ra_limit;
++};
  
-+config DEFAULT_INIT
-+	string "Default init path"
-+	default ""
-+	help
-+	  This option determines the default init for the system if no init=
-+	  option is passed on the kernel command line. If the requested path is
-+	  not present, we will still then move on to attempting further
-+	  locations (e.g. /sbin/init, etc). If this is empty, we will just use
-+	  the fallback list when init= is not passed.
+-static void fat_ent_reada(struct super_block *sb, struct fat_entry *fatent,
+-			  unsigned long reada_blocks)
++static void fat_ra_init(struct super_block *sb, struct fatent_ra *ra,
++			struct fat_entry *fatent, int ent_limit)
+ {
+-	const struct fatent_operations *ops = MSDOS_SB(sb)->fatent_ops;
+-	sector_t blocknr;
+-	int i, offset;
++	struct msdos_sb_info *sbi = MSDOS_SB(sb);
++	const struct fatent_operations *ops = sbi->fatent_ops;
++	sector_t blocknr, block_end;
++	int offset;
++	/*
++	 * This is the sequential read, so ra_pages * 2 (but try to
++	 * align the optimal hardware IO size).
++	 * [BTW, 128kb covers the whole sectors for FAT12 and FAT16]
++	 */
++	unsigned long ra_pages = sb->s_bdi->ra_pages;
++	unsigned int reada_blocks;
 +
- config DEFAULT_HOSTNAME
- 	string "Default hostname"
- 	default "(none)"
---- a/init/main.c~init-allow-distribution-configuration-of-default-init
-+++ a/init/main.c
-@@ -1433,6 +1433,16 @@ static int __ref kernel_init(void *unuse
- 		panic("Requested init %s failed (error %d).",
- 		      execute_command, ret);
- 	}
++	if (ra_pages > sb->s_bdi->io_pages)
++		ra_pages = rounddown(ra_pages, sb->s_bdi->io_pages);
++	reada_blocks = ra_pages << (PAGE_SHIFT - sb->s_blocksize_bits + 1);
+ 
++	/* Initialize the range for sequential read */
+ 	ops->ent_blocknr(sb, fatent->entry, &offset, &blocknr);
++	ops->ent_blocknr(sb, ent_limit - 1, &offset, &block_end);
++	ra->cur = 0;
++	ra->limit = (block_end + 1) - blocknr;
 +
-+	if (CONFIG_DEFAULT_INIT[0] != '\0') {
-+		ret = run_init_process(CONFIG_DEFAULT_INIT);
-+		if (ret)
-+			pr_err("Default init %s failed (error %d)\n",
-+			       CONFIG_DEFAULT_INIT, ret);
-+		else
-+			return 0;
++	/* Advancing the window at half size */
++	ra->ra_blocks = reada_blocks >> 1;
++	ra->ra_advance = ra->cur;
++	ra->ra_next = ra->cur;
++	ra->ra_limit = ra->cur + min_t(sector_t, reada_blocks, ra->limit);
++}
+ 
+-	for (i = 0; i < reada_blocks; i++)
+-		sb_breadahead(sb, blocknr + i);
++/* Assuming to be called before reading a new block (increments ->cur). */
++static void fat_ent_reada(struct super_block *sb, struct fatent_ra *ra,
++			  struct fat_entry *fatent)
++{
++	if (ra->ra_next >= ra->ra_limit)
++		return;
++
++	if (ra->cur >= ra->ra_advance) {
++		struct msdos_sb_info *sbi = MSDOS_SB(sb);
++		const struct fatent_operations *ops = sbi->fatent_ops;
++		struct blk_plug plug;
++		sector_t blocknr, diff;
++		int offset;
++
++		ops->ent_blocknr(sb, fatent->entry, &offset, &blocknr);
++
++		diff = blocknr - ra->cur;
++		blk_start_plug(&plug);
++		/*
++		 * FIXME: we would want to directly use the bio with
++		 * pages to reduce the number of segments.
++		 */
++		for (; ra->ra_next < ra->ra_limit; ra->ra_next++)
++			sb_breadahead(sb, ra->ra_next + diff);
++		blk_finish_plug(&plug);
++
++		/* Advance the readahead window */
++		ra->ra_advance += ra->ra_blocks;
++		ra->ra_limit += min_t(sector_t,
++				      ra->ra_blocks, ra->limit - ra->ra_limit);
 +	}
-+
- 	if (!try_to_run_init_process("/sbin/init") ||
- 	    !try_to_run_init_process("/etc/init") ||
- 	    !try_to_run_init_process("/bin/init") ||
-_
-
-Patches currently in -mm which might be from chris@chrisdown.name are
++	ra->cur++;
+ }
+ 
+ int fat_count_free_clusters(struct super_block *sb)
+@@ -653,27 +713,20 @@ int fat_count_free_clusters(struct super
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	const struct fatent_operations *ops = sbi->fatent_ops;
+ 	struct fat_entry fatent;
+-	unsigned long reada_blocks, reada_mask, cur_block;
++	struct fatent_ra fatent_ra;
+ 	int err = 0, free;
+ 
+ 	lock_fat(sbi);
+ 	if (sbi->free_clusters != -1 && sbi->free_clus_valid)
+ 		goto out;
+ 
+-	reada_blocks = FAT_READA_SIZE >> sb->s_blocksize_bits;
+-	reada_mask = reada_blocks - 1;
+-	cur_block = 0;
+-
+ 	free = 0;
+ 	fatent_init(&fatent);
+ 	fatent_set_entry(&fatent, FAT_START_ENT);
++	fat_ra_init(sb, &fatent_ra, &fatent, sbi->max_cluster);
+ 	while (fatent.entry < sbi->max_cluster) {
+ 		/* readahead of fat blocks */
+-		if ((cur_block & reada_mask) == 0) {
+-			unsigned long rest = sbi->fat_length - cur_block;
+-			fat_ent_reada(sb, &fatent, min(reada_blocks, rest));
+-		}
+-		cur_block++;
++		fat_ent_reada(sb, &fatent_ra, &fatent);
+ 
+ 		err = fat_ent_read_block(sb, &fatent);
+ 		if (err)
+@@ -707,9 +760,9 @@ int fat_trim_fs(struct inode *inode, str
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	const struct fatent_operations *ops = sbi->fatent_ops;
+ 	struct fat_entry fatent;
++	struct fatent_ra fatent_ra;
+ 	u64 ent_start, ent_end, minlen, trimmed = 0;
+ 	u32 free = 0;
+-	unsigned long reada_blocks, reada_mask, cur_block = 0;
+ 	int err = 0;
+ 
+ 	/*
+@@ -727,19 +780,13 @@ int fat_trim_fs(struct inode *inode, str
+ 	if (ent_end >= sbi->max_cluster)
+ 		ent_end = sbi->max_cluster - 1;
+ 
+-	reada_blocks = FAT_READA_SIZE >> sb->s_blocksize_bits;
+-	reada_mask = reada_blocks - 1;
