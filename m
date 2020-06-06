@@ -1,41 +1,143 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: + ipc-convert-ipcs_idr-to-xarray-update.patch added to -mm tree
-Date: Fri, 5 Jun 2020 14:20:39 -0700
-Message-ID: <20200605142039.b8a81c08bf5ba34fa0181545@linux-foundation.org>
-References: <20200420181310.c18b3c0aa4dc5b3e5ec1be10@linux-foundation.org>
-        <20200424014753.DfBuzjmzo%akpm@linux-foundation.org>
-        <20200605195848.GB5393@lca.pw>
-        <20200605201134.GJ19604@bombadil.infradead.org>
+Subject: + lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+ added to -mm tree
+Date: Fri, 05 Jun 2020 17:18:24 -0700
+Message-ID: <20200606001824.-HvvcYX_b%akpm@linux-foundation.org>
+References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33234 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58188 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728180AbgFEVUk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 17:20:40 -0400
-In-Reply-To: <20200605201134.GJ19604@bombadil.infradead.org>
+        id S1728275AbgFFAS1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 20:18:27 -0400
+In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Qian Cai <cai@lca.pw>, linux-kernel@vger.kernel.org, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com, geert@linux-m68k.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
 
-On Fri, 5 Jun 2020 13:11:34 -0700 Matthew Wilcox <willy@infradead.org> wrote:
 
-> On Fri, Jun 05, 2020 at 03:58:48PM -0400, Qian Cai wrote:
-> > This will trigger,
-> > 
-> > [ 8853.759549] LTP: starting semget05
-> > [ 8867.257088] BUG: sleeping function called from invalid context at mm/slab.h:567
-> > [ 8867.270259] in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 22556, name: semget05
-> > [ 8867.270309] 2 locks held by semget05/22556:
-> > [ 8867.270345]  #0: 00000000512de7e0 (&ids->rwsem){++++}-{3:3}, at: ipcget+0x4e/0x230
-> > [ 8867.270426]  #1: 00000000552b9018 (&new->lock){+.+.}-{2:2}, at: ipc_addid+0xf4/0xf50
-> 
-> Did the fix for this not make it into -next?
+The patch titled
+     Subject: lib-test-get_count_order-long-in-test_bitopsc-fix
+has been added to the -mm tree.  Its filename is
+     lib-test-get_count_order-long-in-test_bitopsc-fix.patch
 
-I don't think I've seen this fix before.  And I'm unclear on how it
-pertains to the current patch(es) in -mm.  And it has no changelog!
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test-get_count_order-long-in-test_bitopsc-fix.patch
 
-Perhaps it would be best to do a formal send of the latest version?
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-test-get_count_order-long-in-test_bitopsc-fix
+
+- use order_comb[] to test get_count_order_long() as well, per Geert
+
+- avoid warnings on 32-bit, reported by Geert
+
+- coding-style cleanups
+
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/test_bitops.c |   23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
+
+--- a/lib/test_bitops.c~lib-test-get_count_order-long-in-test_bitopsc-fix
++++ a/lib/test_bitops.c
+@@ -28,7 +28,7 @@ enum bitops_fun {
+ 
+ static DECLARE_BITMAP(g_bitmap, BITOPS_LENGTH);
+ 
+-unsigned int order_comb[][2] = {
++static unsigned int order_comb[][2] = {
+ 	{0x00000003,  2},
+ 	{0x00000004,  2},
+ 	{0x00001fff, 13},
+@@ -38,7 +38,8 @@ unsigned int order_comb[][2] = {
+ 	{0x80003000, 32},
+ };
+ 
+-unsigned long order_comb_long[][2] = {
++#ifdef CONFIG_64BIT
++static unsigned long order_comb_long[][2] = {
+ 	{0x0000000300000000, 34},
+ 	{0x0000000400000000, 34},
+ 	{0x00001fff00000000, 45},
+@@ -47,6 +48,7 @@ unsigned long order_comb_long[][2] = {
+ 	{0x8000000000000000, 63},
+ 	{0x8000300000000000, 64},
+ };
++#endif
+ 
+ static int __init test_bitops_startup(void)
+ {
+@@ -62,14 +64,23 @@ static int __init test_bitops_startup(vo
+ 	for (i = 0; i < ARRAY_SIZE(order_comb); i++) {
+ 		if (order_comb[i][1] != get_count_order(order_comb[i][0]))
+ 			pr_warn("get_count_order wrong for %x\n",
+-				       order_comb[i][0]); }
++				       order_comb[i][0]);
++	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(order_comb_long); i++) {
++	for (i = 0; i < ARRAY_SIZE(order_comb); i++) {
++		if (order_comb[i][1] != get_count_order_long(order_comb[i][0]))
++			pr_warn("get_count_order_long wrong for %x\n",
++				       order_comb[i][0]);
++	}
++
++#ifdef CONFIG_64BIT
++	for (i = 0; i < ARRAY_SIZE(order_comb); i++) {
+ 		if (order_comb_long[i][1] !=
+ 			       get_count_order_long(order_comb_long[i][0]))
+ 			pr_warn("get_count_order_long wrong for %lx\n",
+-				       order_comb_long[i][0]); }
+-
++				       order_comb_long[i][0]);
++	}
++#endif
+ 	return 0;
+ }
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-git-rejects.patch
+kernel-add-panic_on_taint-fix.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
