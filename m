@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- khugepaged-selftests-fix-timeout-condition-in-wait_for_scan.patch added to
+Subject: + scripts-spelling-add-a-few-more-typos.patch added to
  -mm tree
-Date: Fri, 05 Jun 2020 17:53:39 -0700
-Message-ID: <20200606005339.zoukXXoup%akpm@linux-foundation.org>
+Date: Fri, 05 Jun 2020 18:04:03 -0700
+Message-ID: <20200606010403.Y6OnRskbc%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51794 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56408 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728353AbgFFAxl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 20:53:41 -0400
+        id S1726803AbgFFBEE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Jun 2020 21:04:04 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, shuah@kernel.org, william.kucharski@oracle.com, yang.shi@linux.alibaba.com, ziy@nvidia.com
+To: david@redhat.com, joe@perches.com, mm-commits@vger.kernel.org, sjpark@amazon.de
 
 
 The patch titled
-     Subject: khugepaged: selftests: fix timeout condition in wait_for_scan()
+     Subject: scripts/spelling: add a few more typos
 has been added to the -mm tree.  Its filename is
-     khugepaged-selftests-fix-timeout-condition-in-wait_for_scan.patch
+     scripts-spelling-add-a-few-more-typos.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-selftests-fix-timeout-condition-in-wait_for_scan.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-spelling-add-a-few-more-typos.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-selftests-fix-timeout-condition-in-wait_for_scan.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-spelling-add-a-few-more-typos.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +38,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: khugepaged: selftests: fix timeout condition in wait_for_scan()
+From: SeongJae Park <sjpark@amazon.de>
+Subject: scripts/spelling: add a few more typos
 
-The loop exits with "timeout" set to -1 and not to 0 so the test needs to
-be fixed.
+This commit adds typos I found from another work.
 
-Link: http://lkml.kernel.org/r/20200605110736.GH978434@mwanda
-Fixes: e7b592f6caca ("khugepaged: add self test")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-cked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Link: http://lkml.kernel.org/r/20200605092502.18018-3-sjpark@amazon.com
+Signed-off-by: SeongJae Park <sjpark@amazon.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/spelling.txt |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/tools/testing/selftests/vm/khugepaged.c~khugepaged-selftests-fix-timeout-condition-in-wait_for_scan
-+++ a/tools/testing/selftests/vm/khugepaged.c
-@@ -502,7 +502,7 @@ static bool wait_for_scan(const char *ms
- 
- 	madvise(p, hpage_pmd_size, MADV_NOHUGEPAGE);
- 
--	return !timeout;
-+	return timeout == -1;
- }
- 
- static void alloc_at_fault(void)
+--- a/scripts/spelling.txt~scripts-spelling-add-a-few-more-typos
++++ a/scripts/spelling.txt
+@@ -59,6 +59,7 @@ actualy||actually
+ acumulating||accumulating
+ acumulative||accumulative
+ acumulator||accumulator
++acutally||actually
+ adapater||adapter
+ addional||additional
+ additionaly||additionally
+@@ -249,6 +250,7 @@ calescing||coalescing
+ calle||called
+ callibration||calibration
+ callled||called
++callser||caller
+ calucate||calculate
+ calulate||calculate
+ cancelation||cancellation
+@@ -671,6 +673,7 @@ hanlde||handle
+ hanled||handled
+ happend||happened
+ harware||hardware
++havind||having
+ heirarchically||hierarchically
+ helpfull||helpful
+ hexdecimal||hexadecimal
+@@ -845,6 +848,7 @@ logile||logfile
+ loobpack||loopback
+ loosing||losing
+ losted||lost
++maangement||management
+ machinary||machinery
+ maibox||mailbox
+ maintainance||maintenance
+@@ -905,6 +909,7 @@ modfiy||modify
+ modulues||modules
+ momery||memory
+ memomry||memory
++monitring||monitoring
+ monochorome||monochrome
+ monochromo||monochrome
+ monocrome||monochrome
+@@ -1010,6 +1015,7 @@ partiton||partition
+ pased||passed
+ passin||passing
+ pathes||paths
++pattrns||patterns
+ pecularities||peculiarities
+ peformance||performance
+ peforming||performing
+@@ -1256,6 +1262,7 @@ shoule||should
+ shrinked||shrunk
+ siginificantly||significantly
+ signabl||signal
++significanly||significantly
+ similary||similarly
+ similiar||similar
+ simlar||similar
+@@ -1371,6 +1378,7 @@ thead||thread
+ therfore||therefore
+ thier||their
+ threds||threads
++threee||three
+ threshhold||threshold
+ thresold||threshold
+ throught||through
+@@ -1410,6 +1418,7 @@ tyep||type
+ udpate||update
+ uesd||used
+ uknown||unknown
++usccess||success
+ usupported||unsupported
+ uncommited||uncommitted
+ unconditionaly||unconditionally
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from sjpark@amazon.de are
 
-khugepaged-selftests-fix-timeout-condition-in-wait_for_scan.patch
+scripts-spelling-add-a-few-more-typos.patch
