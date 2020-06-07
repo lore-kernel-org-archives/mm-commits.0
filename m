@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_idlec-skip-offline-pages.patch added to -mm
- tree
-Date: Fri, 05 Jun 2020 18:06:29 -0700
-Message-ID: <20200606010629.NBKqk1gCz%akpm@linux-foundation.org>
+Subject: +
+ nilfs2-fix-null-pointer-dereference-at-nilfs_segctor_do_construct.patch
+ added to -mm tree
+Date: Sun, 07 Jun 2020 16:41:18 -0700
+Message-ID: <20200607234118.e6OahXAr8%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57792 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37894 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726803AbgFFBGb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Jun 2020 21:06:31 -0400
+        id S1727794AbgFGXlU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 7 Jun 2020 19:41:20 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@redhat.com, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, sjpark@amazon.de
+To: hdk1983@gmail.com, hermes@ceres.dti.ne.jp, konishi.ryusuke@gmail.com, me@waltonhoops.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, tom@logand.com
 
 
 The patch titled
-     Subject: mm/page_idle.c: Skip offline pages
+     Subject: nilfs2: fix null pointer dereference at nilfs_segctor_do_construct()
 has been added to the -mm tree.  Its filename is
-     mm-page_idlec-skip-offline-pages.patch
+     nilfs2-fix-null-pointer-dereference-at-nilfs_segctor_do_construct.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_idlec-skip-offline-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-null-pointer-dereference-at-nilfs_segctor_do_construct.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_idlec-skip-offline-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-null-pointer-dereference-at-nilfs_segctor_do_construct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,43 +39,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sjpark@amazon.de>
-Subject: mm/page_idle.c: Skip offline pages
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix null pointer dereference at nilfs_segctor_do_construct()
 
-'Idle page tracking' users can pass random pfn that might be mapped to an
-offline page.  To avoid accessing such pages, this commit modifies the
-'page_idle_get_page()' to use 'pfn_to_online_page()' instead of
-'pfn_valid()' and 'pfn_to_page()' combination, so that the pfn mapped to
-an offline page can be skipped.
+After commit c3aab9a0bd91 ("mm/filemap.c: don't initiate writeback if
+mapping has no dirty pages"), the following null pointer dereference has
+been reported on nilfs2:
 
-Link: http://lkml.kernel.org/r/20200605092502.18018-2-sjpark@amazon.com
-Signed-off-by: SeongJae Park <sjpark@amazon.de>
-Reported-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+ BUG: kernel NULL pointer dereference, address: 00000000000000a8
+ #PF: supervisor read access in kernel mode
+ #PF: error_code(0x0000) - not-present page
+ PGD 0 P4D 0
+ Oops: 0000 [#1] SMP PTI
+ ...
+ RIP: 0010:percpu_counter_add_batch+0xa/0x60
+ ...
+ Call Trace:
+  __test_set_page_writeback+0x2d3/0x330
+  nilfs_segctor_do_construct+0x10d3/0x2110 [nilfs2]
+  nilfs_segctor_construct+0x168/0x260 [nilfs2]
+  nilfs_segctor_thread+0x127/0x3b0 [nilfs2]
+  kthread+0xf8/0x130
+  ...
+
+This crash turned out to be caused by set_page_writeback() call for
+segment summary buffers at nilfs_segctor_prepare_write().
+
+set_page_writeback() can call inc_wb_stat(inode_to_wb(inode),
+WB_WRITEBACK) where inode_to_wb(inode) is NULL if the inode of
+underlying block device does not have an associated wb.
+
+This fixes the issue by calling inode_attach_wb() in advance to ensure
+to associate the bdev inode with its wb.
+
+Link: http://lkml.kernel.org/r/20200608.011819.1399059588922299158.konishi.ryusuke@gmail.com
+Fixes: c3aab9a0bd91 ("mm/filemap.c: don't initiate writeback if mapping has no dirty pages")
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: Walton Hoops <me@waltonhoops.com>
+Reported-by: Tomas Hlavaty <tom@logand.com>
+Reported-by: ARAI Shun-ichi <hermes@ceres.dti.ne.jp>
+Reported-by: Hideki EIRAKU <hdk1983@gmail.com>
+Cc: <stable@vger.kernel.org>	[5.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_idle.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ fs/nilfs2/segment.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/page_idle.c~mm-page_idlec-skip-offline-pages
-+++ a/mm/page_idle.c
-@@ -4,6 +4,7 @@
- #include <linux/fs.h>
- #include <linux/sysfs.h>
- #include <linux/kobject.h>
-+#include <linux/memory_hotplug.h>
- #include <linux/mm.h>
- #include <linux/mmzone.h>
- #include <linux/pagemap.h>
-@@ -30,13 +31,9 @@
-  */
- static struct page *page_idle_get_page(unsigned long pfn)
- {
--	struct page *page;
-+	struct page *page = pfn_to_online_page(pfn);
- 	pg_data_t *pgdat;
+--- a/fs/nilfs2/segment.c~nilfs2-fix-null-pointer-dereference-at-nilfs_segctor_do_construct
++++ a/fs/nilfs2/segment.c
+@@ -2780,6 +2780,8 @@ int nilfs_attach_log_writer(struct super
+ 	if (!nilfs->ns_writer)
+ 		return -ENOMEM;
  
--	if (!pfn_valid(pfn))
--		return NULL;
++	inode_attach_wb(nilfs->ns_bdev->bd_inode, NULL);
++
+ 	err = nilfs_segctor_start_thread(nilfs->ns_writer);
+ 	if (err) {
+ 		kfree(nilfs->ns_writer);
+_
+
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+
+nilfs2-fix-null-pointer-dereference-at-nilfs_segctor_do_construct.patch
