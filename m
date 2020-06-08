@@ -1,77 +1,79 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Sun, 07 Jun 2020 23:09:46 -0700
-Message-ID: <20200608060946.YxSO5Zi3k%akpm@linux-foundation.org>
-References: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [nacked]
+ mm-mmapc-add-more-sanity-checks-to-get_unmapped_area.patch removed from -mm
+ tree
+Date: Mon, 08 Jun 2020 15:30:11 -0700
+Message-ID: <20200608223011.9K4dFAcx6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46652 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52728 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726929AbgFHGJr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 02:09:47 -0400
-In-Reply-To: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
+        id S1726746AbgFHWaM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 18:30:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: agordeev@linux.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: mm/mmap.c: add more sanity checks to get_unmapped_area()
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     mm-mmapc-add-more-sanity-checks-to-get_unmapped_area.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: mm/mmap.c: add more sanity checks to get_unmapped_area()
 
+Generic get_unmapped_area() function does sanity checks of address and
+length of the area to be mapped.  Yet, it lacks checking against
+mmap_min_addr and mmap_end limits.
+
+At the same time the default implementation of functions
+arch_get_unmapped_area[_topdown]() and some architecture callbacks do
+mmap_min_addr and mmap_end checks on their own.
+
+Put additional checks into the generic code and do not let architecture
+callbacks to get away with a possible area outside of the allowed limits.
+
+That could also relieve arch_get_unmapped_area[_topdown]() callbacks of
+own address and length sanity checks.
+
+Link: http://lkml.kernel.org/r/d14f2cff3c891ef2c4b0337d737c6f04beacb124.1584958099.git.agordeev@linux.ibm.com
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ mm/mmap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/drivers/pci/quirks.c~linux-next-rejects
-+++ a/drivers/pci/quirks.c
-@@ -5615,15 +5615,3 @@ static void apex_pci_fixup_class(struct
- DECLARE_PCI_FIXUP_CLASS_HEADER(0x1ac1, 0x089a,
- 			       PCI_CLASS_NOT_DEFINED, 8, apex_pci_fixup_class);
+--- a/mm/mmap.c~mm-mmapc-add-more-sanity-checks-to-get_unmapped_area
++++ a/mm/mmap.c
+@@ -2193,12 +2193,13 @@ get_unmapped_area(struct file *file, uns
+ 	unsigned long (*get_area)(struct file *, unsigned long,
+ 				  unsigned long, unsigned long, unsigned long);
  
--/*
-- * Device [12d8:0x400e] and [12d8:0x400f]
-- * These devices advertise PME# support in all power states but don't
-- * reliably assert it.
-- */
--static void pci_fixup_no_pme(struct pci_dev *dev)
--{
--	pci_info(dev, "PME# is unreliable, disabling it\n");
--	dev->pme_support = 0;
--}
--DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_PERICOM, 0x400e, pci_fixup_no_pme);
--DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_PERICOM, 0x400f, pci_fixup_no_pme);
++	const unsigned long mmap_end = arch_get_mmap_end(addr);
+ 	unsigned long error = arch_mmap_check(addr, len, flags);
+ 	if (error)
+ 		return error;
+ 
+ 	/* Careful about overflows.. */
+-	if (len > TASK_SIZE)
++	if (len > mmap_end - mmap_min_addr)
+ 		return -ENOMEM;
+ 
+ 	get_area = current->mm->get_unmapped_area;
+@@ -2219,7 +2220,7 @@ get_unmapped_area(struct file *file, uns
+ 	if (IS_ERR_VALUE(addr))
+ 		return addr;
+ 
+-	if (addr > TASK_SIZE - len)
++	if ((addr < mmap_min_addr) || (addr > mmap_end - len))
+ 		return -ENOMEM;
+ 	if (offset_in_page(addr))
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-git-rejects.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-maccess-unify-the-probe-kernel-arch-hooks-fix.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
