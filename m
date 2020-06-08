@@ -1,97 +1,120 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- docs-mm-gup-pin_user_pagesrst-add-a-case-5-v2.patch removed from -mm tree
-Date: Sun, 07 Jun 2020 21:19:23 -0700
-Message-ID: <20200608041923.Q8Tym9t23%akpm@linux-foundation.org>
+ asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch removed from
+ -mm tree
+Date: Sun, 07 Jun 2020 21:19:56 -0700
+Message-ID: <20200608041956.mzHQ-5dgL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43674 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44244 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725945AbgFHETZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 00:19:25 -0400
+        id S1725945AbgFHET5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 00:19:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, david@fromorbit.com, jack@suse.cz, jasowang@redhat.com, jglisse@redhat.com, jhubbard@nvidia.com, jrdr.linux@gmail.com, mm-commits@vger.kernel.org, mst@redhat.com, vbabka@suse.cz
+To: hch@lst.de, lkp@intel.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: docs: mm/gup: pin_user_pages.rst: add a "case 5"
+     Subject: asm-generic-dont-include-linux-mmh-in-cacheflushh-fix
 has been removed from the -mm tree.  Its filename was
-     docs-mm-gup-pin_user_pagesrst-add-a-case-5-v2.patch
+     asm-generic-dont-include-linux-mmh-in-cacheflushh-fix.patch
 
-This patch was dropped because it was folded into docs-mm-gup-pin_user_page=
-srst-add-a-case-5.patch
+This patch was dropped because it was folded into asm-generic-dont-include-linux-mmh-in-cacheflushh.patch
 
 ------------------------------------------------------
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: docs: mm/gup: pin_user_pages.rst: add a "case 5"
+From: Christoph Hellwig <hch@lst.de>
+Subject: asm-generic-dont-include-linux-mmh-in-cacheflushh-fix
 
-There are four cases listed in pin_user_pages.rst. These are
-intended to help developers figure out whether to use
-get_user_pages*(), or pin_user_pages*(). However, the four cases
-do not cover all the situations. For example, drivers/vhost/vhost.c
-has a "pin, write to page, set page dirty, unpin" case.
+fix warning:
 
-Add a fifth case, to help explain that there is a general pattern
-that requires pin_user_pages*() API calls.
+In file included from ./arch/s390/include/generated/asm/cacheflush.h:1,
+from drivers/media/platform/omap3isp/ispvideo.c:13:
+include/asm-generic/cacheflush.h:18:42: warning: 'struct mm_struct' declared inside parameter list will not be visible outside of this definition or declaration
 
-Link: http://lkml.kernel.org/r/20200601052633.853874-2-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: "Michael S . Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
+Link: http://lkml.kernel.org/r/20200520173520.GA11199@lst.de
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/media/platform/omap3isp/ispvideo.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/core-api/pin_user_pages.rst~docs-mm-gup-pin_user_pagesr=
-st-add-a-case-5-v2
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -174,21 +174,19 @@ needs to be set.
- CASE 5: Pinning in order to write to the data within the page
- -------------------------------------------------------------
- Even though neither DMA nor Direct IO is involved, just a simple case of "=
-pin,
--access page's data, unpin" can cause a problem. Case 5 may be considered a
-+write to a page's data, unpin" can cause a problem. Case 5 may be consider=
-ed a
- superset of Case 1, plus Case 2, plus anything that invokes that pattern. =
-In
- other words, if the code is neither Case 1 nor Case 2, it may still require
- FOLL_PIN, for patterns like this:
-=20
- Correct (uses FOLL_PIN calls):
-     pin_user_pages()
--    access the data within the pages
--    set_page_dirty_lock()
-+    write to the data within the pages
-     unpin_user_pages()
-=20
- INCORRECT (uses FOLL_GET calls):
-     get_user_pages()
--    access the data within the pages
--    set_page_dirty_lock()
-+    write to the data within the pages
-     put_page()
-=20
- page_maybe_dma_pinned(): the whole point of pinning
+--- a/drivers/media/platform/omap3isp/ispvideo.c~asm-generic-dont-include-linux-mmh-in-cacheflushh-fix
++++ a/drivers/media/platform/omap3isp/ispvideo.c
+@@ -10,7 +10,6 @@
+  *	     Sakari Ailus <sakari.ailus@iki.fi>
+  */
+ 
+-#include <asm/cacheflush.h>
+ #include <linux/clk.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
+@@ -19,6 +18,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
++#include <asm/cacheflush.h>
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-ioctl.h>
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-gup-update-pin_user_pagesrst-for-case-3-mmu-notifiers.patch
-mm-gup-introduce-pin_user_pages_locked.patch
-mm-gup-frame_vector-convert-get_user_pages-pin_user_pages.patch
-mm-gup-documentation-fix-for-pin_user_pages-apis.patch
-docs-mm-gup-pin_user_pagesrst-add-a-case-5.patch
-vhost-convert-get_user_pages-pin_user_pages.patch
+arm-fix-the-flush_icache_range-arguments-in-set_fiq_handler.patch
+nds32-unexport-flush_icache_page.patch
+powerpc-unexport-flush_icache_user_range.patch
+unicore32-remove-flush_cache_user_range.patch
+asm-generic-fix-the-inclusion-guards-for-cacheflushh.patch
+asm-generic-dont-include-linux-mmh-in-cacheflushh.patch
+asm-generic-improve-the-flush_dcache_page-stub.patch
+alpha-use-asm-generic-cacheflushh.patch
+arm64-use-asm-generic-cacheflushh.patch
+c6x-use-asm-generic-cacheflushh.patch
+hexagon-use-asm-generic-cacheflushh.patch
+ia64-use-asm-generic-cacheflushh.patch
+microblaze-use-asm-generic-cacheflushh.patch
+m68knommu-use-asm-generic-cacheflushh.patch
+openrisc-use-asm-generic-cacheflushh.patch
+powerpc-use-asm-generic-cacheflushh.patch
+riscv-use-asm-generic-cacheflushh.patch
+armsparcunicore32-remove-flush_icache_user_range.patch
+mm-rename-flush_icache_user_range-to-flush_icache_user_page.patch
+asm-generic-add-a-flush_icache_user_range-stub.patch
+sh-implement-flush_icache_user_range.patch
+xtensa-implement-flush_icache_user_range.patch
+arm-rename-flush_cache_user_range-to-flush_icache_user_range.patch
+m68k-implement-flush_icache_user_range.patch
+exec-only-build-read_code-when-needed.patch
+exec-use-flush_icache_user_range-in-read_code.patch
+binfmt_flat-use-flush_icache_user_range.patch
+nommu-use-flush_icache_user_range-in-brk-and-mmap.patch
+module-move-the-set_fs-hack-for-flush_icache_range-to-m68k.patch
+amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
+kernel-set-user_ds-in-kthread_use_mm.patch
+maccess-unexport-probe_kernel_write-and-probe_user_write.patch
+maccess-remove-various-unused-weak-aliases.patch
+maccess-remove-duplicate-kerneldoc-comments.patch
+maccess-clarify-kerneldoc-comments.patch
+maccess-update-the-top-of-file-comment.patch
+maccess-rename-strncpy_from_unsafe_user-to-strncpy_from_user_nofault.patch
+maccess-rename-strncpy_from_unsafe_strict-to-strncpy_from_kernel_nofault.patch
+maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault.patch
+maccess-remove-probe_read_common-and-probe_write_common.patch
+maccess-unify-the-probe-kernel-arch-hooks.patch
+bpf-factor-out-a-bpf_trace_copy_string-helper.patch
+bpf-handle-the-compat-string-in-bpf_trace_copy_string-better.patch
+bpf-rework-the-compat-kernel-probe-handling.patch
+tracing-kprobes-handle-mixed-kernel-userspace-probes-better.patch
+maccess-remove-strncpy_from_unsafe.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read.patch
+maccess-move-user-access-routines-together.patch
+maccess-allow-architectures-to-provide-kernel-probing-directly.patch
+x86-use-non-set_fs-based-maccess-routines.patch
+maccess-return-erange-when-copy_from_kernel_nofault_allowed-fails.patch
