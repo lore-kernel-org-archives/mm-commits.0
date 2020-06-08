@@ -1,54 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-unexport-flush_icache_user_range.patch
+Subject: [merged] unicore32-remove-flush_cache_user_range.patch
  removed from -mm tree
-Date: Mon, 08 Jun 2020 15:32:32 -0700
-Message-ID: <20200608223232.0z-YHAb9c%akpm@linux-foundation.org>
+Date: Mon, 08 Jun 2020 15:32:34 -0700
+Message-ID: <20200608223234.2Zyyf6M6j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53782 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53806 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726734AbgFHWcd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 18:32:33 -0400
+        id S1726734AbgFHWcg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 18:32:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, hch@lst.de, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org
+To: gxt@pku.edu.cn, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: unexport flush_icache_user_range
+     Subject: unicore32: remove flush_cache_user_range
 has been removed from the -mm tree.  Its filename was
-     powerpc-unexport-flush_icache_user_range.patch
+     unicore32-remove-flush_cache_user_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: powerpc: unexport flush_icache_user_range
+Subject: unicore32: remove flush_cache_user_range
 
-flush_icache_user_range is only used by copy_to_user_page, which is
-only used by core VM code.
+flush_cache_user_range is an ARMism not used by any generic or unicore32
+specific code.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-4-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-5-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Guan Xuetao <gxt@pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mem.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/unicore32/include/asm/cacheflush.h |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/arch/powerpc/mm/mem.c~powerpc-unexport-flush_icache_user_range
-+++ a/arch/powerpc/mm/mem.c
-@@ -586,7 +586,6 @@ void flush_icache_user_range(struct vm_a
- 	flush_icache_range(maddr, maddr + len);
- 	kunmap(page);
- }
--EXPORT_SYMBOL(flush_icache_user_range);
+--- a/arch/unicore32/include/asm/cacheflush.h~unicore32-remove-flush_cache_user_range
++++ a/arch/unicore32/include/asm/cacheflush.h
+@@ -133,14 +133,6 @@ extern void flush_cache_page(struct vm_a
+ #define flush_cache_dup_mm(mm) flush_cache_mm(mm)
  
  /*
-  * System memory should not be in /proc/iomem but various tools expect it
+- * flush_cache_user_range is used when we want to ensure that the
+- * Harvard caches are synchronised for the user space address range.
+- * This is used for the UniCore private sys_cacheflush system call.
+- */
+-#define flush_cache_user_range(vma, start, end) \
+-	__cpuc_coherent_user_range((start) & PAGE_MASK, PAGE_ALIGN(end))
+-
+-/*
+  * Perform necessary cache operations to ensure that data previously
+  * stored within this range of addresses can be executed by the CPU.
+  */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
