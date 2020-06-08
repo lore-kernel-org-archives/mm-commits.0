@@ -1,80 +1,110 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 20/54] mm/gup: documentation fix for
- pin_user_pages*() APIs
-Date: Sun, 07 Jun 2020 21:41:08 -0700
-Message-ID: <20200608044108.hYJYlSc5C%akpm@linux-foundation.org>
+Subject: [patch 21/54] docs: mm/gup: pin_user_pages.rst: add a
+ "case 5"
+Date: Sun, 07 Jun 2020 21:41:11 -0700
+Message-ID: <20200608044111.ytOklZHdi%akpm@linux-foundation.org>
 References: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36902 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726929AbgFHElK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 00:41:10 -0400
+        id S1726929AbgFHElO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 00:41:14 -0400
 In-Reply-To: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.carpenter@oracle.com, david@redhat.com, jack@suse.cz, jhubbard@nvidia.com, jrdr.linux@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, corbet@lwn.net, david@fromorbit.com, jack@suse.cz, jasowang@redhat.com, jglisse@redhat.com, jhubbard@nvidia.com, jrdr.linux@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, mst@redhat.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: documentation fix for pin_user_pages*() APIs
+=46rom: John Hubbard <jhubbard@nvidia.com>
+Subject: docs: mm/gup: pin_user_pages.rst: add a "case 5"
 
-All of the pin_user_pages*() API calls will cause pages to be dma-pinned. 
-As such, they are all suitable for either DMA, RDMA, and/or Direct IO. 
-The documentation should say so, but it was instead saying that three of
-the API calls were only suitable for Direct IO.  This was discovered when
-a reviewer wondered why an API call that specifically recommended against
-Case 2 (DMA/RDMA) was being used in a DMA situation [1].
+Patch series "vhost, docs: convert to pin_user_pages(), new "case 5""
 
-Fix this by simply deleting those claims.  The gup.c comments already
-refer to the more extensive Documentation/core-api/pin_user_pages.rst,
-which does have the correct guidance.  So let's just write it once, there.
+It recently became clear to me that there are some get_user_pages*()
+callers that don't fit neatly into any of the four cases that are so far
+listed in pin_user_pages.rst.  vhost.c is one of those.
 
-[1] https://lore.kernel.org/r/20200529074658.GM30374@kadam
+Add a Case 5 to the documentation, and refer to that when converting
+vhost.c.
 
-Link: http://lkml.kernel.org/r/20200529084515.46259-1-jhubbard@nvidia.com
+Thanks to Jan Kara for helping me (again) in understanding the interaction
+between get_user_pages() and page writeback [1].
+
+This is based on today's mmotm, which has a nearby patch to
+pin_user_pages.rst that rewords cases 3 and 4.
+
+Note that I have only compile-tested the vhost.c patch, although that does
+also include cross-compiling for a few other arches.  Any run-time testing
+would be greatly appreciated.
+
+[1] https://lore.kernel.org/r/20200529070343.GL14550@quack2.suse.cz
+
+
+This patch (of 2):
+
+There are four cases listed in pin_user_pages.rst.  These are intended to
+help developers figure out whether to use get_user_pages*(), or
+pin_user_pages*().  However, the four cases do not cover all the
+situations.  For example, drivers/vhost/vhost.c has a "pin, write to page,
+set page dirty, unpin" case.
+
+Add a fifth case, to help explain that there is a general pattern that
+requires pin_user_pages*() API calls.
+
+[jhubbard@nvidia.com: v2]
+  Link: http://lkml.kernel.org/r/20200601052633.853874-2-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200529234309.484480-1-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200529234309.484480-2-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Acked-by: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: "Michael S . Tsirkin" <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ Documentation/core-api/pin_user_pages.rst |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/mm/gup.c~mm-gup-documentation-fix-for-pin_user_pages-apis
-+++ a/mm/gup.c
-@@ -2918,9 +2918,6 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
-  *
-  * FOLL_PIN means that the pages must be released via unpin_user_page(). Please
-  * see Documentation/core-api/pin_user_pages.rst for further details.
-- *
-- * This is intended for Case 1 (DIO) in Documentation/core-api/pin_user_pages.rst. It
-- * is NOT intended for Case 2 (RDMA: long-term pins).
-  */
- int pin_user_pages_fast(unsigned long start, int nr_pages,
- 			unsigned int gup_flags, struct page **pages)
-@@ -2994,9 +2991,6 @@ EXPORT_SYMBOL_GPL(pin_user_pages_fast_on
-  *
-  * FOLL_PIN means that the pages must be released via unpin_user_page(). Please
-  * see Documentation/core-api/pin_user_pages.rst for details.
-- *
-- * This is intended for Case 1 (DIO) in Documentation/core-api/pin_user_pages.rst. It
-- * is NOT intended for Case 2 (RDMA: long-term pins).
-  */
- long pin_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
- 			   unsigned long start, unsigned long nr_pages,
-@@ -3030,9 +3024,6 @@ EXPORT_SYMBOL(pin_user_pages_remote);
-  *
-  * FOLL_PIN means that the pages must be released via unpin_user_page(). Please
-  * see Documentation/core-api/pin_user_pages.rst for details.
-- *
-- * This is intended for Case 1 (DIO) in Documentation/core-api/pin_user_pages.rst. It
-- * is NOT intended for Case 2 (RDMA: long-term pins).
-  */
- long pin_user_pages(unsigned long start, unsigned long nr_pages,
- 		    unsigned int gup_flags, struct page **pages,
+--- a/Documentation/core-api/pin_user_pages.rst~docs-mm-gup-pin_user_pagesr=
+st-add-a-case-5
++++ a/Documentation/core-api/pin_user_pages.rst
+@@ -171,6 +171,24 @@ If only struct page data (as opposed to
+ is tracking) is affected, then normal GUP calls are sufficient, and neithe=
+r flag
+ needs to be set.
+=20
++CASE 5: Pinning in order to write to the data within the page
++-------------------------------------------------------------
++Even though neither DMA nor Direct IO is involved, just a simple case of "=
+pin,
++write to a page's data, unpin" can cause a problem. Case 5 may be consider=
+ed a
++superset of Case 1, plus Case 2, plus anything that invokes that pattern. =
+In
++other words, if the code is neither Case 1 nor Case 2, it may still require
++FOLL_PIN, for patterns like this:
++
++Correct (uses FOLL_PIN calls):
++    pin_user_pages()
++    write to the data within the pages
++    unpin_user_pages()
++
++INCORRECT (uses FOLL_GET calls):
++    get_user_pages()
++    write to the data within the pages
++    put_page()
++
+ page_maybe_dma_pinned(): the whole point of pinning
+ =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+=20
 _
