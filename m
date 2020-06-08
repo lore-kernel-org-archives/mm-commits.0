@@ -1,85 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- vhost-convert-get_user_pages-pin_user_pages.patch removed from -mm tree
-Date: Mon, 08 Jun 2020 15:32:23 -0700
-Message-ID: <20200608223223.JZ5ouc0JK%akpm@linux-foundation.org>
+Subject: [merged] nds32-unexport-flush_icache_page.patch removed
+ from -mm tree
+Date: Mon, 08 Jun 2020 15:32:30 -0700
+Message-ID: <20200608223230.P3fxqAUHv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53628 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726734AbgFHWcZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 18:32:25 -0400
+        id S1726734AbgFHWcb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 18:32:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, david@fromorbit.com, jack@suse.cz, jasowang@redhat.com, jglisse@redhat.com, jhubbard@nvidia.com, jrdr.linux@gmail.com, mm-commits@vger.kernel.org, mst@redhat.com, pankaj.gupta.linux@gmail.com, vbabka@suse.cz
+To: deanbo422@gmail.com, green.hu@gmail.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vhost: convert get_user_pages() --> pin_user_pages()
+     Subject: nds32: unexport flush_icache_page
 has been removed from the -mm tree.  Its filename was
-     vhost-convert-get_user_pages-pin_user_pages.patch
+     nds32-unexport-flush_icache_page.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: vhost: convert get_user_pages() --> pin_user_pages()
+From: Christoph Hellwig <hch@lst.de>
+Subject: nds32: unexport flush_icache_page
 
-This code was using get_user_pages*(), in approximately a "Case 5"
-scenario (accessing the data within a page), using the categorization from
-[1].  That means that it's time to convert the get_user_pages*() +
-put_page() calls to pin_user_pages*() + unpin_user_pages() calls.
+flush_icache_page is only used by mm/memory.c.
 
-There is some helpful background in [2]: basically, this is a small part
-of fixing a long-standing disconnect between pinning pages, and file
-systems' use of those pages.
-
-[1] Documentation/core-api/pin_user_pages.rst
-
-[2] "Explicit pinning of user-space pages":
-    https://lwn.net/Articles/807108/
-
-Link: http://lkml.kernel.org/r/20200529234309.484480-3-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/20200515143646.3857579-3-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Vincent Chen <deanbo422@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vhost/vhost.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/nds32/mm/cacheflush.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/drivers/vhost/vhost.c~vhost-convert-get_user_pages-pin_user_pages
-+++ a/drivers/vhost/vhost.c
-@@ -1762,15 +1762,14 @@ static int set_bit_to_user(int nr, void
- 	int bit =3D nr + (log % PAGE_SIZE) * 8;
- 	int r;
-=20
--	r =3D get_user_pages_fast(log, 1, FOLL_WRITE, &page);
-+	r =3D pin_user_pages_fast(log, 1, FOLL_WRITE, &page);
- 	if (r < 0)
- 		return r;
- 	BUG_ON(r !=3D 1);
- 	base =3D kmap_atomic(page);
- 	set_bit(bit, base);
- 	kunmap_atomic(base);
--	set_page_dirty_lock(page);
--	put_page(page);
-+	unpin_user_pages_dirty_lock(&page, 1, true);
- 	return 0;
+--- a/arch/nds32/mm/cacheflush.c~nds32-unexport-flush_icache_page
++++ a/arch/nds32/mm/cacheflush.c
+@@ -35,7 +35,6 @@ void flush_icache_page(struct vm_area_st
+ 	kunmap_atomic((void *)kaddr);
+ 	local_irq_restore(flags);
  }
-=20
+-EXPORT_SYMBOL(flush_icache_page);
+ 
+ void flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
+ 	                     unsigned long addr, int len)
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from hch@lst.de are
+
+amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
+kernel-set-user_ds-in-kthread_use_mm.patch
+maccess-unexport-probe_kernel_write-and-probe_user_write.patch
+maccess-remove-various-unused-weak-aliases.patch
+maccess-remove-duplicate-kerneldoc-comments.patch
+maccess-clarify-kerneldoc-comments.patch
+maccess-update-the-top-of-file-comment.patch
+maccess-rename-strncpy_from_unsafe_user-to-strncpy_from_user_nofault.patch
+maccess-rename-strncpy_from_unsafe_strict-to-strncpy_from_kernel_nofault.patch
+maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault.patch
+maccess-remove-probe_read_common-and-probe_write_common.patch
+maccess-unify-the-probe-kernel-arch-hooks.patch
+bpf-factor-out-a-bpf_trace_copy_string-helper.patch
+bpf-handle-the-compat-string-in-bpf_trace_copy_string-better.patch
+bpf-rework-the-compat-kernel-probe-handling.patch
+tracing-kprobes-handle-mixed-kernel-userspace-probes-better.patch
+maccess-remove-strncpy_from_unsafe.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read.patch
+maccess-move-user-access-routines-together.patch
+maccess-allow-architectures-to-provide-kernel-probing-directly.patch
+x86-use-non-set_fs-based-maccess-routines.patch
+maccess-return-erange-when-copy_from_kernel_nofault_allowed-fails.patch
