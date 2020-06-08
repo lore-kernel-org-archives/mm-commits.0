@@ -1,104 +1,125 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 17/54] mm/gup: update pin_user_pages.rst for "case
- 3" (mmu notifiers)
-Date: Sun, 07 Jun 2020 21:40:59 -0700
-Message-ID: <20200608044059.8aZSEkI9C%akpm@linux-foundation.org>
+Subject: [patch 18/54] mm/gup: introduce pin_user_pages_locked()
+Date: Sun, 07 Jun 2020 21:41:02 -0700
+Message-ID: <20200608044102.WqWr6YExw%akpm@linux-foundation.org>
 References: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36670 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726929AbgFHElA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 00:41:00 -0400
+        id S1726929AbgFHElE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 00:41:04 -0400
 In-Reply-To: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, corbet@lwn.net, daniel@ffwll.ch, david@fromorbit.com, jack@suse.cz, jglisse@redhat.com, jhubbard@nvidia.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, daniel@ffwll.ch, david@fromorbit.com, david@redhat.com, jack@suse.cz, jglisse@redhat.com, jhubbard@nvidia.com, jrdr.linux@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, pankaj.gupta.linux@gmail.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: update pin_user_pages.rst for "case 3" (mmu notifiers)
+Subject: mm/gup: introduce pin_user_pages_locked()
 
-Update case 3 so that it covers the use of mmu notifiers, for hardware
-that does, or does not have replayable page faults.
+Patch series "mm/gup: introduce pin_user_pages_locked(), use it in frame_ve=
+ctor.c", v2.
 
-Also, elaborate case 4 slightly, as it was quite cryptic.
+This adds yet one more pin_user_pages*() variant, and uses that to convert
+mm/frame_vector.c.
 
-Link: http://lkml.kernel.org/r/20200527194953.11130-1-jhubbard@nvidia.com
+With this, along with maybe 20 or 30 other recent patches in various
+trees, we are close to having the relevant gup call sites converted--with
+the notable exception of the bio/block layer.
+
+
+This patch (of 2):
+
+Introduce pin_user_pages_locked(), which is nearly identical to
+get_user_pages_locked() except that it sets FOLL_PIN and rejects FOLL_GET.
+
+As with other pairs of get_user_pages*() and pin_user_pages() API calls,
+it's prudent to assert that FOLL_PIN is *not* set in the get_user_pages*()
+call, so add that as part of this.
+
+[jhubbard@nvidia.com: v2]
+  Link: http://lkml.kernel.org/r/20200531234131.770697-2-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200531234131.770697-1-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200527223243.884385-1-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200527223243.884385-2-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |   29 +++++++++++---------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+ include/linux/mm.h |    2 ++
+ mm/gup.c           |   36 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
---- a/Documentation/core-api/pin_user_pages.rst~mm-gup-update-pin_user_page=
-srst-for-case-3-mmu-notifiers
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -148,23 +148,28 @@ NOTE: Some pages, such as DAX pages, can
- because DAX pages do not have a separate page cache, and so "pinning" impl=
-ies
- locking down file system blocks, which is not (yet) supported in that way.
+--- a/include/linux/mm.h~mm-gup-introduce-pin_user_pages_locked
++++ a/include/linux/mm.h
+@@ -1706,6 +1706,8 @@ long pin_user_pages(unsigned long start,
+ 		    struct vm_area_struct **vmas);
+ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+ 		    unsigned int gup_flags, struct page **pages, int *locked);
++long pin_user_pages_locked(unsigned long start, unsigned long nr_pages,
++		    unsigned int gup_flags, struct page **pages, int *locked);
+ long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
+ 		    struct page **pages, unsigned int gup_flags);
+ long pin_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
+--- a/mm/gup.c~mm-gup-introduce-pin_user_pages_locked
++++ a/mm/gup.c
+@@ -2035,6 +2035,12 @@ long get_user_pages_locked(unsigned long
+ 	 */
+ 	if (WARN_ON_ONCE(gup_flags & FOLL_LONGTERM))
+ 		return -EINVAL;
++	/*
++	 * FOLL_PIN must only be set internally by the pin_user_pages*() APIs,
++	 * never directly by the caller, so enforce that:
++	 */
++	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
++		return -EINVAL;
 =20
--CASE 3: Hardware with page faulting support
---------------------------------------------
--Here, a well-written driver doesn't normally need to pin pages at all. How=
-ever,
--if the driver does choose to do so, it can register MMU notifiers for the =
-range,
--and will be called back upon invalidation. Either way (avoiding page pinni=
-ng, or
--using MMU notifiers to unpin upon request), there is proper synchronizatio=
-n with
--both filesystem and mm (page_mkclean(), munmap(), etc).
-+CASE 3: MMU notifier registration, with or without page faulting hardware
-+-------------------------------------------------------------------------
-+Device drivers can pin pages via get_user_pages*(), and register for mmu
-+notifier callbacks for the memory range. Then, upon receiving a notifier
-+"invalidate range" callback , stop the device from using the range, and un=
-pin
-+the pages. There may be other possible schemes, such as for example explic=
-itly
-+synchronizing against pending IO, that accomplish approximately the same t=
-hing.
-=20
--Therefore, neither flag needs to be set.
-+Or, if the hardware supports replayable page faults, then the device drive=
-r can
-+avoid pinning entirely (this is ideal), as follows: register for mmu notif=
-ier
-+callbacks as above, but instead of stopping the device and unpinning in the
-+callback, simply remove the range from the device's page tables.
-=20
--In this case, ideally, neither get_user_pages() nor pin_user_pages() shoul=
-d be
--called. Instead, the software should be written so that it does not pin pa=
-ges.
--This allows mm and filesystems to operate more efficiently and reliably.
-+Either way, as long as the driver unpins the pages upon mmu notifier callb=
-ack,
-+then there is proper synchronization with both filesystem and mm
-+(page_mkclean(), munmap(), etc). Therefore, neither flag needs to be set.
-=20
- CASE 4: Pinning for struct page manipulation only
- -------------------------------------------------
--Here, normal GUP calls are sufficient, so neither flag needs to be set.
-+If only struct page data (as opposed to the actual memory contents that a =
-page
-+is tracking) is affected, then normal GUP calls are sufficient, and neithe=
-r flag
-+needs to be set.
-=20
- page_maybe_dma_pinned(): the whole point of pinning
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
+ 	return __get_user_pages_locked(current, current->mm, start, nr_pages,
+ 				       pages, NULL, locked,
+@@ -3058,3 +3064,33 @@ long pin_user_pages_unlocked(unsigned lo
+ 	return get_user_pages_unlocked(start, nr_pages, pages, gup_flags);
+ }
+ EXPORT_SYMBOL(pin_user_pages_unlocked);
++
++/*
++ * pin_user_pages_locked() is the FOLL_PIN variant of get_user_pages_locke=
+d().
++ * Behavior is the same, except that this one sets FOLL_PIN and rejects
++ * FOLL_GET.
++ */
++long pin_user_pages_locked(unsigned long start, unsigned long nr_pages,
++			   unsigned int gup_flags, struct page **pages,
++			   int *locked)
++{
++	/*
++	 * FIXME: Current FOLL_LONGTERM behavior is incompatible with
++	 * FAULT_FLAG_ALLOW_RETRY because of the FS DAX check requirement on
++	 * vmas.  As there are no users of this flag in this call we simply
++	 * disallow this option for now.
++	 */
++	if (WARN_ON_ONCE(gup_flags & FOLL_LONGTERM))
++		return -EINVAL;
++
++	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
++	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
++		return -EINVAL;
++
++	gup_flags |=3D FOLL_PIN;
++	return __get_user_pages_locked(current, current->mm, start, nr_pages,
++				       pages, NULL, locked,
++				       gup_flags | FOLL_TOUCH);
++}
++EXPORT_SYMBOL(pin_user_pages_locked);
++
 _
