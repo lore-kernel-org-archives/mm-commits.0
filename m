@@ -1,55 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- asm-generic-add-a-flush_icache_user_range-stub.patch removed from -mm tree
-Date: Mon, 08 Jun 2020 15:33:12 -0700
-Message-ID: <20200608223312.NqeonvLku%akpm@linux-foundation.org>
+Subject: [merged] sh-implement-flush_icache_user_range.patch
+ removed from -mm tree
+Date: Mon, 08 Jun 2020 15:33:14 -0700
+Message-ID: <20200608223314.y9oNftHYI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54238 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54264 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726734AbgFHWdN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 18:33:13 -0400
+        id S1726734AbgFHWdP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 18:33:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, hch@lst.de, mm-commits@vger.kernel.org
+To: dalias@libc.org, hch@lst.de, mm-commits@vger.kernel.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: asm-generic: add a flush_icache_user_range stub
+     Subject: sh: implement flush_icache_user_range
 has been removed from the -mm tree.  Its filename was
-     asm-generic-add-a-flush_icache_user_range-stub.patch
+     sh-implement-flush_icache_user_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: asm-generic: add a flush_icache_user_range stub
+Subject: sh: implement flush_icache_user_range
 
-Define flush_icache_user_range to flush_icache_range unless the
-architecture provides its own implementation.
+The SuperH implementation of flush_icache_range seems to be able to
+cope with user addresses.  Just define flush_icache_user_range to
+flush_icache_range.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-21-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-22-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/cacheflush.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/sh/include/asm/cacheflush.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/asm-generic/cacheflush.h~asm-generic-add-a-flush_icache_user_range-stub
-+++ a/include/asm-generic/cacheflush.h
-@@ -66,6 +66,10 @@ static inline void flush_icache_range(un
- }
- #endif
- 
-+#ifndef flush_icache_user_range
+--- a/arch/sh/include/asm/cacheflush.h~sh-implement-flush_icache_user_range
++++ a/arch/sh/include/asm/cacheflush.h
+@@ -46,6 +46,7 @@ extern void flush_cache_range(struct vm_
+ #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ extern void flush_dcache_page(struct page *page);
+ extern void flush_icache_range(unsigned long start, unsigned long end);
 +#define flush_icache_user_range flush_icache_range
-+#endif
-+
- #ifndef flush_icache_page
- static inline void flush_icache_page(struct vm_area_struct *vma,
- 				     struct page *page)
+ extern void flush_icache_page(struct vm_area_struct *vma,
+ 				 struct page *page);
+ extern void flush_cache_sigtramp(unsigned long address);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
