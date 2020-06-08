@@ -1,106 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-use-asm-generic-cacheflushh.patch
- removed from -mm tree
-Date: Mon, 08 Jun 2020 15:33:02 -0700
-Message-ID: <20200608223302.604Bom-d0%akpm@linux-foundation.org>
+Subject: [merged] riscv-use-asm-generic-cacheflushh.patch removed
+ from -mm tree
+Date: Mon, 08 Jun 2020 15:33:05 -0700
+Message-ID: <20200608223305.3ZQaUa-UE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54084 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54114 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726734AbgFHWdD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 18:33:03 -0400
+        id S1726734AbgFHWdG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 18:33:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, hch@lst.de, mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org
+To: aou@eecs.berkeley.edu, hch@lst.de, mm-commits@vger.kernel.org, palmer@sifive.com, palmerdabbelt@google.com, paul.walmsley@sifive.com
 
 
 The patch titled
-     Subject: powerpc: use asm-generic/cacheflush.h
+     Subject: riscv: use asm-generic/cacheflush.h
 has been removed from the -mm tree.  Its filename was
-     powerpc-use-asm-generic-cacheflushh.patch
+     riscv-use-asm-generic-cacheflushh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: powerpc: use asm-generic/cacheflush.h
+Subject: riscv: use asm-generic/cacheflush.h
 
-Power needs almost no cache flushing routines of its own.  Rely on
+RISC-V needs almost no cache flushing routines of its own.  Rely on
 asm-generic/cacheflush.h for the defaults.
 
 Also remove the pointless __KERNEL__ ifdef while we're at it.
 
-Link: http://lkml.kernel.org/r/20200515143646.3857579-17-hch@lst.de
+Link: http://lkml.kernel.org/r/20200515143646.3857579-18-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Reviewed-by: Palmer Dabbelt <palmerdabbelt@google.com>
+Acked-by: Palmer Dabbelt <palmerdabbelt@google.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@sifive.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/cacheflush.h |   42 +++++-------------------
- 1 file changed, 10 insertions(+), 32 deletions(-)
+ arch/riscv/include/asm/cacheflush.h |   62 +-------------------------
+ 1 file changed, 3 insertions(+), 59 deletions(-)
 
---- a/arch/powerpc/include/asm/cacheflush.h~powerpc-use-asm-generic-cacheflushh
-+++ a/arch/powerpc/include/asm/cacheflush.h
-@@ -4,23 +4,9 @@
- #ifndef _ASM_POWERPC_CACHEFLUSH_H
- #define _ASM_POWERPC_CACHEFLUSH_H
+--- a/arch/riscv/include/asm/cacheflush.h~riscv-use-asm-generic-cacheflushh
++++ a/arch/riscv/include/asm/cacheflush.h
+@@ -8,65 +8,6 @@
  
--#ifdef __KERNEL__
--
  #include <linux/mm.h>
- #include <asm/cputable.h>
  
--/*
-- * No cache flushing is required when address mappings are changed,
-- * because the caches on PowerPCs are physically addressed.
-- */
--#define flush_cache_all()			do { } while (0)
--#define flush_cache_mm(mm)			do { } while (0)
--#define flush_cache_dup_mm(mm)			do { } while (0)
--#define flush_cache_range(vma, start, end)	do { } while (0)
--#define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
--#define flush_icache_page(vma, page)		do { } while (0)
--#define flush_cache_vunmap(start, end)		do { } while (0)
+-#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
 -
- #ifdef CONFIG_PPC_BOOK3S_64
- /*
-  * Book3s has no ptesync after setting a pte, so without this ptesync it's
-@@ -33,20 +19,20 @@ static inline void flush_cache_vmap(unsi
- {
- 	asm volatile("ptesync" ::: "memory");
- }
--#else
--static inline void flush_cache_vmap(unsigned long start, unsigned long end) { }
--#endif
-+#define flush_cache_vmap flush_cache_vmap
-+#endif /* CONFIG_PPC_BOOK3S_64 */
- 
- #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
- extern void flush_dcache_page(struct page *page);
--#define flush_dcache_mmap_lock(mapping)		do { } while (0)
--#define flush_dcache_mmap_unlock(mapping)	do { } while (0)
- 
- void flush_icache_range(unsigned long start, unsigned long stop);
--extern void flush_icache_user_range(struct vm_area_struct *vma,
--				    struct page *page, unsigned long addr,
--				    int len);
--extern void flush_dcache_icache_page(struct page *page);
-+#define flush_icache_range flush_icache_range
-+
-+void flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
-+		unsigned long addr, int len);
-+#define flush_icache_user_range flush_icache_user_range
-+
-+void flush_dcache_icache_page(struct page *page);
- void __flush_dcache_icache(void *page);
- 
- /**
-@@ -111,14 +97,6 @@ static inline void invalidate_dcache_ran
- 	mb();	/* sync */
- }
- 
+-/*
+- * The cache doesn't need to be flushed when TLB entries change when
+- * the cache is mapped to physical memory, not virtual memory
+- */
+-static inline void flush_cache_all(void)
+-{
+-}
+-
+-static inline void flush_cache_mm(struct mm_struct *mm)
+-{
+-}
+-
+-static inline void flush_cache_dup_mm(struct mm_struct *mm)
+-{
+-}
+-
+-static inline void flush_cache_range(struct vm_area_struct *vma,
+-				     unsigned long start,
+-				     unsigned long end)
+-{
+-}
+-
+-static inline void flush_cache_page(struct vm_area_struct *vma,
+-				    unsigned long vmaddr,
+-				    unsigned long pfn)
+-{
+-}
+-
+-static inline void flush_dcache_mmap_lock(struct address_space *mapping)
+-{
+-}
+-
+-static inline void flush_dcache_mmap_unlock(struct address_space *mapping)
+-{
+-}
+-
+-static inline void flush_icache_page(struct vm_area_struct *vma,
+-				     struct page *page)
+-{
+-}
+-
+-static inline void flush_cache_vmap(unsigned long start, unsigned long end)
+-{
+-}
+-
+-static inline void flush_cache_vunmap(unsigned long start, unsigned long end)
+-{
+-}
+-
 -#define copy_to_user_page(vma, page, vaddr, dst, src, len) \
 -	do { \
 -		memcpy(dst, src, len); \
@@ -109,10 +108,24 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -#define copy_from_user_page(vma, page, vaddr, dst, src, len) \
 -	memcpy(dst, src, len)
 -
--#endif /* __KERNEL__ */
-+#include <asm-generic/cacheflush.h>
+ static inline void local_flush_icache_all(void)
+ {
+ 	asm volatile ("fence.i" ::: "memory");
+@@ -79,6 +20,7 @@ static inline void flush_dcache_page(str
+ 	if (test_bit(PG_dcache_clean, &page->flags))
+ 		clear_bit(PG_dcache_clean, &page->flags);
+ }
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
  
- #endif /* _ASM_POWERPC_CACHEFLUSH_H */
+ /*
+  * RISC-V doesn't have an instruction to flush parts of the instruction cache,
+@@ -105,4 +47,6 @@ void flush_icache_mm(struct mm_struct *m
+ #define SYS_RISCV_FLUSH_ICACHE_LOCAL 1UL
+ #define SYS_RISCV_FLUSH_ICACHE_ALL   (SYS_RISCV_FLUSH_ICACHE_LOCAL)
+ 
++#include <asm-generic/cacheflush.h>
++
+ #endif /* _ASM_RISCV_CACHEFLUSH_H */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
