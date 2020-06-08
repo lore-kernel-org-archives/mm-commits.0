@@ -1,201 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- =?US-ASCII?Q?dynamic=5Fdebug-add-an-option-to-enable-dynamic-debug-for-m?=
- =?US-ASCII?Q?odules-only-v2.patch?= removed from -mm tree
-Date: Sun, 07 Jun 2020 21:17:08 -0700
-Message-ID: <20200608041708.B9c51ldsQ%akpm@linux-foundation.org>
+Subject: [folded-merged] kernel-add-panic_on_taint-fix.patch
+ removed from -mm tree
+Date: Sun, 07 Jun 2020 21:17:36 -0700
+Message-ID: <20200608041736.W7B3BWvNZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42012 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727796AbgFHERK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 00:17:10 -0400
+        id S1725945AbgFHERj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 00:17:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, gregkh@linuxfoundation.org, jbaron@akamai.com, mm-commits@vger.kernel.org, orson.zhai@unisoc.com, pmladek@suse.com, rdunlap@infradead.org, rostedt@goodmis.org, sergey.senozhatsky@gmail.com
+To: akpm@linux-foundation.org, aquini@redhat.com, cai@lca.pw, corbet@lwn.net, mcgrof@kernel.org, mm-commits@vger.kernel.org, rdunlap@infradead.org
 
 
 The patch titled
-     Subject: dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
+     Subject: kernel-add-panic_on_taint-fix
 has been removed from the -mm tree.  Its filename was
-     dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2.patch
+     kernel-add-panic_on_taint-fix.patch
 
-This patch was dropped because it was folded into dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only.patch
+This patch was dropped because it was folded into kernel-add-panic_on_taint.patch
 
 ------------------------------------------------------
-From: Orson Zhai <orson.zhai@unisoc.com>
-Subject: dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-add-panic_on_taint-fix
 
-1) Change DEBUG_MODULE to DYNAMIC_DEBUG_MODULE.
-2) Change more #if defined(DYNAMIC_DEBUG) condition (in net.h, netdevice.h
-   and ib_verbs.h).
-3) Rewrite description in howto document.
+tweak kernel-parameters.txt wording
 
-Link: http://lkml.kernel.org/r/1587408228-10861-1-git-send-email-orson.unisoc@gmail.com
-Signed-off-by: Orson Zhai <orson.zhai@unisoc.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jason Baron <jbaron@akamai.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Petr Mladek <pmladek@suse.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Rafael Aquini <aquini@redhat.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/dynamic-debug-howto.rst |   10 ++++++----
- include/linux/dev_printk.h                        |    4 ++--
- include/linux/net.h                               |    3 ++-
- include/linux/netdevice.h                         |    6 ++++--
- include/linux/printk.h                            |    6 +++---
- include/rdma/ib_verbs.h                           |    6 ++++--
- lib/Kconfig.debug                                 |    6 +++---
- 7 files changed, 24 insertions(+), 17 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/dynamic-debug-howto.rst~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
-+++ a/Documentation/admin-guide/dynamic-debug-howto.rst
-@@ -13,11 +13,13 @@ kernel code to obtain additional kernel
- ``print_hex_dump_debug()``/``print_hex_dump_bytes()`` calls can be dynamically
- enabled per-callsite.
+--- a/Documentation/admin-guide/kernel-parameters.txt~kernel-add-panic_on_taint-fix
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -3447,7 +3447,7 @@
+ 			bit 4: print ftrace buffer
+ 			bit 5: print all printk messages in buffer
  
--If ``CONFIG_DYNAMIC_DEBUG_CORE`` is set, only the modules with ``DEBUG_MODULE``
--defined will be tied into dynamic debug.
-+If you do not want to enable dynamic debug globally (i.e. in some embedded
-+system), you may set ``CONFIG_DYNAMIC_DEBUG_CORE`` as basic support of dynamic
-+debug and add ``ccflags := -DDYNAMIC_DEBUG_MODULE`` into the Makefile of any
-+modules which you'd like to dynamically debug later.
- 
--If ``CONFIG_DYNAMIC_DEBUG`` or ``CONFIG_DYNAMIC_DEBUG_CORE`` is not set,
--``print_hex_dump_debug()`` is just shortcut for ``print_hex_dump(KERN_DEBUG)``.
-+If ``CONFIG_DYNAMIC_DEBUG`` is not set, ``print_hex_dump_debug()`` is just
-+shortcut for ``print_hex_dump(KERN_DEBUG)``.
- 
- For ``print_hex_dump_debug()``/``print_hex_dump_bytes()``, format string is
- its ``prefix_str`` argument, if it is constant string; or ``hexdump``
---- a/include/linux/dev_printk.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
-+++ a/include/linux/dev_printk.h
-@@ -110,7 +110,7 @@ void _dev_info(const struct device *dev,
- 	_dev_info(dev, dev_fmt(fmt), ##__VA_ARGS__)
- 
- #if defined(CONFIG_DYNAMIC_DEBUG) || \
--	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
-+	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
- #define dev_dbg(dev, fmt, ...)						\
- 	dynamic_dev_dbg(dev, dev_fmt(fmt), ##__VA_ARGS__)
- #elif defined(DEBUG)
-@@ -183,7 +183,7 @@ do {									\
- #define dev_info_ratelimited(dev, fmt, ...)				\
- 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
- #if defined(CONFIG_DYNAMIC_DEBUG) || \
--	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
-+	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
- /* descriptor check is first to prevent flooding with "callbacks suppressed" */
- #define dev_dbg_ratelimited(dev, fmt, ...)				\
- do {									\
---- a/include/linux/netdevice.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
-+++ a/include/linux/netdevice.h
-@@ -4942,7 +4942,8 @@ do {								\
- #define MODULE_ALIAS_NETDEV(device) \
- 	MODULE_ALIAS("netdev-" device)
- 
--#if defined(CONFIG_DYNAMIC_DEBUG)
-+#if defined(CONFIG_DYNAMIC_DEBUG) || \
-+	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
- #define netdev_dbg(__dev, format, args...)			\
- do {								\
- 	dynamic_netdev_dbg(__dev, format, ##args);		\
-@@ -5012,7 +5013,8 @@ do {								\
- #define netif_info(priv, type, dev, fmt, args...)		\
- 	netif_level(info, priv, type, dev, fmt, ##args)
- 
--#if defined(CONFIG_DYNAMIC_DEBUG)
-+#if defined(CONFIG_DYNAMIC_DEBUG) || \
-+	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
- #define netif_dbg(priv, type, netdev, format, args...)		\
- do {								\
- 	if (netif_msg_##type(priv))				\
---- a/include/linux/net.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
-+++ a/include/linux/net.h
-@@ -264,7 +264,8 @@ do {								\
- 	net_ratelimited_function(pr_warn, fmt, ##__VA_ARGS__)
- #define net_info_ratelimited(fmt, ...)				\
- 	net_ratelimited_function(pr_info, fmt, ##__VA_ARGS__)
--#if defined(CONFIG_DYNAMIC_DEBUG)
-+#if defined(CONFIG_DYNAMIC_DEBUG) || \
-+	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
- #define net_dbg_ratelimited(fmt, ...)					\
- do {									\
- 	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
---- a/include/linux/printk.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
-+++ a/include/linux/printk.h
-@@ -400,7 +400,7 @@ extern int kptr_restrict;
- 
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(CONFIG_DYNAMIC_DEBUG) || \
--	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
-+	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
- #include <linux/dynamic_debug.h>
- 
- /**
-@@ -537,7 +537,7 @@ extern int kptr_restrict;
- 
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(CONFIG_DYNAMIC_DEBUG) || \
--	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
-+	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
- /* descriptor check is first to prevent flooding with "callbacks suppressed" */
- #define pr_debug_ratelimited(fmt, ...)					\
- do {									\
-@@ -585,7 +585,7 @@ static inline void print_hex_dump_bytes(
- #endif
- 
- #if defined(CONFIG_DYNAMIC_DEBUG) || \
--	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
-+	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
- #define print_hex_dump_debug(prefix_str, prefix_type, rowsize,	\
- 			     groupsize, buf, len, ascii)	\
- 	dynamic_hex_dump(prefix_str, prefix_type, rowsize,	\
---- a/include/rdma/ib_verbs.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
-+++ a/include/rdma/ib_verbs.h
-@@ -100,7 +100,8 @@ void ibdev_notice(const struct ib_device
- __printf(2, 3) __cold
- void ibdev_info(const struct ib_device *ibdev, const char *format, ...);
- 
--#if defined(CONFIG_DYNAMIC_DEBUG)
-+#if defined(CONFIG_DYNAMIC_DEBUG) || \
-+	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
- #define ibdev_dbg(__dev, format, args...)                       \
- 	dynamic_ibdev_dbg(__dev, format, ##args)
- #else
-@@ -133,7 +134,8 @@ do {
- #define ibdev_info_ratelimited(ibdev, fmt, ...) \
- 	ibdev_level_ratelimited(ibdev_info, ibdev, fmt, ##__VA_ARGS__)
- 
--#if defined(CONFIG_DYNAMIC_DEBUG)
-+#if defined(CONFIG_DYNAMIC_DEBUG) || \
-+	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
- /* descriptor check is first to prevent flooding with "callbacks suppressed" */
- #define ibdev_dbg_ratelimited(ibdev, fmt, ...)                          \
- do {                                                                    \
---- a/lib/Kconfig.debug~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
-+++ a/lib/Kconfig.debug
-@@ -173,9 +173,9 @@ config DYNAMIC_DEBUG_CORE
- 	help
- 	  Enable core functional support of dynamic debug. It is useful
- 	  when you want to tie dynamic debug to your kernel modules with
--	  DEBUG_MODULE defined for each of them, especially for the case
--	  of embedded system where the kernel image size is sensitive for
--	  people.
-+	  DYNAMIC_DEBUG_MODULE defined for each of them, especially for
-+	  the case of embedded system where the kernel image size is
-+	  sensitive for people.
- 
- config SYMBOLIC_ERRNAME
- 	bool "Support symbolic error names in printf"
+-	panic_on_taint=	Bitmask for conditionally call panic() in add_taint()
++	panic_on_taint=	Bitmask for conditionally calling panic() in add_taint()
+ 			Format: <hex>[,nousertaint]
+ 			Hexadecimal bitmask representing the set of TAINT flags
+ 			that will cause the kernel to panic when add_taint() is
 _
 
-Patches currently in -mm which might be from orson.zhai@unisoc.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only.patch
+kernel-add-panic_on_taint.patch
+doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-git-rejects.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
