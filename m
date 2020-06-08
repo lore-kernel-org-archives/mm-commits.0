@@ -1,126 +1,248 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 03/54] ipc/namespace.c: use a work queue to
- free_ipc
-Date: Sun, 07 Jun 2020 21:40:10 -0700
-Message-ID: <20200608044010.0ihvXk3ur%akpm@linux-foundation.org>
+Subject: [patch 04/54] dynamic_debug: add an option to enable
+ dynamic debug for modules only
+Date: Sun, 07 Jun 2020 21:40:14 -0700
+Message-ID: <20200608044014.1sydER6sj%akpm@linux-foundation.org>
 References: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35318 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726929AbgFHEkM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 00:40:12 -0400
+        id S1726929AbgFHEkP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 00:40:15 -0400
 In-Reply-To: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, gscrivan@redhat.com, linux-mm@kvack.org, longman@redhat.com, manfred@colorfullife.com, mm-commits@vger.kernel.org, paulmck@kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, corbet@lwn.net, gregkh@linuxfoundation.org, jbaron@akamai.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, orson.zhai@unisoc.com, pmladek@suse.com, rdunlap@infradead.org, rostedt@goodmis.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org
 
-From: Giuseppe Scrivano <gscrivan@redhat.com>
-Subject: ipc/namespace.c: use a work queue to free_ipc
+From: Orson Zhai <orson.zhai@unisoc.com>
+Subject: dynamic_debug: add an option to enable dynamic debug for modules only
 
-the reason is to avoid a delay caused by the synchronize_rcu() call in
-kern_umount() when the mqueue mount is freed.
+Instead of enabling dynamic debug globally with CONFIG_DYNAMIC_DEBUG,
+CONFIG_DYNAMIC_DEBUG_CORE will only enable core function of dynamic debug.
+With the DYNAMIC_DEBUG_MODULE defined for any modules, dynamic debug will
+be tied to them.
 
-the code:
+This is useful for people who only want to enable dynamic debug for kernel
+modules without worrying about kernel image size and memory consumption is
+increasing too much.
 
-\#define _GNU_SOURCE
-\#include <sched.h>
-\#include <error.h>
-\#include <errno.h>
-\#include <stdlib.h>
-int main()
-{
-  int i;
-  for (i = 0; i < 1000; i++)
-    if (unshare (CLONE_NEWIPC) < 0)
-      error (EXIT_FAILURE, errno, "unshare");
-}
-
-gets from
-
-	Command being timed: "./ipc-namespace"
-	User time (seconds): 0.00
-	System time (seconds): 0.06
-	Percent of CPU this job got: 0%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:08.05
-
-to
-
-	Command being timed: "./ipc-namespace"
-	User time (seconds): 0.00
-	System time (seconds): 0.02
-	Percent of CPU this job got: 96%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.03
-
-Link: http://lkml.kernel.org/r/20200225145419.527994-1-gscrivan@redhat.com
-Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
-Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
-Reviewed-by: Waiman Long <longman@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+[orson.zhai@unisoc.com: v2]
+  Link: http://lkml.kernel.org/r/1587408228-10861-1-git-send-email-orson.unisoc@gmail.com
+Link: http://lkml.kernel.org/r/1586521984-5890-1-git-send-email-orson.unisoc@gmail.com
+Signed-off-by: Orson Zhai <orson.zhai@unisoc.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    2 ++
- ipc/namespace.c               |   24 ++++++++++++++++++++++--
- 2 files changed, 24 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/dynamic-debug-howto.rst |    5 +++++
+ include/linux/dev_printk.h                        |    6 ++++--
+ include/linux/dynamic_debug.h                     |    2 +-
+ include/linux/net.h                               |    3 ++-
+ include/linux/netdevice.h                         |    6 ++++--
+ include/linux/printk.h                            |    9 ++++++---
+ include/rdma/ib_verbs.h                           |    6 ++++--
+ lib/Kconfig.debug                                 |   12 ++++++++++++
+ lib/Makefile                                      |    2 +-
+ lib/dynamic_debug.c                               |    9 +++++++--
+ 10 files changed, 46 insertions(+), 14 deletions(-)
 
---- a/include/linux/ipc_namespace.h~ipc-use-a-work-queue-to-free_ipc
-+++ a/include/linux/ipc_namespace.h
-@@ -68,6 +68,8 @@ struct ipc_namespace {
- 	struct user_namespace *user_ns;
- 	struct ucounts *ucounts;
+--- a/Documentation/admin-guide/dynamic-debug-howto.rst~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/Documentation/admin-guide/dynamic-debug-howto.rst
+@@ -13,6 +13,11 @@ kernel code to obtain additional kernel
+ ``print_hex_dump_debug()``/``print_hex_dump_bytes()`` calls can be dynamically
+ enabled per-callsite.
  
-+	struct llist_node mnt_llist;
++If you do not want to enable dynamic debug globally (i.e. in some embedded
++system), you may set ``CONFIG_DYNAMIC_DEBUG_CORE`` as basic support of dynamic
++debug and add ``ccflags := -DDYNAMIC_DEBUG_MODULE`` into the Makefile of any
++modules which you'd like to dynamically debug later.
 +
- 	struct ns_common ns;
- } __randomize_layout;
+ If ``CONFIG_DYNAMIC_DEBUG`` is not set, ``print_hex_dump_debug()`` is just
+ shortcut for ``print_hex_dump(KERN_DEBUG)``.
  
---- a/ipc/namespace.c~ipc-use-a-work-queue-to-free_ipc
-+++ a/ipc/namespace.c
-@@ -117,6 +117,10 @@ void free_ipcs(struct ipc_namespace *ns,
+--- a/include/linux/dev_printk.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/include/linux/dev_printk.h
+@@ -109,7 +109,8 @@ void _dev_info(const struct device *dev,
+ #define dev_info(dev, fmt, ...)						\
+ 	_dev_info(dev, dev_fmt(fmt), ##__VA_ARGS__)
  
- static void free_ipc_ns(struct ipc_namespace *ns)
- {
-+	/* mq_put_mnt() waits for a grace period as kern_unmount()
-+	 * uses synchronize_rcu().
-+	 */
-+	mq_put_mnt(ns);
- 	sem_exit_ns(ns);
- 	msg_exit_ns(ns);
- 	shm_exit_ns(ns);
-@@ -127,6 +131,21 @@ static void free_ipc_ns(struct ipc_names
- 	kfree(ns);
- }
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define dev_dbg(dev, fmt, ...)						\
+ 	dynamic_dev_dbg(dev, dev_fmt(fmt), ##__VA_ARGS__)
+ #elif defined(DEBUG)
+@@ -181,7 +182,8 @@ do {									\
+ 	dev_level_ratelimited(dev_notice, dev, fmt, ##__VA_ARGS__)
+ #define dev_info_ratelimited(dev, fmt, ...)				\
+ 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ /* descriptor check is first to prevent flooding with "callbacks suppressed" */
+ #define dev_dbg_ratelimited(dev, fmt, ...)				\
+ do {									\
+--- a/include/linux/dynamic_debug.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/include/linux/dynamic_debug.h
+@@ -48,7 +48,7 @@ struct _ddebug {
  
-+static LLIST_HEAD(free_ipc_list);
-+static void free_ipc(struct work_struct *unused)
-+{
-+	struct llist_node *node = llist_del_all(&free_ipc_list);
-+	struct ipc_namespace *n, *t;
-+
-+	llist_for_each_entry_safe(n, t, node, mnt_llist)
-+		free_ipc_ns(n);
-+}
-+
-+/*
-+ * The work queue is used to avoid the cost of synchronize_rcu in kern_unmount.
-+ */
-+static DECLARE_WORK(free_ipc_work, free_ipc);
-+
- /*
-  * put_ipc_ns - drop a reference to an ipc namespace.
-  * @ns: the namespace to put
-@@ -148,8 +167,9 @@ void put_ipc_ns(struct ipc_namespace *ns
- 	if (refcount_dec_and_lock(&ns->count, &mq_lock)) {
- 		mq_clear_sbinfo(ns);
- 		spin_unlock(&mq_lock);
--		mq_put_mnt(ns);
--		free_ipc_ns(ns);
-+
-+		if (llist_add(&ns->mnt_llist, &free_ipc_list))
-+			schedule_work(&free_ipc_work);
+ 
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG_CORE)
+ int ddebug_add_module(struct _ddebug *tab, unsigned int n,
+ 				const char *modname);
+ extern int ddebug_remove_module(const char *mod_name);
+--- a/include/linux/netdevice.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/include/linux/netdevice.h
+@@ -4942,7 +4942,8 @@ do {								\
+ #define MODULE_ALIAS_NETDEV(device) \
+ 	MODULE_ALIAS("netdev-" device)
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define netdev_dbg(__dev, format, args...)			\
+ do {								\
+ 	dynamic_netdev_dbg(__dev, format, ##args);		\
+@@ -5012,7 +5013,8 @@ do {								\
+ #define netif_info(priv, type, dev, fmt, args...)		\
+ 	netif_level(info, priv, type, dev, fmt, ##args)
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define netif_dbg(priv, type, netdev, format, args...)		\
+ do {								\
+ 	if (netif_msg_##type(priv))				\
+--- a/include/linux/net.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/include/linux/net.h
+@@ -264,7 +264,8 @@ do {								\
+ 	net_ratelimited_function(pr_warn, fmt, ##__VA_ARGS__)
+ #define net_info_ratelimited(fmt, ...)				\
+ 	net_ratelimited_function(pr_info, fmt, ##__VA_ARGS__)
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define net_dbg_ratelimited(fmt, ...)					\
+ do {									\
+ 	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
+--- a/include/linux/printk.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/include/linux/printk.h
+@@ -399,7 +399,8 @@ extern int kptr_restrict;
+ 
+ 
+ /* If you are writing a driver, please use dev_dbg instead */
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #include <linux/dynamic_debug.h>
+ 
+ /**
+@@ -535,7 +536,8 @@ extern int kptr_restrict;
+ #endif
+ 
+ /* If you are writing a driver, please use dev_dbg instead */
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ /* descriptor check is first to prevent flooding with "callbacks suppressed" */
+ #define pr_debug_ratelimited(fmt, ...)					\
+ do {									\
+@@ -582,7 +584,8 @@ static inline void print_hex_dump_bytes(
+ 
+ #endif
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define print_hex_dump_debug(prefix_str, prefix_type, rowsize,	\
+ 			     groupsize, buf, len, ascii)	\
+ 	dynamic_hex_dump(prefix_str, prefix_type, rowsize,	\
+--- a/include/rdma/ib_verbs.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/include/rdma/ib_verbs.h
+@@ -100,7 +100,8 @@ void ibdev_notice(const struct ib_device
+ __printf(2, 3) __cold
+ void ibdev_info(const struct ib_device *ibdev, const char *format, ...);
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define ibdev_dbg(__dev, format, args...)                       \
+ 	dynamic_ibdev_dbg(__dev, format, ##args)
+ #else
+@@ -133,7 +134,8 @@ do {
+ #define ibdev_info_ratelimited(ibdev, fmt, ...) \
+ 	ibdev_level_ratelimited(ibdev_info, ibdev, fmt, ##__VA_ARGS__)
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ /* descriptor check is first to prevent flooding with "callbacks suppressed" */
+ #define ibdev_dbg_ratelimited(ibdev, fmt, ...)                          \
+ do {                                                                    \
+--- a/lib/dynamic_debug.c~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/lib/dynamic_debug.c
+@@ -1032,8 +1032,13 @@ static int __init dynamic_debug_init(voi
+ 	int verbose_bytes = 0;
+ 
+ 	if (&__start___verbose == &__stop___verbose) {
+-		pr_warn("_ddebug table is empty in a CONFIG_DYNAMIC_DEBUG build\n");
+-		return 1;
++		if (IS_ENABLED(CONFIG_DYNAMIC_DEBUG)) {
++			pr_warn("_ddebug table is empty in a CONFIG_DYNAMIC_DEBUG build\n");
++			return 1;
++		}
++		pr_info("Ignore empty _ddebug table in a CONFIG_DYNAMIC_DEBUG_CORE build\n");
++		ddebug_init_success = 1;
++		return 0;
  	}
- }
+ 	iter = __start___verbose;
+ 	modname = iter->modname;
+--- a/lib/Kconfig.debug~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/lib/Kconfig.debug
+@@ -99,6 +99,7 @@ config DYNAMIC_DEBUG
+ 	default n
+ 	depends on PRINTK
+ 	depends on (DEBUG_FS || PROC_FS)
++	select DYNAMIC_DEBUG_CORE
+ 	help
  
+ 	  Compiles debug level messages into the kernel, which would not
+@@ -165,6 +166,17 @@ config DYNAMIC_DEBUG
+ 	  See Documentation/admin-guide/dynamic-debug-howto.rst for additional
+ 	  information.
+ 
++config DYNAMIC_DEBUG_CORE
++	bool "Enable core function of dynamic debug support"
++	depends on PRINTK
++	depends on (DEBUG_FS || PROC_FS)
++	help
++	  Enable core functional support of dynamic debug. It is useful
++	  when you want to tie dynamic debug to your kernel modules with
++	  DYNAMIC_DEBUG_MODULE defined for each of them, especially for
++	  the case of embedded system where the kernel image size is
++	  sensitive for people.
++
+ config SYMBOLIC_ERRNAME
+ 	bool "Support symbolic error names in printf"
+ 	default y if PRINTK
+--- a/lib/Makefile~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only
++++ a/lib/Makefile
+@@ -190,7 +190,7 @@ lib-$(CONFIG_GENERIC_BUG) += bug.o
+ 
+ obj-$(CONFIG_HAVE_ARCH_TRACEHOOK) += syscall.o
+ 
+-obj-$(CONFIG_DYNAMIC_DEBUG) += dynamic_debug.o
++obj-$(CONFIG_DYNAMIC_DEBUG_CORE) += dynamic_debug.o
+ obj-$(CONFIG_SYMBOLIC_ERRNAME) += errname.o
+ 
+ obj-$(CONFIG_NLATTR) += nlattr.o
 _
