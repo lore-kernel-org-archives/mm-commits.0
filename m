@@ -1,110 +1,75 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 21/54] docs: mm/gup: pin_user_pages.rst: add a
- "case 5"
-Date: Sun, 07 Jun 2020 21:41:11 -0700
-Message-ID: <20200608044111.ytOklZHdi%akpm@linux-foundation.org>
+Subject: [patch 22/54] vhost: convert get_user_pages() -->
+ pin_user_pages()
+Date: Sun, 07 Jun 2020 21:41:15 -0700
+Message-ID: <20200608044115.tMvGFNio5%akpm@linux-foundation.org>
 References: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36976 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37048 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726929AbgFHElO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 00:41:14 -0400
+        id S1726929AbgFHElQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 00:41:16 -0400
 In-Reply-To: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, corbet@lwn.net, david@fromorbit.com, jack@suse.cz, jasowang@redhat.com, jglisse@redhat.com, jhubbard@nvidia.com, jrdr.linux@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, mst@redhat.com, torvalds@linux-foundation.org, vbabka@suse.cz
+To: akpm@linux-foundation.org, corbet@lwn.net, david@fromorbit.com, jack@suse.cz, jasowang@redhat.com, jglisse@redhat.com, jhubbard@nvidia.com, jrdr.linux@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, mst@redhat.com, pankaj.gupta.linux@gmail.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
 =46rom: John Hubbard <jhubbard@nvidia.com>
-Subject: docs: mm/gup: pin_user_pages.rst: add a "case 5"
+Subject: vhost: convert get_user_pages() --> pin_user_pages()
 
-Patch series "vhost, docs: convert to pin_user_pages(), new "case 5""
+This code was using get_user_pages*(), in approximately a "Case 5"
+scenario (accessing the data within a page), using the categorization from
+[1].  That means that it's time to convert the get_user_pages*() +
+put_page() calls to pin_user_pages*() + unpin_user_pages() calls.
 
-It recently became clear to me that there are some get_user_pages*()
-callers that don't fit neatly into any of the four cases that are so far
-listed in pin_user_pages.rst.  vhost.c is one of those.
+There is some helpful background in [2]: basically, this is a small part
+of fixing a long-standing disconnect between pinning pages, and file
+systems' use of those pages.
 
-Add a Case 5 to the documentation, and refer to that when converting
-vhost.c.
+[1] Documentation/core-api/pin_user_pages.rst
 
-Thanks to Jan Kara for helping me (again) in understanding the interaction
-between get_user_pages() and page writeback [1].
+[2] "Explicit pinning of user-space pages":
+    https://lwn.net/Articles/807108/
 
-This is based on today's mmotm, which has a nearby patch to
-pin_user_pages.rst that rewords cases 3 and 4.
-
-Note that I have only compile-tested the vhost.c patch, although that does
-also include cross-compiling for a few other arches.  Any run-time testing
-would be greatly appreciated.
-
-[1] https://lore.kernel.org/r/20200529070343.GL14550@quack2.suse.cz
-
-
-This patch (of 2):
-
-There are four cases listed in pin_user_pages.rst.  These are intended to
-help developers figure out whether to use get_user_pages*(), or
-pin_user_pages*().  However, the four cases do not cover all the
-situations.  For example, drivers/vhost/vhost.c has a "pin, write to page,
-set page dirty, unpin" case.
-
-Add a fifth case, to help explain that there is a general pattern that
-requires pin_user_pages*() API calls.
-
-[jhubbard@nvidia.com: v2]
-  Link: http://lkml.kernel.org/r/20200601052633.853874-2-jhubbard@nvidia.com
-Link: http://lkml.kernel.org/r/20200529234309.484480-1-jhubbard@nvidia.com
-Link: http://lkml.kernel.org/r/20200529234309.484480-2-jhubbard@nvidia.com
+Link: http://lkml.kernel.org/r/20200529234309.484480-3-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Jason Wang <jasowang@redhat.com>
 Cc: Dave Chinner <david@fromorbit.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: "Michael S . Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/pin_user_pages.rst |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/vhost/vhost.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/Documentation/core-api/pin_user_pages.rst~docs-mm-gup-pin_user_pagesr=
-st-add-a-case-5
-+++ a/Documentation/core-api/pin_user_pages.rst
-@@ -171,6 +171,24 @@ If only struct page data (as opposed to
- is tracking) is affected, then normal GUP calls are sufficient, and neithe=
-r flag
- needs to be set.
+--- a/drivers/vhost/vhost.c~vhost-convert-get_user_pages-pin_user_pages
++++ a/drivers/vhost/vhost.c
+@@ -1762,15 +1762,14 @@ static int set_bit_to_user(int nr, void
+ 	int bit =3D nr + (log % PAGE_SIZE) * 8;
+ 	int r;
 =20
-+CASE 5: Pinning in order to write to the data within the page
-+-------------------------------------------------------------
-+Even though neither DMA nor Direct IO is involved, just a simple case of "=
-pin,
-+write to a page's data, unpin" can cause a problem. Case 5 may be consider=
-ed a
-+superset of Case 1, plus Case 2, plus anything that invokes that pattern. =
-In
-+other words, if the code is neither Case 1 nor Case 2, it may still require
-+FOLL_PIN, for patterns like this:
-+
-+Correct (uses FOLL_PIN calls):
-+    pin_user_pages()
-+    write to the data within the pages
-+    unpin_user_pages()
-+
-+INCORRECT (uses FOLL_GET calls):
-+    get_user_pages()
-+    write to the data within the pages
-+    put_page()
-+
- page_maybe_dma_pinned(): the whole point of pinning
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
+-	r =3D get_user_pages_fast(log, 1, FOLL_WRITE, &page);
++	r =3D pin_user_pages_fast(log, 1, FOLL_WRITE, &page);
+ 	if (r < 0)
+ 		return r;
+ 	BUG_ON(r !=3D 1);
+ 	base =3D kmap_atomic(page);
+ 	set_bit(bit, base);
+ 	kunmap_atomic(base);
+-	set_page_dirty_lock(page);
+-	put_page(page);
++	unpin_user_pages_dirty_lock(&page, 1, true);
+ 	return 0;
+ }
 =20
 _
