@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch added to -mm
- tree
-Date: Mon, 08 Jun 2020 16:33:07 -0700
-Message-ID: <20200608233307.NbC98GVPX%akpm@linux-foundation.org>
+ checkpatch-correct-check-for-kernel-parameters-doc.patch added to -mm tree
+Date: Mon, 08 Jun 2020 16:42:06 -0700
+Message-ID: <20200608234206.OfNG3jQ23%akpm@linux-foundation.org>
 References: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37884 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47904 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1732028AbgFHXdI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 19:33:08 -0400
+        id S1730627AbgFHXmN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:42:13 -0400
 In-Reply-To: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com, geert@linux-m68k.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
+To: joe@perches.com, mchehab@kernel.org, mm-commits@vger.kernel.org, tim.froidcoeur@tessares.net
 
 
 The patch titled
-     Subject: lib-test-get_count_order-long-in-test_bitopsc-fix-fix
+     Subject: checkpatch: correct check for kernel parameters doc
 has been added to the -mm tree.  Its filename is
-     lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+     checkpatch-correct-check-for-kernel-parameters-doc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-correct-check-for-kernel-parameters-doc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-correct-check-for-kernel-parameters-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,55 +38,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-test-get_count_order-long-in-test_bitopsc-fix-fix
+From: Tim Froidcoeur <tim.froidcoeur@tessares.net>
+Subject: checkpatch: correct check for kernel parameters doc
 
-fix loop bound, per Wei Yang
+Adding a new kernel parameter with documentation makes checkpatch complain
+"__setup appears un-documented -- check
+Documentation/admin-guide/kernel-parameters.rst".  The list of kernel
+parameters has moved to a separate txt file, but checkpatch has not been
+updated for this.
 
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Make checkpatch.pl look for the documentation for new kernel parameters in
+kernel-parameters.txt instead of kernel-parameters.rst.
+
+Fixes: e52347bd66f6 ("Documentation/admin-guide: split the kernel parameter list to a separate file")
+Signed-off-by: Tim Froidcoeur <tim.froidcoeur@tessares.net>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitops.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/test_bitops.c~lib-test-get_count_order-long-in-test_bitopsc-fix-fix
-+++ a/lib/test_bitops.c
-@@ -74,7 +74,7 @@ static int __init test_bitops_startup(vo
- 	}
+--- a/scripts/checkpatch.pl~checkpatch-correct-check-for-kernel-parameters-doc
++++ a/scripts/checkpatch.pl
+@@ -2409,7 +2409,7 @@ sub process {
  
- #ifdef CONFIG_64BIT
--	for (i = 0; i < ARRAY_SIZE(order_comb); i++) {
-+	for (i = 0; i < ARRAY_SIZE(order_comb_long); i++) {
- 		if (order_comb_long[i][1] !=
- 			       get_count_order_long(order_comb_long[i][0]))
- 			pr_warn("get_count_order_long wrong for %lx\n",
+ 		if ($rawline=~/^\+\+\+\s+(\S+)/) {
+ 			$setup_docs = 0;
+-			if ($1 =~ m@Documentation/admin-guide/kernel-parameters.rst$@) {
++			if ($1 =~ m@Documentation/admin-guide/kernel-parameters.txt$@) {
+ 				$setup_docs = 1;
+ 			}
+ 			#next;
+@@ -6390,7 +6390,7 @@ sub process {
+ 
+ 			if (!grep(/$name/, @setup_docs)) {
+ 				CHK("UNDOCUMENTED_SETUP",
+-				    "__setup appears un-documented -- check Documentation/admin-guide/kernel-parameters.rst\n" . $herecurr);
++				    "__setup appears un-documented -- check Documentation/admin-guide/kernel-parameters.txt\n" . $herecurr);
+ 			}
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tim.froidcoeur@tessares.net are
 
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-git-rejects.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-maccess-unify-the-probe-kernel-arch-hooks-fix.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+checkpatch-correct-check-for-kernel-parameters-doc.patch
