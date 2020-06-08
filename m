@@ -1,159 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch removed
- from -mm tree
-Date: Mon, 08 Jun 2020 15:32:02 -0700
-Message-ID: <20200608223202.mmLy__y_0%akpm@linux-foundation.org>
+ =?US-ASCII?Q?kernel-sysctl-ignore-out-of-range-taint-bits-introduced-via?=
+ =?US-ASCII?Q?-kerneltainted.patch?= removed from -mm tree
+Date: Mon, 08 Jun 2020 15:32:05 -0700
+Message-ID: <20200608223205.PLw48Dy6e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53366 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53396 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726740AbgFHWcD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 18:32:03 -0400
+        id S1726740AbgFHWcG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 18:32:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gpiccoli@canonical.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, rdunlap@infradead.org, tglx@linutronix.de, vbabka@suse.cz, willy@infradead.org, yzaikin@google.com
+To: aquini@redhat.com, keescook@chromium.org, mcgrof@kernel.org, mm-commits@vger.kernel.org, tytso@mit.edu, yzaikin@google.com
 
 
 The patch titled
-     Subject: panic: add sysctl to dump all CPUs backtraces on oops event
+     Subject: kernel/sysctl.c: ignore out-of-range taint bits introduced via kernel.tainted
 has been removed from the -mm tree.  Its filename was
-     panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event.patch
+     kernel-sysctl-ignore-out-of-range-taint-bits-introduced-via-kerneltainted.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Guilherme G. Piccoli" <gpiccoli@canonical.com>
-Subject: panic: add sysctl to dump all CPUs backtraces on oops event
+From: Rafael Aquini <aquini@redhat.com>
+Subject: kernel/sysctl.c: ignore out-of-range taint bits introduced via kernel.tainted
 
-Usually when the kernel reaches an oops condition, it's a point of no
-return; in case not enough debug information is available in the kernel
-splat, one of the last resorts would be to collect a kernel crash dump and
-analyze it.  The problem with this approach is that in order to collect
-the dump, a panic is required (to kexec-load the crash kernel).  When in
-an environment of multiple virtual machines, users may prefer to try
-living with the oops, at least until being able to properly shutdown their
-VMs / finish their important tasks.
+Users with SYS_ADMIN capability can add arbitrary taint flags to the
+running kernel by writing to /proc/sys/kernel/tainted or issuing the
+command 'sysctl -w kernel.tainted=...'.  This interface, however, is open
+for any integer value and this might cause an invalid set of flags being
+committed to the tainted_mask bitset.
 
-This patch implements a way to collect a bit more debug details when an
-oops event is reached, by printing all the CPUs backtraces through the
-usage of NMIs (on architectures that support that).  The sysctl added (and
-documented) here was called "oops_all_cpu_backtrace", and when set will
-(as the name suggests) dump all CPUs backtraces.
+This patch introduces a simple way for proc_taint() to ignore any eventual
+invalid bit coming from the user input before committing those bits to the
+kernel tainted_mask.
 
-Far from ideal, this may be the last option though for users that for some
-reason cannot panic on oops.  Most of times oopses are clear enough to
-indicate the kernel portion that must be investigated, but in virtual
-environments it's possible to observe hypervisor/KVM issues that could
-lead to oopses shown in other guests CPUs (like virtual APIC crashes). 
-This patch hence aims to help debug such complex issues without resorting
-to kdump.
-
-Link: http://lkml.kernel.org/r/20200327224116.21030-1-gpiccoli@canonical.com
-Signed-off-by: Guilherme G. Piccoli <gpiccoli@canonical.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+Link: http://lkml.kernel.org/r/20200512223946.888020-1-aquini@redhat.com
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |   16 ++++++++++++++++
- include/linux/kernel.h                      |    6 ++++++
- kernel/panic.c                              |   11 +++++++++++
- kernel/sysctl.c                             |   11 +++++++++++
- 4 files changed, 44 insertions(+)
+ kernel/sysctl.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -646,6 +646,22 @@ rate for each task.
- scanned for a given scan.
- 
- 
-+oops_all_cpu_backtrace:
-+================
-+
-+If this option is set, the kernel will send an NMI to all CPUs to dump
-+their backtraces when an oops event occurs. It should be used as a last
-+resort in case a panic cannot be triggered (to protect VMs running, for
-+example) or kdump can't be collected. This file shows up if CONFIG_SMP
-+is enabled.
-+
-+0: Won't show all CPUs backtraces when an oops is detected.
-+This is the default behavior.
-+
-+1: Will non-maskably interrupt all CPUs and dump their backtraces when
-+an oops event is detected.
-+
-+
- osrelease, ostype & version
- ===========================
- 
---- a/include/linux/kernel.h~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
-+++ a/include/linux/kernel.h
-@@ -520,6 +520,12 @@ static inline u32 int_sqrt64(u64 x)
- }
- #endif
- 
-+#ifdef CONFIG_SMP
-+extern unsigned int sysctl_oops_all_cpu_backtrace;
-+#else
-+#define sysctl_oops_all_cpu_backtrace 0
-+#endif /* CONFIG_SMP */
-+
- extern void bust_spinlocks(int yes);
- extern int oops_in_progress;		/* If set, an oops, panic(), BUG() or die() is in progress */
- extern int panic_timeout;
---- a/kernel/panic.c~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
-+++ a/kernel/panic.c
-@@ -36,6 +36,14 @@
- #define PANIC_TIMER_STEP 100
- #define PANIC_BLINK_SPD 18
- 
-+#ifdef CONFIG_SMP
-+/*
-+ * Should we dump all CPUs backtraces in an oops event?
-+ * Defaults to 0, can be changed via sysctl.
-+ */
-+unsigned int __read_mostly sysctl_oops_all_cpu_backtrace;
-+#endif /* CONFIG_SMP */
-+
- int panic_on_oops = CONFIG_PANIC_ON_OOPS_VALUE;
- static unsigned long tainted_mask =
- 	IS_ENABLED(CONFIG_GCC_PLUGIN_RANDSTRUCT) ? (1 << TAINT_RANDSTRUCT) : 0;
-@@ -522,6 +530,9 @@ void oops_enter(void)
- 	/* can't trust the integrity of the kernel anymore: */
- 	debug_locks_off();
- 	do_oops_enter_exit();
-+
-+	if (sysctl_oops_all_cpu_backtrace)
-+		trigger_all_cpu_backtrace();
- }
- 
- /*
---- a/kernel/sysctl.c~panic-add-sysctl-to-dump-all-cpus-backtraces-on-oops-event
+--- a/kernel/sysctl.c~kernel-sysctl-ignore-out-of-range-taint-bits-introduced-via-kerneltainted
 +++ a/kernel/sysctl.c
-@@ -2150,6 +2150,17 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= proc_dointvec,
- 	},
- #endif
-+#ifdef CONFIG_SMP
-+	{
-+		.procname	= "oops_all_cpu_backtrace",
-+		.data		= &sysctl_oops_all_cpu_backtrace,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+#endif /* CONFIG_SMP */
- 	{
- 		.procname	= "pid_max",
- 		.data		= &pid_max,
+@@ -880,10 +880,9 @@ static int proc_taint(struct ctl_table *
+ 		 * Poor man's atomic or. Not worth adding a primitive
+ 		 * to everyone's atomic.h for this
+ 		 */
+-		for (i = 0; i < BITS_PER_LONG && tmptaint >> i; i++) {
+-			if ((tmptaint >> i) & 1)
++		for (i = 0; i < TAINT_FLAGS_COUNT; i++)
++			if ((1UL << i) & tmptaint)
+ 				add_taint(i, LOCKDEP_STILL_OK);
+-		}
+ 	}
+ 
+ 	return err;
 _
 
-Patches currently in -mm which might be from gpiccoli@canonical.com are
+Patches currently in -mm which might be from aquini@redhat.com are
