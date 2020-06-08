@@ -1,75 +1,201 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- lib-lz4-lz4_decompressc-document-deliberate-use-of.patch added to -mm tree
-Date: Sun, 07 Jun 2020 18:24:38 -0700
-Message-ID: <20200608012438.Iln83c7Rk%akpm@linux-foundation.org>
-References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [folded-merged]
+ =?US-ASCII?Q?dynamic=5Fdebug-add-an-option-to-enable-dynamic-debug-for-m?=
+ =?US-ASCII?Q?odules-only-v2.patch?= removed from -mm tree
+Date: Sun, 07 Jun 2020 21:17:08 -0700
+Message-ID: <20200608041708.B9c51ldsQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43058 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42012 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727972AbgFHBYj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 7 Jun 2020 21:24:39 -0400
-In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
+        id S1727796AbgFHERK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 00:17:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cyan@fb.com, hsiangkao@aol.com, joe@perches.com, mm-commits@vger.kernel.org, vvs@virtuozzo.com
+To: corbet@lwn.net, gregkh@linuxfoundation.org, jbaron@akamai.com, mm-commits@vger.kernel.org, orson.zhai@unisoc.com, pmladek@suse.com, rdunlap@infradead.org, rostedt@goodmis.org, sergey.senozhatsky@gmail.com
 
 
 The patch titled
-     Subject: lib/lz4/lz4_decompress.c: document deliberate use of `&'
-has been added to the -mm tree.  Its filename is
-     lib-lz4-lz4_decompressc-document-deliberate-use-of.patch
+     Subject: dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
+has been removed from the -mm tree.  Its filename was
+     dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-lz4-lz4_decompressc-document-deliberate-use-of.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-lz4-lz4_decompressc-document-deliberate-use-of.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only.patch
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: lib/lz4/lz4_decompress.c: document deliberate use of `&'
+From: Orson Zhai <orson.zhai@unisoc.com>
+Subject: dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
 
-This operation was intentional, but tools such as smatch will warn that it
-might not have been.
+1) Change DEBUG_MODULE to DYNAMIC_DEBUG_MODULE.
+2) Change more #if defined(DYNAMIC_DEBUG) condition (in net.h, netdevice.h
+   and ib_verbs.h).
+3) Rewrite description in howto document.
 
-Link: http://lkml.kernel.org/r/3bf931c6ea0cae3e23f3485801986859851b4f04.camel@perches.com
-Cc: Yann Collet <cyan@fb.com>
-Cc: Vasily Averin <vvs@virtuozzo.com>
-Cc: Gao Xiang <hsiangkao@aol.com>
+Link: http://lkml.kernel.org/r/1587408228-10861-1-git-send-email-orson.unisoc@gmail.com
+Signed-off-by: Orson Zhai <orson.zhai@unisoc.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lz4/lz4_decompress.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/admin-guide/dynamic-debug-howto.rst |   10 ++++++----
+ include/linux/dev_printk.h                        |    4 ++--
+ include/linux/net.h                               |    3 ++-
+ include/linux/netdevice.h                         |    6 ++++--
+ include/linux/printk.h                            |    6 +++---
+ include/rdma/ib_verbs.h                           |    6 ++++--
+ lib/Kconfig.debug                                 |    6 +++---
+ 7 files changed, 24 insertions(+), 17 deletions(-)
 
---- a/lib/lz4/lz4_decompress.c~lib-lz4-lz4_decompressc-document-deliberate-use-of
-+++ a/lib/lz4/lz4_decompress.c
-@@ -141,6 +141,9 @@ static FORCE_INLINE int LZ4_decompress_g
- 		 * space in the output for those 18 bytes earlier, upon
- 		 * entering the shortcut (in other words, there is a
- 		 * combined check for both stages).
-+		 *
-+		 * The & in the likely() below is intentionally not && so that
-+		 * some compilers can produce better parallelized runtime code
- 		 */
- 		if ((endOnInput ? length != RUN_MASK : length <= 8)
- 		   /*
+--- a/Documentation/admin-guide/dynamic-debug-howto.rst~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
++++ a/Documentation/admin-guide/dynamic-debug-howto.rst
+@@ -13,11 +13,13 @@ kernel code to obtain additional kernel
+ ``print_hex_dump_debug()``/``print_hex_dump_bytes()`` calls can be dynamically
+ enabled per-callsite.
+ 
+-If ``CONFIG_DYNAMIC_DEBUG_CORE`` is set, only the modules with ``DEBUG_MODULE``
+-defined will be tied into dynamic debug.
++If you do not want to enable dynamic debug globally (i.e. in some embedded
++system), you may set ``CONFIG_DYNAMIC_DEBUG_CORE`` as basic support of dynamic
++debug and add ``ccflags := -DDYNAMIC_DEBUG_MODULE`` into the Makefile of any
++modules which you'd like to dynamically debug later.
+ 
+-If ``CONFIG_DYNAMIC_DEBUG`` or ``CONFIG_DYNAMIC_DEBUG_CORE`` is not set,
+-``print_hex_dump_debug()`` is just shortcut for ``print_hex_dump(KERN_DEBUG)``.
++If ``CONFIG_DYNAMIC_DEBUG`` is not set, ``print_hex_dump_debug()`` is just
++shortcut for ``print_hex_dump(KERN_DEBUG)``.
+ 
+ For ``print_hex_dump_debug()``/``print_hex_dump_bytes()``, format string is
+ its ``prefix_str`` argument, if it is constant string; or ``hexdump``
+--- a/include/linux/dev_printk.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
++++ a/include/linux/dev_printk.h
+@@ -110,7 +110,7 @@ void _dev_info(const struct device *dev,
+ 	_dev_info(dev, dev_fmt(fmt), ##__VA_ARGS__)
+ 
+ #if defined(CONFIG_DYNAMIC_DEBUG) || \
+-	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define dev_dbg(dev, fmt, ...)						\
+ 	dynamic_dev_dbg(dev, dev_fmt(fmt), ##__VA_ARGS__)
+ #elif defined(DEBUG)
+@@ -183,7 +183,7 @@ do {									\
+ #define dev_info_ratelimited(dev, fmt, ...)				\
+ 	dev_level_ratelimited(dev_info, dev, fmt, ##__VA_ARGS__)
+ #if defined(CONFIG_DYNAMIC_DEBUG) || \
+-	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ /* descriptor check is first to prevent flooding with "callbacks suppressed" */
+ #define dev_dbg_ratelimited(dev, fmt, ...)				\
+ do {									\
+--- a/include/linux/netdevice.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
++++ a/include/linux/netdevice.h
+@@ -4942,7 +4942,8 @@ do {								\
+ #define MODULE_ALIAS_NETDEV(device) \
+ 	MODULE_ALIAS("netdev-" device)
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define netdev_dbg(__dev, format, args...)			\
+ do {								\
+ 	dynamic_netdev_dbg(__dev, format, ##args);		\
+@@ -5012,7 +5013,8 @@ do {								\
+ #define netif_info(priv, type, dev, fmt, args...)		\
+ 	netif_level(info, priv, type, dev, fmt, ##args)
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define netif_dbg(priv, type, netdev, format, args...)		\
+ do {								\
+ 	if (netif_msg_##type(priv))				\
+--- a/include/linux/net.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
++++ a/include/linux/net.h
+@@ -264,7 +264,8 @@ do {								\
+ 	net_ratelimited_function(pr_warn, fmt, ##__VA_ARGS__)
+ #define net_info_ratelimited(fmt, ...)				\
+ 	net_ratelimited_function(pr_info, fmt, ##__VA_ARGS__)
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define net_dbg_ratelimited(fmt, ...)					\
+ do {									\
+ 	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
+--- a/include/linux/printk.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
++++ a/include/linux/printk.h
+@@ -400,7 +400,7 @@ extern int kptr_restrict;
+ 
+ /* If you are writing a driver, please use dev_dbg instead */
+ #if defined(CONFIG_DYNAMIC_DEBUG) || \
+-	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #include <linux/dynamic_debug.h>
+ 
+ /**
+@@ -537,7 +537,7 @@ extern int kptr_restrict;
+ 
+ /* If you are writing a driver, please use dev_dbg instead */
+ #if defined(CONFIG_DYNAMIC_DEBUG) || \
+-	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ /* descriptor check is first to prevent flooding with "callbacks suppressed" */
+ #define pr_debug_ratelimited(fmt, ...)					\
+ do {									\
+@@ -585,7 +585,7 @@ static inline void print_hex_dump_bytes(
+ #endif
+ 
+ #if defined(CONFIG_DYNAMIC_DEBUG) || \
+-	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DEBUG_MODULE))
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define print_hex_dump_debug(prefix_str, prefix_type, rowsize,	\
+ 			     groupsize, buf, len, ascii)	\
+ 	dynamic_hex_dump(prefix_str, prefix_type, rowsize,	\
+--- a/include/rdma/ib_verbs.h~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
++++ a/include/rdma/ib_verbs.h
+@@ -100,7 +100,8 @@ void ibdev_notice(const struct ib_device
+ __printf(2, 3) __cold
+ void ibdev_info(const struct ib_device *ibdev, const char *format, ...);
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ #define ibdev_dbg(__dev, format, args...)                       \
+ 	dynamic_ibdev_dbg(__dev, format, ##args)
+ #else
+@@ -133,7 +134,8 @@ do {
+ #define ibdev_info_ratelimited(ibdev, fmt, ...) \
+ 	ibdev_level_ratelimited(ibdev_info, ibdev, fmt, ##__VA_ARGS__)
+ 
+-#if defined(CONFIG_DYNAMIC_DEBUG)
++#if defined(CONFIG_DYNAMIC_DEBUG) || \
++	(defined(CONFIG_DYNAMIC_DEBUG_CORE) && defined(DYNAMIC_DEBUG_MODULE))
+ /* descriptor check is first to prevent flooding with "callbacks suppressed" */
+ #define ibdev_dbg_ratelimited(ibdev, fmt, ...)                          \
+ do {                                                                    \
+--- a/lib/Kconfig.debug~dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only-v2
++++ a/lib/Kconfig.debug
+@@ -173,9 +173,9 @@ config DYNAMIC_DEBUG_CORE
+ 	help
+ 	  Enable core functional support of dynamic debug. It is useful
+ 	  when you want to tie dynamic debug to your kernel modules with
+-	  DEBUG_MODULE defined for each of them, especially for the case
+-	  of embedded system where the kernel image size is sensitive for
+-	  people.
++	  DYNAMIC_DEBUG_MODULE defined for each of them, especially for
++	  the case of embedded system where the kernel image size is
++	  sensitive for people.
+ 
+ config SYMBOLIC_ERRNAME
+ 	bool "Support symbolic error names in printf"
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from orson.zhai@unisoc.com are
 
-lib-lz4-lz4_decompressc-document-deliberate-use-of.patch
-checkpatch-test-git_dir-changes.patch
-checkpatch-add-test-for-possible-misuse-of-is_enabled-without-config_.patch
+dynamic_debug-add-an-option-to-enable-dynamic-debug-for-modules-only.patch
