@@ -1,78 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] kernel-add-panic_on_taint-fix.patch
- removed from -mm tree
-Date: Sun, 07 Jun 2020 21:17:36 -0700
-Message-ID: <20200608041736.W7B3BWvNZ%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ lib-test_sysctl-support-testing-of-sysctl-boot-parameter-fix.patch removed
+ from -mm tree
+Date: Sun, 07 Jun 2020 21:18:01 -0700
+Message-ID: <20200608041801.n4l_VF0iY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42220 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42562 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725945AbgFHERj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 00:17:39 -0400
+        id S1725945AbgFHESC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 00:18:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, cai@lca.pw, corbet@lwn.net, mcgrof@kernel.org, mm-commits@vger.kernel.org, rdunlap@infradead.org
+To: mcgrof@kernel.org, mm-commits@vger.kernel.org, vbabka@suse.cz
 
 
 The patch titled
-     Subject: kernel-add-panic_on_taint-fix
+     Subject: lib-test_sysctl-support-testing-of-sysctl-boot-parameter-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-add-panic_on_taint-fix.patch
+     lib-test_sysctl-support-testing-of-sysctl-boot-parameter-fix.patch
 
-This patch was dropped because it was folded into kernel-add-panic_on_taint.patch
+This patch was dropped because it was folded into lib-test_sysctl-support-testing-of-sysctl-boot-parameter.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-add-panic_on_taint-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: lib-test_sysctl-support-testing-of-sysctl-boot-parameter-fix
 
-tweak kernel-parameters.txt wording
+Skip the new test if boot_int sysctl is not present, otherwise, per Luis,
+"This would fail if someone uses this script to test an older kernel, and
+the scripts in selftests are supposed to work with older kernels."
 
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: http://lkml.kernel.org/r/305af605-1e60-cf84-fada-6ce1ca37c102@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Suggested-by: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/sysctl/sysctl.sh |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~kernel-add-panic_on_taint-fix
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3447,7 +3447,7 @@
- 			bit 4: print ftrace buffer
- 			bit 5: print all printk messages in buffer
+--- a/tools/testing/selftests/sysctl/sysctl.sh~lib-test_sysctl-support-testing-of-sysctl-boot-parameter-fix
++++ a/tools/testing/selftests/sysctl/sysctl.sh
+@@ -748,10 +748,15 @@ sysctl_test_0006()
+ sysctl_test_0007()
+ {
+ 	TARGET="${SYSCTL}/boot_int"
++	if [ ! -f $TARGET ]; then
++		echo "Skipping test for $TARGET as it is not present ..."
++		return $ksft_skip
++	fi
++
+ 	if [ -d $DIR ]; then
+ 		echo "Boot param test only possible sysctl_test is built-in, not module:"
+ 		cat $TEST_DIR/config >&2
+-		return 0
++		return $ksft_skip
+ 	fi
  
--	panic_on_taint=	Bitmask for conditionally call panic() in add_taint()
-+	panic_on_taint=	Bitmask for conditionally calling panic() in add_taint()
- 			Format: <hex>[,nousertaint]
- 			Hexadecimal bitmask representing the set of TAINT flags
- 			that will cause the kernel to panic when add_taint() is
+ 	echo -n "Testing if $TARGET is set to 1 ..."
+@@ -777,6 +782,7 @@ sysctl_test_0007()
+ 
+ 	echo "Skipping test, expected kernel parameter missing."
+ 	echo "To perform this test, make sure kernel is booted with parameter: sysctl.debug.test_sysctl.boot_int=1"
++	return $ksft_skip
+ }
+ 
+ list_tests()
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-kernel-add-panic_on_taint.patch
-doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked-fix.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-git-rejects.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-maccess-unify-the-probe-kernel-arch-hooks-fix.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+kernel-sysctl-support-setting-sysctl-parameters-from-kernel-command-line.patch
+kernel-sysctl-support-handling-command-line-aliases.patch
+kernel-hung_task-convert-hung_task_panic-boot-parameter-to-sysctl.patch
+tools-testing-selftests-sysctl-sysctlsh-support-config_test_sysctl=y.patch
+lib-test_sysctl-support-testing-of-sysctl-boot-parameter.patch
