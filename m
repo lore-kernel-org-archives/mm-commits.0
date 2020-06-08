@@ -1,72 +1,93 @@
-From: akpm@linux-foundation.org
-Subject: [merged]
- doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked.patch
- removed from -mm tree
-Date: Mon, 08 Jun 2020 15:33:34 -0700
-Message-ID: <20200608223334.EiFRx99M1%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: +
+ lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch added to -mm
+ tree
+Date: Mon, 08 Jun 2020 16:33:07 -0700
+Message-ID: <20200608233307.NbC98GVPX%akpm@linux-foundation.org>
+References: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54470 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726734AbgFHWdf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 18:33:35 -0400
+        id S1732028AbgFHXdI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 19:33:08 -0400
+In-Reply-To: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guro@fb.com, khlebnikov@yandex-team.ru, mhocko@suse.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com, geert@linux-m68k.org, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
 
 
 The patch titled
-     Subject: doc: cgroup: update note about conditions when oom killer is invoked
-has been removed from the -mm tree.  Its filename was
-     doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked.patch
+     Subject: lib-test-get_count_order-long-in-test_bitopsc-fix-fix
+has been added to the -mm tree.  Its filename is
+     lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: doc: cgroup: update note about conditions when oom killer is invoked
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-test-get_count_order-long-in-test_bitopsc-fix-fix
 
-Starting from v4.19 commit 29ef680ae7c2 ("memcg, oom: move out_of_memory
-back to the charge path") cgroup oom killer is no longer invoked only from
-page faults.  Now it implements the same semantics as global OOM killer:
-allocation context invokes OOM killer and keeps retrying until success.
+fix loop bound, per Wei Yang
 
-[akpm@linux-foundation.org: fixes per Randy]
-Link: http://lkml.kernel.org/r/158894738928.208854.5244393925922074518.stgit@buzz
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ lib/test_bitops.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~doc-cgroup-update-note-about-conditions-when-oom-killer-is-invoked
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1170,6 +1170,13 @@ PAGE_SIZE multiple when read back.
- 	Under certain circumstances, the usage may go over the limit
- 	temporarily.
+--- a/lib/test_bitops.c~lib-test-get_count_order-long-in-test_bitopsc-fix-fix
++++ a/lib/test_bitops.c
+@@ -74,7 +74,7 @@ static int __init test_bitops_startup(vo
+ 	}
  
-+	In default configuration regular 0-order allocations always
-+	succeed unless OOM killer chooses current task as a victim.
-+
-+	Some kinds of allocations don't invoke the OOM killer.
-+	Caller could retry them differently, return into userspace
-+	as -ENOMEM or silently ignore in cases like disk readahead.
-+
- 	This is the ultimate protection mechanism.  As long as the
- 	high limit is used and monitored properly, this limit's
- 	utility is limited to providing the final safety net.
-@@ -1226,17 +1233,9 @@ PAGE_SIZE multiple when read back.
- 		The number of time the cgroup's memory usage was
- 		reached the limit and allocation was about to fail.
- 
--		Depending on context result could be invocation of OOM
--		killer and retrying allocation or failing allocation.
--
--		Failed allocation in its turn could be returned into
--		userspace as -ENOMEM or silently ignored in cases like
--		disk readahead.  For now OOM in memory cgroup kills
--		tasks iff shortage has happened inside page fault.
+ #ifdef CONFIG_64BIT
+-	for (i = 0; i < ARRAY_SIZE(order_comb); i++) {
++	for (i = 0; i < ARRAY_SIZE(order_comb_long); i++) {
+ 		if (order_comb_long[i][1] !=
+ 			       get_count_order_long(order_comb_long[i][0]))
+ 			pr_warn("get_count_order_long wrong for %lx\n",
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-git-rejects.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
