@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3.patch added to
- -mm tree
-Date: Sun, 07 Jun 2020 16:53:47 -0700
-Message-ID: <20200607235347.pemee48AR%akpm@linux-foundation.org>
+ tracing-kprobes-handle-mixed-kernel-userspace-probes-better-fix.patch added
+ to -mm tree
+Date: Sun, 07 Jun 2020 17:21:03 -0700
+Message-ID: <20200608002103.Zx6H0ejvH%akpm@linux-foundation.org>
 References: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46146 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727878AbgFGXxs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 7 Jun 2020 19:53:48 -0400
+        id S1727919AbgFHAVE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 7 Jun 2020 20:21:04 -0400
 In-Reply-To: <20200604164523.e15f3177f4b69dcb4f2534a1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com, sfr@canb.auug.org.au
+To: hch@lst.de, mhiramat@kernel.org, mm-commits@vger.kernel.org, svens@linux.ibm.com
 
 
 The patch titled
-     Subject: mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3
+     Subject: kprobes: use strncpy_from_kernel_nofault() in fetch_store_string()
 has been added to the -mm tree.  Its filename is
-     mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3.patch
+     tracing-kprobes-handle-mixed-kernel-userspace-probes-better-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tracing-kprobes-handle-mixed-kernel-userspace-probes-better-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tracing-kprobes-handle-mixed-kernel-userspace-probes-better-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3
+From: Sven Schnelle <svens@linux.ibm.com>
+Subject: kprobes: use strncpy_from_kernel_nofault() in fetch_store_string()
 
-Fix powerpc build
+With the latest linux-next i noticed that some tests in the ftrace test
+suites are failing on s390, namely:
 
-Link: http://lkml.kernel.org/r/20200607153443.GB738695@linux.ibm.com
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+[FAIL] Kprobe event symbol argument
+[FAIL] Kprobe event with comm arguments
 
+The following doesn't work anymore:
+
+cd /sys/kernel/tracing
+echo 'p:testprobe _do_fork comm=$comm ' >kprobe_events
+echo 1 >events/kprobes/testprobe/enable
+cat trace
+
+it will just show
+
+test.sh-519   [012] ....    18.580625: testprobe: (_do_fork+0x0/0x3c8) comm=(fault)
+
+Looking at the source i see that there are two helpers for reading strings:
+
+fetch_store_string_user() -> read string from user space
+fetch_store_string() -> read string from kernel space(?)
+
+but in the end both are using strncpy_from_user_nofault(), but
+fetch_store_string() should use strncpy_from_kernel_nofault().
+
+Link: http://lkml.kernel.org/r/20200606181903.49384-1-svens@linux.ibm.com
+Signed-off-by: Sven Schnelle <svens@linux.ibm.com>
+Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
+Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/nohash/32/pgtable.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/trace/trace_kprobe.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/powerpc/include/asm/nohash/32/pgtable.h~mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3
-+++ a/arch/powerpc/include/asm/nohash/32/pgtable.h
-@@ -205,6 +205,9 @@ static inline void pmd_clear(pmd_t *pmdp
- 	*pmdp = __pmd(0);
- }
+--- a/kernel/trace/trace_kprobe.c~tracing-kprobes-handle-mixed-kernel-userspace-probes-better-fix
++++ a/kernel/trace/trace_kprobe.c
+@@ -1278,7 +1278,7 @@ fetch_store_string(unsigned long addr, v
+ 	 * Try to get string again, since the string can be changed while
+ 	 * probing.
+ 	 */
+-	ret = strncpy_from_user_nofault(__dest, (void *)addr, maxlen);
++	ret = strncpy_from_kernel_nofault(__dest, (void *)addr, maxlen);
+ 	if (ret >= 0)
+ 		*(u32 *)dest = make_data_loc(ret, __dest - base);
  
-+/* to find an entry in a page-table-directory */
-+#define pgd_index(address)	 ((address) >> PGDIR_SHIFT)
-+#define pgd_offset(mm, address)	 ((mm)->pgd + pgd_index(address))
- 
- /*
-  * PTE updates. This function is called whenever an existing
-@@ -234,7 +237,7 @@ static inline pte_basic_t pte_update(str
- 	pte_basic_t old = pte_val(*p);
- 	pte_basic_t new = (old & ~(pte_basic_t)clr) | set;
- 	int num, i;
--	pmd_t *pmd = pmd_offset(pud_offset(pgd_offset(mm, addr), addr), addr);
-+	pmd_t *pmd = pmd_offset(pud_offset(p4d_offset(pgd_offset(mm, addr), addr), addr), addr);
- 
- 	if (!huge)
- 		num = PAGE_SIZE / SZ_4K;
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from svens@linux.ibm.com are
 
-kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3.patch
-maccess-unexport-probe_kernel_write-and-probe_user_write-fix.patch
+tracing-kprobes-handle-mixed-kernel-userspace-probes-better-fix.patch
