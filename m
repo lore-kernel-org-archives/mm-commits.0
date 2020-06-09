@@ -1,21 +1,21 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 11/93] c6x: add show_stack_loglvl()
-Date: Mon, 08 Jun 2020 21:30:29 -0700
-Message-ID: <20200609043029.rjLWT6jSK%akpm@linux-foundation.org>
+Subject: [patch 12/93] csky: add show_stack_loglvl()
+Date: Mon, 08 Jun 2020 21:30:32 -0700
+Message-ID: <20200609043032.1K98sPTtt%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53234 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53288 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726896AbgFIEaa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:30:30 -0400
+        id S1726896AbgFIEae (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:30:34 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dima@arista.com, jacquiot.aurelien@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, msalter@redhat.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dima@arista.com, guoren@kernel.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Dmitry Safonov <dima@arista.com>
-Subject: c6x: add show_stack_loglvl()
+Subject: csky: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -37,68 +37,39 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-12-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-13-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Aurelien Jacquiot <jacquiot.aurelien@gmail.com>
-Cc: Mark Salter <msalter@redhat.com>
+Cc: Guo Ren <guoren@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/c6x/kernel/traps.c |   21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ arch/csky/kernel/stacktrace.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/arch/c6x/kernel/traps.c~c6x-add-show_stack_loglvl
-+++ a/arch/c6x/kernel/traps.c
-@@ -344,12 +344,13 @@ asmlinkage int process_exception(struct
+--- a/arch/csky/kernel/stacktrace.c~csky-add-show_stack_loglvl
++++ a/arch/csky/kernel/stacktrace.c
+@@ -91,14 +91,21 @@ static void notrace walk_stackframe(stru
  
- static int kstack_depth_to_print = 48;
- 
--static void show_trace(unsigned long *stack, unsigned long *endstack)
-+static void show_trace(unsigned long *stack, unsigned long *endstack,
-+		       const char *loglvl)
+ static bool print_trace_address(unsigned long pc, void *arg)
  {
- 	unsigned long addr;
- 	int i;
- 
--	pr_debug("Call trace:");
-+	printk("%sCall trace:", loglvl);
- 	i = 0;
- 	while (stack + 1 <= endstack) {
- 		addr = *stack++;
-@@ -364,16 +365,17 @@ static void show_trace(unsigned long *st
- 		if (__kernel_text_address(addr)) {
- #ifndef CONFIG_KALLSYMS
- 			if (i % 5 == 0)
--				pr_debug("\n	    ");
-+				printk("%s\n	    ", loglvl);
- #endif
--			pr_debug(" [<%08lx>] %pS\n", addr, (void *)addr);
-+			printk("%s [<%08lx>] %pS\n", loglvl, addr, (void *)addr);
- 			i++;
- 		}
- 	}
--	pr_debug("\n");
-+	printk("%s\n", loglvl);
+-	print_ip_sym(pc);
++	print_ip_sym((const char *)arg, pc);
+ 	return false;
  }
  
--void show_stack(struct task_struct *task, unsigned long *stack)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *stack,
-+		const char *loglvl)
- {
- 	unsigned long *p, *endstack;
- 	int i;
-@@ -398,7 +400,12 @@ void show_stack(struct task_struct *task
- 		pr_cont(" %08lx", *p++);
- 	}
- 	pr_cont("\n");
--	show_trace(stack, endstack);
-+	show_trace(stack, endstack, loglvl);
++void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
++		       const char *loglvl)
++{
++	pr_cont("Call Trace:\n");
++	walk_stackframe(task, NULL, print_trace_address, (void *)loglvl);
 +}
 +
-+void show_stack(struct task_struct *task, unsigned long *stack)
-+{
-+	show_stack_loglvl(task, stack, KERN_DEBUG);
+ void show_stack(struct task_struct *task, unsigned long *sp)
+ {
+ 	pr_cont("Call Trace:\n");
+-	walk_stackframe(task, NULL, print_trace_address, NULL);
++	walk_stackframe(task, NULL, print_trace_address, KERN_INFO);
  }
  
- int is_valid_bugaddr(unsigned long addr)
+ static bool save_wchan(unsigned long pc, void *arg)
 _
