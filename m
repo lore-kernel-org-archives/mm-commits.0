@@ -1,20 +1,20 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmotm 2020-06-08-22-33 uploaded
-Date: Mon, 08 Jun 2020 22:34:47 -0700
-Message-ID: <20200609053447.B76w0AErG%akpm__15715.82934573$1591680903$gmane$org@linux-foundation.org>
+Subject: mmotm 2020-06-08-22-35 uploaded
+Date: Mon, 08 Jun 2020 22:36:14 -0700
+Message-ID: <20200609053614.JML2T0-uE%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39770 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725770AbgFIFet (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 01:34:49 -0400
+        id S1725770AbgFIFgQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 01:36:16 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: broonie@kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
-The mm-of-the-moment snapshot 2020-06-08-22-33 has been uploaded to
+The mm-of-the-moment snapshot 2020-06-08-22-35 has been uploaded to
 
    http://www.ozlabs.org/~akpm/mmotm/
 
