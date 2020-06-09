@@ -1,70 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- maccess-unify-the-probe-kernel-arch-hooks-fix.patch removed from -mm tree
-Date: Mon, 08 Jun 2020 20:22:48 -0700
-Message-ID: <20200609032248.A5kYg7kJc%akpm@linux-foundation.org>
+ tracing-kprobes-handle-mixed-kernel-userspace-probes-better-fix.patch
+ removed from -mm tree
+Date: Mon, 08 Jun 2020 20:23:15 -0700
+Message-ID: <20200609032315.5hzLSIzeT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54766 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54924 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726884AbgFIDWu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 23:22:50 -0400
+        id S1726884AbgFIDXQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 23:23:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: hch@lst.de, mhiramat@kernel.org, mm-commits@vger.kernel.org, svens@linux.ibm.com
 
 
 The patch titled
-     Subject: maccess-unify-the-probe-kernel-arch-hooks-fix
+     Subject: kprobes: use strncpy_from_kernel_nofault() in fetch_store_string()
 has been removed from the -mm tree.  Its filename was
-     maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+     tracing-kprobes-handle-mixed-kernel-userspace-probes-better-fix.patch
 
-This patch was dropped because it was folded into maccess-unify-the-probe-kernel-arch-hooks.patch
+This patch was dropped because it was folded into tracing-kprobes-handle-mixed-kernel-userspace-probes-better.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maccess-unify-the-probe-kernel-arch-hooks-fix
+From: Sven Schnelle <svens@linux.ibm.com>
+Subject: kprobes: use strncpy_from_kernel_nofault() in fetch_store_string()
 
-fix !CONFIG_X86_64 build
+With the latest linux-next i noticed that some tests in the ftrace test
+suites are failing on s390, namely:
 
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+[FAIL] Kprobe event symbol argument
+[FAIL] Kprobe event with comm arguments
+
+The following doesn't work anymore:
+
+cd /sys/kernel/tracing
+echo 'p:testprobe _do_fork comm=$comm ' >kprobe_events
+echo 1 >events/kprobes/testprobe/enable
+cat trace
+
+it will just show
+
+test.sh-519   [012] ....    18.580625: testprobe: (_do_fork+0x0/0x3c8) comm=(fault)
+
+Looking at the source i see that there are two helpers for reading strings:
+
+fetch_store_string_user() -> read string from user space
+fetch_store_string() -> read string from kernel space(?)
+
+but in the end both are using strncpy_from_user_nofault(), but
+fetch_store_string() should use strncpy_from_kernel_nofault().
+
+Link: http://lkml.kernel.org/r/20200606181903.49384-1-svens@linux.ibm.com
+Signed-off-by: Sven Schnelle <svens@linux.ibm.com>
+Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
+Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/maccess.c |    2 +-
+ kernel/trace/trace_kprobe.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/mm/maccess.c~maccess-unify-the-probe-kernel-arch-hooks-fix
-+++ a/arch/x86/mm/maccess.c
-@@ -29,6 +29,6 @@ bool probe_kernel_read_allowed(const voi
- {
- 	if (!strict)
- 		return true;
--	return (unsigned long)vaddr >= TASK_SIZE_MAX;
-+	return (unsigned long)unsafe_src >= TASK_SIZE_MAX;
- }
- #endif
+--- a/kernel/trace/trace_kprobe.c~tracing-kprobes-handle-mixed-kernel-userspace-probes-better-fix
++++ a/kernel/trace/trace_kprobe.c
+@@ -1278,7 +1278,7 @@ fetch_store_string(unsigned long addr, v
+ 	 * Try to get string again, since the string can be changed while
+ 	 * probing.
+ 	 */
+-	ret = strncpy_from_user_nofault(__dest, (void *)addr, maxlen);
++	ret = strncpy_from_kernel_nofault(__dest, (void *)addr, maxlen);
+ 	if (ret >= 0)
+ 		*(u32 *)dest = make_data_loc(ret, __dest - base);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from svens@linux.ibm.com are
 
-maccess-unify-the-probe-kernel-arch-hooks.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-git-rejects.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+tracing-kprobes-handle-mixed-kernel-userspace-probes-better.patch
