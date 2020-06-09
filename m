@@ -1,72 +1,121 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix.patch removed
- from -mm tree
-Date: Mon, 08 Jun 2020 20:12:50 -0700
-Message-ID: <20200609031250.ZogSL9hyx%akpm@linux-foundation.org>
+ mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3.patch
+ removed from -mm tree
+Date: Mon, 08 Jun 2020 20:12:53 -0700
+Message-ID: <20200609031253.qepiFnDYF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50664 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50706 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726803AbgFIDMv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 23:12:51 -0400
+        id S1726803AbgFIDMy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 23:12:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elver@google.com, ira.weiny@intel.com, linux@roeck-us.net, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, rppt@kernel.org
 
 
 The patch titled
-     Subject: microblaze: fix page table traversal in setup_rt_frame()
+     Subject: mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
 has been removed from the -mm tree.  Its filename was
-     mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix.patch
+     mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3.patch
 
 This patch was dropped because it was folded into mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: microblaze: fix page table traversal in setup_rt_frame()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
 
-The replacement of long folded page table traversal with the direct access
-to PMD entry wrongly used the kernel page table in setup_rt_frame()
-function instead of the process (current->mm) page table.
+s/pmd_ptr_k/pmd_off_k/ in various places
 
-Fix it.
-
-Link: http://lkml.kernel.org/r/20200518191511.GD1118872@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Marco Elver <elver@google.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/mm/kasan/8xx.c       |    4 ++--
+ arch/powerpc/mm/kasan/book3s_32.c |    2 +-
+ arch/powerpc/mm/nohash/8xx.c      |    2 +-
+ arch/powerpc/mm/pgtable_32.c      |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/microblaze/kernel/signal.c~mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix
-+++ a/arch/microblaze/kernel/signal.c
-@@ -194,7 +194,7 @@ static int setup_rt_frame(struct ksignal
+--- a/arch/powerpc/mm/nohash/8xx.c~mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
++++ a/arch/powerpc/mm/nohash/8xx.c
+@@ -74,7 +74,7 @@ static pte_t __init *early_hugepd_alloc_
+ static int __ref __early_map_kernel_hugepage(unsigned long va, phys_addr_t pa,
+ 					     pgprot_t prot, int psize, bool new)
+ {
+-	pmd_t *pmdp = pmd_ptr_k(va);
++	pmd_t *pmdp = pmd_off_k(va);
+ 	pte_t *ptep;
  
- 	address = ((unsigned long)frame->tramp);
- #ifdef CONFIG_MMU
--	pmdp = pmd_off_k(address);
-+	pmdp = pmd_off(current->mm, address);
+ 	if (WARN_ON(psize != MMU_PAGE_512K && psize != MMU_PAGE_8M))
+--- a/arch/powerpc/mm/pgtable_32.c~mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
++++ a/arch/powerpc/mm/pgtable_32.c
+@@ -40,7 +40,7 @@ notrace void __init early_ioremap_init(v
+ {
+ 	unsigned long addr = ALIGN_DOWN(FIXADDR_START, PGDIR_SIZE);
+ 	pte_t *ptep = (pte_t *)early_fixmap_pagetable;
+-	pmd_t *pmdp = pmd_ptr_k(addr);
++	pmd_t *pmdp = pmd_off_k(addr);
  
- 	preempt_disable();
- 	ptep = pte_offset_map(pmdp, address);
+ 	for (; (s32)(FIXADDR_TOP - addr) > 0;
+ 	     addr += PGDIR_SIZE, ptep += PTRS_PER_PTE, pmdp++)
+--- a/arch/powerpc/mm/kasan/8xx.c~mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
++++ a/arch/powerpc/mm/kasan/8xx.c
+@@ -10,7 +10,7 @@
+ static int __init
+ kasan_init_shadow_8M(unsigned long k_start, unsigned long k_end, void *block)
+ {
+-	pmd_t *pmd = pmd_ptr_k(k_start);
++	pmd_t *pmd = pmd_off_k(k_start);
+ 	unsigned long k_cur, k_next;
+ 
+ 	for (k_cur = k_start; k_cur != k_end; k_cur = k_next, pmd += 2, block += SZ_8M) {
+@@ -59,7 +59,7 @@ int __init kasan_init_region(void *start
+ 		return ret;
+ 
+ 	for (; k_cur < k_end; k_cur += PAGE_SIZE) {
+-		pmd_t *pmd = pmd_ptr_k(k_cur);
++		pmd_t *pmd = pmd_off_k(k_cur);
+ 		void *va = block + k_cur - k_start;
+ 		pte_t pte = pfn_pte(PHYS_PFN(__pa(va)), PAGE_KERNEL);
+ 
+--- a/arch/powerpc/mm/kasan/book3s_32.c~mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
++++ a/arch/powerpc/mm/kasan/book3s_32.c
+@@ -46,7 +46,7 @@ int __init kasan_init_region(void *start
+ 	kasan_update_early_region(k_start, k_cur, __pte(0));
+ 
+ 	for (; k_cur < k_end; k_cur += PAGE_SIZE) {
+-		pmd_t *pmd = pmd_ptr_k(k_cur);
++		pmd_t *pmd = pmd_off_k(k_cur);
+ 		void *va = block + k_cur - k_start;
+ 		pte_t pte = pfn_pte(PHYS_PFN(__pa(va)), PAGE_KERNEL);
+ 
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
-mm-introduce-include-linux-pgtableh.patch
-mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
-csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
-m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
-m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
 mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
-mm-consolidate-pte_index-and-pte_offset_-definitions.patch
-mm-consolidate-pmd_index-and-pmd_offset-definitions.patch
-mm-consolidate-pud_index-and-pud_offset-definitions.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-git-rejects.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
