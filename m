@@ -1,30 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- fix-build-failure-of-ocfs2-when-tcp-ip-is-disabled.patch added to -mm tree
-Date: Mon, 08 Jun 2020 17:12:33 -0700
-Message-ID: <20200609001233.jkFGlCsT5%akpm@linux-foundation.org>
+ mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3.patch added
+ to -mm tree
+Date: Mon, 08 Jun 2020 18:27:01 -0700
+Message-ID: <20200609012701.689wXug68%akpm@linux-foundation.org>
 References: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52420 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51548 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730040AbgFIAMf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 20:12:35 -0400
+        id S1726957AbgFIB1C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 21:27:02 -0400
 In-Reply-To: <20200607212615.b050e41fac139a1e16fe00bd@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, gechangwei@live.cn, ghe@suse.com, hch@lst.de, jgg@mellanox.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, sagi@grimberg.me, tseewald@gmail.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au, rppt@kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix build failure when TCP/IP is disabled
+     Subject: mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
 has been added to the -mm tree.  Its filename is
-     fix-build-failure-of-ocfs2-when-tcp-ip-is-disabled.patch
+     mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-build-failure-of-ocfs2-when-tcp-ip-is-disabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-build-failure-of-ocfs2-when-tcp-ip-is-disabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,61 +39,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tom Seewald <tseewald@gmail.com>
-Subject: ocfs2: fix build failure when TCP/IP is disabled
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
 
-After commit 12abc5ee7873 ("tcp: add tcp_sock_set_nodelay") and commit
-c488aeadcbd0 ("tcp: add tcp_sock_set_user_timeout"), building the kernel
-with OCFS2_FS=y but without INET=y causes it to fail with:
+s/pmd_ptr_k/pmd_off_k/ in various places
 
-ld: fs/ocfs2/cluster/tcp.o: in function `o2net_accept_many':
-tcp.c:(.text+0x21b1): undefined reference to `tcp_sock_set_nodelay'
-ld: tcp.c:(.text+0x21c1): undefined reference to `tcp_sock_set_user_timeout
-'
-ld: fs/ocfs2/cluster/tcp.o: in function `o2net_start_connect':
-tcp.c:(.text+0x2633): undefined reference to `tcp_sock_set_nodelay'
-ld: tcp.c:(.text+0x2643): undefined reference to `tcp_sock_set_user_timeout
-'
-
-This is due to tcp_sock_set_nodelay() and tcp_sock_set_user_timeout()
-being declared in linux/tcp.h and defined in net/ipv4/tcp.c, which depend
-on TCP/IP being enabled.
-
-To fix this, make OCFS2_FS depend on INET=y which already requires NET=y.
-
-Link: http://lkml.kernel.org/r/20200606190827.23954-1-tseewald@gmail.com
-12abc5ee7873 ("tcp: add tcp_sock_set_nodelay") and commit
-Signed-off-by: Tom Seewald <tseewald@gmail.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/mm/kasan/8xx.c       |    4 ++--
+ arch/powerpc/mm/kasan/book3s_32.c |    2 +-
+ arch/powerpc/mm/nohash/8xx.c      |    2 +-
+ arch/powerpc/mm/pgtable_32.c      |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/fs/ocfs2/Kconfig~fix-build-failure-of-ocfs2-when-tcp-ip-is-disabled
-+++ a/fs/ocfs2/Kconfig
-@@ -1,7 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0-only
- config OCFS2_FS
- 	tristate "OCFS2 file system support"
--	depends on NET && SYSFS && CONFIGFS_FS
-+	depends on INET && SYSFS && CONFIGFS_FS
- 	select JBD2
- 	select CRC32
- 	select QUOTA
+--- a/arch/powerpc/mm/nohash/8xx.c~mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
++++ a/arch/powerpc/mm/nohash/8xx.c
+@@ -74,7 +74,7 @@ static pte_t __init *early_hugepd_alloc_
+ static int __ref __early_map_kernel_hugepage(unsigned long va, phys_addr_t pa,
+ 					     pgprot_t prot, int psize, bool new)
+ {
+-	pmd_t *pmdp = pmd_ptr_k(va);
++	pmd_t *pmdp = pmd_off_k(va);
+ 	pte_t *ptep;
+ 
+ 	if (WARN_ON(psize != MMU_PAGE_512K && psize != MMU_PAGE_8M))
+--- a/arch/powerpc/mm/pgtable_32.c~mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
++++ a/arch/powerpc/mm/pgtable_32.c
+@@ -40,7 +40,7 @@ notrace void __init early_ioremap_init(v
+ {
+ 	unsigned long addr = ALIGN_DOWN(FIXADDR_START, PGDIR_SIZE);
+ 	pte_t *ptep = (pte_t *)early_fixmap_pagetable;
+-	pmd_t *pmdp = pmd_ptr_k(addr);
++	pmd_t *pmdp = pmd_off_k(addr);
+ 
+ 	for (; (s32)(FIXADDR_TOP - addr) > 0;
+ 	     addr += PGDIR_SIZE, ptep += PTRS_PER_PTE, pmdp++)
+--- a/arch/powerpc/mm/kasan/8xx.c~mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
++++ a/arch/powerpc/mm/kasan/8xx.c
+@@ -10,7 +10,7 @@
+ static int __init
+ kasan_init_shadow_8M(unsigned long k_start, unsigned long k_end, void *block)
+ {
+-	pmd_t *pmd = pmd_ptr_k(k_start);
++	pmd_t *pmd = pmd_off_k(k_start);
+ 	unsigned long k_cur, k_next;
+ 
+ 	for (k_cur = k_start; k_cur != k_end; k_cur = k_next, pmd += 2, block += SZ_8M) {
+@@ -59,7 +59,7 @@ int __init kasan_init_region(void *start
+ 		return ret;
+ 
+ 	for (; k_cur < k_end; k_cur += PAGE_SIZE) {
+-		pmd_t *pmd = pmd_ptr_k(k_cur);
++		pmd_t *pmd = pmd_off_k(k_cur);
+ 		void *va = block + k_cur - k_start;
+ 		pte_t pte = pfn_pte(PHYS_PFN(__pa(va)), PAGE_KERNEL);
+ 
+--- a/arch/powerpc/mm/kasan/book3s_32.c~mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3
++++ a/arch/powerpc/mm/kasan/book3s_32.c
+@@ -46,7 +46,7 @@ int __init kasan_init_region(void *start
+ 	kasan_update_early_region(k_start, k_cur, __pte(0));
+ 
+ 	for (; k_cur < k_end; k_cur += PAGE_SIZE) {
+-		pmd_t *pmd = pmd_ptr_k(k_cur);
++		pmd_t *pmd = pmd_off_k(k_cur);
+ 		void *va = block + k_cur - k_start;
+ 		pte_t pte = pfn_pte(PHYS_PFN(__pa(va)), PAGE_KERNEL);
+ 
 _
 
-Patches currently in -mm which might be from tseewald@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fix-build-failure-of-ocfs2-when-tcp-ip-is-disabled.patch
+mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte-fix-3.patch
+mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-git-rejects.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
