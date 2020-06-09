@@ -1,81 +1,54 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch removed from -mm
- tree
-Date: Mon, 08 Jun 2020 20:18:35 -0700
-Message-ID: <20200609031835.yT_t2SnrH%akpm@linux-foundation.org>
+ maccess-unexport-probe_kernel_write-and-probe_user_write-fix.patch removed
+ from -mm tree
+Date: Mon, 08 Jun 2020 20:19:27 -0700
+Message-ID: <20200609031927.QlfXUCQXN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53310 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53658 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726803AbgFIDSi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 23:18:38 -0400
+        id S1726803AbgFIDT2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 23:19:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, daniel.m.jordan@oracle.com, dbueso@suse.de, hughd@google.com, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, ldufour@linux.ibm.com, Liam.Howlett@oracle.com, mm-commits@vger.kernel.org, peterz@infradead.org, rientjes@google.com, vbabka@suse.cz, walken@google.com, willy@infradead.org, yinghan@google.com
+To: hch@lst.de, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mmap-locking-api-convert-mmap_sem-comments-fix-fix
+     Subject: turns out that probe_user_write is used in modular code
 has been removed from the -mm tree.  Its filename was
-     mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+     maccess-unexport-probe_kernel_write-and-probe_user_write-fix.patch
 
-This patch was dropped because it was folded into mmap-locking-api-convert-mmap_sem-comments.patch
+This patch was dropped because it was folded into maccess-unexport-probe_kernel_write-and-probe_user_write.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmap-locking-api-convert-mmap_sem-comments-fix-fix
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: turns out that probe_user_write is used in modular code
 
-s/lockaphore/lock/, per Vlastimil
-
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
-Cc: Liam Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Ying Han <yinghan@google.com>
+Link: http://lkml.kernel.org/r/20200602195741.4faaa348@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/maccess.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/mempolicy.c~mmap-locking-api-convert-mmap_sem-comments-fix-fix
-+++ a/mm/mempolicy.c
-@@ -224,7 +224,7 @@ static int mpol_new_bind(struct mempolic
-  * handle an empty nodemask with MPOL_PREFERRED here.
-  *
-  * Must be called holding task's alloc_lock to protect task's mems_allowed
-- * and mempolicy.  May also be called holding the mmap_lockaphore for write.
-+ * and mempolicy.  May also be called holding the mmap_lock for write.
-  */
- static int mpol_set_nodemask(struct mempolicy *pol,
- 		     const nodemask_t *nodes, struct nodemask_scratch *nsc)
+--- a/mm/maccess.c~maccess-unexport-probe_kernel_write-and-probe_user_write-fix
++++ a/mm/maccess.c
+@@ -244,6 +244,7 @@ long strncpy_from_unsafe_user(char *dst,
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(probe_user_write);
+ 
+ /**
+  * strnlen_unsafe_user: - Get the size of a user string INCLUDING final NUL.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mmap-locking-api-convert-mmap_sem-comments.patch
-mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
-maccess-unify-the-probe-kernel-arch-hooks-fix.patch
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
-x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-git-rejects.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+maccess-unexport-probe_kernel_write-and-probe_user_write.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch
