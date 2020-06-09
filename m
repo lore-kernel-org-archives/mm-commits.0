@@ -1,91 +1,69 @@
-From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Date: Tue, 09 Jun 2020 09:56:26 -0700
-Message-ID: <20200609165626.6gaMq2928%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + arch-sparc-mm-srmmuc-fix-build.patch added to -mm tree
+Date: Tue, 09 Jun 2020 15:26:54 -0700
+Message-ID: <20200609222654.72kEGYBDv%akpm@linux-foundation.org>
+References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54808 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37690 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731061AbgFIQ41 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 12:56:27 -0400
+        id S1728191AbgFIW0z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 18:26:55 -0400
+In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: arch/sparc/mm/srmmu.c: fix build
+has been added to the -mm tree.  Its filename is
+     arch-sparc-mm-srmmuc-fix-build.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-sparc-mm-srmmuc-fix-build.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-sparc-mm-srmmuc-fix-build.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: arch/sparc/mm/srmmu.c: fix build
 
+"mm: consolidate pte_index() and pte_offset_*() definitions" was supposed
+to remove arch/sparc/mm/srmmu.c:pte_offset_kernel().
+
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/ptrace_32.c |   14 --------------
- security/apparmor/label.c     |    3 ---
- 2 files changed, 17 deletions(-)
+ arch/sparc/mm/srmmu.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/arch/sparc/kernel/ptrace_32.c~linux-next-git-rejects
-+++ a/arch/sparc/kernel/ptrace_32.c
-@@ -167,26 +167,12 @@ static int genregs32_set(struct task_str
- 	if (ret || !count)
- 		return ret;
- 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
--<<<<<<< HEAD
--				 &regs->npc,
--				 34 * sizeof(u32), 35 * sizeof(u32));
--	if (ret || !count)
--		return ret;
--	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
--				 &regs->y,
--				 35 * sizeof(u32), 36 * sizeof(u32));
--	if (ret || !count)
--		return ret;
--	return user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
--					 36 * sizeof(u32), 38 * sizeof(u32));
--=======
- 				 &regs->y,
- 				 34 * sizeof(u32), 35 * sizeof(u32));
- 	if (ret || !count)
- 		return ret;
- 	return user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
- 					 35 * sizeof(u32), 38 * sizeof(u32));
-->>>>>>> linux-next/akpm-base
+--- a/arch/sparc/mm/srmmu.c~arch-sparc-mm-srmmuc-fix-build
++++ a/arch/sparc/mm/srmmu.c
+@@ -140,16 +140,6 @@ void pmd_set(pmd_t *pmdp, pte_t *ptep)
+ 	set_pte((pte_t *)&pmd_val(*pmdp), __pte(SRMMU_ET_PTD | ptp));
  }
  
- static int fpregs32_get(struct task_struct *target,
---- a/security/apparmor/label.c~linux-next-git-rejects
-+++ a/security/apparmor/label.c
-@@ -333,10 +333,7 @@ void aa_label_destroy(struct aa_label *l
- 	}
- 	aa_free_secid(label->secid);
- 
--<<<<<<< HEAD
--=======
- 	aa_put_proxy(label->proxy);
-->>>>>>> linux-next/akpm-base
- 	label->proxy = (struct aa_proxy *) PROXY_POISON + 1;
- }
- 
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-linux-next-rejects.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+-/* Find an entry in the third-level page table.. */
+-pte_t *pte_offset_kernel(pmd_t *dir, unsigned long address)
+-{
+-	void *pte;
+-
+-	pte = __nocache_va((pmd_val(*dir) & SRMMU_PTD_PMASK) << 4);
+-	return (pte_t *) pte +
+-	    ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1));
+-}
