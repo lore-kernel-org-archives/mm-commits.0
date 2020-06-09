@@ -1,52 +1,50 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 47/93] kdb: don't play with console_loglevel
-Date: Mon, 08 Jun 2020 21:32:19 -0700
-Message-ID: <20200609043219.kF0LCzg-q%akpm@linux-foundation.org>
+Subject: [patch 48/93] sched: print stack trace with KERN_INFO
+Date: Mon, 08 Jun 2020 21:32:23 -0700
+Message-ID: <20200609043223.MjVgfyjyQ%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55420 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725770AbgFIEcV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:32:21 -0400
+        id S1725770AbgFIEcY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:32:24 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, daniel.thompson@linaro.org, dianders@chromium.org, dima@arista.com, jason.wessel@windriver.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, bsegall@google.com, dietmar.eggemann@arm.com, dima@arista.com, juri.lelli@redhat.com, linux-mm@kvack.org, mgorman@suse.de, mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org, rostedt@goodmis.org, torvalds@linux-foundation.org, vincent.guittot@linaro.org
 
 From: Dmitry Safonov <dima@arista.com>
-Subject: kdb: don't play with console_loglevel
+Subject: sched: print stack trace with KERN_INFO
 
-Print the stack trace with KERN_EMERG - it should be always visible.
+Aligning with other messages printed in sched_show_task() - use KERN_INFO
+to print the backtrace.
 
-Playing with console_loglevel is a bad idea as there may be more messages
-printed than wanted.  Also the stack trace might be not printed at all if
-printk() was deferred and console_loglevel was raised back before the
-trace got flushed.
-
-Unfortunately, after rebasing on commit 2277b492582d ("kdb: Fix stack
-crawling on 'running' CPUs that aren't the master"), kdb_show_stack() uses
-now kdb_dump_stack_on_cpu(), which for now won't be converted as it uses
-dump_stack() instead of show_stack().
-
-Convert for now the branch that uses show_stack() and remove
-console_loglevel exercise from that case.
-
-Link: http://lkml.kernel.org/r/20200418201944.482088-48-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-49-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Acked-by: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/debug/kdb/kdb_bt.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ kernel/sched/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/debug/kdb/kdb_bt.c~kdb-dont-play-with-console_loglevel
-+++ a/kernel/debug/kdb/kdb_bt.c
-@@ -21,17 +21,18 @@
+--- a/kernel/sched/core.c~sched-print-stack-trace-with-kern_info
++++ a/kernel/sched/core.c
+@@ -6025,7 +6025,7 @@ void sched_show_task(struct task_struct
+ 		(unsigned long)task_thread_info(p)->flags);
  
- static void kdb_show_stack(struct task_struct *p, void *addr)
- {
--	int old_lvl = console_loglevel;
+ 	print_worker_info(KERN_INFO, p);
+-	show_stack(p, NULL);
++	show_stack_loglvl(p, NULL, KERN_INFO);
+ 	put_task_stack(p);
+ }
+ EXPORT_SYMBOL_GPL(sched_show_task);
+_
