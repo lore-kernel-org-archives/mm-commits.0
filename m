@@ -1,81 +1,57 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- =?US-ASCII?Q?mmap-locking-api-convert-mmap=5Fsem-call-sites-missed-by-?=
- =?US-ASCII?Q?coccinelle-fix-fix-fix.patch?= removed from -mm tree
-Date: Mon, 08 Jun 2020 20:16:58 -0700
-Message-ID: <20200609031658.-vD1phAz8%akpm@linux-foundation.org>
+ mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch removed from -mm
+ tree
+Date: Mon, 08 Jun 2020 20:17:50 -0700
+Message-ID: <20200609031750.hgqLfH4Wa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52688 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53022 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726803AbgFIDRB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 23:17:01 -0400
+        id S1726803AbgFIDRv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 23:17:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, walken@google.com
+To: akpm@linux-foundation.org, jhubbard@nvidia.com, mm-commits@vger.kernel.org, walken@google.com
 
 
 The patch titled
-     Subject: mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix
+     Subject: mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix
 has been removed from the -mm tree.  Its filename was
-     mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+     mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
 
-This patch was dropped because it was folded into mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle.patch
+This patch was dropped because it was folded into mmap-locking-api-rename-mmap_sem-to-mmap_lock.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix
+Subject: mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix
 
-more linux-next leftovers
+fix it for mm-gup-might_lock_readmmap_sem-in-get_user_pages_fast.patch
 
+Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Michel Lespinasse <walken@google.com>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vfio/pci/vfio_pci.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/vfio/pci/vfio_pci.c~mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix
-+++ a/drivers/vfio/pci/vfio_pci.c
-@@ -1422,17 +1422,17 @@ static int vfio_pci_zap_and_vma_lock(str
- 		mutex_unlock(&vdev->vma_lock);
+--- a/mm/gup.c~mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix
++++ a/mm/gup.c
+@@ -2750,7 +2750,7 @@ static int internal_get_user_pages_fast(
+ 		return -EINVAL;
  
- 		if (try) {
--			if (!down_read_trylock(&mm->mmap_sem)) {
-+			if (!mmap_read_trylock(mm)) {
- 				mmput(mm);
- 				return 0;
- 			}
- 		} else {
--			down_read(&mm->mmap_sem);
-+			mmap_read_lock(mm);
- 		}
- 		if (mmget_still_valid(mm)) {
- 			if (try) {
- 				if (!mutex_trylock(&vdev->vma_lock)) {
--					up_read(&mm->mmap_sem);
-+					mmap_read_unlock(mm);
- 					mmput(mm);
- 					return 0;
- 				}
-@@ -1454,7 +1454,7 @@ static int vfio_pci_zap_and_vma_lock(str
- 			}
- 			mutex_unlock(&vdev->vma_lock);
- 		}
--		up_read(&mm->mmap_sem);
-+		mmap_read_unlock(mm);
- 		mmput(mm);
- 	}
- }
+ 	if (!(gup_flags & FOLL_FAST_ONLY))
+-		might_lock_read(&current->mm->mmap_sem);
++		might_lock_read(&current->mm->mmap_lock);
+ 
+ 	start = untagged_addr(start) & PAGE_MASK;
+ 	addr = start;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle.patch
-mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock.patch
 mmap-locking-api-convert-mmap_sem-comments-fix.patch
 mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
 mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
