@@ -1,28 +1,27 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 83/93] bpf: handle the compat string in
- bpf_trace_copy_string better
-Date: Mon, 08 Jun 2020 21:34:33 -0700
-Message-ID: <20200609043433.cOkjJVDq-%akpm@linux-foundation.org>
+Subject: [patch 84/93] bpf:bpf_seq_printf(): handle potentially
+ unsafe format string better
+Date: Mon, 08 Jun 2020 21:34:37 -0700
+Message-ID: <20200609043437.8_el-FkSs%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58536 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58622 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726831AbgFIEeg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:34:36 -0400
+        id S1726831AbgFIEei (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:34:38 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, linux-mm@kvack.org, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
 
-From: Christoph Hellwig <hch@lst.de>
-Subject: bpf: handle the compat string in bpf_trace_copy_string better
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
 
 User the proper helper for kernel or userspace addresses based on
 TASK_SIZE instead of the dangerous strncpy_from_unsafe function.
 
-Link: http://lkml.kernel.org/r/20200521152301.2587579-13-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -32,23 +31,30 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/bpf_trace.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/trace/bpf_trace.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/kernel/trace/bpf_trace.c~bpf-handle-the-compat-string-in-bpf_trace_copy_string-better
+--- a/kernel/trace/bpf_trace.c~bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better
 +++ a/kernel/trace/bpf_trace.c
-@@ -334,8 +334,11 @@ static void bpf_trace_copy_string(char *
- 	switch (fmt_ptype) {
- 	case 's':
- #ifdef CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
--		strncpy_from_unsafe(buf, unsafe_ptr, bufsz);
--		break;
-+		if ((unsigned long)unsafe_ptr < TASK_SIZE) {
-+			strncpy_from_user_nofault(buf, user_ptr, bufsz);
-+			break;
-+		}
-+		fallthrough;
- #endif
- 	case 'k':
- 		strncpy_from_kernel_nofault(buf, unsafe_ptr, bufsz);
+@@ -588,15 +588,17 @@ BPF_CALL_5(bpf_seq_printf, struct seq_fi
+ 		}
+ 
+ 		if (fmt[i] == 's') {
++			void *unsafe_ptr;
++
+ 			/* try our best to copy */
+ 			if (memcpy_cnt >= MAX_SEQ_PRINTF_MAX_MEMCPY) {
+ 				err = -E2BIG;
+ 				goto out;
+ 			}
+ 
+-			err = strncpy_from_unsafe_strict(bufs->buf[memcpy_cnt],
+-							 (void *) (long) args[fmt_cnt],
+-							 MAX_SEQ_PRINTF_STR_LEN);
++			unsafe_ptr = (void *)(long)args[fmt_cnt];
++			err = strncpy_from_kernel_nofault(bufs->buf[memcpy_cnt],
++					unsafe_ptr, MAX_SEQ_PRINTF_STR_LEN);
+ 			if (err < 0)
+ 				bufs->buf[memcpy_cnt][0] = '\0';
+ 			params[fmt_cnt] = (u64)(long)bufs->buf[memcpy_cnt];
 _
