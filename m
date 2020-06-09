@@ -1,25 +1,27 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 76/93] maccess: update the top of file comment
-Date: Mon, 08 Jun 2020 21:34:11 -0700
-Message-ID: <20200609043411.41KKR21OA%akpm@linux-foundation.org>
+Subject: [patch 77/93] maccess: rename strncpy_from_unsafe_user to
+ strncpy_from_user_nofault
+Date: Mon, 08 Jun 2020 21:34:14 -0700
+Message-ID: <20200609043414.ooWMZqqqL%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57960 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58028 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725770AbgFIEeM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:34:12 -0400
+        id S1726449AbgFIEeQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:34:16 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, linux-mm@kvack.org, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
 
 From: Christoph Hellwig <hch@lst.de>
-Subject: maccess: update the top of file comment
+Subject: maccess: rename strncpy_from_unsafe_user to strncpy_from_user_nofault
 
-This file now also contains several helpers for accessing user memory.
+This matches the naming of strncpy_from_user, and also makes it more
+clear what the function is supposed to do.
 
-Link: http://lkml.kernel.org/r/20200521152301.2587579-6-hch@lst.de
+Link: http://lkml.kernel.org/r/20200521152301.2587579-7-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
@@ -30,17 +32,74 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/maccess.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/uaccess.h     |    4 ++--
+ kernel/trace/bpf_trace.c    |    4 ++--
+ kernel/trace/trace_kprobe.c |    2 +-
+ mm/maccess.c                |    4 ++--
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/maccess.c~maccess-update-the-top-of-file-comment
+--- a/include/linux/uaccess.h~maccess-rename-strncpy_from_unsafe_user-to-strncpy_from_user_nofault
++++ a/include/linux/uaccess.h
+@@ -313,8 +313,8 @@ extern long strncpy_from_unsafe(char *ds
+ extern long strncpy_from_unsafe_strict(char *dst, const void *unsafe_addr,
+ 				       long count);
+ extern long __strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count);
+-extern long strncpy_from_unsafe_user(char *dst, const void __user *unsafe_addr,
+-				     long count);
++long strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
++		long count);
+ extern long strnlen_unsafe_user(const void __user *unsafe_addr, long count);
+ 
+ /**
+--- a/kernel/trace/bpf_trace.c~maccess-rename-strncpy_from_unsafe_user-to-strncpy_from_user_nofault
++++ a/kernel/trace/bpf_trace.c
+@@ -159,7 +159,7 @@ const struct bpf_func_proto bpf_probe_re
+ BPF_CALL_3(bpf_probe_read_user_str, void *, dst, u32, size,
+ 	   const void __user *, unsafe_ptr)
+ {
+-	int ret = strncpy_from_unsafe_user(dst, unsafe_ptr, size);
++	int ret = strncpy_from_user_nofault(dst, unsafe_ptr, size);
+ 
+ 	if (unlikely(ret < 0))
+ 		memset(dst, 0, size);
+@@ -419,7 +419,7 @@ fmt_str:
+ 							   sizeof(buf));
+ 				break;
+ 			case 'u':
+-				strncpy_from_unsafe_user(buf,
++				strncpy_from_user_nofault(buf,
+ 					(__force void __user *)unsafe_ptr,
+ 							 sizeof(buf));
+ 				break;
+--- a/kernel/trace/trace_kprobe.c~maccess-rename-strncpy_from_unsafe_user-to-strncpy_from_user_nofault
++++ a/kernel/trace/trace_kprobe.c
+@@ -1268,7 +1268,7 @@ fetch_store_string_user(unsigned long ad
+ 
+ 	__dest = get_loc_data(dest, base);
+ 
+-	ret = strncpy_from_unsafe_user(__dest, uaddr, maxlen);
++	ret = strncpy_from_user_nofault(__dest, uaddr, maxlen);
+ 	if (ret >= 0)
+ 		*(u32 *)dest = make_data_loc(ret, __dest - base);
+ 
+--- a/mm/maccess.c~maccess-rename-strncpy_from_unsafe_user-to-strncpy_from_user_nofault
 +++ a/mm/maccess.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0-only
- /*
-- * Access kernel memory without faulting.
-+ * Access kernel or user memory without faulting.
+@@ -217,7 +217,7 @@ long __strncpy_from_unsafe(char *dst, co
+ }
+ 
+ /**
+- * strncpy_from_unsafe_user: - Copy a NUL terminated string from unsafe user
++ * strncpy_from_user_nofault: - Copy a NUL terminated string from unsafe user
+  *				address.
+  * @dst:   Destination address, in kernel space.  This buffer must be at
+  *         least @count bytes long.
+@@ -234,7 +234,7 @@ long __strncpy_from_unsafe(char *dst, co
+  * If @count is smaller than the length of the string, copies @count-1 bytes,
+  * sets the last byte of @dst buffer to NUL and returns @count.
   */
- #include <linux/export.h>
- #include <linux/mm.h>
+-long strncpy_from_unsafe_user(char *dst, const void __user *unsafe_addr,
++long strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
+ 			      long count)
+ {
+ 	mm_segment_t old_fs = get_fs();
 _
