@@ -1,137 +1,319 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 02/93] alpha: add show_stack_loglvl()
-Date: Mon, 08 Jun 2020 21:30:01 -0700
-Message-ID: <20200609043001.OnQrLiLbI%akpm@linux-foundation.org>
+Subject: [patch 01/93] kallsyms/printk: add loglvl to
+ print_ip_sym()
+Date: Mon, 08 Jun 2020 21:29:56 -0700
+Message-ID: <20200609042956.6SJIWP0xT%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52688 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725770AbgFIEaC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:30:02 -0400
+        id S1725770AbgFIEaA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:30:00 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dima@arista.com, ink@jurassic.park.msu.ru, linux-mm@kvack.org, mattst88@gmail.com, mm-commits@vger.kernel.org, rth@twiddle.net, torvalds@linux-foundation.org
+To: 0x7f454c46@gmail.com, akpm@linux-foundation.org, anton.ivanov@cambridgegreys.com, aou@eecs.berkeley.edu, bcain@codeaurora.org, benh@kernel.crashing.org, borntraeger@de.ibm.com, bp@alien8.de, bsegall@google.com, catalin.marinas@arm.com, chris@zankel.net, dalias@libc.org, daniel.thompson@linaro.org, davem@davemloft.net, deanbo422@gmail.com, deller@gmx.de, dianders@chromium.org, dietmar.eggemann@arm.com, dima@arista.com, fenghua.yu@intel.com, geert@linux-m68k.org, gor@linux.ibm.com, green.hu@gmail.com, gregkh@linuxfoundation.org, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, hpa@zytor.com, ink@jurassic.park.msu.ru, jacquiot.aurelien@gmail.com, James.Bottomley@HansenPartnership.com, jason.wessel@windriver.com, jcmvbkbc@gmail.com, jdike@addtoit.com, jhogan@kernel.org, jo
 
 From: Dmitry Safonov <dima@arista.com>
-Subject: alpha: add show_stack_loglvl()
+Subject: kallsyms/printk: add loglvl to print_ip_sym()
 
-Currently, the log-level of show_stack() depends on a platform
-realization.  It creates situations where the headers are printed with
-lower log level or higher than the stacktrace (depending on a platform or
-user).
+Patch series "Add log level to show_stack()", v3.
 
-Furthermore, it forces the logic decision from user to an architecture
-side.  In result, some users as sysrq/kdb/etc are doing tricks with
-temporary rising console_loglevel while printing their messages.  And in
-result it not only may print unwanted messages from other CPUs, but also
-omit printing at all in the unlucky case where the printk() was deferred.
+Add log level argument to show_stack().
 
-Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
-approach than introducing more printk buffers.  Also, it will consolidate
-printings with headers.
+Done in three stages:
+1. Introducing show_stack_loglvl() for every architecture
+2. Migrating old users with an explicit log level
+3. Renaming show_stack_loglvl() into show_stack()
 
-Introduce show_stack_loglvl(), that eventually will substitute
-show_stack().
+Justification:
 
-[1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
+- It's a design mistake to move a business-logic decision into platform
+  realization detail.
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-3-dima@arista.com
+- I have currently two patches sets that would benefit from this work:
+  Removing console_loglevel jumps in sysrq driver [1] Hung task warning
+  before panic [2] - suggested by Tetsuo (but he probably didn't realise
+  what it would involve).
+
+- While doing (1), (2) the backtraces were adjusted to headers and other
+  messages for each situation - so there won't be a situation when the
+  backtrace is printed, but the headers are missing because they have
+  lesser log level (or the reverse).
+
+- As the result in (2) plays with console_loglevel for kdb are removed.
+
+The least important for upstream, but maybe still worth to note that every
+company I've worked in so far had an off-list patch to print backtrace
+with the needed log level (but only for the architecture they cared
+about).  If you have other ideas how you will benefit from show_stack()
+with a log level - please, reply to this cover letter.
+
+See also discussion on v1:
+https://lore.kernel.org/linux-riscv/20191106083538.z5nlpuf64cigxigh@pathway.suse.cz/
+
+
+This patch (of 50):
+
+print_ip_sym() needs to have a log level parameter to comply with other
+parts being printed.  Otherwise, half of the expected backtrace would be
+printed and other may be missing with some logging level.
+
+The following callee(s) are using now the adjusted log level:
+- microblaze/unwind: the same level as headers & userspace unwind.
+  Note that pr_debug()'s there are for debugging the unwinder itself.
+- nds32/traps: symbol addresses are printed with the same log level
+  as backtrace headers.
+- lockdep: ip for locking issues is printed with the same log level
+  as other part of the warning.
+- sched: ip where preemption was disabled is printed as error like
+  the rest part of the message.
+- ftrace: bug reports are now consistent in the log level being used.
+
+Link: http://lkml.kernel.org/r/20200418201944.482088-2-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
+Acked-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Hogan <jhogan@kernel.org>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vincent Chen <deanbo422@gmail.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Dmitry Safonov <dima@arista.com>
+Cc: Jiri Slaby <jslaby@suse.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Matt Turner <mattst88@gmail.com>
 Cc: Richard Henderson <rth@twiddle.net>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Aurelien Jacquiot <jacquiot.aurelien@gmail.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Brian Cain <bcain@codeaurora.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ley Foon Tan <lftan@altera.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Guan Xuetao <gxt@pku.edu.cn>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/traps.c |   28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ arch/microblaze/kernel/unwind.c |    2 +-
+ arch/mips/kernel/traps.c        |    4 ++--
+ arch/nds32/kernel/traps.c       |    4 ++--
+ arch/riscv/kernel/stacktrace.c  |    2 +-
+ include/linux/kallsyms.h        |    4 ++--
+ kernel/locking/lockdep.c        |    4 ++--
+ kernel/sched/core.c             |    6 ++----
+ kernel/trace/ftrace.c           |    8 ++++----
+ tools/include/linux/kallsyms.h  |    2 +-
+ 9 files changed, 17 insertions(+), 19 deletions(-)
 
---- a/arch/alpha/kernel/traps.c~alpha-add-show_stack_loglvl
-+++ a/arch/alpha/kernel/traps.c
-@@ -121,10 +121,10 @@ dik_show_code(unsigned int *pc)
- }
+--- a/arch/microblaze/kernel/unwind.c~kallsyms-printk-add-loglvl-to-print_ip_sym
++++ a/arch/microblaze/kernel/unwind.c
+@@ -254,7 +254,7 @@ static void microblaze_unwind_inner(stru
+ 					task->comm);
+ 				break;
+ 			} else
+-				print_ip_sym(pc);
++				print_ip_sym(KERN_INFO, pc);
+ 		}
  
- static void
--dik_show_trace(unsigned long *sp)
-+dik_show_trace(unsigned long *sp, const char *loglvl)
- {
- 	long i = 0;
--	printk("Trace:\n");
-+	printk("%sTrace:\n", loglvl);
- 	while (0x1ff8 & (unsigned long) sp) {
- 		extern char _stext[], _etext[];
- 		unsigned long tmp = *sp;
-@@ -133,24 +133,25 @@ dik_show_trace(unsigned long *sp)
- 			continue;
- 		if (tmp >= (unsigned long) &_etext)
- 			continue;
--		printk("[<%lx>] %pSR\n", tmp, (void *)tmp);
-+		printk("%s[<%lx>] %pSR\n", loglvl, tmp, (void *)tmp);
- 		if (i > 40) {
--			printk(" ...");
-+			printk("%s ...", loglvl);
+ 		/* Stop when we reach anything not part of the kernel */
+--- a/arch/mips/kernel/traps.c~kallsyms-printk-add-loglvl-to-print_ip_sym
++++ a/arch/mips/kernel/traps.c
+@@ -125,7 +125,7 @@ static void show_raw_backtrace(unsigned
  			break;
  		}
+ 		if (__kernel_text_address(addr))
+-			print_ip_sym(addr);
++			print_ip_sym(KERN_DEFAULT, addr);
  	}
--	printk("\n");
-+	printk("%s\n", loglvl);
+ 	printk("\n");
  }
- 
- static int kstack_depth_to_print = 24;
- 
--void show_stack(struct task_struct *task, unsigned long *sp)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
-+			const char *loglvl)
- {
- 	unsigned long *stack;
- 	int i;
- 
- 	/*
--	 * debugging aid: "show_stack(NULL);" prints the
-+	 * debugging aid: "show_stack(NULL, NULL, KERN_EMERG);" prints the
- 	 * back trace for this cpu.
- 	 */
- 	if(sp==NULL)
-@@ -163,14 +164,19 @@ void show_stack(struct task_struct *task
- 		if ((i % 4) == 0) {
- 			if (i)
- 				pr_cont("\n");
--			printk("       ");
-+			printk("%s       ", loglvl);
- 		} else {
- 			pr_cont(" ");
- 		}
- 		pr_cont("%016lx", *stack++);
+@@ -155,7 +155,7 @@ static void show_backtrace(struct task_s
  	}
+ 	printk("Call Trace:\n");
+ 	do {
+-		print_ip_sym(pc);
++		print_ip_sym(KERN_DEFAULT, pc);
+ 		pc = unwind_stack(task, &sp, pc, &ra);
+ 	} while (pc);
  	pr_cont("\n");
--	dik_show_trace(sp);
-+	dik_show_trace(sp, loglvl);
-+}
-+
-+void show_stack(struct task_struct *task, unsigned long *sp)
-+{
-+	show_stack_loglvl(task, sp, KERN_DEFAULT);
+--- a/arch/nds32/kernel/traps.c~kallsyms-printk-add-loglvl-to-print_ip_sym
++++ a/arch/nds32/kernel/traps.c
+@@ -108,7 +108,7 @@ static void __dump(struct task_struct *t
+ 			if (__kernel_text_address(ret_addr)) {
+ 				ret_addr = ftrace_graph_ret_addr(
+ 						tsk, &graph, ret_addr, NULL);
+-				print_ip_sym(ret_addr);
++				print_ip_sym(KERN_EMERG, ret_addr);
+ 			}
+ 			if (--cnt < 0)
+ 				break;
+@@ -124,7 +124,7 @@ static void __dump(struct task_struct *t
+ 
+ 				ret_addr = ftrace_graph_ret_addr(
+ 						tsk, &graph, ret_addr, NULL);
+-				print_ip_sym(ret_addr);
++				print_ip_sym(KERN_EMERG, ret_addr);
+ 			}
+ 			if (--cnt < 0)
+ 				break;
+--- a/arch/riscv/kernel/stacktrace.c~kallsyms-printk-add-loglvl-to-print_ip_sym
++++ a/arch/riscv/kernel/stacktrace.c
+@@ -99,7 +99,7 @@ void notrace walk_stackframe(struct task
+ 
+ static bool print_trace_address(unsigned long pc, void *arg)
+ {
+-	print_ip_sym(pc);
++	print_ip_sym(KERN_DEFAULT, pc);
+ 	return false;
  }
  
- void
-@@ -184,7 +190,7 @@ die_if_kernel(char * str, struct pt_regs
- 	printk("%s(%d): %s %ld\n", current->comm, task_pid_nr(current), str, err);
- 	dik_show_regs(regs, r9_15);
- 	add_taint(TAINT_DIE, LOCKDEP_NOW_UNRELIABLE);
--	dik_show_trace((unsigned long *)(regs+1));
-+	dik_show_trace((unsigned long *)(regs+1), KERN_DEFAULT);
- 	dik_show_code((unsigned int *)regs->pc);
+--- a/include/linux/kallsyms.h~kallsyms-printk-add-loglvl-to-print_ip_sym
++++ a/include/linux/kallsyms.h
+@@ -165,9 +165,9 @@ static inline int kallsyms_show_value(vo
  
- 	if (test_and_set_thread_flag (TIF_DIE_IF_KERNEL)) {
-@@ -625,7 +631,7 @@ got_exception:
- 	printk("gp = %016lx  sp = %p\n", regs->gp, regs+1);
+ #endif /*CONFIG_KALLSYMS*/
  
- 	dik_show_code((unsigned int *)pc);
--	dik_show_trace((unsigned long *)(regs+1));
-+	dik_show_trace((unsigned long *)(regs+1), KERN_DEFAULT);
+-static inline void print_ip_sym(unsigned long ip)
++static inline void print_ip_sym(const char *loglvl, unsigned long ip)
+ {
+-	printk("[<%px>] %pS\n", (void *) ip, (void *) ip);
++	printk("%s[<%px>] %pS\n", loglvl, (void *) ip, (void *) ip);
+ }
  
- 	if (test_and_set_thread_flag (TIF_DIE_IF_KERNEL)) {
- 		printk("die_if_kernel recursion detected.\n");
+ #endif /*_LINUX_KALLSYMS_H*/
+--- a/kernel/locking/lockdep.c~kallsyms-printk-add-loglvl-to-print_ip_sym
++++ a/kernel/locking/lockdep.c
+@@ -4424,7 +4424,7 @@ static void print_unlock_imbalance_bug(s
+ 		curr->comm, task_pid_nr(curr));
+ 	print_lockdep_cache(lock);
+ 	pr_cont(") at:\n");
+-	print_ip_sym(ip);
++	print_ip_sym(KERN_WARNING, ip);
+ 	pr_warn("but there are no more locks to release!\n");
+ 	pr_warn("\nother info that might help us debug this:\n");
+ 	lockdep_print_held_locks(curr);
+@@ -5075,7 +5075,7 @@ static void print_lock_contention_bug(st
+ 		curr->comm, task_pid_nr(curr));
+ 	print_lockdep_cache(lock);
+ 	pr_cont(") at:\n");
+-	print_ip_sym(ip);
++	print_ip_sym(KERN_WARNING, ip);
+ 	pr_warn("but there are no locks held!\n");
+ 	pr_warn("\nother info that might help us debug this:\n");
+ 	lockdep_print_held_locks(curr);
+--- a/kernel/sched/core.c~kallsyms-printk-add-loglvl-to-print_ip_sym
++++ a/kernel/sched/core.c
+@@ -3922,8 +3922,7 @@ static noinline void __schedule_bug(stru
+ 	if (IS_ENABLED(CONFIG_DEBUG_PREEMPT)
+ 	    && in_atomic_preempt_off()) {
+ 		pr_err("Preemption disabled at:");
+-		print_ip_sym(preempt_disable_ip);
+-		pr_cont("\n");
++		print_ip_sym(KERN_ERR, preempt_disable_ip);
+ 	}
+ 	if (panic_on_warn)
+ 		panic("scheduling while atomic\n");
+@@ -6871,8 +6870,7 @@ void ___might_sleep(const char *file, in
+ 	if (IS_ENABLED(CONFIG_DEBUG_PREEMPT)
+ 	    && !preempt_count_equals(preempt_offset)) {
+ 		pr_err("Preemption disabled at:");
+-		print_ip_sym(preempt_disable_ip);
+-		pr_cont("\n");
++		print_ip_sym(KERN_ERR, preempt_disable_ip);
+ 	}
+ 	dump_stack();
+ 	add_taint(TAINT_WARN, LOCKDEP_STILL_OK);
+--- a/kernel/trace/ftrace.c~kallsyms-printk-add-loglvl-to-print_ip_sym
++++ a/kernel/trace/ftrace.c
+@@ -2020,12 +2020,12 @@ void ftrace_bug(int failed, struct dyn_f
+ 	case -EFAULT:
+ 		FTRACE_WARN_ON_ONCE(1);
+ 		pr_info("ftrace faulted on modifying ");
+-		print_ip_sym(ip);
++		print_ip_sym(KERN_INFO, ip);
+ 		break;
+ 	case -EINVAL:
+ 		FTRACE_WARN_ON_ONCE(1);
+ 		pr_info("ftrace failed to modify ");
+-		print_ip_sym(ip);
++		print_ip_sym(KERN_INFO, ip);
+ 		print_ip_ins(" actual:   ", (unsigned char *)ip);
+ 		pr_cont("\n");
+ 		if (ftrace_expected) {
+@@ -2036,12 +2036,12 @@ void ftrace_bug(int failed, struct dyn_f
+ 	case -EPERM:
+ 		FTRACE_WARN_ON_ONCE(1);
+ 		pr_info("ftrace faulted on writing ");
+-		print_ip_sym(ip);
++		print_ip_sym(KERN_INFO, ip);
+ 		break;
+ 	default:
+ 		FTRACE_WARN_ON_ONCE(1);
+ 		pr_info("ftrace faulted on unknown error ");
+-		print_ip_sym(ip);
++		print_ip_sym(KERN_INFO, ip);
+ 	}
+ 	print_bug_type();
+ 	if (rec) {
+--- a/tools/include/linux/kallsyms.h~kallsyms-printk-add-loglvl-to-print_ip_sym
++++ a/tools/include/linux/kallsyms.h
+@@ -20,7 +20,7 @@ static inline const char *kallsyms_looku
+ 
+ #include <execinfo.h>
+ #include <stdlib.h>
+-static inline void print_ip_sym(unsigned long ip)
++static inline void print_ip_sym(const char *loglvl, unsigned long ip)
+ {
+ 	char **name;
+ 
 _
