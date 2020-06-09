@@ -1,29 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-sparc-mm-srmmuc-fix-build.patch added to -mm tree
-Date: Tue, 09 Jun 2020 15:26:54 -0700
-Message-ID: <20200609222654.72kEGYBDv%akpm@linux-foundation.org>
+Subject: +
+ lib-fix-bitmap_parse-on-64-bit-big-endian-archs-fix.patch added to -mm tree
+Date: Tue, 09 Jun 2020 15:49:08 -0700
+Message-ID: <20200609224908.ssojtmYv8%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37690 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51652 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728191AbgFIW0z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 18:26:55 -0400
+        id S1728108AbgFIWtJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 18:49:09 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+To: acme@redhat.com, agordeev@linux.ibm.com, amritha.nambiar@intel.com, andriy.shevchenko@linux.intel.com, chris@chris-wilson.co.uk, keescook@chromium.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, mszeredi@redhat.com, steffen.klassert@secunet.com, tobin@kernel.org, vineet.gupta1@synopsys.com, will.deacon@arm.com, willemb@google.com, willy@infradead.org, yury.norov@gmail.com
 
 
 The patch titled
-     Subject: arch/sparc/mm/srmmu.c: fix build
+     Subject: lib/bitmap: convert infinite while loop to a for loop
 has been added to the -mm tree.  Its filename is
-     arch-sparc-mm-srmmuc-fix-build.patch
+     lib-fix-bitmap_parse-on-64-bit-big-endian-archs-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-sparc-mm-srmmuc-fix-build.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-fix-bitmap_parse-on-64-bit-big-endian-archs-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-sparc-mm-srmmuc-fix-build.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-fix-bitmap_parse-on-64-bit-big-endian-archs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,33 +38,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/sparc/mm/srmmu.c: fix build
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/bitmap: convert infinite while loop to a for loop
 
-"mm: consolidate pte_index() and pte_offset_*() definitions" was supposed
-to remove arch/sparc/mm/srmmu.c:pte_offset_kernel().
+Convert infinite while loop to a for loop in order to be more explicit in
+one place what we are doing with chunks.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/20200609140535.87160-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Yury Norov <yury.norov@gmail.com>
+Cc: Amritha Nambiar <amritha.nambiar@intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: "Tobin C . Harding" <tobin@kernel.org>
+Cc: Vineet Gupta <vineet.gupta1@synopsys.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Willem de Bruijn <willemb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/srmmu.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ lib/bitmap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/arch/sparc/mm/srmmu.c~arch-sparc-mm-srmmuc-fix-build
-+++ a/arch/sparc/mm/srmmu.c
-@@ -140,16 +140,6 @@ void pmd_set(pmd_t *pmdp, pte_t *ptep)
- 	set_pte((pte_t *)&pmd_val(*pmdp), __pte(SRMMU_ET_PTD | ptp));
- }
+--- a/lib/bitmap.c~lib-fix-bitmap_parse-on-64-bit-big-endian-archs-fix
++++ a/lib/bitmap.c
+@@ -740,10 +740,10 @@ int bitmap_parse(const char *start, unsi
+ 	const char *end = strnchrnul(start, buflen, '\n') - 1;
+ 	int chunks = BITS_TO_U32(nmaskbits);
+ 	u32 *bitmap = (u32 *)maskp;
+-	int chunk = 0;
+ 	int unset_bit;
++	int chunk;
  
--/* Find an entry in the third-level page table.. */
--pte_t *pte_offset_kernel(pmd_t *dir, unsigned long address)
--{
--	void *pte;
--
--	pte = __nocache_va((pmd_val(*dir) & SRMMU_PTD_PMASK) << 4);
--	return (pte_t *) pte +
--	    ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1));
--}
+-	while (1) {
++	for (chunk = 0; ; chunk++) {
+ 		end = bitmap_find_region_reverse(start, end);
+ 		if (start > end)
+ 			break;
+@@ -758,7 +758,6 @@ int bitmap_parse(const char *start, unsi
+ #endif
+ 		if (IS_ERR(end))
+ 			return PTR_ERR(end);
+-		chunk++;
+ 	}
+ 
+ 	unset_bit = (BITS_TO_U32(nmaskbits) - chunks) * 32;
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+lib-fix-bitmap_parse-on-64-bit-big-endian-archs-fix.patch
