@@ -1,30 +1,40 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 55/93] m68k/mm/motorola: move comment about page
- table allocation funcitons
-Date: Mon, 08 Jun 2020 21:32:51 -0700
-Message-ID: <20200609043251.hkH77348G%akpm@linux-foundation.org>
+Subject: [patch 57/93] x86/mm: simplify init_trampoline() and
+ surrounding logic
+Date: Mon, 08 Jun 2020 21:33:01 -0700
+Message-ID: <20200609043301.01uQkIz04%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56172 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56404 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725770AbgFIEcy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:32:54 -0400
+        id S1725770AbgFIEdE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:33:04 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, arnd@arndb.de, bcain@codeaurora.org, bp@alien8.de, catalin.marinas@arm.com, chris@zankel.net, dalias@libc.org, davem@davemloft.net, deanbo422@gmail.com, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux-mm@kvack.org, linux@armlinux.org.uk, mattst88@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@linux.ibm.com, shorne@gmail.com, tglx@linutronix.de, tony.luck@intel.com, torvalds@linux-foundation.org, tsbogend@alpha.franken.de, vgupta@synopsys.com, will@kernel.org, willy@infradead.orgy
 
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: m68k/mm/motorola: move comment about page table allocation funcitons
+Subject: x86/mm: simplify init_trampoline() and surrounding logic
 
-The comment about page table allocation functions resides in
-include/asm/motorola_pgtable.h while the functions live in
-include/asm/motorola_pgaloc.h.
+There are three cases for the trampoline initialization:
+* 32-bit does nothing
+* 64-bit with kaslr disabled simply copies a PGD entry from the direct map
+  to the trampoline PGD
+* 64-bit with kaslr enabled maps the real mode trampoline at PUD level
 
-Move the comment close to the code.
+These cases are currently differentiated by a bunch of ifdefs inside
+asm/include/pgtable.h and the case of 64-bits with kaslr on uses
+pgd_index() helper.
 
-Link: http://lkml.kernel.org/r/20200514170327.31389-6-rppt@kernel.org
+Replacing the ifdefs with a static function in arch/x86/mm/init.c gives
+clearer code and allows moving pgd_index() to the generic implementation
+in include/linux/pgtable.h
+
+[rppt@linux.ibm.com: take CONFIG_RANDOMIZE_MEMORY into account in kaslr_enabled()]
+  Link: http://lkml.kernel.org/r/20200525104045.GB13212@linux.ibm.com
+Link: http://lkml.kernel.org/r/20200514170327.31389-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -63,33 +73,156 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/motorola_pgalloc.h |    6 ++++++
- arch/m68k/include/asm/motorola_pgtable.h |    6 ------
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/kaslr.h   |    2 +
+ arch/x86/include/asm/pgtable.h |   15 --------------
+ arch/x86/include/asm/setup.h   |   12 ++++++++++-
+ arch/x86/mm/init.c             |   22 ++++++++++++++++++++
+ arch/x86/mm/kaslr.c            |   33 -------------------------------
+ 5 files changed, 37 insertions(+), 47 deletions(-)
 
---- a/arch/m68k/include/asm/motorola_pgalloc.h~m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons
-+++ a/arch/m68k/include/asm/motorola_pgalloc.h
-@@ -18,6 +18,12 @@ extern void init_pointer_table(void *tab
- extern void *get_pointer_table(int type);
- extern int free_pointer_table(void *table, int type);
+--- a/arch/x86/include/asm/kaslr.h~x86-mm-simplify-init_trampoline-and-surrounding-logic
++++ a/arch/x86/include/asm/kaslr.h
+@@ -6,8 +6,10 @@ unsigned long kaslr_get_random_long(cons
+ 
+ #ifdef CONFIG_RANDOMIZE_MEMORY
+ void kernel_randomize_memory(void);
++void init_trampoline_kaslr(void);
+ #else
+ static inline void kernel_randomize_memory(void) { }
++static inline void init_trampoline_kaslr(void) {}
+ #endif /* CONFIG_RANDOMIZE_MEMORY */
+ 
+ #endif
+--- a/arch/x86/include/asm/pgtable.h~x86-mm-simplify-init_trampoline-and-surrounding-logic
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1071,27 +1071,14 @@ void init_mem_mapping(void);
+ void early_alloc_pgt_buf(void);
+ extern void memblock_find_dma_reserve(void);
+ 
++
+ #ifdef CONFIG_X86_64
+-/* Realmode trampoline initialization. */
+ extern pgd_t trampoline_pgd_entry;
+-static inline void __meminit init_trampoline_default(void)
+-{
+-	/* Default trampoline pgd value */
+-	trampoline_pgd_entry = init_top_pgt[pgd_index(__PAGE_OFFSET)];
+-}
+ 
+ void __init poking_init(void);
+ 
+ unsigned long init_memory_mapping(unsigned long start,
+ 				  unsigned long end, pgprot_t prot);
+-
+-# ifdef CONFIG_RANDOMIZE_MEMORY
+-void __meminit init_trampoline(void);
+-# else
+-#  define init_trampoline init_trampoline_default
+-# endif
+-#else
+-static inline void init_trampoline(void) { }
+ #endif
+ 
+ /* local pte updates need not use xchg for locking */
+--- a/arch/x86/include/asm/setup.h~x86-mm-simplify-init_trampoline-and-surrounding-logic
++++ a/arch/x86/include/asm/setup.h
+@@ -75,7 +75,17 @@ extern char _text[];
+ 
+ static inline bool kaslr_enabled(void)
+ {
+-	return !!(boot_params.hdr.loadflags & KASLR_FLAG);
++	return IS_ENABLED(CONFIG_RANDOMIZE_MEMORY) &&
++		!!(boot_params.hdr.loadflags & KASLR_FLAG);
++}
++
++/*
++ * Apply no randomization if KASLR was disabled at boot or if KASAN
++ * is enabled. KASAN shadow mappings rely on regions being PGD aligned.
++ */
++static inline bool kaslr_memory_enabled(void)
++{
++	return kaslr_enabled() && !IS_ENABLED(CONFIG_KASAN);
+ }
+ 
+ static inline unsigned long kaslr_offset(void)
+--- a/arch/x86/mm/init.c~x86-mm-simplify-init_trampoline-and-surrounding-logic
++++ a/arch/x86/mm/init.c
+@@ -680,6 +680,28 @@ static void __init memory_map_bottom_up(
+ 	}
+ }
  
 +/*
-+ * Allocate and free page tables. The xxx_kernel() versions are
-+ * used to allocate a kernel page table - this turns on ASN bits
-+ * if any.
++ * The real mode trampoline, which is required for bootstrapping CPUs
++ * occupies only a small area under the low 1MB.  See reserve_real_mode()
++ * for details.
++ *
++ * If KASLR is disabled the first PGD entry of the direct mapping is copied
++ * to map the real mode trampoline.
++ *
++ * If KASLR is enabled, copy only the PUD which covers the low 1MB
++ * area. This limits the randomization granularity to 1GB for both 4-level
++ * and 5-level paging.
 + */
++static void __init init_trampoline(void)
++{
++#ifdef CONFIG_X86_64
++	if (!kaslr_memory_enabled())
++		trampoline_pgd_entry = init_top_pgt[pgd_index(__PAGE_OFFSET)];
++	else
++		init_trampoline_kaslr();
++#endif
++}
 +
- static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
+ void __init init_mem_mapping(void)
  {
- 	return get_pointer_table(TABLE_PTE);
---- a/arch/m68k/include/asm/motorola_pgtable.h~m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons
-+++ a/arch/m68k/include/asm/motorola_pgtable.h
-@@ -227,12 +227,6 @@ static inline pte_t *pte_offset_kernel(p
- #define pte_offset_map(pmdp,address) ((pte_t *)__pmd_page(*pmdp) + (((address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)))
- #define pte_unmap(pte)		((void)0)
+ 	unsigned long end;
+--- a/arch/x86/mm/kaslr.c~x86-mm-simplify-init_trampoline-and-surrounding-logic
++++ a/arch/x86/mm/kaslr.c
+@@ -61,15 +61,6 @@ static inline unsigned long get_padding(
+ 	return (region->size_tb << TB_SHIFT);
+ }
  
 -/*
-- * Allocate and free page tables. The xxx_kernel() versions are
-- * used to allocate a kernel page table - this turns on ASN bits
-- * if any.
+- * Apply no randomization if KASLR was disabled at boot or if KASAN
+- * is enabled. KASAN shadow mappings rely on regions being PGD aligned.
 - */
+-static inline bool kaslr_memory_enabled(void)
+-{
+-	return kaslr_enabled() && !IS_ENABLED(CONFIG_KASAN);
+-}
+-
+ /* Initialize base and padding for each memory region randomized with KASLR */
+ void __init kernel_randomize_memory(void)
+ {
+@@ -148,7 +139,7 @@ void __init kernel_randomize_memory(void
+ 	}
+ }
+ 
+-static void __meminit init_trampoline_pud(void)
++void __meminit init_trampoline_kaslr(void)
+ {
+ 	pud_t *pud_page_tramp, *pud, *pud_tramp;
+ 	p4d_t *p4d_page_tramp, *p4d, *p4d_tramp;
+@@ -189,25 +180,3 @@ static void __meminit init_trampoline_pu
+ 			__pgd(_KERNPG_TABLE | __pa(pud_page_tramp)));
+ 	}
+ }
+-
+-/*
+- * The real mode trampoline, which is required for bootstrapping CPUs
+- * occupies only a small area under the low 1MB.  See reserve_real_mode()
+- * for details.
+- *
+- * If KASLR is disabled the first PGD entry of the direct mapping is copied
+- * to map the real mode trampoline.
+- *
+- * If KASLR is enabled, copy only the PUD which covers the low 1MB
+- * area. This limits the randomization granularity to 1GB for both 4-level
+- * and 5-level paging.
+- */
+-void __meminit init_trampoline(void)
+-{
+-	if (!kaslr_memory_enabled()) {
+-		init_trampoline_default();
+-		return;
+-	}
