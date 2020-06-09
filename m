@@ -1,28 +1,25 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 74/93] maccess: remove duplicate kerneldoc
- comments
-Date: Mon, 08 Jun 2020 21:34:04 -0700
-Message-ID: <20200609043404.geCBLPY-R%akpm@linux-foundation.org>
+Subject: [patch 76/93] maccess: update the top of file comment
+Date: Mon, 08 Jun 2020 21:34:11 -0700
+Message-ID: <20200609043411.41KKR21OA%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57790 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57960 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726546AbgFIEeG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:34:06 -0400
+        id S1725770AbgFIEeM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:34:12 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, linux-mm@kvack.org, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
 
 From: Christoph Hellwig <hch@lst.de>
-Subject: maccess: remove duplicate kerneldoc comments
+Subject: maccess: update the top of file comment
 
-Many of the maccess routines have a copy of the kerneldoc comment
-in the header.  Remove it as it is not useful and will get out of
-sync sooner or later.
+This file now also contains several helpers for accessing user memory.
 
-Link: http://lkml.kernel.org/r/20200521152301.2587579-4-hch@lst.de
+Link: http://lkml.kernel.org/r/20200521152301.2587579-6-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
@@ -33,46 +30,17 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |   38 --------------------------------------
- 1 file changed, 38 deletions(-)
+ mm/maccess.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/uaccess.h~maccess-remove-duplicate-kerneldoc-comments
-+++ a/include/linux/uaccess.h
-@@ -301,50 +301,12 @@ copy_struct_from_user(void *dst, size_t
- 	return 0;
- }
- 
--/*
-- * probe_kernel_read(): safely attempt to read from a location
-- * @dst: pointer to the buffer that shall take the data
-- * @src: address to read from
-- * @size: size of the data chunk
-- *
-- * Safely read from address @src to the buffer at @dst.  If a kernel fault
-- * happens, handle that and return -EFAULT.
-- */
- extern long probe_kernel_read(void *dst, const void *src, size_t size);
- extern long probe_kernel_read_strict(void *dst, const void *src, size_t size);
- extern long __probe_kernel_read(void *dst, const void *src, size_t size);
--
--/*
-- * probe_user_read(): safely attempt to read from a location in user space
-- * @dst: pointer to the buffer that shall take the data
-- * @src: address to read from
-- * @size: size of the data chunk
-- *
-- * Safely read from address @src to the buffer at @dst.  If a kernel fault
-- * happens, handle that and return -EFAULT.
-- */
- extern long probe_user_read(void *dst, const void __user *src, size_t size);
- 
--/*
-- * probe_kernel_write(): safely attempt to write to a location
-- * @dst: address to write to
-- * @src: pointer to the data that shall be written
-- * @size: size of the data chunk
-- *
-- * Safely write to address @dst from the buffer at @src.  If a kernel fault
-- * happens, handle that and return -EFAULT.
-- */
- extern long notrace probe_kernel_write(void *dst, const void *src, size_t size);
+--- a/mm/maccess.c~maccess-update-the-top-of-file-comment
++++ a/mm/maccess.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Access kernel memory without faulting.
++ * Access kernel or user memory without faulting.
+  */
+ #include <linux/export.h>
+ #include <linux/mm.h>
+_
