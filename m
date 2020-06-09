@@ -1,21 +1,21 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 07/93] arm: wire up dump_backtrace_{entry,stm}
-Date: Mon, 08 Jun 2020 21:30:16 -0700
-Message-ID: <20200609043016.eajQgcRP-%akpm@linux-foundation.org>
+Subject: [patch 08/93] arm: add show_stack_loglvl()
+Date: Mon, 08 Jun 2020 21:30:19 -0700
+Message-ID: <20200609043019.MjolITQ4t%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:52998 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53058 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726896AbgFIEaR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:30:17 -0400
+        id S1726896AbgFIEaV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:30:21 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dima@arista.com, linux-mm@kvack.org, linux@armlinux.org.uk, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, will@kernel.org
 
 From: Dmitry Safonov <dima@arista.com>
-Subject: arm: wire up dump_backtrace_{entry,stm}
+Subject: arm: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -32,54 +32,42 @@ Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
 approach than introducing more printk buffers.  Also, it will consolidate
 printings with headers.
 
-Now that c_backtrace() always emits correct loglvl, use it for printing.
+Introduce show_stack_loglvl(), that eventually will substitute
+show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-8-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-9-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/traps.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ arch/arm/kernel/traps.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/arch/arm/kernel/traps.c~arm-wire-up-dump_backtrace_entrystm
+--- a/arch/arm/kernel/traps.c~arm-add-show_stack_loglvl
 +++ a/arch/arm/kernel/traps.c
-@@ -68,13 +68,15 @@ void dump_backtrace_entry(unsigned long
- 	unsigned long end = frame + 4 + sizeof(struct pt_regs);
- 
- #ifdef CONFIG_KALLSYMS
--	printk("[<%08lx>] (%ps) from [<%08lx>] (%pS)\n", where, (void *)where, from, (void *)from);
-+	printk("%s[<%08lx>] (%ps) from [<%08lx>] (%pS)\n",
-+		loglvl, where, (void *)where, from, (void *)from);
- #else
--	printk("Function entered at [<%08lx>] from [<%08lx>]\n", where, from);
-+	printk("%sFunction entered at [<%08lx>] from [<%08lx>]\n",
-+		loglvl, where, from);
+@@ -247,12 +247,18 @@ static void dump_backtrace(struct pt_reg
+ }
  #endif
  
- 	if (in_entry_text(from) && end <= ALIGN(frame, THREAD_SIZE))
--		dump_mem("", "Exception stack", frame + 4, end);
-+		dump_mem(loglvl, "Exception stack", frame + 4, end);
+-void show_stack(struct task_struct *tsk, unsigned long *sp)
++void show_stack_loglvl(struct task_struct *tsk, unsigned long *sp,
++		       const char *loglvl)
+ {
+-	dump_backtrace(NULL, tsk, KERN_DEFAULT);
++	dump_backtrace(NULL, tsk, loglvl);
+ 	barrier();
  }
  
- void dump_backtrace_stm(u32 *stack, u32 instruction, const char *loglvl)
-@@ -89,12 +91,12 @@ void dump_backtrace_stm(u32 *stack, u32
- 			if (++x == 6) {
- 				x = 0;
- 				p = str;
--				printk("%s\n", str);
-+				printk("%s%s\n", loglvl, str);
- 			}
- 		}
- 	}
- 	if (p != str)
--		printk("%s\n", str);
-+		printk("%s%s\n", loglvl, str);
- }
- 
- #ifndef CONFIG_ARM_UNWIND
++void show_stack(struct task_struct *tsk, unsigned long *sp)
++{
++	show_stack_loglvl(tsk, sp, KERN_DEFAULT);
++}
++
+ #ifdef CONFIG_PREEMPT
+ #define S_PREEMPT " PREEMPT"
+ #elif defined(CONFIG_PREEMPT_RT)
 _
