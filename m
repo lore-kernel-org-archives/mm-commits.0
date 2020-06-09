@@ -1,21 +1,21 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 10/93] arm64: add show_stack_loglvl()
-Date: Mon, 08 Jun 2020 21:30:26 -0700
-Message-ID: <20200609043026.J8WcMRNQ3%akpm@linux-foundation.org>
+Subject: [patch 11/93] c6x: add show_stack_loglvl()
+Date: Mon, 08 Jun 2020 21:30:29 -0700
+Message-ID: <20200609043029.rjLWT6jSK%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53178 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53234 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726896AbgFIEa1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:30:27 -0400
+        id S1726896AbgFIEaa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:30:30 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, catalin.marinas@arm.com, dima@arista.com, linux-mm@kvack.org, linux@armlinux.org.uk, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, will@kernel.org
+To: akpm@linux-foundation.org, dima@arista.com, jacquiot.aurelien@gmail.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, msalter@redhat.com, torvalds@linux-foundation.org
 
 From: Dmitry Safonov <dima@arista.com>
-Subject: arm64: add show_stack_loglvl()
+Subject: c6x: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -37,38 +37,68 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-11-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-12-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Will Deacon <will@kernel.org>
+Cc: Aurelien Jacquiot <jacquiot.aurelien@gmail.com>
+Cc: Mark Salter <msalter@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/traps.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/c6x/kernel/traps.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
---- a/arch/arm64/kernel/traps.c~arm64-add-show_stack_loglvl
-+++ a/arch/arm64/kernel/traps.c
-@@ -137,12 +137,18 @@ void dump_backtrace(struct pt_regs *regs
- 	put_task_stack(tsk);
- }
+--- a/arch/c6x/kernel/traps.c~c6x-add-show_stack_loglvl
++++ a/arch/c6x/kernel/traps.c
+@@ -344,12 +344,13 @@ asmlinkage int process_exception(struct
  
--void show_stack(struct task_struct *tsk, unsigned long *sp)
-+void show_stack_loglvl(struct task_struct *tsk, unsigned long *sp,
+ static int kstack_depth_to_print = 48;
+ 
+-static void show_trace(unsigned long *stack, unsigned long *endstack)
++static void show_trace(unsigned long *stack, unsigned long *endstack,
 +		       const char *loglvl)
  {
--	dump_backtrace(NULL, tsk, KERN_DEFAULT);
-+	dump_backtrace(NULL, tsk, loglvl);
- 	barrier();
+ 	unsigned long addr;
+ 	int i;
+ 
+-	pr_debug("Call trace:");
++	printk("%sCall trace:", loglvl);
+ 	i = 0;
+ 	while (stack + 1 <= endstack) {
+ 		addr = *stack++;
+@@ -364,16 +365,17 @@ static void show_trace(unsigned long *st
+ 		if (__kernel_text_address(addr)) {
+ #ifndef CONFIG_KALLSYMS
+ 			if (i % 5 == 0)
+-				pr_debug("\n	    ");
++				printk("%s\n	    ", loglvl);
+ #endif
+-			pr_debug(" [<%08lx>] %pS\n", addr, (void *)addr);
++			printk("%s [<%08lx>] %pS\n", loglvl, addr, (void *)addr);
+ 			i++;
+ 		}
+ 	}
+-	pr_debug("\n");
++	printk("%s\n", loglvl);
  }
  
-+void show_stack(struct task_struct *tsk, unsigned long *sp)
-+{
-+	show_stack_loglvl(tsk, sp, KERN_DEFAULT);
+-void show_stack(struct task_struct *task, unsigned long *stack)
++void show_stack_loglvl(struct task_struct *task, unsigned long *stack,
++		const char *loglvl)
+ {
+ 	unsigned long *p, *endstack;
+ 	int i;
+@@ -398,7 +400,12 @@ void show_stack(struct task_struct *task
+ 		pr_cont(" %08lx", *p++);
+ 	}
+ 	pr_cont("\n");
+-	show_trace(stack, endstack);
++	show_trace(stack, endstack, loglvl);
 +}
 +
- #ifdef CONFIG_PREEMPT
- #define S_PREEMPT " PREEMPT"
- #elif defined(CONFIG_PREEMPT_RT)
++void show_stack(struct task_struct *task, unsigned long *stack)
++{
++	show_stack_loglvl(task, stack, KERN_DEBUG);
+ }
+ 
+ int is_valid_bugaddr(unsigned long addr)
 _
