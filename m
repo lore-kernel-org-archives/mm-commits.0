@@ -1,27 +1,27 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 73/93] maccess: remove various unused weak aliases
-Date: Mon, 08 Jun 2020 21:34:01 -0700
-Message-ID: <20200609043401.etCnMBkXW%akpm@linux-foundation.org>
+Subject: [patch 75/93] maccess: clarify kerneldoc comments
+Date: Mon, 08 Jun 2020 21:34:07 -0700
+Message-ID: <20200609043407.0_Fv4GM3y%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57700 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57890 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726463AbgFIEeE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:34:04 -0400
+        id S1726449AbgFIEeK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:34:10 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, linux-mm@kvack.org, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
 
 From: Christoph Hellwig <hch@lst.de>
-Subject: maccess: remove various unused weak aliases
+Subject: maccess: clarify kerneldoc comments
 
-maccess tends to define lots of underscore prefixed symbols that then
-have other weak aliases.  But except for two cases they are never
-actually used, so remove them.
+Add proper kerneldoc comments for probe_kernel_read_strict and
+probe_kernel_read strncpy_from_unsafe_strict and explain the different
+versus the non-strict version.
 
-Link: http://lkml.kernel.org/r/20200521152301.2587579-3-hch@lst.de
+Link: http://lkml.kernel.org/r/20200521152301.2587579-5-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
@@ -32,78 +32,98 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |    3 ---
- mm/maccess.c            |   19 +++----------------
- 2 files changed, 3 insertions(+), 19 deletions(-)
+ mm/maccess.c |   60 +++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 43 insertions(+), 17 deletions(-)
 
---- a/include/linux/uaccess.h~maccess-remove-various-unused-weak-aliases
-+++ a/include/linux/uaccess.h
-@@ -324,7 +324,6 @@ extern long __probe_kernel_read(void *ds
-  * happens, handle that and return -EFAULT.
-  */
- extern long probe_user_read(void *dst, const void __user *src, size_t size);
--extern long __probe_user_read(void *dst, const void __user *src, size_t size);
- 
- /*
-  * probe_kernel_write(): safely attempt to write to a location
-@@ -336,7 +335,6 @@ extern long __probe_user_read(void *dst,
-  * happens, handle that and return -EFAULT.
-  */
- extern long notrace probe_kernel_write(void *dst, const void *src, size_t size);
--extern long notrace __probe_kernel_write(void *dst, const void *src, size_t size);
- 
- /*
-  * probe_user_write(): safely attempt to write to a location in user space
-@@ -348,7 +346,6 @@ extern long notrace __probe_kernel_write
-  * happens, handle that and return -EFAULT.
-  */
- extern long notrace probe_user_write(void __user *dst, const void *src, size_t size);
--extern long notrace __probe_user_write(void __user *dst, const void *src, size_t size);
- 
- extern long strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count);
- extern long strncpy_from_unsafe_strict(char *dst, const void *unsafe_addr,
---- a/mm/maccess.c~maccess-remove-various-unused-weak-aliases
+--- a/mm/maccess.c~maccess-clarify-kerneldoc-comments
 +++ a/mm/maccess.c
-@@ -79,11 +79,7 @@ EXPORT_SYMBOL_GPL(probe_kernel_read);
-  * Safely read from user address @src to the buffer at @dst. If a kernel fault
-  * happens, handle that and return -EFAULT.
+@@ -31,29 +31,36 @@ probe_write_common(void __user *dst, con
+ }
+ 
+ /**
+- * probe_kernel_read(): safely attempt to read from a kernel-space location
++ * probe_kernel_read(): safely attempt to read from any location
+  * @dst: pointer to the buffer that shall take the data
+  * @src: address to read from
+  * @size: size of the data chunk
+  *
+- * Safely read from address @src to the buffer at @dst.  If a kernel fault
+- * happens, handle that and return -EFAULT.
++ * Same as probe_kernel_read_strict() except that for architectures with
++ * not fully separated user and kernel address spaces this function also works
++ * for user address tanges.
++ *
++ * DO NOT USE THIS FUNCTION - it is broken on architectures with entirely
++ * separate kernel and user address spaces, and also a bad idea otherwise.
++ */
++long __weak probe_kernel_read(void *dst, const void *src, size_t size)
++    __attribute__((alias("__probe_kernel_read")));
++
++/**
++ * probe_kernel_read_strict(): safely attempt to read from kernel-space
++ * @dst: pointer to the buffer that shall take the data
++ * @src: address to read from
++ * @size: size of the data chunk
++ *
++ * Safely read from kernel address @src to the buffer at @dst.  If a kernel
++ * fault happens, handle that and return -EFAULT.
+  *
+  * We ensure that the copy_from_user is executed in atomic context so that
+  * do_page_fault() doesn't attempt to take mmap_lock.  This makes
+  * probe_kernel_read() suitable for use within regions where the caller
+  * already holds mmap_lock, or other locks which nest inside mmap_lock.
+- *
+- * probe_kernel_read_strict() is the same as probe_kernel_read() except for
+- * the case where architectures have non-overlapping user and kernel address
+- * ranges: probe_kernel_read_strict() will additionally return -EFAULT for
+- * probing memory on a user address range where probe_user_read() is supposed
+- * to be used instead.
   */
+ 
+-long __weak probe_kernel_read(void *dst, const void *src, size_t size)
+-    __attribute__((alias("__probe_kernel_read")));
 -
--long __weak probe_user_read(void *dst, const void __user *src, size_t size)
--    __attribute__((alias("__probe_user_read")));
--
--long __probe_user_read(void *dst, const void __user *src, size_t size)
-+long probe_user_read(void *dst, const void __user *src, size_t size)
- {
- 	long ret = -EFAULT;
- 	mm_segment_t old_fs = get_fs();
-@@ -106,11 +102,7 @@ EXPORT_SYMBOL_GPL(probe_user_read);
-  * Safely write to address @dst from the buffer at @src.  If a kernel fault
-  * happens, handle that and return -EFAULT.
+ long __weak probe_kernel_read_strict(void *dst, const void *src, size_t size)
+     __attribute__((alias("__probe_kernel_read")));
+ 
+@@ -154,15 +161,34 @@ EXPORT_SYMBOL_GPL(probe_user_write);
+  * If @count is smaller than the length of the string, copies @count-1 bytes,
+  * sets the last byte of @dst buffer to NUL and returns @count.
+  *
+- * strncpy_from_unsafe_strict() is the same as strncpy_from_unsafe() except
+- * for the case where architectures have non-overlapping user and kernel address
+- * ranges: strncpy_from_unsafe_strict() will additionally return -EFAULT for
+- * probing memory on a user address range where strncpy_from_unsafe_user() is
+- * supposed to be used instead.
++ * Same as strncpy_from_unsafe_strict() except that for architectures with
++ * not fully separated user and kernel address spaces this function also works
++ * for user address tanges.
++ *
++ * DO NOT USE THIS FUNCTION - it is broken on architectures with entirely
++ * separate kernel and user address spaces, and also a bad idea otherwise.
   */
--
--long __weak probe_kernel_write(void *dst, const void *src, size_t size)
--    __attribute__((alias("__probe_kernel_write")));
--
--long __probe_kernel_write(void *dst, const void *src, size_t size)
-+long probe_kernel_write(void *dst, const void *src, size_t size)
- {
- 	long ret;
- 	mm_segment_t old_fs = get_fs();
-@@ -131,11 +123,7 @@ long __probe_kernel_write(void *dst, con
-  * Safely write to address @dst from the buffer at @src.  If a kernel fault
-  * happens, handle that and return -EFAULT.
-  */
--
--long __weak probe_user_write(void __user *dst, const void *src, size_t size)
--    __attribute__((alias("__probe_user_write")));
--
--long __probe_user_write(void __user *dst, const void *src, size_t size)
-+long probe_user_write(void __user *dst, const void *src, size_t size)
- {
- 	long ret = -EFAULT;
- 	mm_segment_t old_fs = get_fs();
-@@ -172,7 +160,6 @@ EXPORT_SYMBOL_GPL(probe_user_write);
-  * probing memory on a user address range where strncpy_from_unsafe_user() is
-  * supposed to be used instead.
-  */
+ long __weak strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count)
+     __attribute__((alias("__strncpy_from_unsafe")));
+ 
++/**
++ * strncpy_from_unsafe_strict: - Copy a NUL terminated string from unsafe
++ *				 address.
++ * @dst:   Destination address, in kernel space.  This buffer must be at
++ *         least @count bytes long.
++ * @unsafe_addr: Unsafe address.
++ * @count: Maximum number of bytes to copy, including the trailing NUL.
++ *
++ * Copies a NUL-terminated string from unsafe address to kernel buffer.
++ *
++ * On success, returns the length of the string INCLUDING the trailing NUL.
++ *
++ * If access fails, returns -EFAULT (some data may have been copied
++ * and the trailing NUL added).
++ *
++ * If @count is smaller than the length of the string, copies @count-1 bytes,
++ * sets the last byte of @dst buffer to NUL and returns @count.
++ */
+ long __weak strncpy_from_unsafe_strict(char *dst, const void *unsafe_addr,
+ 				       long count)
+     __attribute__((alias("__strncpy_from_unsafe")));
+_
