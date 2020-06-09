@@ -1,335 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-consolidate-pud_index-and-pud_offset-definitions.patch removed from -mm
- tree
-Date: Mon, 08 Jun 2020 20:13:55 -0700
-Message-ID: <20200609031355.vwTHChR0p%akpm@linux-foundation.org>
+ mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch removed
+ from -mm tree
+Date: Mon, 08 Jun 2020 20:14:04 -0700
+Message-ID: <20200609031404.-GPgi1fxq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51182 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51356 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726803AbgFIDN6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 23:13:58 -0400
+        id S1726803AbgFIDOF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 23:14:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, bcain@codeaurora.org, bp@alien8.de, catalin.marinas@arm.com, chris@zankel.net, dalias@libc.org, davem@davemloft.net, deanbo422@gmail.com, deller@gmx.de, geert@linux-m68k.org, gerg@linux-m68k.org, green.hu@gmail.com, guoren@kernel.org, gxt@pku.edu.cn, heiko.carstens@de.ibm.com, jcmvbkbc@gmail.com, ley.foon.tan@intel.com, linux@armlinux.org.uk, mattst88@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, nickhu@andestech.com, paul.walmsley@sifive.com, richard@nod.at, rppt@linux.ibm.com, shorne@gmail.com, tglx@linutronix.de, tony.luck@intel.com, tsbogend@alpha.franken.de, vgupta@synopsys.com, will@kernel.org, willy@infradead.org, ysato@users.sourceforge.jp
+To: akpm@linux-foundation.org, lkp@intel.com, mm-commits@vger.kernel.org, rdunlap@infradead.org, rppt@linux.ibm.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: mm: consolidate pud_index() and pud_offset() definitions
+     Subject: mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix
 has been removed from the -mm tree.  Its filename was
-     mm-consolidate-pud_index-and-pud_offset-definitions.patch
+     mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix.patch
 
 This patch was dropped because it was folded into mm-consolidate-pte_index-and-pte_offset_-definitions.patch
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: consolidate pud_index() and pud_offset() definitions
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix
 
-All architectures that have at least four-level page tables define
-pud_offset() as an entry in the array of PUDs indexed by the pud_index(),
-where pud_index() is
+arch/x86/mm/pgtable.c: In function 'pgd_alloc':
+>> arch/x86/mm/pgtable.c:427:2: warning: variable length array 'u_pmds' is used [-Wvla]
+pmd_t *u_pmds[MAX_PREALLOCATED_USER_PMDS];
 
-	(address >> PUD_SHIFT) & (PTRS_PER_PUD - 1)
-
-For the most architectures the pud_offset() implementation relies on the
-availability of pud_page_vaddr() that converts a PUD entry value to the
-virtual address of the page containing PUD array.
-
-Let's use such implementation as a generic and drop most of the
-definitions of pud_index() and pud_offset() in <asm/pgtable.h> files.
-
-The architectures that didn't provide pud_page_vaddr() are updated to have
-that defined.
-
-The generic implementation can be overridden by an architecture and this
-ability is currently in use by there architectures:
-* s390 has custom definitions of all page table accessors
-
-Link: http://lkml.kernel.org/r/20200514170327.31389-12-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: Guan Xuetao <gxt@pku.edu.cn>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vincent Chen <deanbo422@gmail.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Reported-by: kbuild test robot <lkp@intel.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h                |    8 ++++---
- arch/csky/include/asm/pgtable.h                 |    2 -
- arch/ia64/include/asm/pgtable.h                 |    6 -----
- arch/mips/include/asm/pgtable-32.h              |    1 
- arch/mips/include/asm/pgtable-64.h              |    7 ------
- arch/powerpc/include/asm/book3s/64/pgtable.h    |    8 -------
- arch/powerpc/include/asm/nohash/64/pgtable-4k.h |    4 ---
- arch/s390/include/asm/pgtable.h                 |    1 
- arch/sh/include/asm/pgtable_32.h                |    2 -
- arch/sparc/include/asm/pgtable_64.h             |    5 ----
- arch/x86/include/asm/pgtable.h                  |   11 ---------
- include/asm-generic/pgtable-nopud.h             |    1 
- include/linux/pgtable.h                         |   16 ++++++++++++++
- 13 files changed, 23 insertions(+), 49 deletions(-)
+ include/linux/pgtable.h |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -626,11 +626,13 @@ static inline phys_addr_t p4d_page_paddr
- 	return __p4d_to_phys(p4d);
- }
- 
--/* Find an entry in the frst-level page table. */
--#define pud_index(addr)		(((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
-+static inline unsigned long p4d_page_vaddr(p4d_t p4d)
-+{
-+	return (unsigned long)__va(p4d_page_paddr(p4d));
-+}
- 
-+/* Find an entry in the frst-level page table. */
- #define pud_offset_phys(dir, addr)	(p4d_page_paddr(READ_ONCE(*(dir))) + pud_index(addr) * sizeof(pud_t))
--#define pud_offset(dir, addr)		((pud_t *)__va(pud_offset_phys((dir), (addr))))
- 
- #define pud_set_fixmap(addr)		((pud_t *)set_fixmap_offset(FIX_PUD, addr))
- #define pud_set_fixmap_offset(p4d, addr)	pud_set_fixmap(pud_offset_phys(p4d, addr))
---- a/arch/csky/include/asm/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/csky/include/asm/pgtable.h
-@@ -220,8 +220,6 @@ static inline pte_t pte_mkyoung(pte_t pt
- 	return pte;
- }
- 
--#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
--
- /* to find an entry in a kernel page-table-directory */
- #define pgd_offset_k(address)	pgd_offset(&init_mm, address)
- 
---- a/arch/ia64/include/asm/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/ia64/include/asm/pgtable.h
-@@ -383,12 +383,6 @@ pgd_offset (const struct mm_struct *mm,
-    here.  */
- #define pgd_offset_gate(mm, addr)	pgd_offset_k(addr)
- 
--#if CONFIG_PGTABLE_LEVELS == 4
--/* Find an entry in the second-level page table.. */
--#define pud_offset(dir,addr) \
--	((pud_t *) p4d_page_vaddr(*(dir)) + (((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1)))
--#endif
--
- /* atomic versions of the some PTE manipulations: */
- 
- static inline int
---- a/arch/mips/include/asm/pgtable-32.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/mips/include/asm/pgtable-32.h
-@@ -199,7 +199,6 @@ static inline pte_t pfn_pte(unsigned lon
- #define pgd_offset_k(address) pgd_offset(&init_mm, address)
- 
- #define pgd_index(address)	(((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
--#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
- 
- /* to find an entry in a page-table-directory */
- #define pgd_offset(mm, addr)	((mm)->pgd + pgd_index(addr))
---- a/arch/mips/include/asm/pgtable-64.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/mips/include/asm/pgtable-64.h
-@@ -172,8 +172,6 @@
- 
- extern pte_t invalid_pte_table[PTRS_PER_PTE];
- 
--#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
--
- #ifndef __PAGETABLE_PUD_FOLDED
- /*
-  * For 4-level pagetables we defines these ourselves, for 3-level the
-@@ -222,11 +220,6 @@ static inline unsigned long p4d_page_vad
- 
- #define p4d_index(address)	(((address) >> P4D_SHIFT) & (PTRS_PER_P4D - 1))
- 
--static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
--{
--	return (pud_t *)p4d_page_vaddr(*p4d) + pud_index(address);
--}
--
- static inline void set_p4d(p4d_t *p4d, p4d_t p4dval)
- {
- 	*p4d = p4dval;
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -1013,11 +1013,6 @@ static inline unsigned long pgd_index(un
- 	return (address >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1);
- }
- 
--static inline unsigned long pud_index(unsigned long address)
--{
--	return (address >> PUD_SHIFT) & (PTRS_PER_PUD - 1);
--}
--
- /*
-  * Find an entry in a page-table-directory.  We combine the address region
-  * (the high order N bits) and the pgd portion of the address.
-@@ -1025,9 +1020,6 @@ static inline unsigned long pud_index(un
- 
- #define pgd_offset(mm, address)	 ((mm)->pgd + pgd_index(address))
- 
--#define pud_offset(p4dp, addr)	\
--	(((pud_t *) p4d_page_vaddr(*(p4dp))) + pud_index(addr))
--
- /* to find an entry in a kernel page-table-directory */
- /* This now only contains the vmalloc pages */
- #define pgd_offset_k(address) pgd_offset(&init_mm, address)
---- a/arch/powerpc/include/asm/nohash/64/pgtable-4k.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/powerpc/include/asm/nohash/64/pgtable-4k.h
-@@ -78,10 +78,6 @@ extern struct page *p4d_page(p4d_t p4d);
- 
- #endif /* !__ASSEMBLY__ */
- 
--#define pud_offset(p4dp, addr)	\
--  (((pud_t *) p4d_page_vaddr(*(p4dp))) + \
--    (((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1)))
--
- #define pud_ERROR(e) \
- 	pr_err("%s:%d: bad pud %08lx.\n", __FILE__, __LINE__, pud_val(e))
- 
---- a/arch/s390/include/asm/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1274,6 +1274,7 @@ static inline pud_t *pud_offset(p4d_t *p
- 		return (pud_t *) p4d_deref(*p4d) + pud_index(address);
- 	return (pud_t *) p4d;
- }
-+#define pud_offset pud_offset
- 
- static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
- {
---- a/arch/sh/include/asm/pgtable_32.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/sh/include/asm/pgtable_32.h
-@@ -415,8 +415,6 @@ static inline unsigned long pmd_page_vad
- /* to find an entry in a kernel page-table-directory */
- #define pgd_offset_k(address)	pgd_offset(&init_mm, address)
- 
--#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD-1))
--
- #ifdef CONFIG_X2TLB
- #define pte_ERROR(e) \
- 	printk("%s:%d: bad pte %p(%08lx%08lx).\n", __FILE__, __LINE__, \
---- a/arch/sparc/include/asm/pgtable_64.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -896,11 +896,6 @@ static inline unsigned long pud_pfn(pud_
- /* to find an entry in a kernel page-table-directory */
- #define pgd_offset_k(address) pgd_offset(&init_mm, address)
- 
--/* Find an entry in the third-level page table.. */
--#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
--#define pud_offset(p4dp, address)	\
--	((pud_t *) p4d_page_vaddr(*(p4dp)) + pud_index(address))
--
- /* We cannot include <linux/mm_types.h> at this point yet: */
- extern struct mm_struct init_mm;
- 
---- a/arch/x86/include/asm/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -896,11 +896,6 @@ static inline int pud_large(pud_t pud)
- }
- #endif	/* CONFIG_PGTABLE_LEVELS > 2 */
- 
--static inline unsigned long pud_index(unsigned long address)
--{
--	return (address >> PUD_SHIFT) & (PTRS_PER_PUD - 1);
--}
--
- #if CONFIG_PGTABLE_LEVELS > 3
- static inline int p4d_none(p4d_t p4d)
- {
-@@ -923,12 +918,6 @@ static inline unsigned long p4d_page_vad
-  */
- #define p4d_page(p4d)	pfn_to_page(p4d_pfn(p4d))
- 
--/* Find an entry in the third-level page table.. */
--static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
--{
--	return (pud_t *)p4d_page_vaddr(*p4d) + pud_index(address);
--}
--
- static inline int p4d_bad(p4d_t p4d)
- {
- 	unsigned long ignore_flags = _KERNPG_TABLE | _PAGE_USER;
---- a/include/asm-generic/pgtable-nopud.h~mm-consolidate-pud_index-and-pud_offset-definitions
-+++ a/include/asm-generic/pgtable-nopud.h
-@@ -43,6 +43,7 @@ static inline pud_t *pud_offset(p4d_t *p
- {
- 	return (pud_t *)p4d;
- }
-+#define pud_offset pud_offset
- 
- #define pud_val(x)				(p4d_val((x).p4d))
- #define __pud(x)				((pud_t) { __p4d(x) })
---- a/include/linux/pgtable.h~mm-consolidate-pud_index-and-pud_offset-definitions
+--- a/include/linux/pgtable.h~mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix
 +++ a/include/linux/pgtable.h
-@@ -53,6 +53,14 @@ static inline unsigned long pmd_index(un
- #define pmd_index pmd_index
+@@ -62,11 +62,8 @@ static inline unsigned long pud_index(un
  #endif
  
-+#ifndef pud_index
-+static inline unsigned long pud_index(unsigned long address)
-+{
-+	return (address >> PUD_SHIFT) & (PTRS_PER_PUD - 1);
-+}
-+#define pud_index pud_index
-+#endif
-+
+ #ifndef pgd_index
+-static inline unsigned long pgd_index(unsigned long address)
+-{
+-	return ((address >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1));
+-}
+-#define pgd_index pgd_index
++/* Must be a compile-time constant, so implement it as a macro */
++#define pgd_index(a)  (((a) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
+ #endif
+ 
  #ifndef pte_offset_kernel
- static inline pte_t *pte_offset_kernel(pmd_t *pmd, unsigned long address)
- {
-@@ -80,6 +88,14 @@ static inline pmd_t *pmd_offset(pud_t *p
- #define pmd_offset pmd_offset
- #endif
- 
-+#ifndef pud_offset
-+static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
-+{
-+	return (pud_t *)p4d_page_vaddr(*p4d) + pud_index(address);
-+}
-+#define pud_offset pud_offset
-+#endif
-+
- /*
-  * In many cases it is known that a virtual address is mapped at PMD or PTE
-  * level, so instead of traversing all the page table levels, we can get a
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
-mm-introduce-include-linux-pgtableh.patch
-mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
-csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
-m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
-m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
-x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
-mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
 mm-consolidate-pte_index-and-pte_offset_-definitions.patch
-mm-consolidate-pgd_index-and-pgd_offset_k-definitions.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-git-rejects.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
