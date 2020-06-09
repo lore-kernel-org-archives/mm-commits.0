@@ -1,258 +1,91 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmotm 2020-06-08-22-35 uploaded
-Date: Mon, 08 Jun 2020 22:36:14 -0700
-Message-ID: <20200609053614.JML2T0-uE%akpm@linux-foundation.org>
-References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Date: Tue, 09 Jun 2020 09:56:26 -0700
+Message-ID: <20200609165626.6gaMq2928%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41388 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54808 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725770AbgFIFgQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 01:36:16 -0400
-In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
+        id S1731061AbgFIQ41 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 12:56:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-
-The mm-of-the-moment snapshot 2020-06-08-22-35 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (5.x
-or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-	https://github.com/hnaz/linux-mm
+This patch was dropped because it is obsolete
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-A git copy of this tree is also available at
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-	https://github.com/hnaz/linux-mm
+ arch/sparc/kernel/ptrace_32.c |   14 --------------
+ security/apparmor/label.c     |    3 ---
+ 2 files changed, 17 deletions(-)
 
+--- a/arch/sparc/kernel/ptrace_32.c~linux-next-git-rejects
++++ a/arch/sparc/kernel/ptrace_32.c
+@@ -167,26 +167,12 @@ static int genregs32_set(struct task_str
+ 	if (ret || !count)
+ 		return ret;
+ 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
+-<<<<<<< HEAD
+-				 &regs->npc,
+-				 34 * sizeof(u32), 35 * sizeof(u32));
+-	if (ret || !count)
+-		return ret;
+-	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
+-				 &regs->y,
+-				 35 * sizeof(u32), 36 * sizeof(u32));
+-	if (ret || !count)
+-		return ret;
+-	return user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
+-					 36 * sizeof(u32), 38 * sizeof(u32));
+-=======
+ 				 &regs->y,
+ 				 34 * sizeof(u32), 35 * sizeof(u32));
+ 	if (ret || !count)
+ 		return ret;
+ 	return user_regset_copyin_ignore(&pos, &count, &kbuf, &ubuf,
+ 					 35 * sizeof(u32), 38 * sizeof(u32));
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static int fpregs32_get(struct task_struct *target,
+--- a/security/apparmor/label.c~linux-next-git-rejects
++++ a/security/apparmor/label.c
+@@ -333,10 +333,7 @@ void aa_label_destroy(struct aa_label *l
+ 	}
+ 	aa_free_secid(label->secid);
+ 
+-<<<<<<< HEAD
+-=======
+ 	aa_put_proxy(label->proxy);
+->>>>>>> linux-next/akpm-base
+ 	label->proxy = (struct aa_proxy *) PROXY_POISON + 1;
+ }
+ 
+_
 
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-This mmotm tree contains the following patches against 5.7:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-* kallsyms-printk-add-loglvl-to-print_ip_sym.patch
-* alpha-add-show_stack_loglvl.patch
-* arc-add-show_stack_loglvl.patch
-* arm-asm-add-loglvl-to-c_backtrace.patch
-* arm-add-loglvl-to-unwind_backtrace.patch
-* arm-add-loglvl-to-dump_backtrace.patch
-* arm-wire-up-dump_backtrace_entrystm.patch
-* arm-add-show_stack_loglvl.patch
-* arm64-add-loglvl-to-dump_backtrace.patch
-* arm64-add-show_stack_loglvl.patch
-* c6x-add-show_stack_loglvl.patch
-* csky-add-show_stack_loglvl.patch
-* h8300-add-show_stack_loglvl.patch
-* hexagon-add-show_stack_loglvl.patch
-* ia64-pass-log-level-as-arg-into-ia64_do_show_stack.patch
-* ia64-add-show_stack_loglvl.patch
-* m68k-add-show_stack_loglvl.patch
-* microblaze-add-loglvl-to-microblaze_unwind_inner.patch
-* microblaze-add-loglvl-to-microblaze_unwind.patch
-* microblaze-add-show_stack_loglvl.patch
-* mips-add-show_stack_loglvl.patch
-* nds32-add-show_stack_loglvl.patch
-* nios2-add-show_stack_loglvl.patch
-* openrisc-add-show_stack_loglvl.patch
-* parisc-add-show_stack_loglvl.patch
-* powerpc-add-show_stack_loglvl.patch
-* riscv-add-show_stack_loglvl.patch
-* s390-add-show_stack_loglvl.patch
-* sh-add-loglvl-to-dump_mem.patch
-* sh-remove-needless-printk.patch
-* sh-add-loglvl-to-printk_address.patch
-* sh-add-loglvl-to-show_trace.patch
-* sh-add-show_stack_loglvl.patch
-* sparc-add-show_stack_loglvl.patch
-* um-sysrq-remove-needless-variable-sp.patch
-* um-add-show_stack_loglvl.patch
-* unicore32-remove-unused-pmode-argument-in-c_backtrace.patch
-* unicore32-add-loglvl-to-c_backtrace.patch
-* unicore32-add-show_stack_loglvl.patch
-* x86-add-missing-const-qualifiers-for-log_lvl.patch
-* x86-add-show_stack_loglvl.patch
-* xtensa-add-loglvl-to-show_trace.patch
-* xtensa-add-show_stack_loglvl.patch
-* sysrq-use-show_stack_loglvl.patch
-* x86-amd_gart-print-stacktrace-for-a-leak-with-kern_err.patch
-* power-use-show_stack_loglvl.patch
-* kdb-dont-play-with-console_loglevel.patch
-* sched-print-stack-trace-with-kern_info.patch
-* kernel-use-show_stack_loglvl.patch
-* kernel-rename-show_stack_loglvl-=-show_stack.patch
-* mm-dont-include-asm-pgtableh-if-linux-mmh-is-already-included.patch
-* mm-introduce-include-linux-pgtableh.patch
-* mm-reorder-includes-after-introduction-of-linux-pgtableh.patch
-* csky-replace-definitions-of-__pxd_offset-with-pxd_index.patch
-* m68k-mm-motorola-move-comment-about-page-table-allocation-funcitons.patch
-* m68k-mm-move-cachenocahe_page-definitions-close-to-their-user.patch
-* x86-mm-simplify-init_trampoline-and-surrounding-logic.patch
-* mm-pgtable-add-shortcuts-for-accessing-kernel-pmd-and-pte.patch
-* mm-consolidate-pte_index-and-pte_offset_-definitions.patch
-* mmap-locking-api-initial-implementation-as-rwsem-wrappers.patch
-* mmu-notifier-use-the-new-mmap-locking-api.patch
-* dma-reservations-use-the-new-mmap-locking-api.patch
-* mmap-locking-api-use-coccinelle-to-convert-mmap_sem-rwsem-call-sites.patch
-* mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle.patch
-* mmap-locking-api-convert-nested-write-lock-sites.patch
-* mmap-locking-api-add-mmap_read_trylock_non_owner.patch
-* mmap-locking-api-add-mmap_lock_initializer.patch
-* mmap-locking-api-add-mmap_assert_locked-and-mmap_assert_write_locked.patch
-* mmap-locking-api-rename-mmap_sem-to-mmap_lock.patch
-* mmap-locking-api-convert-mmap_sem-api-comments.patch
-* mmap-locking-api-convert-mmap_sem-comments.patch
-* maccess-unexport-probe_kernel_write-and-probe_user_write.patch
-* maccess-remove-various-unused-weak-aliases.patch
-* maccess-remove-duplicate-kerneldoc-comments.patch
-* maccess-clarify-kerneldoc-comments.patch
-* maccess-update-the-top-of-file-comment.patch
-* maccess-rename-strncpy_from_unsafe_user-to-strncpy_from_user_nofault.patch
-* maccess-rename-strncpy_from_unsafe_strict-to-strncpy_from_kernel_nofault.patch
-* maccess-rename-strnlen_unsafe_user-to-strnlen_user_nofault.patch
-* maccess-remove-probe_read_common-and-probe_write_common.patch
-* maccess-unify-the-probe-kernel-arch-hooks.patch
-* bpf-factor-out-a-bpf_trace_copy_string-helper.patch
-* bpf-handle-the-compat-string-in-bpf_trace_copy_string-better.patch
-* bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
-* bpf-rework-the-compat-kernel-probe-handling.patch
-* tracing-kprobes-handle-mixed-kernel-userspace-probes-better.patch
-* maccess-remove-strncpy_from_unsafe.patch
-* maccess-always-use-strict-semantics-for-probe_kernel_read.patch
-* maccess-move-user-access-routines-together.patch
-* maccess-allow-architectures-to-provide-kernel-probing-directly.patch
-* x86-use-non-set_fs-based-maccess-routines.patch
-* maccess-return-erange-when-copy_from_kernel_nofault_allowed-fails.patch
-* mm-expand-documentation-over-__read_mostly.patch
-* checkpatch-test-git_dir-changes.patch
-* khugepaged-selftests-fix-timeout-condition-in-wait_for_scan.patch
-* scripts-spelling-add-a-few-more-typos.patch
-* kcov-check-kcov_softirq-in-kcov_remote_stop.patch
-* lib-lz4-lz4_decompressc-document-deliberate-use-of.patch
-* nilfs2-fix-null-pointer-dereference-at-nilfs_segctor_do_construct.patch
-* checkpatch-correct-check-for-kernel-parameters-doc.patch
-* lib-fix-bitmap_parse-on-64-bit-big-endian-archs.patch
-* mm-debug_vm_pgtable-fix-kernel-crash-by-checking-for-thp-support.patch
-* mm-memory-failure-prioritize-prctlpr_mce_kill-over-vmmemory_failure_early_kill.patch
-* mm-memory-failure-send-sigbusbus_mceerr_ar-only-to-current-thread.patch
-* fix-build-failure-of-ocfs2-when-tcp-ip-is-disabled.patch
-* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
-* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
-* lib-lzo-fix-ambiguous-encoding-bug-in-lzo-rle.patch
-* fs-ocfs2-fix-spelling-mistake-and-grammar.patch
-* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
-* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
-* drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-* ramfs-support-o_tmpfile.patch
-* kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
-  mm.patch
-* mm-mmap-fix-the-adjusted-length-error.patch
-* mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
-* mm-add-comments-on-pglist_data-zones.patch
-* mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
-* mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-fix.patch
-* mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
-* info-task-hung-in-generic_file_write_iter.patch
-* info-task-hung-in-generic_file_write-fix.patch
-* kernel-hung_taskc-monitor-killed-tasks.patch
-* lib-optimize-cpumask_local_spread.patch
-* lib-test-get_count_order-long-in-test_bitopsc.patch
-* lib-test-get_count_order-long-in-test_bitopsc-fix.patch
-* lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
-* checkpatch-add-test-for-possible-misuse-of-is_enabled-without-config_.patch
-* exec-change-uselib2-is_sreg-failure-to-eacces.patch
-* exec-move-s_isreg-check-earlier.patch
-* exec-move-path_noexec-check-earlier.patch
-* umh-fix-refcount-underflow-in-fork_usermode_blob.patch
-* aio-simplify-read_events.patch
-* ipc-convert-ipcs_idr-to-xarray.patch
-* ipc-convert-ipcs_idr-to-xarray-update.patch
-* ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-  linux-next.patch
-  linux-next-rejects.patch
-  linux-next-git-rejects.patch
-* mm-kmemleak-silence-kcsan-splats-in-checksum.patch
-* stacktrace-cleanup-inconsistent-variable-type.patch
-* amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
-* kernel-move-use_mm-unuse_mm-to-kthreadc.patch
-* kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
-* kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
-* kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
-* kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
-* kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch
-* kernel-set-user_ds-in-kthread_use_mm.patch
-* mm-frontswap-mark-various-intentional-data-races.patch
-* mm-page_io-mark-various-intentional-data-races.patch
-* mm-page_io-mark-various-intentional-data-races-v2.patch
-* mm-swap_state-mark-various-intentional-data-races.patch
-* mm-filemap-fix-a-data-race-in-filemap_fault.patch
-* mm-swapfile-fix-and-annotate-various-data-races.patch
-* mm-swapfile-fix-and-annotate-various-data-races-v2.patch
-* mm-page_counter-fix-various-data-races-at-memsw.patch
-* mm-memcontrol-fix-a-data-race-in-scan-count.patch
-* mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-* mm-mempool-fix-a-data-race-in-mempool_free.patch
-* mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
-* mm-annotate-a-data-race-in-page_zonenum.patch
-* mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
-* net-zerocopy-use-vm_insert_pages-for-tcp-rcv-zerocopy.patch
-* mm-pass-task-and-mm-to-do_madvise.patch
-* mm-introduce-external-memory-hinting-api.patch
-* mm-introduce-external-memory-hinting-api-fix.patch
-* mm-introduce-external-memory-hinting-api-fix-2.patch
-* mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-* mm-check-fatal-signal-pending-of-target-process.patch
-* pid-move-pidfd_get_pid-function-to-pidc.patch
-* mm-support-both-pid-and-pidfd-for-process_madvise.patch
-* mm-madvise-allow-ksm-hints-for-remote-api.patch
-* mm-support-vector-address-ranges-for-process_madvise.patch
-* mm-support-vector-address-ranges-for-process_madvise-fix.patch
-* mm-support-vector-address-ranges-for-process_madvise-fix-fix.patch
-* mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
-* mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix.patch
-* mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-* mm-use-only-pidfd-for-process_madvise-syscall.patch
-* mm-use-only-pidfd-for-process_madvise-syscall-fix.patch
-* mm-remove-duplicated-include-from-madvisec.patch
-* include-asm-generic-vmlinuxldsh-align-ro_after_init.patch
-* sh-clkfwk-remove-r8-r16-r32.patch
-* sh-remove-call-to-memset-after-dma_alloc_coherent.patch
-* sh-use-generic-strncpy.patch
-* sh-add-missing-export_symbol-for-__delay.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  mutex-subsystem-synchro-test-module.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  workaround-for-a-pci-restoring-bug.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-rejects.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
