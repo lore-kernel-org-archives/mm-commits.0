@@ -1,21 +1,21 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 13/93] h8300: add show_stack_loglvl()
-Date: Mon, 08 Jun 2020 21:30:35 -0700
-Message-ID: <20200609043035.d4sQnq60H%akpm@linux-foundation.org>
+Subject: [patch 14/93] hexagon: add show_stack_loglvl()
+Date: Mon, 08 Jun 2020 21:30:38 -0700
+Message-ID: <20200609043038.XGjcxJGBD%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53342 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53400 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726896AbgFIEag (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:30:36 -0400
+        id S1726896AbgFIEak (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:30:40 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dima@arista.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, ysato@users.sourceforge.jp
+To: akpm@linux-foundation.org, bcain@codeaurora.org, dima@arista.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Dmitry Safonov <dima@arista.com>
-Subject: h8300: add show_stack_loglvl()
+Subject: hexagon: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -35,66 +35,116 @@ printings with headers.
 Introduce show_stack_loglvl(), that eventually will substitute
 show_stack().
 
+As a good side-effect die() now prints the stacktrace with KERN_EMERG
+aligned with other messages.
+
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-14-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-15-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Acked-by: Brian Cain <bcain@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/traps.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ arch/hexagon/kernel/traps.c |   31 +++++++++++++++++--------------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
 
---- a/arch/h8300/kernel/traps.c~h8300-add-show_stack_loglvl
-+++ a/arch/h8300/kernel/traps.c
-@@ -115,7 +115,8 @@ void die(const char *str, struct pt_regs
+--- a/arch/hexagon/kernel/traps.c~hexagon-add-show_stack_loglvl
++++ a/arch/hexagon/kernel/traps.c
+@@ -79,7 +79,7 @@ static const char *ex_name(int ex)
+ }
  
- static int kstack_depth_to_print = 24;
+ static void do_show_stack(struct task_struct *task, unsigned long *fp,
+-			  unsigned long ip)
++			  unsigned long ip, const char *loglvl)
+ {
+ 	int kstack_depth_to_print = 24;
+ 	unsigned long offset, size;
+@@ -93,9 +93,8 @@ static void do_show_stack(struct task_st
+ 	if (task == NULL)
+ 		task = current;
  
--void show_stack(struct task_struct *task, unsigned long *esp)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *esp,
+-	printk(KERN_INFO "CPU#%d, %s/%d, Call Trace:\n",
+-	       raw_smp_processor_id(), task->comm,
+-	       task_pid_nr(task));
++	printk("%sCPU#%d, %s/%d, Call Trace:\n", loglvl, raw_smp_processor_id(),
++		task->comm, task_pid_nr(task));
+ 
+ 	if (fp == NULL) {
+ 		if (task == current) {
+@@ -108,7 +107,7 @@ static void do_show_stack(struct task_st
+ 	}
+ 
+ 	if ((((unsigned long) fp) & 0x3) || ((unsigned long) fp < 0x1000)) {
+-		printk(KERN_INFO "-- Corrupt frame pointer %p\n", fp);
++		printk("%s-- Corrupt frame pointer %p\n", loglvl, fp);
+ 		return;
+ 	}
+ 
+@@ -125,8 +124,7 @@ static void do_show_stack(struct task_st
+ 
+ 		name = kallsyms_lookup(ip, &size, &offset, &modname, tmpstr);
+ 
+-		printk(KERN_INFO "[%p] 0x%lx: %s + 0x%lx", fp, ip, name,
+-			offset);
++		printk("%s[%p] 0x%lx: %s + 0x%lx", loglvl, fp, ip, name, offset);
+ 		if (((unsigned long) fp < low) || (high < (unsigned long) fp))
+ 			printk(KERN_CONT " (FP out of bounds!)");
+ 		if (modname)
+@@ -136,8 +134,7 @@ static void do_show_stack(struct task_st
+ 		newfp = (unsigned long *) *fp;
+ 
+ 		if (((unsigned long) newfp) & 0x3) {
+-			printk(KERN_INFO "-- Corrupt frame pointer %p\n",
+-				newfp);
++			printk("%s-- Corrupt frame pointer %p\n", loglvl, newfp);
+ 			break;
+ 		}
+ 
+@@ -147,7 +144,7 @@ static void do_show_stack(struct task_st
+ 						+ 8);
+ 
+ 			if (regs->syscall_nr != -1) {
+-				printk(KERN_INFO "-- trap0 -- syscall_nr: %ld",
++				printk("%s-- trap0 -- syscall_nr: %ld", loglvl,
+ 					regs->syscall_nr);
+ 				printk(KERN_CONT "  psp: %lx  elr: %lx\n",
+ 					 pt_psp(regs), pt_elr(regs));
+@@ -155,7 +152,7 @@ static void do_show_stack(struct task_st
+ 			} else {
+ 				/* really want to see more ... */
+ 				kstack_depth_to_print += 6;
+-				printk(KERN_INFO "-- %s (0x%lx)  badva: %lx\n",
++				printk("%s-- %s (0x%lx)  badva: %lx\n", loglvl,
+ 					ex_name(pt_cause(regs)), pt_cause(regs),
+ 					pt_badva(regs));
+ 			}
+@@ -178,10 +175,16 @@ static void do_show_stack(struct task_st
+ 	}
+ }
+ 
+-void show_stack(struct task_struct *task, unsigned long *fp)
++void show_stack_loglvl(struct task_struct *task, unsigned long *fp,
 +		       const char *loglvl)
  {
- 	unsigned long *stack,  addr;
- 	int i;
-@@ -125,17 +126,17 @@ void show_stack(struct task_struct *task
- 
- 	stack = esp;
- 
--	pr_info("Stack from %08lx:", (unsigned long)stack);
-+	printk("%sStack from %08lx:", loglvl, (unsigned long)stack);
- 	for (i = 0; i < kstack_depth_to_print; i++) {
- 		if (((unsigned long)stack & (THREAD_SIZE - 1)) >=
- 		    THREAD_SIZE-4)
- 			break;
- 		if (i % 8 == 0)
--			pr_info(" ");
-+			printk("%s ", loglvl);
- 		pr_cont(" %08lx", *stack++);
- 	}
- 
--	pr_info("\nCall Trace:\n");
-+	printk("%s\nCall Trace:\n", loglvl);
- 	i = 0;
- 	stack = esp;
- 	while (((unsigned long)stack & (THREAD_SIZE - 1)) < THREAD_SIZE-4) {
-@@ -150,10 +151,15 @@ void show_stack(struct task_struct *task
- 		 */
- 		if (check_kernel_text(addr)) {
- 			if (i % 4 == 0)
--				pr_info("       ");
-+				printk("%s       ", loglvl);
- 			pr_cont(" [<%08lx>]", addr);
- 			i++;
- 		}
- 	}
--	pr_info("\n");
-+	printk("%s\n", loglvl);
+ 	/* Saved link reg is one word above FP */
+-	do_show_stack(task, fp, 0);
++	do_show_stack(task, fp, 0, loglvl);
 +}
 +
-+void show_stack(struct task_struct *task, unsigned long *esp)
++void show_stack(struct task_struct *task, unsigned long *fp)
 +{
-+	show_stack_loglvl(task, esp, KERN_INFO);
++	show_stack_loglvl(task, fp, 0, KERN_INFO);
  }
+ 
+ int die(const char *str, struct pt_regs *regs, long err)
+@@ -207,7 +210,7 @@ int die(const char *str, struct pt_regs
+ 
+ 	print_modules();
+ 	show_regs(regs);
+-	do_show_stack(current, &regs->r30, pt_elr(regs));
++	do_show_stack(current, &regs->r30, pt_elr(regs), KERN_EMERG);
+ 
+ 	bust_spinlocks(0);
+ 	add_taint(TAINT_DIE, LOCKDEP_NOW_UNRELIABLE);
 _
