@@ -1,43 +1,101 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 30/93] sh: remove needless printk()
-Date: Mon, 08 Jun 2020 21:31:27 -0700
-Message-ID: <20200609043127.Lf6aX9jfp%akpm@linux-foundation.org>
+Subject: [patch 31/93] sh: add loglvl to printk_address()
+Date: Mon, 08 Jun 2020 21:31:30 -0700
+Message-ID: <20200609043130.f8j2tbLh_%akpm@linux-foundation.org>
 References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54390 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725770AbgFIEb3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 00:31:29 -0400
+        id S1725770AbgFIEbb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 00:31:31 -0400
 In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dalias@libc.org, dima@arista.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org, ysato@users.sourceforge.jp
+To: akpm@linux-foundation.org, dalias@libc.org, dima@arista.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
 From: Dmitry Safonov <dima@arista.com>
-Subject: sh: remove needless printk()
+Subject: sh: add loglvl to printk_address()
 
-Currently `data' is always an empty line "".  No need for additional
-printk() call.
+Currently, the log-level of show_stack() depends on a platform
+realization.  It creates situations where the headers are printed with
+lower log level or higher than the stacktrace (depending on a platform or
+user).
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-31-dima@arista.com
+Furthermore, it forces the logic decision from user to an architecture
+side.  In result, some users as sysrq/kdb/etc are doing tricks with
+temporary rising console_loglevel while printing their messages.  And in
+result it not only may print unwanted messages from other CPUs, but also
+omit printing at all in the unlucky case where the printk() was deferred.
+
+Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
+approach than introducing more printk buffers.  Also, it will consolidate
+printings with headers.
+
+Add log level argument to printk_address() as a preparation to introduce
+show_stack_loglvl().
+
+As a good side-effect show_fault_oops() now prints the address with
+KERN_EMREG as the rest of output, making sure there won't be situation
+where "PC: " is printed without actual address.
+
+[1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
+
+Link: http://lkml.kernel.org/r/20200418201944.482088-32-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
 Cc: Rich Felker <dalias@libc.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/dumpstack.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/sh/include/asm/kdebug.h |    3 ++-
+ arch/sh/kernel/dumpstack.c   |    6 +++---
+ arch/sh/mm/fault.c           |    2 +-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
---- a/arch/sh/kernel/dumpstack.c~sh-remove-needless-printk
+--- a/arch/sh/include/asm/kdebug.h~sh-add-loglvl-to-printk_address
++++ a/arch/sh/include/asm/kdebug.h
+@@ -12,7 +12,8 @@ enum die_val {
+ };
+ 
+ /* arch/sh/kernel/dumpstack.c */
+-extern void printk_address(unsigned long address, int reliable);
++extern void printk_address(unsigned long address, int reliable,
++			   const char *loglvl);
+ extern void dump_mem(const char *str, const char *loglvl,
+ 		     unsigned long bottom, unsigned long top);
+ 
+--- a/arch/sh/kernel/dumpstack.c~sh-add-loglvl-to-printk_address
 +++ a/arch/sh/kernel/dumpstack.c
-@@ -118,7 +118,6 @@ static int print_trace_stack(void *data,
+@@ -44,9 +44,9 @@ void dump_mem(const char *str, const cha
+ 	}
+ }
+ 
+-void printk_address(unsigned long address, int reliable)
++void printk_address(unsigned long address, int reliable, const char *loglvl)
+ {
+-	printk(" [<%p>] %s%pS\n", (void *) address,
++	printk("%s [<%p>] %s%pS\n", loglvl, (void *) address,
+ 			reliable ? "" : "? ", (void *) address);
+ }
+ 
+@@ -118,7 +118,7 @@ static int print_trace_stack(void *data,
   */
  static void print_trace_address(void *data, unsigned long addr, int reliable)
  {
--	printk("%s", (char *)data);
- 	printk_address(addr, reliable);
+-	printk_address(addr, reliable);
++	printk_address(addr, reliable, (char *)data);
  }
  
+ static const struct stacktrace_ops print_trace_ops = {
+--- a/arch/sh/mm/fault.c~sh-add-loglvl-to-printk_address
++++ a/arch/sh/mm/fault.c
+@@ -214,7 +214,7 @@ show_fault_oops(struct pt_regs *regs, un
+ 				     : "paging request",
+ 		 address);
+ 	pr_alert("PC:");
+-	printk_address(regs->pc, 1);
++	printk_address(regs->pc, 1, KERN_ALERT);
+ 
+ 	show_pte(NULL, address);
+ }
 _
