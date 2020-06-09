@@ -1,61 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3.patch removed
- from -mm tree
-Date: Mon, 08 Jun 2020 20:14:12 -0700
-Message-ID: <20200609031412.XUFS96fSF%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mmap-locking-api-convert-mmap=5Fsem-call-sites-missed-by-?=
+ =?US-ASCII?Q?coccinelle-fix-fix.patch?= removed from -mm tree
+Date: Mon, 08 Jun 2020 20:16:51 -0700
+Message-ID: <20200609031651.LCb87d799%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51430 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52618 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726803AbgFIDOO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Jun 2020 23:14:14 -0400
+        id S1726803AbgFIDQw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Jun 2020 23:16:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkp@intel.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, walken@google.com
 
 
 The patch titled
-     Subject: mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3
+     Subject: mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3.patch
+     mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix.patch
 
-This patch was dropped because it was folded into mm-consolidate-pte_index-and-pte_offset_-definitions.patch
+This patch was dropped because it was folded into mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix
 
-Fix powerpc build
+more linux-next leftovers
 
-Link: http://lkml.kernel.org/r/20200607153443.GB738695@linux.ibm.com
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/nohash/32/pgtable.h |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/staging/media/atomisp/pci/hmm/hmm_bo.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/powerpc/include/asm/nohash/32/pgtable.h~mm-consolidate-pgd_index-and-pgd_offset_k-definitions-fix-3
-+++ a/arch/powerpc/include/asm/nohash/32/pgtable.h
-@@ -205,6 +205,9 @@ static inline void pmd_clear(pmd_t *pmdp
- 	*pmdp = __pmd(0);
- }
+--- a/drivers/staging/media/atomisp/pci/hmm/hmm_bo.c~mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix
++++ a/drivers/staging/media/atomisp/pci/hmm/hmm_bo.c
+@@ -982,9 +982,9 @@ static int alloc_user_pages(struct hmm_b
+ 	}
  
-+/* to find an entry in a page-table-directory */
-+#define pgd_index(address)	 ((address) >> PGDIR_SHIFT)
-+#define pgd_offset(mm, address)	 ((mm)->pgd + pgd_index(address))
- 
- /*
-  * PTE updates. This function is called whenever an existing
+ 	mutex_unlock(&bo->mutex);
+-	down_read(&current->mm->mmap_sem);
++	mmap_read_lock(current->mm);
+ 	vma = find_vma(current->mm, (unsigned long)userptr);
+-	up_read(&current->mm->mmap_sem);
++	mmap_read_unlock(current->mm);
+ 	if (!vma) {
+ 		dev_err(atomisp_dev, "find_vma failed\n");
+ 		kfree(bo->page_obj);
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-consolidate-pte_index-and-pte_offset_-definitions.patch
-maccess-unexport-probe_kernel_write-and-probe_user_write-fix.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle.patch
+mmap-locking-api-convert-mmap_sem-call-sites-missed-by-coccinelle-fix-fix-fix.patch
+mmap-locking-api-rename-mmap_sem-to-mmap_lock-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix.patch
+mmap-locking-api-convert-mmap_sem-comments-fix-fix-fix.patch
+maccess-unify-the-probe-kernel-arch-hooks-fix.patch
+bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+maccess-always-use-strict-semantics-for-probe_kernel_read-fix.patch
+x86-use-non-set_fs-based-maccess-routines-checkpatch-fixes.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+linux-next-git-rejects.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
