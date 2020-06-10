@@ -1,44 +1,50 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mmap-locking-api-convert-nested-write-lock-sites.patch removed from -mm
+ mmap-locking-api-add-mmap_read_trylock_non_owner.patch removed from -mm
  tree
-Date: Tue, 09 Jun 2020 17:39:29 -0700
-Message-ID: <20200610003929.VJtTPBsB-%akpm@linux-foundation.org>
+Date: Tue, 09 Jun 2020 17:39:32 -0700
+Message-ID: <20200610003932.8JDYl-rUK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41258 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41296 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726053AbgFJAjb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:39:31 -0400
+        id S1725944AbgFJAje (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:39:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: daniel.m.jordan@oracle.com, dbueso@suse.de, hughd@google.com, jgg@ziepe.ca, jglisse@redhat.com, jhubbard@nvidia.com, ldufour@linux.ibm.com, Liam.Howlett@oracle.com, mhocko@suse.com, mm-commits@vger.kernel.org, peterz@infradead.org, rientjes@google.com, vbabka@suse.cz, walken@google.com, willy@infradead.org, yinghan@google.com
 
 
 The patch titled
-     Subject: mmap locking API: convert nested write lock sites
+     Subject: mmap locking API: add mmap_read_trylock_non_owner()
 has been removed from the -mm tree.  Its filename was
-     mmap-locking-api-convert-nested-write-lock-sites.patch
+     mmap-locking-api-add-mmap_read_trylock_non_owner.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mmap locking API: convert nested write lock sites
+Subject: mmap locking API: add mmap_read_trylock_non_owner()
 
-Add API for nested write locks and convert the few call sites doing that.
+Add a couple APIs used by kernel/bpf/stackmap.c only:
+- mmap_read_trylock_non_owner()
+- mmap_read_unlock_non_owner() (may be called from a work queue).
 
-Link: http://lkml.kernel.org/r/20200520052908.204642-7-walken@google.com
+It's still not ideal that bpf/stackmap subverts the lock ownership in this
+way.  Thanks to Peter Zijlstra for suggesting this API as the least-ugly
+way of addressing this in the short term.
+
+Link: http://lkml.kernel.org/r/20200520052908.204642-8-walken@google.com
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Davidlohr Bueso <dbueso@suse.de>
+Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
 Cc: Liam Howlett <Liam.Howlett@oracle.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -46,55 +52,80 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/mmu_context.h |    3 ++-
- include/linux/mmap_lock.h         |    5 +++++
- kernel/fork.c                     |    2 +-
- 3 files changed, 8 insertions(+), 2 deletions(-)
+ include/linux/mmap_lock.h |   14 ++++++++++++++
+ kernel/bpf/stackmap.c     |   17 +++++------------
+ 2 files changed, 19 insertions(+), 12 deletions(-)
 
---- a/arch/um/include/asm/mmu_context.h~mmap-locking-api-convert-nested-write-lock-sites
-+++ a/arch/um/include/asm/mmu_context.h
-@@ -8,6 +8,7 @@
- 
- #include <linux/sched.h>
- #include <linux/mm_types.h>
-+#include <linux/mmap_lock.h>
- 
- #include <asm/mmu.h>
- 
-@@ -47,7 +48,7 @@ static inline void activate_mm(struct mm
- 	 * when the new ->mm is used for the first time.
- 	 */
- 	__switch_mm(&new->context.id);
--	down_write_nested(&new->mmap_sem, 1);
-+	mmap_write_lock_nested(new, SINGLE_DEPTH_NESTING);
- 	uml_setup_stubs(new);
- 	mmap_write_unlock(new);
- }
---- a/include/linux/mmap_lock.h~mmap-locking-api-convert-nested-write-lock-sites
+--- a/include/linux/mmap_lock.h~mmap-locking-api-add-mmap_read_trylock_non_owner
 +++ a/include/linux/mmap_lock.h
-@@ -11,6 +11,11 @@ static inline void mmap_write_lock(struc
- 	down_write(&mm->mmap_sem);
+@@ -56,4 +56,18 @@ static inline void mmap_read_unlock(stru
+ 	up_read(&mm->mmap_sem);
  }
  
-+static inline void mmap_write_lock_nested(struct mm_struct *mm, int subclass)
++static inline bool mmap_read_trylock_non_owner(struct mm_struct *mm)
 +{
-+	down_write_nested(&mm->mmap_sem, subclass);
++	if (down_read_trylock(&mm->mmap_sem)) {
++		rwsem_release(&mm->mmap_sem.dep_map, _RET_IP_);
++		return true;
++	}
++	return false;
 +}
 +
- static inline int mmap_write_lock_killable(struct mm_struct *mm)
- {
- 	return down_write_killable(&mm->mmap_sem);
---- a/kernel/fork.c~mmap-locking-api-convert-nested-write-lock-sites
-+++ a/kernel/fork.c
-@@ -501,7 +501,7 @@ static __latent_entropy int dup_mmap(str
- 	/*
- 	 * Not linked in yet - no deadlock potential:
- 	 */
--	down_write_nested(&mm->mmap_sem, SINGLE_DEPTH_NESTING);
-+	mmap_write_lock_nested(mm, SINGLE_DEPTH_NESTING);
++static inline void mmap_read_unlock_non_owner(struct mm_struct *mm)
++{
++	up_read_non_owner(&mm->mmap_sem);
++}
++
+ #endif /* _LINUX_MMAP_LOCK_H */
+--- a/kernel/bpf/stackmap.c~mmap-locking-api-add-mmap_read_trylock_non_owner
++++ a/kernel/bpf/stackmap.c
+@@ -33,7 +33,7 @@ struct bpf_stack_map {
+ /* irq_work to run up_read() for build_id lookup in nmi context */
+ struct stack_map_irq_work {
+ 	struct irq_work irq_work;
+-	struct rw_semaphore *sem;
++	struct mm_struct *mm;
+ };
  
- 	/* No ordering required: file already has been exposed. */
- 	RCU_INIT_POINTER(mm->exe_file, get_mm_exe_file(oldmm));
+ static void do_up_read(struct irq_work *entry)
+@@ -44,8 +44,7 @@ static void do_up_read(struct irq_work *
+ 		return;
+ 
+ 	work = container_of(entry, struct stack_map_irq_work, irq_work);
+-	up_read_non_owner(work->sem);
+-	work->sem = NULL;
++	mmap_read_unlock_non_owner(work->mm);
+ }
+ 
+ static DEFINE_PER_CPU(struct stack_map_irq_work, up_read_work);
+@@ -317,7 +316,7 @@ static void stack_map_get_build_id_offse
+ 	 * with build_id.
+ 	 */
+ 	if (!user || !current || !current->mm || irq_work_busy ||
+-	    mmap_read_trylock(current->mm) == 0) {
++	    !mmap_read_trylock_non_owner(current->mm)) {
+ 		/* cannot access current->mm, fall back to ips */
+ 		for (i = 0; i < trace_nr; i++) {
+ 			id_offs[i].status = BPF_STACK_BUILD_ID_IP;
+@@ -342,16 +341,10 @@ static void stack_map_get_build_id_offse
+ 	}
+ 
+ 	if (!work) {
+-		mmap_read_unlock(current->mm);
++		mmap_read_unlock_non_owner(current->mm);
+ 	} else {
+-		work->sem = &current->mm->mmap_sem;
++		work->mm = current->mm;
+ 		irq_work_queue(&work->irq_work);
+-		/*
+-		 * The irq_work will release the mmap_sem with
+-		 * up_read_non_owner(). The rwsem_release() is called
+-		 * here to release the lock from lockdep's perspective.
+-		 */
+-		rwsem_release(&current->mm->mmap_sem.dep_map, _RET_IP_);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from walken@google.com are
