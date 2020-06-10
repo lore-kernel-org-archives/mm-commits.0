@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- maccess-remove-probe_read_common-and-probe_write_common.patch removed from
- -mm tree
-Date: Tue, 09 Jun 2020 17:40:10 -0700
-Message-ID: <20200610004010.i5Mr4fbnH%akpm@linux-foundation.org>
+ bpf-handle-the-compat-string-in-bpf_trace_copy_string-better.patch removed
+ from -mm tree
+Date: Tue, 09 Jun 2020 17:40:16 -0700
+Message-ID: <20200610004016.RmyW-m2Fm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41772 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725988AbgFJAkL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:40:11 -0400
+        id S1726017AbgFJAkR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:40:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: maccess: remove probe_read_common and probe_write_common
+     Subject: bpf: handle the compat string in bpf_trace_copy_string better
 has been removed from the -mm tree.  Its filename was
-     maccess-remove-probe_read_common-and-probe_write_common.patch
+     bpf-handle-the-compat-string-in-bpf_trace_copy_string-better.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: maccess: remove probe_read_common and probe_write_common
+Subject: bpf: handle the compat string in bpf_trace_copy_string better
 
-Each of the helpers has just two callers, which also different in
-dealing with kernel or userspace pointers.  Just open code the logic
-in the callers.
+User the proper helper for kernel or userspace addresses based on
+TASK_SIZE instead of the dangerous strncpy_from_unsafe function.
 
-Link: http://lkml.kernel.org/r/20200521152301.2587579-10-hch@lst.de
+Link: http://lkml.kernel.org/r/20200521152301.2587579-13-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
@@ -41,117 +40,25 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/maccess.c |   63 ++++++++++++++++++++++---------------------------
- 1 file changed, 29 insertions(+), 34 deletions(-)
+ kernel/trace/bpf_trace.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/maccess.c~maccess-remove-probe_read_common-and-probe_write_common
-+++ a/mm/maccess.c
-@@ -6,30 +6,6 @@
- #include <linux/mm.h>
- #include <linux/uaccess.h>
- 
--static __always_inline long
--probe_read_common(void *dst, const void __user *src, size_t size)
--{
--	long ret;
--
--	pagefault_disable();
--	ret = __copy_from_user_inatomic(dst, src, size);
--	pagefault_enable();
--
--	return ret ? -EFAULT : 0;
--}
--
--static __always_inline long
--probe_write_common(void __user *dst, const void *src, size_t size)
--{
--	long ret;
--
--	pagefault_disable();
--	ret = __copy_to_user_inatomic(dst, src, size);
--	pagefault_enable();
--
--	return ret ? -EFAULT : 0;
--}
--
- /**
-  * probe_kernel_read(): safely attempt to read from any location
-  * @dst: pointer to the buffer that shall take the data
-@@ -70,10 +46,15 @@ long __probe_kernel_read(void *dst, cons
- 	mm_segment_t old_fs = get_fs();
- 
- 	set_fs(KERNEL_DS);
--	ret = probe_read_common(dst, (__force const void __user *)src, size);
-+	pagefault_disable();
-+	ret = __copy_from_user_inatomic(dst, (__force const void __user *)src,
-+			size);
-+	pagefault_enable();
- 	set_fs(old_fs);
- 
--	return ret;
-+	if (ret)
-+		return -EFAULT;
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(probe_kernel_read);
- 
-@@ -92,11 +73,16 @@ long probe_user_read(void *dst, const vo
- 	mm_segment_t old_fs = get_fs();
- 
- 	set_fs(USER_DS);
--	if (access_ok(src, size))
--		ret = probe_read_common(dst, src, size);
-+	if (access_ok(src, size)) {
-+		pagefault_disable();
-+		ret = __copy_from_user_inatomic(dst, src, size);
-+		pagefault_enable();
-+	}
- 	set_fs(old_fs);
- 
--	return ret;
-+	if (ret)
-+		return -EFAULT;
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(probe_user_read);
- 
-@@ -115,10 +101,14 @@ long probe_kernel_write(void *dst, const
- 	mm_segment_t old_fs = get_fs();
- 
- 	set_fs(KERNEL_DS);
--	ret = probe_write_common((__force void __user *)dst, src, size);
-+	pagefault_disable();
-+	ret = __copy_to_user_inatomic((__force void __user *)dst, src, size);
-+	pagefault_enable();
- 	set_fs(old_fs);
- 
--	return ret;
-+	if (ret)
-+		return -EFAULT;
-+	return 0;
- }
- 
- /**
-@@ -136,11 +126,16 @@ long probe_user_write(void __user *dst,
- 	mm_segment_t old_fs = get_fs();
- 
- 	set_fs(USER_DS);
--	if (access_ok(dst, size))
--		ret = probe_write_common(dst, src, size);
-+	if (access_ok(dst, size)) {
-+		pagefault_disable();
-+		ret = __copy_to_user_inatomic(dst, src, size);
-+		pagefault_enable();
-+	}
- 	set_fs(old_fs);
- 
--	return ret;
-+	if (ret)
-+		return -EFAULT;
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(probe_user_write);
- 
+--- a/kernel/trace/bpf_trace.c~bpf-handle-the-compat-string-in-bpf_trace_copy_string-better
++++ a/kernel/trace/bpf_trace.c
+@@ -334,8 +334,11 @@ static void bpf_trace_copy_string(char *
+ 	switch (fmt_ptype) {
+ 	case 's':
+ #ifdef CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
+-		strncpy_from_unsafe(buf, unsafe_ptr, bufsz);
+-		break;
++		if ((unsigned long)unsafe_ptr < TASK_SIZE) {
++			strncpy_from_user_nofault(buf, user_ptr, bufsz);
++			break;
++		}
++		fallthrough;
+ #endif
+ 	case 'k':
+ 		strncpy_from_kernel_nofault(buf, unsafe_ptr, bufsz);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
