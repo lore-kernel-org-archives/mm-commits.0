@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- x86-add-missing-const-qualifiers-for-log_lvl.patch removed from -mm tree
-Date: Tue, 09 Jun 2020 17:38:16 -0700
-Message-ID: <20200610003816.T3tL_lAeb%akpm@linux-foundation.org>
+Subject: [merged] xtensa-add-loglvl-to-show_trace.patch removed
+ from -mm tree
+Date: Tue, 09 Jun 2020 17:38:20 -0700
+Message-ID: <20200610003820.5ui2BcB2W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40098 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40156 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726040AbgFJAiR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:38:17 -0400
+        id S1725996AbgFJAiW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:38:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@alien8.de, dima@arista.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: chris@zankel.net, dima@arista.com, jcmvbkbc@gmail.com, mm-commits@vger.kernel.org, rppt@kernel.org
 
 
 The patch titled
-     Subject: x86: add missing const qualifiers for log_lvl
+     Subject: xtensa: add loglvl to show_trace()
 has been removed from the -mm tree.  Its filename was
-     x86-add-missing-const-qualifiers-for-log_lvl.patch
+     xtensa-add-loglvl-to-show_trace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: x86: add missing const qualifiers for log_lvl
+Subject: xtensa: add loglvl to show_trace()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -40,64 +40,62 @@ Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
 approach than introducing more printk buffers.  Also, it will consolidate
 printings with headers.
 
-Keep log_lvl const show_trace_log_lvl() and printk_stack_address() as the
-new generic show_stack_loglvl() wants to have a proper const qualifier.
-
-And gcc rightfully produces warnings in case it's not keept:
-arch/x86/kernel/dumpstack.c: In function `show_stack':
-arch/x86/kernel/dumpstack.c:294:37: warning: passing argument 4 of `show_trace_log_lv ' discards `const' qualifier from pointer target type [-Wdiscarded-qualifiers]
-  294 |  show_trace_log_lvl(task, NULL, sp, loglvl);
-      |                                     ^~~~~~
-arch/x86/kernel/dumpstack.c:163:32: note: expected `char *' but argument is of type `const char *'
-  163 |    unsigned long *stack, char *log_lvl)
-      |                          ~~~~~~^~~~~~~
+Add log level argument to show_trace() as a preparation for introducing
+show_stack_loglvl().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-41-dima@arista.com
+[rppt@kernel.org: build fix]
+  Link: http://lkml.kernel.org/r/20200511194534.GA1018386@kernel.org
+Link: http://lkml.kernel.org/r/20200418201944.482088-43-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/stacktrace.h |    2 +-
- arch/x86/kernel/dumpstack.c       |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/xtensa/kernel/traps.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/arch/x86/include/asm/stacktrace.h~x86-add-missing-const-qualifiers-for-log_lvl
-+++ a/arch/x86/include/asm/stacktrace.h
-@@ -87,7 +87,7 @@ get_stack_pointer(struct task_struct *ta
- }
+--- a/arch/xtensa/kernel/traps.c~xtensa-add-loglvl-to-show_trace
++++ a/arch/xtensa/kernel/traps.c
+@@ -479,18 +479,22 @@ void show_regs(struct pt_regs * regs)
  
- void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
--			unsigned long *stack, char *log_lvl);
-+			unsigned long *stack, const char *log_lvl);
- 
- /* The form of the top of the frame on the stack */
- struct stack_frame {
---- a/arch/x86/kernel/dumpstack.c~x86-add-missing-const-qualifiers-for-log_lvl
-+++ a/arch/x86/kernel/dumpstack.c
-@@ -65,7 +65,7 @@ bool in_entry_stack(unsigned long *stack
- }
- 
- static void printk_stack_address(unsigned long address, int reliable,
--				 char *log_lvl)
-+				 const char *log_lvl)
+ static int show_trace_cb(struct stackframe *frame, void *data)
  {
- 	touch_nmi_watchdog();
- 	printk("%s %s%pB\n", log_lvl, reliable ? "" : "? ", (void *)address);
-@@ -160,7 +160,7 @@ static void show_regs_if_on_stack(struct
++	const char *loglvl = data;
++
+ 	if (kernel_text_address(frame->pc))
+-		pr_cont(" [<%08lx>] %pB\n", frame->pc, (void *)frame->pc);
++		printk("%s [<%08lx>] %pB\n",
++			loglvl, frame->pc, (void *)frame->pc);
+ 	return 0;
  }
  
- void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
--			unsigned long *stack, char *log_lvl)
-+			unsigned long *stack, const char *log_lvl)
+-void show_trace(struct task_struct *task, unsigned long *sp)
++static void show_trace(struct task_struct *task, unsigned long *sp,
++		       const char *loglvl)
  {
- 	struct unwind_state state;
- 	struct stack_info stack_info = {0};
+ 	if (!sp)
+ 		sp = stack_pointer(task);
+ 
+-	pr_info("Call Trace:\n");
+-	walk_stackframe(sp, show_trace_cb, NULL);
++	printk("%sCall Trace:\n", loglvl);
++	walk_stackframe(sp, show_trace_cb, (void *)loglvl);
+ }
+ 
+ #define STACK_DUMP_ENTRY_SIZE 4
+@@ -511,7 +515,7 @@ void show_stack(struct task_struct *task
+ 	print_hex_dump(KERN_INFO, " ", DUMP_PREFIX_NONE,
+ 		       STACK_DUMP_LINE_SIZE, STACK_DUMP_ENTRY_SIZE,
+ 		       sp, len, false);
+-	show_trace(task, sp);
++	show_trace(task, sp, KERN_INFO);
+ }
+ 
+ DEFINE_SPINLOCK(die_lock);
 _
 
 Patches currently in -mm which might be from dima@arista.com are
