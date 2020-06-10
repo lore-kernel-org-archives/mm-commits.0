@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-add-show_stack_loglvl.patch removed from
- -mm tree
-Date: Tue, 09 Jun 2020 17:36:58 -0700
-Message-ID: <20200610003658.MMJ0tHGoa%akpm@linux-foundation.org>
+Subject: [merged] arm-asm-add-loglvl-to-c_backtrace.patch removed
+ from -mm tree
+Date: Tue, 09 Jun 2020 17:37:02 -0700
+Message-ID: <20200610003702.kzlxazdhp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39228 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39270 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725963AbgFJAhA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:37:00 -0400
+        id S1726010AbgFJAhD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:37:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, mm-commits@vger.kernel.org, rth@twiddle.net
+To: dima@arista.com, linux@armlinux.org.uk, mm-commits@vger.kernel.org, will@kernel.org
 
 
 The patch titled
-     Subject: alpha: add show_stack_loglvl()
+     Subject: arm/asm: add loglvl to c_backtrace()
 has been removed from the -mm tree.  Its filename was
-     alpha-add-show_stack_loglvl.patch
+     arm-asm-add-loglvl-to-c_backtrace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: alpha: add show_stack_loglvl()
+Subject: arm/asm: add loglvl to c_backtrace()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -40,108 +40,220 @@ Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
 approach than introducing more printk buffers.  Also, it will consolidate
 printings with headers.
 
-Introduce show_stack_loglvl(), that eventually will substitute
-show_stack().
+Add log level argument to c_backtrace() as a preparation for introducing
+show_stack_loglvl().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-3-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-5-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/traps.c |   28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ arch/arm/include/asm/bug.h     |    3 ++-
+ arch/arm/include/asm/traps.h   |    3 ++-
+ arch/arm/kernel/traps.c        |    9 +++++----
+ arch/arm/kernel/unwind.c       |    2 +-
+ arch/arm/lib/backtrace-clang.S |    9 +++++++--
+ arch/arm/lib/backtrace.S       |   14 ++++++++++----
+ 6 files changed, 27 insertions(+), 13 deletions(-)
 
---- a/arch/alpha/kernel/traps.c~alpha-add-show_stack_loglvl
-+++ a/arch/alpha/kernel/traps.c
-@@ -121,10 +121,10 @@ dik_show_code(unsigned int *pc)
+--- a/arch/arm/include/asm/bug.h~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/include/asm/bug.h
+@@ -82,7 +82,8 @@ void hook_ifault_code(int nr, int (*fn)(
+ 				       struct pt_regs *),
+ 		     int sig, int code, const char *name);
+ 
+-extern asmlinkage void c_backtrace(unsigned long fp, int pmode);
++extern asmlinkage void c_backtrace(unsigned long fp, int pmode,
++				   const char *loglvl);
+ 
+ struct mm_struct;
+ void show_pte(const char *lvl, struct mm_struct *mm, unsigned long addr);
+--- a/arch/arm/include/asm/traps.h~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/include/asm/traps.h
+@@ -29,7 +29,8 @@ static inline int __in_irqentry_text(uns
  }
  
- static void
--dik_show_trace(unsigned long *sp)
-+dik_show_trace(unsigned long *sp, const char *loglvl)
+ extern void __init early_trap_init(void *);
+-extern void dump_backtrace_entry(unsigned long where, unsigned long from, unsigned long frame);
++extern void dump_backtrace_entry(unsigned long where, unsigned long from,
++				 unsigned long frame, const char *loglvl);
+ extern void ptrace_break(struct pt_regs *regs);
+ 
+ extern void *vectors_page;
+--- a/arch/arm/kernel/traps.c~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/kernel/traps.c
+@@ -62,7 +62,8 @@ __setup("user_debug=", user_debug_setup)
+ 
+ static void dump_mem(const char *, const char *, unsigned long, unsigned long);
+ 
+-void dump_backtrace_entry(unsigned long where, unsigned long from, unsigned long frame)
++void dump_backtrace_entry(unsigned long where, unsigned long from,
++			  unsigned long frame, const char *loglvl)
  {
- 	long i = 0;
--	printk("Trace:\n");
-+	printk("%sTrace:\n", loglvl);
- 	while (0x1ff8 & (unsigned long) sp) {
- 		extern char _stext[], _etext[];
- 		unsigned long tmp = *sp;
-@@ -133,24 +133,25 @@ dik_show_trace(unsigned long *sp)
- 			continue;
- 		if (tmp >= (unsigned long) &_etext)
- 			continue;
--		printk("[<%lx>] %pSR\n", tmp, (void *)tmp);
-+		printk("%s[<%lx>] %pSR\n", loglvl, tmp, (void *)tmp);
- 		if (i > 40) {
--			printk(" ...");
-+			printk("%s ...", loglvl);
- 			break;
- 		}
- 	}
--	printk("\n");
-+	printk("%s\n", loglvl);
+ 	unsigned long end = frame + 4 + sizeof(struct pt_regs);
+ 
+@@ -76,7 +77,7 @@ void dump_backtrace_entry(unsigned long
+ 		dump_mem("", "Exception stack", frame + 4, end);
  }
  
- static int kstack_depth_to_print = 24;
- 
--void show_stack(struct task_struct *task, unsigned long *sp)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
-+			const char *loglvl)
+-void dump_backtrace_stm(u32 *stack, u32 instruction)
++void dump_backtrace_stm(u32 *stack, u32 instruction, const char *loglvl)
  {
- 	unsigned long *stack;
- 	int i;
- 
- 	/*
--	 * debugging aid: "show_stack(NULL);" prints the
-+	 * debugging aid: "show_stack(NULL, NULL, KERN_EMERG);" prints the
- 	 * back trace for this cpu.
- 	 */
- 	if(sp==NULL)
-@@ -163,14 +164,19 @@ void show_stack(struct task_struct *task
- 		if ((i % 4) == 0) {
- 			if (i)
- 				pr_cont("\n");
--			printk("       ");
-+			printk("%s       ", loglvl);
- 		} else {
- 			pr_cont(" ");
- 		}
- 		pr_cont("%016lx", *stack++);
- 	}
+ 	char str[80], *p;
+ 	unsigned int x;
+@@ -238,7 +239,7 @@ static void dump_backtrace(struct pt_reg
  	pr_cont("\n");
--	dik_show_trace(sp);
-+	dik_show_trace(sp, loglvl);
-+}
-+
-+void show_stack(struct task_struct *task, unsigned long *sp)
-+{
-+	show_stack_loglvl(task, sp, KERN_DEFAULT);
+ 
+ 	if (ok)
+-		c_backtrace(fp, mode);
++		c_backtrace(fp, mode, NULL);
+ }
+ #endif
+ 
+@@ -666,7 +667,7 @@ asmlinkage int arm_syscall(int no, struc
+ 		dump_instr("", regs);
+ 		if (user_mode(regs)) {
+ 			__show_regs(regs);
+-			c_backtrace(frame_pointer(regs), processor_mode(regs));
++			c_backtrace(frame_pointer(regs), processor_mode(regs), NULL);
+ 		}
+ 	}
+ #endif
+--- a/arch/arm/kernel/unwind.c~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/kernel/unwind.c
+@@ -493,7 +493,7 @@ void unwind_backtrace(struct pt_regs *re
+ 		urc = unwind_frame(&frame);
+ 		if (urc < 0)
+ 			break;
+-		dump_backtrace_entry(where, frame.pc, frame.sp - 4);
++		dump_backtrace_entry(where, frame.pc, frame.sp - 4, NULL);
+ 	}
  }
  
- void
-@@ -184,7 +190,7 @@ die_if_kernel(char * str, struct pt_regs
- 	printk("%s(%d): %s %ld\n", current->comm, task_pid_nr(current), str, err);
- 	dik_show_regs(regs, r9_15);
- 	add_taint(TAINT_DIE, LOCKDEP_NOW_UNRELIABLE);
--	dik_show_trace((unsigned long *)(regs+1));
-+	dik_show_trace((unsigned long *)(regs+1), KERN_DEFAULT);
- 	dik_show_code((unsigned int *)regs->pc);
+--- a/arch/arm/lib/backtrace-clang.S~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/lib/backtrace-clang.S
+@@ -17,6 +17,7 @@
+ #define sv_pc	r6
+ #define mask	r7
+ #define sv_lr	r8
++#define loglvl	r9
  
- 	if (test_and_set_thread_flag (TIF_DIE_IF_KERNEL)) {
-@@ -625,7 +631,7 @@ got_exception:
- 	printk("gp = %016lx  sp = %p\n", regs->gp, regs+1);
+ ENTRY(c_backtrace)
  
- 	dik_show_code((unsigned int *)pc);
--	dik_show_trace((unsigned long *)(regs+1));
-+	dik_show_trace((unsigned long *)(regs+1), KERN_DEFAULT);
+@@ -99,6 +100,7 @@ ENDPROC(c_backtrace)
+ 						@ to ensure 8 byte alignment
+ 		movs	frame, r0		@ if frame pointer is zero
+ 		beq	no_frame		@ we have no stack frames
++		mov	loglvl, r2
+ 		tst	r1, #0x10		@ 26 or 32-bit mode?
+ 		moveq	mask, #0xfc000003
+ 		movne	mask, #0		@ mask for 32-bit
+@@ -167,6 +169,7 @@ finished_setup:
+ 		mov	r1, sv_lr
+ 		mov	r2, frame
+ 		bic	r1, r1, mask		@ mask PC/LR for the mode
++		mov	r3, loglvl
+ 		bl	dump_backtrace_entry
  
- 	if (test_and_set_thread_flag (TIF_DIE_IF_KERNEL)) {
- 		printk("die_if_kernel recursion detected.\n");
+ /*
+@@ -183,6 +186,7 @@ finished_setup:
+ 		ldr	r0, [frame]		@ locals are stored in
+ 						@ the preceding frame
+ 		subeq	r0, r0, #4
++		mov	r2, loglvl
+ 		bleq	dump_backtrace_stm	@ dump saved registers
+ 
+ /*
+@@ -196,7 +200,8 @@ finished_setup:
+ 		bhi	for_each_frame
+ 
+ 1006:		adr	r0, .Lbad
+-		mov	r1, frame
++		mov	r1, loglvl
++		mov	r2, frame
+ 		bl	printk
+ no_frame:	ldmfd	sp!, {r4 - r9, fp, pc}
+ ENDPROC(c_backtrace)
+@@ -209,7 +214,7 @@ ENDPROC(c_backtrace)
+ 		.long   1005b, 1006b
+ 		.popsection
+ 
+-.Lbad:		.asciz	"Backtrace aborted due to bad frame pointer <%p>\n"
++.Lbad:		.asciz	"%sBacktrace aborted due to bad frame pointer <%p>\n"
+ 		.align
+ .Lopcode:	.word	0xe92d4800 >> 11	@ stmfd sp!, {... fp, lr}
+ 		.word	0x0b000000		@ bl if these bits are set
+--- a/arch/arm/lib/backtrace.S~arm-asm-add-loglvl-to-c_backtrace
++++ a/arch/arm/lib/backtrace.S
+@@ -18,6 +18,7 @@
+ #define sv_pc	r6
+ #define mask	r7
+ #define offset	r8
++#define loglvl	r9
+ 
+ ENTRY(c_backtrace)
+ 
+@@ -25,9 +26,10 @@ ENTRY(c_backtrace)
+ 		ret	lr
+ ENDPROC(c_backtrace)
+ #else
+-		stmfd	sp!, {r4 - r8, lr}	@ Save an extra register so we have a location...
++		stmfd	sp!, {r4 - r9, lr}	@ Save an extra register so we have a location...
+ 		movs	frame, r0		@ if frame pointer is zero
+ 		beq	no_frame		@ we have no stack frames
++		mov	loglvl, r2
+ 
+ 		tst	r1, #0x10		@ 26 or 32-bit mode?
+  ARM(		moveq	mask, #0xfc000003	)
+@@ -73,6 +75,7 @@ for_each_frame:	tst	frame, mask		@ Check
+ 		ldr	r1, [frame, #-4]	@ get saved lr
+ 		mov	r2, frame
+ 		bic	r1, r1, mask		@ mask PC/LR for the mode
++		mov	r3, loglvl
+ 		bl	dump_backtrace_entry
+ 
+ 		ldr	r1, [sv_pc, #-4]	@ if stmfd sp!, {args} exists,
+@@ -80,12 +83,14 @@ for_each_frame:	tst	frame, mask		@ Check
+ 		teq	r3, r1, lsr #11
+ 		ldreq	r0, [frame, #-8]	@ get sp
+ 		subeq	r0, r0, #4		@ point at the last arg
++		mov	r2, loglvl
+ 		bleq	dump_backtrace_stm	@ dump saved registers
+ 
+ 1004:		ldr	r1, [sv_pc, #0]		@ if stmfd sp!, {..., fp, ip, lr, pc}
+ 		ldr	r3, .Ldsi		@ instruction exists,
+ 		teq	r3, r1, lsr #11
+ 		subeq	r0, frame, #16
++		mov	r2, loglvl
+ 		bleq	dump_backtrace_stm	@ dump saved registers
+ 
+ 		teq	sv_fp, #0		@ zero saved fp means
+@@ -96,9 +101,10 @@ for_each_frame:	tst	frame, mask		@ Check
+ 		bhi	for_each_frame
+ 
+ 1006:		adr	r0, .Lbad
+-		mov	r1, frame
++		mov	r1, loglvl
++		mov	r2, frame
+ 		bl	printk
+-no_frame:	ldmfd	sp!, {r4 - r8, pc}
++no_frame:	ldmfd	sp!, {r4 - r9, pc}
+ ENDPROC(c_backtrace)
+ 		
+ 		.pushsection __ex_table,"a"
+@@ -109,7 +115,7 @@ ENDPROC(c_backtrace)
+ 		.long	1004b, 1006b
+ 		.popsection
+ 
+-.Lbad:		.asciz	"Backtrace aborted due to bad frame pointer <%p>\n"
++.Lbad:		.asciz	"%sBacktrace aborted due to bad frame pointer <%p>\n"
+ 		.align
+ .Ldsi:		.word	0xe92dd800 >> 11	@ stmfd sp!, {... fp, ip, lr, pc}
+ 		.word	0xe92d0000 >> 11	@ stmfd sp!, {}
 _
 
 Patches currently in -mm which might be from dima@arista.com are
