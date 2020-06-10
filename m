@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mips-add-show_stack_loglvl.patch removed from
+Subject: [merged] nios2-add-show_stack_loglvl.patch removed from
  -mm tree
-Date: Tue, 09 Jun 2020 17:37:38 -0700
-Message-ID: <20200610003738.w-9ftUpyA%akpm@linux-foundation.org>
+Date: Tue, 09 Jun 2020 17:37:42 -0700
+Message-ID: <20200610003742.0pHYOSOny%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39648 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39694 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726068AbgFJAhj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:37:39 -0400
+        id S1725963AbgFJAhn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:37:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, jhogan@kernel.org, mm-commits@vger.kernel.org, paulburton@kernel.org, ralf@linux-mips.org
+To: dima@arista.com, lftan@altera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: add show_stack_loglvl()
+     Subject: nios2: add show_stack_loglvl()
 has been removed from the -mm tree.  Its filename was
-     mips-add-show_stack_loglvl.patch
+     nios2-add-show_stack_loglvl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: mips: add show_stack_loglvl()
+Subject: nios2: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -45,141 +45,74 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-22-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-24-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: James Hogan <jhogan@kernel.org>
-Cc: Paul Burton <paulburton@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Ley Foon Tan <lftan@altera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/traps.c |   41 +++++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 17 deletions(-)
+ arch/nios2/kernel/traps.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
---- a/arch/mips/kernel/traps.c~mips-add-show_stack_loglvl
-+++ a/arch/mips/kernel/traps.c
-@@ -108,26 +108,26 @@ void (*board_bind_eic_interrupt)(int irq
- void (*board_ebase_setup)(void);
- void(*board_cache_error_setup)(void);
- 
--static void show_raw_backtrace(unsigned long reg29)
-+static void show_raw_backtrace(unsigned long reg29, const char *loglvl)
- {
- 	unsigned long *sp = (unsigned long *)(reg29 & ~3);
- 	unsigned long addr;
- 
--	printk("Call Trace:");
-+	printk("%sCall Trace:", loglvl);
- #ifdef CONFIG_KALLSYMS
--	printk("\n");
-+	printk("%s\n", loglvl);
- #endif
- 	while (!kstack_end(sp)) {
- 		unsigned long __user *p =
- 			(unsigned long __user *)(unsigned long)sp++;
- 		if (__get_user(addr, p)) {
--			printk(" (Bad stack address)");
-+			printk("%s (Bad stack address)", loglvl);
- 			break;
- 		}
- 		if (__kernel_text_address(addr))
--			print_ip_sym(KERN_DEFAULT, addr);
-+			print_ip_sym(loglvl, addr);
- 	}
--	printk("\n");
-+	printk("%s\n", loglvl);
+--- a/arch/nios2/kernel/traps.c~nios2-add-show_stack_loglvl
++++ a/arch/nios2/kernel/traps.c
+@@ -52,12 +52,14 @@ void _exception(int signo, struct pt_reg
  }
  
- #ifdef CONFIG_KALLSYMS
-@@ -140,7 +140,8 @@ static int __init set_raw_show_trace(cha
- __setup("raw_show_trace", set_raw_show_trace);
- #endif
- 
--static void show_backtrace(struct task_struct *task, const struct pt_regs *regs)
-+static void show_backtrace(struct task_struct *task, const struct pt_regs *regs,
-+			   const char *loglvl)
- {
- 	unsigned long sp = regs->regs[29];
- 	unsigned long ra = regs->regs[31];
-@@ -150,12 +151,12 @@ static void show_backtrace(struct task_s
- 		task = current;
- 
- 	if (raw_show_trace || user_mode(regs) || !__kernel_text_address(pc)) {
--		show_raw_backtrace(sp);
-+		show_raw_backtrace(sp, loglvl);
- 		return;
- 	}
--	printk("Call Trace:\n");
-+	printk("%sCall Trace:\n", loglvl);
- 	do {
--		print_ip_sym(KERN_DEFAULT, pc);
-+		print_ip_sym(loglvl, pc);
- 		pc = unwind_stack(task, &sp, pc, &ra);
- 	} while (pc);
- 	pr_cont("\n");
-@@ -166,19 +167,19 @@ static void show_backtrace(struct task_s
-  * with at least a bit of error checking ...
+ /*
+- * The show_stack is an external API which we do not use ourselves.
++ * The show_stack(), show_stack_loglvl() are external API
++ * which we do not use ourselves.
   */
- static void show_stacktrace(struct task_struct *task,
--	const struct pt_regs *regs)
-+	const struct pt_regs *regs, const char *loglvl)
- {
- 	const int field = 2 * sizeof(unsigned long);
- 	long stackdata;
- 	int i;
- 	unsigned long __user *sp = (unsigned long __user *)regs->regs[29];
  
--	printk("Stack :");
-+	printk("%sStack :", loglvl);
- 	i = 0;
- 	while ((unsigned long) sp & (PAGE_SIZE - 1)) {
- 		if (i && ((i % (64 / field)) == 0)) {
- 			pr_cont("\n");
--			printk("       ");
-+			printk("%s       ", loglvl);
- 		}
- 		if (i > 39) {
- 			pr_cont(" ...");
-@@ -194,10 +195,11 @@ static void show_stacktrace(struct task_
- 		i++;
- 	}
- 	pr_cont("\n");
--	show_backtrace(task, regs);
-+	show_backtrace(task, regs, loglvl);
- }
+ int kstack_depth_to_print = 48;
  
--void show_stack(struct task_struct *task, unsigned long *sp)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
+-void show_stack(struct task_struct *task, unsigned long *stack)
++void show_stack_loglvl(struct task_struct *task, unsigned long *stack,
 +		       const char *loglvl)
  {
- 	struct pt_regs regs;
- 	mm_segment_t old_fs = get_fs();
-@@ -221,10 +223,15 @@ void show_stack(struct task_struct *task
- 	 * the stack in the kernel (not user) address space.
- 	 */
- 	set_fs(KERNEL_DS);
--	show_stacktrace(task, &regs);
-+	show_stacktrace(task, &regs, loglvl);
- 	set_fs(old_fs);
- }
+ 	unsigned long *endstack, addr;
+ 	int i;
+@@ -72,16 +74,16 @@ void show_stack(struct task_struct *task
+ 	addr = (unsigned long) stack;
+ 	endstack = (unsigned long *) PAGE_ALIGN(addr);
  
-+void show_stack(struct task_struct *task, unsigned long *sp)
-+{
-+	show_stack_loglvl(task, sp, KERN_DEFAULT)
+-	pr_emerg("Stack from %08lx:", (unsigned long)stack);
++	printk("%sStack from %08lx:", loglvl, (unsigned long)stack);
+ 	for (i = 0; i < kstack_depth_to_print; i++) {
+ 		if (stack + 1 > endstack)
+ 			break;
+ 		if (i % 8 == 0)
+-			pr_emerg("\n       ");
+-		pr_emerg(" %08lx", *stack++);
++			printk("%s\n       ", loglvl);
++		printk("%s %08lx", loglvl, *stack++);
+ 	}
+ 
+-	pr_emerg("\nCall Trace:");
++	printk("%s\nCall Trace:", loglvl);
+ 	i = 0;
+ 	while (stack + 1 <= endstack) {
+ 		addr = *stack++;
+@@ -97,11 +99,16 @@ void show_stack(struct task_struct *task
+ 		     (addr <= (unsigned long) _etext))) {
+ 			if (i % 4 == 0)
+ 				pr_emerg("\n       ");
+-			pr_emerg(" [<%08lx>]", addr);
++			printk("%s [<%08lx>]", loglvl, addr);
+ 			i++;
+ 		}
+ 	}
+-	pr_emerg("\n");
++	printk("%s\n", loglvl);
 +}
 +
- static void show_code(unsigned int __user *pc)
- {
- 	long i;
-@@ -373,7 +380,7 @@ void show_registers(struct pt_regs *regs
- 	if (!user_mode(regs))
- 		/* Necessary for getting the correct stack content */
- 		set_fs(KERNEL_DS);
--	show_stacktrace(current, regs);
-+	show_stacktrace(current, regs, KERN_DEFAULT);
- 	show_code((unsigned int __user *) regs->cp0_epc);
- 	printk("\n");
- 	set_fs(old_fs);
++void show_stack(struct task_struct *task, unsigned long *stack)
++{
++	show_stack_loglvl(task, stack, KERN_EMERG);
+ }
+ 
+ void __init trap_init(void)
 _
 
 Patches currently in -mm which might be from dima@arista.com are
