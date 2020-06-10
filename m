@@ -1,29 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hexagon-add-show_stack_loglvl.patch removed from
- -mm tree
-Date: Tue, 09 Jun 2020 17:37:24 -0700
-Message-ID: <20200610003724.5sCnLxn11%akpm@linux-foundation.org>
+Subject: [merged]
+ ia64-pass-log-level-as-arg-into-ia64_do_show_stack.patch removed from -mm
+ tree
+Date: Tue, 09 Jun 2020 17:37:26 -0700
+Message-ID: <20200610003726.eWzD026SM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39498 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39522 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726044AbgFJAhZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:37:25 -0400
+        id S1726044AbgFJAh1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:37:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bcain@codeaurora.org, dima@arista.com, mm-commits@vger.kernel.org
+To: dima@arista.com, fenghua.yu@intel.com, mm-commits@vger.kernel.org, tony.luck@intel.com
 
 
 The patch titled
-     Subject: hexagon: add show_stack_loglvl()
+     Subject: ia64: pass log level as arg into ia64_do_show_stack()
 has been removed from the -mm tree.  Its filename was
-     hexagon-add-show_stack_loglvl.patch
+     ia64-pass-log-level-as-arg-into-ia64_do_show_stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: hexagon: add show_stack_loglvl()
+Subject: ia64: pass log level as arg into ia64_do_show_stack()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -40,121 +41,78 @@ Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
 approach than introducing more printk buffers.  Also, it will consolidate
 printings with headers.
 
-Introduce show_stack_loglvl(), that eventually will substitute
-show_stack().
-
-As a good side-effect die() now prints the stacktrace with KERN_EMERG
-aligned with other messages.
+Add log level argument to ia64_do_show_stack() as a preparation to
+introduce show_stack_loglvl().  Also, make ia64_do_show_stack() static as
+it's not used outside.
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-15-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-16-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Acked-by: Brian Cain <bcain@codeaurora.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/kernel/traps.c |   31 +++++++++++++++++--------------
- 1 file changed, 17 insertions(+), 14 deletions(-)
+ arch/ia64/include/asm/ptrace.h |    1 -
+ arch/ia64/kernel/process.c     |   13 +++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/arch/hexagon/kernel/traps.c~hexagon-add-show_stack_loglvl
-+++ a/arch/hexagon/kernel/traps.c
-@@ -79,7 +79,7 @@ static const char *ex_name(int ex)
- }
+--- a/arch/ia64/include/asm/ptrace.h~ia64-pass-log-level-as-arg-into-ia64_do_show_stack
++++ a/arch/ia64/include/asm/ptrace.h
+@@ -114,7 +114,6 @@ static inline long regs_return_value(str
+   struct task_struct;			/* forward decl */
+   struct unw_frame_info;		/* forward decl */
  
- static void do_show_stack(struct task_struct *task, unsigned long *fp,
--			  unsigned long ip)
-+			  unsigned long ip, const char *loglvl)
+-  extern void ia64_do_show_stack (struct unw_frame_info *, void *);
+   extern unsigned long ia64_get_user_rbs_end (struct task_struct *, struct pt_regs *,
+ 					      unsigned long *);
+   extern long ia64_peek (struct task_struct *, struct switch_stack *, unsigned long,
+--- a/arch/ia64/kernel/process.c~ia64-pass-log-level-as-arg-into-ia64_do_show_stack
++++ a/arch/ia64/kernel/process.c
+@@ -64,12 +64,13 @@ EXPORT_SYMBOL(boot_option_idle_override)
+ void (*pm_power_off) (void);
+ EXPORT_SYMBOL(pm_power_off);
+ 
+-void
++static void
+ ia64_do_show_stack (struct unw_frame_info *info, void *arg)
  {
- 	int kstack_depth_to_print = 24;
- 	unsigned long offset, size;
-@@ -93,9 +93,8 @@ static void do_show_stack(struct task_st
- 	if (task == NULL)
- 		task = current;
+ 	unsigned long ip, sp, bsp;
++	const char *loglvl = arg;
  
--	printk(KERN_INFO "CPU#%d, %s/%d, Call Trace:\n",
--	       raw_smp_processor_id(), task->comm,
--	       task_pid_nr(task));
-+	printk("%sCPU#%d, %s/%d, Call Trace:\n", loglvl, raw_smp_processor_id(),
-+		task->comm, task_pid_nr(task));
+-	printk("\nCall Trace:\n");
++	printk("%s\nCall Trace:\n", loglvl);
+ 	do {
+ 		unw_get_ip(info, &ip);
+ 		if (ip == 0)
+@@ -77,9 +78,9 @@ ia64_do_show_stack (struct unw_frame_inf
  
- 	if (fp == NULL) {
- 		if (task == current) {
-@@ -108,7 +107,7 @@ static void do_show_stack(struct task_st
- 	}
- 
- 	if ((((unsigned long) fp) & 0x3) || ((unsigned long) fp < 0x1000)) {
--		printk(KERN_INFO "-- Corrupt frame pointer %p\n", fp);
-+		printk("%s-- Corrupt frame pointer %p\n", loglvl, fp);
- 		return;
- 	}
- 
-@@ -125,8 +124,7 @@ static void do_show_stack(struct task_st
- 
- 		name = kallsyms_lookup(ip, &size, &offset, &modname, tmpstr);
- 
--		printk(KERN_INFO "[%p] 0x%lx: %s + 0x%lx", fp, ip, name,
--			offset);
-+		printk("%s[%p] 0x%lx: %s + 0x%lx", loglvl, fp, ip, name, offset);
- 		if (((unsigned long) fp < low) || (high < (unsigned long) fp))
- 			printk(KERN_CONT " (FP out of bounds!)");
- 		if (modname)
-@@ -136,8 +134,7 @@ static void do_show_stack(struct task_st
- 		newfp = (unsigned long *) *fp;
- 
- 		if (((unsigned long) newfp) & 0x3) {
--			printk(KERN_INFO "-- Corrupt frame pointer %p\n",
--				newfp);
-+			printk("%s-- Corrupt frame pointer %p\n", loglvl, newfp);
- 			break;
- 		}
- 
-@@ -147,7 +144,7 @@ static void do_show_stack(struct task_st
- 						+ 8);
- 
- 			if (regs->syscall_nr != -1) {
--				printk(KERN_INFO "-- trap0 -- syscall_nr: %ld",
-+				printk("%s-- trap0 -- syscall_nr: %ld", loglvl,
- 					regs->syscall_nr);
- 				printk(KERN_CONT "  psp: %lx  elr: %lx\n",
- 					 pt_psp(regs), pt_elr(regs));
-@@ -155,7 +152,7 @@ static void do_show_stack(struct task_st
- 			} else {
- 				/* really want to see more ... */
- 				kstack_depth_to_print += 6;
--				printk(KERN_INFO "-- %s (0x%lx)  badva: %lx\n",
-+				printk("%s-- %s (0x%lx)  badva: %lx\n", loglvl,
- 					ex_name(pt_cause(regs)), pt_cause(regs),
- 					pt_badva(regs));
- 			}
-@@ -178,10 +175,16 @@ static void do_show_stack(struct task_st
- 	}
+ 		unw_get_sp(info, &sp);
+ 		unw_get_bsp(info, &bsp);
+-		printk(" [<%016lx>] %pS\n"
++		printk("%s [<%016lx>] %pS\n"
+ 			 "                                sp=%016lx bsp=%016lx\n",
+-			 ip, (void *)ip, sp, bsp);
++			 loglvl, ip, (void *)ip, sp, bsp);
+ 	} while (unw_unwind(info) >= 0);
  }
  
--void show_stack(struct task_struct *task, unsigned long *fp)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *fp,
-+		       const char *loglvl)
+@@ -87,12 +88,12 @@ void
+ show_stack (struct task_struct *task, unsigned long *sp)
  {
- 	/* Saved link reg is one word above FP */
--	do_show_stack(task, fp, 0);
-+	do_show_stack(task, fp, 0, loglvl);
-+}
-+
-+void show_stack(struct task_struct *task, unsigned long *fp)
-+{
-+	show_stack_loglvl(task, fp, 0, KERN_INFO);
+ 	if (!task)
+-		unw_init_running(ia64_do_show_stack, NULL);
++		unw_init_running(ia64_do_show_stack, (void *)KERN_DEFAULT);
+ 	else {
+ 		struct unw_frame_info info;
+ 
+ 		unw_init_from_blocked_task(&info, task);
+-		ia64_do_show_stack(&info, NULL);
++		ia64_do_show_stack(&info, (void *)KERN_DEFAULT);
+ 	}
  }
  
- int die(const char *str, struct pt_regs *regs, long err)
-@@ -207,7 +210,7 @@ int die(const char *str, struct pt_regs
- 
- 	print_modules();
- 	show_regs(regs);
--	do_show_stack(current, &regs->r30, pt_elr(regs));
-+	do_show_stack(current, &regs->r30, pt_elr(regs), KERN_EMERG);
- 
- 	bust_spinlocks(0);
- 	add_taint(TAINT_DIE, LOCKDEP_NOW_UNRELIABLE);
 _
 
 Patches currently in -mm which might be from dima@arista.com are
