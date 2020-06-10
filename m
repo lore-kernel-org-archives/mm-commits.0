@@ -1,78 +1,101 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- arch-powerpc-mm-pgtablec-another-missed-conversion.patch added to -mm tree
-Date: Wed, 10 Jun 2020 14:33:53 -0700
-Message-ID: <20200610213353.ddCYb_UHB%akpm@linux-foundation.org>
-References: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [to-be-updated]
+ mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+ removed from -mm tree
+Date: Wed, 10 Jun 2020 16:06:45 -0700
+Message-ID: <20200610230645.ZqduocLPy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60638 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56228 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726134AbgFJVdy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Jun 2020 17:33:54 -0400
-In-Reply-To: <20200608212922.5b7fa74ca3f4e2444441b7f9@linux-foundation.org>
+        id S1726776AbgFJXGr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Jun 2020 19:06:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux@roeck-us.net, lkp@intel.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au, rppt@kernel.org
+To: charante@codeaurora.org, mm-commits@vger.kernel.org, vinmenon@codeaurora.org
 
 
 The patch titled
-     Subject: arch/powerpc/mm/pgtable.c: another missed conversion
-has been added to the -mm tree.  Its filename is
-     arch-powerpc-mm-pgtablec-another-missed-conversion.patch
+     Subject: mm, page_alloc: skip ->waternark_boost for atomic order-0 allocations
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-powerpc-mm-pgtablec-another-missed-conversion.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-powerpc-mm-pgtablec-another-missed-conversion.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/powerpc/mm/pgtable.c: another missed conversion
+From: Charan Teja Reddy <charante@codeaurora.org>
+Subject: mm, page_alloc: skip ->waternark_boost for atomic order-0 allocations
 
-Fixes: e05c7b1f2bc4b7 ("mm: pgtable: add shortcuts for accessing kernel PMD and PTE")
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport <rppt@kernel.org>
+When boosting is enabled, it is observed that rate of atomic order-0
+allocation failures are high due to the fact that free levels in the
+system are checked with ->watermark_boost offset.  This is not a problem
+for sleepable allocations but for atomic allocations which looks like
+regression.
+
+This problem is seen frequently on system setup of Android kernel running
+on Snapdragon hardware with 4GB RAM size.  When no extfrag event occurred
+in the system, ->watermark_boost factor is zero, thus the watermark
+configurations in the system are:
+
+   _watermark = (
+          [WMARK_MIN] = 1272, --> ~5MB
+          [WMARK_LOW] = 9067, --> ~36MB
+          [WMARK_HIGH] = 9385), --> ~38MB
+   watermark_boost = 0
+
+After launching some memory hungry applications in Android which can cause
+extfrag events in the system to an extent that ->watermark_boost can be
+set to max i.e.  default boost factor makes it to 150% of high watermark.
+
+   _watermark = (
+          [WMARK_MIN] = 1272, --> ~5MB
+          [WMARK_LOW] = 9067, --> ~36MB
+          [WMARK_HIGH] = 9385), --> ~38MB
+   watermark_boost = 14077, -->~57MB
+
+With default system configuration, for an atomic order-0 allocation to
+succeed, having free memory of ~2MB will suffice.  But boosting makes the
+min_wmark to ~61MB thus for an atomic order-0 allocation to be successful
+system should have minimum of ~23MB of free memory(from calculations of
+zone_watermark_ok(), min = 3/4(min/2)).  But failures are observed despite
+system is having ~20MB of free memory.  In the testing, this is
+reproducible as early as first 300secs since boot and with further lowram
+configurations(<2GB) it is observed as early as first 150secs since boot.
+
+These failures can be avoided by excluding the ->watermark_boost in
+watermark calculations for atomic order-0 allocations.
+
+[akpm@linux-foundation.org: fix comment grammar, reflow comment]
+Link: http://lkml.kernel.org/r/1589882284-21010-1-git-send-email-charante@codeaurora.org
+Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/pgtable.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/arch/powerpc/mm/pgtable.c~arch-powerpc-mm-pgtablec-another-missed-conversion
-+++ a/arch/powerpc/mm/pgtable.c
-@@ -264,7 +264,7 @@ int huge_ptep_set_access_flags(struct vm
- #if defined(CONFIG_PPC_8xx)
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pte)
- {
--	pmd_t *pmd = pmd_ptr(mm, addr);
-+	pmd_t *pmd = pmd_off(mm, addr);
- 	pte_basic_t val;
- 	pte_basic_t *entry = &ptep->pte;
- 	int num = is_hugepd(*((hugepd_t *)pmd)) ? 1 : SZ_512K / SZ_4K;
+--- a/mm/page_alloc.c~mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations
++++ a/mm/page_alloc.c
+@@ -3746,6 +3746,18 @@ retry:
+ 		}
+ 
+ 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
++		/*
++		 * Allow GFP_ATOMIC order-0 allocations to exclude the
++		 * zone->watermark_boost in their watermark calculations.
++		 * We rely on the ALLOC_ flags set for GFP_ATOMIC requests in
++		 * gfp_to_alloc_flags() for this.  Reason not to use the
++		 * GFP_ATOMIC directly is that we want to fall back to slow path
++		 * thus wake up kswapd.
++		 */
++		if (unlikely(!order && !(alloc_flags & ALLOC_WMARK_MASK) &&
++		     (alloc_flags & (ALLOC_HARDER | ALLOC_HIGH)))) {
++			mark = zone->_watermark[WMARK_MIN];
++		}
+ 		if (!zone_watermark_fast(zone, order, mark,
+ 				       ac->highest_zoneidx, alloc_flags)) {
+ 			int ret;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-arch-powerpc-mm-pgtablec-another-missed-conversion.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+Patches currently in -mm which might be from charante@codeaurora.org are
