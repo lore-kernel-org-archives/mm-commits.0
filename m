@@ -1,101 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-add-loglvl-to-show_trace.patch removed
- from -mm tree
-Date: Tue, 09 Jun 2020 17:38:20 -0700
-Message-ID: <20200610003820.5ui2BcB2W%akpm@linux-foundation.org>
+Subject: [merged] sysrq-use-show_stack_loglvl.patch removed from
+ -mm tree
+Date: Tue, 09 Jun 2020 17:38:24 -0700
+Message-ID: <20200610003824.hdig7TECl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40156 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40202 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725996AbgFJAiW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:38:22 -0400
+        id S1725996AbgFJAiZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:38:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@zankel.net, dima@arista.com, jcmvbkbc@gmail.com, mm-commits@vger.kernel.org, rppt@kernel.org
+To: dima@arista.com, gregkh@linuxfoundation.org, jslaby@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: add loglvl to show_trace()
+     Subject: sysrq: use show_stack_loglvl()
 has been removed from the -mm tree.  Its filename was
-     xtensa-add-loglvl-to-show_trace.patch
+     sysrq-use-show_stack_loglvl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: xtensa: add loglvl to show_trace()
+Subject: sysrq: use show_stack_loglvl()
 
-Currently, the log-level of show_stack() depends on a platform
-realization.  It creates situations where the headers are printed with
-lower log level or higher than the stacktrace (depending on a platform or
-user).
+Show the stack trace on a CPU with the same log level as "CPU%d" header.
 
-Furthermore, it forces the logic decision from user to an architecture
-side.  In result, some users as sysrq/kdb/etc are doing tricks with
-temporary rising console_loglevel while printing their messages.  And in
-result it not only may print unwanted messages from other CPUs, but also
-omit printing at all in the unlucky case where the printk() was deferred.
-
-Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
-approach than introducing more printk buffers.  Also, it will consolidate
-printings with headers.
-
-Add log level argument to show_trace() as a preparation for introducing
-show_stack_loglvl().
-
-[1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
-
-[rppt@kernel.org: build fix]
-  Link: http://lkml.kernel.org/r/20200511194534.GA1018386@kernel.org
-Link: http://lkml.kernel.org/r/20200418201944.482088-43-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-45-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/traps.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/tty/sysrq.c         |    2 +-
+ include/linux/sched/debug.h |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/xtensa/kernel/traps.c~xtensa-add-loglvl-to-show_trace
-+++ a/arch/xtensa/kernel/traps.c
-@@ -479,18 +479,22 @@ void show_regs(struct pt_regs * regs)
+--- a/drivers/tty/sysrq.c~sysrq-use-show_stack_loglvl
++++ a/drivers/tty/sysrq.c
+@@ -235,7 +235,7 @@ static void showacpu(void *dummy)
  
- static int show_trace_cb(struct stackframe *frame, void *data)
- {
-+	const char *loglvl = data;
-+
- 	if (kernel_text_address(frame->pc))
--		pr_cont(" [<%08lx>] %pB\n", frame->pc, (void *)frame->pc);
-+		printk("%s [<%08lx>] %pB\n",
-+			loglvl, frame->pc, (void *)frame->pc);
- 	return 0;
+ 	raw_spin_lock_irqsave(&show_lock, flags);
+ 	pr_info("CPU%d:\n", smp_processor_id());
+-	show_stack(NULL, NULL);
++	show_stack_loglvl(NULL, NULL, KERN_INFO);
+ 	raw_spin_unlock_irqrestore(&show_lock, flags);
  }
  
--void show_trace(struct task_struct *task, unsigned long *sp)
-+static void show_trace(struct task_struct *task, unsigned long *sp,
-+		       const char *loglvl)
- {
- 	if (!sp)
- 		sp = stack_pointer(task);
+--- a/include/linux/sched/debug.h~sysrq-use-show_stack_loglvl
++++ a/include/linux/sched/debug.h
+@@ -31,6 +31,8 @@ extern void show_regs(struct pt_regs *);
+  * trace (or NULL if the entire call-chain of the task should be shown).
+  */
+ extern void show_stack(struct task_struct *task, unsigned long *sp);
++extern void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
++			      const char *loglvl);
  
--	pr_info("Call Trace:\n");
--	walk_stackframe(sp, show_trace_cb, NULL);
-+	printk("%sCall Trace:\n", loglvl);
-+	walk_stackframe(sp, show_trace_cb, (void *)loglvl);
- }
+ extern void sched_show_task(struct task_struct *p);
  
- #define STACK_DUMP_ENTRY_SIZE 4
-@@ -511,7 +515,7 @@ void show_stack(struct task_struct *task
- 	print_hex_dump(KERN_INFO, " ", DUMP_PREFIX_NONE,
- 		       STACK_DUMP_LINE_SIZE, STACK_DUMP_ENTRY_SIZE,
- 		       sp, len, false);
--	show_trace(task, sp);
-+	show_trace(task, sp, KERN_INFO);
- }
- 
- DEFINE_SPINLOCK(die_lock);
 _
 
 Patches currently in -mm which might be from dima@arista.com are
