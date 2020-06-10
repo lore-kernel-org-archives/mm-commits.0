@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maccess-remove-strncpy_from_unsafe.patch removed
- from -mm tree
-Date: Tue, 09 Jun 2020 17:40:27 -0700
-Message-ID: <20200610004027.FhClVNgMk%akpm@linux-foundation.org>
+Subject: [merged] maccess-move-user-access-routines-together.patch
+ removed from -mm tree
+Date: Tue, 09 Jun 2020 17:40:32 -0700
+Message-ID: <20200610004032.6aHsgnSRQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42090 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42168 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726017AbgFJAk3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:40:29 -0400
+        id S1726078AbgFJAkd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:40:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: maccess: remove strncpy_from_unsafe
+     Subject: maccess: move user access routines together
 has been removed from the -mm tree.  Its filename was
-     maccess-remove-strncpy_from_unsafe.patch
+     maccess-move-user-access-routines-together.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: maccess: remove strncpy_from_unsafe
+Subject: maccess: move user access routines together
 
-All users are gone now.
+Move kernel access vs user access routines together to ease upcoming
+ifdefs.
 
-Link: http://lkml.kernel.org/r/20200521152301.2587579-16-hch@lst.de
+Link: http://lkml.kernel.org/r/20200521152301.2587579-18-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
@@ -38,70 +39,151 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uaccess.h |    1 
- mm/maccess.c            |   39 --------------------------------------
- 2 files changed, 1 insertion(+), 39 deletions(-)
+ mm/maccess.c |  112 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 56 insertions(+), 56 deletions(-)
 
---- a/include/linux/uaccess.h~maccess-remove-strncpy_from_unsafe
-+++ a/include/linux/uaccess.h
-@@ -311,7 +311,6 @@ extern long probe_user_read(void *dst, c
- extern long notrace probe_kernel_write(void *dst, const void *src, size_t size);
- extern long notrace probe_user_write(void __user *dst, const void *src, size_t size);
- 
--extern long strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count);
- long strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr,
- 		long count);
- 
---- a/mm/maccess.c~maccess-remove-strncpy_from_unsafe
+--- a/mm/maccess.c~maccess-move-user-access-routines-together
 +++ a/mm/maccess.c
-@@ -8,8 +8,6 @@
- 
- static long __probe_kernel_read(void *dst, const void *src, size_t size,
- 		bool strict);
--static long __strncpy_from_unsafe(char *dst, const void *unsafe_addr,
--		long count, bool strict);
- 
- bool __weak probe_kernel_read_allowed(const void *unsafe_src, size_t size,
- 		bool strict)
-@@ -158,35 +156,6 @@ long probe_user_write(void __user *dst,
- EXPORT_SYMBOL_GPL(probe_user_write);
+@@ -47,34 +47,6 @@ long probe_kernel_read(void *dst, const
+ EXPORT_SYMBOL_GPL(probe_kernel_read);
  
  /**
-- * strncpy_from_unsafe: - Copy a NUL terminated string from unsafe address.
-- * @dst:   Destination address, in kernel space.  This buffer must be at
-- *         least @count bytes long.
-- * @unsafe_addr: Unsafe address.
-- * @count: Maximum number of bytes to copy, including the trailing NUL.
+- * probe_user_read(): safely attempt to read from a user-space location
+- * @dst: pointer to the buffer that shall take the data
+- * @src: address to read from. This must be a user address.
+- * @size: size of the data chunk
 - *
-- * Copies a NUL-terminated string from unsafe address to kernel buffer.
-- *
-- * On success, returns the length of the string INCLUDING the trailing NUL.
-- *
-- * If access fails, returns -EFAULT (some data may have been copied
-- * and the trailing NUL added).
-- *
-- * If @count is smaller than the length of the string, copies @count-1 bytes,
-- * sets the last byte of @dst buffer to NUL and returns @count.
-- *
-- * Same as strncpy_from_kernel_nofault() except that for architectures with
-- * not fully separated user and kernel address spaces this function also works
-- * for user address tanges.
-- *
-- * DO NOT USE THIS FUNCTION - it is broken on architectures with entirely
-- * separate kernel and user address spaces, and also a bad idea otherwise.
+- * Safely read from user address @src to the buffer at @dst. If a kernel fault
+- * happens, handle that and return -EFAULT.
 - */
--long strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count)
+-long probe_user_read(void *dst, const void __user *src, size_t size)
 -{
--	return __strncpy_from_unsafe(dst, unsafe_addr, count, false);
+-	long ret = -EFAULT;
+-	mm_segment_t old_fs = get_fs();
+-
+-	set_fs(USER_DS);
+-	if (access_ok(src, size)) {
+-		pagefault_disable();
+-		ret = __copy_from_user_inatomic(dst, src, size);
+-		pagefault_enable();
+-	}
+-	set_fs(old_fs);
+-
+-	if (ret)
+-		return -EFAULT;
+-	return 0;
 -}
+-EXPORT_SYMBOL_GPL(probe_user_read);
+-
+-/**
+  * probe_kernel_write(): safely attempt to write to a location
+  * @dst: address to write to
+  * @src: pointer to the data that shall be written
+@@ -100,34 +72,6 @@ long probe_kernel_write(void *dst, const
+ }
+ 
+ /**
+- * probe_user_write(): safely attempt to write to a user-space location
+- * @dst: address to write to
+- * @src: pointer to the data that shall be written
+- * @size: size of the data chunk
+- *
+- * Safely write to address @dst from the buffer at @src.  If a kernel fault
+- * happens, handle that and return -EFAULT.
+- */
+-long probe_user_write(void __user *dst, const void *src, size_t size)
+-{
+-	long ret = -EFAULT;
+-	mm_segment_t old_fs = get_fs();
+-
+-	set_fs(USER_DS);
+-	if (access_ok(dst, size)) {
+-		pagefault_disable();
+-		ret = __copy_to_user_inatomic(dst, src, size);
+-		pagefault_enable();
+-	}
+-	set_fs(old_fs);
+-
+-	if (ret)
+-		return -EFAULT;
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(probe_user_write);
 -
 -/**
   * strncpy_from_kernel_nofault: - Copy a NUL terminated string from unsafe
   *				 address.
   * @dst:   Destination address, in kernel space.  This buffer must be at
-@@ -206,19 +175,13 @@ long strncpy_from_unsafe(char *dst, cons
-  */
- long strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr, long count)
- {
--	return __strncpy_from_unsafe(dst, unsafe_addr, count, true);
--}
+@@ -171,6 +115,62 @@ long strncpy_from_kernel_nofault(char *d
+ }
+ 
+ /**
++ * probe_user_read(): safely attempt to read from a user-space location
++ * @dst: pointer to the buffer that shall take the data
++ * @src: address to read from. This must be a user address.
++ * @size: size of the data chunk
++ *
++ * Safely read from user address @src to the buffer at @dst. If a kernel fault
++ * happens, handle that and return -EFAULT.
++ */
++long probe_user_read(void *dst, const void __user *src, size_t size)
++{
++	long ret = -EFAULT;
++	mm_segment_t old_fs = get_fs();
++
++	set_fs(USER_DS);
++	if (access_ok(src, size)) {
++		pagefault_disable();
++		ret = __copy_from_user_inatomic(dst, src, size);
++		pagefault_enable();
++	}
++	set_fs(old_fs);
++
++	if (ret)
++		return -EFAULT;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(probe_user_read);
++
++/**
++ * probe_user_write(): safely attempt to write to a user-space location
++ * @dst: address to write to
++ * @src: pointer to the data that shall be written
++ * @size: size of the data chunk
++ *
++ * Safely write to address @dst from the buffer at @src.  If a kernel fault
++ * happens, handle that and return -EFAULT.
++ */
++long probe_user_write(void __user *dst, const void *src, size_t size)
++{
++	long ret = -EFAULT;
++	mm_segment_t old_fs = get_fs();
++
++	set_fs(USER_DS);
++	if (access_ok(dst, size)) {
++		pagefault_disable();
++		ret = __copy_to_user_inatomic(dst, src, size);
++		pagefault_enable();
++	}
++	set_fs(old_fs);
++
++	if (ret)
++		return -EFAULT;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(probe_user_write);
++
++/**
+  * strncpy_from_user_nofault: - Copy a NUL terminated string from unsafe user
+  *				address.
+  * @dst:   Destination address, in kernel space.  This buffer must be at
+_
+
+Patches currently in -mm which might be from hch@lst.de are
+
+amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
+kernel-set-user_ds-in-kthread_use_mm.patch
