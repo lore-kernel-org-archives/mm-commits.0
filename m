@@ -1,35 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
- removed from -mm tree
-Date: Tue, 09 Jun 2020 17:40:19 -0700
-Message-ID: <20200610004019.e2FNyDxjW%akpm@linux-foundation.org>
+ bpf-rework-the-compat-kernel-probe-handling.patch removed from -mm tree
+Date: Tue, 09 Jun 2020 17:40:22 -0700
+Message-ID: <20200610004022.VzAm6KlrS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41986 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42026 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726017AbgFJAkU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:40:20 -0400
+        id S1726017AbgFJAkZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:40:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
+     Subject: bpf: rework the compat kernel probe handling
 has been removed from the -mm tree.  Its filename was
-     bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
+     bpf-rework-the-compat-kernel-probe-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
+From: Christoph Hellwig <hch@lst.de>
+Subject: bpf: rework the compat kernel probe handling
 
-User the proper helper for kernel or userspace addresses based on
-TASK_SIZE instead of the dangerous strncpy_from_unsafe function.
+Instead of using the dangerous probe_kernel_read and strncpy_from_unsafe
+helpers, rework the compat probes to check if an address is a kernel or
+userspace one, and then use the low-level kernel or user probe helper
+shared by the proper kernel and user probe helpers.  This slightly
+changes behavior as the compat probe on a user address doesn't check
+the lockdown flags, just as the pure user probes do.
 
-Cc: Christoph Hellwig <hch@lst.de>
+Link: http://lkml.kernel.org/r/20200521152301.2587579-14-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -39,43 +43,216 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/bpf_trace.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ kernel/trace/bpf_trace.c |  109 ++++++++++++++++++++++---------------
+ 1 file changed, 67 insertions(+), 42 deletions(-)
 
---- a/kernel/trace/bpf_trace.c~bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better
+--- a/kernel/trace/bpf_trace.c~bpf-rework-the-compat-kernel-probe-handling
 +++ a/kernel/trace/bpf_trace.c
-@@ -588,15 +588,17 @@ BPF_CALL_5(bpf_seq_printf, struct seq_fi
- 		}
+@@ -136,17 +136,23 @@ static const struct bpf_func_proto bpf_o
+ };
+ #endif
  
- 		if (fmt[i] == 's') {
-+			void *unsafe_ptr;
+-BPF_CALL_3(bpf_probe_read_user, void *, dst, u32, size,
+-	   const void __user *, unsafe_ptr)
++static __always_inline int
++bpf_probe_read_user_common(void *dst, u32 size, const void __user *unsafe_ptr)
+ {
+-	int ret = probe_user_read(dst, unsafe_ptr, size);
++	int ret;
+ 
++	ret = probe_user_read(dst, unsafe_ptr, size);
+ 	if (unlikely(ret < 0))
+ 		memset(dst, 0, size);
+-
+ 	return ret;
+ }
+ 
++BPF_CALL_3(bpf_probe_read_user, void *, dst, u32, size,
++	   const void __user *, unsafe_ptr)
++{
++	return bpf_probe_read_user_common(dst, size, unsafe_ptr);
++}
 +
- 			/* try our best to copy */
- 			if (memcpy_cnt >= MAX_SEQ_PRINTF_MAX_MEMCPY) {
- 				err = -E2BIG;
- 				goto out;
- 			}
+ const struct bpf_func_proto bpf_probe_read_user_proto = {
+ 	.func		= bpf_probe_read_user,
+ 	.gpl_only	= true,
+@@ -156,17 +162,24 @@ const struct bpf_func_proto bpf_probe_re
+ 	.arg3_type	= ARG_ANYTHING,
+ };
  
--			err = strncpy_from_unsafe_strict(bufs->buf[memcpy_cnt],
--							 (void *) (long) args[fmt_cnt],
--							 MAX_SEQ_PRINTF_STR_LEN);
-+			unsafe_ptr = (void *)(long)args[fmt_cnt];
-+			err = strncpy_from_kernel_nofault(bufs->buf[memcpy_cnt],
-+					unsafe_ptr, MAX_SEQ_PRINTF_STR_LEN);
- 			if (err < 0)
- 				bufs->buf[memcpy_cnt][0] = '\0';
- 			params[fmt_cnt] = (u64)(long)bufs->buf[memcpy_cnt];
+-BPF_CALL_3(bpf_probe_read_user_str, void *, dst, u32, size,
+-	   const void __user *, unsafe_ptr)
++static __always_inline int
++bpf_probe_read_user_str_common(void *dst, u32 size,
++			       const void __user *unsafe_ptr)
+ {
+-	int ret = strncpy_from_user_nofault(dst, unsafe_ptr, size);
++	int ret;
+ 
++	ret = strncpy_from_user_nofault(dst, unsafe_ptr, size);
+ 	if (unlikely(ret < 0))
+ 		memset(dst, 0, size);
+-
+ 	return ret;
+ }
+ 
++BPF_CALL_3(bpf_probe_read_user_str, void *, dst, u32, size,
++	   const void __user *, unsafe_ptr)
++{
++	return bpf_probe_read_user_str_common(dst, size, unsafe_ptr);
++}
++
+ const struct bpf_func_proto bpf_probe_read_user_str_proto = {
+ 	.func		= bpf_probe_read_user_str,
+ 	.gpl_only	= true,
+@@ -177,25 +190,25 @@ const struct bpf_func_proto bpf_probe_re
+ };
+ 
+ static __always_inline int
+-bpf_probe_read_kernel_common(void *dst, u32 size, const void *unsafe_ptr,
+-			     const bool compat)
++bpf_probe_read_kernel_common(void *dst, u32 size, const void *unsafe_ptr)
+ {
+ 	int ret = security_locked_down(LOCKDOWN_BPF_READ);
+ 
+ 	if (unlikely(ret < 0))
+-		goto out;
+-	ret = compat ? probe_kernel_read(dst, unsafe_ptr, size) :
+-	      probe_kernel_read_strict(dst, unsafe_ptr, size);
++		goto fail;
++	ret = probe_kernel_read_strict(dst, unsafe_ptr, size);
+ 	if (unlikely(ret < 0))
+-out:
+-		memset(dst, 0, size);
++		goto fail;
++	return ret;
++fail:
++	memset(dst, 0, size);
+ 	return ret;
+ }
+ 
+ BPF_CALL_3(bpf_probe_read_kernel, void *, dst, u32, size,
+ 	   const void *, unsafe_ptr)
+ {
+-	return bpf_probe_read_kernel_common(dst, size, unsafe_ptr, false);
++	return bpf_probe_read_kernel_common(dst, size, unsafe_ptr);
+ }
+ 
+ const struct bpf_func_proto bpf_probe_read_kernel_proto = {
+@@ -207,50 +220,37 @@ const struct bpf_func_proto bpf_probe_re
+ 	.arg3_type	= ARG_ANYTHING,
+ };
+ 
+-BPF_CALL_3(bpf_probe_read_compat, void *, dst, u32, size,
+-	   const void *, unsafe_ptr)
+-{
+-	return bpf_probe_read_kernel_common(dst, size, unsafe_ptr, true);
+-}
+-
+-static const struct bpf_func_proto bpf_probe_read_compat_proto = {
+-	.func		= bpf_probe_read_compat,
+-	.gpl_only	= true,
+-	.ret_type	= RET_INTEGER,
+-	.arg1_type	= ARG_PTR_TO_UNINIT_MEM,
+-	.arg2_type	= ARG_CONST_SIZE_OR_ZERO,
+-	.arg3_type	= ARG_ANYTHING,
+-};
+-
+ static __always_inline int
+-bpf_probe_read_kernel_str_common(void *dst, u32 size, const void *unsafe_ptr,
+-				 const bool compat)
++bpf_probe_read_kernel_str_common(void *dst, u32 size, const void *unsafe_ptr)
+ {
+ 	int ret = security_locked_down(LOCKDOWN_BPF_READ);
+ 
+ 	if (unlikely(ret < 0))
+-		goto out;
++		goto fail;
++
+ 	/*
+-	 * The strncpy_from_unsafe_*() call will likely not fill the entire
+-	 * buffer, but that's okay in this circumstance as we're probing
++	 * The strncpy_from_kernel_nofault() call will likely not fill the
++	 * entire buffer, but that's okay in this circumstance as we're probing
+ 	 * arbitrary memory anyway similar to bpf_probe_read_*() and might
+ 	 * as well probe the stack. Thus, memory is explicitly cleared
+ 	 * only in error case, so that improper users ignoring return
+ 	 * code altogether don't copy garbage; otherwise length of string
+ 	 * is returned that can be used for bpf_perf_event_output() et al.
+ 	 */
+-	ret = compat ? strncpy_from_unsafe(dst, unsafe_ptr, size) :
+-	      strncpy_from_kernel_nofault(dst, unsafe_ptr, size);
++	ret = strncpy_from_kernel_nofault(dst, unsafe_ptr, size);
+ 	if (unlikely(ret < 0))
+-out:
+-		memset(dst, 0, size);
++		goto fail;
++
++	return 0;
++fail:
++	memset(dst, 0, size);
+ 	return ret;
+ }
+ 
+ BPF_CALL_3(bpf_probe_read_kernel_str, void *, dst, u32, size,
+ 	   const void *, unsafe_ptr)
+ {
+-	return bpf_probe_read_kernel_str_common(dst, size, unsafe_ptr, false);
++	return bpf_probe_read_kernel_str_common(dst, size, unsafe_ptr);
+ }
+ 
+ const struct bpf_func_proto bpf_probe_read_kernel_str_proto = {
+@@ -262,10 +262,34 @@ const struct bpf_func_proto bpf_probe_re
+ 	.arg3_type	= ARG_ANYTHING,
+ };
+ 
++#ifdef CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
++BPF_CALL_3(bpf_probe_read_compat, void *, dst, u32, size,
++	   const void *, unsafe_ptr)
++{
++	if ((unsigned long)unsafe_ptr < TASK_SIZE) {
++		return bpf_probe_read_user_common(dst, size,
++				(__force void __user *)unsafe_ptr);
++	}
++	return bpf_probe_read_kernel_common(dst, size, unsafe_ptr);
++}
++
++static const struct bpf_func_proto bpf_probe_read_compat_proto = {
++	.func		= bpf_probe_read_compat,
++	.gpl_only	= true,
++	.ret_type	= RET_INTEGER,
++	.arg1_type	= ARG_PTR_TO_UNINIT_MEM,
++	.arg2_type	= ARG_CONST_SIZE_OR_ZERO,
++	.arg3_type	= ARG_ANYTHING,
++};
++
+ BPF_CALL_3(bpf_probe_read_compat_str, void *, dst, u32, size,
+ 	   const void *, unsafe_ptr)
+ {
+-	return bpf_probe_read_kernel_str_common(dst, size, unsafe_ptr, true);
++	if ((unsigned long)unsafe_ptr < TASK_SIZE) {
++		return bpf_probe_read_user_str_common(dst, size,
++				(__force void __user *)unsafe_ptr);
++	}
++	return bpf_probe_read_kernel_str_common(dst, size, unsafe_ptr);
+ }
+ 
+ static const struct bpf_func_proto bpf_probe_read_compat_str_proto = {
+@@ -276,6 +300,7 @@ static const struct bpf_func_proto bpf_p
+ 	.arg2_type	= ARG_CONST_SIZE_OR_ZERO,
+ 	.arg3_type	= ARG_ANYTHING,
+ };
++#endif /* CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE */
+ 
+ BPF_CALL_3(bpf_probe_write_user, void __user *, unsafe_ptr, const void *, src,
+ 	   u32, size)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
-arch-sparc-mm-srmmuc-fix-build.patch
-drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-mm.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix.patch
-lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
-ipc-convert-ipcs_idr-to-xarray-update-fix.patch
-mm-pass-task-and-mm-to-do_madvise.patch
-mm-introduce-external-memory-hinting-api-fix-2-fix.patch
-mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc.patch
+kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
+kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
+kernel-set-user_ds-in-kthread_use_mm.patch
