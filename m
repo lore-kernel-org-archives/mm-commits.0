@@ -1,58 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- x86-amd_gart-print-stacktrace-for-a-leak-with-kern_err.patch removed from
+Subject: [merged] power-use-show_stack_loglvl.patch removed from
  -mm tree
-Date: Tue, 09 Jun 2020 17:38:26 -0700
-Message-ID: <20200610003826.QF0sAHjZ0%akpm@linux-foundation.org>
+Date: Tue, 09 Jun 2020 17:38:28 -0700
+Message-ID: <20200610003828.-pktWN5Yg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40226 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725996AbgFJAi2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:38:28 -0400
+        id S1725996AbgFJAi3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:38:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@alien8.de, dima@arista.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: dima@arista.com, gregkh@linuxfoundation.org, len.brown@intel.com, mm-commits@vger.kernel.org, pavel@ucw.cz, rafael.j.wysocki@intel.com
 
 
 The patch titled
-     Subject: x86/amd_gart: print stacktrace for a leak with KERN_ERR
+     Subject: power: use show_stack_loglvl()
 has been removed from the -mm tree.  Its filename was
-     x86-amd_gart-print-stacktrace-for-a-leak-with-kern_err.patch
+     power-use-show_stack_loglvl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: x86/amd_gart: print stacktrace for a leak with KERN_ERR
+Subject: power: use show_stack_loglvl()
 
-It's under CONFIG_IOMMU_LEAK option which is enabled by debug config. 
-Likely the backtrace is worth to be seen - so aligning with log level of
-error message in iommu_full().
+Aligning with other watchdog messages just before panic - use KERN_EMERG.
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-46-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-47-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/amd_gart_64.c |    2 +-
+ drivers/base/power/main.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kernel/amd_gart_64.c~x86-amd_gart-print-stacktrace-for-a-leak-with-kern_err
-+++ a/arch/x86/kernel/amd_gart_64.c
-@@ -159,7 +159,7 @@ static void dump_leak(void)
- 		return;
- 	dump = 1;
+--- a/drivers/base/power/main.c~power-use-show_stack_loglvl
++++ a/drivers/base/power/main.c
+@@ -519,7 +519,7 @@ static void dpm_watchdog_handler(struct
+ 	struct dpm_watchdog *wd = from_timer(wd, t, timer);
  
--	show_stack(NULL, NULL);
-+	show_stack_loglvl(NULL, NULL, KERN_ERR);
- 	debug_dma_dump_mappings(NULL);
+ 	dev_emerg(wd->dev, "**** DPM device timeout ****\n");
+-	show_stack(wd->tsk, NULL);
++	show_stack_loglvl(wd->tsk, NULL, KERN_EMERG);
+ 	panic("%s %s: unrecoverable failure\n",
+ 		dev_driver_string(wd->dev), dev_name(wd->dev));
  }
- #endif
 _
 
 Patches currently in -mm which might be from dima@arista.com are
