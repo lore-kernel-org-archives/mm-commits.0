@@ -1,38 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maccess-unify-the-probe-kernel-arch-hooks.patch
+Subject: [merged]
+ bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
  removed from -mm tree
-Date: Tue, 09 Jun 2020 17:40:12 -0700
-Message-ID: <20200610004012.6KwDxsWqw%akpm@linux-foundation.org>
+Date: Tue, 09 Jun 2020 17:40:19 -0700
+Message-ID: <20200610004019.e2FNyDxjW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41878 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726040AbgFJAkN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:40:13 -0400
+        id S1726017AbgFJAkU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:40:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de
+To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, hch@lst.de, hpa@zytor.com, mhiramat@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: maccess: unify the probe kernel arch hooks
+     Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
 has been removed from the -mm tree.  Its filename was
-     maccess-unify-the-probe-kernel-arch-hooks.patch
+     bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: maccess: unify the probe kernel arch hooks
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bpf:bpf_seq_printf(): handle potentially unsafe format string better
 
-Currently architectures have to override every routine that probes
-kernel memory, which includes a pure read and strcpy, both in strict
-and not strict variants.  Just provide a single arch hooks instead to
-make sure all architectures cover all the cases.
+User the proper helper for kernel or userspace addresses based on
+TASK_SIZE instead of the dangerous strncpy_from_unsafe function.
 
-[akpm@linux-foundation.org: fix !CONFIG_X86_64 build]
-Link: http://lkml.kernel.org/r/20200521152301.2587579-11-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -42,244 +39,43 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/lib/memcpy.c |   12 ++------
- arch/um/kernel/maccess.c |   10 ++-----
- arch/x86/mm/maccess.c    |   33 ++++++++----------------
- include/linux/uaccess.h  |    6 ++--
- mm/maccess.c             |   50 +++++++++++++++++++++++++++----------
- 5 files changed, 61 insertions(+), 50 deletions(-)
+ kernel/trace/bpf_trace.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/arch/parisc/lib/memcpy.c~maccess-unify-the-probe-kernel-arch-hooks
-+++ a/arch/parisc/lib/memcpy.c
-@@ -57,14 +57,10 @@ void * memcpy(void * dst,const void *src
- EXPORT_SYMBOL(raw_copy_in_user);
- EXPORT_SYMBOL(memcpy);
+--- a/kernel/trace/bpf_trace.c~bpf-bpf_seq_printf-handle-potentially-unsafe-format-string-better
++++ a/kernel/trace/bpf_trace.c
+@@ -588,15 +588,17 @@ BPF_CALL_5(bpf_seq_printf, struct seq_fi
+ 		}
  
--long probe_kernel_read(void *dst, const void *src, size_t size)
-+bool probe_kernel_read_allowed(const void *unsafe_src, size_t size, bool strict)
- {
--	unsigned long addr = (unsigned long)src;
--
--	if (addr < PAGE_SIZE)
--		return -EFAULT;
--
-+	if ((unsigned long)unsafe_src < PAGE_SIZE)
-+		return false;
- 	/* check for I/O space F_EXTEND(0xfff00000) access as well? */
--
--	return __probe_kernel_read(dst, src, size);
-+	return true;
- }
---- a/arch/um/kernel/maccess.c~maccess-unify-the-probe-kernel-arch-hooks
-+++ a/arch/um/kernel/maccess.c
-@@ -7,15 +7,13 @@
- #include <linux/kernel.h>
- #include <os.h>
- 
--long probe_kernel_read(void *dst, const void *src, size_t size)
-+bool probe_kernel_read_allowed(const void *src, size_t size, bool strict)
- {
- 	void *psrc = (void *)rounddown((unsigned long)src, PAGE_SIZE);
- 
- 	if ((unsigned long)src < PAGE_SIZE || size <= 0)
--		return -EFAULT;
--
-+		return false;
- 	if (os_mincore(psrc, size + src - psrc) <= 0)
--		return -EFAULT;
--
--	return __probe_kernel_read(dst, src, size);
-+		return false;
-+	return true;
- }
---- a/arch/x86/mm/maccess.c~maccess-unify-the-probe-kernel-arch-hooks
-+++ a/arch/x86/mm/maccess.c
-@@ -9,35 +9,26 @@ static __always_inline u64 canonical_add
- 	return ((s64)vaddr << (64 - vaddr_bits)) >> (64 - vaddr_bits);
- }
- 
--static __always_inline bool invalid_probe_range(u64 vaddr)
-+bool probe_kernel_read_allowed(const void *unsafe_src, size_t size, bool strict)
- {
-+	unsigned long vaddr = (unsigned long)unsafe_src;
+ 		if (fmt[i] == 's') {
++			void *unsafe_ptr;
 +
-+	if (!strict)
-+		return true;
-+
- 	/*
- 	 * Range covering the highest possible canonical userspace address
- 	 * as well as non-canonical address range. For the canonical range
- 	 * we also need to include the userspace guard page.
- 	 */
--	return vaddr < TASK_SIZE_MAX + PAGE_SIZE ||
--	       canonical_address(vaddr, boot_cpu_data.x86_virt_bits) != vaddr;
-+	return vaddr >= TASK_SIZE_MAX + PAGE_SIZE &&
-+	       canonical_address(vaddr, boot_cpu_data.x86_virt_bits) == vaddr;
- }
- #else
--static __always_inline bool invalid_probe_range(u64 vaddr)
-+bool probe_kernel_read_allowed(const void *unsafe_src, size_t size, bool strict)
- {
--	return vaddr < TASK_SIZE_MAX;
-+	if (!strict)
-+		return true;
-+	return (unsigned long)unsafe_src >= TASK_SIZE_MAX;
- }
- #endif
--
--long probe_kernel_read_strict(void *dst, const void *src, size_t size)
--{
--	if (unlikely(invalid_probe_range((unsigned long)src)))
--		return -EFAULT;
--
--	return __probe_kernel_read(dst, src, size);
--}
--
--long strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr, long count)
--{
--	if (unlikely(invalid_probe_range((unsigned long)unsafe_addr)))
--		return -EFAULT;
--
--	return __strncpy_from_unsafe(dst, unsafe_addr, count);
--}
---- a/include/linux/uaccess.h~maccess-unify-the-probe-kernel-arch-hooks
-+++ a/include/linux/uaccess.h
-@@ -301,9 +301,11 @@ copy_struct_from_user(void *dst, size_t
- 	return 0;
- }
+ 			/* try our best to copy */
+ 			if (memcpy_cnt >= MAX_SEQ_PRINTF_MAX_MEMCPY) {
+ 				err = -E2BIG;
+ 				goto out;
+ 			}
  
-+bool probe_kernel_read_allowed(const void *unsafe_src, size_t size,
-+		bool strict);
-+
- extern long probe_kernel_read(void *dst, const void *src, size_t size);
- extern long probe_kernel_read_strict(void *dst, const void *src, size_t size);
--extern long __probe_kernel_read(void *dst, const void *src, size_t size);
- extern long probe_user_read(void *dst, const void __user *src, size_t size);
- 
- extern long notrace probe_kernel_write(void *dst, const void *src, size_t size);
-@@ -312,7 +314,7 @@ extern long notrace probe_user_write(voi
- extern long strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count);
- long strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr,
- 		long count);
--extern long __strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count);
-+
- long strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
- 		long count);
- long strnlen_user_nofault(const void __user *unsafe_addr, long count);
---- a/mm/maccess.c~maccess-unify-the-probe-kernel-arch-hooks
-+++ a/mm/maccess.c
-@@ -6,6 +6,17 @@
- #include <linux/mm.h>
- #include <linux/uaccess.h>
- 
-+static long __probe_kernel_read(void *dst, const void *src, size_t size,
-+		bool strict);
-+static long __strncpy_from_unsafe(char *dst, const void *unsafe_addr,
-+		long count, bool strict);
-+
-+bool __weak probe_kernel_read_allowed(const void *unsafe_src, size_t size,
-+		bool strict)
-+{
-+	return true;
-+}
-+
- /**
-  * probe_kernel_read(): safely attempt to read from any location
-  * @dst: pointer to the buffer that shall take the data
-@@ -19,8 +30,11 @@
-  * DO NOT USE THIS FUNCTION - it is broken on architectures with entirely
-  * separate kernel and user address spaces, and also a bad idea otherwise.
-  */
--long __weak probe_kernel_read(void *dst, const void *src, size_t size)
--    __attribute__((alias("__probe_kernel_read")));
-+long probe_kernel_read(void *dst, const void *src, size_t size)
-+{
-+	return __probe_kernel_read(dst, src, size, false);
-+}
-+EXPORT_SYMBOL_GPL(probe_kernel_read);
- 
- /**
-  * probe_kernel_read_strict(): safely attempt to read from kernel-space
-@@ -36,15 +50,20 @@ long __weak probe_kernel_read(void *dst,
-  * probe_kernel_read() suitable for use within regions where the caller
-  * already holds mmap_lock, or other locks which nest inside mmap_lock.
-  */
-+long probe_kernel_read_strict(void *dst, const void *src, size_t size)
-+{
-+	return __probe_kernel_read(dst, src, size, true);
-+}
- 
--long __weak probe_kernel_read_strict(void *dst, const void *src, size_t size)
--    __attribute__((alias("__probe_kernel_read")));
--
--long __probe_kernel_read(void *dst, const void *src, size_t size)
-+static long __probe_kernel_read(void *dst, const void *src, size_t size,
-+		bool strict)
- {
- 	long ret;
- 	mm_segment_t old_fs = get_fs();
- 
-+	if (!probe_kernel_read_allowed(src, size, strict))
-+		return -EFAULT;
-+
- 	set_fs(KERNEL_DS);
- 	pagefault_disable();
- 	ret = __copy_from_user_inatomic(dst, (__force const void __user *)src,
-@@ -56,7 +75,6 @@ long __probe_kernel_read(void *dst, cons
- 		return -EFAULT;
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(probe_kernel_read);
- 
- /**
-  * probe_user_read(): safely attempt to read from a user-space location
-@@ -163,8 +181,10 @@ EXPORT_SYMBOL_GPL(probe_user_write);
-  * DO NOT USE THIS FUNCTION - it is broken on architectures with entirely
-  * separate kernel and user address spaces, and also a bad idea otherwise.
-  */
--long __weak strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count)
--    __attribute__((alias("__strncpy_from_unsafe")));
-+long strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count)
-+{
-+	return __strncpy_from_unsafe(dst, unsafe_addr, count, false);
-+}
- 
- /**
-  * strncpy_from_kernel_nofault: - Copy a NUL terminated string from unsafe
-@@ -184,11 +204,13 @@ long __weak strncpy_from_unsafe(char *ds
-  * If @count is smaller than the length of the string, copies @count-1 bytes,
-  * sets the last byte of @dst buffer to NUL and returns @count.
-  */
--long __weak strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr,
--				       long count)
--    __attribute__((alias("__strncpy_from_unsafe")));
-+long strncpy_from_kernel_nofault(char *dst, const void *unsafe_addr, long count)
-+{
-+	return __strncpy_from_unsafe(dst, unsafe_addr, count, true);
-+}
- 
--long __strncpy_from_unsafe(char *dst, const void *unsafe_addr, long count)
-+static long __strncpy_from_unsafe(char *dst, const void *unsafe_addr,
-+		long count, bool strict)
- {
- 	mm_segment_t old_fs = get_fs();
- 	const void *src = unsafe_addr;
-@@ -196,6 +218,8 @@ long __strncpy_from_unsafe(char *dst, co
- 
- 	if (unlikely(count <= 0))
- 		return 0;
-+	if (!probe_kernel_read_allowed(unsafe_addr, count, strict))
-+		return -EFAULT;
- 
- 	set_fs(KERNEL_DS);
- 	pagefault_disable();
+-			err = strncpy_from_unsafe_strict(bufs->buf[memcpy_cnt],
+-							 (void *) (long) args[fmt_cnt],
+-							 MAX_SEQ_PRINTF_STR_LEN);
++			unsafe_ptr = (void *)(long)args[fmt_cnt];
++			err = strncpy_from_kernel_nofault(bufs->buf[memcpy_cnt],
++					unsafe_ptr, MAX_SEQ_PRINTF_STR_LEN);
+ 			if (err < 0)
+ 				bufs->buf[memcpy_cnt][0] = '\0';
+ 			params[fmt_cnt] = (u64)(long)bufs->buf[memcpy_cnt];
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
-kernel-move-use_mm-unuse_mm-to-kthreadc.patch
-kernel-move-use_mm-unuse_mm-to-kthreadc-v2.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract-v2.patch
-kernel-set-user_ds-in-kthread_use_mm.patch
+arch-sparc-mm-srmmuc-fix-build.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix.patch
+lib-test-get_count_order-long-in-test_bitopsc-fix-fix.patch
+ipc-convert-ipcs_idr-to-xarray-update-fix.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api-fix-2-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
