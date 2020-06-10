@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arc-add-show_stack_loglvl.patch removed from -mm
- tree
-Date: Tue, 09 Jun 2020 17:37:00 -0700
-Message-ID: <20200610003700.9uO3hxpO3%akpm@linux-foundation.org>
+Subject: [merged] alpha-add-show_stack_loglvl.patch removed from
+ -mm tree
+Date: Tue, 09 Jun 2020 17:36:58 -0700
+Message-ID: <20200610003658.MMJ0tHGoa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39252 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39228 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726010AbgFJAhB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:37:01 -0400
+        id S1725963AbgFJAhA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:37:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, mm-commits@vger.kernel.org, vgupta@synopsys.com
+To: dima@arista.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, mm-commits@vger.kernel.org, rth@twiddle.net
 
 
 The patch titled
-     Subject: arc: add show_stack_loglvl()
+     Subject: alpha: add show_stack_loglvl()
 has been removed from the -mm tree.  Its filename was
-     arc-add-show_stack_loglvl.patch
+     alpha-add-show_stack_loglvl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: arc: add show_stack_loglvl()
+Subject: alpha: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -43,88 +43,105 @@ printings with headers.
 Introduce show_stack_loglvl(), that eventually will substitute
 show_stack().
 
-As a good side-effect header "Stack Trace:" is now printed with the same
-log level as the rest of backtrace.
-
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-4-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-3-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/bug.h     |    3 ++-
- arch/arc/kernel/stacktrace.c   |   21 +++++++++++++++------
- arch/arc/kernel/troubleshoot.c |    2 +-
- 3 files changed, 18 insertions(+), 8 deletions(-)
+ arch/alpha/kernel/traps.c |   28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
---- a/arch/arc/include/asm/bug.h~arc-add-show_stack_loglvl
-+++ a/arch/arc/include/asm/bug.h
-@@ -13,7 +13,8 @@
- struct task_struct;
- 
- void show_regs(struct pt_regs *regs);
--void show_stacktrace(struct task_struct *tsk, struct pt_regs *regs);
-+void show_stacktrace(struct task_struct *tsk, struct pt_regs *regs,
-+		     const char *loglvl);
- void show_kernel_fault_diag(const char *str, struct pt_regs *regs,
- 			    unsigned long address);
- void die(const char *str, struct pt_regs *regs, unsigned long address);
---- a/arch/arc/kernel/stacktrace.c~arc-add-show_stack_loglvl
-+++ a/arch/arc/kernel/stacktrace.c
-@@ -158,9 +158,11 @@ arc_unwind_core(struct task_struct *tsk,
- /* Call-back which plugs into unwinding core to dump the stack in
-  * case of panic/OOPs/BUG etc
-  */
--static int __print_sym(unsigned int address, void *unused)
-+static int __print_sym(unsigned int address, void *arg)
- {
--	printk("  %pS\n", (void *)address);
-+	const char *loglvl = arg;
-+
-+	printk("%s  %pS\n", loglvl, (void *)address);
- 	return 0;
+--- a/arch/alpha/kernel/traps.c~alpha-add-show_stack_loglvl
++++ a/arch/alpha/kernel/traps.c
+@@ -121,10 +121,10 @@ dik_show_code(unsigned int *pc)
  }
  
-@@ -217,17 +219,24 @@ static int __get_first_nonsched(unsigned
-  *-------------------------------------------------------------------------
-  */
- 
--noinline void show_stacktrace(struct task_struct *tsk, struct pt_regs *regs)
-+noinline void show_stacktrace(struct task_struct *tsk, struct pt_regs *regs,
-+			      const char *loglvl)
+ static void
+-dik_show_trace(unsigned long *sp)
++dik_show_trace(unsigned long *sp, const char *loglvl)
  {
--	pr_info("\nStack Trace:\n");
--	arc_unwind_core(tsk, regs, __print_sym, NULL);
-+	printk("%s\nStack Trace:\n", loglvl);
-+	arc_unwind_core(tsk, regs, __print_sym, (void *)loglvl);
+ 	long i = 0;
+-	printk("Trace:\n");
++	printk("%sTrace:\n", loglvl);
+ 	while (0x1ff8 & (unsigned long) sp) {
+ 		extern char _stext[], _etext[];
+ 		unsigned long tmp = *sp;
+@@ -133,24 +133,25 @@ dik_show_trace(unsigned long *sp)
+ 			continue;
+ 		if (tmp >= (unsigned long) &_etext)
+ 			continue;
+-		printk("[<%lx>] %pSR\n", tmp, (void *)tmp);
++		printk("%s[<%lx>] %pSR\n", loglvl, tmp, (void *)tmp);
+ 		if (i > 40) {
+-			printk(" ...");
++			printk("%s ...", loglvl);
+ 			break;
+ 		}
+ 	}
+-	printk("\n");
++	printk("%s\n", loglvl);
  }
- EXPORT_SYMBOL(show_stacktrace);
  
- /* Expected by sched Code */
-+void show_stack_loglvl(struct task_struct *tsk, unsigned long *sp,
+ static int kstack_depth_to_print = 24;
+ 
+-void show_stack(struct task_struct *task, unsigned long *sp)
++void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
 +			const char *loglvl)
-+{
-+	show_stacktrace(tsk, NULL, loglvl);
+ {
+ 	unsigned long *stack;
+ 	int i;
+ 
+ 	/*
+-	 * debugging aid: "show_stack(NULL);" prints the
++	 * debugging aid: "show_stack(NULL, NULL, KERN_EMERG);" prints the
+ 	 * back trace for this cpu.
+ 	 */
+ 	if(sp==NULL)
+@@ -163,14 +164,19 @@ void show_stack(struct task_struct *task
+ 		if ((i % 4) == 0) {
+ 			if (i)
+ 				pr_cont("\n");
+-			printk("       ");
++			printk("%s       ", loglvl);
+ 		} else {
+ 			pr_cont(" ");
+ 		}
+ 		pr_cont("%016lx", *stack++);
+ 	}
+ 	pr_cont("\n");
+-	dik_show_trace(sp);
++	dik_show_trace(sp, loglvl);
 +}
 +
- void show_stack(struct task_struct *tsk, unsigned long *sp)
- {
--	show_stacktrace(tsk, NULL);
-+	show_stack_loglvl(tsk, sp, KERN_DEFAULT);
++void show_stack(struct task_struct *task, unsigned long *sp)
++{
++	show_stack_loglvl(task, sp, KERN_DEFAULT);
  }
  
- /* Another API expected by schedular, shows up in "ps" as Wait Channel
---- a/arch/arc/kernel/troubleshoot.c~arc-add-show_stack_loglvl
-+++ a/arch/arc/kernel/troubleshoot.c
-@@ -240,5 +240,5 @@ void show_kernel_fault_diag(const char *
+ void
+@@ -184,7 +190,7 @@ die_if_kernel(char * str, struct pt_regs
+ 	printk("%s(%d): %s %ld\n", current->comm, task_pid_nr(current), str, err);
+ 	dik_show_regs(regs, r9_15);
+ 	add_taint(TAINT_DIE, LOCKDEP_NOW_UNRELIABLE);
+-	dik_show_trace((unsigned long *)(regs+1));
++	dik_show_trace((unsigned long *)(regs+1), KERN_DEFAULT);
+ 	dik_show_code((unsigned int *)regs->pc);
  
- 	/* Show stack trace if this Fatality happened in kernel mode */
- 	if (!user_mode(regs))
--		show_stacktrace(current, regs);
-+		show_stacktrace(current, regs, KERN_DEFAULT);
- }
+ 	if (test_and_set_thread_flag (TIF_DIE_IF_KERNEL)) {
+@@ -625,7 +631,7 @@ got_exception:
+ 	printk("gp = %016lx  sp = %p\n", regs->gp, regs+1);
+ 
+ 	dik_show_code((unsigned int *)pc);
+-	dik_show_trace((unsigned long *)(regs+1));
++	dik_show_trace((unsigned long *)(regs+1), KERN_DEFAULT);
+ 
+ 	if (test_and_set_thread_flag (TIF_DIE_IF_KERNEL)) {
+ 		printk("die_if_kernel recursion detected.\n");
 _
 
 Patches currently in -mm which might be from dima@arista.com are
