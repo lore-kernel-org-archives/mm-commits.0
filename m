@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-add-show_stack_loglvl.patch removed from -mm
- tree
-Date: Tue, 09 Jun 2020 17:38:18 -0700
-Message-ID: <20200610003818.YaD7DlWNd%akpm@linux-foundation.org>
+Subject: [merged]
+ x86-add-missing-const-qualifiers-for-log_lvl.patch removed from -mm tree
+Date: Tue, 09 Jun 2020 17:38:16 -0700
+Message-ID: <20200610003816.T3tL_lAeb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40126 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40098 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726046AbgFJAiT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:38:19 -0400
+        id S1726040AbgFJAiR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:38:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bp@alien8.de, dima@arista.com, hpa@zytor.com, mingo@redhat.com, mm-commits@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: x86: add show_stack_loglvl()
+     Subject: x86: add missing const qualifiers for log_lvl
 has been removed from the -mm tree.  Its filename was
-     x86-add-show_stack_loglvl.patch
+     x86-add-missing-const-qualifiers-for-log_lvl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: x86: add show_stack_loglvl()
+Subject: x86: add missing const qualifiers for log_lvl
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -40,12 +40,21 @@ Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems an easier
 approach than introducing more printk buffers.  Also, it will consolidate
 printings with headers.
 
-Introduce show_stack_loglvl(), that eventually will substitute
-show_stack().
+Keep log_lvl const show_trace_log_lvl() and printk_stack_address() as the
+new generic show_stack_loglvl() wants to have a proper const qualifier.
+
+And gcc rightfully produces warnings in case it's not keept:
+arch/x86/kernel/dumpstack.c: In function `show_stack':
+arch/x86/kernel/dumpstack.c:294:37: warning: passing argument 4 of `show_trace_log_lv ' discards `const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  294 |  show_trace_log_lvl(task, NULL, sp, loglvl);
+      |                                     ^~~~~~
+arch/x86/kernel/dumpstack.c:163:32: note: expected `char *' but argument is of type `const char *'
+  163 |    unsigned long *stack, char *log_lvl)
+      |                          ~~~~~~^~~~~~~
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-42-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-41-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -54,35 +63,41 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/dumpstack.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/stacktrace.h |    2 +-
+ arch/x86/kernel/dumpstack.c       |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/x86/kernel/dumpstack.c~x86-add-show_stack_loglvl
+--- a/arch/x86/include/asm/stacktrace.h~x86-add-missing-const-qualifiers-for-log_lvl
++++ a/arch/x86/include/asm/stacktrace.h
+@@ -87,7 +87,7 @@ get_stack_pointer(struct task_struct *ta
+ }
+ 
+ void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
+-			unsigned long *stack, char *log_lvl);
++			unsigned long *stack, const char *log_lvl);
+ 
+ /* The form of the top of the frame on the stack */
+ struct stack_frame {
+--- a/arch/x86/kernel/dumpstack.c~x86-add-missing-const-qualifiers-for-log_lvl
 +++ a/arch/x86/kernel/dumpstack.c
-@@ -279,7 +279,8 @@ next:
- 	}
+@@ -65,7 +65,7 @@ bool in_entry_stack(unsigned long *stack
  }
  
--void show_stack(struct task_struct *task, unsigned long *sp)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *sp,
-+		       const char *loglvl)
+ static void printk_stack_address(unsigned long address, int reliable,
+-				 char *log_lvl)
++				 const char *log_lvl)
  {
- 	task = task ? : current;
- 
-@@ -290,7 +291,12 @@ void show_stack(struct task_struct *task
- 	if (!sp && task == current)
- 		sp = get_stack_pointer(current, NULL);
- 
--	show_trace_log_lvl(task, NULL, sp, KERN_DEFAULT);
-+	show_trace_log_lvl(task, NULL, sp, loglvl);
-+}
-+
-+void show_stack(struct task_struct *task, unsigned long *sp)
-+{
-+	show_stack_loglvl(task, sp, KERN_DEFAULT);
+ 	touch_nmi_watchdog();
+ 	printk("%s %s%pB\n", log_lvl, reliable ? "" : "? ", (void *)address);
+@@ -160,7 +160,7 @@ static void show_regs_if_on_stack(struct
  }
  
- void show_stack_regs(struct pt_regs *regs)
+ void show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
+-			unsigned long *stack, char *log_lvl)
++			unsigned long *stack, const char *log_lvl)
+ {
+ 	struct unwind_state state;
+ 	struct stack_info stack_info = {0};
 _
 
 Patches currently in -mm which might be from dima@arista.com are
