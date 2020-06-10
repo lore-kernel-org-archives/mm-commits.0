@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [merged] openrisc-add-show_stack_loglvl.patch removed
- from -mm tree
-Date: Tue, 09 Jun 2020 17:37:44 -0700
-Message-ID: <20200610003744.qMvpyikWj%akpm@linux-foundation.org>
+Subject: [merged] parisc-add-show_stack_loglvl.patch removed from
+ -mm tree
+Date: Tue, 09 Jun 2020 17:37:46 -0700
+Message-ID: <20200610003746.TZecFxR54%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39718 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39746 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725963AbgFJAhp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 9 Jun 2020 20:37:45 -0400
+        id S1726068AbgFJAhs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Jun 2020 20:37:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dima@arista.com, jonas@southpole.se, mm-commits@vger.kernel.org, shorne@gmail.com, stefan.kristiansson@saunalahti.fi
+To: deller@gmx.de, dima@arista.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: openrisc: add show_stack_loglvl()
+     Subject: parisc: add show_stack_loglvl()
 has been removed from the -mm tree.  Its filename was
-     openrisc-add-show_stack_loglvl.patch
+     parisc-add-show_stack_loglvl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dmitry Safonov <dima@arista.com>
-Subject: openrisc: add show_stack_loglvl()
+Subject: parisc: add show_stack_loglvl()
 
 Currently, the log-level of show_stack() depends on a platform
 realization.  It creates situations where the headers are printed with
@@ -45,50 +45,97 @@ show_stack().
 
 [1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
 
-Link: http://lkml.kernel.org/r/20200418201944.482088-25-dima@arista.com
+Link: http://lkml.kernel.org/r/20200418201944.482088-26-dima@arista.com
 Signed-off-by: Dmitry Safonov <dima@arista.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/kernel/traps.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ arch/parisc/kernel/traps.c |   28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
---- a/arch/openrisc/kernel/traps.c~openrisc-add-show_stack_loglvl
-+++ a/arch/openrisc/kernel/traps.c
-@@ -41,18 +41,26 @@ unsigned long __user *lwa_addr;
+--- a/arch/parisc/kernel/traps.c~parisc-add-show_stack_loglvl
++++ a/arch/parisc/kernel/traps.c
+@@ -49,7 +49,7 @@
+ #include "../math-emu/math-emu.h"	/* for handle_fpe() */
  
- void print_trace(void *data, unsigned long addr, int reliable)
+ static void parisc_show_stack(struct task_struct *task,
+-	struct pt_regs *regs);
++	struct pt_regs *regs, const char *loglvl);
+ 
+ static int printbinary(char *buf, unsigned long x, int nbits)
  {
--	pr_emerg("[<%p>] %s%pS\n", (void *) addr, reliable ? "" : "? ",
-+	const char *loglvl = data;
-+
-+	printk("%s[<%p>] %s%pS\n", loglvl, (void *) addr, reliable ? "" : "? ",
- 	       (void *) addr);
+@@ -155,7 +155,7 @@ void show_regs(struct pt_regs *regs)
+ 		printk("%s IAOQ[1]: %pS\n", level, (void *) regs->iaoq[1]);
+ 		printk("%s RP(r2): %pS\n", level, (void *) regs->gr[2]);
+ 
+-		parisc_show_stack(current, regs);
++		parisc_show_stack(current, regs, KERN_DEFAULT);
+ 	}
  }
  
- /* displays a short stack trace */
--void show_stack(struct task_struct *task, unsigned long *esp)
-+void show_stack_loglvl(struct task_struct *task, unsigned long *esp,
-+		const char *loglvl)
- {
- 	if (esp == NULL)
- 		esp = (unsigned long *)&esp;
+@@ -170,37 +170,43 @@ static DEFINE_RATELIMIT_STATE(_hppa_rs,
+ }
  
--	pr_emerg("Call trace:\n");
--	unwind_stack(NULL, esp, print_trace);
-+	printk("%sCall trace:\n", loglvl);
-+	unwind_stack((void *)loglvl, esp, print_trace);
+ 
+-static void do_show_stack(struct unwind_frame_info *info)
++static void do_show_stack(struct unwind_frame_info *info, const char *loglvl)
+ {
+ 	int i = 1;
+ 
+-	printk(KERN_CRIT "Backtrace:\n");
++	printk("%sBacktrace:\n", loglvl);
+ 	while (i <= MAX_UNWIND_ENTRIES) {
+ 		if (unwind_once(info) < 0 || info->ip == 0)
+ 			break;
+ 
+ 		if (__kernel_text_address(info->ip)) {
+-			printk(KERN_CRIT " [<" RFMT ">] %pS\n",
+-				info->ip, (void *) info->ip);
++			printk("%s [<" RFMT ">] %pS\n",
++				loglvl, info->ip, (void *) info->ip);
+ 			i++;
+ 		}
+ 	}
+-	printk(KERN_CRIT "\n");
++	printk("%s\n", loglvl);
+ }
+ 
+ static void parisc_show_stack(struct task_struct *task,
+-	struct pt_regs *regs)
++	struct pt_regs *regs, const char *loglvl)
+ {
+ 	struct unwind_frame_info info;
+ 
+ 	unwind_frame_init_task(&info, task, regs);
+ 
+-	do_show_stack(&info);
++	do_show_stack(&info, loglvl);
 +}
 +
-+void show_stack(struct task_struct *task, unsigned long *esp)
++void show_stack_loglvl(struct task_struct *t, unsigned long *sp,
++		       const char *loglvl)
 +{
-+	show_stack_loglvl(task, esp, KERN_EMERG);
++	parisc_show_stack(t, NULL, loglvl);
  }
  
- void show_registers(struct pt_regs *regs)
+ void show_stack(struct task_struct *t, unsigned long *sp)
+ {
+-	parisc_show_stack(t, NULL);
++	show_stack_loglvl(t, sp, KERN_CRIT)
+ }
+ 
+ int is_valid_bugaddr(unsigned long iaoq)
+@@ -446,7 +452,7 @@ void parisc_terminate(char *msg, struct
+ 		/* show_stack(NULL, (unsigned long *)regs->gr[30]); */
+ 		struct unwind_frame_info info;
+ 		unwind_frame_init(&info, current, regs);
+-		do_show_stack(&info);
++		do_show_stack(&info, KERN_CRIT);
+ 	}
+ 
+ 	printk("\n");
 _
 
 Patches currently in -mm which might be from dima@arista.com are
