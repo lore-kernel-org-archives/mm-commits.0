@@ -1,101 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
- removed from -mm tree
-Date: Wed, 10 Jun 2020 16:06:45 -0700
-Message-ID: <20200610230645.ZqduocLPy%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ lib-fix-bitmap_parse-on-64-bit-big-endian-archs-fix.patch removed from -mm
+ tree
+Date: Wed, 10 Jun 2020 18:19:23 -0700
+Message-ID: <20200611011923.31_jhe4wb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56228 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726776AbgFJXGr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Jun 2020 19:06:47 -0400
+        id S1726290AbgFKBT1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Jun 2020 21:19:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: charante@codeaurora.org, mm-commits@vger.kernel.org, vinmenon@codeaurora.org
+To: acme@redhat.com, agordeev@linux.ibm.com, amritha.nambiar@intel.com, andriy.shevchenko@linux.intel.com, chris@chris-wilson.co.uk, keescook@chromium.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, mszeredi@redhat.com, steffen.klassert@secunet.com, tobin@kernel.org, vineet.gupta1@synopsys.com, will.deacon@arm.com, willemb@google.com, willy@infradead.org, yury.norov@gmail.com
 
 
 The patch titled
-     Subject: mm, page_alloc: skip ->waternark_boost for atomic order-0 allocations
+     Subject: lib/bitmap: convert infinite while loop to a for loop
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+     lib-fix-bitmap_parse-on-64-bit-big-endian-archs-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into lib-fix-bitmap_parse-on-64-bit-big-endian-archs.patch
 
 ------------------------------------------------------
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm, page_alloc: skip ->waternark_boost for atomic order-0 allocations
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/bitmap: convert infinite while loop to a for loop
 
-When boosting is enabled, it is observed that rate of atomic order-0
-allocation failures are high due to the fact that free levels in the
-system are checked with ->watermark_boost offset.  This is not a problem
-for sleepable allocations but for atomic allocations which looks like
-regression.
+Convert infinite while loop to a for loop in order to be more explicit in
+one place what we are doing with chunks.
 
-This problem is seen frequently on system setup of Android kernel running
-on Snapdragon hardware with 4GB RAM size.  When no extfrag event occurred
-in the system, ->watermark_boost factor is zero, thus the watermark
-configurations in the system are:
-
-   _watermark = (
-          [WMARK_MIN] = 1272, --> ~5MB
-          [WMARK_LOW] = 9067, --> ~36MB
-          [WMARK_HIGH] = 9385), --> ~38MB
-   watermark_boost = 0
-
-After launching some memory hungry applications in Android which can cause
-extfrag events in the system to an extent that ->watermark_boost can be
-set to max i.e.  default boost factor makes it to 150% of high watermark.
-
-   _watermark = (
-          [WMARK_MIN] = 1272, --> ~5MB
-          [WMARK_LOW] = 9067, --> ~36MB
-          [WMARK_HIGH] = 9385), --> ~38MB
-   watermark_boost = 14077, -->~57MB
-
-With default system configuration, for an atomic order-0 allocation to
-succeed, having free memory of ~2MB will suffice.  But boosting makes the
-min_wmark to ~61MB thus for an atomic order-0 allocation to be successful
-system should have minimum of ~23MB of free memory(from calculations of
-zone_watermark_ok(), min = 3/4(min/2)).  But failures are observed despite
-system is having ~20MB of free memory.  In the testing, this is
-reproducible as early as first 300secs since boot and with further lowram
-configurations(<2GB) it is observed as early as first 150secs since boot.
-
-These failures can be avoided by excluding the ->watermark_boost in
-watermark calculations for atomic order-0 allocations.
-
-[akpm@linux-foundation.org: fix comment grammar, reflow comment]
-Link: http://lkml.kernel.org/r/1589882284-21010-1-git-send-email-charante@codeaurora.org
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Link: http://lkml.kernel.org/r/20200609140535.87160-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Yury Norov <yury.norov@gmail.com>
+Cc: Amritha Nambiar <amritha.nambiar@intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: "Tobin C . Harding" <tobin@kernel.org>
+Cc: Vineet Gupta <vineet.gupta1@synopsys.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Willem de Bruijn <willemb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ lib/bitmap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations
-+++ a/mm/page_alloc.c
-@@ -3746,6 +3746,18 @@ retry:
- 		}
+--- a/lib/bitmap.c~lib-fix-bitmap_parse-on-64-bit-big-endian-archs-fix
++++ a/lib/bitmap.c
+@@ -740,10 +740,10 @@ int bitmap_parse(const char *start, unsi
+ 	const char *end = strnchrnul(start, buflen, '\n') - 1;
+ 	int chunks = BITS_TO_U32(nmaskbits);
+ 	u32 *bitmap = (u32 *)maskp;
+-	int chunk = 0;
+ 	int unset_bit;
++	int chunk;
  
- 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
-+		/*
-+		 * Allow GFP_ATOMIC order-0 allocations to exclude the
-+		 * zone->watermark_boost in their watermark calculations.
-+		 * We rely on the ALLOC_ flags set for GFP_ATOMIC requests in
-+		 * gfp_to_alloc_flags() for this.  Reason not to use the
-+		 * GFP_ATOMIC directly is that we want to fall back to slow path
-+		 * thus wake up kswapd.
-+		 */
-+		if (unlikely(!order && !(alloc_flags & ALLOC_WMARK_MASK) &&
-+		     (alloc_flags & (ALLOC_HARDER | ALLOC_HIGH)))) {
-+			mark = zone->_watermark[WMARK_MIN];
-+		}
- 		if (!zone_watermark_fast(zone, order, mark,
- 				       ac->highest_zoneidx, alloc_flags)) {
- 			int ret;
+-	while (1) {
++	for (chunk = 0; ; chunk++) {
+ 		end = bitmap_find_region_reverse(start, end);
+ 		if (start > end)
+ 			break;
+@@ -758,7 +758,6 @@ int bitmap_parse(const char *start, unsi
+ #endif
+ 		if (IS_ERR(end))
+ 			return PTR_ERR(end);
+-		chunk++;
+ 	}
+ 
+ 	unset_bit = (BITS_TO_U32(nmaskbits) - chunks) * 32;
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+lib-fix-bitmap_parse-on-64-bit-big-endian-archs.patch
