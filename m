@@ -1,172 +1,288 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 16/25] kernel: set USER_DS in kthread_use_mm
-Date: Wed, 10 Jun 2020 18:42:10 -0700
-Message-ID: <20200611014210.3tbO0fWBm%akpm@linux-foundation.org>
+Subject: [patch 17/25] mm/madvise: pass task and mm to do_madvise
+Date: Wed, 10 Jun 2020 18:42:14 -0700
+Message-ID: <20200611014214.oyKel0pkk%akpm@linux-foundation.org>
 References: <20200610184053.3fa7368ab80e23bfd44de71f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50942 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726163AbgFKBmM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Jun 2020 21:42:12 -0400
+        id S1726163AbgFKBmR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Jun 2020 21:42:17 -0400
 In-Reply-To: <20200610184053.3fa7368ab80e23bfd44de71f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alexander.deucher@amd.com, axboe@kernel.dk, balbi@kernel.org, Felix.Kuehling@amd.com, gregkh@linuxfoundation.org, hch@lst.de, jasowang@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, mst@redhat.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, zhenyuw@linux.intel.com, zhi.a.wang@intel.com
+To: akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com, axboe@kernel.dk, bgeffon@google.com, christian.brauner@ubuntu.com, christian@brauner.io, dancol@google.com, hannes@cmpxchg.org, jannh@google.com, joaodias@google.com, joel@joelfernandes.org, ktkhai@virtuozzo.com, linux-man@vger.kernel.org, linux-mm@kvack.org, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org, oleksandr@redhat.com, shakeelb@google.com, sj38.park@gmail.com, sjpark@amazon.de, sonnyrao@google.com, sspatil@google.com, surenb@google.com, timmurray@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
 
-From: Christoph Hellwig <hch@lst.de>
-Subject: kernel: set USER_DS in kthread_use_mm
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm/madvise: pass task and mm to do_madvise
 
-Some architectures like arm64 and s390 require USER_DS to be set for
-kernel threads to access user address space, which is the whole purpose of
-kthread_use_mm, but other like x86 don't.  That has lead to a huge mess
-where some callers are fixed up once they are tested on said
-architectures, while others linger around and yet other like io_uring try
-to do "clever" optimizations for what usually is just a trivial asignment
-to a member in the thread_struct for most architectures.
+Patch series "introduce memory hinting API for external process", v7.
 
-Make kthread_use_mm set USER_DS, and kthread_unuse_mm restore to the
-previous value instead.
+Now, we have MADV_PAGEOUT and MADV_COLD as madvise hinting API.  With
+that, application could give hints to kernel what memory range are
+preferred to be reclaimed.  However, in some platform(e.g., Android), the
+information required to make the hinting decision is not known to the app.
+Instead, it is known to a centralized userspace daemon(e.g.,
+ActivityManagerService), and that daemon must be able to initiate reclaim
+on its own without any app involvement.
 
-Link: http://lkml.kernel.org/r/20200404094101.672954-7-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-Tested-by: Jens Axboe <axboe@kernel.dk>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Felipe Balbi <balbi@kernel.org>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
-Cc: Zhi Wang <zhi.a.wang@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To solve the concern, this patch introduces new syscall -
+process_madvise(2).  Bascially, it's same with madvise(2) syscall but it
+has some differences.
+
+1. It needs pidfd of target process to provide the hint
+
+2.  It supports only MADV_{COLD|PAGEOUT|MERGEABLE|UNMEREABLE} at this
+   moment.  Other hints in madvise will be opened when there are explicit
+   requests from community to prevent unexpected bugs we couldn't support.
+
+3.  Only privileged processes can do something for other process's
+   address space.
+
+For more detail of the new API, please see "mm: introduce external memory
+hinting API" description in this patchset.
+
+
+This patch (of 7):
+
+In upcoming patches, do_madvise will be called from external process
+context so we shouldn't asssume "current" is always hinted process's
+task_struct.
+
+Furthermore, we must not access mm_struct via task->mm, but obtain it
+via access_mm() once (in the following patch) and only use that pointer
+[1], so pass it to do_madvise() as well.  Note the vma->vm_mm pointers
+are safe, so we can use them further down the call stack.
+
+And let's pass *current* and current->mm as arguments of do_madvise so
+it shouldn't change existing behavior but prepare next patch to make
+review easy.
+
+Note: io_madvise passes NULL as target_task argument of do_madvise because
+it couldn't know who is target.
+
+[1] http://lore.kernel.org/r/CAG48ez27=pwm5m_N_988xT1huO7g7h6arTQL44zev6TD-h-7Tg@mail.gmail.com
+
+[vbabka@suse.cz: changelog tweak]
+[minchan@kernel.org: use current->mm for io_uring]
+  Link: http://lkml.kernel.org/r/20200423145215.72666-1-minchan@kernel.org
+[akpm@linux-foundation.org: fix it for upstream changes]
+[akpm@linux-foundation.org: whoops]
+[rdunlap@infradead.org: add missing includes]
+Link: http://lkml.kernel.org/r/20200302193630.68771-2-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jann Horn <jannh@google.com>
+Cc: Tim Murray <timmurray@google.com>
+Cc: Daniel Colascione <dancol@google.com>
+Cc: Sandeep Patil <sspatil@google.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: John Dias <joaodias@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: SeongJae Park <sj38.park@gmail.com>
+Cc: Christian Brauner <christian@brauner.io>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Oleksandr Natalenko <oleksandr@redhat.com>
+Cc: SeongJae Park <sjpark@amazon.de>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: <linux-man@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/function/f_fs.c |    4 ----
- drivers/vhost/vhost.c              |    3 ---
- fs/io-wq.c                         |    8 ++------
- fs/io_uring.c                      |    4 ----
- kernel/kthread.c                   |    6 ++++++
- 5 files changed, 8 insertions(+), 17 deletions(-)
+ fs/io_uring.c      |    2 +-
+ include/linux/mm.h |    3 ++-
+ mm/madvise.c       |   40 +++++++++++++++++++++++-----------------
+ 3 files changed, 26 insertions(+), 19 deletions(-)
 
---- a/drivers/usb/gadget/function/f_fs.c~kernel-set-user_ds-in-kthread_use_mm
-+++ a/drivers/usb/gadget/function/f_fs.c
-@@ -824,13 +824,9 @@ static void ffs_user_copy_worker(struct
- 	bool kiocb_has_eventfd = io_data->kiocb->ki_flags & IOCB_EVENTFD;
+--- a/fs/io_uring.c~mm-pass-task-and-mm-to-do_madvise
++++ a/fs/io_uring.c
+@@ -3321,7 +3321,7 @@ static int io_madvise(struct io_kiocb *r
+ 	if (force_nonblock)
+ 		return -EAGAIN;
  
- 	if (io_data->read && ret > 0) {
--		mm_segment_t oldfs = get_fs();
--
--		set_fs(USER_DS);
- 		kthread_use_mm(io_data->mm);
- 		ret = ffs_copy_to_iter(io_data->buf, ret, &io_data->data);
- 		kthread_unuse_mm(io_data->mm);
--		set_fs(oldfs);
- 	}
+-	ret = do_madvise(ma->addr, ma->len, ma->advice);
++	ret = do_madvise(NULL, current->mm, ma->addr, ma->len, ma->advice);
+ 	if (ret < 0)
+ 		req_set_fail_links(req);
+ 	io_cqring_add_event(req, ret);
+--- a/include/linux/mm.h~mm-pass-task-and-mm-to-do_madvise
++++ a/include/linux/mm.h
+@@ -2585,7 +2585,8 @@ extern int __do_munmap(struct mm_struct
+ 		       struct list_head *uf, bool downgrade);
+ extern int do_munmap(struct mm_struct *, unsigned long, size_t,
+ 		     struct list_head *uf);
+-extern int do_madvise(unsigned long start, size_t len_in, int behavior);
++extern int do_madvise(struct task_struct *target_task, struct mm_struct *mm,
++		unsigned long start, size_t len_in, int behavior);
  
- 	io_data->kiocb->ki_complete(io_data->kiocb, ret, ret);
---- a/drivers/vhost/vhost.c~kernel-set-user_ds-in-kthread_use_mm
-+++ a/drivers/vhost/vhost.c
-@@ -329,9 +329,7 @@ static int vhost_worker(void *data)
- 	struct vhost_dev *dev = data;
- 	struct vhost_work *work, *work_next;
- 	struct llist_node *node;
--	mm_segment_t oldfs = get_fs();
+ static inline unsigned long
+ do_mmap_pgoff(struct file *file, unsigned long addr,
+--- a/mm/madvise.c~mm-pass-task-and-mm-to-do_madvise
++++ a/mm/madvise.c
+@@ -22,12 +22,14 @@
+ #include <linux/file.h>
+ #include <linux/blkdev.h>
+ #include <linux/backing-dev.h>
++#include <linux/compat.h>
+ #include <linux/pagewalk.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
+ #include <linux/shmem_fs.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/sched/mm.h>
++#include <linux/uio.h>
  
--	set_fs(USER_DS);
- 	kthread_use_mm(dev->mm);
+ #include <asm/tlb.h>
  
- 	for (;;) {
-@@ -361,7 +359,6 @@ static int vhost_worker(void *data)
- 		}
- 	}
- 	kthread_unuse_mm(dev->mm);
--	set_fs(oldfs);
+@@ -255,6 +257,7 @@ static long madvise_willneed(struct vm_a
+ 			     struct vm_area_struct **prev,
+ 			     unsigned long start, unsigned long end)
+ {
++	struct mm_struct *mm = vma->vm_mm;
+ 	struct file *file = vma->vm_file;
+ 	loff_t offset;
+ 
+@@ -289,12 +292,12 @@ static long madvise_willneed(struct vm_a
+ 	 */
+ 	*prev = NULL;	/* tell sys_madvise we drop mmap_lock */
+ 	get_file(file);
+-	mmap_read_unlock(current->mm);
++	mmap_read_unlock(mm);
+ 	offset = (loff_t)(start - vma->vm_start)
+ 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
+ 	vfs_fadvise(file, offset, end - start, POSIX_FADV_WILLNEED);
+ 	fput(file);
+-	mmap_read_lock(current->mm);
++	mmap_read_lock(mm);
  	return 0;
  }
  
---- a/fs/io_uring.c~kernel-set-user_ds-in-kthread_use_mm
-+++ a/fs/io_uring.c
-@@ -5989,15 +5989,12 @@ static int io_sq_thread(void *data)
- {
- 	struct io_ring_ctx *ctx = data;
- 	const struct cred *old_cred;
--	mm_segment_t old_fs;
- 	DEFINE_WAIT(wait);
- 	unsigned long timeout;
- 	int ret = 0;
- 
- 	complete(&ctx->sq_thread_comp);
- 
--	old_fs = get_fs();
--	set_fs(USER_DS);
- 	old_cred = override_creds(ctx->creds);
- 
- 	timeout = jiffies + ctx->sq_thread_idle;
-@@ -6102,7 +6099,6 @@ static int io_sq_thread(void *data)
- 	if (current->task_works)
- 		task_work_run();
- 
--	set_fs(old_fs);
- 	io_sq_thread_drop_mm(ctx);
- 	revert_creds(old_cred);
- 
---- a/fs/io-wq.c~kernel-set-user_ds-in-kthread_use_mm
-+++ a/fs/io-wq.c
-@@ -169,7 +169,6 @@ static bool __io_worker_unuse(struct io_
- 			dropped_lock = true;
- 		}
- 		__set_current_state(TASK_RUNNING);
--		set_fs(KERNEL_DS);
- 		kthread_unuse_mm(worker->mm);
- 		mmput(worker->mm);
- 		worker->mm = NULL;
-@@ -421,14 +420,11 @@ static void io_wq_switch_mm(struct io_wo
- 		mmput(worker->mm);
- 		worker->mm = NULL;
+@@ -683,7 +686,6 @@ out:
+ 	if (nr_swap) {
+ 		if (current->mm == mm)
+ 			sync_mm_rss(mm);
+-
+ 		add_mm_counter(mm, MM_SWAPENTS, nr_swap);
  	}
--	if (!work->mm) {
--		set_fs(KERNEL_DS);
-+	if (!work->mm)
- 		return;
--	}
+ 	arch_leave_lazy_mmu_mode();
+@@ -763,6 +765,8 @@ static long madvise_dontneed_free(struct
+ 				  unsigned long start, unsigned long end,
+ 				  int behavior)
+ {
++	struct mm_struct *mm = vma->vm_mm;
 +
- 	if (mmget_not_zero(work->mm)) {
- 		kthread_use_mm(work->mm);
--		if (!worker->mm)
--			set_fs(USER_DS);
- 		worker->mm = work->mm;
- 		/* hang on to this mm */
- 		work->mm = NULL;
---- a/kernel/kthread.c~kernel-set-user_ds-in-kthread_use_mm
-+++ a/kernel/kthread.c
-@@ -52,6 +52,7 @@ struct kthread {
- 	unsigned long flags;
- 	unsigned int cpu;
- 	void *data;
-+	mm_segment_t oldfs;
- 	struct completion parked;
- 	struct completion exited;
- #ifdef CONFIG_BLK_CGROUP
-@@ -1235,6 +1236,9 @@ void kthread_use_mm(struct mm_struct *mm
+ 	*prev = vma;
+ 	if (!can_madv_lru_vma(vma))
+ 		return -EINVAL;
+@@ -770,8 +774,8 @@ static long madvise_dontneed_free(struct
+ 	if (!userfaultfd_remove(vma, start, end)) {
+ 		*prev = NULL; /* mmap_lock has been dropped, prev is stale */
  
- 	if (active_mm != mm)
- 		mmdrop(active_mm);
-+
-+	to_kthread(tsk)->oldfs = get_fs();
-+	set_fs(USER_DS);
+-		mmap_read_lock(current->mm);
+-		vma = find_vma(current->mm, start);
++		mmap_read_lock(mm);
++		vma = find_vma(mm, start);
+ 		if (!vma)
+ 			return -ENOMEM;
+ 		if (start < vma->vm_start) {
+@@ -825,6 +829,7 @@ static long madvise_remove(struct vm_are
+ 	loff_t offset;
+ 	int error;
+ 	struct file *f;
++	struct mm_struct *mm = vma->vm_mm;
+ 
+ 	*prev = NULL;	/* tell sys_madvise we drop mmap_lock */
+ 
+@@ -852,13 +857,13 @@ static long madvise_remove(struct vm_are
+ 	get_file(f);
+ 	if (userfaultfd_remove(vma, start, end)) {
+ 		/* mmap_lock was not released by userfaultfd_remove() */
+-		mmap_read_unlock(current->mm);
++		mmap_read_unlock(mm);
+ 	}
+ 	error = vfs_fallocate(f,
+ 				FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+ 				offset, end - start);
+ 	fput(f);
+-	mmap_read_lock(current->mm);
++	mmap_read_lock(mm);
+ 	return error;
  }
- EXPORT_SYMBOL_GPL(kthread_use_mm);
  
-@@ -1249,6 +1253,8 @@ void kthread_unuse_mm(struct mm_struct *
- 	WARN_ON_ONCE(!(tsk->flags & PF_KTHREAD));
- 	WARN_ON_ONCE(!tsk->mm);
+@@ -1051,7 +1056,8 @@ madvise_behavior_valid(int behavior)
+  *  -EBADF  - map exists, but area maps something that isn't a file.
+  *  -EAGAIN - a kernel resource was temporarily unavailable.
+  */
+-int do_madvise(unsigned long start, size_t len_in, int behavior)
++int do_madvise(struct task_struct *target_task, struct mm_struct *mm,
++		unsigned long start, size_t len_in, int behavior)
+ {
+ 	unsigned long end, tmp;
+ 	struct vm_area_struct *vma, *prev;
+@@ -1089,7 +1095,7 @@ int do_madvise(unsigned long start, size
  
-+	set_fs(to_kthread(tsk)->oldfs);
-+
- 	task_lock(tsk);
- 	sync_mm_rss(mm);
- 	tsk->mm = NULL;
+ 	write = madvise_need_mmap_write(behavior);
+ 	if (write) {
+-		if (mmap_write_lock_killable(current->mm))
++		if (mmap_write_lock_killable(mm))
+ 			return -EINTR;
+ 
+ 		/*
+@@ -1104,12 +1110,12 @@ int do_madvise(unsigned long start, size
+ 		 * but for now we have the mmget_still_valid()
+ 		 * model.
+ 		 */
+-		if (!mmget_still_valid(current->mm)) {
+-			mmap_write_unlock(current->mm);
++		if (!mmget_still_valid(mm)) {
++			mmap_write_unlock(mm);
+ 			return -EINTR;
+ 		}
+ 	} else {
+-		mmap_read_lock(current->mm);
++		mmap_read_lock(mm);
+ 	}
+ 
+ 	/*
+@@ -1117,7 +1123,7 @@ int do_madvise(unsigned long start, size
+ 	 * ranges, just ignore them, but return -ENOMEM at the end.
+ 	 * - different from the way of handling in mlock etc.
+ 	 */
+-	vma = find_vma_prev(current->mm, start, &prev);
++	vma = find_vma_prev(mm, start, &prev);
+ 	if (vma && start > vma->vm_start)
+ 		prev = vma;
+ 
+@@ -1154,19 +1160,19 @@ int do_madvise(unsigned long start, size
+ 		if (prev)
+ 			vma = prev->vm_next;
+ 		else	/* madvise_remove dropped mmap_lock */
+-			vma = find_vma(current->mm, start);
++			vma = find_vma(mm, start);
+ 	}
+ out:
+ 	blk_finish_plug(&plug);
+ 	if (write)
+-		mmap_write_unlock(current->mm);
++		mmap_write_unlock(mm);
+ 	else
+-		mmap_read_unlock(current->mm);
++		mmap_read_unlock(mm);
+ 
+ 	return error;
+ }
+ 
+ SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
+ {
+-	return do_madvise(start, len_in, behavior);
++	return do_madvise(current, current->mm, start, len_in, behavior);
+ }
 _
