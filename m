@@ -1,62 +1,57 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
- removed from -mm tree
-Date: Wed, 10 Jun 2020 18:24:02 -0700
-Message-ID: <20200611012402.GchxL3aVh%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-support-vector-address-ranges-for-process=5Fmadvise-fix-f?=
+ =?US-ASCII?Q?ix-fix-fix-fix.patch?= removed from -mm tree
+Date: Wed, 10 Jun 2020 18:24:08 -0700
+Message-ID: <20200611012408._We-3yqp3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48310 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48358 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726265AbgFKBYE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Jun 2020 21:24:04 -0400
+        id S1726307AbgFKBYJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Jun 2020 21:24:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: christian.brauner@ubuntu.com, hulkci@huawei.com, minchan@kernel.org, mm-commits@vger.kernel.org, zhengbin13@huawei.com
+To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise: make function 'do_process_madvise' static
+     Subject: mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix.patch
+     mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix.patch
 
 This patch was dropped because it was folded into mm-support-vector-address-ranges-for-process_madvise.patch
 
 ------------------------------------------------------
-From: Zheng Bin <zhengbin13@huawei.com>
-Subject: mm/madvise: make function 'do_process_madvise' static
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix
 
-Fix sparse warnings:
+add compat_sys_process_madvise to mips syscall table
 
-mm/madvise.c:1233:9: warning: symbol 'do_process_madvise' was not declared. Should it be static?
-
-Link: http://lkml.kernel.org/r/20200429014030.41147-1-zhengbin13@huawei.com
-Signed-off-by: Zheng Bin <zhengbin13@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/kernel/syscalls/syscall_o32.tbl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/madvise.c~mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix
-+++ a/mm/madvise.c
-@@ -1230,8 +1230,8 @@ static int process_madvise_vec(struct ta
- 	return ret;
- }
- 
--ssize_t do_process_madvise(int which, pid_t upid, struct iov_iter *iter,
--				int behavior, unsigned long flags)
-+static ssize_t do_process_madvise(int which, pid_t upid, struct iov_iter *iter,
-+				       int behavior, unsigned long flags)
- {
- 	ssize_t ret;
- 	struct pid *pid;
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl~mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix-fix
++++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -426,4 +426,4 @@
+ 437	o32	openat2				sys_openat2
+ 438	o32	pidfd_getfd			sys_pidfd_getfd
+ 439	o32	faccessat2			sys_faccessat2
+-440	o32	process_madvise			sys_process_madvise
++440	o32	process_madvise			sys_process_madvise		compat_sys_process_madvise
 _
 
-Patches currently in -mm which might be from zhengbin13@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-pass-task-and-mm-to-do_madvise.patch
 mm-support-vector-address-ranges-for-process_madvise.patch
+arch-powerpc-mm-pgtablec-another-missed-conversion.patch
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
