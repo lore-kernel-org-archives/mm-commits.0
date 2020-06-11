@@ -1,79 +1,74 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 07/25] lib: fix bitmap_parse() on 64-bit big
- endian archs
-Date: Wed, 10 Jun 2020 18:41:41 -0700
-Message-ID: <20200611014141.jChxhHGSk%akpm@linux-foundation.org>
+Subject: [patch 08/25] mm/debug_vm_pgtable: fix kernel crash by
+ checking for THP support
+Date: Wed, 10 Jun 2020 18:41:44 -0700
+Message-ID: <20200611014144.9RP28D-oF%akpm@linux-foundation.org>
 References: <20200610184053.3fa7368ab80e23bfd44de71f@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50400 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726163AbgFKBln (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Jun 2020 21:41:43 -0400
+        id S1726163AbgFKBlq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Jun 2020 21:41:46 -0400
 In-Reply-To: <20200610184053.3fa7368ab80e23bfd44de71f@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: acme@redhat.com, agordeev@linux.ibm.com, akpm@linux-foundation.org, amritha.nambiar@intel.com, andriy.shevchenko@linux.intel.com, andy.shevchenko@gmail.com, chris@chris-wilson.co.uk, keescook@chromium.org, linux-mm@kvack.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org, mszeredi@redhat.com, stable@vger.kernel.org, steffen.klassert@secunet.com, tobin@kernel.org, torvalds@linux-foundation.org, vineet.gupta1@synopsys.com, will.deacon@arm.com, willemb@google.com, willy@infradead.org, yury.norov@gmail.com
+To: akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: lib: fix bitmap_parse() on 64-bit big endian archs
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/debug_vm_pgtable: fix kernel crash by checking for THP support
 
-Commit 2d6261583be0 ("lib: rework bitmap_parse()") does not take into
-account order of halfwords on 64-bit big endian architectures.  As result
-(at least) Receive Packet Steering, IRQ affinity masks and runtime kernel
-test "test_bitmap" get broken on s390.
+Architectures can have CONFIG_TRANSPARENT_HUGEPAGE enabled but no THP
+support enabled based on platforms.  For ex: with 4K PAGE_SIZE ppc64
+supports THP only with radix translation.
 
-[andriy.shevchenko@linux.intel.com: convert infinite while loop to a for loop]
-  Link: http://lkml.kernel.org/r/20200609140535.87160-1-andriy.shevchenko@linux.intel.com
-Link: http://lkml.kernel.org/r/1591634471-17647-1-git-send-email-agordeev@linux.ibm.com
-Fixes: 2d6261583be0 ("lib: rework bitmap_parse()")
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Yury Norov <yury.norov@gmail.com>
-Cc: Amritha Nambiar <amritha.nambiar@intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: "Tobin C . Harding" <tobin@kernel.org>
-Cc: Vineet Gupta <vineet.gupta1@synopsys.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Willem de Bruijn <willemb@google.com>
-Cc: <stable@vger.kernel.org>
+This results in below crash when running with hash translation and 4K
+PAGE_SIZE.
+
+kernel BUG at arch/powerpc/include/asm/book3s/64/hash-4k.h:140!
+cpu 0x61: Vector: 700 (Program Check) at [c000000ff948f860]
+    pc: c0000000018810f8: debug_vm_pgtable+0x480/0x8b0
+    lr: c0000000018810ec: debug_vm_pgtable+0x474/0x8b0
+...
+[c000000ff948faf0] c000000001880fec debug_vm_pgtable+0x374/0x8b0 (unreliable)
+[c000000ff948fbf0] c000000000011648 do_one_initcall+0x98/0x4f0
+[c000000ff948fcd0] c000000001843928 kernel_init_freeable+0x330/0x3fc
+[c000000ff948fdb0] c0000000000122ac kernel_init+0x24/0x148
+[c000000ff948fe20] c00000000000cc44 ret_from_kernel_thread+0x5c/0x78
+
+Check for THP support correctly
+
+Link: http://lkml.kernel.org/r/20200608125252.407659-1-aneesh.kumar@linux.ibm.com
+Fixes: 399145f9eb6c ("mm/debug: add tests validating architecture page table helpers")
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/debug_vm_pgtable.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/lib/bitmap.c~lib-fix-bitmap_parse-on-64-bit-big-endian-archs
-+++ a/lib/bitmap.c
-@@ -741,8 +741,9 @@ int bitmap_parse(const char *start, unsi
- 	int chunks = BITS_TO_U32(nmaskbits);
- 	u32 *bitmap = (u32 *)maskp;
- 	int unset_bit;
-+	int chunk;
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-fix-kernel-crash-by-checking-for-thp-support
++++ a/mm/debug_vm_pgtable.c
+@@ -60,6 +60,9 @@ static void __init pmd_basic_tests(unsig
+ {
+ 	pmd_t pmd = pfn_pmd(pfn, prot);
  
--	while (1) {
-+	for (chunk = 0; ; chunk++) {
- 		end = bitmap_find_region_reverse(start, end);
- 		if (start > end)
- 			break;
-@@ -750,7 +751,11 @@ int bitmap_parse(const char *start, unsi
- 		if (!chunks--)
- 			return -EOVERFLOW;
++	if (!has_transparent_hugepage())
++		return;
++
+ 	WARN_ON(!pmd_same(pmd, pmd));
+ 	WARN_ON(!pmd_young(pmd_mkyoung(pmd_mkold(pmd))));
+ 	WARN_ON(!pmd_dirty(pmd_mkdirty(pmd_mkclean(pmd))));
+@@ -79,6 +82,9 @@ static void __init pud_basic_tests(unsig
+ {
+ 	pud_t pud = pfn_pud(pfn, prot);
  
--		end = bitmap_get_x32_reverse(start, end, bitmap++);
-+#if defined(CONFIG_64BIT) && defined(__BIG_ENDIAN)
-+		end = bitmap_get_x32_reverse(start, end, &bitmap[chunk ^ 1]);
-+#else
-+		end = bitmap_get_x32_reverse(start, end, &bitmap[chunk]);
-+#endif
- 		if (IS_ERR(end))
- 			return PTR_ERR(end);
- 	}
++	if (!has_transparent_hugepage())
++		return;
++
+ 	WARN_ON(!pud_same(pud, pud));
+ 	WARN_ON(!pud_young(pud_mkyoung(pud_mkold(pud))));
+ 	WARN_ON(!pud_write(pud_mkwrite(pud_wrprotect(pud))));
 _
