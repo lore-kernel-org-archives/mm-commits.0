@@ -1,64 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
- removed from -mm tree
-Date: Wed, 10 Jun 2020 18:21:21 -0700
-Message-ID: <20200611012121.KH0pbvkCd%akpm@linux-foundation.org>
+ mm-introduce-external-memory-hinting-api-fix.patch removed from -mm tree
+Date: Wed, 10 Jun 2020 18:22:35 -0700
+Message-ID: <20200611012235.0KrTWBiye%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47990 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48118 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726265AbgFKBVW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Jun 2020 21:21:22 -0400
+        id S1726265AbgFKBWh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Jun 2020 21:22:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haren@linux.ibm.com, hch@lst.de, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: lkp@intel.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/vas: fix up for {un}use_mm() rename
+     Subject: fix process_madvise build break for arm64
 has been removed from the -mm tree.  Its filename was
-     kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix.patch
+     mm-introduce-external-memory-hinting-api-fix.patch
 
-This patch was dropped because it was folded into kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
+This patch was dropped because it was folded into mm-introduce-external-memory-hinting-api.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: powerpc/vas: fix up for {un}use_mm() rename
+From: Minchan Kim <minchan@kernel.org>
+Subject: fix process_madvise build break for arm64
 
-Link: http://lkml.kernel.org/r/20200422163935.5aa93ba5@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Haren Myneni <haren@linux.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+0-day reported build break from process_madvise on ARM64.
+
+   aarch64-linux-ld: arch/arm64/kernel/head.o: relocation R_AARCH64_ABS32 against `_kernel_offset_le_lo32' can not be used when making a shared object
+   aarch64-linux-ld: arch/arm64/kernel/efi-entry.stub.o: relocation R_AARCH64_ABS32 against `__efistub_stext_offset' can not be used when making a shared object
+   arch/arm64/kernel/head.o: In function `kimage_vaddr':
+   (.idmap.text+0x0): dangerous relocation: unsupported relocation
+   arch/arm64/kernel/head.o: In function `__primary_switch':
+   (.idmap.text+0x378): dangerous relocation: unsupported relocation
+   (.idmap.text+0x380): dangerous relocation: unsupported relocation
+>> arch/arm64/kernel/sys32.o:(.rodata+0xdb8): undefined reference to `__arm64_process_madvise'
+
+This patch should fix it.
+
+Link: http://lkml.kernel.org/r/20200303145756.GA219683@google.com
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: kbuild test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/powernv/vas-fault.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/include/asm/unistd32.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/powerpc/platforms/powernv/vas-fault.c~kernel-better-document-the-use_mm-unuse_mm-api-contract-v2-fix
-+++ a/arch/powerpc/platforms/powernv/vas-fault.c
-@@ -127,7 +127,7 @@ static void update_csb(struct vas_window
- 		return;
- 	}
+--- a/arch/arm64/include/asm/unistd32.h~mm-introduce-external-memory-hinting-api-fix
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -886,7 +886,7 @@ __SYSCALL(__NR_pidfd_getfd, sys_pidfd_ge
+ #define __NR_faccessat2 439
+ __SYSCALL(__NR_faccessat2, sys_faccessat2)
+ #define __NR_process_madvise 440
+-__SYSCALL(__NR_process_madvise, process_madvise)
++__SYSCALL(__NR_process_madvise, sys_process_madvise)
  
--	use_mm(window->mm);
-+	kthread_use_mm(window->mm);
- 	rc = copy_to_user(csb_addr, &csb, sizeof(csb));
- 	/*
- 	 * User space polls on csb.flags (first byte). So add barrier
-@@ -139,7 +139,7 @@ static void update_csb(struct vas_window
- 		smp_mb();
- 		rc = copy_to_user(csb_addr, &csb, sizeof(u8));
- 	}
--	unuse_mm(window->mm);
-+	kthread_unuse_mm(window->mm);
- 	put_task_struct(tsk);
- 
- 	/* Success */
+ /*
+  * Please add new compat syscalls above this comment and update
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-kernel-better-document-the-use_mm-unuse_mm-api-contract.patch
-kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch
+mm-pass-task-and-mm-to-do_madvise.patch
+mm-introduce-external-memory-hinting-api.patch
+mm-introduce-external-memory-hinting-api-fix-2.patch
+mm-check-fatal-signal-pending-of-target-process.patch
+pid-move-pidfd_get_pid-function-to-pidc.patch
+mm-support-both-pid-and-pidfd-for-process_madvise.patch
+mm-support-vector-address-ranges-for-process_madvise.patch
+mm-support-vector-address-ranges-for-process_madvise-fix.patch
+mm-support-vector-address-ranges-for-process_madvise-fix-fix-fix-fix.patch
+mm-use-only-pidfd-for-process_madvise-syscall.patch
+mm-use-only-pidfd-for-process_madvise-syscall-fix.patch
