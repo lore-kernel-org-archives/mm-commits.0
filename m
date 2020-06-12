@@ -1,59 +1,71 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Thu, 11 Jun 2020 17:30:02 -0700
-Message-ID: <20200611173002.24352ae77ca6d6d7e65e4b2a@linux-foundation.org>
+Subject: [patch 3/5] ocfs2: fix build failure when TCP/IP is
+ disabled
+Date: Thu, 11 Jun 2020 17:30:13 -0700
+Message-ID: <20200612003013.40rV1RkFF%akpm@linux-foundation.org>
+References: <20200611172827.bc85320ccf09b4c7e401d3f3@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44616 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45066 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726294AbgFLAaE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Jun 2020 20:30:04 -0400
+        id S1726294AbgFLAaP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Jun 2020 20:30:15 -0400
+In-Reply-To: <20200611172827.bc85320ccf09b4c7e401d3f3@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, gechangwei@live.cn, ghe@suse.com, hch@lst.de, jgg@mellanox.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, sagi@grimberg.me, torvalds@linux-foundation.org, tseewald@gmail.com
 
+From: Tom Seewald <tseewald@gmail.com>
+Subject: ocfs2: fix build failure when TCP/IP is disabled
 
-A few fixes and stragglers.
+After commit 12abc5ee7873 ("tcp: add tcp_sock_set_nodelay") and commit
+c488aeadcbd0 ("tcp: add tcp_sock_set_user_timeout"), building the kernel
+with OCFS2_FS=y but without INET=y causes it to fail with:
 
+ld: fs/ocfs2/cluster/tcp.o: in function `o2net_accept_many':
+tcp.c:(.text+0x21b1): undefined reference to `tcp_sock_set_nodelay'
+ld: tcp.c:(.text+0x21c1): undefined reference to `tcp_sock_set_user_timeout
+'
+ld: fs/ocfs2/cluster/tcp.o: in function `o2net_start_connect':
+tcp.c:(.text+0x2633): undefined reference to `tcp_sock_set_nodelay'
+ld: tcp.c:(.text+0x2643): undefined reference to `tcp_sock_set_user_timeout
+'
 
-5 patches, based on 623f6dc593eaf98b91916836785278eddddaacf8.
+This is due to tcp_sock_set_nodelay() and tcp_sock_set_user_timeout()
+being declared in linux/tcp.h and defined in net/ipv4/tcp.c, which depend
+on TCP/IP being enabled.
 
-Subsystems affected by this patch series:
+To fix this, make OCFS2_FS depend on INET=y which already requires NET=y.
 
-  mm/memory-failure
-  ocfs2
-  lib/lzo
-  misc
+Link: http://lkml.kernel.org/r/20200606190827.23954-1-tseewald@gmail.com
+12abc5ee7873 ("tcp: add tcp_sock_set_nodelay") and commit
+Signed-off-by: Tom Seewald <tseewald@gmail.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Sagi Grimberg <sagi@grimberg.me>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Subsystem: mm/memory-failure
+ fs/ocfs2/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-    Naoya Horiguchi <nao.horiguchi@gmail.com>:
-    Patch series "hwpoison: fixes signaling on memory error":
-      mm/memory-failure: prioritize prctl(PR_MCE_KILL) over vm.memory_failure_early_kill
-      mm/memory-failure: send SIGBUS(BUS_MCEERR_AR) only to current thread
-
-Subsystem: ocfs2
-
-    Tom Seewald <tseewald@gmail.com>:
-      ocfs2: fix build failure when TCP/IP is disabled
-
-Subsystem: lib/lzo
-
-    Dave Rodgman <dave.rodgman@arm.com>:
-      lib/lzo: fix ambiguous encoding bug in lzo-rle
-
-Subsystem: misc
-
-    Christoph Hellwig <hch@lst.de>:
-      amdgpu: a NULL ->mm does not mean a thread is a kthread
-
- Documentation/lzo.txt                      |    8 ++++-
- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h |    2 -
- fs/ocfs2/Kconfig                           |    2 -
- lib/lzo/lzo1x_compress.c                   |   13 ++++++++
- mm/memory-failure.c                        |   43 +++++++++++++++++------------
- 5 files changed, 47 insertions(+), 21 deletions(-)
+--- a/fs/ocfs2/Kconfig~fix-build-failure-of-ocfs2-when-tcp-ip-is-disabled
++++ a/fs/ocfs2/Kconfig
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ config OCFS2_FS
+ 	tristate "OCFS2 file system support"
+-	depends on NET && SYSFS && CONFIGFS_FS
++	depends on INET && SYSFS && CONFIGFS_FS
+ 	select JBD2
+ 	select CRC32
+ 	select QUOTA
+_
