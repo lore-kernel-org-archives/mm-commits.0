@@ -1,93 +1,101 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 2/5] mm/memory-failure: send SIGBUS(BUS_MCEERR_AR)
- only to current thread
-Date: Thu, 11 Jun 2020 17:30:10 -0700
-Message-ID: <20200612003010.b5wnONZe6%akpm@linux-foundation.org>
+Subject: [patch 1/5] mm/memory-failure: prioritize
+ prctl(PR_MCE_KILL) over vm.memory_failure_early_kill
+Date: Thu, 11 Jun 2020 17:30:07 -0700
+Message-ID: <20200612003007.6Ino1928e%akpm@linux-foundation.org>
 References: <20200611172827.bc85320ccf09b4c7e401d3f3@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44970 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726294AbgFLAaN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Jun 2020 20:30:13 -0400
+        id S1726294AbgFLAaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Jun 2020 20:30:09 -0400
 In-Reply-To: <20200611172827.bc85320ccf09b4c7e401d3f3@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, nao.horiguchi@gmail.com, naoya.horiguchi@nec.com, pankaj.gupta.linux@gmail.com, tony.luck@intel.com, torvalds@linux-foundation.org
 
 From: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Subject: mm/memory-failure: send SIGBUS(BUS_MCEERR_AR) only to current thread
+Subject: mm/memory-failure: prioritize prctl(PR_MCE_KILL) over vm.memory_failure_early_kill
 
-Action Required memory error should happen only when a processor is about
-to access to a corrupted memory, so it's synchronous and only affects
-current process/thread.  Recently commit 872e9a205c84 ("mm,
-memory_failure: don't send BUS_MCEERR_AO for action required error") fixed
-the issue that Action Required memory could unnecessarily send SIGBUS to
-the processes which share the error memory.  But we still have another
-issue that we could send SIGBUS to a wrong thread.
+Patch series "hwpoison: fixes signaling on memory error"
 
-This is because collect_procs() and task_early_kill() fails to add the
-current process to "to-kill" list.  So this patch is suggesting to fix it.
-With this fix, SIGBUS(BUS_MCEERR_AR) is never sent to non-current
-process/thread.
+This is a small patchset to solve issues in memory error handler to
+send SIGBUS to proper process/thread as expected in configuration.
+Please see descriptions in individual patches for more details.
 
-Link: http://lkml.kernel.org/r/1591321039-22141-3-git-send-email-naoya.horiguchi@nec.com
+
+This patch (of 2):
+
+Early-kill policy is controlled from two types of settings, one is
+per-process setting prctl(PR_MCE_KILL) and the other is system-wide
+setting vm.memory_failure_early_kill.  Users expect per-process setting to
+override system-wide setting as many other settings do, but early-kill
+setting doesn't work as such.  For example, if a system configures
+vm.memory_failure_early_kill to 1 (enabled), a process receives SIGBUS
+even if it's configured to explicitly disable PF_MCE_KILL by prctl(). 
+That's not desirable for applications with their own policies.
+
+This patch is suggesting to change the priority of these two types of
+settings, by checking sysctl_memory_failure_early_kill only when a given
+process has the default kill policy.
+
+Note that this patch is solving a thread choice issue too.  Originally,
+collect_procs() always chooses the main thread when
+vm.memory_failure_early_kill is 1, even if the process has a dedicated
+thread for memory error handling.  SIGBUS should be sent to the dedicated
+thread if early-kill is enabled via vm.memory_failure_early_kill as we are
+doing for PR_MCE_KILL_EARLY processes.
+
+Link: http://lkml.kernel.org/r/1591321039-22141-1-git-send-email-naoya.horiguchi@nec.com
+Link: http://lkml.kernel.org/r/1591321039-22141-2-git-send-email-naoya.horiguchi@nec.com
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Acked-by: Tony Luck <tony.luck@intel.com>
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ mm/memory-failure.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-send-sigbusbus_mceerr_ar-only-to-current-thread
+--- a/mm/memory-failure.c~mm-memory-failure-prioritize-prctlpr_mce_kill-over-vmmemory_failure_early_kill
 +++ a/mm/memory-failure.c
-@@ -212,15 +212,13 @@ static int kill_proc(struct to_kill *tk,
- 	short addr_lsb = tk->size_shift;
- 	int ret = 0;
+@@ -402,9 +402,15 @@ static struct task_struct *find_early_ki
+ {
+ 	struct task_struct *t;
  
--	if ((t->mm == current->mm) || !(flags & MF_ACTION_REQUIRED))
--		pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
-+	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
- 			pfn, t->comm, t->pid);
+-	for_each_thread(tsk, t)
+-		if ((t->flags & PF_MCE_PROCESS) && (t->flags & PF_MCE_EARLY))
+-			return t;
++	for_each_thread(tsk, t) {
++		if (t->flags & PF_MCE_PROCESS) {
++			if (t->flags & PF_MCE_EARLY)
++				return t;
++		} else {
++			if (sysctl_memory_failure_early_kill)
++				return t;
++		}
++	}
+ 	return NULL;
+ }
  
- 	if (flags & MF_ACTION_REQUIRED) {
--		if (t->mm == current->mm)
--			ret = force_sig_mceerr(BUS_MCEERR_AR,
-+		WARN_ON_ONCE(t != current);
-+		ret = force_sig_mceerr(BUS_MCEERR_AR,
- 					 (void __user *)tk->addr, addr_lsb);
--		/* send no signal to non-current processes */
- 	} else {
- 		/*
- 		 * Don't use force here, it's convenient if the signal
-@@ -419,14 +417,25 @@ static struct task_struct *find_early_ki
-  * to be signaled when some page under the process is hwpoisoned.
-  * Return task_struct of the dedicated thread (main thread unless explicitly
-  * specified) if the process is "early kill," and otherwise returns NULL.
-+ *
-+ * Note that the above is true for Action Optional case, but not for Action
-+ * Required case where SIGBUS should sent only to the current thread.
-  */
+@@ -417,17 +423,11 @@ static struct task_struct *find_early_ki
  static struct task_struct *task_early_kill(struct task_struct *tsk,
  					   int force_early)
  {
+-	struct task_struct *t;
  	if (!tsk->mm)
  		return NULL;
--	if (force_early)
+ 	if (force_early)
+ 		return tsk;
+-	t = find_early_kill_thread(tsk);
+-	if (t)
+-		return t;
+-	if (sysctl_memory_failure_early_kill)
 -		return tsk;
-+	if (force_early) {
-+		/*
-+		 * Comparing ->mm here because current task might represent
-+		 * a subthread, while tsk always points to the main thread.
-+		 */
-+		if (tsk->mm == current->mm)
-+			return current;
-+		else
-+			return NULL;
-+	}
- 	return find_early_kill_thread(tsk);
+-	return NULL;
++	return find_early_kill_thread(tsk);
  }
  
+ /*
 _
