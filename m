@@ -1,55 +1,101 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 5/5] amdgpu: a NULL ->mm does not mean a thread is
- a kthread
-Date: Thu, 11 Jun 2020 17:30:20 -0700
-Message-ID: <20200612003020.TztYfgQuv%akpm@linux-foundation.org>
-References: <20200611172827.bc85320ccf09b4c7e401d3f3@linux-foundation.org>
+Subject: [patch 1/5] mm/memory-failure: prioritize
+ prctl(PR_MCE_KILL) over vm.memory_failure_early_kill
+Date: Thu, 11 Jun 2020 17:34:45 -0700
+Message-ID: <20200612003445.oQzyBr0Zr%akpm@linux-foundation.org>
+References: <20200611173002.24352ae77ca6d6d7e65e4b2a@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45314 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726294AbgFLAaX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Jun 2020 20:30:23 -0400
-In-Reply-To: <20200611172827.bc85320ccf09b4c7e401d3f3@linux-foundation.org>
+        id S1726305AbgFLAer (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Jun 2020 20:34:47 -0400
+In-Reply-To: <20200611173002.24352ae77ca6d6d7e65e4b2a@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alexander.deucher@amd.com, axboe@kernel.dk, balbi@kernel.org, Felix.Kuehling@amd.com, gregkh@linuxfoundation.org, hch@lst.de, jasowang@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, mst@redhat.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, zhenyuw@linux.intel.com, zhi.a.wang@intel.com
+To: akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, nao.horiguchi@gmail.com, naoya.horiguchi@nec.com, pankaj.gupta.linux@gmail.com, tony.luck@intel.com, torvalds@linux-foundation.org
 
-From: Christoph Hellwig <hch@lst.de>
-Subject: amdgpu: a NULL ->mm does not mean a thread is a kthread
+From: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Subject: mm/memory-failure: prioritize prctl(PR_MCE_KILL) over vm.memory_failure_early_kill
 
-Use the proper API instead.
+Patch series "hwpoison: fixes signaling on memory error"
 
-Link: http://lkml.kernel.org/r/20200404094101.672954-1-hch@lst.de
-Link: http://lkml.kernel.org/r/20200404094101.672954-2-hch@lst.de
-Fixes: 70539bd795002 ("drm/amd: Update MEC HQD loading code for KFD")
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-Tested-by: Jens Axboe <axboe@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
-Cc: Zhi Wang <zhi.a.wang@intel.com>
-Cc: Felipe Balbi <balbi@kernel.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+This is a small patchset to solve issues in memory error handler to
+send SIGBUS to proper process/thread as expected in configuration.
+Please see descriptions in individual patches for more details.
+
+
+This patch (of 2):
+
+Early-kill policy is controlled from two types of settings, one is
+per-process setting prctl(PR_MCE_KILL) and the other is system-wide
+setting vm.memory_failure_early_kill.  Users expect per-process setting to
+override system-wide setting as many other settings do, but early-kill
+setting doesn't work as such.  For example, if a system configures
+vm.memory_failure_early_kill to 1 (enabled), a process receives SIGBUS
+even if it's configured to explicitly disable PF_MCE_KILL by prctl(). 
+That's not desirable for applications with their own policies.
+
+This patch is suggesting to change the priority of these two types of
+settings, by checking sysctl_memory_failure_early_kill only when a given
+process has the default kill policy.
+
+Note that this patch is solving a thread choice issue too.  Originally,
+collect_procs() always chooses the main thread when
+vm.memory_failure_early_kill is 1, even if the process has a dedicated
+thread for memory error handling.  SIGBUS should be sent to the dedicated
+thread if early-kill is enabled via vm.memory_failure_early_kill as we are
+doing for PR_MCE_KILL_EARLY processes.
+
+Link: http://lkml.kernel.org/r/1591321039-22141-1-git-send-email-naoya.horiguchi@nec.com
+Link: http://lkml.kernel.org/r/1591321039-22141-2-git-send-email-naoya.horiguchi@nec.com
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h~amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h
-@@ -196,7 +196,7 @@ uint8_t amdgpu_amdkfd_get_xgmi_hops_coun
- 			pagefault_disable();				\
- 			if ((mmptr) == current->mm) {			\
- 				valid = !get_user((dst), (wptr));	\
--			} else if (current->mm == NULL) {		\
-+			} else if (current->flags & PF_KTHREAD) {	\
- 				kthread_use_mm(mmptr);			\
- 				valid = !get_user((dst), (wptr));	\
- 				kthread_unuse_mm(mmptr);		\
+--- a/mm/memory-failure.c~mm-memory-failure-prioritize-prctlpr_mce_kill-over-vmmemory_failure_early_kill
++++ a/mm/memory-failure.c
+@@ -402,9 +402,15 @@ static struct task_struct *find_early_ki
+ {
+ 	struct task_struct *t;
+ 
+-	for_each_thread(tsk, t)
+-		if ((t->flags & PF_MCE_PROCESS) && (t->flags & PF_MCE_EARLY))
+-			return t;
++	for_each_thread(tsk, t) {
++		if (t->flags & PF_MCE_PROCESS) {
++			if (t->flags & PF_MCE_EARLY)
++				return t;
++		} else {
++			if (sysctl_memory_failure_early_kill)
++				return t;
++		}
++	}
+ 	return NULL;
+ }
+ 
+@@ -417,17 +423,11 @@ static struct task_struct *find_early_ki
+ static struct task_struct *task_early_kill(struct task_struct *tsk,
+ 					   int force_early)
+ {
+-	struct task_struct *t;
+ 	if (!tsk->mm)
+ 		return NULL;
+ 	if (force_early)
+ 		return tsk;
+-	t = find_early_kill_thread(tsk);
+-	if (t)
+-		return t;
+-	if (sysctl_memory_failure_early_kill)
+-		return tsk;
+-	return NULL;
++	return find_early_kill_thread(tsk);
+ }
+ 
+ /*
 _
