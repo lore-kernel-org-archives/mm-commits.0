@@ -1,101 +1,107 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 1/5] mm/memory-failure: prioritize
- prctl(PR_MCE_KILL) over vm.memory_failure_early_kill
-Date: Thu, 11 Jun 2020 17:30:07 -0700
-Message-ID: <20200612003007.6Ino1928e%akpm@linux-foundation.org>
+Subject: [patch 4/5] lib/lzo: fix ambiguous encoding bug in
+ lzo-rle
+Date: Thu, 11 Jun 2020 17:30:17 -0700
+Message-ID: <20200612003017.J8tEMM3zK%akpm@linux-foundation.org>
 References: <20200611172827.bc85320ccf09b4c7e401d3f3@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44790 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45192 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726294AbgFLAaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Jun 2020 20:30:09 -0400
+        id S1726294AbgFLAaT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Jun 2020 20:30:19 -0400
 In-Reply-To: <20200611172827.bc85320ccf09b4c7e401d3f3@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, nao.horiguchi@gmail.com, naoya.horiguchi@nec.com, pankaj.gupta.linux@gmail.com, tony.luck@intel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, dave.rodgman@arm.com, linux-mm@kvack.org, mark.rutland@arm.com, markus@oberhumer.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, sergey.senozhatsky.work@gmail.com, stable@vger.kernel.org, torvalds@linux-foundation.org, w@1wt.eu, yuchao0@huawei.com
 
-From: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Subject: mm/memory-failure: prioritize prctl(PR_MCE_KILL) over vm.memory_failure_early_kill
+From: Dave Rodgman <dave.rodgman@arm.com>
+Subject: lib/lzo: fix ambiguous encoding bug in lzo-rle
 
-Patch series "hwpoison: fixes signaling on memory error"
+In some rare cases, for input data over 32 KB, lzo-rle could encode two
+different inputs to the same compressed representation, so that
+decompression is then ambiguous (i.e.  data may be corrupted - although
+zram is not affected because it operates over 4 KB pages).
 
-This is a small patchset to solve issues in memory error handler to
-send SIGBUS to proper process/thread as expected in configuration.
-Please see descriptions in individual patches for more details.
+This modifies the compressor without changing the decompressor or the
+bitstream format, such that:
 
+- there is no change to how data produced by the old compressor is
+  decompressed
 
-This patch (of 2):
+- an old decompressor will correctly decode data from the updated
+  compressor
 
-Early-kill policy is controlled from two types of settings, one is
-per-process setting prctl(PR_MCE_KILL) and the other is system-wide
-setting vm.memory_failure_early_kill.  Users expect per-process setting to
-override system-wide setting as many other settings do, but early-kill
-setting doesn't work as such.  For example, if a system configures
-vm.memory_failure_early_kill to 1 (enabled), a process receives SIGBUS
-even if it's configured to explicitly disable PF_MCE_KILL by prctl(). 
-That's not desirable for applications with their own policies.
+- performance and compression ratio are not affected
 
-This patch is suggesting to change the priority of these two types of
-settings, by checking sysctl_memory_failure_early_kill only when a given
-process has the default kill policy.
+- we avoid introducing a new bitstream format
 
-Note that this patch is solving a thread choice issue too.  Originally,
-collect_procs() always chooses the main thread when
-vm.memory_failure_early_kill is 1, even if the process has a dedicated
-thread for memory error handling.  SIGBUS should be sent to the dedicated
-thread if early-kill is enabled via vm.memory_failure_early_kill as we are
-doing for PR_MCE_KILL_EARLY processes.
+In testing over 12.8M real-world files totalling 903 GB, three files were
+affected by this bug.  I also constructed 37M semi-random 64 KB files
+totalling 2.27 TB, and saw no affected files.  Finally I tested over files
+constructed to contain each of the ~1024 possible bad input sequences; for
+all of these cases, updated lzo-rle worked correctly.
 
-Link: http://lkml.kernel.org/r/1591321039-22141-1-git-send-email-naoya.horiguchi@nec.com
-Link: http://lkml.kernel.org/r/1591321039-22141-2-git-send-email-naoya.horiguchi@nec.com
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+There is no significant impact to performance or compression ratio.
+
+Link: http://lkml.kernel.org/r/20200507100203.29785-1-dave.rodgman@arm.com
+Signed-off-by: Dave Rodgman <dave.rodgman@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Dave Rodgman <dave.rodgman@arm.com>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Markus F.X.J. Oberhumer <markus@oberhumer.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Chao Yu <yuchao0@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ Documentation/lzo.txt    |    8 ++++++--
+ lib/lzo/lzo1x_compress.c |   13 +++++++++++++
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-prioritize-prctlpr_mce_kill-over-vmmemory_failure_early_kill
-+++ a/mm/memory-failure.c
-@@ -402,9 +402,15 @@ static struct task_struct *find_early_ki
- {
- 	struct task_struct *t;
+--- a/Documentation/lzo.txt~lib-lzo-fix-ambiguous-encoding-bug-in-lzo-rle
++++ a/Documentation/lzo.txt
+@@ -159,11 +159,15 @@ Byte sequences
+            distance = 16384 + (H << 14) + D
+            state = S (copy S literals after this block)
+            End of stream is reached if distance == 16384
++           In version 1 only, to prevent ambiguity with the RLE case when
++           ((distance & 0x803f) == 0x803f) && (261 <= length <= 264), the
++           compressor must not emit block copies where distance and length
++           meet these conditions.
  
--	for_each_thread(tsk, t)
--		if ((t->flags & PF_MCE_PROCESS) && (t->flags & PF_MCE_EARLY))
--			return t;
-+	for_each_thread(tsk, t) {
-+		if (t->flags & PF_MCE_PROCESS) {
-+			if (t->flags & PF_MCE_EARLY)
-+				return t;
-+		} else {
-+			if (sysctl_memory_failure_early_kill)
-+				return t;
-+		}
-+	}
- 	return NULL;
- }
+         In version 1 only, this instruction is also used to encode a run of
+-        zeros if distance = 0xbfff, i.e. H = 1 and the D bits are all 1.
++           zeros if distance = 0xbfff, i.e. H = 1 and the D bits are all 1.
+            In this case, it is followed by a fourth byte, X.
+-           run length = ((X << 3) | (0 0 0 0 0 L L L)) + 4.
++           run length = ((X << 3) | (0 0 0 0 0 L L L)) + 4
  
-@@ -417,17 +423,11 @@ static struct task_struct *find_early_ki
- static struct task_struct *task_early_kill(struct task_struct *tsk,
- 					   int force_early)
- {
--	struct task_struct *t;
- 	if (!tsk->mm)
- 		return NULL;
- 	if (force_early)
- 		return tsk;
--	t = find_early_kill_thread(tsk);
--	if (t)
--		return t;
--	if (sysctl_memory_failure_early_kill)
--		return tsk;
--	return NULL;
-+	return find_early_kill_thread(tsk);
- }
- 
- /*
+       0 0 1 L L L L L  (32..63)
+            Copy of small block within 16kB distance (preferably less than 34B)
+--- a/lib/lzo/lzo1x_compress.c~lib-lzo-fix-ambiguous-encoding-bug-in-lzo-rle
++++ a/lib/lzo/lzo1x_compress.c
+@@ -268,6 +268,19 @@ m_len_done:
+ 				*op++ = (M4_MARKER | ((m_off >> 11) & 8)
+ 						| (m_len - 2));
+ 			else {
++				if (unlikely(((m_off & 0x403f) == 0x403f)
++						&& (m_len >= 261)
++						&& (m_len <= 264))
++						&& likely(bitstream_version)) {
++					// Under lzo-rle, block copies
++					// for 261 <= length <= 264 and
++					// (distance & 0x80f3) == 0x80f3
++					// can result in ambiguous
++					// output. Adjust length
++					// to 260 to prevent ambiguity.
++					ip -= m_len - 260;
++					m_len = 260;
++				}
+ 				m_len -= M4_MAX_LEN;
+ 				*op++ = (M4_MARKER | ((m_off >> 11) & 8));
+ 				while (unlikely(m_len > 255)) {
 _
