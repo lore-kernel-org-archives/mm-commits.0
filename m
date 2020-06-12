@@ -1,71 +1,107 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 3/5] ocfs2: fix build failure when TCP/IP is
- disabled
-Date: Thu, 11 Jun 2020 17:34:51 -0700
-Message-ID: <20200612003451.uX2bbelD9%akpm@linux-foundation.org>
+Subject: [patch 4/5] lib/lzo: fix ambiguous encoding bug in
+ lzo-rle
+Date: Thu, 11 Jun 2020 17:34:54 -0700
+Message-ID: <20200612003454.cUjqmKdwv%akpm@linux-foundation.org>
 References: <20200611173002.24352ae77ca6d6d7e65e4b2a@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49976 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50102 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726305AbgFLAey (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Jun 2020 20:34:54 -0400
+        id S1726357AbgFLAe4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 11 Jun 2020 20:34:56 -0400
 In-Reply-To: <20200611173002.24352ae77ca6d6d7e65e4b2a@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, gechangwei@live.cn, ghe@suse.com, hch@lst.de, jgg@mellanox.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, sagi@grimberg.me, torvalds@linux-foundation.org, tseewald@gmail.com
+To: akpm@linux-foundation.org, dave.rodgman@arm.com, linux-mm@kvack.org, mark.rutland@arm.com, markus@oberhumer.com, minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org, sergey.senozhatsky.work@gmail.com, stable@vger.kernel.org, torvalds@linux-foundation.org, w@1wt.eu, yuchao0@huawei.com
 
-From: Tom Seewald <tseewald@gmail.com>
-Subject: ocfs2: fix build failure when TCP/IP is disabled
+From: Dave Rodgman <dave.rodgman@arm.com>
+Subject: lib/lzo: fix ambiguous encoding bug in lzo-rle
 
-After commit 12abc5ee7873 ("tcp: add tcp_sock_set_nodelay") and commit
-c488aeadcbd0 ("tcp: add tcp_sock_set_user_timeout"), building the kernel
-with OCFS2_FS=y but without INET=y causes it to fail with:
+In some rare cases, for input data over 32 KB, lzo-rle could encode two
+different inputs to the same compressed representation, so that
+decompression is then ambiguous (i.e.  data may be corrupted - although
+zram is not affected because it operates over 4 KB pages).
 
-ld: fs/ocfs2/cluster/tcp.o: in function `o2net_accept_many':
-tcp.c:(.text+0x21b1): undefined reference to `tcp_sock_set_nodelay'
-ld: tcp.c:(.text+0x21c1): undefined reference to `tcp_sock_set_user_timeout
-'
-ld: fs/ocfs2/cluster/tcp.o: in function `o2net_start_connect':
-tcp.c:(.text+0x2633): undefined reference to `tcp_sock_set_nodelay'
-ld: tcp.c:(.text+0x2643): undefined reference to `tcp_sock_set_user_timeout
-'
+This modifies the compressor without changing the decompressor or the
+bitstream format, such that:
 
-This is due to tcp_sock_set_nodelay() and tcp_sock_set_user_timeout()
-being declared in linux/tcp.h and defined in net/ipv4/tcp.c, which depend
-on TCP/IP being enabled.
+- there is no change to how data produced by the old compressor is
+  decompressed
 
-To fix this, make OCFS2_FS depend on INET=y which already requires NET=y.
+- an old decompressor will correctly decode data from the updated
+  compressor
 
-Link: http://lkml.kernel.org/r/20200606190827.23954-1-tseewald@gmail.com
-12abc5ee7873 ("tcp: add tcp_sock_set_nodelay") and commit
-Signed-off-by: Tom Seewald <tseewald@gmail.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Sagi Grimberg <sagi@grimberg.me>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+- performance and compression ratio are not affected
+
+- we avoid introducing a new bitstream format
+
+In testing over 12.8M real-world files totalling 903 GB, three files were
+affected by this bug.  I also constructed 37M semi-random 64 KB files
+totalling 2.27 TB, and saw no affected files.  Finally I tested over files
+constructed to contain each of the ~1024 possible bad input sequences; for
+all of these cases, updated lzo-rle worked correctly.
+
+There is no significant impact to performance or compression ratio.
+
+Link: http://lkml.kernel.org/r/20200507100203.29785-1-dave.rodgman@arm.com
+Signed-off-by: Dave Rodgman <dave.rodgman@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Dave Rodgman <dave.rodgman@arm.com>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Markus F.X.J. Oberhumer <markus@oberhumer.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Chao Yu <yuchao0@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/lzo.txt    |    8 ++++++--
+ lib/lzo/lzo1x_compress.c |   13 +++++++++++++
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/Kconfig~fix-build-failure-of-ocfs2-when-tcp-ip-is-disabled
-+++ a/fs/ocfs2/Kconfig
-@@ -1,7 +1,7 @@
- # SPDX-License-Identifier: GPL-2.0-only
- config OCFS2_FS
- 	tristate "OCFS2 file system support"
--	depends on NET && SYSFS && CONFIGFS_FS
-+	depends on INET && SYSFS && CONFIGFS_FS
- 	select JBD2
- 	select CRC32
- 	select QUOTA
+--- a/Documentation/lzo.txt~lib-lzo-fix-ambiguous-encoding-bug-in-lzo-rle
++++ a/Documentation/lzo.txt
+@@ -159,11 +159,15 @@ Byte sequences
+            distance = 16384 + (H << 14) + D
+            state = S (copy S literals after this block)
+            End of stream is reached if distance == 16384
++           In version 1 only, to prevent ambiguity with the RLE case when
++           ((distance & 0x803f) == 0x803f) && (261 <= length <= 264), the
++           compressor must not emit block copies where distance and length
++           meet these conditions.
+ 
+         In version 1 only, this instruction is also used to encode a run of
+-        zeros if distance = 0xbfff, i.e. H = 1 and the D bits are all 1.
++           zeros if distance = 0xbfff, i.e. H = 1 and the D bits are all 1.
+            In this case, it is followed by a fourth byte, X.
+-           run length = ((X << 3) | (0 0 0 0 0 L L L)) + 4.
++           run length = ((X << 3) | (0 0 0 0 0 L L L)) + 4
+ 
+       0 0 1 L L L L L  (32..63)
+            Copy of small block within 16kB distance (preferably less than 34B)
+--- a/lib/lzo/lzo1x_compress.c~lib-lzo-fix-ambiguous-encoding-bug-in-lzo-rle
++++ a/lib/lzo/lzo1x_compress.c
+@@ -268,6 +268,19 @@ m_len_done:
+ 				*op++ = (M4_MARKER | ((m_off >> 11) & 8)
+ 						| (m_len - 2));
+ 			else {
++				if (unlikely(((m_off & 0x403f) == 0x403f)
++						&& (m_len >= 261)
++						&& (m_len <= 264))
++						&& likely(bitstream_version)) {
++					// Under lzo-rle, block copies
++					// for 261 <= length <= 264 and
++					// (distance & 0x80f3) == 0x80f3
++					// can result in ambiguous
++					// output. Adjust length
++					// to 260 to prevent ambiguity.
++					ip -= m_len - 260;
++					m_len = 260;
++				}
+ 				m_len -= M4_MAX_LEN;
+ 				*op++ = (M4_MARKER | ((m_off >> 11) & 8));
+ 				while (unlikely(m_len > 255)) {
 _
