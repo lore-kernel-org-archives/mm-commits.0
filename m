@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-kcsan-instrument-slab-slub-free-with-assert_exclusive_access.patch added
- to -mm tree
-Date: Tue, 16 Jun 2020 11:14:03 -0700
-Message-ID: <20200616181403.Hkfe3%akpm@linux-foundation.org>
+ mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
+ added to -mm tree
+Date: Tue, 16 Jun 2020 11:38:56 -0700
+Message-ID: <20200616183856.Z2poT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48356 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37210 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727083AbgFPSOE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 16 Jun 2020 14:14:04 -0400
+        id S1725911AbgFPSi6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Jun 2020 14:38:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rientjes@google.com, penberg@kernel.org, iamjoonsoo.kim@lge.com, glider@google.com, cl@linux.com, andreyknvl@google.com, elver@google.com
+To: mm-commits@vger.kernel.org, riel@surriel.com, minchan.kim@gmail.com, mhocko@suse.com, js1304@gmail.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org
 
 
 The patch titled
-     Subject: mm, kcsan: instrument SLAB/SLUB free with "ASSERT_EXCLUSIVE_ACCESS"
+     Subject: mm: workingset: age nonresident information alongside anonymous pages
 has been added to the -mm tree.  Its filename is
-     mm-kcsan-instrument-slab-slub-free-with-assert_exclusive_access.patch
+     mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kcsan-instrument-slab-slub-free-with-assert_exclusive_access.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kcsan-instrument-slab-slub-free-with-assert_exclusive_access.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,62 +37,209 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: mm, kcsan: instrument SLAB/SLUB free with "ASSERT_EXCLUSIVE_ACCESS"
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: workingset: age nonresident information alongside anonymous pages
 
-Provide the necessary KCSAN checks to assist with debugging racy
-use-after-frees.  While KASAN is more reliable at generally catching such
-use-after-frees (due to its use of a quarantine), it can be difficult to
-debug racy use-after-frees.  If a reliable reproducer exists, KCSAN can
-assist in debugging such issues.
+Patch series "fix for "mm: balance LRU lists based on relative thrashing" patchset"
 
-Note: ASSERT_EXCLUSIVE_ACCESS is a convenience wrapper if the size is
-simply sizeof(var).  Instead, here we just use __kcsan_check_access()
-explicitly to pass the correct size.
+This patchset fixes some problems of the patchset, "mm: balance LRU lists
+based on relative thrashing", which is now merged on the mainline.
 
-Link: http://lkml.kernel.org/r/20200616125617.237428-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Patch "mm: workingset: let cache workingset challenge anon fix" is the
+result of discussion with Johannes.  See following link.
+
+http://lkml.kernel.org/r/20200520232525.798933-6-hannes@cmpxchg.org
+
+And, the other two are minor things which are found when I try to rebase
+my patchset.
+
+
+This patch (of 3):
+After ("mm: workingset: let cache workingset challenge anon fix"), we
+compare refault distances to active_file + anon.  But age of the
+non-resident information is only driven by the file LRU.  As a result, we
+may overestimate the recency of any incoming refaults and activate them
+too eagerly, causing unnecessary LRU churn in certain situations.
+
+Make anon aging drive nonresident age as well to address that.
+
+Link: http://lkml.kernel.org/r/1592288204-27734-1-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1592288204-27734-2-git-send-email-iamjoonsoo.kim@lge.com
+Fixes: 34e58cac6d8f2a ("mm: workingset: let cache workingset challenge anon")
+Reported-by: Joonsoo Kim <js1304@gmail.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 ++++
- mm/slub.c |    4 ++++
- 2 files changed, 8 insertions(+)
+ include/linux/mmzone.h |    4 +--
+ include/linux/swap.h   |    1 
+ mm/vmscan.c            |    3 ++
+ mm/workingset.c        |   46 ++++++++++++++++++++++-----------------
+ 4 files changed, 33 insertions(+), 21 deletions(-)
 
---- a/mm/slab.c~mm-kcsan-instrument-slab-slub-free-with-assert_exclusive_access
-+++ a/mm/slab.c
-@@ -3426,6 +3426,10 @@ static __always_inline void __cache_free
- 	if (kasan_slab_free(cachep, objp, _RET_IP_))
- 		return;
+--- a/include/linux/mmzone.h~mm-workingset-age-nonresident-information-alongside-anonymous-pages
++++ a/include/linux/mmzone.h
+@@ -257,8 +257,8 @@ struct lruvec {
+ 	 */
+ 	unsigned long			anon_cost;
+ 	unsigned long			file_cost;
+-	/* Evictions & activations on the inactive file list */
+-	atomic_long_t			inactive_age;
++	/* Non-resident age, driven by LRU movement */
++	atomic_long_t			nonresident_age;
+ 	/* Refaults at the time of last reclaim cycle */
+ 	unsigned long			refaults;
+ 	/* Various lruvec state flags (enum lruvec_flags) */
+--- a/include/linux/swap.h~mm-workingset-age-nonresident-information-alongside-anonymous-pages
++++ a/include/linux/swap.h
+@@ -313,6 +313,7 @@ struct vma_swap_readahead {
+ };
  
-+	/* Use KCSAN to help debug racy use-after-free. */
-+	__kcsan_check_access(objp, cachep->object_size,
-+			     KCSAN_ACCESS_WRITE | KCSAN_ACCESS_ASSERT);
-+
- 	___cache_free(cachep, objp, caller);
+ /* linux/mm/workingset.c */
++void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
+ void *workingset_eviction(struct page *page, struct mem_cgroup *target_memcg);
+ void workingset_refault(struct page *page, void *shadow);
+ void workingset_activation(struct page *page);
+--- a/mm/vmscan.c~mm-workingset-age-nonresident-information-alongside-anonymous-pages
++++ a/mm/vmscan.c
+@@ -904,6 +904,7 @@ static int __remove_mapping(struct addre
+ 		__delete_from_swap_cache(page, swap);
+ 		xa_unlock_irqrestore(&mapping->i_pages, flags);
+ 		put_swap_page(page, swap);
++		workingset_eviction(page, target_memcg);
+ 	} else {
+ 		void (*freepage)(struct page *);
+ 		void *shadow = NULL;
+@@ -1884,6 +1885,8 @@ static unsigned noinline_for_stack move_
+ 				list_add(&page->lru, &pages_to_free);
+ 		} else {
+ 			nr_moved += nr_pages;
++			if (PageActive(page))
++				workingset_age_nonresident(lruvec, nr_pages);
+ 		}
+ 	}
+ 
+--- a/mm/workingset.c~mm-workingset-age-nonresident-information-alongside-anonymous-pages
++++ a/mm/workingset.c
+@@ -156,8 +156,8 @@
+  *
+  *		Implementation
+  *
+- * For each node's file LRU lists, a counter for inactive evictions
+- * and activations is maintained (node->inactive_age).
++ * For each node's LRU lists, a counter for inactive evictions and
++ * activations is maintained (node->nonresident_age).
+  *
+  * On eviction, a snapshot of this counter (along with some bits to
+  * identify the node) is stored in the now empty page cache
+@@ -213,7 +213,17 @@ static void unpack_shadow(void *shadow,
+ 	*workingsetp = workingset;
  }
  
---- a/mm/slub.c~mm-kcsan-instrument-slab-slub-free-with-assert_exclusive_access
-+++ a/mm/slub.c
-@@ -1470,6 +1470,10 @@ static __always_inline bool slab_free_ho
- 	if (!(s->flags & SLAB_DEBUG_OBJECTS))
- 		debug_check_no_obj_freed(x, s->object_size);
+-static void advance_inactive_age(struct mem_cgroup *memcg, pg_data_t *pgdat)
++/**
++ * workingset_age_nonresident - age non-resident entries as LRU ages
++ * @memcg: the lruvec that was aged
++ * @nr_pages: the number of pages to count
++ *
++ * As in-memory pages are aged, non-resident pages need to be aged as
++ * well, in order for the refault distances later on to be comparable
++ * to the in-memory dimensions. This function allows reclaim and LRU
++ * operations to drive the non-resident aging along in parallel.
++ */
++void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages)
+ {
+ 	/*
+ 	 * Reclaiming a cgroup means reclaiming all its children in a
+@@ -227,11 +237,8 @@ static void advance_inactive_age(struct
+ 	 * the root cgroup's, age as well.
+ 	 */
+ 	do {
+-		struct lruvec *lruvec;
+-
+-		lruvec = mem_cgroup_lruvec(memcg, pgdat);
+-		atomic_long_inc(&lruvec->inactive_age);
+-	} while (memcg && (memcg = parent_mem_cgroup(memcg)));
++		atomic_long_add(nr_pages, &lruvec->nonresident_age);
++	} while ((lruvec = parent_lruvec(lruvec)));
+ }
  
-+	/* Use KCSAN to help debug racy use-after-free. */
-+	__kcsan_check_access(x, s->object_size,
-+			     KCSAN_ACCESS_WRITE | KCSAN_ACCESS_ASSERT);
-+
- 	/* KASAN might put x into memory quarantine, delaying its reuse */
- 	return kasan_slab_free(s, x, _RET_IP_);
+ /**
+@@ -254,12 +261,11 @@ void *workingset_eviction(struct page *p
+ 	VM_BUG_ON_PAGE(page_count(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 
+-	advance_inactive_age(page_memcg(page), pgdat);
+-
+ 	lruvec = mem_cgroup_lruvec(target_memcg, pgdat);
++	workingset_age_nonresident(lruvec, hpage_nr_pages(page));
+ 	/* XXX: target_memcg can be NULL, go through lruvec */
+ 	memcgid = mem_cgroup_id(lruvec_memcg(lruvec));
+-	eviction = atomic_long_read(&lruvec->inactive_age);
++	eviction = atomic_long_read(&lruvec->nonresident_age);
+ 	return pack_shadow(memcgid, pgdat, eviction, PageWorkingset(page));
+ }
+ 
+@@ -309,20 +315,20 @@ void workingset_refault(struct page *pag
+ 	if (!mem_cgroup_disabled() && !eviction_memcg)
+ 		goto out;
+ 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
+-	refault = atomic_long_read(&eviction_lruvec->inactive_age);
++	refault = atomic_long_read(&eviction_lruvec->nonresident_age);
+ 
+ 	/*
+ 	 * Calculate the refault distance
+ 	 *
+ 	 * The unsigned subtraction here gives an accurate distance
+-	 * across inactive_age overflows in most cases. There is a
++	 * across nonresident_age overflows in most cases. There is a
+ 	 * special case: usually, shadow entries have a short lifetime
+ 	 * and are either refaulted or reclaimed along with the inode
+ 	 * before they get too old.  But it is not impossible for the
+-	 * inactive_age to lap a shadow entry in the field, which can
+-	 * then result in a false small refault distance, leading to a
+-	 * false activation should this old entry actually refault
+-	 * again.  However, earlier kernels used to deactivate
++	 * nonresident_age to lap a shadow entry in the field, which
++	 * can then result in a false small refault distance, leading
++	 * to a false activation should this old entry actually
++	 * refault again.  However, earlier kernels used to deactivate
+ 	 * unconditionally with *every* reclaim invocation for the
+ 	 * longest time, so the occasional inappropriate activation
+ 	 * leading to pressure on the active list is not a problem.
+@@ -359,7 +365,7 @@ void workingset_refault(struct page *pag
+ 		goto out;
+ 
+ 	SetPageActive(page);
+-	advance_inactive_age(memcg, pgdat);
++	workingset_age_nonresident(lruvec, hpage_nr_pages(page));
+ 	inc_lruvec_state(lruvec, WORKINGSET_ACTIVATE);
+ 
+ 	/* Page was active prior to eviction */
+@@ -382,6 +388,7 @@ out:
+ void workingset_activation(struct page *page)
+ {
+ 	struct mem_cgroup *memcg;
++	struct lruvec *lruvec;
+ 
+ 	rcu_read_lock();
+ 	/*
+@@ -394,7 +401,8 @@ void workingset_activation(struct page *
+ 	memcg = page_memcg_rcu(page);
+ 	if (!mem_cgroup_disabled() && !memcg)
+ 		goto out;
+-	advance_inactive_age(memcg, page_pgdat(page));
++	lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
++	workingset_age_nonresident(lruvec, hpage_nr_pages(page));
+ out:
+ 	rcu_read_unlock();
  }
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-kcsan-instrument-slab-slub-free-with-assert_exclusive_access.patch
+mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
