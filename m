@@ -1,55 +1,103 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 5/5] amdgpu: a NULL ->mm does not mean a thread is
- a kthread
-Date: Thu, 11 Jun 2020 17:34:58 -0700
-Message-ID: <20200612003458.IcukHfp-t%akpm@linux-foundation.org>
-References: <20200611173002.24352ae77ca6d6d7e65e4b2a@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [merged]
+ mm-memory-failure-send-sigbusbus_mceerr_ar-only-to-current-thread.patch
+ removed from -mm tree
+Date: Tue, 16 Jun 2020 10:28:21 -0700
+Message-ID: <20200616172821.UHo_W8BQM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50218 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45354 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726357AbgFLAe7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 11 Jun 2020 20:34:59 -0400
-In-Reply-To: <20200611173002.24352ae77ca6d6d7e65e4b2a@linux-foundation.org>
+        id S1731030AbgFPR2W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Jun 2020 13:28:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alexander.deucher@amd.com, axboe@kernel.dk, balbi@kernel.org, Felix.Kuehling@amd.com, gregkh@linuxfoundation.org, hch@lst.de, jasowang@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org, mst@redhat.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, zhenyuw@linux.intel.com, zhi.a.wang@intel.com
+To: mm-commits@vger.kernel.org, nao.horiguchi@gmail.com, naoya.horiguchi@nec.com, pankaj.gupta.linux@gmail.com, tony.luck@intel.com
 
-From: Christoph Hellwig <hch@lst.de>
-Subject: amdgpu: a NULL ->mm does not mean a thread is a kthread
 
-Use the proper API instead.
+The patch titled
+     Subject: mm/memory-failure: send SIGBUS(BUS_MCEERR_AR) only to current thread
+has been removed from the -mm tree.  Its filename was
+     mm-memory-failure-send-sigbusbus_mceerr_ar-only-to-current-thread.patch
 
-Link: http://lkml.kernel.org/r/20200404094101.672954-1-hch@lst.de
-Link: http://lkml.kernel.org/r/20200404094101.672954-2-hch@lst.de
-Fixes: 70539bd795002 ("drm/amd: Update MEC HQD loading code for KFD")
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-Tested-by: Jens Axboe <axboe@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
-Cc: Zhi Wang <zhi.a.wang@intel.com>
-Cc: Felipe Balbi <balbi@kernel.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+This patch was dropped because it was merged into mainline or a subsystem tree
+
+------------------------------------------------------
+From: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Subject: mm/memory-failure: send SIGBUS(BUS_MCEERR_AR) only to current thread
+
+Action Required memory error should happen only when a processor is about
+to access to a corrupted memory, so it's synchronous and only affects
+current process/thread.  Recently commit 872e9a205c84 ("mm,
+memory_failure: don't send BUS_MCEERR_AO for action required error") fixed
+the issue that Action Required memory could unnecessarily send SIGBUS to
+the processes which share the error memory.  But we still have another
+issue that we could send SIGBUS to a wrong thread.
+
+This is because collect_procs() and task_early_kill() fails to add the
+current process to "to-kill" list.  So this patch is suggesting to fix it.
+With this fix, SIGBUS(BUS_MCEERR_AR) is never sent to non-current
+process/thread.
+
+Link: http://lkml.kernel.org/r/1591321039-22141-3-git-send-email-naoya.horiguchi@nec.com
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Acked-by: Tony Luck <tony.luck@intel.com>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h~amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h
-@@ -196,7 +196,7 @@ uint8_t amdgpu_amdkfd_get_xgmi_hops_coun
- 			pagefault_disable();				\
- 			if ((mmptr) == current->mm) {			\
- 				valid = !get_user((dst), (wptr));	\
--			} else if (current->mm == NULL) {		\
-+			} else if (current->flags & PF_KTHREAD) {	\
- 				kthread_use_mm(mmptr);			\
- 				valid = !get_user((dst), (wptr));	\
- 				kthread_unuse_mm(mmptr);		\
+--- a/mm/memory-failure.c~mm-memory-failure-send-sigbusbus_mceerr_ar-only-to-current-thread
++++ a/mm/memory-failure.c
+@@ -212,15 +212,13 @@ static int kill_proc(struct to_kill *tk,
+ 	short addr_lsb = tk->size_shift;
+ 	int ret = 0;
+ 
+-	if ((t->mm == current->mm) || !(flags & MF_ACTION_REQUIRED))
+-		pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
++	pr_err("Memory failure: %#lx: Sending SIGBUS to %s:%d due to hardware memory corruption\n",
+ 			pfn, t->comm, t->pid);
+ 
+ 	if (flags & MF_ACTION_REQUIRED) {
+-		if (t->mm == current->mm)
+-			ret = force_sig_mceerr(BUS_MCEERR_AR,
++		WARN_ON_ONCE(t != current);
++		ret = force_sig_mceerr(BUS_MCEERR_AR,
+ 					 (void __user *)tk->addr, addr_lsb);
+-		/* send no signal to non-current processes */
+ 	} else {
+ 		/*
+ 		 * Don't use force here, it's convenient if the signal
+@@ -419,14 +417,25 @@ static struct task_struct *find_early_ki
+  * to be signaled when some page under the process is hwpoisoned.
+  * Return task_struct of the dedicated thread (main thread unless explicitly
+  * specified) if the process is "early kill," and otherwise returns NULL.
++ *
++ * Note that the above is true for Action Optional case, but not for Action
++ * Required case where SIGBUS should sent only to the current thread.
+  */
+ static struct task_struct *task_early_kill(struct task_struct *tsk,
+ 					   int force_early)
+ {
+ 	if (!tsk->mm)
+ 		return NULL;
+-	if (force_early)
+-		return tsk;
++	if (force_early) {
++		/*
++		 * Comparing ->mm here because current task might represent
++		 * a subthread, while tsk always points to the main thread.
++		 */
++		if (tsk->mm == current->mm)
++			return current;
++		else
++			return NULL;
++	}
+ 	return find_early_kill_thread(tsk);
+ }
+ 
 _
+
+Patches currently in -mm which might be from nao.horiguchi@gmail.com are
