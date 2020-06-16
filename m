@@ -1,27 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-remove-debug_cow-switch.patch added to -mm tree
-Date: Tue, 16 Jun 2020 11:52:10 -0700
-Message-ID: <20200616185210.6Lm9-%akpm@linux-foundation.org>
+Subject: + mm-fix-swap-cache-node-allocation-mask.patch added to -mm
+ tree
+Date: Tue, 16 Jun 2020 12:02:35 -0700
+Message-ID: <20200616190235.ovsZa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46896 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727114AbgFPSwL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 16 Jun 2020 14:52:11 -0400
+        id S1730512AbgFPTCg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Jun 2020 15:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ziy@nvidia.com, kirill.shutemov@linux.intel.com, yang.shi@linux.alibaba.com
+To: mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz, stable@vger.kernel.org, lists@colorremedies.com, hughd@google.com
 
 
 The patch titled
-     Subject: mm: thp: remove debug_cow switch
+     Subject: mm: fix swap cache node allocation mask
 has been added to the -mm tree.  Its filename is
-     mm-thp-remove-debug_cow-switch.patch
+     mm-fix-swap-cache-node-allocation-mask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-remove-debug_cow-switch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-swap-cache-node-allocation-mask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-remove-debug_cow-switch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-swap-cache-node-allocation-mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,60 +36,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm: thp: remove debug_cow switch
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix swap cache node allocation mask
 
-Since commit 3917c80280c93a7123f ("thp: change CoW semantics for
-anon-THP"), the CoW page fault of THP has been rewritten, debug_cow is not
-used anymore.  So, just remove it.
+https://bugzilla.kernel.org/show_bug.cgi?id=208085 reports that a slightly
+overcommitted load, testing swap and zram along with i915, splats and
+keeps on splatting, when it had better fail less noisily:
 
-Link: http://lkml.kernel.org/r/1592270980-116062-1-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+gnome-shell: page allocation failure: order:0,
+mode:0x400d0(__GFP_IO|__GFP_FS|__GFP_COMP|__GFP_RECLAIMABLE),
+nodemask=(null),cpuset=/,mems_allowed=0
+CPU: 2 PID: 1155 Comm: gnome-shell Not tainted 5.7.0-1.fc33.x86_64 #1
+Call Trace:
+dump_stack+0x64/0x88
+warn_alloc.cold+0x75/0xd9
+__alloc_pages_slowpath.constprop.0+0xcfa/0xd30
+__alloc_pages_nodemask+0x2df/0x320
+alloc_slab_page+0x195/0x310
+allocate_slab+0x3c5/0x440
+___slab_alloc+0x40c/0x5f0
+__slab_alloc+0x1c/0x30
+kmem_cache_alloc+0x20e/0x220
+xas_nomem+0x28/0x70
+add_to_swap_cache+0x321/0x400
+__read_swap_cache_async+0x105/0x240
+swap_cluster_readahead+0x22c/0x2e0
+shmem_swapin+0x8e/0xc0
+shmem_swapin_page+0x196/0x740
+shmem_getpage_gfp+0x3a2/0xa60
+shmem_read_mapping_page_gfp+0x32/0x60
+shmem_get_pages+0x155/0x5e0 [i915]
+__i915_gem_object_get_pages+0x68/0xa0 [i915]
+i915_vma_pin+0x3fe/0x6c0 [i915]
+eb_add_vma+0x10b/0x2c0 [i915]
+i915_gem_do_execbuffer+0x704/0x3430 [i915]
+i915_gem_execbuffer2_ioctl+0x1ea/0x3e0 [i915]
+drm_ioctl_kernel+0x86/0xd0 [drm]
+drm_ioctl+0x206/0x390 [drm]
+ksys_ioctl+0x82/0xc0
+__x64_sys_ioctl+0x16/0x20
+do_syscall_64+0x5b/0xf0
+entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported on 5.7, but it goes back really to 3.1: when
+shmem_read_mapping_page_gfp() was implemented for use by i915, and
+allowed for __GFP_NORETRY and __GFP_NOWARN flags in most places, but
+missed swapin's "& GFP_KERNEL" mask for page tree node allocation in
+__read_swap_cache_async() - that was to mask off HIGHUSER_MOVABLE bits
+from what page cache uses, but GFP_RECLAIM_MASK is now what's needed.
+
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2006151330070.11064@eggly.anvils
+Fixes: 68da9f055755 ("tmpfs: pass gfp to shmem_getpage_gfp")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Chris Murphy <lists@colorremedies.com>
+Analyzed-by: Vlastimil Babka <vbabka@suse.cz>
+Analyzed-by: Matthew Wilcox <willy@infradead.org>
+Tested-by: Chris Murphy <lists@colorremedies.com>
+Cc: <stable@vger.kernel.org>	[3.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    7 -------
- mm/huge_memory.c        |   21 ---------------------
- 2 files changed, 28 deletions(-)
+ mm/swap_state.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-thp-remove-debug_cow-switch
-+++ a/include/linux/huge_mm.h
-@@ -181,13 +181,6 @@ static inline bool transhuge_vma_suitabl
- #define transparent_hugepage_use_zero_page()				\
- 	(transparent_hugepage_flags &					\
- 	 (1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG))
--#ifdef CONFIG_DEBUG_VM
--#define transparent_hugepage_debug_cow()				\
--	(transparent_hugepage_flags &					\
--	 (1<<TRANSPARENT_HUGEPAGE_DEBUG_COW_FLAG))
--#else /* CONFIG_DEBUG_VM */
--#define transparent_hugepage_debug_cow() 0
--#endif /* CONFIG_DEBUG_VM */
- 
- extern unsigned long thp_get_unmapped_area(struct file *filp,
- 		unsigned long addr, unsigned long len, unsigned long pgoff,
---- a/mm/huge_memory.c~mm-thp-remove-debug_cow-switch
-+++ a/mm/huge_memory.c
-@@ -303,24 +303,6 @@ static ssize_t hpage_pmd_size_show(struc
- static struct kobj_attribute hpage_pmd_size_attr =
- 	__ATTR_RO(hpage_pmd_size);
- 
--#ifdef CONFIG_DEBUG_VM
--static ssize_t debug_cow_show(struct kobject *kobj,
--				struct kobj_attribute *attr, char *buf)
--{
--	return single_hugepage_flag_show(kobj, attr, buf,
--				TRANSPARENT_HUGEPAGE_DEBUG_COW_FLAG);
--}
--static ssize_t debug_cow_store(struct kobject *kobj,
--			       struct kobj_attribute *attr,
--			       const char *buf, size_t count)
--{
--	return single_hugepage_flag_store(kobj, attr, buf, count,
--				 TRANSPARENT_HUGEPAGE_DEBUG_COW_FLAG);
--}
--static struct kobj_attribute debug_cow_attr =
--	__ATTR(debug_cow, 0644, debug_cow_show, debug_cow_store);
--#endif /* CONFIG_DEBUG_VM */
+--- a/mm/swap_state.c~mm-fix-swap-cache-node-allocation-mask
++++ a/mm/swap_state.c
+@@ -21,7 +21,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/swap_slots.h>
+ #include <linux/huge_mm.h>
