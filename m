@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-fix-do-not-put-the-css-reference.patch
+Subject: + scripts-tagssh-collect-compiled-source-precisely.patch
  added to -mm tree
-Date: Tue, 16 Jun 2020 12:57:13 -0700
-Message-ID: <20200616195713.UahlG%akpm@linux-foundation.org>
+Date: Tue, 16 Jun 2020 13:02:26 -0700
+Message-ID: <20200616200226.lkQGj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48904 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51668 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730183AbgFPT5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 16 Jun 2020 15:57:14 -0400
+        id S1728144AbgFPUC1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Jun 2020 16:02:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, stable@vger.kernel.org, mhocko@suse.com, hannes@cmpxchg.org, guro@fb.com, cai@lca.pw, songmuchun@bytedance.com
+To: mm-commits@vger.kernel.org, mchehab+huawei@kernel.org, masahiroy@kernel.org, joe@perches.com, gregkh@linuxfoundation.org, corbet@lwn.net, xujialu@vimux.org
 
 
 The patch titled
-     Subject: mm/memcontrol.c: add missed css_put()
+     Subject: scripts/tags.sh: collect compiled source precisely
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-fix-do-not-put-the-css-reference.patch
+     scripts-tagssh-collect-compiled-source-precisely.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-do-not-put-the-css-reference.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-tagssh-collect-compiled-source-precisely.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-do-not-put-the-css-reference.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-tagssh-collect-compiled-source-precisely.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,42 +36,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/memcontrol.c: add missed css_put()
+From: Jialu Xu <xujialu@vimux.org>
+Subject: scripts/tags.sh: collect compiled source precisely
 
-We should put the css reference when memory allocation failed.
+Parse compiled source from *.cmd but don't 'find' too many files that are
+not related to compilation.
 
-Link: http://lkml.kernel.org/r/20200614122653.98829-1-songmuchun@bytedance.com
-Fixes: f0a3a24b532d ("mm: memcg/slab: rework non-root kmem_cache lifecycle management")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/5ee5d8e3.1c69fb81.9b804.47b2SMTPIN_ADDED_MISSING@mx.google.com
+Signed-off-by: Jialu Xu <xujialu@vimux.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/tags.sh |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-do-not-put-the-css-reference
-+++ a/mm/memcontrol.c
-@@ -2772,8 +2772,10 @@ static void memcg_schedule_kmem_cache_cr
- 		return;
+--- a/scripts/tags.sh~scripts-tagssh-collect-compiled-source-precisely
++++ a/scripts/tags.sh
+@@ -91,20 +91,10 @@ all_sources()
  
- 	cw = kmalloc(sizeof(*cw), GFP_NOWAIT | __GFP_NOWARN);
--	if (!cw)
-+	if (!cw) {
-+		css_put(&memcg->css);
- 		return;
-+	}
+ all_compiled_sources()
+ {
+-	for i in $(all_sources); do
+-		case "$i" in
+-			*.[cS])
+-				j=${i/\.[cS]/\.o}
+-				j="${j#$tree}"
+-				if [ -e $j ]; then
+-					echo $i
+-				fi
+-				;;
+-			*)
+-				echo $i
+-				;;
+-		esac
+-	done
++	realpath -e $([ -z "$KBUILD_ABS_SRCTREE" ] && echo --relative-to=.) \
++		include/generated/autoconf.h $(find -name "*.cmd" -exec \
++		grep -Poh '(?(?=^source_.* \K).*|(?=^  \K\S).*(?= \\))' {} \+ |
++		awk '!a[$0]++') | sort -u
+ }
  
- 	cw->memcg = memcg;
- 	cw->cachep = cachep;
+ all_target_sources()
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from xujialu@vimux.org are
 
-mm-memcontrol-fix-do-not-put-the-css-reference.patch
+scripts-tagssh-collect-compiled-source-precisely.patch
