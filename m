@@ -1,65 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch removed from -mm
+Subject: + mm-slab-use-memzero_explicit-in-kzfree.patch added to -mm
  tree
-Date: Tue, 16 Jun 2020 10:28:29 -0700
-Message-ID: <20200616172829.1bg7nzI9-%akpm@linux-foundation.org>
+Date: Tue, 16 Jun 2020 11:05:22 -0700
+Message-ID: <20200616180522.rmP8T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45500 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39390 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730790AbgFPR2a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 16 Jun 2020 13:28:30 -0400
+        id S1730877AbgFPSFX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Jun 2020 14:05:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.deucher@amd.com, axboe@kernel.dk, balbi@kernel.org, Felix.Kuehling@amd.com, gregkh@linuxfoundation.org, hch@lst.de, jasowang@redhat.com, mm-commits@vger.kernel.org, mst@redhat.com, viro@zeniv.linux.org.uk, zhenyuw@linux.intel.com, zhi.a.wang@intel.com
+To: mm-commits@vger.kernel.org, willy@infradead.org, stable@vger.kernel.org, serge@hallyn.com, rientjes@google.com, mhocko@suse.com, joe@perches.com, jmorris@namei.org, Jason@zx2c4.com, jarkko.sakkinen@linux.intel.com, hannes@cmpxchg.org, dhowells@redhat.com, dan.carpenter@oracle.com, longman@redhat.com
 
 
 The patch titled
-     Subject: amdgpu: a NULL ->mm does not mean a thread is a kthread
-has been removed from the -mm tree.  Its filename was
-     amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
+     Subject: mm/slab: use memzero_explicit() in kzfree()
+has been added to the -mm tree.  Its filename is
+     mm-slab-use-memzero_explicit-in-kzfree.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-use-memzero_explicit-in-kzfree.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-use-memzero_explicit-in-kzfree.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: amdgpu: a NULL ->mm does not mean a thread is a kthread
+From: Waiman Long <longman@redhat.com>
+Subject: mm/slab: use memzero_explicit() in kzfree()
 
-Use the proper API instead.
+The kzfree() function is normally used to clear some sensitive
+information, like encryption keys, in the buffer before freeing it back to
+the pool.  Memset() is currently used for buffer clearing.  However
+unlikely, there is still a non-zero probability that the compiler may
+choose to optimize away the memory clearing especially if LTO is being
+used in the future.  To make sure that this optimization will never
+happen, memzero_explicit(), which is introduced in v3.18, is now used in
+kzfree() to future-proof it.
 
-Link: http://lkml.kernel.org/r/20200404094101.672954-1-hch@lst.de
-Link: http://lkml.kernel.org/r/20200404094101.672954-2-hch@lst.de
-Fixes: 70539bd795002 ("drm/amd: Update MEC HQD loading code for KFD")
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-Tested-by: Jens Axboe <axboe@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
-Cc: Zhi Wang <zhi.a.wang@intel.com>
-Cc: Felipe Balbi <balbi@kernel.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: http://lkml.kernel.org/r/20200616154311.12314-2-longman@redhat.com
+Fixes: 3ef0e5ba4673 ("slab: introduce kzfree()")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: "Jason A . Donenfeld" <Jason@zx2c4.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h |    2 +-
+ mm/slab_common.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h~amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h
-@@ -196,7 +196,7 @@ uint8_t amdgpu_amdkfd_get_xgmi_hops_coun
- 			pagefault_disable();				\
- 			if ((mmptr) == current->mm) {			\
- 				valid = !get_user((dst), (wptr));	\
--			} else if (current->mm == NULL) {		\
-+			} else if (current->flags & PF_KTHREAD) {	\
- 				kthread_use_mm(mmptr);			\
- 				valid = !get_user((dst), (wptr));	\
- 				kthread_unuse_mm(mmptr);		\
+--- a/mm/slab_common.c~mm-slab-use-memzero_explicit-in-kzfree
++++ a/mm/slab_common.c
+@@ -1726,7 +1726,7 @@ void kzfree(const void *p)
+ 	if (unlikely(ZERO_OR_NULL_PTR(mem)))
+ 		return;
+ 	ks = ksize(mem);
+-	memset(mem, 0, ks);
++	memzero_explicit(mem, ks);
+ 	kfree(mem);
+ }
+ EXPORT_SYMBOL(kzfree);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from longman@redhat.com are
+
+mm-slab-use-memzero_explicit-in-kzfree.patch
+mm-treewide-rename-kzfree-to-kfree_sensitive.patch
