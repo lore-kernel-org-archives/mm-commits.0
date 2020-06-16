@@ -1,61 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch removed
- from -mm tree
-Date: Tue, 16 Jun 2020 10:28:32 -0700
-Message-ID: <20200616172832.v1u6S_0Gl%akpm@linux-foundation.org>
+ amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch removed from -mm
+ tree
+Date: Tue, 16 Jun 2020 10:28:29 -0700
+Message-ID: <20200616172829.1bg7nzI9-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45548 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45500 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730790AbgFPR2d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 16 Jun 2020 13:28:33 -0400
+        id S1730790AbgFPR2a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Jun 2020 13:28:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexdeucher@gmail.com, hch@lst.de, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To: alexander.deucher@amd.com, axboe@kernel.dk, balbi@kernel.org, Felix.Kuehling@amd.com, gregkh@linuxfoundation.org, hch@lst.de, jasowang@redhat.com, mm-commits@vger.kernel.org, mst@redhat.com, viro@zeniv.linux.org.uk, zhenyuw@linux.intel.com, zhi.a.wang@intel.com
 
 
 The patch titled
-     Subject: drm/amdkfd: fix up for {un}use_mm() rename
+     Subject: amdgpu: a NULL ->mm does not mean a thread is a kthread
 has been removed from the -mm tree.  Its filename was
-     kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2.patch
+     amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: drm/amdkfd: fix up for {un}use_mm() rename
+From: Christoph Hellwig <hch@lst.de>
+Subject: amdgpu: a NULL ->mm does not mean a thread is a kthread
 
-Link: http://lkml.kernel.org/r/20200528201940.759c58ff@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Alex Deucher <alexdeucher@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Use the proper API instead.
+
+Link: http://lkml.kernel.org/r/20200404094101.672954-1-hch@lst.de
+Link: http://lkml.kernel.org/r/20200404094101.672954-2-hch@lst.de
+Fixes: 70539bd795002 ("drm/amd: Update MEC HQD loading code for KFD")
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Felix Kuehling <Felix.Kuehling@amd.com>
+Reviewed-by: Jens Axboe <axboe@kernel.dk>
+Tested-by: Jens Axboe <axboe@kernel.dk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: Zhenyu Wang <zhenyuw@linux.intel.com>
+Cc: Zhi Wang <zhi.a.wang@intel.com>
+Cc: Felipe Balbi <balbi@kernel.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdkfd/kfd_process.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c~kernel-better-document-the-use_mm-unuse_mm-api-contract-fix-2
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
-@@ -115,7 +115,7 @@ static void kfd_sdma_activity_worker(str
- 		return;
- 	}
- 
--	use_mm(mm);
-+	kthread_use_mm(mm);
- 
- 	dqm_lock(dqm);
- 
-@@ -142,7 +142,7 @@ static void kfd_sdma_activity_worker(str
- 	}
- 
- 	dqm_unlock(dqm);
--	unuse_mm(mm);
-+	kthread_unuse_mm(mm);
- 	mmput(mm);
- }
- 
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h~amdgpu-a-null-mm-does-not-mean-a-thread-is-a-kthread
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h
+@@ -196,7 +196,7 @@ uint8_t amdgpu_amdkfd_get_xgmi_hops_coun
+ 			pagefault_disable();				\
+ 			if ((mmptr) == current->mm) {			\
+ 				valid = !get_user((dst), (wptr));	\
+-			} else if (current->mm == NULL) {		\
++			} else if (current->flags & PF_KTHREAD) {	\
+ 				kthread_use_mm(mmptr);			\
+ 				valid = !get_user((dst), (wptr));	\
+ 				kthread_unuse_mm(mmptr);		\
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from hch@lst.de are
