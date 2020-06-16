@@ -1,28 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-tagssh-collect-compiled-source-precisely.patch
- added to -mm tree
-Date: Tue, 16 Jun 2020 13:02:26 -0700
-Message-ID: <20200616200226.lkQGj%akpm@linux-foundation.org>
+Subject: + mm-memcg-prevent-missed-memorylow-load-tears.patch added
+ to -mm tree
+Date: Tue, 16 Jun 2020 13:20:00 -0700
+Message-ID: <20200616202000.qyM9n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51668 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:32844 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728144AbgFPUC1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 16 Jun 2020 16:02:27 -0400
+        id S1730725AbgFPUUB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Jun 2020 16:20:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mchehab+huawei@kernel.org, masahiroy@kernel.org, joe@perches.com, gregkh@linuxfoundation.org, corbet@lwn.net, xujialu@vimux.org
+To: mm-commits@vger.kernel.org, mkoutny@suse.com, mhocko@suse.com, chris@chrisdown.name
 
 
 The patch titled
-     Subject: scripts/tags.sh: collect compiled source precisely
+     Subject: mm/memcontrol.c: prevent missed memory.low load tears
 has been added to the -mm tree.  Its filename is
-     scripts-tagssh-collect-compiled-source-precisely.patch
+     mm-memcg-prevent-missed-memorylow-load-tears.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-tagssh-collect-compiled-source-precisely.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-prevent-missed-memory=
+low-load-tears.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-tagssh-collect-compiled-source-precisely.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-prevent-missed-memory=
+low-load-tears.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,60 +35,53 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jialu Xu <xujialu@vimux.org>
-Subject: scripts/tags.sh: collect compiled source precisely
+From: Chris Down <chris@chrisdown.name>
+Subject: mm/memcontrol.c: prevent missed memory.low load tears
 
-Parse compiled source from *.cmd but don't 'find' too many files that are
-not related to compilation.
+Looks like one of these got missed when massaging in f86b810c2610 ("mm,
+memcg: prevent memory.low load/store tearing") with other linux-mm
+changes.
 
-Link: http://lkml.kernel.org/r/5ee5d8e3.1c69fb81.9b804.47b2SMTPIN_ADDED_MISSING@mx.google.com
-Signed-off-by: Jialu Xu <xujialu@vimux.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/20200612174437.GA391453@chrisdown.name
+Signed-off-by: Chris Down <chris@chrisdown.name>
+Reported-by: Michal Koutn=FD <mkoutny@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/tags.sh |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ mm/memcontrol.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/scripts/tags.sh~scripts-tagssh-collect-compiled-source-precisely
-+++ a/scripts/tags.sh
-@@ -91,20 +91,10 @@ all_sources()
- 
- all_compiled_sources()
- {
--	for i in $(all_sources); do
--		case "$i" in
--			*.[cS])
--				j=${i/\.[cS]/\.o}
--				j="${j#$tree}"
--				if [ -e $j ]; then
--					echo $i
--				fi
--				;;
--			*)
--				echo $i
--				;;
--		esac
--	done
-+	realpath -e $([ -z "$KBUILD_ABS_SRCTREE" ] && echo --relative-to=.) \
-+		include/generated/autoconf.h $(find -name "*.cmd" -exec \
-+		grep -Poh '(?(?=^source_.* \K).*|(?=^  \K\S).*(?= \\))' {} \+ |
-+		awk '!a[$0]++') | sort -u
- }
- 
- all_target_sources()
+--- a/mm/memcontrol.c~mm-memcg-prevent-missed-memorylow-load-tears
++++ a/mm/memcontrol.c
+@@ -6423,7 +6423,7 @@ enum mem_cgroup_protection mem_cgroup_pr
+=20
+ 	if (parent =3D=3D root) {
+ 		memcg->memory.emin =3D READ_ONCE(memcg->memory.min);
+-		memcg->memory.elow =3D memcg->memory.low;
++		memcg->memory.elow =3D READ_ONCE(memcg->memory.low);
+ 		goto out;
+ 	}
+=20
+@@ -6435,7 +6435,8 @@ enum mem_cgroup_protection mem_cgroup_pr
+ 			atomic_long_read(&parent->memory.children_min_usage)));
+=20
+ 	WRITE_ONCE(memcg->memory.elow, effective_protection(usage, parent_usage,
+-			memcg->memory.low, READ_ONCE(parent->memory.elow),
++			READ_ONCE(memcg->memory.low),
++			READ_ONCE(parent->memory.elow),
+ 			atomic_long_read(&parent->memory.children_low_usage)));
+=20
+ out:
 _
 
-Patches currently in -mm which might be from xujialu@vimux.org are
+Patches currently in -mm which might be from chris@chrisdown.name are
 
-scripts-tagssh-collect-compiled-source-precisely.patch
+mm-memcg-prevent-missed-memorylow-load-tears.patch
