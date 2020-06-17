@@ -1,14 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slub-make-some-slub_debug-related-attributes-read-only.patch added to -mm
- tree
-Date: Wed, 17 Jun 2020 09:57:04 -0700
-Message-ID: <20200617165704.EE6FK%akpm@linux-foundation.org>
+Subject: + mm-slub-remove-runtime-allocation-order-changes.patch
+ added to -mm tree
+Date: Wed, 17 Jun 2020 09:57:06 -0700
+Message-ID: <20200617165706.wD88H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46306 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46364 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726540AbgFQQ5H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726861AbgFQQ5H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 17 Jun 2020 12:57:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -16,14 +15,14 @@ To: mm-commits@vger.kernel.org, vjitta@codeaurora.org, rientjes@google.com, penb
 
 
 The patch titled
-     Subject: mm, slub: make some slub_debug related attributes read-only
+     Subject: mm, slub: remove runtime allocation order changes
 has been added to the -mm tree.  Its filename is
-     mm-slub-make-some-slub_debug-related-attributes-read-only.patch
+     mm-slub-remove-runtime-allocation-order-changes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-make-some-slub_debug-related-attributes-read-only.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-remove-runtime-allocation-order-changes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-make-some-slub_debug-related-attributes-read-only.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-remove-runtime-allocation-order-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,146 +37,64 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: make some slub_debug related attributes read-only
+Subject: mm, slub: remove runtime allocation order changes
 
-SLUB_DEBUG creates several files under /sys/kernel/slab/<cache>/ that can
-be read to check if the respective debugging options are enabled for given
-cache.  The options can be also toggled at runtime by writing into the
-files.  Some of those, namely red_zone, poison, and store_user can be
-toggled only when no objects yet exist in the cache.
+SLUB allows runtime changing of page allocation order by writing into the
+/sys/kernel/slab/<cache>/order file.  Jann has reported [1] that this
+interface allows the order to be set too small, leading to crashes.
 
-Vijayanand reports [1] that there is a problem with freelist randomization
-if changing the debugging option's state results in different number of
-objects per page, and the random sequence cache needs thus needs to be
-recomputed.
+While it's possible to fix the immediate issue, closer inspection reveals
+potential races.  Storing the new order calls calculate_sizes() which
+non-atomically updates a lot of kmem_cache fields while the cache is still
+in use.  Unexpected behavior might occur even if the fields are set to the
+same value as they were.
 
-However, another problem is that the check for "no objects yet exist in
-the cache" is racy, as noted by Jann [2] and fixing that would add
-overhead or otherwise complicate the allocation/freeing paths.  Thus it
-would be much simpler just to remove the runtime toggling support.  The
-documentation describes it's "In case you forgot to enable debugging on
-the kernel command line", but the neccessity of having no objects limits
-its usefulness anyway for many caches.
+This could be fixed by splitting out the part of calculate_sizes() that
+depends on forced_order, so that we only update kmem_cache.oo field.  This
+could still race with init_cache_random_seq(), shuffle_freelist(),
+allocate_slab().  Perhaps it's possible to audit and e.g.  add some
+READ_ONCE/WRITE_ONCE accesses, it might be easier just to remove the
+runtime order changes, which is what this patch does.  If there are valid
+usecases for per-cache order setting, we could e.g.  extend the boot
+parameters to do that.
 
-Vijayanand describes an use case [3] where debugging is enabled for all
-but zram caches for memory overhead reasons, and using the runtime toggles
-was the only way to achieve such configuration.  After the previous patch
-it's now possible to do that directly from the kernel boot option, so we
-can remove the dangerous runtime toggles by making the /sys attribute
-files read-only.
+[1] https://lore.kernel.org/r/CAG48ez31PP--h6_FzVyfJ4H86QYczAFPdxtJHUEEan+7VJETAQ@mail.gmail.com
 
-While updating it, also improve the documentation of the debugging /sys files.
-
-[1] https://lkml.kernel.org/r/1580379523-32272-1-git-send-email-vjitta@codeaurora.org
-[2] https://lore.kernel.org/r/CAG48ez31PP--h6_FzVyfJ4H86QYczAFPdxtJHUEEan+7VJETAQ@mail.gmail.com
-[3] https://lore.kernel.org/r/1383cd32-1ddc-4dac-b5f8-9c42282fa81c@codeaurora.org
-
-Link: http://lkml.kernel.org/r/20200610163135.17364-3-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20200610163135.17364-4-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Vijayanand Jitta <vjitta@codeaurora.org>
+Acked-by: Christoph Lameter <cl@linux.com>
 Reported-by: Jann Horn <jannh@google.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Christoph Lameter <cl@linux.com>
+Cc: Vijayanand Jitta <vjitta@codeaurora.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.rst |   26 ++++++++++++--------
- mm/slub.c                 |   46 ++----------------------------------
- 2 files changed, 19 insertions(+), 53 deletions(-)
+ mm/slub.c |   19 +------------------
+ 1 file changed, 1 insertion(+), 18 deletions(-)
 
---- a/Documentation/vm/slub.rst~mm-slub-make-some-slub_debug-related-attributes-read-only
-+++ a/Documentation/vm/slub.rst
-@@ -101,20 +101,26 @@ with "-" as options::
- 
- 	slub_debug=FZ;-,zs_handle,zspage
- 
--In case you forgot to enable debugging on the kernel command line: It is
--possible to enable debugging manually when the kernel is up. Look at the
--contents of::
-+The state of each debug option for a slab can be found in the respective files
-+under::
- 
- 	/sys/kernel/slab/<slab name>/
- 
--Look at the writable files. Writing 1 to them will enable the
--corresponding debug option. All options can be set on a slab that does
--not contain objects. If the slab already contains objects then sanity checks
--and tracing may only be enabled. The other options may cause the realignment
--of objects.
-+If the file contains 1, the option is enabled, 0 means disabled. The debug
-+options from the ``slub_debug`` parameter translate to the following files::
- 
--Careful with tracing: It may spew out lots of information and never stop if
--used on the wrong slab.
-+	F	sanity_checks
-+	Z	red_zone
-+	P	poison
-+	U	store_user
-+	T	trace
-+	A	failslab
-+
-+The sanity_checks, trace and failslab files are writable, so writing 1 or 0
-+will enable or disable the option at runtime. The writes to trace and failslab
-+may return -EINVAL if the cache is subject to slab merging. Careful with
-+tracing: It may spew out lots of information and never stop if used on the
-+wrong slab.
- 
- Slab merging
- ============
---- a/mm/slub.c~mm-slub-make-some-slub_debug-related-attributes-read-only
+--- a/mm/slub.c~mm-slub-remove-runtime-allocation-order-changes
 +++ a/mm/slub.c
-@@ -5351,61 +5351,21 @@ static ssize_t red_zone_show(struct kmem
- 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_RED_ZONE));
+@@ -5111,28 +5111,11 @@ static ssize_t objs_per_slab_show(struct
  }
+ SLAB_ATTR_RO(objs_per_slab);
  
--static ssize_t red_zone_store(struct kmem_cache *s,
+-static ssize_t order_store(struct kmem_cache *s,
 -				const char *buf, size_t length)
 -{
--	if (any_slab_objects(s))
--		return -EBUSY;
+-	unsigned int order;
+-	int err;
 -
--	s->flags &= ~SLAB_RED_ZONE;
--	if (buf[0] == '1') {
--		s->flags |= SLAB_RED_ZONE;
--	}
--	calculate_sizes(s, -1);
+-	err = kstrtouint(buf, 10, &order);
+-	if (err)
+-		return err;
+-
+-	if (order > slub_max_order || order < slub_min_order)
+-		return -EINVAL;
+-
+-	calculate_sizes(s, order);
 -	return length;
 -}
--SLAB_ATTR(red_zone);
-+SLAB_ATTR_RO(red_zone);
- 
- static ssize_t poison_show(struct kmem_cache *s, char *buf)
- {
- 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_POISON));
- }
- 
--static ssize_t poison_store(struct kmem_cache *s,
--				const char *buf, size_t length)
--{
--	if (any_slab_objects(s))
--		return -EBUSY;
--
--	s->flags &= ~SLAB_POISON;
--	if (buf[0] == '1') {
--		s->flags |= SLAB_POISON;
--	}
--	calculate_sizes(s, -1);
--	return length;
--}
--SLAB_ATTR(poison);
-+SLAB_ATTR_RO(poison);
- 
- static ssize_t store_user_show(struct kmem_cache *s, char *buf)
- {
- 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_STORE_USER));
- }
- 
--static ssize_t store_user_store(struct kmem_cache *s,
--				const char *buf, size_t length)
--{
--	if (any_slab_objects(s))
--		return -EBUSY;
