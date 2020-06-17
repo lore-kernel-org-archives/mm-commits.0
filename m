@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slub-introduce-static-key-for-slub_debug.patch added
- to -mm tree
-Date: Wed, 17 Jun 2020 09:57:12 -0700
-Message-ID: <20200617165712.POp7s%akpm@linux-foundation.org>
+Subject: +
+ mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch added to -mm
+ tree
+Date: Wed, 17 Jun 2020 09:57:16 -0700
+Message-ID: <20200617165716.DfSMo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46468 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46542 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726329AbgFQQ5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Jun 2020 12:57:14 -0400
+        id S1726329AbgFQQ5R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Jun 2020 12:57:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vjitta@codeaurora.org, rientjes@google.com, penberg@kernel.org, keescook@chromium.org, jannh@google.com, iamjoonsoo.kim@lge.com, guro@fb.com, cl@linux.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, slub: introduce static key for slub_debug()
+     Subject: mm, slub: extend checks guarded by slub_debug static key
 has been added to the -mm tree.  Its filename is
-     mm-slub-introduce-static-key-for-slub_debug.patch
+     mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-introduce-static-key-for-slub_debug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-introduce-static-key-for-slub_debug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,22 +38,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: introduce static key for slub_debug()
+Subject: mm, slub: extend checks guarded by slub_debug static key
 
-One advantage of CONFIG_SLUB_DEBUG is that a generic distro kernel can be
-built with the option enabled, but it's inactive until simply enabled on
-boot, without rebuilding the kernel.  With a static key, we can further
-eliminate the overhead of checking whether a cache has a particular debug
-flag enabled if we know that there are no such caches (slub_debug was not
-enabled during boot).  We use the same mechanism also for e.g. 
-page_owner, debug_pagealloc or kmemcg functionality.
+There are few more places in SLUB that could benefit from reduced overhead
+of the static key introduced by a previous patch:
 
-This patch introduces the static key and makes the general check for
-per-cache debug flags kmem_cache_debug() use it.  This benefits several
-call sites, including (slow path but still rather frequent) __slab_free().
-The next patches will add more uses.
+- setup_object_debug() called on each object in newly allocated slab page
+- setup_page_debug() called on newly allocated slab page
+- __free_slab() called on freed slab page
 
-Link: http://lkml.kernel.org/r/20200610163135.17364-7-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20200610163135.17364-9-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Roman Gushchin <guro@fb.com>
 Acked-by: Christoph Lameter <cl@linux.com>
@@ -65,45 +60,38 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ mm/slub.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/slub.c~mm-slub-introduce-static-key-for-slub_debug
+--- a/mm/slub.c~mm-slub-extend-checks-guarded-by-slub_debug-static-key
 +++ a/mm/slub.c
-@@ -114,13 +114,21 @@
-  * 			the fast path and disables lockless freelists.
-  */
- 
-+#ifdef CONFIG_SLUB_DEBUG
-+#ifdef CONFIG_SLUB_DEBUG_ON
-+DEFINE_STATIC_KEY_TRUE(slub_debug_enabled);
-+#else
-+DEFINE_STATIC_KEY_FALSE(slub_debug_enabled);
-+#endif
-+#endif
-+
- static inline int kmem_cache_debug(struct kmem_cache *s)
+@@ -1130,7 +1130,7 @@ static inline void dec_slabs_node(struct
+ static void setup_object_debug(struct kmem_cache *s, struct page *page,
+ 								void *object)
  {
- #ifdef CONFIG_SLUB_DEBUG
--	return unlikely(s->flags & SLAB_DEBUG_FLAGS);
--#else
--	return 0;
-+	if (static_branch_unlikely(&slub_debug_enabled))
-+		return s->flags & SLAB_DEBUG_FLAGS;
- #endif
-+	return 0;
- }
+-	if (!(s->flags & (SLAB_STORE_USER|SLAB_RED_ZONE|__OBJECT_POISON)))
++	if (!kmem_cache_debug_flags(s, SLAB_STORE_USER|SLAB_RED_ZONE|__OBJECT_POISON))
+ 		return;
  
- void *fixup_red_left(struct kmem_cache *s, void *p)
-@@ -1389,6 +1397,8 @@ static int __init setup_slub_debug(char
- 		slub_debug_string = saved_str;
- 	}
- out:
-+	if (slub_debug != 0 || slub_debug_string)
-+		static_branch_enable(&slub_debug_enabled);
- 	if ((static_branch_unlikely(&init_on_alloc) ||
- 	     static_branch_unlikely(&init_on_free)) &&
- 	    (slub_debug & SLAB_POISON))
+ 	init_object(s, object, SLUB_RED_INACTIVE);
+@@ -1140,7 +1140,7 @@ static void setup_object_debug(struct km
+ static
+ void setup_page_debug(struct kmem_cache *s, struct page *page, void *addr)
+ {
+-	if (!(s->flags & SLAB_POISON))
++	if (!kmem_cache_debug_flags(s, SLAB_POISON))
+ 		return;
+ 
+ 	metadata_access_enable();
+@@ -1857,7 +1857,7 @@ static void __free_slab(struct kmem_cach
+ 	int order = compound_order(page);
+ 	int pages = 1 << order;
+ 
+-	if (s->flags & SLAB_CONSISTENCY_CHECKS) {
++	if (kmem_cache_debug_flags(s, SLAB_CONSISTENCY_CHECKS)) {
+ 		void *p;
+ 
+ 		slab_pad_check(s, page);
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
