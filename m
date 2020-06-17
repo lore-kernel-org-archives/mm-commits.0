@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch added
- to -mm tree
-Date: Wed, 17 Jun 2020 14:42:50 -0700
-Message-ID: <20200617214250.mJmvC%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-use-unlikely-in-task_capc.patch added to
+ -mm tree
+Date: Wed, 17 Jun 2020 14:42:53 -0700
+Message-ID: <20200617214253.X_Ukw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33094 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727053AbgFQVmw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Jun 2020 17:42:52 -0400
+        id S1726840AbgFQVmy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Jun 2020 17:42:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, stable@vger.kernel.org, mgorman@techsingularity.net, liwang@redhat.com, hughd@google.com, alex.shi@linux.alibaba.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, mgorman@techsingularity.net, liwang@redhat.com, hughd@googlecom, hughd@google.com, alex.shi@linux.alibaba.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm, compaction: make capture control handling safe wrt interrupts
+     Subject: mm, page_alloc: use unlikely() in task_capc()
 has been added to the -mm tree.  Its filename is
-     mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch
+     mm-page_alloc-use-unlikely-in-task_capc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-use-unlikely-in-task_capc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-use-unlikely-in-task_capc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,88 +37,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: make capture control handling safe wrt interrupts
+Subject: mm, page_alloc: use unlikely() in task_capc()
 
-Hugh reports:
+Hugh noted that task_capc() could use unlikely(), as most of the time
+there is no capture in progress and we are in page freeing hot path. 
+Indeed adding unlikely() produces assembly that better matches the
+assumption and moves all the tests away from the hot path.
 
-: While stressing compaction, one run oopsed on NULL capc->cc in
-: __free_one_page()'s task_capc(zone): compact_zone_order() had been
-: interrupted, and a page was being freed in the return from interrupt.
-: 
-: Though you would not expect it from the source, both gccs I was using (a
-: 4.8.1 and a 7.5.0) had chosen to compile compact_zone_order() with the
-: ".cc = &cc" implemented by mov %rbx,-0xb0(%rbp) immediately before callq
-: compact_zone - long after the "current->capture_control = &capc".  An
-: interrupt in between those finds capc->cc NULL (zeroed by an earlier rep
-: stos).
-: 
-: This could presumably be fixed by a barrier() before setting
-: current->capture_control in compact_zone_order(); but would also need more
-: care on return from compact_zone(), in order not to risk leaking a page
-: captured by interrupt just before capture_control is reset.
-: 
-: Maybe that is the preferable fix, but I felt safer for task_capc() to
-: exclude the rather surprising possibility of capture at interrupt time.
+I have also noticed that we don't need to test for cc->direct_compaction
+as the only place we set current->task_capture is compact_zone_order()
+which also always sets cc->direct_compaction true.
 
-I have checked that gcc10 also behaves the same.
-
-The advantage of fix in compact_zone_order() is that we don't add another
-test in the page freeing hot path, and that it might prevent future
-problems if we stop exposing pointers to unitialized structures in current
-task.
-
-So this patch implements the suggestion for compact_zone_order() with
-barrier() (and WRITE_ONCE() to prevent store tearing) for setting
-current->capture_control, and prevents page leaking with
-WRITE_ONCE/READ_ONCE in the proper order.
-
-Link: http://lkml.kernel.org/r/20200616082649.27173-1-vbabka@suse.cz
-Fixes: 5e1f0f098b46 ("mm, compaction: capture a page under direct compaction")
+Link: http://lkml.kernel.org/r/4a24f7af-3aa5-6e80-4ae6-8f253b562039@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Hugh Dickins <hughd@google.com>
 Suggested-by: Hugh Dickins <hughd@google.com>
+Acked-by: Hugh Dickins <hughd@googlecom>
 Cc: Alex Shi <alex.shi@linux.alibaba.com>
 Cc: Li Wang <liwang@redhat.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>	[5.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-make-capture-control-handling-safe-wrt-interrupts
-+++ a/mm/compaction.c
-@@ -2316,15 +2316,26 @@ static enum compact_result compact_zone_
- 		.page = NULL,
- 	};
+--- a/mm/page_alloc.c~mm-page_alloc-use-unlikely-in-task_capc
++++ a/mm/page_alloc.c
+@@ -813,11 +813,10 @@ static inline struct capture_control *ta
+ {
+ 	struct capture_control *capc = current->capture_control;
  
--	current->capture_control = &capc;
-+	/*
-+	 * Make sure the structs are really initialized before we expose the
-+	 * capture control, in case we are interrupted and the interrupt handler
-+	 * frees a page.
-+	 */
-+	barrier();
-+	WRITE_ONCE(current->capture_control, &capc);
- 
- 	ret = compact_zone(&cc, &capc);
- 
- 	VM_BUG_ON(!list_empty(&cc.freepages));
- 	VM_BUG_ON(!list_empty(&cc.migratepages));
- 
--	*capture = capc.page;
--	current->capture_control = NULL;
-+	/*
-+	 * Make sure we hide capture control first before we read the captured
-+	 * page pointer, otherwise an interrupt could free and capture a page
-+	 * and we would leak it.
-+	 */
-+	WRITE_ONCE(current->capture_control, NULL);
-+	*capture = READ_ONCE(capc.page);
- 
- 	return ret;
+-	return capc &&
++	return unlikely(capc) &&
+ 		!(current->flags & PF_KTHREAD) &&
+ 		!capc->page &&
+-		capc->cc->zone == zone &&
+-		capc->cc->direct_compaction ? capc : NULL;
++		capc->cc->zone == zone ? capc : NULL;
  }
+ 
+ static inline bool
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
