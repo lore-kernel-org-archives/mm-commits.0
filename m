@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + tools-cgroup-add-memcg_slabinfopy-tool.patch added to -mm
+Subject: +
+ percpu-return-number-of-released-bytes-from-pcpu_free_area.patch added to -mm
  tree
-Date: Wed, 17 Jun 2020 16:34:32 -0700
-Message-ID: <20200617233432.n97Oy%akpm@linux-foundation.org>
+Date: Wed, 17 Jun 2020 16:34:52 -0700
+Message-ID: <20200617233452.i1izc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43806 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43874 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726945AbgFQXef (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Jun 2020 19:34:35 -0400
+        id S1726496AbgFQXey (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Jun 2020 19:34:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vbabka@suse.cz, tobin@kernel.org, tj@kernel.org, shakeelb@google.com, rientjes@google.com, penberg@kernel.org, mhocko@kernel.org, mgorman@techsingularity.net, longman@redhat.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, dennis@kernel.org, cl@linux.com, guro@fb.com
 
 
 The patch titled
-     Subject: tools/cgroup: add memcg_slabinfo.py tool
+     Subject: percpu: return number of released bytes from pcpu_free_area()
 has been added to the -mm tree.  Its filename is
-     tools-cgroup-add-memcg_slabinfopy-tool.patch
+     percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-cgroup-add-memcg_slabinfopy-tool.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-cgroup-add-memcg_slabinfopy-tool.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,297 +38,131 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: tools/cgroup: add memcg_slabinfo.py tool
+Subject: percpu: return number of released bytes from pcpu_free_area()
 
-Add a drgn-based tool to display slab information for a given memcg.  Can
-replace cgroup v1 memory.kmem.slabinfo interface on cgroup v2, but in a
-more flexiable way.
+Patch series "mm: memcg accounting of percpu memory", v2.
 
-Currently supports only SLUB configuration, but SLAB can be trivially
-added later.
+This patchset adds percpu memory accounting to memory cgroups.  It's based
+on the rework of the slab controller and reuses concepts and features
+introduced for the per-object slab accounting.
 
-Output example:
-$ sudo ./tools/cgroup/memcg_slabinfo.py /sys/fs/cgroup/user.slice/user-111017.slice/user\@111017.service
-shmem_inode_cache     92     92    704   46    8 : tunables    0    0    0 : slabdata      2      2      0
-eventpoll_pwq         56     56     72   56    1 : tunables    0    0    0 : slabdata      1      1      0
-eventpoll_epi         32     32    128   32    1 : tunables    0    0    0 : slabdata      1      1      0
-kmalloc-8              0      0      8  512    1 : tunables    0    0    0 : slabdata      0      0      0
-kmalloc-96             0      0     96   42    1 : tunables    0    0    0 : slabdata      0      0      0
-kmalloc-2048           0      0   2048   16    8 : tunables    0    0    0 : slabdata      0      0      0
-kmalloc-64           128    128     64   64    1 : tunables    0    0    0 : slabdata      2      2      0
-mm_struct            160    160   1024   32    8 : tunables    0    0    0 : slabdata      5      5      0
-signal_cache          96     96   1024   32    8 : tunables    0    0    0 : slabdata      3      3      0
-sighand_cache         45     45   2112   15    8 : tunables    0    0    0 : slabdata      3      3      0
-files_cache          138    138    704   46    8 : tunables    0    0    0 : slabdata      3      3      0
-task_delay_info      153    153     80   51    1 : tunables    0    0    0 : slabdata      3      3      0
-task_struct           27     27   3520    9    8 : tunables    0    0    0 : slabdata      3      3      0
-radix_tree_node       56     56    584   28    4 : tunables    0    0    0 : slabdata      2      2      0
-btrfs_inode          140    140   1136   28    8 : tunables    0    0    0 : slabdata      5      5      0
-kmalloc-1024          64     64   1024   32    8 : tunables    0    0    0 : slabdata      2      2      0
-kmalloc-192           84     84    192   42    2 : tunables    0    0    0 : slabdata      2      2      0
-inode_cache           54     54    600   27    4 : tunables    0    0    0 : slabdata      2      2      0
-kmalloc-128            0      0    128   32    1 : tunables    0    0    0 : slabdata      0      0      0
-kmalloc-512           32     32    512   32    4 : tunables    0    0    0 : slabdata      1      1      0
-skbuff_head_cache     32     32    256   32    2 : tunables    0    0    0 : slabdata      1      1      0
-sock_inode_cache      46     46    704   46    8 : tunables    0    0    0 : slabdata      1      1      0
-cred_jar             378    378    192   42    2 : tunables    0    0    0 : slabdata      9      9      0
-proc_inode_cache      96     96    672   24    4 : tunables    0    0    0 : slabdata      4      4      0
-dentry               336    336    192   42    2 : tunables    0    0    0 : slabdata      8      8      0
-filp                 697    864    256   32    2 : tunables    0    0    0 : slabdata     27     27      0
-anon_vma             644    644     88   46    1 : tunables    0    0    0 : slabdata     14     14      0
-pid                 1408   1408     64   64    1 : tunables    0    0    0 : slabdata     22     22      0
-vm_area_struct      1200   1200    200   40    2 : tunables    0    0    0 : slabdata     30     30      0
+Percpu memory is becoming more and more widely used by various subsystems,
+and the total amount of memory controlled by the percpu allocator can make
+a good part of the total memory.
 
-Link: http://lkml.kernel.org/r/20200608230654.828134-20-guro@fb.com
+As an example, bpf maps can consume a lot of percpu memory, and they are
+created by a user.  Also, some cgroup internals (e.g.  memory controller
+statistics) can be quite large.  On a machine with many CPUs and big
+number of cgroups they can consume hundreds of megabytes.
+
+So the lack of memcg accounting is creating a breach in the memory
+isolation.  Similar to the slab memory, percpu memory should be accounted
+by default.
+
+Percpu allocations by their nature are scattered over multiple pages, so
+they can't be tracked on the per-page basis.  So the per-object tracking
+introduced by the new slab controller is reused.
+
+The patchset implements charging of percpu allocations, adds memcg-level
+statistics, enables accounting for percpu allocations made by memory
+cgroup internals and provides some basic tests.
+
+To implement the accounting of percpu memory without a significant memory
+and performance overhead the following approach is used: all accounted
+allocations are placed into a separate percpu chunk (or chunks).  These
+chunks are similar to default chunks, except that they do have an attached
+vector of pointers to obj_cgroup objects, which is big enough to save a
+pointer for each allocated object.  On the allocation, if the allocation
+has to be accounted (__GFP_ACCOUNT is passed, the allocating process
+belongs to a non-root memory cgroup, etc), the memory cgroup is getting
+charged and if the maximum limit is not exceeded the allocation is
+performed using a memcg-aware chunk.  Otherwise -ENOMEM is returned or the
+allocation is forced over the limit, depending on gfp (as any other kernel
+memory allocation).  The memory cgroup information is saved in the
+obj_cgroup vector at the corresponding offset.  On the release time the
+memcg information is restored from the vector and the cgroup is getting
+uncharged.  Unaccounted allocations (at this point the absolute majority
+of all percpu allocations) are performed in the old way, so no additional
+overhead is expected.
+
+To avoid pinning dying memory cgroups by outstanding allocations,
+obj_cgroup API is used instead of directly saving memory cgroup pointers. 
+obj_cgroup is basically a pointer to a memory cgroup with a standalone
+reference counter.  The trick is that it can be atomically swapped to
+point at the parent cgroup, so that the original memory cgroup can be
+released prior to all objects, which has been charged to it.  Because all
+charges and statistics are fully recursive, it's perfectly correct to
+uncharge the parent cgroup instead.  This scheme is used in the slab
+memory accounting, and percpu memory can just follow the scheme.
+
+
+This patch (of 5):
+
+To implement accounting of percpu memory we need the information about the
+size of freed object.  Return it from pcpu_free_area().
+
+Link: http://lkml.kernel.org/r/20200608230819.832349-1-guro@fb.com
+Link: http://lkml.kernel.org/r/20200608230819.832349-2-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Tobin C. Harding <tobin@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Shakeel Butt <shakeelb@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Tobin C. Harding <tobin@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/cgroup/memcg_slabinfo.py |  226 +++++++++++++++++++++++++++++++
- 1 file changed, 226 insertions(+)
+ mm/percpu.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
---- /dev/null
-+++ a/tools/cgroup/memcg_slabinfo.py
-@@ -0,0 +1,226 @@
-+#!/usr/bin/env drgn
-+#
-+# Copyright (C) 2020 Roman Gushchin <guro@fb.com>
-+# Copyright (C) 2020 Facebook
+--- a/mm/percpu.c~percpu-return-number-of-released-bytes-from-pcpu_free_area
++++ a/mm/percpu.c
+@@ -1211,11 +1211,14 @@ static int pcpu_alloc_area(struct pcpu_c
+  *
+  * This function determines the size of an allocation to free using
+  * the boundary bitmap and clears the allocation map.
++ *
++ * RETURNS:
++ * Number of freed bytes.
+  */
+-static void pcpu_free_area(struct pcpu_chunk *chunk, int off)
++static int pcpu_free_area(struct pcpu_chunk *chunk, int off)
+ {
+ 	struct pcpu_block_md *chunk_md = &chunk->chunk_md;
+-	int bit_off, bits, end, oslot;
++	int bit_off, bits, end, oslot, freed;
+ 
+ 	lockdep_assert_held(&pcpu_lock);
+ 	pcpu_stats_area_dealloc(chunk);
+@@ -1230,8 +1233,10 @@ static void pcpu_free_area(struct pcpu_c
+ 	bits = end - bit_off;
+ 	bitmap_clear(chunk->alloc_map, bit_off, bits);
+ 
++	freed = bits * PCPU_MIN_ALLOC_SIZE;
 +
-+from os import stat
-+import argparse
-+import sys
+ 	/* update metadata */
+-	chunk->free_bytes += bits * PCPU_MIN_ALLOC_SIZE;
++	chunk->free_bytes += freed;
+ 
+ 	/* update first free bit */
+ 	chunk_md->first_free = min(chunk_md->first_free, bit_off);
+@@ -1239,6 +1244,8 @@ static void pcpu_free_area(struct pcpu_c
+ 	pcpu_block_update_hint_free(chunk, bit_off, bits);
+ 
+ 	pcpu_chunk_relocate(chunk, oslot);
 +
-+from drgn.helpers.linux import list_for_each_entry, list_empty
-+from drgn.helpers.linux import for_each_page
-+from drgn.helpers.linux.cpumask import for_each_online_cpu
-+from drgn.helpers.linux.percpu import per_cpu_ptr
-+from drgn import container_of, FaultError, Object
-+
-+
-+DESC = """
-+This is a drgn script to provide slab statistics for memory cgroups.
-+It supports cgroup v2 and v1 and can emulate memory.kmem.slabinfo
-+interface of cgroup v1.
-+For drgn, visit https://github.com/osandov/drgn.
-+"""
-+
-+
-+MEMCGS = {}
-+
-+OO_SHIFT = 16
-+OO_MASK = ((1 << OO_SHIFT) - 1)
-+
-+
-+def err(s):
-+    print('slabinfo.py: error: %s' % s, file=sys.stderr, flush=True)
-+    sys.exit(1)
-+
-+
-+def find_memcg_ids(css=prog['root_mem_cgroup'].css, prefix=''):
-+    if not list_empty(css.children.address_of_()):
-+        for css in list_for_each_entry('struct cgroup_subsys_state',
-+                                       css.children.address_of_(),
-+                                       'sibling'):
-+            name = prefix + '/' + css.cgroup.kn.name.string_().decode('utf-8')
-+            memcg = container_of(css, 'struct mem_cgroup', 'css')
-+            MEMCGS[css.cgroup.kn.id.value_()] = memcg
-+            find_memcg_ids(css, name)
-+
-+
-+def is_root_cache(s):
-+    try:
-+        return False if s.memcg_params.root_cache else True
-+    except AttributeError:
-+        return True
-+
-+
-+def cache_name(s):
-+    if is_root_cache(s):
-+        return s.name.string_().decode('utf-8')
-+    else:
-+        return s.memcg_params.root_cache.name.string_().decode('utf-8')
-+
-+
-+# SLUB
-+
-+def oo_order(s):
-+    return s.oo.x >> OO_SHIFT
-+
-+
-+def oo_objects(s):
-+    return s.oo.x & OO_MASK
-+
-+
-+def count_partial(n, fn):
-+    nr_pages = 0
-+    for page in list_for_each_entry('struct page', n.partial.address_of_(),
-+                                    'lru'):
-+         nr_pages += fn(page)
-+    return nr_pages
-+
-+
-+def count_free(page):
-+    return page.objects - page.inuse
-+
-+
-+def slub_get_slabinfo(s, cfg):
-+    nr_slabs = 0
-+    nr_objs = 0
-+    nr_free = 0
-+
-+    for node in range(cfg['nr_nodes']):
-+        n = s.node[node]
-+        nr_slabs += n.nr_slabs.counter.value_()
-+        nr_objs += n.total_objects.counter.value_()
-+        nr_free += count_partial(n, count_free)
-+
-+    return {'active_objs': nr_objs - nr_free,
-+            'num_objs': nr_objs,
-+            'active_slabs': nr_slabs,
-+            'num_slabs': nr_slabs,
-+            'objects_per_slab': oo_objects(s),
-+            'cache_order': oo_order(s),
-+            'limit': 0,
-+            'batchcount': 0,
-+            'shared': 0,
-+            'shared_avail': 0}
-+
-+
-+def cache_show(s, cfg, objs):
-+    if cfg['allocator'] == 'SLUB':
-+        sinfo = slub_get_slabinfo(s, cfg)
-+    else:
-+        err('SLAB isn\'t supported yet')
-+
-+    if cfg['shared_slab_pages']:
-+        sinfo['active_objs'] = objs
-+        sinfo['num_objs'] = objs
-+
-+    print('%-17s %6lu %6lu %6u %4u %4d'
-+          ' : tunables %4u %4u %4u'
-+          ' : slabdata %6lu %6lu %6lu' % (
-+              cache_name(s), sinfo['active_objs'], sinfo['num_objs'],
-+              s.size, sinfo['objects_per_slab'], 1 << sinfo['cache_order'],
-+              sinfo['limit'], sinfo['batchcount'], sinfo['shared'],
-+              sinfo['active_slabs'], sinfo['num_slabs'],
-+              sinfo['shared_avail']))
-+
-+
-+def detect_kernel_config():
-+    cfg = {}
-+
-+    cfg['nr_nodes'] = prog['nr_online_nodes'].value_()
-+
-+    if prog.type('struct kmem_cache').members[1][1] == 'flags':
-+        cfg['allocator'] = 'SLUB'
-+    elif prog.type('struct kmem_cache').members[1][1] == 'batchcount':
-+        cfg['allocator'] = 'SLAB'
-+    else:
-+        err('Can\'t determine the slab allocator')
-+
-+    cfg['shared_slab_pages'] = False
-+    try:
-+        if prog.type('struct obj_cgroup'):
-+            cfg['shared_slab_pages'] = True
-+    except:
-+        pass
-+
-+    return cfg
-+
-+
-+def for_each_slab_page(prog):
-+    PGSlab = 1 << prog.constant('PG_slab')
-+    PGHead = 1 << prog.constant('PG_head')
-+
-+    for page in for_each_page(prog):
-+        try:
-+            if page.flags.value_() & PGSlab:
-+                yield page
-+        except FaultError:
-+            pass
-+
-+
-+def main():
-+    parser = argparse.ArgumentParser(description=DESC,
-+                                     formatter_class=
-+                                     argparse.RawTextHelpFormatter)
-+    parser.add_argument('cgroup', metavar='CGROUP',
-+                        help='Target memory cgroup')
-+    args = parser.parse_args()
-+
-+    try:
-+        cgroup_id = stat(args.cgroup).st_ino
-+        find_memcg_ids()
-+        memcg = MEMCGS[cgroup_id]
-+    except KeyError:
-+        err('Can\'t find the memory cgroup')
-+
-+    cfg = detect_kernel_config()
-+
-+    print('# name            <active_objs> <num_objs> <objsize> <objperslab> <pagesperslab>'
-+          ' : tunables <limit> <batchcount> <sharedfactor>'
-+          ' : slabdata <active_slabs> <num_slabs> <sharedavail>')
-+
-+    if cfg['shared_slab_pages']:
-+        obj_cgroups = set()
-+        stats = {}
-+        caches = {}
-+
-+        # find memcg pointers belonging to the specified cgroup
-+        obj_cgroups.add(memcg.objcg.value_())
-+        for ptr in list_for_each_entry('struct obj_cgroup',
-+                                       memcg.objcg_list.address_of_(),
-+                                       'list'):
-+            obj_cgroups.add(ptr.value_())
-+
-+        # look over all slab pages, belonging to non-root memcgs
-+        # and look for objects belonging to the given memory cgroup
-+        for page in for_each_slab_page(prog):
-+            objcg_vec_raw = page.obj_cgroups.value_()
-+            if objcg_vec_raw == 0:
-+                continue
-+            cache = page.slab_cache
-+            if not cache:
-+                continue
-+            addr = cache.value_()
-+            caches[addr] = cache
-+            # clear the lowest bit to get the true obj_cgroups
-+            objcg_vec = Object(prog, page.obj_cgroups.type_,
-+                               value=objcg_vec_raw & ~1)
-+
-+            if addr not in stats:
-+                stats[addr] = 0
-+
-+            for i in range(oo_objects(cache)):
-+                if objcg_vec[i].value_() in obj_cgroups:
-+                    stats[addr] += 1
-+
-+        for addr in caches:
-+            if stats[addr] > 0:
-+                cache_show(caches[addr], cfg, stats[addr])
-+
-+    else:
-+        for s in list_for_each_entry('struct kmem_cache',
-+                                     memcg.kmem_caches.address_of_(),
-+                                     'memcg_params.kmem_caches_node'):
-+            cache_show(s, cfg, None)
-+
-+
-+main()
++	return freed;
+ }
+ 
+ static void pcpu_init_md_block(struct pcpu_block_md *block, int nr_bits)
 _
 
 Patches currently in -mm which might be from guro@fb.com are
