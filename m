@@ -1,28 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-use-unlikely-in-task_capc.patch added to
- -mm tree
-Date: Wed, 17 Jun 2020 14:42:53 -0700
-Message-ID: <20200617214253.X_Ukw%akpm@linux-foundation.org>
+Subject: +
+ mm-track-mmu-notifiers-in-fs_reclaim_acquire-release.patch added to -mm tree
+Date: Wed, 17 Jun 2020 15:30:56 -0700
+Message-ID: <20200617223056.c9nhg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33138 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39010 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726840AbgFQVmy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Jun 2020 17:42:54 -0400
+        id S1726496AbgFQWa6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Jun 2020 18:30:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, mgorman@techsingularity.net, liwang@redhat.com, hughd@googlecom, hughd@google.com, alex.shi@linux.alibaba.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, thomas_os@shipmail.org, maarten.lankhorst@linux.intel.com, jgg@mellanox.com, daniel.vetter@intel.com, christian.koenig@amd.com, daniel.vetter@ffwll.ch
 
 
 The patch titled
-     Subject: mm, page_alloc: use unlikely() in task_capc()
+     Subject: mm: track mmu notifiers in fs_reclaim_acquire/release
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-use-unlikely-in-task_capc.patch
+     mm-track-mmu-notifiers-in-fs_reclaim_acquire-release.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-use-unlikely-in-task_capc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-track-mmu-notifiers-in-fs_r=
+eclaim_acquire-release.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-use-unlikely-in-task_capc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-track-mmu-notifiers-in-fs_r=
+eclaim_acquire-release.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,65 +35,143 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: use unlikely() in task_capc()
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: mm: track mmu notifiers in fs_reclaim_acquire/release
 
-Hugh noted that task_capc() could use unlikely(), as most of the time
-there is no capture in progress and we are in page freeing hot path. 
-Indeed adding unlikely() produces assembly that better matches the
-assumption and moves all the tests away from the hot path.
+fs_reclaim_acquire/release nicely catch recursion issues when allocating
+GFP_KERNEL memory against shrinkers (which gpu drivers tend to use to keep
+the excessive caches in check).  For mmu notifier recursions we do have
+lockdep annotations since 23b68395c7c7 ("mm/mmu_notifiers: add a lockdep
+map for invalidate_range_start/end").
 
-I have also noticed that we don't need to test for cc->direct_compaction
-as the only place we set current->task_capture is compact_zone_order()
-which also always sets cc->direct_compaction true.
+But these only fire if a path actually results in some pte invalidation -
+for most small allocations that's very rarely the case.  The other trouble
+is that pte invalidation can happen any time when __GFP_RECLAIM is set.=20
+Which means only really GFP_ATOMIC is a safe choice, GFP_NOIO isn't good
+enough to avoid potential mmu notifier recursion.
 
-Link: http://lkml.kernel.org/r/4a24f7af-3aa5-6e80-4ae6-8f253b562039@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Acked-by: Hugh Dickins <hughd@googlecom>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Li Wang <liwang@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+I was pondering whether we should just do the general annotation, but
+there's always the risk for false positives.  Plus I'm assuming that the
+core fs and io code is a lot better reviewed and tested than random mmu
+notifier code in drivers.  Hence why I decide to only annotate for that
+specific case.
+
+Furthermore even if we'd create a lockdep map for direct reclaim, we'd
+still need to explicit pull in the mmu notifier map - there's a lot more
+places that do pte invalidation than just direct reclaim, these two
+contexts arent the same.
+
+Note that the mmu notifiers needing their own independent lockdep map is
+also the reason we can't hold them from fs_reclaim_acquire to
+fs_reclaim_release - it would nest with the acquistion in the pte
+invalidation code, causing a lockdep splat.  And we can't remove the
+annotations from pte invalidation and all the other places since they're
+called from many other places than page reclaim.  Hence we can only do the
+equivalent of might_lock, but on the raw lockdep map.
+
+With this we can also remove the lockdep priming added in 66204f1d2d1b
+("mm/mmu_notifiers: prime lockdep") since the new annotations are strictly
+more powerful.
+
+Link: http://lkml.kernel.org/r/20200610194101.1668038-1-daniel.vetter@ffwll=
+.ch
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Acked-by: Jason Gunthorpe <jgg@mellanox.com>	[mmu_notifiers]
+Cc: Thomas Hellstr=C3=B6m (Intel) <thomas_os@shipmail.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/mmu_notifier.c |    7 -------
+ mm/page_alloc.c   |   25 ++++++++++++++++---------
+ 2 files changed, 16 insertions(+), 16 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-use-unlikely-in-task_capc
+--- a/mm/mmu_notifier.c~mm-track-mmu-notifiers-in-fs_reclaim_acquire-release
++++ a/mm/mmu_notifier.c
+@@ -612,13 +612,6 @@ int __mmu_notifier_register(struct mmu_n
+ 	mmap_assert_write_locked(mm);
+ 	BUG_ON(atomic_read(&mm->mm_users) <=3D 0);
+=20
+-	if (IS_ENABLED(CONFIG_LOCKDEP)) {
+-		fs_reclaim_acquire(GFP_KERNEL);
+-		lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
+-		lock_map_release(&__mmu_notifier_invalidate_range_start_map);
+-		fs_reclaim_release(GFP_KERNEL);
+-	}
+-
+ 	if (!mm->notifier_subscriptions) {
+ 		/*
+ 		 * kmalloc cannot be called under mm_take_all_locks(), but we
+--- a/mm/page_alloc.c~mm-track-mmu-notifiers-in-fs_reclaim_acquire-release
 +++ a/mm/page_alloc.c
-@@ -813,11 +813,10 @@ static inline struct capture_control *ta
+@@ -57,6 +57,7 @@
+ #include <trace/events/oom.h>
+ #include <linux/prefetch.h>
+ #include <linux/mm_inline.h>
++#include <linux/mmu_notifier.h>
+ #include <linux/migrate.h>
+ #include <linux/hugetlb.h>
+ #include <linux/sched/rt.h>
+@@ -4155,7 +4156,7 @@ should_compact_retry(struct alloc_contex
+ static struct lockdep_map __fs_reclaim_map =3D
+ 	STATIC_LOCKDEP_MAP_INIT("fs_reclaim", &__fs_reclaim_map);
+=20
+-static bool __need_fs_reclaim(gfp_t gfp_mask)
++static bool __need_reclaim(gfp_t gfp_mask)
  {
- 	struct capture_control *capc = current->capture_control;
- 
--	return capc &&
-+	return unlikely(capc) &&
- 		!(current->flags & PF_KTHREAD) &&
- 		!capc->page &&
--		capc->cc->zone == zone &&
--		capc->cc->direct_compaction ? capc : NULL;
-+		capc->cc->zone == zone ? capc : NULL;
+ 	gfp_mask =3D current_gfp_context(gfp_mask);
+=20
+@@ -4167,10 +4168,6 @@ static bool __need_fs_reclaim(gfp_t gfp_
+ 	if (current->flags & PF_MEMALLOC)
+ 		return false;
+=20
+-	/* We're only interested __GFP_FS allocations for now */
+-	if (!(gfp_mask & __GFP_FS))
+-		return false;
+-
+ 	if (gfp_mask & __GFP_NOLOCKDEP)
+ 		return false;
+=20
+@@ -4189,15 +4186,25 @@ void __fs_reclaim_release(void)
+=20
+ void fs_reclaim_acquire(gfp_t gfp_mask)
+ {
+-	if (__need_fs_reclaim(gfp_mask))
+-		__fs_reclaim_acquire();
++	if (__need_reclaim(gfp_mask)) {
++		if (gfp_mask & __GFP_FS)
++			__fs_reclaim_acquire();
++
++#ifdef CONFIG_MMU_NOTIFIER
++		lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
++		lock_map_release(&__mmu_notifier_invalidate_range_start_map);
++#endif
++
++	}
  }
- 
- static inline bool
+ EXPORT_SYMBOL_GPL(fs_reclaim_acquire);
+=20
+ void fs_reclaim_release(gfp_t gfp_mask)
+ {
+-	if (__need_fs_reclaim(gfp_mask))
+-		__fs_reclaim_release();
++	if (__need_reclaim(gfp_mask)) {
++		if (gfp_mask & __GFP_FS)
++			__fs_reclaim_release();
++	}
+ }
+ EXPORT_SYMBOL_GPL(fs_reclaim_release);
+ #endif
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
 
-mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch
-mm-page_alloc-use-unlikely-in-task_capc.patch
-mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
-mm-slub-make-some-slub_debug-related-attributes-read-only.patch
-mm-slub-remove-runtime-allocation-order-changes.patch
-mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
-mm-slub-make-reclaim_account-attribute-read-only.patch
-mm-slub-introduce-static-key-for-slub_debug.patch
-mm-slub-introduce-kmem_cache_debug_flags.patch
-mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
-mm-slab-slub-move-and-improve-cache_from_obj.patch
+mm-track-mmu-notifiers-in-fs_reclaim_acquire-release.patch
