@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
- added to -mm tree
-Date: Wed, 17 Jun 2020 16:34:59 -0700
-Message-ID: <20200617233459.5tMJ6%akpm@linux-foundation.org>
+Subject: +
+ mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch added to -mm
+ tree
+Date: Wed, 17 Jun 2020 16:35:02 -0700
+Message-ID: <20200617233502.gCI1E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43966 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44016 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726496AbgFQXfA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Jun 2020 19:35:00 -0400
+        id S1726952AbgFQXfD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Jun 2020 19:35:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vbabka@suse.cz, tobin@kernel.org, tj@kernel.org, shakeelb@google.com, rientjes@google.com, penberg@kernel.org, mhocko@kernel.org, mgorman@techsingularity.net, longman@redhat.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, dennis@kernel.org, cl@linux.com, guro@fb.com
 
 
 The patch titled
-     Subject: mm: memcg/percpu: per-memcg percpu memory statistics
+     Subject: mm: memcg: charge memcg percpu memory to the parent cgroup
 has been added to the -mm tree.  Its filename is
-     mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
+     mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,18 +38,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg/percpu: per-memcg percpu memory statistics
+Subject: mm: memcg: charge memcg percpu memory to the parent cgroup
 
-Percpu memory can represent a noticeable chunk of the total memory
-consumption, especially on big machines with many CPUs.  Let's track
-percpu memory usage for each memcg and display it in memory.stat.
+Memory cgroups are using large chunks of percpu memory to store vmstat
+data.  Yet this memory is not accounted at all, so in the case when there
+are many (dying) cgroups, it's not exactly clear where all the memory is.
 
-A percpu allocation is usually scattered over multiple pages (and nodes),
-and can be significantly smaller than a page.  So let's add a byte-sized
-counter on the memcg level: MEMCG_PERCPU_B.  Byte-sized vmstat infra
-created for slabs can be perfectly reused for percpu case.
+Because the size of memory cgroup internal structures can dramatically
+exceed the size of object or page which is pinning it in the memory, it's
+not a good idea to simple ignore it.  It actually breaks the isolation
+between cgroups.
 
-Link: http://lkml.kernel.org/r/20200608230819.832349-4-guro@fb.com
+Let's account the consumed percpu memory to the parent cgroup.
+
+Link: http://lkml.kernel.org/r/20200608230819.832349-5-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
 Acked-by: Dennis Zhou <dennis@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
@@ -66,92 +69,54 @@ Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    4 ++++
- include/linux/memcontrol.h              |    8 ++++++++
- mm/memcontrol.c                         |    4 +++-
- mm/percpu.c                             |   10 ++++++++++
- 4 files changed, 25 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcg-percpu-per-memcg-percpu-memory-statistics
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1274,6 +1274,10 @@ PAGE_SIZE multiple when read back.
- 		Amount of memory used for storing in-kernel data
- 		structures.
- 
-+	  percpu
-+		Amount of memory used for storing per-cpu kernel
-+		data structures.
-+
- 	  sock
- 		Amount of memory used in network transmission buffers
- 
---- a/include/linux/memcontrol.h~mm-memcg-percpu-per-memcg-percpu-memory-statistics
-+++ a/include/linux/memcontrol.h
-@@ -32,11 +32,19 @@ struct kmem_cache;
- enum memcg_stat_item {
- 	MEMCG_SWAP = NR_VM_NODE_STAT_ITEMS,
- 	MEMCG_SOCK,
-+	MEMCG_PERCPU_B,
- 	/* XXX: why are these zone and not node counters? */
- 	MEMCG_KERNEL_STACK_KB,
- 	MEMCG_NR_STAT,
- };
- 
-+static __always_inline bool memcg_stat_item_in_bytes(enum memcg_stat_item item)
-+{
-+	if (item == MEMCG_PERCPU_B)
-+		return true;
-+	return vmstat_item_in_bytes(item);
-+}
-+
- enum memcg_memory_event {
- 	MEMCG_LOW,
- 	MEMCG_HIGH,
---- a/mm/memcontrol.c~mm-memcg-percpu-per-memcg-percpu-memory-statistics
+--- a/mm/memcontrol.c~mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup
 +++ a/mm/memcontrol.c
-@@ -783,7 +783,7 @@ void __mod_memcg_state(struct mem_cgroup
- 	if (mem_cgroup_disabled())
- 		return;
+@@ -5069,13 +5069,15 @@ static int alloc_mem_cgroup_per_node_inf
+ 	if (!pn)
+ 		return 1;
  
--	if (vmstat_item_in_bytes(idx))
-+	if (memcg_stat_item_in_bytes(idx))
- 		threshold <<= PAGE_SHIFT;
+-	pn->lruvec_stat_local = alloc_percpu(struct lruvec_stat);
++	pn->lruvec_stat_local = alloc_percpu_gfp(struct lruvec_stat,
++						 GFP_KERNEL_ACCOUNT);
+ 	if (!pn->lruvec_stat_local) {
+ 		kfree(pn);
+ 		return 1;
+ 	}
  
- 	x = val + __this_cpu_read(memcg->vmstats_percpu->stat[idx]);
-@@ -1490,6 +1490,8 @@ static char *memory_stat_format(struct m
- 	seq_buf_printf(&s, "slab %llu\n",
- 		       (u64)(memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
- 			     memcg_page_state(memcg, NR_SLAB_UNRECLAIMABLE_B)));
-+	seq_buf_printf(&s, "percpu %llu\n",
-+		       (u64)memcg_page_state(memcg, MEMCG_PERCPU_B));
- 	seq_buf_printf(&s, "sock %llu\n",
- 		       (u64)memcg_page_state(memcg, MEMCG_SOCK) *
- 		       PAGE_SIZE);
---- a/mm/percpu.c~mm-memcg-percpu-per-memcg-percpu-memory-statistics
-+++ a/mm/percpu.c
-@@ -1608,6 +1608,11 @@ static void pcpu_memcg_post_alloc_hook(s
+-	pn->lruvec_stat_cpu = alloc_percpu(struct lruvec_stat);
++	pn->lruvec_stat_cpu = alloc_percpu_gfp(struct lruvec_stat,
++					       GFP_KERNEL_ACCOUNT);
+ 	if (!pn->lruvec_stat_cpu) {
+ 		free_percpu(pn->lruvec_stat_local);
+ 		kfree(pn);
+@@ -5149,11 +5151,13 @@ static struct mem_cgroup *mem_cgroup_all
+ 		goto fail;
+ 	}
  
- 	if (chunk) {
- 		chunk->obj_cgroups[off >> PCPU_MIN_ALLOC_SHIFT] = objcg;
-+
-+		rcu_read_lock();
-+		mod_memcg_state(obj_cgroup_memcg(objcg), MEMCG_PERCPU_B,
-+				size * num_possible_cpus());
-+		rcu_read_unlock();
- 	} else {
- 		obj_cgroup_uncharge(objcg, size * num_possible_cpus());
- 		obj_cgroup_put(objcg);
-@@ -1626,6 +1631,11 @@ static void pcpu_memcg_free_hook(struct
+-	memcg->vmstats_local = alloc_percpu(struct memcg_vmstats_percpu);
++	memcg->vmstats_local = alloc_percpu_gfp(struct memcg_vmstats_percpu,
++						GFP_KERNEL_ACCOUNT);
+ 	if (!memcg->vmstats_local)
+ 		goto fail;
  
- 	obj_cgroup_uncharge(objcg, size * num_possible_cpus());
+-	memcg->vmstats_percpu = alloc_percpu(struct memcg_vmstats_percpu);
++	memcg->vmstats_percpu = alloc_percpu_gfp(struct memcg_vmstats_percpu,
++						 GFP_KERNEL_ACCOUNT);
+ 	if (!memcg->vmstats_percpu)
+ 		goto fail;
  
-+	rcu_read_lock();
-+	mod_memcg_state(obj_cgroup_memcg(objcg), MEMCG_PERCPU_B,
-+			-(size * num_possible_cpus()));
-+	rcu_read_unlock();
-+
- 	obj_cgroup_put(objcg);
- }
+@@ -5202,7 +5206,9 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	struct mem_cgroup *memcg;
+ 	long error = -ENOMEM;
+ 
++	memalloc_use_memcg(parent);
+ 	memcg = mem_cgroup_alloc();
++	memalloc_unuse_memcg();
+ 	if (IS_ERR(memcg))
+ 		return ERR_CAST(memcg);
  
 _
 
