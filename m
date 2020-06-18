@@ -1,28 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-forkc-annotate-data-races-for-copy_process.patch
- added to -mm tree
-Date: Wed, 17 Jun 2020 18:16:57 -0700
-Message-ID: <20200618011657.hCkkO%akpm@linux-foundation.org>
+Subject: + vmalloc-convert-to-xarray.patch added to -mm tree
+Date: Wed, 17 Jun 2020 18:34:02 -0700
+Message-ID: <20200618013402.D9Sub%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48034 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45426 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728874AbgFRBQ6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Jun 2020 21:16:58 -0400
+        id S1733029AbgFRBeD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Jun 2020 21:34:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, paulmck@kernel.org, oleg@redhat.com, lizefan@huawei.com, elver@google.com, christian.brauner@ubuntu.com, cai@lca.pw, chenweilong@huawei.com
+To: mm-commits@vger.kernel.org, william.kucharski@oracle.com, willy@infradead.org
 
 
 The patch titled
-     Subject: kernel/fork.c: annotate data races for copy_process
+     Subject: vmalloc: convert to XArray
 has been added to the -mm tree.  Its filename is
-     kernel-forkc-annotate-data-races-for-copy_process.patch
+     vmalloc-convert-to-xarray.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-forkc-annotate-data-races-for-copy_process.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmalloc-convert-to-xarray.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-forkc-annotate-data-races-for-copy_process.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmalloc-convert-to-xarray.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,59 +35,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Weilong Chen <chenweilong@huawei.com>
-Subject: kernel/fork.c: annotate data races for copy_process
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: vmalloc: convert to XArray
 
-The check is only there to stop root fork bombs.
+The radix tree of vmap blocks is simpler to express as an XArray.  Reduces
+both the text and data sizes of the object file and eliminates a user of
+the radix tree preload API.
 
-BUG: KCSAN: data-race in copy_process / copy_process
-
-write to 0xffffffff86f87d20 of 4 bytes by task 7121 on cpu 5:
- copy_process+0x2e1a/0x3af0 kernel/fork.c:2285
- _do_fork+0xf7/0x790 kernel/fork.c:2430
- __do_sys_clone+0xf9/0x130 kernel/fork.c:2585
- __se_sys_clone kernel/fork.c:2566 [inline]
- __x64_sys_clone+0x6c/0x80 kernel/fork.c:2566
- do_syscall_64+0xc7/0x3b0 arch/x86/entry/common.c:295
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-read to 0xffffffff86f87d20 of 4 bytes by task 7125 on cpu 3:
- copy_process+0x9eb/0x3af0 kernel/fork.c:1967
- _do_fork+0xf7/0x790 kernel/fork.c:2430
- __do_sys_clone+0xf9/0x130 kernel/fork.c:2585
- __se_sys_clone kernel/fork.c:2566 [inline]
- __x64_sys_clone+0x6c/0x80 kernel/fork.c:2566
- do_syscall_64+0xc7/0x3b0 arch/x86/entry/common.c:295
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-Link: http://lkml.kernel.org/r/20200609030801.272704-1-chenweilong@huawei.com
-Signed-off-by: Weilong Chen <chenweilong@huawei.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Marco Elver <elver@google.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Zefan Li <lizefan@huawei.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Link: http://lkml.kernel.org/r/20200603171448.5894-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   40 +++++++++++-----------------------------
+ 1 file changed, 11 insertions(+), 29 deletions(-)
 
---- a/kernel/fork.c~kernel-forkc-annotate-data-races-for-copy_process
-+++ a/kernel/fork.c
-@@ -1976,7 +1976,7 @@ static __latent_entropy struct task_stru
- 	 * to stop root fork bombs.
- 	 */
- 	retval = -EAGAIN;
--	if (nr_threads >= max_threads)
-+	if (data_race(nr_threads >= max_threads))
- 		goto bad_fork_cleanup_count;
+--- a/mm/vmalloc.c~vmalloc-convert-to-xarray
++++ a/mm/vmalloc.c
+@@ -25,7 +25,7 @@
+ #include <linux/list.h>
+ #include <linux/notifier.h>
+ #include <linux/rbtree.h>
+-#include <linux/radix-tree.h>
++#include <linux/xarray.h>
+ #include <linux/rcupdate.h>
+ #include <linux/pfn.h>
+ #include <linux/kmemleak.h>
+@@ -1514,12 +1514,11 @@ struct vmap_block {
+ static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
  
- 	delayacct_tsk_init(p);	/* Must remain after dup_task_struct() */
-_
-
-Patches currently in -mm which might be from chenweilong@huawei.com are
-
-kernel-forkc-annotate-data-races-for-copy_process.patch
+ /*
+- * Radix tree of vmap blocks, indexed by address, to quickly find a vmap block
++ * XArray of vmap blocks, indexed by address, to quickly find a vmap block
+  * in the free path. Could get rid of this if we change the API to return a
+  * "cookie" from alloc, to be passed to free. But no big deal yet.
+  */
+-static DEFINE_SPINLOCK(vmap_block_tree_lock);
+-static RADIX_TREE(vmap_block_tree, GFP_ATOMIC);
++static DEFINE_XARRAY(vmap_blocks);
+ 
+ /*
+  * We should probably have a fallback mechanism to allocate virtual memory
+@@ -1576,13 +1575,6 @@ static void *new_vmap_block(unsigned int
+ 		return ERR_CAST(va);
+ 	}
+ 
+-	err = radix_tree_preload(gfp_mask);
+-	if (unlikely(err)) {
+-		kfree(vb);
+-		free_vmap_area(va);
+-		return ERR_PTR(err);
+-	}
+-
+ 	vaddr = vmap_block_vaddr(va->va_start, 0);
+ 	spin_lock_init(&vb->lock);
+ 	vb->va = va;
+@@ -1595,11 +1587,12 @@ static void *new_vmap_block(unsigned int
+ 	INIT_LIST_HEAD(&vb->free_list);
+ 
+ 	vb_idx = addr_to_vb_idx(va->va_start);
+-	spin_lock(&vmap_block_tree_lock);
+-	err = radix_tree_insert(&vmap_block_tree, vb_idx, vb);
+-	spin_unlock(&vmap_block_tree_lock);
+-	BUG_ON(err);
+-	radix_tree_preload_end();
++	err = xa_insert(&vmap_blocks, vb_idx, vb, gfp_mask);
++	if (err) {
++		kfree(vb);
++		free_vmap_area(va);
++		return ERR_PTR(err);
++	}
+ 
+ 	vbq = &get_cpu_var(vmap_block_queue);
+ 	spin_lock(&vbq->lock);
+@@ -1613,12 +1606,8 @@ static void *new_vmap_block(unsigned int
+ static void free_vmap_block(struct vmap_block *vb)
+ {
+ 	struct vmap_block *tmp;
+-	unsigned long vb_idx;
+ 
+-	vb_idx = addr_to_vb_idx(vb->va->va_start);
+-	spin_lock(&vmap_block_tree_lock);
+-	tmp = radix_tree_delete(&vmap_block_tree, vb_idx);
+-	spin_unlock(&vmap_block_tree_lock);
++	tmp = xa_erase(&vmap_blocks, addr_to_vb_idx(vb->va->va_start));
+ 	BUG_ON(tmp != vb);
+ 
+ 	free_vmap_area_noflush(vb->va);
+@@ -1724,7 +1713,6 @@ static void *vb_alloc(unsigned long size
+ static void vb_free(unsigned long addr, unsigned long size)
+ {
+ 	unsigned long offset;
+-	unsigned long vb_idx;
+ 	unsigned int order;
+ 	struct vmap_block *vb;
+ 
+@@ -1734,14 +1722,8 @@ static void vb_free(unsigned long addr,
+ 	flush_cache_vunmap(addr, addr + size);
+ 
+ 	order = get_order(size);
+-
+ 	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
