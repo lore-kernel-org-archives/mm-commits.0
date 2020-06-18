@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
+Subject: + selftests-kmod-use-variable-name-in-kmod_test_0001.patch
  added to -mm tree
-Date: Wed, 17 Jun 2020 17:13:16 -0700
-Message-ID: <20200618001316.SSbvx%akpm@linux-foundation.org>
+Date: Wed, 17 Jun 2020 17:48:37 -0700
+Message-ID: <20200618004837.NWFQ0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51476 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58048 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726815AbgFRANS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Jun 2020 20:13:18 -0400
+        id S1727024AbgFRAsj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Jun 2020 20:48:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vinmenon@codeaurora.org, mgorman@techsingularity.net, charante@codeaurora.org
+To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, slyfox@gentoo.org, shuah@kernel.org, serge@hallyn.com, roopa@cumulusnetworks.com, ravenexp@gmail.com, philipp.reisner@linbit.com, nikolay@cumulusnetworks.com, mcgrof@kernel.org, lars.ellenberg@linbit.com, kuba@kernel.org, keescook@chromium.org, josh@joshtriplett.org, jmorris@namei.org, jarkko.sakkinen@linux.intel.com, gregkh@linuxfoundation.org, dhowells@redhat.com, davem@davemloft.net, chuck.lever@oracle.com, christian.brauner@ubuntu.com, chainsaw@gentoo.org, bfields@fieldses.org, axboe@kernel.dk, ast@kernel.org, yangtiezhu@loongson.cn
 
 
 The patch titled
-     Subject: mm, page_alloc: skip ->watermark_boost for atomic order-0 allocations-fix
+     Subject: selftests: kmod: use variable NAME in kmod_test_0001()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
+     selftests-kmod-use-variable-name-in-kmod_test_0001.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-kmod-use-variable-name-in-kmod_test_0001.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-kmod-use-variable-name-in-kmod_test_0001.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,84 +36,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Charan Teja Kalla <charante@codeaurora.org>
-Subject: mm, page_alloc: skip ->watermark_boost for atomic order-0 allocations-fix
+From: Tiezhu Yang <yangtiezhu@loongson.cn>
+Subject: selftests: kmod: use variable NAME in kmod_test_0001()
 
-fix suggested by Mel Gorman
+Patch series "kmod/umh: a few fixes".
 
-Link: http://lkml.kernel.org/r/31556793-57b1-1c21-1a9d-22674d9bd938@codeaurora.org
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Tiezhu Yang had sent out a patch set with a slew of kmod selftest fixes,
+and one patch which modified kmod to return 254 when a module was not
+found.  This opened up pandora's box about why that was being used for and
+low and behold its because when UMH_WAIT_PROC is used we call a
+kernel_wait4() call but have never unwrapped the error code.  The commit
+log for that fix details the rationale for the approach taken.  I'd
+appreciate some review on that, in particular nfs folks as it seems a case
+was never really hit before.
+
+
+This patch (of 5):
+
+Use the variable NAME instead of "\000" directly in kmod_test_0001().
+
+Link: http://lkml.kernel.org/r/20200610154923.27510-1-mcgrof@kernel.org
+Link: http://lkml.kernel.org/r/20200610154923.27510-2-mcgrof@kernel.org
+Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+Acked-by: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Philipp Reisner <philipp.reisner@linbit.com>
+Cc: Lars Ellenberg <lars.ellenberg@linbit.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: J. Bruce Fields <bfields@fieldses.org>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Roopa Prabhu <roopa@cumulusnetworks.com>
+Cc: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Sergei Trofimovich <slyfox@gentoo.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Sergey Kvachonok <ravenexp@gmail.com>
+Cc: Tony Vroon <chainsaw@gentoo.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   36 ++++++++++++++++++++----------------
- 1 file changed, 20 insertions(+), 16 deletions(-)
+ tools/testing/selftests/kmod/kmod.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix
-+++ a/mm/page_alloc.c
-@@ -3580,7 +3580,7 @@ bool zone_watermark_ok(struct zone *z, u
+--- a/tools/testing/selftests/kmod/kmod.sh~selftests-kmod-use-variable-name-in-kmod_test_0001
++++ a/tools/testing/selftests/kmod/kmod.sh
+@@ -341,7 +341,7 @@ kmod_test_0001_driver()
  
- static inline bool zone_watermark_fast(struct zone *z, unsigned int order,
- 				unsigned long mark, int highest_zoneidx,
--				unsigned int alloc_flags)
-+				unsigned int alloc_flags, gfp_t gfp_mask)
- {
- 	long free_pages = zone_page_state(z, NR_FREE_PAGES);
- 	long cma_pages = 0;
-@@ -3602,8 +3602,23 @@ static inline bool zone_watermark_fast(s
- 				mark + z->lowmem_reserve[highest_zoneidx])
- 		return true;
- 
--	return __zone_watermark_ok(z, order, mark, highest_zoneidx, alloc_flags,
--					free_pages);
-+	if (__zone_watermark_ok(z, order, mark, highest_zoneidx, alloc_flags,
-+					free_pages))
-+		return true;
-+	/*
-+	 * Ignore watermark boosting for GFP_ATOMIC order-0 allocations
-+	 * when checking the min watermark. The min watermark is the
-+	 * point where boosting is ignored so that kswapd is woken up
-+	 * when below the low watermark.
-+	 */
-+	if (unlikely(!order && (gfp_mask & __GFP_ATOMIC) && z->watermark_boost
-+		&& ((alloc_flags & ALLOC_WMARK_MASK) == WMARK_MIN))) {
-+		mark = z->_watermark[WMARK_MIN];
-+		return __zone_watermark_ok(z, order, mark, highest_zoneidx,
-+					alloc_flags, free_pages);
-+	}
-+
-+	return false;
+ 	kmod_defaults_driver
+ 	config_num_threads 1
+-	printf '\000' >"$DIR"/config_test_driver
++	printf $NAME >"$DIR"/config_test_driver
+ 	config_trigger ${FUNCNAME[0]}
+ 	config_expect_result ${FUNCNAME[0]} MODULE_NOT_FOUND
  }
+@@ -352,7 +352,7 @@ kmod_test_0001_fs()
  
- bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
-@@ -3746,20 +3761,9 @@ retry:
- 		}
- 
- 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
--		/*
--		 * Allow GFP_ATOMIC order-0 allocations to exclude the
--		 * zone->watermark_boost in their watermark calculations.
--		 * We rely on the ALLOC_ flags set for GFP_ATOMIC requests in
--		 * gfp_to_alloc_flags() for this.  Reason not to use the
--		 * GFP_ATOMIC directly is that we want to fall back to slow path
--		 * thus wake up kswapd.
--		 */
--		if (unlikely(!order && !(alloc_flags & ALLOC_WMARK_MASK) &&
--		     (alloc_flags & (ALLOC_HARDER | ALLOC_HIGH)))) {
--			mark = zone->_watermark[WMARK_MIN];
--		}
- 		if (!zone_watermark_fast(zone, order, mark,
--				       ac->highest_zoneidx, alloc_flags)) {
-+				       ac->highest_zoneidx, alloc_flags,
-+				       gfp_mask)) {
- 			int ret;
- 
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ 	kmod_defaults_fs
+ 	config_num_threads 1
+-	printf '\000' >"$DIR"/config_test_fs
++	printf $NAME >"$DIR"/config_test_fs
+ 	config_trigger ${FUNCNAME[0]}
+ 	config_expect_result ${FUNCNAME[0]} -EINVAL
+ }
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
+Patches currently in -mm which might be from yangtiezhu@loongson.cn are
 
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
-mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
+selftests-kmod-use-variable-name-in-kmod_test_0001.patch
+kmod-remove-redundant-be-an-in-the-comment.patch
+test_kmod-avoid-potential-double-free-in-trigger_config_run_type.patch
