@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-break-generic_file_buffered_read-up-into-multiple-functions.patch added to
+ fs-generic_file_buffered_read-now-uses-find_get_pages_contig.patch added to
  -mm tree
-Date: Wed, 17 Jun 2020 17:52:32 -0700
-Message-ID: <20200618005232.yvgIO%akpm@linux-foundation.org>
+Date: Wed, 17 Jun 2020 17:52:34 -0700
+Message-ID: <20200618005234.sdX0U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:59132 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59192 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726881AbgFRAwd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Jun 2020 20:52:33 -0400
+        id S1726881AbgFRAwh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Jun 2020 20:52:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, willy@infradead.org, jack@suse.cz, kent.overstreet@gmail.com
 
 
 The patch titled
-     Subject: mm/filemap.c: break generic_file_buffered_read up into multiple functions
+     Subject: mm/filemap.c: generic_file_buffered_read() now uses find_get_pages_contig
 has been added to the -mm tree.  Its filename is
-     fs-break-generic_file_buffered_read-up-into-multiple-functions.patch
+     fs-generic_file_buffered_read-now-uses-find_get_pages_contig.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-break-generic_file_buffered_read-up-into-multiple-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-generic_file_buffered_read-now-uses-find_get_pages_contig.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-break-generic_file_buffered_read-up-into-multiple-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-generic_file_buffered_read-now-uses-find_get_pages_contig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,511 +38,334 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <kent.overstreet@gmail.com>
-Subject: mm/filemap.c: break generic_file_buffered_read up into multiple functions
+Subject: mm/filemap.c: generic_file_buffered_read() now uses find_get_pages_contig
 
-Patch series "generic_file_buffered_read() refactoring & optimization", v2.
+Convert generic_file_buffered_read() to get pages to read from in batches,
+and then copy data to userspace from many pages at once - in particular,
+we now don't touch any cachelines that might be contended while we're in
+the loop to copy data to userspace.
 
-This is a small patch series that's been in the bcachefs tree for awhile.
+This is is a performance improvement on workloads that do buffered reads
+with large blocksizes, and a very large performance improvement if that
+file is also being accessed concurrently by different threads.
 
-In the buffered read path, we look up a page in the page cache, then copy
-from that page in a loop - i.e.  mixing the data copies in between looking
-up each individual page.  When we're doing large reads from the page
-cache, this is some pretty major overhead.
+On smaller reads (512 bytes), there's a very small performance improvement
+(1%, within the margin of error).
 
-This just reworks generic_file_buffered_read() to use
-find_get_pages_contig() and work on an array of pages.  It's a pretty
-significant performance improvement for large buffered reads, and doesn't
-regress performance on single page reads.
-
-As a bonus, generic_file_buffered_read() gets broken up into multiple
-functions that are _somewhat_ easier to follow.
-
-
-This patch (of 2):
-
-This is prep work for changing generic_file_buffered_read() to use
-find_get_pages_contig() to batch up all the pagecache lookups.
-
-This patch should be functionally identical to the existing code and
-changes as little as of the flow control as possible.  More refactoring
-could be done, this patch is intended to be relatively minimal.
-
-Link: http://lkml.kernel.org/r/20200610001036.3904844-1-kent.overstreet@gmail.com
-Link: http://lkml.kernel.org/r/20200610013642.4171512-1-kent.overstreet@gmail.com
+Link: http://lkml.kernel.org/r/20200610013642.4171512-2-kent.overstreet@gmail.com
 Signed-off-by: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  418 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 228 insertions(+), 190 deletions(-)
+ mm/filemap.c |  278 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 156 insertions(+), 122 deletions(-)
 
---- a/mm/filemap.c~fs-break-generic_file_buffered_read-up-into-multiple-functions
+--- a/mm/filemap.c~fs-generic_file_buffered_read-now-uses-find_get_pages_contig
 +++ a/mm/filemap.c
-@@ -1972,6 +1972,210 @@ static void shrink_readahead_size_eio(st
+@@ -1972,67 +1972,6 @@ static void shrink_readahead_size_eio(st
  	ra->ra_pages /= 4;
  }
  
-+static int generic_file_buffered_read_page_ok(struct kiocb *iocb,
-+			struct iov_iter *iter,
-+			struct page *page)
-+{
-+	struct address_space *mapping = iocb->ki_filp->f_mapping;
-+	struct inode *inode = mapping->host;
-+	struct file_ra_state *ra = &iocb->ki_filp->f_ra;
-+	unsigned offset = iocb->ki_pos & ~PAGE_MASK;
-+	unsigned bytes, copied;
-+	loff_t isize, end_offset;
-+
-+	BUG_ON(iocb->ki_pos >> PAGE_SHIFT != page->index);
-+
-+	/*
-+	 * i_size must be checked after we know the page is Uptodate.
-+	 *
-+	 * Checking i_size after the check allows us to calculate
-+	 * the correct value for "bytes", which means the zero-filled
-+	 * part of the page is not copied back to userspace (unless
-+	 * another truncate extends the file - this is desired though).
-+	 */
-+
-+	isize = i_size_read(inode);
-+	if (unlikely(iocb->ki_pos >= isize))
-+		return 1;
-+
-+	end_offset = min_t(loff_t, isize, iocb->ki_pos + iter->count);
-+
-+	bytes = min_t(loff_t, end_offset - iocb->ki_pos, PAGE_SIZE - offset);
-+
-+	/* If users can be writing to this page using arbitrary
-+	 * virtual addresses, take care about potential aliasing
-+	 * before reading the page on the kernel side.
-+	 */
-+	if (mapping_writably_mapped(mapping))
-+		flush_dcache_page(page);
-+
-+	/*
-+	 * Ok, we have the page, and it's up-to-date, so
-+	 * now we can copy it to user space...
-+	 */
-+
-+	copied = copy_page_to_iter(page, offset, bytes, iter);
-+
-+	iocb->ki_pos += copied;
-+
-+	/*
-+	 * When a sequential read accesses a page several times,
-+	 * only mark it as accessed the first time.
-+	 */
-+	if (iocb->ki_pos >> PAGE_SHIFT != ra->prev_pos >> PAGE_SHIFT)
-+		mark_page_accessed(page);
-+
-+	ra->prev_pos = iocb->ki_pos;
-+
-+	if (copied < bytes)
-+		return -EFAULT;
-+
-+	return !iov_iter_count(iter) || iocb->ki_pos == isize;
-+}
-+
-+static struct page *
-+generic_file_buffered_read_readpage(struct file *filp,
-+				    struct address_space *mapping,
-+				    struct page *page)
-+{
-+	struct file_ra_state *ra = &filp->f_ra;
-+	int error;
-+
-+	/*
-+	 * A previous I/O error may have been due to temporary
-+	 * failures, eg. multipath errors.
-+	 * PG_error will be set again if readpage fails.
-+	 */
-+	ClearPageError(page);
-+	/* Start the actual read. The read will unlock the page. */
-+	error = mapping->a_ops->readpage(filp, page);
-+
-+	if (unlikely(error)) {
-+		put_page(page);
-+		return error != AOP_TRUNCATED_PAGE ? ERR_PTR(error) : NULL;
-+	}
-+
-+	if (!PageUptodate(page)) {
-+		error = lock_page_killable(page);
-+		if (unlikely(error)) {
-+			put_page(page);
-+			return ERR_PTR(error);
-+		}
-+		if (!PageUptodate(page)) {
-+			if (page->mapping == NULL) {
-+				/*
-+				 * invalidate_mapping_pages got it
-+				 */
-+				unlock_page(page);
-+				put_page(page);
-+				return NULL;
-+			}
-+			unlock_page(page);
-+			shrink_readahead_size_eio(ra);
-+			put_page(page);
-+			return ERR_PTR(-EIO);
-+		}
-+		unlock_page(page);
-+	}
-+
-+	return page;
-+}
-+
-+static struct page *
-+generic_file_buffered_read_pagenotuptodate(struct file *filp,
-+					   struct iov_iter *iter,
-+					   struct page *page,
-+					   loff_t pos, loff_t count)
-+{
-+	struct address_space *mapping = filp->f_mapping;
-+	struct inode *inode = mapping->host;
-+	int error;
-+
-+	/*
-+	 * See comment in do_read_cache_page on why
-+	 * wait_on_page_locked is used to avoid unnecessarily
-+	 * serialisations and why it's safe.
-+	 */
-+	error = wait_on_page_locked_killable(page);
-+	if (unlikely(error)) {
-+		put_page(page);
-+		return ERR_PTR(error);
-+	}
-+
-+	if (PageUptodate(page))
-+		return page;
-+
-+	if (inode->i_blkbits == PAGE_SHIFT ||
-+	    !mapping->a_ops->is_partially_uptodate)
-+		goto page_not_up_to_date;
-+	/* pipes can't handle partially uptodate pages */
-+	if (unlikely(iov_iter_is_pipe(iter)))
-+		goto page_not_up_to_date;
-+	if (!trylock_page(page))
-+		goto page_not_up_to_date;
-+	/* Did it get truncated before we got the lock? */
-+	if (!page->mapping)
-+		goto page_not_up_to_date_locked;
-+
-+	if (!mapping->a_ops->is_partially_uptodate(page,
-+				pos & ~PAGE_MASK, count))
-+		goto page_not_up_to_date_locked;
-+	unlock_page(page);
-+	return page;
-+
-+page_not_up_to_date:
-+	/* Get exclusive access to the page ... */
-+	error = lock_page_killable(page);
-+	if (unlikely(error)) {
-+		put_page(page);
-+		return ERR_PTR(error);
-+	}
-+
-+page_not_up_to_date_locked:
-+	/* Did it get truncated before we got the lock? */
-+	if (!page->mapping) {
-+		unlock_page(page);
-+		put_page(page);
-+		return NULL;
-+	}
-+
-+	/* Did somebody else fill it already? */
-+	if (PageUptodate(page)) {
-+		unlock_page(page);
-+		return page;
-+	}
-+
-+	return generic_file_buffered_read_readpage(filp, mapping, page);
-+}
-+
-+static struct page *
-+generic_file_buffered_read_no_cached_page(struct kiocb *iocb,
-+					  struct iov_iter *iter)
+-static int generic_file_buffered_read_page_ok(struct kiocb *iocb,
+-			struct iov_iter *iter,
+-			struct page *page)
+-{
+-	struct address_space *mapping = iocb->ki_filp->f_mapping;
+-	struct inode *inode = mapping->host;
+-	struct file_ra_state *ra = &iocb->ki_filp->f_ra;
+-	unsigned offset = iocb->ki_pos & ~PAGE_MASK;
+-	unsigned bytes, copied;
+-	loff_t isize, end_offset;
+-
+-	BUG_ON(iocb->ki_pos >> PAGE_SHIFT != page->index);
+-
+-	/*
+-	 * i_size must be checked after we know the page is Uptodate.
+-	 *
+-	 * Checking i_size after the check allows us to calculate
+-	 * the correct value for "bytes", which means the zero-filled
+-	 * part of the page is not copied back to userspace (unless
+-	 * another truncate extends the file - this is desired though).
+-	 */
+-
+-	isize = i_size_read(inode);
+-	if (unlikely(iocb->ki_pos >= isize))
+-		return 1;
+-
+-	end_offset = min_t(loff_t, isize, iocb->ki_pos + iter->count);
+-
+-	bytes = min_t(loff_t, end_offset - iocb->ki_pos, PAGE_SIZE - offset);
+-
+-	/* If users can be writing to this page using arbitrary
+-	 * virtual addresses, take care about potential aliasing
+-	 * before reading the page on the kernel side.
+-	 */
+-	if (mapping_writably_mapped(mapping))
+-		flush_dcache_page(page);
+-
+-	/*
+-	 * Ok, we have the page, and it's up-to-date, so
+-	 * now we can copy it to user space...
+-	 */
+-
+-	copied = copy_page_to_iter(page, offset, bytes, iter);
+-
+-	iocb->ki_pos += copied;
+-
+-	/*
+-	 * When a sequential read accesses a page several times,
+-	 * only mark it as accessed the first time.
+-	 */
+-	if (iocb->ki_pos >> PAGE_SHIFT != ra->prev_pos >> PAGE_SHIFT)
+-		mark_page_accessed(page);
+-
+-	ra->prev_pos = iocb->ki_pos;
+-
+-	if (copied < bytes)
+-		return -EFAULT;
+-
+-	return !iov_iter_count(iter) || iocb->ki_pos == isize;
+-}
+-
+ static struct page *
+ generic_file_buffered_read_readpage(struct file *filp,
+ 				    struct address_space *mapping,
+@@ -2176,6 +2115,79 @@ generic_file_buffered_read_no_cached_pag
+ 	return generic_file_buffered_read_readpage(filp, mapping, page);
+ }
+ 
++static int generic_file_buffered_read_get_pages(struct kiocb *iocb,
++						struct iov_iter *iter,
++						struct page **pages,
++						unsigned nr)
 +{
 +	struct file *filp = iocb->ki_filp;
 +	struct address_space *mapping = filp->f_mapping;
++	struct file_ra_state *ra = &filp->f_ra;
 +	pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
-+	struct page *page;
-+	int error;
++	pgoff_t last_index = (iocb->ki_pos + iter->count + PAGE_SIZE-1) >> PAGE_SHIFT;
++	int i, j, ret, err = 0;
 +
-+	/*
-+	 * Ok, it wasn't cached, so we need to create a new
-+	 * page..
-+	 */
-+	page = page_cache_alloc(mapping);
-+	if (!page)
-+		return ERR_PTR(-ENOMEM);
++	nr = min_t(unsigned long, last_index - index, nr);
++find_page:
++	if (fatal_signal_pending(current))
++		return -EINTR;
 +
-+	error = add_to_page_cache_lru(page, mapping, index,
-+				      mapping_gfp_constraint(mapping, GFP_KERNEL));
-+	if (error) {
-+		put_page(page);
-+		return error != -EEXIST ? ERR_PTR(error) : NULL;
++	ret = find_get_pages_contig(mapping, index, nr, pages);
++	if (ret)
++		goto got_pages;
++
++	if (iocb->ki_flags & IOCB_NOWAIT)
++		return -EAGAIN;
++
++	page_cache_sync_readahead(mapping, ra, filp, index, last_index - index);
++
++	ret = find_get_pages_contig(mapping, index, nr, pages);
++	if (ret)
++		goto got_pages;
++
++	pages[0] = generic_file_buffered_read_no_cached_page(iocb, iter);
++	err = PTR_ERR_OR_ZERO(pages[0]);
++	ret = !IS_ERR_OR_NULL(pages[0]);
++got_pages:
++	for (i = 0; i < ret; i++) {
++		struct page *page = pages[i];
++		pgoff_t pg_index = index +i;
++		loff_t pg_pos = max(iocb->ki_pos,
++				    (loff_t) pg_index << PAGE_SHIFT);
++		loff_t pg_count = iocb->ki_pos + iter->count - pg_pos;
++
++		if (PageReadahead(page))
++			page_cache_async_readahead(mapping, ra, filp, page,
++					pg_index, last_index - pg_index);
++
++		if (!PageUptodate(page)) {
++			if (iocb->ki_flags & IOCB_NOWAIT) {
++				for (j = i; j < ret; j++)
++					put_page(pages[j]);
++				ret = i;
++				err = -EAGAIN;
++				break;
++			}
++
++			page = generic_file_buffered_read_pagenotuptodate(filp,
++						iter, page, pg_pos, pg_count);
++			if (IS_ERR_OR_NULL(page)) {
++				for (j = i + 1; j < ret; j++)
++					put_page(pages[j]);
++				ret = i;
++				err = PTR_ERR_OR_ZERO(page);
++				break;
++			}
++		}
 +	}
 +
-+	return generic_file_buffered_read_readpage(filp, mapping, page);
++	if (likely(ret))
++		return ret;
++	if (err)
++		return err;
++	goto find_page;
 +}
 +
  /**
   * generic_file_buffered_read - generic file read routine
   * @iocb:	the iocb to read
-@@ -1995,29 +2199,19 @@ ssize_t generic_file_buffered_read(struc
+@@ -2196,86 +2208,108 @@ ssize_t generic_file_buffered_read(struc
+ 		struct iov_iter *iter, ssize_t written)
+ {
+ 	struct file *filp = iocb->ki_filp;
++	struct file_ra_state *ra = &filp->f_ra;
  	struct address_space *mapping = filp->f_mapping;
  	struct inode *inode = mapping->host;
- 	struct file_ra_state *ra = &filp->f_ra;
--	loff_t *ppos = &iocb->ki_pos;
--	pgoff_t index;
-+	size_t orig_count = iov_iter_count(iter);
- 	pgoff_t last_index;
--	pgoff_t prev_index;
--	unsigned long offset;      /* offset into pagecache page */
--	unsigned int prev_offset;
- 	int error = 0;
+-	struct file_ra_state *ra = &filp->f_ra;
+ 	size_t orig_count = iov_iter_count(iter);
+-	pgoff_t last_index;
+-	int error = 0;
++	struct page *page_array[8], **pages;
++	unsigned nr_pages = ARRAY_SIZE(page_array);
++	unsigned read_nr_pages = ((iocb->ki_pos + iter->count + PAGE_SIZE-1) >> PAGE_SHIFT) -
++		(iocb->ki_pos >> PAGE_SHIFT);
++	int i, pg_nr, error = 0;
++	bool writably_mapped;
++	loff_t isize, end_offset;
  
--	if (unlikely(*ppos >= inode->i_sb->s_maxbytes))
-+	if (unlikely(iocb->ki_pos >= inode->i_sb->s_maxbytes))
+ 	if (unlikely(iocb->ki_pos >= inode->i_sb->s_maxbytes))
  		return 0;
  	iov_iter_truncate(iter, inode->i_sb->s_maxbytes);
  
--	index = *ppos >> PAGE_SHIFT;
--	prev_index = ra->prev_pos >> PAGE_SHIFT;
--	prev_offset = ra->prev_pos & (PAGE_SIZE-1);
--	last_index = (*ppos + iter->count + PAGE_SIZE-1) >> PAGE_SHIFT;
--	offset = *ppos & ~PAGE_MASK;
-+	last_index = (iocb->ki_pos + iter->count + PAGE_SIZE-1) >> PAGE_SHIFT;
+-	last_index = (iocb->ki_pos + iter->count + PAGE_SIZE-1) >> PAGE_SHIFT;
+-
+-	for (;;) {
+-		pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
+-		struct page *page;
++	if (read_nr_pages > nr_pages &&
++	    (pages = kmalloc_array(read_nr_pages, sizeof(void *), GFP_KERNEL)))
++		nr_pages = read_nr_pages;
++	else
++		pages = page_array;
  
- 	for (;;) {
-+		pgoff_t index = iocb->ki_pos >> PAGE_SHIFT;
- 		struct page *page;
--		pgoff_t end_index;
--		loff_t isize;
--		unsigned long nr, ret;
- 
++	do {
  		cond_resched();
- find_page:
-@@ -2034,8 +2228,15 @@ find_page:
- 					ra, filp,
- 					index, last_index - index);
- 			page = find_get_page(mapping, index);
--			if (unlikely(page == NULL))
--				goto no_cached_page;
-+			if (unlikely(page == NULL)) {
-+				page = generic_file_buffered_read_no_cached_page(iocb, iter);
-+				if (!page)
-+					goto find_page;
-+				if (IS_ERR(page)) {
-+					error = PTR_ERR(page);
-+					goto out;
-+				}
-+			}
- 		}
- 		if (PageReadahead(page)) {
- 			page_cache_async_readahead(mapping,
-@@ -2045,199 +2246,36 @@ find_page:
- 		if (!PageUptodate(page)) {
- 			if (iocb->ki_flags & IOCB_NOWAIT) {
- 				put_page(page);
--				goto would_block;
--			}
--
--			/*
--			 * See comment in do_read_cache_page on why
--			 * wait_on_page_locked is used to avoid unnecessarily
--			 * serialisations and why it's safe.
--			 */
--			error = wait_on_page_locked_killable(page);
--			if (unlikely(error))
--				goto readpage_error;
--			if (PageUptodate(page))
--				goto page_ok;
--
--			if (inode->i_blkbits == PAGE_SHIFT ||
--					!mapping->a_ops->is_partially_uptodate)
--				goto page_not_up_to_date;
--			/* pipes can't handle partially uptodate pages */
--			if (unlikely(iov_iter_is_pipe(iter)))
--				goto page_not_up_to_date;
--			if (!trylock_page(page))
--				goto page_not_up_to_date;
--			/* Did it get truncated before we got the lock? */
--			if (!page->mapping)
--				goto page_not_up_to_date_locked;
--			if (!mapping->a_ops->is_partially_uptodate(page,
--							offset, iter->count))
--				goto page_not_up_to_date_locked;
--			unlock_page(page);
--		}
--page_ok:
--		/*
--		 * i_size must be checked after we know the page is Uptodate.
--		 *
--		 * Checking i_size after the check allows us to calculate
--		 * the correct value for "nr", which means the zero-filled
--		 * part of the page is not copied back to userspace (unless
--		 * another truncate extends the file - this is desired though).
--		 */
--
--		isize = i_size_read(inode);
--		end_index = (isize - 1) >> PAGE_SHIFT;
--		if (unlikely(!isize || index > end_index)) {
--			put_page(page);
+-find_page:
+-		if (fatal_signal_pending(current)) {
+-			error = -EINTR;
 -			goto out;
 -		}
--
--		/* nr is the maximum number of bytes to copy from this page */
--		nr = PAGE_SIZE;
--		if (index == end_index) {
--			nr = ((isize - 1) & ~PAGE_MASK) + 1;
--			if (nr <= offset) {
--				put_page(page);
-+				error = -EAGAIN;
- 				goto out;
- 			}
--		}
--		nr = nr - offset;
--
--		/* If users can be writing to this page using arbitrary
--		 * virtual addresses, take care about potential aliasing
--		 * before reading the page on the kernel side.
--		 */
--		if (mapping_writably_mapped(mapping))
--			flush_dcache_page(page);
--
--		/*
--		 * When a sequential read accesses a page several times,
--		 * only mark it as accessed the first time.
--		 */
--		if (prev_index != index || offset != prev_offset)
--			mark_page_accessed(page);
--		prev_index = index;
--
--		/*
--		 * Ok, we have the page, and it's up-to-date, so
--		 * now we can copy it to user space...
--		 */
--
--		ret = copy_page_to_iter(page, offset, nr, iter);
--		offset += ret;
--		index += offset >> PAGE_SHIFT;
--		offset &= ~PAGE_MASK;
--		prev_offset = offset;
--
--		put_page(page);
--		written += ret;
--		if (!iov_iter_count(iter))
--			goto out;
--		if (ret < nr) {
--			error = -EFAULT;
--			goto out;
--		}
--		continue;
--
--page_not_up_to_date:
--		/* Get exclusive access to the page ... */
--		error = lock_page_killable(page);
--		if (unlikely(error))
--			goto readpage_error;
  
--page_not_up_to_date_locked:
--		/* Did it get truncated before we got the lock? */
--		if (!page->mapping) {
--			unlock_page(page);
--			put_page(page);
--			continue;
--		}
--
--		/* Did somebody else fill it already? */
--		if (PageUptodate(page)) {
--			unlock_page(page);
--			goto page_ok;
--		}
--
--readpage:
--		/*
--		 * A previous I/O error may have been due to temporary
--		 * failures, eg. multipath errors.
--		 * PG_error will be set again if readpage fails.
--		 */
--		ClearPageError(page);
--		/* Start the actual read. The read will unlock the page. */
--		error = mapping->a_ops->readpage(filp, page);
--
--		if (unlikely(error)) {
--			if (error == AOP_TRUNCATED_PAGE) {
--				put_page(page);
--				error = 0;
-+			page = generic_file_buffered_read_pagenotuptodate(filp,
-+					iter, page, iocb->ki_pos, iter->count);
-+			if (!page)
- 				goto find_page;
-+			if (IS_ERR(page)) {
-+				error = PTR_ERR(page);
-+				goto out;
- 			}
--			goto readpage_error;
--		}
--
--		if (!PageUptodate(page)) {
--			error = lock_page_killable(page);
--			if (unlikely(error))
--				goto readpage_error;
--			if (!PageUptodate(page)) {
--				if (page->mapping == NULL) {
--					/*
--					 * invalidate_mapping_pages got it
--					 */
--					unlock_page(page);
--					put_page(page);
--					goto find_page;
--				}
--				unlock_page(page);
--				shrink_readahead_size_eio(ra);
--				error = -EIO;
--				goto readpage_error;
--			}
--			unlock_page(page);
- 		}
- 
--		goto page_ok;
--
--readpage_error:
--		/* UHHUH! A synchronous read error occurred. Report it */
-+		error = generic_file_buffered_read_page_ok(iocb, iter, page);
- 		put_page(page);
--		goto out;
- 
--no_cached_page:
--		/*
--		 * Ok, it wasn't cached, so we need to create a new
--		 * page..
--		 */
--		page = page_cache_alloc(mapping);
+-		page = find_get_page(mapping, index);
 -		if (!page) {
--			error = -ENOMEM;
+-			if (iocb->ki_flags & IOCB_NOWAIT)
+-				goto would_block;
+-			page_cache_sync_readahead(mapping,
+-					ra, filp,
+-					index, last_index - index);
+-			page = find_get_page(mapping, index);
+-			if (unlikely(page == NULL)) {
+-				page = generic_file_buffered_read_no_cached_page(iocb, iter);
+-				if (!page)
+-					goto find_page;
+-				if (IS_ERR(page)) {
+-					error = PTR_ERR(page);
+-					goto out;
+-				}
+-			}
++		i = 0;
++		pg_nr = generic_file_buffered_read_get_pages(iocb, iter,
++							 pages, nr_pages);
++		if (pg_nr < 0) {
++			error = pg_nr;
++			break;
+ 		}
+-		if (PageReadahead(page)) {
+-			page_cache_async_readahead(mapping,
+-					ra, filp, page,
+-					index, last_index - index);
+-		}
+-		if (!PageUptodate(page)) {
+-			if (iocb->ki_flags & IOCB_NOWAIT) {
+-				put_page(page);
+-				error = -EAGAIN;
+-				goto out;
+-			}
+ 
+-			page = generic_file_buffered_read_pagenotuptodate(filp,
+-					iter, page, iocb->ki_pos, iter->count);
+-			if (!page)
+-				goto find_page;
+-			if (IS_ERR(page)) {
+-				error = PTR_ERR(page);
+-				goto out;
++		/*
++		 * i_size must be checked after we know the pages are Uptodate.
++		 *
++		 * Checking i_size after the check allows us to calculate
++		 * the correct value for "nr", which means the zero-filled
++		 * part of the page is not copied back to userspace (unless
++		 * another truncate extends the file - this is desired though).
++		 */
++		isize = i_size_read(inode);
++		if (unlikely(iocb->ki_pos >= isize))
++			goto put_pages;
++
++		end_offset = min_t(loff_t, isize, iocb->ki_pos + iter->count);
++
++		while ((iocb->ki_pos >> PAGE_SHIFT) + pg_nr >
++		       (end_offset + PAGE_SIZE - 1) >> PAGE_SHIFT)
++			put_page(pages[--pg_nr]);
++
++		/*
++		 * Once we start copying data, we don't want to be touching any
++		 * cachelines that might be contended:
++		 */
++		writably_mapped = mapping_writably_mapped(mapping);
++
++		/*
++		 * When a sequential read accesses a page several times, only
++		 * mark it as accessed the first time.
++		 */
++		if (iocb->ki_pos >> PAGE_SHIFT !=
++		    ra->prev_pos >> PAGE_SHIFT)
++			mark_page_accessed(pages[0]);
++		for (i = 1; i < pg_nr; i++)
++			mark_page_accessed(pages[i]);
++
++		for (i = 0; i < pg_nr; i++) {
++			unsigned offset = iocb->ki_pos & ~PAGE_MASK;
++			unsigned bytes = min_t(loff_t, end_offset - iocb->ki_pos,
++					       PAGE_SIZE - offset);
++			unsigned copied;
++
++			/*
++			 * If users can be writing to this page using arbitrary
++			 * virtual addresses, take care about potential aliasing
++			 * before reading the page on the kernel side.
++			 */
++			if (writably_mapped)
++				flush_dcache_page(pages[i]);
++
++			copied = copy_page_to_iter(pages[i], offset, bytes, iter);
++
++			iocb->ki_pos += copied;
++			ra->prev_pos = iocb->ki_pos;
++
++			if (copied < bytes) {
++				error = -EFAULT;
++				break;
+ 			}
+ 		}
++put_pages:
++		for (i = 0; i < pg_nr; i++)
++			put_page(pages[i]);
++	} while (iov_iter_count(iter) && iocb->ki_pos < isize && !error);
+ 
+-		error = generic_file_buffered_read_page_ok(iocb, iter, page);
+-		put_page(page);
+-
+-		if (error) {
+-			if (error > 0)
+-				error = 0;
 -			goto out;
 -		}
--		error = add_to_page_cache_lru(page, mapping, index,
--				mapping_gfp_constraint(mapping, GFP_KERNEL));
- 		if (error) {
--			put_page(page);
--			if (error == -EEXIST) {
-+			if (error > 0)
- 				error = 0;
--				goto find_page;
--			}
- 			goto out;
- 		}
--		goto readpage;
- 	}
- 
- would_block:
- 	error = -EAGAIN;
- out:
--	ra->prev_pos = prev_index;
--	ra->prev_pos <<= PAGE_SHIFT;
--	ra->prev_pos |= prev_offset;
+-	}
