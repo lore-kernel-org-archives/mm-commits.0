@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-remove-redundant-be-an-in-the-comment.patch added to
- -mm tree
-Date: Wed, 17 Jun 2020 17:48:40 -0700
-Message-ID: <20200618004840.SVY1n%akpm@linux-foundation.org>
+Subject: +
+ test_kmod-avoid-potential-double-free-in-trigger_config_run_type.patch added
+ to -mm tree
+Date: Wed, 17 Jun 2020 17:48:43 -0700
+Message-ID: <20200618004843.6QhTL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58124 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58194 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726883AbgFRAsm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Jun 2020 20:48:42 -0400
+        id S1726883AbgFRAso (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Jun 2020 20:48:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk, slyfox@gentoo.org, shuah@kernel.org, serge@hallyn.com, roopa@cumulusnetworks.com, ravenexp@gmail.com, philipp.reisner@linbit.com, nikolay@cumulusnetworks.com, mcgrof@kernel.org, lars.ellenberg@linbit.com, kuba@kernel.org, keescook@chromium.org, josh@joshtriplett.org, jmorris@namei.org, jarkko.sakkinen@linux.intel.com, gregkh@linuxfoundation.org, dhowells@redhat.com, davem@davemloft.net, chuck.lever@oracle.com, christian.brauner@ubuntu.com, chainsaw@gentoo.org, bfields@fieldses.org, axboe@kernel.dk, ast@kernel.org, yangtiezhu@loongson.cn
 
 
 The patch titled
-     Subject: kmod: remove redundant "be an" in the comment
+     Subject: test_kmod: avoid potential double free in trigger_config_run_type()
 has been added to the -mm tree.  Its filename is
-     kmod-remove-redundant-be-an-in-the-comment.patch
+     test_kmod-avoid-potential-double-free-in-trigger_config_run_type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmod-remove-redundant-be-an-in-the-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/test_kmod-avoid-potential-double-free-in-trigger_config_run_type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-remove-redundant-be-an-in-the-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/test_kmod-avoid-potential-double-free-in-trigger_config_run_type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,11 +38,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: kmod: remove redundant "be an" in the comment
+Subject: test_kmod: avoid potential double free in trigger_config_run_type()
 
-There exists redundant "be an" in the comment, remove it.
+Reset the member "test_fs" of the test configuration after a call of the
+function "kfree_const" to a null pointer so that a double memory release
+will not be performed.
 
-Link: http://lkml.kernel.org/r/20200610154923.27510-3-mcgrof@kernel.org
+Link: http://lkml.kernel.org/r/20200610154923.27510-4-mcgrof@kernel.org
+Fixes: d9c6a72d6fa2 ("kmod: add test driver to stress test the module loader")
 Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Acked-by: Luis Chamberlain <mcgrof@kernel.org>
@@ -71,23 +75,20 @@ Cc: Tony Vroon <chainsaw@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ lib/test_kmod.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/kmod.c~kmod-remove-redundant-be-an-in-the-comment
-+++ a/kernel/kmod.c
-@@ -36,9 +36,8 @@
-  *
-  * If you need less than 50 threads would mean we're dealing with systems
-  * smaller than 3200 pages. This assumes you are capable of having ~13M memory,
-- * and this would only be an be an upper limit, after which the OOM killer
-- * would take effect. Systems like these are very unlikely if modules are
-- * enabled.
-+ * and this would only be an upper limit, after which the OOM killer would take
-+ * effect. Systems like these are very unlikely if modules are enabled.
-  */
- #define MAX_KMOD_CONCURRENT 50
- static atomic_t kmod_concurrent_max = ATOMIC_INIT(MAX_KMOD_CONCURRENT);
+--- a/lib/test_kmod.c~test_kmod-avoid-potential-double-free-in-trigger_config_run_type
++++ a/lib/test_kmod.c
+@@ -745,7 +745,7 @@ static int trigger_config_run_type(struc
+ 		break;
+ 	case TEST_KMOD_FS_TYPE:
+ 		kfree_const(config->test_fs);
+-		config->test_driver = NULL;
++		config->test_fs = NULL;
+ 		copied = config_copy_test_fs(config, test_str,
+ 					     strlen(test_str));
+ 		break;
 _
 
 Patches currently in -mm which might be from yangtiezhu@loongson.cn are
