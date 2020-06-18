@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-convert-to-xarray.patch added to -mm tree
-Date: Wed, 17 Jun 2020 18:34:02 -0700
-Message-ID: <20200618013402.D9Sub%akpm@linux-foundation.org>
+Subject: + bits-add-tests-of-genmask.patch added to -mm tree
+Date: Wed, 17 Jun 2020 18:30:28 -0700
+Message-ID: <20200618013028.8D-Dd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45426 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40472 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1733029AbgFRBeD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 17 Jun 2020 21:34:03 -0400
+        id S1732540AbgFRBaa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 17 Jun 2020 21:30:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, william.kucharski@oracle.com, willy@infradead.org
+To: mm-commits@vger.kernel.org, yamada.masahiro@socionext.com, vilhelm.gray@gmail.com, syednwaris@gmail.com, linus.walleij@linaro.org, keescook@chromium.org, geert@linux-m68k.org, emil.l.velikov@gmail.com, arnd@arndb.de, andy.shevchenko@gmail.com, rikard.falkeborn@gmail.com
 
 
 The patch titled
-     Subject: vmalloc: convert to XArray
+     Subject: lib/test_bits.c: add tests of GENMASK
 has been added to the -mm tree.  Its filename is
-     vmalloc-convert-to-xarray.patch
+     bits-add-tests-of-genmask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmalloc-convert-to-xarray.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bits-add-tests-of-genmask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmalloc-convert-to-xarray.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bits-add-tests-of-genmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,105 +35,141 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: vmalloc: convert to XArray
+From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Subject: lib/test_bits.c: add tests of GENMASK
 
-The radix tree of vmap blocks is simpler to express as an XArray.  Reduces
-both the text and data sizes of the object file and eliminates a user of
-the radix tree preload API.
+Add tests of GENMASK and GENMASK_ULL.
 
-Link: http://lkml.kernel.org/r/20200603171448.5894-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+A few test cases that should fail compilation are provided under #ifdef
+TEST_GENMASK_FAILURES
+
+Link: http://lkml.kernel.org/r/20200608221823.35799-2-rikard.falkeborn@gmail.com
+Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Suggested-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Emil Velikov <emil.l.velikov@gmail.com>
+Cc: Syed Nayyar Waris <syednwaris@gmail.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Emil Velikov <emil.l.velikov@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: William Breathitt Gray <vilhelm.gray@gmail.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   40 +++++++++++-----------------------------
- 1 file changed, 11 insertions(+), 29 deletions(-)
+ lib/Kconfig.debug |   11 ++++++
+ lib/Makefile      |    1 
+ lib/test_bits.c   |   73 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 85 insertions(+)
 
---- a/mm/vmalloc.c~vmalloc-convert-to-xarray
-+++ a/mm/vmalloc.c
-@@ -25,7 +25,7 @@
- #include <linux/list.h>
- #include <linux/notifier.h>
- #include <linux/rbtree.h>
--#include <linux/radix-tree.h>
-+#include <linux/xarray.h>
- #include <linux/rcupdate.h>
- #include <linux/pfn.h>
- #include <linux/kmemleak.h>
-@@ -1514,12 +1514,11 @@ struct vmap_block {
- static DEFINE_PER_CPU(struct vmap_block_queue, vmap_block_queue);
+--- a/lib/Kconfig.debug~bits-add-tests-of-genmask
++++ a/lib/Kconfig.debug
+@@ -2192,6 +2192,17 @@ config LINEAR_RANGES_TEST
  
- /*
-- * Radix tree of vmap blocks, indexed by address, to quickly find a vmap block
-+ * XArray of vmap blocks, indexed by address, to quickly find a vmap block
-  * in the free path. Could get rid of this if we change the API to return a
-  * "cookie" from alloc, to be passed to free. But no big deal yet.
-  */
--static DEFINE_SPINLOCK(vmap_block_tree_lock);
--static RADIX_TREE(vmap_block_tree, GFP_ATOMIC);
-+static DEFINE_XARRAY(vmap_blocks);
+ 	  If unsure, say N.
  
- /*
-  * We should probably have a fallback mechanism to allocate virtual memory
-@@ -1576,13 +1575,6 @@ static void *new_vmap_block(unsigned int
- 		return ERR_CAST(va);
- 	}
- 
--	err = radix_tree_preload(gfp_mask);
--	if (unlikely(err)) {
--		kfree(vb);
--		free_vmap_area(va);
--		return ERR_PTR(err);
--	}
--
- 	vaddr = vmap_block_vaddr(va->va_start, 0);
- 	spin_lock_init(&vb->lock);
- 	vb->va = va;
-@@ -1595,11 +1587,12 @@ static void *new_vmap_block(unsigned int
- 	INIT_LIST_HEAD(&vb->free_list);
- 
- 	vb_idx = addr_to_vb_idx(va->va_start);
--	spin_lock(&vmap_block_tree_lock);
--	err = radix_tree_insert(&vmap_block_tree, vb_idx, vb);
--	spin_unlock(&vmap_block_tree_lock);
--	BUG_ON(err);
--	radix_tree_preload_end();
-+	err = xa_insert(&vmap_blocks, vb_idx, vb, gfp_mask);
-+	if (err) {
-+		kfree(vb);
-+		free_vmap_area(va);
-+		return ERR_PTR(err);
-+	}
- 
- 	vbq = &get_cpu_var(vmap_block_queue);
- 	spin_lock(&vbq->lock);
-@@ -1613,12 +1606,8 @@ static void *new_vmap_block(unsigned int
- static void free_vmap_block(struct vmap_block *vb)
- {
- 	struct vmap_block *tmp;
--	unsigned long vb_idx;
- 
--	vb_idx = addr_to_vb_idx(vb->va->va_start);
--	spin_lock(&vmap_block_tree_lock);
--	tmp = radix_tree_delete(&vmap_block_tree, vb_idx);
--	spin_unlock(&vmap_block_tree_lock);
-+	tmp = xa_erase(&vmap_blocks, addr_to_vb_idx(vb->va->va_start));
- 	BUG_ON(tmp != vb);
- 
- 	free_vmap_area_noflush(vb->va);
-@@ -1724,7 +1713,6 @@ static void *vb_alloc(unsigned long size
- static void vb_free(unsigned long addr, unsigned long size)
- {
- 	unsigned long offset;
--	unsigned long vb_idx;
- 	unsigned int order;
- 	struct vmap_block *vb;
- 
-@@ -1734,14 +1722,8 @@ static void vb_free(unsigned long addr,
- 	flush_cache_vunmap(addr, addr + size);
- 
- 	order = get_order(size);
--
- 	offset = (addr & (VMAP_BLOCK_SIZE - 1)) >> PAGE_SHIFT;
++config BITS_TEST
++	tristate "KUnit test for bits.h"
++	depends on KUNIT
++	help
++	  This builds the bits unit test.
++	  Tests the logic of macros defined in bits.h.
++	  For more information on KUnit and unit tests in general please refer
++	  to the KUnit documentation in Documentation/dev-tools/kunit/.
++
++	  If unsure, say N.
++
+ config TEST_UDELAY
+ 	tristate "udelay test driver"
+ 	help
+--- a/lib/Makefile~bits-add-tests-of-genmask
++++ a/lib/Makefile
+@@ -318,3 +318,4 @@ obj-$(CONFIG_OBJAGG) += objagg.o
+ # KUnit tests
+ obj-$(CONFIG_LIST_KUNIT_TEST) += list-test.o
+ obj-$(CONFIG_LINEAR_RANGES_TEST) += test_linear_ranges.o
++obj-$(CONFIG_BITS_TEST) += test_bits.o
+--- /dev/null
++++ a/lib/test_bits.c
+@@ -0,0 +1,73 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ * Test cases for functions and macros in bits.h
++ */
++
++#include <kunit/test.h>
++#include <linux/bits.h>
++
++
++void genmask_test(struct kunit *test)
++{
++	KUNIT_EXPECT_EQ(test, 1ul, GENMASK(0, 0));
++	KUNIT_EXPECT_EQ(test, 3ul, GENMASK(1, 0));
++	KUNIT_EXPECT_EQ(test, 6ul, GENMASK(2, 1));
++	KUNIT_EXPECT_EQ(test, 0xFFFFFFFFul, GENMASK(31, 0));
++
++#ifdef TEST_GENMASK_FAILURES
++	/* these should fail compilation */
++	GENMASK(0, 1);
++	GENMASK(0, 10);
++	GENMASK(9, 10);
++#endif
++
++
++}
++
++void genmask_ull_test(struct kunit *test)
++{
++	KUNIT_EXPECT_EQ(test, 1ull, GENMASK_ULL(0, 0));
++	KUNIT_EXPECT_EQ(test, 3ull, GENMASK_ULL(1, 0));
++	KUNIT_EXPECT_EQ(test, 0x000000ffffe00000ull, GENMASK_ULL(39, 21));
++	KUNIT_EXPECT_EQ(test, 0xffffffffffffffffull, GENMASK_ULL(63, 0));
++
++#ifdef TEST_GENMASK_FAILURES
++	/* these should fail compilation */
++	GENMASK_ULL(0, 1);
++	GENMASK_ULL(0, 10);
++	GENMASK_ULL(9, 10);
++#endif
++}
++
++void genmask_input_check_test(struct kunit *test)
++{
++	unsigned int x, y;
++	int z, w;
++
++	/* Unknown input */
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(x, 0));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(0, x));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(x, y));
++
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(z, 0));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(0, z));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(z, w));
++
++	/* Valid input */
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(1, 1));
++	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(39, 21));
++}
++
++
++static struct kunit_case bits_test_cases[] = {
++	KUNIT_CASE(genmask_test),
++	KUNIT_CASE(genmask_ull_test),
++	KUNIT_CASE(genmask_input_check_test),
++	{}
++};
++
++static struct kunit_suite bits_test_suite = {
++	.name = "bits-test",
++	.test_cases = bits_test_cases,
++};
++kunit_test_suite(bits_test_suite);
+_
+
+Patches currently in -mm which might be from rikard.falkeborn@gmail.com are
+
+linux-bitsh-fix-unsigned-less-than-zero-warnings.patch
+bits-add-tests-of-genmask.patch
