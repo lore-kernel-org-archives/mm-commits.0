@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-slab-obj_cgroup-api-fix.patch added to -mm tree
-Date: Sat, 20 Jun 2020 15:50:08 -0700
-Message-ID: <20200620225008.dpr7s%akpm@linux-foundation.org>
+Subject: + mm-drop-vm_total_pages.patch added to -mm tree
+Date: Sat, 20 Jun 2020 15:55:14 -0700
+Message-ID: <20200620225514.uyL12%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:50012 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51076 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728547AbgFTWuJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 20 Jun 2020 18:50:09 -0400
+        id S1727930AbgFTWzP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 20 Jun 2020 18:55:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, tobin@kernel.org, tj@kernel.org, shakeelb@google.com, rientjes@google.com, penberg@kernel.org, mhocko@kernel.org, mgorman@techsingularity.net, longman@redhat.com, iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, dennis@kernel.org, cl@linux.com, guro@fb.com
+To: mm-commits@vger.kernel.org, ying.huang@intel.com, richard.weiyang@gmail.com, minchan@kernel.org, mhocko@suse.com, hannes@cmpxchg.org, david@redhat.com
 
 
 The patch titled
-     Subject: mm-memcg-slab-obj_cgroup-api-fix
+     Subject: mm: remove vm_total_pages
 has been added to the -mm tree.  Its filename is
-     mm-memcg-slab-obj_cgroup-api-fix.patch
+     mm-drop-vm_total_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-slab-obj_cgroup-api-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-vm_total_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-slab-obj_cgroup-api-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-vm_total_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,80 +35,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm-memcg-slab-obj_cgroup-api-fix
+From: David Hildenbrand <david@redhat.com>
+Subject: mm: remove vm_total_pages
 
--ENOCHANGELOG
+The global variable "vm_total_pages" is a relic from older days.  There is
+only a single user that reads the variable - build_all_zonelists() - and
+the first thing it does is update it.
 
-Link: http://lkml.kernel.org/r/20200619213810.GA237539@carbon.dhcp.thefacebook.com
+Use a local variable in build_all_zonelists() instead and remove the
+global variable.
+
+Link: http://lkml.kernel.org/r/20200619132410.23859-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tobin C. Harding <tobin@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- mm/memcontrol.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/swap.h |    1 -
+ mm/memory_hotplug.c  |    3 ---
+ mm/page-writeback.c  |    6 ++----
+ mm/page_alloc.c      |    2 ++
+ mm/vmscan.c          |    5 -----
+ 5 files changed, 4 insertions(+), 13 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-slab-obj_cgroup-api-fix
-+++ a/include/linux/memcontrol.h
-@@ -319,7 +319,7 @@ struct mem_cgroup {
- 	enum memcg_kmem_state kmem_state;
- 	struct list_head kmem_caches;
- 	struct obj_cgroup __rcu *objcg;
--	struct list_head objcg_list;
-+	struct list_head objcg_list; /* list of inherited objcgs */
- #endif
+--- a/include/linux/swap.h~mm-drop-vm_total_pages
++++ a/include/linux/swap.h
+@@ -372,7 +372,6 @@ extern unsigned long mem_cgroup_shrink_n
+ extern unsigned long shrink_all_memory(unsigned long nr_pages);
+ extern int vm_swappiness;
+ extern int remove_mapping(struct address_space *mapping, struct page *page);
+-extern unsigned long vm_total_pages;
  
- #ifdef CONFIG_CGROUP_WRITEBACK
---- a/mm/memcontrol.c~mm-memcg-slab-obj_cgroup-api-fix
-+++ a/mm/memcontrol.c
-@@ -2827,7 +2827,7 @@ __always_inline struct obj_cgroup *get_o
- 	struct obj_cgroup *objcg = NULL;
- 	struct mem_cgroup *memcg;
+ extern unsigned long reclaim_pages(struct list_head *page_list);
+ #ifdef CONFIG_NUMA
+--- a/mm/memory_hotplug.c~mm-drop-vm_total_pages
++++ a/mm/memory_hotplug.c
+@@ -844,8 +844,6 @@ int __ref online_pages(unsigned long pfn
+ 	kswapd_run(nid);
+ 	kcompactd_run(nid);
  
--	if (unlikely(!current->mm))
-+	if (unlikely(!current->mm && !current->active_memcg))
- 		return NULL;
+-	vm_total_pages = nr_free_pagecache_pages();
+-
+ 	writeback_set_ratelimit();
  
- 	rcu_read_lock();
+ 	memory_notify(MEM_ONLINE, &arg);
+@@ -1595,7 +1593,6 @@ static int __ref __offline_pages(unsigne
+ 		kcompactd_stop(node);
+ 	}
+ 
+-	vm_total_pages = nr_free_pagecache_pages();
+ 	writeback_set_ratelimit();
+ 
+ 	memory_notify(MEM_OFFLINE, &arg);
+--- a/mm/page_alloc.c~mm-drop-vm_total_pages
++++ a/mm/page_alloc.c
+@@ -5919,6 +5919,8 @@ build_all_zonelists_init(void)
+  */
+ void __ref build_all_zonelists(pg_data_t *pgdat)
+ {
++	unsigned long vm_total_pages;
++
+ 	if (system_state == SYSTEM_BOOTING) {
+ 		build_all_zonelists_init();
+ 	} else {
+--- a/mm/page-writeback.c~mm-drop-vm_total_pages
++++ a/mm/page-writeback.c
+@@ -2076,13 +2076,11 @@ static int page_writeback_cpu_online(uns
+  * Called early on to tune the page writeback dirty limits.
+  *
+  * We used to scale dirty pages according to how total memory
+- * related to pages that could be allocated for buffers (by
+- * comparing nr_free_buffer_pages() to vm_total_pages.
++ * related to pages that could be allocated for buffers.
+  *
+  * However, that was when we used "dirty_ratio" to scale with
+  * all memory, and we don't do that any more. "dirty_ratio"
+- * is now applied to total non-HIGHPAGE memory (by subtracting
+- * totalhigh_pages from vm_total_pages), and as such we can't
++ * is now applied to total non-HIGHPAGE memory, and as such we can't
+  * get into the old insane situation any more where we had
+  * large amounts of dirty pages compared to a small amount of
+  * non-HIGHMEM memory.
+--- a/mm/vmscan.c~mm-drop-vm_total_pages
++++ a/mm/vmscan.c
+@@ -170,11 +170,6 @@ struct scan_control {
+  * From 0 .. 200.  Higher means more swappy.
+  */
+ int vm_swappiness = 60;
+-/*
+- * The total number of pages which are beyond the high watermark within all
+- * zones.
+- */
+-unsigned long vm_total_pages;
+ 
+ static void set_task_reclaim_state(struct task_struct *task,
+ 				   struct reclaim_state *rs)
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
-mm-memcg-prepare-for-byte-sized-vmstat-items.patch
-mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
-mm-slub-implement-slub-version-of-obj_to_index.patch
-mm-memcg-slab-obj_cgroup-api.patch
-mm-memcg-slab-obj_cgroup-api-fix.patch
-mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
-mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages-fix.patch
-mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
-mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
-mm-memcg-slab-deprecate-memorykmemslabinfo.patch
-mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
-mm-memcg-slab-simplify-memcg-cache-creation.patch
-mm-memcg-slab-remove-memcg_kmem_get_cache.patch
-mm-memcg-slab-deprecate-slab_root_caches.patch
-mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
-kselftests-cgroup-add-kernel-memory-accounting-tests.patch
-tools-cgroup-add-memcg_slabinfopy-tool.patch
-percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
-mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
-kselftests-cgroup-add-perpcu-memory-accounting-test.patch
+mm-drop-vm_total_pages.patch
+mm-page_alloc-drop-nr_free_pagecache_pages.patch
