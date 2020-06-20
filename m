@@ -1,206 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2020-06-17-22-17 uploaded
-Date: Wed, 17 Jun 2020 22:18:41 -0700
-Message-ID: <20200618051841.mwzzK%akpm__3848.7921630562$1592457532$gmane$org@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Sat, 20 Jun 2020 12:37:00 -0700
+Message-ID: <20200620193700.NPaJAmc2J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43622 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725892AbgFRFSn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 18 Jun 2020 01:18:43 -0400
+        id S1728544AbgFTThB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 20 Jun 2020 15:37:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@kernel.org, mhocko@suse.cz, sfr@canb.auug.org.au, linux-next@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
-
-The mm-of-the-moment snapshot 2020-06-17-22-17 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (5.x
-or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-	https://github.com/hnaz/linux-mm
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-A git copy of this tree is also available at
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-	https://github.com/hnaz/linux-mm
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-This mmotm tree contains the following patches against 5.8-rc1:
-(patches marked "*" will be included in linux-next)
+ drivers/gpu/drm/i915/display/intel_ddi.c |    8 ------
+ drivers/gpu/drm/i915/gt/selftest_lrc.c   |   26 ---------------------
+ fs/io_uring.c                            |    6 ----
+ 3 files changed, 40 deletions(-)
 
-  origin.patch
-* openrisc-fix-boot-oops-when-debug_vm-is-enabled.patch
-* mm-do_swap_page-fix-up-the-error-code-instantiation.patch
-* mm-slab-use-memzero_explicit-in-kzfree.patch
-* mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
-* mm-swap-fix-for-mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
-* mm-memory-fix-io-cost-for-anonymous-page.patch
-* mm-fix-swap-cache-node-allocation-mask.patch
-* mm-memcontrol-handle-div0-crash-race-condition-in-memorylow.patch
-* mm-memcontrol-fix-do-not-put-the-css-reference.patch
-* mm-memcg-prevent-missed-memorylow-load-tears.patch
-* docs-mm-gup-minor-documentation-update.patch
-* doc-thp-cow-fault-no-longer-allocate-thp.patch
-* mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch
-* kexec-do-not-verify-the-signature-without-the-lockdown-or-mandatory-signature.patch
-* ocfs2-avoid-inode-removed-while-nfsd-access-it.patch
-* ocfs2-load-global_inode_alloc.patch
-* ocfs2-fix-panic-on-nfs-server-over-ocfs2.patch
-* ocfs2-fix-value-of-ocfs2_invalid_slot.patch
-* linux-bitsh-fix-unsigned-less-than-zero-warnings.patch
-* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
-* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
-* checkpatch-test-git_dir-changes.patch
-* scripts-tagssh-collect-compiled-source-precisely.patch
-* bloat-o-meter-support-comparing-library-archives.patch
-* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
-* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
-* drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
-* ramfs-support-o_tmpfile.patch
-* kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
-  mm.patch
-* mm-treewide-rename-kzfree-to-kfree_sensitive.patch
-* mm-ksize-should-silently-accept-a-null-pointer.patch
-* mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
-* mm-slub-make-some-slub_debug-related-attributes-read-only.patch
-* mm-slub-remove-runtime-allocation-order-changes.patch
-* mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
-* mm-slub-make-reclaim_account-attribute-read-only.patch
-* mm-slub-introduce-static-key-for-slub_debug.patch
-* mm-slub-introduce-kmem_cache_debug_flags.patch
-* mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
-* mm-slab-slub-move-and-improve-cache_from_obj.patch
-* mm-kcsan-instrument-slab-slub-free-with-assert_exclusive_access.patch
-* mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
-* mm-memcg-prepare-for-byte-sized-vmstat-items.patch
-* mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
-* mm-slub-implement-slub-version-of-obj_to_index.patch
-* mm-memcontrol-decouple-reference-counting-from-page-accounting.patch
-* mm-memcg-slab-obj_cgroup-api.patch
-* mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
-* mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
-* mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
-* mm-memcg-slab-deprecate-memorykmemslabinfo.patch
-* mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
-* mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
-* mm-memcg-slab-simplify-memcg-cache-creation.patch
-* mm-memcg-slab-remove-memcg_kmem_get_cache.patch
-* mm-memcg-slab-deprecate-slab_root_caches.patch
-* mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
-* mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
-* kselftests-cgroup-add-kernel-memory-accounting-tests.patch
-* tools-cgroup-add-memcg_slabinfopy-tool.patch
-* percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
-* mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
-* mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
-* mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
-* mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
-* kselftests-cgroup-add-perpcu-memory-accounting-test.patch
-* mm-remove-redundant-check-non_swap_entry.patch
-* mm-memoryc-make-remap_pfn_range-reject-unaligned-addr.patch
-* mm-move-pd_alloc_track-to-separate-header-file.patch
-* mm-mmap-fix-the-adjusted-length-error.patch
-* vmalloc-convert-to-xarray.patch
-* mm-vmalloc-simplify-merge_or_add_vmap_area-func.patch
-* mm-vmalloc-simplify-augment_tree_propagate_check-func.patch
-* mm-vmalloc-switch-to-propagate-callback.patch
-* mm-page_alloc-use-unlikely-in-task_capc.patch
-* mm-track-mmu-notifiers-in-fs_reclaim_acquire-release.patch
-* mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
-* mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
-* mm-vmscanc-fixed-typo.patch
-* mm-proactive-compaction.patch
-* hugetlbfs-prevent-filesystem-stacking-of-hugetlbfs.patch
-* mm-thp-remove-debug_cow-switch.patch
-* mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
-* mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-fix.patch
-* mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
-* mm-cma-fix-null-pointer-dereference-when-cma-could-not-be-activated.patch
-* mm-cma-fix-the-name-of-cma-areas.patch
-* mm-hugetlb-fix-the-name-of-hugetlb-cma.patch
-* x86-mm-use-max-memory-block-size-on-bare-metal.patch
-* info-task-hung-in-generic_file_write_iter.patch
-* info-task-hung-in-generic_file_write-fix.patch
-* kernel-hung_taskc-monitor-killed-tasks.patch
-* bitmap-fix-bitmap_cut-for-partial-overlapping-case.patch
-* bitmap-add-test-for-bitmap_cut.patch
-* lib-optimize-cpumask_local_spread.patch
-* bits-add-tests-of-genmask.patch
-* checkpatch-add-test-for-possible-misuse-of-is_enabled-without-config_.patch
-* checkpatch-support-deprecated-terms-checking.patch
-* scripts-deprecated_terms-recommend-denylist-allowlist-instead-of-blacklist-whitelist.patch
-* fs-signalfdc-fix-inconsistent-return-codes-for-signalfd4.patch
-* selftests-kmod-use-variable-name-in-kmod_test_0001.patch
-* kmod-remove-redundant-be-an-in-the-comment.patch
-* test_kmod-avoid-potential-double-free-in-trigger_config_run_type.patch
-* umh-fix-processed-error-when-umh_wait_proc-is-used.patch
-* selftests-simplify-kmod-failure-value.patch
-* exec-change-uselib2-is_sreg-failure-to-eacces.patch
-* exec-move-s_isreg-check-earlier.patch
-* exec-move-path_noexec-check-earlier.patch
-* umh-fix-refcount-underflow-in-fork_usermode_blob.patch
-* kdump-append-kernel-build-id-string-to-vmcoreinfo.patch
-* kernel-panicc-make-oops_may_print-return-bool.patch
-* lib-kconfigdebug-fix-typo-in-the-help-text-of-config_panic_timeout.patch
-* aio-simplify-read_events.patch
-* kcov-unconditionally-add-fno-stack-protector-to-compiler-options.patch
-  linux-next.patch
-* all-arch-remove-system-call-sys_sysctl.patch
-* mm-kmemleak-silence-kcsan-splats-in-checksum.patch
-* mm-frontswap-mark-various-intentional-data-races.patch
-* mm-page_io-mark-various-intentional-data-races.patch
-* mm-page_io-mark-various-intentional-data-races-v2.patch
-* mm-swap_state-mark-various-intentional-data-races.patch
-* mm-filemap-fix-a-data-race-in-filemap_fault.patch
-* mm-swapfile-fix-and-annotate-various-data-races.patch
-* mm-swapfile-fix-and-annotate-various-data-races-v2.patch
-* mm-page_counter-fix-various-data-races-at-memsw.patch
-* mm-memcontrol-fix-a-data-race-in-scan-count.patch
-* mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-* mm-mempool-fix-a-data-race-in-mempool_free.patch
-* mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
-* mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
-* mm-annotate-a-data-race-in-page_zonenum.patch
-* kernel-forkc-annotate-data-races-for-copy_process.patch
-* include-asm-generic-vmlinuxldsh-align-ro_after_init.patch
-* sh-clkfwk-remove-r8-r16-r32.patch
-* sh-remove-call-to-memset-after-dma_alloc_coherent.patch
-* sh-use-generic-strncpy.patch
-* sh-add-missing-export_symbol-for-__delay.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  mutex-subsystem-synchro-test-module.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  workaround-for-a-pci-restoring-bug.patch
+--- a/drivers/gpu/drm/i915/display/intel_ddi.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/display/intel_ddi.c
+@@ -2624,17 +2624,9 @@ tgl_dkl_phy_ddi_vswing_sequence(struct i
+ 	int rate = 0;
+ 
+ 	if (type == INTEL_OUTPUT_HDMI) {
+-<<<<<<< HEAD
+-		n_entries = ARRAY_SIZE(tgl_dkl_phy_hdmi_ddi_trans);
+-		ddi_translations = tgl_dkl_phy_hdmi_ddi_trans;
+-	} else {
+-		n_entries = ARRAY_SIZE(tgl_dkl_phy_dp_ddi_trans);
+-		ddi_translations = tgl_dkl_phy_dp_ddi_trans;
+-=======
+ 		struct intel_dp *intel_dp = enc_to_intel_dp(encoder);
+ 
+ 		rate = intel_dp->link_rate;
+->>>>>>> linux-next/akpm-base
+ 	}
+ 
+ 	ddi_translations = tgl_get_dkl_buf_trans(dev_priv, encoder->type, rate,
+--- a/drivers/gpu/drm/i915/gt/selftest_lrc.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/gt/selftest_lrc.c
+@@ -1036,35 +1036,17 @@ static int live_timeslice_preempt(void *
+ 	if (err)
+ 		goto err_pin;
+ 
+-<<<<<<< HEAD
+-	for_each_prime_number_from(count, 1, 16) {
+-		struct intel_engine_cs *engine;
+-		enum intel_engine_id id;
+-
+-		for_each_engine(engine, gt, id) {
+-			if (!intel_engine_has_preemption(engine))
+-				continue;
+-=======
+ 	for_each_engine(engine, gt, id) {
+ 		if (!intel_engine_has_preemption(engine))
+ 			continue;
+->>>>>>> linux-next/akpm-base
+ 
+ 		memset(vaddr, 0, PAGE_SIZE);
+ 
+-<<<<<<< HEAD
+-			engine_heartbeat_disable(engine);
+-			err = slice_semaphore_queue(engine, vma, count);
+-			engine_heartbeat_enable(engine);
+-			if (err)
+-				goto err_pin;
+-=======
+ 		engine_heartbeat_disable(engine);
+ 		err = slice_semaphore_queue(engine, vma, 5);
+ 		engine_heartbeat_enable(engine);
+ 		if (err)
+ 			goto err_pin;
+->>>>>>> linux-next/akpm-base
+ 
+ 		if (igt_flush_test(gt->i915)) {
+ 			err = -EIO;
+@@ -1506,11 +1488,7 @@ static int live_timeslice_nopreempt(void
+ 
+ 		ce = intel_context_create(engine);
+ 		if (IS_ERR(ce)) {
+-<<<<<<< HEAD
+-			err = PTR_ERR(rq);
+-=======
+ 			err = PTR_ERR(ce);
+->>>>>>> linux-next/akpm-base
+ 			goto out_spin;
+ 		}
+ 
+@@ -1540,11 +1518,7 @@ static int live_timeslice_nopreempt(void
+ 		 * allow the maximum priority barrier through. Wait long
+ 		 * enough to see if it is timesliced in by mistake.
+ 		 */
+-<<<<<<< HEAD
+-		if (i915_request_wait(rq, 0, timeslice_threshold(engine)) >= 0) {
+-=======
+ 		if (i915_request_wait(rq, 0, slice_timeout(engine)) >= 0) {
+->>>>>>> linux-next/akpm-base
+ 			pr_err("%s: I915_PRIORITY_BARRIER request completed, bypassing no-preempt request\n",
+ 			       engine->name);
+ 			err = -EINVAL;
+--- a/fs/io_uring.c~linux-next-git-rejects
++++ a/fs/io_uring.c
+@@ -2930,13 +2930,7 @@ copy_iov:
+ 			return -EAGAIN;
+ 		}
+ 	}
+-<<<<<<< HEAD
+-out_free:
+-	if (!(req->flags & REQ_F_NEED_CLEANUP))
+-		kfree(iovec);
+-=======
+ out:
+->>>>>>> linux-next/akpm-base
+ 	return ret;
+ }
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+mm.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
