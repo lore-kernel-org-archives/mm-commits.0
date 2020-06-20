@@ -1,29 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: +
- page_alloc-consider-highatomic-reserve-in-watermark-fast.patch added to -mm
- tree
-Date: Sat, 20 Jun 2020 14:03:38 -0700
-Message-ID: <20200620210338.Rj-O9%akpm@linux-foundation.org>
+Subject: + mm-fix-false-softlockup-during-pfn-range-removal.patch
+ added to -mm tree
+Date: Sat, 20 Jun 2020 14:08:48 -0700
+Message-ID: <20200620210848.ohn1y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49592 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51224 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728191AbgFTVDk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 20 Jun 2020 17:03:40 -0400
+        id S1728847AbgFTVIt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 20 Jun 2020 17:08:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ytk.lee@samsung.com, vbabka@suse.cz, minchan@kernel.org, mgorman@techsingularity.net, hannes@cmpxchg.org, bhe@redhat.com, jaewon31.kim@samsung.com
+To: mm-commits@vger.kernel.org, vishal.l.verma@intel.com, steve.scargall@intel.com, david@redhat.com, dan.j.williams@intel.com, ben.widawsky@intel.com
 
 
 The patch titled
-     Subject: page_alloc: consider highatomic reserve in watermark fast
+     Subject: mm/memory_hotplug.c: fix false softlockup during pfn range re=
+moval
 has been added to the -mm tree.  Its filename is
-     page_alloc-consider-highatomic-reserve-in-watermark-fast.patch
+     mm-fix-false-softlockup-during-pfn-range-removal.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page_alloc-consider-highatomic-reserve-in-watermark-fast.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-false-softlockup-during=
+-pfn-range-removal.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page_alloc-consider-highatomic-reserve-in-watermark-fast.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-false-softlockup-during=
+-pfn-range-removal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,242 +36,169 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jaewon Kim <jaewon31.kim@samsung.com>
-Subject: page_alloc: consider highatomic reserve in watermark fast
+From: Ben Widawsky <ben.widawsky@intel.com>
+Subject: mm/memory_hotplug.c: fix false softlockup during pfn range removal
 
-zone_watermark_fast was introduced by commit 48ee5f3696f6 ("mm,
-page_alloc: shortcut watermark checks for order-0 pages").  The commit
-simply checks if free pages is bigger than watermark without additional
-calculation such like reducing watermark.
+When working with very large nodes, poisoning the struct pages (for which
+there will be very many) can take a very long time.  If the system is
+using voluntary preemptions, the software watchdog will not be able to
+detect forward progress.  This patch addresses this issue by offering to
+give up time like __remove_pages() does.  This behavior was introduced in
+v5.6 with: commit d33695b16a9f ("mm/memory_hotplug: poison memmap in
+remove_pfn_range_from_zone()")
 
-It considered free cma pages but it did not consider highatomic reserved. 
-This may incur exhaustion of free pages except high order atomic free
-pages.
+Alternately, init_page_poison could do this cond_resched(), but it seems
+to me that the caller of init_page_poison() is what actually knows whether
+or not it should relax its own priority.
 
-Assume that reserved_highatomic pageblock is bigger than watermark min,
-and there are only few free pages except high order atomic free.  Because
-zone_watermark_fast passes the allocation without considering high order
-atomic free, normal reclaimable allocation like GFP_HIGHUSER will consume
-all the free pages.  Then finally order-0 atomic allocation may fail on
-allocation.
+Based on Dan's notes, I think this is perfectly safe: commit f931ab479dd2
+("mm: fix devm_memremap_pages crash, use mem_hotplug_{begin, done}")
 
-This means watermark min is not protected against non-atomic allocation. 
-The order-0 atomic allocation with ALLOC_HARDER unwantedly can be failed. 
-Additionally the __GFP_MEMALLOC allocation with ALLOC_NO_WATERMARKS also
-can be failed.
+Aside from fixing the lockup, it is also a friendlier thing to do on lower
+core systems that might wipe out large chunks of hotplug memory (probably
+not a very common case).
 
-To avoid the problem, zone_watermark_fast should consider highatomic
-reserve.  If the actual size of high atomic free is counted accurately
-like cma free, we may use it.  On this patch just use
-nr_reserved_highatomic.  Additionally introduce
-__zone_watermark_unusable_free to factor out common parts between
-zone_watermark_fast and __zone_watermark_ok.
+Fixes this kind of splat:
+[  352.142079] watchdog: BUG: soft lockup - CPU#46 stuck for 22s! [daxctl:9=
+922]
+[  352.150067] Modules linked in: nft_fib_inet nft_fib_ipv4 nft_fib_ipv6 nf=
+t_fib nft_reject_inet nf_reject_ipv4 nf_reject_ipv6 nft_reject nft_ct nft_c=
+hain_nat nf_tables ebtable_nat ebtable_broute ip6table_nat ip6table_mangle =
+ip6table_raw ip6table_security iptable_nat nf_nat nf_conntrack nf_defrag_ip=
+v6 nf_defrag_ipv4 iptable_mangle iptable_raw iptable_security rfkill ip_set=
+ nfnetlink ebtable_filter ebtables ip6table_filter ip6_tables iptable_filte=
+r ib_isert iscsi_target_mod ib_srpt target_core_mod ib_srp scsi_transport_s=
+rp ib_ipoib ib_umad vfat fat kmem intel_rapl_msr intel_rapl_common rpcrdma =
+sunrpc rdma_ucm ib_iser isst_if_common rdma_cm skx_edac iw_cm ib_cm x86_pkg=
+_temp_thermal libiscsi intel_powerclamp scsi_transport_iscsi coretemp kvm_i=
+ntel kvm irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel i40iw =
+intel_cstate iTCO_wdt ib_uverbs iTCO_vendor_support device_dax ib_core joyd=
+ev intel_uncore i2c_i801 lpc_ich ipmi_ssif ioatdma dca wmi ipmi_si ipmi_dev=
+intf ipmi_msghandler dax_pmem
+[  352.150123]  dax_pmem_core acpi_pad acpi_power_meter drm ip_tables xfs l=
+ibcrc32c nd_pmem nd_btt i40e e1000e crc32c_intel nfit
+[  352.260774] irq event stamp: 138450
+[  352.264692] hardirqs last  enabled at (138449): [<ffffffffa1001f26>] tra=
+ce_hardirqs_on_thunk+0x1a/0x1c
+[  352.275134] hardirqs last disabled at (138450): [<ffffffffa1001f42>] tra=
+ce_hardirqs_off_thunk+0x1a/0x1c
+[  352.285662] softirqs last  enabled at (138448): [<ffffffffa1e00347>] __d=
+o_softirq+0x347/0x456
+[  352.295233] softirqs last disabled at (138443): [<ffffffffa10c416d>] irq=
+_exit+0x7d/0xb0
+[  352.304210] CPU: 46 PID: 9922 Comm: daxctl Not tainted 5.7.0-BEN-14238-g=
+373c6049b336 #30
+[  352.313283] Hardware name: Intel Corporation PURLEY/PURLEY, BIOS PLYXCRB=
+1.86B.0578.D07.1902280810 02/28/2019
+[  352.324308] RIP: 0010:memset_erms+0x9/0x10
+[  352.328905] Code: c1 e9 03 40 0f b6 f6 48 b8 01 01 01 01 01 01 01 01 48 =
+0f af c6 f3 48 ab 89 d1 f3 aa 4c 89 c8 c3 90 49 89 f9 40 88 f0 48 89 d1 <f3=
+> aa 4c 89 c8 c3 90 49 89 fa 40 0f b6 ce 48 b8 01 01 01 01 01 01
+[  352.349953] RSP: 0018:ffffc90021b5fd50 EFLAGS: 00010202 ORIG_RAX: ffffff=
+ffffffff13
+[  352.358450] RAX: 00000000000000ff RBX: ffff88983ffd5000 RCX: 0000000065d=
+f0e40
+[  352.366457] RDX: 00000003a0000000 RSI: 00000000ffffffff RDI: ffffea039b2=
+0f1c0
+[  352.374465] RBP: ffff88983ffd6c00 R08: 0000000000000000 R09: ffffea00610=
+00000
+[  352.382473] R10: 0000000000000001 R11: 0000000000000000 R12: ffffea006f8=
+08000
+[  352.390480] R13: 0000000001840000 R14: 000000000e800000 R15: ffff8997d7b=
+764e0
+[  352.398487] FS:  00007f724ef81780(0000) GS:ffff8997df100000(0000) knlGS:=
+0000000000000000
+[  352.407562] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  352.414011] CR2: 00007ffcd4070768 CR3: 000001178c722002 CR4: 00000000003=
+606e0
+[  352.422056] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 00000000000=
+00000
+[  352.430092] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 00000000000=
+00400
+[  352.438115] Call Trace:
+[  352.440865]  remove_pfn_range_from_zone+0x3a/0x380
+[  352.446244]  ? cpumask_next+0x17/0x20
+[  352.450361]  memunmap_pages+0x17f/0x280
+[  352.454670]  release_nodes+0x22a/0x260
+[  352.458888]  __device_release_driver+0x172/0x220
+[  352.464070]  device_driver_detach+0x3e/0xa0
+[  352.468753]  unbind_store+0x113/0x130
+[  352.472868]  kernfs_fop_write+0xdc/0x1c0
+[  352.477273]  vfs_write+0xde/0x1d0
+[  352.482218]  ksys_write+0x58/0xd0
+[  352.487207]  do_syscall_64+0x5a/0x120
+[  352.492529]  entry_SYSCALL_64_after_hwframe+0x49/0xb3
+[  352.499446] RIP: 0033:0x7f724f40b5e7
+[  352.504673] Code: Bad RIP value.
+[  352.509484] RSP: 002b:00007ffcd40738f8 EFLAGS: 00000246 ORIG_RAX: 000000=
+0000000001
+[  352.519213] RAX: ffffffffffffffda RBX: 00007f724ef816a8 RCX: 00007f724f4=
+0b5e7
+[  352.528410] RDX: 0000000000000007 RSI: 00005617d7cd1277 RDI: 00000000000=
+00003
+[  352.537573] RBP: 0000000000000003 R08: 00000000ffffffff R09: 00007ffcd40=
+737d0
+[  352.546764] R10: 0000000000000000 R11: 0000000000000246 R12: 00005617d7c=
+d1277
+[  352.555929] R13: 0000000000000000 R14: 0000000000000007 R15: 00005617d7c=
+d1230
+[  370.353742] Built 2 zonelists, mobility grouping on.  Total pages: 49050=
+381
+[  370.373317] Policy zone: Normal
+[  374.948164] Built 3 zonelists, mobility grouping on.  Total pages: 49312=
+525
+[  375.017496] Policy zone: Normal
 
-This is an example of ALLOC_HARDER allocation failure using v4.19 based
-kernel.
-
- Binder:9343_3: page allocation failure: order:0, mode:0x480020(GFP_ATOMIC), nodemask=(null)
- Call trace:
- [<ffffff8008f40f8c>] dump_stack+0xb8/0xf0
- [<ffffff8008223320>] warn_alloc+0xd8/0x12c
- [<ffffff80082245e4>] __alloc_pages_nodemask+0x120c/0x1250
- [<ffffff800827f6e8>] new_slab+0x128/0x604
- [<ffffff800827b0cc>] ___slab_alloc+0x508/0x670
- [<ffffff800827ba00>] __kmalloc+0x2f8/0x310
- [<ffffff80084ac3e0>] context_struct_to_string+0x104/0x1cc
- [<ffffff80084ad8fc>] security_sid_to_context_core+0x74/0x144
- [<ffffff80084ad880>] security_sid_to_context+0x10/0x18
- [<ffffff800849bd80>] selinux_secid_to_secctx+0x20/0x28
- [<ffffff800849109c>] security_secid_to_secctx+0x3c/0x70
- [<ffffff8008bfe118>] binder_transaction+0xe68/0x454c
- Mem-Info:
- active_anon:102061 inactive_anon:81551 isolated_anon:0
-  active_file:59102 inactive_file:68924 isolated_file:64
-  unevictable:611 dirty:63 writeback:0 unstable:0
-  slab_reclaimable:13324 slab_unreclaimable:44354
-  mapped:83015 shmem:4858 pagetables:26316 bounce:0
-  free:2727 free_pcp:1035 free_cma:178
- Node 0 active_anon:408244kB inactive_anon:326204kB active_file:236408kB inactive_file:275696kB unevictable:2444kB isolated(anon):0kB isolated(file):256kB mapped:332060kB dirty:252kB writeback:0kB shmem:19432kB writeback_tmp:0kB unstable:0kB all_unreclaimable? no
- Normal free:10908kB min:6192kB low:44388kB high:47060kB active_anon:409160kB inactive_anon:325924kB active_file:235820kB inactive_file:276628kB unevictable:2444kB writepending:252kB present:3076096kB managed:2673676kB mlocked:2444kB kernel_stack:62512kB pagetables:105264kB bounce:0kB free_pcp:4140kB local_pcp:40kB free_cma:712kB
- lowmem_reserve[]: 0 0
- Normal: 505*4kB (H) 357*8kB (H) 201*16kB (H) 65*32kB (H) 1*64kB (H) 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 10236kB
- 138826 total pagecache pages
- 5460 pages in swap cache
- Swap cache stats: add 8273090, delete 8267506, find 1004381/4060142
-
-This is an example of ALLOC_NO_WATERMARKS allocation failure using v4.14
-based kernel.
-
- kswapd0: page allocation failure: order:0, mode:0x140000a(GFP_NOIO|__GFP_HIGHMEM|__GFP_MOVABLE), nodemask=(null)
- kswapd0 cpuset=/ mems_allowed=0
- CPU: 4 PID: 1221 Comm: kswapd0 Not tainted 4.14.113-18770262-userdebug #1
- Call trace:
- [<0000000000000000>] dump_backtrace+0x0/0x248
- [<0000000000000000>] show_stack+0x18/0x20
- [<0000000000000000>] __dump_stack+0x20/0x28
- [<0000000000000000>] dump_stack+0x68/0x90
- [<0000000000000000>] warn_alloc+0x104/0x198
- [<0000000000000000>] __alloc_pages_nodemask+0xdc0/0xdf0
- [<0000000000000000>] zs_malloc+0x148/0x3d0
- [<0000000000000000>] zram_bvec_rw+0x410/0x798
- [<0000000000000000>] zram_rw_page+0x88/0xdc
- [<0000000000000000>] bdev_write_page+0x70/0xbc
- [<0000000000000000>] __swap_writepage+0x58/0x37c
- [<0000000000000000>] swap_writepage+0x40/0x4c
- [<0000000000000000>] shrink_page_list+0xc30/0xf48
- [<0000000000000000>] shrink_inactive_list+0x2b0/0x61c
- [<0000000000000000>] shrink_node_memcg+0x23c/0x618
- [<0000000000000000>] shrink_node+0x1c8/0x304
- [<0000000000000000>] kswapd+0x680/0x7c4
- [<0000000000000000>] kthread+0x110/0x120
- [<0000000000000000>] ret_from_fork+0x10/0x18
- Mem-Info:
- active_anon:111826 inactive_anon:65557 isolated_anon:0\x0a active_file:44260 inactive_file:83422 isolated_file:0\x0a unevictable:4158 dirty:117 writeback:0 unstable:0\x0a            slab_reclaimable:13943 slab_unreclaimable:43315\x0a mapped:102511 shmem:3299 pagetables:19566 bounce:0\x0a free:3510 free_pcp:553 free_cma:0
- Node 0 active_anon:447304kB inactive_anon:262228kB active_file:177040kB inactive_file:333688kB unevictable:16632kB isolated(anon):0kB isolated(file):0kB mapped:410044kB d irty:468kB writeback:0kB shmem:13196kB writeback_tmp:0kB unstable:0kB all_unreclaimable? no
- Normal free:14040kB min:7440kB low:94500kB high:98136kB reserved_highatomic:32768KB active_anon:447336kB inactive_anon:261668kB active_file:177572kB inactive_file:333768k           B unevictable:16632kB writepending:480kB present:4081664kB managed:3637088kB mlocked:16632kB kernel_stack:47072kB pagetables:78264kB bounce:0kB free_pcp:2280kB local_pcp:720kB free_cma:0kB        [ 4738.329607] lowmem_reserve[]: 0 0
- Normal: 860*4kB (H) 453*8kB (H) 180*16kB (H) 26*32kB (H) 34*64kB (H) 6*128kB (H) 2*256kB (H) 0*512kB 0*1024kB 0*2048kB 0*4096kB = 14232kB
-
-This is trace log which shows GFP_HIGHUSER consumes free pages right
-before ALLOC_NO_WATERMARKS.
-
-  <...>-22275 [006] ....   889.213383: mm_page_alloc: page=00000000d2be5665 pfn=970744 order=0 migratetype=0 nr_free=3650 gfp_flags=GFP_HIGHUSER|__GFP_ZERO
-  <...>-22275 [006] ....   889.213385: mm_page_alloc: page=000000004b2335c2 pfn=970745 order=0 migratetype=0 nr_free=3650 gfp_flags=GFP_HIGHUSER|__GFP_ZERO
-  <...>-22275 [006] ....   889.213387: mm_page_alloc: page=00000000017272e1 pfn=970278 order=0 migratetype=0 nr_free=3650 gfp_flags=GFP_HIGHUSER|__GFP_ZERO
-  <...>-22275 [006] ....   889.213389: mm_page_alloc: page=00000000c4be79fb pfn=970279 order=0 migratetype=0 nr_free=3650 gfp_flags=GFP_HIGHUSER|__GFP_ZERO
-  <...>-22275 [006] ....   889.213391: mm_page_alloc: page=00000000f8a51d4f pfn=970260 order=0 migratetype=0 nr_free=3650 gfp_flags=GFP_HIGHUSER|__GFP_ZERO
-  <...>-22275 [006] ....   889.213393: mm_page_alloc: page=000000006ba8f5ac pfn=970261 order=0 migratetype=0 nr_free=3650 gfp_flags=GFP_HIGHUSER|__GFP_ZERO
-  <...>-22275 [006] ....   889.213395: mm_page_alloc: page=00000000819f1cd3 pfn=970196 order=0 migratetype=0 nr_free=3650 gfp_flags=GFP_HIGHUSER|__GFP_ZERO
-  <...>-22275 [006] ....   889.213396: mm_page_alloc: page=00000000f6b72a64 pfn=970197 order=0 migratetype=0 nr_free=3650 gfp_flags=GFP_HIGHUSER|__GFP_ZERO
-kswapd0-1207  [005] ...1   889.213398: mm_page_alloc: page= (null) pfn=0 order=0 migratetype=1 nr_free=3650 gfp_flags=GFP_NOWAIT|__GFP_HIGHMEM|__GFP_NOWARN|__GFP_MOVABLE
-
-Link: http://lkml.kernel.org/r/20200619235958.11283-1-jaewon31.kim@samsung.com
-Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
-Reported-by: Yong-Taek Lee <ytk.lee@samsung.com>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Yong-Taek Lee <ytk.lee@samsung.com>
+Link: http://lkml.kernel.org/r/20200619231213.1160351-1-ben.widawsky@intel.=
+com
+Fixes: commit d33695b16a9f ("mm/memory_hotplug: poison memmap in remove_pfn=
+_range_from_zone()")
+Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+Reported-by: "Scargall, Steve" <steve.scargall@intel.com>
+Reported-by: Ben Widawsky <ben.widawsky@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   66 +++++++++++++++++++++++++---------------------
- 1 file changed, 36 insertions(+), 30 deletions(-)
+ mm/memory_hotplug.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~page_alloc-consider-highatomic-reserve-in-watermark-fast
-+++ a/mm/page_alloc.c
-@@ -3487,6 +3487,29 @@ static noinline bool should_fail_alloc_p
- }
- ALLOW_ERROR_INJECTION(should_fail_alloc_page, TRUE);
- 
-+static inline long __zone_watermark_unusable_free(struct zone *z,
-+				unsigned int order, unsigned int alloc_flags)
-+{
-+	const bool alloc_harder = (alloc_flags & (ALLOC_HARDER|ALLOC_OOM));
-+	long unusable_free = (1 << order) - 1;
-+
-+	/*
-+	 * If the caller does not have rights to ALLOC_HARDER then subtract
-+	 * the high-atomic reserves. This will over-estimate the size of the
-+	 * atomic reserve but it avoids a search.
-+	 */
-+	if (likely(!alloc_harder))
-+		unusable_free += z->nr_reserved_highatomic;
-+
-+#ifdef CONFIG_CMA
-+	/* If allocation can't use CMA areas don't use free CMA pages */
-+	if (!(alloc_flags & ALLOC_CMA))
-+		unusable_free += zone_page_state(z, NR_FREE_CMA_PAGES);
-+#endif
-+
-+	return unusable_free;
-+}
-+
- /*
-  * Return true if free base pages are above 'mark'. For high-order checks it
-  * will return true of the order-0 watermark is reached and there is at least
-@@ -3502,19 +3525,12 @@ bool __zone_watermark_ok(struct zone *z,
- 	const bool alloc_harder = (alloc_flags & (ALLOC_HARDER|ALLOC_OOM));
- 
- 	/* free_pages may go negative - that's OK */
--	free_pages -= (1 << order) - 1;
-+	free_pages -= __zone_watermark_unusable_free(z, order, alloc_flags);
- 
- 	if (alloc_flags & ALLOC_HIGH)
- 		min -= min / 2;
- 
--	/*
--	 * If the caller does not have rights to ALLOC_HARDER then subtract
--	 * the high-atomic reserves. This will over-estimate the size of the
--	 * atomic reserve but it avoids a search.
--	 */
--	if (likely(!alloc_harder)) {
--		free_pages -= z->nr_reserved_highatomic;
--	} else {
-+	if (unlikely(alloc_harder)) {
- 		/*
- 		 * OOM victims can try even harder than normal ALLOC_HARDER
- 		 * users on the grounds that it's definitely going to be in
-@@ -3527,13 +3543,6 @@ bool __zone_watermark_ok(struct zone *z,
- 			min -= min / 4;
- 	}
- 
--
--#ifdef CONFIG_CMA
--	/* If allocation can't use CMA areas don't use free CMA pages */
--	if (!(alloc_flags & ALLOC_CMA))
--		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
--#endif
--
- 	/*
- 	 * Check watermarks for an order-0 allocation request. If these
- 	 * are not met, then a high-order request also cannot go ahead
-@@ -3582,25 +3591,22 @@ static inline bool zone_watermark_fast(s
- 				unsigned long mark, int highest_zoneidx,
- 				unsigned int alloc_flags)
+--- a/mm/memory_hotplug.c~mm-fix-false-softlockup-during-pfn-range-removal
++++ a/mm/memory_hotplug.c
+@@ -471,11 +471,20 @@ void __ref remove_pfn_range_from_zone(st
+ 				      unsigned long start_pfn,
+ 				      unsigned long nr_pages)
  {
--	long free_pages = zone_page_state(z, NR_FREE_PAGES);
--	long cma_pages = 0;
-+	long free_pages;
-+	long unusable_free;
- 
--#ifdef CONFIG_CMA
--	/* If allocation can't use CMA areas don't use free CMA pages */
--	if (!(alloc_flags & ALLOC_CMA))
--		cma_pages = zone_page_state(z, NR_FREE_CMA_PAGES);
--#endif
-+	free_pages = zone_page_state(z, NR_FREE_PAGES);
-+	unusable_free = __zone_watermark_unusable_free(z, order, alloc_flags);
- 
- 	/*
- 	 * Fast check for order-0 only. If this fails then the reserves
--	 * need to be calculated. There is a corner case where the check
--	 * passes but only the high-order atomic reserve are free. If
--	 * the caller is !atomic then it'll uselessly search the free
--	 * list. That corner case is then slower but it is harmless.
-+	 * need to be calculated.
- 	 */
--	if (!order && (free_pages - cma_pages) >
--				mark + z->lowmem_reserve[highest_zoneidx])
--		return true;
-+	if (!order) {
-+		long fast_free = free_pages - unusable_free;
++	const unsigned long end_pfn =3D start_pfn + nr_pages;
+ 	struct pglist_data *pgdat =3D zone->zone_pgdat;
+-	unsigned long flags;
++	unsigned long pfn, cur_nr_pages, flags;
+=20
+ 	/* Poison struct pages because they are now uninitialized again. */
+-	page_init_poison(pfn_to_page(start_pfn), sizeof(struct page) * nr_pages);
++	for (pfn =3D start_pfn; pfn < end_pfn; pfn +=3D cur_nr_pages) {
++		cond_resched();
 +
-+		if (fast_free > mark + z->lowmem_reserve[highest_zoneidx])
-+			return true;
++		/* Select all remaining pages up to the next section boundary */
++		cur_nr_pages =3D
++			min(end_pfn - pfn, SECTION_ALIGN_UP(pfn + 1) - pfn);
++		page_init_poison(pfn_to_page(pfn),
++				 sizeof(struct page) * cur_nr_pages);
 +	}
- 
- 	return __zone_watermark_ok(z, order, mark, highest_zoneidx, alloc_flags,
- 					free_pages);
+=20
+ #ifdef CONFIG_ZONE_DEVICE
+ 	/*
 _
 
-Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+Patches currently in -mm which might be from ben.widawsky@intel.com are
 
-page_alloc-consider-highatomic-reserve-in-watermark-fast.patch
+mm-fix-false-softlockup-during-pfn-range-removal.patch
