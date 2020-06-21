@@ -1,78 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- kernel-forkc-annotate-data-races-for-copy_process.patch removed from -mm tree
-Date: Sat, 20 Jun 2020 19:04:18 -0700
-Message-ID: <20200621020418.MVJ5u%akpm@linux-foundation.org>
+Subject: +
+ x86-hyperv-allocate-the-hypercall-page-with-only-read-and-execute-bits.patch
+ added to -mm tree
+Date: Sat, 20 Jun 2020 19:19:45 -0700
+Message-ID: <20200621021945.tuA1n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35786 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:41310 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728992AbgFUCEU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 20 Jun 2020 22:04:20 -0400
+        id S1729080AbgFUCTq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 20 Jun 2020 22:19:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tglx@linutronix.de, paulmck@kernel.org, oleg@redhat.com, lizefan@huawei.com, elver@google.com, christian.brauner@ubuntu.com, cai@lca.pw, chenweilong@huawei.com
+To: mm-commits@vger.kernel.org, will@kernel.org, wei.liu@kernel.org, vkuznets@redhat.com, peterz@infradead.org, jeyu@kernel.org, decui@microsoft.com, david@redhat.com, catalin.marinas@arm.com, hch@lst.de
 
 
 The patch titled
-     Subject: kernel/fork.c: annotate data races for copy_process
-has been removed from the -mm tree.  Its filename was
-     kernel-forkc-annotate-data-races-for-copy_process.patch
+     Subject: x86/hyperv: allocate the hypercall page with only read and ex=
+ecute bits
+has been added to the -mm tree.  Its filename is
+     x86-hyperv-allocate-the-hypercall-page-with-only-read-and-execute-bits=
+.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-hyperv-allocate-the-hyperc=
+all-page-with-only-read-and-execute-bits.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-hyperv-allocate-the-hyperc=
+all-page-with-only-read-and-execute-bits.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Weilong Chen <chenweilong@huawei.com>
-Subject: kernel/fork.c: annotate data races for copy_process
+From: Christoph Hellwig <hch@lst.de>
+Subject: x86/hyperv: allocate the hypercall page with only read and execute=
+ bits
 
-The check is only there to stop root fork bombs.
+Patch series "fix a hyperv W^X violation and remove vmalloc_exec"
 
-BUG: KCSAN: data-race in copy_process / copy_process
+Dexuan reported a W^X violation due to the fact that the hyper hypercall
+page due switching it to be allocated using vmalloc_exec.  The problem is
+that PAGE_KERNEL_EXEC as used by vmalloc_exec actually sets writable
+permissions in the pte.  This series fixes the issue by switching to the
+low-level __vmalloc_node_range interface that allows specifing more
+detailed permissions instead.  It then also open codes the other two
+callers and removes the somewhat confusing vmalloc_exec interface.
 
-write to 0xffffffff86f87d20 of 4 bytes by task 7121 on cpu 5:
- copy_process+0x2e1a/0x3af0 kernel/fork.c:2285
- _do_fork+0xf7/0x790 kernel/fork.c:2430
- __do_sys_clone+0xf9/0x130 kernel/fork.c:2585
- __se_sys_clone kernel/fork.c:2566 [inline]
- __x64_sys_clone+0x6c/0x80 kernel/fork.c:2566
- do_syscall_64+0xc7/0x3b0 arch/x86/entry/common.c:295
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
+Peter noted that the hyper hypercall page allocation also has another long
+standing issue in that it shouldn't use the full vmalloc but just the
+module space.  This issue is so far theoretical as the allocation is done
+early in the boot process.  I plan to fix it with another bigger series
+for 5.9.
 
-read to 0xffffffff86f87d20 of 4 bytes by task 7125 on cpu 3:
- copy_process+0x9eb/0x3af0 kernel/fork.c:1967
- _do_fork+0xf7/0x790 kernel/fork.c:2430
- __do_sys_clone+0xf9/0x130 kernel/fork.c:2585
- __se_sys_clone kernel/fork.c:2566 [inline]
- __x64_sys_clone+0x6c/0x80 kernel/fork.c:2566
- do_syscall_64+0xc7/0x3b0 arch/x86/entry/common.c:295
- entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-Link: http://lkml.kernel.org/r/20200609030801.272704-1-chenweilong@huawei.com
-Signed-off-by: Weilong Chen <chenweilong@huawei.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Marco Elver <elver@google.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Zefan Li <lizefan@huawei.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
+This patch (of 3):
+
+Avoid a W^X violation cause by the fact that PAGE_KERNEL_EXEC includes the
+writable bit.
+
+For this resurrect the removed PAGE_KERNEL_RX definit=D1=96on, but as
+PAGE_KERNEL_ROX to match arm64 and powerpc.
+
+Link: http://lkml.kernel.org/r/20200618064307.32739-2-hch@lst.de
+Fixes: 78bb17f76edc ("x86/hyperv: use vmalloc_exec for the hypercall page")
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Dexuan Cui <decui@microsoft.com>
+Tested-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Acked-by: Wei Liu <wei.liu@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Jessica Yu <jeyu@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/hyperv/hv_init.c            |    4 +++-
+ arch/x86/include/asm/pgtable_types.h |    2 ++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
---- a/kernel/fork.c~kernel-forkc-annotate-data-races-for-copy_process
-+++ a/kernel/fork.c
-@@ -1976,7 +1976,7 @@ static __latent_entropy struct task_stru
- 	 * to stop root fork bombs.
- 	 */
- 	retval = -EAGAIN;
--	if (nr_threads >= max_threads)
-+	if (data_race(nr_threads >= max_threads))
- 		goto bad_fork_cleanup_count;
- 
- 	delayacct_tsk_init(p);	/* Must remain after dup_task_struct() */
+--- a/arch/x86/hyperv/hv_init.c~x86-hyperv-allocate-the-hypercall-page-with=
+-only-read-and-execute-bits
++++ a/arch/x86/hyperv/hv_init.c
+@@ -375,7 +375,9 @@ void __init hyperv_init(void)
+ 	guest_id =3D generate_guest_id(0, LINUX_VERSION_CODE, 0);
+ 	wrmsrl(HV_X64_MSR_GUEST_OS_ID, guest_id);
+=20
+-	hv_hypercall_pg =3D vmalloc_exec(PAGE_SIZE);
++	hv_hypercall_pg =3D __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START,
++			VMALLOC_END, GFP_KERNEL, PAGE_KERNEL_ROX,
++			VM_FLUSH_RESET_PERMS, NUMA_NO_NODE, __func__);
+ 	if (hv_hypercall_pg =3D=3D NULL) {
+ 		wrmsrl(HV_X64_MSR_GUEST_OS_ID, 0);
+ 		goto remove_cpuhp_state;
+--- a/arch/x86/include/asm/pgtable_types.h~x86-hyperv-allocate-the-hypercal=
+l-page-with-only-read-and-execute-bits
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -194,6 +194,7 @@ enum page_cache_mode {
+ #define _PAGE_TABLE_NOENC	 (__PP|__RW|_USR|___A|   0|___D|   0|   0)
+ #define _PAGE_TABLE		 (__PP|__RW|_USR|___A|   0|___D|   0|   0| _ENC)
+ #define __PAGE_KERNEL_RO	 (__PP|   0|   0|___A|__NX|___D|   0|___G)
++#define __PAGE_KERNEL_ROX	 (__PP|   0|   0|___A|   0|___D|   0|___G)
+ #define __PAGE_KERNEL_NOCACHE	 (__PP|__RW|   0|___A|__NX|___D|   0|___G| _=
+_NC)
+ #define __PAGE_KERNEL_VVAR	 (__PP|   0|_USR|___A|__NX|___D|   0|___G)
+ #define __PAGE_KERNEL_LARGE	 (__PP|__RW|   0|___A|__NX|___D|_PSE|___G)
+@@ -219,6 +220,7 @@ enum page_cache_mode {
+ #define PAGE_KERNEL_RO		__pgprot_mask(__PAGE_KERNEL_RO         | _ENC)
+ #define PAGE_KERNEL_EXEC	__pgprot_mask(__PAGE_KERNEL_EXEC       | _ENC)
+ #define PAGE_KERNEL_EXEC_NOENC	__pgprot_mask(__PAGE_KERNEL_EXEC       |   =
+ 0)
++#define PAGE_KERNEL_ROX		__pgprot_mask(__PAGE_KERNEL_ROX        | _ENC)
+ #define PAGE_KERNEL_NOCACHE	__pgprot_mask(__PAGE_KERNEL_NOCACHE    | _ENC)
+ #define PAGE_KERNEL_LARGE	__pgprot_mask(__PAGE_KERNEL_LARGE      | _ENC)
+ #define PAGE_KERNEL_LARGE_EXEC	__pgprot_mask(__PAGE_KERNEL_LARGE_EXEC | _E=
+NC)
 _
 
-Patches currently in -mm which might be from chenweilong@huawei.com are
+Patches currently in -mm which might be from hch@lst.de are
+
+x86-hyperv-allocate-the-hypercall-page-with-only-read-and-execute-bits.patch
+arm64-use-page_kernel_rox-directly-in-alloc_insn_page.patch
+mm-remove-vmalloc_exec.patch
