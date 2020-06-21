@@ -1,232 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
- added to -mm tree
-Date: Sat, 20 Jun 2020 19:33:10 -0700
-Message-ID: <20200621023310.UpIRG%akpm@linux-foundation.org>
+Subject: mmotm 2020-06-20-21-36 uploaded
+Date: Sat, 20 Jun 2020 21:37:37 -0700
+Message-ID: <20200621043737.pb6JV%akpm__3077.32108501426$1592714269$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44502 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728992AbgFUCdM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 20 Jun 2020 22:33:12 -0400
+        id S1725807AbgFUEhk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 21 Jun 2020 00:37:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vjitta@codeaurora.org, vinmenon@codeaurora.org, rientjes@google.com, penberg@kernel.org, mjg59@google.com, keescook@chromium.org, jannh@google.com, iamjoonsoo.kim@lge.com, guro@fb.com, cl@linux.com, vbabka@suse.cz
+To: broonie@kernel.org, mhocko@suse.cz, sfr@canb.auug.org.au, linux-next@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
+
+The mm-of-the-moment snapshot 2020-06-20-21-36 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (5.x
+or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
 
 
-The patch titled
-     Subject: mm, slab/slub: improve error reporting and overhead of cache_from_obj()
-has been added to the -mm tree.  Its filename is
-     mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
+	https://github.com/hnaz/linux-mm
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+A git copy of this tree is also available at
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+	https://github.com/hnaz/linux-mm
 
-------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slab/slub: improve error reporting and overhead of cache_from_obj()
 
-cache_from_obj() was added by commit b9ce5ef49f00 ("sl[au]b: always get
-the cache from its page in kmem_cache_free()") to support kmemcg, where
-per-memcg cache can be different from the root one, so we can't use the
-kmem_cache pointer given to kmem_cache_free().
 
-Prior to that commit, SLUB already had debugging check+warning that could
-be enabled to compare the given kmem_cache pointer to one referenced by
-the slab page where the object-to-be-freed resides.  This check was moved
-to cache_from_obj().  Later the check was also enabled for
-SLAB_FREELIST_HARDENED configs by commit 598a0717a816 ("mm/slab: validate
-cache membership under freelist hardening").
+This mmotm tree contains the following patches against 5.8-rc1:
+(patches marked "*" will be included in linux-next)
 
-These checks and warnings can be useful especially for the debugging,
-which can be improved.  Commit 598a0717a816 changed the pr_err() with
-WARN_ON_ONCE() to WARN_ONCE() so only the first hit is now reported,
-others are silent.  This patch changes it to WARN() so that all errors are
-reported.
-
-It's also useful to print SLUB allocation/free tracking info for the
-offending object, if tracking is enabled.  Thus, export the SLUB
-print_tracking() function and provide an empty one for SLAB.
-
-For SLUB we can also benefit from the static key check in
-kmem_cache_debug_flags(), but we need to move this function to slab.h and
-declare the static key there.
-
-[1] https://lore.kernel.org/r/20200608230654.828134-18-guro@fb.com
-
-Link: http://lkml.kernel.org/r/afeda7ac-748b-33d8-a905-56b708148ad5@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Garrett <mjg59@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/slab.c |    8 --------
- mm/slab.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
- mm/slub.c |   38 +-------------------------------------
- 3 files changed, 46 insertions(+), 45 deletions(-)
-
---- a/mm/slab.c~mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj
-+++ a/mm/slab.c
-@@ -3672,14 +3672,6 @@ void *__kmalloc_track_caller(size_t size
- }
- EXPORT_SYMBOL(__kmalloc_track_caller);
- 
--static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
--{
--	if (memcg_kmem_enabled())
--		return virt_to_cache(x);
--	else
--		return s;
--}
--
- /**
-  * kmem_cache_free - Deallocate an object
-  * @cachep: The cache the allocation was from.
---- a/mm/slab.h~mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj
-+++ a/mm/slab.h
-@@ -275,6 +275,34 @@ static inline int cache_vmstat_idx(struc
- 		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE;
- }
- 
-+#ifdef CONFIG_SLUB_DEBUG
-+#ifdef CONFIG_SLUB_DEBUG_ON
-+DECLARE_STATIC_KEY_TRUE(slub_debug_enabled);
-+#else
-+DECLARE_STATIC_KEY_FALSE(slub_debug_enabled);
-+#endif
-+extern void print_tracking(struct kmem_cache *s, void *object);
-+#else
-+static inline void print_tracking(struct kmem_cache *s, void *object)
-+{
-+}
-+#endif
-+
-+/*
-+ * Returns true if any of the specified slub_debug flags is enabled for the
-+ * cache. Use only for flags parsed by setup_slub_debug() as it also enables
-+ * the static key.
-+ */
-+static inline bool kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
-+{
-+	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
-+#ifdef CONFIG_SLUB_DEBUG
-+	if (static_branch_unlikely(&slub_debug_enabled))
-+		return s->flags & flags;
-+#endif
-+	return false;
-+}
-+
- #ifdef CONFIG_MEMCG_KMEM
- 
- /* List of all root caches. */
-@@ -503,6 +531,23 @@ static __always_inline void uncharge_sla
- 	memcg_uncharge_slab(page, order, s);
- }
- 
-+static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
-+{
-+	struct kmem_cache *cachep;
-+
-+	if (!IS_ENABLED(CONFIG_SLAB_FREELIST_HARDENED) &&
-+	    !memcg_kmem_enabled() &&
-+	    !kmem_cache_debug_flags(s, SLAB_CONSISTENCY_CHECKS))
-+		return s;
-+
-+	cachep = virt_to_cache(x);
-+	if (WARN(cachep && !slab_equal_or_root(cachep, s),
-+		  "%s: Wrong slab cache. %s but object is from %s\n",
-+		  __func__, s->name, cachep->name))
-+		print_tracking(cachep, x);
-+	return cachep;
-+}
-+
- static inline size_t slab_ksize(const struct kmem_cache *s)
- {
- #ifndef CONFIG_SLUB
---- a/mm/slub.c~mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj
-+++ a/mm/slub.c
-@@ -122,21 +122,6 @@ DEFINE_STATIC_KEY_FALSE(slub_debug_enabl
- #endif
- #endif
- 
--/*
-- * Returns true if any of the specified slub_debug flags is enabled for the
-- * cache. Use only for flags parsed by setup_slub_debug() as it also enables
-- * the static key.
-- */
--static inline bool kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
--{
--	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
--#ifdef CONFIG_SLUB_DEBUG
--	if (static_branch_unlikely(&slub_debug_enabled))
--		return s->flags & flags;
--#endif
--	return false;
--}
--
- static inline bool kmem_cache_debug(struct kmem_cache *s)
- {
- 	return kmem_cache_debug_flags(s, SLAB_DEBUG_FLAGS);
-@@ -653,7 +638,7 @@ static void print_track(const char *s, s
- #endif
- }
- 
--static void print_tracking(struct kmem_cache *s, void *object)
-+void print_tracking(struct kmem_cache *s, void *object)
- {
- 	unsigned long pr_time = jiffies;
- 	if (!(s->flags & SLAB_STORE_USER))
-@@ -1525,10 +1510,6 @@ static bool freelist_corrupted(struct km
- {
- 	return false;
- }
--
--static void print_tracking(struct kmem_cache *s, void *object)
--{
--}
- #endif /* CONFIG_SLUB_DEBUG */
- 
- /*
-@@ -3180,23 +3161,6 @@ void ___cache_free(struct kmem_cache *ca
- }
- #endif
- 
--static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
--{
--	struct kmem_cache *cachep;
--
--	if (!IS_ENABLED(CONFIG_SLAB_FREELIST_HARDENED) &&
--	    !memcg_kmem_enabled() &&
--	    !kmem_cache_debug_flags(s, SLAB_CONSISTENCY_CHECKS))
--		return s;
--
--	cachep = virt_to_cache(x);
--	if (WARN(cachep && !slab_equal_or_root(cachep, s),
--		  "%s: Wrong slab cache. %s but object is from %s\n",
--		  __func__, s->name, cachep->name))
--		print_tracking(cachep, x);
--	return cachep;
--}
+  origin.patch
+* openrisc-fix-boot-oops-when-debug_vm-is-enabled.patch
+* mm-do_swap_page-fix-up-the-error-code-instantiation.patch
+* mm-slab-use-memzero_explicit-in-kzfree.patch
+* slub-cure-list_slab_objects-from-double-fix.patch
+* mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
+* mm-swap-fix-for-mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
+* mm-memory-fix-io-cost-for-anonymous-page.patch
+* mm-fix-swap-cache-node-allocation-mask.patch
+* mm-memoryc-properly-pte_offset_map_lock-unlock-in-vm_insert_pages.patch
+* mm-debug_vm_pgtable-fix-build-failure-with-powerpc-8xx.patch
+* mm-memcontrol-handle-div0-crash-race-condition-in-memorylow.patch
+* mm-memcontrol-fix-do-not-put-the-css-reference.patch
+* mm-memcg-prevent-missed-memorylow-load-tears.patch
+* mm-fix-false-softlockup-during-pfn-range-removal.patch
+* docs-mm-gup-minor-documentation-update.patch
+* doc-thp-cow-fault-no-longer-allocate-thp.patch
+* mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch
+* kexec-do-not-verify-the-signature-without-the-lockdown-or-mandatory-signature.patch
+* ocfs2-avoid-inode-removed-while-nfsd-access-it.patch
+* ocfs2-load-global_inode_alloc.patch
+* ocfs2-fix-panic-on-nfs-server-over-ocfs2.patch
+* ocfs2-fix-value-of-ocfs2_invalid_slot.patch
+* lib-fix-test_hmmc-reference-after-free.patch
+* linux-bitsh-fix-unsigned-less-than-zero-warnings.patch
+* mm-slab-fix-sign-conversion-problem-in-memcg_uncharge_slab.patch
+* x86-hyperv-allocate-the-hypercall-page-with-only-read-and-execute-bits.patch
+* arm64-use-page_kernel_rox-directly-in-alloc_insn_page.patch
+* mm-remove-vmalloc_exec.patch
+* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
+* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
+* checkpatch-test-git_dir-changes.patch
+* scripts-tagssh-collect-compiled-source-precisely.patch
+* bloat-o-meter-support-comparing-library-archives.patch
+* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
+* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
+* drivers-tty-serial-sh-scic-suppress-uninitialized-var-warning.patch
+* ramfs-support-o_tmpfile.patch
+* kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+  mm.patch
+* mm-treewide-rename-kzfree-to-kfree_sensitive.patch
+* mm-ksize-should-silently-accept-a-null-pointer.patch
+* mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
+* mm-slub-make-some-slub_debug-related-attributes-read-only.patch
+* mm-slub-remove-runtime-allocation-order-changes.patch
+* mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
+* mm-slub-make-reclaim_account-attribute-read-only.patch
+* mm-slub-introduce-static-key-for-slub_debug.patch
+* mm-slub-introduce-kmem_cache_debug_flags.patch
+* mm-slub-introduce-kmem_cache_debug_flags-fix.patch
+* mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
+* mm-slab-slub-move-and-improve-cache_from_obj.patch
+* mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
+* slub-drop-lockdep_assert_held-from-put_map.patch
+* mm-kcsan-instrument-slab-slub-free-with-assert_exclusive_access.patch
+* mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
+* mm-memcg-prepare-for-byte-sized-vmstat-items.patch
+* mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
+* mm-slub-implement-slub-version-of-obj_to_index.patch
+* mm-memcontrol-decouple-reference-counting-from-page-accounting.patch
+* mm-memcg-slab-obj_cgroup-api.patch
+* mm-memcg-slab-obj_cgroup-api-fix.patch
+* mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
+* mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages-fix.patch
+* mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
+* mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
+* mm-memcg-slab-deprecate-memorykmemslabinfo.patch
+* mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
+* mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
+* mm-memcg-slab-simplify-memcg-cache-creation.patch
+* mm-memcg-slab-remove-memcg_kmem_get_cache.patch
+* mm-memcg-slab-deprecate-slab_root_caches.patch
+* mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
+* mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
+* mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations-fix.patch
+* kselftests-cgroup-add-kernel-memory-accounting-tests.patch
+* tools-cgroup-add-memcg_slabinfopy-tool.patch
+* percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
+* mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
+* mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
+* mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
+* mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
+* mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
+* kselftests-cgroup-add-perpcu-memory-accounting-test.patch
+* mm-remove-redundant-check-non_swap_entry.patch
+* mm-memoryc-make-remap_pfn_range-reject-unaligned-addr.patch
+* mm-move-pd_alloc_track-to-separate-header-file.patch
+* mm-mmap-fix-the-adjusted-length-error.patch
+* vmalloc-convert-to-xarray.patch
+* mm-vmalloc-simplify-merge_or_add_vmap_area-func.patch
+* mm-vmalloc-simplify-augment_tree_propagate_check-func.patch
+* mm-vmalloc-switch-to-propagate-callback.patch
+* mm-page_alloc-use-unlikely-in-task_capc.patch
+* mm-track-mmu-notifiers-in-fs_reclaim_acquire-release.patch
+* page_alloc-consider-highatomic-reserve-in-watermark-fast.patch
+* mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+* mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
+* mm-drop-vm_total_pages.patch
+* mm-page_alloc-drop-nr_free_pagecache_pages.patch
+* mm-vmscanc-fixed-typo.patch
+* mm-proactive-compaction.patch
+* mm-use-unsigned-types-for-fragmentation-score.patch
+* hugetlbfs-prevent-filesystem-stacking-of-hugetlbfs.patch
+* mm-thp-remove-debug_cow-switch.patch
+* mm-vmstat-add-events-for-pmd-based-thp-migration-without-split.patch
+* mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-fix.patch
+* mm-vmstat-add-events-for-pmd-based-thp-migration-without-split-update.patch
+* mm-cma-fix-null-pointer-dereference-when-cma-could-not-be-activated.patch
+* mm-cma-fix-the-name-of-cma-areas.patch
+* mm-hugetlb-fix-the-name-of-hugetlb-cma.patch
+* sched-mm-optimize-current_gfp_context.patch
+* x86-mm-use-max-memory-block-size-on-bare-metal.patch
+* mm-zswap-move-to-use-crypto_acomp-api-for-hardware-acceleration.patch
+* info-task-hung-in-generic_file_write_iter.patch
+* info-task-hung-in-generic_file_write-fix.patch
+* kernel-hung_taskc-monitor-killed-tasks.patch
+* bitmap-fix-bitmap_cut-for-partial-overlapping-case.patch
+* bitmap-add-test-for-bitmap_cut.patch
+* lib-optimize-cpumask_local_spread.patch
+* bits-add-tests-of-genmask.patch
+* checkpatch-add-test-for-possible-misuse-of-is_enabled-without-config_.patch
+* checkpatch-support-deprecated-terms-checking.patch
+* scripts-deprecated_terms-recommend-denylist-allowlist-instead-of-blacklist-whitelist.patch
+* fs-signalfdc-fix-inconsistent-return-codes-for-signalfd4.patch
+* selftests-kmod-use-variable-name-in-kmod_test_0001.patch
+* kmod-remove-redundant-be-an-in-the-comment.patch
+* test_kmod-avoid-potential-double-free-in-trigger_config_run_type.patch
+* umh-fix-processed-error-when-umh_wait_proc-is-used.patch
+* selftests-simplify-kmod-failure-value.patch
+* exec-change-uselib2-is_sreg-failure-to-eacces.patch
+* exec-move-s_isreg-check-earlier.patch
+* exec-move-path_noexec-check-earlier.patch
+* umh-fix-refcount-underflow-in-fork_usermode_blob.patch
+* kdump-append-kernel-build-id-string-to-vmcoreinfo.patch
+* rapidio-rio_mport_cdev-use-struct_size-helper.patch
+* rapidio-use-struct_size-helper.patch
+* kernel-panicc-make-oops_may_print-return-bool.patch
+* lib-kconfigdebug-fix-typo-in-the-help-text-of-config_panic_timeout.patch
+* aio-simplify-read_events.patch
+* kcov-unconditionally-add-fno-stack-protector-to-compiler-options.patch
+  linux-next.patch
+  linux-next-git-rejects.patch
+* all-arch-remove-system-call-sys_sysctl.patch
+* all-arch-remove-system-call-sys_sysctl-fix.patch
+* mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+* mm-frontswap-mark-various-intentional-data-races.patch
+* mm-page_io-mark-various-intentional-data-races.patch
+* mm-page_io-mark-various-intentional-data-races-v2.patch
+* mm-swap_state-mark-various-intentional-data-races.patch
+* mm-filemap-fix-a-data-race-in-filemap_fault.patch
+* mm-swapfile-fix-and-annotate-various-data-races.patch
+* mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+* mm-page_counter-fix-various-data-races-at-memsw.patch
+* mm-memcontrol-fix-a-data-race-in-scan-count.patch
+* mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+* mm-mempool-fix-a-data-race-in-mempool_free.patch
+* mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+* mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
+* mm-annotate-a-data-race-in-page_zonenum.patch
+* include-asm-generic-vmlinuxldsh-align-ro_after_init.patch
+* sh-clkfwk-remove-r8-r16-r32.patch
+* sh-remove-call-to-memset-after-dma_alloc_coherent.patch
+* sh-use-generic-strncpy.patch
+* sh-add-missing-export_symbol-for-__delay.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  mutex-subsystem-synchro-test-module.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  workaround-for-a-pci-restoring-bug.patch
