@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-debug_vm_pgtable-fix-build-failure-with-powerpc-8xx.patch added to -mm
- tree
-Date: Sat, 20 Jun 2020 17:43:22 -0700
-Message-ID: <20200621004322.CCrzJ%akpm@linux-foundation.org>
+Subject: + all-arch-remove-system-call-sys_sysctl-fix.patch added to
+ -mm tree
+Date: Sat, 20 Jun 2020 17:44:52 -0700
+Message-ID: <20200621004452.xdTV_%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60362 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728524AbgFUAnY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 20 Jun 2020 20:43:24 -0400
+        id S1728531AbgFUAox (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 20 Jun 2020 20:44:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, will@kernel.org, peterz@infradead.org, paulus@samba.org, mpe@ellerman.id.au, benh@kernel.crashing.org, anshuman.khandual@arm.com, christophe.leroy@csgroup.eu
+To: mm-commits@vger.kernel.org, lkp@intel.com, heiko.carstens@de.ibm.com, nixiaoming@huawei.com
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: fix build failure with powerpc 8xx
+     Subject: s390: fix build error for sys_call_table_emu
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-fix-build-failure-with-powerpc-8xx.patch
+     all-arch-remove-system-call-sys_sysctl-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-fix-build-failure-with-powerpc-8xx.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/all-arch-remove-system-call-sys_sysctl-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-fix-build-failure-with-powerpc-8xx.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/all-arch-remove-system-call-sys_sysctl-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,79 +36,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: mm/debug_vm_pgtable: fix build failure with powerpc 8xx
+From: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: s390: fix build error for sys_call_table_emu
 
-Since commit 9e343b467c70 ("READ_ONCE: Enforce atomicity for
-{READ,WRITE}_ONCE() memory accesses"), READ_ONCE() cannot be used anymore
-to read complex page table entries.  This leads to:
+Build error on s390:
+	arch/s390/kernel/entry.o: in function `sys_call_table_emu':
+	>> (.rodata+0x1288): undefined reference to `__s390_'
 
-  CC      mm/debug_vm_pgtable.o
-In file included from ./include/asm-generic/bug.h:5,
-                 from ./arch/powerpc/include/asm/bug.h:109,
-                 from ./include/linux/bug.h:5,
-                 from ./include/linux/mmdebug.h:5,
-                 from ./include/linux/gfp.h:5,
-                 from mm/debug_vm_pgtable.c:13:
-In function 'pte_clear_tests',
-    inlined from 'debug_vm_pgtable' at mm/debug_vm_pgtable.c:363:2:
-./include/linux/compiler.h:392:38: error: call to '__compiletime_assert_210' declared with attribute error: Unsupported access size for {READ,WRITE}_ONCE().
-  392 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
-      |                                      ^
-./include/linux/compiler.h:373:4: note: in definition of macro '__compiletime_assert'
-  373 |    prefix ## suffix();    \
-      |    ^~~~~~
-./include/linux/compiler.h:392:2: note: in expansion of macro '_compiletime_assert'
-  392 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
-      |  ^~~~~~~~~~~~~~~~~~~
-./include/linux/compiler.h:405:2: note: in expansion of macro 'compiletime_assert'
-  405 |  compiletime_assert(__native_word(t) || sizeof(t) == sizeof(long long), \
-      |  ^~~~~~~~~~~~~~~~~~
-./include/linux/compiler.h:291:2: note: in expansion of macro 'compiletime_assert_rwonce_type'
-  291 |  compiletime_assert_rwonce_type(x);    \
-      |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-mm/debug_vm_pgtable.c:249:14: note: in expansion of macro 'READ_ONCE'
-  249 |  pte_t pte = READ_ONCE(*ptep);
-      |              ^~~~~~~~~
-make[2]: *** [mm/debug_vm_pgtable.o] Error 1
+In commit ("All arch: remove system call sys_sysctl")
+ 148  common	fdatasync		sys_fdatasync			sys_fdatasync
+-149  common	_sysctl			sys_sysctl			compat_sys_sysctl
++149  common	_sysctl			sys_ni_syscall
+ 150  common	mlock			sys_mlock			sys_mlock
 
-Fix it by using the recently added ptep_get() helper.
+After the patch is integrated, there is a format error in the generated
+arch/s390/include/generated/asm/syscall_table.h:
+	SYSCALL(sys_fdatasync, sys_fdatasync)
+	SYSCALL(sys_ni_syscall,) /* cause build error */
+	SYSCALL(sys_mlock,sys_mlock)
 
-Link: http://lkml.kernel.org/r/6ca8c972e6c920dc4ae0d4affbed9703afa4d010.1592490570.git.christophe.leroy@csgroup.eu
-Fixes: 9e343b467c70 ("READ_ONCE: Enforce atomicity for {READ,WRITE}_ONCE() memory accesses")
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Acked-by: Will Deacon <will@kernel.org>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+According to the guidance of Heiko Carstens, use "-" to fill the empty
+system call Similarly, modify
+tools/perf/arch/s390/entry/syscalls/syscall.tbl.
+
+Link: http://lkml.kernel.org/r/20200618141426.16884-1-nixiaoming@huawei.com
+Fixes: ("All arch: remove system call sys_sysctl")
+Fixes: https://lore.kernel.org/linuxppc-dev/20200616030734.87257-1-nixiaoming@huawei.com/
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/s390/kernel/syscalls/syscall.tbl           |    2 +-
+ tools/perf/arch/s390/entry/syscalls/syscall.tbl |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-fix-build-failure-with-powerpc-8xx
-+++ a/mm/debug_vm_pgtable.c
-@@ -246,13 +246,13 @@ static void __init pgd_populate_tests(st
- static void __init pte_clear_tests(struct mm_struct *mm, pte_t *ptep,
- 				   unsigned long vaddr)
- {
--	pte_t pte = READ_ONCE(*ptep);
-+	pte_t pte = ptep_get(ptep);
- 
- 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
- 	set_pte_at(mm, vaddr, ptep, pte);
- 	barrier();
- 	pte_clear(mm, vaddr, ptep);
--	pte = READ_ONCE(*ptep);
-+	pte = ptep_get(ptep);
- 	WARN_ON(!pte_none(pte));
- }
- 
+--- a/arch/s390/kernel/syscalls/syscall.tbl~all-arch-remove-system-call-sys_sysctl-fix
++++ a/arch/s390/kernel/syscalls/syscall.tbl
+@@ -138,7 +138,7 @@
+ 146  common	writev			sys_writev			compat_sys_writev
+ 147  common	getsid			sys_getsid			sys_getsid
+ 148  common	fdatasync		sys_fdatasync			sys_fdatasync
+-149  common	_sysctl			sys_ni_syscall
++149  common	_sysctl			-				-
+ 150  common	mlock			sys_mlock			sys_mlock
+ 151  common	munlock			sys_munlock			sys_munlock
+ 152  common	mlockall		sys_mlockall			sys_mlockall
+--- a/tools/perf/arch/s390/entry/syscalls/syscall.tbl~all-arch-remove-system-call-sys_sysctl-fix
++++ a/tools/perf/arch/s390/entry/syscalls/syscall.tbl
+@@ -138,7 +138,7 @@
+ 146  common	writev			sys_writev			compat_sys_writev
+ 147  common	getsid			sys_getsid			sys_getsid
+ 148  common	fdatasync		sys_fdatasync			sys_fdatasync
+-149  common	_sysctl			sys_ni_syscall
++149  common	_sysctl			-				-
+ 150  common	mlock			sys_mlock			compat_sys_mlock
+ 151  common	munlock			sys_munlock			compat_sys_munlock
+ 152  common	mlockall		sys_mlockall			sys_mlockall
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from nixiaoming@huawei.com are
 
-mm-debug_vm_pgtable-fix-build-failure-with-powerpc-8xx.patch
+all-arch-remove-system-call-sys_sysctl.patch
+all-arch-remove-system-call-sys_sysctl-fix.patch
