@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-unsigned-types-for-fragmentation-score.patch added
- to -mm tree
-Date: Sat, 20 Jun 2020 19:25:14 -0700
-Message-ID: <20200621022514.0niab%akpm@linux-foundation.org>
+Subject: +
+ mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
+ added to -mm tree
+Date: Sat, 20 Jun 2020 19:33:10 -0700
+Message-ID: <20200621023310.UpIRG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42740 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44502 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729075AbgFUCZQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 20 Jun 2020 22:25:16 -0400
+        id S1728992AbgFUCdM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 20 Jun 2020 22:33:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yzaikin@google.com, vbabka@suse.cz, mcgrof@kernel.org, keescook@chromium.org, iamjoonsoo.kim@lge.com, bhe@redhat.com, nigupta@nvidia.com
+To: mm-commits@vger.kernel.org, vjitta@codeaurora.org, vinmenon@codeaurora.org, rientjes@google.com, penberg@kernel.org, mjg59@google.com, keescook@chromium.org, jannh@google.com, iamjoonsoo.kim@lge.com, guro@fb.com, cl@linux.com, vbabka@suse.cz
 
 
 The patch titled
-     Subject: mm: use unsigned types for fragmentation score
+     Subject: mm, slab/slub: improve error reporting and overhead of cache_from_obj()
 has been added to the -mm tree.  Its filename is
-     mm-use-unsigned-types-for-fragmentation-score.patch
+     mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-unsigned-types-for-fragmentation-score.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-unsigned-types-for-fragmentation-score.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,136 +37,196 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nitin Gupta <nigupta@nvidia.com>
-Subject: mm: use unsigned types for fragmentation score
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slab/slub: improve error reporting and overhead of cache_from_obj()
 
-Proactive compaction uses per-node/zone "fragmentation score" which is
-always in range [0, 100], so use unsigned type of these scores as well as
-for related constants.
+cache_from_obj() was added by commit b9ce5ef49f00 ("sl[au]b: always get
+the cache from its page in kmem_cache_free()") to support kmemcg, where
+per-memcg cache can be different from the root one, so we can't use the
+kmem_cache pointer given to kmem_cache_free().
 
-Link: http://lkml.kernel.org/r/20200618010319.13159-1-nigupta@nvidia.com
-Signed-off-by: Nitin Gupta <nigupta@nvidia.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Prior to that commit, SLUB already had debugging check+warning that could
+be enabled to compare the given kmem_cache pointer to one referenced by
+the slab page where the object-to-be-freed resides.  This check was moved
+to cache_from_obj().  Later the check was also enabled for
+SLAB_FREELIST_HARDENED configs by commit 598a0717a816 ("mm/slab: validate
+cache membership under freelist hardening").
+
+These checks and warnings can be useful especially for the debugging,
+which can be improved.  Commit 598a0717a816 changed the pr_err() with
+WARN_ON_ONCE() to WARN_ONCE() so only the first hit is now reported,
+others are silent.  This patch changes it to WARN() so that all errors are
+reported.
+
+It's also useful to print SLUB allocation/free tracking info for the
+offending object, if tracking is enabled.  Thus, export the SLUB
+print_tracking() function and provide an empty one for SLAB.
+
+For SLUB we can also benefit from the static key check in
+kmem_cache_debug_flags(), but we need to move this function to slab.h and
+declare the static key there.
+
+[1] https://lore.kernel.org/r/20200608230654.828134-18-guro@fb.com
+
+Link: http://lkml.kernel.org/r/afeda7ac-748b-33d8-a905-56b708148ad5@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Garrett <mjg59@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Vijayanand Jitta <vjitta@codeaurora.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    4 ++--
- kernel/sysctl.c            |    2 +-
- mm/compaction.c            |   18 +++++++++---------
- mm/vmstat.c                |    2 +-
- 4 files changed, 13 insertions(+), 13 deletions(-)
+ mm/slab.c |    8 --------
+ mm/slab.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
+ mm/slub.c |   38 +-------------------------------------
+ 3 files changed, 46 insertions(+), 45 deletions(-)
 
---- a/include/linux/compaction.h~mm-use-unsigned-types-for-fragmentation-score
-+++ a/include/linux/compaction.h
-@@ -85,13 +85,13 @@ static inline unsigned long compact_gap(
+--- a/mm/slab.c~mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj
++++ a/mm/slab.c
+@@ -3672,14 +3672,6 @@ void *__kmalloc_track_caller(size_t size
+ }
+ EXPORT_SYMBOL(__kmalloc_track_caller);
  
- #ifdef CONFIG_COMPACTION
- extern int sysctl_compact_memory;
--extern int sysctl_compaction_proactiveness;
-+extern unsigned int sysctl_compaction_proactiveness;
- extern int sysctl_compaction_handler(struct ctl_table *table, int write,
- 			void *buffer, size_t *length, loff_t *ppos);
- extern int sysctl_extfrag_threshold;
- extern int sysctl_compact_unevictable_allowed;
- 
--extern int extfrag_for_order(struct zone *zone, unsigned int order);
-+extern unsigned int extfrag_for_order(struct zone *zone, unsigned int order);
- extern int fragmentation_index(struct zone *zone, unsigned int order);
- extern enum compact_result try_to_compact_pages(gfp_t gfp_mask,
- 		unsigned int order, unsigned int alloc_flags,
---- a/kernel/sysctl.c~mm-use-unsigned-types-for-fragmentation-score
-+++ a/kernel/sysctl.c
-@@ -2833,7 +2833,7 @@ static struct ctl_table vm_table[] = {
- 	{
- 		.procname	= "compaction_proactiveness",
- 		.data		= &sysctl_compaction_proactiveness,
--		.maxlen		= sizeof(int),
-+		.maxlen		= sizeof(sysctl_compaction_proactiveness),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
---- a/mm/compaction.c~mm-use-unsigned-types-for-fragmentation-score
-+++ a/mm/compaction.c
-@@ -53,7 +53,7 @@ static inline void count_compact_events(
- /*
-  * Fragmentation score check interval for proactive compaction purposes.
-  */
--static const int HPAGE_FRAG_CHECK_INTERVAL_MSEC = 500;
-+static const unsigned int HPAGE_FRAG_CHECK_INTERVAL_MSEC = 500;
- 
- /*
-  * Page order with-respect-to which proactive compaction
-@@ -1890,7 +1890,7 @@ static bool kswapd_is_running(pg_data_t
-  * ZONE_DMA32. For smaller zones, the score value remains close to zero,
-  * and thus never exceeds the high threshold for proactive compaction.
-  */
--static int fragmentation_score_zone(struct zone *zone)
-+static unsigned int fragmentation_score_zone(struct zone *zone)
- {
- 	unsigned long score;
- 
-@@ -1906,9 +1906,9 @@ static int fragmentation_score_zone(stru
-  * the node's score falls below the low threshold, or one of the back-off
-  * conditions is met.
-  */
--static int fragmentation_score_node(pg_data_t *pgdat)
-+static unsigned int fragmentation_score_node(pg_data_t *pgdat)
- {
--	unsigned long score = 0;
-+	unsigned int score = 0;
- 	int zoneid;
- 
- 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
-@@ -1921,17 +1921,17 @@ static int fragmentation_score_node(pg_d
- 	return score;
+-static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
+-{
+-	if (memcg_kmem_enabled())
+-		return virt_to_cache(x);
+-	else
+-		return s;
+-}
+-
+ /**
+  * kmem_cache_free - Deallocate an object
+  * @cachep: The cache the allocation was from.
+--- a/mm/slab.h~mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj
++++ a/mm/slab.h
+@@ -275,6 +275,34 @@ static inline int cache_vmstat_idx(struc
+ 		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE;
  }
  
--static int fragmentation_score_wmark(pg_data_t *pgdat, bool low)
-+static unsigned int fragmentation_score_wmark(pg_data_t *pgdat, bool low)
- {
--	int wmark_low;
-+	unsigned int wmark_low;
++#ifdef CONFIG_SLUB_DEBUG
++#ifdef CONFIG_SLUB_DEBUG_ON
++DECLARE_STATIC_KEY_TRUE(slub_debug_enabled);
++#else
++DECLARE_STATIC_KEY_FALSE(slub_debug_enabled);
++#endif
++extern void print_tracking(struct kmem_cache *s, void *object);
++#else
++static inline void print_tracking(struct kmem_cache *s, void *object)
++{
++}
++#endif
++
++/*
++ * Returns true if any of the specified slub_debug flags is enabled for the
++ * cache. Use only for flags parsed by setup_slub_debug() as it also enables
++ * the static key.
++ */
++static inline bool kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
++{
++	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
++#ifdef CONFIG_SLUB_DEBUG
++	if (static_branch_unlikely(&slub_debug_enabled))
++		return s->flags & flags;
++#endif
++	return false;
++}
++
+ #ifdef CONFIG_MEMCG_KMEM
  
- 	/*
- 	 * Cap the low watermak to avoid excessive compaction
- 	 * activity in case a user sets the proactivess tunable
- 	 * close to 100 (maximum).
- 	 */
--	wmark_low = max(100 - sysctl_compaction_proactiveness, 5);
--	return low ? wmark_low : min(wmark_low + 10, 100);
-+	wmark_low = max(100U - sysctl_compaction_proactiveness, 5U);
-+	return low ? wmark_low : min(wmark_low + 10, 100U);
+ /* List of all root caches. */
+@@ -503,6 +531,23 @@ static __always_inline void uncharge_sla
+ 	memcg_uncharge_slab(page, order, s);
  }
  
- static bool should_proactive_compact_node(pg_data_t *pgdat)
-@@ -2615,7 +2615,7 @@ int sysctl_compact_memory;
-  * aggressively the kernel should compact memory in the
-  * background. It takes values in the range [0, 100].
-  */
--int __read_mostly sysctl_compaction_proactiveness = 20;
-+unsigned int __read_mostly sysctl_compaction_proactiveness = 20;
++static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
++{
++	struct kmem_cache *cachep;
++
++	if (!IS_ENABLED(CONFIG_SLAB_FREELIST_HARDENED) &&
++	    !memcg_kmem_enabled() &&
++	    !kmem_cache_debug_flags(s, SLAB_CONSISTENCY_CHECKS))
++		return s;
++
++	cachep = virt_to_cache(x);
++	if (WARN(cachep && !slab_equal_or_root(cachep, s),
++		  "%s: Wrong slab cache. %s but object is from %s\n",
++		  __func__, s->name, cachep->name))
++		print_tracking(cachep, x);
++	return cachep;
++}
++
+ static inline size_t slab_ksize(const struct kmem_cache *s)
+ {
+ #ifndef CONFIG_SLUB
+--- a/mm/slub.c~mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj
++++ a/mm/slub.c
+@@ -122,21 +122,6 @@ DEFINE_STATIC_KEY_FALSE(slub_debug_enabl
+ #endif
+ #endif
+ 
+-/*
+- * Returns true if any of the specified slub_debug flags is enabled for the
+- * cache. Use only for flags parsed by setup_slub_debug() as it also enables
+- * the static key.
+- */
+-static inline bool kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
+-{
+-	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
+-#ifdef CONFIG_SLUB_DEBUG
+-	if (static_branch_unlikely(&slub_debug_enabled))
+-		return s->flags & flags;
+-#endif
+-	return false;
+-}
+-
+ static inline bool kmem_cache_debug(struct kmem_cache *s)
+ {
+ 	return kmem_cache_debug_flags(s, SLAB_DEBUG_FLAGS);
+@@ -653,7 +638,7 @@ static void print_track(const char *s, s
+ #endif
+ }
+ 
+-static void print_tracking(struct kmem_cache *s, void *object)
++void print_tracking(struct kmem_cache *s, void *object)
+ {
+ 	unsigned long pr_time = jiffies;
+ 	if (!(s->flags & SLAB_STORE_USER))
+@@ -1525,10 +1510,6 @@ static bool freelist_corrupted(struct km
+ {
+ 	return false;
+ }
+-
+-static void print_tracking(struct kmem_cache *s, void *object)
+-{
+-}
+ #endif /* CONFIG_SLUB_DEBUG */
  
  /*
-  * This is the entry point for compacting all nodes via
---- a/mm/vmstat.c~mm-use-unsigned-types-for-fragmentation-score
-+++ a/mm/vmstat.c
-@@ -1101,7 +1101,7 @@ static int __fragmentation_index(unsigne
-  * It is defined as the percentage of pages found in blocks of size
-  * less than 1 << order. It returns values in range [0, 100].
-  */
--int extfrag_for_order(struct zone *zone, unsigned int order)
-+unsigned int extfrag_for_order(struct zone *zone, unsigned int order)
- {
- 	struct contig_page_info info;
+@@ -3180,23 +3161,6 @@ void ___cache_free(struct kmem_cache *ca
+ }
+ #endif
  
-_
-
-Patches currently in -mm which might be from nigupta@nvidia.com are
-
-mm-proactive-compaction.patch
-mm-use-unsigned-types-for-fragmentation-score.patch
+-static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
+-{
+-	struct kmem_cache *cachep;
+-
+-	if (!IS_ENABLED(CONFIG_SLAB_FREELIST_HARDENED) &&
+-	    !memcg_kmem_enabled() &&
+-	    !kmem_cache_debug_flags(s, SLAB_CONSISTENCY_CHECKS))
+-		return s;
+-
+-	cachep = virt_to_cache(x);
+-	if (WARN(cachep && !slab_equal_or_root(cachep, s),
+-		  "%s: Wrong slab cache. %s but object is from %s\n",
+-		  __func__, s->name, cachep->name))
+-		print_tracking(cachep, x);
+-	return cachep;
+-}
