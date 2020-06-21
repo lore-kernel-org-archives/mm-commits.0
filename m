@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-drop-nr_free_pagecache_pages.patch added to
- -mm tree
-Date: Sat, 20 Jun 2020 15:55:17 -0700
-Message-ID: <20200620225517.fDG-0%akpm@linux-foundation.org>
+Subject: +
+ mm-memoryc-properly-pte_offset_map_lock-unlock-in-vm_insert_pages.patch added
+ to -mm tree
+Date: Sat, 20 Jun 2020 17:18:48 -0700
+Message-ID: <20200621001848.GzMgT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51108 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53066 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727930AbgFTWzS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 20 Jun 2020 18:55:18 -0400
+        id S1728480AbgFUASt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 20 Jun 2020 20:18:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ying.huang@intel.com, richard.weiyang@gmail.com, minchan@kernel.org, mhocko@suse.com, hannes@cmpxchg.org, david@redhat.com
+To: mm-commits@vger.kernel.org, soheil@google.com, rientjes@google.com, hughd@google.com, edumazet@google.com, arjunroy@google.com
 
 
 The patch titled
-     Subject: mm/page_alloc: remove nr_free_pagecache_pages()
+     Subject: mm/memory.c: properly pte_offset_map_lock/unlock in vm_insert_pages()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-drop-nr_free_pagecache_pages.patch
+     mm-memoryc-properly-pte_offset_map_lock-unlock-in-vm_insert_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-drop-nr_free_pagecache_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memoryc-properly-pte_offset_map_lock-unlock-in-vm_insert_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-drop-nr_free_pagecache_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memoryc-properly-pte_offset_map_lock-unlock-in-vm_insert_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,52 +37,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: remove nr_free_pagecache_pages()
+From: Arjun Roy <arjunroy@google.com>
+Subject: mm/memory.c: properly pte_offset_map_lock/unlock in vm_insert_pages()
 
-nr_free_pagecache_pages() isn't used outside page_alloc.c anymore - and
-the name does not really help to understand what's going on.  Let's
-open-code it instead and add a comment.
+Calls to pte_offset_map() in vm_insert_pages() are erroneously not matched
+with a call to pte_unmap().  This would cause problems on architectures
+where that is not a no-op.
 
-Link: http://lkml.kernel.org/r/20200619132410.23859-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>
+This patch does away with the non-traditional locking in the existing
+code, and instead uses pte_offset_map_lock/unlock() as usual, incrementing
+PTE as necessary.  The PTE pointer is kept within bounds since we clamp it
+with PTRS_PER_PTE.
+
+Link: http://lkml.kernel.org/r/20200618220446.20284-1-arjunroy.kdev@gmail.com
+Fixes: 8cd3984d81d5 ("mm/memory.c: add vm_insert_pages()")
+Signed-off-by: Arjun Roy <arjunroy@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Soheil Hassas Yeganeh <soheil@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 -
- mm/page_alloc.c      |   16 ++--------------
- 2 files changed, 2 insertions(+), 15 deletions(-)
+ mm/memory.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/include/linux/swap.h~mm-page_alloc-drop-nr_free_pagecache_pages
-+++ a/include/linux/swap.h
-@@ -328,7 +328,6 @@ void workingset_update_node(struct xa_no
- /* linux/mm/page_alloc.c */
- extern unsigned long totalreserve_pages;
- extern unsigned long nr_free_buffer_pages(void);
--extern unsigned long nr_free_pagecache_pages(void);
- 
- /* Definition of global_zone_page_state not available yet */
- #define nr_free_pages() global_zone_page_state(NR_FREE_PAGES)
---- a/mm/page_alloc.c~mm-page_alloc-drop-nr_free_pagecache_pages
-+++ a/mm/page_alloc.c
-@@ -5193,19 +5193,6 @@ unsigned long nr_free_buffer_pages(void)
+--- a/mm/memory.c~mm-memoryc-properly-pte_offset_map_lock-unlock-in-vm_insert_pages
++++ a/mm/memory.c
+@@ -1498,7 +1498,7 @@ out:
  }
- EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
  
--/**
-- * nr_free_pagecache_pages - count number of pages beyond high watermark
-- *
-- * nr_free_pagecache_pages() counts the number of pages which are beyond the
-- * high watermark within all zones.
-- *
-- * Return: number of pages beyond high watermark within all zones.
-- */
--unsigned long nr_free_pagecache_pages(void)
--{
--	return nr_free_zone_pages(gfp_zone(GFP_HIGHUSER_MOVABLE));
--}
+ #ifdef pte_index
+-static int insert_page_in_batch_locked(struct mm_struct *mm, pmd_t *pmd,
++static int insert_page_in_batch_locked(struct mm_struct *mm, pte_t *pte,
+ 			unsigned long addr, struct page *page, pgprot_t prot)
+ {
+ 	int err;
+@@ -1506,8 +1506,9 @@ static int insert_page_in_batch_locked(s
+ 	if (!page_count(page))
+ 		return -EINVAL;
+ 	err = validate_page_before_insert(page);
+-	return err ? err : insert_page_into_pte_locked(
+-		mm, pte_offset_map(pmd, addr), addr, page, prot);
++	if (err)
++		return err;
++	return insert_page_into_pte_locked(mm, pte, addr, page, prot);
+ }
+ 
+ /* insert_pages() amortizes the cost of spinlock operations
+@@ -1517,7 +1518,8 @@ static int insert_pages(struct vm_area_s
+ 			struct page **pages, unsigned long *num, pgprot_t prot)
+ {
+ 	pmd_t *pmd = NULL;
+-	spinlock_t *pte_lock = NULL;
++	pte_t *start_pte, *pte;
++	spinlock_t *pte_lock;
+ 	struct mm_struct *const mm = vma->vm_mm;
+ 	unsigned long curr_page_idx = 0;
+ 	unsigned long remaining_pages_total = *num;
+@@ -1536,18 +1538,17 @@ more:
+ 	ret = -ENOMEM;
+ 	if (pte_alloc(mm, pmd))
+ 		goto out;
+-	pte_lock = pte_lockptr(mm, pmd);
+ 
+ 	while (pages_to_write_in_pmd) {
+ 		int pte_idx = 0;
+ 		const int batch_size = min_t(int, pages_to_write_in_pmd, 8);
+ 
+-		spin_lock(pte_lock);
+-		for (; pte_idx < batch_size; ++pte_idx) {
+-			int err = insert_page_in_batch_locked(mm, pmd,
++		start_pte = pte_offset_map_lock(mm, pmd, addr, &pte_lock);
++		for (pte = start_pte; pte_idx < batch_size; ++pte, ++pte_idx) {
++			int err = insert_page_in_batch_locked(mm, pte,
+ 				addr, pages[curr_page_idx], prot);
+ 			if (unlikely(err)) {
+-				spin_unlock(pte_lock);
++				pte_unmap_unlock(start_pte, pte_lock);
+ 				ret = err;
+ 				remaining_pages_total -= pte_idx;
+ 				goto out;
+@@ -1555,7 +1556,7 @@ more:
+ 			addr += PAGE_SIZE;
+ 			++curr_page_idx;
+ 		}
+-		spin_unlock(pte_lock);
++		pte_unmap_unlock(start_pte, pte_lock);
+ 		pages_to_write_in_pmd -= batch_size;
+ 		remaining_pages_total -= batch_size;
+ 	}
+_
+
+Patches currently in -mm which might be from arjunroy@google.com are
+
+mm-memoryc-properly-pte_offset_map_lock-unlock-in-vm_insert_pages.patch
