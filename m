@@ -1,100 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slub-introduce-kmem_cache_debug_flags-fix.patch added
- to -mm tree
-Date: Sat, 20 Jun 2020 18:59:24 -0700
-Message-ID: <20200621015924.2QO0q%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ kernel-forkc-annotate-data-races-for-copy_process.patch removed from -mm tree
+Date: Sat, 20 Jun 2020 19:04:18 -0700
+Message-ID: <20200621020418.MVJ5u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35100 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35786 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729016AbgFUB7Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 20 Jun 2020 21:59:25 -0400
+        id S1728992AbgFUCEU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 20 Jun 2020 22:04:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vjitta@codeaurora.org, rientjes@google.com, penberg@kernel.org, keescook@chromium.org, jannh@google.com, iamjoonsoo.kim@lge.com, guro@fb.com, cl@linux.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, tglx@linutronix.de, paulmck@kernel.org, oleg@redhat.com, lizefan@huawei.com, elver@google.com, christian.brauner@ubuntu.com, cai@lca.pw, chenweilong@huawei.com
 
 
 The patch titled
-     Subject: mm, slub: introduce kmem_cache_debug_flags()-fix
-has been added to the -mm tree.  Its filename is
-     mm-slub-introduce-kmem_cache_debug_flags-fix.patch
+     Subject: kernel/fork.c: annotate data races for copy_process
+has been removed from the -mm tree.  Its filename was
+     kernel-forkc-annotate-data-races-for-copy_process.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-introduce-kmem_cache_debug_flags-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-introduce-kmem_cache_debug_flags-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: introduce kmem_cache_debug_flags()-fix
+From: Weilong Chen <chenweilong@huawei.com>
+Subject: kernel/fork.c: annotate data races for copy_process
 
-Change return from int to bool, per Kees.  Add VM_WARN_ON_ONCE() for
-invalid flags, per Roman.
+The check is only there to stop root fork bombs.
 
-Link: http://lkml.kernel.org/r/949b90ed-e0f0-07d7-4d21-e30ec0958a7c@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Roman Gushchin <guro@fb.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+BUG: KCSAN: data-race in copy_process / copy_process
+
+write to 0xffffffff86f87d20 of 4 bytes by task 7121 on cpu 5:
+ copy_process+0x2e1a/0x3af0 kernel/fork.c:2285
+ _do_fork+0xf7/0x790 kernel/fork.c:2430
+ __do_sys_clone+0xf9/0x130 kernel/fork.c:2585
+ __se_sys_clone kernel/fork.c:2566 [inline]
+ __x64_sys_clone+0x6c/0x80 kernel/fork.c:2566
+ do_syscall_64+0xc7/0x3b0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+read to 0xffffffff86f87d20 of 4 bytes by task 7125 on cpu 3:
+ copy_process+0x9eb/0x3af0 kernel/fork.c:1967
+ _do_fork+0xf7/0x790 kernel/fork.c:2430
+ __do_sys_clone+0xf9/0x130 kernel/fork.c:2585
+ __se_sys_clone kernel/fork.c:2566 [inline]
+ __x64_sys_clone+0x6c/0x80 kernel/fork.c:2566
+ do_syscall_64+0xc7/0x3b0 arch/x86/entry/common.c:295
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Link: http://lkml.kernel.org/r/20200609030801.272704-1-chenweilong@huawei.com
+Signed-off-by: Weilong Chen <chenweilong@huawei.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Marco Elver <elver@google.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Zefan Li <lizefan@huawei.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ kernel/fork.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slub-introduce-kmem_cache_debug_flags-fix
-+++ a/mm/slub.c
-@@ -127,16 +127,17 @@ DEFINE_STATIC_KEY_FALSE(slub_debug_enabl
-  * cache. Use only for flags parsed by setup_slub_debug() as it also enables
-  * the static key.
-  */
--static inline int kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
-+static inline bool kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
- {
-+	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
- #ifdef CONFIG_SLUB_DEBUG
- 	if (static_branch_unlikely(&slub_debug_enabled))
- 		return s->flags & flags;
- #endif
--	return 0;
-+	return false;
- }
+--- a/kernel/fork.c~kernel-forkc-annotate-data-races-for-copy_process
++++ a/kernel/fork.c
+@@ -1976,7 +1976,7 @@ static __latent_entropy struct task_stru
+ 	 * to stop root fork bombs.
+ 	 */
+ 	retval = -EAGAIN;
+-	if (nr_threads >= max_threads)
++	if (data_race(nr_threads >= max_threads))
+ 		goto bad_fork_cleanup_count;
  
--static inline int kmem_cache_debug(struct kmem_cache *s)
-+static inline bool kmem_cache_debug(struct kmem_cache *s)
- {
- 	return kmem_cache_debug_flags(s, SLAB_DEBUG_FLAGS);
- }
+ 	delayacct_tsk_init(p);	/* Must remain after dup_task_struct() */
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch
-mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
-mm-slub-make-some-slub_debug-related-attributes-read-only.patch
-mm-slub-remove-runtime-allocation-order-changes.patch
-mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
-mm-slub-make-reclaim_account-attribute-read-only.patch
-mm-slub-introduce-static-key-for-slub_debug.patch
-mm-slub-introduce-kmem_cache_debug_flags.patch
-mm-slub-introduce-kmem_cache_debug_flags-fix.patch
-mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
-mm-slab-slub-move-and-improve-cache_from_obj.patch
-mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
-mm-page_alloc-use-unlikely-in-task_capc.patch
+Patches currently in -mm which might be from chenweilong@huawei.com are
