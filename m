@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mmhwpoison-rework-soft-offline-for-in-use-pages.patch
+Subject: +
+ mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
  added to -mm tree
-Date: Wed, 24 Jun 2020 12:19:47 -0700
-Message-ID: <20200624191947.WO4Iu%akpm@linux-foundation.org>
+Date: Wed, 24 Jun 2020 12:19:50 -0700
+Message-ID: <20200624191950.7A1Sw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60178 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60224 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405057AbgFXTTt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 15:19:49 -0400
+        id S2405057AbgFXTTw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 15:19:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zeil@yandex-team.ru, tony.luck@intel.com, naoya.horiguchi@nec.com, mike.kravetz@oracle.com, mhocko@kernel.org, david@redhat.com, dave.hansen@intel.com, aneesh.kumar@linux.vnet.ibm.com, aneesh.kumar@linux.ibm.com, osalvador@suse.de
 
 
 The patch titled
-     Subject: mm,hwpoison: rework soft offline for in-use pages
+     Subject: mm,hwpoison: refactor soft_offline_huge_page and __soft_offline_page
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-rework-soft-offline-for-in-use-pages.patch
+     mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-rework-soft-offline-for-in-use-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-rework-soft-offline-for-in-use-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,79 +38,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: rework soft offline for in-use pages
+Subject: mm,hwpoison: refactor soft_offline_huge_page and __soft_offline_page
 
-This patch changes the way we set and handle in-use poisoned pages.  Until
-now, poisoned pages were released to the buddy allocator, trusting that
-the checks that take place prior to hand the page would act as a safe net
-and would skip that page.
+Merging soft_offline_huge_page and __soft_offline_page let us get rid of
+quite some duplicated code, and makes the code much easier to follow.
 
-This has proved to be wrong, as we got some pfn walkers out there, like
-compaction, that all they care is the page to be PageBuddy and be in a
-freelist.
+Now, __soft_offline_page will handle both normal and hugetlb pages.
 
-Although this might not be the only user, having poisoned pages in the
-buddy allocator seems a bad idea as we should only have free pages that
-are ready and meant to be used as such.
+Note that move put_page() block to the beginning of page_handle_poison()
+with drain_all_pages() in order to make sure that the target page is freed
+and sent into free list to make take_page_off_buddy() work properly.
 
-Before explaining the taken approach, let us break down the kind of pages
-we can soft offline.
-
-- Anonymous THP (after the split, they end up being 4K pages)
-- Hugetlb
-- Order-0 pages (that can be either migrated or invalited)
-
-* Normal pages (order-0 and anon-THP)
-
-  - If they are clean and unmapped page cache pages, we invalidate
-    then by means of invalidate_inode_page().
-  - If they are mapped/dirty, we do the isolate-and-migrate dance.
-
-  Either way, do not call put_page directly from those paths.
-  Instead, we keep the page and send it to page_set_poison to perform the
-  right handling.
-
-  page_set_poison sets the HWPoison flag and does the last put_page.
-  This call to put_page is mainly to be able to call __page_cache_release,
-  since this function is not exported.
-
-  Down the chain, we placed a check for HWPoison page in
-  free_pages_prepare, that just skips any poisoned page, so those pages
-  do not end up in any pcplist/freelist.
-
-  After that, we set the refcount on the page to 1 and we increment
-  the poisoned pages counter.
-
-  We could do as we do for free pages:
-  1) wait until the page hits buddy's freelists
-  2) take it off
-  3) flag it
-
-  The problem is that we could race with an allocation, so by the time we
-  want to take the page off the buddy, the page is already allocated, so we
-  cannot soft-offline it.
-  This is not fatal of course, but if it is better if we can close the race
-  as does not require a lot of code.
-
-* Hugetlb pages
-
-  - We isolate-and-migrate them
-
-  After the migration has been successful, we call dissolve_free_huge_page,
-  and we set HWPoison on the page if we succeed.
-  Hugetlb has a slightly different handling though.
-
-  While for non-hugetlb pages we cared about closing the race with an
-  allocation, doing so for hugetlb pages requires quite some additional
-  code (we would need to hook in free_huge_page and some other places).
-  So I decided to not make the code overly complicated and just fail
-  normally if the page we allocated in the meantime.
-
-Because of the way we handle now in-use pages, we no longer need the
-put-as-isolation-migratetype dance, that was guarding for poisoned pages
-to end up in pcplists.
-
-Link: http://lkml.kernel.org/r/20200624150137.7052-13-nao.horiguchi@gmail.com
+Link: http://lkml.kernel.org/r/20200624150137.7052-14-nao.horiguchi@gmail.com
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
@@ -123,191 +63,284 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    5 ---
- mm/memory-failure.c        |   44 +++++++++++------------------------
- mm/migrate.c               |   11 ++------
- mm/page_alloc.c            |   31 ++----------------------
- 4 files changed, 21 insertions(+), 70 deletions(-)
+ mm/memory-failure.c |  185 +++++++++++++++++++-----------------------
+ 1 file changed, 86 insertions(+), 99 deletions(-)
 
---- a/include/linux/page-flags.h~mmhwpoison-rework-soft-offline-for-in-use-pages
-+++ a/include/linux/page-flags.h
-@@ -422,14 +422,9 @@ PAGEFLAG_FALSE(Uncached)
- PAGEFLAG(HWPoison, hwpoison, PF_ANY)
- TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
- #define __PG_HWPOISON (1UL << PG_hwpoison)
--extern bool set_hwpoison_free_buddy_page(struct page *page);
- extern bool take_page_off_buddy(struct page *page);
- #else
- PAGEFLAG_FALSE(HWPoison)
--static inline bool set_hwpoison_free_buddy_page(struct page *page)
--{
--	return 0;
--}
- #define __PG_HWPOISON 0
- #endif
- 
---- a/mm/memory-failure.c~mmhwpoison-rework-soft-offline-for-in-use-pages
+--- a/mm/memory-failure.c~mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page
 +++ a/mm/memory-failure.c
-@@ -78,9 +78,12 @@ EXPORT_SYMBOL_GPL(hwpoison_filter_dev_mi
+@@ -78,14 +78,36 @@ EXPORT_SYMBOL_GPL(hwpoison_filter_dev_mi
  EXPORT_SYMBOL_GPL(hwpoison_filter_flags_mask);
  EXPORT_SYMBOL_GPL(hwpoison_filter_flags_value);
  
--static void page_handle_poison(struct page *page)
-+static void page_handle_poison(struct page *page, bool release)
+-static void page_handle_poison(struct page *page, bool release)
++static bool page_handle_poison(struct page *page, bool hugepage_or_freepage, bool release)
  {
-+
- 	SetPageHWPoison(page);
-+	if (release)
++	if (release) {
 +		put_page(page);
++		drain_all_pages(page_zone(page));
++	}
++
++	if (hugepage_or_freepage) {
++		/*
++		 * Doing this check for free pages is also fine since dissolve_free_huge_page
++		 * returns 0 for non-hugetlb pages as well.
++		 */
++		if (dissolve_free_huge_page(page) || !take_page_off_buddy(page))
++		/*
++		 * The hugetlb page can end up being enqueued back into
++		 * the freelists by means of:
++		 * unmap_and_move_huge_page
++		 *  putback_active_hugepage
++		 *   put_page->free_huge_page
++		 *    enqueue_huge_page
++		 * If this happens, we might lose the race against an allocation.
++		 */
++			return false;
++	}
+ 
+ 	SetPageHWPoison(page);
+-	if (release)
+-		put_page(page);
  	page_ref_inc(page);
  	num_poisoned_pages_inc();
++
++	return true;
  }
-@@ -1757,19 +1760,13 @@ static int soft_offline_huge_page(struct
- 			ret = -EIO;
- 	} else {
- 		/*
--		 * We set PG_hwpoison only when the migration source hugepage
--		 * was successfully dissolved, because otherwise hwpoisoned
--		 * hugepage remains on free hugepage list, then userspace will
--		 * find it as SIGBUS by allocation failure. That's not expected
--		 * in soft-offlining.
-+		 * We set PG_hwpoison only when we were able to take the page
-+		 * off the buddy.
- 		 */
--		ret = dissolve_free_huge_page(page);
--		if (!ret) {
--			if (set_hwpoison_free_buddy_page(page))
--				num_poisoned_pages_inc();
--			else
--				ret = -EBUSY;
--		}
-+		if (!dissolve_free_huge_page(page) && take_page_off_buddy(page))
-+			page_handle_poison(page, false);
-+		else
-+			ret = -EBUSY;
- 	}
+ 
+ static int hwpoison_filter_dev(struct page *p)
+@@ -1718,63 +1740,52 @@ static int get_any_page(struct page *pag
  	return ret;
  }
-@@ -1804,10 +1801,8 @@ static int __soft_offline_page(struct pa
+ 
+-static int soft_offline_huge_page(struct page *page)
++static bool isolate_page(struct page *page, struct list_head *pagelist)
+ {
+-	int ret;
+-	unsigned long pfn = page_to_pfn(page);
+-	struct page *hpage = compound_head(page);
+-	LIST_HEAD(pagelist);
++	bool isolated = false;
++	bool lru = PageLRU(page);
++
++	if (PageHuge(page)) {
++		isolated = isolate_huge_page(page, pagelist);
++	} else {
++		if (lru)
++			isolated = !isolate_lru_page(page);
++		else
++			isolated = !isolate_movable_page(page, ISOLATE_UNEVICTABLE);
++
++		if (isolated)
++			list_add(&page->lru, pagelist);
+ 
+-	/*
+-	 * This double-check of PageHWPoison is to avoid the race with
+-	 * memory_failure(). See also comment in __soft_offline_page().
+-	 */
+-	lock_page(hpage);
+-	if (PageHWPoison(hpage)) {
+-		unlock_page(hpage);
+-		put_page(hpage);
+-		pr_info("soft offline: %#lx hugepage already poisoned\n", pfn);
+-		return -EBUSY;
+ 	}
+-	unlock_page(hpage);
+ 
+-	ret = isolate_huge_page(hpage, &pagelist);
++	if (isolated && lru)
++		inc_node_page_state(page, NR_ISOLATED_ANON +
++				    page_is_file_lru(page));
++
+ 	/*
+-	 * get_any_page() and isolate_huge_page() takes a refcount each,
+-	 * so need to drop one here.
++	 * If we succeed to isolate the page, we grabbed another refcount on
++	 * the page, so we can safely drop the one we got from get_any_pages().
++	 * If we failed to isolate the page, it means that we cannot go further
++	 * and we will return an error, so drop the reference we got from
++	 * get_any_pages() as well.
+ 	 */
+-	put_page(hpage);
+-	if (!ret) {
+-		pr_info("soft offline: %#lx hugepage failed to isolate\n", pfn);
+-		return -EBUSY;
+-	}
+-
+-	ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
+-				MIGRATE_SYNC, MR_MEMORY_FAILURE);
+-	if (ret) {
+-		pr_info("soft offline: %#lx: hugepage migration failed %d, type %lx (%pGp)\n",
+-			pfn, ret, page->flags, &page->flags);
+-		if (!list_empty(&pagelist))
+-			putback_movable_pages(&pagelist);
+-		if (ret > 0)
+-			ret = -EIO;
+-	} else {
+-		/*
+-		 * We set PG_hwpoison only when we were able to take the page
+-		 * off the buddy.
+-		 */
+-		if (!dissolve_free_huge_page(page) && take_page_off_buddy(page))
+-			page_handle_poison(page, false);
+-		else
+-			ret = -EBUSY;
+-	}
+-	return ret;
++	put_page(page);
++	return isolated;
+ }
+ 
++/*
++ * __soft_offline_page handles hugetlb-pages and non-hugetlb pages.
++ * If the page is a non-dirty unmapped page-cache page, it simply invalidates.
++ * If the page is mapped, it migrates the contents over.
++ */
+ static int __soft_offline_page(struct page *page)
+ {
+-	int ret;
++	int ret = 0;
+ 	unsigned long pfn = page_to_pfn(page);
++	struct page *hpage = compound_head(page);
++	const char *msg_page[] = {"page", "hugepage"};
++	bool huge = PageHuge(page);
++	LIST_HEAD(pagelist);
+ 
+ 	/*
+ 	 * Check PageHWPoison again inside page lock because PageHWPoison
+@@ -1783,98 +1794,74 @@ static int __soft_offline_page(struct pa
+ 	 * so there's no race between soft_offline_page() and memory_failure().
+ 	 */
+ 	lock_page(page);
+-	wait_on_page_writeback(page);
++	if (!PageHuge(page))
++		wait_on_page_writeback(page);
+ 	if (PageHWPoison(page)) {
+ 		unlock_page(page);
+ 		put_page(page);
+ 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
+ 		return -EBUSY;
+ 	}
+-	/*
+-	 * Try to invalidate first. This should work for
+-	 * non dirty unmapped page cache pages.
+-	 */
+-	ret = invalidate_inode_page(page);
++
++	if (!PageHuge(page))
++		/*
++		 * Try to invalidate first. This should work for
++		 * non dirty unmapped page cache pages.
++		 */
++		ret = invalidate_inode_page(page);
+ 	unlock_page(page);
++
+ 	/*
+ 	 * RED-PEN would be better to keep it isolated here, but we
  	 * would need to fix isolation locking first.
  	 */
- 	if (ret == 1) {
--		put_page(page);
+-	if (ret == 1) {
++	if (ret) {
  		pr_info("soft_offline: %#lx: invalidated\n", pfn);
--		SetPageHWPoison(page);
--		num_poisoned_pages_inc();
-+		page_handle_poison(page, true);
+-		page_handle_poison(page, true);
++		page_handle_poison(page, false, true);
  		return 0;
  	}
  
-@@ -1838,7 +1833,9 @@ static int __soft_offline_page(struct pa
- 		list_add(&page->lru, &pagelist);
+-	/*
+-	 * Simple invalidation didn't work.
+-	 * Try to migrate to a new page instead. migrate.c
+-	 * handles a large number of cases for us.
+-	 */
+-	if (PageLRU(page))
+-		ret = isolate_lru_page(page);
+-	else
+-		ret = isolate_movable_page(page, ISOLATE_UNEVICTABLE);
+-	/*
+-	 * Drop page reference which is came from get_any_page()
+-	 * successful isolate_lru_page() already took another one.
+-	 */
+-	put_page(page);
+-	if (!ret) {
+-		LIST_HEAD(pagelist);
+-		/*
+-		 * After isolated lru page, the PageLRU will be cleared,
+-		 * so use !__PageMovable instead for LRU page's mapping
+-		 * cannot have PAGE_MAPPING_MOVABLE.
+-		 */
+-		if (!__PageMovable(page))
+-			inc_node_page_state(page, NR_ISOLATED_ANON +
+-						page_is_file_lru(page));
+-		list_add(&page->lru, &pagelist);
++	if (isolate_page(hpage, &pagelist)) {
  		ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
  					MIGRATE_SYNC, MR_MEMORY_FAILURE);
--		if (ret) {
-+		if (!ret) {
-+			page_handle_poison(page, true);
-+		} else {
+ 		if (!ret) {
+-			page_handle_poison(page, true);
++			bool release = !huge;
++
++			if (!page_handle_poison(page, true, release))
++				ret = -EBUSY;
+ 		} else {
  			if (!list_empty(&pagelist))
  				putback_movable_pages(&pagelist);
  
-@@ -1857,27 +1854,16 @@ static int __soft_offline_page(struct pa
+-			pr_info("soft offline: %#lx: migration failed %d, type %lx (%pGp)\n",
+-				pfn, ret, page->flags, &page->flags);
++
++			pr_info("soft offline: %#lx: %s migration failed %d, type %lx (%pGp)\n",
++				pfn, msg_page[huge], ret, page->flags, &page->flags);
+ 			if (ret > 0)
+ 				ret = -EIO;
+ 		}
+ 	} else {
+-		pr_info("soft offline: %#lx: isolation failed: %d, page count %d, type %lx (%pGp)\n",
+-			pfn, ret, page_count(page), page->flags, &page->flags);
++		pr_info("soft offline: %#lx: %s isolation failed: %d, page count %d, type %lx (%pGp)\n",
++			pfn, msg_page[huge], ret, page_count(page), page->flags, &page->flags);
+ 	}
+ 	return ret;
+ }
+ 
  static int soft_offline_in_use_page(struct page *page)
  {
- 	int ret;
--	int mt;
+-	int ret;
  	struct page *hpage = compound_head(page);
  
  	if (!PageHuge(page) && PageTransHuge(hpage))
  		if (try_to_split_thp_page(page, "soft offline") < 0)
  			return -EBUSY;
- 
--	/*
--	 * Setting MIGRATE_ISOLATE here ensures that the page will be linked
--	 * to free list immediately (not via pcplist) when released after
--	 * successful page migration. Otherwise we can't guarantee that the
--	 * page is really free after put_page() returns, so
--	 * set_hwpoison_free_buddy_page() highly likely fails.
--	 */
--	mt = get_pageblock_migratetype(page);
--	set_pageblock_migratetype(page, MIGRATE_ISOLATE);
- 	if (PageHuge(page))
- 		ret = soft_offline_huge_page(page);
- 	else
- 		ret = __soft_offline_page(page);
--	set_pageblock_migratetype(page, mt);
- 	return ret;
+-
+-	if (PageHuge(page))
+-		ret = soft_offline_huge_page(page);
+-	else
+-		ret = __soft_offline_page(page);
+-	return ret;
++	return __soft_offline_page(page);
  }
  
-@@ -1886,7 +1872,7 @@ static int soft_offline_free_page(struct
- 	int rc = -EBUSY;
+ static int soft_offline_free_page(struct page *page)
+ {
+-	int rc = -EBUSY;
++	int rc = 0;
  
- 	if (!dissolve_free_huge_page(page) && take_page_off_buddy(page)) {
--		page_handle_poison(page);
-+		page_handle_poison(page, false);
- 		rc = 0;
- 	}
- 
---- a/mm/migrate.c~mmhwpoison-rework-soft-offline-for-in-use-pages
-+++ a/mm/migrate.c
-@@ -1255,16 +1255,11 @@ out:
- 		 */
- 		if (newpage && PageTransHuge(newpage))
- 			thp_pmd_migration_success(true);
--		put_page(page);
--		if (reason == MR_MEMORY_FAILURE) {
-+		if (reason != MR_MEMORY_FAILURE)
- 			/*
--			 * Set PG_HWPoison on just freed page
--			 * intentionally. Although it's rather weird,
--			 * it's how HWPoison flag works at the moment.
-+			 * We release the page in page_handle_poison.
- 			 */
--			if (set_hwpoison_free_buddy_page(page))
--				num_poisoned_pages_inc();
--		}
-+			put_page(page);
- 	} else {
- 		if (rc != -EAGAIN) {
- 			if (likely(!__PageMovable(page))) {
---- a/mm/page_alloc.c~mmhwpoison-rework-soft-offline-for-in-use-pages
-+++ a/mm/page_alloc.c
-@@ -1175,6 +1175,9 @@ static __always_inline bool free_pages_p
- 
- 	VM_BUG_ON_PAGE(PageTail(page), page);
- 
-+	if (unlikely(PageHWPoison(page)) && !order)
-+		return false;
-+
- 	trace_mm_page_free(page, order);
- 
- 	/*
-@@ -8848,32 +8851,4 @@ bool take_page_off_buddy(struct page *pa
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 	return ret;
- }
--
--/*
-- * Set PG_hwpoison flag if a given page is confirmed to be a free page.  This
-- * test is performed under the zone lock to prevent a race against page
-- * allocation.
-- */
--bool set_hwpoison_free_buddy_page(struct page *page)
--{
--	struct zone *zone = page_zone(page);
--	unsigned long pfn = page_to_pfn(page);
--	unsigned long flags;
--	unsigned int order;
--	bool hwpoisoned = false;
--
--	spin_lock_irqsave(&zone->lock, flags);
--	for (order = 0; order < MAX_ORDER; order++) {
--		struct page *page_head = page - (pfn & ((1 << order) - 1));
--
--		if (PageBuddy(page_head) && page_order(page_head) >= order) {
--			if (!TestSetPageHWPoison(page))
--				hwpoisoned = true;
--			break;
--		}
+-	if (!dissolve_free_huge_page(page) && take_page_off_buddy(page)) {
+-		page_handle_poison(page, false);
+-		rc = 0;
 -	}
--	spin_unlock_irqrestore(&zone->lock, flags);
++	if (!page_handle_poison(page, true, false))
++		rc = -EBUSY;
+ 
+ 	return rc;
+ }
+_
+
+Patches currently in -mm which might be from osalvador@suse.de are
+
+mmmadvise-refactor-madvise_inject_error.patch
+mmhwpoison-un-export-get_hwpoison_page-and-make-it-static.patch
+mmhwpoison-kill-put_hwpoison_page.patch
+mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
+mmhwpoison-rework-soft-offline-for-free-pages.patch
+mmhwpoison-rework-soft-offline-for-in-use-pages.patch
+mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
+mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
