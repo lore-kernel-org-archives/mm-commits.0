@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-migrate-make-a-standard-migration-target-allocation-function.patch added
- to -mm tree
-Date: Wed, 24 Jun 2020 15:06:18 -0700
-Message-ID: <20200624220618.HZAUk%akpm@linux-foundation.org>
+ mm-gup-use-a-standard-migration-target-allocation-callback.patch added to -mm
+ tree
+Date: Wed, 24 Jun 2020 15:06:21 -0700
+Message-ID: <20200624220621.f4KGk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51454 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51514 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389513AbgFXWGU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 18:06:20 -0400
+        id S2389721AbgFXWGW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 18:06:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vbabka@suse.cz, n-horiguchi@ah.jp.nec.com, mike.kravetz@oracle.com, mhocko@suse.com, mgorman@techsingularity.net, hch@infradead.org, guro@fb.com, iamjoonsoo.kim@lge.com
 
 
 The patch titled
-     Subject: mm/migrate: make a standard migration target allocation function
+     Subject: mm/gup: use a standard migration target allocation callback
 has been added to the -mm tree.  Its filename is
-     mm-migrate-make-a-standard-migration-target-allocation-function.patch
+     mm-gup-use-a-standard-migration-target-allocation-callback.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-make-a-standard-migration-target-allocation-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-use-a-standard-migration-target-allocation-callback.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-make-a-standard-migration-target-allocation-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-use-a-standard-migration-target-allocation-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,18 +38,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/migrate: make a standard migration target allocation function
+Subject: mm/gup: use a standard migration target allocation callback
 
-There are some similar functions for migration target allocation.  Since
-there is no fundamental difference, it's better to keep just one rather
-than keeping all variants.  This patch implements base migration target
-allocation function.  In the following patches, variants will be converted
-to use this function.
+There is a well-defined migration target allocation callback.  It's mostly
+similar with new_non_cma_page() except considering CMA pages.
 
-Note that PageHighmem() call in previous function is changed to open-code
-"is_highmem_idx()" since it provides more readability.
+This patch adds a CMA consideration to the standard migration target
+allocation callback and use it on gup.c.
 
-Link: http://lkml.kernel.org/r/1592892828-1934-6-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1592892828-1934-7-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -61,159 +58,116 @@ Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    5 +++--
- mm/internal.h           |    7 +++++++
- mm/memory-failure.c     |    8 ++++++--
- mm/memory_hotplug.c     |   14 +++++++++-----
- mm/migrate.c            |   21 +++++++++++++--------
- mm/page_isolation.c     |    8 ++++++--
- 6 files changed, 44 insertions(+), 19 deletions(-)
+ mm/gup.c      |   57 ++++++------------------------------------------
+ mm/internal.h |    1 
+ mm/migrate.c  |    4 ++-
+ 3 files changed, 12 insertions(+), 50 deletions(-)
 
---- a/include/linux/migrate.h~mm-migrate-make-a-standard-migration-target-allocation-function
-+++ a/include/linux/migrate.h
-@@ -10,6 +10,8 @@
- typedef struct page *new_page_t(struct page *page, unsigned long private);
- typedef void free_page_t(struct page *page, unsigned long private);
- 
-+struct migration_target_control;
-+
- /*
-  * Return values from addresss_space_operations.migratepage():
-  * - negative errno on page migration failure;
-@@ -39,8 +41,7 @@ extern int migrate_page(struct address_s
- 			enum migrate_mode mode);
- extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
- 		unsigned long private, enum migrate_mode mode, int reason);
--extern struct page *new_page_nodemask(struct page *page,
--		int preferred_nid, nodemask_t *nodemask);
-+extern struct page *alloc_migration_target(struct page *page, unsigned long private);
- extern int isolate_movable_page(struct page *page, isolate_mode_t mode);
- extern void putback_movable_page(struct page *page);
- 
---- a/mm/internal.h~mm-migrate-make-a-standard-migration-target-allocation-function
-+++ a/mm/internal.h
-@@ -614,4 +614,11 @@ static inline bool is_migrate_highatomic
- 
- void setup_zone_pageset(struct zone *zone);
- extern struct page *alloc_new_node_page(struct page *page, unsigned long node);
-+
-+struct migration_target_control {
-+	int nid;		/* preferred node id */
-+	nodemask_t *nmask;
-+	gfp_t gfp_mask;
-+};
-+
- #endif	/* __MM_INTERNAL_H */
---- a/mm/memory-failure.c~mm-migrate-make-a-standard-migration-target-allocation-function
-+++ a/mm/memory-failure.c
-@@ -1648,9 +1648,13 @@ EXPORT_SYMBOL(unpoison_memory);
- 
- static struct page *new_page(struct page *p, unsigned long private)
- {
--	int nid = page_to_nid(p);
-+	struct migration_target_control mtc = {
-+		.nid = page_to_nid(p),
-+		.nmask = &node_states[N_MEMORY],
-+		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
-+	};
- 
--	return new_page_nodemask(p, nid, &node_states[N_MEMORY]);
-+	return alloc_migration_target(p, (unsigned long)&mtc);
+--- a/mm/gup.c~mm-gup-use-a-standard-migration-target-allocation-callback
++++ a/mm/gup.c
+@@ -1608,56 +1608,15 @@ static bool check_dax_vmas(struct vm_are
  }
  
- /*
---- a/mm/memory_hotplug.c~mm-migrate-make-a-standard-migration-target-allocation-function
-+++ a/mm/memory_hotplug.c
-@@ -1267,19 +1267,23 @@ found:
- 
- static struct page *new_node_page(struct page *page, unsigned long private)
+ #ifdef CONFIG_CMA
+-static struct page *new_non_cma_page(struct page *page, unsigned long private)
++static struct page *alloc_migration_target_non_cma(struct page *page, unsigned long private)
  {
+-	/*
+-	 * We want to make sure we allocate the new page from the same node
+-	 * as the source page.
+-	 */
 -	int nid = page_to_nid(page);
- 	nodemask_t nmask = node_states[N_MEMORY];
+-	/*
+-	 * Trying to allocate a page for migration. Ignore allocation
+-	 * failure warnings. We don't force __GFP_THISNODE here because
+-	 * this node here is the node where we have CMA reservation and
+-	 * in some case these nodes will have really less non movable
+-	 * allocation memory.
+-	 */
+-	gfp_t gfp_mask = GFP_USER | __GFP_NOWARN;
+-
+-	if (PageHighMem(page))
+-		gfp_mask |= __GFP_HIGHMEM;
+-
+-#ifdef CONFIG_HUGETLB_PAGE
+-	if (PageHuge(page)) {
+-		struct hstate *h = page_hstate(page);
 +	struct migration_target_control mtc = {
 +		.nid = page_to_nid(page),
-+		.nmask = &nmask,
-+		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
++		.gfp_mask = GFP_USER | __GFP_NOWARN,
++		.skip_cma = true,
 +	};
  
- 	/*
- 	 * try to allocate from a different node but reuse this node if there
- 	 * are no other online nodes to be used (e.g. we are offlining a part
- 	 * of the only existing node)
- 	 */
--	node_clear(nid, nmask);
--	if (nodes_empty(nmask))
--		node_set(nid, nmask);
-+	node_clear(mtc.nid, *mtc.nmask);
-+	if (nodes_empty(*mtc.nmask))
-+		node_set(mtc.nid, *mtc.nmask);
- 
--	return new_page_nodemask(page, nid, &nmask);
+-		/*
+-		 * We don't want to dequeue from the pool because pool pages will
+-		 * mostly be from the CMA region.
+-		 */
+-		return alloc_huge_page_nodemask(h, nid, NULL, gfp_mask, true);
+-	}
+-#endif
+-	if (PageTransHuge(page)) {
+-		struct page *thp;
+-		/*
+-		 * ignore allocation failure warnings
+-		 */
+-		gfp_t thp_gfpmask = GFP_TRANSHUGE | __GFP_NOWARN;
+-
+-		/*
+-		 * Remove the movable mask so that we don't allocate from
+-		 * CMA area again.
+-		 */
+-		thp_gfpmask &= ~__GFP_MOVABLE;
+-		thp = __alloc_pages_node(nid, thp_gfpmask, HPAGE_PMD_ORDER);
+-		if (!thp)
+-			return NULL;
+-		prep_transhuge_page(thp);
+-		return thp;
+-	}
+-
+-	return __alloc_pages_node(nid, gfp_mask, 0);
 +	return alloc_migration_target(page, (unsigned long)&mtc);
  }
  
- static int
---- a/mm/migrate.c~mm-migrate-make-a-standard-migration-target-allocation-function
+ static long check_and_migrate_cma_pages(struct task_struct *tsk,
+@@ -1719,7 +1678,7 @@ check_again:
+ 		for (i = 0; i < nr_pages; i++)
+ 			put_page(pages[i]);
+ 
+-		if (migrate_pages(&cma_page_list, new_non_cma_page,
++		if (migrate_pages(&cma_page_list, alloc_migration_target_non_cma,
+ 				  NULL, 0, MIGRATE_SYNC, MR_CONTIG_RANGE)) {
+ 			/*
+ 			 * some of the pages failed migration. Do get_user_pages
+--- a/mm/internal.h~mm-gup-use-a-standard-migration-target-allocation-callback
++++ a/mm/internal.h
+@@ -619,6 +619,7 @@ struct migration_target_control {
+ 	int nid;		/* preferred node id */
+ 	nodemask_t *nmask;
+ 	gfp_t gfp_mask;
++	bool skip_cma;
+ };
+ 
+ #endif	/* __MM_INTERNAL_H */
+--- a/mm/migrate.c~mm-gup-use-a-standard-migration-target-allocation-callback
 +++ a/mm/migrate.c
-@@ -1513,29 +1513,34 @@ out:
- 	return rc;
- }
- 
--struct page *new_page_nodemask(struct page *page,
--				int preferred_nid, nodemask_t *nodemask)
-+struct page *alloc_migration_target(struct page *page, unsigned long private)
- {
--	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL;
-+	struct migration_target_control *mtc;
-+	gfp_t gfp_mask;
- 	unsigned int order = 0;
- 	struct page *new_page = NULL;
-+	int zidx;
-+
-+	mtc = (struct migration_target_control *)private;
-+	gfp_mask = mtc->gfp_mask;
- 
+@@ -1527,7 +1527,7 @@ struct page *alloc_migration_target(stru
  	if (PageHuge(page)) {
  		return alloc_huge_page_nodemask(
--				page_hstate(compound_head(page)),
--				preferred_nid, nodemask, 0, false);
-+				page_hstate(compound_head(page)), mtc->nid,
-+				mtc->nmask, gfp_mask, false);
+ 				page_hstate(compound_head(page)), mtc->nid,
+-				mtc->nmask, gfp_mask, false);
++				mtc->nmask, gfp_mask, mtc->skip_cma);
  	}
  
  	if (PageTransHuge(page)) {
-+		gfp_mask &= ~__GFP_RECLAIM;
- 		gfp_mask |= GFP_TRANSHUGE;
- 		order = HPAGE_PMD_ORDER;
- 	}
--
--	if (PageHighMem(page) || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
-+	zidx = zone_idx(page_zone(page));
-+	if (is_highmem_idx(zidx) || zidx == ZONE_MOVABLE)
+@@ -1538,6 +1538,8 @@ struct page *alloc_migration_target(stru
+ 	zidx = zone_idx(page_zone(page));
+ 	if (is_highmem_idx(zidx) || zidx == ZONE_MOVABLE)
  		gfp_mask |= __GFP_HIGHMEM;
++	if (mtc->skip_cma)
++		gfp_mask &= ~__GFP_MOVABLE;
  
  	new_page = __alloc_pages_nodemask(gfp_mask, order,
--				preferred_nid, nodemask);
-+				mtc->nid, mtc->nmask);
- 
- 	if (new_page && PageTransHuge(new_page))
- 		prep_transhuge_page(new_page);
---- a/mm/page_isolation.c~mm-migrate-make-a-standard-migration-target-allocation-function
-+++ a/mm/page_isolation.c
-@@ -309,7 +309,11 @@ int test_pages_isolated(unsigned long st
- 
- struct page *alloc_migrate_target(struct page *page, unsigned long private)
- {
--	int nid = page_to_nid(page);
-+	struct migration_target_control mtc = {
-+		.nid = page_to_nid(page),
-+		.nmask = &node_states[N_MEMORY],
-+		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
-+	};
- 
--	return new_page_nodemask(page, nid, &node_states[N_MEMORY]);
-+	return alloc_migration_target(page, (unsigned long)&mtc);
- }
+ 				mtc->nid, mtc->nmask);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
