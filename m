@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
+Subject: + mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
  added to -mm tree
-Date: Wed, 24 Jun 2020 12:52:34 -0700
-Message-ID: <20200624195234.o44gZ%akpm@linux-foundation.org>
+Date: Wed, 24 Jun 2020 12:52:37 -0700
+Message-ID: <20200624195237.zKgW-%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42720 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42762 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2406243AbgFXTwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 15:52:35 -0400
+        id S2406243AbgFXTwi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 15:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, tsbogend@alpha.franken.de, rppt@linux.ibm.com, ralf@linux-mips.org, paulburton@kernel.org, mike.kravetz@oracle.com, kirill.shutemov@linux.intel.com, dansilsby@gmail.com, anshuman.khandual@arm.com, maobibo@loongson.cn
 
 
 The patch titled
-     Subject: mm: set page fault address for update_mmu_cache_pmd()
+     Subject: mm/huge_memory.c: update tlb entry if pmd is changed
 has been added to the -mm tree.  Its filename is
-     mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
+     mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,107 +37,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Bibo Mao <maobibo@loongson.cn>
-Subject: mm: set page fault address for update_mmu_cache_pmd()
+Subject: mm/huge_memory.c: update tlb entry if pmd is changed
 
-update_mmu_cache_pmd is used to update tlb for the pmd entry by software. 
-On MIPS system, the tlb entry indexed by page fault address maybe exists
-already, only that tlb entry may be small page, also it may be huge page. 
-Before updating pmd entry with huge page size, older tlb entry need to be
-invalidated.
+When set_pmd_at is called in function do_huge_pmd_anonymous_page, new tlb
+entry can be added by software on MIPS platform.
 
-Here page fault address is passed to function update_mmu_cache_pmd, rather
-than pmd huge page start address.  The page fault address can be used for
-invalidating older tlb entry.
+Here add update_mmu_cache_pmd when pmd entry is set, and
+update_mmu_cache_pmd is defined as empty excepts arc/mips platform.  This
+patch has no negative effect on other platforms except arc/mips system.
 
-Link: http://lkml.kernel.org/r/1592990792-1923-1-git-send-email-maobibo@loongson.cn
+Link: http://lkml.kernel.org/r/1592990792-1923-2-git-send-email-maobibo@loongson.cn
 Signed-off-by: Bibo Mao <maobibo@loongson.cn>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Paul Burton <paulburton@kernel.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Daniel Silsby <dansilsby@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Paul Burton <paulburton@kernel.org>
 Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable.h |    9 +++++++++
- mm/huge_memory.c                |    7 ++++---
- mm/memory.c                     |    2 +-
- 3 files changed, 14 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/mips/include/asm/pgtable.h~mm-set-page-fault-address-for-update_mmu_cache_pmd
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -554,11 +554,20 @@ static inline void update_mmu_cache(stru
- #define	__HAVE_ARCH_UPDATE_MMU_TLB
- #define update_mmu_tlb	update_mmu_cache
- 
-+extern void local_flush_tlb_page(struct vm_area_struct *vma,
-+				unsigned long page);
- static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
- 	unsigned long address, pmd_t *pmdp)
- {
- 	pte_t pte = *(pte_t *)pmdp;
- 
-+	/*
-+	 * If pmd_none is true, older tlb entry will be normal page.
-+	 * here to invalidate older tlb entry indexed by address
-+	 * parameter address must be page fault address rather than
-+	 * start address of pmd huge page
-+	 */
-+	local_flush_tlb_page(vma, address);
- 	__update_tlb(vma, address, pte);
- }
- 
---- a/mm/huge_memory.c~mm-set-page-fault-address-for-update_mmu_cache_pmd
+--- a/mm/huge_memory.c~mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed
 +++ a/mm/huge_memory.c
-@@ -780,6 +780,7 @@ static void insert_pfn_pmd(struct vm_are
- 		pgtable_t pgtable)
- {
- 	struct mm_struct *mm = vma->vm_mm;
-+	unsigned long start = addr & PMD_MASK;
- 	pmd_t entry;
- 	spinlock_t *ptl;
- 
-@@ -792,7 +793,7 @@ static void insert_pfn_pmd(struct vm_are
+@@ -643,6 +643,7 @@ static vm_fault_t __do_huge_pmd_anonymou
+ 		lru_cache_add_active_or_unevictable(page, vma);
+ 		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
+ 		set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
++		update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+ 		add_mm_counter(vma->vm_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+ 		mm_inc_nr_ptes(vma->vm_mm);
+ 		spin_unlock(vmf->ptl);
+@@ -756,6 +757,7 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ 			} else {
+ 				set_huge_zero_page(pgtable, vma->vm_mm, vma,
+ 						   haddr, vmf->pmd, zero_page);
++				update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+ 				spin_unlock(vmf->ptl);
+ 				set = true;
  			}
- 			entry = pmd_mkyoung(*pmd);
- 			entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
--			if (pmdp_set_access_flags(vma, addr, pmd, entry, 1))
-+			if (pmdp_set_access_flags(vma, start, pmd, entry, 1))
- 				update_mmu_cache_pmd(vma, addr, pmd);
- 		}
- 
-@@ -813,7 +814,7 @@ static void insert_pfn_pmd(struct vm_are
- 		pgtable = NULL;
- 	}
- 
--	set_pmd_at(mm, addr, pmd, entry);
-+	set_pmd_at(mm, start, pmd, entry);
- 	update_mmu_cache_pmd(vma, addr, pmd);
- 
- out_unlock:
-@@ -864,7 +865,7 @@ vm_fault_t vmf_insert_pfn_pmd_prot(struc
- 
- 	track_pfn_insert(vma, &pgprot, pfn);
- 
--	insert_pfn_pmd(vma, addr, vmf->pmd, pfn, pgprot, write, pgtable);
-+	insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn, pgprot, write, pgtable);
- 	return VM_FAULT_NOPAGE;
- }
- EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd_prot);
---- a/mm/memory.c~mm-set-page-fault-address-for-update_mmu_cache_pmd
-+++ a/mm/memory.c
-@@ -3606,7 +3606,7 @@ static vm_fault_t do_set_pmd(struct vm_f
- 
- 	set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
- 
--	update_mmu_cache_pmd(vma, haddr, vmf->pmd);
-+	update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
- 
- 	/* fault is handled */
- 	ret = 0;
 _
 
 Patches currently in -mm which might be from maobibo@loongson.cn are
