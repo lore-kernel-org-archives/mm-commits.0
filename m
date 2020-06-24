@@ -1,29 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: +
- page_alloc-consider-highatomic-reserve-in-watermark-fast-v5.patch added to
- -mm tree
-Date: Wed, 24 Jun 2020 15:15:20 -0700
-Message-ID: <20200624221520.KgxjA%akpm@linux-foundation.org>
+Subject: + mm-proactive-compaction-fix.patch added to -mm tree
+Date: Wed, 24 Jun 2020 15:16:45 -0700
+Message-ID: <20200624221645.eibzX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55500 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388232AbgFXWPV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 18:15:21 -0400
+        id S2388232AbgFXWQr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 18:16:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ytk.lee@samsung.com, vbabka@suse.cz, minchan@kernel.org, mgorman@techsingularity.net, hannes@cmpxchg.org, bhe@redhat.com, jaewon31.kim@samsung.com
+To: mm-commits@vger.kernel.org, sfr@canb.auug.org.au, natechancellor@gmail.com, nigupta@nvidia.com
 
 
 The patch titled
-     Subject: page_alloc-consider-highatomic-reserve-in-watermark-fast-v5
+     Subject: mm: fix compile error due to COMPACTION_HPAGE_ORDER
 has been added to the -mm tree.  Its filename is
-     page_alloc-consider-highatomic-reserve-in-watermark-fast-v5.patch
+     mm-proactive-compaction-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page_alloc-consider-highatomic-reserve-in-watermark-fast-v5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-proactive-compaction-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page_alloc-consider-highatomic-reserve-in-watermark-fast-v5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-proactive-compaction-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,52 +35,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jaewon Kim <jaewon31.kim@samsung.com>
-Subject: page_alloc-consider-highatomic-reserve-in-watermark-fast-v5
+From: Nitin Gupta <nigupta@nvidia.com>
+Subject: mm: fix compile error due to COMPACTION_HPAGE_ORDER
 
-remove redundant code for high-order
+Fix compile error when COMPACTION_HPAGE_ORDER is assigned to
+HUGETLB_PAGE_ORDER.  The correct way to check if this constant is defined
+is to check for CONFIG_HUGETLBFS.
 
-Link: http://lkml.kernel.org/r/20200623035242.27232-1-jaewon31.kim@samsung.com
-Reported-by: Yong-Taek Lee <ytk.lee@samsung.com>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Baoquan He <bhe@redhat.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/20200623064544.25766-1-nigupta@nvidia.com
+Signed-off-by: Nitin Gupta <nigupta@nvidia.com>
+Reported-by: Nathan Chancellor <natechancellor@gmail.com>
+Tested-by: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~page_alloc-consider-highatomic-reserve-in-watermark-fast-v5
-+++ a/mm/page_alloc.c
-@@ -3592,18 +3592,18 @@ static inline bool zone_watermark_fast(s
- 				unsigned int alloc_flags)
- {
- 	long free_pages;
--	long unusable_free;
- 
- 	free_pages = zone_page_state(z, NR_FREE_PAGES);
--	unusable_free = __zone_watermark_unusable_free(z, order, alloc_flags);
- 
- 	/*
- 	 * Fast check for order-0 only. If this fails then the reserves
- 	 * need to be calculated.
- 	 */
- 	if (!order) {
--		long fast_free = free_pages - unusable_free;
-+		long fast_free;
- 
-+		fast_free = free_pages;
-+		fast_free -= __zone_watermark_unusable_free(z, 0, alloc_flags);
- 		if (fast_free > mark + z->lowmem_reserve[highest_zoneidx])
- 			return true;
- 	}
+--- a/mm/compaction.c~mm-proactive-compaction-fix
++++ a/mm/compaction.c
+@@ -62,7 +62,7 @@ static const int HPAGE_FRAG_CHECK_INTERV
+  */
+ #if defined CONFIG_TRANSPARENT_HUGEPAGE
+ #define COMPACTION_HPAGE_ORDER	HPAGE_PMD_ORDER
+-#elif defined HUGETLB_PAGE_ORDER
++#elif defined CONFIG_HUGETLBFS
+ #define COMPACTION_HPAGE_ORDER	HUGETLB_PAGE_ORDER
+ #else
+ #define COMPACTION_HPAGE_ORDER	(PMD_SHIFT - PAGE_SHIFT)
 _
 
-Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+Patches currently in -mm which might be from nigupta@nvidia.com are
 
-page_alloc-consider-highatomic-reserve-in-watermark-fast.patch
-page_alloc-consider-highatomic-reserve-in-watermark-fast-v5.patch
+mm-proactive-compaction.patch
+mm-proactive-compaction-fix.patch
+mm-use-unsigned-types-for-fragmentation-score.patch
