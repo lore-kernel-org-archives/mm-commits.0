@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-unify-migration-callbacks.patch added to -mm
- tree
-Date: Wed, 24 Jun 2020 15:06:12 -0700
-Message-ID: <20200624220612.mDaKO%akpm@linux-foundation.org>
+Subject: +
+ mm-migrate-make-a-standard-migration-target-allocation-function.patch added
+ to -mm tree
+Date: Wed, 24 Jun 2020 15:06:18 -0700
+Message-ID: <20200624220618.HZAUk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:51324 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:51454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388749AbgFXWGN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 18:06:13 -0400
+        id S2389513AbgFXWGU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 18:06:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, vbabka@suse.cz, n-horiguchi@ah.jp.nec.com, mike.kravetz@oracle.com, mhocko@suse.com, mgorman@techsingularity.net, hch@infradead.org, guro@fb.com, iamjoonsoo.kim@lge.com
 
 
 The patch titled
-     Subject: mm/hugetlb: unify migration callbacks
+     Subject: mm/migrate: make a standard migration target allocation function
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-unify-migration-callbacks.patch
+     mm-migrate-make-a-standard-migration-target-allocation-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-unify-migration-callbacks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-make-a-standard-migration-target-allocation-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-unify-migration-callbacks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-make-a-standard-migration-target-allocation-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,20 +38,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/hugetlb: unify migration callbacks
+Subject: mm/migrate: make a standard migration target allocation function
 
-There is no difference between two migration callback functions,
-alloc_huge_page_node() and alloc_huge_page_nodemask(), except
-__GFP_THISNODE handling.
+There are some similar functions for migration target allocation.  Since
+there is no fundamental difference, it's better to keep just one rather
+than keeping all variants.  This patch implements base migration target
+allocation function.  In the following patches, variants will be converted
+to use this function.
 
-This patch adds an argument, gfp_mask, on alloc_huge_page_nodemask() and
-replaces the callsite for alloc_huge_page_node() with the call to
-alloc_huge_page_nodemask(..., __GFP_THISNODE).
+Note that PageHighmem() call in previous function is changed to open-code
+"is_highmem_idx()" since it provides more readability.
 
-It's safe to remove a node id check in alloc_huge_page_node() since
-there is no caller passing NUMA_NO_NODE as a node id.
-
-Link: http://lkml.kernel.org/r/1592892828-1934-4-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1592892828-1934-6-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -62,119 +61,159 @@ Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   11 +++--------
- mm/hugetlb.c            |   26 +++-----------------------
- mm/mempolicy.c          |    9 +++++----
- mm/migrate.c            |    5 +++--
- 4 files changed, 14 insertions(+), 37 deletions(-)
+ include/linux/migrate.h |    5 +++--
+ mm/internal.h           |    7 +++++++
+ mm/memory-failure.c     |    8 ++++++--
+ mm/memory_hotplug.c     |   14 +++++++++-----
+ mm/migrate.c            |   21 +++++++++++++--------
+ mm/page_isolation.c     |    8 ++++++--
+ 6 files changed, 44 insertions(+), 19 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-unify-migration-callbacks
-+++ a/include/linux/hugetlb.h
-@@ -504,9 +504,8 @@ struct huge_bootmem_page {
+--- a/include/linux/migrate.h~mm-migrate-make-a-standard-migration-target-allocation-function
++++ a/include/linux/migrate.h
+@@ -10,6 +10,8 @@
+ typedef struct page *new_page_t(struct page *page, unsigned long private);
+ typedef void free_page_t(struct page *page, unsigned long private);
  
- struct page *alloc_huge_page(struct vm_area_struct *vma,
- 				unsigned long addr, int avoid_reserve);
--struct page *alloc_huge_page_node(struct hstate *h, int nid);
- struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
--				nodemask_t *nmask);
-+				nodemask_t *nmask, gfp_t gfp_mask);
- struct page *alloc_huge_page_vma(struct hstate *h, struct vm_area_struct *vma,
- 				unsigned long address);
- struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
-@@ -759,13 +758,9 @@ static inline struct page *alloc_huge_pa
- 	return NULL;
++struct migration_target_control;
++
+ /*
+  * Return values from addresss_space_operations.migratepage():
+  * - negative errno on page migration failure;
+@@ -39,8 +41,7 @@ extern int migrate_page(struct address_s
+ 			enum migrate_mode mode);
+ extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
+ 		unsigned long private, enum migrate_mode mode, int reason);
+-extern struct page *new_page_nodemask(struct page *page,
+-		int preferred_nid, nodemask_t *nodemask);
++extern struct page *alloc_migration_target(struct page *page, unsigned long private);
+ extern int isolate_movable_page(struct page *page, isolate_mode_t mode);
+ extern void putback_movable_page(struct page *page);
+ 
+--- a/mm/internal.h~mm-migrate-make-a-standard-migration-target-allocation-function
++++ a/mm/internal.h
+@@ -614,4 +614,11 @@ static inline bool is_migrate_highatomic
+ 
+ void setup_zone_pageset(struct zone *zone);
+ extern struct page *alloc_new_node_page(struct page *page, unsigned long node);
++
++struct migration_target_control {
++	int nid;		/* preferred node id */
++	nodemask_t *nmask;
++	gfp_t gfp_mask;
++};
++
+ #endif	/* __MM_INTERNAL_H */
+--- a/mm/memory-failure.c~mm-migrate-make-a-standard-migration-target-allocation-function
++++ a/mm/memory-failure.c
+@@ -1648,9 +1648,13 @@ EXPORT_SYMBOL(unpoison_memory);
+ 
+ static struct page *new_page(struct page *p, unsigned long private)
+ {
+-	int nid = page_to_nid(p);
++	struct migration_target_control mtc = {
++		.nid = page_to_nid(p),
++		.nmask = &node_states[N_MEMORY],
++		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
++	};
+ 
+-	return new_page_nodemask(p, nid, &node_states[N_MEMORY]);
++	return alloc_migration_target(p, (unsigned long)&mtc);
  }
  
--static inline struct page *alloc_huge_page_node(struct hstate *h, int nid)
--{
--	return NULL;
--}
--
- static inline struct page *
--alloc_huge_page_nodemask(struct hstate *h, int preferred_nid, nodemask_t *nmask)
-+alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
-+			nodemask_t *nmask, gfp_t gfp_mask)
+ /*
+--- a/mm/memory_hotplug.c~mm-migrate-make-a-standard-migration-target-allocation-function
++++ a/mm/memory_hotplug.c
+@@ -1267,19 +1267,23 @@ found:
+ 
+ static struct page *new_node_page(struct page *page, unsigned long private)
  {
- 	return NULL;
+-	int nid = page_to_nid(page);
+ 	nodemask_t nmask = node_states[N_MEMORY];
++	struct migration_target_control mtc = {
++		.nid = page_to_nid(page),
++		.nmask = &nmask,
++		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
++	};
+ 
+ 	/*
+ 	 * try to allocate from a different node but reuse this node if there
+ 	 * are no other online nodes to be used (e.g. we are offlining a part
+ 	 * of the only existing node)
+ 	 */
+-	node_clear(nid, nmask);
+-	if (nodes_empty(nmask))
+-		node_set(nid, nmask);
++	node_clear(mtc.nid, *mtc.nmask);
++	if (nodes_empty(*mtc.nmask))
++		node_set(mtc.nid, *mtc.nmask);
+ 
+-	return new_page_nodemask(page, nid, &nmask);
++	return alloc_migration_target(page, (unsigned long)&mtc);
  }
---- a/mm/hugetlb.c~mm-hugetlb-unify-migration-callbacks
-+++ a/mm/hugetlb.c
-@@ -1979,30 +1979,10 @@ struct page *alloc_buddy_huge_page_with_
- }
  
- /* page migration callback function */
--struct page *alloc_huge_page_node(struct hstate *h, int nid)
--{
--	gfp_t gfp_mask = htlb_alloc_mask(h);
--	struct page *page = NULL;
--
--	if (nid != NUMA_NO_NODE)
--		gfp_mask |= __GFP_THISNODE;
--
--	spin_lock(&hugetlb_lock);
--	if (h->free_huge_pages - h->resv_huge_pages > 0)
--		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, NULL);
--	spin_unlock(&hugetlb_lock);
--
--	if (!page)
--		page = alloc_migrate_huge_page(h, gfp_mask, nid, NULL);
--
--	return page;
--}
--
--/* page migration callback function */
- struct page *alloc_huge_page_nodemask(struct hstate *h, int preferred_nid,
--		nodemask_t *nmask)
-+		nodemask_t *nmask, gfp_t gfp_mask)
- {
--	gfp_t gfp_mask = htlb_alloc_mask(h);
-+	gfp_mask |= htlb_alloc_mask(h);
- 
- 	spin_lock(&hugetlb_lock);
- 	if (h->free_huge_pages - h->resv_huge_pages > 0) {
-@@ -2031,7 +2011,7 @@ struct page *alloc_huge_page_vma(struct
- 
- 	gfp_mask = htlb_alloc_mask(h);
- 	node = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
--	page = alloc_huge_page_nodemask(h, node, nodemask);
-+	page = alloc_huge_page_nodemask(h, node, nodemask, 0);
- 	mpol_cond_put(mpol);
- 
- 	return page;
---- a/mm/mempolicy.c~mm-hugetlb-unify-migration-callbacks
-+++ a/mm/mempolicy.c
-@@ -1068,10 +1068,11 @@ static int migrate_page_add(struct page
- /* page allocation callback for NUMA node migration */
- struct page *alloc_new_node_page(struct page *page, unsigned long node)
- {
--	if (PageHuge(page))
--		return alloc_huge_page_node(page_hstate(compound_head(page)),
--					node);
--	else if (PageTransHuge(page)) {
-+	if (PageHuge(page)) {
-+		return alloc_huge_page_nodemask(
-+			page_hstate(compound_head(page)), node,
-+			NULL, __GFP_THISNODE);
-+	} else if (PageTransHuge(page)) {
- 		struct page *thp;
- 
- 		thp = alloc_pages_node(node,
---- a/mm/migrate.c~mm-hugetlb-unify-migration-callbacks
+ static int
+--- a/mm/migrate.c~mm-migrate-make-a-standard-migration-target-allocation-function
 +++ a/mm/migrate.c
-@@ -1520,10 +1520,11 @@ struct page *new_page_nodemask(struct pa
+@@ -1513,29 +1513,34 @@ out:
+ 	return rc;
+ }
+ 
+-struct page *new_page_nodemask(struct page *page,
+-				int preferred_nid, nodemask_t *nodemask)
++struct page *alloc_migration_target(struct page *page, unsigned long private)
+ {
+-	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL;
++	struct migration_target_control *mtc;
++	gfp_t gfp_mask;
  	unsigned int order = 0;
  	struct page *new_page = NULL;
++	int zidx;
++
++	mtc = (struct migration_target_control *)private;
++	gfp_mask = mtc->gfp_mask;
  
--	if (PageHuge(page))
-+	if (PageHuge(page)) {
+ 	if (PageHuge(page)) {
  		return alloc_huge_page_nodemask(
- 				page_hstate(compound_head(page)),
--				preferred_nid, nodemask);
-+				preferred_nid, nodemask, 0);
-+	}
+-				page_hstate(compound_head(page)),
+-				preferred_nid, nodemask, 0, false);
++				page_hstate(compound_head(page)), mtc->nid,
++				mtc->nmask, gfp_mask, false);
+ 	}
  
  	if (PageTransHuge(page)) {
++		gfp_mask &= ~__GFP_RECLAIM;
  		gfp_mask |= GFP_TRANSHUGE;
+ 		order = HPAGE_PMD_ORDER;
+ 	}
+-
+-	if (PageHighMem(page) || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
++	zidx = zone_idx(page_zone(page));
++	if (is_highmem_idx(zidx) || zidx == ZONE_MOVABLE)
+ 		gfp_mask |= __GFP_HIGHMEM;
+ 
+ 	new_page = __alloc_pages_nodemask(gfp_mask, order,
+-				preferred_nid, nodemask);
++				mtc->nid, mtc->nmask);
+ 
+ 	if (new_page && PageTransHuge(new_page))
+ 		prep_transhuge_page(new_page);
+--- a/mm/page_isolation.c~mm-migrate-make-a-standard-migration-target-allocation-function
++++ a/mm/page_isolation.c
+@@ -309,7 +309,11 @@ int test_pages_isolated(unsigned long st
+ 
+ struct page *alloc_migrate_target(struct page *page, unsigned long private)
+ {
+-	int nid = page_to_nid(page);
++	struct migration_target_control mtc = {
++		.nid = page_to_nid(page),
++		.nmask = &node_states[N_MEMORY],
++		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
++	};
+ 
+-	return new_page_nodemask(page, nid, &node_states[N_MEMORY]);
++	return alloc_migration_target(page, (unsigned long)&mtc);
+ }
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
