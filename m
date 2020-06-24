@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch added to -mm tree
-Date: Wed, 24 Jun 2020 12:52:39 -0700
-Message-ID: <20200624195239.1oEGJ%akpm@linux-foundation.org>
+Subject: + mm-filemap-clear-idle-flag-for-writes.patch added to -mm
+ tree
+Date: Wed, 24 Jun 2020 13:15:05 -0700
+Message-ID: <20200624201505.vMV99%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42810 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54074 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2406243AbgFXTwk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 15:52:40 -0400
+        id S2406318AbgFXUPH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 16:15:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, tsbogend@alpha.franken.de, rppt@linux.ibm.com, ralf@linux-mips.org, paulburton@kernel.org, mike.kravetz@oracle.com, kirill.shutemov@linux.intel.com, dansilsby@gmail.com, anshuman.khandual@arm.com, maobibo@loongson.cn
+To: mm-commits@vger.kernel.org, shakeelb@google.com, riel@surriel.com, hannes@cmpxchg.org, gavin.dg@linux.alibaba.com, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: MIPS: do not call flush_tlb_all when setting pmd entry
+     Subject: mm: filemap: clear idle flag for writes
 has been added to the -mm tree.  Its filename is
-     mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
+     mm-filemap-clear-idle-flag-for-writes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-clear-idle-flag-for-writes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-clear-idle-flag-for-writes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,61 +36,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bibo Mao <maobibo@loongson.cn>
-Subject: MIPS: do not call flush_tlb_all when setting pmd entry
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm: filemap: clear idle flag for writes
 
-Function set_pmd_at is to set pmd entry, if tlb entry need to be flushed,
-there exists pmdp_huge_clear_flush alike function before set_pmd_at is
-called.  So it is not necessary to call flush_tlb_all in this function.
+Since commit bbddabe2e436aa ("mm: filemap: only do access activations on
+reads"), mark_page_accessed() is called for reads only.  But the idle flag
+is cleared by mark_page_accessed() so the idle flag won't get cleared if
+the page is write accessed only.
 
-In these scenarios, tlb for the pmd range needs to be flushed:
-1. privilege degrade such as wrprotect is set on the pmd entry
-2. pmd entry is cleared
-3. there is exception if set_pmd_at is issued by dup_mmap, since
-flush_tlb_mm is called for parent process, it is not necessary
-to flush tlb in function copy_huge_pmd.
+Basically idle page tracking is used to estimate workingset size of
+workload, noticeable size of workingset might be missed if the idle flag
+is not maintained correctly.
 
-Link: http://lkml.kernel.org/r/1592990792-1923-3-git-send-email-maobibo@loongson.cn
-Signed-off-by: Bibo Mao <maobibo@loongson.cn>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Daniel Silsby <dansilsby@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Paul Burton <paulburton@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+It seems good enough to just clear idle flag for write operations.
+
+Link: http://lkml.kernel.org/r/1593020612-13051-1-git-send-email-yang.shi@linux.alibaba.com
+Fixes: bbddabe2e436 ("mm: filemap: only do access activations on reads")
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Reported-by: Gang Deng <gavin.dg@linux.alibaba.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/pgtable-32.c |    1 -
- arch/mips/mm/pgtable-64.c |    1 -
- 2 files changed, 2 deletions(-)
+ mm/filemap.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/arch/mips/mm/pgtable-32.c~mips-do-not-call-flush_tlb_all-when-setting-pmd-entry
-+++ a/arch/mips/mm/pgtable-32.c
-@@ -45,7 +45,6 @@ void set_pmd_at(struct mm_struct *mm, un
- 		pmd_t *pmdp, pmd_t pmd)
- {
- 	*pmdp = pmd;
--	flush_tlb_all();
- }
- #endif /* defined(CONFIG_TRANSPARENT_HUGEPAGE) */
+--- a/mm/filemap.c~mm-filemap-clear-idle-flag-for-writes
++++ a/mm/filemap.c
+@@ -41,6 +41,7 @@
+ #include <linux/delayacct.h>
+ #include <linux/psi.h>
+ #include <linux/ramfs.h>
++#include <linux/page_idle.h>
+ #include "internal.h"
  
---- a/arch/mips/mm/pgtable-64.c~mips-do-not-call-flush_tlb_all-when-setting-pmd-entry
-+++ a/arch/mips/mm/pgtable-64.c
-@@ -100,7 +100,6 @@ void set_pmd_at(struct mm_struct *mm, un
- 		pmd_t *pmdp, pmd_t pmd)
- {
- 	*pmdp = pmd;
--	flush_tlb_all();
- }
+ #define CREATE_TRACE_POINTS
+@@ -1630,6 +1631,11 @@ repeat:
  
- void __init pagetable_init(void)
+ 	if (fgp_flags & FGP_ACCESSED)
+ 		mark_page_accessed(page);
++	else if (fgp_flags & FGP_WRITE) {
++		/* Clear idle flag for buffer write */
++		if (page_is_idle(page))
++			clear_page_idle(page);
++	}
+ 
+ no_page:
+ 	if (!page && (fgp_flags & FGP_CREAT)) {
 _
 
-Patches currently in -mm which might be from maobibo@loongson.cn are
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
 
-mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
-mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
-mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
+doc-thp-cow-fault-no-longer-allocate-thp.patch
+mm-filemap-clear-idle-flag-for-writes.patch
+mm-thp-remove-debug_cow-switch.patch
