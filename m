@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
- added to -mm tree
-Date: Wed, 24 Jun 2020 12:31:01 -0700
-Message-ID: <20200624193101.HqEvE%akpm@linux-foundation.org>
+Subject: + mm-shuffle-remove-dynamic-reconfiguration.patch added to
+ -mm tree
+Date: Wed, 24 Jun 2020 12:38:59 -0700
+Message-ID: <20200624193859.UqLwn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35138 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:37998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2391239AbgFXTbD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 15:31:03 -0400
+        id S2391239AbgFXTjB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 15:39:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ying.huang@intel.com, stable@vger.kernel.org, richard.weiyang@linux.alibaba.com, richard.weiyang@gmail.com, minchan@kernel.org, mhocko@suse.com, mgorman@techsingularity.net, hannes@cmpxchg.org, dan.j.williams@intel.com, akpm@linux-foundation.org, david@redhat.com
+To: mm-commits@vger.kernel.org, ying.huang@intel.com, richard.weiyang@linux.alibaba.com, richard.weiyang@gmail.com, minchan@kernel.org, mhocko@suse.com, mgorman@techsingularity.net, hannes@cmpxchg.org, dan.j.williams@intel.com, david@redhat.com
 
 
 The patch titled
-     Subject: mm/shuffle: don't move pages between zones and don't read garbage memmaps
+     Subject: mm/shuffle: remove dynamic reconfiguration
 has been added to the -mm tree.  Its filename is
-     mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
+     mm-shuffle-remove-dynamic-reconfiguration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-shuffle-remove-dynamic-reconfiguration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shuffle-remove-dynamic-reconfiguration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,105 +37,120 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/shuffle: don't move pages between zones and don't read garbage memmaps
+Subject: mm/shuffle: remove dynamic reconfiguration
 
-Especially with memory hotplug, we can have offline sections (with a
-garbage memmap) and overlapping zones.  We have to make sure to only touch
-initialized memmaps (online sections managed by the buddy) and that the
-zone matches, to not move pages between zones.
+Commit e900a918b098 ("mm: shuffle initial free memory to improve
+memory-side-cache utilization") promised "autodetection of a
+memory-side-cache (to be added in a follow-on patch)" over a year ago.
 
-To test if this can actually happen, I added a simple
+The original series included patches [1], however, they were dropped
+during review [2] to be followed-up later.
 
-	BUG_ON(page_zone(page_i) != page_zone(page_j));
+Due to lack of platforms that publish an HMAT, autodetection is currently
+not implemented.  However, manual activation is actively used [3].  Let's
+simplify for now and re-add when really (ever?) needed.
 
-right before the swap.  When hotplugging a 256M DIMM to a 4G x86-64 VM and
-onlining the first memory block "online_movable" and the second memory
-block "online_kernel", it will trigger the BUG, as both zones (NORMAL and
-MOVABLE) overlap.
+[1] https://lkml.kernel.org/r/154510700291.1941238.817190985966612531.stgit@dwillia2-desk3.amr.corp.intel.com
+[2] https://lkml.kernel.org/r/154690326478.676627.103843791978176914.stgit@dwillia2-desk3.amr.corp.intel.com
+[3] https://lkml.kernel.org/r/CAPcyv4irwGUU2x+c6b4L=KbB1dnasNKaaZd6oSpYjL9kfsnROQ@mail.gmail.com
 
-This might result in all kinds of weird situations (e.g., double
-allocations, list corruptions, unmovable allocations ending up in the
-movable zone).
-
-Link: http://lkml.kernel.org/r/20200624094741.9918-2-david@redhat.com
-Fixes: e900a918b098 ("mm: shuffle initial free memory to improve memory-side-cache utilization")
+Link: http://lkml.kernel.org/r/20200624094741.9918-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Huang Ying <ying.huang@intel.com>
 Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>	[5.2+]
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shuffle.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/shuffle.c |   28 ++--------------------------
+ mm/shuffle.h |   17 -----------------
+ 2 files changed, 2 insertions(+), 43 deletions(-)
 
---- a/mm/shuffle.c~mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps
+--- a/mm/shuffle.c~mm-shuffle-remove-dynamic-reconfiguration
 +++ a/mm/shuffle.c
-@@ -58,25 +58,25 @@ module_param_call(shuffle, shuffle_store
-  * For two pages to be swapped in the shuffle, they must be free (on a
-  * 'free_area' lru), have the same order, and have the same migratetype.
-  */
--static struct page * __meminit shuffle_valid_page(unsigned long pfn, int order)
-+static struct page * __meminit shuffle_valid_page(struct zone *zone,
-+						  unsigned long pfn, int order)
+@@ -10,33 +10,11 @@
+ #include "shuffle.h"
+ 
+ DEFINE_STATIC_KEY_FALSE(page_alloc_shuffle_key);
+-static unsigned long shuffle_state __ro_after_init;
+-
+-/*
+- * Depending on the architecture, module parameter parsing may run
+- * before, or after the cache detection. SHUFFLE_FORCE_DISABLE prevents,
+- * or reverts the enabling of the shuffle implementation. SHUFFLE_ENABLE
+- * attempts to turn on the implementation, but aborts if it finds
+- * SHUFFLE_FORCE_DISABLE already set.
+- */
+-__meminit void page_alloc_shuffle(enum mm_shuffle_ctl ctl)
+-{
+-	if (ctl == SHUFFLE_FORCE_DISABLE)
+-		set_bit(SHUFFLE_FORCE_DISABLE, &shuffle_state);
+-
+-	if (test_bit(SHUFFLE_FORCE_DISABLE, &shuffle_state)) {
+-		if (test_and_clear_bit(SHUFFLE_ENABLE, &shuffle_state))
+-			static_branch_disable(&page_alloc_shuffle_key);
+-	} else if (ctl == SHUFFLE_ENABLE
+-			&& !test_and_set_bit(SHUFFLE_ENABLE, &shuffle_state))
+-		static_branch_enable(&page_alloc_shuffle_key);
+-}
+ 
+ static bool shuffle_param;
+ static int shuffle_show(char *buffer, const struct kernel_param *kp)
  {
--	struct page *page;
-+	struct page *page = pfn_to_online_page(pfn);
+-	return sprintf(buffer, "%c\n", test_bit(SHUFFLE_ENABLE, &shuffle_state)
+-			? 'Y' : 'N');
++	return sprintf(buffer, "%c\n", shuffle_param ? 'Y' : 'N');
+ }
  
- 	/*
- 	 * Given we're dealing with randomly selected pfns in a zone we
- 	 * need to ask questions like...
- 	 */
+ static __meminit int shuffle_store(const char *val,
+@@ -47,9 +25,7 @@ static __meminit int shuffle_store(const
+ 	if (rc < 0)
+ 		return rc;
+ 	if (shuffle_param)
+-		page_alloc_shuffle(SHUFFLE_ENABLE);
+-	else
+-		page_alloc_shuffle(SHUFFLE_FORCE_DISABLE);
++		static_branch_enable(&page_alloc_shuffle_key);
+ 	return 0;
+ }
+ module_param_call(shuffle, shuffle_store, shuffle_show, &shuffle_param, 0400);
+--- a/mm/shuffle.h~mm-shuffle-remove-dynamic-reconfiguration
++++ a/mm/shuffle.h
+@@ -4,23 +4,10 @@
+ #define _MM_SHUFFLE_H
+ #include <linux/jump_label.h>
  
--	/* ...is the pfn even in the memmap? */
--	if (!pfn_valid_within(pfn))
-+	/* ... is the page managed by the buddy? */
-+	if (!page)
- 		return NULL;
+-/*
+- * SHUFFLE_ENABLE is called from the command line enabling path, or by
+- * platform-firmware enabling that indicates the presence of a
+- * direct-mapped memory-side-cache. SHUFFLE_FORCE_DISABLE is called from
+- * the command line path and overrides any previous or future
+- * SHUFFLE_ENABLE.
+- */
+-enum mm_shuffle_ctl {
+-	SHUFFLE_ENABLE,
+-	SHUFFLE_FORCE_DISABLE,
+-};
+-
+ #define SHUFFLE_ORDER (MAX_ORDER-1)
  
--	/* ...is the pfn in a present section or a hole? */
--	if (!pfn_in_present_section(pfn))
-+	/* ... is the page assigned to the same zone? */
-+	if (page_zone(page) != zone)
- 		return NULL;
+ #ifdef CONFIG_SHUFFLE_PAGE_ALLOCATOR
+ DECLARE_STATIC_KEY_FALSE(page_alloc_shuffle_key);
+-extern void page_alloc_shuffle(enum mm_shuffle_ctl ctl);
+ extern void __shuffle_free_memory(pg_data_t *pgdat);
+ extern bool shuffle_pick_tail(void);
+ static inline void shuffle_free_memory(pg_data_t *pgdat)
+@@ -58,10 +45,6 @@ static inline void shuffle_zone(struct z
+ {
+ }
  
- 	/* ...is the page free and currently on a free_area list? */
--	page = pfn_to_page(pfn);
- 	if (!PageBuddy(page))
- 		return NULL;
- 
-@@ -123,7 +123,7 @@ void __meminit __shuffle_zone(struct zon
- 		 * page_j randomly selected in the span @zone_start_pfn to
- 		 * @spanned_pages.
- 		 */
--		page_i = shuffle_valid_page(i, order);
-+		page_i = shuffle_valid_page(z, i, order);
- 		if (!page_i)
- 			continue;
- 
-@@ -137,7 +137,7 @@ void __meminit __shuffle_zone(struct zon
- 			j = z->zone_start_pfn +
- 				ALIGN_DOWN(get_random_long() % z->spanned_pages,
- 						order_pages);
--			page_j = shuffle_valid_page(j, order);
-+			page_j = shuffle_valid_page(z, j, order);
- 			if (page_j && page_j != page_i)
- 				break;
- 		}
-_
-
-Patches currently in -mm which might be from david@redhat.com are
-
-mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
-mm-drop-vm_total_pages.patch
-mm-page_alloc-drop-nr_free_pagecache_pages.patch
-mm-memory_hotplug-document-why-shuffle_zone-is-relevant.patch
-mm-shuffle-remove-dynamic-reconfiguration.patch
+-static inline void page_alloc_shuffle(enum mm_shuffle_ctl ctl)
+-{
+-}
