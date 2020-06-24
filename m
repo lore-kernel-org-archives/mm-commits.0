@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix.patch
- added to -mm tree
-Date: Wed, 24 Jun 2020 13:18:29 -0700
-Message-ID: <20200624201829.q4YDj%akpm@linux-foundation.org>
+Subject: + checkpatch-add-fix-option-for-assign_in_if.patch added to
+ -mm tree
+Date: Wed, 24 Jun 2020 13:21:17 -0700
+Message-ID: <20200624202117.4uCz9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55364 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56440 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2406318AbgFXUSa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 16:18:30 -0400
+        id S2391392AbgFXUVT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 16:21:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vjitta@codeaurora.org, vinmenon@codeaurora.org, rong.a.chen@intel.com, rientjes@google.com, penberg@kernel.org, mjg59@google.com, keescook@chromium.org, jannh@google.com, iamjoonsoo.kim@lge.com, guro@fb.com, cl@linux.com, vbabka@suse.cz
+To: mm-commits@vger.kernel.org, joe@perches.com
 
 
 The patch titled
-     Subject: mm, slab/slub: improve error reporting and overhead of cache_from_obj()-fix
+     Subject: checkpatch: add --fix option for ASSIGN_IN_IF
 has been added to the -mm tree.  Its filename is
-     mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix.patch
+     checkpatch-add-fix-option-for-assign_in_if.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix-option-for-assign_in_if.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix-option-for-assign_in_if.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,61 +36,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slab/slub: improve error reporting and overhead of cache_from_obj()-fix
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add --fix option for ASSIGN_IN_IF
 
-The added VM_WARN_ON_ONCE triggers [1] with CONFIG_SLAB, as
-SLAB_DEBUG_FLAGS doesn't include SLAB_CONSISTENCY_CHECKS.  Move the check
-under #ifdef SLUB_DEBUG.
+Add a --fix option for 2 types of single-line assignment in if statements
 
-[1] https://lore.kernel.org/r/20200623090213.GW5535@shao2-debian
+	if ((foo = bar(...)) < BAZ) {
+expands to:
+	foo = bar(..);
+	if (foo < BAZ) {
+and
+	if ((foo = bar(...)) {
+expands to:
+	foo = bar(...);
+	if (foo) {
 
-Link: http://lkml.kernel.org/r/b33e0fa7-cd28-4788-9e54-5927846329ef@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: kernel test robot <rong.a.chen@intel.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Garrett <mjg59@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+if statements with assignments spanning multiple lines are
+not converted with the --fix option.
+
+if statements with additional logic are also not converted.
+
+e.g.:	if ((foo = bar(...)) & BAZ == BAZ) {
+
+Link: http://lkml.kernel.org/r/9bc7c782516f37948f202deba511bc95ed279bbd.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Julia Lawall <julia.lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
---- a/mm/slab.h~mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix
-+++ a/mm/slab.h
-@@ -295,8 +295,8 @@ static inline void print_tracking(struct
-  */
- static inline bool kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
- {
--	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
- #ifdef CONFIG_SLUB_DEBUG
-+	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
- 	if (static_branch_unlikely(&slub_debug_enabled))
- 		return s->flags & flags;
- #endif
+--- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-assign_in_if
++++ a/scripts/checkpatch.pl
+@@ -5053,8 +5053,30 @@ sub process {
+ 			my ($s, $c) = ($stat, $cond);
+ 
+ 			if ($c =~ /\bif\s*\(.*[^<>!=]=[^=].*/s) {
+-				ERROR("ASSIGN_IN_IF",
+-				      "do not use assignment in if condition\n" . $herecurr);
++				if (ERROR("ASSIGN_IN_IF",
++					  "do not use assignment in if condition\n" . $herecurr) &&
++				    $fix && $perl_version_ok) {
++					if ($rawline =~ /^\+(\s+)if\s*\(\s*(\!)?\s*\(\s*(($Lval)\s*=\s*$LvalOrFunc)\s*\)\s*(?:($Compare)\s*($FuncArg))?\s*\)\s*(\{)?\s*$/) {
++						my $space = $1;
++						my $not = $2;
++						my $statement = $3;
++						my $assigned = $4;
++						my $test = $8;
++						my $against = $9;
++						my $brace = $15;
++						fix_delete_line($fixlinenr, $rawline);
++						fix_insert_line($fixlinenr, "$space$statement;");
++						my $newline = "${space}if (";
++						$newline .= '!' if defined($not);
++						$newline .= '(' if (defined $not && defined($test) && defined($against));
++						$newline .= "$assigned";
++						$newline .= " $test $against" if (defined($test) && defined($against));
++						$newline .= ')' if (defined $not && defined($test) && defined($against));
++						$newline .= ')';
++						$newline .= " {" if (defined($brace));
++						fix_insert_line($fixlinenr + 1, $newline);
++					}
++				}
+ 			}
+ 
+ 			# Find out what is on the end of the line after the
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch
-mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
-mm-slub-make-some-slub_debug-related-attributes-read-only.patch
-mm-slub-remove-runtime-allocation-order-changes.patch
-mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
-mm-slub-make-reclaim_account-attribute-read-only.patch
-mm-slub-introduce-static-key-for-slub_debug.patch
-mm-slub-introduce-kmem_cache_debug_flags.patch
-mm-slub-introduce-kmem_cache_debug_flags-fix.patch
-mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
-mm-slab-slub-move-and-improve-cache_from_obj.patch
-mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
-mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix.patch
-mm-page_alloc-use-unlikely-in-task_capc.patch
+checkpatch-test-git_dir-changes.patch
+checkpatch-add-test-for-possible-misuse-of-is_enabled-without-config_.patch
+checkpatch-add-fix-option-for-assign_in_if.patch
