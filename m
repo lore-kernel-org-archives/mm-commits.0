@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch added to -mm
- tree
-Date: Wed, 24 Jun 2020 12:19:42 -0700
-Message-ID: <20200624191942.JRpHe%akpm@linux-foundation.org>
+Subject: + mmhwpoison-rework-soft-offline-for-free-pages.patch added
+ to -mm tree
+Date: Wed, 24 Jun 2020 12:19:44 -0700
+Message-ID: <20200624191944.crND3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60096 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60136 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405057AbgFXTTn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 15:19:43 -0400
+        id S2405057AbgFXTTr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 15:19:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, zeil@yandex-team.ru, tony.luck@intel.com, naoya.horiguchi@nec.com, mike.kravetz@oracle.com, mhocko@kernel.org, david@redhat.com, dave.hansen@intel.com, aneesh.kumar@linux.vnet.ibm.com, aneesh.kumar@linux.ibm.com, osalvador@suse.de
 
 
 The patch titled
-     Subject: mm,hwpoison: unify THP handling for hard and soft offline
+     Subject: mm,hwpoison: rework soft offline for free pages
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
+     mmhwpoison-rework-soft-offline-for-free-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-rework-soft-offline-for-free-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-rework-soft-offline-for-free-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,12 +37,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: unify THP handling for hard and soft offline
+Subject: mm,hwpoison: rework soft offline for free pages
 
-Place the THP's page handling in a helper and use it from both hard and
-soft-offline machinery, so we get rid of some duplicated code.
+When trying to soft-offline a free page, we need to first take it off the
+buddy allocator.  Once we know is out of reach, we can safely flag it as
+poisoned.
 
-Link: http://lkml.kernel.org/r/20200624150137.7052-11-nao.horiguchi@gmail.com
+take_page_off_buddy will be used to take a page meant to be poisoned off
+the buddy allocator.  take_page_off_buddy calls break_down_buddy_pages,
+which splits a higher-order page in case our page belongs to one.
+
+Once the page is under our control, we call page_handle_poison to set it
+as poisoned and grab a refcount on it.
+
+Link: http://lkml.kernel.org/r/20200624150137.7052-12-nao.horiguchi@gmail.com
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
@@ -57,82 +64,134 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   48 +++++++++++++++++++-----------------------
- 1 file changed, 22 insertions(+), 26 deletions(-)
+ include/linux/page-flags.h |    1 
+ mm/memory-failure.c        |   18 ++++++---
+ mm/page_alloc.c            |   68 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 81 insertions(+), 6 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-unify-thp-handling-for-hard-and-soft-offline
+--- a/include/linux/page-flags.h~mmhwpoison-rework-soft-offline-for-free-pages
++++ a/include/linux/page-flags.h
+@@ -423,6 +423,7 @@ PAGEFLAG(HWPoison, hwpoison, PF_ANY)
+ TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
+ #define __PG_HWPOISON (1UL << PG_hwpoison)
+ extern bool set_hwpoison_free_buddy_page(struct page *page);
++extern bool take_page_off_buddy(struct page *page);
+ #else
+ PAGEFLAG_FALSE(HWPoison)
+ static inline bool set_hwpoison_free_buddy_page(struct page *page)
+--- a/mm/memory-failure.c~mmhwpoison-rework-soft-offline-for-free-pages
 +++ a/mm/memory-failure.c
-@@ -1103,6 +1103,25 @@ static int identify_page_state(unsigned
- 	return page_action(ps, p, pfn);
- }
+@@ -78,6 +78,13 @@ EXPORT_SYMBOL_GPL(hwpoison_filter_dev_mi
+ EXPORT_SYMBOL_GPL(hwpoison_filter_flags_mask);
+ EXPORT_SYMBOL_GPL(hwpoison_filter_flags_value);
  
-+static int try_to_split_thp_page(struct page *page, const char *msg)
++static void page_handle_poison(struct page *page)
 +{
-+	lock_page(page);
-+	if (!PageAnon(page) || unlikely(split_huge_page(page))) {
-+		unsigned long pfn = page_to_pfn(page);
-+
-+		unlock_page(page);
-+		if (!PageAnon(page))
-+			pr_info("%s: %#lx: non anonymous thp\n", msg, pfn);
-+		else
-+			pr_info("%s: %#lx: thp split failed\n", msg, pfn);
-+		put_page(page);
-+		return -EBUSY;
-+	}
-+	unlock_page(page);
-+
-+	return 0;
++	SetPageHWPoison(page);
++	page_ref_inc(page);
++	num_poisoned_pages_inc();
 +}
 +
- static int memory_failure_hugetlb(unsigned long pfn, int flags)
+ static int hwpoison_filter_dev(struct page *p)
  {
- 	struct page *p = pfn_to_page(pfn);
-@@ -1325,21 +1344,8 @@ int memory_failure(unsigned long pfn, in
+ 	struct address_space *mapping;
+@@ -1876,14 +1883,13 @@ static int soft_offline_in_use_page(stru
+ 
+ static int soft_offline_free_page(struct page *page)
+ {
+-	int rc = dissolve_free_huge_page(page);
++	int rc = -EBUSY;
+ 
+-	if (!rc) {
+-		if (set_hwpoison_free_buddy_page(page))
+-			num_poisoned_pages_inc();
+-		else
+-			rc = -EBUSY;
++	if (!dissolve_free_huge_page(page) && take_page_off_buddy(page)) {
++		page_handle_poison(page);
++		rc = 0;
  	}
++
+ 	return rc;
+ }
  
- 	if (PageTransHuge(hpage)) {
--		lock_page(p);
--		if (!PageAnon(p) || unlikely(split_huge_page(p))) {
--			unlock_page(p);
--			if (!PageAnon(p))
--				pr_err("Memory failure: %#lx: non anonymous thp\n",
--					pfn);
--			else
--				pr_err("Memory failure: %#lx: thp split failed\n",
--					pfn);
--			if (TestClearPageHWPoison(p))
--				num_poisoned_pages_dec();
--			put_page(p);
-+		if (try_to_split_thp_page(p, "Memory Failure") < 0)
- 			return -EBUSY;
--		}
--		unlock_page(p);
- 		VM_BUG_ON_PAGE(!page_count(p), p);
- 	}
+--- a/mm/page_alloc.c~mmhwpoison-rework-soft-offline-for-free-pages
++++ a/mm/page_alloc.c
+@@ -8782,6 +8782,74 @@ bool is_free_buddy_page(struct page *pag
  
-@@ -1847,19 +1853,9 @@ static int soft_offline_in_use_page(stru
- 	int mt;
- 	struct page *hpage = compound_head(page);
- 
--	if (!PageHuge(page) && PageTransHuge(hpage)) {
--		lock_page(page);
--		if (!PageAnon(page) || unlikely(split_huge_page(page))) {
--			unlock_page(page);
--			if (!PageAnon(page))
--				pr_info("soft offline: %#lx: non anonymous thp\n", page_to_pfn(page));
--			else
--				pr_info("soft offline: %#lx: thp split failed\n", page_to_pfn(page));
--			put_page(page);
-+	if (!PageHuge(page) && PageTransHuge(hpage))
-+		if (try_to_split_thp_page(page, "soft offline") < 0)
- 			return -EBUSY;
--		}
--		unlock_page(page);
--	}
- 
- 	/*
- 	 * Setting MIGRATE_ISOLATE here ensures that the page will be linked
+ #ifdef CONFIG_MEMORY_FAILURE
+ /*
++ * Break down a higher-order page in sub-pages, and keep our target out of
++ * buddy allocator.
++ */
++static void break_down_buddy_pages(struct zone *zone, struct page *page,
++				   struct page *target, int low, int high,
++				   int migratetype)
++{
++	unsigned long size = 1 << high;
++	struct page *current_buddy, *next_page;
++
++	while (high > low) {
++		high--;
++		size >>= 1;
++
++		if (target >= &page[size]) {
++			next_page = page + size;
++			current_buddy = page;
++		} else {
++			next_page = page;
++			current_buddy = page + size;
++		}
++
++		if (set_page_guard(zone, current_buddy, high, migratetype))
++			continue;
++
++		if (current_buddy != target) {
++			add_to_free_list(current_buddy, zone, high, migratetype);
++			set_page_order(current_buddy, high);
++			page = next_page;
++		}
++	}
++}
++
++/*
++ * Take a page that will be marked as poisoned off the buddy allocator.
++ */
++bool take_page_off_buddy(struct page *page)
++{
++	struct zone *zone = page_zone(page);
++	unsigned long pfn = page_to_pfn(page);
++	unsigned long flags;
++	unsigned int order;
++	bool ret = false;
++
++	spin_lock_irqsave(&zone->lock, flags);
++	for (order = 0; order < MAX_ORDER; order++) {
++		struct page *page_head = page - (pfn & ((1 << order) - 1));
++		int buddy_order = page_order(page_head);
++
++		if (PageBuddy(page_head) && buddy_order >= order) {
++			unsigned long pfn_head = page_to_pfn(page_head);
++			int migratetype = get_pfnblock_migratetype(page_head,
++								   pfn_head);
++
++			del_page_from_free_list(page_head, zone, buddy_order);
++			break_down_buddy_pages(zone, page_head, page, 0,
++						buddy_order, migratetype);
++			ret = true;
++			break;
++		}
++		if (page_count(page_head) > 0)
++			break;
++	}
++	spin_unlock_irqrestore(&zone->lock, flags);
++	return ret;
++}
++
++/*
+  * Set PG_hwpoison flag if a given page is confirmed to be a free page.  This
+  * test is performed under the zone lock to prevent a race against page
+  * allocation.
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
