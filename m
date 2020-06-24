@@ -1,28 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + mmhwpoison-introduce-mf_msg_unsplit_thp.patch added to
- -mm tree
-Date: Wed, 24 Jun 2020 12:19:55 -0700
-Message-ID: <20200624191955.PnRD4%akpm@linux-foundation.org>
+Subject: +
+ mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
+ added to -mm tree
+Date: Wed, 24 Jun 2020 12:31:01 -0700
+Message-ID: <20200624193101.HqEvE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:60336 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2405864AbgFXTT4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 15:19:56 -0400
+        id S2391239AbgFXTbD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 15:31:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, zeil@yandex-team.ru, tony.luck@intel.com, osalvador@suse.de, mike.kravetz@oracle.com, mhocko@kernel.org, david@redhat.com, dave.hansen@intel.com, aneesh.kumar@linux.vnet.ibm.com, aneesh.kumar@linux.ibm.com, naoya.horiguchi@nec.com
+To: mm-commits@vger.kernel.org, ying.huang@intel.com, stable@vger.kernel.org, richard.weiyang@linux.alibaba.com, richard.weiyang@gmail.com, minchan@kernel.org, mhocko@suse.com, mgorman@techsingularity.net, hannes@cmpxchg.org, dan.j.williams@intel.com, akpm@linux-foundation.org, david@redhat.com
 
 
 The patch titled
-     Subject: mm,hwpoison: introduce MF_MSG_UNSPLIT_THP
+     Subject: mm/shuffle: don't move pages between zones and don't read garbage memmaps
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+     mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,93 +37,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm,hwpoison: introduce MF_MSG_UNSPLIT_THP
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/shuffle: don't move pages between zones and don't read garbage memmaps
 
-memory_failure() is supposed to call action_result() when it handles a
-memory error event, but there's one missing case.  So let's add it.
+Especially with memory hotplug, we can have offline sections (with a
+garbage memmap) and overlapping zones.  We have to make sure to only touch
+initialized memmaps (online sections managed by the buddy) and that the
+zone matches, to not move pages between zones.
 
-I find that include/ras/ras_event.h has some other MF_MSG_* undefined, so
-this patch also adds them.
+To test if this can actually happen, I added a simple
 
-Link: http://lkml.kernel.org/r/20200624150137.7052-16-nao.horiguchi@gmail.com
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dmitry Yakunin <zeil@yandex-team.ru>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
+	BUG_ON(page_zone(page_i) != page_zone(page_j));
+
+right before the swap.  When hotplugging a 256M DIMM to a 4G x86-64 VM and
+onlining the first memory block "online_movable" and the second memory
+block "online_kernel", it will trigger the BUG, as both zones (NORMAL and
+MOVABLE) overlap.
+
+This might result in all kinds of weird situations (e.g., double
+allocations, list corruptions, unmovable allocations ending up in the
+movable zone).
+
+Link: http://lkml.kernel.org/r/20200624094741.9918-2-david@redhat.com
+Fixes: e900a918b098 ("mm: shuffle initial free memory to improve memory-side-cache utilization")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>	[5.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    1 +
- include/ras/ras_event.h |    3 +++
- mm/memory-failure.c     |    5 ++++-
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ mm/shuffle.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm.h~mmhwpoison-introduce-mf_msg_unsplit_thp
-+++ a/include/linux/mm.h
-@@ -3032,6 +3032,7 @@ enum mf_action_page_type {
- 	MF_MSG_BUDDY,
- 	MF_MSG_BUDDY_2ND,
- 	MF_MSG_DAX,
-+	MF_MSG_UNSPLIT_THP,
- 	MF_MSG_UNKNOWN,
- };
+--- a/mm/shuffle.c~mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps
++++ a/mm/shuffle.c
+@@ -58,25 +58,25 @@ module_param_call(shuffle, shuffle_store
+  * For two pages to be swapped in the shuffle, they must be free (on a
+  * 'free_area' lru), have the same order, and have the same migratetype.
+  */
+-static struct page * __meminit shuffle_valid_page(unsigned long pfn, int order)
++static struct page * __meminit shuffle_valid_page(struct zone *zone,
++						  unsigned long pfn, int order)
+ {
+-	struct page *page;
++	struct page *page = pfn_to_online_page(pfn);
  
---- a/include/ras/ras_event.h~mmhwpoison-introduce-mf_msg_unsplit_thp
-+++ a/include/ras/ras_event.h
-@@ -361,6 +361,7 @@ TRACE_EVENT(aer_event,
- 	EM ( MF_MSG_POISONED_HUGE, "huge page already hardware poisoned" )	\
- 	EM ( MF_MSG_HUGE, "huge page" )					\
- 	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
-+	EM ( MF_MSG_NON_PMD_HUGE, "non-pmd-sized huge page" )		\
- 	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
- 	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
- 	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
-@@ -373,6 +374,8 @@ TRACE_EVENT(aer_event,
- 	EM ( MF_MSG_TRUNCATED_LRU, "already truncated LRU page" )	\
- 	EM ( MF_MSG_BUDDY, "free buddy page" )				\
- 	EM ( MF_MSG_BUDDY_2ND, "free buddy page (2nd try)" )		\
-+	EM ( MF_MSG_DAX, "dax page" )					\
-+	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
- 	EMe ( MF_MSG_UNKNOWN, "unknown page" )
+ 	/*
+ 	 * Given we're dealing with randomly selected pfns in a zone we
+ 	 * need to ask questions like...
+ 	 */
  
- /*
---- a/mm/memory-failure.c~mmhwpoison-introduce-mf_msg_unsplit_thp
-+++ a/mm/memory-failure.c
-@@ -586,6 +586,7 @@ static const char * const action_page_ty
- 	[MF_MSG_BUDDY]			= "free buddy page",
- 	[MF_MSG_BUDDY_2ND]		= "free buddy page (2nd try)",
- 	[MF_MSG_DAX]			= "dax page",
-+	[MF_MSG_UNSPLIT_THP]		= "unsplit thp",
- 	[MF_MSG_UNKNOWN]		= "unknown page",
- };
+-	/* ...is the pfn even in the memmap? */
+-	if (!pfn_valid_within(pfn))
++	/* ... is the page managed by the buddy? */
++	if (!page)
+ 		return NULL;
  
-@@ -1376,8 +1377,10 @@ int memory_failure(unsigned long pfn, in
- 	}
+-	/* ...is the pfn in a present section or a hole? */
+-	if (!pfn_in_present_section(pfn))
++	/* ... is the page assigned to the same zone? */
++	if (page_zone(page) != zone)
+ 		return NULL;
  
- 	if (PageTransHuge(hpage)) {
--		if (try_to_split_thp_page(p, "Memory Failure") < 0)
-+		if (try_to_split_thp_page(p, "Memory Failure") < 0) {
-+			action_result(pfn, MF_MSG_UNSPLIT_THP, MF_IGNORED);
- 			return -EBUSY;
-+		}
- 		VM_BUG_ON_PAGE(!page_count(p), p);
- 	}
+ 	/* ...is the page free and currently on a free_area list? */
+-	page = pfn_to_page(pfn);
+ 	if (!PageBuddy(page))
+ 		return NULL;
  
+@@ -123,7 +123,7 @@ void __meminit __shuffle_zone(struct zon
+ 		 * page_j randomly selected in the span @zone_start_pfn to
+ 		 * @spanned_pages.
+ 		 */
+-		page_i = shuffle_valid_page(i, order);
++		page_i = shuffle_valid_page(z, i, order);
+ 		if (!page_i)
+ 			continue;
+ 
+@@ -137,7 +137,7 @@ void __meminit __shuffle_zone(struct zon
+ 			j = z->zone_start_pfn +
+ 				ALIGN_DOWN(get_random_long() % z->spanned_pages,
+ 						order_pages);
+-			page_j = shuffle_valid_page(j, order);
++			page_j = shuffle_valid_page(z, j, order);
+ 			if (page_j && page_j != page_i)
+ 				break;
+ 		}
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mmhwpoison-cleanup-unused-pagehuge-check.patch
-mm-hwpoison-remove-recalculating-hpage.patch
-mmmadvise-call-soft_offline_page-without-mf_count_increased.patch
-mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
-mmhwpoison-remove-mf_count_increased.patch
-mmhwpoison-remove-flag-argument-from-soft-offline-functions.patch
-mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
+mm-drop-vm_total_pages.patch
+mm-page_alloc-drop-nr_free_pagecache_pages.patch
+mm-memory_hotplug-document-why-shuffle_zone-is-relevant.patch
+mm-shuffle-remove-dynamic-reconfiguration.patch
