@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-keep-memoryless-cpuless-node-0-offline.patch added to -mm tree
-Date: Wed, 24 Jun 2020 12:42:51 -0700
-Message-ID: <20200624194251.vctcB%akpm@linux-foundation.org>
+Subject: + mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
+ added to -mm tree
+Date: Wed, 24 Jun 2020 12:52:34 -0700
+Message-ID: <20200624195234.o44gZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39152 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42720 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2404915AbgFXTmw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 15:42:52 -0400
+        id S2406243AbgFXTwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Jun 2020 15:52:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, vbabka@suse.cz, sathnaga@linux.vnet.ibm.com, mpe@ellerman.id.au, mhocko@suse.com, mgorman@suse.de, kirill@shutemov.name, ego@linux.vnet.ibm.com, david@redhat.com, cl@linux.com, srikar@linux.vnet.ibm.com
+To: mm-commits@vger.kernel.org, tsbogend@alpha.franken.de, rppt@linux.ibm.com, ralf@linux-mips.org, paulburton@kernel.org, mike.kravetz@oracle.com, kirill.shutemov@linux.intel.com, dansilsby@gmail.com, anshuman.khandual@arm.com, maobibo@loongson.cn
 
 
 The patch titled
-     Subject: mm/page_alloc: keep memoryless cpuless node 0 offline
+     Subject: mm: set page fault address for update_mmu_cache_pmd()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-keep-memoryless-cpuless-node-0-offline.patch
+     mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-keep-memoryless-cpuless-node-0-offline.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-keep-memoryless-cpuless-node-0-offline.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,117 +36,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Subject: mm/page_alloc: keep memoryless cpuless node 0 offline
+From: Bibo Mao <maobibo@loongson.cn>
+Subject: mm: set page fault address for update_mmu_cache_pmd()
 
-Currently Linux kernel with CONFIG_NUMA on a system with multiple possible
-nodes, marks node 0 as online at boot.  However in practice, there are
-systems which have node 0 as memoryless and cpuless.
+update_mmu_cache_pmd is used to update tlb for the pmd entry by software. 
+On MIPS system, the tlb entry indexed by page fault address maybe exists
+already, only that tlb entry may be small page, also it may be huge page. 
+Before updating pmd entry with huge page size, older tlb entry need to be
+invalidated.
 
-This can cause numa_balancing to be enabled on systems with only one node
-with memory and CPUs.  The existence of this dummy node which is cpuless
-and memoryless node can confuse users/scripts looking at output of lscpu /
-numactl.
+Here page fault address is passed to function update_mmu_cache_pmd, rather
+than pmd huge page start address.  The page fault address can be used for
+invalidating older tlb entry.
 
-By marking, N_ONLINE as NODE_MASK_NONE, lets stop assuming that Node 0 is
-always online.
-
-v5.8-rc2
- available: 2 nodes (0,2)
- node 0 cpus:
- node 0 size: 0 MB
- node 0 free: 0 MB
- node 2 cpus: 0 1 2 3 4 5 6 7
- node 2 size: 32625 MB
- node 2 free: 31490 MB
- node distances:
- node   0   2
-   0:  10  20
-   2:  20  10
-
-proc and sys files
-------------------
- /sys/devices/system/node/online:            0,2
- /proc/sys/kernel/numa_balancing:            1
- /sys/devices/system/node/has_cpu:           2
- /sys/devices/system/node/has_memory:        2
- /sys/devices/system/node/has_normal_memory: 2
- /sys/devices/system/node/possible:          0-31
-
-v5.8-rc2 + patch
-------------------
- available: 1 nodes (2)
- node 2 cpus: 0 1 2 3 4 5 6 7
- node 2 size: 32625 MB
- node 2 free: 31487 MB
- node distances:
- node   2
-   2:  10
-
-proc and sys files
-------------------
-/sys/devices/system/node/online:            2
-/proc/sys/kernel/numa_balancing:            0
-/sys/devices/system/node/has_cpu:           2
-/sys/devices/system/node/has_memory:        2
-/sys/devices/system/node/has_normal_memory: 2
-/sys/devices/system/node/possible:          0-31
-
-Note: On Powerpc, cpu_to_node of possible but not present cpus would
-previously return 0.  Hence this commit depends on commit ("powerpc/numa:
-Set numa_node for all possible cpus") and commit ("powerpc/numa: Prefer
-node id queried from vphn").  Without the 2 commits, Powerpc system might
-crash.
-
-1. User space applications like Numactl, lscpu, that parse the sysfs
-   tend to believe there is an extra online node.  This tends to confuse
-   users and applications.  Other user space applications start believing
-   that system was not able to use all the resources (i.e missing
-   resources) or the system was not setup correctly.
-
-2. Also existence of dummy node also leads to inconsistent
-   information.  The number of online nodes is inconsistent with the
-   information in the device-tree and resource-dump
-
-3. When the dummy node is present, single node non-Numa systems end up
-   showing up as NUMA systems and numa_balancing gets enabled.  This will
-   mean we take the hit from the unnecessary numa hinting faults.
-
-Link: http://lkml.kernel.org/r/20200624092846.9194-4-srikar@linux.vnet.ibm.com
-Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Gautham R Shenoy <ego@linux.vnet.ibm.com>
-Cc: Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: http://lkml.kernel.org/r/1592990792-1923-1-git-send-email-maobibo@loongson.cn
+Signed-off-by: Bibo Mao <maobibo@loongson.cn>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Daniel Silsby <dansilsby@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/mips/include/asm/pgtable.h |    9 +++++++++
+ mm/huge_memory.c                |    7 ++++---
+ mm/memory.c                     |    2 +-
+ 3 files changed, 14 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-keep-memoryless-cpuless-node-0-offline
-+++ a/mm/page_alloc.c
-@@ -118,8 +118,10 @@ EXPORT_SYMBOL(latent_entropy);
-  */
- nodemask_t node_states[NR_NODE_STATES] __read_mostly = {
- 	[N_POSSIBLE] = NODE_MASK_ALL,
-+#ifdef CONFIG_NUMA
-+	[N_ONLINE] = NODE_MASK_NONE,
-+#else
- 	[N_ONLINE] = { { [0] = 1UL } },
--#ifndef CONFIG_NUMA
- 	[N_NORMAL_MEMORY] = { { [0] = 1UL } },
- #ifdef CONFIG_HIGHMEM
- 	[N_HIGH_MEMORY] = { { [0] = 1UL } },
+--- a/arch/mips/include/asm/pgtable.h~mm-set-page-fault-address-for-update_mmu_cache_pmd
++++ a/arch/mips/include/asm/pgtable.h
+@@ -554,11 +554,20 @@ static inline void update_mmu_cache(stru
+ #define	__HAVE_ARCH_UPDATE_MMU_TLB
+ #define update_mmu_tlb	update_mmu_cache
+ 
++extern void local_flush_tlb_page(struct vm_area_struct *vma,
++				unsigned long page);
+ static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
+ 	unsigned long address, pmd_t *pmdp)
+ {
+ 	pte_t pte = *(pte_t *)pmdp;
+ 
++	/*
++	 * If pmd_none is true, older tlb entry will be normal page.
++	 * here to invalidate older tlb entry indexed by address
++	 * parameter address must be page fault address rather than
++	 * start address of pmd huge page
++	 */
++	local_flush_tlb_page(vma, address);
+ 	__update_tlb(vma, address, pte);
+ }
+ 
+--- a/mm/huge_memory.c~mm-set-page-fault-address-for-update_mmu_cache_pmd
++++ a/mm/huge_memory.c
+@@ -780,6 +780,7 @@ static void insert_pfn_pmd(struct vm_are
+ 		pgtable_t pgtable)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
++	unsigned long start = addr & PMD_MASK;
+ 	pmd_t entry;
+ 	spinlock_t *ptl;
+ 
+@@ -792,7 +793,7 @@ static void insert_pfn_pmd(struct vm_are
+ 			}
+ 			entry = pmd_mkyoung(*pmd);
+ 			entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+-			if (pmdp_set_access_flags(vma, addr, pmd, entry, 1))
++			if (pmdp_set_access_flags(vma, start, pmd, entry, 1))
+ 				update_mmu_cache_pmd(vma, addr, pmd);
+ 		}
+ 
+@@ -813,7 +814,7 @@ static void insert_pfn_pmd(struct vm_are
+ 		pgtable = NULL;
+ 	}
+ 
+-	set_pmd_at(mm, addr, pmd, entry);
++	set_pmd_at(mm, start, pmd, entry);
+ 	update_mmu_cache_pmd(vma, addr, pmd);
+ 
+ out_unlock:
+@@ -864,7 +865,7 @@ vm_fault_t vmf_insert_pfn_pmd_prot(struc
+ 
+ 	track_pfn_insert(vma, &pgprot, pfn);
+ 
+-	insert_pfn_pmd(vma, addr, vmf->pmd, pfn, pgprot, write, pgtable);
++	insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn, pgprot, write, pgtable);
+ 	return VM_FAULT_NOPAGE;
+ }
+ EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd_prot);
+--- a/mm/memory.c~mm-set-page-fault-address-for-update_mmu_cache_pmd
++++ a/mm/memory.c
+@@ -3606,7 +3606,7 @@ static vm_fault_t do_set_pmd(struct vm_f
+ 
+ 	set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
+ 
+-	update_mmu_cache_pmd(vma, haddr, vmf->pmd);
++	update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+ 
+ 	/* fault is handled */
+ 	ret = 0;
 _
 
-Patches currently in -mm which might be from srikar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from maobibo@loongson.cn are
 
-powerpc-numa-set-numa_node-for-all-possible-cpus.patch
-powerpc-numa-prefer-node-id-queried-from-vphn.patch
-mm-page_alloc-keep-memoryless-cpuless-node-0-offline.patch
+mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
+mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
+mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
