@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-fix-documentation-error.patch added to -mm
- tree
-Date: Wed, 24 Jun 2020 22:25:37 -0700
-Message-ID: <20200625052537.l-eS9%akpm@linux-foundation.org>
+Subject: + scripts-decode_stacktrace-skip-missing-symbols.patch
+ added to -mm tree
+Date: Wed, 24 Jun 2020 22:29:18 -0700
+Message-ID: <20200625052918.2imLo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48080 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48596 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389600AbgFYFZj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Jun 2020 01:25:39 -0400
+        id S2389705AbgFYF3T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Jun 2020 01:29:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, willy@infradead.org, fdangelo@redhat.com, aquini@redhat.com, jsavitz@redhat.com
+To: mm-commits@vger.kernel.org, sashal@kernel.org, khlebnikov@yandex-team.ru
 
 
 The patch titled
-     Subject: mm/page_alloc: fix documentation error
+     Subject: scripts/decode_stacktrace.sh: skip missing symbols
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fix-documentation-error.patch
+     scripts-decode_stacktrace-skip-missing-symbols.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-documentation-error.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-decode_stacktrace-skip-missing-symbols.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-documentation-error.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-decode_stacktrace-skip-missing-symbols.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,38 +36,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joel Savitz <jsavitz@redhat.com>
-Subject: mm/page_alloc: fix documentation error
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: scripts/decode_stacktrace.sh: skip missing symbols
 
-When I increased the upper bound of the min_free_kbytes value in
-ee8eb9a5fe863 ("mm/page_alloc: increase default min_free_kbytes bound") I
-forgot to tweak the above comment to reflect the new value.  This patch
-fixes that mistake.
+For now script turns missing symbols into '0' and make bogus decode.  Skip
+them instead.  Also simplify parsing output of 'nm'.
 
-Link: http://lkml.kernel.org/r/20200624221236.29560-1-jsavitz@redhat.com
-Signed-off-by: Joel Savitz <jsavitz@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Fabrizio D'Angelo <fdangelo@redhat.com>
+Before:
+
+$ echo 'xxx+0x0/0x0' | ./scripts/decode_stacktrace.sh vmlinux ""
+xxx (home/khlebnikov/src/linux/./arch/x86/include/asm/processor.h:398)
+
+After:
+
+$ echo 'xxx+0x0/0x0' | ./scripts/decode_stacktrace.sh vmlinux ""
+xxx+0x0/0x0
+
+Link: http://lkml.kernel.org/r/159282922499.248444.4883465570858385250.stgit@buzz
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/decode_stacktrace.sh |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-documentation-error
-+++ a/mm/page_alloc.c
-@@ -7832,7 +7832,7 @@ void setup_per_zone_wmarks(void)
-  * Initialise min_free_kbytes.
-  *
-  * For small machines we want it small (128k min).  For large machines
-- * we want it large (64MB max).  But it is not linear, because network
-+ * we want it large (256MB max).  But it is not linear, because network
-  * bandwidth does not increase linearly with machine size.  We use
-  *
-  *	min_free_kbytes = 4 * sqrt(lowmem_kbytes), for better accuracy:
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktrace-skip-missing-symbols
++++ a/scripts/decode_stacktrace.sh
+@@ -56,7 +56,11 @@ parse_symbol() {
+ 	if [[ "${cache[$module,$name]+isset}" == "isset" ]]; then
+ 		local base_addr=${cache[$module,$name]}
+ 	else
+-		local base_addr=$(nm "$objfile" | grep -i ' t ' | awk "/ $name\$/ {print \$1}" | head -n1)
++		local base_addr=$(nm "$objfile" | awk '$3 == "'$name'" && ($2 == "t" || $2 == "T") {print $1; exit}')
++		if [[ $base_addr == "" ]] ; then
++			# address not found
++			return
++		fi
+ 		cache[$module,$name]="$base_addr"
+ 	fi
+ 	# Let's start doing the math to get the exact address into the
 _
 
-Patches currently in -mm which might be from jsavitz@redhat.com are
+Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
 
-mm-page_alloc-fix-documentation-error.patch
+scripts-decode_stacktrace-skip-missing-symbols.patch
+scripts-decode_stacktrace-guess-basepath-if-not-specified.patch
+scripts-decode_stacktrace-guess-path-to-modules.patch
+scripts-decode_stacktrace-guess-path-to-vmlinux-by-release-name.patch
+kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
