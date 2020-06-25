@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-a-warning-while-make-xmldocs.patch added to -mm
+Subject: + mm-page_alloc-fix-documentation-error.patch added to -mm
  tree
-Date: Wed, 24 Jun 2020 15:47:25 -0700
-Message-ID: <20200624224725.Y1IhQ%akpm@linux-foundation.org>
+Date: Wed, 24 Jun 2020 22:25:37 -0700
+Message-ID: <20200625052537.l-eS9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:41278 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48080 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2388711AbgFXWr0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Jun 2020 18:47:26 -0400
+        id S2389600AbgFYFZj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Jun 2020 01:25:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org, standby24x7@gmail.com
+To: mm-commits@vger.kernel.org, willy@infradead.org, fdangelo@redhat.com, aquini@redhat.com, jsavitz@redhat.com
 
 
 The patch titled
-     Subject: mm/vmalloc.c: fix a warning while make xmldocs
+     Subject: mm/page_alloc: fix documentation error
 has been added to the -mm tree.  Its filename is
-     mm-fix-a-warning-while-make-xmldocs.patch
+     mm-page_alloc-fix-documentation-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-a-warning-while-make-xmldocs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-documentation-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-a-warning-while-make-xmldocs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-documentation-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,38 +36,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Masanari Iida <standby24x7@gmail.com>
-Subject: mm/vmalloc.c: fix a warning while make xmldocs
+From: Joel Savitz <jsavitz@redhat.com>
+Subject: mm/page_alloc: fix documentation error
 
-This patch fixes following warning while "make xmldocs"
+When I increased the upper bound of the min_free_kbytes value in
+ee8eb9a5fe863 ("mm/page_alloc: increase default min_free_kbytes bound") I
+forgot to tweak the above comment to reflect the new value.  This patch
+fixes that mistake.
 
-./mm/vmalloc.c:1877: warning: Excess function parameter
-'prot' description in 'vm_map_ram'
-
-This warning started since a patch was merged in 5.8-rc1.
-Link: http://lkml.kernel.org/r/20200622152850.140871-1-standby24x7@gmail.com
-Fixes: d4efd79a81ab ("mm: remove the prot argument from vm_map_ram")
-
-Signed-off-by: Masanari Iida <standby24x7@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20200624221236.29560-1-jsavitz@redhat.com
+Signed-off-by: Joel Savitz <jsavitz@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Fabrizio D'Angelo <fdangelo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-fix-a-warning-while-make-xmldocs
-+++ a/mm/vmalloc.c
-@@ -1862,7 +1862,6 @@ EXPORT_SYMBOL(vm_unmap_ram);
-  * @pages: an array of pointers to the pages to be mapped
-  * @count: number of pages
-  * @node: prefer to allocate data structures on this node
-- * @prot: memory protection to use. PAGE_KERNEL for regular RAM
+--- a/mm/page_alloc.c~mm-page_alloc-fix-documentation-error
++++ a/mm/page_alloc.c
+@@ -7832,7 +7832,7 @@ void setup_per_zone_wmarks(void)
+  * Initialise min_free_kbytes.
   *
-  * If you use this function for less than VMAP_MAX_ALLOC pages, it could be
-  * faster than vmap so it's good.  But if you mix long-life and short-life
+  * For small machines we want it small (128k min).  For large machines
+- * we want it large (64MB max).  But it is not linear, because network
++ * we want it large (256MB max).  But it is not linear, because network
+  * bandwidth does not increase linearly with machine size.  We use
+  *
+  *	min_free_kbytes = 4 * sqrt(lowmem_kbytes), for better accuracy:
 _
 
-Patches currently in -mm which might be from standby24x7@gmail.com are
+Patches currently in -mm which might be from jsavitz@redhat.com are
 
-mm-fix-a-warning-while-make-xmldocs.patch
+mm-page_alloc-fix-documentation-error.patch
