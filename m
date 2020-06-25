@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-decode_stacktrace-guess-path-to-modules.patch
- added to -mm tree
-Date: Wed, 24 Jun 2020 22:29:22 -0700
-Message-ID: <20200625052922.YHkrh%akpm@linux-foundation.org>
+Subject: + fix-annotation-of-ioreadwrite1632be.patch added to -mm
+ tree
+Date: Wed, 24 Jun 2020 22:31:36 -0700
+Message-ID: <20200625053136.GD_e3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48644 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2389705AbgFYF3Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Jun 2020 01:29:24 -0400
+        id S2389781AbgFYFbh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Jun 2020 01:31:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, sashal@kernel.org, khlebnikov@yandex-team.ru
+To: mm-commits@vger.kernel.org, sboyd@kernel.org, rth@twiddle.net, mattst88@gmail.com, lkp@intel.com, ink@jurassic.park.msu.ru, arnd@arndb.de, luc.vanoostenryck@gmail.com
 
 
 The patch titled
-     Subject: scripts/decode_stacktrace.sh: guess path to modules
+     Subject: alpha: fix annotation of io{read,write}{16,32}be()
 has been added to the -mm tree.  Its filename is
-     scripts-decode_stacktrace-guess-path-to-modules.patch
+     fix-annotation-of-ioreadwrite1632be.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-decode_stacktrace-guess-path-to-modules.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fix-annotation-of-ioreadwrite1632be.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-decode_stacktrace-guess-path-to-modules.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fix-annotation-of-ioreadwrite1632be.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,99 +36,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: scripts/decode_stacktrace.sh: guess path to modules
+From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Subject: alpha: fix annotation of io{read,write}{16,32}be()
 
-Try to find module in directory with vmlinux (for fresh build).  Then try
-standard paths where debuginfo are usually placed.  Pick first file which
-have elf section '.debug_line'.
+These accessors must be used to read/write a big-endian bus.  The value
+returned or written is native-endian.
 
-Before:
+However, these accessors are defined using be{16,32}_to_cpu() or
+cpu_to_be{16,32}() to make the endian conversion but these expect a
+__be{16,32} when none is present.  Keeping them would need a force cast
+that would solve nothing at all.
 
-$ echo 'tap_open+0x0/0x0 [tap]' |
-  ./scripts/decode_stacktrace.sh /usr/lib/debug/boot/vmlinux-5.4.0-37-generic
-WARNING! Modules path isn't set, but is needed to parse this symbol
-tap_open+0x0/0x0 tap
+So, do the conversion using swab{16,32}, like done in asm-generic for
+similar situations.
 
-After:
-
-$ echo 'tap_open+0x0/0x0 [tap]' |
-  ./scripts/decode_stacktrace.sh /usr/lib/debug/boot/vmlinux-5.4.0-37-generic
-tap_open (drivers/net/tap.c:502) tap
-
-Link: http://lkml.kernel.org/r/159282923068.248444.5461337458421616083.stgit@buzz
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Sasha Levin <sashal@kernel.org>
+Link: http://lkml.kernel.org/r/20200622114232.80039-1-luc.vanoostenryck@gmail.com
+Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Stephen Boyd <sboyd@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |   36 ++++++++++++++++++++++++++++++---
- 1 file changed, 33 insertions(+), 3 deletions(-)
+ arch/alpha/include/asm/io.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktrace-guess-path-to-modules
-+++ a/scripts/decode_stacktrace.sh
-@@ -12,9 +12,40 @@ fi
- vmlinux=$1
- basepath=${2-auto}
- modpath=$3
-+release=""
-+
- declare -A cache
- declare -A modcache
+--- a/arch/alpha/include/asm/io.h~fix-annotation-of-ioreadwrite1632be
++++ a/arch/alpha/include/asm/io.h
+@@ -489,10 +489,10 @@ extern inline void writeq(u64 b, volatil
+ }
+ #endif
  
-+find_module() {
-+	if [[ "$modpath" != "" ]] ; then
-+		for fn in $(find "$modpath" -name "${module//_/[-_]}.ko*") ; do
-+			if readelf -WS "$fn" | grep -qwF .debug_line ; then
-+				echo $fn
-+				return
-+			fi
-+		done
-+		return 1
-+	fi
-+
-+	modpath=$(dirname "$vmlinux")
-+	find_module && return
-+
-+	if [[ $release == "" ]] ; then
-+		release=$(gdb -ex 'print init_uts_ns.name.release' -ex 'quit' -quiet -batch "$vmlinux" | sed -n 's/\$1 = "\(.*\)".*/\1/p')
-+	fi
-+
-+	for dn in {/usr/lib/debug,}/lib/modules/$release ; do
-+		if [ -e "$dn" ] ; then
-+			modpath="$dn"
-+			find_module && return
-+		fi
-+	done
-+
-+	modpath=""
-+	return 1
-+}
-+
- parse_symbol() {
- 	# The structure of symbol at this point is:
- 	#   ([name]+[offset]/[total length])
-@@ -27,12 +58,11 @@ parse_symbol() {
- 	elif [[ "${modcache[$module]+isset}" == "isset" ]]; then
- 		local objfile=${modcache[$module]}
- 	else
--		if [[ $modpath == "" ]]; then
-+		local objfile=$(find_module)
-+		if [[ $objfile == "" ]] ; then
- 			echo "WARNING! Modules path isn't set, but is needed to parse this symbol" >&2
- 			return
- 		fi
--		local objfile=$(find "$modpath" -name "${module//_/[-_]}.ko*" -print -quit)
--		[[ $objfile == "" ]] && return
- 		modcache[$module]=$objfile
- 	fi
+-#define ioread16be(p) be16_to_cpu(ioread16(p))
+-#define ioread32be(p) be32_to_cpu(ioread32(p))
+-#define iowrite16be(v,p) iowrite16(cpu_to_be16(v), (p))
+-#define iowrite32be(v,p) iowrite32(cpu_to_be32(v), (p))
++#define ioread16be(p) swab16(ioread16(p))
++#define ioread32be(p) swab32(ioread32(p))
++#define iowrite16be(v,p) iowrite16(swab16(v), (p))
++#define iowrite32be(v,p) iowrite32(swab32(v), (p))
  
+ #define inb_p		inb
+ #define inw_p		inw
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from luc.vanoostenryck@gmail.com are
 
-scripts-decode_stacktrace-skip-missing-symbols.patch
-scripts-decode_stacktrace-guess-basepath-if-not-specified.patch
-scripts-decode_stacktrace-guess-path-to-modules.patch
-scripts-decode_stacktrace-guess-path-to-vmlinux-by-release-name.patch
-kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+fix-annotation-of-ioreadwrite1632be.patch
