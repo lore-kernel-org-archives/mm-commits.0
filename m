@@ -1,56 +1,104 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 27/32] mm/memory: fix IO cost for anonymous page
-Date: Thu, 25 Jun 2020 20:30:37 -0700
-Message-ID: <20200626033037.DBF4bo_E5%akpm@linux-foundation.org>
+Subject: [patch 28/32] x86/hyperv: allocate the hypercall page
+ with only read and execute bits
+Date: Thu, 25 Jun 2020 20:30:40 -0700
+Message-ID: <20200626033040.n9Aliy6MD%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48754 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48786 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728328AbgFZDah (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Jun 2020 23:30:37 -0400
+        id S1725900AbgFZDal (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Jun 2020 23:30:41 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, js1304@gmail.com, mhocko@suse.com, minchan.kim@gmail.com, mm-commits@vger.kernel.org, riel@surriel.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, catalin.marinas@arm.com, david@redhat.com, decui@microsoft.com, hch@lst.de, jeyu@kernel.org, mm-commits@vger.kernel.org, peterz@infradead.org, torvalds@linux-foundation.org, vkuznets@redhat.com, wei.liu@kernel.org, will@kernel.org
 
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/memory: fix IO cost for anonymous page
+=46rom: Christoph Hellwig <hch@lst.de>
+Subject: x86/hyperv: allocate the hypercall page with only read and execute=
+ bits
 
-With synchronous IO swap device, swap-in is directly handled in fault
-code.  Since IO cost notation isn't added there, with synchronous IO swap
-device, LRU balancing could be wrongly biased.  Fix it to count it in
-fault code.
+Patch series "fix a hyperv W^X violation and remove vmalloc_exec"
 
-Link: http://lkml.kernel.org/r/1592288204-27734-4-git-send-email-iamjoonsoo.kim@lge.com
-Fixes: 314b57fb0460001 ("mm: balance LRU lists based on relative thrashing cache sizing")
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@surriel.com>
+Dexuan reported a W^X violation due to the fact that the hyper hypercall
+page due switching it to be allocated using vmalloc_exec.  The problem is
+that PAGE_KERNEL_EXEC as used by vmalloc_exec actually sets writable
+permissions in the pte.  This series fixes the issue by switching to the
+low-level __vmalloc_node_range interface that allows specifing more
+detailed permissions instead.  It then also open codes the other two
+callers and removes the somewhat confusing vmalloc_exec interface.
+
+Peter noted that the hyper hypercall page allocation also has another long
+standing issue in that it shouldn't use the full vmalloc but just the
+module space.  This issue is so far theoretical as the allocation is done
+early in the boot process.  I plan to fix it with another bigger series
+for 5.9.
+
+
+This patch (of 3):
+
+Avoid a W^X violation cause by the fact that PAGE_KERNEL_EXEC includes the
+writable bit.
+
+For this resurrect the removed PAGE_KERNEL_RX definit=D1=96on, but as
+PAGE_KERNEL_ROX to match arm64 and powerpc.
+
+Link: http://lkml.kernel.org/r/20200618064307.32739-2-hch@lst.de
+Fixes: 78bb17f76edc ("x86/hyperv: use vmalloc_exec for the hypercall page")
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Dexuan Cui <decui@microsoft.com>
+Tested-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Acked-by: Wei Liu <wei.liu@kernel.org>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Jessica Yu <jeyu@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/x86/hyperv/hv_init.c            |    4 +++-
+ arch/x86/include/asm/pgtable_types.h |    2 ++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-memory-fix-io-cost-for-anonymous-page
-+++ a/mm/memory.c
-@@ -3146,6 +3146,14 @@ vm_fault_t do_swap_page(struct vm_fault
- 					goto out_page;
- 				}
- 
-+				/*
-+				 * XXX: Move to lru_cache_add() when it
-+				 * supports new vs putback
-+				 */
-+				spin_lock_irq(&page_pgdat(page)->lru_lock);
-+				lru_note_cost_page(page);
-+				spin_unlock_irq(&page_pgdat(page)->lru_lock);
-+
- 				lru_cache_add(page);
- 				swap_readpage(page, true);
- 			}
+--- a/arch/x86/hyperv/hv_init.c~x86-hyperv-allocate-the-hypercall-page-with=
+-only-read-and-execute-bits
++++ a/arch/x86/hyperv/hv_init.c
+@@ -375,7 +375,9 @@ void __init hyperv_init(void)
+ 	guest_id =3D generate_guest_id(0, LINUX_VERSION_CODE, 0);
+ 	wrmsrl(HV_X64_MSR_GUEST_OS_ID, guest_id);
+=20
+-	hv_hypercall_pg =3D vmalloc_exec(PAGE_SIZE);
++	hv_hypercall_pg =3D __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START,
++			VMALLOC_END, GFP_KERNEL, PAGE_KERNEL_ROX,
++			VM_FLUSH_RESET_PERMS, NUMA_NO_NODE, __func__);
+ 	if (hv_hypercall_pg =3D=3D NULL) {
+ 		wrmsrl(HV_X64_MSR_GUEST_OS_ID, 0);
+ 		goto remove_cpuhp_state;
+--- a/arch/x86/include/asm/pgtable_types.h~x86-hyperv-allocate-the-hypercal=
+l-page-with-only-read-and-execute-bits
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -194,6 +194,7 @@ enum page_cache_mode {
+ #define _PAGE_TABLE_NOENC	 (__PP|__RW|_USR|___A|   0|___D|   0|   0)
+ #define _PAGE_TABLE		 (__PP|__RW|_USR|___A|   0|___D|   0|   0| _ENC)
+ #define __PAGE_KERNEL_RO	 (__PP|   0|   0|___A|__NX|___D|   0|___G)
++#define __PAGE_KERNEL_ROX	 (__PP|   0|   0|___A|   0|___D|   0|___G)
+ #define __PAGE_KERNEL_NOCACHE	 (__PP|__RW|   0|___A|__NX|___D|   0|___G| _=
+_NC)
+ #define __PAGE_KERNEL_VVAR	 (__PP|   0|_USR|___A|__NX|___D|   0|___G)
+ #define __PAGE_KERNEL_LARGE	 (__PP|__RW|   0|___A|__NX|___D|_PSE|___G)
+@@ -219,6 +220,7 @@ enum page_cache_mode {
+ #define PAGE_KERNEL_RO		__pgprot_mask(__PAGE_KERNEL_RO         | _ENC)
+ #define PAGE_KERNEL_EXEC	__pgprot_mask(__PAGE_KERNEL_EXEC       | _ENC)
+ #define PAGE_KERNEL_EXEC_NOENC	__pgprot_mask(__PAGE_KERNEL_EXEC       |   =
+ 0)
++#define PAGE_KERNEL_ROX		__pgprot_mask(__PAGE_KERNEL_ROX        | _ENC)
+ #define PAGE_KERNEL_NOCACHE	__pgprot_mask(__PAGE_KERNEL_NOCACHE    | _ENC)
+ #define PAGE_KERNEL_LARGE	__pgprot_mask(__PAGE_KERNEL_LARGE      | _ENC)
+ #define PAGE_KERNEL_LARGE_EXEC	__pgprot_mask(__PAGE_KERNEL_LARGE_EXEC | _E=
+NC)
 _
