@@ -1,53 +1,48 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 18/32] media: omap3isp: remove cacheflush.h
-Date: Thu, 25 Jun 2020 20:30:11 -0700
-Message-ID: <20200626033011.My1dp5EMX%akpm@linux-foundation.org>
+Subject: [patch 19/32] mm/vmalloc.c: fix a warning while make
+ xmldocs
+Date: Thu, 25 Jun 2020 20:30:13 -0700
+Message-ID: <20200626033013.D6C0fBR1l%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48484 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48516 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728333AbgFZDaM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Jun 2020 23:30:12 -0400
+        id S1728333AbgFZDaO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Jun 2020 23:30:14 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geert@linux-m68k.org, hch@lst.de, laurent.pinchart@ideasonboard.com, mchehab+huawei@kernel.org, mm-commits@vger.kernel.org, natechancellor@gmail.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, standby24x7@gmail.com, torvalds@linux-foundation.org
 
-From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: media: omap3isp: remove cacheflush.h
+From: Masanari Iida <standby24x7@gmail.com>
+Subject: mm/vmalloc.c: fix a warning while make xmldocs
 
-After mm.h was removed from the asm-generic version of cacheflush.h, s390
-allyesconfig shows several warnings of the following nature:
+This patch fixes following warning while "make xmldocs"
 
-In file included from ./arch/s390/include/generated/asm/cacheflush.h:1,
-                 from drivers/media/platform/omap3isp/isp.c:42:
-./include/asm-generic/cacheflush.h:16:42: warning: 'struct mm_struct'
-declared inside parameter list will not be visible outside of this
-definition or declaration
+./mm/vmalloc.c:1877: warning: Excess function parameter
+'prot' description in 'vm_map_ram'
 
-As Geert and Laurent point out, this driver does not need this header in
-the two files that include it.  Remove it so there are no warnings.
+This warning started since a patch was merged in 5.8-rc1.
+Link: http://lkml.kernel.org/r/20200622152850.140871-1-standby24x7@gmail.com
+Fixes: d4efd79a81ab ("mm: remove the prot argument from vm_map_ram")
 
-Link: http://lkml.kernel.org/r/20200622234740.72825-2-natechancellor@gmail.com
-Fixes: e0cf615d725c ("asm-generic: don't include <linux/mm.h> in cacheflush.h")
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/platform/omap3isp/isp.c      |    2 --
- drivers/media/platform/omap3isp/ispvideo.c |    1 -
- 2 files changed, 3 deletions(-)
+ mm/vmalloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/drivers/media/platform/omap3isp/isp.c~media-omap3isp-remove-cacheflushh
-+++ a/drivers/media/platform/omap3isp/isp.c
-@@ -39,8 +39,6 @@
-  *	Troy Laramy <t-laramy@ti.com>
-  */
- 
--#include <asm/cacheflush.h>
+--- a/mm/vmalloc.c~mm-fix-a-warning-while-make-xmldocs
++++ a/mm/vmalloc.c
+@@ -1862,7 +1862,6 @@ EXPORT_SYMBOL(vm_unmap_ram);
+  * @pages: an array of pointers to the pages to be mapped
+  * @count: number of pages
+  * @node: prefer to allocate data structures on this node
+- * @prot: memory protection to use. PAGE_KERNEL for regular RAM
+  *
+  * If you use this function for less than VMAP_MAX_ALLOC pages, it could be
+  * faster than vmap so it's good.  But if you mix long-life and short-life
+_
