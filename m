@@ -1,65 +1,53 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 17/32] make asm-generic/cacheflush.h more
- standalone
-Date: Thu, 25 Jun 2020 20:30:07 -0700
-Message-ID: <20200626033007.Q-Ar67HGP%akpm@linux-foundation.org>
+Subject: [patch 18/32] media: omap3isp: remove cacheflush.h
+Date: Thu, 25 Jun 2020 20:30:11 -0700
+Message-ID: <20200626033011.My1dp5EMX%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48446 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728333AbgFZDaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Jun 2020 23:30:09 -0400
+        id S1728333AbgFZDaM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Jun 2020 23:30:12 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, borntraeger@de.ibm.com, gor@linux.ibm.com, hch@lst.de, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, hch@lst.de, laurent.pinchart@ideasonboard.com, mchehab+huawei@kernel.org, mm-commits@vger.kernel.org, natechancellor@gmail.com, torvalds@linux-foundation.org
 
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: make asm-generic/cacheflush.h more standalone
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: media: omap3isp: remove cacheflush.h
 
-Some s390 builds get these warnings:
+After mm.h was removed from the asm-generic version of cacheflush.h, s390
+allyesconfig shows several warnings of the following nature:
 
-include/asm-generic/cacheflush.h:16:42: warning: 'struct mm_struct' declared inside parameter list will not be visible outside of this definition or declaration
-include/asm-generic/cacheflush.h:22:46: warning: 'struct mm_struct' declared inside parameter list will not be visible outside of this definition or declaration
-include/asm-generic/cacheflush.h:28:45: warning: 'struct vm_area_struct' declared inside parameter list will not be visible outside of this definition or declaration
-include/asm-generic/cacheflush.h:36:44: warning: 'struct vm_area_struct' declared inside parameter list will not be visible outside of this definition or declaration
-include/asm-generic/cacheflush.h:44:45: warning: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration
-include/asm-generic/cacheflush.h:52:50: warning: 'struct address_space' declared inside parameter list will not be visible outside of this definition or declaration
-include/asm-generic/cacheflush.h:58:52: warning: 'struct address_space' declared inside parameter list will not be visible outside of this definition or declaration
-include/asm-generic/cacheflush.h:75:17: warning: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration
-include/asm-generic/cacheflush.h:74:45: warning: 'struct vm_area_struct' declared inside parameter list will not be visible outside of this definition or declaration
-include/asm-generic/cacheflush.h:82:16: warning: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration
-include/asm-generic/cacheflush.h:81:50: warning: 'struct vm_area_struct' declared inside parameter list will not be visible outside of this definition or declaration
+In file included from ./arch/s390/include/generated/asm/cacheflush.h:1,
+                 from drivers/media/platform/omap3isp/isp.c:42:
+./include/asm-generic/cacheflush.h:16:42: warning: 'struct mm_struct'
+declared inside parameter list will not be visible outside of this
+definition or declaration
 
-Forward declare the named structs to get rid of these.
+As Geert and Laurent point out, this driver does not need this header in
+the two files that include it.  Remove it so there are no warnings.
 
-Link: http://lkml.kernel.org/r/20200623135714.4dae4b8a@canb.auug.org.au
+Link: http://lkml.kernel.org/r/20200622234740.72825-2-natechancellor@gmail.com
 Fixes: e0cf615d725c ("asm-generic: don't include <linux/mm.h> in cacheflush.h")
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Reviewed-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/cacheflush.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/platform/omap3isp/isp.c      |    2 --
+ drivers/media/platform/omap3isp/ispvideo.c |    1 -
+ 2 files changed, 3 deletions(-)
 
---- a/include/asm-generic/cacheflush.h~make-asm-generic-cacheflushh-more-standalone
-+++ a/include/asm-generic/cacheflush.h
-@@ -2,6 +2,11 @@
- #ifndef _ASM_GENERIC_CACHEFLUSH_H
- #define _ASM_GENERIC_CACHEFLUSH_H
+--- a/drivers/media/platform/omap3isp/isp.c~media-omap3isp-remove-cacheflushh
++++ a/drivers/media/platform/omap3isp/isp.c
+@@ -39,8 +39,6 @@
+  *	Troy Laramy <t-laramy@ti.com>
+  */
  
-+struct mm_struct;
-+struct vm_area_struct;
-+struct page;
-+struct address_space;
-+
- /*
-  * The cache doesn't need to be flushed when TLB entries change when
-  * the cache is mapped to physical memory, not virtual memory
-_
+-#include <asm/cacheflush.h>
