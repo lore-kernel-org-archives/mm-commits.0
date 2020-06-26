@@ -1,87 +1,65 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 11/32] mm, slab: fix sign conversion problem in
- memcg_uncharge_slab()
-Date: Thu, 25 Jun 2020 20:29:49 -0700
-Message-ID: <20200626032949.NrLuc32Sk%akpm__11327.4689692602$1593142211$gmane$org@linux-foundation.org>
+Subject: [patch 17/32] make asm-generic/cacheflush.h more
+ standalone
+Date: Thu, 25 Jun 2020 20:30:07 -0700
+Message-ID: <20200626033007.Q-Ar67HGP%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48170 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728333AbgFZD3u (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Jun 2020 23:29:50 -0400
+        id S1728333AbgFZDaJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Jun 2020 23:30:09 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, guro@fb.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, longman@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, shakeelb@google.com, stable@vger.kernel.org, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+To: akpm@linux-foundation.org, arnd@arndb.de, borntraeger@de.ibm.com, gor@linux.ibm.com, hch@lst.de, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au, torvalds@linux-foundation.org
 
-From: Waiman Long <longman@redhat.com>
-Subject: mm, slab: fix sign conversion problem in memcg_uncharge_slab()
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: make asm-generic/cacheflush.h more standalone
 
-It was found that running the LTP test on a PowerPC system could produce
-erroneous values in /proc/meminfo, like:
+Some s390 builds get these warnings:
 
-  MemTotal:       531915072 kB
-  MemFree:        507962176 kB
-  MemAvailable:   1100020596352 kB
+include/asm-generic/cacheflush.h:16:42: warning: 'struct mm_struct' declared inside parameter list will not be visible outside of this definition or declaration
+include/asm-generic/cacheflush.h:22:46: warning: 'struct mm_struct' declared inside parameter list will not be visible outside of this definition or declaration
+include/asm-generic/cacheflush.h:28:45: warning: 'struct vm_area_struct' declared inside parameter list will not be visible outside of this definition or declaration
+include/asm-generic/cacheflush.h:36:44: warning: 'struct vm_area_struct' declared inside parameter list will not be visible outside of this definition or declaration
+include/asm-generic/cacheflush.h:44:45: warning: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration
+include/asm-generic/cacheflush.h:52:50: warning: 'struct address_space' declared inside parameter list will not be visible outside of this definition or declaration
+include/asm-generic/cacheflush.h:58:52: warning: 'struct address_space' declared inside parameter list will not be visible outside of this definition or declaration
+include/asm-generic/cacheflush.h:75:17: warning: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration
+include/asm-generic/cacheflush.h:74:45: warning: 'struct vm_area_struct' declared inside parameter list will not be visible outside of this definition or declaration
+include/asm-generic/cacheflush.h:82:16: warning: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration
+include/asm-generic/cacheflush.h:81:50: warning: 'struct vm_area_struct' declared inside parameter list will not be visible outside of this definition or declaration
 
-Using bisection, the problem is tracked down to commit 9c315e4d7d8c ("mm:
-memcg/slab: cache page number in memcg_(un)charge_slab()").
+Forward declare the named structs to get rid of these.
 
-In memcg_uncharge_slab() with a "int order" argument:
-
-  unsigned int nr_pages = 1 << order;
-    :
-  mod_lruvec_state(lruvec, cache_vmstat_idx(s), -nr_pages);
-
-The mod_lruvec_state() function will eventually call the
-__mod_zone_page_state() which accepts a long argument.  Depending on the
-compiler and how inlining is done, "-nr_pages" may be treated as a
-negative number or a very large positive number.  Apparently, it was
-treated as a large positive number in that PowerPC system leading to
-incorrect stat counts.  This problem hasn't been seen in x86-64 yet,
-perhaps the gcc compiler there has some slight difference in behavior.
-
-It is fixed by making nr_pages a signed value.  For consistency, a similar
-change is applied to memcg_charge_slab() as well.
-
-Link: http://lkml.kernel.org/r/20200620184719.10994-1-longman@redhat.com
-Fixes: 9c315e4d7d8c ("mm: memcg/slab: cache page number in memcg_(un)charge_slab()").
-Signed-off-by: Waiman Long <longman@redhat.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200623135714.4dae4b8a@canb.auug.org.au
+Fixes: e0cf615d725c ("asm-generic: don't include <linux/mm.h> in cacheflush.h")
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-generic/cacheflush.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/slab.h~mm-slab-fix-sign-conversion-problem-in-memcg_uncharge_slab
-+++ a/mm/slab.h
-@@ -348,7 +348,7 @@ static __always_inline int memcg_charge_
- 					     gfp_t gfp, int order,
- 					     struct kmem_cache *s)
- {
--	unsigned int nr_pages = 1 << order;
-+	int nr_pages = 1 << order;
- 	struct mem_cgroup *memcg;
- 	struct lruvec *lruvec;
- 	int ret;
-@@ -388,7 +388,7 @@ out:
- static __always_inline void memcg_uncharge_slab(struct page *page, int order,
- 						struct kmem_cache *s)
- {
--	unsigned int nr_pages = 1 << order;
-+	int nr_pages = 1 << order;
- 	struct mem_cgroup *memcg;
- 	struct lruvec *lruvec;
+--- a/include/asm-generic/cacheflush.h~make-asm-generic-cacheflushh-more-standalone
++++ a/include/asm-generic/cacheflush.h
+@@ -2,6 +2,11 @@
+ #ifndef _ASM_GENERIC_CACHEFLUSH_H
+ #define _ASM_GENERIC_CACHEFLUSH_H
  
++struct mm_struct;
++struct vm_area_struct;
++struct page;
++struct address_space;
++
+ /*
+  * The cache doesn't need to be flushed when TLB entries change when
+  * the cache is mapped to physical memory, not virtual memory
 _
