@@ -1,107 +1,52 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 04/32] kexec: do not verify the signature without
- the lockdown or mandatory signature
-Date: Thu, 25 Jun 2020 20:29:27 -0700
-Message-ID: <20200626032927.UX5X6kN2J%akpm@linux-foundation.org>
+Subject: [patch 06/32] ocfs2: load global_inode_alloc
+Date: Thu, 25 Jun 2020 20:29:33 -0700
+Message-ID: <20200626032933.GT-b1mIKo%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47884 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:47976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728259AbgFZD33 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Jun 2020 23:29:29 -0400
+        id S1728333AbgFZD3e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Jun 2020 23:29:34 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, jbohac@suse.cz, jmorris@namei.org, lijiang@redhat.com, mjg59@google.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Lianbo Jiang <lijiang@redhat.com>
-Subject: kexec: do not verify the signature without the lockdown or mandatory signature
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: load global_inode_alloc
 
-Signature verification is an important security feature, to protect system
-from being attacked with a kernel of unknown origin.  Kexec rebooting is a
-way to replace the running kernel, hence need be secured carefully.
+Set global_inode_alloc as OCFS2_FIRST_ONLINE_SYSTEM_INODE, that will make
+it load during mount.  It can be used to test whether some global/system
+inodes are valid.  One use case is that nfsd will test whether root inode
+is valid.
 
-In the current code of handling signature verification of kexec kernel,
-the logic is very twisted.  It mixes signature verification, IMA signature
-appraising and kexec lockdown.
-
-If there is no KEXEC_SIG_FORCE, kexec kernel image doesn't have one of
-signature, the supported crypto, and key, we don't think this is wrong,
-Unless kexec lockdown is executed.  IMA is considered as another kind of
-signature appraising method.
-
-If kexec kernel image has signature/crypto/key, it has to go through the
-signature verification and pass.  Otherwise it's seen as verification
-failure, and won't be loaded.
-
-Seems kexec kernel image with an unqualified signature is even worse than
-those w/o signature at all, this sounds very unreasonable.  E.g.  If
-people get a unsigned kernel to load, or a kernel signed with expired key,
-which one is more dangerous?
-
-So, here, let's simplify the logic to improve code readability.  If the
-KEXEC_SIG_FORCE enabled or kexec lockdown enabled, signature verification
-is mandated.  Otherwise, we lift the bar for any kernel image.
-
-Link: http://lkml.kernel.org/r/20200602045952.27487-1-lijiang@redhat.com
-Signed-off-by: Lianbo Jiang <lijiang@redhat.com>
-Reviewed-by: Jiri Bohac <jbohac@suse.cz>
-Acked-by: Dave Young <dyoung@redhat.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Matthew Garrett <mjg59@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Link: http://lkml.kernel.org/r/20200616183829.87211-3-junxiao.bi@oracle.com
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |   36 +++++++-----------------------------
- 1 file changed, 7 insertions(+), 29 deletions(-)
+ fs/ocfs2/ocfs2_fs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/kexec_file.c~kexec-do-not-verify-the-signature-without-the-lockdown-or-mandatory-signature
-+++ a/kernel/kexec_file.c
-@@ -181,34 +181,19 @@ void kimage_file_post_load_cleanup(struc
- static int
- kimage_validate_signature(struct kimage *image)
- {
--	const char *reason;
- 	int ret;
- 
- 	ret = arch_kexec_kernel_verify_sig(image, image->kernel_buf,
- 					   image->kernel_buf_len);
--	switch (ret) {
--	case 0:
--		break;
--
--		/* Certain verification errors are non-fatal if we're not
--		 * checking errors, provided we aren't mandating that there
--		 * must be a valid signature.
--		 */
--	case -ENODATA:
--		reason = "kexec of unsigned image";
--		goto decide;
--	case -ENOPKG:
--		reason = "kexec of image with unsupported crypto";
--		goto decide;
--	case -ENOKEY:
--		reason = "kexec of image with unavailable key";
--	decide:
-+	if (ret) {
-+
- 		if (IS_ENABLED(CONFIG_KEXEC_SIG_FORCE)) {
--			pr_notice("%s rejected\n", reason);
-+			pr_notice("Enforced kernel signature verification failed (%d).\n", ret);
- 			return ret;
- 		}
- 
--		/* If IMA is guaranteed to appraise a signature on the kexec
-+		/*
-+		 * If IMA is guaranteed to appraise a signature on the kexec
- 		 * image, permit it even if the kernel is otherwise locked
- 		 * down.
- 		 */
-@@ -216,17 +201,10 @@ kimage_validate_signature(struct kimage
- 		    security_locked_down(LOCKDOWN_KEXEC))
- 			return -EPERM;
- 
--		return 0;
+--- a/fs/ocfs2/ocfs2_fs.h~ocfs2-load-global_inode_alloc
++++ a/fs/ocfs2/ocfs2_fs.h
+@@ -326,8 +326,8 @@ struct ocfs2_system_inode_info {
+ enum {
+ 	BAD_BLOCK_SYSTEM_INODE = 0,
+ 	GLOBAL_INODE_ALLOC_SYSTEM_INODE,
++#define OCFS2_FIRST_ONLINE_SYSTEM_INODE GLOBAL_INODE_ALLOC_SYSTEM_INODE
+ 	SLOT_MAP_SYSTEM_INODE,
+-#define OCFS2_FIRST_ONLINE_SYSTEM_INODE SLOT_MAP_SYSTEM_INODE
+ 	HEARTBEAT_SYSTEM_INODE,
+ 	GLOBAL_BITMAP_SYSTEM_INODE,
+ 	USER_QUOTA_SYSTEM_INODE,
+_
