@@ -1,51 +1,56 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 21/32] mm/memcontrol.c: add missed css_put()
-Date: Thu, 25 Jun 2020 20:30:19 -0700
-Message-ID: <20200626033019.-e_OxsAHA%akpm@linux-foundation.org>
+Subject: [patch 22/32] mm/memcontrol.c: prevent missed memory.low
+ load tears
+Date: Thu, 25 Jun 2020 20:30:22 -0700
+Message-ID: <20200626033022.ssWqQb5Ut%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48582 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48622 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728333AbgFZDaU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 25 Jun 2020 23:30:20 -0400
+        id S1728333AbgFZDaX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 25 Jun 2020 23:30:23 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cai@lca.pw, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org, songmuchun@bytedance.com, stable@vger.kernel.org, torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+To: akpm@linux-foundation.org, chris@chrisdown.name, mhocko@suse.com, mkoutny@suse.com, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/memcontrol.c: add missed css_put()
+From: Chris Down <chris@chrisdown.name>
+Subject: mm/memcontrol.c: prevent missed memory.low load tears
 
-We should put the css reference when memory allocation failed.
+Looks like one of these got missed when massaging in f86b810c2610 ("mm,
+memcg: prevent memory.low load/store tearing") with other linux-mm
+changes.
 
-Link: http://lkml.kernel.org/r/20200614122653.98829-1-songmuchun@bytedance.com
-Fixes: f0a3a24b532d ("mm: memcg/slab: rework non-root kmem_cache lifecycle management")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Roman Gushchin <guro@fb.com>
+Link: http://lkml.kernel.org/r/20200612174437.GA391453@chrisdown.name
+Signed-off-by: Chris Down <chris@chrisdown.name>
+Reported-by: Michal Koutny <mkoutny@suse.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-do-not-put-the-css-reference
+--- a/mm/memcontrol.c~mm-memcg-prevent-missed-memorylow-load-tears
 +++ a/mm/memcontrol.c
-@@ -2772,8 +2772,10 @@ static void memcg_schedule_kmem_cache_cr
- 		return;
+@@ -6423,7 +6423,7 @@ enum mem_cgroup_protection mem_cgroup_pr
  
- 	cw = kmalloc(sizeof(*cw), GFP_NOWAIT | __GFP_NOWARN);
--	if (!cw)
-+	if (!cw) {
-+		css_put(&memcg->css);
- 		return;
-+	}
+ 	if (parent == root) {
+ 		memcg->memory.emin = READ_ONCE(memcg->memory.min);
+-		memcg->memory.elow = memcg->memory.low;
++		memcg->memory.elow = READ_ONCE(memcg->memory.low);
+ 		goto out;
+ 	}
  
- 	cw->memcg = memcg;
- 	cw->cachep = cachep;
+@@ -6435,7 +6435,8 @@ enum mem_cgroup_protection mem_cgroup_pr
+ 			atomic_long_read(&parent->memory.children_min_usage)));
+ 
+ 	WRITE_ONCE(memcg->memory.elow, effective_protection(usage, parent_usage,
+-			memcg->memory.low, READ_ONCE(parent->memory.elow),
++			READ_ONCE(memcg->memory.low),
++			READ_ONCE(parent->memory.elow),
+ 			atomic_long_read(&parent->memory.children_low_usage)));
+ 
+ out:
 _
