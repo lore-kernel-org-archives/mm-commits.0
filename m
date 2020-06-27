@@ -1,74 +1,76 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] ocfs2-fix-value-of-ocfs2_invalid_slot.patch
+Subject: [merged] mm-slab-use-memzero_explicit-in-kzfree.patch
  removed from -mm tree
-Date: Fri, 26 Jun 2020 20:33:17 -0700
-Message-ID: <20200627033317.NK4cU788Y%akpm@linux-foundation.org>
+Date: Fri, 26 Jun 2020 20:33:25 -0700
+Message-ID: <20200627033325.LQpE9C2F1%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44970 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45094 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725913AbgF0DdS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Jun 2020 23:33:18 -0400
+        id S1725913AbgF0Dd0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Jun 2020 23:33:26 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org
+To: dan.carpenter@oracle.com, dhowells@redhat.com, hannes@cmpxchg.org, jarkko.sakkinen@linux.intel.com, Jason@zx2c4.com, jmorris@namei.org, joe@perches.com, longman@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, serge@hallyn.com, stable@vger.kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: ocfs2: fix value of OCFS2_INVALID_SLOT
+     Subject: mm/slab: use memzero_explicit() in kzfree()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-value-of-ocfs2_invalid_slot.patch
+     mm-slab-use-memzero_explicit-in-kzfree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: fix value of OCFS2_INVALID_SLOT
+From: Waiman Long <longman@redhat.com>
+Subject: mm/slab: use memzero_explicit() in kzfree()
 
-In the ocfs2 disk layout, slot number is 16 bits, but in ocfs2
-implementation, slot number is 32 bits.  Usually this will not cause any
-issue, because slot number is converted from u16 to u32, but
-OCFS2_INVALID_SLOT was defined as -1, when an invalid slot number from
-disk was obtained, its value was (u16)-1, and it was converted to u32. 
-Then the following checking in get_local_system_inode will be always
-skipped:
+The kzfree() function is normally used to clear some sensitive
+information, like encryption keys, in the buffer before freeing it back to
+the pool.  Memset() is currently used for buffer clearing.  However
+unlikely, there is still a non-zero probability that the compiler may
+choose to optimize away the memory clearing especially if LTO is being
+used in the future.  To make sure that this optimization will never
+happen, memzero_explicit(), which is introduced in v3.18, is now used in
+kzfree() to future-proof it.
 
- static struct inode **get_local_system_inode(struct ocfs2_super *osb,
-                                               int type,
-                                               u32 slot)
- {
- 	BUG_ON(slot == OCFS2_INVALID_SLOT);
-	...
- }
-
-Link: http://lkml.kernel.org/r/20200616183829.87211-5-junxiao.bi@oracle.com
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: http://lkml.kernel.org/r/20200616154311.12314-2-longman@redhat.com
+Fixes: 3ef0e5ba4673 ("slab: introduce kzfree()")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: "Jason A . Donenfeld" <Jason@zx2c4.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2_fs.h |    2 +-
+ mm/slab_common.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/ocfs2_fs.h~ocfs2-fix-value-of-ocfs2_invalid_slot
-+++ a/fs/ocfs2/ocfs2_fs.h
-@@ -290,7 +290,7 @@
- #define OCFS2_MAX_SLOTS			255
- 
- /* Slot map indicator for an empty slot */
--#define OCFS2_INVALID_SLOT		-1
-+#define OCFS2_INVALID_SLOT		((u16)-1)
- 
- #define OCFS2_VOL_UUID_LEN		16
- #define OCFS2_MAX_VOL_LABEL_LEN		64
+--- a/mm/slab_common.c~mm-slab-use-memzero_explicit-in-kzfree
++++ a/mm/slab_common.c
+@@ -1726,7 +1726,7 @@ void kzfree(const void *p)
+ 	if (unlikely(ZERO_OR_NULL_PTR(mem)))
+ 		return;
+ 	ks = ksize(mem);
+-	memset(mem, 0, ks);
++	memzero_explicit(mem, ks);
+ 	kfree(mem);
+ }
+ EXPORT_SYMBOL(kzfree);
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from longman@redhat.com are
+
+mm-treewide-rename-kzfree-to-kfree_sensitive.patch
+sched-mm-optimize-current_gfp_context.patch
