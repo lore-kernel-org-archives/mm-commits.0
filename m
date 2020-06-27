@@ -1,68 +1,102 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] lib-fix-test_hmmc-reference-after-free.patch
- removed from -mm tree
-Date: Fri, 26 Jun 2020 20:33:20 -0700
-Message-ID: <20200627033320.4pTifGPM2%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-slab-fix-sign-conversion-problem-in-memcg_uncharge_slab.patch removed
+ from -mm tree
+Date: Fri, 26 Jun 2020 20:33:22 -0700
+Message-ID: <20200627033322.fMNqLPJU8%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45014 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45038 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725913AbgF0DdV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Jun 2020 23:33:21 -0400
+        id S1725913AbgF0DdX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Jun 2020 23:33:23 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jglisse@redhat.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, rdunlap@infradead.org
+To: cl@linux.com, guro@fb.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, longman@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, shakeelb@google.com, stable@vger.kernel.org, vdavydov.dev@gmail.com
 
 
 The patch titled
-     Subject: lib: fix test_hmm.c reference after free
+     Subject: mm, slab: fix sign conversion problem in memcg_uncharge_slab()
 has been removed from the -mm tree.  Its filename was
-     lib-fix-test_hmmc-reference-after-free.patch
+     mm-slab-fix-sign-conversion-problem-in-memcg_uncharge_slab.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib: fix test_hmm.c reference after free
+From: Waiman Long <longman@redhat.com>
+Subject: mm, slab: fix sign conversion problem in memcg_uncharge_slab()
 
-Coccinelle scripts report the following errors:
+It was found that running the LTP test on a PowerPC system could produce
+erroneous values in /proc/meminfo, like:
 
-lib/test_hmm.c:523:20-26: ERROR: reference preceded by free on line 521
-lib/test_hmm.c:524:21-27: ERROR: reference preceded by free on line 521
-lib/test_hmm.c:523:28-35: ERROR: devmem is NULL but dereferenced.
-lib/test_hmm.c:524:29-36: ERROR: devmem is NULL but dereferenced.
+  MemTotal:       531915072 kB
+  MemFree:        507962176 kB
+  MemAvailable:   1100020596352 kB
 
-Fix these by using the local variable 'res' instead of devmem.
+Using bisection, the problem is tracked down to commit 9c315e4d7d8c ("mm:
+memcg/slab: cache page number in memcg_(un)charge_slab()").
 
-Link: http://lkml.kernel.org/r/c845c158-9c65-9665-0d0b-00342846dd07@infrade=
-ad.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+In memcg_uncharge_slab() with a "int order" argument:
+
+  unsigned int nr_pages = 1 << order;
+    :
+  mod_lruvec_state(lruvec, cache_vmstat_idx(s), -nr_pages);
+
+The mod_lruvec_state() function will eventually call the
+__mod_zone_page_state() which accepts a long argument.  Depending on the
+compiler and how inlining is done, "-nr_pages" may be treated as a
+negative number or a very large positive number.  Apparently, it was
+treated as a large positive number in that PowerPC system leading to
+incorrect stat counts.  This problem hasn't been seen in x86-64 yet,
+perhaps the gcc compiler there has some slight difference in behavior.
+
+It is fixed by making nr_pages a signed value.  For consistency, a similar
+change is applied to memcg_charge_slab() as well.
+
+Link: http://lkml.kernel.org/r/20200620184719.10994-1-longman@redhat.com
+Fixes: 9c315e4d7d8c ("mm: memcg/slab: cache page number in memcg_(un)charge_slab()").
+Signed-off-by: Waiman Long <longman@redhat.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/slab.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/test_hmm.c~lib-fix-test_hmmc-reference-after-free
-+++ a/lib/test_hmm.c
-@@ -520,8 +520,7 @@ static bool dmirror_allocate_chunk(struc
- err_free:
- 	kfree(devmem);
- err_release:
--	release_mem_region(devmem->pagemap.res.start,
--			   resource_size(&devmem->pagemap.res));
-+	release_mem_region(res->start, resource_size(res));
- err:
- 	mutex_unlock(&mdevice->devmem_lock);
- 	return false;
+--- a/mm/slab.h~mm-slab-fix-sign-conversion-problem-in-memcg_uncharge_slab
++++ a/mm/slab.h
+@@ -348,7 +348,7 @@ static __always_inline int memcg_charge_
+ 					     gfp_t gfp, int order,
+ 					     struct kmem_cache *s)
+ {
+-	unsigned int nr_pages = 1 << order;
++	int nr_pages = 1 << order;
+ 	struct mem_cgroup *memcg;
+ 	struct lruvec *lruvec;
+ 	int ret;
+@@ -388,7 +388,7 @@ out:
+ static __always_inline void memcg_uncharge_slab(struct page *page, int order,
+ 						struct kmem_cache *s)
+ {
+-	unsigned int nr_pages = 1 << order;
++	int nr_pages = 1 << order;
+ 	struct mem_cgroup *memcg;
+ 	struct lruvec *lruvec;
+ 
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from longman@redhat.com are
+
+mm-treewide-rename-kzfree-to-kfree_sensitive.patch
+sched-mm-optimize-current_gfp_context.patch
