@@ -1,64 +1,68 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] ocfs2-load-global_inode_alloc.patch removed from
- -mm tree
-Date: Fri, 26 Jun 2020 20:33:11 -0700
-Message-ID: <20200627033311.UF57j4kmi%akpm@linux-foundation.org>
+Subject: [merged] lib-fix-test_hmmc-reference-after-free.patch
+ removed from -mm tree
+Date: Fri, 26 Jun 2020 20:33:20 -0700
+Message-ID: <20200627033320.4pTifGPM2%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44874 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725913AbgF0DdM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Jun 2020 23:33:12 -0400
+        id S1725913AbgF0DdV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Jun 2020 23:33:21 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org
+To: jglisse@redhat.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, rdunlap@infradead.org
 
 
 The patch titled
-     Subject: ocfs2: load global_inode_alloc
+     Subject: lib: fix test_hmm.c reference after free
 has been removed from the -mm tree.  Its filename was
-     ocfs2-load-global_inode_alloc.patch
+     lib-fix-test_hmmc-reference-after-free.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: load global_inode_alloc
+=46rom: Randy Dunlap <rdunlap@infradead.org>
+Subject: lib: fix test_hmm.c reference after free
 
-Set global_inode_alloc as OCFS2_FIRST_ONLINE_SYSTEM_INODE, that will make
-it load during mount.  It can be used to test whether some global/system
-inodes are valid.  One use case is that nfsd will test whether root inode
-is valid.
+Coccinelle scripts report the following errors:
 
-Link: http://lkml.kernel.org/r/20200616183829.87211-3-junxiao.bi@oracle.com
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: <stable@vger.kernel.org>
+lib/test_hmm.c:523:20-26: ERROR: reference preceded by free on line 521
+lib/test_hmm.c:524:21-27: ERROR: reference preceded by free on line 521
+lib/test_hmm.c:523:28-35: ERROR: devmem is NULL but dereferenced.
+lib/test_hmm.c:524:29-36: ERROR: devmem is NULL but dereferenced.
+
+Fix these by using the local variable 'res' instead of devmem.
+
+Link: http://lkml.kernel.org/r/c845c158-9c65-9665-0d0b-00342846dd07@infrade=
+ad.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2_fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_hmm.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/fs/ocfs2/ocfs2_fs.h~ocfs2-load-global_inode_alloc
-+++ a/fs/ocfs2/ocfs2_fs.h
-@@ -326,8 +326,8 @@ struct ocfs2_system_inode_info {
- enum {
- 	BAD_BLOCK_SYSTEM_INODE = 0,
- 	GLOBAL_INODE_ALLOC_SYSTEM_INODE,
-+#define OCFS2_FIRST_ONLINE_SYSTEM_INODE GLOBAL_INODE_ALLOC_SYSTEM_INODE
- 	SLOT_MAP_SYSTEM_INODE,
--#define OCFS2_FIRST_ONLINE_SYSTEM_INODE SLOT_MAP_SYSTEM_INODE
- 	HEARTBEAT_SYSTEM_INODE,
- 	GLOBAL_BITMAP_SYSTEM_INODE,
- 	USER_QUOTA_SYSTEM_INODE,
+--- a/lib/test_hmm.c~lib-fix-test_hmmc-reference-after-free
++++ a/lib/test_hmm.c
+@@ -520,8 +520,7 @@ static bool dmirror_allocate_chunk(struc
+ err_free:
+ 	kfree(devmem);
+ err_release:
+-	release_mem_region(devmem->pagemap.res.start,
+-			   resource_size(&devmem->pagemap.res));
++	release_mem_region(res->start, resource_size(res));
+ err:
+ 	mutex_unlock(&mdevice->devmem_lock);
+ 	return false;
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
