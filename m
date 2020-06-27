@@ -1,97 +1,106 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-fix-swap-cache-node-allocation-mask.patch
- removed from -mm tree
-Date: Fri, 26 Jun 2020 20:33:31 -0700
-Message-ID: <20200627033331.tzz9HkVuF%akpm@linux-foundation.org>
+Subject: [merged]
+ slub-cure-list_slab_objects-from-double-fix.patch removed from -mm tree
+Date: Fri, 26 Jun 2020 20:33:28 -0700
+Message-ID: <20200627033328.k46ecuo6f%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45172 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45142 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725913AbgF0Ddc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Jun 2020 23:33:32 -0400
+        id S1725913AbgF0Dd3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Jun 2020 23:33:29 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, lists@colorremedies.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz, willy@infradead.org
+To: bigeasy@linutronix.de, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, tglx@linutronix.de, yuzhao@google.com
 
 
 The patch titled
-     Subject: mm: fix swap cache node allocation mask
+     Subject: slub: cure list_slab_objects() from double fix
 has been removed from the -mm tree.  Its filename was
-     mm-fix-swap-cache-node-allocation-mask.patch
+     slub-cure-list_slab_objects-from-double-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix swap cache node allocation mask
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: slub: cure list_slab_objects() from double fix
 
-https://bugzilla.kernel.org/show_bug.cgi?id=208085 reports that a slightly
-overcommitted load, testing swap and zram along with i915, splats and
-keeps on splatting, when it had better fail less noisily:
+According to Christopher Lameter two fixes have been merged for the same
+problem.  As far as I can tell, the code does not acquire the list_lock
+and invoke kmalloc().  list_slab_objects() misses an unlock (the
+counterpart to get_map()) and the memory allocated in free_partial() isn't
+used.
 
-gnome-shell: page allocation failure: order:0,
-mode:0x400d0(__GFP_IO|__GFP_FS|__GFP_COMP|__GFP_RECLAIMABLE),
-nodemask=(null),cpuset=/,mems_allowed=0
-CPU: 2 PID: 1155 Comm: gnome-shell Not tainted 5.7.0-1.fc33.x86_64 #1
-Call Trace:
-dump_stack+0x64/0x88
-warn_alloc.cold+0x75/0xd9
-__alloc_pages_slowpath.constprop.0+0xcfa/0xd30
-__alloc_pages_nodemask+0x2df/0x320
-alloc_slab_page+0x195/0x310
-allocate_slab+0x3c5/0x440
-___slab_alloc+0x40c/0x5f0
-__slab_alloc+0x1c/0x30
-kmem_cache_alloc+0x20e/0x220
-xas_nomem+0x28/0x70
-add_to_swap_cache+0x321/0x400
-__read_swap_cache_async+0x105/0x240
-swap_cluster_readahead+0x22c/0x2e0
-shmem_swapin+0x8e/0xc0
-shmem_swapin_page+0x196/0x740
-shmem_getpage_gfp+0x3a2/0xa60
-shmem_read_mapping_page_gfp+0x32/0x60
-shmem_get_pages+0x155/0x5e0 [i915]
-__i915_gem_object_get_pages+0x68/0xa0 [i915]
-i915_vma_pin+0x3fe/0x6c0 [i915]
-eb_add_vma+0x10b/0x2c0 [i915]
-i915_gem_do_execbuffer+0x704/0x3430 [i915]
-i915_gem_execbuffer2_ioctl+0x1ea/0x3e0 [i915]
-drm_ioctl_kernel+0x86/0xd0 [drm]
-drm_ioctl+0x206/0x390 [drm]
-ksys_ioctl+0x82/0xc0
-__x64_sys_ioctl+0x16/0x20
-do_syscall_64+0x5b/0xf0
-entry_SYSCALL_64_after_hwframe+0x44/0xa9
+Revert the mentioned commit.
 
-Reported on 5.7, but it goes back really to 3.1: when
-shmem_read_mapping_page_gfp() was implemented for use by i915, and
-allowed for __GFP_NORETRY and __GFP_NOWARN flags in most places, but
-missed swapin's "& GFP_KERNEL" mask for page tree node allocation in
-__read_swap_cache_async() - that was to mask off HIGHUSER_MOVABLE bits
-from what page cache uses, but GFP_RECLAIM_MASK is now what's needed.
-
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2006151330070.11064@eggly.anvils
-Fixes: 68da9f055755 ("tmpfs: pass gfp to shmem_getpage_gfp")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Chris Murphy <lists@colorremedies.com>
-Analyzed-by: Vlastimil Babka <vbabka@suse.cz>
-Analyzed-by: Matthew Wilcox <willy@infradead.org>
-Tested-by: Chris Murphy <lists@colorremedies.com>
-Cc: <stable@vger.kernel.org>	[3.1+]
+Link: http://lkml.kernel.org/r/20200618201234.795692-1-bigeasy@linutronix.de
+Fixes: aa456c7aebb14 ("slub: remove kmalloc under list_lock from list_slab_objects() V2")
+Link: https://lkml.kernel.org/r/alpine.DEB.2.22.394.2006181501480.12014@www.lameter.com
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slub.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
---- a/mm/swap_state.c~mm-fix-swap-cache-node-allocation-mask
-+++ a/mm/swap_state.c
-@@ -21,7 +21,7 @@
- #include <linux/vmalloc.h>
- #include <linux/swap_slots.h>
- #include <linux/huge_mm.h>
+--- a/mm/slub.c~slub-cure-list_slab_objects-from-double-fix
++++ a/mm/slub.c
+@@ -3766,15 +3766,13 @@ error:
+ }
+ 
+ static void list_slab_objects(struct kmem_cache *s, struct page *page,
+-			      const char *text, unsigned long *map)
++			      const char *text)
+ {
+ #ifdef CONFIG_SLUB_DEBUG
+ 	void *addr = page_address(page);
++	unsigned long *map;
+ 	void *p;
+ 
+-	if (!map)
+-		return;
+-
+ 	slab_err(s, page, text, s->name);
+ 	slab_lock(page);
+ 
+@@ -3786,6 +3784,7 @@ static void list_slab_objects(struct kme
+ 			print_tracking(s, p);
+ 		}
+ 	}
++	put_map(map);
+ 	slab_unlock(page);
+ #endif
+ }
+@@ -3799,11 +3798,6 @@ static void free_partial(struct kmem_cac
+ {
+ 	LIST_HEAD(discard);
+ 	struct page *page, *h;
+-	unsigned long *map = NULL;
+-
+-#ifdef CONFIG_SLUB_DEBUG
+-	map = bitmap_alloc(oo_objects(s->max), GFP_KERNEL);
+-#endif
+ 
+ 	BUG_ON(irqs_disabled());
+ 	spin_lock_irq(&n->list_lock);
+@@ -3813,16 +3807,11 @@ static void free_partial(struct kmem_cac
+ 			list_add(&page->slab_list, &discard);
+ 		} else {
+ 			list_slab_objects(s, page,
+-			  "Objects remaining in %s on __kmem_cache_shutdown()",
+-			  map);
++			  "Objects remaining in %s on __kmem_cache_shutdown()");
+ 		}
+ 	}
+ 	spin_unlock_irq(&n->list_lock);
+ 
+-#ifdef CONFIG_SLUB_DEBUG
+-	bitmap_free(map);
+-#endif
