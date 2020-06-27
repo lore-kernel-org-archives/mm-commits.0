@@ -1,81 +1,233 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] doc-thp-cow-fault-no-longer-allocate-thp.patch
+Subject: [merged]
+ mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
  removed from -mm tree
-Date: Fri, 26 Jun 2020 20:33:55 -0700
-Message-ID: <20200627033355.d2pCTkEGB%akpm@linux-foundation.org>
+Date: Fri, 26 Jun 2020 20:33:57 -0700
+Message-ID: <20200627033357.llHI8OQx2%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45492 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45518 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725913AbgF0Dd4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Jun 2020 23:33:56 -0400
+        id S1725828AbgF0Dd6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Jun 2020 23:33:58 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com, ziy@nvidia.com
+To: hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, js1304@gmail.com, mhocko@suse.com, minchan.kim@gmail.com, mm-commits@vger.kernel.org, riel@surriel.com
 
 
 The patch titled
-     Subject: doc: THP CoW fault no longer allocate THP
+     Subject: mm: workingset: age nonresident information alongside anonymous pages
 has been removed from the -mm tree.  Its filename was
-     doc-thp-cow-fault-no-longer-allocate-thp.patch
+     mm-workingset-age-nonresident-information-alongside-anonymous-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: doc: THP CoW fault no longer allocate THP
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: workingset: age nonresident information alongside anonymous pages
 
-Since commit 3917c80280c93a7123f ("thp: change CoW semantics for
-anon-THP"), THP CoW page fault is rewritten.  Now it just splits pmd then
-fallback to base page fault, it doesn't try to allocate THP anymore.  So
-it is no longer counted in THP_FAULT_ALLOC.
+Patch series "fix for "mm: balance LRU lists based on relative thrashing" patchset"
 
-Remove the obsolete statement in documentation about THP CoW allocation to
-avoid confusion.
+This patchset fixes some problems of the patchset, "mm: balance LRU lists
+based on relative thrashing", which is now merged on the mainline.
 
-Link: http://lkml.kernel.org/r/1592424895-5421-1-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Patch "mm: workingset: let cache workingset challenge anon fix" is the
+result of discussion with Johannes.  See following link.
+
+http://lkml.kernel.org/r/20200520232525.798933-6-hannes@cmpxchg.org
+
+And, the other two are minor things which are found when I try to rebase
+my patchset.
+
+
+This patch (of 3):
+After ("mm: workingset: let cache workingset challenge anon fix"), we
+compare refault distances to active_file + anon.  But age of the
+non-resident information is only driven by the file LRU.  As a result, we
+may overestimate the recency of any incoming refaults and activate them
+too eagerly, causing unnecessary LRU churn in certain situations.
+
+Make anon aging drive nonresident age as well to address that.
+
+Link: http://lkml.kernel.org/r/1592288204-27734-1-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1592288204-27734-2-git-send-email-iamjoonsoo.kim@lge.com
+Fixes: 34e58cac6d8f2a ("mm: workingset: let cache workingset challenge anon")
+Reported-by: Joonsoo Kim <js1304@gmail.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst    |    4 ++--
- Documentation/admin-guide/mm/transhuge.rst |    3 +--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ include/linux/mmzone.h |    4 +--
+ include/linux/swap.h   |    1 
+ mm/vmscan.c            |    3 ++
+ mm/workingset.c        |   46 ++++++++++++++++++++++-----------------
+ 4 files changed, 33 insertions(+), 21 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~doc-thp-cow-fault-no-longer-allocate-thp
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1356,8 +1356,8 @@ PAGE_SIZE multiple when read back.
+--- a/include/linux/mmzone.h~mm-workingset-age-nonresident-information-alongside-anonymous-pages
++++ a/include/linux/mmzone.h
+@@ -257,8 +257,8 @@ struct lruvec {
+ 	 */
+ 	unsigned long			anon_cost;
+ 	unsigned long			file_cost;
+-	/* Evictions & activations on the inactive file list */
+-	atomic_long_t			inactive_age;
++	/* Non-resident age, driven by LRU movement */
++	atomic_long_t			nonresident_age;
+ 	/* Refaults at the time of last reclaim cycle */
+ 	unsigned long			refaults;
+ 	/* Various lruvec state flags (enum lruvec_flags) */
+--- a/include/linux/swap.h~mm-workingset-age-nonresident-information-alongside-anonymous-pages
++++ a/include/linux/swap.h
+@@ -313,6 +313,7 @@ struct vma_swap_readahead {
+ };
  
- 	  thp_fault_alloc
- 		Number of transparent hugepages which were allocated to satisfy
--		a page fault, including COW faults. This counter is not present
--		when CONFIG_TRANSPARENT_HUGEPAGE is not set.
-+		a page fault. This counter is not present when CONFIG_TRANSPARENT_HUGEPAGE
-+                is not set.
+ /* linux/mm/workingset.c */
++void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages);
+ void *workingset_eviction(struct page *page, struct mem_cgroup *target_memcg);
+ void workingset_refault(struct page *page, void *shadow);
+ void workingset_activation(struct page *page);
+--- a/mm/vmscan.c~mm-workingset-age-nonresident-information-alongside-anonymous-pages
++++ a/mm/vmscan.c
+@@ -904,6 +904,7 @@ static int __remove_mapping(struct addre
+ 		__delete_from_swap_cache(page, swap);
+ 		xa_unlock_irqrestore(&mapping->i_pages, flags);
+ 		put_swap_page(page, swap);
++		workingset_eviction(page, target_memcg);
+ 	} else {
+ 		void (*freepage)(struct page *);
+ 		void *shadow = NULL;
+@@ -1884,6 +1885,8 @@ static unsigned noinline_for_stack move_
+ 				list_add(&page->lru, &pages_to_free);
+ 		} else {
+ 			nr_moved += nr_pages;
++			if (PageActive(page))
++				workingset_age_nonresident(lruvec, nr_pages);
+ 		}
+ 	}
  
- 	  thp_collapse_alloc
- 		Number of transparent hugepages which were allocated to allow
---- a/Documentation/admin-guide/mm/transhuge.rst~doc-thp-cow-fault-no-longer-allocate-thp
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -305,8 +305,7 @@ monitor how successfully the system is p
+--- a/mm/workingset.c~mm-workingset-age-nonresident-information-alongside-anonymous-pages
++++ a/mm/workingset.c
+@@ -156,8 +156,8 @@
+  *
+  *		Implementation
+  *
+- * For each node's file LRU lists, a counter for inactive evictions
+- * and activations is maintained (node->inactive_age).
++ * For each node's LRU lists, a counter for inactive evictions and
++ * activations is maintained (node->nonresident_age).
+  *
+  * On eviction, a snapshot of this counter (along with some bits to
+  * identify the node) is stored in the now empty page cache
+@@ -213,7 +213,17 @@ static void unpack_shadow(void *shadow,
+ 	*workingsetp = workingset;
+ }
  
- thp_fault_alloc
- 	is incremented every time a huge page is successfully
--	allocated to handle a page fault. This applies to both the
--	first time a page is faulted and for COW faults.
-+	allocated to handle a page fault.
+-static void advance_inactive_age(struct mem_cgroup *memcg, pg_data_t *pgdat)
++/**
++ * workingset_age_nonresident - age non-resident entries as LRU ages
++ * @memcg: the lruvec that was aged
++ * @nr_pages: the number of pages to count
++ *
++ * As in-memory pages are aged, non-resident pages need to be aged as
++ * well, in order for the refault distances later on to be comparable
++ * to the in-memory dimensions. This function allows reclaim and LRU
++ * operations to drive the non-resident aging along in parallel.
++ */
++void workingset_age_nonresident(struct lruvec *lruvec, unsigned long nr_pages)
+ {
+ 	/*
+ 	 * Reclaiming a cgroup means reclaiming all its children in a
+@@ -227,11 +237,8 @@ static void advance_inactive_age(struct
+ 	 * the root cgroup's, age as well.
+ 	 */
+ 	do {
+-		struct lruvec *lruvec;
+-
+-		lruvec = mem_cgroup_lruvec(memcg, pgdat);
+-		atomic_long_inc(&lruvec->inactive_age);
+-	} while (memcg && (memcg = parent_mem_cgroup(memcg)));
++		atomic_long_add(nr_pages, &lruvec->nonresident_age);
++	} while ((lruvec = parent_lruvec(lruvec)));
+ }
  
- thp_collapse_alloc
- 	is incremented by khugepaged when it has found
+ /**
+@@ -254,12 +261,11 @@ void *workingset_eviction(struct page *p
+ 	VM_BUG_ON_PAGE(page_count(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 
+-	advance_inactive_age(page_memcg(page), pgdat);
+-
+ 	lruvec = mem_cgroup_lruvec(target_memcg, pgdat);
++	workingset_age_nonresident(lruvec, hpage_nr_pages(page));
+ 	/* XXX: target_memcg can be NULL, go through lruvec */
+ 	memcgid = mem_cgroup_id(lruvec_memcg(lruvec));
+-	eviction = atomic_long_read(&lruvec->inactive_age);
++	eviction = atomic_long_read(&lruvec->nonresident_age);
+ 	return pack_shadow(memcgid, pgdat, eviction, PageWorkingset(page));
+ }
+ 
+@@ -309,20 +315,20 @@ void workingset_refault(struct page *pag
+ 	if (!mem_cgroup_disabled() && !eviction_memcg)
+ 		goto out;
+ 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
+-	refault = atomic_long_read(&eviction_lruvec->inactive_age);
++	refault = atomic_long_read(&eviction_lruvec->nonresident_age);
+ 
+ 	/*
+ 	 * Calculate the refault distance
+ 	 *
+ 	 * The unsigned subtraction here gives an accurate distance
+-	 * across inactive_age overflows in most cases. There is a
++	 * across nonresident_age overflows in most cases. There is a
+ 	 * special case: usually, shadow entries have a short lifetime
+ 	 * and are either refaulted or reclaimed along with the inode
+ 	 * before they get too old.  But it is not impossible for the
+-	 * inactive_age to lap a shadow entry in the field, which can
+-	 * then result in a false small refault distance, leading to a
+-	 * false activation should this old entry actually refault
+-	 * again.  However, earlier kernels used to deactivate
++	 * nonresident_age to lap a shadow entry in the field, which
++	 * can then result in a false small refault distance, leading
++	 * to a false activation should this old entry actually
++	 * refault again.  However, earlier kernels used to deactivate
+ 	 * unconditionally with *every* reclaim invocation for the
+ 	 * longest time, so the occasional inappropriate activation
+ 	 * leading to pressure on the active list is not a problem.
+@@ -359,7 +365,7 @@ void workingset_refault(struct page *pag
+ 		goto out;
+ 
+ 	SetPageActive(page);
+-	advance_inactive_age(memcg, pgdat);
++	workingset_age_nonresident(lruvec, hpage_nr_pages(page));
+ 	inc_lruvec_state(lruvec, WORKINGSET_ACTIVATE);
+ 
+ 	/* Page was active prior to eviction */
+@@ -382,6 +388,7 @@ out:
+ void workingset_activation(struct page *page)
+ {
+ 	struct mem_cgroup *memcg;
++	struct lruvec *lruvec;
+ 
+ 	rcu_read_lock();
+ 	/*
+@@ -394,7 +401,8 @@ void workingset_activation(struct page *
+ 	memcg = page_memcg_rcu(page);
+ 	if (!mem_cgroup_disabled() && !memcg)
+ 		goto out;
+-	advance_inactive_age(memcg, page_pgdat(page));
++	lruvec = mem_cgroup_page_lruvec(page, page_pgdat(page));
++	workingset_age_nonresident(lruvec, hpage_nr_pages(page));
+ out:
+ 	rcu_read_unlock();
+ }
 _
 
-Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-filemap-clear-idle-flag-for-writes.patch
-mm-filemap-add-missing-fgp_-flags-in-kerneldoc-comment-for-pagecache_get_page.patch
-mm-thp-remove-debug_cow-switch.patch
+mm-memcontrol-decouple-reference-counting-from-page-accounting.patch
