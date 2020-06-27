@@ -1,128 +1,119 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: [merged]
- mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch
- removed from -mm tree
-Date: Fri, 26 Jun 2020 20:33:04 -0700
-Message-ID: <20200627033304.xt5v7Ii4X%akpm@linux-foundation.org>
+ =?US-ASCII?Q?kexec-do-not-verify-the-signature-without-the-lockdown-or-m?=
+ =?US-ASCII?Q?andatory-signature.patch?= removed from -mm tree
+Date: Fri, 26 Jun 2020 20:33:07 -0700
+Message-ID: <20200627033307.PFVFpOAK-%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44726 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44784 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725828AbgF0DdF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Jun 2020 23:33:05 -0400
+        id S1725828AbgF0DdI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Jun 2020 23:33:08 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.shi@linux.alibaba.com, hughd@google.com, liwang@redhat.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz
+To: bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, jbohac@suse.cz, jmorris@namei.org, lijiang@redhat.com, mjg59@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: make capture control handling safe wrt interrupts
+     Subject: kexec: do not verify the signature without the lockdown or mandatory signature
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-make-capture-control-handling-safe-wrt-interrupts.patch
+     kexec-do-not-verify-the-signature-without-the-lockdown-or-mandatory-signature.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: make capture control handling safe wrt interrupts
+From: Lianbo Jiang <lijiang@redhat.com>
+Subject: kexec: do not verify the signature without the lockdown or mandatory signature
 
-Hugh reports:
+Signature verification is an important security feature, to protect system
+from being attacked with a kernel of unknown origin.  Kexec rebooting is a
+way to replace the running kernel, hence need be secured carefully.
 
-: While stressing compaction, one run oopsed on NULL capc->cc in
-: __free_one_page()'s task_capc(zone): compact_zone_order() had been
-: interrupted, and a page was being freed in the return from interrupt.
-: 
-: Though you would not expect it from the source, both gccs I was using (a
-: 4.8.1 and a 7.5.0) had chosen to compile compact_zone_order() with the
-: ".cc = &cc" implemented by mov %rbx,-0xb0(%rbp) immediately before callq
-: compact_zone - long after the "current->capture_control = &capc".  An
-: interrupt in between those finds capc->cc NULL (zeroed by an earlier rep
-: stos).
-: 
-: This could presumably be fixed by a barrier() before setting
-: current->capture_control in compact_zone_order(); but would also need more
-: care on return from compact_zone(), in order not to risk leaking a page
-: captured by interrupt just before capture_control is reset.
-: 
-: Maybe that is the preferable fix, but I felt safer for task_capc() to
-: exclude the rather surprising possibility of capture at interrupt time.
+In the current code of handling signature verification of kexec kernel,
+the logic is very twisted.  It mixes signature verification, IMA signature
+appraising and kexec lockdown.
 
-I have checked that gcc10 also behaves the same.
+If there is no KEXEC_SIG_FORCE, kexec kernel image doesn't have one of
+signature, the supported crypto, and key, we don't think this is wrong,
+Unless kexec lockdown is executed.  IMA is considered as another kind of
+signature appraising method.
 
-The advantage of fix in compact_zone_order() is that we don't add another
-test in the page freeing hot path, and that it might prevent future
-problems if we stop exposing pointers to uninitialized structures in
-current task.
+If kexec kernel image has signature/crypto/key, it has to go through the
+signature verification and pass.  Otherwise it's seen as verification
+failure, and won't be loaded.
 
-So this patch implements the suggestion for compact_zone_order() with
-barrier() (and WRITE_ONCE() to prevent store tearing) for setting
-current->capture_control, and prevents page leaking with
-WRITE_ONCE/READ_ONCE in the proper order.
+Seems kexec kernel image with an unqualified signature is even worse than
+those w/o signature at all, this sounds very unreasonable.  E.g.  If
+people get a unsigned kernel to load, or a kernel signed with expired key,
+which one is more dangerous?
 
-Link: http://lkml.kernel.org/r/20200616082649.27173-1-vbabka@suse.cz
-Fixes: 5e1f0f098b46 ("mm, compaction: capture a page under direct compaction")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Hugh Dickins <hughd@google.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Li Wang <liwang@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: <stable@vger.kernel.org>	[5.1+]
+So, here, let's simplify the logic to improve code readability.  If the
+KEXEC_SIG_FORCE enabled or kexec lockdown enabled, signature verification
+is mandated.  Otherwise, we lift the bar for any kernel image.
+
+Link: http://lkml.kernel.org/r/20200602045952.27487-1-lijiang@redhat.com
+Signed-off-by: Lianbo Jiang <lijiang@redhat.com>
+Reviewed-by: Jiri Bohac <jbohac@suse.cz>
+Acked-by: Dave Young <dyoung@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Matthew Garrett <mjg59@google.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ kernel/kexec_file.c |   36 +++++++-----------------------------
+ 1 file changed, 7 insertions(+), 29 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-make-capture-control-handling-safe-wrt-interrupts
-+++ a/mm/compaction.c
-@@ -2316,15 +2316,26 @@ static enum compact_result compact_zone_
- 		.page = NULL,
- 	};
+--- a/kernel/kexec_file.c~kexec-do-not-verify-the-signature-without-the-lockdown-or-mandatory-signature
++++ a/kernel/kexec_file.c
+@@ -181,34 +181,19 @@ void kimage_file_post_load_cleanup(struc
+ static int
+ kimage_validate_signature(struct kimage *image)
+ {
+-	const char *reason;
+ 	int ret;
  
--	current->capture_control = &capc;
-+	/*
-+	 * Make sure the structs are really initialized before we expose the
-+	 * capture control, in case we are interrupted and the interrupt handler
-+	 * frees a page.
-+	 */
-+	barrier();
-+	WRITE_ONCE(current->capture_control, &capc);
+ 	ret = arch_kexec_kernel_verify_sig(image, image->kernel_buf,
+ 					   image->kernel_buf_len);
+-	switch (ret) {
+-	case 0:
+-		break;
+-
+-		/* Certain verification errors are non-fatal if we're not
+-		 * checking errors, provided we aren't mandating that there
+-		 * must be a valid signature.
+-		 */
+-	case -ENODATA:
+-		reason = "kexec of unsigned image";
+-		goto decide;
+-	case -ENOPKG:
+-		reason = "kexec of image with unsupported crypto";
+-		goto decide;
+-	case -ENOKEY:
+-		reason = "kexec of image with unavailable key";
+-	decide:
++	if (ret) {
++
+ 		if (IS_ENABLED(CONFIG_KEXEC_SIG_FORCE)) {
+-			pr_notice("%s rejected\n", reason);
++			pr_notice("Enforced kernel signature verification failed (%d).\n", ret);
+ 			return ret;
+ 		}
  
- 	ret = compact_zone(&cc, &capc);
+-		/* If IMA is guaranteed to appraise a signature on the kexec
++		/*
++		 * If IMA is guaranteed to appraise a signature on the kexec
+ 		 * image, permit it even if the kernel is otherwise locked
+ 		 * down.
+ 		 */
+@@ -216,17 +201,10 @@ kimage_validate_signature(struct kimage
+ 		    security_locked_down(LOCKDOWN_KEXEC))
+ 			return -EPERM;
  
- 	VM_BUG_ON(!list_empty(&cc.freepages));
- 	VM_BUG_ON(!list_empty(&cc.migratepages));
- 
--	*capture = capc.page;
--	current->capture_control = NULL;
-+	/*
-+	 * Make sure we hide capture control first before we read the captured
-+	 * page pointer, otherwise an interrupt could free and capture a page
-+	 * and we would leak it.
-+	 */
-+	WRITE_ONCE(current->capture_control, NULL);
-+	*capture = READ_ONCE(capc.page);
- 
- 	return ret;
- }
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
-mm-slub-make-some-slub_debug-related-attributes-read-only.patch
-mm-slub-remove-runtime-allocation-order-changes.patch
-mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
-mm-slub-make-reclaim_account-attribute-read-only.patch
-mm-slub-introduce-static-key-for-slub_debug.patch
-mm-slub-introduce-kmem_cache_debug_flags.patch
-mm-slub-introduce-kmem_cache_debug_flags-fix.patch
-mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
-mm-slab-slub-move-and-improve-cache_from_obj.patch
-mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
-mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix.patch
-mm-page_alloc-use-unlikely-in-task_capc.patch
+-		return 0;
