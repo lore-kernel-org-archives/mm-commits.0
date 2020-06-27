@@ -1,76 +1,97 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-slab-use-memzero_explicit-in-kzfree.patch
+Subject: [merged] mm-fix-swap-cache-node-allocation-mask.patch
  removed from -mm tree
-Date: Fri, 26 Jun 2020 20:33:25 -0700
-Message-ID: <20200627033325.LQpE9C2F1%akpm@linux-foundation.org>
+Date: Fri, 26 Jun 2020 20:33:31 -0700
+Message-ID: <20200627033331.tzz9HkVuF%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45094 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45172 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725913AbgF0Dd0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Jun 2020 23:33:26 -0400
+        id S1725913AbgF0Ddc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Jun 2020 23:33:32 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, dhowells@redhat.com, hannes@cmpxchg.org, jarkko.sakkinen@linux.intel.com, Jason@zx2c4.com, jmorris@namei.org, joe@perches.com, longman@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org, rientjes@google.com, serge@hallyn.com, stable@vger.kernel.org, willy@infradead.org
+To: hughd@google.com, lists@colorremedies.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, vbabka@suse.cz, willy@infradead.org
 
 
 The patch titled
-     Subject: mm/slab: use memzero_explicit() in kzfree()
+     Subject: mm: fix swap cache node allocation mask
 has been removed from the -mm tree.  Its filename was
-     mm-slab-use-memzero_explicit-in-kzfree.patch
+     mm-fix-swap-cache-node-allocation-mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/slab: use memzero_explicit() in kzfree()
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix swap cache node allocation mask
 
-The kzfree() function is normally used to clear some sensitive
-information, like encryption keys, in the buffer before freeing it back to
-the pool.  Memset() is currently used for buffer clearing.  However
-unlikely, there is still a non-zero probability that the compiler may
-choose to optimize away the memory clearing especially if LTO is being
-used in the future.  To make sure that this optimization will never
-happen, memzero_explicit(), which is introduced in v3.18, is now used in
-kzfree() to future-proof it.
+https://bugzilla.kernel.org/show_bug.cgi?id=208085 reports that a slightly
+overcommitted load, testing swap and zram along with i915, splats and
+keeps on splatting, when it had better fail less noisily:
 
-Link: http://lkml.kernel.org/r/20200616154311.12314-2-longman@redhat.com
-Fixes: 3ef0e5ba4673 ("slab: introduce kzfree()")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "Jason A . Donenfeld" <Jason@zx2c4.com>
-Cc: <stable@vger.kernel.org>
+gnome-shell: page allocation failure: order:0,
+mode:0x400d0(__GFP_IO|__GFP_FS|__GFP_COMP|__GFP_RECLAIMABLE),
+nodemask=(null),cpuset=/,mems_allowed=0
+CPU: 2 PID: 1155 Comm: gnome-shell Not tainted 5.7.0-1.fc33.x86_64 #1
+Call Trace:
+dump_stack+0x64/0x88
+warn_alloc.cold+0x75/0xd9
+__alloc_pages_slowpath.constprop.0+0xcfa/0xd30
+__alloc_pages_nodemask+0x2df/0x320
+alloc_slab_page+0x195/0x310
+allocate_slab+0x3c5/0x440
+___slab_alloc+0x40c/0x5f0
+__slab_alloc+0x1c/0x30
+kmem_cache_alloc+0x20e/0x220
+xas_nomem+0x28/0x70
+add_to_swap_cache+0x321/0x400
+__read_swap_cache_async+0x105/0x240
+swap_cluster_readahead+0x22c/0x2e0
+shmem_swapin+0x8e/0xc0
+shmem_swapin_page+0x196/0x740
+shmem_getpage_gfp+0x3a2/0xa60
+shmem_read_mapping_page_gfp+0x32/0x60
+shmem_get_pages+0x155/0x5e0 [i915]
+__i915_gem_object_get_pages+0x68/0xa0 [i915]
+i915_vma_pin+0x3fe/0x6c0 [i915]
+eb_add_vma+0x10b/0x2c0 [i915]
+i915_gem_do_execbuffer+0x704/0x3430 [i915]
+i915_gem_execbuffer2_ioctl+0x1ea/0x3e0 [i915]
+drm_ioctl_kernel+0x86/0xd0 [drm]
+drm_ioctl+0x206/0x390 [drm]
+ksys_ioctl+0x82/0xc0
+__x64_sys_ioctl+0x16/0x20
+do_syscall_64+0x5b/0xf0
+entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Reported on 5.7, but it goes back really to 3.1: when
+shmem_read_mapping_page_gfp() was implemented for use by i915, and
+allowed for __GFP_NORETRY and __GFP_NOWARN flags in most places, but
+missed swapin's "& GFP_KERNEL" mask for page tree node allocation in
+__read_swap_cache_async() - that was to mask off HIGHUSER_MOVABLE bits
+from what page cache uses, but GFP_RECLAIM_MASK is now what's needed.
+
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2006151330070.11064@eggly.anvils
+Fixes: 68da9f055755 ("tmpfs: pass gfp to shmem_getpage_gfp")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Chris Murphy <lists@colorremedies.com>
+Analyzed-by: Vlastimil Babka <vbabka@suse.cz>
+Analyzed-by: Matthew Wilcox <willy@infradead.org>
+Tested-by: Chris Murphy <lists@colorremedies.com>
+Cc: <stable@vger.kernel.org>	[3.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap_state.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/slab_common.c~mm-slab-use-memzero_explicit-in-kzfree
-+++ a/mm/slab_common.c
-@@ -1726,7 +1726,7 @@ void kzfree(const void *p)
- 	if (unlikely(ZERO_OR_NULL_PTR(mem)))
- 		return;
- 	ks = ksize(mem);
--	memset(mem, 0, ks);
-+	memzero_explicit(mem, ks);
- 	kfree(mem);
- }
- EXPORT_SYMBOL(kzfree);
-_
-
-Patches currently in -mm which might be from longman@redhat.com are
-
-mm-treewide-rename-kzfree-to-kfree_sensitive.patch
-sched-mm-optimize-current_gfp_context.patch
+--- a/mm/swap_state.c~mm-fix-swap-cache-node-allocation-mask
++++ a/mm/swap_state.c
+@@ -21,7 +21,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/swap_slots.h>
+ #include <linux/huge_mm.h>
