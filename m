@@ -1,119 +1,120 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: [merged]
- =?US-ASCII?Q?kexec-do-not-verify-the-signature-without-the-lockdown-or-m?=
- =?US-ASCII?Q?andatory-signature.patch?= removed from -mm tree
-Date: Fri, 26 Jun 2020 20:33:07 -0700
-Message-ID: <20200627033307.PFVFpOAK-%akpm@linux-foundation.org>
+ ocfs2-avoid-inode-removed-while-nfsd-access-it.patch removed from -mm tree
+Date: Fri, 26 Jun 2020 20:33:09 -0700
+Message-ID: <20200627033309.T7sJLexSY%akpm@linux-foundation.org>
 References: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44784 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725828AbgF0DdI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 26 Jun 2020 23:33:08 -0400
+        id S1725828AbgF0DdK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 26 Jun 2020 23:33:10 -0400
 In-Reply-To: <20200625202807.b630829d6fa55388148bee7d@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, jbohac@suse.cz, jmorris@namei.org, lijiang@redhat.com, mjg59@google.com, mm-commits@vger.kernel.org
+To: gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: do not verify the signature without the lockdown or mandatory signature
+     Subject: ocfs2: avoid inode removal while nfsd is accessing it
 has been removed from the -mm tree.  Its filename was
-     kexec-do-not-verify-the-signature-without-the-lockdown-or-mandatory-signature.patch
+     ocfs2-avoid-inode-removed-while-nfsd-access-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lianbo Jiang <lijiang@redhat.com>
-Subject: kexec: do not verify the signature without the lockdown or mandatory signature
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: avoid inode removal while nfsd is accessing it
 
-Signature verification is an important security feature, to protect system
-from being attacked with a kernel of unknown origin.  Kexec rebooting is a
-way to replace the running kernel, hence need be secured carefully.
+Patch series "ocfs2: fix nfsd over ocfs2 issues", v2.
 
-In the current code of handling signature verification of kexec kernel,
-the logic is very twisted.  It mixes signature verification, IMA signature
-appraising and kexec lockdown.
+This is a series of patches to fix issues on nfsd over ocfs2.  patch 1 is
+to avoid inode removed while nfsd access it patch 2 & 3 is to fix a panic
+issue.
 
-If there is no KEXEC_SIG_FORCE, kexec kernel image doesn't have one of
-signature, the supported crypto, and key, we don't think this is wrong,
-Unless kexec lockdown is executed.  IMA is considered as another kind of
-signature appraising method.
 
-If kexec kernel image has signature/crypto/key, it has to go through the
-signature verification and pass.  Otherwise it's seen as verification
-failure, and won't be loaded.
+This patch (of 4):
 
-Seems kexec kernel image with an unqualified signature is even worse than
-those w/o signature at all, this sounds very unreasonable.  E.g.  If
-people get a unsigned kernel to load, or a kernel signed with expired key,
-which one is more dangerous?
+When nfsd is getting file dentry using handle or parent dentry of some
+dentry, one cluster lock is used to avoid inode removed from other node,
+but it still could be removed from local node, so use a rw lock to avoid
+this.
 
-So, here, let's simplify the logic to improve code readability.  If the
-KEXEC_SIG_FORCE enabled or kexec lockdown enabled, signature verification
-is mandated.  Otherwise, we lift the bar for any kernel image.
-
-Link: http://lkml.kernel.org/r/20200602045952.27487-1-lijiang@redhat.com
-Signed-off-by: Lianbo Jiang <lijiang@redhat.com>
-Reviewed-by: Jiri Bohac <jbohac@suse.cz>
-Acked-by: Dave Young <dyoung@redhat.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Matthew Garrett <mjg59@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Link: http://lkml.kernel.org/r/20200616183829.87211-1-junxiao.bi@oracle.com
+Link: http://lkml.kernel.org/r/20200616183829.87211-2-junxiao.bi@oracle.com
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |   36 +++++++-----------------------------
- 1 file changed, 7 insertions(+), 29 deletions(-)
+ fs/ocfs2/dlmglue.c |   17 ++++++++++++++++-
+ fs/ocfs2/ocfs2.h   |    1 +
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
---- a/kernel/kexec_file.c~kexec-do-not-verify-the-signature-without-the-lockdown-or-mandatory-signature
-+++ a/kernel/kexec_file.c
-@@ -181,34 +181,19 @@ void kimage_file_post_load_cleanup(struc
- static int
- kimage_validate_signature(struct kimage *image)
- {
--	const char *reason;
- 	int ret;
+--- a/fs/ocfs2/dlmglue.c~ocfs2-avoid-inode-removed-while-nfsd-access-it
++++ a/fs/ocfs2/dlmglue.c
+@@ -689,6 +689,12 @@ static void ocfs2_nfs_sync_lock_res_init
+ 				   &ocfs2_nfs_sync_lops, osb);
+ }
  
- 	ret = arch_kexec_kernel_verify_sig(image, image->kernel_buf,
- 					   image->kernel_buf_len);
--	switch (ret) {
--	case 0:
--		break;
--
--		/* Certain verification errors are non-fatal if we're not
--		 * checking errors, provided we aren't mandating that there
--		 * must be a valid signature.
--		 */
--	case -ENODATA:
--		reason = "kexec of unsigned image";
--		goto decide;
--	case -ENOPKG:
--		reason = "kexec of image with unsupported crypto";
--		goto decide;
--	case -ENOKEY:
--		reason = "kexec of image with unavailable key";
--	decide:
-+	if (ret) {
++static void ocfs2_nfs_sync_lock_init(struct ocfs2_super *osb)
++{
++	ocfs2_nfs_sync_lock_res_init(&osb->osb_nfs_sync_lockres, osb);
++	init_rwsem(&osb->nfs_sync_rwlock);
++}
 +
- 		if (IS_ENABLED(CONFIG_KEXEC_SIG_FORCE)) {
--			pr_notice("%s rejected\n", reason);
-+			pr_notice("Enforced kernel signature verification failed (%d).\n", ret);
- 			return ret;
- 		}
+ void ocfs2_trim_fs_lock_res_init(struct ocfs2_super *osb)
+ {
+ 	struct ocfs2_lock_res *lockres = &osb->osb_trim_fs_lockres;
+@@ -2855,6 +2861,11 @@ int ocfs2_nfs_sync_lock(struct ocfs2_sup
+ 	if (ocfs2_is_hard_readonly(osb))
+ 		return -EROFS;
  
--		/* If IMA is guaranteed to appraise a signature on the kexec
-+		/*
-+		 * If IMA is guaranteed to appraise a signature on the kexec
- 		 * image, permit it even if the kernel is otherwise locked
- 		 * down.
- 		 */
-@@ -216,17 +201,10 @@ kimage_validate_signature(struct kimage
- 		    security_locked_down(LOCKDOWN_KEXEC))
- 			return -EPERM;
++	if (ex)
++		down_write(&osb->nfs_sync_rwlock);
++	else
++		down_read(&osb->nfs_sync_rwlock);
++
+ 	if (ocfs2_mount_local(osb))
+ 		return 0;
  
--		return 0;
+@@ -2873,6 +2884,10 @@ void ocfs2_nfs_sync_unlock(struct ocfs2_
+ 	if (!ocfs2_mount_local(osb))
+ 		ocfs2_cluster_unlock(osb, lockres,
+ 				     ex ? LKM_EXMODE : LKM_PRMODE);
++	if (ex)
++		up_write(&osb->nfs_sync_rwlock);
++	else
++		up_read(&osb->nfs_sync_rwlock);
+ }
+ 
+ int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
+@@ -3340,7 +3355,7 @@ int ocfs2_dlm_init(struct ocfs2_super *o
+ local:
+ 	ocfs2_super_lock_res_init(&osb->osb_super_lockres, osb);
+ 	ocfs2_rename_lock_res_init(&osb->osb_rename_lockres, osb);
+-	ocfs2_nfs_sync_lock_res_init(&osb->osb_nfs_sync_lockres, osb);
++	ocfs2_nfs_sync_lock_init(osb);
+ 	ocfs2_orphan_scan_lock_res_init(&osb->osb_orphan_scan.os_lockres, osb);
+ 
+ 	osb->cconn = conn;
+--- a/fs/ocfs2/ocfs2.h~ocfs2-avoid-inode-removed-while-nfsd-access-it
++++ a/fs/ocfs2/ocfs2.h
+@@ -395,6 +395,7 @@ struct ocfs2_super
+ 	struct ocfs2_lock_res osb_super_lockres;
+ 	struct ocfs2_lock_res osb_rename_lockres;
+ 	struct ocfs2_lock_res osb_nfs_sync_lockres;
++	struct rw_semaphore nfs_sync_rwlock;
+ 	struct ocfs2_lock_res osb_trim_fs_lockres;
+ 	struct mutex obs_trim_fs_mutex;
+ 	struct ocfs2_dlm_debug *osb_dlm_debug;
+_
+
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
