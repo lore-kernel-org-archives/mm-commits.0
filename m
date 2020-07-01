@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + hugetlb-fix-pages-per-hugetlb-calculation.patch added to
  -mm tree
-Date: Tue, 30 Jun 2020 17:16:42 -0700
-Message-ID: <20200701001642.c9Sv5%akpm@linux-foundation.org>
+Date: Tue, 30 Jun 2020 17:17:24 -0700
+Message-ID: <20200701001724.rJJWa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42652 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42766 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725930AbgGAAQo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 30 Jun 2020 20:16:44 -0400
+        id S1725930AbgGAAR0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 30 Jun 2020 20:17:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, willy@infradead.org, stable@kernel.org, mhocko@kernel.org, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com
@@ -53,7 +53,8 @@ to smaller than PMD_SIZE.
 Link: http://lkml.kernel.org/r/20200629185003.97202-1-mike.kravetz@oracle.com
 Fixes: c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing synchronization")
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: <stable@kernel.org>
