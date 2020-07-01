@@ -1,173 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] selftests-simplify-kmod-failure-value.patch
- removed from -mm tree
-Date: Tue, 30 Jun 2020 19:35:51 -0700
-Message-ID: <20200701023551.Fi3eR%akpm@linux-foundation.org>
+Subject: [nacked]
+ linux-bitsh-fix-unsigned-less-than-zero-warnings.patch removed from -mm tree
+Date: Tue, 30 Jun 2020 19:41:59 -0700
+Message-ID: <20200701024159.IDvxD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:37386 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725988AbgGACf5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 30 Jun 2020 22:35:57 -0400
+        id S1726430AbgGACmB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 30 Jun 2020 22:42:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, yangtiezhu@loongson.cn, viro@zeniv.linux.org.uk, slyfox@gentoo.org, shuah@kernel.org, serge@hallyn.com, roopa@cumulusnetworks.com, ravenexp@gmail.com, philipp.reisner@linbit.com, nikolay@cumulusnetworks.com, lars.ellenberg@linbit.com, kuba@kernel.org, keescook@chromium.org, josh@joshtriplett.org, jmorris@namei.org, jarkko.sakkinen@linux.intel.com, hch@infradead.org, gregkh@linuxfoundation.org, dhowells@redhat.com, davem@davemloft.net, chuck.lever@oracle.com, christian.brauner@ubuntu.com, chainsaw@gentoo.org, bfields@fieldses.org, axboe@kernel.dk, ast@kernel.org, mcgrof@kernel.org
+To: mm-commits@vger.kernel.org, yamada.masahiro@socionext.com, vilhelm.gray@gmail.com, syednwaris@gmail.com, lkp@intel.com, linus.walleij@linaro.org, keescook@chromium.org, geert@linux-m68k.org, emil.l.velikov@gmail.com, arnd@arndb.de, andy.shevchenko@gmail.com, rikard.falkeborn@gmail.com
 
 
 The patch titled
-     Subject: selftests: simplify kmod failure value
+     Subject: linux/bits.h: fix unsigned less than zero warnings
 has been removed from the -mm tree.  Its filename was
-     selftests-simplify-kmod-failure-value.patch
+     linux-bitsh-fix-unsigned-less-than-zero-warnings.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: selftests: simplify kmod failure value
+From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Subject: linux/bits.h: fix unsigned less than zero warnings
 
-The "odd" 256 value was just an issue with the umh never wrapping it
-around with WEXITSTATUS() for us.  Now that it does that, we can use a
-sane value / name for the selftest, and this is no longer a oddity.
+When calling the GENMASK and GENMASK_ULL macros with zero lower bit and an
+unsigned unknown high bit, some gcc versions warn due to the comparisons
+of the high and low bit in GENMASK_INPUT_CHECK.
 
-We add a way to detect this for older kernels, and support the old return
-value for kernel code where it was given.
+To silence the warnings, only perform the check if both inputs are known. 
+This does not trigger any warnings, from the Wtype-limits help:
 
-This never affected userspace.
+	Warn if a comparison is always true or always false due to the
+	limited range of the data type, but do not warn for constant
+	expressions.
 
-Link: http://lkml.kernel.org/r/20200610154923.27510-6-mcgrof@kernel.org
-Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
-Reported-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: J. Bruce Fields <bfields@fieldses.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Josh Triplett <josh@joshtriplett.org>
+As an example of the warning, kindly reported by the kbuild test robot:
+
+from drivers/mfd/atmel-smc.c:11:
+drivers/mfd/atmel-smc.c: In function 'atmel_smc_cs_encode_ncycles':
+include/linux/bits.h:26:28: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+26 |   __builtin_constant_p((l) > (h)), (l) > (h), 0)))
+|                            ^
+include/linux/build_bug.h:16:62: note: in definition of macro 'BUILD_BUG_ON_ZERO'
+16 | #define BUILD_BUG_ON_ZERO(e) ((int)(sizeof(struct { int:(-!!(e)); })))
+|                                                              ^
+include/linux/bits.h:39:3: note: in expansion of macro 'GENMASK_INPUT_CHECK'
+39 |  (GENMASK_INPUT_CHECK(h, l) + __GENMASK(h, l))
+|   ^~~~~~~~~~~~~~~~~~~
+>> drivers/mfd/atmel-smc.c:49:25: note: in expansion of macro 'GENMASK'
+49 |  unsigned int lsbmask = GENMASK(msbpos - 1, 0);
+|                         ^~~~~~~
+
+Link: http://lkml.kernel.org/r/20200621054210.14804-1-rikard.falkeborn@gmail.com
+Link: http://lkml.kernel.org/r/20200608221823.35799-1-rikard.falkeborn@gmail.com
+Fixes: 295bcca84916 ("linux/bits.h: add compile time sanity check of GENMASK inputs")
+Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Reported-by: kbuild test robot <lkp@intel.com>
+Reported-by: Emil Velikov <emil.l.velikov@gmail.com>
+Reported-by: Syed Nayyar Waris <syednwaris@gmail.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Reviewed-by: Emil Velikov <emil.l.velikov@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Lars Ellenberg <lars.ellenberg@linbit.com>
-Cc: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
-Cc: Roopa Prabhu <roopa@cumulusnetworks.com>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Sergei Trofimovich <slyfox@gentoo.org>
-Cc: Sergey Kvachonok <ravenexp@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tony Vroon <chainsaw@gentoo.org>
-Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: William Breathitt Gray <vilhelm.gray@gmail.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kmod/kmod.sh |   46 +++++++++++++++++++++----
- 1 file changed, 39 insertions(+), 7 deletions(-)
+ include/linux/bits.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/kmod/kmod.sh~selftests-simplify-kmod-failure-value
-+++ a/tools/testing/selftests/kmod/kmod.sh
-@@ -64,6 +64,8 @@ ALL_TESTS="$ALL_TESTS 0009:150:1"
- ALL_TESTS="$ALL_TESTS 0010:1:1"
- ALL_TESTS="$ALL_TESTS 0011:1:1"
- 
-+MODULE_NOT_FOUND="FAILURE"
-+
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
- 
-@@ -155,14 +157,19 @@ test_finish()
- 	echo "Test completed"
- }
- 
-+# OLD_FAILURE is just because the old kernel umh never wrapped
-+# the error with WEXITSTATUS(). Now that it does it, we get the
-+# appropriate actual value from userspace observed in-kernel.
-+
-+# We keep the old mapping to ensure this script keeps working
-+# with older kernels.
- errno_name_to_val()
- {
- 	case "$1" in
--	# kmod calls modprobe and upon of a module not found
--	# modprobe returns just 1... However in the kernel we
--	# *sometimes* see 256...
--	MODULE_NOT_FOUND)
-+	OLD_FAILURE)
- 		echo 256;;
-+	FAILURE)
-+		echo 1;;
- 	SUCCESS)
- 		echo 0;;
- 	-EPERM)
-@@ -181,7 +188,9 @@ errno_name_to_val()
- errno_val_to_name()
- 	case "$1" in
- 	256)
--		echo MODULE_NOT_FOUND;;
-+		echo OLD_FAILURE;;
-+	1)
-+		echo FAILURE;;
- 	0)
- 		echo SUCCESS;;
- 	-1)
-@@ -335,6 +344,28 @@ kmod_defaults_fs()
- 	config_set_test_case_fs
- }
- 
-+check_umh()
-+{
-+	NAME=''
-+
-+	kmod_defaults_driver
-+	config_num_threads 1
-+	printf '\0' >"$DIR"/config_test_driver
-+	config_trigger ${FUNCNAME[0]}
-+	RC=$(config_get_test_result)
-+	if [[ "$RC" == "256" ]]; then
-+		MODULE_NOT_FOUND="OLD_FAILURE"
-+		echo "check_umh: you have and old umh which didn't wrap errors"
-+		echo "           with WEXITSTATUS(). This is OK!"
-+	elif [[ "$RC" != "1" ]]; then
-+		echo "check_umh: Unexpected return value with no modprobe argument: $RC"
-+		exit
-+	else
-+		echo "check_umh: You have a new umh which wraps erros with"
-+		echo "           WEXITSTATUS(). This is OK!"
-+	fi
-+}
-+
- kmod_test_0001_driver()
- {
- 	NAME='\000'
-@@ -343,7 +374,7 @@ kmod_test_0001_driver()
- 	config_num_threads 1
- 	printf $NAME >"$DIR"/config_test_driver
- 	config_trigger ${FUNCNAME[0]}
--	config_expect_result ${FUNCNAME[0]} MODULE_NOT_FOUND
-+	config_expect_result ${FUNCNAME[0]} $MODULE_NOT_FOUND
- }
- 
- kmod_test_0001_fs()
-@@ -371,7 +402,7 @@ kmod_test_0002_driver()
- 	config_set_driver $NAME
- 	config_num_threads 1
- 	config_trigger ${FUNCNAME[0]}
--	config_expect_result ${FUNCNAME[0]} MODULE_NOT_FOUND
-+	config_expect_result ${FUNCNAME[0]} $MODULE_NOT_FOUND
- }
- 
- kmod_test_0002_fs()
-@@ -648,6 +679,7 @@ load_req_mod
- MODPROBE=$(</proc/sys/kernel/modprobe)
- trap "test_finish" EXIT
- 
-+check_umh
- parse_args $@
- 
- exit 0
+--- a/include/linux/bits.h~linux-bitsh-fix-unsigned-less-than-zero-warnings
++++ a/include/linux/bits.h
+@@ -23,7 +23,8 @@
+ #include <linux/build_bug.h>
+ #define GENMASK_INPUT_CHECK(h, l) \
+ 	(BUILD_BUG_ON_ZERO(__builtin_choose_expr( \
+-		__builtin_constant_p((l) > (h)), (l) > (h), 0)))
++		__builtin_constant_p(l) && __builtin_constant_p(h), \
++		(l) > (h), 0)))
+ #else
+ /*
+  * BUILD_BUG_ON_ZERO is not available in h files included from asm files,
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from rikard.falkeborn@gmail.com are
+
+bits-add-tests-of-genmask.patch
