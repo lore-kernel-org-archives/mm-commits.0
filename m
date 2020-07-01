@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-cmac-use-exact_nid-true-to-fix-possible-per-numa-cma-leak.patch added to
- -mm tree
-Date: Tue, 30 Jun 2020 19:10:56 -0700
-Message-ID: <20200701021056.dhjn0%akpm@linux-foundation.org>
+ mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
+ added to -mm tree
+Date: Tue, 30 Jun 2020 19:14:36 -0700
+Message-ID: <20200701021436.x4q_T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54668 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55278 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725805AbgGACK7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 30 Jun 2020 22:10:59 -0400
+        id S1725805AbgGACOi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 30 Jun 2020 22:14:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, robin.murphy@arm.com, riel@surriel.com, mike.kravetz@oracle.com, mhocko@kernel.org, js1304@gmail.com, Jonathan.Cameron@huawei.com, guro@fb.com, aslan@fb.com, andreas.schaufler@gmx.de, song.bao.hua@hisilicon.com
+To: mm-commits@vger.kernel.org, zeil@yandex-team.ru, tony.luck@intel.com, osalvador@suse.de, naresh.kamboju@linaro.org, naoya.horiguchi@nec.com, mike.kravetz@oracle.com, mhocko@kernel.org, david@redhat.com, dave.hansen@intel.com, cai@lca.pw, aneesh.kumar@linux.vnet.ibm.com, aneesh.kumar@linux.ibm.com, nao.horiguchi@gmail.com
 
 
 The patch titled
-     Subject: mm/cma.c: use exact_nid true to fix possible per-numa cma leak
+     Subject: mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix
 has been added to the -mm tree.  Its filename is
-     mm-cmac-use-exact_nid-true-to-fix-possible-per-numa-cma-leak.patch
+     mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cmac-use-exact_nid-true-to-fix-possible-per-numa-cma-leak.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cmac-use-exact_nid-true-to-fix-possible-per-numa-cma-leak.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,84 +37,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Barry Song <song.bao.hua@hisilicon.com>
-Subject: mm/cma.c: use exact_nid true to fix possible per-numa cma leak
+From: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Subject: mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix
 
-Calling cma_declare_contiguous_nid() with false exact_nid for per-numa
-reservation can easily cause cma leak and various confusion.  For example,
-mm/hugetlb.c is trying to reserve per-numa cma for gigantic pages.  But it
-can easily leak cma and make users confused when system has memoryless
-nodes.
+fix arm64 build
 
-In case the system has 4 numa nodes, and only numa node0 has memory.  if
-we set hugetlb_cma=4G in bootargs, mm/hugetlb.c will get 4 cma areas for 4
-different numa nodes.  since exact_nid=false in current code, all 4 numa
-nodes will get cma successfully from node0, but hugetlb_cma[1 to 3] will
-never be available to hugepage will only allocate memory from
-hugetlb_cma[0].
+page_handle_poison() is now defined in #ifdef CONFIG_HWPOISON_INJECT block,
+which is not correct because this function is used in non-injection code
+path.  I'd like to move this function out of the block and it affects
+multiple patches in this series, so maybe I have to update/resend the whole
+series, but I like to wait for a few days for other reviews, so for quick
+fix for linux-next I suggest the following one.
 
-In case the system has 4 numa nodes, both numa node0&2 has memory, other
-nodes have no memory.  if we set hugetlb_cma=4G in bootargs, mm/hugetlb.c
-will get 4 cma areas for 4 different numa nodes.  since exact_nid=false in
-current code, all 4 numa nodes will get cma successfully from node0 or 2,
-but hugetlb_cma[1] and [3] will never be available to hugepage as
-mm/hugetlb.c will only allocate memory from hugetlb_cma[0] and
-hugetlb_cma[2].  This causes permanent leak of the cma areas which are
-supposed to be used by memoryless node.
-
-Of cource we can workaround the issue by letting mm/hugetlb.c scan all cma
-areas in alloc_gigantic_page() even node_mask includes node0 only.  that
-means when node_mask includes node0 only, we can get page from
-hugetlb_cma[1] to hugetlb_cma[3].  But this will cause kernel crash in
-free_gigantic_page() while it wants to free page by:
-cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order)
-
-On the other hand, exact_nid=false won't consider numa distance, it might
-be not that useful to leverage cma areas on remote nodes.  I feel it is
-much simpler to make exact_nid true to make everything clear.  After that,
-memoryless nodes won't be able to reserve per-numa CMA from other nodes
-which have memory.
-
-Link: http://lkml.kernel.org/r/20200628074345.27228-1-song.bao.hua@hisilicon.com
-Fixes: cf11e85fc08c ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Aslan Bakirov <aslan@fb.com>
+Link: http://lkml.kernel.org/r/20200628065409.GA546944@u2004
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Reported-by: Qian Cai <cai@lca.pw>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dmitry Yakunin <zeil@yandex-team.ru>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Andreas Schaufler <andreas.schaufler@gmx.de>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |   64 +++++++++++++++++++++---------------------
+ 1 file changed, 32 insertions(+), 32 deletions(-)
 
---- a/mm/cma.c~mm-cmac-use-exact_nid-true-to-fix-possible-per-numa-cma-leak
-+++ a/mm/cma.c
-@@ -339,13 +339,13 @@ int __init cma_declare_contiguous_nid(ph
- 		 */
- 		if (base < highmem_start && limit > highmem_start) {
- 			addr = memblock_alloc_range_nid(size, alignment,
--					highmem_start, limit, nid, false);
-+					highmem_start, limit, nid, true);
- 			limit = highmem_start;
- 		}
+--- a/mm/memory-failure.c~mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix
++++ a/mm/memory-failure.c
+@@ -78,38 +78,6 @@ EXPORT_SYMBOL_GPL(hwpoison_filter_dev_mi
+ EXPORT_SYMBOL_GPL(hwpoison_filter_flags_mask);
+ EXPORT_SYMBOL_GPL(hwpoison_filter_flags_value);
  
- 		if (!addr) {
- 			addr = memblock_alloc_range_nid(size, alignment, base,
--					limit, nid, false);
-+					limit, nid, true);
- 			if (!addr) {
- 				ret = -ENOMEM;
- 				goto err;
+-static bool page_handle_poison(struct page *page, bool hugepage_or_freepage, bool release)
+-{
+-	if (release) {
+-		put_page(page);
+-		drain_all_pages(page_zone(page));
+-	}
+-
+-	if (hugepage_or_freepage) {
+-		/*
+-		 * Doing this check for free pages is also fine since dissolve_free_huge_page
+-		 * returns 0 for non-hugetlb pages as well.
+-		 */
+-		if (dissolve_free_huge_page(page) || !take_page_off_buddy(page))
+-		/*
+-		 * The hugetlb page can end up being enqueued back into
+-		 * the freelists by means of:
+-		 * unmap_and_move_huge_page
+-		 *  putback_active_hugepage
+-		 *   put_page->free_huge_page
+-		 *    enqueue_huge_page
+-		 * If this happens, we might lose the race against an allocation.
+-		 */
+-			return false;
+-	}
+-
+-	SetPageHWPoison(page);
+-	page_ref_inc(page);
+-	num_poisoned_pages_inc();
+-
+-	return true;
+-}
+-
+ static int hwpoison_filter_dev(struct page *p)
+ {
+ 	struct address_space *mapping;
+@@ -209,6 +177,38 @@ static bool page_handle_poison(struct pa
+ 
+ EXPORT_SYMBOL_GPL(hwpoison_filter);
+ 
++static bool page_handle_poison(struct page *page, bool hugepage_or_freepage, bool release)
++{
++	if (release) {
++		put_page(page);
++		drain_all_pages(page_zone(page));
++	}
++
++	if (hugepage_or_freepage) {
++		/*
++		 * Doing this check for free pages is also fine since dissolve_free_huge_page
++		 * returns 0 for non-hugetlb pages as well.
++		 */
++		if (dissolve_free_huge_page(page) || !take_page_off_buddy(page))
++		/*
++		 * The hugetlb page can end up being enqueued back into
++		 * the freelists by means of:
++		 * unmap_and_move_huge_page
++		 *  putback_active_hugepage
++		 *   put_page->free_huge_page
++		 *    enqueue_huge_page
++		 * If this happens, we might lose the race against an allocation.
++		 */
++			return false;
++	}
++
++	SetPageHWPoison(page);
++	page_ref_inc(page);
++	num_poisoned_pages_inc();
++
++	return true;
++}
++
+ /*
+  * Kill all processes that have a poisoned page mapped and then isolate
+  * the page.
 _
 
-Patches currently in -mm which might be from song.bao.hua@hisilicon.com are
+Patches currently in -mm which might be from nao.horiguchi@gmail.com are
 
-mm-cmac-use-exact_nid-true-to-fix-possible-per-numa-cma-leak.patch
-mm-cma-fix-the-name-of-cma-areas.patch
-mm-hugetlb-fix-the-name-of-hugetlb-cma.patch
+mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
