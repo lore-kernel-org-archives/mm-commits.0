@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
 Subject: +
- vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers.patch
+ mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd.patch
  added to -mm tree
-Date: Tue, 30 Jun 2020 19:17:23 -0700
-Message-ID: <20200701021723.jtjC_%akpm@linux-foundation.org>
+Date: Tue, 30 Jun 2020 19:31:26 -0700
+Message-ID: <20200701023126.zLuRJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56618 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35648 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726723AbgGACRZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 30 Jun 2020 22:17:25 -0400
+        id S1725988AbgGACb2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 30 Jun 2020 22:31:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ardb@kernel.org, hch@lst.de
+To: mm-commits@vger.kernel.org, yang.shi@linux.alibaba.com, willy@infradead.org, walken@google.com, vbabka@suse.cz, thomas_os@shipmail.org, thellstrom@vmware.com, sean.j.christopherson@intel.com, peterx@redhat.com, kirill.shutemov@linux.intel.com, digetx@gmail.com, anshuman.khandual@arm.com, aneesh.kumar@linux.ibm.com, richard.weiyang@linux.alibaba.com
 
 
 The patch titled
-     Subject: vmalloc: fix the owner argument for the new __vmalloc_node_range callers
+     Subject: mm/mremap: format the check in move_normal_pmd() same as move_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers.patch
+     mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,62 +37,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: vmalloc: fix the owner argument for the new __vmalloc_node_range callers
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/mremap: format the check in move_normal_pmd() same as move_huge_pmd()
 
-Fix the recently added new __vmalloc_node_range callers to pass the
-correct values as the owner for display in /proc/vmallocinfo.
+Patch series "mm/mremap: cleanup move_page_tables() a little", v2.
 
-Link: http://lkml.kernel.org/r/20200627075649.2455097-1-hch@lst.de
-Fixes: 800e26b81311 ("x86/hyperv: allocate the hypercall page with only read and execute bits")
-Fixes: 10d5e97c1bf8 ("arm64: use PAGE_KERNEL_ROX directly in alloc_insn_page")
-Fixes: 7a0e27b2a0ce ("mm: remove vmalloc_exec")
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reported-by: Ard Biesheuvel <ardb@kernel.org>
+move_page_tables() tries to move page table by PMD or PTE.
+
+The root reason is if it tries to move PMD, both old and new range should
+be PMD aligned.  But current code calculate old range and new range
+separately.  This leads to some redundant check and calculation.
+
+This cleanup tries to consolidate the range check in one place to reduce
+some extra range handling.
+
+
+This patch (of 4):
+
+No functional change, just improve the readability and prepare for
+following cleanup.
+
+Link: http://lkml.kernel.org/r/20200626135216.24314-1-richard.weiyang@linux.alibaba.com
+Link: http://lkml.kernel.org/r/20200626135216.24314-2-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Thomas Hellstrom (VMware) <thomas_os@shipmail.org>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Sean Christopherson <sean.j.christopherson@intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/probes/kprobes.c |    2 +-
- arch/x86/hyperv/hv_init.c          |    3 ++-
- kernel/module.c                    |    2 +-
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ mm/mremap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/kernel/probes/kprobes.c~vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers
-+++ a/arch/arm64/kernel/probes/kprobes.c
-@@ -122,7 +122,7 @@ void *alloc_insn_page(void)
- {
- 	return __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START, VMALLOC_END,
- 			GFP_KERNEL, PAGE_KERNEL_ROX, VM_FLUSH_RESET_PERMS,
--			NUMA_NO_NODE, __func__);
-+			NUMA_NO_NODE, __builtin_return_address(0));
- }
+--- a/mm/mremap.c~mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd
++++ a/mm/mremap.c
+@@ -200,8 +200,9 @@ static bool move_normal_pmd(struct vm_ar
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t pmd;
  
- /* arm kprobe: install breakpoint in text */
---- a/arch/x86/hyperv/hv_init.c~vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers
-+++ a/arch/x86/hyperv/hv_init.c
-@@ -377,7 +377,8 @@ void __init hyperv_init(void)
+-	if ((old_addr & ~PMD_MASK) || (new_addr & ~PMD_MASK)
+-	    || old_end - old_addr < PMD_SIZE)
++	if ((old_addr & ~PMD_MASK) ||
++	    (new_addr & ~PMD_MASK) ||
++	    old_end - old_addr < PMD_SIZE)
+ 		return false;
  
- 	hv_hypercall_pg = __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START,
- 			VMALLOC_END, GFP_KERNEL, PAGE_KERNEL_ROX,
--			VM_FLUSH_RESET_PERMS, NUMA_NO_NODE, __func__);
-+			VM_FLUSH_RESET_PERMS, NUMA_NO_NODE,
-+			__builtin_return_address(0));
- 	if (hv_hypercall_pg == NULL) {
- 		wrmsrl(HV_X64_MSR_GUEST_OS_ID, 0);
- 		goto remove_cpuhp_state;
---- a/kernel/module.c~vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers
-+++ a/kernel/module.c
-@@ -2785,7 +2785,7 @@ void * __weak module_alloc(unsigned long
- {
- 	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
- 			GFP_KERNEL, PAGE_KERNEL_EXEC, VM_FLUSH_RESET_PERMS,
--			NUMA_NO_NODE, __func__);
-+			NUMA_NO_NODE, __builtin_return_address(0));
- }
- 
- bool __weak module_init_section(const char *name)
+ 	/*
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
 
-vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers.patch
+mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd.patch
+mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
+mm-mremap-calculate-extent-in-one-place.patch
+mm-mremap-start-addresses-are-properly-aligned.patch
+mm-sparse-never-partially-remove-memmap-for-early-section.patch
+mm-page_allocc-replace-the-definition-of-nr_migratetype_bits-with-pb_migratetype_bits.patch
+mm-page_allocc-extract-the-common-part-in-pfn_to_bitidx.patch
+mm-page_allocc-simplify-pageblock-bitmap-access.patch
+mm-page_allocc-remove-unnecessary-end_bitidx-for-_pfnblock_flags_mask.patch
