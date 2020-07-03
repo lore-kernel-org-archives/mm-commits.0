@@ -1,93 +1,72 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 3/5] mm/cma.c: use exact_nid true to fix possible
- per-numa cma leak
-Date: Fri, 03 Jul 2020 15:15:24 -0700
-Message-ID: <20200703221524.H3lijT4I2%akpm@linux-foundation.org>
+Subject: [patch 4/5] vmalloc: fix the owner argument for the new
+ __vmalloc_node_range callers
+Date: Fri, 03 Jul 2020 15:15:27 -0700
+Message-ID: <20200703221527.HlsHOkXbm%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48172 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48278 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726188AbgGCWPZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Jul 2020 18:15:25 -0400
+        id S1726188AbgGCWP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Jul 2020 18:15:28 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andreas.schaufler@gmx.de, aslan@fb.com, guro@fb.com, Jonathan.Cameron@huawei.com, js1304@gmail.com, linux-mm@kvack.org, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, riel@surriel.com, robin.murphy@arm.com, song.bao.hua@hisilicon.com, stable@vger.kernel.org, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, ardb@kernel.org, hch@lst.de, linux-mm@kvack.org, mm-commits@vger.kernel.org, torvalds@linux-foundation.org
 
-From: Barry Song <song.bao.hua@hisilicon.com>
-Subject: mm/cma.c: use exact_nid true to fix possible per-numa cma leak
+From: Christoph Hellwig <hch@lst.de>
+Subject: vmalloc: fix the owner argument for the new __vmalloc_node_range callers
 
-Calling cma_declare_contiguous_nid() with false exact_nid for per-numa
-reservation can easily cause cma leak and various confusion.  For example,
-mm/hugetlb.c is trying to reserve per-numa cma for gigantic pages.  But it
-can easily leak cma and make users confused when system has memoryless
-nodes.
+Fix the recently added new __vmalloc_node_range callers to pass the
+correct values as the owner for display in /proc/vmallocinfo.
 
-In case the system has 4 numa nodes, and only numa node0 has memory.  if
-we set hugetlb_cma=4G in bootargs, mm/hugetlb.c will get 4 cma areas for 4
-different numa nodes.  since exact_nid=false in current code, all 4 numa
-nodes will get cma successfully from node0, but hugetlb_cma[1 to 3] will
-never be available to hugepage will only allocate memory from
-hugetlb_cma[0].
-
-In case the system has 4 numa nodes, both numa node0&2 has memory, other
-nodes have no memory.  if we set hugetlb_cma=4G in bootargs, mm/hugetlb.c
-will get 4 cma areas for 4 different numa nodes.  since exact_nid=false in
-current code, all 4 numa nodes will get cma successfully from node0 or 2,
-but hugetlb_cma[1] and [3] will never be available to hugepage as
-mm/hugetlb.c will only allocate memory from hugetlb_cma[0] and
-hugetlb_cma[2].  This causes permanent leak of the cma areas which are
-supposed to be used by memoryless node.
-
-Of cource we can workaround the issue by letting mm/hugetlb.c scan all cma
-areas in alloc_gigantic_page() even node_mask includes node0 only.  that
-means when node_mask includes node0 only, we can get page from
-hugetlb_cma[1] to hugetlb_cma[3].  But this will cause kernel crash in
-free_gigantic_page() while it wants to free page by:
-cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order)
-
-On the other hand, exact_nid=false won't consider numa distance, it might
-be not that useful to leverage cma areas on remote nodes.  I feel it is
-much simpler to make exact_nid true to make everything clear.  After that,
-memoryless nodes won't be able to reserve per-numa CMA from other nodes
-which have memory.
-
-Link: http://lkml.kernel.org/r/20200628074345.27228-1-song.bao.hua@hisilicon.com
-Fixes: cf11e85fc08c ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Aslan Bakirov <aslan@fb.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Andreas Schaufler <andreas.schaufler@gmx.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200627075649.2455097-1-hch@lst.de
+Fixes: 800e26b81311 ("x86/hyperv: allocate the hypercall page with only read and execute bits")
+Fixes: 10d5e97c1bf8 ("arm64: use PAGE_KERNEL_ROX directly in alloc_insn_page")
+Fixes: 7a0e27b2a0ce ("mm: remove vmalloc_exec")
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Ard Biesheuvel <ardb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/kernel/probes/kprobes.c |    2 +-
+ arch/x86/hyperv/hv_init.c          |    3 ++-
+ kernel/module.c                    |    2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/cma.c~mm-cmac-use-exact_nid-true-to-fix-possible-per-numa-cma-leak
-+++ a/mm/cma.c
-@@ -339,13 +339,13 @@ int __init cma_declare_contiguous_nid(ph
- 		 */
- 		if (base < highmem_start && limit > highmem_start) {
- 			addr = memblock_alloc_range_nid(size, alignment,
--					highmem_start, limit, nid, false);
-+					highmem_start, limit, nid, true);
- 			limit = highmem_start;
- 		}
+--- a/arch/arm64/kernel/probes/kprobes.c~vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers
++++ a/arch/arm64/kernel/probes/kprobes.c
+@@ -122,7 +122,7 @@ void *alloc_insn_page(void)
+ {
+ 	return __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START, VMALLOC_END,
+ 			GFP_KERNEL, PAGE_KERNEL_ROX, VM_FLUSH_RESET_PERMS,
+-			NUMA_NO_NODE, __func__);
++			NUMA_NO_NODE, __builtin_return_address(0));
+ }
  
- 		if (!addr) {
- 			addr = memblock_alloc_range_nid(size, alignment, base,
--					limit, nid, false);
-+					limit, nid, true);
- 			if (!addr) {
- 				ret = -ENOMEM;
- 				goto err;
+ /* arm kprobe: install breakpoint in text */
+--- a/arch/x86/hyperv/hv_init.c~vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers
++++ a/arch/x86/hyperv/hv_init.c
+@@ -377,7 +377,8 @@ void __init hyperv_init(void)
+ 
+ 	hv_hypercall_pg = __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START,
+ 			VMALLOC_END, GFP_KERNEL, PAGE_KERNEL_ROX,
+-			VM_FLUSH_RESET_PERMS, NUMA_NO_NODE, __func__);
++			VM_FLUSH_RESET_PERMS, NUMA_NO_NODE,
++			__builtin_return_address(0));
+ 	if (hv_hypercall_pg == NULL) {
+ 		wrmsrl(HV_X64_MSR_GUEST_OS_ID, 0);
+ 		goto remove_cpuhp_state;
+--- a/kernel/module.c~vmalloc-fix-the-owner-argument-for-the-new-__vmalloc_node_range-callers
++++ a/kernel/module.c
+@@ -2785,7 +2785,7 @@ void * __weak module_alloc(unsigned long
+ {
+ 	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
+ 			GFP_KERNEL, PAGE_KERNEL_EXEC, VM_FLUSH_RESET_PERMS,
+-			NUMA_NO_NODE, __func__);
++			NUMA_NO_NODE, __builtin_return_address(0));
+ }
+ 
+ bool __weak module_init_section(const char *name)
 _
