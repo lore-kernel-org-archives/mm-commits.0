@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mailmap-add-entry-for-obsolete-email-address.patch
- added to -mm tree
-Date: Thu, 02 Jul 2020 21:58:46 -0700
-Message-ID: <20200703045846.16FVHGpu1%akpm@linux-foundation.org>
+Subject: +
+ scripts-tagssh-collect-compiled-source-precisely-v2.patch added to -mm tree
+Date: Thu, 02 Jul 2020 22:01:09 -0700
+Message-ID: <20200703050109.luoTJhsD0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36410 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36634 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725764AbgGCE6r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Jul 2020 00:58:47 -0400
+        id S1725764AbgGCFBL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Jul 2020 01:01:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, koct9i@gmail.com, mm-commits@vger.kernel.org
+To: corbet@lwn.net, gregkh@linuxfoundation.org, joe@perches.com, masahiroy@kernel.org, mchehab+huawei@kernel.org, mm-commits@vger.kernel.org, xujialu@vimux.org
 
 
 The patch titled
-     Subject: mailmap: add entry for obsolete email address
+     Subject: scripts-tagssh-collect-compiled-source-precisely-v2
 has been added to the -mm tree.  Its filename is
-     mailmap-add-entry-for-obsolete-email-address.patch
+     scripts-tagssh-collect-compiled-source-precisely-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-entry-for-obsolete-email-address.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-tagssh-collect-compiled-source-precisely-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-entry-for-obsolete-email-address.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-tagssh-collect-compiled-source-precisely-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,32 +36,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mailmap: add entry for obsolete email address
+From: Jialu Xu <xujialu@vimux.org>
+Subject: scripts-tagssh-collect-compiled-source-precisely-v2
 
-Map old corporate email address @yandex-team.ru to stable private address.
+don't expand symlinks by add option -s for realpath
 
-Link: http://lkml.kernel.org/r/159360469186.24918.10108157093572183535.stgit@zurg
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Link: http://lkml.kernel.org/r/5efc5bfb.1c69fb81.41bf5.7131SMTPIN_ADDED_MISSING@mx.google.com
+Signed-off-by: Jialu Xu <xujialu@vimux.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/tags.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-add-entry-for-obsolete-email-address
-+++ a/.mailmap
-@@ -146,6 +146,7 @@ Kamil Konieczny <k.konieczny@samsung.com
- Kay Sievers <kay.sievers@vrfy.org>
- Kenneth W Chen <kenneth.w.chen@intel.com>
- Konstantin Khlebnikov <koct9i@gmail.com> <k.khlebnikov@samsung.com>
-+Konstantin Khlebnikov <koct9i@gmail.com> <khlebnikov@yandex-team.ru>
- Koushik <raghavendra.koushik@neterion.com>
- Krzysztof Kozlowski <krzk@kernel.org> <k.kozlowski@samsung.com>
- Krzysztof Kozlowski <krzk@kernel.org> <k.kozlowski.k@gmail.com>
+--- a/scripts/tags.sh~scripts-tagssh-collect-compiled-source-precisely-v2
++++ a/scripts/tags.sh
+@@ -91,7 +91,7 @@ all_sources()
+ 
+ all_compiled_sources()
+ {
+-	realpath -e $([ -z "$KBUILD_ABS_SRCTREE" ] && echo --relative-to=.) \
++	realpath -es $([ -z "$KBUILD_ABS_SRCTREE" ] && echo --relative-to=.) \
+ 		include/generated/autoconf.h $(find -name "*.cmd" -exec \
+ 		grep -Poh '(?(?=^source_.* \K).*|(?=^  \K\S).*(?= \\))' {} \+ |
+ 		awk '!a[$0]++') | sort -u
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from xujialu@vimux.org are
 
-mailmap-add-entry-for-obsolete-email-address.patch
+scripts-tagssh-collect-compiled-source-precisely.patch
+scripts-tagssh-collect-compiled-source-precisely-v2.patch
