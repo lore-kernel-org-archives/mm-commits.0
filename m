@@ -1,127 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-add-%f-for-executable-filename.patch added to
- -mm tree
-Date: Thu, 02 Jul 2020 22:10:18 -0700
-Message-ID: <20200703051018.sTajv2lra%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ mm-set-page-fault-address-for-update_mmu_cache_pmd.patch removed from -mm
+ tree
+Date: Thu, 02 Jul 2020 22:12:40 -0700
+Message-ID: <20200703051240.10Cd7fVaD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38968 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725915AbgGCFKT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Jul 2020 01:10:19 -0400
+        id S1725294AbgGCFMm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Jul 2020 01:12:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, ytht.net@gmail.com
+To: anshuman.khandual@arm.com, dansilsby@gmail.com, kirill.shutemov@linux.intel.com, maobibo@loongson.cn, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, paulburton@kernel.org, ralf@linux-mips.org, rppt@linux.ibm.com, tsbogend@alpha.franken.de
 
 
 The patch titled
-     Subject: coredump: add %f for executable filename.
-has been added to the -mm tree.  Its filename is
-     coredump-add-%f-for-executable-filename.patch
+     Subject: mm: set page fault address for update_mmu_cache_pmd()
+has been removed from the -mm tree.  Its filename was
+     mm-set-page-fault-address-for-update_mmu_cache_pmd.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/coredump-add-%25f-for-executable-filename.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-add-%25f-for-executable-filename.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Lepton Wu <ytht.net@gmail.com>
-Subject: coredump: add %f for executable filename.
+From: Bibo Mao <maobibo@loongson.cn>
+Subject: mm: set page fault address for update_mmu_cache_pmd()
 
-The document reads "%e" should be "executable filename" while actually it
-could be changed by things like pr_ctl PR_SET_NAME.  People who uses "%e"
-in core_pattern get surprised when they find out they get thread name
-instead of executable filename.
+update_mmu_cache_pmd is used to update tlb for the pmd entry by software. 
+On MIPS system, the tlb entry indexed by page fault address maybe exists
+already, only that tlb entry may be small page, also it may be huge page. 
+Before updating pmd entry with huge page size, older tlb entry need to be
+invalidated.
 
-This is either a bug of document or a bug of code.  Since the behavior of
-"%e" is there for long time, it could bring another surprise for users if
-we "fix" the code.
+Here page fault address is passed to function update_mmu_cache_pmd, rather
+than pmd huge page start address.  The page fault address can be used for
+invalidating older tlb entry.
 
-So we just "fix" the document.  And more, for users who really need the
-"executable filename" in core_pattern, we introduce a new "%f" for the
-real executable filename.  We already have "%E" for executable path in
-kernel, so just reuse most of its code for the new added "%f" format.
-
-Link: http://lkml.kernel.org/r/20200701031432.2978761-1-ytht.net@gmail.com
-Signed-off-by: Lepton Wu <ytht.net@gmail.com>
+Link: http://lkml.kernel.org/r/1592990792-1923-1-git-send-email-maobibo@loongson.cn
+Signed-off-by: Bibo Mao <maobibo@loongson.cn>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Daniel Silsby <dansilsby@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |    3 ++-
- fs/coredump.c                               |   17 +++++++++++++----
- 2 files changed, 15 insertions(+), 5 deletions(-)
+ arch/mips/include/asm/pgtable.h |    9 +++++++++
+ mm/huge_memory.c                |    7 ++++---
+ mm/memory.c                     |    2 +-
+ 3 files changed, 14 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~coredump-add-%f-for-executable-filename
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -164,7 +164,8 @@ core_pattern
- 	%s		signal number
- 	%t		UNIX time of dump
- 	%h		hostname
--	%e		executable filename (may be shortened)
-+	%e		executable filename (may be shortened, could be changed by prctl etc)
-+	%f      	executable filename
- 	%E		executable path
- 	%c		maximum size of core file by resource limit RLIMIT_CORE
- 	%<OTHER>	both are dropped
---- a/fs/coredump.c~coredump-add-%f-for-executable-filename
-+++ a/fs/coredump.c
-@@ -153,10 +153,10 @@ int cn_esc_printf(struct core_name *cn,
- 	return ret;
+--- a/arch/mips/include/asm/pgtable.h~mm-set-page-fault-address-for-update_mmu_cache_pmd
++++ a/arch/mips/include/asm/pgtable.h
+@@ -554,11 +554,20 @@ static inline void update_mmu_cache(stru
+ #define	__HAVE_ARCH_UPDATE_MMU_TLB
+ #define update_mmu_tlb	update_mmu_cache
+ 
++extern void local_flush_tlb_page(struct vm_area_struct *vma,
++				unsigned long page);
+ static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
+ 	unsigned long address, pmd_t *pmdp)
+ {
+ 	pte_t pte = *(pte_t *)pmdp;
+ 
++	/*
++	 * If pmd_none is true, older tlb entry will be normal page.
++	 * here to invalidate older tlb entry indexed by address
++	 * parameter address must be page fault address rather than
++	 * start address of pmd huge page
++	 */
++	local_flush_tlb_page(vma, address);
+ 	__update_tlb(vma, address, pte);
  }
  
--static int cn_print_exe_file(struct core_name *cn)
-+static int cn_print_exe_file(struct core_name *cn, bool name_only)
+--- a/mm/huge_memory.c~mm-set-page-fault-address-for-update_mmu_cache_pmd
++++ a/mm/huge_memory.c
+@@ -780,6 +780,7 @@ static void insert_pfn_pmd(struct vm_are
+ 		pgtable_t pgtable)
  {
- 	struct file *exe_file;
--	char *pathbuf, *path;
-+	char *pathbuf, *path, *ptr;
- 	int ret;
+ 	struct mm_struct *mm = vma->vm_mm;
++	unsigned long start = addr & PMD_MASK;
+ 	pmd_t entry;
+ 	spinlock_t *ptl;
  
- 	exe_file = get_mm_exe_file(current->mm);
-@@ -175,6 +175,11 @@ static int cn_print_exe_file(struct core
- 		goto free_buf;
+@@ -792,7 +793,7 @@ static void insert_pfn_pmd(struct vm_are
+ 			}
+ 			entry = pmd_mkyoung(*pmd);
+ 			entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+-			if (pmdp_set_access_flags(vma, addr, pmd, entry, 1))
++			if (pmdp_set_access_flags(vma, start, pmd, entry, 1))
+ 				update_mmu_cache_pmd(vma, addr, pmd);
+ 		}
+ 
+@@ -813,7 +814,7 @@ static void insert_pfn_pmd(struct vm_are
+ 		pgtable = NULL;
  	}
  
-+	if (name_only) {
-+		ptr = strrchr(path, '/');
-+		if (ptr)
-+			path = ptr + 1;
-+	}
- 	ret = cn_esc_printf(cn, "%s", path);
+-	set_pmd_at(mm, addr, pmd, entry);
++	set_pmd_at(mm, start, pmd, entry);
+ 	update_mmu_cache_pmd(vma, addr, pmd);
  
- free_buf:
-@@ -301,12 +306,16 @@ static int format_corename(struct core_n
- 					      utsname()->nodename);
- 				up_read(&uts_sem);
- 				break;
--			/* executable */
-+			/* executable, could be changed by prctl PR_SET_NAME etc */
- 			case 'e':
- 				err = cn_esc_printf(cn, "%s", current->comm);
- 				break;
-+			/* file name of executable */
-+			case 'f':
-+				err = cn_print_exe_file(cn, true);
-+				break;
- 			case 'E':
--				err = cn_print_exe_file(cn);
-+				err = cn_print_exe_file(cn, false);
- 				break;
- 			/* core limit size */
- 			case 'c':
+ out_unlock:
+@@ -864,7 +865,7 @@ vm_fault_t vmf_insert_pfn_pmd_prot(struc
+ 
+ 	track_pfn_insert(vma, &pgprot, pfn);
+ 
+-	insert_pfn_pmd(vma, addr, vmf->pmd, pfn, pgprot, write, pgtable);
++	insert_pfn_pmd(vma, vmf->address, vmf->pmd, pfn, pgprot, write, pgtable);
+ 	return VM_FAULT_NOPAGE;
+ }
+ EXPORT_SYMBOL_GPL(vmf_insert_pfn_pmd_prot);
+--- a/mm/memory.c~mm-set-page-fault-address-for-update_mmu_cache_pmd
++++ a/mm/memory.c
+@@ -3606,7 +3606,7 @@ static vm_fault_t do_set_pmd(struct vm_f
+ 
+ 	set_pmd_at(vma->vm_mm, haddr, vmf->pmd, entry);
+ 
+-	update_mmu_cache_pmd(vma, haddr, vmf->pmd);
++	update_mmu_cache_pmd(vma, vmf->address, vmf->pmd);
+ 
+ 	/* fault is handled */
+ 	ret = 0;
 _
 
-Patches currently in -mm which might be from ytht.net@gmail.com are
+Patches currently in -mm which might be from maobibo@loongson.cn are
 
-coredump-add-%f-for-executable-filename.patch
+mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
+mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
