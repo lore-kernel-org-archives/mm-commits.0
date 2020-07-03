@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
+Subject: + mailmap-add-entry-for-obsolete-email-address.patch
  added to -mm tree
-Date: Thu, 02 Jul 2020 21:56:56 -0700
-Message-ID: <20200703045656.cNwZ8p9FZ%akpm@linux-foundation.org>
+Date: Thu, 02 Jul 2020 21:58:46 -0700
+Message-ID: <20200703045846.16FVHGpu1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36196 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36410 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725764AbgGCE45 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Jul 2020 00:56:57 -0400
+        id S1725764AbgGCE6r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Jul 2020 00:58:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, iamjoonsoo.kim@lge.com, lonuxli.64@gmail.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, willy@infradead.org
+To: corbet@lwn.net, koct9i@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab: check GFP_SLAB_BUG_MASK before alloc_pages in kmalloc_order
+     Subject: mailmap: add entry for obsolete email address
 has been added to the -mm tree.  Its filename is
-     mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
+     mailmap-add-entry-for-obsolete-email-address.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-entry-for-obsolete-email-address.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-entry-for-obsolete-email-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,120 +36,32 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Long Li <lonuxli.64@gmail.com>
-Subject: mm, slab: check GFP_SLAB_BUG_MASK before alloc_pages in kmalloc_order
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: mailmap: add entry for obsolete email address
 
-kmalloc cannot allocate memory from HIGHMEM.  Allocating large amounts of
-memory currently bypasses the check and will simply leak the memory when
-page_address() returns NULL.  To fix this, factor the GFP_SLAB_BUG_MASK
-check out of slab & slub, and call it from kmalloc_order() as well.  In
-order to make the code clear, the warning message is put in one place.
+Map old corporate email address @yandex-team.ru to stable private address.
 
-Link: http://lkml.kernel.org/r/20200701151645.GA26223@lilong
-Signed-off-by: Long Li <lonuxli.64@gmail.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/159360469186.24918.10108157093572183535.stgit@zurg
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c        |   10 +++-------
- mm/slab.h        |    1 +
- mm/slab_common.c |   17 +++++++++++++++++
- mm/slub.c        |    9 ++-------
- 4 files changed, 23 insertions(+), 14 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/slab.c~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
-+++ a/mm/slab.c
-@@ -2589,13 +2589,9 @@ static struct page *cache_grow_begin(str
- 	 * Be lazy and only check for valid flags here,  keeping it out of the
- 	 * critical path in kmem_cache_alloc().
- 	 */
--	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
--		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
--		flags &= ~GFP_SLAB_BUG_MASK;
--		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
--				invalid_mask, &invalid_mask, flags, &flags);
--		dump_stack();
--	}
-+	if (unlikely(flags & GFP_SLAB_BUG_MASK))
-+		flags = kmalloc_invalid_flags(flags);
-+
- 	WARN_ON_ONCE(cachep->ctor && (flags & __GFP_ZERO));
- 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
- 
---- a/mm/slab_common.c~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
-+++ a/mm/slab_common.c
-@@ -26,6 +26,8 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/kmem.h>
- 
-+#include "internal.h"
-+
- #include "slab.h"
- 
- enum slab_state slab_state;
-@@ -1311,6 +1313,18 @@ void __init create_kmalloc_caches(slab_f
- }
- #endif /* !CONFIG_SLOB */
- 
-+gfp_t kmalloc_invalid_flags(gfp_t flags)
-+{
-+	gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
-+
-+	flags &= ~GFP_SLAB_BUG_MASK;
-+	pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
-+			invalid_mask, &invalid_mask, flags, &flags);
-+	dump_stack();
-+
-+	return flags;
-+}
-+
- /*
-  * To avoid unnecessary overhead, we pass through large allocation requests
-  * directly to the page allocator. We use __GFP_COMP, because we will need to
-@@ -1321,6 +1335,9 @@ void *kmalloc_order(size_t size, gfp_t f
- 	void *ret = NULL;
- 	struct page *page;
- 
-+	if (unlikely(flags & GFP_SLAB_BUG_MASK))
-+		flags = kmalloc_invalid_flags(flags);
-+
- 	flags |= __GFP_COMP;
- 	page = alloc_pages(flags, order);
- 	if (likely(page)) {
---- a/mm/slab.h~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
-+++ a/mm/slab.h
-@@ -152,6 +152,7 @@ void create_kmalloc_caches(slab_flags_t)
- struct kmem_cache *kmalloc_slab(size_t, gfp_t);
- #endif
- 
-+gfp_t kmalloc_invalid_flags(gfp_t flags);
- 
- /* Functions provided by the slab allocators */
- int __kmem_cache_create(struct kmem_cache *, slab_flags_t flags);
---- a/mm/slub.c~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
-+++ a/mm/slub.c
-@@ -1745,13 +1745,8 @@ out:
- 
- static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
- {
--	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
--		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
--		flags &= ~GFP_SLAB_BUG_MASK;
--		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
--				invalid_mask, &invalid_mask, flags, &flags);
--		dump_stack();
--	}
-+	if (unlikely(flags & GFP_SLAB_BUG_MASK))
-+		flags = kmalloc_invalid_flags(flags);
- 
- 	return allocate_slab(s,
- 		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
+--- a/.mailmap~mailmap-add-entry-for-obsolete-email-address
++++ a/.mailmap
+@@ -146,6 +146,7 @@ Kamil Konieczny <k.konieczny@samsung.com
+ Kay Sievers <kay.sievers@vrfy.org>
+ Kenneth W Chen <kenneth.w.chen@intel.com>
+ Konstantin Khlebnikov <koct9i@gmail.com> <k.khlebnikov@samsung.com>
++Konstantin Khlebnikov <koct9i@gmail.com> <khlebnikov@yandex-team.ru>
+ Koushik <raghavendra.koushik@neterion.com>
+ Krzysztof Kozlowski <krzk@kernel.org> <k.kozlowski@samsung.com>
+ Krzysztof Kozlowski <krzk@kernel.org> <k.kozlowski.k@gmail.com>
 _
 
-Patches currently in -mm which might be from lonuxli.64@gmail.com are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
-mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
+mailmap-add-entry-for-obsolete-email-address.patch
