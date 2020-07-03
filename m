@@ -1,57 +1,66 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [patch 1/5] mm/hugetlb.c: fix pages per hugetlb
- calculation
-Date: Fri, 03 Jul 2020 15:15:18 -0700
-Message-ID: <20200703221518.lcjqvNHG1%akpm@linux-foundation.org>
+Subject: [patch 2/5] samples/vfs: avoid warning in statx override
+Date: Fri, 03 Jul 2020 15:15:21 -0700
+Message-ID: <20200703221521.pD8I0o7qW%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48010 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48100 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726188AbgGCWPT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Jul 2020 18:15:19 -0400
+        id S1726188AbgGCWPW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Jul 2020 18:15:22 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, linux-mm@kvack.org, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, torvalds@linux-foundation.org, willy@infradead.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, keescook@chromium.org, linux-mm@kvack.org, mm-commits@vger.kernel.org, mszeredi@redhat.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
 
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb.c: fix pages per hugetlb calculation
+From: Kees Cook <keescook@chromium.org>
+Subject: samples/vfs: avoid warning in statx override
 
-The routine hpage_nr_pages() was incorrectly used to calculate the number
-of base pages in a hugetlb page.  hpage_nr_pages is designed to be called
-for THP pages and will return HPAGE_PMD_NR for hugetlb pages of any size.
+Something changed recently to uncover this warning:
 
-Due to the context in which hpage_nr_pages was called, it is unlikely to
-produce a user visible error.  The routine with the incorrect call is only
-exercised in the case of hugetlb memory error or migration.  In addition,
-this would need to be on an architecture which supports huge page sizes
-less than PMD_SIZE.  And, the vma containing the huge page would also need
-to smaller than PMD_SIZE.
+samples/vfs/test-statx.c:24:15: warning: `struct foo' declared inside parameter list will not be visible outside of this definition or declaration
+   24 | #define statx foo
+      |               ^~~
 
-Link: http://lkml.kernel.org/r/20200629185003.97202-1-mike.kravetz@oracle.com
-Fixes: c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing synchronization")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Which is due the use of "struct statx" (here, "struct foo") in a function
+prototype argument list before it has been defined:
+
+ int
+ # 56 "/usr/include/x86_64-linux-gnu/bits/statx-generic.h"
+    foo
+ # 56 "/usr/include/x86_64-linux-gnu/bits/statx-generic.h" 3 4
+          (int __dirfd, const char *__restrict __path, int __flags,
+            unsigned int __mask, struct
+ # 57 "/usr/include/x86_64-linux-gnu/bits/statx-generic.h"
+                                       foo
+ # 57 "/usr/include/x86_64-linux-gnu/bits/statx-generic.h" 3 4
+                                             *__restrict __buf)
+   __attribute__ ((__nothrow__ , __leaf__)) __attribute__ ((__nonnull__ (2, 5)));
+
+Add explicit struct before #include to avoid warning.
+
+Link: http://lkml.kernel.org/r/202006282213.C516EA6@keescook
+Fixes: f1b5618e013a ("vfs: Add a sample program for the new mount API")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ samples/vfs/test-statx.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/hugetlb.c~hugetlb-fix-pages-per-hugetlb-calculation
-+++ a/mm/hugetlb.c
-@@ -1593,7 +1593,7 @@ static struct address_space *_get_hugetl
- 
- 	/* Use first found vma */
- 	pgoff_start = page_to_pgoff(hpage);
--	pgoff_end = pgoff_start + hpage_nr_pages(hpage) - 1;
-+	pgoff_end = pgoff_start + pages_per_huge_page(page_hstate(hpage)) - 1;
- 	anon_vma_interval_tree_foreach(avc, &anon_vma->rb_root,
- 					pgoff_start, pgoff_end) {
- 		struct vm_area_struct *vma = avc->vma;
+--- a/samples/vfs/test-statx.c~samples-vfs-avoid-warning-in-statx-override
++++ a/samples/vfs/test-statx.c
+@@ -23,6 +23,8 @@
+ #include <linux/fcntl.h>
+ #define statx foo
+ #define statx_timestamp foo_timestamp
++struct statx;
++struct statx_timestamp;
+ #include <sys/stat.h>
+ #undef statx
+ #undef statx_timestamp
 _
