@@ -1,29 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: +
- kthread-work-could-not-be-queued-when-worker-being-destroyed.patch added to
- -mm tree
-Date: Fri, 03 Jul 2020 12:13:35 -0700
-Message-ID: <20200703191335.UnW5xFL9b%akpm@linux-foundation.org>
+Subject: + mm-shmem-fix-freeing-new_attr-in-shmem_initxattrs.patch
+ added to -mm tree
+Date: Fri, 03 Jul 2020 12:20:46 -0700
+Message-ID: <20200703192046.vw7STmQB6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:48218 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49052 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726147AbgGCTNg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Jul 2020 15:13:36 -0400
+        id S1726236AbgGCTUr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Jul 2020 15:20:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, pmladek@suse.com, qiang.zhang@windriver.com
+To: akpm@linux-foundation.org, cgxu519@mykernel.net, mm-commits@vger.kernel.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread: work could not be queued when worker being destroyed
+     Subject: mm/shmem: fix freeing new_attr in shmem_initxattrs()
 has been added to the -mm tree.  Its filename is
-     kthread-work-could-not-be-queued-when-worker-being-destroyed.patch
+     mm-shmem-fix-freeing-new_attr-in-shmem_initxattrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kthread-work-could-not-be-queued-when-worker-being-destroyed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-fix-freeing-new_attr-in-shmem_initxattrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kthread-work-could-not-be-queued-when-worker-being-destroyed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-fix-freeing-new_attr-in-shmem_initxattrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,36 +36,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Qiang <qiang.zhang@windriver.com>
-Subject: kthread: work could not be queued when worker being destroyed
+From: Chengguang Xu <cgxu519@mykernel.net>
+Subject: mm/shmem: fix freeing new_attr in shmem_initxattrs()
 
-The "queuing_blocked" func should print warning message and returns true
-when the worker being destroyed.
+new_attr is allocated with kvmalloc() so should be freed
+with kvfree().
 
-Link: http://lkml.kernel.org/r/20200702070156.5862-1-qiang.zhang@windriver.com
-Signed-off-by: Zhang Qiang <qiang.zhang@windriver.com>
-Suggested-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
+Link: http://lkml.kernel.org/r/20200703065636.20897-1-cgxu519@mykernel.net
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/kthread.c~kthread-work-could-not-be-queued-when-worker-being-destroyed
-+++ a/kernel/kthread.c
-@@ -814,6 +814,9 @@ static inline bool queuing_blocked(struc
- {
- 	lockdep_assert_held(&worker->lock);
- 
-+	if (WARN_ON(!worker->task))
-+		return true;
-+
- 	return !list_empty(&work->node) || work->canceling;
- }
+--- a/mm/shmem.c~mm-shmem-fix-freeing-new_attr-in-shmem_initxattrs
++++ a/mm/shmem.c
+@@ -3178,7 +3178,7 @@ static int shmem_initxattrs(struct inode
+ 		new_xattr->name = kmalloc(XATTR_SECURITY_PREFIX_LEN + len,
+ 					  GFP_KERNEL);
+ 		if (!new_xattr->name) {
+-			kfree(new_xattr);
++			kvfree(new_xattr);
+ 			return -ENOMEM;
+ 		}
  
 _
 
-Patches currently in -mm which might be from qiang.zhang@windriver.com are
+Patches currently in -mm which might be from cgxu519@mykernel.net are
 
-kthread-work-could-not-be-queued-when-worker-being-destroyed.patch
+mm-shmem-fix-freeing-new_attr-in-shmem_initxattrs.patch
