@@ -1,29 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix.patch added to -mm
- tree
-Date: Thu, 02 Jul 2020 21:29:19 -0700
-Message-ID: <20200703042919.kZ3qJMXHz%akpm@linux-foundation.org>
+Subject: + bits-add-tests-of-genmask-fix-2.patch added to -mm tree
+Date: Thu, 02 Jul 2020 21:30:45 -0700
+Message-ID: <20200703043045.tNy6Xj9MB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58622 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725294AbgGCE3U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Jul 2020 00:29:20 -0400
+        id S1725294AbgGCEaq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Jul 2020 00:30:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hulkci@huawei.com, mm-commits@vger.kernel.org, vbabka@suse.cz, weiyongjun1@huawei.com
+To: hulkci@huawei.com, mm-commits@vger.kernel.org, rikard.falkeborn@gmail.com, weiyongjun1@huawei.com
 
 
 The patch titled
-     Subject: mm, slub: make function parse_slub_debug_flags() static
+     Subject: lib/test_bits: make some functions static
 has been added to the -mm tree.  Its filename is
-     mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix.patch
+     bits-add-tests-of-genmask-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bits-add-tests-of-genmask-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bits-add-tests-of-genmask-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,36 +36,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: mm, slub: make function parse_slub_debug_flags() static
+Subject: lib/test_bits: make some functions static
 
-Fix sparse build warning:
+Fix sparse build warnings:
 
-mm/slub.c:1267:6: warning:
- symbol 'parse_slub_debug_flags' was not declared. Should it be static?
+lib/test_bits.c:10:6: warning:
+ symbol 'genmask_test' was not declared. Should it be static?
+lib/test_bits.c:27:6: warning:
+ symbol 'genmask_ull_test' was not declared. Should it be static?
+lib/test_bits.c:42:6: warning:
+ symbol 'genmask_input_check_test' was not declared. Should it be static?
 
-Link: http://lkml.kernel.org/r/20200702150522.4940-1-weiyongjun1@huawei.com
+Link: http://lkml.kernel.org/r/20200702150336.4756-1-weiyongjun1@huawei.com
 Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
 Reported-by: Hulk Robot <hulkci@huawei.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Rikard Falkeborn <rikard.falkeborn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_bits.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/slub.c~mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix
-+++ a/mm/slub.c
-@@ -1272,7 +1272,7 @@ out:
-  *
-  * returns the start of next block if there's any, or NULL
-  */
--char *
-+static char *
- parse_slub_debug_flags(char *str, slab_flags_t *flags, char **slabs, bool init)
+--- a/lib/test_bits.c~bits-add-tests-of-genmask-fix-2
++++ a/lib/test_bits.c
+@@ -7,7 +7,7 @@
+ #include <linux/bits.h>
+ 
+ 
+-void genmask_test(struct kunit *test)
++static void genmask_test(struct kunit *test)
  {
- 	bool higher_order_disable = false;
+ 	KUNIT_EXPECT_EQ(test, 1ul, GENMASK(0, 0));
+ 	KUNIT_EXPECT_EQ(test, 3ul, GENMASK(1, 0));
+@@ -24,7 +24,7 @@ void genmask_test(struct kunit *test)
+ 
+ }
+ 
+-void genmask_ull_test(struct kunit *test)
++static void genmask_ull_test(struct kunit *test)
+ {
+ 	KUNIT_EXPECT_EQ(test, 1ull, GENMASK_ULL(0, 0));
+ 	KUNIT_EXPECT_EQ(test, 3ull, GENMASK_ULL(1, 0));
+@@ -39,7 +39,7 @@ void genmask_ull_test(struct kunit *test
+ #endif
+ }
+ 
+-void genmask_input_check_test(struct kunit *test)
++static void genmask_input_check_test(struct kunit *test)
+ {
+ 	unsigned int x, y;
+ 	int z, w;
 _
 
 Patches currently in -mm which might be from weiyongjun1@huawei.com are
 
 mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix.patch
+bits-add-tests-of-genmask-fix-2.patch
