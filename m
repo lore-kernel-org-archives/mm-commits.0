@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] slub-drop-lockdep_assert_held-from-put_map.patch
- removed from -mm tree
-Date: Mon, 06 Jul 2020 16:33:00 -0700
-Message-ID: <20200706233300.2QiUxmw6Q%akpm@linux-foundation.org>
+Subject: + slub-drop-lockdep_assert_held-from-put_map.patch added
+ to -mm tree
+Date: Mon, 06 Jul 2020 16:34:06 -0700
+Message-ID: <20200706233406.tznwdEcVl%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36238 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36306 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726817AbgGFXdB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Jul 2020 19:33:01 -0400
+        id S1726366AbgGFXeH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Jul 2020 19:34:07 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,10 +18,24 @@ To: bigeasy@linutronix.de, cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger
 
 The patch titled
      Subject: mm/slub.c: drop lockdep_assert_held() from put_map()
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      slub-drop-lockdep_assert_held-from-put_map.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-drop-lockdep_assert_held-from-put_map.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-drop-lockdep_assert_held-from-put_map.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
