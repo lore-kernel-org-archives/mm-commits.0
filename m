@@ -1,183 +1,160 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated]
- mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
- removed from -mm tree
-Date: Thu, 09 Jul 2020 17:38:45 -0700
-Message-ID: <20200710003845.WjFRV-gWf%akpm@linux-foundation.org>
-References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
-Reply-To: linux-kernel@vger.kernel.org
-Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34608 "EHLO mail.kernel.org"
+Return-Path: <SRS0=vc0r=AR=vger.kernel.org=mm-commits-owner@kernel.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CC01C433DF
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Jul 2020 22:41:36 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+	by mail.kernel.org (Postfix) with ESMTP id 3442A20739
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Jul 2020 22:41:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1594075296;
+	bh=kFEF9btai+HvsfiIwXq210y8RM7XAudeQdVYYuVoXxY=;
+	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
+	b=CfmzoouGkMU4nTnSSA1sFf7v+gLTBJe493yHJxfLkc/XLtV7FaGd7xPP9s8Fq/VP8
+	 8xQPkRgoubJ5wMa10ILNjWo8+6/YwlAwrQuth4QqT7291QNGrwVYON2T7e2yKKhY1T
+	 cxPtx525W2MjL8ymSZ8TrlzTu6V3VchQalGrOWwU=
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+        id S1726852AbgGFWlf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Jul 2020 18:41:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50554 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726272AbgGJAir (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jul 2020 20:38:47 -0400
+        id S1726681AbgGFWlf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Jul 2020 18:41:35 -0400
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id A36F520723;
+        Mon,  6 Jul 2020 22:41:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1594075294;
+        bh=kFEF9btai+HvsfiIwXq210y8RM7XAudeQdVYYuVoXxY=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=In+1QjH8YnGyiFh5rBQACI174d0otuBNF3sGtX8Pa6yTeUZrU6xYmjCREGMRHJgm6
+         gnSOiFtQ+NyoWUU56Shl7JU0du4K38iys0JMxw6DaM/hI0vNXHOpW3S0Suj5HnG8CQ
+         PXU9hk5z3ysNtZJm8awuaPiiOos3tT374/fxhijg=
+Date:   Mon, 06 Jul 2020 15:41:34 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com,
+        mark.rutland@arm.com, mm-commits@vger.kernel.org,
+        vincenzo.frascino@arm.com
+Subject:  + kasan-remove-kasan_unpoison_stack_above_sp_to.patch
+ added to -mm tree
+Message-ID: <20200706224134.H6Cn3T8Ik%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
-List-Id: mm-commits@vger.kernel.org
-To: andi.kleen@intel.com, dave.hansen@intel.com, feng.tang@intel.com, hannes@cmpxchg.org, keescook@chromium.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@intel.com, willy@infradead.org, ying.huang@intel.com
+Precedence: bulk
+Reply-To: linux-kernel@vger.kernel.org
+List-ID: <mm-commits.vger.kernel.org>
+X-Mailing-List: mm-commits@vger.kernel.org
+Message-ID: <20200706224134.6ye6H31Y3b6UPpmHZVBgesdZqRrRq3FD8FQPZTvDdDE@z>
 
 
 The patch titled
-     Subject: mm: adjust vm_committed_as_batch according to vm overcommit policy
-has been removed from the -mm tree.  Its filename was
-     mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
+     Subject: kasan: remove kasan_unpoison_stack_above_sp_to()
+has been added to the -mm tree.  Its filename is
+     kasan-remove-kasan_unpoison_stack_above_sp_to.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-remove-kasan_unpoison_stack_above_sp_to.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-remove-kasan_unpoison_stack_above_sp_to.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Feng Tang <feng.tang@intel.com>
-Subject: mm: adjust vm_committed_as_batch according to vm overcommit policy
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: kasan: remove kasan_unpoison_stack_above_sp_to()
 
-When checking a performance change for will-it-scale scalability mmap test
-[1], we found very high lock contention for spinlock of percpu counter
-'vm_committed_as':
+kasan_unpoison_stack_above_sp_to() is defined in kasan code but never
+used.  The function was introduced as part of the commit:
 
-    94.14%     0.35%  [kernel.kallsyms]         [k] _raw_spin_lock_irqsave
-    48.21% _raw_spin_lock_irqsave;percpu_counter_add_batch;__vm_enough_memory;mmap_region;do_mmap;
-    45.91% _raw_spin_lock_irqsave;percpu_counter_add_batch;__do_munmap;
+   commit 9f7d416c36124667 ("kprobes: Unpoison stack in jprobe_return() for KASAN")
 
-Actually this heavy lock contention is not always necessary.  The
-'vm_committed_as' needs to be very precise when the strict
-OVERCOMMIT_NEVER policy is set, which requires a rather small batch number
-for the percpu counter.
+... where it was necessary because x86's jprobe_return() would leave
+stale shadow on the stack, and was an oddity in that regard.
 
-So keep 'batch' number unchanged for strict OVERCOMMIT_NEVER policy, and
-lift it to 64X for OVERCOMMIT_ALWAYS and OVERCOMMIT_GUESS policies.  Also
-add a sysctl handler to adjust it when the policy is reconfigured.
+Since then, jprobes were removed entirely, and as of commit:
 
-Benchmark with the same testcase in [1] shows 53% improvement on a 8C/16T
-desktop, and 2097%(20X) on a 4S/72C/144T server.  We tested with test
-platforms in 0day (server, desktop and laptop), and 80%+ platforms shows
-improvements with that test.  And whether it shows improvements depends on
-if the test mmap size is bigger than the batch number computed.
+  commit 80006dbee674f9fa ("kprobes/x86: Remove jprobe implementation")
 
-And if the lift is 16X, 1/3 of the platforms will show improvements,
-though it should help the mmap/unmap usage generally, as Michal Hocko
-mentioned:
+... there have been no callers of this function.
 
-: I believe that there are non-synthetic worklaods which would benefit from
-: a larger batch.  E.g.  large in memory databases which do large mmaps
-: during startups from multiple threads.
+Remove the declaration and the implementation.
 
-[1] https://lore.kernel.org/lkml/20200305062138.GI5972@shao2-debian/
-
-Link: http://lkml.kernel.org/r/1589611660-89854-4-git-send-email-feng.tang@intel.com
-Link: http://lkml.kernel.org/r/1592725000-73486-4-git-send-email-feng.tang@intel.com
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Tim Chen <tim.c.chen@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
+Link: http://lkml.kernel.org/r/20200706143505.23299-1-vincenzo.frascino@arm.com
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Reviewed-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h   |    2 ++
- include/linux/mman.h |    4 ++++
- kernel/sysctl.c      |    2 +-
- mm/mm_init.c         |   16 +++++++++++++---
- mm/util.c            |   12 ++++++++++++
- 5 files changed, 32 insertions(+), 4 deletions(-)
+ include/linux/kasan.h |    2 --
+ mm/kasan/common.c     |   15 ---------------
+ 2 files changed, 17 deletions(-)
 
---- a/include/linux/mman.h~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
-+++ a/include/linux/mman.h
-@@ -57,8 +57,12 @@ extern struct percpu_counter vm_committe
+--- a/include/linux/kasan.h~kasan-remove-kasan_unpoison_stack_above_sp_to
++++ a/include/linux/kasan.h
+@@ -38,7 +38,6 @@ extern void kasan_disable_current(void);
+ void kasan_unpoison_shadow(const void *address, size_t size);
  
- #ifdef CONFIG_SMP
- extern s32 vm_committed_as_batch;
-+extern void mm_compute_batch(void);
- #else
- #define vm_committed_as_batch 0
-+static inline void mm_compute_batch(void)
-+{
-+}
- #endif
+ void kasan_unpoison_task_stack(struct task_struct *task);
+-void kasan_unpoison_stack_above_sp_to(const void *watermark);
  
- unsigned long vm_memory_committed(void);
---- a/include/linux/mm.h~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
-+++ a/include/linux/mm.h
-@@ -206,6 +206,8 @@ int overcommit_ratio_handler(struct ctl_
- 		loff_t *);
- int overcommit_kbytes_handler(struct ctl_table *, int, void *, size_t *,
- 		loff_t *);
-+int overcommit_policy_handler(struct ctl_table *, int, void *, size_t *,
-+		loff_t *);
+ void kasan_alloc_pages(struct page *page, unsigned int order);
+ void kasan_free_pages(struct page *page, unsigned int order);
+@@ -101,7 +100,6 @@ void kasan_restore_multi_shot(bool enabl
+ static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
  
- #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
+-static inline void kasan_unpoison_stack_above_sp_to(const void *watermark) {}
  
---- a/kernel/sysctl.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
-+++ a/kernel/sysctl.c
-@@ -2650,7 +2650,7 @@ static struct ctl_table vm_table[] = {
- 		.data		= &sysctl_overcommit_memory,
- 		.maxlen		= sizeof(sysctl_overcommit_memory),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
-+		.proc_handler	= overcommit_policy_handler,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= &two,
- 	},
---- a/mm/mm_init.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
-+++ a/mm/mm_init.c
-@@ -13,6 +13,7 @@
- #include <linux/memory.h>
- #include <linux/notifier.h>
- #include <linux/sched.h>
-+#include <linux/mman.h>
- #include "internal.h"
- 
- #ifdef CONFIG_DEBUG_MEMORY_INIT
-@@ -144,14 +145,23 @@ EXPORT_SYMBOL_GPL(mm_kobj);
- #ifdef CONFIG_SMP
- s32 vm_committed_as_batch = 32;
- 
--static void __meminit mm_compute_batch(void)
-+void mm_compute_batch(void)
- {
- 	u64 memsized_batch;
- 	s32 nr = num_present_cpus();
- 	s32 batch = max_t(s32, nr*2, 32);
-+	unsigned long ram_pages = totalram_pages();
- 
--	/* batch size set to 0.4% of (total memory/#cpus), or max int32 */
--	memsized_batch = min_t(u64, (totalram_pages()/nr)/256, 0x7fffffff);
-+	/*
-+	 * For policy of OVERCOMMIT_NEVER, set batch size to 0.4%
-+	 * of (total memory/#cpus), and lift it to 25% for other
-+	 * policies to easy the possible lock contention for percpu_counter
-+	 * vm_committed_as, while the max limit is INT_MAX
-+	 */
-+	if (sysctl_overcommit_memory == OVERCOMMIT_NEVER)
-+		memsized_batch = min_t(u64, ram_pages/nr/256, INT_MAX);
-+	else
-+		memsized_batch = min_t(u64, ram_pages/nr/4, INT_MAX);
- 
- 	vm_committed_as_batch = max_t(s32, memsized_batch, batch);
- }
---- a/mm/util.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
-+++ a/mm/util.c
-@@ -746,6 +746,18 @@ int overcommit_ratio_handler(struct ctl_
- 	return ret;
+ static inline void kasan_enable_current(void) {}
+ static inline void kasan_disable_current(void) {}
+--- a/mm/kasan/common.c~kasan-remove-kasan_unpoison_stack_above_sp_to
++++ a/mm/kasan/common.c
+@@ -180,21 +180,6 @@ asmlinkage void kasan_unpoison_task_stac
+ 	kasan_unpoison_shadow(base, watermark - base);
  }
  
-+int overcommit_policy_handler(struct ctl_table *table, int write, void *buffer,
-+		size_t *lenp, loff_t *ppos)
-+{
-+	int ret;
-+
-+	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
-+	if (ret == 0 && write)
-+		mm_compute_batch();
-+
-+	return ret;
-+}
-+
- int overcommit_kbytes_handler(struct ctl_table *table, int write, void *buffer,
- 		size_t *lenp, loff_t *ppos)
+-/*
+- * Clear all poison for the region between the current SP and a provided
+- * watermark value, as is sometimes required prior to hand-crafted asm function
+- * returns in the middle of functions.
+- */
+-void kasan_unpoison_stack_above_sp_to(const void *watermark)
+-{
+-	const void *sp = __builtin_frame_address(0);
+-	size_t size = watermark - sp;
+-
+-	if (WARN_ON(sp > watermark))
+-		return;
+-	kasan_unpoison_shadow(sp, size);
+-}
+-
+ void kasan_alloc_pages(struct page *page, unsigned int order)
  {
+ 	u8 tag;
 _
 
-Patches currently in -mm which might be from feng.tang@intel.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
+
+kasan-remove-kasan_unpoison_stack_above_sp_to.patch
+
