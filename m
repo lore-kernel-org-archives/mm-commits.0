@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated]
+Subject: +
  mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
- removed from -mm tree
-Date: Mon, 06 Jul 2020 16:52:52 -0700
-Message-ID: <20200706235252.WmN5C60oG%akpm@linux-foundation.org>
+ added to -mm tree
+Date: Mon, 06 Jul 2020 16:53:47 -0700
+Message-ID: <20200706235347.MLi9EXuBP%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40464 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40602 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727046AbgGFXwy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Jul 2020 19:52:54 -0400
+        id S1726729AbgGFXxs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Jul 2020 19:53:48 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -19,10 +19,24 @@ To: cl@linux.com, iamjoonsoo.kim@lge.com, lonuxli.64@gmail.com, mm-commits@vger.
 
 The patch titled
      Subject: mm, slab: check GFP_SLAB_BUG_MASK before alloc_pages in kmalloc_order
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Long Li <lonuxli.64@gmail.com>
@@ -34,12 +48,12 @@ page_address() returns NULL.  To fix this, factor the GFP_SLAB_BUG_MASK
 check out of slab & slub, and call it from kmalloc_order() as well.  In
 order to make the code clear, the warning message is put in one place.
 
-Link: http://lkml.kernel.org/r/20200701151645.GA26223@lilong
+Link: http://lkml.kernel.org/r/20200704035027.GA62481@lilong
 Signed-off-by: Long Li <lonuxli.64@gmail.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -64,7 +78,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -		dump_stack();
 -	}
 +	if (unlikely(flags & GFP_SLAB_BUG_MASK))
-+		flags = kmalloc_invalid_flags(flags);
++		flags = kmalloc_fix_flags(flags);
 +
  	WARN_ON_ONCE(cachep->ctor && (flags & __GFP_ZERO));
  	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
@@ -84,7 +98,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  }
  #endif /* !CONFIG_SLOB */
  
-+gfp_t kmalloc_invalid_flags(gfp_t flags)
++gfp_t kmalloc_fix_flags(gfp_t flags)
 +{
 +	gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
 +
@@ -104,7 +118,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	struct page *page;
  
 +	if (unlikely(flags & GFP_SLAB_BUG_MASK))
-+		flags = kmalloc_invalid_flags(flags);
++		flags = kmalloc_fix_flags(flags);
 +
  	flags |= __GFP_COMP;
  	page = alloc_pages(flags, order);
@@ -115,7 +129,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  struct kmem_cache *kmalloc_slab(size_t, gfp_t);
  #endif
  
-+gfp_t kmalloc_invalid_flags(gfp_t flags);
++gfp_t kmalloc_fix_flags(gfp_t flags);
  
  /* Functions provided by the slab allocators */
  int __kmem_cache_create(struct kmem_cache *, slab_flags_t flags);
@@ -133,10 +147,12 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -		dump_stack();
 -	}
 +	if (unlikely(flags & GFP_SLAB_BUG_MASK))
-+		flags = kmalloc_invalid_flags(flags);
++		flags = kmalloc_fix_flags(flags);
  
  	return allocate_slab(s,
  		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
 _
 
 Patches currently in -mm which might be from lonuxli.64@gmail.com are
+
+mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
