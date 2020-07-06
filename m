@@ -1,31 +1,31 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-mmap-optimize-a-branch-judgment-in-ksys_mmap_pgoff.patch added to -mm
- tree
-Date: Mon, 06 Jul 2020 16:36:44 -0700
-Message-ID: <20200706233644.v2Q58_ifN%akpm@linux-foundation.org>
+ vfs-xattr-mm-shmem-kernfs-release-simple-xattr-entry-in-a-right-way.patch
+ added to -mm tree
+Date: Mon, 06 Jul 2020 16:50:22 -0700
+Message-ID: <20200706235022.Xujoc1zol%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36888 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:39646 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726366AbgGFXgp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Jul 2020 19:36:45 -0400
+        id S1726280AbgGFXuZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Jul 2020 19:50:25 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org, thunder.leizhen@huawei.com
+To: adilger@dilger.ca, cgxu519@mykernel.net, chris@chrisdown.name, dxu@dxuuu.xyz, gregkh@linuxfoundation.org, hughd@google.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, tj@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm/mmap: optimize a branch judgment in ksys_mmap_pgoff()
+     Subject: vfs/xattr: mm/shmem: kernfs: release simple xattr entry in a right way
 has been added to the -mm tree.  Its filename is
-     mm-mmap-optimize-a-branch-judgment-in-ksys_mmap_pgoff.patch
+     vfs-xattr-mm-shmem-kernfs-release-simple-xattr-entry-in-a-right-way.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-optimize-a-branch-judgment-in-ksys_mmap_pgoff.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vfs-xattr-mm-shmem-kernfs-release-simple-xattr-entry-in-a-right-way.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-optimize-a-branch-judgment-in-ksys_mmap_pgoff.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-xattr-mm-shmem-kernfs-release-simple-xattr-entry-in-a-right-way.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: mm/mmap: optimize a branch judgment in ksys_mmap_pgoff()
+From: Chengguang Xu <cgxu519@mykernel.net>
+Subject: vfs/xattr: mm/shmem: kernfs: release simple xattr entry in a right way
 
-Look at the pseudo code below.  It's very clear that, the judgement
-"!is_file_hugepages(file)" at 3) is duplicated to the one at 1), we can
-use "else if" to avoid it.  And the assignment "retval = -EINVAL" at 2) is
-only needed by the branch 3), because "retval" will be overwritten at 4).
+After commit fdc85222d58e ("kernfs: kvmalloc xattr value instead of
+kmalloc"), simple xattr entry is allocated with kvmalloc() instead of
+kmalloc(), so we should release it with kvfree() instead of kfree().
 
-No functional change, but it can reduce the code size. Maybe more clearer?
-Before:
-text    data     bss     dec     hex filename
-28733    1590       1   30324    7674 mm/mmap.o
-
-After:
-text    data     bss     dec     hex filename
-28701    1590       1   30292    7654 mm/mmap.o
-
-====pseudo code====:
-	if (!(flags & MAP_ANONYMOUS)) {
-		...
-1)		if (is_file_hugepages(file))
-			len = ALIGN(len, huge_page_size(hstate_file(file)));
-2)		retval = -EINVAL;
-3)		if (unlikely(flags & MAP_HUGETLB && !is_file_hugepages(file)))
-			goto out_fput;
-	} else if (flags & MAP_HUGETLB) {
-		...
-	}
-	...
-
-4)	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
-out_fput:
-	...
-	return retval;
-
-Link: http://lkml.kernel.org/r/20200705080112.1405-1-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20200704051608.15043-1-cgxu519@mykernel.net
+Fixes: fdc85222d58e ("kernfs: kvmalloc xattr value instead of kmalloc")
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Daniel Xu <dxu@dxuuu.xyz>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: Andreas Dilger <adilger@dilger.ca>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>	[5.7]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/xattr.h |    3 ++-
+ mm/shmem.c            |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-optimize-a-branch-judgment-in-ksys_mmap_pgoff
-+++ a/mm/mmap.c
-@@ -1562,11 +1562,12 @@ unsigned long ksys_mmap_pgoff(unsigned l
- 		file = fget(fd);
- 		if (!file)
- 			return -EBADF;
--		if (is_file_hugepages(file))
-+		if (is_file_hugepages(file)) {
- 			len = ALIGN(len, huge_page_size(hstate_file(file)));
--		retval = -EINVAL;
--		if (unlikely(flags & MAP_HUGETLB && !is_file_hugepages(file)))
-+		} else if (unlikely(flags & MAP_HUGETLB)) {
-+			retval = -EINVAL;
- 			goto out_fput;
-+		}
- 	} else if (flags & MAP_HUGETLB) {
- 		struct user_struct *user = NULL;
- 		struct hstate *hs;
+--- a/include/linux/xattr.h~vfs-xattr-mm-shmem-kernfs-release-simple-xattr-entry-in-a-right-way
++++ a/include/linux/xattr.h
+@@ -15,6 +15,7 @@
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/spinlock.h>
++#include <linux/mm.h>
+ #include <uapi/linux/xattr.h>
+ 
+ struct inode;
+@@ -94,7 +95,7 @@ static inline void simple_xattrs_free(st
+ 
+ 	list_for_each_entry_safe(xattr, node, &xattrs->head, list) {
+ 		kfree(xattr->name);
+-		kfree(xattr);
++		kvfree(xattr);
+ 	}
+ }
+ 
+--- a/mm/shmem.c~vfs-xattr-mm-shmem-kernfs-release-simple-xattr-entry-in-a-right-way
++++ a/mm/shmem.c
+@@ -3178,7 +3178,7 @@ static int shmem_initxattrs(struct inode
+ 		new_xattr->name = kmalloc(XATTR_SECURITY_PREFIX_LEN + len,
+ 					  GFP_KERNEL);
+ 		if (!new_xattr->name) {
+-			kfree(new_xattr);
++			kvfree(new_xattr);
+ 			return -ENOMEM;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from thunder.leizhen@huawei.com are
+Patches currently in -mm which might be from cgxu519@mykernel.net are
 
-mm-mmap-optimize-a-branch-judgment-in-ksys_mmap_pgoff.patch
+vfs-xattr-mm-shmem-kernfs-release-simple-xattr-entry-in-a-right-way.patch
+mm-shmem-fix-freeing-new_attr-in-shmem_initxattrs.patch
