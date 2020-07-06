@@ -1,77 +1,83 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated]
- mm-mremap-start-addresses-are-properly-aligned.patch removed from -mm tree
-Date: Mon, 06 Jul 2020 16:04:01 -0700
-Message-ID: <20200706230401.zZSZfWDwX%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt.patch added to
+ -mm tree
+Date: Mon, 06 Jul 2020 16:15:56 -0700
+Message-ID: <20200706231556.LFvGuZe-v%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55936 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58160 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725942AbgGFXED (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Jul 2020 19:04:03 -0400
+        id S1726366AbgGFXP5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Jul 2020 19:15:57 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com, digetx@gmail.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, peterx@redhat.com, richard.weiyang@linux.alibaba.com, sean.j.christopherson@intel.com, thellstrom@vmware.com, thomas_os@shipmail.org, vbabka@suse.cz, walken@google.com, willy@infradead.org, yang.shi@linux.alibaba.com
+To: david@redhat.com, mm-commits@vger.kernel.org, penberg@kernel.org, songmuchun@bytedance.com
 
 
 The patch titled
-     Subject: mm/mremap: start addresses are properly aligned
-has been removed from the -mm tree.  Its filename was
-     mm-mremap-start-addresses-are-properly-aligned.patch
+     Subject: mm/page_alloc.c: skip setting nodemask when we are in interrupt
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@linux.alibaba.com>
-Subject: mm/mremap: start addresses are properly aligned
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/page_alloc.c: skip setting nodemask when we are in interrupt
 
-After previous cleanup, extent is the minimal step for both source and
-destination.  This means when extent is HPAGE_PMD_SIZE or PMD_SIZE,
-old_addr and new_addr are properly aligned too.
+When we are in the interrupt context, it is irrelevant to the current task
+context.  If we use current task's mems_allowed, we can be fair to alloc
+pages in the fast path and fall back to slow path memory allocation when
+the current node(which is the current task mems_allowed) does not have
+enough memory to allocate.  In this case, it slows down the memory
+allocation speed of interrupt context.  So we can skip setting the
+nodemask to allow any node to allocate memory, so that fast path
+allocation can success.
 
-Since these two functions are only invoked in move_page_tables, it is safe
-to remove the check now.
-
-Link: http://lkml.kernel.org/r/20200626135216.24314-5-richard.weiyang@linux.alibaba.com
-Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
-Tested-by: Dmitry Osipenko <digetx@gmail.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <sean.j.christopherson@intel.com>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: Thomas Hellstrom (VMware) <thomas_os@shipmail.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/20200706025921.53683-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ---
- mm/mremap.c      |    3 ---
- 2 files changed, 6 deletions(-)
+ mm/page_alloc.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-mremap-start-addresses-are-properly-aligned
-+++ a/mm/huge_memory.c
-@@ -1729,9 +1729,6 @@ bool move_huge_pmd(struct vm_area_struct
- 	struct mm_struct *mm = vma->vm_mm;
- 	bool force_flush = false;
+--- a/mm/page_alloc.c~mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt
++++ a/mm/page_alloc.c
+@@ -4790,7 +4790,11 @@ static inline bool prepare_alloc_pages(g
  
--	if ((old_addr & ~HPAGE_PMD_MASK) || (new_addr & ~HPAGE_PMD_MASK))
--		return false;
--
- 	/*
- 	 * The destination pmd shouldn't be established, free_pgtables()
- 	 * should have release it.
---- a/mm/mremap.c~mm-mremap-start-addresses-are-properly-aligned
-+++ a/mm/mremap.c
-@@ -199,9 +199,6 @@ static bool move_normal_pmd(struct vm_ar
- 	struct mm_struct *mm = vma->vm_mm;
- 	pmd_t pmd;
- 
--	if ((old_addr & ~PMD_MASK) || (new_addr & ~PMD_MASK))
--		return false;
+ 	if (cpusets_enabled()) {
+ 		*alloc_mask |= __GFP_HARDWALL;
+-		if (!ac->nodemask)
++		/*
++		 * When we are in the interrupt context, it is irrelevant
++		 * to the current task context. It means that any node ok.
++		 */
++		if (!in_interrupt() && !ac->nodemask)
+ 			ac->nodemask = &cpuset_current_mems_allowed;
+ 		else
+ 			*alloc_flags |= ALLOC_CPUSET;
+_
+
+Patches currently in -mm which might be from songmuchun@bytedance.com are
+
+mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt.patch
