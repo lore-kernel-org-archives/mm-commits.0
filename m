@@ -1,70 +1,53 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + slub-drop-lockdep_assert_held-from-put_map.patch added
- to -mm tree
-Date: Mon, 06 Jul 2020 16:34:06 -0700
-Message-ID: <20200706233406.tznwdEcVl%akpm@linux-foundation.org>
+Subject: [merged]
+ mailmap-add-entry-for-obsolete-email-address.patch removed from -mm tree
+Date: Mon, 06 Jul 2020 16:34:18 -0700
+Message-ID: <20200706233418.qEDuhnE9X%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:36306 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726366AbgGFXeH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Jul 2020 19:34:07 -0400
+        id S1726805AbgGFXeT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Jul 2020 19:34:19 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bigeasy@linutronix.de, cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, tglx@linutronix.de, yuzhao@google.com
+To: corbet@lwn.net, koct9i@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub.c: drop lockdep_assert_held() from put_map()
-has been added to the -mm tree.  Its filename is
-     slub-drop-lockdep_assert_held-from-put_map.patch
+     Subject: mailmap: add entry for obsolete email address
+has been removed from the -mm tree.  Its filename was
+     mailmap-add-entry-for-obsolete-email-address.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-drop-lockdep_assert_held-from-put_map.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-drop-lockdep_assert_held-from-put_map.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: mm/slub.c: drop lockdep_assert_held() from put_map()
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: mailmap: add entry for obsolete email address
 
-There is no point in using lockdep_assert_held() unlock that is about to
-be unlocked.  It works only with lockdep and lockdep will complain if
-spin_unlock() is used on a lock that has not been locked.
+Map old corporate email address @yandex-team.ru to stable private address.
 
-Remove superfluous lockdep_assert_held().
-
-Link: http://lkml.kernel.org/r/20200618201234.795692-2-bigeasy@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/159360469186.24918.10108157093572183535.stgit@zurg
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 --
- 1 file changed, 2 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/slub.c~slub-drop-lockdep_assert_held-from-put_map
-+++ a/mm/slub.c
-@@ -473,8 +473,6 @@ static unsigned long *get_map(struct kme
- static void put_map(unsigned long *map) __releases(&object_map_lock)
- {
- 	VM_BUG_ON(map != object_map);
--	lockdep_assert_held(&object_map_lock);
+--- a/.mailmap~mailmap-add-entry-for-obsolete-email-address
++++ a/.mailmap
+@@ -146,6 +146,7 @@ Kamil Konieczny <k.konieczny@samsung.com
+ Kay Sievers <kay.sievers@vrfy.org>
+ Kenneth W Chen <kenneth.w.chen@intel.com>
+ Konstantin Khlebnikov <koct9i@gmail.com> <k.khlebnikov@samsung.com>
++Konstantin Khlebnikov <koct9i@gmail.com> <khlebnikov@yandex-team.ru>
+ Koushik <raghavendra.koushik@neterion.com>
+ Krzysztof Kozlowski <krzk@kernel.org> <k.kozlowski@samsung.com>
+ Krzysztof Kozlowski <krzk@kernel.org> <k.kozlowski.k@gmail.com>
+_
+
+Patches currently in -mm which might be from koct9i@gmail.com are
