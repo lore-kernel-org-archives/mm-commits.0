@@ -1,109 +1,96 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- lib-test_bitops-do-the-full-test-during-module-init.patch added to -mm tree
-Date: Mon, 06 Jul 2020 15:49:10 -0700
-Message-ID: <20200706224910.cDgtSLTT8%akpm@linux-foundation.org>
+Subject: [nacked]
+ mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd.patch
+ removed from -mm tree
+Date: Mon, 06 Jul 2020 16:03:11 -0700
+Message-ID: <20200706230311.QxUE01f6V%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53122 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55694 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726280AbgGFWtL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Jul 2020 18:49:11 -0400
+        id S1727122AbgGFXDN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Jul 2020 19:03:13 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, geert@linux-m68k.org, jesse.brandeburg@intel.com, mm-commits@vger.kernel.org, richard.weiyang@gmail.com
+To: aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com, digetx@gmail.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, peterx@redhat.com, richard.weiyang@linux.alibaba.com, sean.j.christopherson@intel.com, thellstrom@vmware.com, thomas_os@shipmail.org, vbabka@suse.cz, walken@google.com, willy@infradead.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: lib/test_bitops: do the full test during module init
-has been added to the -mm tree.  Its filename is
-     lib-test_bitops-do-the-full-test-during-module-init.patch
+     Subject: mm/mremap: format the check in move_normal_pmd() same as move_huge_pmd()
+has been removed from the -mm tree.  Its filename was
+     mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_bitops-do-the-full-test-during-module-init.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_bitops-do-the-full-test-during-module-init.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: lib/test_bitops: do the full test during module init
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/mremap: format the check in move_normal_pmd() same as move_huge_pmd()
 
-Currently, the bitops test consists of two parts: one part is executed
-during module load, the second part during module unload.  This is
-cumbersome for the user, as he has to perform two steps to execute all
-tests, and is different from most (all?) other tests.
+Patch series "mm/mremap: cleanup move_page_tables() a little", v2.
 
-Merge the two parts, so both are executed during module load.
+move_page_tables() tries to move page table by PMD or PTE.
 
-Link: http://lkml.kernel.org/r/20200706112900.7097-1-geert@linux-m68k.org
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
+The root reason is if it tries to move PMD, both old and new range should
+be PMD aligned.  But current code calculate old range and new range
+separately.  This leads to some redundant check and calculation.
+
+This cleanup tries to consolidate the range check in one place to reduce
+some extra range handling.
+
+
+This patch (of 4):
+
+No functional change, just improve the readability and prepare for
+following cleanup.
+
+Link: http://lkml.kernel.org/r/20200626135216.24314-1-richard.weiyang@linux.alibaba.com
+Link: http://lkml.kernel.org/r/20200626135216.24314-2-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Thomas Hellstrom (VMware) <thomas_os@shipmail.org>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Sean Christopherson <sean.j.christopherson@intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitops.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ mm/mremap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/lib/test_bitops.c~lib-test_bitops-do-the-full-test-during-module-init
-+++ a/lib/test_bitops.c
-@@ -52,9 +52,9 @@ static unsigned long order_comb_long[][2
+--- a/mm/mremap.c~mm-mremap-format-the-check-in-move_normal_pmd-same-as-move_huge_pmd
++++ a/mm/mremap.c
+@@ -200,8 +200,9 @@ static bool move_normal_pmd(struct vm_ar
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t pmd;
  
- static int __init test_bitops_startup(void)
- {
--	int i;
-+	int i, bit_set;
+-	if ((old_addr & ~PMD_MASK) || (new_addr & ~PMD_MASK)
+-	    || old_end - old_addr < PMD_SIZE)
++	if ((old_addr & ~PMD_MASK) ||
++	    (new_addr & ~PMD_MASK) ||
++	    old_end - old_addr < PMD_SIZE)
+ 		return false;
  
--	pr_warn("Loaded test module\n");
-+	pr_info("Starting bitops test\n");
- 	set_bit(BITOPS_4, g_bitmap);
- 	set_bit(BITOPS_7, g_bitmap);
- 	set_bit(BITOPS_11, g_bitmap);
-@@ -81,12 +81,8 @@ static int __init test_bitops_startup(vo
- 				       order_comb_long[i][0]);
- 	}
- #endif
--	return 0;
--}
- 
--static void __exit test_bitops_unstartup(void)
--{
--	int bit_set;
-+	barrier();
- 
- 	clear_bit(BITOPS_4, g_bitmap);
- 	clear_bit(BITOPS_7, g_bitmap);
-@@ -98,7 +94,13 @@ static void __exit test_bitops_unstartup
- 	if (bit_set != BITOPS_LAST)
- 		pr_err("ERROR: FOUND SET BIT %d\n", bit_set);
- 
--	pr_warn("Unloaded test module\n");
-+	pr_info("Completed bitops test\n");
-+
-+	return 0;
-+}
-+
-+static void __exit test_bitops_unstartup(void)
-+{
- }
- 
- module_init(test_bitops_startup);
+ 	/*
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
 
-lib-test_bitops-do-the-full-test-during-module-init.patch
+mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
+mm-mremap-calculate-extent-in-one-place.patch
+mm-mremap-start-addresses-are-properly-aligned.patch
+mm-sparse-never-partially-remove-memmap-for-early-section.patch
+mm-sparse-only-sub-section-aligned-range-would-be-populated.patch
+mm-page_allocc-replace-the-definition-of-nr_migratetype_bits-with-pb_migratetype_bits.patch
+mm-page_allocc-extract-the-common-part-in-pfn_to_bitidx.patch
+mm-page_allocc-simplify-pageblock-bitmap-access.patch
+mm-page_allocc-remove-unnecessary-end_bitidx-for-_pfnblock_flags_mask.patch
+mm-page_alloc-fallbacks-at-most-has-3-elements.patch
