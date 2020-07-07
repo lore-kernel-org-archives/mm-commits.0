@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch added to
+Subject: + fs-minix-check-return-value-of-sb_getblk.patch added to
  -mm tree
-Date: Tue, 07 Jul 2020 12:20:27 -0700
-Message-ID: <20200707192027.S4IXW4ryw%akpm@linux-foundation.org>
+Date: Tue, 07 Jul 2020 12:25:20 -0700
+Message-ID: <20200707192520.xzI6h4lyD%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43866 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45006 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727834AbgGGTU3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Jul 2020 15:20:29 -0400
+        id S1728100AbgGGTZW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Jul 2020 15:25:22 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, guro@fb.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org, rientjes@google.com, shakeelb@google.com, vbabka@suse.cz
+To: anenbupt@gmail.com, ebiggers@google.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm: kmem: switch to static_branch_likely() in memcg_kmem_enabled()
+     Subject: fs/minix: check return value of sb_getblk()
 has been added to the -mm tree.  Its filename is
-     mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
+     fs-minix-check-return-value-of-sb_getblk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-minix-check-return-value-of-sb_getblk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-minix-check-return-value-of-sb_getblk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +38,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: kmem: switch to static_branch_likely() in memcg_kmem_enabled()
+From: Eric Biggers <ebiggers@google.com>
+Subject: fs/minix: check return value of sb_getblk()
 
-Currently memcg_kmem_enabled() is optimized for the kernel memory
-accounting being off.  It was so for a long time, and arguably the reason
-behind was that the kernel memory accounting was initially an opt-in
-feature.  However, now it's on by default on both cgroup v1 and cgroup v2,
-and it's on for all cgroups.  So let's switch over to
-static_branch_likely() to reflect this fact.
+Patch series "fs/minix: fix syzbot bugs and set s_maxbytes".
 
-Unlikely there is a significant performance difference, as the cost of a
-memory allocation and its accounting significantly exceeds the cost of a
-jump.  However, the conversion makes the code look more logically.
+This series fixes all syzbot bugs in the minix filesystem:
 
-Link: http://lkml.kernel.org/r/20200707173612.124425-3-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+	KASAN: null-ptr-deref Write in get_block
+	KASAN: use-after-free Write in get_block
+	KASAN: use-after-free Read in get_block
+	WARNING in inc_nlink
+	KMSAN: uninit-value in get_block
+	WARNING in drop_nlink
+
+It also fixes the minix filesystem to set s_maxbytes correctly, so that
+userspace sees the correct behavior when exceeding the max file size.
+
+
+This patch (of 6):
+
+sb_getblk() can fail, so check its return value.
+
+This fixes a NULL pointer dereference.
+
+Originally from Qiujun Huang.
+
+Link: http://lkml.kernel.org/r/20200628060846.682158-1-ebiggers@kernel.org
+Link: http://lkml.kernel.org/r/20200628060846.682158-2-ebiggers@kernel.org
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+Reported-by: syzbot+4a88b2b9dc280f47baf4@syzkaller.appspotmail.com
+Cc: Qiujun Huang <anenbupt@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/minix/itree_common.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled
-+++ a/include/linux/memcontrol.h
-@@ -1456,7 +1456,7 @@ void memcg_put_cache_ids(void);
+--- a/fs/minix/itree_common.c~fs-minix-check-return-value-of-sb_getblk
++++ a/fs/minix/itree_common.c
+@@ -75,6 +75,7 @@ static int alloc_branch(struct inode *in
+ 	int n = 0;
+ 	int i;
+ 	int parent = minix_new_block(inode);
++	int err = -ENOSPC;
  
- static inline bool memcg_kmem_enabled(void)
- {
--	return static_branch_unlikely(&memcg_kmem_enabled_key);
-+	return static_branch_likely(&memcg_kmem_enabled_key);
+ 	branch[0].key = cpu_to_block(parent);
+ 	if (parent) for (n = 1; n < num; n++) {
+@@ -85,6 +86,11 @@ static int alloc_branch(struct inode *in
+ 			break;
+ 		branch[n].key = cpu_to_block(nr);
+ 		bh = sb_getblk(inode->i_sb, parent);
++		if (!bh) {
++			minix_free_block(inode, nr);
++			err = -ENOMEM;
++			break;
++		}
+ 		lock_buffer(bh);
+ 		memset(bh->b_data, 0, bh->b_size);
+ 		branch[n].bh = bh;
+@@ -103,7 +109,7 @@ static int alloc_branch(struct inode *in
+ 		bforget(branch[i].bh);
+ 	for (i = 0; i < n; i++)
+ 		minix_free_block(inode, block_to_cpu(branch[i].key));
+-	return -ENOSPC;
++	return err;
  }
  
- static inline bool memcg_kmem_bypass(void)
+ static inline int splice_branch(struct inode *inode,
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from ebiggers@google.com are
 
-mm-kmem-make-memcg_kmem_enabled-irreversible.patch
-mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
-mm-memcg-prepare-for-byte-sized-vmstat-items.patch
-mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
-mm-slub-implement-slub-version-of-obj_to_index.patch
-mm-memcg-slab-obj_cgroup-api.patch
-mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
-mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
-mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
-mm-memcg-slab-deprecate-memorykmemslabinfo.patch
-mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
-mm-memcg-slab-simplify-memcg-cache-creation.patch
-mm-memcg-slab-remove-memcg_kmem_get_cache.patch
-mm-memcg-slab-deprecate-slab_root_caches.patch
-mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
-kselftests-cgroup-add-kernel-memory-accounting-tests.patch
-tools-cgroup-add-memcg_slabinfopy-tool.patch
-percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics-v3.patch
-mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
-kselftests-cgroup-add-perpcu-memory-accounting-test.patch
-mm-memcg-slab-remove-unused-argument-by-charge_slab_page.patch
-mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
-mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
+fs-minix-check-return-value-of-sb_getblk.patch
+fs-minix-dont-allow-getting-deleted-inodes.patch
+fs-minix-reject-too-large-maximum-file-size.patch
+fs-minix-set-s_maxbytes-correctly.patch
+fs-minix-fix-block-limit-check-for-v1-filesystems.patch
+fs-minix-remove-expected-error-message-in-block_to_path.patch
