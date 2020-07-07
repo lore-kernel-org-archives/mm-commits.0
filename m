@@ -1,16 +1,16 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: +
- mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch added to -mm
- tree
-Date: Tue, 07 Jul 2020 12:20:24 -0700
-Message-ID: <20200707192024.o4StYvmH0%akpm@linux-foundation.org>
+ mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch added to
+ -mm tree
+Date: Tue, 07 Jul 2020 12:20:27 -0700
+Message-ID: <20200707192027.S4IXW4ryw%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:43828 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:43866 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727834AbgGGTU0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Jul 2020 15:20:26 -0400
+        id S1727834AbgGGTU3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Jul 2020 15:20:29 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: cl@linux.com, guro@fb.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhock
 
 
 The patch titled
-     Subject: mm: slab: rename (un)charge_slab_page() to (un)account_slab_page()
+     Subject: mm: kmem: switch to static_branch_likely() in memcg_kmem_enabled()
 has been added to the -mm tree.  Its filename is
-     mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
+     mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,93 +40,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: slab: rename (un)charge_slab_page() to (un)account_slab_page()
+Subject: mm: kmem: switch to static_branch_likely() in memcg_kmem_enabled()
 
-charge_slab_page() and uncharge_slab_page() are not related anymore to
-memcg charging and uncharging.  In order to make their names less
-confusing, let's rename them to account_slab_page() and
-unaccount_slab_page() respectively.
+Currently memcg_kmem_enabled() is optimized for the kernel memory
+accounting being off.  It was so for a long time, and arguably the reason
+behind was that the kernel memory accounting was initially an opt-in
+feature.  However, now it's on by default on both cgroup v1 and cgroup v2,
+and it's on for all cgroups.  So let's switch over to
+static_branch_likely() to reflect this fact.
 
-Link: http://lkml.kernel.org/r/20200707173612.124425-2-guro@fb.com
+Unlikely there is a significant performance difference, as the cost of a
+memory allocation and its accounting significantly exceeds the cost of a
+jump.  However, the conversion makes the code look more logically.
+
+Link: http://lkml.kernel.org/r/20200707173612.124425-3-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    4 ++--
- mm/slab.h |    8 ++++----
- mm/slub.c |    4 ++--
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/memcontrol.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slab.c~mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page
-+++ a/mm/slab.c
-@@ -1379,7 +1379,7 @@ static struct page *kmem_getpages(struct
- 		return NULL;
- 	}
+--- a/include/linux/memcontrol.h~mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled
++++ a/include/linux/memcontrol.h
+@@ -1456,7 +1456,7 @@ void memcg_put_cache_ids(void);
  
--	charge_slab_page(page, cachep->gfporder, cachep);
-+	account_slab_page(page, cachep->gfporder, cachep);
- 	__SetPageSlab(page);
- 	/* Record if ALLOC_NO_WATERMARKS was set when allocating the slab */
- 	if (sk_memalloc_socks() && page_is_pfmemalloc(page))
-@@ -1403,7 +1403,7 @@ static void kmem_freepages(struct kmem_c
- 
- 	if (current->reclaim_state)
- 		current->reclaim_state->reclaimed_slab += 1 << order;
--	uncharge_slab_page(page, order, cachep);
-+	unaccount_slab_page(page, order, cachep);
- 	__free_pages(page, order);
- }
- 
---- a/mm/slab.h~mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page
-+++ a/mm/slab.h
-@@ -440,15 +440,15 @@ static inline struct kmem_cache *virt_to
- 	return page->slab_cache;
- }
- 
--static __always_inline void charge_slab_page(struct page *page, int order,
--					     struct kmem_cache *s)
-+static __always_inline void account_slab_page(struct page *page, int order,
-+					      struct kmem_cache *s)
+ static inline bool memcg_kmem_enabled(void)
  {
- 	mod_node_page_state(page_pgdat(page), cache_vmstat_idx(s),
- 			    PAGE_SIZE << order);
+-	return static_branch_unlikely(&memcg_kmem_enabled_key);
++	return static_branch_likely(&memcg_kmem_enabled_key);
  }
  
--static __always_inline void uncharge_slab_page(struct page *page, int order,
--					       struct kmem_cache *s)
-+static __always_inline void unaccount_slab_page(struct page *page, int order,
-+						struct kmem_cache *s)
- {
- 	if (memcg_kmem_enabled())
- 		memcg_free_page_obj_cgroups(page);
---- a/mm/slub.c~mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page
-+++ a/mm/slub.c
-@@ -1621,7 +1621,7 @@ static inline struct page *alloc_slab_pa
- 		page = __alloc_pages_node(node, flags, order);
- 
- 	if (page)
--		charge_slab_page(page, order, s);
-+		account_slab_page(page, order, s);
- 
- 	return page;
- }
-@@ -1844,7 +1844,7 @@ static void __free_slab(struct kmem_cach
- 	page->mapping = NULL;
- 	if (current->reclaim_state)
- 		current->reclaim_state->reclaimed_slab += pages;
--	uncharge_slab_page(page, order, s);
-+	unaccount_slab_page(page, order, s);
- 	__free_pages(page, order);
- }
- 
+ static inline bool memcg_kmem_bypass(void)
 _
 
 Patches currently in -mm which might be from guro@fb.com are
