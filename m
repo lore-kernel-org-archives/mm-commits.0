@@ -1,35 +1,33 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-entry-for-mike-rapoport.patch added to -mm
- tree
-Date: Wed, 08 Jul 2020 16:12:45 -0700
-Message-ID: <20200708231245.vHPNG-IN1%akpm@linux-foundation.org>
+Subject: +
+ =?US-ASCII?Q?mm-mremap-it-is-sure-to-have-enough-space-when-extent-mee?=
+ =?US-ASCII?Q?ts-requirement.patch?= added to -mm tree
+Date: Wed, 08 Jul 2020 16:16:40 -0700
+Message-ID: <20200708231640.kAS6rKczd%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:32866 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34228 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725903AbgGHXMq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Jul 2020 19:12:46 -0400
+        id S1726261AbgGHXQm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Jul 2020 19:16:42 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, rppt@linux.ibm.com
+To: aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com, digetx@gmail.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org, peterx@redhat.com, richard.weiyang@linux.alibaba.com, sean.j.christopherson@intel.com, thellstrom@vmware.com, thomas_os@shipmail.org, vbabka@suse.cz, willy@infradead.org, yang.shi@linux.alibaba.com
 
 
 The patch titled
-     Subject: mailmap: add entry for Mike Rapoport
+     Subject: mm/mremap: it is sure to have enough space when extent meets requirement
 has been added to the -mm tree.  Its filename is
-     mailmap-add-entry-for-mike-rapoport.patch
+     mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-entry-for-mike-rap=
-oport.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-entry-for-mike-rap=
-oport.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,50 +35,148 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mailmap: add entry for Mike Rapoport
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/mremap: it is sure to have enough space when extent meets requirement
 
-Add an entry to connect my email addresses.
+Patch series "mm/mremap: cleanup move_page_tables() a little".
 
-Link: http://lkml.kernel.org/r/20200708095414.12275-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+move_page_tables() tries to move page table by PMD or PTE.
+
+The root reason is if it tries to move PMD, both old and new range should
+be PMD aligned.  But current code calculate old range and new range
+separately.  This leads to some redundant check and calculation.
+
+This cleanup tries to consolidate the range check in one place to reduce
+some extra range handling.
+
+
+This patch (of 4):
+
+old_end is passed to these two functions to check whether there is enough
+space to do the move, while this check is done before invoking these
+functions.
+
+These two functions only would be invoked when extent meets the
+requirement and there is one check before invoking these functions:
+
+    if (extent > old_end - old_addr)
+        extent = old_end - old_addr;
+
+This implies (old_end - old_addr) won't fail the check in these two
+functions.
+
+Link: http://lkml.kernel.org/r/20200708095028.41706-1-richard.weiyang@linux.alibaba.com
+Link: http://lkml.kernel.org/r/20200708095028.41706-2-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Thomas Hellstrom (VMware) <thomas_os@shipmail.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Sean Christopherson <sean.j.christopherson@intel.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/huge_mm.h |    2 +-
+ mm/huge_memory.c        |    7 ++-----
+ mm/mremap.c             |   10 ++++------
+ 3 files changed, 7 insertions(+), 12 deletions(-)
 
---- a/.mailmap~mailmap-add-entry-for-mike-rapoport
-+++ a/.mailmap
-@@ -193,6 +193,9 @@ Maxime Ripard <mripard@kernel.org> <maxi
- Mayuresh Janorkar <mayur@ti.com>
- Michael Buesch <m@bues.ch>
- Michel D=C3=A4nzer <michel@tungstengraphics.com>
-+Mike Rapoport <rppt@kernel.org> <mike@compulab.co.il>
-+Mike Rapoport <rppt@kernel.org> <mike.rapoport@gmail.com>
-+Mike Rapoport <rppt@kernel.org> <rppt@linux.ibm.com>
- Miodrag Dinic <miodrag.dinic@mips.com> <miodrag.dinic@imgtec.com>
- Miquel Raynal <miquel.raynal@bootlin.com> <miquel.raynal@free-electrons.co=
-m>
- Mitesh shah <mshah@teja.com>
+--- a/include/linux/huge_mm.h~mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement
++++ a/include/linux/huge_mm.h
+@@ -42,7 +42,7 @@ extern int mincore_huge_pmd(struct vm_ar
+ 			unsigned long addr, unsigned long end,
+ 			unsigned char *vec);
+ extern bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+-			 unsigned long new_addr, unsigned long old_end,
++			 unsigned long new_addr,
+ 			 pmd_t *old_pmd, pmd_t *new_pmd);
+ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, pgprot_t newprot,
+--- a/mm/huge_memory.c~mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement
++++ a/mm/huge_memory.c
+@@ -1722,17 +1722,14 @@ static pmd_t move_soft_dirty_pmd(pmd_t p
+ }
+ 
+ bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+-		  unsigned long new_addr, unsigned long old_end,
+-		  pmd_t *old_pmd, pmd_t *new_pmd)
++		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
+ {
+ 	spinlock_t *old_ptl, *new_ptl;
+ 	pmd_t pmd;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	bool force_flush = false;
+ 
+-	if ((old_addr & ~HPAGE_PMD_MASK) ||
+-	    (new_addr & ~HPAGE_PMD_MASK) ||
+-	    old_end - old_addr < HPAGE_PMD_SIZE)
++	if ((old_addr & ~HPAGE_PMD_MASK) || (new_addr & ~HPAGE_PMD_MASK))
+ 		return false;
+ 
+ 	/*
+--- a/mm/mremap.c~mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement
++++ a/mm/mremap.c
+@@ -193,15 +193,13 @@ static void move_ptes(struct vm_area_str
+ 
+ #ifdef CONFIG_HAVE_MOVE_PMD
+ static bool move_normal_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+-		  unsigned long new_addr, unsigned long old_end,
+-		  pmd_t *old_pmd, pmd_t *new_pmd)
++		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
+ {
+ 	spinlock_t *old_ptl, *new_ptl;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t pmd;
+ 
+-	if ((old_addr & ~PMD_MASK) || (new_addr & ~PMD_MASK)
+-	    || old_end - old_addr < PMD_SIZE)
++	if ((old_addr & ~PMD_MASK) || (new_addr & ~PMD_MASK))
+ 		return false;
+ 
+ 	/*
+@@ -273,7 +271,7 @@ unsigned long move_page_tables(struct vm
+ 				if (need_rmap_locks)
+ 					take_rmap_locks(vma);
+ 				moved = move_huge_pmd(vma, old_addr, new_addr,
+-						    old_end, old_pmd, new_pmd);
++						      old_pmd, new_pmd);
+ 				if (need_rmap_locks)
+ 					drop_rmap_locks(vma);
+ 				if (moved)
+@@ -293,7 +291,7 @@ unsigned long move_page_tables(struct vm
+ 			if (need_rmap_locks)
+ 				take_rmap_locks(vma);
+ 			moved = move_normal_pmd(vma, old_addr, new_addr,
+-					old_end, old_pmd, new_pmd);
++						old_pmd, new_pmd);
+ 			if (need_rmap_locks)
+ 				drop_rmap_locks(vma);
+ 			if (moved)
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
 
-mailmap-add-entry-for-mike-rapoport.patch
-mm-remove-unneeded-includes-of-asm-pgalloch.patch
-mm-remove-unneeded-includes-of-asm-pgalloch-fix.patch
-opeinrisc-switch-to-generic-version-of-pte-allocation.patch
-xtensa-switch-to-generic-version-of-pte-allocation.patch
-asm-generic-pgalloc-provide-generic-pmd_alloc_one-and-pmd_free_one.patch
-asm-generic-pgalloc-provide-generic-pud_alloc_one-and-pud_free_one.patch
-asm-generic-pgalloc-provide-generic-pgd_free.patch
-mm-move-lib-ioremapc-to-mm.patch
-mm-vmalloc-remove-redundant-asignmnet-in-unmap_kernel_range_noflush.patch
+mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
+mm-mremap-calculate-extent-in-one-place.patch
+mm-mremap-start-addresses-are-properly-aligned.patch
+mm-mremap-use-pmd_addr_end-to-simplify-the-calculate-of-extent.patch
+mm-sparse-never-partially-remove-memmap-for-early-section.patch
+mm-sparse-only-sub-section-aligned-range-would-be-populated.patch
+mm-page_allocc-replace-the-definition-of-nr_migratetype_bits-with-pb_migratetype_bits.patch
+mm-page_allocc-extract-the-common-part-in-pfn_to_bitidx.patch
+mm-page_allocc-simplify-pageblock-bitmap-access.patch
+mm-page_allocc-remove-unnecessary-end_bitidx-for-_pfnblock_flags_mask.patch
+mm-page_alloc-fallbacks-at-most-has-3-elements.patch
