@@ -1,4 +1,4 @@
-Return-Path: <SRS0=+Rhw=AS=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=mer4=AT=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,47 +7,48 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F016EC433DF
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Jul 2020 19:47:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21F7AC433DF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Jul 2020 23:16:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D3FBE206E9
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Jul 2020 19:47:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0CCB2078A
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Jul 2020 23:16:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594151256;
-	bh=R4oQb6PN1h5Hq3TPo7hYdm6iJxCAwilflD4w41slXy4=;
+	s=default; t=1594250209;
+	bh=4Efzii989IZyzw1gLDYqsdLLZc62DZUePjKECJ1rmY0=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Gc35//g0VPFQJkKWnZKOKgzO2O/j3ZUhyIrZFiHpQ6Ace6LSWZ31TFFgC8Nv0svEE
-	 x8jrqdaILM+fHN5sVRKFH1qn8ZKMdQvMCW8z2fBY5Rdmm+BWXP1Ccu/rwwe3EV3l76
-	 IvmQ8tIePe76NDlvtufSybw+2kM8QbyByQPNVqRE=
+	b=GIQagH468y2ObTcU7fZiZmSlsIYfm2YCE5j/9RBzO/UFqwakv99GbBBhFtVVwYvD4
+	 lLeZ+iR2jun63ElizaM3oe/C9avot+lMcMaglmRjrxwCV2HYPzSlyYNnf9DJfzj7qE
+	 c+l53kmxplpcl+15a3Rm/654UfG1s3OXCcnEkrCw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728325AbgGGTrg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Jul 2020 15:47:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59298 "EHLO mail.kernel.org"
+        id S1726376AbgGHXQs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Jul 2020 19:16:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34360 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727791AbgGGTrg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Jul 2020 15:47:36 -0400
+        id S1726261AbgGHXQs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Jul 2020 19:16:48 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 95A4E206BE;
-        Tue,  7 Jul 2020 19:47:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id ED0C120775;
+        Wed,  8 Jul 2020 23:16:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594151255;
-        bh=R4oQb6PN1h5Hq3TPo7hYdm6iJxCAwilflD4w41slXy4=;
+        s=default; t=1594250207;
+        bh=4Efzii989IZyzw1gLDYqsdLLZc62DZUePjKECJ1rmY0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=WcYi+fuSXmRHpQKEnlqutFL4G0oOSyAFYGLRZ91dyiZtdKCpLdFxPK+y9CBkshpsZ
-         2TbHCfmJ+RydiRuSBbTdNtA6k5b1xEBnobKH2MMW78whFdwlmpF0WpXxlXZbiy1NiR
-         aa6+BryBlUD3Ay3tYMBB3YQ+RwF4Da5MSLOp79JI=
-Date:   Tue, 07 Jul 2020 12:47:35 -0700
+        b=qanZE0/E2+xfd4initsJ+cvoouh2V+hvGNoaXMltoPOpULCI1FC3TLOCuXbXSoTCs
+         tr6d688/Bu0dLUULcaFDUh65zBtnsWj7lMp30yyFpbBnLARGC+B+K1tliCpwNS8DUu
+         q+4yRG82iW8hS+J0d2t7uXNmD7HWseP8NqxfP5/g=
+Date:   Wed, 08 Jul 2020 16:16:46 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     guro@fb.com, hch@infradead.org, iamjoonsoo.kim@lge.com,
-        mgorman@techsingularity.net, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        n-horiguchi@ah.jp.nec.com, vbabka@suse.cz
-Subject:  [to-be-updated]
- mm-page_alloc-remove-a-wrapper-for-alloc_migration_target.patch removed
- from -mm tree
-Message-ID: <20200707194735.HDeK0HQY8%akpm@linux-foundation.org>
+To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
+        digetx@gmail.com, kirill.shutemov@linux.intel.com,
+        mm-commits@vger.kernel.org, peterx@redhat.com,
+        richard.weiyang@linux.alibaba.com, sean.j.christopherson@intel.com,
+        thellstrom@vmware.com, thomas_os@shipmail.org, vbabka@suse.cz,
+        willy@infradead.org, yang.shi@linux.alibaba.com
+Subject:  + mm-mremap-start-addresses-are-properly-aligned.patch
+ added to -mm tree
+Message-ID: <20200708231646.7UdlDqH1R%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,83 +56,98 @@ Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
-Message-ID: <20200707194735.y4th81oGUWKhJCqmznKQsM3_GwLlNMVAuIEfJQrrOJQ@z>
+Message-ID: <20200708231646.XhTfiG9tXJd5umOfuRLuiXYg0Pdn_uAhNx2kMgxYiPE@z>
 
 
 The patch titled
-     Subject: mm/page_alloc: remove a wrapper for alloc_migration_target()
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remove-a-wrapper-for-alloc_migration_target.patch
+     Subject: mm/mremap: start addresses are properly aligned
+has been added to the -mm tree.  Its filename is
+     mm-mremap-start-addresses-are-properly-aligned.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-start-addresses-are-properly-aligned.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-start-addresses-are-properly-aligned.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_alloc: remove a wrapper for alloc_migration_target()
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/mremap: start addresses are properly aligned
 
-There is a well-defined standard migration target callback.  Use it
-directly.
+After previous cleanup, extent is the minimal step for both source and
+destination.  This means when extent is HPAGE_PMD_SIZE or PMD_SIZE,
+old_addr and new_addr are properly aligned too.
 
-Link: http://lkml.kernel.org/r/1592892828-1934-9-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Since these two functions are only invoked in move_page_tables, it is safe
+to remove the check now.
+
+Link: http://lkml.kernel.org/r/20200708095028.41706-4-richard.weiyang@linux.alibaba.com
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Tested-by: Dmitry Osipenko <digetx@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sean Christopherson <sean.j.christopherson@intel.com>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: Thomas Hellstrom (VMware) <thomas_os@shipmail.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c     |    9 +++++++--
- mm/page_isolation.c |   11 -----------
- 2 files changed, 7 insertions(+), 13 deletions(-)
+ mm/huge_memory.c |    3 ---
+ mm/mremap.c      |    3 ---
+ 2 files changed, 6 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-a-wrapper-for-alloc_migration_target
-+++ a/mm/page_alloc.c
-@@ -8354,6 +8354,11 @@ static int __alloc_contig_migrate_range(
- 	unsigned long pfn = start;
- 	unsigned int tries = 0;
- 	int ret = 0;
-+	struct migration_target_control mtc = {
-+		.nid = zone_to_nid(cc->zone),
-+		.nmask = &node_states[N_MEMORY],
-+		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
-+	};
+--- a/mm/huge_memory.c~mm-mremap-start-addresses-are-properly-aligned
++++ a/mm/huge_memory.c
+@@ -1729,9 +1729,6 @@ bool move_huge_pmd(struct vm_area_struct
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	bool force_flush = false;
  
- 	migrate_prep();
- 
-@@ -8380,8 +8385,8 @@ static int __alloc_contig_migrate_range(
- 							&cc->migratepages);
- 		cc->nr_migratepages -= nr_reclaimed;
- 
--		ret = migrate_pages(&cc->migratepages, alloc_migrate_target,
--				    NULL, 0, cc->mode, MR_CONTIG_RANGE);
-+		ret = migrate_pages(&cc->migratepages, alloc_migration_target,
-+				NULL, (unsigned long)&mtc, cc->mode, MR_CONTIG_RANGE);
- 	}
- 	if (ret < 0) {
- 		putback_movable_pages(&cc->migratepages);
---- a/mm/page_isolation.c~mm-page_alloc-remove-a-wrapper-for-alloc_migration_target
-+++ a/mm/page_isolation.c
-@@ -306,14 +306,3 @@ int test_pages_isolated(unsigned long st
- 
- 	return pfn < end_pfn ? -EBUSY : 0;
- }
+-	if ((old_addr & ~HPAGE_PMD_MASK) || (new_addr & ~HPAGE_PMD_MASK))
+-		return false;
 -
--struct page *alloc_migrate_target(struct page *page, unsigned long private)
--{
--	struct migration_target_control mtc = {
--		.nid = page_to_nid(page),
--		.nmask = &node_states[N_MEMORY],
--		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
--	};
+ 	/*
+ 	 * The destination pmd shouldn't be established, free_pgtables()
+ 	 * should have release it.
+--- a/mm/mremap.c~mm-mremap-start-addresses-are-properly-aligned
++++ a/mm/mremap.c
+@@ -199,9 +199,6 @@ static bool move_normal_pmd(struct vm_ar
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t pmd;
+ 
+-	if ((old_addr & ~PMD_MASK) || (new_addr & ~PMD_MASK))
+-		return false;
 -
--	return alloc_migration_target(page, (unsigned long)&mtc);
--}
+ 	/*
+ 	 * The destination pmd shouldn't be established, free_pgtables()
+ 	 * should have release it.
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
 
+mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
+mm-mremap-calculate-extent-in-one-place.patch
+mm-mremap-start-addresses-are-properly-aligned.patch
+mm-mremap-use-pmd_addr_end-to-simplify-the-calculate-of-extent.patch
+mm-sparse-never-partially-remove-memmap-for-early-section.patch
+mm-sparse-only-sub-section-aligned-range-would-be-populated.patch
+mm-page_allocc-replace-the-definition-of-nr_migratetype_bits-with-pb_migratetype_bits.patch
+mm-page_allocc-extract-the-common-part-in-pfn_to_bitidx.patch
+mm-page_allocc-simplify-pageblock-bitmap-access.patch
+mm-page_allocc-remove-unnecessary-end_bitidx-for-_pfnblock_flags_mask.patch
+mm-page_alloc-fallbacks-at-most-has-3-elements.patch
 
