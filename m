@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sh-use-general-page-fault-accounting.patch added to
- -mm tree
-Date: Wed, 08 Jul 2020 17:07:16 -0700
-Message-ID: <20200709000716.AV1q6VzFA%akpm@linux-foundation.org>
+Subject: + mm-sparc64-use-general-page-fault-accounting.patch
+ added to -mm tree
+Date: Wed, 08 Jul 2020 17:07:20 -0700
+Message-ID: <20200709000720.E1RzVFCAy%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46294 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46356 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726185AbgGIAHR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Jul 2020 20:07:17 -0400
+        id S1726139AbgGIAHV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Jul 2020 20:07:21 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dalias@libc.org, mm-commits@vger.kernel.org, peterx@redhat.com, ysato@users.sourceforge.jp
+To: davem@davemloft.net, mm-commits@vger.kernel.org, peterx@redhat.com
 
 
 The patch titled
-     Subject: mm/sh: use general page fault accounting
+     Subject: mm/sparc64: use general page fault accounting
 has been added to the -mm tree.  Its filename is
-     mm-sh-use-general-page-fault-accounting.patch
+     mm-sparc64-use-general-page-fault-accounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-sh-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparc64-use-general-page-fault-accounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sh-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparc64-use-general-page-fault-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +39,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/sh: use general page fault accounting
+Subject: mm/sparc64: use general page fault accounting
 
 Use the general page fault accounting by passing regs into
 handle_mm_fault().  It naturally solve the issue of multiple page fault
 accounting when page fault retry happened.
 
-Link: http://lkml.kernel.org/r/20200707225021.200906-20-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200707225021.200906-22-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/fault.c |   11 +----------
+ arch/sparc/mm/fault_64.c |   11 +----------
  1 file changed, 1 insertion(+), 10 deletions(-)
 
---- a/arch/sh/mm/fault.c~mm-sh-use-general-page-fault-accounting
-+++ a/arch/sh/mm/fault.c
-@@ -482,22 +482,13 @@ good_area:
- 	 * make sure we exit gracefully rather than endlessly redo
- 	 * the fault.
- 	 */
+--- a/arch/sparc/mm/fault_64.c~mm-sparc64-use-general-page-fault-accounting
++++ a/arch/sparc/mm/fault_64.c
+@@ -422,7 +422,7 @@ good_area:
+ 			goto bad_area;
+ 	}
+ 
 -	fault = handle_mm_fault(vma, address, flags, NULL);
 +	fault = handle_mm_fault(vma, address, flags, regs);
  
- 	if (unlikely(fault & (VM_FAULT_RETRY | VM_FAULT_ERROR)))
- 		if (mm_fault_error(regs, error_code, address, fault))
- 			return;
+ 	if (fault_signal_pending(fault, regs))
+ 		goto exit_exception;
+@@ -438,15 +438,6 @@ good_area:
+ 	}
  
  	if (flags & FAULT_FLAG_ALLOW_RETRY) {
 -		if (fault & VM_FAULT_MAJOR) {
--			tsk->maj_flt++;
--			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1,
--				      regs, address);
+-			current->maj_flt++;
+-			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ,
+-				      1, regs, address);
 -		} else {
--			tsk->min_flt++;
--			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1,
--				      regs, address);
+-			current->min_flt++;
+-			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN,
+-				      1, regs, address);
 -		}
  		if (fault & VM_FAULT_RETRY) {
  			flags |= FAULT_FLAG_TRIED;
