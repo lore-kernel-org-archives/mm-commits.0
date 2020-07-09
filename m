@@ -2,149 +2,107 @@ Return-Path: <SRS0=IHg8=AU=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AC8EC433DF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Jul 2020 20:42:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07C53C433E0
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Jul 2020 20:42:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 74992207DF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Jul 2020 20:42:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA9B6207FB
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Jul 2020 20:42:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594327338;
-	bh=k93r+rOT8oLEhLBc/TreRNvCilLm5FbGGDGvVZKXn9o=;
+	s=default; t=1594327344;
+	bh=vpCi1modSFDnipJ0cOl931m9ohowJ2vlqV9+7acuAhE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=N5gRJAPz5x5QpPqClriSx1GWWgvU+pZWrlUSIC1I1GhhN7haevvazMF3ivmCyE6+l
-	 hRyJIyErlNxkTnkrvDoyszhnE4wTOg3f7tgZd+QcnfERm5i953RadxaAlCuz7EdBJV
-	 OCJl6/6Avu/02FP+CUH+Zh4B19IwHFTOnwM+rNKU=
+	b=VRr+hLcShILULwqTC7XGqbe8s/W3SL5ZKkLMGhHA0ArYJ35HlCA2PrFcqvXrYrtj7
+	 OhifqaB3YNjWPDuLDcCInwJosrXwx0GHjgvAnk67wi9Dimcnm8QZHCel0n16PQP34E
+	 N0CTuNRdrCfRAhw0LAsA+EjN98byZEtHehlxk6gY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726352AbgGIUmS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Jul 2020 16:42:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49816 "EHLO mail.kernel.org"
+        id S1726446AbgGIUmY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Jul 2020 16:42:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726183AbgGIUmR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jul 2020 16:42:17 -0400
+        id S1726183AbgGIUmY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jul 2020 16:42:24 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AA8D82077D;
-        Thu,  9 Jul 2020 20:42:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 91480207F9;
+        Thu,  9 Jul 2020 20:42:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594327337;
-        bh=k93r+rOT8oLEhLBc/TreRNvCilLm5FbGGDGvVZKXn9o=;
+        s=default; t=1594327343;
+        bh=vpCi1modSFDnipJ0cOl931m9ohowJ2vlqV9+7acuAhE=;
         h=Date:From:To:Subject:From;
-        b=eUQzkn+OOAvDGtioaGZmXLbX5FvZ0TFblgE+mDlJATNyZ+R5DdYzkqNMaJu0eygdX
-         CLzwOMiK8mHCQc8fDnudxZR5m6Abxi307lJCNvGp7SXwUE/Injp2lpktb8BFQYC+2S
-         DiH75VPugPdnjBTQ7W98stBGk2xL+pkOL9XLSKiQ=
-Date:   Thu, 09 Jul 2020 13:42:16 -0700
+        b=yMhUWle5dPuTuUkM8TDeR5dLAoiIHmef0o3+7JtWFA+mP+HHtk0ma+wEXcO5zdj+Y
+         IJYAJ4Xlr8tyGKHZKOBPYfkV+waQXHOw3ijFpMDC6JDB8c7c7VLOa0Hwof9fEpsu3X
+         314uvDkmrZ607aM23eAZIDyHKLF9WOvQf3rCJ85c=
+Date:   Thu, 09 Jul 2020 13:42:23 -0700
 From:   akpm@linux-foundation.org
-To:     andreas.schaufler@gmx.de, aslan@fb.com, guro@fb.com,
-        Jonathan.Cameron@huawei.com, js1304@gmail.com, mhocko@kernel.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        riel@surriel.com, robin.murphy@arm.com, song.bao.hua@hisilicon.com,
-        stable@vger.kernel.org
+To:     amodra@gmail.com, bin.meng@windriver.com, chenzhou10@huawei.com,
+        dalias@libc.org, geert+renesas@glider.be,
+        glaubitz@physik.fu-berlin.de, krzk@kernel.org,
+        kuninori.morimoto.gx@renesas.com, mm-commits@vger.kernel.org,
+        romain.naour@gmail.com, sam@ravnborg.org,
+        ysato@users.sourceforge.jp
 Subject:  [merged]
- mm-cmac-use-exact_nid-true-to-fix-possible-per-numa-cma-leak.patch removed
- from -mm tree
-Message-ID: <20200709204216.K7U2piRZh%akpm@linux-foundation.org>
+ sh-remove-call-to-memset-after-dma_alloc_coherent.patch removed from -mm
+ tree
+Message-ID: <20200709204223.UusBwCPjr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
+Message-ID: <20200709204223.uz9xZzNAN0Qz_71aiw8KyoVnHZm3ddA3B60bS_lkIu0@z>
 
 
 The patch titled
-     Subject: mm/cma.c: use exact_nid true to fix possible per-numa cma leak
+     Subject: sh: remove call to memset after dma_alloc_coherent
 has been removed from the -mm tree.  Its filename was
-     mm-cmac-use-exact_nid-true-to-fix-possible-per-numa-cma-leak.patch
+     sh-remove-call-to-memset-after-dma_alloc_coherent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Barry Song <song.bao.hua@hisilicon.com>
-Subject: mm/cma.c: use exact_nid true to fix possible per-numa cma leak
+From: Chen Zhou <chenzhou10@huawei.com>
+Subject: sh: remove call to memset after dma_alloc_coherent
 
-Calling cma_declare_contiguous_nid() with false exact_nid for per-numa
-reservation can easily cause cma leak and various confusion.  For example,
-mm/hugetlb.c is trying to reserve per-numa cma for gigantic pages.  But it
-can easily leak cma and make users confused when system has memoryless
-nodes.
+Function dma_alloc_coherent use in buf already zeroes out memory,
+so memset is not needed.
 
-In case the system has 4 numa nodes, and only numa node0 has memory.  if
-we set hugetlb_cma=4G in bootargs, mm/hugetlb.c will get 4 cma areas for 4
-different numa nodes.  since exact_nid=false in current code, all 4 numa
-nodes will get cma successfully from node0, but hugetlb_cma[1 to 3] will
-never be available to hugepage will only allocate memory from
-hugetlb_cma[0].
-
-In case the system has 4 numa nodes, both numa node0&2 has memory, other
-nodes have no memory.  if we set hugetlb_cma=4G in bootargs, mm/hugetlb.c
-will get 4 cma areas for 4 different numa nodes.  since exact_nid=false in
-current code, all 4 numa nodes will get cma successfully from node0 or 2,
-but hugetlb_cma[1] and [3] will never be available to hugepage as
-mm/hugetlb.c will only allocate memory from hugetlb_cma[0] and
-hugetlb_cma[2].  This causes permanent leak of the cma areas which are
-supposed to be used by memoryless node.
-
-Of cource we can workaround the issue by letting mm/hugetlb.c scan all cma
-areas in alloc_gigantic_page() even node_mask includes node0 only.  that
-means when node_mask includes node0 only, we can get page from
-hugetlb_cma[1] to hugetlb_cma[3].  But this will cause kernel crash in
-free_gigantic_page() while it wants to free page by:
-cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order)
-
-On the other hand, exact_nid=false won't consider numa distance, it might
-be not that useful to leverage cma areas on remote nodes.  I feel it is
-much simpler to make exact_nid true to make everything clear.  After that,
-memoryless nodes won't be able to reserve per-numa CMA from other nodes
-which have memory.
-
-Link: http://lkml.kernel.org/r/20200628074345.27228-1-song.bao.hua@hisilicon.com
-Fixes: cf11e85fc08c ("mm: hugetlb: optionally allocate gigantic hugepages using cma")
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Aslan Bakirov <aslan@fb.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Andreas Schaufler <andreas.schaufler@gmx.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://marc.info/?l=linux-sh&m=157793031102356
+Signed-off-by: Chen Zhou <chenzhou10@huawei.com>
+Cc: Alan Modra <amodra@gmail.com>
+Cc: Bin Meng <bin.meng@windriver.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Romain Naour <romain.naour@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sh/mm/consistent.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/cma.c~mm-cmac-use-exact_nid-true-to-fix-possible-per-numa-cma-leak
-+++ a/mm/cma.c
-@@ -339,13 +339,13 @@ int __init cma_declare_contiguous_nid(ph
- 		 */
- 		if (base < highmem_start && limit > highmem_start) {
- 			addr = memblock_alloc_range_nid(size, alignment,
--					highmem_start, limit, nid, false);
-+					highmem_start, limit, nid, true);
- 			limit = highmem_start;
- 		}
+--- a/arch/sh/mm/consistent.c~sh-remove-call-to-memset-after-dma_alloc_coherent
++++ a/arch/sh/mm/consistent.c
+@@ -57,8 +57,6 @@ int __init platform_resource_setup_memor
+ 		return -ENOMEM;
+ 	}
  
- 		if (!addr) {
- 			addr = memblock_alloc_range_nid(size, alignment, base,
--					limit, nid, false);
-+					limit, nid, true);
- 			if (!addr) {
- 				ret = -ENOMEM;
- 				goto err;
+-	memset(buf, 0, memsize);
+-
+ 	r->flags = IORESOURCE_MEM;
+ 	r->start = dma_handle;
+ 	r->end = r->start + memsize - 1;
 _
 
-Patches currently in -mm which might be from song.bao.hua@hisilicon.com are
+Patches currently in -mm which might be from chenzhou10@huawei.com are
 
-mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enable.patch
-mm-cma-fix-the-name-of-cma-areas.patch
-mm-hugetlb-fix-the-name-of-hugetlb-cma.patch
 
