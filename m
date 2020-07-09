@@ -2,66 +2,50 @@ Return-Path: <SRS0=IHg8=AU=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BC49C433DF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Jul 2020 00:07:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBDF6C433E2
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Jul 2020 02:29:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D604A206F6
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Jul 2020 00:07:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BDDD920772
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Jul 2020 02:29:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594253252;
-	bh=4oyZ3sYXOii6UQPgTE1a1BFs2WHmNLsX8HbhFa9VAiU=;
+	s=default; t=1594261747;
+	bh=iSg9FrSe3XGsbZMDkjpx8ly7pQhRwUtFAzr6Vlw+kf0=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=b4Tor93E4OlAgbguSOnT1VNw9AlAtva3z6mt/wiyroToPN3ry81IKCaguzCEqk18y
-	 kqxQYKNw0EirlXwV++LvbHkKImvPgVgnMkvstqq2kNRRY52PEtj/t0ZVjnUe6TfFUk
-	 W7Zvn9yP1jxz3yz/YWguBY9MZks5uIV94lL2ynqo=
+	b=T/RPscLSh9JimJ6cm8X/3PkvmW7SxsuwpY9pn3O1NjASTuwlzyBelqpD/huDluTPT
+	 3IyDyCB5O1qa/zzDOl4kVBWyLbj4bVeS6lEx/W/7y93NnOMOHjNTmtb18tmgWOB1XS
+	 bdLqjIy1XScDaGvSlJ64GOFvU1jxPFHw/qzcSI5c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726215AbgGIAHc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Jul 2020 20:07:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46466 "EHLO mail.kernel.org"
+        id S1726193AbgGIC3D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Jul 2020 22:29:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39068 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726208AbgGIAHc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Jul 2020 20:07:32 -0400
+        id S1726082AbgGIC3D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Jul 2020 22:29:03 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9AD2F20775;
-        Thu,  9 Jul 2020 00:07:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CDC49206F6;
+        Thu,  9 Jul 2020 02:29:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594253250;
-        bh=4oyZ3sYXOii6UQPgTE1a1BFs2WHmNLsX8HbhFa9VAiU=;
+        s=default; t=1594261742;
+        bh=iSg9FrSe3XGsbZMDkjpx8ly7pQhRwUtFAzr6Vlw+kf0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jwrFqyRzWUy1xjvUPBMrkAl7hHY6xy54rAho9jNWMkTQE+YIMJWKrxod6ZdkyOetl
-         62piM9xjun1ocu7D310O4PxKHmQ/gXviVUNgY+aoTmnHIn2znCHEsEgbvUW3gSTuZY
-         qoWXwLRRZUILurFETGrBWMMeS3C6ahitUYbwo+0s=
-Date:   Wed, 08 Jul 2020 17:07:28 -0700
+        b=YB8sY9XuaMo4vXwFirJCI8Fcm+AjQP5RcY3mJ1OtaKnl93rWpERMZHRREOs7suhSA
+         fOcCCxpXgqjowaJjjsbGQQnZA2VRrYCTh/3CSQErx7JD/ohmc++wNwURqYNTeVLTGe
+         RHooaQJ5rC7dBnY2XNvo/w32+Zzpo4uuItZq2duQ=
+Date:   Wed, 08 Jul 2020 19:29:01 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     agordeev@linux.ibm.com, aou@eecs.berkeley.edu,
-        bcain@codeaurora.org, benh@kernel.crashing.org,
-        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
-        chris@zankel.net, dalias@libc.org, dave.hansen@linux.intel.com,
-        davem@davemloft.net, deanbo422@gmail.com, deller@gmx.de,
-        geert@linux-m68k.org, gerald.schaefer@de.ibm.com,
-        gor@linux.ibm.com, green.hu@gmail.com, guoren@kernel.org,
-        heiko.carstens@de.ibm.com, hpa@zytor.com, ink@jurassic.park.msu.ru,
-        James.Bottomley@HansenPartnership.com, jcmvbkbc@gmail.com,
-        jhubbard@nvidia.com, jonas@southpole.se, ley.foon.tan@intel.com,
-        linux@armlinux.org.uk, luto@kernel.org, mattst88@gmail.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, monstr@monstr.eu,
-        mpe@ellerman.id.au, nickhu@andestech.com, palmer@dabbelt.com,
-        paul.walmsley@sifive.com, paulus@samba.org, penberg@kernel.org,
-        peterx@redhat.com, peterz@infradead.org, rth@twiddle.net,
-        shorne@gmail.com, stefan.kristiansson@saunalahti.fi,
-        tglx@linutronix.de, tony.luck@intel.com, tsbogend@alpha.franken.de,
-        vgupta@synopsys.com, will@kernel.org, ysato@users.sourceforge.jp
-Subject:  +
- mm-clean-up-the-last-pieces-of-page-fault-accountings.patch added to -mm
- tree
-Message-ID: <20200709000728.sfvNyaNVG%akpm@linux-foundation.org>
+To:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+Subject:  mmotm 2020-07-08-19-28 uploaded
+Message-ID: <20200709022901.FTEvQ122j%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -69,239 +53,342 @@ Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
-Message-ID: <20200709000728.SBTH_q52mqB_5qhTg95WOXPQKAu9W8QAS_Zz7raTMAw@z>
+
+The mm-of-the-moment snapshot 2020-07-08-19-28 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (5.x
+or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
 
 
-The patch titled
-     Subject: mm: clean up the last pieces of page fault accountings
-has been added to the -mm tree.  Its filename is
-     mm-clean-up-the-last-pieces-of-page-fault-accountings.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-clean-up-the-last-pieces-of-page-fault-accountings.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clean-up-the-last-pieces-of-page-fault-accountings.patch
+	https://github.com/hnaz/linux-mm
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+A git copy of this tree is also available at
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+	https://github.com/hnaz/linux-mm
 
-------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: clean up the last pieces of page fault accountings
 
-Here're the last pieces of page fault accounting that were still done
-outside handle_mm_fault() where we still have regs==NULL when calling
-handle_mm_fault():
 
-arch/powerpc/mm/copro_fault.c:   copro_handle_mm_fault
-arch/sparc/mm/fault_32.c:        force_user_fault
-arch/um/kernel/trap.c:           handle_page_fault
-mm/gup.c:                        faultin_page
-                                 fixup_user_fault
-mm/hmm.c:                        hmm_vma_fault
-mm/ksm.c:                        break_ksm
+This mmotm tree contains the following patches against 5.8-rc4:
+(patches marked "*" will be included in linux-next)
 
-Some of them has the issue of duplicated accounting for page fault
-retries.  Some of them didn't do the accounting at all.
-
-This patch cleans all these up by letting handle_mm_fault() to do per-task
-page fault accounting even if regs==NULL (though we'll still skip the perf
-event accountings).  With that, we can safely remove all the outliers now.
-
-There's another functional change in that now we account the page faults
-to the caller of gup, rather than the task_struct that passed into the gup
-code.  More information of this can be found at [1].
-
-After this patch, below things should never be touched again outside
-handle_mm_fault():
-
-  - task_struct.[maj|min]_flt
-  - PERF_COUNT_SW_PAGE_FAULTS_[MAJ|MIN]
-
-[1] https://lore.kernel.org/lkml/CAHk-=wj_V2Tps2QrMn20_W0OJF9xqNh52XSGA42s-ZJ8Y+GyKw@mail.gmail.com/
-
-Link: http://lkml.kernel.org/r/20200707225021.200906-25-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vincent Chen <deanbo422@gmail.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/powerpc/mm/copro_fault.c |    5 -----
- arch/um/kernel/trap.c         |    4 ----
- mm/gup.c                      |   13 -------------
- mm/memory.c                   |   17 ++++++++++-------
- 4 files changed, 10 insertions(+), 29 deletions(-)
-
---- a/arch/powerpc/mm/copro_fault.c~mm-clean-up-the-last-pieces-of-page-fault-accountings
-+++ a/arch/powerpc/mm/copro_fault.c
-@@ -76,11 +76,6 @@ int copro_handle_mm_fault(struct mm_stru
- 		BUG();
- 	}
- 
--	if (*flt & VM_FAULT_MAJOR)
--		current->maj_flt++;
--	else
--		current->min_flt++;
--
- out_unlock:
- 	mmap_read_unlock(mm);
- 	return ret;
---- a/arch/um/kernel/trap.c~mm-clean-up-the-last-pieces-of-page-fault-accountings
-+++ a/arch/um/kernel/trap.c
-@@ -88,10 +88,6 @@ good_area:
- 			BUG();
- 		}
- 		if (flags & FAULT_FLAG_ALLOW_RETRY) {
--			if (fault & VM_FAULT_MAJOR)
--				current->maj_flt++;
--			else
--				current->min_flt++;
- 			if (fault & VM_FAULT_RETRY) {
- 				flags |= FAULT_FLAG_TRIED;
- 
---- a/mm/gup.c~mm-clean-up-the-last-pieces-of-page-fault-accountings
-+++ a/mm/gup.c
-@@ -893,13 +893,6 @@ static int faultin_page(struct task_stru
- 		BUG();
- 	}
- 
--	if (tsk) {
--		if (ret & VM_FAULT_MAJOR)
--			tsk->maj_flt++;
--		else
--			tsk->min_flt++;
--	}
--
- 	if (ret & VM_FAULT_RETRY) {
- 		if (locked && !(fault_flags & FAULT_FLAG_RETRY_NOWAIT))
- 			*locked = 0;
-@@ -1255,12 +1248,6 @@ retry:
- 		goto retry;
- 	}
- 
--	if (tsk) {
--		if (major)
--			tsk->maj_flt++;
--		else
--			tsk->min_flt++;
--	}
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(fixup_user_fault);
---- a/mm/memory.c~mm-clean-up-the-last-pieces-of-page-fault-accountings
-+++ a/mm/memory.c
-@@ -4409,20 +4409,23 @@ static inline void mm_account_fault(stru
- 	 */
- 	major = (ret & VM_FAULT_MAJOR) || (flags & FAULT_FLAG_TRIED);
- 
-+	if (major)
-+		current->maj_flt++;
-+	else
-+		current->min_flt++;
-+
- 	/*
--	 * If the fault is done for GUP, regs will be NULL, and we will skip
--	 * the fault accounting.
-+	 * If the fault is done for GUP, regs will be NULL.  We only do the
-+	 * accounting for the per thread fault counters who triggered the
-+	 * fault, and we skip the perf event updates.
- 	 */
- 	if (!regs)
- 		return;
- 
--	if (major) {
--		current->maj_flt++;
-+	if (major)
- 		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs, address);
--	} else {
--		current->min_flt++;
-+	else
- 		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs, address);
--	}
- }
- 
- /*
-_
-
-Patches currently in -mm which might be from peterx@redhat.com are
-
-mm-do-page-fault-accounting-in-handle_mm_fault.patch
-mm-alpha-use-general-page-fault-accounting.patch
-mm-arc-use-general-page-fault-accounting.patch
-mm-arm-use-general-page-fault-accounting.patch
-mm-arm64-use-general-page-fault-accounting.patch
-mm-csky-use-general-page-fault-accounting.patch
-mm-hexagon-use-general-page-fault-accounting.patch
-mm-ia64-use-general-page-fault-accounting.patch
-mm-m68k-use-general-page-fault-accounting.patch
-mm-microblaze-use-general-page-fault-accounting.patch
-mm-mips-use-general-page-fault-accounting.patch
-mm-nds32-use-general-page-fault-accounting.patch
-mm-nios2-use-general-page-fault-accounting.patch
-mm-openrisc-use-general-page-fault-accounting.patch
-mm-parisc-use-general-page-fault-accounting.patch
-mm-powerpc-use-general-page-fault-accounting.patch
-mm-riscv-use-general-page-fault-accounting.patch
-mm-s390-use-general-page-fault-accounting.patch
-mm-sh-use-general-page-fault-accounting.patch
-mm-sparc32-use-general-page-fault-accounting.patch
-mm-sparc64-use-general-page-fault-accounting.patch
-mm-x86-use-general-page-fault-accounting.patch
-mm-xtensa-use-general-page-fault-accounting.patch
-mm-clean-up-the-last-pieces-of-page-fault-accountings.patch
-mm-gup-remove-task_struct-pointer-for-all-gup-code.patch
-
+  origin.patch
+* mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
+* mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault.patch
+* vfs-xattr-mm-shmem-kernfs-release-simple-xattr-entry-in-a-right-way.patch
+* mm-initialize-return-of-vm_insert_pages.patch
+* mm-memcontrol-fix-oops-inside-mem_cgroup_get_nr_swap_pages.patch
+* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
+* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
+* mm-memcg-fix-refcount-error-while-moving-and-swapping.patch
+* mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enable.patch
+* mailmap-add-entry-for-mike-rapoport.patch
+* checkpatch-test-git_dir-changes.patch
+* kthread-remove-incorrect-comment-in-kthread_create_on_cpu.patch
+* kbuild-move-wtype-limits-to-w=2.patch
+* scripts-tagssh-collect-compiled-source-precisely.patch
+* scripts-tagssh-collect-compiled-source-precisely-v2.patch
+* bloat-o-meter-support-comparing-library-archives.patch
+* scripts-decode_stacktrace-skip-missing-symbols.patch
+* scripts-decode_stacktrace-guess-basepath-if-not-specified.patch
+* scripts-decode_stacktrace-guess-path-to-modules.patch
+* scripts-decode_stacktrace-guess-path-to-vmlinux-by-release-name.patch
+* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
+* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
+* ocfs2-change-slot-number-type-s16-to-u16.patch
+* ramfs-support-o_tmpfile.patch
+* kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+  mm.patch
+* mm-treewide-rename-kzfree-to-kfree_sensitive.patch
+* mm-ksize-should-silently-accept-a-null-pointer.patch
+* mm-expand-config_slab_freelist_hardened-to-include-slab.patch
+* slab-add-naive-detection-of-double-free.patch
+* slab-add-naive-detection-of-double-free-fix.patch
+* mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
+* mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
+* mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix.patch
+* mm-slub-make-some-slub_debug-related-attributes-read-only.patch
+* mm-slub-remove-runtime-allocation-order-changes.patch
+* mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
+* mm-slub-make-reclaim_account-attribute-read-only.patch
+* mm-slub-introduce-static-key-for-slub_debug.patch
+* mm-slub-introduce-kmem_cache_debug_flags.patch
+* mm-slub-introduce-kmem_cache_debug_flags-fix.patch
+* mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
+* mm-slab-slub-move-and-improve-cache_from_obj.patch
+* mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
+* mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix.patch
+* slub-drop-lockdep_assert_held-from-put_map.patch
+* mm-kcsan-instrument-slab-slub-free-with-assert_exclusive_access.patch
+* mm-debug_vm_pgtable-add-tests-validating-arch-helpers-for-core-mm-features.patch
+* mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers.patch
+* mm-debug_vm_pgtable-add-debug-prints-for-individual-tests.patch
+* documentation-mm-add-descriptions-for-arch-page-table-helpers.patch
+* mm-filemap-clear-idle-flag-for-writes.patch
+* mm-filemap-add-missing-fgp_-flags-in-kerneldoc-comment-for-pagecache_get_page.patch
+* mm-swap-simplify-alloc_swap_slot_cache.patch
+* mm-swap-simplify-enable_swap_slots_cache.patch
+* mm-swap-remove-redundant-check-for-swap_slot_cache_initialized.patch
+* mm-kmem-make-memcg_kmem_enabled-irreversible.patch
+* mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
+* mm-memcg-prepare-for-byte-sized-vmstat-items.patch
+* mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
+* mm-slub-implement-slub-version-of-obj_to_index.patch
+* mm-memcontrol-decouple-reference-counting-from-page-accounting.patch
+* mm-memcg-slab-obj_cgroup-api.patch
+* mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
+* mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
+* mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
+* mm-memcg-slab-deprecate-memorykmemslabinfo.patch
+* mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
+* mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
+* mm-memcg-slab-simplify-memcg-cache-creation.patch
+* mm-memcg-slab-remove-memcg_kmem_get_cache.patch
+* mm-memcg-slab-deprecate-slab_root_caches.patch
+* mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
+* mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
+* kselftests-cgroup-add-kernel-memory-accounting-tests.patch
+* tools-cgroup-add-memcg_slabinfopy-tool.patch
+* percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
+* mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
+* mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
+* mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
+* mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
+* mm-memcg-percpu-per-memcg-percpu-memory-statistics-v3.patch
+* mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
+* kselftests-cgroup-add-perpcu-memory-accounting-test.patch
+* mm-memcontrol-account-kernel-stack-per-node.patch
+* mm-memcg-slab-remove-unused-argument-by-charge_slab_page.patch
+* mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
+* mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
+* mm-remove-redundant-check-non_swap_entry.patch
+* mm-memoryc-make-remap_pfn_range-reject-unaligned-addr.patch
+* mm-remove-unneeded-includes-of-asm-pgalloch.patch
+* mm-remove-unneeded-includes-of-asm-pgalloch-fix.patch
+* opeinrisc-switch-to-generic-version-of-pte-allocation.patch
+* xtensa-switch-to-generic-version-of-pte-allocation.patch
+* asm-generic-pgalloc-provide-generic-pmd_alloc_one-and-pmd_free_one.patch
+* asm-generic-pgalloc-provide-generic-pud_alloc_one-and-pud_free_one.patch
+* asm-generic-pgalloc-provide-generic-pgd_free.patch
+* mm-move-lib-ioremapc-to-mm.patch
+* mm-move-pd_alloc_track-to-separate-header-file.patch
+* mm-mmap-fix-the-adjusted-length-error.patch
+* proc-meminfo-avoid-open-coded-reading-of-vm_committed_as.patch
+* mm-utilc-make-vm_memory_committed-more-accurate.patch
+* mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
+* mm-mmap-optimize-a-branch-judgment-in-ksys_mmap_pgoff.patch
+* mm-do-page-fault-accounting-in-handle_mm_fault.patch
+* mm-alpha-use-general-page-fault-accounting.patch
+* mm-arc-use-general-page-fault-accounting.patch
+* mm-arm-use-general-page-fault-accounting.patch
+* mm-arm64-use-general-page-fault-accounting.patch
+* mm-csky-use-general-page-fault-accounting.patch
+* mm-hexagon-use-general-page-fault-accounting.patch
+* mm-ia64-use-general-page-fault-accounting.patch
+* mm-m68k-use-general-page-fault-accounting.patch
+* mm-microblaze-use-general-page-fault-accounting.patch
+* mm-mips-use-general-page-fault-accounting.patch
+* mm-nds32-use-general-page-fault-accounting.patch
+* mm-nios2-use-general-page-fault-accounting.patch
+* mm-openrisc-use-general-page-fault-accounting.patch
+* mm-parisc-use-general-page-fault-accounting.patch
+* mm-powerpc-use-general-page-fault-accounting.patch
+* mm-riscv-use-general-page-fault-accounting.patch
+* mm-s390-use-general-page-fault-accounting.patch
+* mm-sh-use-general-page-fault-accounting.patch
+* mm-sparc32-use-general-page-fault-accounting.patch
+* mm-sparc64-use-general-page-fault-accounting.patch
+* mm-x86-use-general-page-fault-accounting.patch
+* mm-xtensa-use-general-page-fault-accounting.patch
+* mm-clean-up-the-last-pieces-of-page-fault-accountings.patch
+* mm-gup-remove-task_struct-pointer-for-all-gup-code.patch
+* mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
+* mm-mremap-calculate-extent-in-one-place.patch
+* mm-mremap-start-addresses-are-properly-aligned.patch
+* mm-mremap-use-pmd_addr_end-to-simplify-the-calculate-of-extent.patch
+* mm-sparse-never-partially-remove-memmap-for-early-section.patch
+* mm-sparse-only-sub-section-aligned-range-would-be-populated.patch
+* vmalloc-convert-to-xarray.patch
+* mm-vmalloc-simplify-merge_or_add_vmap_area-func.patch
+* mm-vmalloc-simplify-augment_tree_propagate_check-func.patch
+* mm-vmalloc-switch-to-propagate-callback.patch
+* mm-vmalloc-update-the-header-about-kva-rework.patch
+* mm-vmalloc-remove-redundant-asignmnet-in-unmap_kernel_range_noflush.patch
+* kasan-improve-and-simplify-kconfigkasan.patch
+* kasan-update-required-compiler-versions-in-documentation.patch
+* rcu-kasan-record-and-print-call_rcu-call-stack.patch
+* kasan-record-and-print-the-free-track.patch
+* kasan-add-tests-for-call_rcu-stack-recording.patch
+* kasan-update-documentation-for-generic-kasan.patch
+* kasan-remove-kasan_unpoison_stack_above_sp_to.patch
+* kasan-fix-kasan-unit-tests-for-tag-based-kasan.patch
+* kasan-fix-kasan-unit-tests-for-tag-based-kasan-v4.patch
+* mm-page_alloc-use-unlikely-in-task_capc.patch
+* page_alloc-consider-highatomic-reserve-in-watermark-fast.patch
+* page_alloc-consider-highatomic-reserve-in-watermark-fast-v5.patch
+* mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+* mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
+* mm-drop-vm_total_pages.patch
+* mm-page_alloc-drop-nr_free_pagecache_pages.patch
+* mm-memory_hotplug-document-why-shuffle_zone-is-relevant.patch
+* mm-shuffle-remove-dynamic-reconfiguration.patch
+* powerpc-numa-set-numa_node-for-all-possible-cpus.patch
+* powerpc-numa-prefer-node-id-queried-from-vphn.patch
+* mm-page_alloc-keep-memoryless-cpuless-node-0-offline.patch
+* mm-page_allocc-replace-the-definition-of-nr_migratetype_bits-with-pb_migratetype_bits.patch
+* mm-page_allocc-extract-the-common-part-in-pfn_to_bitidx.patch
+* mm-page_allocc-simplify-pageblock-bitmap-access.patch
+* mm-page_allocc-remove-unnecessary-end_bitidx-for-_pfnblock_flags_mask.patch
+* mm-page_alloc-silence-a-kasan-false-positive.patch
+* mm-page_alloc-fallbacks-at-most-has-3-elements.patch
+* mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt.patch
+* mm-huge_memoryc-update-tlb-entry-if-pmd-is-changed.patch
+* mips-do-not-call-flush_tlb_all-when-setting-pmd-entry.patch
+* mm-vmscanc-fixed-typo.patch
+* mm-proactive-compaction.patch
+* mm-proactive-compaction-fix.patch
+* mm-use-unsigned-types-for-fragmentation-score.patch
+* hugetlbfs-prevent-filesystem-stacking-of-hugetlbfs.patch
+* mm-thp-remove-debug_cow-switch.patch
+* mm-store-compound_nr-as-well-as-compound_order.patch
+* mm-move-page-flags-include-to-top-of-file.patch
+* mm-add-thp_order.patch
+* mm-add-thp_size.patch
+* mm-replace-hpage_nr_pages-with-thp_nr_pages.patch
+* mm-add-thp_head.patch
+* mm-introduce-offset_in_thp.patch
+* mm-vmstat-add-events-for-thp-migration-without-split.patch
+* mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
+* mm-cma-fix-null-pointer-dereference-when-cma-could-not-be-activated.patch
+* mm-cma-fix-the-name-of-cma-areas.patch
+* mm-cma-fix-the-name-of-cma-areas-fix.patch
+* mm-hugetlb-fix-the-name-of-hugetlb-cma.patch
+* mmhwpoison-cleanup-unused-pagehuge-check.patch
+* mm-hwpoison-remove-recalculating-hpage.patch
+* mmmadvise-call-soft_offline_page-without-mf_count_increased.patch
+* mmmadvise-refactor-madvise_inject_error.patch
+* mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
+* mmhwpoison-un-export-get_hwpoison_page-and-make-it-static.patch
+* mmhwpoison-kill-put_hwpoison_page.patch
+* mmhwpoison-remove-mf_count_increased.patch
+* mmhwpoison-remove-flag-argument-from-soft-offline-functions.patch
+* mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
+* mmhwpoison-rework-soft-offline-for-free-pages.patch
+* mmhwpoison-rework-soft-offline-for-free-pages-fix.patch
+* mmhwpoison-rework-soft-offline-for-in-use-pages.patch
+* mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
+* mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix.patch
+* mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page-fix-fix.patch
+* mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
+* mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+* sched-mm-optimize-current_gfp_context.patch
+* x86-mm-use-max-memory-block-size-on-bare-metal.patch
+* info-task-hung-in-generic_file_write_iter.patch
+* info-task-hung-in-generic_file_write-fix.patch
+* kernel-hung_taskc-monitor-killed-tasks.patch
+* fix-annotation-of-ioreadwrite1632be.patch
+* sparse-group-the-defines-by-functionality.patch
+* bitmap-fix-bitmap_cut-for-partial-overlapping-case.patch
+* bitmap-add-test-for-bitmap_cut.patch
+* lib-generic-radix-treec-remove-unneeded-__rcu.patch
+* lib-test_bitops-do-the-full-test-during-module-init.patch
+* lib-optimize-cpumask_local_spread.patch
+* lib-test_lockupc-make-symbol-test_works-static.patch
+* bits-add-tests-of-genmask.patch
+* bits-add-tests-of-genmask-fix.patch
+* bits-add-tests-of-genmask-fix-2.patch
+* checkpatch-add-test-for-possible-misuse-of-is_enabled-without-config_.patch
+* checkpatch-support-deprecated-terms-checking.patch
+* scripts-deprecated_terms-recommend-denylist-allowlist-instead-of-blacklist-whitelist.patch
+* checkpatch-add-fix-option-for-assign_in_if.patch
+* checkpatch-fix-const_struct-when-const_structscheckpatch-is-missing.patch
+* fs-minix-check-return-value-of-sb_getblk.patch
+* fs-minix-dont-allow-getting-deleted-inodes.patch
+* fs-minix-reject-too-large-maximum-file-size.patch
+* fs-minix-set-s_maxbytes-correctly.patch
+* fs-minix-fix-block-limit-check-for-v1-filesystems.patch
+* fs-minix-remove-expected-error-message-in-block_to_path.patch
+* fatfs-switch-write_lock-to-read_lock-in-fat_ioctl_get_attributes.patch
+* vfat-fat-msdos-filesystem-replace-http-links-with-https-ones.patch
+* fs-signalfdc-fix-inconsistent-return-codes-for-signalfd4.patch
+* selftests-kmod-use-variable-name-in-kmod_test_0001.patch
+* kmod-remove-redundant-be-an-in-the-comment.patch
+* test_kmod-avoid-potential-double-free-in-trigger_config_run_type.patch
+* coredump-add-%f-for-executable-filename.patch
+* exec-change-uselib2-is_sreg-failure-to-eacces.patch
+* exec-move-s_isreg-check-earlier.patch
+* exec-move-path_noexec-check-earlier.patch
+* umh-fix-refcount-underflow-in-fork_usermode_blob.patch
+* kdump-append-kernel-build-id-string-to-vmcoreinfo.patch
+* rapidio-rio_mport_cdev-use-struct_size-helper.patch
+* rapidio-use-struct_size-helper.patch
+* kernel-panicc-make-oops_may_print-return-bool.patch
+* lib-kconfigdebug-fix-typo-in-the-help-text-of-config_panic_timeout.patch
+* aio-simplify-read_events.patch
+* kcov-unconditionally-add-fno-stack-protector-to-compiler-options.patch
+* kcov-make-some-symbols-static.patch
+  linux-next.patch
+  linux-next-rejects.patch
+* mm-madvise-pass-task-and-mm-to-do_madvise.patch
+* pid-move-pidfd_get_pid-to-pidc.patch
+* mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api.patch
+* mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+* mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
+* mm-madvise-check-fatal-signal-pending-of-target-process.patch
+* all-arch-remove-system-call-sys_sysctl.patch
+* all-arch-remove-system-call-sys_sysctl-fix.patch
+* mm-kmemleak-silence-kcsan-splats-in-checksum.patch
+* mm-frontswap-mark-various-intentional-data-races.patch
+* mm-page_io-mark-various-intentional-data-races.patch
+* mm-page_io-mark-various-intentional-data-races-v2.patch
+* mm-swap_state-mark-various-intentional-data-races.patch
+* mm-filemap-fix-a-data-race-in-filemap_fault.patch
+* mm-swapfile-fix-and-annotate-various-data-races.patch
+* mm-swapfile-fix-and-annotate-various-data-races-v2.patch
+* mm-page_counter-fix-various-data-races-at-memsw.patch
+* mm-memcontrol-fix-a-data-race-in-scan-count.patch
+* mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
+* mm-mempool-fix-a-data-race-in-mempool_free.patch
+* mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
+* mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
+* mm-annotate-a-data-race-in-page_zonenum.patch
+* include-asm-generic-vmlinuxldsh-align-ro_after_init.patch
+* sh-clkfwk-remove-r8-r16-r32.patch
+* sh-remove-call-to-memset-after-dma_alloc_coherent.patch
+* sh-use-generic-strncpy.patch
+* sh-add-missing-export_symbol-for-__delay.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  mutex-subsystem-synchro-test-module.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  workaround-for-a-pci-restoring-bug.patch
