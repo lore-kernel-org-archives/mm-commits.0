@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-openrisc-use-general-page-fault-accounting.patch
- added to -mm tree
-Date: Wed, 08 Jul 2020 17:07:05 -0700
-Message-ID: <20200709000705.4modHTeTX%akpm@linux-foundation.org>
+Subject: + mm-parisc-use-general-page-fault-accounting.patch added
+ to -mm tree
+Date: Wed, 08 Jul 2020 17:07:08 -0700
+Message-ID: <20200709000708.QYAHo9Qzc%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46144 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46170 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726139AbgGIAHH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Jul 2020 20:07:07 -0400
+        id S1726139AbgGIAHJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Jul 2020 20:07:09 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jonas@southpole.se, mm-commits@vger.kernel.org, peterx@redhat.com, shorne@gmail.com, stefan.kristiansson@saunalahti.fi
+To: deller@gmx.de, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org, peterx@redhat.com
 
 
 The patch titled
-     Subject: mm/openrisc: use general page fault accounting
+     Subject: mm/parisc: use general page fault accounting
 has been added to the -mm tree.  Its filename is
-     mm-openrisc-use-general-page-fault-accounting.patch
+     mm-parisc-use-general-page-fault-accounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-openrisc-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-parisc-use-general-page-fault-accounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-openrisc-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-parisc-use-general-page-fault-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/openrisc: use general page fault accounting
+Subject: mm/parisc: use general page fault accounting
 
 Use the general page fault accounting by passing regs into
 handle_mm_fault().  It naturally solve the issue of multiple page fault
@@ -49,38 +49,36 @@ Add the missing PERF_COUNT_SW_PAGE_FAULTS perf events too.  Note, the
 other two perf events (PERF_COUNT_SW_PAGE_FAULTS_[MAJ|MIN]) were done in
 handle_mm_fault().
 
-Link: http://lkml.kernel.org/r/20200707225021.200906-15-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200707225021.200906-16-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: Stafford Horne <shorne@gmail.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/mm/fault.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ arch/parisc/mm/fault.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/arch/openrisc/mm/fault.c~mm-openrisc-use-general-page-fault-accounting
-+++ a/arch/openrisc/mm/fault.c
-@@ -15,6 +15,7 @@
- #include <linux/interrupt.h>
+--- a/arch/parisc/mm/fault.c~mm-parisc-use-general-page-fault-accounting
++++ a/arch/parisc/mm/fault.c
+@@ -18,6 +18,7 @@
  #include <linux/extable.h>
- #include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ #include <linux/hugetlb.h>
 +#include <linux/perf_event.h>
  
- #include <linux/uaccess.h>
- #include <asm/siginfo.h>
-@@ -103,6 +104,8 @@ asmlinkage void do_page_fault(struct pt_
- 	if (in_interrupt() || !mm)
- 		goto no_context;
+ #include <asm/traps.h>
  
+@@ -281,6 +282,7 @@ void do_page_fault(struct pt_regs *regs,
+ 	acc_type = parisc_acctyp(code, regs->iir);
+ 	if (acc_type & VM_WRITE)
+ 		flags |= FAULT_FLAG_WRITE;
 +	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
-+
  retry:
  	mmap_read_lock(mm);
- 	vma = find_vma(mm, address);
-@@ -159,7 +162,7 @@ good_area:
- 	 * the fault.
+ 	vma = find_vma_prev(mm, address, &prev_vma);
+@@ -302,7 +304,7 @@ good_area:
+ 	 * fault.
  	 */
  
 -	fault = handle_mm_fault(vma, address, flags, NULL);
@@ -88,17 +86,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	if (fault_signal_pending(fault, regs))
  		return;
-@@ -176,10 +179,6 @@ good_area:
- 
+@@ -323,10 +325,6 @@ good_area:
+ 		BUG();
+ 	}
  	if (flags & FAULT_FLAG_ALLOW_RETRY) {
- 		/*RGD modeled on Cris */
 -		if (fault & VM_FAULT_MAJOR)
--			tsk->maj_flt++;
+-			current->maj_flt++;
 -		else
--			tsk->min_flt++;
+-			current->min_flt++;
  		if (fault & VM_FAULT_RETRY) {
- 			flags |= FAULT_FLAG_TRIED;
- 
+ 			/*
+ 			 * No need to mmap_read_unlock(mm) as we would
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
