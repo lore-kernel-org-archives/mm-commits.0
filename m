@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-alpha-use-general-page-fault-accounting.patch added
- to -mm tree
-Date: Wed, 08 Jul 2020 17:06:41 -0700
-Message-ID: <20200709000641.QLm1UxGzR%akpm@linux-foundation.org>
+Subject: + mm-arc-use-general-page-fault-accounting.patch added to
+ -mm tree
+Date: Wed, 08 Jul 2020 17:06:43 -0700
+Message-ID: <20200709000643.Du3FgtPc_%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45836 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45862 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725972AbgGIAGm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Jul 2020 20:06:42 -0400
+        id S1725972AbgGIAGo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Jul 2020 20:06:44 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, mattst88@gmail.com, mm-commits@vger.kernel.org, peterx@redhat.com, rth@twiddle.net
+To: mm-commits@vger.kernel.org, peterx@redhat.com, vgupta@synopsys.com
 
 
 The patch titled
-     Subject: mm/alpha: use general page fault accounting
+     Subject: mm/arc: use general page fault accounting
 has been added to the -mm tree.  Its filename is
-     mm-alpha-use-general-page-fault-accounting.patch
+     mm-arc-use-general-page-fault-accounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-alpha-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-arc-use-general-page-fault-accounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-alpha-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-arc-use-general-page-fault-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +39,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/alpha: use general page fault accounting
+Subject: mm/arc: use general page fault accounting
 
 Use the general page fault accounting by passing regs into
-handle_mm_fault().
+handle_mm_fault().  It naturally solve the issue of multiple page fault
+accounting when page fault retry happened.
 
-Add the missing PERF_COUNT_SW_PAGE_FAULTS perf events too.  Note, the
-other two perf events (PERF_COUNT_SW_PAGE_FAULTS_[MAJ|MIN]) were done in
-handle_mm_fault().
+Fix PERF_COUNT_SW_PAGE_FAULTS perf event manually for page fault retries,
+by moving it before taking mmap_sem.
 
-Link: http://lkml.kernel.org/r/20200707225021.200906-3-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200707225021.200906-4-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/fault.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ arch/arc/mm/fault.c |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
---- a/arch/alpha/mm/fault.c~mm-alpha-use-general-page-fault-accounting
-+++ a/arch/alpha/mm/fault.c
-@@ -25,6 +25,7 @@
- #include <linux/interrupt.h>
- #include <linux/extable.h>
- #include <linux/uaccess.h>
-+#include <linux/perf_event.h>
+--- a/arch/arc/mm/fault.c~mm-arc-use-general-page-fault-accounting
++++ a/arch/arc/mm/fault.c
+@@ -105,6 +105,7 @@ void do_page_fault(unsigned long address
+ 	if (write)
+ 		flags |= FAULT_FLAG_WRITE;
  
- extern void die_if_kernel(char *,struct pt_regs *,long, unsigned long *);
- 
-@@ -116,6 +117,7 @@ do_page_fault(unsigned long address, uns
- #endif
- 	if (user_mode(regs))
- 		flags |= FAULT_FLAG_USER;
 +	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
  retry:
  	mmap_read_lock(mm);
- 	vma = find_vma(mm, address);
-@@ -148,7 +150,7 @@ retry:
- 	/* If for any reason at all we couldn't handle the fault,
- 	   make sure we exit gracefully rather than endlessly redo
- 	   the fault.  */
+ 
+@@ -130,7 +131,7 @@ retry:
+ 		goto bad_area;
+ 	}
+ 
 -	fault = handle_mm_fault(vma, address, flags, NULL);
 +	fault = handle_mm_fault(vma, address, flags, regs);
  
- 	if (fault_signal_pending(fault, regs))
+ 	/* Quick path to respond to signals */
+ 	if (fault_signal_pending(fault, regs)) {
+@@ -155,22 +156,9 @@ bad_area:
+ 	 * Major/minor page fault accounting
+ 	 * (in case of retry we only land here once)
+ 	 */
+-	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
+-
+-	if (likely(!(fault & VM_FAULT_ERROR))) {
+-		if (fault & VM_FAULT_MAJOR) {
+-			tsk->maj_flt++;
+-			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1,
+-				      regs, address);
+-		} else {
+-			tsk->min_flt++;
+-			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1,
+-				      regs, address);
+-		}
+-
++	if (likely(!(fault & VM_FAULT_ERROR)))
+ 		/* Normal return path: fault Handled Gracefully */
  		return;
-@@ -164,10 +166,6 @@ retry:
- 	}
+-	}
  
- 	if (flags & FAULT_FLAG_ALLOW_RETRY) {
--		if (fault & VM_FAULT_MAJOR)
--			current->maj_flt++;
--		else
--			current->min_flt++;
- 		if (fault & VM_FAULT_RETRY) {
- 			flags |= FAULT_FLAG_TRIED;
- 
+ 	if (!user_mode(regs))
+ 		goto no_context;
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
