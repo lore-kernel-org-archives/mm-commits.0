@@ -1,31 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: +
- mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch added to
- -mm tree
-Date: Thu, 09 Jul 2020 16:10:49 -0700
-Message-ID: <20200709231049.FmodEQwCT%akpm@linux-foundation.org>
+Subject: + mm-migrate-optimize-migrate_vma_setup-for-holes.patch
+ added to -mm tree
+Date: Thu, 09 Jul 2020 16:46:33 -0700
+Message-ID: <20200709234633.CvgqR0RwB%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40612 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726222AbgGIXKv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jul 2020 19:10:51 -0400
+        id S1726227AbgGIXqe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jul 2020 19:46:34 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chrisdown.name, domas@fb.com, guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org
+To: bharata@linux.ibm.com, hch@lst.de, jgg@mellanox.com, jglisse@redhat.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: avoid workload stalls when lowering memory.high
+     Subject: mm/migrate: optimize migrate_vma_setup() for holes
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
+     mm-migrate-optimize-migrate_vma_setup-for-holes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-optimize-migrate_vma_setup-for-holes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-optimize-migrate_vma_setup-for-holes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,94 +38,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcontrol: avoid workload stalls when lowering memory.high
+From: Ralph Campbell <rcampbell@nvidia.com>
+Subject: mm/migrate: optimize migrate_vma_setup() for holes
 
-Memory.high limit is implemented in a way such that the kernel penalizes
-all threads which are allocating a memory over the limit.  Forcing all
-threads into the synchronous reclaim and adding some artificial delays
-allows to slow down the memory consumption and potentially give some time
-for userspace oom handlers/resource control agents to react.
+Patch series "mm/migrate: optimize migrate_vma_setup() for holes".
 
-It works nicely if the memory usage is hitting the limit from below,
-however it works sub-optimal if a user adjusts memory.high to a value way
-below the current memory usage.  It basically forces all workload threads
-(doing any memory allocations) into the synchronous reclaim and sleep. 
-This makes the workload completely unresponsive for a long period of time
-and can also lead to a system-wide contention on lru locks.  It can happen
-even if the workload is not actually tight on memory and has, for example,
-a ton of cold pagecache.
+A simple optimization for migrate_vma_*() when the source vma is not an
+anonymous vma and a new test case to exercise it.
 
-In the current implementation writing to memory.high causes an atomic
-update of page counter's high value followed by an attempt to reclaim
-enough memory to fit into the new limit.  To fix the problem described
-above, all we need is to change the order of execution: try to push the
-memory usage under the limit first, and only then set the new high limit.
 
-Link: http://lkml.kernel.org/r/20200709194718.189231-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reported-by: Domas Mituzas <domas@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Chris Down <chris@chrisdown.name>
+This patch (of 2):
+
+When migrating system memory to device private memory, if the source
+address range is a valid VMA range and there is no memory or a zero page,
+the source PFN array is marked as valid but with no PFN.
+
+This lets the device driver allocate private memory and clear it, then
+insert the new device private struct page into the CPU's page tables when
+migrate_vma_pages() is called.  migrate_vma_pages() only inserts the new
+page if the VMA is an anonymous range.
+
+There is no point in telling the device driver to allocate device private
+memory and then not migrate the page.  Instead, mark the source PFN array
+entries as not migrating to avoid this overhead.
+
+Link: http://lkml.kernel.org/r/20200709165711.26584-1-rcampbell@nvidia.com
+Link: http://lkml.kernel.org/r/20200709165711.26584-2-rcampbell@nvidia.com
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: "Bharata B Rao" <bharata@linux.ibm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/migrate.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh
-+++ a/mm/memcontrol.c
-@@ -6203,8 +6203,6 @@ static ssize_t memory_high_write(struct
- 	if (err)
- 		return err;
- 
--	page_counter_set_high(&memcg->memory, high);
--
- 	for (;;) {
- 		unsigned long nr_pages = page_counter_read(&memcg->memory);
- 		unsigned long reclaimed;
-@@ -6228,6 +6226,8 @@ static ssize_t memory_high_write(struct
- 			break;
- 	}
- 
-+	page_counter_set_high(&memcg->memory, high);
+--- a/mm/migrate.c~mm-migrate-optimize-migrate_vma_setup-for-holes
++++ a/mm/migrate.c
+@@ -2167,9 +2167,13 @@ static int migrate_vma_collect_hole(unsi
+ {
+ 	struct migrate_vma *migrate = walk->private;
+ 	unsigned long addr;
++	unsigned long flags;
 +
- 	return nbytes;
- }
++	/* Only allow populating anonymous memory. */
++	flags = vma_is_anonymous(walk->vma) ? MIGRATE_PFN_MIGRATE : 0;
  
+ 	for (addr = start; addr < end; addr += PAGE_SIZE) {
+-		migrate->src[migrate->npages] = MIGRATE_PFN_MIGRATE;
++		migrate->src[migrate->npages] = flags;
+ 		migrate->dst[migrate->npages] = 0;
+ 		migrate->npages++;
+ 		migrate->cpages++;
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from rcampbell@nvidia.com are
 
-mm-kmem-make-memcg_kmem_enabled-irreversible.patch
-mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
-mm-memcg-prepare-for-byte-sized-vmstat-items.patch
-mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
-mm-slub-implement-slub-version-of-obj_to_index.patch
-mm-memcg-slab-obj_cgroup-api.patch
-mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
-mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
-mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
-mm-memcg-slab-deprecate-memorykmemslabinfo.patch
-mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
-mm-memcg-slab-simplify-memcg-cache-creation.patch
-mm-memcg-slab-remove-memcg_kmem_get_cache.patch
-mm-memcg-slab-deprecate-slab_root_caches.patch
-mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
-kselftests-cgroup-add-kernel-memory-accounting-tests.patch
-tools-cgroup-add-memcg_slabinfopy-tool.patch
-percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics-v3.patch
-mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
-kselftests-cgroup-add-perpcu-memory-accounting-test.patch
-mm-memcg-slab-remove-unused-argument-by-charge_slab_page.patch
-mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
-mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
-mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
+mm-remove-redundant-check-non_swap_entry.patch
+mm-migrate-optimize-migrate_vma_setup-for-holes.patch
+mm-migrate-add-migrate-shared-test-for-migrate_vma_.patch
