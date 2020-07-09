@@ -1,83 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- umh-fix-refcount-underflow-in-fork_usermode_blob.patch removed from -mm
- tree
-Date: Thu, 09 Jul 2020 13:36:00 -0700
-Message-ID: <20200709203600.hOUPOrGbN%akpm@linux-foundation.org>
+Subject: [merged] hugetlb-fix-pages-per-hugetlb-calculation.patch
+ removed from -mm tree
+Date: Thu, 09 Jul 2020 13:42:11 -0700
+Message-ID: <20200709204211.XNvtwJpBJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46942 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49728 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726196AbgGIUgC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jul 2020 16:36:02 -0400
+        id S1726183AbgGIUmM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jul 2020 16:42:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ast@kernel.org, davem@davemloft.net, ebiederm@xmission.com, mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: kirill.shutemov@linux.intel.com, mhocko@kernel.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org, stable@vger.kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: umh: fix refcount underflow in fork_usermode_blob().
+     Subject: mm/hugetlb.c: fix pages per hugetlb calculation
 has been removed from the -mm tree.  Its filename was
-     umh-fix-refcount-underflow-in-fork_usermode_blob.patch
+     hugetlb-fix-pages-per-hugetlb-calculation.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Subject: umh: fix refcount underflow in fork_usermode_blob().
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb.c: fix pages per hugetlb calculation
 
-Since free_bprm(bprm) always calls allow_write_access(bprm->file) and
-fput(bprm->file) if bprm->file is set to non-NULL, __do_execve_file()
-must call deny_write_access(file) and get_file(file) if called from
-do_execve_file() path. Otherwise, use-after-free access can happen at
-fput(file) in fork_usermode_blob().
+The routine hpage_nr_pages() was incorrectly used to calculate the number
+of base pages in a hugetlb page.  hpage_nr_pages is designed to be called
+for THP pages and will return HPAGE_PMD_NR for hugetlb pages of any size.
 
-  general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6b6b: 0000 [#1] SMP DEBUG_PAGEALLOC
-  CPU: 3 PID: 4131 Comm: insmod Tainted: G           O      5.6.0-rc5+ #978
-  Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/29/2019
-  RIP: 0010:fork_usermode_blob+0xaa/0x190
+Due to the context in which hpage_nr_pages was called, it is unlikely to
+produce a user visible error.  The routine with the incorrect call is only
+exercised in the case of hugetlb memory error or migration.  In addition,
+this would need to be on an architecture which supports huge page sizes
+less than PMD_SIZE.  And, the vma containing the huge page would also need
+to smaller than PMD_SIZE.
 
-Link: http://lkml.kernel.org/r/9b846b1f-a231-4f09-8c37-6bfb0d1e7b05@i-love.sakura.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Fixes: 449325b52b7a6208 ("umh: introduce fork_usermode_blob() helper")
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: <stable@vger.kernel.org> [4.18+]
-
+Link: http://lkml.kernel.org/r/20200629185003.97202-1-mike.kravetz@oracle.com
+Fixes: c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing synchronization")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/exec.c~umh-fix-refcount-underflow-in-fork_usermode_blob
-+++ a/fs/exec.c
-@@ -1868,11 +1868,17 @@ static int __do_execve_file(int fd, stru
- 	check_unsafe_exec(bprm);
- 	current->in_execve = 1;
+--- a/mm/hugetlb.c~hugetlb-fix-pages-per-hugetlb-calculation
++++ a/mm/hugetlb.c
+@@ -1593,7 +1593,7 @@ static struct address_space *_get_hugetl
  
--	if (!file)
-+	if (!file) {
- 		file = do_open_execat(fd, filename, flags);
--	retval = PTR_ERR(file);
--	if (IS_ERR(file))
--		goto out_unmark;
-+		retval = PTR_ERR(file);
-+		if (IS_ERR(file))
-+			goto out_unmark;
-+	} else {
-+		retval = deny_write_access(file);
-+		if (retval)
-+			goto out_unmark;
-+		get_file(file);
-+	}
- 
- 	sched_exec();
- 
+ 	/* Use first found vma */
+ 	pgoff_start = page_to_pgoff(hpage);
+-	pgoff_end = pgoff_start + hpage_nr_pages(hpage) - 1;
++	pgoff_end = pgoff_start + pages_per_huge_page(page_hstate(hpage)) - 1;
+ 	anon_vma_interval_tree_foreach(avc, &anon_vma->rb_root,
+ 					pgoff_start, pgoff_end) {
+ 		struct vm_area_struct *vma = avc->vma;
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-kernel-hung_taskc-monitor-killed-tasks.patch
+hugetlbfs-prevent-filesystem-stacking-of-hugetlbfs.patch
