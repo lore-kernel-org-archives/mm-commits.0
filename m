@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-s390-use-general-page-fault-accounting.patch added
- to -mm tree
-Date: Wed, 08 Jul 2020 17:07:14 -0700
-Message-ID: <20200709000714.xdPTfiYQr%akpm@linux-foundation.org>
+Subject: + mm-sh-use-general-page-fault-accounting.patch added to
+ -mm tree
+Date: Wed, 08 Jul 2020 17:07:16 -0700
+Message-ID: <20200709000716.AV1q6VzFA%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46264 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46294 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726171AbgGIAHR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1726185AbgGIAHR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 8 Jul 2020 20:07:17 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agordeev@linux.ibm.com, borntraeger@de.ibm.com, gerald.schaefer@de.ibm.com, gor@linux.ibm.com, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org, peterx@redhat.com
+To: dalias@libc.org, mm-commits@vger.kernel.org, peterx@redhat.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm/s390: use general page fault accounting
+     Subject: mm/sh: use general page fault accounting
 has been added to the -mm tree.  Its filename is
-     mm-s390-use-general-page-fault-accounting.patch
+     mm-sh-use-general-page-fault-accounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-s390-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sh-use-general-page-fault-accounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-s390-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sh-use-general-page-fault-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/s390: use general page fault accounting
+Subject: mm/sh: use general page fault accounting
 
 Use the general page fault accounting by passing regs into
 handle_mm_fault().  It naturally solve the issue of multiple page fault
 accounting when page fault retry happened.
 
-Link: http://lkml.kernel.org/r/20200707225021.200906-19-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200707225021.200906-20-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Reviewed-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/fault.c |   16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+ arch/sh/mm/fault.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
---- a/arch/s390/mm/fault.c~mm-s390-use-general-page-fault-accounting
-+++ a/arch/s390/mm/fault.c
-@@ -478,7 +478,7 @@ retry:
+--- a/arch/sh/mm/fault.c~mm-sh-use-general-page-fault-accounting
++++ a/arch/sh/mm/fault.c
+@@ -482,22 +482,13 @@ good_area:
  	 * make sure we exit gracefully rather than endlessly redo
  	 * the fault.
  	 */
 -	fault = handle_mm_fault(vma, address, flags, NULL);
 +	fault = handle_mm_fault(vma, address, flags, regs);
- 	if (fault_signal_pending(fault, regs)) {
- 		fault = VM_FAULT_SIGNAL;
- 		if (flags & FAULT_FLAG_RETRY_NOWAIT)
-@@ -488,21 +488,7 @@ retry:
- 	if (unlikely(fault & VM_FAULT_ERROR))
- 		goto out_up;
  
--	/*
--	 * Major/minor page fault accounting is only done on the
--	 * initial attempt. If we go through a retry, it is extremely
--	 * likely that the page will be found in page cache at that point.
--	 */
+ 	if (unlikely(fault & (VM_FAULT_RETRY | VM_FAULT_ERROR)))
+ 		if (mm_fault_error(regs, error_code, address, fault))
+ 			return;
+ 
  	if (flags & FAULT_FLAG_ALLOW_RETRY) {
 -		if (fault & VM_FAULT_MAJOR) {
 -			tsk->maj_flt++;
@@ -90,8 +79,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -				      regs, address);
 -		}
  		if (fault & VM_FAULT_RETRY) {
- 			if (IS_ENABLED(CONFIG_PGSTE) && gmap &&
- 			    (flags & FAULT_FLAG_RETRY_NOWAIT)) {
+ 			flags |= FAULT_FLAG_TRIED;
+ 
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
