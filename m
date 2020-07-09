@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-nios2-use-general-page-fault-accounting.patch added
- to -mm tree
-Date: Wed, 08 Jul 2020 17:07:03 -0700
-Message-ID: <20200709000703.SxKhZhuSY%akpm@linux-foundation.org>
+Subject: + mm-openrisc-use-general-page-fault-accounting.patch
+ added to -mm tree
+Date: Wed, 08 Jul 2020 17:07:05 -0700
+Message-ID: <20200709000705.4modHTeTX%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:46120 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:46144 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726139AbgGIAHE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Jul 2020 20:07:04 -0400
+        id S1726139AbgGIAHH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Jul 2020 20:07:07 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ley.foon.tan@intel.com, mm-commits@vger.kernel.org, peterx@redhat.com
+To: jonas@southpole.se, mm-commits@vger.kernel.org, peterx@redhat.com, shorne@gmail.com, stefan.kristiansson@saunalahti.fi
 
 
 The patch titled
-     Subject: mm/nios2: use general page fault accounting
+     Subject: mm/openrisc: use general page fault accounting
 has been added to the -mm tree.  Its filename is
-     mm-nios2-use-general-page-fault-accounting.patch
+     mm-openrisc-use-general-page-fault-accounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-nios2-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-openrisc-use-general-page-fault-accounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-nios2-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-openrisc-use-general-page-fault-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/nios2: use general page fault accounting
+Subject: mm/openrisc: use general page fault accounting
 
 Use the general page fault accounting by passing regs into
 handle_mm_fault().  It naturally solve the issue of multiple page fault
@@ -49,57 +49,53 @@ Add the missing PERF_COUNT_SW_PAGE_FAULTS perf events too.  Note, the
 other two perf events (PERF_COUNT_SW_PAGE_FAULTS_[MAJ|MIN]) were done in
 handle_mm_fault().
 
-Link: http://lkml.kernel.org/r/20200707225021.200906-14-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200707225021.200906-15-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+Acked-by: Stafford Horne <shorne@gmail.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nios2/mm/fault.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ arch/openrisc/mm/fault.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/arch/nios2/mm/fault.c~mm-nios2-use-general-page-fault-accounting
-+++ a/arch/nios2/mm/fault.c
-@@ -24,6 +24,7 @@
- #include <linux/mm.h>
+--- a/arch/openrisc/mm/fault.c~mm-openrisc-use-general-page-fault-accounting
++++ a/arch/openrisc/mm/fault.c
+@@ -15,6 +15,7 @@
+ #include <linux/interrupt.h>
  #include <linux/extable.h>
- #include <linux/uaccess.h>
+ #include <linux/sched/signal.h>
 +#include <linux/perf_event.h>
  
- #include <asm/mmu_context.h>
- #include <asm/traps.h>
-@@ -83,6 +84,8 @@ asmlinkage void do_page_fault(struct pt_
- 	if (user_mode(regs))
- 		flags |= FAULT_FLAG_USER;
+ #include <linux/uaccess.h>
+ #include <asm/siginfo.h>
+@@ -103,6 +104,8 @@ asmlinkage void do_page_fault(struct pt_
+ 	if (in_interrupt() || !mm)
+ 		goto no_context;
  
 +	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
 +
- 	if (!mmap_read_trylock(mm)) {
- 		if (!user_mode(regs) && !search_exception_tables(regs->ea))
- 			goto bad_area_nosemaphore;
-@@ -131,7 +134,7 @@ good_area:
- 	 * make sure we exit gracefully rather than endlessly redo
+ retry:
+ 	mmap_read_lock(mm);
+ 	vma = find_vma(mm, address);
+@@ -159,7 +162,7 @@ good_area:
  	 * the fault.
  	 */
+ 
 -	fault = handle_mm_fault(vma, address, flags, NULL);
 +	fault = handle_mm_fault(vma, address, flags, regs);
  
  	if (fault_signal_pending(fault, regs))
  		return;
-@@ -146,16 +149,7 @@ good_area:
- 		BUG();
- 	}
+@@ -176,10 +179,6 @@ good_area:
  
--	/*
--	 * Major/minor page fault accounting is only done on the
--	 * initial attempt. If we go through a retry, it is extremely
--	 * likely that the page will be found in page cache at that point.
--	 */
  	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+ 		/*RGD modeled on Cris */
 -		if (fault & VM_FAULT_MAJOR)
--			current->maj_flt++;
+-			tsk->maj_flt++;
 -		else
--			current->min_flt++;
+-			tsk->min_flt++;
  		if (fault & VM_FAULT_RETRY) {
  			flags |= FAULT_FLAG_TRIED;
  
