@@ -1,30 +1,30 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-csky-use-general-page-fault-accounting.patch added
- to -mm tree
-Date: Wed, 08 Jul 2020 17:06:49 -0700
-Message-ID: <20200709000649.jEBSS5Ia-%akpm@linux-foundation.org>
+Subject: + mm-hexagon-use-general-page-fault-accounting.patch
+ added to -mm tree
+Date: Wed, 08 Jul 2020 17:06:51 -0700
+Message-ID: <20200709000651.a-h4w0dJe%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45956 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:45978 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725972AbgGIAGu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Jul 2020 20:06:50 -0400
+        id S1725972AbgGIAGw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Jul 2020 20:06:52 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guoren@kernel.org, mm-commits@vger.kernel.org, peterx@redhat.com
+To: bcain@codeaurora.org, mm-commits@vger.kernel.org, peterx@redhat.com
 
 
 The patch titled
-     Subject: mm/csky: use general page fault accounting
+     Subject: mm/hexagon: use general page fault accounting
 has been added to the -mm tree.  Its filename is
-     mm-csky-use-general-page-fault-accounting.patch
+     mm-hexagon-use-general-page-fault-accounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-csky-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hexagon-use-general-page-fault-accounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-csky-use-general-page-fault-accounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hexagon-use-general-page-fault-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,49 +39,64 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/csky: use general page fault accounting
+Subject: mm/hexagon: use general page fault accounting
 
 Use the general page fault accounting by passing regs into
 handle_mm_fault().  It naturally solve the issue of multiple page fault
 accounting when page fault retry happened.
 
-Link: http://lkml.kernel.org/r/20200707225021.200906-7-peterx@redhat.com
+Add the missing PERF_COUNT_SW_PAGE_FAULTS perf events too.  Note, the
+other two perf events (PERF_COUNT_SW_PAGE_FAULTS_[MAJ|MIN]) were done in
+handle_mm_fault().
+
+Link: http://lkml.kernel.org/r/20200707225021.200906-8-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: Guo Ren <guoren@kernel.org>
+Acked-by: Brian Cain <bcain@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/mm/fault.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ arch/hexagon/mm/vm_fault.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/arch/csky/mm/fault.c~mm-csky-use-general-page-fault-accounting
-+++ a/arch/csky/mm/fault.c
-@@ -151,7 +151,7 @@ good_area:
- 	 * the fault.
- 	 */
- 	fault = handle_mm_fault(vma, address, write ? FAULT_FLAG_WRITE : 0,
--				NULL);
-+				regs);
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
-@@ -161,16 +161,6 @@ good_area:
- 			goto bad_area;
- 		BUG();
- 	}
--	if (fault & VM_FAULT_MAJOR) {
--		tsk->maj_flt++;
--		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs,
--			      address);
--	} else {
--		tsk->min_flt++;
--		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs,
--			      address);
--	}
--
- 	mmap_read_unlock(mm);
- 	return;
+--- a/arch/hexagon/mm/vm_fault.c~mm-hexagon-use-general-page-fault-accounting
++++ a/arch/hexagon/mm/vm_fault.c
+@@ -18,6 +18,7 @@
+ #include <linux/signal.h>
+ #include <linux/extable.h>
+ #include <linux/hardirq.h>
++#include <linux/perf_event.h>
  
+ /*
+  * Decode of hardware exception sends us to one of several
+@@ -53,6 +54,8 @@ void do_page_fault(unsigned long address
+ 
+ 	if (user_mode(regs))
+ 		flags |= FAULT_FLAG_USER;
++
++	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
+ retry:
+ 	mmap_read_lock(mm);
+ 	vma = find_vma(mm, address);
+@@ -88,7 +91,7 @@ good_area:
+ 		break;
+ 	}
+ 
+-	fault = handle_mm_fault(vma, address, flags, NULL);
++	fault = handle_mm_fault(vma, address, flags, regs);
+ 
+ 	if (fault_signal_pending(fault, regs))
+ 		return;
+@@ -96,10 +99,6 @@ good_area:
+ 	/* The most common case -- we are done. */
+ 	if (likely(!(fault & VM_FAULT_ERROR))) {
+ 		if (flags & FAULT_FLAG_ALLOW_RETRY) {
+-			if (fault & VM_FAULT_MAJOR)
+-				current->maj_flt++;
+-			else
+-				current->min_flt++;
+ 			if (fault & VM_FAULT_RETRY) {
+ 				flags |= FAULT_FLAG_TRIED;
+ 				goto retry;
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
