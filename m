@@ -1,15 +1,15 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-print-the-inode-number-in-dump_page.patch added to
+Subject: + mm-print-hashed-address-of-struct-page.patch added to
  -mm tree
-Date: Thu, 09 Jul 2020 16:09:29 -0700
-Message-ID: <20200709230929.AgtcFv_OB%akpm@linux-foundation.org>
+Date: Thu, 09 Jul 2020 16:09:32 -0700
+Message-ID: <20200709230932.txbub8IEQ%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40438 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:40468 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726222AbgGIXJa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jul 2020 19:09:30 -0400
+        id S1726222AbgGIXJe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jul 2020 19:09:34 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: jhubbard@nvidia.com, kirill@shutemov.name, mm-commits@vger.kernel.org, rppt@
 
 
 The patch titled
-     Subject: mm/debug: print the inode number in dump_page
+     Subject: mm/debug: print hashed address of struct page
 has been added to the -mm tree.  Its filename is
-     mm-print-the-inode-number-in-dump_page.patch
+     mm-print-hashed-address-of-struct-page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-print-the-inode-number-in-dump_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-print-hashed-address-of-struct-page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-print-the-inode-number-in-dump_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-print-hashed-address-of-struct-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +39,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/debug: print the inode number in dump_page
+Subject: mm/debug: print hashed address of struct page
 
-The inode number helps correlate this page with debug messages elsewhere
-in the kernel.
+The actual address of the struct page isn't particularly helpful, while
+the hashed address helps match with other messages elsewhere.  Add the PFN
+that the page refers to in order to help diagnose problems where the page
+is improperly aligned for the purpose.
 
-Link: http://lkml.kernel.org/r/20200709202117.7216-6-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200709202117.7216-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
@@ -54,31 +56,33 @@ Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/debug.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/debug.c~mm-print-the-inode-number-in-dump_page
+--- a/mm/debug.c~mm-print-hashed-address-of-struct-page
 +++ a/mm/debug.c
-@@ -137,7 +137,7 @@ void __dump_page(struct page *page, cons
- 		}
+@@ -89,17 +89,17 @@ void __dump_page(struct page *page, cons
+ 	 */
+ 	mapcount = PageSlab(head) ? 0 : page_mapcount(page);
  
- 		if (!dentry_first) {
--			pr_warn("aops:%ps\n", a_ops);
-+			pr_warn("aops:%ps ino:%lx\n", a_ops, host->i_ino);
- 			goto out_mapping;
+-	pr_warn("page:%px refcount:%d mapcount:%d mapping:%p index:%#lx\n",
++	pr_warn("page:%p refcount:%d mapcount:%d mapping:%p index:%#lx pfn:%#lx\n",
+ 			page, page_ref_count(head), mapcount, mapping,
+-			page_to_pgoff(page));
++			page_to_pgoff(page), page_to_pfn(page));
+ 	if (compound) {
+ 		if (hpage_pincount_available(page)) {
+-			pr_warn("head:%px order:%u compound_mapcount:%d compound_pincount:%d\n",
++			pr_warn("head:%p order:%u compound_mapcount:%d compound_pincount:%d\n",
+ 					head, compound_order(head),
+ 					compound_mapcount(head),
+ 					compound_pincount(head));
+ 		} else {
+-			pr_warn("head:%px order:%u compound_mapcount:%d\n",
++			pr_warn("head:%p order:%u compound_mapcount:%d\n",
+ 					head, compound_order(head),
+ 					compound_mapcount(head));
  		}
- 
-@@ -151,8 +151,8 @@ void __dump_page(struct page *page, cons
- 			 * crash, but it's unlikely that we reach here with a
- 			 * corrupted struct page
- 			 */
--			pr_warn("aops:%ps dentry name:\"%pd\"\n", a_ops,
--					&dentry);
-+			pr_warn("aops:%ps ino:%lx dentry name:\"%pd\"\n",
-+					a_ops, host->i_ino, &dentry);
- 		}
- 	}
- out_mapping:
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
