@@ -1,83 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- samples-vfs-avoid-warning-in-statx-override.patch removed from -mm tree
-Date: Thu, 09 Jul 2020 13:42:14 -0700
-Message-ID: <20200709204214.NElX0DnYn%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-fix-documentation-error.patch
+ removed from -mm tree
+Date: Thu, 09 Jul 2020 13:42:21 -0700
+Message-ID: <20200709204221.MWZ7X4GfC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:49772 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49958 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726183AbgGIUmP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jul 2020 16:42:15 -0400
+        id S1726183AbgGIUmV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jul 2020 16:42:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, keescook@chromium.org, mm-commits@vger.kernel.org, mszeredi@redhat.com, viro@zeniv.linux.org.uk
+To: aquini@redhat.com, fdangelo@redhat.com, jsavitz@redhat.com, mm-commits@vger.kernel.org, willy@infradead.org
 
 
 The patch titled
-     Subject: samples/vfs: avoid warning in statx override
+     Subject: mm/page_alloc: fix documentation error
 has been removed from the -mm tree.  Its filename was
-     samples-vfs-avoid-warning-in-statx-override.patch
+     mm-page_alloc-fix-documentation-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: samples/vfs: avoid warning in statx override
+From: Joel Savitz <jsavitz@redhat.com>
+Subject: mm/page_alloc: fix documentation error
 
-Something changed recently to uncover this warning:
+When I increased the upper bound of the min_free_kbytes value in
+ee8eb9a5fe863 ("mm/page_alloc: increase default min_free_kbytes bound") I
+forgot to tweak the above comment to reflect the new value.  This patch
+fixes that mistake.
 
-samples/vfs/test-statx.c:24:15: warning: `struct foo' declared inside parameter list will not be visible outside of this definition or declaration
-   24 | #define statx foo
-      |               ^~~
-
-Which is due the use of "struct statx" (here, "struct foo") in a function
-prototype argument list before it has been defined:
-
- int
- # 56 "/usr/include/x86_64-linux-gnu/bits/statx-generic.h"
-    foo
- # 56 "/usr/include/x86_64-linux-gnu/bits/statx-generic.h" 3 4
-          (int __dirfd, const char *__restrict __path, int __flags,
-            unsigned int __mask, struct
- # 57 "/usr/include/x86_64-linux-gnu/bits/statx-generic.h"
-                                       foo
- # 57 "/usr/include/x86_64-linux-gnu/bits/statx-generic.h" 3 4
-                                             *__restrict __buf)
-   __attribute__ ((__nothrow__ , __leaf__)) __attribute__ ((__nonnull__ (2, 5)));
-
-Add explicit struct before #include to avoid warning.
-
-Link: http://lkml.kernel.org/r/202006282213.C516EA6@keescook
-Fixes: f1b5618e013a ("vfs: Add a sample program for the new mount API")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Howells <dhowells@redhat.com>
+Link: http://lkml.kernel.org/r/20200624221236.29560-1-jsavitz@redhat.com
+Signed-off-by: Joel Savitz <jsavitz@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Fabrizio D'Angelo <fdangelo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/vfs/test-statx.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/samples/vfs/test-statx.c~samples-vfs-avoid-warning-in-statx-override
-+++ a/samples/vfs/test-statx.c
-@@ -23,6 +23,8 @@
- #include <linux/fcntl.h>
- #define statx foo
- #define statx_timestamp foo_timestamp
-+struct statx;
-+struct statx_timestamp;
- #include <sys/stat.h>
- #undef statx
- #undef statx_timestamp
+--- a/mm/page_alloc.c~mm-page_alloc-fix-documentation-error
++++ a/mm/page_alloc.c
+@@ -7832,7 +7832,7 @@ void setup_per_zone_wmarks(void)
+  * Initialise min_free_kbytes.
+  *
+  * For small machines we want it small (128k min).  For large machines
+- * we want it large (64MB max).  But it is not linear, because network
++ * we want it large (256MB max).  But it is not linear, because network
+  * bandwidth does not increase linearly with machine size.  We use
+  *
+  *	min_free_kbytes = 4 * sqrt(lowmem_kbytes), for better accuracy:
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
-
-mm-expand-config_slab_freelist_hardened-to-include-slab.patch
-slab-add-naive-detection-of-double-free.patch
-slab-add-naive-detection-of-double-free-fix.patch
-exec-change-uselib2-is_sreg-failure-to-eacces.patch
-exec-move-s_isreg-check-earlier.patch
-exec-move-path_noexec-check-earlier.patch
+Patches currently in -mm which might be from jsavitz@redhat.com are
