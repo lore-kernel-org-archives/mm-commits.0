@@ -1,17 +1,15 @@
-From: Andrew Morton <akpm@linux-foundation.org>
+From: akpm@linux-foundation.org
 Subject: +
  mm-vmstat-add-events-for-thp-migration-without-split-fix.patch added to -mm
  tree
-Date: Wed, 08 Jul 2020 19:04:04 -0700
-Message-ID: <20200709020404.Jj8p7XNn0%akpm@linux-foundation.org>
-References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
+Date: Wed, 08 Jul 2020 19:27:00 -0700
+Message-ID: <20200709022700.-fdpk6Rb7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57236 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:38906 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726072AbgGICEG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Jul 2020 22:04:06 -0400
-In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
+        id S1726082AbgGIC1B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Jul 2020 22:27:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, anshuman.khandual@arm.com, daniel.m.jordan@oracle.com, hughd@google.com, jhubbard@nvidia.com, mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com, willy@infradead.org, ziy@nvidia.com
@@ -55,20 +53,56 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 --- a/mm/migrate.c~mm-vmstat-add-events-for-thp-migration-without-split-fix
 +++ a/mm/migrate.c
-@@ -1446,7 +1446,7 @@ retry:
+@@ -1425,7 +1425,7 @@ int migrate_pages(struct list_head *from
+ 	struct page *page;
+ 	struct page *page2;
+ 	int swapwrite = current->flags & PF_SWAPWRITE;
+-	int rc, thp_nr_pages;
++	int rc, thp_n_pages;
+ 
+ 	if (!swapwrite)
+ 		current->flags |= PF_SWAPWRITE;
+@@ -1442,7 +1442,7 @@ retry:
  			 * during migration.
  			 */
  			is_thp = PageTransHuge(page);
 -			thp_nr_pages = hpage_nr_pages(page);
-+			thp_nr_pages = thp_nr_pages(page);
++			thp_n_pages = thp_nr_pages(page);
  			cond_resched();
  
  			if (PageHuge(page))
+@@ -1479,7 +1479,7 @@ retry:
+ 				}
+ 				if (is_thp) {
+ 					nr_thp_failed++;
+-					nr_failed += thp_nr_pages;
++					nr_failed += thp_n_pages;
+ 					goto out;
+ 				}
+ 				nr_failed++;
+@@ -1494,7 +1494,7 @@ retry:
+ 			case MIGRATEPAGE_SUCCESS:
+ 				if (is_thp) {
+ 					nr_thp_succeeded++;
+-					nr_succeeded += thp_nr_pages;
++					nr_succeeded += thp_n_pages;
+ 					break;
+ 				}
+ 				nr_succeeded++;
+@@ -1508,7 +1508,7 @@ retry:
+ 				 */
+ 				if (is_thp) {
+ 					nr_thp_failed++;
+-					nr_failed += thp_nr_pages;
++					nr_failed += thp_n_pages;
+ 					break;
+ 				}
+ 				nr_failed++;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
