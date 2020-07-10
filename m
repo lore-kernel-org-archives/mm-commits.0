@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70D0DC433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 21:42:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6125AC433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 21:42:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B05D206E2
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 21:42:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37EA92075D
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 21:42:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594417350;
-	bh=9QBonzbB7POR/jt+rY/gNSC5jqIZOQ0iVwC/KZbPaAY=;
+	s=default; t=1594417353;
+	bh=cQSU5eGQH5sUmxhufox99KQD5WmW/re3ssYrVcvuFvQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=sfI5+NmyXfmw9921C7mgDk762dPob9FauMDNL24fnf0RAY1lVk4PSaewlg/igz4ox
-	 0Ed6WvWXGLvluWGAVBc8IiWjZ6Ixxl9p26gTFFTOrwwNwPkr6xRIawxUml9jgrO8/T
-	 b+dVscFmW7WPiwHoCwor0s20FeunBkkYSYR/A2dI=
+	b=w6PtWbo4cCFjvOOTHfHJ69jGTtD7lA2E93mxl3fsXoXG7wIhyKklAO+/tcpaBDula
+	 74yJ8LY/mtk76/5m14Kp6JaehyM41zCgAKBNTs/KEKJ9C+mFRWcbJSxufBJAP7HbqE
+	 FV5Cc7YguYPb3ATnvbeK4wOo1N73zYo5qabqSD/E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726449AbgGJVma (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Jul 2020 17:42:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45248 "EHLO mail.kernel.org"
+        id S1726465AbgGJVmd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Jul 2020 17:42:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45286 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726275AbgGJVm3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Jul 2020 17:42:29 -0400
+        id S1726275AbgGJVmc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Jul 2020 17:42:32 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 08EDA20772;
-        Fri, 10 Jul 2020 21:42:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2EE05206E2;
+        Fri, 10 Jul 2020 21:42:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594417348;
-        bh=9QBonzbB7POR/jt+rY/gNSC5jqIZOQ0iVwC/KZbPaAY=;
+        s=default; t=1594417351;
+        bh=cQSU5eGQH5sUmxhufox99KQD5WmW/re3ssYrVcvuFvQ=;
         h=Date:From:To:Subject:From;
-        b=LaBgKSUSwUNJ0496xznXtDrTCGwaMGRgaGd+oyPZOHXFho9HFt9P9ICoOVnaZU00y
-         GPjHJZXlh3oL1G2olsj7o6B1DVZTwdRnl8Ul6bswVIL1o4h8WGzonyxevtwv7IW1A2
-         7WF1xWRUI5m076KhiGbp5iNh5J0KlI+zxnVlrMXI=
-Date:   Fri, 10 Jul 2020 14:42:27 -0700
+        b=H99tWaDvRrZh8yABZbr9fLzq/gDB+HbZlZycMLlk1yWif+d2qIDN/4wJmcpz+t8h5
+         ObrOopIa4ft9+8BBmeO1e2Jkra/G1GtkGtSVrrmppcYjNpB7cWSlU9k+FfW7N4n4Ap
+         Ad5k3updS1959ATmn7snr8nUfWmjHu3MWsHpsaus=
+Date:   Fri, 10 Jul 2020 14:42:30 -0700
 From:   akpm@linux-foundation.org
 To:     andi.kleen@intel.com, cai@lca.pw, cl@linux.com,
         dave.hansen@intel.com, dennis@kernel.org, feng.tang@intel.com,
@@ -47,9 +47,10 @@ To:     andi.kleen@intel.com, cai@lca.pw, cl@linux.com,
         mm-commits@vger.kernel.org, rong.a.chen@intel.com,
         tim.c.chen@intel.com, tj@kernel.org, willy@infradead.org,
         ying.huang@intel.com
-Subject:  + percpu_counter-add-percpu_counter_sync.patch added to
- -mm tree
-Message-ID: <20200710214227.6dLV5-ep4%akpm@linux-foundation.org>
+Subject:  +
+ mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
+ added to -mm tree
+Message-ID: <20200710214230.DX_WeQ9oX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -59,14 +60,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: percpu_counter: add percpu_counter_sync()
+     Subject: mm: adjust vm_committed_as_batch according to vm overcommit policy
 has been added to the -mm tree.  Its filename is
-     percpu_counter-add-percpu_counter_sync.patch
+     mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/percpu_counter-add-percpu_counter_sync.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/percpu_counter-add-percpu_counter_sync.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -81,88 +82,213 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Feng Tang <feng.tang@intel.com>
-Subject: percpu_counter: add percpu_counter_sync()
+Subject: mm: adjust vm_committed_as_batch according to vm overcommit policy
 
-percpu_counter's accuracy is related to its batch size.  For a
-percpu_counter with a big batch, its deviation could be big, so when the
-counter's batch is runtime changed to a smaller value for better accuracy,
-there could also be requirment to reduce the big deviation.
+When checking a performance change for will-it-scale scalability mmap test
+[1], we found very high lock contention for spinlock of percpu counter
+'vm_committed_as':
 
-So add a percpu-counter sync function to be run on each CPU.
+    94.14%     0.35%  [kernel.kallsyms]         [k] _raw_spin_lock_irqsave
+    48.21% _raw_spin_lock_irqsave;percpu_counter_add_batch;__vm_enough_memory;mmap_region;do_mmap;
+    45.91% _raw_spin_lock_irqsave;percpu_counter_add_batch;__do_munmap;
 
-Link: http://lkml.kernel.org/r/1594389708-60781-4-git-send-email-feng.tang@intel.com
-Reported-by: kernel test robot <rong.a.chen@intel.com>
+Actually this heavy lock contention is not always necessary.  The
+'vm_committed_as' needs to be very precise when the strict
+OVERCOMMIT_NEVER policy is set, which requires a rather small batch number
+for the percpu counter.
+
+So keep 'batch' number unchanged for strict OVERCOMMIT_NEVER policy, and
+lift it to 64X for OVERCOMMIT_ALWAYS and OVERCOMMIT_GUESS policies.  Also
+add a sysctl handler to adjust it when the policy is reconfigured.
+
+Benchmark with the same testcase in [1] shows 53% improvement on a 8C/16T
+desktop, and 2097%(20X) on a 4S/72C/144T server.  We tested with test
+platforms in 0day (server, desktop and laptop), and 80%+ platforms shows
+improvements with that test.  And whether it shows improvements depends on
+if the test mmap size is bigger than the batch number computed.
+
+And if the lift is 16X, 1/3 of the platforms will show improvements,
+though it should help the mmap/unmap usage generally, as Michal Hocko
+mentioned:
+
+: I believe that there are non-synthetic worklaods which would benefit from
+: a larger batch.  E.g.  large in memory databases which do large mmaps
+: during startups from multiple threads.
+
+[1] https://lore.kernel.org/lkml/20200305062138.GI5972@shao2-debian/
+
+Link: http://lkml.kernel.org/r/1589611660-89854-4-git-send-email-feng.tang@intel.com
+Link: http://lkml.kernel.org/r/1592725000-73486-4-git-send-email-feng.tang@intel.com
+Link: http://lkml.kernel.org/r/1594389708-60781-5-git-send-email-feng.tang@intel.com
 Signed-off-by: Feng Tang <feng.tang@intel.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Andi Kleen <andi.kleen@intel.com>
 Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: kernel test robot <rong.a.chen@intel.com>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu_counter.h |    4 ++++
- lib/percpu_counter.c           |   19 +++++++++++++++++++
- 2 files changed, 23 insertions(+)
+ include/linux/mm.h   |    2 ++
+ include/linux/mman.h |    4 ++++
+ kernel/sysctl.c      |    2 +-
+ mm/mm_init.c         |   20 +++++++++++++++-----
+ mm/util.c            |   41 +++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 63 insertions(+), 6 deletions(-)
 
---- a/include/linux/percpu_counter.h~percpu_counter-add-percpu_counter_sync
-+++ a/include/linux/percpu_counter.h
-@@ -44,6 +44,7 @@ void percpu_counter_add_batch(struct per
- 			      s32 batch);
- s64 __percpu_counter_sum(struct percpu_counter *fbc);
- int __percpu_counter_compare(struct percpu_counter *fbc, s64 rhs, s32 batch);
-+void percpu_counter_sync(struct percpu_counter *fbc);
+--- a/include/linux/mman.h~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/include/linux/mman.h
+@@ -57,8 +57,12 @@ extern struct percpu_counter vm_committe
  
- static inline int percpu_counter_compare(struct percpu_counter *fbc, s64 rhs)
+ #ifdef CONFIG_SMP
+ extern s32 vm_committed_as_batch;
++extern void mm_compute_batch(int overcommit_policy);
+ #else
+ #define vm_committed_as_batch 0
++static inline void mm_compute_batch(int overcommit_policy)
++{
++}
+ #endif
+ 
+ unsigned long vm_memory_committed(void);
+--- a/include/linux/mm.h~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/include/linux/mm.h
+@@ -207,6 +207,8 @@ int overcommit_ratio_handler(struct ctl_
+ 		loff_t *);
+ int overcommit_kbytes_handler(struct ctl_table *, int, void *, size_t *,
+ 		loff_t *);
++int overcommit_policy_handler(struct ctl_table *, int, void *, size_t *,
++		loff_t *);
+ 
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
+--- a/kernel/sysctl.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/kernel/sysctl.c
+@@ -2650,7 +2650,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &sysctl_overcommit_memory,
+ 		.maxlen		= sizeof(sysctl_overcommit_memory),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
++		.proc_handler	= overcommit_policy_handler,
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= &two,
+ 	},
+--- a/mm/mm_init.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/mm/mm_init.c
+@@ -13,6 +13,7 @@
+ #include <linux/memory.h>
+ #include <linux/notifier.h>
+ #include <linux/sched.h>
++#include <linux/mman.h>
+ #include "internal.h"
+ 
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
+@@ -144,14 +145,23 @@ EXPORT_SYMBOL_GPL(mm_kobj);
+ #ifdef CONFIG_SMP
+ s32 vm_committed_as_batch = 32;
+ 
+-static void __meminit mm_compute_batch(void)
++void mm_compute_batch(int overcommit_policy)
  {
-@@ -172,6 +173,9 @@ static inline bool percpu_counter_initia
- 	return true;
+ 	u64 memsized_batch;
+ 	s32 nr = num_present_cpus();
+ 	s32 batch = max_t(s32, nr*2, 32);
++	unsigned long ram_pages = totalram_pages();
+ 
+-	/* batch size set to 0.4% of (total memory/#cpus), or max int32 */
+-	memsized_batch = min_t(u64, (totalram_pages()/nr)/256, 0x7fffffff);
++	/*
++	 * For policy OVERCOMMIT_NEVER, set batch size to 0.4% of
++	 * (total memory/#cpus), and lift it to 25% for other policies
++	 * to easy the possible lock contention for percpu_counter
++	 * vm_committed_as, while the max limit is INT_MAX
++	 */
++	if (overcommit_policy == OVERCOMMIT_NEVER)
++		memsized_batch = min_t(u64, ram_pages/nr/256, INT_MAX);
++	else
++		memsized_batch = min_t(u64, ram_pages/nr/4, INT_MAX);
+ 
+ 	vm_committed_as_batch = max_t(s32, memsized_batch, batch);
+ }
+@@ -162,7 +172,7 @@ static int __meminit mm_compute_batch_no
+ 	switch (action) {
+ 	case MEM_ONLINE:
+ 	case MEM_OFFLINE:
+-		mm_compute_batch();
++		mm_compute_batch(sysctl_overcommit_memory);
+ 	default:
+ 		break;
+ 	}
+@@ -176,7 +186,7 @@ static struct notifier_block compute_bat
+ 
+ static int __init mm_compute_batch_init(void)
+ {
+-	mm_compute_batch();
++	mm_compute_batch(sysctl_overcommit_memory);
+ 	register_hotmemory_notifier(&compute_batch_nb);
+ 
+ 	return 0;
+--- a/mm/util.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/mm/util.c
+@@ -746,6 +746,47 @@ int overcommit_ratio_handler(struct ctl_
+ 	return ret;
  }
  
-+static inline void percpu_counter_sync(struct percpu_counter *fbc)
++static void sync_overcommit_as(struct work_struct *dummy)
 +{
++	percpu_counter_sync(&vm_committed_as);
 +}
- #endif	/* CONFIG_SMP */
- 
- static inline void percpu_counter_inc(struct percpu_counter *fbc)
---- a/lib/percpu_counter.c~percpu_counter-add-percpu_counter_sync
-+++ a/lib/percpu_counter.c
-@@ -99,6 +99,25 @@ void percpu_counter_add_batch(struct per
- EXPORT_SYMBOL(percpu_counter_add_batch);
- 
- /*
-+ * For percpu_counter with a big batch, the devication of its count could
-+ * be big, and there is requirement to reduce the deviation, like when the
-+ * counter's batch could be runtime decreased to get a better accuracy,
-+ * which can be achieved by running this sync function on each CPU.
-+ */
-+void percpu_counter_sync(struct percpu_counter *fbc)
++
++int overcommit_policy_handler(struct ctl_table *table, int write, void *buffer,
++		size_t *lenp, loff_t *ppos)
 +{
-+	unsigned long flags;
-+	s64 count;
++	struct ctl_table t;
++	int new_policy;
++	int ret;
 +
-+	raw_spin_lock_irqsave(&fbc->lock, flags);
-+	count = __this_cpu_read(*fbc->counters);
-+	fbc->count += count;
-+	__this_cpu_sub(*fbc->counters, count);
-+	raw_spin_unlock_irqrestore(&fbc->lock, flags);
++	/*
++	 * The deviation of sync_overcommit_as could be big with loose policy
++	 * like OVERCOMMIT_ALWAYS/OVERCOMMIT_GUESS. When changing policy to
++	 * strict OVERCOMMIT_NEVER, we need to reduce the deviation to comply
++	 * with the strict "NEVER", and to avoid possible race condtion (even
++	 * though user usually won't too frequently do the switching to policy
++	 * OVERCOMMIT_NEVER), the switch is done in the following order:
++	 *	1. changing the batch
++	 *	2. sync percpu count on each CPU
++	 *	3. switch the policy
++	 */
++	if (write) {
++		t = *table;
++		t.data = &new_policy;
++		ret = proc_dointvec_minmax(&t, write, buffer, lenp, ppos);
++		if (ret)
++			return ret;
++
++		mm_compute_batch(new_policy);
++		if (new_policy == OVERCOMMIT_NEVER)
++			schedule_on_each_cpu(sync_overcommit_as);
++		sysctl_overcommit_memory = new_policy;
++	} else {
++		ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++	}
++
++	return ret;
 +}
-+EXPORT_SYMBOL(percpu_counter_sync);
 +
-+/*
-  * Add up all the per-cpu counts, return the result.  This is a more accurate
-  * but much slower version of percpu_counter_read_positive()
-  */
+ int overcommit_kbytes_handler(struct ctl_table *table, int write, void *buffer,
+ 		size_t *lenp, loff_t *ppos)
+ {
 _
 
 Patches currently in -mm which might be from feng.tang@intel.com are
