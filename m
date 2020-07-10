@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6646DC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 22:20:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FC0CC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 22:29:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C29320674
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 22:20:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA3FF207BB
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 22:29:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594419609;
-	bh=OshPab3sJBsATPKhCE4/VBeDi4ccq0ZtOhFO6/wG8pU=;
+	s=default; t=1594420146;
+	bh=OeA9tolH2OmSeWWufYeqa4woKJ/kyo/mJmwv0pDnvwM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=0jA2cZA4050tmnL3VR4XiybAta3RoYa6NuX3JptJkJXyQYcpyDU8tXlLIAnXCUxmT
-	 54CUEgjXyFQDaFnkY3fNsIAVPaAKo5tYjOyhjQVIakvk+r+9rbbMQye7A51uTKnb4c
-	 u9Z8wCv0aF1kUFR1laT8+l206doa4ZXIemq6PJSs=
+	b=EIxiVpJcktFf2aOCVxkgkV/ivIMwrNhvl3+s9FZ2aJPr2z3N9s6LhmeRhZFyVzQkj
+	 HR+QqOrmXeSu5hMI9GXwF2YN4kheH2UOQffvEJZCIjYDwr8iWVFJ3yLpRcsV4xGh1j
+	 m6kFCnoQwoyRmRXs3TB4u09QxR8qcEDdAdOXN1Uw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726336AbgGJWUI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Jul 2020 18:20:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40326 "EHLO mail.kernel.org"
+        id S1726465AbgGJW3G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Jul 2020 18:29:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43350 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726319AbgGJWUI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Jul 2020 18:20:08 -0400
+        id S1726385AbgGJW3G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Jul 2020 18:29:06 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CE2EA2068F;
-        Fri, 10 Jul 2020 22:20:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 837902075D;
+        Fri, 10 Jul 2020 22:29:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594419608;
-        bh=OshPab3sJBsATPKhCE4/VBeDi4ccq0ZtOhFO6/wG8pU=;
+        s=default; t=1594420145;
+        bh=OeA9tolH2OmSeWWufYeqa4woKJ/kyo/mJmwv0pDnvwM=;
         h=Date:From:To:Subject:From;
-        b=bbqPVQghipbUsGIsHCF19g3eObyzFiK2DJt7/WyFsSWFZzxLj/ngevL/7GUE2L+tu
-         egRZBc0/dtd01L/90OR7zA98JDdJNMzyuQfwV9brYrwSZpOxHBsSK/8l0+sUh7KAVB
-         5ZdqGdgqXfJ6HigDz7b3qwiUI3NEY9EaXgjK779I=
-Date:   Fri, 10 Jul 2020 15:20:07 -0700
+        b=SHWMimvnwWIhmuGXtnij5rHn37Bj3XA9gVdb7U0xaAjvK7hXFmyEQZYU9bcaLxqsu
+         lIxQxZiOcjz5ynQI5gcg/11OOqGbGXTlntNIMAnVdc87AG6NtzQwM2ceTwGphFIttY
+         i2guLdOX/6hHokzhWEuW2tOA//U2CP5eqRILEe5Q=
+Date:   Fri, 10 Jul 2020 15:29:05 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, bp@alien8.de, catalin.marinas@arm.com,
-        guro@fb.com, hpa@zytor.com, jonathan.cameron@huawei.com,
-        mike.kravetz@oracle.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        song.bao.hua@hisilicon.com, tglx@linutronix.de, will@kernel.org
-Subject:  + mm-hugetlb-split-hugetlb_cma-in-nodes-with-memory.patch
- added to -mm tree
-Message-ID: <20200710222007.o8QGtEAaG%akpm@linux-foundation.org>
+To:     broonie@kernel.org, catalin.marinas@arm.com,
+        mm-commits@vger.kernel.org, peterx@redhat.com
+Subject:  +
+ mm-gup-remove-task_struct-pointer-for-all-gup-code-fix.patch added to -mm
+ tree
+Message-ID: <20200710222905.LgDGY9_YJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -57,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: split hugetlb_cma in nodes with memory
+     Subject: mm-gup-remove-task_struct-pointer-for-all-gup-code-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-split-hugetlb_cma-in-nodes-with-memory.patch
+     mm-gup-remove-task_struct-pointer-for-all-gup-code-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-split-hugetlb_cma-in-nodes-with-memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-remove-task_struct-pointer-for-all-gup-code-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-split-hugetlb_cma-in-nodes-with-memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-remove-task_struct-pointer-for-all-gup-code-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,160 +76,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Barry Song <song.bao.hua@hisilicon.com>
-Subject: mm/hugetlb: split hugetlb_cma in nodes with memory
+From: Peter Xu <peterx@redhat.com>
+Subject: mm-gup-remove-task_struct-pointer-for-all-gup-code-fix
 
-Online nodes are not necessarily memory containing nodes.  Splitting
-huge_cma in online nodes can lead to inconsistent hugetlb_cma size with
-user setting.  For example, for one system with 4 numa nodes and only one
-of them has memory, if users set hugetlb_cma to 4GB, it will split into
-four 1GB.  So only the node with memory will get 1GB CMA.  All other three
-nodes get nothing.  That means the whole system gets only 1GB CMA while
-users ask for 4GB.
+fix arch/arm64/kernel/mte.c
 
-Thus, it is more sensible to split hugetlb_cma in nodes with memory.  For
-the above case, the only node with memory will reserve 4GB cma which is
-same with user setting in bootargs.  In order to split cma in nodes with
-memory, hugetlb_cma_reserve() should scan over those nodes with N_MEMORY
-state rather than N_ONLINE state.  That means the function should be
-called only after arch code has finished setting the N_MEMORY state of
-nodes.
-
-The problem is always there if N_ONLINE != N_MEMORY.  It is a general
-problem to all platforms.  But there is some trivial difference among
-different architectures.  For example, for ARM64, before
-hugetlb_cma_reserve() is called, all nodes have got N_ONLINE state.  So
-hugetlb will get inconsistent cma size when some online nodes have no
-memory.  For x86 case, the problem is hidden because X86 happens to just
-set N_ONLINE on the nodes with memory when hugetlb_cma_reserve() is
-called.
-
-Anyway, this patch moves to scan N_MEMORY in hugetlb_cma_reserve() and
-lets both x86 and ARM64 call the function after N_MEMORY state is ready. 
-It also documents the requirement in the definition of
-hugetlb_cma_reserve().
-
-Link: http://lkml.kernel.org/r/20200710120950.37716-1-song.bao.hua@hisilicon.com
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Roman Gushchin <guro@fb.com>
+Link: http://lkml.kernel.org/r/20200710122457.GK199122@xz-x1
+Cc: Mark Brown <broonie@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/init.c    |   19 ++++++++++---------
- arch/x86/kernel/setup.c |   12 +++++++++---
- mm/hugetlb.c            |   11 +++++++++--
- 3 files changed, 28 insertions(+), 14 deletions(-)
+ arch/arm64/kernel/mte.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/mm/init.c~mm-hugetlb-split-hugetlb_cma-in-nodes-with-memory
-+++ a/arch/arm64/mm/init.c
-@@ -421,15 +421,6 @@ void __init bootmem_init(void)
- 	arm64_numa_init();
+--- a/arch/arm64/kernel/mte.c~mm-gup-remove-task_struct-pointer-for-all-gup-code-fix
++++ a/arch/arm64/kernel/mte.c
+@@ -221,7 +221,7 @@ static int __access_remote_tags(struct t
+ 		void *maddr;
+ 		struct page *page = NULL;
  
- 	/*
--	 * must be done after arm64_numa_init() which calls numa_init() to
--	 * initialize node_online_map that gets used in hugetlb_cma_reserve()
--	 * while allocating required CMA size across online nodes.
--	 */
--#ifdef CONFIG_ARM64_4K_PAGES
--	hugetlb_cma_reserve(PUD_SHIFT - PAGE_SHIFT);
--#endif
--
--	/*
- 	 * Sparsemem tries to allocate bootmem in memory_present(), so must be
- 	 * done after the fixed reservations.
- 	 */
-@@ -438,6 +429,16 @@ void __init bootmem_init(void)
- 	sparse_init();
- 	zone_sizes_init(min, max);
- 
-+	/*
-+	 * must be done after zone_sizes_init() which calls free_area_init()
-+	 * that calls node_set_state() to initialize node_states[N_MEMORY]
-+	 * because hugetlb_cma_reserve() will scan over nodes with N_MEMORY
-+	 * state
-+	 */
-+#ifdef CONFIG_ARM64_4K_PAGES
-+	hugetlb_cma_reserve(PUD_SHIFT - PAGE_SHIFT);
-+#endif
-+
- 	memblock_dump_all();
- }
- 
---- a/arch/x86/kernel/setup.c~mm-hugetlb-split-hugetlb_cma-in-nodes-with-memory
-+++ a/arch/x86/kernel/setup.c
-@@ -1164,9 +1164,6 @@ void __init setup_arch(char **cmdline_p)
- 	initmem_init();
- 	dma_contiguous_reserve(max_pfn_mapped << PAGE_SHIFT);
- 
--	if (boot_cpu_has(X86_FEATURE_GBPAGES))
--		hugetlb_cma_reserve(PUD_SHIFT - PAGE_SHIFT);
--
- 	/*
- 	 * Reserve memory for crash kernel after SRAT is parsed so that it
- 	 * won't consume hotpluggable memory.
-@@ -1180,6 +1177,15 @@ void __init setup_arch(char **cmdline_p)
- 
- 	x86_init.paging.pagetable_init();
- 
-+	/*
-+	 * must be done after zone_sizes_init() which calls free_area_init()
-+	 * that calls node_set_state() to initialize node_states[N_MEMORY]
-+	 * because hugetlb_cma_reserve() will scan over nodes with N_MEMORY
-+	 * state
-+	 */
-+	if (boot_cpu_has(X86_FEATURE_GBPAGES))
-+		hugetlb_cma_reserve(PUD_SHIFT - PAGE_SHIFT);
-+
- 	kasan_init();
- 
- 	/*
---- a/mm/hugetlb.c~mm-hugetlb-split-hugetlb_cma-in-nodes-with-memory
-+++ a/mm/hugetlb.c
-@@ -5680,6 +5680,13 @@ static int __init cmdline_parse_hugetlb_
- 
- early_param("hugetlb_cma", cmdline_parse_hugetlb_cma);
- 
-+/*
-+ * hugetlb_cma_reserve() - reserve CMA for gigantic pages on nodes with memory
-+ *
-+ * must be called after free_area_init() that updates N_MEMORY via node_set_state().
-+ * hugetlb_cma_reserve() scans over N_MEMORY nodemask and hence expects the platforms
-+ * to have initialized N_MEMORY state.
-+ */
- void __init hugetlb_cma_reserve(int order)
- {
- 	unsigned long size, reserved, per_node;
-@@ -5700,12 +5707,12 @@ void __init hugetlb_cma_reserve(int orde
- 	 * If 3 GB area is requested on a machine with 4 numa nodes,
- 	 * let's allocate 1 GB on first three nodes and ignore the last one.
- 	 */
--	per_node = DIV_ROUND_UP(hugetlb_cma_size, nr_online_nodes);
-+	per_node = DIV_ROUND_UP(hugetlb_cma_size, num_node_state(N_MEMORY));
- 	pr_info("hugetlb_cma: reserve %lu MiB, up to %lu MiB per node\n",
- 		hugetlb_cma_size / SZ_1M, per_node / SZ_1M);
- 
- 	reserved = 0;
--	for_each_node_state(nid, N_ONLINE) {
-+	for_each_node_state(nid, N_MEMORY) {
- 		int res;
- 
- 		size = min(per_node, hugetlb_cma_size - reserved);
+-		ret = get_user_pages_remote(tsk, mm, addr, 1, gup_flags,
++		ret = get_user_pages_remote(mm, addr, 1, gup_flags,
+ 					    &page, &vma, NULL);
+ 		if (ret <= 0)
+ 			break;
 _
 
-Patches currently in -mm which might be from song.bao.hua@hisilicon.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enable.patch
-mm-hugetlb-split-hugetlb_cma-in-nodes-with-memory.patch
-mm-cma-fix-the-name-of-cma-areas.patch
-mm-hugetlb-fix-the-name-of-hugetlb-cma.patch
+mm-do-page-fault-accounting-in-handle_mm_fault.patch
+mm-alpha-use-general-page-fault-accounting.patch
+mm-arc-use-general-page-fault-accounting.patch
+mm-arm-use-general-page-fault-accounting.patch
+mm-arm64-use-general-page-fault-accounting.patch
+mm-csky-use-general-page-fault-accounting.patch
+mm-hexagon-use-general-page-fault-accounting.patch
+mm-ia64-use-general-page-fault-accounting.patch
+mm-m68k-use-general-page-fault-accounting.patch
+mm-microblaze-use-general-page-fault-accounting.patch
+mm-mips-use-general-page-fault-accounting.patch
+mm-nds32-use-general-page-fault-accounting.patch
+mm-nios2-use-general-page-fault-accounting.patch
+mm-openrisc-use-general-page-fault-accounting.patch
+mm-parisc-use-general-page-fault-accounting.patch
+mm-powerpc-use-general-page-fault-accounting.patch
+mm-riscv-use-general-page-fault-accounting.patch
+mm-s390-use-general-page-fault-accounting.patch
+mm-sh-use-general-page-fault-accounting.patch
+mm-sparc32-use-general-page-fault-accounting.patch
+mm-sparc64-use-general-page-fault-accounting.patch
+mm-x86-use-general-page-fault-accounting.patch
+mm-xtensa-use-general-page-fault-accounting.patch
+mm-clean-up-the-last-pieces-of-page-fault-accountings.patch
+mm-gup-remove-task_struct-pointer-for-all-gup-code.patch
+mm-gup-remove-task_struct-pointer-for-all-gup-code-fix.patch
 
