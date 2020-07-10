@@ -7,46 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DA20C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 21:22:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FFC5C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 21:30:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D78062075D
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 21:22:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 07A9B20772
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 21:30:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594416149;
-	bh=hrZFHGfMNQ1p2d6zDtqR8zci0wrVVqn/hAsbHQ9RnzQ=;
+	s=default; t=1594416650;
+	bh=hwk0y2iv5/F7ki4hEGcHwgok9t3JIONxgEtjhTKEwB8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Hm48pOO8UpGBGrtYlPnnkSXcTwh5S9ds7nYtFnvF+c4vrurHvjfkZNcEprvFK/lKn
-	 g0JdLmtIEVJ/tltuQPW4skEij/d+Nsvw2p6cnZ0R9SSjSXMqj+iDomyMlTiKq0RuRS
-	 2K6QQ0+y/SzugLsE/9YjtEY/S5ktFZHNc7Weu/Ac=
+	b=r+ilxXxorUiO2n7/gojMzEXsn16DLYdpjyNGt5B+T4Z7Y0L0lPJKrA0Za4POdLRzk
+	 9Wz1POAPLr2w6Syo6aaBwKVIffULjdf9sbWDq9zf8EVlMn2PyZIyX7V6jd8/5vG4SK
+	 Piq2a0z7+RWXnLxKSF5cg2D43xdYPTHLpsgITQRY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726261AbgGJVW3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Jul 2020 17:22:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39308 "EHLO mail.kernel.org"
+        id S1726262AbgGJVat (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Jul 2020 17:30:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42956 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726245AbgGJVW3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Jul 2020 17:22:29 -0400
+        id S1726251AbgGJVat (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Jul 2020 17:30:49 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A1ED320725;
-        Fri, 10 Jul 2020 21:22:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C21DA2068F;
+        Fri, 10 Jul 2020 21:30:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594416148;
-        bh=hrZFHGfMNQ1p2d6zDtqR8zci0wrVVqn/hAsbHQ9RnzQ=;
+        s=default; t=1594416648;
+        bh=hwk0y2iv5/F7ki4hEGcHwgok9t3JIONxgEtjhTKEwB8=;
         h=Date:From:To:Subject:From;
-        b=m7a1Jf5YMi0rDEmNIL0ygUkvrKH5Tu8RjbZ483/BpthorXyLVSVfQ8VfyaeVqGWJp
-         rSHRDhkqjx8wUDCbbArMjZzG4yFQaCFIUPBhtKa9SVL7yC+lXPffMK6efc6fljovf6
-         xiteTqJW7S/57/n7h8ktWXOdfgGDtDMvskLIy+xs=
-Date:   Fri, 10 Jul 2020 14:22:28 -0700
+        b=BbBy6RULtCc/seOCVs/tMxAdxtOFUG0rqcFXP8ndaREOi+pIHcx1HQ+gHPagDNMHi
+         sMSMtNhdSB4VZ7/3cHMI/XPF+43hy+0sPpLu66YRb0rOh9ewAaAAne7+9BVp8y+TC7
+         7OwI59A/JeEwedBNve/puoG0AMilkYBlPNmt4C0o=
+Date:   Fri, 10 Jul 2020 14:30:48 -0700
 From:   akpm@linux-foundation.org
-To:     hdanton@sina.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
-        urezki@gmail.com, willy@infradead.org
-Subject:  +
- mm-vmallocc-add-an-error-message-if-two-areas-overlap.patch added to -mm
- tree
-Message-ID: <20200710212228.ECH9vbOW_%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, walter-zh.wu@mediatek.com
+Subject:  + rcu-kasan-record-and-print-call_rcu-call-stack-v8.patch
+ added to -mm tree
+Message-ID: <20200710213048.0jmd_t5zE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +53,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: add an error message if two areas overlap
+     Subject: rcu-kasan-record-and-print-call_rcu-call-stack-v8
 has been added to the -mm tree.  Its filename is
-     mm-vmallocc-add-an-error-message-if-two-areas-overlap.patch
+     rcu-kasan-record-and-print-call_rcu-call-stack-v8.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmallocc-add-an-error-message-if-two-areas-overlap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rcu-kasan-record-and-print-call_rcu-call-stack-v8.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmallocc-add-an-error-message-if-two-areas-overlap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rcu-kasan-record-and-print-call_rcu-call-stack-v8.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,52 +74,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc.c: add an error message if two areas overlap
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: rcu-kasan-record-and-print-call_rcu-call-stack-v8
 
-Before triggering a BUG() it would be useful to understand how two areas
-overlap between each other.  Print information about start/end addresses
-of both VAs and their addresses.
+build fix
 
-For example if both are identical it could mean double free.
-
-Link: http://lkml.kernel.org/r/20200710194443.2984-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: http://lkml.kernel.org/r/20200710162401.23816-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/kasan/kasan.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmallocc-add-an-error-message-if-two-areas-overlap
-+++ a/mm/vmalloc.c
-@@ -550,8 +550,13 @@ find_va_links(struct vmap_area *va,
- 		else if (va->va_end > tmp_va->va_start &&
- 				va->va_start >= tmp_va->va_end)
- 			link = &(*link)->rb_right;
--		else
-+		else {
-+			pr_err("Overlaps: 0x%px(0x%lx-0x%lx), 0x%px(0x%lx-0x%lx)\n",
-+				va, va->va_start, va->va_end, tmp_va,
-+				tmp_va->va_start, tmp_va->va_end);
-+
- 			BUG();
-+		}
- 	} while (*link);
- 
- 	*parent = &tmp_va->rb_node;
+--- a/mm/kasan/kasan.h~rcu-kasan-record-and-print-call_rcu-call-stack-v8
++++ a/mm/kasan/kasan.h
+@@ -110,9 +110,8 @@ struct kasan_alloc_meta {
+ 	 * The free stack is stored into struct kasan_free_meta.
+ 	 */
+ 	depot_stack_handle_t aux_stack[2];
+-#else
+-	struct kasan_track free_track[KASAN_NR_FREE_STACKS];
+ #endif
++	struct kasan_track free_track[KASAN_NR_FREE_STACKS];
+ #ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
+ 	u8 free_pointer_tag[KASAN_NR_FREE_STACKS];
+ 	u8 free_track_idx;
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
 
-mm-vmalloc-simplify-merge_or_add_vmap_area-func.patch
-mm-vmalloc-simplify-augment_tree_propagate_check-func.patch
-mm-vmalloc-switch-to-propagate-callback.patch
-mm-vmalloc-update-the-header-about-kva-rework.patch
-mm-vmallocc-add-an-error-message-if-two-areas-overlap.patch
+rcu-kasan-record-and-print-call_rcu-call-stack.patch
+rcu-kasan-record-and-print-call_rcu-call-stack-v8.patch
+kasan-record-and-print-the-free-track.patch
+kasan-record-and-print-the-free-track-v8.patch
+kasan-add-tests-for-call_rcu-stack-recording.patch
+kasan-update-documentation-for-generic-kasan.patch
+kasan-fix-kasan-unit-tests-for-tag-based-kasan.patch
+kasan-fix-kasan-unit-tests-for-tag-based-kasan-v4.patch
 
