@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED929C433E2
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 23:32:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9335EC433E4
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 23:32:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C897E2077D
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 23:32:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6533C2065F
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 23:32:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594423943;
-	bh=uM5ZGYOu7lEt1yVVzUoat5522EfmxEeFyeGu81u4qOk=;
+	s=default; t=1594423976;
+	bh=1FKW76ZyW89DtXaxbkTaGYHHAkFdcCJ2bC4X1vTJjdg=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=HvPOofd4giRpse5M53UlkSmYNIuXpdKPiBv2ImJh4EYIjaCbzUgtQtmgQwAHu+2Zq
-	 GQll7bGZYfL+Ek8HfBtOkF4RmyYK91akrXZvi5iw1WuMtN0U6lty+3cnlB5Oaxf4l/
-	 pFxJn5LYKDVkdRBqGgLKikoO89b1xaDIOD/bKqyY=
+	b=mJg83JmswpsoNvHwo56FVe+Op09mQPFjOz6n3mrH+fykXHj9ENyifA/GsZcl0+Y6V
+	 Ah9ywHEBYxCX8Ym0qLRBfwXl4UEhWs5gePMTX98ynbTqME15GfbvZmNp2bWIAmfJZR
+	 iPA1qa65lEZNXURn9AQiEc4nROKgxLrQrebNrFU4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726918AbgGJXcX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Jul 2020 19:32:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38788 "EHLO mail.kernel.org"
+        id S1726465AbgGJXc4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Jul 2020 19:32:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39230 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726328AbgGJXcX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Jul 2020 19:32:23 -0400
+        id S1726328AbgGJXc4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Jul 2020 19:32:56 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BCFC92065F;
-        Fri, 10 Jul 2020 23:32:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2C3C220786;
+        Fri, 10 Jul 2020 23:32:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594423941;
-        bh=uM5ZGYOu7lEt1yVVzUoat5522EfmxEeFyeGu81u4qOk=;
+        s=default; t=1594423975;
+        bh=1FKW76ZyW89DtXaxbkTaGYHHAkFdcCJ2bC4X1vTJjdg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=dIrqdq10l02YUrvKCTTzLMSCgU83yMzpXs8H0iE14igES6c7wJy9BOVPP/M3TT7s2
-         71VCDx0qmJqBOrKWCCGzP5gOhZBBQWOSVWnrbJD2Yl/pvh7/JTVx6agWUkX7MKs4Av
-         mSmbz5WUiZlxnJDOA/7mJgDhWZ66eQZVqq3WWEqo=
-Date:   Fri, 10 Jul 2020 16:32:20 -0700
+        b=OaxyrJOK72k0jyWx2EmjxHTD3SHeANPTueCW0qJsiLJm95YXsCfrjuQ1V9EI19QRK
+         2QUPvHpJhqnQyFNwkU1Qn8pJRcBo9vAlZFIGwqNx/r/Dfonk6l56ytfylbJnkLD1LD
+         zqa1XIdlF1v1fqmnA3IgzYl+55NPyIOC//cqKbqA=
+Date:   Fri, 10 Jul 2020 16:32:54 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     jpitti@cisco.com, keescook@chromium.org, mcgrof@kernel.org,
-        mingo@elte.hu, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        yzaikin@google.com
-Subject:  + proc-sysctl-make-protected_-world-readable.patch added
- to -mm tree
-Message-ID: <20200710233220.fzS6eFqkb%akpm@linux-foundation.org>
+To:     hdanton@sina.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
+        urezki@gmail.com, willy@infradead.org
+Subject:  [to-be-updated]
+ mm-vmallocc-add-an-error-message-if-two-areas-overlap.patch removed from
+ -mm tree
+Message-ID: <20200710233254.sehg7DwEX%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,101 +57,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc/sysctl: make protected_* world readable
-has been added to the -mm tree.  Its filename is
-     proc-sysctl-make-protected_-world-readable.patch
+     Subject: mm/vmalloc.c: add an error message if two areas overlap
+has been removed from the -mm tree.  Its filename was
+     mm-vmallocc-add-an-error-message-if-two-areas-overlap.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-sysctl-make-protected_-world-readable.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-sysctl-make-protected_-world-readable.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Julius Hemanth Pitti <jpitti@cisco.com>
-Subject: proc/sysctl: make protected_* world readable
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm/vmalloc.c: add an error message if two areas overlap
 
-protected_* files have 600 permissions which prevents non-superuser from
-reading them.
+Before triggering a BUG() it would be useful to understand how two areas
+overlap between each other.  Print information about start/end addresses
+of both VAs and their addresses.
 
-Container like "AWS greengrass" refuse to launch unless
-protected_hardlinks and protected_symlinks are set.  When containers like
-these run with "userns-remap" or "--user" mapping container's root to
-non-superuser on host, they fail to run due to denied read access to these
-files.
+For example if both are identical it could mean double free.
 
-As these protections are hardly a secret, and do not possess any security
-risk, making them world readable.
-
-Though above greengrass usecase needs read access to only
-protected_hardlinks and protected_symlinks files, setting all other
-protected_* files to 644 to keep consistency.
-
-Link: http://lkml.kernel.org/r/20200709235115.56954-1-jpitti@cisco.com
-Fixes: 800179c9b8a1 ("fs: add link restrictions")
-Signed-off-by: Julius Hemanth Pitti <jpitti@cisco.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/20200710194443.2984-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/vmalloc.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/kernel/sysctl.c~proc-sysctl-make-protected_-world-readable
-+++ a/kernel/sysctl.c
-@@ -3232,7 +3232,7 @@ static struct ctl_table fs_table[] = {
- 		.procname	= "protected_symlinks",
- 		.data		= &sysctl_protected_symlinks,
- 		.maxlen		= sizeof(int),
--		.mode		= 0600,
-+		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_ONE,
-@@ -3241,7 +3241,7 @@ static struct ctl_table fs_table[] = {
- 		.procname	= "protected_hardlinks",
- 		.data		= &sysctl_protected_hardlinks,
- 		.maxlen		= sizeof(int),
--		.mode		= 0600,
-+		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_ONE,
-@@ -3250,7 +3250,7 @@ static struct ctl_table fs_table[] = {
- 		.procname	= "protected_fifos",
- 		.data		= &sysctl_protected_fifos,
- 		.maxlen		= sizeof(int),
--		.mode		= 0600,
-+		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= &two,
-@@ -3259,7 +3259,7 @@ static struct ctl_table fs_table[] = {
- 		.procname	= "protected_regular",
- 		.data		= &sysctl_protected_regular,
- 		.maxlen		= sizeof(int),
--		.mode		= 0600,
-+		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= &two,
+--- a/mm/vmalloc.c~mm-vmallocc-add-an-error-message-if-two-areas-overlap
++++ a/mm/vmalloc.c
+@@ -550,8 +550,13 @@ find_va_links(struct vmap_area *va,
+ 		else if (va->va_end > tmp_va->va_start &&
+ 				va->va_start >= tmp_va->va_end)
+ 			link = &(*link)->rb_right;
+-		else
++		else {
++			pr_err("Overlaps: 0x%px(0x%lx-0x%lx), 0x%px(0x%lx-0x%lx)\n",
++				va, va->va_start, va->va_end, tmp_va,
++				tmp_va->va_start, tmp_va->va_end);
++
+ 			BUG();
++		}
+ 	} while (*link);
+ 
+ 	*parent = &tmp_va->rb_node;
 _
 
-Patches currently in -mm which might be from jpitti@cisco.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-proc-sysctl-make-protected_-world-readable.patch
+mm-vmalloc-simplify-merge_or_add_vmap_area-func.patch
+mm-vmalloc-simplify-augment_tree_propagate_check-func.patch
+mm-vmalloc-switch-to-propagate-callback.patch
+mm-vmalloc-update-the-header-about-kva-rework.patch
 
