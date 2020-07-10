@@ -7,42 +7,48 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C254C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 20:31:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E005AC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 20:31:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BE5520748
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 20:31:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B69DC2077D
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 20:31:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594413063;
-	bh=XDvCp9NX2pJgVJDVw/ATnkA3KkqcL/ARa5vohJOltgo=;
+	s=default; t=1594413079;
+	bh=+yenj5okVreKa2vV4lhWwC/xmLlr2l2nG/UfiH2L5P0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=BZgBqqZCnhTpOa4QK9RkvH2X69K/5T6lExxnvlnwqYHYn2P9Z2o2DKtEgZGM8nEy5
-	 yaisD3qOk0XQ/ITBYuPIi5041s434jVFNlsAs8M+BLh0NTgDsCye7KjZJ4Vk9b4qw0
-	 tgC4KP707BLS9rWhe+JzL2d1o++NTDXSlpoKKkG0=
+	b=p75wC4mbscI91d6D3foikZ6sROAFGvt9wg6L9P2eiXTSwgm1kZVk7Sww3s/drR9B5
+	 kx3ZZjLuG0ILaT3Z6snUzUKuTCDO5dVB1F450tJ8cr8NTLC03rmRFyi4K7pFEiF+Un
+	 buirUl5HyQmZvcZ1XP1HU1NmMApLlJVAI79ElgJg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726965AbgGJUbD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Jul 2020 16:31:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54386 "EHLO mail.kernel.org"
+        id S1727038AbgGJUbT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Jul 2020 16:31:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54480 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726867AbgGJUbC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Jul 2020 16:31:02 -0400
+        id S1726867AbgGJUbS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Jul 2020 16:31:18 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F16FD20748;
-        Fri, 10 Jul 2020 20:31:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 233E520748;
+        Fri, 10 Jul 2020 20:31:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594413061;
-        bh=XDvCp9NX2pJgVJDVw/ATnkA3KkqcL/ARa5vohJOltgo=;
+        s=default; t=1594413078;
+        bh=+yenj5okVreKa2vV4lhWwC/xmLlr2l2nG/UfiH2L5P0=;
         h=Date:From:To:Subject:From;
-        b=zwyNh+XpP8wmgUvMurTPKM1C1tphYre1TXF6p79iRUKV1CS6ka1fZ87uSREKg62/5
-         rqqdxnfx/+sumaSrZAfXEXIZc62jhA+7Ecqkv1iFJl4zN4J1lA3ghKM0Z4Lrm1JpM0
-         TfSmJnlt0WioOtxi9qxy7+PaQo5pGzjhpiefC6f0=
-Date:   Fri, 10 Jul 2020 13:31:00 -0700
+        b=jEOvtS1kNBI/F4DlZkyn8yCyDWbHGbz0+4JZdAYDD+mDJz+CtWxyEjoNxlNzQvmfL
+         wqBp+VvEy807ti3j6b+XgEU0uVL2zWo84pHlCGNy12o8DIz3c866KyFNhyPnJDJLuk
+         9ANJKK/+UuhVHloeFpePfC6SKqBfXeexVdesIGiY=
+Date:   Fri, 10 Jul 2020 13:31:17 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20200710203100.QX_VTcLyl%akpm@linux-foundation.org>
+To:     andy.shevchenko@gmail.com, arnd@arndb.de, emil.l.velikov@gmail.com,
+        geert@linux-m68k.org, keescook@chromium.org,
+        linus.walleij@linaro.org, michal.lkml@markovi.net,
+        mm-commits@vger.kernel.org, rikard.falkeborn@gmail.com,
+        syednwaris@gmail.com, vilhelm.gray@gmail.com,
+        yamada.masahiro@socionext.com
+Subject:  [merged] kbuild-move-wtype-limits-to-w=2.patch removed
+ from -mm tree
+Message-ID: <20200710203117.weersaKjS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -52,282 +58,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: kbuild: move -Wtype-limits to W=2
+has been removed from the -mm tree.  Its filename was
+     kbuild-move-wtype-limits-to-w=2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Subject: kbuild: move -Wtype-limits to W=2
 
+-Wtype-limits is included in -Wextra which is added at W=1.  It warns
+(among other things) that 'comparison of an unsigned variable `< 0` is
+always false.  This causes noisy warnings, especially when used in macros,
+hence it is more suitable for W=2.
+
+Link: http://lkml.kernel.org/r/20200708190756.16810-1-rikard.falkeborn@gmail.com
+Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Emil Velikov <emil.l.velikov@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Syed Nayyar Waris <syednwaris@gmail.com>
+Cc: William Breathitt Gray <vilhelm.gray@gmail.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Michal Marek <michal.lkml@markovi.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap                                 |    5 ---
- drivers/gpu/drm/amd/amdgpu/amdgpu_psp.c  |    3 --
- drivers/gpu/drm/i915/display/intel_fbc.c |    6 ----
- drivers/pinctrl/intel/pinctrl-baytrail.c |   13 --------
- fs/io_uring.c                            |    3 --
- fs/read_write.c                          |   31 ---------------------
- include/linux/fs.h                       |    3 --
- mm/filemap.c                             |    8 -----
- 8 files changed, 72 deletions(-)
+ scripts/Makefile.extrawarn |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_psp.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_psp.c
-@@ -1912,10 +1912,7 @@ static int psp_hw_fini(void *handle)
- {
- 	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
- 	struct psp_context *psp = &adev->psp;
--<<<<<<< HEAD
--=======
- 	int ret;
-->>>>>>> linux-next/akpm-base
+--- a/scripts/Makefile.extrawarn~kbuild-move-wtype-limits-to-w=2
++++ a/scripts/Makefile.extrawarn
+@@ -35,6 +35,7 @@ KBUILD_CFLAGS += $(call cc-option, -Wstr
+ # The following turn off the warnings enabled by -Wextra
+ KBUILD_CFLAGS += -Wno-missing-field-initializers
+ KBUILD_CFLAGS += -Wno-sign-compare
++KBUILD_CFLAGS += -Wno-type-limits
  
- 	if (psp->adev->psp.ta_fw) {
- 		psp_ras_terminate(psp);
---- a/drivers/gpu/drm/i915/display/intel_fbc.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/display/intel_fbc.c
-@@ -714,8 +714,6 @@ static void intel_fbc_update_state_cache
- 	cache->fb.format = fb->format;
- 	cache->fb.modifier = fb->modifier;
+ KBUILD_CPPFLAGS += -DKBUILD_EXTRA_WARN1
  
--<<<<<<< HEAD
--=======
- 	/* FIXME is this correct? */
- 	cache->fb.stride = plane_state->color_plane[0].stride;
- 	if (drm_rotation_90_or_270(plane_state->hw.rotation))
-@@ -724,7 +722,6 @@ static void intel_fbc_update_state_cache
- 	/* FBC1 compression interval: arbitrary choice of 1 second */
- 	cache->interval = drm_mode_vrefresh(&crtc_state->hw.adjusted_mode);
+@@ -66,6 +67,7 @@ KBUILD_CFLAGS += -Wshadow
+ KBUILD_CFLAGS += $(call cc-option, -Wlogical-op)
+ KBUILD_CFLAGS += -Wmissing-field-initializers
+ KBUILD_CFLAGS += -Wsign-compare
++KBUILD_CFLAGS += -Wtype-limits
+ KBUILD_CFLAGS += $(call cc-option, -Wmaybe-uninitialized)
+ KBUILD_CFLAGS += $(call cc-option, -Wunused-macros)
  
-->>>>>>> linux-next/akpm-base
- 	cache->fence_y_offset = intel_plane_fence_y_offset(plane_state);
- 
- 	drm_WARN_ON(&dev_priv->drm, plane_state->flags & PLANE_HAS_FENCE &&
-@@ -898,11 +895,8 @@ static void intel_fbc_get_reg_params(str
- 
- 	params->fence_id = cache->fence_id;
- 	params->fence_y_offset = cache->fence_y_offset;
--<<<<<<< HEAD
--=======
- 
- 	params->interval = cache->interval;
-->>>>>>> linux-next/akpm-base
- 
- 	params->crtc.pipe = crtc->pipe;
- 	params->crtc.i9xx_plane = to_intel_plane(crtc->base.primary)->i9xx_plane;
---- a/drivers/pinctrl/intel/pinctrl-baytrail.c~linux-next-git-rejects
-+++ a/drivers/pinctrl/intel/pinctrl-baytrail.c
-@@ -1206,7 +1206,6 @@ static int byt_gpio_direction_output(str
- 	raw_spin_lock_irqsave(&byt_lock, flags);
- 
- 	byt_gpio_direct_irq_check(vg, offset);
--<<<<<<< HEAD
- 
- 	reg = readl(val_reg);
- 	reg &= ~BYT_DIR_MASK;
-@@ -1217,18 +1216,6 @@ static int byt_gpio_direction_output(str
- 
- 	writel(reg, val_reg);
- 
--=======
--
--	reg = readl(val_reg);
--	reg &= ~BYT_DIR_MASK;
--	if (value)
--		reg |= BYT_LEVEL;
--	else
--		reg &= ~BYT_LEVEL;
--
--	writel(reg, val_reg);
--
-->>>>>>> linux-next/akpm-base
- 	raw_spin_unlock_irqrestore(&byt_lock, flags);
- 	return 0;
- }
---- a/fs/io_uring.c~linux-next-git-rejects
-+++ a/fs/io_uring.c
-@@ -7674,11 +7674,8 @@ static void io_ring_ctx_free(struct io_r
- 	io_mem_free(ctx->sq_sqes);
- 
- 	percpu_ref_exit(&ctx->refs);
--<<<<<<< HEAD
--=======
- 	io_unaccount_mem(ctx, ring_pages(ctx->sq_entries, ctx->cq_entries),
- 			 ACCT_LOCKED);
-->>>>>>> linux-next/akpm-base
- 	free_uid(ctx->user);
- 	put_cred(ctx->creds);
- 	kfree(ctx->cancel_hash);
---- a/fs/read_write.c~linux-next-git-rejects
-+++ a/fs/read_write.c
-@@ -418,11 +418,6 @@ static ssize_t new_sync_read(struct file
- 	return ret;
- }
- 
--<<<<<<< HEAD
--ssize_t __kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
--{
--	mm_segment_t old_fs = get_fs();
--=======
- static void warn_unsupported(struct file *file, const char *op)
- {
- 	pr_warn_ratelimited(
-@@ -432,7 +427,6 @@ static void warn_unsupported(struct file
- 
- ssize_t __kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
- {
-->>>>>>> linux-next/akpm-base
- 	ssize_t ret;
- 
- 	if (WARN_ON_ONCE(!(file->f_mode & FMODE_READ)))
-@@ -442,16 +436,6 @@ ssize_t __kernel_read(struct file *file,
- 
- 	if (count > MAX_RW_COUNT)
- 		count =  MAX_RW_COUNT;
--<<<<<<< HEAD
--	set_fs(KERNEL_DS);
--	if (file->f_op->read)
--		ret = file->f_op->read(file, (void __user *)buf, count, pos);
--	else if (file->f_op->read_iter)
--		ret = new_sync_read(file, (void __user *)buf, count, pos);
--	else
--		ret = -EINVAL;
--	set_fs(old_fs);
--=======
- 	if (file->f_op->read_iter) {
- 		struct kvec iov = { .iov_base = buf, .iov_len = count };
- 		struct kiocb kiocb;
-@@ -467,7 +451,6 @@ ssize_t __kernel_read(struct file *file,
- 			warn_unsupported(file, "read");
- 		ret = -EINVAL;
- 	}
-->>>>>>> linux-next/akpm-base
- 	if (ret > 0) {
- 		fsnotify_access(file);
- 		add_rchar(current, ret);
-@@ -537,12 +520,8 @@ static ssize_t new_sync_write(struct fil
- }
- 
- /* caller is responsible for file_start_write/file_end_write */
--<<<<<<< HEAD
--ssize_t __kernel_write(struct file *file, const void *buf, size_t count, loff_t *pos)
--=======
- ssize_t __kernel_write(struct file *file, const void *buf, size_t count,
- 		loff_t *pos)
-->>>>>>> linux-next/akpm-base
- {
- 	ssize_t ret;
- 
-@@ -553,15 +532,6 @@ ssize_t __kernel_write(struct file *file
- 
- 	if (count > MAX_RW_COUNT)
- 		count =  MAX_RW_COUNT;
--<<<<<<< HEAD
--	if (file->f_op->write)
--		ret = file->f_op->write(file, p, count, pos);
--	else if (file->f_op->write_iter)
--		ret = new_sync_write(file, p, count, pos);
--	else
--		ret = -EINVAL;
--	set_fs(old_fs);
--=======
- 	if (file->f_op->write_iter) {
- 		struct kvec iov = { .iov_base = (void *)buf, .iov_len = count };
- 		struct kiocb kiocb;
-@@ -578,7 +548,6 @@ ssize_t __kernel_write(struct file *file
- 			warn_unsupported(file, "write");
- 		ret = -EINVAL;
- 	}
-->>>>>>> linux-next/akpm-base
- 	if (ret > 0) {
- 		fsnotify_modify(file);
- 		add_wchar(current, ret);
---- a/include/linux/fs.h~linux-next-git-rejects
-+++ a/include/linux/fs.h
-@@ -320,11 +320,8 @@ enum rw_hint {
- #define IOCB_SYNC		(1 << 5)
- #define IOCB_WRITE		(1 << 6)
- #define IOCB_NOWAIT		(1 << 7)
--<<<<<<< HEAD
--=======
- /* iocb->ki_waitq is valid */
- #define IOCB_WAITQ		(1 << 8)
-->>>>>>> linux-next/akpm-base
- #define IOCB_NOIO		(1 << 9)
- 
- struct kiocb {
---- a/.mailmap~linux-next-git-rejects
-+++ a/.mailmap
-@@ -100,13 +100,8 @@ Greg Kroah-Hartman <gregkh@suse.de>
- Greg Kroah-Hartman <greg@kroah.com>
- Gregory CLEMENT <gregory.clement@bootlin.com> <gregory.clement@free-electrons.com>
- Hanjun Guo <guohanjun@huawei.com> <hanjun.guo@linaro.org>
--<<<<<<< HEAD
--Heiko Carstens <hca@linux.ibm.com> <h.carstens@de.ibm.com>
--Heiko Carstens <hca@linux.ibm.com> <heiko.carstens@de.ibm.com>
--=======
- Heiko Carstens <hca@linux.ibm.com>
- Heiko Carstens <heiko.carstens@de.ibm.com>
-->>>>>>> linux-next/akpm-base
- Henk Vergonet <Henk.Vergonet@gmail.com>
- Henrik Kretzschmar <henne@nachtwindheim.de>
- Henrik Rydberg <rydberg@bitmath.org>
---- a/mm/filemap.c~linux-next-git-rejects
-+++ a/mm/filemap.c
-@@ -2053,11 +2053,7 @@ find_page:
- 
- 		page = find_get_page(mapping, index);
- 		if (!page) {
--<<<<<<< HEAD
--			if (iocb->ki_flags & (IOCB_NOWAIT | IOCB_NOIO))
--=======
- 			if (iocb->ki_flags & IOCB_NOIO)
-->>>>>>> linux-next/akpm-base
- 				goto would_block;
- 			page_cache_sync_readahead(mapping,
- 					ra, filp,
-@@ -2204,11 +2200,7 @@ page_not_up_to_date_locked:
- 		}
- 
- readpage:
--<<<<<<< HEAD
--		if (iocb->ki_flags & IOCB_NOIO) {
--=======
- 		if (iocb->ki_flags & (IOCB_NOWAIT |IOCB_NOIO)) {
-->>>>>>> linux-next/akpm-base
- 			unlock_page(page);
- 			put_page(page);
- 			goto would_block;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rikard.falkeborn@gmail.com are
 
-mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch
-mm.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
-mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
-linux-next-rejects.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+bits-add-tests-of-genmask.patch
 
