@@ -1,53 +1,74 @@
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: [to-be-updated]
- mm-utilc-make-vm_memory_committed-more-accurate.patch removed from -mm tree
-Date: Thu, 09 Jul 2020 17:38:43 -0700
-Message-ID: <20200710003843.Twr6tumLc%akpm@linux-foundation.org>
+ mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
+ removed from -mm tree
+Date: Thu, 09 Jul 2020 17:38:45 -0700
+Message-ID: <20200710003845.WjFRV-gWf%akpm@linux-foundation.org>
 References: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34584 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34608 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726272AbgGJAio (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Jul 2020 20:38:44 -0400
+        id S1726272AbgGJAir (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Jul 2020 20:38:47 -0400
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi.kleen@intel.com, dave.hansen@intel.com, feng.tang@intel.com, haiyangz@microsoft.com, hannes@cmpxchg.org, kys@microsoft.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@intel.com, willy@infradead.org, ying.huang@intel.com
+To: andi.kleen@intel.com, dave.hansen@intel.com, feng.tang@intel.com, hannes@cmpxchg.org, keescook@chromium.org, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org, tim.c.chen@intel.com, willy@infradead.org, ying.huang@intel.com
 
 
 The patch titled
-     Subject: mm/util.c: make vm_memory_committed() more accurate
+     Subject: mm: adjust vm_committed_as_batch according to vm overcommit policy
 has been removed from the -mm tree.  Its filename was
-     mm-utilc-make-vm_memory_committed-more-accurate.patch
+     mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Feng Tang <feng.tang@intel.com>
-Subject: mm/util.c: make vm_memory_committed() more accurate
+Subject: mm: adjust vm_committed_as_batch according to vm overcommit policy
 
-percpu_counter_sum_positive() will provide more accurate info.
+When checking a performance change for will-it-scale scalability mmap test
+[1], we found very high lock contention for spinlock of percpu counter
+'vm_committed_as':
 
-As with percpu_counter_read_positive(), in worst case the deviation could
-be 'batch * nr_cpus', which is totalram_pages/256 for now, and will be
-more when the batch gets enlarged.
+    94.14%     0.35%  [kernel.kallsyms]         [k] _raw_spin_lock_irqsave
+    48.21% _raw_spin_lock_irqsave;percpu_counter_add_batch;__vm_enough_memory;mmap_region;do_mmap;
+    45.91% _raw_spin_lock_irqsave;percpu_counter_add_batch;__do_munmap;
 
-Its time cost is about 800 nanoseconds on a 2C/4T platform and 2~3
-microseconds on a 2S/36C/72T Skylake server in normal case, and in worst
-case where vm_committed_as's spinlock is under severe contention, it costs
-30~40 microseconds for the 2S/36C/72T Skylake sever, which should be fine
-for its only two users: /proc/meminfo and HyperV balloon driver's status
-trace per second.
+Actually this heavy lock contention is not always necessary.  The
+'vm_committed_as' needs to be very precise when the strict
+OVERCOMMIT_NEVER policy is set, which requires a rather small batch number
+for the percpu counter.
 
-Link: http://lkml.kernel.org/r/1592725000-73486-3-git-send-email-feng.tang@intel.com
+So keep 'batch' number unchanged for strict OVERCOMMIT_NEVER policy, and
+lift it to 64X for OVERCOMMIT_ALWAYS and OVERCOMMIT_GUESS policies.  Also
+add a sysctl handler to adjust it when the policy is reconfigured.
+
+Benchmark with the same testcase in [1] shows 53% improvement on a 8C/16T
+desktop, and 2097%(20X) on a 4S/72C/144T server.  We tested with test
+platforms in 0day (server, desktop and laptop), and 80%+ platforms shows
+improvements with that test.  And whether it shows improvements depends on
+if the test mmap size is bigger than the batch number computed.
+
+And if the lift is 16X, 1/3 of the platforms will show improvements,
+though it should help the mmap/unmap usage generally, as Michal Hocko
+mentioned:
+
+: I believe that there are non-synthetic worklaods which would benefit from
+: a larger batch.  E.g.  large in memory databases which do large mmaps
+: during startups from multiple threads.
+
+[1] https://lore.kernel.org/lkml/20200305062138.GI5972@shao2-debian/
+
+Link: http://lkml.kernel.org/r/1589611660-89854-4-git-send-email-feng.tang@intel.com
+Link: http://lkml.kernel.org/r/1592725000-73486-4-git-send-email-feng.tang@intel.com
 Signed-off-by: Feng Tang <feng.tang@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com> # for /proc/meminfo
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Andi Kleen <andi.kleen@intel.com>
 Cc: Tim Chen <tim.c.chen@intel.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -55,30 +76,108 @@ Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/mm.h   |    2 ++
+ include/linux/mman.h |    4 ++++
+ kernel/sysctl.c      |    2 +-
+ mm/mm_init.c         |   16 +++++++++++++---
+ mm/util.c            |   12 ++++++++++++
+ 5 files changed, 32 insertions(+), 4 deletions(-)
 
---- a/mm/util.c~mm-utilc-make-vm_memory_committed-more-accurate
-+++ a/mm/util.c
-@@ -787,10 +787,15 @@ struct percpu_counter vm_committed_as __
-  * balancing memory across competing virtual machines that are hosted.
-  * Several metrics drive this policy engine including the guest reported
-  * memory commitment.
-+ *
-+ * The time cost of this is very low for small platforms, and for big
-+ * platform like a 2S/36C/72T Skylake server, in worst case where
-+ * vm_committed_as's spinlock is under severe contention, the time cost
-+ * could be about 30~40 microseconds.
-  */
- unsigned long vm_memory_committed(void)
- {
--	return percpu_counter_read_positive(&vm_committed_as);
-+	return percpu_counter_sum_positive(&vm_committed_as);
- }
- EXPORT_SYMBOL_GPL(vm_memory_committed);
+--- a/include/linux/mman.h~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/include/linux/mman.h
+@@ -57,8 +57,12 @@ extern struct percpu_counter vm_committe
  
+ #ifdef CONFIG_SMP
+ extern s32 vm_committed_as_batch;
++extern void mm_compute_batch(void);
+ #else
+ #define vm_committed_as_batch 0
++static inline void mm_compute_batch(void)
++{
++}
+ #endif
+ 
+ unsigned long vm_memory_committed(void);
+--- a/include/linux/mm.h~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/include/linux/mm.h
+@@ -206,6 +206,8 @@ int overcommit_ratio_handler(struct ctl_
+ 		loff_t *);
+ int overcommit_kbytes_handler(struct ctl_table *, int, void *, size_t *,
+ 		loff_t *);
++int overcommit_policy_handler(struct ctl_table *, int, void *, size_t *,
++		loff_t *);
+ 
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
+--- a/kernel/sysctl.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/kernel/sysctl.c
+@@ -2650,7 +2650,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &sysctl_overcommit_memory,
+ 		.maxlen		= sizeof(sysctl_overcommit_memory),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
++		.proc_handler	= overcommit_policy_handler,
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= &two,
+ 	},
+--- a/mm/mm_init.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/mm/mm_init.c
+@@ -13,6 +13,7 @@
+ #include <linux/memory.h>
+ #include <linux/notifier.h>
+ #include <linux/sched.h>
++#include <linux/mman.h>
+ #include "internal.h"
+ 
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
+@@ -144,14 +145,23 @@ EXPORT_SYMBOL_GPL(mm_kobj);
+ #ifdef CONFIG_SMP
+ s32 vm_committed_as_batch = 32;
+ 
+-static void __meminit mm_compute_batch(void)
++void mm_compute_batch(void)
+ {
+ 	u64 memsized_batch;
+ 	s32 nr = num_present_cpus();
+ 	s32 batch = max_t(s32, nr*2, 32);
++	unsigned long ram_pages = totalram_pages();
+ 
+-	/* batch size set to 0.4% of (total memory/#cpus), or max int32 */
+-	memsized_batch = min_t(u64, (totalram_pages()/nr)/256, 0x7fffffff);
++	/*
++	 * For policy of OVERCOMMIT_NEVER, set batch size to 0.4%
++	 * of (total memory/#cpus), and lift it to 25% for other
++	 * policies to easy the possible lock contention for percpu_counter
++	 * vm_committed_as, while the max limit is INT_MAX
++	 */
++	if (sysctl_overcommit_memory == OVERCOMMIT_NEVER)
++		memsized_batch = min_t(u64, ram_pages/nr/256, INT_MAX);
++	else
++		memsized_batch = min_t(u64, ram_pages/nr/4, INT_MAX);
+ 
+ 	vm_committed_as_batch = max_t(s32, memsized_batch, batch);
+ }
+--- a/mm/util.c~mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy
++++ a/mm/util.c
+@@ -746,6 +746,18 @@ int overcommit_ratio_handler(struct ctl_
+ 	return ret;
+ }
+ 
++int overcommit_policy_handler(struct ctl_table *table, int write, void *buffer,
++		size_t *lenp, loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++	if (ret == 0 && write)
++		mm_compute_batch();
++
++	return ret;
++}
++
+ int overcommit_kbytes_handler(struct ctl_table *table, int write, void *buffer,
+ 		size_t *lenp, loff_t *ppos)
+ {
 _
 
 Patches currently in -mm which might be from feng.tang@intel.com are
-
-mm-adjust-vm_committed_as_batch-according-to-vm-overcommit-policy.patch
