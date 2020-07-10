@@ -2,51 +2,50 @@ Return-Path: <SRS0=29NR=AV=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9335EC433E4
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 23:32:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CD7AC433E2
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 23:35:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6533C2065F
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 23:32:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0598720786
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 23:35:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594423976;
-	bh=1FKW76ZyW89DtXaxbkTaGYHHAkFdcCJ2bC4X1vTJjdg=;
+	s=default; t=1594424115;
+	bh=ESRm34R0HHREFKwZfbARvIoNJ7ay9yu+6kq/+qN2P6E=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=mJg83JmswpsoNvHwo56FVe+Op09mQPFjOz6n3mrH+fykXHj9ENyifA/GsZcl0+Y6V
-	 Ah9ywHEBYxCX8Ym0qLRBfwXl4UEhWs5gePMTX98ynbTqME15GfbvZmNp2bWIAmfJZR
-	 iPA1qa65lEZNXURn9AQiEc4nROKgxLrQrebNrFU4=
+	b=Fb44TDaKnXOZRmz7yNv6cdDFhZ8lMnMNMfFhkbJQyHsbJy2S9ut18oAT/qfkRg/jC
+	 hct+0A7S58juCRiJOi9YE3mInwXanMLT1vVsWnQ4vaVqUPaJtKMVqORNbyQAl1xAU7
+	 3D/Uyao3sfZOyRKQ88tNRnUE+VNuQitixJMg+5/o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726465AbgGJXc4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Jul 2020 19:32:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39230 "EHLO mail.kernel.org"
+        id S1726519AbgGJXfO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Jul 2020 19:35:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40254 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726328AbgGJXc4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Jul 2020 19:32:56 -0400
+        id S1726328AbgGJXfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Jul 2020 19:35:14 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2C3C220786;
-        Fri, 10 Jul 2020 23:32:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9352220657;
+        Fri, 10 Jul 2020 23:35:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594423975;
-        bh=1FKW76ZyW89DtXaxbkTaGYHHAkFdcCJ2bC4X1vTJjdg=;
+        s=default; t=1594424113;
+        bh=ESRm34R0HHREFKwZfbARvIoNJ7ay9yu+6kq/+qN2P6E=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OaxyrJOK72k0jyWx2EmjxHTD3SHeANPTueCW0qJsiLJm95YXsCfrjuQ1V9EI19QRK
-         2QUPvHpJhqnQyFNwkU1Qn8pJRcBo9vAlZFIGwqNx/r/Dfonk6l56ytfylbJnkLD1LD
-         zqa1XIdlF1v1fqmnA3IgzYl+55NPyIOC//cqKbqA=
-Date:   Fri, 10 Jul 2020 16:32:54 -0700
+        b=LtfE+nN1zivFVR6ok29UiwNmf0JsMgDZHKRdoriJSTewhtNIz94uOSc/e0JlDcNKe
+         6YXNvvTMeNYQDp2UmP8M+VyEKcnKKxjqRXuxiDi85HJorYGsTsaPF7SlxIUjV093sq
+         Z6yMAPSvtWlqlsDyCVDbJyeTV/we7Yfl/qashNFU=
+Date:   Fri, 10 Jul 2020 16:35:13 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     hdanton@sina.com, mhocko@suse.com, mm-commits@vger.kernel.org,
-        oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
-        urezki@gmail.com, willy@infradead.org
-Subject:  [to-be-updated]
- mm-vmallocc-add-an-error-message-if-two-areas-overlap.patch removed from
- -mm tree
-Message-ID: <20200710233254.sehg7DwEX%akpm@linux-foundation.org>
+To:     alex.bou9@gmail.com, gustavoars@kernel.org, keescook@chromium.org,
+        mm-commits@vger.kernel.org, mporter@kernel.crashing.org
+Subject:  +
+ rapidio-rio_mport_cdev-use-array_size-helper-in-copy_fromto_user.patch
+ added to -mm tree
+Message-ID: <20200710233513.fR5PV21QZ%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,58 +56,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: add an error message if two areas overlap
-has been removed from the -mm tree.  Its filename was
-     mm-vmallocc-add-an-error-message-if-two-areas-overlap.patch
+     Subject: rapidio/rio_mport_cdev: Use array_size() helper in copy_{from,to}_user()
+has been added to the -mm tree.  Its filename is
+     rapidio-rio_mport_cdev-use-array_size-helper-in-copy_fromto_user.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-rio_mport_cdev-use-array_size-helper-in-copy_fromto_user.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-rio_mport_cdev-use-array_size-helper-in-copy_fromto_user.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc.c: add an error message if two areas overlap
+From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Subject: rapidio/rio_mport_cdev: Use array_size() helper in copy_{from,to}_user()
 
-Before triggering a BUG() it would be useful to understand how two areas
-overlap between each other.  Print information about start/end addresses
-of both VAs and their addresses.
+Use array_size() helper instead of the open-coded version in
+copy_{from,to}_user().  These sorts of multiplication factors need to be
+wrapped in array_size().
 
-For example if both are identical it could mean double free.
+This issue was found with the help of Coccinelle and, audited and fixed
+manually.
 
-Link: http://lkml.kernel.org/r/20200710194443.2984-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Addresses-KSPP-ID: https://github.com/KSPP/linux/issues/83
+Link: http://lkml.kernel.org/r/20200616183050.GA31840@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmallocc-add-an-error-message-if-two-areas-overlap
-+++ a/mm/vmalloc.c
-@@ -550,8 +550,13 @@ find_va_links(struct vmap_area *va,
- 		else if (va->va_end > tmp_va->va_start &&
- 				va->va_start >= tmp_va->va_end)
- 			link = &(*link)->rb_right;
--		else
-+		else {
-+			pr_err("Overlaps: 0x%px(0x%lx-0x%lx), 0x%px(0x%lx-0x%lx)\n",
-+				va, va->va_start, va->va_end, tmp_va,
-+				tmp_va->va_start, tmp_va->va_end);
-+
- 			BUG();
-+		}
- 	} while (*link);
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-rio_mport_cdev-use-array_size-helper-in-copy_fromto_user
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -981,7 +981,7 @@ static int rio_mport_transfer_ioctl(stru
  
- 	*parent = &tmp_va->rb_node;
+ 	if (unlikely(copy_from_user(transfer,
+ 				    (void __user *)(uintptr_t)transaction.block,
+-				    transaction.count * sizeof(*transfer)))) {
++				    array_size(sizeof(*transfer), transaction.count)))) {
+ 		ret = -EFAULT;
+ 		goto out_free;
+ 	}
+@@ -994,7 +994,7 @@ static int rio_mport_transfer_ioctl(stru
+ 
+ 	if (unlikely(copy_to_user((void __user *)(uintptr_t)transaction.block,
+ 				  transfer,
+-				  transaction.count * sizeof(*transfer))))
++				  array_size(sizeof(*transfer), transaction.count))))
+ 		ret = -EFAULT;
+ 
+ out_free:
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from gustavoars@kernel.org are
 
-mm-vmalloc-simplify-merge_or_add_vmap_area-func.patch
-mm-vmalloc-simplify-augment_tree_propagate_check-func.patch
-mm-vmalloc-switch-to-propagate-callback.patch
-mm-vmalloc-update-the-header-about-kva-rework.patch
+rapidio-rio_mport_cdev-use-struct_size-helper.patch
+rapidio-use-struct_size-helper.patch
+rapidio-rio_mport_cdev-use-array_size-helper-in-copy_fromto_user.patch
 
