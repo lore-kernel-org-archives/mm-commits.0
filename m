@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FC0CC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 22:29:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5716C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 22:29:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DA3FF207BB
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 22:29:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F713207BB
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Jul 2020 22:29:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594420146;
-	bh=OeA9tolH2OmSeWWufYeqa4woKJ/kyo/mJmwv0pDnvwM=;
+	s=default; t=1594420169;
+	bh=3tZRC35vv1dlPGBLZB3HVdBFEdLX9coBprvwI+ZWfYA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=EIxiVpJcktFf2aOCVxkgkV/ivIMwrNhvl3+s9FZ2aJPr2z3N9s6LhmeRhZFyVzQkj
-	 HR+QqOrmXeSu5hMI9GXwF2YN4kheH2UOQffvEJZCIjYDwr8iWVFJ3yLpRcsV4xGh1j
-	 m6kFCnoQwoyRmRXs3TB4u09QxR8qcEDdAdOXN1Uw=
+	b=BJv9r5z2rzGTNm75/dL1j5YBKjvkvLvpMpHCHQqaL8Yl8OQ9snQyu4tot/0yhdGqr
+	 5YraBW9E45zRz9ySOfQzAa30NY+oEdPwQ1PKB2OHLWOQHS7HdXtllO3c1sQZ9QJ/Hw
+	 4n+3fqTo+PgQdFaKXaPTDFT//iP5lFen2+rwXT34=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726465AbgGJW3G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Jul 2020 18:29:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43350 "EHLO mail.kernel.org"
+        id S1726496AbgGJW33 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Jul 2020 18:29:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43414 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726385AbgGJW3G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Jul 2020 18:29:06 -0400
+        id S1726385AbgGJW33 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 10 Jul 2020 18:29:29 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 837902075D;
-        Fri, 10 Jul 2020 22:29:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0EEB42075D;
+        Fri, 10 Jul 2020 22:29:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594420145;
-        bh=OeA9tolH2OmSeWWufYeqa4woKJ/kyo/mJmwv0pDnvwM=;
+        s=default; t=1594420168;
+        bh=3tZRC35vv1dlPGBLZB3HVdBFEdLX9coBprvwI+ZWfYA=;
         h=Date:From:To:Subject:From;
-        b=SHWMimvnwWIhmuGXtnij5rHn37Bj3XA9gVdb7U0xaAjvK7hXFmyEQZYU9bcaLxqsu
-         lIxQxZiOcjz5ynQI5gcg/11OOqGbGXTlntNIMAnVdc87AG6NtzQwM2ceTwGphFIttY
-         i2guLdOX/6hHokzhWEuW2tOA//U2CP5eqRILEe5Q=
-Date:   Fri, 10 Jul 2020 15:29:05 -0700
+        b=OwmUgtr57ML5BJ+0TOnOIhMEpcKZbHISBwvnB8u37jOjtlf1J/V7SVebX8CofBcCn
+         57tkzXmFw8zWZT3ZnUyEsP2Q2VmfoIFX5rA4wdH9G0+PrfWEBkGpVSJUJpECL4Q2XH
+         olzyEkXvsCugC32J9NWAc6xs2PwFMkFxMhcArP24=
+Date:   Fri, 10 Jul 2020 15:29:27 -0700
 From:   akpm@linux-foundation.org
 To:     broonie@kernel.org, catalin.marinas@arm.com,
-        mm-commits@vger.kernel.org, peterx@redhat.com
+        mm-commits@vger.kernel.org, peterx@redhat.com, sfr@canb.auug.org.au
 Subject:  +
  mm-gup-remove-task_struct-pointer-for-all-gup-code-fix.patch added to -mm
  tree
-Message-ID: <20200710222905.LgDGY9_YJ%akpm@linux-foundation.org>
+Message-ID: <20200710222927.Vkz6LXPXK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -84,6 +84,7 @@ fix arch/arm64/kernel/mte.c
 Link: http://lkml.kernel.org/r/20200710122457.GK199122@xz-x1
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
