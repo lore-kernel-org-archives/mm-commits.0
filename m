@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1B37C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:00:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94226C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:00:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B3D3021841
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:00:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76B9C217BA
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:00:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594688406;
-	bh=1Iks28/EO4R+4omfJ8pEUr+XT9m8g39EaMzVZEhVdlQ=;
+	s=default; t=1594688409;
+	bh=QoyScJ5HIfcd/7eZIOTcyjwIzrnGfSbwZbjOVcDCXrQ=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=q29vbxEL9Ung099M0Z1gxcVQtZ0g/88SBbRCyyPPHvxH6Ruq137vrwhI5M02jO43I
-	 DU/XoFQrxBFipW0B/ofJFJ5pp6BA0lCrqwHuSHqSCdDDzSPOPZbVf7eGxKmd2D8+Jr
-	 0CACqv3B+88Dz5CuyYRvGzPOkdz3ue6h+FUeUqtE=
+	b=lanzkmLlz0Iv1AkdIbKI0/rMZqKdKnoenqe51s1dYwmS/+yR903rxmoV/wVjr6sqy
+	 +q945OM1Bg2M8w1jBGZ28EgivptOGgGuPQjhL+oBTTGo57e2mUfqxtFKd+nTN1sklX
+	 YYgPb9uz1zJzVGGdtJsQjLEpoPIkyNpnqtc6kR6k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726339AbgGNBAG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jul 2020 21:00:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33156 "EHLO mail.kernel.org"
+        id S1726374AbgGNBAJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jul 2020 21:00:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33196 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726257AbgGNBAG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jul 2020 21:00:06 -0400
+        id S1726257AbgGNBAJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jul 2020 21:00:09 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0AED5217BA;
-        Tue, 14 Jul 2020 01:00:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DE02B21841;
+        Tue, 14 Jul 2020 01:00:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594688405;
-        bh=1Iks28/EO4R+4omfJ8pEUr+XT9m8g39EaMzVZEhVdlQ=;
+        s=default; t=1594688408;
+        bh=QoyScJ5HIfcd/7eZIOTcyjwIzrnGfSbwZbjOVcDCXrQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=gSfY/25V3kTi5V1UHQhTYnOKyf5X1xCiIbm33ZJfSM+2T6kX0M4o+1GHoz3xbiAJQ
-         v/1uzJHgSP/ye+ZdLY+2I+1aYESucOug2+WdjMV2Ob1wVLYWoCxm8f/zYnoEK1Z1yU
-         hUEFi6tQSmIeaCWDGeAeVDsdNRYlwQ3WSa+Qxois=
-Date:   Mon, 13 Jul 2020 18:00:04 -0700
+        b=or6mKW6L2+sRycXpomM0z4sj2SpEvlbXkSliLhAMuEg4QG4/HloJXa2pAk7BUWVVG
+         E3nPgKtbBPoqt9fhsVlxJ+OaiXfSSlQ3vhAkFa8AfvK+x8eX4TxwcPOKhu9f0RVz6p
+         FMeg57Q8imTZPUkIMOIg/p8AH5cGlGDirY0/jrtA=
+Date:   Mon, 13 Jul 2020 18:00:07 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com,
+        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
         tj@kernel.org
 Subject:  +
- mm-memcg-reclaim-more-aggressively-before-high-allocator-throttling.patch
- added to -mm tree
-Message-ID: <20200714010004.fpNSNac3H%akpm@linux-foundation.org>
+ mm-memcg-unify-reclaim-retry-limits-with-page-allocator.patch added to -mm
+ tree
+Message-ID: <20200714010007.x66lNqH5z%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: reclaim more aggressively before high allocator throttling
+     Subject: mm, memcg: unify reclaim retry limits with page allocator
 has been added to the -mm tree.  Its filename is
-     mm-memcg-reclaim-more-aggressively-before-high-allocator-throttling.patch
+     mm-memcg-unify-reclaim-retry-limits-with-page-allocator.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-reclaim-more-aggressively-before-high-allocator-throttling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-unify-reclaim-retry-limits-with-page-allocator.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-reclaim-more-aggressively-before-high-allocator-throttling.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-unify-reclaim-retry-limits-with-page-allocator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,163 +79,99 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Chris Down <chris@chrisdown.name>
-Subject: mm, memcg: reclaim more aggressively before high allocator throttling
+Subject: mm, memcg: unify reclaim retry limits with page allocator
 
-Patch series "mm, memcg: reclaim harder before high throttling", v2.
+Reclaim retries have been set to 5 since the beginning of time in
+commit 66e1707bc346 ("Memory controller: add per cgroup LRU and
+reclaim").  However, we now have a generally agreed-upon standard for
+page reclaim: MAX_RECLAIM_RETRIES (currently 16), added many years later
+in commit 0a0337e0d1d1 ("mm, oom: rework oom detection").
 
+In the absence of a compelling reason to declare an OOM earlier in memcg
+context than page allocator context, it seems reasonable to supplant
+MEM_CGROUP_RECLAIM_RETRIES with MAX_RECLAIM_RETRIES, making the page
+allocator and memcg internals more similar in semantics when reclaim
+fails to produce results, avoiding premature OOMs or throttling.
 
-This patch (of 2):
-
-In Facebook production, we've seen cases where cgroups have been put into
-allocator throttling even when they appear to have a lot of slack file
-caches which should be trivially reclaimable.
-
-Looking more closely, the problem is that we only try a single cgroup
-reclaim walk for each return to usermode before calculating whether or not
-we should throttle.  This single attempt doesn't produce enough pressure
-to shrink for cgroups with a rapidly growing amount of file caches prior
-to entering allocator throttling.
-
-As an example, we see that threads in an affected cgroup are stuck in
-allocator throttling:
-
-    # for i in $(cat cgroup.threads); do
-    >     grep over_high "/proc/$i/stack"
-    > done
-    [<0>] mem_cgroup_handle_over_high+0x10b/0x150
-    [<0>] mem_cgroup_handle_over_high+0x10b/0x150
-    [<0>] mem_cgroup_handle_over_high+0x10b/0x150
-
-...however, there is no I/O pressure reported by PSI, despite a lot of
-slack file pages:
-
-    # cat memory.pressure
-    some avg10=78.50 avg60=84.99 avg300=84.53 total=5702440903
-    full avg10=78.50 avg60=84.99 avg300=84.53 total=5702116959
-    # cat io.pressure
-    some avg10=0.00 avg60=0.00 avg300=0.00 total=78051391
-    full avg10=0.00 avg60=0.00 avg300=0.00 total=78049640
-    # grep _file memory.stat
-    inactive_file 1370939392
-    active_file 661635072
-
-This patch changes the behaviour to retry reclaim either until the current
-task goes below the 10ms grace period, or we are making no reclaim
-progress at all.  In the latter case, we enter reclaim throttling as
-before.
-
-To a user, there's no intuitive reason for the reclaim behaviour to differ
-from hitting memory.high as part of a new allocation, as opposed to
-hitting memory.high because someone lowered its value.  As such this also
-brings an added benefit: it unifies the reclaim behaviour between the two.
-
-There's precedent for this behaviour: we already do reclaim retries when
-writing to memory.{high,max}, in max reclaim, and in the page allocator
-itself.
-
-Link: http://lkml.kernel.org/r/cover.1594640214.git.chris@chrisdown.name
-Link: http://lkml.kernel.org/r/a4e23b59e9ef499b575ae73a8120ee089b7d3373.1594640214.git.chris@chrisdown.name
+Link: http://lkml.kernel.org/r/da557856c9c7654308eaff4eedc1952a95e8df5f.1594640214.git.chris@chrisdown.name
 Signed-off-by: Chris Down <chris@chrisdown.name>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   42 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 37 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-reclaim-more-aggressively-before-high-allocator-throttling
+--- a/mm/memcontrol.c~mm-memcg-unify-reclaim-retry-limits-with-page-allocator
 +++ a/mm/memcontrol.c
-@@ -73,6 +73,7 @@ EXPORT_SYMBOL(memory_cgrp_subsys);
+@@ -73,9 +73,6 @@ EXPORT_SYMBOL(memory_cgrp_subsys);
  
  struct mem_cgroup *root_mem_cgroup __read_mostly;
  
-+/* The number of times we should retry reclaim failures before giving up. */
- #define MEM_CGROUP_RECLAIM_RETRIES	5
- 
+-/* The number of times we should retry reclaim failures before giving up. */
+-#define MEM_CGROUP_RECLAIM_RETRIES	5
+-
  /* Socket memory accounting disabled? */
-@@ -2365,18 +2366,23 @@ static int memcg_hotplug_cpu_dead(unsign
- 	return 0;
- }
+ static bool cgroup_memory_nosocket;
  
--static void reclaim_high(struct mem_cgroup *memcg,
--			 unsigned int nr_pages,
--			 gfp_t gfp_mask)
-+static unsigned long reclaim_high(struct mem_cgroup *memcg,
-+				  unsigned int nr_pages,
-+				  gfp_t gfp_mask)
- {
-+	unsigned long nr_reclaimed = 0;
-+
- 	do {
- 		if (page_counter_read(&memcg->memory) <=
- 		    READ_ONCE(memcg->memory.high))
- 			continue;
- 		memcg_memory_event(memcg, MEMCG_HIGH);
--		try_to_free_mem_cgroup_pages(memcg, nr_pages, gfp_mask, true);
-+		nr_reclaimed += try_to_free_mem_cgroup_pages(memcg, nr_pages,
-+							     gfp_mask, true);
- 	} while ((memcg = parent_mem_cgroup(memcg)) &&
- 		 !mem_cgroup_is_root(memcg));
-+
-+	return nr_reclaimed;
- }
- 
- static void high_work_func(struct work_struct *work)
-@@ -2532,16 +2538,32 @@ void mem_cgroup_handle_over_high(void)
- {
- 	unsigned long penalty_jiffies;
+@@ -2540,7 +2537,7 @@ void mem_cgroup_handle_over_high(void)
  	unsigned long pflags;
-+	unsigned long nr_reclaimed;
+ 	unsigned long nr_reclaimed;
  	unsigned int nr_pages = current->memcg_nr_pages_over_high;
-+	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
+-	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
++	int nr_retries = MAX_RECLAIM_RETRIES;
  	struct mem_cgroup *memcg;
-+	bool in_retry = false;
+ 	bool in_retry = false;
  
- 	if (likely(!nr_pages))
- 		return;
+@@ -2617,7 +2614,7 @@ static int try_charge(struct mem_cgroup
+ 		      unsigned int nr_pages)
+ {
+ 	unsigned int batch = max(MEMCG_CHARGE_BATCH, nr_pages);
+-	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
++	int nr_retries = MAX_RECLAIM_RETRIES;
+ 	struct mem_cgroup *mem_over_limit;
+ 	struct page_counter *counter;
+ 	unsigned long nr_reclaimed;
+@@ -2736,7 +2733,7 @@ retry:
+ 		       get_order(nr_pages * PAGE_SIZE));
+ 	switch (oom_status) {
+ 	case OOM_SUCCESS:
+-		nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
++		nr_retries = MAX_RECLAIM_RETRIES;
+ 		goto retry;
+ 	case OOM_FAILED:
+ 		goto force;
+@@ -3396,7 +3393,7 @@ static inline bool memcg_has_children(st
+  */
+ static int mem_cgroup_force_empty(struct mem_cgroup *memcg)
+ {
+-	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
++	int nr_retries = MAX_RECLAIM_RETRIES;
  
- 	memcg = get_mem_cgroup_from_mm(current->mm);
--	reclaim_high(memcg, nr_pages, GFP_KERNEL);
- 	current->memcg_nr_pages_over_high = 0;
- 
-+retry_reclaim:
-+	/*
-+	 * The allocating task should reclaim at least the batch size, but for
-+	 * subsequent retries we only want to do what's necessary to prevent oom
-+	 * or breaching resource isolation.
-+	 *
-+	 * This is distinct from memory.max or page allocator behaviour because
-+	 * memory.high is currently batched, whereas memory.max and the page
-+	 * allocator run every time an allocation is made.
-+	 */
-+	nr_reclaimed = reclaim_high(memcg,
-+				    in_retry ? SWAP_CLUSTER_MAX : nr_pages,
-+				    GFP_KERNEL);
-+
- 	/*
- 	 * memory.high is breached and reclaim is unable to keep up. Throttle
- 	 * allocators proactively to slow down excessive growth.
-@@ -2569,6 +2591,16 @@ void mem_cgroup_handle_over_high(void)
- 		goto out;
- 
- 	/*
-+	 * If reclaim is making forward progress but we're still over
-+	 * memory.high, we want to encourage that rather than doing allocator
-+	 * throttling.
-+	 */
-+	if (nr_reclaimed || nr_retries--) {
-+		in_retry = true;
-+		goto retry_reclaim;
-+	}
-+
-+	/*
- 	 * If we exit early, we're guaranteed to die (since
- 	 * schedule_timeout_killable sets TASK_KILLABLE). This means we don't
- 	 * need to account for any ill-begotten jiffies to pay them off later.
+ 	/* we call try-to-free pages for make this cgroup empty */
+ 	lru_add_drain_all();
+@@ -6225,7 +6222,7 @@ static ssize_t memory_high_write(struct
+ 				 char *buf, size_t nbytes, loff_t off)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
+-	unsigned int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
++	unsigned int nr_retries = MAX_RECLAIM_RETRIES;
+ 	bool drained = false;
+ 	unsigned long high;
+ 	int err;
+@@ -6273,7 +6270,7 @@ static ssize_t memory_max_write(struct k
+ 				char *buf, size_t nbytes, loff_t off)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
+-	unsigned int nr_reclaims = MEM_CGROUP_RECLAIM_RETRIES;
++	unsigned int nr_reclaims = MAX_RECLAIM_RETRIES;
+ 	bool drained = false;
+ 	unsigned long max;
+ 	int err;
 _
 
 Patches currently in -mm which might be from chris@chrisdown.name are
