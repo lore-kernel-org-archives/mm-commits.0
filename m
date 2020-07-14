@@ -7,51 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DCC0C433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:30:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70979C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:37:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFED621924
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:30:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45A7B2193E
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:37:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594690253;
-	bh=x45irtkApqGqGqs5WsBcblQYlCilWwtAkFDcevQ6kdo=;
+	s=default; t=1594690642;
+	bh=0yhHlI+c/+TE+AD2WXuXJJhyACdoSEhljwxKdJNE8n4=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=zI+mjIKsNiFX6SynKfDzuR0LubfJXwW4sCrjv6GqJr1a57NIS1keuPy9QHTnqb2O6
-	 5jf76lNKnFTsGK7Ke0sYb9CpdjcQI3gdfWCtHla3ufUtKzCynzpqgLE2s5MMJg38N5
-	 H3Z3wRJBOfv5M3pS6zdXWQA3BZrCX3aTCg3kz3s0=
+	b=NML99rQg7eg8y96iRPS7WviO/EAzowwkRWnKtIMcENEvLTBl+L9QiTiEUnIzWnhxZ
+	 G4DB5SZFmukb/H4O6276i6MhnVXTPXqlh17R+McoWrJypjQLVwVSvGtpV5CSXZ64T5
+	 X6nFW1VoLwgmDyM98YjVjGZgF4WgbP3Htu8w7sM0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726582AbgGNBaw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jul 2020 21:30:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47862 "EHLO mail.kernel.org"
+        id S1726763AbgGNBhW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jul 2020 21:37:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726149AbgGNBaw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jul 2020 21:30:52 -0400
+        id S1726149AbgGNBhV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jul 2020 21:37:21 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 15F3821655;
-        Tue, 14 Jul 2020 01:30:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8FE02217BA;
+        Tue, 14 Jul 2020 01:37:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594690249;
-        bh=x45irtkApqGqGqs5WsBcblQYlCilWwtAkFDcevQ6kdo=;
+        s=default; t=1594690640;
+        bh=0yhHlI+c/+TE+AD2WXuXJJhyACdoSEhljwxKdJNE8n4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oaD/Z/MbQGhiG/4e9C+fF6p9HLPu6rikMsOq/UfkLu9L2TrmRMyehhIhISICGbSve
-         WKh817Ex+JyDAzSV1KSaIKQJESoHKpEBvjrGQDYSPEYa8wPC0LCKo4wENVwXj49jaQ
-         TrkPrIUGSCNITyHhVvApqu+d3u/33A2mpaRooFzQ=
-Date:   Mon, 13 Jul 2020 18:30:48 -0700
+        b=E5s67OGkaLh0BQDCk48NYVbHh541yb4C22bhNbTHyOwVBnauiysY1FuZVYfndggoi
+         hdeMUuM2M+niXXBwL30Hu4KM1eqqWDB0paUPfK8HJjDAeYjIRfH1kS5xfn0pYqq8hm
+         vY8m18Cb3hsa2GrtG509CnvMSuCMAECIldOs6mz0=
+Date:   Mon, 13 Jul 2020 18:37:20 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     anshuman.khandual@arm.com, benh@kernel.crashing.org,
-        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
-        corbet@lwn.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com,
-        hpa@zytor.com, kirill@shutemov.name, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, palmer@dabbelt.com,
-        paul.walmsley@sifive.com, paulus@samba.org, rppt@kernel.org,
-        rppt@linux.ibm.com, tglx@linutronix.de, vgupta@synopsys.com,
-        will@kernel.org, ziy@nvidia.com
+To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com
 Subject:  +
- documentation-mm-add-descriptions-for-arch-page-table-helpers-v5.patch
- added to -mm tree
-Message-ID: <20200714013048.MhVnyTFKj%akpm@linux-foundation.org>
+ mm-sparse-cleanup-the-code-surrounding-memory_present.patch added to -mm
+ tree
+Message-ID: <20200714013720.LCT0TEyXV%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -62,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: documentation-mm-add-descriptions-for-arch-page-table-helpers-v5
+     Subject: mm/sparse: cleanup the code surrounding memory_present()
 has been added to the -mm tree.  Its filename is
-     documentation-mm-add-descriptions-for-arch-page-table-helpers-v5.patch
+     mm-sparse-cleanup-the-code-surrounding-memory_present.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-mm-add-descriptions-for-arch-page-table-helpers-v5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-cleanup-the-code-surrounding-memory_present.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-mm-add-descriptions-for-arch-page-table-helpers-v5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-cleanup-the-code-surrounding-memory_present.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -83,409 +76,431 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: documentation-mm-add-descriptions-for-arch-page-table-helpers-v5
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm/sparse: cleanup the code surrounding memory_present()
 
-fold in Mike's patch for the rst document, fix typos in the rst document
+After removal of CONFIG_HAVE_MEMBLOCK_NODE_MAP we have two equivalent
+functions that call memory_present() for each region in memblock.memory:
+sparse_memory_present_with_active_regions() and membocks_present().
 
-Link: http://lkml.kernel.org/r/1594610587-4172-5-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Moreover, all architectures have a call to either of these functions
+preceding the call to sparse_init() and in the most cases they are called
+one after the other.
+
+Mark the regions from memblock.memory as present during sparce_init() by
+making sparse_init() call memblocks_present(), make memblocks_present()
+and memory_present() functions static and remove redundant
+sparse_memory_present_with_active_regions() function.
+
+Also remove no longer required HAVE_MEMORY_PRESENT configuration option.
+
+Link: http://lkml.kernel.org/r/20200712083130.22919-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/arch_pgtable_helpers.rst |  232 ++++++++++----------
- 1 file changed, 116 insertions(+), 116 deletions(-)
+ Documentation/vm/memory-model.rst |    7 ++-----
+ arch/arm/mm/init.c                |    9 ++-------
+ arch/arm64/mm/init.c              |    6 ++----
+ arch/ia64/mm/discontig.c          |    1 -
+ arch/microblaze/mm/init.c         |    3 ---
+ arch/mips/kernel/setup.c          |    8 --------
+ arch/mips/loongson64/numa.c       |    1 -
+ arch/mips/sgi-ip27/ip27-memory.c  |    2 --
+ arch/parisc/mm/init.c             |    5 -----
+ arch/powerpc/mm/mem.c             |    2 --
+ arch/powerpc/mm/numa.c            |    1 -
+ arch/riscv/mm/init.c              |    1 -
+ arch/s390/mm/init.c               |    1 -
+ arch/sh/mm/init.c                 |    6 ------
+ arch/sh/mm/numa.c                 |    3 ---
+ arch/sparc/mm/init_64.c           |    1 -
+ arch/x86/mm/init_32.c             |    2 --
+ arch/x86/mm/init_64.c             |    1 -
+ include/linux/mm.h                |    4 ----
+ include/linux/mmzone.h            |   14 --------------
+ mm/Kconfig                        |    6 +-----
+ mm/page_alloc.c                   |   16 ----------------
+ mm/sparse.c                       |   20 ++++++++++++--------
+ 23 files changed, 19 insertions(+), 101 deletions(-)
 
---- a/Documentation/vm/arch_pgtable_helpers.rst~documentation-mm-add-descriptions-for-arch-page-table-helpers-v5
-+++ a/Documentation/vm/arch_pgtable_helpers.rst
-@@ -17,242 +17,242 @@ test need to be in sync.
- PTE Page Table Helpers
- ======================
+--- a/arch/arm64/mm/init.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/arm64/mm/init.c
+@@ -430,11 +430,9 @@ void __init bootmem_init(void)
+ #endif
  
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_same                  | Tests whether both PTE entries are the same      |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_bad                   | Tests a non-table mapped PTE                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_present               | Tests a valid mapped PTE                         |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_young                 | Tests a young PTE                                |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_dirty                 | Tests a dirty PTE                                |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_write                 | Tests a writable PTE                             |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_special               | Tests a special PTE                              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_protnone              | Tests a PROT_NONE PTE                            |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_devmap                | Tests a ZONE_DEVICE mapped PTE                   |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_soft_dirty            | Tests a soft dirty PTE                           |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_swp_soft_dirty        | Tests a soft dirty swapped PTE                   |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mkyoung               | Creates a young PTE                              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mkold                 | Creates an old PTE                               |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mkdirty               | Creates a dirty PTE                              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mkclean               | Creates a clean PTE                              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mkwrite               | Creates a writable PTE                           |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mkwrprotect           | Creates a write protected PTE                    |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mkspecial             | Creates a special PTE                            |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mkdevmap              | Creates a ZONE_DEVICE mapped PTE                 |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mksoft_dirty          | Creates a soft dirty PTE                         |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_clear_soft_dirty      | Clears a soft dirty PTE                          |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_swp_mksoft_dirty      | Creates a soft dirty swapped PTE                 |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_swp_clear_soft_dirty  | Clears a soft dirty swapped PTE                  |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mknotpresent          | Invalidates a mapped PTE                         |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | ptep_get_and_clear        | Clears a PTE                                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | ptep_get_and_clear_full   | Clears a PTE                                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | ptep_test_and_clear_young | Clears young from a PTE                          |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | ptep_set_wrprotect        | Converts into a write protected PTE              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | ptep_set_access_flags     | Converts into a more permissive PTE              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
+ 	/*
+-	 * Sparsemem tries to allocate bootmem in memory_present(), so must be
+-	 * done after the fixed reservations.
++	 * sparse_init() tries to allocate memory from memblock, so must be
++	 * done after the fixed reservations
+ 	 */
+-	memblocks_present();
+-
+ 	sparse_init();
+ 	zone_sizes_init(min, max);
  
- ======================
- PMD Page Table Helpers
- ======================
+--- a/arch/arm/mm/init.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/arm/mm/init.c
+@@ -243,13 +243,8 @@ void __init bootmem_init(void)
+ 		      (phys_addr_t)max_low_pfn << PAGE_SHIFT);
  
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_same                  | Tests whether both PMD entries are the same      |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_bad                   | Tests a non-table mapped PMD                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_leaf                  | Tests a leaf mapped PMD                          |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_huge                  | Tests a HugeTLB mapped PMD                       |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_trans_huge            | Tests a Transparent Huge Page (THP) at PMD       |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_present               | Tests a valid mapped PMD                         |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_young                 | Tests a young PMD                                |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_dirty                 | Tests a dirty PMD                                |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_write                 | Tests a writable PMD                             |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_special               | Tests a special PMD                              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_protnone              | Tests a PROT_NONE PMD                            |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_devmap                | Tests a ZONE_DEVICE mapped PMD                   |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_soft_dirty            | Tests a soft dirty PMD                           |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_swp_soft_dirty        | Tests a soft dirty swapped PMD                   |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_mkyoung               | Creates a young PMD                              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_mkold                 | Creates an old PMD                               |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_mkdirty               | Creates a dirty PMD                              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_mkclean               | Creates a clean PMD                              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_mkwrite               | Creates a writable PMD                           |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_mkwrprotect           | Creates a write protected PMD                    |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_mkspecial             | Creates a special PMD                            |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_mkdevmap              | Creates a ZONE_DEVICE mapped PMD                 |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_mksoft_dirty          | Creates a soft dirty PMD                         |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_clear_soft_dirty      | Clears a soft dirty PMD                          |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_swp_mksoft_dirty      | Creates a soft dirty swapped PMD                 |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_swp_clear_soft_dirty  | Clears a soft dirty swapped PMD                  |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_mkinvalid             | Invalidates a mapped PMD [1]                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_set_huge              | Creates a PMD huge mapping                       |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmd_clear_huge            | Clears a PMD huge mapping                        |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmdp_get_and_clear        | Clears a PMD                                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmdp_get_and_clear_full   | Clears a PMD                                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmdp_test_and_clear_young | Clears young from a PMD                          |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmdp_set_wrprotect        | Converts into a write protected PMD              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pmdp_set_access_flags     | Converts into a more permissive PMD              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
+ 	/*
+-	 * Sparsemem tries to allocate bootmem in memory_present(),
+-	 * so must be done after the fixed reservations
+-	 */
+-	memblocks_present();
+-
+-	/*
+-	 * sparse_init() needs the bootmem allocator up and running.
++	 * sparse_init() tries to allocate memory from memblock, so must be
++	 * done after the fixed reservations
+ 	 */
+ 	sparse_init();
  
- ======================
- PUD Page Table Helpers
- ======================
+--- a/arch/ia64/mm/discontig.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/ia64/mm/discontig.c
+@@ -600,7 +600,6 @@ void __init paging_init(void)
  
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_same                  | Tests whether both PUD entries are the same      |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_bad                   | Tests a non-table mapped PUD                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_leaf                  | Tests a leaf mapped PUD                          |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_huge                  | Tests a HugeTLB mapped PUD                       |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_trans_huge            | Tests a Transparent Huge Page (THP) at PUD       |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_present               | Tests a valid mapped PUD                         |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_young                 | Tests a young PUD                                |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_dirty                 | Tests a dirty PUD                                |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_write                 | Tests a writable PUD                             |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_devmap                | Tests a ZONE_DEVICE mapped PUD                   |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_mkyoung               | Creates a young PUD                              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_mkold                 | Creates an old PUD                               |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_mkdirty               | Creates a dirty PUD                              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_mkclean               | Creates a clean PUD                              |
----------------------------------------------------------------------------------
--| pud_mkwrite               | Creates a writable PMD                           |
----------------------------------------------------------------------------------
--| pud_mkwrprotect           | Creates a write protected PMD                    |
----------------------------------------------------------------------------------
--| pud_mkdevmap              | Creates a ZONE_DEVICE mapped PMD                 |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
-+| pud_mkwrite               | Creates a writable PUD                           |
-++---------------------------+--------------------------------------------------+
-+| pud_mkwrprotect           | Creates a write protected PUD                    |
-++---------------------------+--------------------------------------------------+
-+| pud_mkdevmap              | Creates a ZONE_DEVICE mapped PUD                 |
-++---------------------------+--------------------------------------------------+
- | pud_mkinvalid             | Invalidates a mapped PUD [1]                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_set_huge              | Creates a PUD huge mapping                       |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pud_clear_huge            | Clears a PUD huge mapping                        |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pudp_get_and_clear        | Clears a PUD                                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pudp_get_and_clear_full   | Clears a PUD                                     |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pudp_test_and_clear_young | Clears young from a PUD                          |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pudp_set_wrprotect        | Converts into a write protected PUD              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pudp_set_access_flags     | Converts into a more permissive PUD              |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
+ 	max_dma = virt_to_phys((void *) MAX_DMA_ADDRESS) >> PAGE_SHIFT;
  
- ==========================
- HugeTLB Page Table Helpers
- ==========================
+-	sparse_memory_present_with_active_regions(MAX_NUMNODES);
+ 	sparse_init();
  
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_huge                  | Tests a HugeTLB                                  |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | pte_mkhuge                | Creates a HugeTLB                                |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | huge_pte_dirty            | Tests a dirty HugeTLB                            |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | huge_pte_write            | Tests a writable HugeTLB                         |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | huge_pte_mkdirty          | Creates a dirty HugeTLB                          |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | huge_pte_mkwrite          | Creates a writable HugeTLB                       |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | huge_pte_mkwrprotect      | Creates a write protected HugeTLB                |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | huge_ptep_get_and_clear   | Clears a HugeTLB                                 |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | huge_ptep_set_wrprotect   | Converts into a write protected HugeTLB          |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | huge_ptep_set_access_flags  | Converts into a more permissive HugeTLB        |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
+ #ifdef CONFIG_VIRTUAL_MEM_MAP
+--- a/arch/microblaze/mm/init.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/microblaze/mm/init.c
+@@ -172,9 +172,6 @@ void __init setup_memory(void)
+ 				  &memblock.memory, 0);
+ 	}
  
- ========================
- SWAP Page Table Helpers
- ========================
+-	/* XXX need to clip this if using highmem? */
+-	sparse_memory_present_with_active_regions(0);
+-
+ 	paging_init();
+ }
  
----------------------------------------------------------------------------------
--| __pte_to_swp_entry        | Creates a swapped entry (arch) from a mapepd PTE |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
-+| __pte_to_swp_entry        | Creates a swapped entry (arch) from a mapped PTE |
-++---------------------------+--------------------------------------------------+
- | __swp_to_pte_entry        | Creates a mapped PTE from a swapped entry (arch) |
----------------------------------------------------------------------------------
--| __pmd_to_swp_entry        | Creates a swapped entry (arch) from a mapepd PMD |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
-+| __pmd_to_swp_entry        | Creates a swapped entry (arch) from a mapped PMD |
-++---------------------------+--------------------------------------------------+
- | __swp_to_pmd_entry        | Creates a mapped PMD from a swapped entry (arch) |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | is_migration_entry        | Tests a migration (read or write) swapped entry  |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | is_write_migration_entry  | Tests a write migration swapped entry            |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | make_migration_entry_read | Converts into read migration swapped entry       |
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
- | make_migration_entry      | Creates a migration swapped entry (read or write)|
----------------------------------------------------------------------------------
-++---------------------------+--------------------------------------------------+
+--- a/arch/mips/kernel/setup.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/mips/kernel/setup.c
+@@ -371,14 +371,6 @@ static void __init bootmem_init(void)
+ #endif
+ 	}
  
- [1] https://lore.kernel.org/linux-mm/20181017020930.GN30832@redhat.com/
+-
+-	/*
+-	 * In any case the added to the memblock memory regions
+-	 * (highmem/lowmem, available/reserved, etc) are considered
+-	 * as present, so inform sparsemem about them.
+-	 */
+-	memblocks_present();
+-
+ 	/*
+ 	 * Reserve initrd memory if needed.
+ 	 */
+--- a/arch/mips/loongson64/numa.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/mips/loongson64/numa.c
+@@ -220,7 +220,6 @@ static __init void prom_meminit(void)
+ 			cpumask_clear(&__node_cpumask[node]);
+ 		}
+ 	}
+-	memblocks_present();
+ 	max_low_pfn = PHYS_PFN(memblock_end_of_DRAM());
+ 
+ 	for (cpu = 0; cpu < loongson_sysconf.nr_cpus; cpu++) {
+--- a/arch/mips/sgi-ip27/ip27-memory.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/mips/sgi-ip27/ip27-memory.c
+@@ -402,8 +402,6 @@ void __init prom_meminit(void)
+ 		}
+ 		__node_data[node] = &null_node;
+ 	}
+-
+-	memblocks_present();
+ }
+ 
+ void __init prom_free_prom_memory(void)
+--- a/arch/parisc/mm/init.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/parisc/mm/init.c
+@@ -689,11 +689,6 @@ void __init paging_init(void)
+ 	flush_cache_all_local(); /* start with known state */
+ 	flush_tlb_all_local(NULL);
+ 
+-	/*
+-	 * Mark all memblocks as present for sparsemem using
+-	 * memory_present() and then initialize sparsemem.
+-	 */
+-	memblocks_present();
+ 	sparse_init();
+ 	parisc_bootmem_free();
+ }
+--- a/arch/powerpc/mm/mem.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/powerpc/mm/mem.c
+@@ -183,8 +183,6 @@ void __init mem_topology_setup(void)
+ 
+ void __init initmem_init(void)
+ {
+-	/* XXX need to clip this if using highmem? */
+-	sparse_memory_present_with_active_regions(0);
+ 	sparse_init();
+ }
+ 
+--- a/arch/powerpc/mm/numa.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/powerpc/mm/numa.c
+@@ -949,7 +949,6 @@ void __init initmem_init(void)
+ 
+ 		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
+ 		setup_node_data(nid, start_pfn, end_pfn);
+-		sparse_memory_present_with_active_regions(nid);
+ 	}
+ 
+ 	sparse_init();
+--- a/arch/riscv/mm/init.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/riscv/mm/init.c
+@@ -520,7 +520,6 @@ void mark_rodata_ro(void)
+ void __init paging_init(void)
+ {
+ 	setup_vm_final();
+-	memblocks_present();
+ 	sparse_init();
+ 	setup_zero_page();
+ 	zone_sizes_init();
+--- a/arch/s390/mm/init.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/s390/mm/init.c
+@@ -115,7 +115,6 @@ void __init paging_init(void)
+ 	__load_psw_mask(psw.mask);
+ 	kasan_free_early_identity();
+ 
+-	sparse_memory_present_with_active_regions(MAX_NUMNODES);
+ 	sparse_init();
+ 	zone_dma_bits = 31;
+ 	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
+--- a/arch/sh/mm/init.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/sh/mm/init.c
+@@ -241,12 +241,6 @@ static void __init do_init_bootmem(void)
+ 
+ 	plat_mem_setup();
+ 
+-	for_each_memblock(memory, reg) {
+-		int nid = memblock_get_region_node(reg);
+-
+-		memory_present(nid, memblock_region_memory_base_pfn(reg),
+-			memblock_region_memory_end_pfn(reg));
+-	}
+ 	sparse_init();
+ }
+ 
+--- a/arch/sh/mm/numa.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/sh/mm/numa.c
+@@ -53,7 +53,4 @@ void __init setup_bootmem_node(int nid,
+ 
+ 	/* It's up */
+ 	node_set_online(nid);
+-
+-	/* Kick sparsemem */
+-	sparse_memory_present_with_active_regions(nid);
+ }
+--- a/arch/sparc/mm/init_64.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/sparc/mm/init_64.c
+@@ -1610,7 +1610,6 @@ static unsigned long __init bootmem_init
+ 
+ 	/* XXX cpu notifier XXX */
+ 
+-	sparse_memory_present_with_active_regions(MAX_NUMNODES);
+ 	sparse_init();
+ 
+ 	return end_pfn;
+--- a/arch/x86/mm/init_32.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/x86/mm/init_32.c
+@@ -678,7 +678,6 @@ void __init initmem_init(void)
+ #endif
+ 
+ 	memblock_set_node(0, PHYS_ADDR_MAX, &memblock.memory, 0);
+-	sparse_memory_present_with_active_regions(0);
+ 
+ #ifdef CONFIG_FLATMEM
+ 	max_mapnr = IS_ENABLED(CONFIG_HIGHMEM) ? highend_pfn : max_low_pfn;
+@@ -718,7 +717,6 @@ void __init paging_init(void)
+ 	 * NOTE: at this point the bootmem allocator is fully available.
+ 	 */
+ 	olpc_dt_build_devicetree();
+-	sparse_memory_present_with_active_regions(MAX_NUMNODES);
+ 	sparse_init();
+ 	zone_sizes_init();
+ }
+--- a/arch/x86/mm/init_64.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/arch/x86/mm/init_64.c
+@@ -817,7 +817,6 @@ void __init initmem_init(void)
+ 
+ void __init paging_init(void)
+ {
+-	sparse_memory_present_with_active_regions(MAX_NUMNODES);
+ 	sparse_init();
+ 
+ 	/*
+--- a/Documentation/vm/memory-model.rst~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/Documentation/vm/memory-model.rst
+@@ -141,11 +141,8 @@ sections:
+   `mem_section` objects and the number of rows is calculated to fit
+   all the memory sections.
+ 
+-The architecture setup code should call :c:func:`memory_present` for
+-each active memory range or use :c:func:`memblocks_present` or
+-:c:func:`sparse_memory_present_with_active_regions` wrappers to
+-initialize the memory sections. Next, the actual memory maps should be
+-set up using :c:func:`sparse_init`.
++The architecture setup code should call sparse_init() to
++initialize the memory sections and the memory maps.
+ 
+ With SPARSEMEM there are two possible ways to convert a PFN to the
+ corresponding `struct page` - a "classic sparse" and "sparse
+--- a/include/linux/mm.h~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/include/linux/mm.h
+@@ -2372,9 +2372,6 @@ static inline unsigned long get_num_phys
+  * for_each_valid_physical_page_range()
+  * 	memblock_add_node(base, size, nid)
+  * free_area_init(max_zone_pfns);
+- *
+- * sparse_memory_present_with_active_regions() calls memory_present() for
+- * each range when SPARSEMEM is enabled.
+  */
+ void free_area_init(unsigned long *max_zone_pfn);
+ unsigned long node_map_pfn_alignment(void);
+@@ -2385,7 +2382,6 @@ extern unsigned long absent_pages_in_ran
+ extern void get_pfn_range_for_nid(unsigned int nid,
+ 			unsigned long *start_pfn, unsigned long *end_pfn);
+ extern unsigned long find_min_pfn_with_active_regions(void);
+-extern void sparse_memory_present_with_active_regions(int nid);
+ 
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ static inline int early_pfn_to_nid(unsigned long pfn)
+--- a/include/linux/mmzone.h~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/include/linux/mmzone.h
+@@ -839,18 +839,6 @@ static inline struct pglist_data *lruvec
+ 
+ extern unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx);
+ 
+-#ifdef CONFIG_HAVE_MEMORY_PRESENT
+-void memory_present(int nid, unsigned long start, unsigned long end);
+-#else
+-static inline void memory_present(int nid, unsigned long start, unsigned long end) {}
+-#endif
+-
+-#if defined(CONFIG_SPARSEMEM)
+-void memblocks_present(void);
+-#else
+-static inline void memblocks_present(void) {}
+-#endif
+-
+ #ifdef CONFIG_HAVE_MEMORYLESS_NODES
+ int local_memory_node(int node_id);
+ #else
+@@ -1407,8 +1395,6 @@ struct mminit_pfnnid_cache {
+ #define early_pfn_valid(pfn)	(1)
+ #endif
+ 
+-void memory_present(int nid, unsigned long start, unsigned long end);
+-
+ /*
+  * If it is possible to have holes within a MAX_ORDER_NR_PAGES, then we
+  * need to check pfn validity within that MAX_ORDER_NR_PAGES block.
+--- a/mm/Kconfig~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/mm/Kconfig
+@@ -88,13 +88,9 @@ config NEED_MULTIPLE_NODES
+ 	def_bool y
+ 	depends on DISCONTIGMEM || NUMA
+ 
+-config HAVE_MEMORY_PRESENT
+-	def_bool y
+-	depends on ARCH_HAVE_MEMORY_PRESENT || SPARSEMEM
+-
+ #
+ # SPARSEMEM_EXTREME (which is the default) does some bootmem
+-# allocations when memory_present() is called.  If this cannot
++# allocations when sparse_init() is called.  If this cannot
+ # be done on your architecture, select this option.  However,
+ # statically allocating the mem_section[] array can potentially
+ # consume vast quantities of .bss, so be careful.
+--- a/mm/page_alloc.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/mm/page_alloc.c
+@@ -6325,22 +6325,6 @@ void __meminit init_currently_empty_zone
+ }
+ 
+ /**
+- * sparse_memory_present_with_active_regions - Call memory_present for each active range
+- * @nid: The node to call memory_present for. If MAX_NUMNODES, all nodes will be used.
+- *
+- * If an architecture guarantees that all ranges registered contain no holes and may
+- * be freed, this function may be used instead of calling memory_present() manually.
+- */
+-void __init sparse_memory_present_with_active_regions(int nid)
+-{
+-	unsigned long start_pfn, end_pfn;
+-	int i, this_nid;
+-
+-	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, &this_nid)
+-		memory_present(this_nid, start_pfn, end_pfn);
+-}
+-
+-/**
+  * get_pfn_range_for_nid - Return the start and end page frames for a node
+  * @nid: The nid to return the range for. If MAX_NUMNODES, the min and max PFN are returned.
+  * @start_pfn: Passed by reference. On return, it will have the node start_pfn.
+--- a/mm/sparse.c~mm-sparse-cleanup-the-code-surrounding-memory_present
++++ a/mm/sparse.c
+@@ -249,7 +249,7 @@ void __init subsection_map_init(unsigned
+ #endif
+ 
+ /* Record a memory area against a node. */
+-void __init memory_present(int nid, unsigned long start, unsigned long end)
++static void __init memory_present(int nid, unsigned long start, unsigned long end)
+ {
+ 	unsigned long pfn;
+ 
+@@ -285,11 +285,11 @@ void __init memory_present(int nid, unsi
+ }
+ 
+ /*
+- * Mark all memblocks as present using memory_present(). This is a
+- * convenience function that is useful for a number of arches
+- * to mark all of the systems memory as present during initialization.
++ * Mark all memblocks as present using memory_present().
++ * This is a convenience function that is useful to mark all of the systems
++ * memory as present during initialization.
+  */
+-void __init memblocks_present(void)
++static void __init memblocks_present(void)
+ {
+ 	struct memblock_region *reg;
+ 
+@@ -574,9 +574,13 @@ failed:
+  */
+ void __init sparse_init(void)
+ {
+-	unsigned long pnum_begin = first_present_section_nr();
+-	int nid_begin = sparse_early_nid(__nr_to_section(pnum_begin));
+-	unsigned long pnum_end, map_count = 1;
++	unsigned long pnum_end, pnum_begin, map_count = 1;
++	int nid_begin;
++
++	memblocks_present();
++
++	pnum_begin = first_present_section_nr();
++	nid_begin = sparse_early_nid(__nr_to_section(pnum_begin));
+ 
+ 	/* Setup pageblock_order for HUGETLB_PAGE_SIZE_VARIABLE */
+ 	set_pageblock_order();
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-debug_vm_pgtable-add-tests-validating-arch-helpers-for-core-mm-features.patch
-mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers.patch
-mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5.patch
-mm-debug_vm_pgtable-add-debug-prints-for-individual-tests.patch
-documentation-mm-add-descriptions-for-arch-page-table-helpers.patch
-documentation-mm-add-descriptions-for-arch-page-table-helpers-v5.patch
-mm-vmstat-add-events-for-thp-migration-without-split.patch
+mailmap-add-entry-for-mike-rapoport.patch
+mm-remove-unneeded-includes-of-asm-pgalloch.patch
+mm-remove-unneeded-includes-of-asm-pgalloch-fix.patch
+opeinrisc-switch-to-generic-version-of-pte-allocation.patch
+xtensa-switch-to-generic-version-of-pte-allocation.patch
+asm-generic-pgalloc-provide-generic-pmd_alloc_one-and-pmd_free_one.patch
+asm-generic-pgalloc-provide-generic-pud_alloc_one-and-pud_free_one.patch
+asm-generic-pgalloc-provide-generic-pgd_free.patch
+mm-move-lib-ioremapc-to-mm.patch
+mm-sparse-cleanup-the-code-surrounding-memory_present.patch
+mm-vmalloc-remove-redundant-asignmnet-in-unmap_kernel_range_noflush.patch
 
