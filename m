@@ -7,45 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2F95C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:03:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3A79C433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:10:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 905E32186A
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:03:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B0A72186A
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:10:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594688617;
-	bh=NHrJsiXHFeLgJjC1qJMe7QiVBNrUrqXMT36d76YLqo4=;
+	s=default; t=1594689034;
+	bh=Ky8jW70FJV2esHBte0wcPBr3pIgdg4vZannmnojYHHc=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=S2gWibWHDqWtqIPIWl5xsGDpRLDTkwdSndceVyBp5dULVbz6n/fVRs0obJ7tMR2GB
-	 ZHepm5eG1yZ+WGXUJkEnswsQdR/SK1cIDWyAmaaxuqWvex56iUDIA952AE9uS0lt69
-	 Xt6X2tZIWVxcJ1eQqvFNgq+ntWHWeZ/VxBM6mubM=
+	b=fS6Y0g0mF+/GWkMGe1V2Pj2jDs294645FyPP8FOcI+fdKL2DWSjebF0IY0RtzBeSU
+	 +xEAGp1nBbMzquNFFRPXEbL/zO2cnbOfs6mCESr7Bn00MzoMbLMSZNL0rRiibdt6Su
+	 TEI737fK7MLYt+r7/Y1ZCYgtIf743+KPo/OQ4weA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726347AbgGNBDh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jul 2020 21:03:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35710 "EHLO mail.kernel.org"
+        id S1726855AbgGNBKe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jul 2020 21:10:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37138 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726339AbgGNBDh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jul 2020 21:03:37 -0400
+        id S1726374AbgGNBKe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jul 2020 21:10:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EF4C121841;
-        Tue, 14 Jul 2020 01:03:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C367E21841;
+        Tue, 14 Jul 2020 01:10:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594688616;
-        bh=NHrJsiXHFeLgJjC1qJMe7QiVBNrUrqXMT36d76YLqo4=;
+        s=default; t=1594689033;
+        bh=Ky8jW70FJV2esHBte0wcPBr3pIgdg4vZannmnojYHHc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=tUn7xsr5oWdhGmYMQpuhoyh1zt0VphEYvqVjc+LkOP+2Lp1EFej38YsOqClHYc8Sq
-         9UM0k7AKH0H4Wl8WXAJ8yMbYfOop25MTj5C1rYnEkrqIRgrB7Ue3t3iaQWuxp1KHL4
-         PeTxFK2WXvV7Ufz08nv/Z/nS2w47FUFYJAJsgVf8=
-Date:   Mon, 13 Jul 2020 18:03:35 -0700
+        b=qScH5+ZngemFZyxBlyULnUgzfrzau0a4v8+p4/dJaCgueR7aUH/3dQZ3xrdvy+m9V
+         oDvuTfJc7mT+f6uS8Zxih7IeALkMFk1926DJmQx4KYgW4zcW1qjsZ6aT58cxrlr7yi
+         9nB1xnA8UeWYhWzcELSj5kEXm+tj6/FcwgPSQEm0=
+Date:   Mon, 13 Jul 2020 18:10:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
-        laoar.shao@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To:     apw@canonical.com, colin.king@canonical.com, corbet@lwn.net,
+        dan.j.williams@intel.com, gregkh@linuxfoundation.org,
+        joe@perches.com, jslaby@suse.cz, mishi@linux.com,
+        mm-commits@vger.kernel.org, sj38.park@gmail.com, sjpark@amazon.de,
+        skhan@linuxfoundation.org
 Subject:  +
- mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
- added to -mm tree
-Message-ID: <20200714010335.yNV7oONfS%akpm@linux-foundation.org>
+ scripts-deprecated_terms-sync-with-inclusive-terms.patch added to -mm tree
+Message-ID: <20200714011032.PByZDJkC5%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: decouple e{low,min} state mutations from protection checks
+     Subject: scripts/deprecated_terms: sync with inclusive terms
 has been added to the -mm tree.  Its filename is
-     mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
+     scripts-deprecated_terms-sync-with-inclusive-terms.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-deprecated_terms-sync-with-inclusive-terms.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-deprecated_terms-sync-with-inclusive-terms.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,226 +79,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Down <chris@chrisdown.name>
-Subject: mm, memcg: decouple e{low,min} state mutations from protection checks
+From: SeongJae Park <sjpark@amazon.de>
+Subject: scripts/deprecated_terms: sync with inclusive terms
 
-mem_cgroup_protected currently is both used to set effective low and min
-and return a mem_cgroup_protection based on the result.  As a user, this
-can be a little unexpected: it appears to be a simple predicate function,
-if not for the big warning in the comment above about the order in which
-it must be executed.
+# NOTE: this patch is based on next/master, as this is a followup of
+# commit 0d8b43e5876a ("scripts/deprecated_terms: recommend
+# denylist/allowlist instead of blacklist/whitelist"), which merged in
+# next tree only.
 
-This change makes it so that we separate the state mutations from the
-actual protection checks, which makes it more obvious where we need to be
-careful mutating internal state, and where we are simply checking and
-don't need to worry about that.
+Commit a5f526ecb075 ("CodingStyle: Inclusive Terminology") introduced
+more terms to be deprecated with more alternatives.  This commit updates
+'deprecated_terms.txt' to sync with it.
 
-[mhocko@suse.com - don't check protection on root memcgs]
-Link: http://lkml.kernel.org/r/ff3f915097fcee9f6d7041c084ef92d16aaeb56a.1594638158.git.chris@chrisdown.name
-Signed-off-by: Chris Down <chris@chrisdown.name>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
+Link: http://lkml.kernel.org/r/20200713071912.24432-1-sjpark@amazon.com
+Signed-off-by: SeongJae Park <sjpark@amazon.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: SeongJae Park <sj38.park@gmail.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mishi Choudhary <mishi@linux.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   53 +++++++++++++++++++++++++++--------
- mm/memcontrol.c            |   28 ++++--------------
- mm/vmscan.c                |   17 ++---------
- 3 files changed, 53 insertions(+), 45 deletions(-)
+ scripts/deprecated_terms.txt |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-decouple-elowmin-state-mutations-from-protection-checks
-+++ a/include/linux/memcontrol.h
-@@ -55,12 +55,6 @@ enum memcg_memory_event {
- 	MEMCG_NR_MEMORY_EVENTS,
- };
- 
--enum mem_cgroup_protection {
--	MEMCG_PROT_NONE,
--	MEMCG_PROT_LOW,
--	MEMCG_PROT_MIN,
--};
--
- struct mem_cgroup_reclaim_cookie {
- 	pg_data_t *pgdat;
- 	unsigned int generation;
-@@ -413,8 +407,36 @@ static inline unsigned long mem_cgroup_p
- 		   READ_ONCE(memcg->memory.elow));
- }
- 
--enum mem_cgroup_protection mem_cgroup_protected(struct mem_cgroup *root,
--						struct mem_cgroup *memcg);
-+void mem_cgroup_calculate_protection(struct mem_cgroup *root,
-+				     struct mem_cgroup *memcg);
-+
-+static inline bool mem_cgroup_supports_protection(struct mem_cgroup *memcg)
-+{
-+	/*
-+	 * The root memcg doesn't account charges, and doesn't support
-+	 * protection.
-+	 */
-+	return !mem_cgroup_disabled() && !mem_cgroup_is_root(memcg);
-+
-+}
-+
-+static inline bool mem_cgroup_below_low(struct mem_cgroup *memcg)
-+{
-+	if (!mem_cgroup_supports_protection(memcg))
-+		return false;
-+
-+	return READ_ONCE(memcg->memory.elow) >=
-+		page_counter_read(&memcg->memory);
-+}
-+
-+static inline bool mem_cgroup_below_min(struct mem_cgroup *memcg)
-+{
-+	if (!mem_cgroup_supports_protection(memcg))
-+		return false;
-+
-+	return READ_ONCE(memcg->memory.emin) >=
-+		page_counter_read(&memcg->memory);
-+}
- 
- int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask);
- 
-@@ -943,10 +965,19 @@ static inline unsigned long mem_cgroup_p
- 	return 0;
- }
- 
--static inline enum mem_cgroup_protection mem_cgroup_protected(
--	struct mem_cgroup *root, struct mem_cgroup *memcg)
-+static inline void mem_cgroup_calculate_protection(struct mem_cgroup *root,
-+						   struct mem_cgroup *memcg)
-+{
-+}
-+
-+static inline bool mem_cgroup_below_low(struct mem_cgroup *memcg)
-+{
-+	return false;
-+}
-+
-+static inline bool mem_cgroup_below_min(struct mem_cgroup *memcg)
- {
--	return MEMCG_PROT_NONE;
-+	return false;
- }
- 
- static inline int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
---- a/mm/memcontrol.c~mm-memcg-decouple-elowmin-state-mutations-from-protection-checks
-+++ a/mm/memcontrol.c
-@@ -6577,21 +6577,15 @@ static unsigned long effective_protectio
-  *
-  * WARNING: This function is not stateless! It can only be used as part
-  *          of a top-down tree iteration, not for isolated queries.
-- *
-- * Returns one of the following:
-- *   MEMCG_PROT_NONE: cgroup memory is not protected
-- *   MEMCG_PROT_LOW: cgroup memory is protected as long there is
-- *     an unprotected supply of reclaimable memory from other cgroups.
-- *   MEMCG_PROT_MIN: cgroup memory is protected
-  */
--enum mem_cgroup_protection mem_cgroup_protected(struct mem_cgroup *root,
--						struct mem_cgroup *memcg)
-+void mem_cgroup_calculate_protection(struct mem_cgroup *root,
-+				     struct mem_cgroup *memcg)
- {
- 	unsigned long usage, parent_usage;
- 	struct mem_cgroup *parent;
- 
- 	if (mem_cgroup_disabled())
--		return MEMCG_PROT_NONE;
-+		return;
- 
- 	if (!root)
- 		root = root_mem_cgroup;
-@@ -6604,21 +6598,21 @@ enum mem_cgroup_protection mem_cgroup_pr
- 	 * that special casing.
- 	 */
- 	if (memcg == root)
--		return MEMCG_PROT_NONE;
-+		return;
- 
- 	usage = page_counter_read(&memcg->memory);
- 	if (!usage)
--		return MEMCG_PROT_NONE;
-+		return;
- 
- 	parent = parent_mem_cgroup(memcg);
- 	/* No parent means a non-hierarchical mode on v1 memcg */
- 	if (!parent)
--		return MEMCG_PROT_NONE;
-+		return;
- 
- 	if (parent == root) {
- 		memcg->memory.emin = READ_ONCE(memcg->memory.min);
- 		memcg->memory.elow = READ_ONCE(memcg->memory.low);
--		goto out;
-+		return;
- 	}
- 
- 	parent_usage = page_counter_read(&parent->memory);
-@@ -6632,14 +6626,6 @@ enum mem_cgroup_protection mem_cgroup_pr
- 			READ_ONCE(memcg->memory.low),
- 			READ_ONCE(parent->memory.elow),
- 			atomic_long_read(&parent->memory.children_low_usage)));
--
--out:
--	if (usage <= memcg->memory.emin)
--		return MEMCG_PROT_MIN;
--	else if (usage <= memcg->memory.elow)
--		return MEMCG_PROT_LOW;
--	else
--		return MEMCG_PROT_NONE;
- }
- 
- /**
---- a/mm/vmscan.c~mm-memcg-decouple-elowmin-state-mutations-from-protection-checks
-+++ a/mm/vmscan.c
-@@ -2620,14 +2620,15 @@ static void shrink_node_memcgs(pg_data_t
- 		unsigned long reclaimed;
- 		unsigned long scanned;
- 
--		switch (mem_cgroup_protected(target_memcg, memcg)) {
--		case MEMCG_PROT_MIN:
-+		mem_cgroup_calculate_protection(target_memcg, memcg);
-+
-+		if (mem_cgroup_below_min(memcg)) {
- 			/*
- 			 * Hard protection.
- 			 * If there is no reclaimable memory, OOM.
- 			 */
- 			continue;
--		case MEMCG_PROT_LOW:
-+		} else if (mem_cgroup_below_low(memcg)) {
- 			/*
- 			 * Soft protection.
- 			 * Respect the protection only as long as
-@@ -2639,16 +2640,6 @@ static void shrink_node_memcgs(pg_data_t
- 				continue;
- 			}
- 			memcg_memory_event(memcg, MEMCG_LOW);
--			break;
--		case MEMCG_PROT_NONE:
--			/*
--			 * All protection thresholds breached. We may
--			 * still choose to vary the scan pressure
--			 * applied based on by how much the cgroup in
--			 * question has exceeded its protection
--			 * thresholds (see get_scan_count).
--			 */
--			break;
- 		}
- 
- 		reclaimed = sc->nr_reclaimed;
+--- a/scripts/deprecated_terms.txt~scripts-deprecated_terms-sync-with-inclusive-terms
++++ a/scripts/deprecated_terms.txt
+@@ -3,5 +3,8 @@
+ # The format of each line is:
+ # deprecated||suggested
+ #
+-blacklist||denylist
+-whitelist||allowlist
++blacklist||(denylist|blocklist)
++# For other alternatives of 'slave', Please refer to
++# Documentation/process/coding-style.rst
++slave||(secondary|target|...)
++whitelist||(allowlist|passlist)
 _
 
-Patches currently in -mm which might be from chris@chrisdown.name are
+Patches currently in -mm which might be from sjpark@amazon.de are
 
-tmpfs-per-superblock-i_ino-support.patch
-tmpfs-support-64-bit-inums-per-sb.patch
-mm-memcg-reclaim-more-aggressively-before-high-allocator-throttling.patch
-mm-memcg-unify-reclaim-retry-limits-with-page-allocator.patch
-mm-memcg-decouple-elowmin-state-mutations-from-protection-checks.patch
+checkpatch-support-deprecated-terms-checking.patch
+scripts-deprecated_terms-recommend-denylist-allowlist-instead-of-blacklist-whitelist.patch
+scripts-deprecated_terms-sync-with-inclusive-terms.patch
 
