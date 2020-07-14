@@ -7,49 +7,55 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4836C433E1
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:22:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 308AEC433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:30:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82E7C21924
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:22:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F98821655
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 01:30:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594689723;
-	bh=IyhtO/ZB4y13c2wDts3qhgCCySn88BnWPrpib8pveoc=;
+	s=default; t=1594690247;
+	bh=VDxDiJWLrxSfTBV1rBkW5Uz/sZK/6a8D24Uj8XctstQ=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=JA+m3BBa6DlqGSPUKshKcPtQGc9SrjniduTHCO7YJHRKOPnuUG8YlHjz5qezqeV6c
-	 PSzxR/Z4eP5TGdmESKXXRsvDifsqkZnNPU3lXeasCcEU0FlFQMsmqfOxnYpV0sTZdl
-	 KaghCTJnm9Xg/CHYBF4wIM6VW/DHKoqe/cmcc65I=
+	b=Cnm+qIcn+Z1yEM717NGx10jJHBPiRqMin2sv/EBMHfiBqSM/uMPrGopxtJvzG31SW
+	 QfGkbzpkQj2dH9+n3BGC0MqtZ84Z0r4seS6lZ2oiwe7rLmyF88wTIsoY7PIkMHCu/r
+	 TTQ9EBH9s649eMb1raqmJ3cVvKJMwjxGANMJfxLs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726834AbgGNBWD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jul 2020 21:22:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43300 "EHLO mail.kernel.org"
+        id S1726517AbgGNBaq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jul 2020 21:30:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47786 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726829AbgGNBWD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jul 2020 21:22:03 -0400
+        id S1726149AbgGNBaq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jul 2020 21:30:46 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E8207206F0;
-        Tue, 14 Jul 2020 01:22:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 12C9921548;
+        Tue, 14 Jul 2020 01:30:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594689722;
-        bh=IyhtO/ZB4y13c2wDts3qhgCCySn88BnWPrpib8pveoc=;
+        s=default; t=1594690245;
+        bh=VDxDiJWLrxSfTBV1rBkW5Uz/sZK/6a8D24Uj8XctstQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=SRXR5XZHdZTT7DRTviCKdS7eok4D9RUCyAVP0tRJHoA9pmgDMMl6M5kvGodUgE0VA
-         xk4SG4I+UMHHIbanZK/MJzS/Ncb5SpFTek3Zrbh6fRf4SDShjiosoIKKN6RYyO5NFL
-         FlE0ZfI0BxvFGw9WUkcIxs35FT+9dZxjhQxHZMU4=
-Date:   Mon, 13 Jul 2020 18:22:01 -0700
+        b=sQ7xYsvmbFaFmzb5TpWDwwzo6c8P0ZeFXnIbCu2HmdhcN0kCI99Vm3vKEoG1blWwt
+         mtyHEt8pUaI/z9Aq8V3kXPd+eK6HbIziuR8TdgexgMBT3pAhUj8JkPxPjvXM9im+uF
+         S+u9EFQoq2Gh0QsZc6yI7g+hTPtDyHoAXaelx2O0=
+Date:   Mon, 13 Jul 2020 18:30:44 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     guro@fb.com, hch@infradead.org, iamjoonsoo.kim@lge.com,
-        mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
-        vbabka@suse.cz
+To:     anshuman.khandual@arm.com, benh@kernel.crashing.org,
+        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
+        corbet@lwn.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com,
+        hpa@zytor.com, kirill@shutemov.name, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, palmer@dabbelt.com,
+        paul.walmsley@sifive.com, paulus@samba.org, rppt@kernel.org,
+        rppt@linux.ibm.com, tglx@linutronix.de, vgupta@synopsys.com,
+        will@kernel.org, ziy@nvidia.com
 Subject:  +
- mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target.patch added
- to -mm tree
-Message-ID: <20200714012201.wemau8L7X%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-debug=5Fvm=5Fpgtable-add-tests-validating-advanced-arch?=
+ =?US-ASCII?Q?-page-table-helpers-v5.patch?= added to -mm tree
+Message-ID: <20200714013044.Mi0RJmX09%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,14 +64,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: remove a wrapper for alloc_migration_target()
+     Subject: mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target.patch
+     mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,106 +85,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/memory_hotplug: remove a wrapper for alloc_migration_target()
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5
 
-To calculate the correct node to migrate the page for hotplug, we need to
-check node id of the page.  Wrapper for alloc_migration_target() exists
-for this purpose.
+drop RANDOM_ORVALUE from hugetlb_advanced_tests()
 
-However, Vlastimil informs that all migration source pages come from a
-single node.  In this case, we don't need to check the node id for each
-page and we don't need to re-set the target nodemask for each page by
-using the wrapper.  Set up the migration_target_control once and use it
-for all pages.
-
-Link: http://lkml.kernel.org/r/1594622517-20681-10-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Roman Gushchin <guro@fb.com>
+Link: http://lkml.kernel.org/r/1594610587-4172-3-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Tested-by: Vineet Gupta <vgupta@synopsys.com>	[arc]
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   46 ++++++++++++++++++++----------------------
- 1 file changed, 22 insertions(+), 24 deletions(-)
+ mm/debug_vm_pgtable.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target
-+++ a/mm/memory_hotplug.c
-@@ -1275,27 +1275,6 @@ found:
- 	return 0;
- }
- 
--static struct page *new_node_page(struct page *page, unsigned long private)
--{
--	nodemask_t nmask = node_states[N_MEMORY];
--	struct migration_target_control mtc = {
--		.nid = page_to_nid(page),
--		.nmask = &nmask,
--		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
--	};
--
--	/*
--	 * try to allocate from a different node but reuse this node if there
--	 * are no other online nodes to be used (e.g. we are offlining a part
--	 * of the only existing node)
--	 */
--	node_clear(mtc.nid, nmask);
--	if (nodes_empty(nmask))
--		node_set(mtc.nid, nmask);
--
--	return alloc_migration_target(page, (unsigned long)&mtc);
--}
--
- static int
- do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5
++++ a/mm/debug_vm_pgtable.c
+@@ -745,7 +745,7 @@ static void __init hugetlb_advanced_test
  {
-@@ -1355,9 +1334,28 @@ do_migrate_range(unsigned long start_pfn
- 		put_page(page);
- 	}
- 	if (!list_empty(&source)) {
--		/* Allocate a new page from the nearest neighbor node */
--		ret = migrate_pages(&source, new_node_page, NULL, 0,
--					MIGRATE_SYNC, MR_MEMORY_HOTPLUG);
-+		nodemask_t nmask = node_states[N_MEMORY];
-+		struct migration_target_control mtc = {
-+			.nmask = &nmask,
-+			.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
-+		};
-+
-+		/*
-+		 * We have checked that migration range is on a single zone so
-+		 * we can use the nid of the first page to all the others.
-+		 */
-+		mtc.nid = page_to_nid(list_first_entry(&source, struct page, lru));
-+
-+		/*
-+		 * try to allocate from a different node but reuse this node
-+		 * if there are no other online nodes to be used (e.g. we are
-+		 * offlining a part of the only existing node)
-+		 */
-+		node_clear(mtc.nid, nmask);
-+		if (nodes_empty(nmask))
-+			node_set(mtc.nid, nmask);
-+		ret = migrate_pages(&source, alloc_migration_target, NULL,
-+			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_HOTPLUG);
- 		if (ret) {
- 			list_for_each_entry(page, &source, lru) {
- 				pr_warn("migrating pfn %lx failed ret:%d ",
+ 	struct page *page = pfn_to_page(pfn);
+ 	pte_t pte = ptep_get(ptep);
+-	unsigned long paddr = (__pfn_to_phys(pfn) | RANDOM_ORVALUE) & PMD_MASK;
++	unsigned long paddr = __pfn_to_phys(pfn) & PMD_MASK;
+ 
+ 	pte = pte_mkhuge(mk_pte(pfn_to_page(PHYS_PFN(paddr)), prot));
+ 	set_huge_pte_at(mm, vaddr, ptep, pte);
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-page_isolation-prefer-the-node-of-the-source-page.patch
-mm-migrate-move-migration-helper-from-h-to-c.patch
-mm-hugetlb-unify-migration-callbacks.patch
-mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations.patch
-mm-migrate-make-a-standard-migration-target-allocation-function.patch
-mm-mempolicy-use-a-standard-migration-target-allocation-callback.patch
-mm-page_alloc-remove-a-wrapper-for-alloc_migration_target.patch
-mm-memory-failure-remove-a-wrapper-for-alloc_migration_target.patch
-mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target.patch
+mm-debug_vm_pgtable-add-tests-validating-arch-helpers-for-core-mm-features.patch
+mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers.patch
+mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5.patch
+mm-debug_vm_pgtable-add-debug-prints-for-individual-tests.patch
+documentation-mm-add-descriptions-for-arch-page-table-helpers.patch
+documentation-mm-add-descriptions-for-arch-page-table-helpers-v5.patch
+mm-vmstat-add-events-for-thp-migration-without-split.patch
 
