@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E3C7C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 00:24:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4DF3C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 00:31:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E044921883
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 00:24:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC29821835
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 00:31:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594686247;
-	bh=GP8Bw1UugpYVhlN8HeHVsurVA65SyC7kNKoM/SSNjAA=;
+	s=default; t=1594686678;
+	bh=B2nHcNq8TsB3HBwWw/fKph6NJ96wlHNyREo39xxDtFc=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=XjXPhjotK3mOqV5ujTFnT76XdoWE6FoUyB3DBYiIX3yM2xioc7olQty2hTuwxzTZ5
-	 kyN1AFgltJ+nCj6VEo7HjErKf+RCepR2pzax3ETTE7Oyu6m/eiMwPdzSD3Adgjawev
-	 q5PK6PIAHRmxC9mOIQyx0SlpAcXpqHS3PTG3y1SQ=
+	b=Q+hYCfgBfk0iCgNn43guYziDUcxsy+6WuM87JOWIPGdtLNzSYhFXm0VS2LvBRgTsp
+	 CZn5UEZ1df1ZCschEIiFrLAPCJBy56i7G0Tl67JLHZP7+DZONA0NeZZCzm+jhIa8pJ
+	 P4oJfpLNhnkM+XsTY2Zvg7w5HrebnyaGW4hxghd8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726617AbgGNAYH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jul 2020 20:24:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43278 "EHLO mail.kernel.org"
+        id S1726347AbgGNAbS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jul 2020 20:31:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44262 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726432AbgGNAYH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jul 2020 20:24:07 -0400
+        id S1726257AbgGNAbS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jul 2020 20:31:18 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DDEE92186A;
-        Tue, 14 Jul 2020 00:24:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0B2112082F;
+        Tue, 14 Jul 2020 00:31:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594686246;
-        bh=GP8Bw1UugpYVhlN8HeHVsurVA65SyC7kNKoM/SSNjAA=;
+        s=default; t=1594686677;
+        bh=B2nHcNq8TsB3HBwWw/fKph6NJ96wlHNyREo39xxDtFc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=qum4/1YtmgH1AzLgV3AkNWiTDGqmECbif03xtXyXmKSAgrKmJTTPf/eWPg7+tpGqg
-         4Xkm8cr27EVr6lZjZKq89/AIk7rto/nAR5iNvL0CyQULuPei4v1weikW0jkJvcoEo8
-         erVjdoUrNspiIuLv7AwmQY7GUMVe8NArOOsZC30s=
-Date:   Mon, 13 Jul 2020 17:24:05 -0700
+        b=PlKitigdiz8eDAyZWUix7xa9t2/unq1itIWn+SCpNzt4DZNJ11X+3/pMVUqTXq0eA
+         +/Cd/MmWPyr288QTQQE9I9Qy92jlFc3p2b1eoqPple8geL/sJxj+Qef09dTtmv9Hhd
+         IoGXUnDQHv2grVd+OD1pnTluDOmK9l7hKpzsWd4w=
+Date:   Mon, 13 Jul 2020 17:31:16 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jhubbard@nvidia.com,
-        kirill@shutemov.name, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com, vbabka@suse.cz, william.kucharski@oracle.com,
-        willy@infradead.org
-Subject:  + mm-handle-page-mapping-better-in-dump_page-fix.patch
- added to -mm tree
-Message-ID: <20200714002405.MedMjztc1%akpm@linux-foundation.org>
+To:     amir73il@gmail.com, chris@chrisdown.name, hannes@cmpxchg.org,
+        hughd@google.com, jlayton@kernel.org, mm-commits@vger.kernel.org,
+        tj@kernel.org, viro@zeniv.linux.org.uk, willy@infradead.org
+Subject:  + tmpfs-per-superblock-i_ino-support.patch added to -mm
+ tree
+Message-ID: <20200714003116.i4dbLDaDn%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-handle-page-mapping-better-in-dump_page-fix
+     Subject: tmpfs: per-superblock i_ino support
 has been added to the -mm tree.  Its filename is
-     mm-handle-page-mapping-better-in-dump_page-fix.patch
+     tmpfs-per-superblock-i_ino-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-handle-page-mapping-better-in-dump_page-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tmpfs-per-superblock-i_ino-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-handle-page-mapping-better-in-dump_page-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-per-superblock-i_ino-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,53 +77,245 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-handle-page-mapping-better-in-dump_page-fix
+From: Chris Down <chris@chrisdown.name>
+Subject: tmpfs: per-superblock i_ino support
 
-augmented code comment from John
+Patch series "tmpfs: inode: Reduce risk of inum overflow", v7.
 
-Link: http://lkml.kernel.org/r/15cff11a-6762-8a6a-3f0e-dd227280cd6f@nvidia.com
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: William Kucharski <william.kucharski@oracle.com>
+In Facebook production we are seeing heavy i_ino wraparounds on tmpfs.  On
+affected tiers, in excess of 10% of hosts show multiple files with
+different content and the same inode number, with some servers even having
+as many as 150 duplicated inode numbers with differing file content.
+
+This causes actual, tangible problems in production.  For example, we have
+complaints from those working on remote caches that their application is
+reporting cache corruptions because it uses (device, inodenum) to
+establish the identity of a particular cache object, but because it's not
+unique any more, the application refuses to continue and reports cache
+corruption.  Even worse, sometimes applications may not even detect the
+corruption but may continue anyway, causing phantom and hard to debug
+behaviour.
+
+In general, userspace applications expect that (device, inodenum) should
+be enough to be uniquely point to one inode, which seems fair enough.  One
+might also need to check the generation, but in this case:
+
+1. That's not currently exposed to userspace
+   (ioctl(...FS_IOC_GETVERSION...) returns ENOTTY on tmpfs);
+2. Even with generation, there shouldn't be two live inodes with the
+   same inode number on one device.
+
+In order to mitigate this, we take a two-pronged approach:
+
+1. Moving inum generation from being global to per-sb for tmpfs. This
+   itself allows some reduction in i_ino churn. This works on both 64-
+   and 32- bit machines.
+2. Adding inode{64,32} for tmpfs. This fix is supported on machines with
+   64-bit ino_t only: we allow users to mount tmpfs with a new inode64
+   option that uses the full width of ino_t, or CONFIG_TMPFS_INODE64.
+
+You can see how this compares to previous related patches which didn't
+implement this per-superblock:
+
+- https://patchwork.kernel.org/patch/11254001/
+- https://patchwork.kernel.org/patch/11023915/
+
+
+This patch (of 2):
+
+get_next_ino has a number of problems:
+
+- It uses and returns a uint, which is susceptible to become overflowed
+  if a lot of volatile inodes that use get_next_ino are created.
+- It's global, with no specificity per-sb or even per-filesystem. This
+  means it's not that difficult to cause inode number wraparounds on a
+  single device, which can result in having multiple distinct inodes
+  with the same inode number.
+
+This patch adds a per-superblock counter that mitigates the second case. 
+This design also allows us to later have a specific i_ino size per-device,
+for example, allowing users to choose whether to use 32- or 64-bit inodes
+for each tmpfs mount.  This is implemented in the next commit.
+
+For internal shmem mounts which may be less tolerant to spinlock delays,
+we implement a percpu batching scheme which only takes the stat_lock at
+each batch boundary.
+
+Link: http://lkml.kernel.org/r/cover.1594661218.git.chris@chrisdown.name
+Link: http://lkml.kernel.org/r/1986b9d63b986f08ec07a4aa4b2275e718e47d8a.1594661218.git.chris@chrisdown.name
+Signed-off-by: Chris Down <chris@chrisdown.name>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ include/linux/fs.h       |   15 ++++++++
+ include/linux/shmem_fs.h |    2 +
+ mm/shmem.c               |   66 ++++++++++++++++++++++++++++++++++---
+ 3 files changed, 78 insertions(+), 5 deletions(-)
 
---- a/mm/debug.c~mm-handle-page-mapping-better-in-dump_page-fix
-+++ a/mm/debug.c
-@@ -69,7 +69,13 @@ void __dump_page(struct page *page, cons
- 	}
+--- a/include/linux/fs.h~tmpfs-per-superblock-i_ino-support
++++ a/include/linux/fs.h
+@@ -3098,6 +3098,21 @@ extern void discard_new_inode(struct ino
+ extern unsigned int get_next_ino(void);
+ extern void evict_inodes(struct super_block *sb);
  
- 	if (page < head || (page >= head + MAX_ORDER_NR_PAGES)) {
--		/* Corrupt page, cannot call page_mapping */
++/*
++ * Userspace may rely on the the inode number being non-zero. For example, glibc
++ * simply ignores files with zero i_ino in unlink() and other places.
++ *
++ * As an additional complication, if userspace was compiled with
++ * _FILE_OFFSET_BITS=32 on a 64-bit kernel we'll only end up reading out the
++ * lower 32 bits, so we need to check that those aren't zero explicitly. With
++ * _FILE_OFFSET_BITS=64, this may cause some harmless false-negatives, but
++ * better safe than sorry.
++ */
++static inline bool is_zero_ino(ino_t ino)
++{
++	return (u32)ino == 0;
++}
++
+ extern void __iget(struct inode * inode);
+ extern void iget_failed(struct inode *);
+ extern void clear_inode(struct inode *);
+--- a/include/linux/shmem_fs.h~tmpfs-per-superblock-i_ino-support
++++ a/include/linux/shmem_fs.h
+@@ -36,6 +36,8 @@ struct shmem_sb_info {
+ 	unsigned char huge;	    /* Whether to try for hugepages */
+ 	kuid_t uid;		    /* Mount uid for root directory */
+ 	kgid_t gid;		    /* Mount gid for root directory */
++	ino_t next_ino;		    /* The next per-sb inode number to use */
++	ino_t __percpu *ino_batch;  /* The next per-cpu inode number to use */
+ 	struct mempolicy *mpol;     /* default memory policy for mappings */
+ 	spinlock_t shrinklist_lock;   /* Protects shrinklist */
+ 	struct list_head shrinklist;  /* List of shinkable inodes */
+--- a/mm/shmem.c~tmpfs-per-superblock-i_ino-support
++++ a/mm/shmem.c
+@@ -260,18 +260,67 @@ bool vma_is_shmem(struct vm_area_struct
+ static LIST_HEAD(shmem_swaplist);
+ static DEFINE_MUTEX(shmem_swaplist_mutex);
+ 
+-static int shmem_reserve_inode(struct super_block *sb)
++/*
++ * shmem_reserve_inode() performs bookkeeping to reserve a shmem inode, and
++ * produces a novel ino for the newly allocated inode.
++ *
++ * It may also be called when making a hard link to permit the space needed by
++ * each dentry. However, in that case, no new inode number is needed since that
++ * internally draws from another pool of inode numbers (currently global
++ * get_next_ino()). This case is indicated by passing NULL as inop.
++ */
++#define SHMEM_INO_BATCH 1024
++static int shmem_reserve_inode(struct super_block *sb, ino_t *inop)
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
+-	if (sbinfo->max_inodes) {
++	ino_t ino;
++
++	if (!(sb->s_flags & SB_KERNMOUNT)) {
+ 		spin_lock(&sbinfo->stat_lock);
+ 		if (!sbinfo->free_inodes) {
+ 			spin_unlock(&sbinfo->stat_lock);
+ 			return -ENOSPC;
+ 		}
+ 		sbinfo->free_inodes--;
++		if (inop) {
++			ino = sbinfo->next_ino++;
++			if (unlikely(is_zero_ino(ino)))
++				ino = sbinfo->next_ino++;
++			if (unlikely(ino > UINT_MAX)) {
++				/*
++				 * Emulate get_next_ino uint wraparound for
++				 * compatibility
++				 */
++				ino = 1;
++			}
++			*inop = ino;
++		}
+ 		spin_unlock(&sbinfo->stat_lock);
++	} else if (inop) {
 +		/*
-+		 * Corrupt page, so we cannot call page_mapping. Instead, do a
-+		 * safe subset of the steps that page_mapping() does. Caution:
-+		 * this will be misleading for tail pages, PageSwapCache pages,
-+		 * and potentially other situations. (See the page_mapping()
-+		 * implementation for what's missing here.)
++		 * __shmem_file_setup, one of our callers, is lock-free: it
++		 * doesn't hold stat_lock in shmem_reserve_inode since
++		 * max_inodes is always 0, and is called from potentially
++		 * unknown contexts. As such, use a per-cpu batched allocator
++		 * which doesn't require the per-sb stat_lock unless we are at
++		 * the batch boundary.
 +		 */
- 		unsigned long tmp = (unsigned long)page->mapping;
++		ino_t *next_ino;
++		next_ino = per_cpu_ptr(sbinfo->ino_batch, get_cpu());
++		ino = *next_ino;
++		if (unlikely(ino % SHMEM_INO_BATCH == 0)) {
++			spin_lock(&sbinfo->stat_lock);
++			ino = sbinfo->next_ino;
++			sbinfo->next_ino += SHMEM_INO_BATCH;
++			spin_unlock(&sbinfo->stat_lock);
++			if (unlikely(is_zero_ino(ino)))
++				ino++;
++		}
++		*inop = ino;
++		*next_ino = ++ino;
++		put_cpu();
+ 	}
++
+ 	return 0;
+ }
  
- 		if (tmp & PAGE_MAPPING_ANON)
+@@ -2222,13 +2271,14 @@ static struct inode *shmem_get_inode(str
+ 	struct inode *inode;
+ 	struct shmem_inode_info *info;
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
++	ino_t ino;
+ 
+-	if (shmem_reserve_inode(sb))
++	if (shmem_reserve_inode(sb, &ino))
+ 		return NULL;
+ 
+ 	inode = new_inode(sb);
+ 	if (inode) {
+-		inode->i_ino = get_next_ino();
++		inode->i_ino = ino;
+ 		inode_init_owner(inode, dir, mode);
+ 		inode->i_blocks = 0;
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+@@ -2932,7 +2982,7 @@ static int shmem_link(struct dentry *old
+ 	 * first link must skip that, to get the accounting right.
+ 	 */
+ 	if (inode->i_nlink) {
+-		ret = shmem_reserve_inode(inode->i_sb);
++		ret = shmem_reserve_inode(inode->i_sb, NULL);
+ 		if (ret)
+ 			goto out;
+ 	}
+@@ -3584,6 +3634,7 @@ static void shmem_put_super(struct super
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
+ 
++	free_percpu(sbinfo->ino_batch);
+ 	percpu_counter_destroy(&sbinfo->used_blocks);
+ 	mpol_put(sbinfo->mpol);
+ 	kfree(sbinfo);
+@@ -3626,6 +3677,11 @@ static int shmem_fill_super(struct super
+ #endif
+ 	sbinfo->max_blocks = ctx->blocks;
+ 	sbinfo->free_inodes = sbinfo->max_inodes = ctx->inodes;
++	if (sb->s_flags & SB_KERNMOUNT) {
++		sbinfo->ino_batch = alloc_percpu(ino_t);
++		if (!sbinfo->ino_batch)
++			goto failed;
++	}
+ 	sbinfo->uid = ctx->uid;
+ 	sbinfo->gid = ctx->gid;
+ 	sbinfo->mode = ctx->mode;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from chris@chrisdown.name are
 
-mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch
-mm.patch
-mm-handle-page-mapping-better-in-dump_page-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
-mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
-linux-next-rejects.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+tmpfs-per-superblock-i_ino-support.patch
+tmpfs-support-64-bit-inums-per-sb.patch
 
