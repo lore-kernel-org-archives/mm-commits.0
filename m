@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4DF3C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 00:31:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94E9DC433E2
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 00:31:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC29821835
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 00:31:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E5BF21924
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Jul 2020 00:31:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594686678;
-	bh=B2nHcNq8TsB3HBwWw/fKph6NJ96wlHNyREo39xxDtFc=;
+	s=default; t=1594686683;
+	bh=QP5oDCyi1uooIG5G3ydXSEM90F/FonUKlhUZFwHjCHs=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Q+hYCfgBfk0iCgNn43guYziDUcxsy+6WuM87JOWIPGdtLNzSYhFXm0VS2LvBRgTsp
-	 CZn5UEZ1df1ZCschEIiFrLAPCJBy56i7G0Tl67JLHZP7+DZONA0NeZZCzm+jhIa8pJ
-	 P4oJfpLNhnkM+XsTY2Zvg7w5HrebnyaGW4hxghd8=
+	b=gpGH8ZvjLQr04oQyCJjIGzVR+J+v4hrULfKvDZ72qq+EHcj5RpLVdAD/nFARnytXB
+	 lSjPA+mdCGY84f7XK2SyYDsXdIOnhpYlNgza4IKkopyZqoQL8GPMFpys+aYFzPZ3nG
+	 g0/w9WlO4DchECEw+HkgCTr72uZTI0BwjnU7SGK0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726347AbgGNAbS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Jul 2020 20:31:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44262 "EHLO mail.kernel.org"
+        id S1726832AbgGNAbX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Jul 2020 20:31:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44350 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726257AbgGNAbS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Jul 2020 20:31:18 -0400
+        id S1726823AbgGNAbV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Jul 2020 20:31:21 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0B2112082F;
-        Tue, 14 Jul 2020 00:31:17 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E5A1E21919;
+        Tue, 14 Jul 2020 00:31:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594686677;
-        bh=B2nHcNq8TsB3HBwWw/fKph6NJ96wlHNyREo39xxDtFc=;
+        s=default; t=1594686680;
+        bh=QP5oDCyi1uooIG5G3ydXSEM90F/FonUKlhUZFwHjCHs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=PlKitigdiz8eDAyZWUix7xa9t2/unq1itIWn+SCpNzt4DZNJ11X+3/pMVUqTXq0eA
-         +/Cd/MmWPyr288QTQQE9I9Qy92jlFc3p2b1eoqPple8geL/sJxj+Qef09dTtmv9Hhd
-         IoGXUnDQHv2grVd+OD1pnTluDOmK9l7hKpzsWd4w=
-Date:   Mon, 13 Jul 2020 17:31:16 -0700
+        b=1wmM5RGvO/g/63gc85Po/O96DKlbZM6LQwGgbFgVOuZNu2a8RWf9Oek3K7w0wBHSC
+         k4SVIzqijRL3aPy5cJNjg8V3slLxWy4CLPqAS3NV1S7uqJnn83S58AgTu6D6YDMeUA
+         QFO4yL08ErYRA6u180AKKwwQ8MjEVNyYbx7VwJas=
+Date:   Mon, 13 Jul 2020 17:31:19 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     amir73il@gmail.com, chris@chrisdown.name, hannes@cmpxchg.org,
         hughd@google.com, jlayton@kernel.org, mm-commits@vger.kernel.org,
         tj@kernel.org, viro@zeniv.linux.org.uk, willy@infradead.org
-Subject:  + tmpfs-per-superblock-i_ino-support.patch added to -mm
+Subject:  + tmpfs-support-64-bit-inums-per-sb.patch added to -mm
  tree
-Message-ID: <20200714003116.i4dbLDaDn%akpm@linux-foundation.org>
+Message-ID: <20200714003119.wk1EJGg3P%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: per-superblock i_ino support
+     Subject: tmpfs: support 64-bit inums per-sb
 has been added to the -mm tree.  Its filename is
-     tmpfs-per-superblock-i_ino-support.patch
+     tmpfs-support-64-bit-inums-per-sb.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tmpfs-per-superblock-i_ino-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tmpfs-support-64-bit-inums-per-sb.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-per-superblock-i_ino-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-support-64-bit-inums-per-sb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,73 +78,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Chris Down <chris@chrisdown.name>
-Subject: tmpfs: per-superblock i_ino support
+Subject: tmpfs: support 64-bit inums per-sb
 
-Patch series "tmpfs: inode: Reduce risk of inum overflow", v7.
+The default is still set to inode32 for backwards compatibility, but
+system administrators can opt in to the new 64-bit inode numbers by
+either:
 
-In Facebook production we are seeing heavy i_ino wraparounds on tmpfs.  On
-affected tiers, in excess of 10% of hosts show multiple files with
-different content and the same inode number, with some servers even having
-as many as 150 duplicated inode numbers with differing file content.
+1. Passing inode64 on the command line when mounting, or
+2. Configuring the kernel with CONFIG_TMPFS_INODE64=y
 
-This causes actual, tangible problems in production.  For example, we have
-complaints from those working on remote caches that their application is
-reporting cache corruptions because it uses (device, inodenum) to
-establish the identity of a particular cache object, but because it's not
-unique any more, the application refuses to continue and reports cache
-corruption.  Even worse, sometimes applications may not even detect the
-corruption but may continue anyway, causing phantom and hard to debug
-behaviour.
+The inode64 and inode32 names are used based on existing precedent from
+XFS.
 
-In general, userspace applications expect that (device, inodenum) should
-be enough to be uniquely point to one inode, which seems fair enough.  One
-might also need to check the generation, but in this case:
-
-1. That's not currently exposed to userspace
-   (ioctl(...FS_IOC_GETVERSION...) returns ENOTTY on tmpfs);
-2. Even with generation, there shouldn't be two live inodes with the
-   same inode number on one device.
-
-In order to mitigate this, we take a two-pronged approach:
-
-1. Moving inum generation from being global to per-sb for tmpfs. This
-   itself allows some reduction in i_ino churn. This works on both 64-
-   and 32- bit machines.
-2. Adding inode{64,32} for tmpfs. This fix is supported on machines with
-   64-bit ino_t only: we allow users to mount tmpfs with a new inode64
-   option that uses the full width of ino_t, or CONFIG_TMPFS_INODE64.
-
-You can see how this compares to previous related patches which didn't
-implement this per-superblock:
-
-- https://patchwork.kernel.org/patch/11254001/
-- https://patchwork.kernel.org/patch/11023915/
-
-
-This patch (of 2):
-
-get_next_ino has a number of problems:
-
-- It uses and returns a uint, which is susceptible to become overflowed
-  if a lot of volatile inodes that use get_next_ino are created.
-- It's global, with no specificity per-sb or even per-filesystem. This
-  means it's not that difficult to cause inode number wraparounds on a
-  single device, which can result in having multiple distinct inodes
-  with the same inode number.
-
-This patch adds a per-superblock counter that mitigates the second case. 
-This design also allows us to later have a specific i_ino size per-device,
-for example, allowing users to choose whether to use 32- or 64-bit inodes
-for each tmpfs mount.  This is implemented in the next commit.
-
-For internal shmem mounts which may be less tolerant to spinlock delays,
-we implement a percpu batching scheme which only takes the stat_lock at
-each batch boundary.
-
-Link: http://lkml.kernel.org/r/cover.1594661218.git.chris@chrisdown.name
-Link: http://lkml.kernel.org/r/1986b9d63b986f08ec07a4aa4b2275e718e47d8a.1594661218.git.chris@chrisdown.name
+Link: http://lkml.kernel.org/r/8b23758d0c66b5e2263e08baf9c4b6a7565cbd8f.1594661218.git.chris@chrisdown.name
 Signed-off-by: Chris Down <chris@chrisdown.name>
-Cc: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -154,164 +102,218 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h       |   15 ++++++++
- include/linux/shmem_fs.h |    2 +
- mm/shmem.c               |   66 ++++++++++++++++++++++++++++++++++---
- 3 files changed, 78 insertions(+), 5 deletions(-)
+ Documentation/filesystems/tmpfs.rst |   11 ++++
+ fs/Kconfig                          |   15 ++++++
+ include/linux/shmem_fs.h            |    1 
+ mm/shmem.c                          |   65 +++++++++++++++++++++++++-
+ 4 files changed, 90 insertions(+), 2 deletions(-)
 
---- a/include/linux/fs.h~tmpfs-per-superblock-i_ino-support
-+++ a/include/linux/fs.h
-@@ -3098,6 +3098,21 @@ extern void discard_new_inode(struct ino
- extern unsigned int get_next_ino(void);
- extern void evict_inodes(struct super_block *sb);
+--- a/Documentation/filesystems/tmpfs.rst~tmpfs-support-64-bit-inums-per-sb
++++ a/Documentation/filesystems/tmpfs.rst
+@@ -150,6 +150,15 @@ These options do not have any effect on
+ parameters with chmod(1), chown(1) and chgrp(1) on a mounted filesystem.
  
-+/*
-+ * Userspace may rely on the the inode number being non-zero. For example, glibc
-+ * simply ignores files with zero i_ino in unlink() and other places.
-+ *
-+ * As an additional complication, if userspace was compiled with
-+ * _FILE_OFFSET_BITS=32 on a 64-bit kernel we'll only end up reading out the
-+ * lower 32 bits, so we need to check that those aren't zero explicitly. With
-+ * _FILE_OFFSET_BITS=64, this may cause some harmless false-negatives, but
-+ * better safe than sorry.
-+ */
-+static inline bool is_zero_ino(ino_t ino)
-+{
-+	return (u32)ino == 0;
-+}
+ 
++tmpfs has a mount option to select whether it will wrap at 32- or 64-bit inode
++numbers:
 +
- extern void __iget(struct inode * inode);
- extern void iget_failed(struct inode *);
- extern void clear_inode(struct inode *);
---- a/include/linux/shmem_fs.h~tmpfs-per-superblock-i_ino-support
++inode64   Use 64-bit inode numbers
++inode32   Use 32-bit inode numbers
++
++On 64-bit, the default is set by CONFIG_TMPFS_INODE64. On 32-bit, inode64 is
++not legal and will produce an error at mount time.
++
+ So 'mount -t tmpfs -o size=10G,nr_inodes=10k,mode=700 tmpfs /mytmpfs'
+ will give you tmpfs instance on /mytmpfs which can allocate 10GB
+ RAM/SWAP in 10240 inodes and it is only accessible by root.
+@@ -161,3 +170,5 @@ RAM/SWAP in 10240 inodes and it is only
+    Hugh Dickins, 4 June 2007
+ :Updated:
+    KOSAKI Motohiro, 16 Mar 2010
++Updated:
++   Chris Down, 13 July 2020
+--- a/fs/Kconfig~tmpfs-support-64-bit-inums-per-sb
++++ a/fs/Kconfig
+@@ -201,6 +201,21 @@ config TMPFS_XATTR
+ 
+ 	  If unsure, say N.
+ 
++config TMPFS_INODE64
++	bool "Use 64-bit ino_t by default in tmpfs"
++	depends on TMPFS && 64BIT
++	default n
++	help
++	  tmpfs has historically used only inode numbers as wide as an unsigned
++	  int. In some cases this can cause wraparound, potentially resulting in
++	  multiple files with the same inode number on a single device. This option
++	  makes tmpfs use the full width of ino_t by default, similarly to the
++	  inode64 mount option.
++
++	  To override this default, use the inode32 or inode64 mount options.
++
++	  If unsure, say N.
++
+ config HUGETLBFS
+ 	bool "HugeTLB file system support"
+ 	depends on X86 || IA64 || SPARC64 || (S390 && 64BIT) || \
+--- a/include/linux/shmem_fs.h~tmpfs-support-64-bit-inums-per-sb
 +++ a/include/linux/shmem_fs.h
-@@ -36,6 +36,8 @@ struct shmem_sb_info {
+@@ -36,6 +36,7 @@ struct shmem_sb_info {
  	unsigned char huge;	    /* Whether to try for hugepages */
  	kuid_t uid;		    /* Mount uid for root directory */
  	kgid_t gid;		    /* Mount gid for root directory */
-+	ino_t next_ino;		    /* The next per-sb inode number to use */
-+	ino_t __percpu *ino_batch;  /* The next per-cpu inode number to use */
++	bool full_inums;	    /* If i_ino should be uint or ino_t */
+ 	ino_t next_ino;		    /* The next per-sb inode number to use */
+ 	ino_t __percpu *ino_batch;  /* The next per-cpu inode number to use */
  	struct mempolicy *mpol;     /* default memory policy for mappings */
- 	spinlock_t shrinklist_lock;   /* Protects shrinklist */
- 	struct list_head shrinklist;  /* List of shinkable inodes */
---- a/mm/shmem.c~tmpfs-per-superblock-i_ino-support
+--- a/mm/shmem.c~tmpfs-support-64-bit-inums-per-sb
 +++ a/mm/shmem.c
-@@ -260,18 +260,67 @@ bool vma_is_shmem(struct vm_area_struct
- static LIST_HEAD(shmem_swaplist);
- static DEFINE_MUTEX(shmem_swaplist_mutex);
+@@ -114,11 +114,13 @@ struct shmem_options {
+ 	kuid_t uid;
+ 	kgid_t gid;
+ 	umode_t mode;
++	bool full_inums;
+ 	int huge;
+ 	int seen;
+ #define SHMEM_SEEN_BLOCKS 1
+ #define SHMEM_SEEN_INODES 2
+ #define SHMEM_SEEN_HUGE 4
++#define SHMEM_SEEN_INUMS 8
+ };
  
--static int shmem_reserve_inode(struct super_block *sb)
-+/*
-+ * shmem_reserve_inode() performs bookkeeping to reserve a shmem inode, and
-+ * produces a novel ino for the newly allocated inode.
-+ *
-+ * It may also be called when making a hard link to permit the space needed by
-+ * each dentry. However, in that case, no new inode number is needed since that
-+ * internally draws from another pool of inode numbers (currently global
-+ * get_next_ino()). This case is indicated by passing NULL as inop.
-+ */
-+#define SHMEM_INO_BATCH 1024
-+static int shmem_reserve_inode(struct super_block *sb, ino_t *inop)
- {
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
--	if (sbinfo->max_inodes) {
-+	ino_t ino;
-+
-+	if (!(sb->s_flags & SB_KERNMOUNT)) {
- 		spin_lock(&sbinfo->stat_lock);
- 		if (!sbinfo->free_inodes) {
- 			spin_unlock(&sbinfo->stat_lock);
- 			return -ENOSPC;
- 		}
- 		sbinfo->free_inodes--;
-+		if (inop) {
-+			ino = sbinfo->next_ino++;
-+			if (unlikely(is_zero_ino(ino)))
+ #ifdef CONFIG_TMPFS
+@@ -286,12 +288,17 @@ static int shmem_reserve_inode(struct su
+ 			ino = sbinfo->next_ino++;
+ 			if (unlikely(is_zero_ino(ino)))
+ 				ino = sbinfo->next_ino++;
+-			if (unlikely(ino > UINT_MAX)) {
++			if (unlikely(!sbinfo->full_inums &&
++				     ino > UINT_MAX)) {
+ 				/*
+ 				 * Emulate get_next_ino uint wraparound for
+ 				 * compatibility
+ 				 */
+-				ino = 1;
++				if (IS_ENABLED(CONFIG_64BIT))
++					pr_warn("%s: inode number overflow on device %d, consider using inode64 mount option\n",
++						__func__, MINOR(sb->s_dev));
++				sbinfo->next_ino = 1;
 +				ino = sbinfo->next_ino++;
-+			if (unlikely(ino > UINT_MAX)) {
-+				/*
-+				 * Emulate get_next_ino uint wraparound for
-+				 * compatibility
-+				 */
-+				ino = 1;
-+			}
-+			*inop = ino;
+ 			}
+ 			*inop = ino;
+ 		}
+@@ -304,6 +311,10 @@ static int shmem_reserve_inode(struct su
+ 		 * unknown contexts. As such, use a per-cpu batched allocator
+ 		 * which doesn't require the per-sb stat_lock unless we are at
+ 		 * the batch boundary.
++		 *
++		 * We don't need to worry about inode{32,64} since SB_KERNMOUNT
++		 * shmem mounts are not exposed to userspace, so we don't need
++		 * to worry about things like glibc compatibility.
+ 		 */
+ 		ino_t *next_ino;
+ 		next_ino = per_cpu_ptr(sbinfo->ino_batch, get_cpu());
+@@ -3397,6 +3408,8 @@ enum shmem_param {
+ 	Opt_nr_inodes,
+ 	Opt_size,
+ 	Opt_uid,
++	Opt_inode32,
++	Opt_inode64,
+ };
+ 
+ static const struct constant_table shmem_param_enums_huge[] = {
+@@ -3416,6 +3429,8 @@ const struct fs_parameter_spec shmem_fs_
+ 	fsparam_string("nr_inodes",	Opt_nr_inodes),
+ 	fsparam_string("size",		Opt_size),
+ 	fsparam_u32   ("uid",		Opt_uid),
++	fsparam_flag  ("inode32",	Opt_inode32),
++	fsparam_flag  ("inode64",	Opt_inode64),
+ 	{}
+ };
+ 
+@@ -3487,6 +3502,18 @@ static int shmem_parse_one(struct fs_con
+ 			break;
+ 		}
+ 		goto unsupported_parameter;
++	case Opt_inode32:
++		ctx->full_inums = false;
++		ctx->seen |= SHMEM_SEEN_INUMS;
++		break;
++	case Opt_inode64:
++		if (sizeof(ino_t) < 8) {
++			return invalfc(fc,
++				       "Cannot use inode64 with <64bit inums in kernel\n");
 +		}
- 		spin_unlock(&sbinfo->stat_lock);
-+	} else if (inop) {
-+		/*
-+		 * __shmem_file_setup, one of our callers, is lock-free: it
-+		 * doesn't hold stat_lock in shmem_reserve_inode since
-+		 * max_inodes is always 0, and is called from potentially
-+		 * unknown contexts. As such, use a per-cpu batched allocator
-+		 * which doesn't require the per-sb stat_lock unless we are at
-+		 * the batch boundary.
-+		 */
-+		ino_t *next_ino;
-+		next_ino = per_cpu_ptr(sbinfo->ino_batch, get_cpu());
-+		ino = *next_ino;
-+		if (unlikely(ino % SHMEM_INO_BATCH == 0)) {
-+			spin_lock(&sbinfo->stat_lock);
-+			ino = sbinfo->next_ino;
-+			sbinfo->next_ino += SHMEM_INO_BATCH;
-+			spin_unlock(&sbinfo->stat_lock);
-+			if (unlikely(is_zero_ino(ino)))
-+				ino++;
-+		}
-+		*inop = ino;
-+		*next_ino = ++ino;
-+		put_cpu();
++		ctx->full_inums = true;
++		ctx->seen |= SHMEM_SEEN_INUMS;
++		break;
  	}
-+
  	return 0;
- }
  
-@@ -2222,13 +2271,14 @@ static struct inode *shmem_get_inode(str
- 	struct inode *inode;
- 	struct shmem_inode_info *info;
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
-+	ino_t ino;
- 
--	if (shmem_reserve_inode(sb))
-+	if (shmem_reserve_inode(sb, &ino))
- 		return NULL;
- 
- 	inode = new_inode(sb);
- 	if (inode) {
--		inode->i_ino = get_next_ino();
-+		inode->i_ino = ino;
- 		inode_init_owner(inode, dir, mode);
- 		inode->i_blocks = 0;
- 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
-@@ -2932,7 +2982,7 @@ static int shmem_link(struct dentry *old
- 	 * first link must skip that, to get the accounting right.
- 	 */
- 	if (inode->i_nlink) {
--		ret = shmem_reserve_inode(inode->i_sb);
-+		ret = shmem_reserve_inode(inode->i_sb, NULL);
- 		if (ret)
- 			goto out;
+@@ -3578,8 +3605,16 @@ static int shmem_reconfigure(struct fs_c
+ 		}
  	}
-@@ -3584,6 +3634,7 @@ static void shmem_put_super(struct super
- {
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
  
-+	free_percpu(sbinfo->ino_batch);
- 	percpu_counter_destroy(&sbinfo->used_blocks);
- 	mpol_put(sbinfo->mpol);
- 	kfree(sbinfo);
-@@ -3626,6 +3677,11 @@ static int shmem_fill_super(struct super
- #endif
- 	sbinfo->max_blocks = ctx->blocks;
- 	sbinfo->free_inodes = sbinfo->max_inodes = ctx->inodes;
-+	if (sb->s_flags & SB_KERNMOUNT) {
-+		sbinfo->ino_batch = alloc_percpu(ino_t);
-+		if (!sbinfo->ino_batch)
-+			goto failed;
++	if ((ctx->seen & SHMEM_SEEN_INUMS) && !ctx->full_inums &&
++	    sbinfo->next_ino > UINT_MAX) {
++		err = "Current inum too high to switch to 32-bit inums";
++		goto out;
 +	}
++
+ 	if (ctx->seen & SHMEM_SEEN_HUGE)
+ 		sbinfo->huge = ctx->huge;
++	if (ctx->seen & SHMEM_SEEN_INUMS)
++		sbinfo->full_inums = ctx->full_inums;
+ 	if (ctx->seen & SHMEM_SEEN_BLOCKS)
+ 		sbinfo->max_blocks  = ctx->blocks;
+ 	if (ctx->seen & SHMEM_SEEN_INODES) {
+@@ -3619,6 +3654,29 @@ static int shmem_show_options(struct seq
+ 	if (!gid_eq(sbinfo->gid, GLOBAL_ROOT_GID))
+ 		seq_printf(seq, ",gid=%u",
+ 				from_kgid_munged(&init_user_ns, sbinfo->gid));
++
++	/*
++	 * Showing inode{64,32} might be useful even if it's the system default,
++	 * since then people don't have to resort to checking both here and
++	 * /proc/config.gz to confirm 64-bit inums were successfully applied
++	 * (which may not even exist if IKCONFIG_PROC isn't enabled).
++	 *
++	 * We hide it when inode64 isn't the default and we are using 32-bit
++	 * inodes, since that probably just means the feature isn't even under
++	 * consideration.
++	 *
++	 * As such:
++	 *
++	 *                     +-----------------+-----------------+
++	 *                     | TMPFS_INODE64=y | TMPFS_INODE64=n |
++	 *  +------------------+-----------------+-----------------+
++	 *  | full_inums=true  | show            | show            |
++	 *  | full_inums=false | show            | hide            |
++	 *  +------------------+-----------------+-----------------+
++	 *
++	 */
++	if (IS_ENABLED(CONFIG_TMPFS_INODE64) || sbinfo->full_inums)
++		seq_printf(seq, ",inode%d", (sbinfo->full_inums ? 64 : 32));
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	/* Rightly or wrongly, show huge mount option unmasked by shmem_huge */
+ 	if (sbinfo->huge)
+@@ -3667,6 +3725,8 @@ static int shmem_fill_super(struct super
+ 			ctx->blocks = shmem_default_max_blocks();
+ 		if (!(ctx->seen & SHMEM_SEEN_INODES))
+ 			ctx->inodes = shmem_default_max_inodes();
++		if (!(ctx->seen & SHMEM_SEEN_INUMS))
++			ctx->full_inums = IS_ENABLED(CONFIG_TMPFS_INODE64);
+ 	} else {
+ 		sb->s_flags |= SB_NOUSER;
+ 	}
+@@ -3684,6 +3744,7 @@ static int shmem_fill_super(struct super
+ 	}
  	sbinfo->uid = ctx->uid;
  	sbinfo->gid = ctx->gid;
++	sbinfo->full_inums = ctx->full_inums;
  	sbinfo->mode = ctx->mode;
+ 	sbinfo->huge = ctx->huge;
+ 	sbinfo->mpol = ctx->mpol;
 _
 
 Patches currently in -mm which might be from chris@chrisdown.name are
