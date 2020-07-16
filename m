@@ -1,4 +1,4 @@
-Return-Path: <SRS0=TlCe=A2=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=YRC/=A3=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,42 +7,49 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FE84C433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Jul 2020 23:54:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91763C433E3
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 00:41:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B142206D5
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Jul 2020 23:54:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EBD32072E
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 00:41:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594857248;
-	bh=hLhca0wAVj84nCWQknTCjTgmAc3bPnVlzfCXUr1ZMq0=;
-	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=H1zm5sJSh1gSfOXiUZlMqlhQxmWSdbCqzhcFkIz2usVoliCgdJPG0df8AXAuUt+EF
-	 bI34y78lKHMFA8Jnca/hPeJE4ZmCUuWV+HiNThqr1I32gMTigOvSS7GzXg3OHgpacC
-	 bArdQVabSxOKfvuHuw4RzAynbTt7VeAJ8Vi3KBkk=
+	s=default; t=1594860067;
+	bh=A3gwm6BK9JnUR/bUBB4CY297uauJWlm1IYABhVsyw+k=;
+	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
+	b=bZbUtCumbNBwrNGvUwOH1ZRf3FxXYsBl+DFSLay/SAYecucaHvv4ZuQW0i2m2Qvoe
+	 JFQsuJdHoBx5aPtUmqjfVQOD7KxGPJoPbEfsjrjoihMTokdggElXIndQ0t8ZXUh5te
+	 EuplxEQVP2/H0hDc9amoO3hKZCuzIHo0OIy4ayuU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726770AbgGOXyI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Jul 2020 19:54:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39550 "EHLO mail.kernel.org"
+        id S1726785AbgGPAlH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Jul 2020 20:41:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57508 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726479AbgGOXyH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Jul 2020 19:54:07 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1726775AbgGPAlG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Jul 2020 20:41:06 -0400
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 11421206D5;
-        Wed, 15 Jul 2020 23:54:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BEB4020714;
+        Thu, 16 Jul 2020 00:41:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594857246;
-        bh=hLhca0wAVj84nCWQknTCjTgmAc3bPnVlzfCXUr1ZMq0=;
-        h=Date:From:To:Subject:From;
-        b=l4uTNb9B52TG+lQePx/c05lLC4gE+Sg8/Q5J9qVXEHBcINOomzQ+svYo4EEeeU/xn
-         RvTBjrnhca2y9AZEHY3U9+ZQwYjStO+fuLf6KgogspAnXvk/v7qW7DGWzfGDIaLsJU
-         8iN4c+LHKIXAaLcbVPDc1rJ7TPW290kz5VUj5xVw=
-Date:   Wed, 15 Jul 2020 16:54:05 -0700
-From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20200715235405.QNJ08cLgu%akpm@linux-foundation.org>
+        s=default; t=1594860066;
+        bh=A3gwm6BK9JnUR/bUBB4CY297uauJWlm1IYABhVsyw+k=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=GaP81cX+R1Zb/cllHWLc0np3bYinc6iGz/18JF2JeOqRqD4SR5o2sXeM4JYXc0rsb
+         Hzu5NgK4vQraqiYHvIAGhcuf3sxp6PcCNv8GYqtAL0acE+Hhd/iSW4ufulrRWNOCWl
+         B84x0ou9VpI+/krlWPAiggiTK/XvR1/qUrfYCMt8=
+Date:   Wed, 15 Jul 2020 17:41:05 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     catalin.marinas@arm.com, hannes@cmpxchg.org, hdanton@sina.com,
+        hughd@google.com, josef@toxicpanda.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        will.deacon@arm.com, willy@infradead.org, xuyu@linux.alibaba.com,
+        yang.shi@linux.alibaba.com
+Subject:  +
+ mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2.patch added
+ to -mm tree
+Message-ID: <20200716004105.WQf42kMyq%akpm@linux-foundation.org>
+In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -52,14 +59,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,54 +80,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2
 
+incorporat comment from Will Deacon, update commit log per discussion
+
+Link: http://lkml.kernel.org/r/1594848990-55657-1-git-send-email-yang.shi@linux.alibaba.com
+Fixes: 89b15332af7c ("mm: drop mmap_sem before calling balance_dirty_pages() in write fault")
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Reported-by: Xu Yu <xuyu@linux.alibaba.com>
+Debugged-by: Xu Yu <xuyu@linux.alibaba.com>
+Tested-by: Xu Yu <xuyu@linux.alibaba.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/idxd/sysfs.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ mm/memory.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/drivers/dma/idxd/sysfs.c~linux-next-git-rejects
-+++ a/drivers/dma/idxd/sysfs.c
-@@ -304,14 +304,6 @@ static int idxd_config_bus_remove(struct
+--- a/mm/memory.c~mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2
++++ a/mm/memory.c
+@@ -4243,11 +4243,12 @@ static vm_fault_t handle_pte_fault(struc
+ 			return do_wp_page(vmf);
+ 	}
  
- 		idxd_unregister_dma_device(idxd);
- 		rc = idxd_device_disable(idxd);
--<<<<<<< HEAD
--		for (i = 0; i < idxd->max_wqs; i++) {
--			struct idxd_wq *wq = &idxd->wqs[i];
--
--			idxd_wq_disable_cleanup(wq);
--		}
--		spin_unlock_irqrestore(&idxd->dev_lock, flags);
--=======
+-	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vmf->flags & FAULT_FLAG_TRIED))
+-		entry = pte_mkdirty(entry);
+-	else if (vmf->flags & FAULT_FLAG_TRIED)
++	if (vmf->flags & FAULT_FLAG_TRIED)
+ 		goto unlock;
  
- 		for (i = 0; i < idxd->max_wqs; i++) {
- 			struct idxd_wq *wq = &idxd->wqs[i];
-@@ -321,7 +313,6 @@ static int idxd_config_bus_remove(struct
- 			mutex_unlock(&wq->wq_lock);
- 		}
- 
-->>>>>>> linux-next/akpm-base
- 		module_put(THIS_MODULE);
- 		if (rc < 0)
- 			dev_warn(dev, "Device disable failed\n");
++	if (vmf->flags & FAULT_FLAG_WRITE)
++		entry = pte_mkdirty(entry);
++
+ 	entry = pte_mkyoung(entry);
+ 	if (ptep_set_access_flags(vmf->vma, vmf->address, vmf->pte, entry,
+ 				vmf->flags & FAULT_FLAG_WRITE)) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
 
-mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch
-mm.patch
-mm-handle-page-mapping-better-in-dump_page-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
-mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault.patch
+mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2.patch
+mm-filemap-clear-idle-flag-for-writes.patch
+mm-filemap-add-missing-fgp_-flags-in-kerneldoc-comment-for-pagecache_get_page.patch
+mm-thp-remove-debug_cow-switch.patch
 
