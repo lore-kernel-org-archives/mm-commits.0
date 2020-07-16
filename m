@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F3C5C433E1
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:28:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DD59C433DF
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:32:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A1C820870
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:28:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1658020870
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:32:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594942082;
-	bh=V8Ciaua4djghO6IyEj/rfPCZ1IB+C7Zw1XpJ0pMKSkw=;
+	s=default; t=1594942347;
+	bh=0wNy2a3Xb6lRx0qgqMMAA+3LAkOJDZ7K9HdX90T+lVM=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=nwZn20DBcGE7LaDiKqGtCRUWTF77PsU3HG4Tu+HWCdpudE2pGAzEq5sPsbTXdFKgk
-	 PAHQV6gE/UWwiwf+rTsNU9GqyC889PMIdwzV7LA7hnsJHBF0J5JlzpNuzQ9DTC666P
-	 DbryI794ZlJCsHhiiNEoGVAwLejx+wqj4npRskHY=
+	b=ZjTfO7HwS/TJ8IGSaaG2lZrMIDDQ6VKrBX7cu2pd5ztgfOSC8i2TlQqVoMDkZB9q+
+	 XU+vrmWcm2QU55ZsyrF3Mx7G48QNPXHLRQRv1rtMN4JphH6tF1+BgJUYJtkgg37jgS
+	 KQj3Wz28YEky8i/r/zd1mdePUOouHxGKyV59xUeM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726189AbgGPX2C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jul 2020 19:28:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37790 "EHLO mail.kernel.org"
+        id S1726189AbgGPXc0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jul 2020 19:32:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40442 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726113AbgGPX2B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jul 2020 19:28:01 -0400
+        id S1726113AbgGPXc0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jul 2020 19:32:26 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A692C20760;
-        Thu, 16 Jul 2020 23:28:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CA7F42076D;
+        Thu, 16 Jul 2020 23:32:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594942081;
-        bh=V8Ciaua4djghO6IyEj/rfPCZ1IB+C7Zw1XpJ0pMKSkw=;
+        s=default; t=1594942346;
+        bh=0wNy2a3Xb6lRx0qgqMMAA+3LAkOJDZ7K9HdX90T+lVM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=HwWy8j0gOh4BsUMV519Q/OtypA1Mci1dkZduCAZCKtRzmqK0SyjT1bm8UorEeHvmv
-         0mRKeOLLcTX6LEylIil8tVU5N23k6jVv4xsa3QviRRFGFS9l0pj4INhMdhCcimQ91s
-         Y5vgWy2YCEHEzpsswuVBFzPxZak18q2SvYhWaPDE=
-Date:   Thu, 16 Jul 2020 16:28:00 -0700
+        b=zyo6XJrB7ooJ6ZKSXKaODD88HAmNBXxFQTT4c7kXat6DNQj7l6ZLFoWloVWIiJz8l
+         fhW/tNzyOiFIKp1RlmqvOZKV+rw1CDbsQ2pKL1RyaRFljMYnBgPw3ISXSkOXGb3mW6
+         bcn+tx4XO+Rfne/8bYutzBt9dGJhRYpZIhWdkXOc=
+Date:   Thu, 16 Jul 2020 16:32:25 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     chris@chrisdown.name, hannes@cmpxchg.org, laoar.shao@gmail.com,
-        mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org,
-        penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com
-Subject:  + memcg-oom-check-memcg-margin-for-parallel-oom.patch
- added to -mm tree
-Message-ID: <20200716232800.VpamkVDvF%akpm@linux-foundation.org>
+To:     cuibixuan@huawei.com, guro@fb.com, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
+Subject:  +
+ mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2.patch added
+ to -mm tree
+Message-ID: <20200716233225.BXIP04h2v%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg, oom: check memcg margin for parallel oom
+     Subject: mm/percpu: fix 'defined but not used' warning
 has been added to the -mm tree.  Its filename is
-     memcg-oom-check-memcg-margin-for-parallel-oom.patch
+     mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-oom-check-memcg-margin-for-parallel-oom.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-oom-check-memcg-margin-for-parallel-oom.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,79 +77,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: memcg, oom: check memcg margin for parallel oom
+From: Bixuan Cui <cuibixuan@huawei.com>
+Subject: mm/percpu: fix 'defined but not used' warning
 
-Memcg oom killer invocation is synchronized by the global oom_lock and
-tasks are sleeping on the lock while somebody is selecting the victim or
-potentially race with the oom_reaper is releasing the victim's memory. 
-This can result in a pointless oom killer invocation because a waiter
-might be racing with the oom_reaper
+Gcc report the following warning without CONFIG_MEMCG_KMEM:
 
-        P1              oom_reaper              P2
-                        oom_reap_task           mutex_lock(oom_lock)
-                                                out_of_memory # no victim because we have one already
-                        __oom_reap_task_mm      mute_unlock(oom_lock)
- mutex_lock(oom_lock)
-                        set MMF_OOM_SKIP
- select_bad_process
- # finds a new victim
+mm/percpu-internal.h:145:29: warning: 'pcpu_chunk_type' defined
+but not used [-Wunused-function]
+ static enum pcpu_chunk_type pcpu_chunk_type(struct pcpu_chunk *chunk)
+                             ^~~~~~~~~~~~~~~
 
-The page allocator prevents from this race by trying to allocate after the
-lock can be acquired (in __alloc_pages_may_oom) which acts as a last
-minute check.  Moreover page allocator simply doesn't block on the
-oom_lock and simply retries the whole reclaim process.
+Add 'inline' to pcpu_chunk_type(),pcpu_is_memcg_chunk() and
+pcpu_chunk_list() to clear warning.
 
-Memcg oom killer should do the last minute check as well.  Call
-mem_cgroup_margin to do that.  Trylock on the oom_lock could be done as
-well but this doesn't seem to be necessary at this stage.
-
-[mhocko@kernel.org: commit log]
-Link: http://lkml.kernel.org/r/1594735034-19190-1-git-send-email-laoar.shao@gmail.com
-Suggested-by: Michal Hocko <mhocko@kernel.org>
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/6d41b939-a741-b521-a7a2-e7296ec16219@huawei.com
+Signed-off-by: Bixuan Cui <cuibixuan@huawei.com>
+Suggested-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/percpu-internal.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/memcontrol.c~memcg-oom-check-memcg-margin-for-parallel-oom
-+++ a/mm/memcontrol.c
-@@ -1665,15 +1665,21 @@ static bool mem_cgroup_out_of_memory(str
- 		.gfp_mask = gfp_mask,
- 		.order = order,
- 	};
--	bool ret;
-+	bool ret = true;
- 
- 	if (mutex_lock_killable(&oom_lock))
- 		return true;
-+
-+	if (mem_cgroup_margin(memcg) >= (1 << order))
-+		goto unlock;
-+
- 	/*
- 	 * A few threads which were not waiting at mutex_lock_killable() can
- 	 * fail to bail out. Therefore, check again after holding oom_lock.
- 	 */
- 	ret = should_force_charge() || out_of_memory(&oc);
-+
-+unlock:
- 	mutex_unlock(&oom_lock);
- 	return ret;
+--- a/mm/percpu-internal.h~mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2
++++ a/mm/percpu-internal.h
+@@ -129,31 +129,31 @@ static inline int pcpu_chunk_map_bits(st
  }
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+-static enum pcpu_chunk_type pcpu_chunk_type(struct pcpu_chunk *chunk)
++static inline enum pcpu_chunk_type pcpu_chunk_type(struct pcpu_chunk *chunk)
+ {
+ 	if (chunk->obj_cgroups)
+ 		return PCPU_CHUNK_MEMCG;
+ 	return PCPU_CHUNK_ROOT;
+ }
+ 
+-static bool pcpu_is_memcg_chunk(enum pcpu_chunk_type chunk_type)
++static inline bool pcpu_is_memcg_chunk(enum pcpu_chunk_type chunk_type)
+ {
+ 	return chunk_type == PCPU_CHUNK_MEMCG;
+ }
+ 
+ #else
+-static enum pcpu_chunk_type pcpu_chunk_type(struct pcpu_chunk *chunk)
++static inline enum pcpu_chunk_type pcpu_chunk_type(struct pcpu_chunk *chunk)
+ {
+ 	return PCPU_CHUNK_ROOT;
+ }
+ 
+-static bool pcpu_is_memcg_chunk(enum pcpu_chunk_type chunk_type)
++static inline bool pcpu_is_memcg_chunk(enum pcpu_chunk_type chunk_type)
+ {
+ 	return false;
+ }
+ #endif
+ 
+-static struct list_head *pcpu_chunk_list(enum pcpu_chunk_type chunk_type)
++static inline struct list_head *pcpu_chunk_list(enum pcpu_chunk_type chunk_type)
+ {
+ 	return &pcpu_chunk_lists[pcpu_nr_slots *
+ 				 pcpu_is_memcg_chunk(chunk_type)];
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from cuibixuan@huawei.com are
 
-mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection.patch
-memcg-oom-check-memcg-margin-for-parallel-oom.patch
-mm-oom-make-the-calculation-of-oom-badness-more-accurate.patch
-mm-oom-make-the-calculation-of-oom-badness-more-accurate-v3.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2.patch
 
