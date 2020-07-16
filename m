@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB565C433E4
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:10:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 354B3C433E4
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:15:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D5482064B
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:10:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B9892070E
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:15:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594941027;
-	bh=bDuHPxx+7wOoiMndbuLLABRX6tPk3lsoOAH0gQDFp9M=;
+	s=default; t=1594941320;
+	bh=4/QBYqp21fOzY72m+uU3BoG6WzkUPSDC2jx7vuP2BY8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=lMy+kCZ2HHgVlWqQyN17+3r7/Q/SYOpEYifmO7Tpvzq0Ir8+nYu4GdP6iPoz25jgO
-	 piRxy9srnZkKu3glS2qvBAD8RcFItZ91370Hk0VrKxWg5x1PxE8RKXQuuquGj+qBQH
-	 LAM3hIDruBKMOMExp18Qv5FK09x6MZVeGhxKor4U=
+	b=0FFxnzn9uRJVJnVW9yDk1V4rGuSy1EOOdsPhO/UzlurB0yN5GslrVKK5D3eZ+P+c9
+	 USPHsK5YJZh8R/6Q59Nok0+9Ececut7ID8WwCcNfGDsSuigJID7KzeUZWk4zyrenpJ
+	 D0/+6PDTqvNM/AkiQZppDRas4J9tlKzVRrmkB//Q=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728220AbgGPXKW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jul 2020 19:10:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55120 "EHLO mail.kernel.org"
+        id S1726784AbgGPXPT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jul 2020 19:15:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56276 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728223AbgGPXKV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jul 2020 19:10:21 -0400
+        id S1726113AbgGPXPS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jul 2020 19:15:18 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A631620870;
-        Thu, 16 Jul 2020 22:51:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9AD8D2100A;
+        Thu, 16 Jul 2020 23:08:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594939861;
-        bh=bDuHPxx+7wOoiMndbuLLABRX6tPk3lsoOAH0gQDFp9M=;
+        s=default; t=1594940932;
+        bh=4/QBYqp21fOzY72m+uU3BoG6WzkUPSDC2jx7vuP2BY8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jYeydxVOkoZpGRskVpRw1fyx0/Qm4jtNbJtuRzSTDq/++R1bJWvUcC8It/q7HudX+
-         zwbk0DuPxqNzY+v55BYk6Mx0zKz1GrEhFW3o5kyC1OAfcCBcxiB/JRv7vyWyBEKp4/
-         YmVDw56iHmrvOEiy9GU3YkvbPqD+V/YPJdMFoe2M=
-Date:   Thu, 16 Jul 2020 15:51:01 -0700
+        b=xE6FFLO50xW2orkvF5iLvc5NNrEQnDeYcdJbe/I1t4JX7TLmcyMvd1623oSfYVDWa
+         y/Ywl60RtikF+ArCHc3D2xUK774CZzXTklYz+xpAUzASIBEkbqrP7Vh2IiolWX7Deh
+         UyUIuGZSJBeAHWSJp2cMfBa828naFBZSqXFomMjk=
+Date:   Thu, 16 Jul 2020 16:08:52 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org,
-        rdunlap@infradead.org, sjpark@amazon.de
-Subject:  + linux-sched-mmh-drop-duplicated-words-in-comments.patch
+To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com,
+        mhocko@kernel.org, mm-commits@vger.kernel.org
+Subject:  +
+ mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
  added to -mm tree
-Message-ID: <20200716225101.1Nsvkt3PP%akpm@linux-foundation.org>
+Message-ID: <20200716230852.jFSFYYxNv%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/sched/mm.h: drop duplicated words in comments
+     Subject: mm: vmstat: fix /proc/sys/vm/stat_refresh generating false warnings
 has been added to the -mm tree.  Its filename is
-     linux-sched-mmh-drop-duplicated-words-in-comments.patch
+     mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-sched-mmh-drop-duplicated-words-in-comments.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-sched-mmh-drop-duplicated-words-in-comments.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,54 +77,171 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: linux/sched/mm.h: drop duplicated words in comments
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: vmstat: fix /proc/sys/vm/stat_refresh generating false warnings
 
-Drop doubled words "to" and "that".
+I've noticed a number of warnings like "vmstat_refresh: nr_free_cma -5" or
+"vmstat_refresh: nr_zone_write_pending -11" on our production hosts.  The
+numbers of these warnings were relatively low and stable, so it didn't
+look like we are systematically leaking the counters.  The corresponding
+vmstat counters also looked sane.
 
-Link: http://lkml.kernel.org/r/927ea8d8-3f6c-9b65-4c2b-63ab4bd59ef1@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: SeongJae Park <sjpark@amazon.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+These warnings are generated by the vmstat_refresh() function, which
+assumes that atomic zone and numa counters can't go below zero.  However,
+on a SMP machine it's not quite right: due to per-cpu caching it can in
+theory be as low as -(zone threshold) * NR_CPUs.
+
+For instance, let's say all cma pages are in use and NR_FREE_CMA_PAGES
+reached 0.  Then we've reclaimed a small number of cma pages on each CPU
+except CPU0, so that most percpu NR_FREE_CMA_PAGES counters are slightly
+positive (the atomic counter is still 0).  Then somebody on CPU0 consumes
+all these pages.  The number of pages can easily exceed the threshold and
+a negative value will be committed to the atomic counter.
+
+To fix the problem and avoid generating false warnings, let's just relax
+the condition and warn only if the value is less than minus the maximum
+theoretically possible drift value, which is 125 * number of online CPUs. 
+It will still allow to catch systematic leaks, but will not generate bogus
+warnings.
+
+Link: http://lkml.kernel.org/r/20200714173920.3319063-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/sysctl/vm.rst |    4 +-
+ mm/vmstat.c                             |   30 +++++++++++++---------
+ 2 files changed, 21 insertions(+), 13 deletions(-)
 
---- a/include/linux/sched/mm.h~linux-sched-mmh-drop-duplicated-words-in-comments
-+++ a/include/linux/sched/mm.h
-@@ -23,7 +23,7 @@ extern struct mm_struct *mm_alloc(void);
-  * will still exist later on and mmget_not_zero() has to be used before
-  * accessing it.
-  *
-- * This is a preferred way to to pin @mm for a longer/unbounded amount
-+ * This is a preferred way to pin @mm for a longer/unbounded amount
-  * of time.
-  *
-  * Use mmdrop() to release the reference acquired by mmgrab().
-@@ -236,7 +236,7 @@ static inline unsigned int memalloc_noio
-  * @flags: Flags to restore.
-  *
-  * Ends the implicit GFP_NOIO scope started by memalloc_noio_save function.
-- * Always make sure that that the given flags is the return value from the
-+ * Always make sure that the given flags is the return value from the
-  * pairing memalloc_noio_save call.
+--- a/Documentation/admin-guide/sysctl/vm.rst~mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -822,8 +822,8 @@ e.g. cat /proc/sys/vm/stat_refresh /proc
+ 
+ As a side-effect, it also checks for negative totals (elsewhere reported
+ as 0) and "fails" with EINVAL if any are found, with a warning in dmesg.
+-(At time of writing, a few stats are known sometimes to be found negative,
+-with no ill effects: errors and warnings on these stats are suppressed.)
++(On a SMP machine some stats can temporarily become negative, with no ill
++effects: errors and warnings on these stats are suppressed.)
+ 
+ 
+ numa_stat
+--- a/mm/vmstat.c~mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings
++++ a/mm/vmstat.c
+@@ -169,6 +169,8 @@ EXPORT_SYMBOL(vm_node_stat);
+ 
+ #ifdef CONFIG_SMP
+ 
++#define MAX_THRESHOLD 125
++
+ int calculate_pressure_threshold(struct zone *zone)
+ {
+ 	int threshold;
+@@ -186,11 +188,9 @@ int calculate_pressure_threshold(struct
+ 	threshold = max(1, (int)(watermark_distance / num_online_cpus()));
+ 
+ 	/*
+-	 * Maximum threshold is 125
++	 * Threshold is capped by MAX_THRESHOLD
+ 	 */
+-	threshold = min(125, threshold);
+-
+-	return threshold;
++	return min(MAX_THRESHOLD, threshold);
+ }
+ 
+ int calculate_normal_threshold(struct zone *zone)
+@@ -610,6 +610,9 @@ void dec_node_page_state(struct page *pa
+ }
+ EXPORT_SYMBOL(dec_node_page_state);
+ #else
++
++#define MAX_THRESHOLD 0
++
+ /*
+  * Use interrupt disable to serialize counter updates
   */
- static inline void memalloc_noio_restore(unsigned int flags)
-@@ -267,7 +267,7 @@ static inline unsigned int memalloc_nofs
-  * @flags: Flags to restore.
-  *
-  * Ends the implicit GFP_NOFS scope started by memalloc_nofs_save function.
-- * Always make sure that that the given flags is the return value from the
-+ * Always make sure that the given flags is the return value from the
-  * pairing memalloc_nofs_save call.
-  */
- static inline void memalloc_nofs_restore(unsigned int flags)
+@@ -1810,7 +1813,7 @@ static void refresh_vm_stats(struct work
+ int vmstat_refresh(struct ctl_table *table, int write,
+ 		   void *buffer, size_t *lenp, loff_t *ppos)
+ {
+-	long val;
++	long val, max_drift;
+ 	int err;
+ 	int i;
+ 
+@@ -1821,17 +1824,22 @@ int vmstat_refresh(struct ctl_table *tab
+ 	 * pages, immediately after running a test.  /proc/sys/vm/stat_refresh,
+ 	 * which can equally be echo'ed to or cat'ted from (by root),
+ 	 * can be used to update the stats just before reading them.
+-	 *
+-	 * Oh, and since global_zone_page_state() etc. are so careful to hide
+-	 * transiently negative values, report an error here if any of
+-	 * the stats is negative, so we know to go looking for imbalance.
+ 	 */
+ 	err = schedule_on_each_cpu(refresh_vm_stats);
+ 	if (err)
+ 		return err;
++
++	/*
++	 * Since global_zone_page_state() etc. are so careful to hide
++	 * transiently negative values, report an error here if any of
++	 * the stats is negative and are less than the maximum drift value,
++	 * so we know to go looking for imbalance.
++	 */
++	max_drift = num_online_cpus() * MAX_THRESHOLD;
++
+ 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
+ 		val = atomic_long_read(&vm_zone_stat[i]);
+-		if (val < 0) {
++		if (val < -max_drift) {
+ 			pr_warn("%s: %s %ld\n",
+ 				__func__, zone_stat_name(i), val);
+ 			err = -EINVAL;
+@@ -1840,7 +1848,7 @@ int vmstat_refresh(struct ctl_table *tab
+ #ifdef CONFIG_NUMA
+ 	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++) {
+ 		val = atomic_long_read(&vm_numa_stat[i]);
+-		if (val < 0) {
++		if (val < -max_drift) {
+ 			pr_warn("%s: %s %ld\n",
+ 				__func__, numa_stat_name(i), val);
+ 			err = -EINVAL;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from guro@fb.com are
 
-linux-sched-mmh-drop-duplicated-words-in-comments.patch
+mm-kmem-make-memcg_kmem_enabled-irreversible.patch
+mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
+mm-memcg-prepare-for-byte-sized-vmstat-items.patch
+mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
+mm-slub-implement-slub-version-of-obj_to_index.patch
+mm-memcg-slab-obj_cgroup-api.patch
+mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
+mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
+mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
+mm-memcg-slab-deprecate-memorykmemslabinfo.patch
+mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
+mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
+mm-memcg-slab-simplify-memcg-cache-creation.patch
+mm-memcg-slab-remove-memcg_kmem_get_cache.patch
+mm-memcg-slab-deprecate-slab_root_caches.patch
+mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
+mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
+kselftests-cgroup-add-kernel-memory-accounting-tests.patch
+tools-cgroup-add-memcg_slabinfopy-tool.patch
+percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
+mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
+mm-memcg-percpu-per-memcg-percpu-memory-statistics-v3.patch
+mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
+kselftests-cgroup-add-perpcu-memory-accounting-test.patch
+mm-memcg-slab-remove-unused-argument-by-charge_slab_page.patch
+mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
+mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
+mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
 
