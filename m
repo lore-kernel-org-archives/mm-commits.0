@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 399B7C433DF
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:28:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DD19C433E1
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:45:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0F9F520809
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:28:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E3F3B20809
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:45:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594934909;
-	bh=XjpmwpqQaaG73yx7/K3aj3b2qjYwIj7j4S4YgPX8vV8=;
+	s=default; t=1594935948;
+	bh=25QFRIF0wT73zO/jVlchVmS8aem6yABogv3pvuQvZOM=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Hzbx87OAzL0Hc3xLlSghUY5OIfJ97vc4r4BpnXUOrDw0eNNMM1iCyHvp3NPPirkhs
-	 SLyyk3WzOQ0bBzV04WpcPaH/GaCIDMpOoRg3UhTrLsJ3yC8o96ApRqtYA6nYtpDcn5
-	 /LjdP2Jcf6RI+X4bcxgmwDlUoRuU34TZl3mU6CDk=
+	b=T0NT39v9SPMCKuMH21snQwlXIJEPPakEjwAzSsTX3bM7ixVk/svxvUS3Q+9H2WbsY
+	 dLZWI1PjgsOxv/SiYv8HEmMnyt9d5glrm7hTYHqr6vsX4o8gYEuPsHeqPGBH5XSan2
+	 9VqjY6SECFmbEFVi6QeFYLrIXZZlv4ywTJ20HbYk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726546AbgGPV22 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jul 2020 17:28:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38222 "EHLO mail.kernel.org"
+        id S1726238AbgGPVps (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jul 2020 17:45:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45502 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726090AbgGPV21 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jul 2020 17:28:27 -0400
+        id S1726002AbgGPVps (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jul 2020 17:45:48 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D268220787;
-        Thu, 16 Jul 2020 21:28:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 12CC52076D;
+        Thu, 16 Jul 2020 21:45:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594934906;
-        bh=XjpmwpqQaaG73yx7/K3aj3b2qjYwIj7j4S4YgPX8vV8=;
+        s=default; t=1594935947;
+        bh=25QFRIF0wT73zO/jVlchVmS8aem6yABogv3pvuQvZOM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=0J0MnEC9RR9E4z4FzmlAXySC51JwAFjD4v0KdFXADo1sRtT8v3dYWhyL6vl446U1D
-         WZDcNbC3L89I91XhSSrRGwFi3YL2FxDVwCN/0IyUKnIBbOoSkBR80VDNyhfR62mE5Q
-         CQKdYRE2jIGwku+l7FHnNiV4nMTBvBzzFkdqVMZM=
-Date:   Thu, 16 Jul 2020 14:28:25 -0700
+        b=vltZ3ywjMJrEBNNahAfx/jnujooUgYNrXCrbSn3nprM7I/rWPVn7dy8bTz+Z27Sk0
+         fxRlfqe3KX0FsrlY8orUSQCAOj+st/1mzj5f+3nOA77L89JD+vdmxfod+ubtR6LgxI
+         HCHghXfQ2NSSkP79DEmKUgGx2li1pazUVDnQwzso=
+Date:   Thu, 16 Jul 2020 14:45:46 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, shakeelb@google.com, songmuchun@bytedance.com,
-        stable@vger.kernel.org, vbabka@suse.cz
-Subject:  +
- mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy.patch added to
+To:     aneesh.kumar@linux.vnet.ibm.com, dave.hansen@intel.com,
+        david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        naoya.horiguchi@nec.com, osalvador@suse.com, tony.luck@intel.com,
+        zeil@yandex-team.ru
+Subject:  + mmhwpoison-cleanup-unused-pagehuge-check.patch added to
  -mm tree
-Message-ID: <20200716212825.AGqHB_kfq%akpm@linux-foundation.org>
+Message-ID: <20200716214546.RuFtF9b_8%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -58,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg/slab: fix memory leak at non-root kmem_cache destroy
+     Subject: mm,hwpoison: cleanup unused PageHuge() check
 has been added to the -mm tree.  Its filename is
-     mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy.patch
+     mmhwpoison-cleanup-unused-pagehuge-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-cleanup-unused-pagehuge-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-cleanup-unused-pagehuge-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,127 +79,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcg/slab: fix memory leak at non-root kmem_cache destroy
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm,hwpoison: cleanup unused PageHuge() check
 
-If the kmem_cache refcount is greater than one, we should not mark the
-root kmem_cache as dying.  If we mark the root kmem_cache dying
-incorrectly, the non-root kmem_cache can never be destroyed.  It resulted
-in memory leak when memcg was destroyed.  We can use the following steps
-to reproduce.
+Patch series "Hwpoison soft-offline rework", v4.
 
-  1) Use kmem_cache_create() to create a new kmem_cache named A.
-  2) Coincidentally, the kmem_cache A is an alias for kmem_cache B,
-     so the refcount of B is just increased.
-  3) Use kmem_cache_destroy() to destroy the kmem_cache A, just
-     decrease the B's refcount but mark the B as dying.
-  4) Create a new memory cgroup and alloc memory from the kmem_cache
-     B. It leads to create a non-root kmem_cache for allocating memory.
-  5) When destroy the memory cgroup created in the step 4), the
-     non-root kmem_cache can never be destroyed.
+This patchset was initially based on Naoya's hwpoison rework [1], so
+thanks to him for the initial work.  I would also like to think Naoya for
+testing the patchset off-line, and report any issues he found, that was
+quite helpful.
 
-If we repeat steps 4) and 5), this will cause a lot of memory leak.  So
-only when refcount reach zero, we mark the root kmem_cache as dying.
+This patchset aims to fix some issues laying in soft-offline handling, but
+it also takes the chance and takes some further steps to perform cleanups
+and some refactoring as well.
 
-Link: http://lkml.kernel.org/r/20200716165103.83462-1-songmuchun@bytedance.com
-Fixes: 92ee383f6daa ("mm: fix race between kmem_cache destroy, create and deactivate")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: <stable@vger.kernel.org>
+
+ - Motivation:
+
+   A customer and I were facing an issue were processes were killed
+   after having soft-offlined some of their pages.  This should not happen
+   when soft-offlining, as it is meant to be non-disruptive.  I was able
+   to reproduce the issue when I stressed the memory + soft offlining
+   pages in the meantime.
+
+   After debugging the issue, I saw that the problem was that pages
+   were returned back to user-space after having offlined them properly. 
+   So, when those pages were faulted in, the fault handler returned
+   VM_FAULT_POISON all the way down to the arch handler, and it simply
+   killed the process.
+
+   After a further anaylsis, it became clear that the problem was that
+   when kcompactd kicked in to migrate pages over, compaction_alloc
+   callback was handing poisoned pages to the migrate routine.
+
+   All this could happen because isolate_freepages_block and
+   fast_isolate_freepages just check for the page to be PageBuddy, and
+   since 1) poisoned pages can be part of a higher order page and 2)
+   poisoned pages are also Page Buddy, they can sneak in easily.
+
+   I also saw some other problems with sawap pages, but I suspected it
+   to be the same sort of problem, so I did not follow that trace.
+
+   The above refers to soft-offline.  But I also saw problems with
+   hard-offline, specially hugetlb corruption, and some other weird stuff.
+   (I could paste the logs)
+
+   The full explanation refering to the soft-offline case can be found at [2].
+
+ - Approach:
+
+   The taken approach is to contain those pages and never let them hit
+   neither pcplists nor buddy freelists.  Only when they are completely
+   out of reach, we flag them as poisoned.
+
+   A full explanation of this can be found in patch#11 and patch#12
+
+ - Outcome:
+
+   With this patchset, I no longer see the issues with soft-offline.
+
+[1] https://lore.kernel.org/linux-mm/1541746035-13408-1-git-send-email-n-horiguchi@ah.jp.nec.com/
+[2] https://lore.kernel.org/linux-mm/20190826104144.GA7849@linux/T/#u
+
+
+This patch (of 15):
+
+Drop the PageHuge check since memory_failure forks into memory_failure_hugetlb()
+for hugetlb pages.
+
+Link: http://lkml.kernel.org/r/20200716123810.25292-1-osalvador@suse.de
+Link: http://lkml.kernel.org/r/20200716123810.25292-2-osalvador@suse.de
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Oscar Salvador <osalvador@suse.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dmitry Yakunin <zeil@yandex-team.ru>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   35 ++++++++++++++++++++++++++++-------
- 1 file changed, 28 insertions(+), 7 deletions(-)
+ mm/memory-failure.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/slab_common.c~mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy
-+++ a/mm/slab_common.c
-@@ -326,6 +326,14 @@ int slab_unmergeable(struct kmem_cache *
- 	if (s->refcount < 0)
- 		return 1;
+--- a/mm/memory-failure.c~mmhwpoison-cleanup-unused-pagehuge-check
++++ a/mm/memory-failure.c
+@@ -1382,10 +1382,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * page_remove_rmap() in try_to_unmap_one(). So to determine page status
+ 	 * correctly, we save a copy of the page flags at this time.
+ 	 */
+-	if (PageHuge(p))
+-		page_flags = hpage->flags;
+-	else
+-		page_flags = p->flags;
++	page_flags = p->flags;
  
-+#ifdef CONFIG_MEMCG_KMEM
-+	/*
-+	 * Skip the dying kmem_cache.
-+	 */
-+	if (s->memcg_params.dying)
-+		return 1;
-+#endif
-+
- 	return 0;
- }
- 
-@@ -886,12 +894,15 @@ static int shutdown_memcg_caches(struct
- 	return 0;
- }
- 
--static void flush_memcg_workqueue(struct kmem_cache *s)
-+static void memcg_set_kmem_cache_dying(struct kmem_cache *s)
- {
- 	spin_lock_irq(&memcg_kmem_wq_lock);
- 	s->memcg_params.dying = true;
- 	spin_unlock_irq(&memcg_kmem_wq_lock);
-+}
- 
-+static void flush_memcg_workqueue(struct kmem_cache *s)
-+{
  	/*
- 	 * SLAB and SLUB deactivate the kmem_caches through call_rcu. Make
- 	 * sure all registered rcu callbacks have been invoked.
-@@ -923,10 +934,6 @@ static inline int shutdown_memcg_caches(
- {
- 	return 0;
- }
--
--static inline void flush_memcg_workqueue(struct kmem_cache *s)
--{
--}
- #endif /* CONFIG_MEMCG_KMEM */
- 
- void slab_kmem_cache_release(struct kmem_cache *s)
-@@ -944,8 +951,6 @@ void kmem_cache_destroy(struct kmem_cach
- 	if (unlikely(!s))
- 		return;
- 
--	flush_memcg_workqueue(s);
--
- 	get_online_cpus();
- 	get_online_mems();
- 
-@@ -955,6 +960,22 @@ void kmem_cache_destroy(struct kmem_cach
- 	if (s->refcount)
- 		goto out_unlock;
- 
-+#ifdef CONFIG_MEMCG_KMEM
-+	memcg_set_kmem_cache_dying(s);
-+
-+	mutex_unlock(&slab_mutex);
-+
-+	put_online_mems();
-+	put_online_cpus();
-+
-+	flush_memcg_workqueue(s);
-+
-+	get_online_cpus();
-+	get_online_mems();
-+
-+	mutex_lock(&slab_mutex);
-+#endif
-+
- 	err = shutdown_memcg_caches(s);
- 	if (!err)
- 		err = shutdown_cache(s);
+ 	 * unpoison always clear PG_hwpoison inside page lock
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy.patch
-mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt.patch
+mmhwpoison-cleanup-unused-pagehuge-check.patch
+mmmadvise-call-soft_offline_page-without-mf_count_increased.patch
+mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
+mmhwpoison-remove-mf_count_increased.patch
+mmhwpoison-remove-flag-argument-from-soft-offline-functions.patch
 
