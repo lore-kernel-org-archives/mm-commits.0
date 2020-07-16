@@ -7,47 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E353C433E3
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:46:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDC88C433FB
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:10:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24F4C2076D
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:46:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AA9542070E
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:10:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594935994;
-	bh=17VW/a0mVufhTeZnWMqmjUpw9RfmjB4oNiIDHFooMEg=;
+	s=default; t=1594941021;
+	bh=cJtg35BV9aCJosxvi07LloY61owQf1oFLP/HaPmJXEk=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Y+e+S26b8xk/+ZaFiESLhX91w04UREv2sHhhFjF7XJRmSN2MDhS4SRapM58S54Fbk
-	 mA77jHoJDNKHqAnV3c0gWjHDXvwR3hi11pn7QccvFEKbFavzmDdu+TIUgF43JlRFPd
-	 qlN99AAuDAqKzearMP/zLrq++Vfj25+JGQGQH31o=
+	b=m6XOARQ6GelfmfKi83f/I7HdzGfbfHhWnuDtqbYpU5Rx7cpMOXvF8J1N5Gb8i4N9m
+	 YFeldwRwdhf0e53fw46r38Q36i+Mii+RyCbdxca7YRU0GkToPTLzdywJWwJthc1SZ+
+	 YqX1iHwZ54pksZ2nVg2nfZNasbF2Qk3Gw1H6L754=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726780AbgGPVqe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jul 2020 17:46:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46218 "EHLO mail.kernel.org"
+        id S1727912AbgGPXKV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jul 2020 19:10:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55066 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726758AbgGPVqc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jul 2020 17:46:32 -0400
+        id S1728205AbgGPXKR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jul 2020 19:10:17 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E7D16207DD;
-        Thu, 16 Jul 2020 21:46:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8926A2098B;
+        Thu, 16 Jul 2020 22:52:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594935991;
-        bh=17VW/a0mVufhTeZnWMqmjUpw9RfmjB4oNiIDHFooMEg=;
+        s=default; t=1594939931;
+        bh=cJtg35BV9aCJosxvi07LloY61owQf1oFLP/HaPmJXEk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=a+HGtQPKTrujOJq8Y+cBD55XZKYajoPH6GaO0gWuHUIcWCOW78FlxJvnYo/eYQ53d
-         6BSRWBAoprbaBjKoIODFbOZdhAbCkQBaoNxl/PyfsbO+W6sfmtlNUfvYs2VXPPCS+j
-         YNK7/JWjOgVov570TITBwi4FZnpITdH1Ak7g2YxM=
-Date:   Thu, 16 Jul 2020 14:46:30 -0700
+        b=qn4Bt1kBxjEtTAL8l7VAeU4DzFcLqLvzzj2SBK7oF5ZSSVkKx0sbrDLTMch4bckax
+         EM+Bnc1ioQntsSDCFhE5uNsb8RQu0Y7KL2oyIgNG+4VWYyjOL8tLHGn/qzvOALkMM0
+         ZgbcKXAfdgsqk+EKbqU20mt3iPply8Pd6qNzv3jk=
+Date:   Thu, 16 Jul 2020 15:52:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aneesh.kumar@linux.vnet.ibm.com, dave.hansen@intel.com,
-        david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
-        naoya.horiguchi@nec.com, osalvador@suse.com, osalvador@suse.de,
-        tony.luck@intel.com, zeil@yandex-team.ru
-Subject:  + mmhwpoison-introduce-mf_msg_unsplit_thp.patch added to
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org, sjpark@amazon.de
+Subject:  + mm-drop-duplicated-words-in-linux-mmh.patch added to
  -mm tree
-Message-ID: <20200716214630.tP3D3cUsL%akpm@linux-foundation.org>
+Message-ID: <20200716225211.fgUPmgBS1%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -58,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: introduce MF_MSG_UNSPLIT_THP
+     Subject: mm: drop duplicated words in <linux/mm.h>
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+     mm-drop-duplicated-words-in-linux-mmh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-duplicated-words-in-linux-mmh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-duplicated-words-in-linux-mmh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,96 +75,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: introduce MF_MSG_UNSPLIT_THP
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm: drop duplicated words in <linux/mm.h>
 
-memory_failure() is supposed to call action_result() when it handles
-a memory error event, but there's one missing case. So let's add it.
+Drop the doubled words "to" and "the".
 
-I find that include/ras/ras_event.h has some other MF_MSG_* undefined,
-so this patch also adds them.
-
-Link: http://lkml.kernel.org/r/20200716123810.25292-16-osalvador@suse.de
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Signed-off-by: Oscar Salvador <osalvador@suse.com
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dmitry Yakunin <zeil@yandex-team.ru>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Link: http://lkml.kernel.org/r/d9fae8d6-0d60-4d52-9385-3199ee98de49@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: SeongJae Park <sjpark@amazon.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    1 +
- include/ras/ras_event.h |    3 +++
- mm/memory-failure.c     |    5 ++++-
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mmhwpoison-introduce-mf_msg_unsplit_thp
+--- a/include/linux/mm.h~mm-drop-duplicated-words-in-linux-mmh
 +++ a/include/linux/mm.h
-@@ -3030,6 +3030,7 @@ enum mf_action_page_type {
- 	MF_MSG_BUDDY,
- 	MF_MSG_BUDDY_2ND,
- 	MF_MSG_DAX,
-+	MF_MSG_UNSPLIT_THP,
- 	MF_MSG_UNKNOWN,
- };
- 
---- a/include/ras/ras_event.h~mmhwpoison-introduce-mf_msg_unsplit_thp
-+++ a/include/ras/ras_event.h
-@@ -361,6 +361,7 @@ TRACE_EVENT(aer_event,
- 	EM ( MF_MSG_POISONED_HUGE, "huge page already hardware poisoned" )	\
- 	EM ( MF_MSG_HUGE, "huge page" )					\
- 	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
-+	EM ( MF_MSG_NON_PMD_HUGE, "non-pmd-sized huge page" )		\
- 	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
- 	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
- 	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
-@@ -373,6 +374,8 @@ TRACE_EVENT(aer_event,
- 	EM ( MF_MSG_TRUNCATED_LRU, "already truncated LRU page" )	\
- 	EM ( MF_MSG_BUDDY, "free buddy page" )				\
- 	EM ( MF_MSG_BUDDY_2ND, "free buddy page (2nd try)" )		\
-+	EM ( MF_MSG_DAX, "dax page" )					\
-+	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
- 	EMe ( MF_MSG_UNKNOWN, "unknown page" )
+@@ -482,7 +482,7 @@ static inline bool fault_flag_allow_retr
+ 	{ FAULT_FLAG_INTERRUPTIBLE,	"INTERRUPTIBLE" }
  
  /*
---- a/mm/memory-failure.c~mmhwpoison-introduce-mf_msg_unsplit_thp
-+++ a/mm/memory-failure.c
-@@ -569,6 +569,7 @@ static const char * const action_page_ty
- 	[MF_MSG_BUDDY]			= "free buddy page",
- 	[MF_MSG_BUDDY_2ND]		= "free buddy page (2nd try)",
- 	[MF_MSG_DAX]			= "dax page",
-+	[MF_MSG_UNSPLIT_THP]		= "unsplit thp",
- 	[MF_MSG_UNKNOWN]		= "unknown page",
- };
+- * vm_fault is filled by the the pagefault handler and passed to the vma's
++ * vm_fault is filled by the pagefault handler and passed to the vma's
+  * ->fault function. The vma's ->fault is responsible for returning a bitmask
+  * of VM_FAULT_xxx flags that give details about how the fault was handled.
+  *
+@@ -2601,7 +2601,7 @@ extern unsigned long stack_guard_gap;
+ /* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
+ extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
  
-@@ -1359,8 +1360,10 @@ int memory_failure(unsigned long pfn, in
- 	}
- 
- 	if (PageTransHuge(hpage)) {
--		if (try_to_split_thp_page(p, "Memory Failure") < 0)
-+		if (try_to_split_thp_page(p, "Memory Failure") < 0) {
-+			action_result(pfn, MF_MSG_UNSPLIT_THP, MF_IGNORED);
- 			return -EBUSY;
-+		}
- 		VM_BUG_ON_PAGE(!page_count(p), p);
- 	}
- 
+-/* CONFIG_STACK_GROWSUP still needs to to grow downwards at some places */
++/* CONFIG_STACK_GROWSUP still needs to grow downwards at some places */
+ extern int expand_downwards(struct vm_area_struct *vma,
+ 		unsigned long address);
+ #if VM_GROWSUP
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mmmadvise-refactor-madvise_inject_error.patch
-mmhwpoison-un-export-get_hwpoison_page-and-make-it-static.patch
-mmhwpoison-kill-put_hwpoison_page.patch
-mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
-mmhwpoison-rework-soft-offline-for-free-pages.patch
-mmhwpoison-rework-soft-offline-for-in-use-pages.patch
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
-mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
-mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+linux-sched-mmh-drop-duplicated-words-in-comments.patch
+mm-drop-duplicated-words-in-linux-pgtableh.patch
+mm-drop-duplicated-words-in-linux-mmh.patch
 
