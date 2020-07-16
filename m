@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 354B3C433E4
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:15:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 240D6C433E2
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:20:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B9892070E
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:15:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC1A820656
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:20:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594941320;
-	bh=4/QBYqp21fOzY72m+uU3BoG6WzkUPSDC2jx7vuP2BY8=;
+	s=default; t=1594941619;
+	bh=gh9i/YGezN+6svJR8kuCn8xFpI0IX4o48s0BhVRM3sY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=0FFxnzn9uRJVJnVW9yDk1V4rGuSy1EOOdsPhO/UzlurB0yN5GslrVKK5D3eZ+P+c9
-	 USPHsK5YJZh8R/6Q59Nok0+9Ececut7ID8WwCcNfGDsSuigJID7KzeUZWk4zyrenpJ
-	 D0/+6PDTqvNM/AkiQZppDRas4J9tlKzVRrmkB//Q=
+	b=kFztUmv9viNiRHfvOuPe8SmoJ/owC0ZVdeJXIjTe1AyFEtIK2o318Xn7bU/jUJSVR
+	 JYDMCG1QTXA7Pfx7qExrlsBvyVwksttLzSrSXMohRppnIrE06hKrYeWlFaOp5/J79b
+	 axyhH8/e81KgOOSQXSU6KiZQYBoflVNuixVUmEus=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726784AbgGPXPT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jul 2020 19:15:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56276 "EHLO mail.kernel.org"
+        id S1727025AbgGPXUS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jul 2020 19:20:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60402 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726113AbgGPXPS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jul 2020 19:15:18 -0400
+        id S1726984AbgGPXUS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jul 2020 19:20:18 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9AD8D2100A;
-        Thu, 16 Jul 2020 23:08:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0B6432137B;
+        Thu, 16 Jul 2020 23:09:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594940932;
-        bh=4/QBYqp21fOzY72m+uU3BoG6WzkUPSDC2jx7vuP2BY8=;
+        s=default; t=1594940984;
+        bh=gh9i/YGezN+6svJR8kuCn8xFpI0IX4o48s0BhVRM3sY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xE6FFLO50xW2orkvF5iLvc5NNrEQnDeYcdJbe/I1t4JX7TLmcyMvd1623oSfYVDWa
-         y/Ywl60RtikF+ArCHc3D2xUK774CZzXTklYz+xpAUzASIBEkbqrP7Vh2IiolWX7Deh
-         UyUIuGZSJBeAHWSJp2cMfBa828naFBZSqXFomMjk=
-Date:   Thu, 16 Jul 2020 16:08:52 -0700
+        b=DEz5Y1RzDBm+2UnWXHUvHunuxq6xGNhH6AsBUE5yZwP6t0CJu3g5BVHOJBzbb2dCX
+         snQCUJYn52ypHX29RWWvl2nfQCSZT6BjHj6b4Eo1FrllZMzWArsRKeoI76BR8Dzl5/
+         HLBC5N9NaBPTjEagLpJ6X4Da/rAXJ1cNlebAsQXU=
+Date:   Thu, 16 Jul 2020 16:09:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org
+        mhocko@kernel.org, mm-commits@vger.kernel.org, vbabka@suse.cz
 Subject:  +
  mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
  added to -mm tree
-Message-ID: <20200716230852.jFSFYYxNv%akpm@linux-foundation.org>
+Message-ID: <20200716230943.tTYEQKnbM%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -106,6 +106,7 @@ warnings.
 
 Link: http://lkml.kernel.org/r/20200714173920.3319063-1-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
