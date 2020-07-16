@@ -7,48 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AAA0C433E1
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:46:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24BBCC433E1
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:46:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1168120809
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:46:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2FF320809
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:46:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594935976;
-	bh=nVV9F0Ju+JB0JqQbm092nLbJl7ZFUG5qDqCzO3Ldf7s=;
+	s=default; t=1594935980;
+	bh=Fh/HZmq4+ULGzi37F20V/Ot4G8V4XhW2weAF3Lv4DZc=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=o4dSpUlklIb1mBq8pAgv41bpmHG1PikMQnU1mMMVa91+5PE+s6NpKCHUgJp7PPJNW
-	 eU2aitAoNVeazubGhtmQwR6IDeuY1I8Jecc6HSQH4r8GktXh+EFlh7VaPIvQ0cCXn/
-	 47ZfxK4Al9wLtbw5mcdpnmEdLKxMi50BrWG3HDE0=
+	b=oVwnKQDyRH4xkzL1IXI9E9lXHJOK+Z3cpnzgoGgtIQvZz2NpxwP2EgRz0HWlfvuBZ
+	 1x5nvfbKUTCN/eFtC4CRWrU04ehol4qqVYCEIDLuNbNfzi84I2qFv7gJoUVYfHGGmf
+	 yZZZw744hR2s9PsSePFjKHh/j6EIFaIsHOaLk/dw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726394AbgGPVqP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jul 2020 17:46:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45934 "EHLO mail.kernel.org"
+        id S1726442AbgGPVqT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jul 2020 17:46:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45982 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726002AbgGPVqP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jul 2020 17:46:15 -0400
+        id S1726002AbgGPVqT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jul 2020 17:46:19 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E30A42076D;
-        Thu, 16 Jul 2020 21:46:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 07ECC207DD;
+        Thu, 16 Jul 2020 21:46:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594935975;
-        bh=nVV9F0Ju+JB0JqQbm092nLbJl7ZFUG5qDqCzO3Ldf7s=;
+        s=default; t=1594935978;
+        bh=Fh/HZmq4+ULGzi37F20V/Ot4G8V4XhW2weAF3Lv4DZc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=kwiq6YWp0GqNO8I8KD0IaJ/25WabH6rpItM/XzxXdRT8EH6lk8ysjC3ZGf7oK2UJu
-         NRUbfG25M+irPCuTX97CmBYXvcSIzIt96ZQEm7Lr4ZcJ9PUCLiGYLottySBvFaUGrd
-         t8RtiBuyMddnW95Gmc4ARKSUAczJBa/TlW6qw3bI=
-Date:   Thu, 16 Jul 2020 14:46:14 -0700
+        b=H+TtBlZ69xiMgGJOQi8mFDxFz4TXMIspS+VO1dJnZchkfVwCS9TwE0sIoXNhjIziq
+         IX37WAW0QEXTD/bHpI/EUokJfq74QNmtgqIwpx4orogok2OdIC0M/m3ADgoaD8ABNC
+         KVZ8TAP1A8RoFA+Pd9mWnfpyM4azliszj5QNv9Bg=
+Date:   Thu, 16 Jul 2020 14:46:17 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aneesh.kumar@linux.vnet.ibm.com, dave.hansen@intel.com,
         david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
         naoya.horiguchi@nec.com, osalvador@suse.com, osalvador@suse.de,
         tony.luck@intel.com, zeil@yandex-team.ru
-Subject:  +
- mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch added to -mm
- tree
-Message-ID: <20200716214614.GgZ8gqalO%akpm@linux-foundation.org>
+Subject:  + mmhwpoison-rework-soft-offline-for-free-pages.patch
+ added to -mm tree
+Message-ID: <20200716214617.yOeCbzefU%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -59,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: Unify THP handling for hard and soft offline
+     Subject: mm,hwpoison: rework soft offline for free pages
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
+     mmhwpoison-rework-soft-offline-for-free-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-rework-soft-offline-for-free-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-rework-soft-offline-for-free-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -81,101 +80,161 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: Unify THP handling for hard and soft offline
+Subject: mm,hwpoison: rework soft offline for free pages
 
-Place the THP's page handling in a helper and use it from both hard and
-soft-offline machinery, so we get rid of some duplicated code.
+When trying to soft-offline a free page, we need to first take it off the
+buddy allocator.  Once we know is out of reach, we can safely flag it as
+poisoned.
 
-Link: http://lkml.kernel.org/r/20200716123810.25292-11-osalvador@suse.de
+take_page_off_buddy will be used to take a page meant to be poisoned off
+the buddy allocator.  take_page_off_buddy calls break_down_buddy_pages,
+which splits a higher-order page in case our page belongs to one.
+
+Once the page is under our control, we call page_handle_poison to set it
+as poisoned and grab a refcount on it.
+
+Link: http://lkml.kernel.org/r/20200716123810.25292-12-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Dmitry Yakunin <zeil@yandex-team.ru>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   48 +++++++++++++++++++-----------------------
- 1 file changed, 22 insertions(+), 26 deletions(-)
+ include/linux/page-flags.h |    1 
+ mm/memory-failure.c        |   17 ++++++--
+ mm/page_alloc.c            |   68 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 81 insertions(+), 5 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-unify-thp-handling-for-hard-and-soft-offline
+--- a/include/linux/page-flags.h~mmhwpoison-rework-soft-offline-for-free-pages
++++ a/include/linux/page-flags.h
+@@ -422,6 +422,7 @@ PAGEFLAG_FALSE(Uncached)
+ PAGEFLAG(HWPoison, hwpoison, PF_ANY)
+ TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
+ #define __PG_HWPOISON (1UL << PG_hwpoison)
++extern bool take_page_off_buddy(struct page *page);
+ extern bool set_hwpoison_free_buddy_page(struct page *page);
+ #else
+ PAGEFLAG_FALSE(HWPoison)
+--- a/mm/memory-failure.c~mmhwpoison-rework-soft-offline-for-free-pages
 +++ a/mm/memory-failure.c
-@@ -1103,6 +1103,25 @@ static int identify_page_state(unsigned
- 	return page_action(ps, p, pfn);
- }
+@@ -65,6 +65,13 @@ int sysctl_memory_failure_recovery __rea
  
-+static int try_to_split_thp_page(struct page *page, const char *msg)
+ atomic_long_t num_poisoned_pages __read_mostly = ATOMIC_LONG_INIT(0);
+ 
++static void page_handle_poison(struct page *page)
 +{
-+	lock_page(page);
-+	if (!PageAnon(page) || unlikely(split_huge_page(page))) {
-+		unsigned long pfn = page_to_pfn(page);
-+
-+		unlock_page(page);
-+		if (!PageAnon(page))
-+			pr_info("%s: %#lx: non anonymous thp\n", msg, pfn);
-+		else
-+			pr_info("%s: %#lx: thp split failed\n", msg, pfn);
-+		put_page(page);
-+		return -EBUSY;
-+	}
-+	unlock_page(page);
-+
-+	return 0;
++	SetPageHWPoison(page);
++	page_ref_inc(page);
++	num_poisoned_pages_inc();
 +}
 +
- static int memory_failure_hugetlb(unsigned long pfn, int flags)
+ #if defined(CONFIG_HWPOISON_INJECT) || defined(CONFIG_HWPOISON_INJECT_MODULE)
+ 
+ u32 hwpoison_filter_enable = 0;
+@@ -1876,14 +1883,14 @@ static int soft_offline_in_use_page(stru
+ 
+ static int soft_offline_free_page(struct page *page)
  {
- 	struct page *p = pfn_to_page(pfn);
-@@ -1325,21 +1344,8 @@ int memory_failure(unsigned long pfn, in
++	int rc = -EBUSY;
+ 	int rc = dissolve_free_huge_page(page);
+ 
+-	if (!rc) {
+-		if (set_hwpoison_free_buddy_page(page))
+-			num_poisoned_pages_inc();
+-		else
+-			rc = -EBUSY;
++	if (!dissolve_free_huge_page(page) && take_page_off_buddy(page)) {
++		page_handle_poison(page);
++		rc = 0;
  	}
++
+ 	return rc;
+ }
  
- 	if (PageTransHuge(hpage)) {
--		lock_page(p);
--		if (!PageAnon(p) || unlikely(split_huge_page(p))) {
--			unlock_page(p);
--			if (!PageAnon(p))
--				pr_err("Memory failure: %#lx: non anonymous thp\n",
--					pfn);
--			else
--				pr_err("Memory failure: %#lx: thp split failed\n",
--					pfn);
--			if (TestClearPageHWPoison(p))
--				num_poisoned_pages_dec();
--			put_page(p);
-+		if (try_to_split_thp_page(p, "Memory Failure") < 0)
- 			return -EBUSY;
--		}
--		unlock_page(p);
- 		VM_BUG_ON_PAGE(!page_count(p), p);
- 	}
+--- a/mm/page_alloc.c~mmhwpoison-rework-soft-offline-for-free-pages
++++ a/mm/page_alloc.c
+@@ -8762,6 +8762,74 @@ bool is_free_buddy_page(struct page *pag
  
-@@ -1847,19 +1853,9 @@ static int soft_offline_in_use_page(stru
- 	int mt;
- 	struct page *hpage = compound_head(page);
- 
--	if (!PageHuge(page) && PageTransHuge(hpage)) {
--		lock_page(page);
--		if (!PageAnon(page) || unlikely(split_huge_page(page))) {
--			unlock_page(page);
--			if (!PageAnon(page))
--				pr_info("soft offline: %#lx: non anonymous thp\n", page_to_pfn(page));
--			else
--				pr_info("soft offline: %#lx: thp split failed\n", page_to_pfn(page));
--			put_page(page);
-+	if (!PageHuge(page) && PageTransHuge(hpage))
-+		if (try_to_split_thp_page(page, "soft offline") < 0)
- 			return -EBUSY;
--		}
--		unlock_page(page);
--	}
- 
- 	/*
- 	 * Setting MIGRATE_ISOLATE here ensures that the page will be linked
+ #ifdef CONFIG_MEMORY_FAILURE
+ /*
++ * Break down a higher-order page in sub-pages, and keep our target out of
++ * buddy allocator.
++ */
++static void break_down_buddy_pages(struct zone *zone, struct page *page,
++				   struct page *target, int low, int high,
++				   int migratetype)
++{
++	unsigned long size = 1 << high;
++	struct page *current_buddy, *next_page;
++
++	while (high > low) {
++		high--;
++		size >>= 1;
++
++		if (target >= &page[size]) {
++			next_page = page + size;
++			current_buddy = page;
++		} else {
++			next_page = page;
++			current_buddy = page + size;
++		}
++
++		if (set_page_guard(zone, current_buddy, high, migratetype))
++			continue;
++
++		if (current_buddy != target) {
++			add_to_free_list(current_buddy, zone, high, migratetype);
++			set_page_order(current_buddy, high);
++			page = next_page;
++		}
++	}
++}
++
++/*
++ * Take a page that will be marked as poisoned off the buddy allocator.
++ */
++bool take_page_off_buddy(struct page *page)
++{
++	struct zone *zone = page_zone(page);
++	unsigned long pfn = page_to_pfn(page);
++	unsigned long flags;
++	unsigned int order;
++	bool ret = false;
++
++	spin_lock_irqsave(&zone->lock, flags);
++	for (order = 0; order < MAX_ORDER; order++) {
++		struct page *page_head = page - (pfn & ((1 << order) - 1));
++		int buddy_order = page_order(page_head);
++
++		if (PageBuddy(page_head) && buddy_order >= order) {
++			unsigned long pfn_head = page_to_pfn(page_head);
++			int migratetype = get_pfnblock_migratetype(page_head,
++								   pfn_head);
++
++			del_page_from_free_list(page_head, zone, buddy_order);
++			break_down_buddy_pages(zone, page_head, page, 0,
++						buddy_order, migratetype);
++			ret = true;
++			break;
++		}
++		if (page_count(page_head) > 0)
++			break;
++	}
++	spin_unlock_irqrestore(&zone->lock, flags);
++	return ret;
++}
++
++/*
+  * Set PG_hwpoison flag if a given page is confirmed to be a free page.  This
+  * test is performed under the zone lock to prevent a race against page
+  * allocation.
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
