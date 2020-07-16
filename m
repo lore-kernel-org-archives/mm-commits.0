@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BF07C433E3
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 00:50:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 399B7C433DF
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:28:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ECA4D2075B
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 00:50:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F9F520809
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:28:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594860635;
-	bh=3SlDspYAOetZOWNY1j9DGZemKeeoPsyFfYBkGDBhWxk=;
+	s=default; t=1594934909;
+	bh=XjpmwpqQaaG73yx7/K3aj3b2qjYwIj7j4S4YgPX8vV8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=GxlTJI2TDMxeWXc04JoOhCZcSb457DXtFfqMoK7C8NLS2lzFHII+9yT7u32FTCK23
-	 W7CufpZ0DqWA+kDktLUwzCup+O5N8Hn/FOuniPeQ8Ihj1Sr7U9svhUcH4J6hTcoyW/
-	 AG316yJhrNhcQkmUs5rvtonDE4+77ss/t+TM0VlA=
+	b=Hzbx87OAzL0Hc3xLlSghUY5OIfJ97vc4r4BpnXUOrDw0eNNMM1iCyHvp3NPPirkhs
+	 SLyyk3WzOQ0bBzV04WpcPaH/GaCIDMpOoRg3UhTrLsJ3yC8o96ApRqtYA6nYtpDcn5
+	 /LjdP2Jcf6RI+X4bcxgmwDlUoRuU34TZl3mU6CDk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727971AbgGPAue (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Jul 2020 20:50:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35148 "EHLO mail.kernel.org"
+        id S1726546AbgGPV22 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jul 2020 17:28:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38222 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727906AbgGPAue (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Jul 2020 20:50:34 -0400
+        id S1726090AbgGPV21 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jul 2020 17:28:27 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AB83020658;
-        Thu, 16 Jul 2020 00:50:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D268220787;
+        Thu, 16 Jul 2020 21:28:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594860634;
-        bh=3SlDspYAOetZOWNY1j9DGZemKeeoPsyFfYBkGDBhWxk=;
+        s=default; t=1594934906;
+        bh=XjpmwpqQaaG73yx7/K3aj3b2qjYwIj7j4S4YgPX8vV8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=IYHaoLfwT9OHwhG7d8XG1/atRC2Z1HDID7dVXdKc0LLKv6ugStYq+EE3//KcGhHbI
-         fsV9MrCh2cCYppBSTmPdM0K3BkuVB/1+09r9sdcXvTveEXD8KgLawwQTmk4wlCKafM
-         Ohzc3xyV1/lHM8ydpPV/Zqy4q1SMXPBJzKbu2ncY=
-Date:   Wed, 15 Jul 2020 17:50:33 -0700
+        b=0J0MnEC9RR9E4z4FzmlAXySC51JwAFjD4v0KdFXADo1sRtT8v3dYWhyL6vl446U1D
+         WZDcNbC3L89I91XhSSrRGwFi3YL2FxDVwCN/0IyUKnIBbOoSkBR80VDNyhfR62mE5Q
+         CQKdYRE2jIGwku+l7FHnNiV4nMTBvBzzFkdqVMZM=
+Date:   Thu, 16 Jul 2020 14:28:25 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com,
-        david@redhat.com, hpa@zytor.com, luto@kernel.org,
-        mhocko@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org,
-        pasha.tatashin@soleen.com, peterz@infradead.org,
-        steven.sistare@oracle.com, tglx@linutronix.de
-Subject:  + x86-mm-use-max-memory-block-size-on-bare-metal-v3.patch
- added to -mm tree
-Message-ID: <20200716005033.zEvNPV5Qi%akpm@linux-foundation.org>
+To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, shakeelb@google.com, songmuchun@bytedance.com,
+        stable@vger.kernel.org, vbabka@suse.cz
+Subject:  +
+ mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy.patch added to
+ -mm tree
+Message-ID: <20200716212825.AGqHB_kfq%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -58,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-mm-use-max-memory-block-size-on-bare-metal-v3
+     Subject: mm: memcg/slab: fix memory leak at non-root kmem_cache destroy
 has been added to the -mm tree.  Its filename is
-     x86-mm-use-max-memory-block-size-on-bare-metal-v3.patch
+     mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-use-max-memory-block-size-on-bare-metal-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-use-max-memory-block-size-on-bare-metal-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,54 +79,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Jordan <daniel.m.jordan@oracle.com>
-Subject: x86-mm-use-max-memory-block-size-on-bare-metal-v3
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcg/slab: fix memory leak at non-root kmem_cache destroy
 
-Add more accurate hypervisor check.  Someone kindly pointed me to
-517c3ba00916 ("x86/speculation/mds: Apply more accurate check on
-hypervisor platform"), and v2 had the same issue.
+If the kmem_cache refcount is greater than one, we should not mark the
+root kmem_cache as dying.  If we mark the root kmem_cache dying
+incorrectly, the non-root kmem_cache can never be destroyed.  It resulted
+in memory leak when memcg was destroyed.  We can use the following steps
+to reproduce.
 
-Link: http://lkml.kernel.org/r/20200714205450.945834-1-daniel.m.jordan@oracle.com
-Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+  1) Use kmem_cache_create() to create a new kmem_cache named A.
+  2) Coincidentally, the kmem_cache A is an alias for kmem_cache B,
+     so the refcount of B is just increased.
+  3) Use kmem_cache_destroy() to destroy the kmem_cache A, just
+     decrease the B's refcount but mark the B as dying.
+  4) Create a new memory cgroup and alloc memory from the kmem_cache
+     B. It leads to create a non-root kmem_cache for allocating memory.
+  5) When destroy the memory cgroup created in the step 4), the
+     non-root kmem_cache can never be destroyed.
+
+If we repeat steps 4) and 5), this will cause a lot of memory leak.  So
+only when refcount reach zero, we mark the root kmem_cache as dying.
+
+Link: http://lkml.kernel.org/r/20200716165103.83462-1-songmuchun@bytedance.com
+Fixes: 92ee383f6daa ("mm: fix race between kmem_cache destroy, create and deactivate")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/slab_common.c |   35 ++++++++++++++++++++++++++++-------
+ 1 file changed, 28 insertions(+), 7 deletions(-)
 
---- a/arch/x86/mm/init_64.c~x86-mm-use-max-memory-block-size-on-bare-metal-v3
-+++ a/arch/x86/mm/init_64.c
-@@ -54,7 +54,6 @@
- #include <asm/uv/uv.h>
- #include <asm/setup.h>
- #include <asm/ftrace.h>
--#include <asm/hypervisor.h>
+--- a/mm/slab_common.c~mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy
++++ a/mm/slab_common.c
+@@ -326,6 +326,14 @@ int slab_unmergeable(struct kmem_cache *
+ 	if (s->refcount < 0)
+ 		return 1;
  
- #include "mm_internal.h"
++#ifdef CONFIG_MEMCG_KMEM
++	/*
++	 * Skip the dying kmem_cache.
++	 */
++	if (s->memcg_params.dying)
++		return 1;
++#endif
++
+ 	return 0;
+ }
  
-@@ -1410,7 +1409,7 @@ static unsigned long probe_memory_block_
- 	 * Use max block size to minimize overhead on bare metal, where
- 	 * alignment for memory hotplug isn't a concern.
- 	 */
--	if (hypervisor_is_type(X86_HYPER_NATIVE)) {
-+	if (!boot_cpu_has(X86_FEATURE_HYPERVISOR)) {
- 		bz = MAX_BLOCK_SIZE;
- 		goto done;
- 	}
+@@ -886,12 +894,15 @@ static int shutdown_memcg_caches(struct
+ 	return 0;
+ }
+ 
+-static void flush_memcg_workqueue(struct kmem_cache *s)
++static void memcg_set_kmem_cache_dying(struct kmem_cache *s)
+ {
+ 	spin_lock_irq(&memcg_kmem_wq_lock);
+ 	s->memcg_params.dying = true;
+ 	spin_unlock_irq(&memcg_kmem_wq_lock);
++}
+ 
++static void flush_memcg_workqueue(struct kmem_cache *s)
++{
+ 	/*
+ 	 * SLAB and SLUB deactivate the kmem_caches through call_rcu. Make
+ 	 * sure all registered rcu callbacks have been invoked.
+@@ -923,10 +934,6 @@ static inline int shutdown_memcg_caches(
+ {
+ 	return 0;
+ }
+-
+-static inline void flush_memcg_workqueue(struct kmem_cache *s)
+-{
+-}
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+ void slab_kmem_cache_release(struct kmem_cache *s)
+@@ -944,8 +951,6 @@ void kmem_cache_destroy(struct kmem_cach
+ 	if (unlikely(!s))
+ 		return;
+ 
+-	flush_memcg_workqueue(s);
+-
+ 	get_online_cpus();
+ 	get_online_mems();
+ 
+@@ -955,6 +960,22 @@ void kmem_cache_destroy(struct kmem_cach
+ 	if (s->refcount)
+ 		goto out_unlock;
+ 
++#ifdef CONFIG_MEMCG_KMEM
++	memcg_set_kmem_cache_dying(s);
++
++	mutex_unlock(&slab_mutex);
++
++	put_online_mems();
++	put_online_cpus();
++
++	flush_memcg_workqueue(s);
++
++	get_online_cpus();
++	get_online_mems();
++
++	mutex_lock(&slab_mutex);
++#endif
++
+ 	err = shutdown_memcg_caches(s);
+ 	if (!err)
+ 		err = shutdown_cache(s);
 _
 
-Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-x86-mm-use-max-memory-block-size-on-bare-metal.patch
-x86-mm-use-max-memory-block-size-on-bare-metal-v3.patch
+mm-memcg-slab-fix-memory-leak-at-non-root-kmem_cache-destroy.patch
+mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt.patch
 
