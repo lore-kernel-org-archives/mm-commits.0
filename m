@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DD59C433DF
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:32:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08B4EC4345A
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:42:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1658020870
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:32:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D04ED2063A
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:42:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594942347;
-	bh=0wNy2a3Xb6lRx0qgqMMAA+3LAkOJDZ7K9HdX90T+lVM=;
+	s=default; t=1594942936;
+	bh=agyFd32ltX8DlhTJx+uM9tFed0apRkw4gdQG8lowyvg=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=ZjTfO7HwS/TJ8IGSaaG2lZrMIDDQ6VKrBX7cu2pd5ztgfOSC8i2TlQqVoMDkZB9q+
-	 XU+vrmWcm2QU55ZsyrF3Mx7G48QNPXHLRQRv1rtMN4JphH6tF1+BgJUYJtkgg37jgS
-	 KQj3Wz28YEky8i/r/zd1mdePUOouHxGKyV59xUeM=
+	b=A1Z9DX6gJ4FkfvK/rGE3yBXvd4RFEoFKCBimfjRFFEMt5uRdPTDhN57DDBY2RmdsJ
+	 IyncH5LLsizs1wdQWbBMXsUs/gUEJnfq9sJKdq8lgcnkCzWWrSNhn97BtrcAm5roxi
+	 rdUe0TY6qpUG/jyhUK0z1AcrqO2RPZGlrNCV/jz4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726189AbgGPXc0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jul 2020 19:32:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40442 "EHLO mail.kernel.org"
+        id S1726113AbgGPXmQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jul 2020 19:42:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726113AbgGPXc0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jul 2020 19:32:26 -0400
+        id S1725980AbgGPXmQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jul 2020 19:42:16 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CA7F42076D;
-        Thu, 16 Jul 2020 23:32:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8EEBF207DD;
+        Thu, 16 Jul 2020 23:42:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594942346;
-        bh=0wNy2a3Xb6lRx0qgqMMAA+3LAkOJDZ7K9HdX90T+lVM=;
+        s=default; t=1594942935;
+        bh=agyFd32ltX8DlhTJx+uM9tFed0apRkw4gdQG8lowyvg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=zyo6XJrB7ooJ6ZKSXKaODD88HAmNBXxFQTT4c7kXat6DNQj7l6ZLFoWloVWIiJz8l
-         fhW/tNzyOiFIKp1RlmqvOZKV+rw1CDbsQ2pKL1RyaRFljMYnBgPw3ISXSkOXGb3mW6
-         bcn+tx4XO+Rfne/8bYutzBt9dGJhRYpZIhWdkXOc=
-Date:   Thu, 16 Jul 2020 16:32:25 -0700
+        b=fIdqdpphfv4HptHi3x71bgsNVWnXWSL6U5UFQPVwOhwihzUVYUmoqK4GXWfaHGUd0
+         0imf8b0ZEbQIN730oJTMYzAsTEqG+1CqrHevo+rgnb6xI/YiMmQS75DomAf1svSYi8
+         3BN+YmBowA+8oTZ2ezFJLeEcNwi0MmL6UQiEslEY=
+Date:   Thu, 16 Jul 2020 16:42:15 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     cuibixuan@huawei.com, guro@fb.com, mm-commits@vger.kernel.org,
-        sfr@canb.auug.org.au
-Subject:  +
- mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2.patch added
- to -mm tree
-Message-ID: <20200716233225.BXIP04h2v%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, liao.pingfang@zte.com.cn,
+        mm-commits@vger.kernel.org, wang.yi59@zte.com.cn
+Subject:  + ipc-shmc-remove-the-superfluous-break.patch added to
+ -mm tree
+Message-ID: <20200716234215.jtbOlGSm6%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/percpu: fix 'defined but not used' warning
+     Subject: ipc/shm.c: Remove the superfluous break
 has been added to the -mm tree.  Its filename is
-     mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2.patch
+     ipc-shmc-remove-the-superfluous-break.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shmc-remove-the-superfluous-break.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shmc-remove-the-superfluous-break.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,71 +76,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bixuan Cui <cuibixuan@huawei.com>
-Subject: mm/percpu: fix 'defined but not used' warning
+From: Liao Pingfang <liao.pingfang@zte.com.cn>
+Subject: ipc/shm.c: Remove the superfluous break
 
-Gcc report the following warning without CONFIG_MEMCG_KMEM:
+Remove the superfuous break, as there is a 'return' before it.
 
-mm/percpu-internal.h:145:29: warning: 'pcpu_chunk_type' defined
-but not used [-Wunused-function]
- static enum pcpu_chunk_type pcpu_chunk_type(struct pcpu_chunk *chunk)
-                             ^~~~~~~~~~~~~~~
-
-Add 'inline' to pcpu_chunk_type(),pcpu_is_memcg_chunk() and
-pcpu_chunk_list() to clear warning.
-
-Link: http://lkml.kernel.org/r/6d41b939-a741-b521-a7a2-e7296ec16219@huawei.com
-Signed-off-by: Bixuan Cui <cuibixuan@huawei.com>
-Suggested-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Roman Gushchin <guro@fb.com>
+Link: http://lkml.kernel.org/r/1594724361-11525-1-git-send-email-wang.yi59@zte.com.cn
+Signed-off-by: Liao Pingfang <liao.pingfang@zte.com.cn>
+Signed-off-by: Yi Wang <wang.yi59@zte.com.cn>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu-internal.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ ipc/shm.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/percpu-internal.h~mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2
-+++ a/mm/percpu-internal.h
-@@ -129,31 +129,31 @@ static inline int pcpu_chunk_map_bits(st
- }
- 
- #ifdef CONFIG_MEMCG_KMEM
--static enum pcpu_chunk_type pcpu_chunk_type(struct pcpu_chunk *chunk)
-+static inline enum pcpu_chunk_type pcpu_chunk_type(struct pcpu_chunk *chunk)
- {
- 	if (chunk->obj_cgroups)
- 		return PCPU_CHUNK_MEMCG;
- 	return PCPU_CHUNK_ROOT;
- }
- 
--static bool pcpu_is_memcg_chunk(enum pcpu_chunk_type chunk_type)
-+static inline bool pcpu_is_memcg_chunk(enum pcpu_chunk_type chunk_type)
- {
- 	return chunk_type == PCPU_CHUNK_MEMCG;
- }
- 
- #else
--static enum pcpu_chunk_type pcpu_chunk_type(struct pcpu_chunk *chunk)
-+static inline enum pcpu_chunk_type pcpu_chunk_type(struct pcpu_chunk *chunk)
- {
- 	return PCPU_CHUNK_ROOT;
- }
- 
--static bool pcpu_is_memcg_chunk(enum pcpu_chunk_type chunk_type)
-+static inline bool pcpu_is_memcg_chunk(enum pcpu_chunk_type chunk_type)
- {
- 	return false;
- }
- #endif
- 
--static struct list_head *pcpu_chunk_list(enum pcpu_chunk_type chunk_type)
-+static inline struct list_head *pcpu_chunk_list(enum pcpu_chunk_type chunk_type)
- {
- 	return &pcpu_chunk_lists[pcpu_nr_slots *
- 				 pcpu_is_memcg_chunk(chunk_type)];
+--- a/ipc/shm.c~ipc-shmc-remove-the-superfluous-break
++++ a/ipc/shm.c
+@@ -1380,7 +1380,6 @@ static long compat_ksys_shmctl(int shmid
+ 	case SHM_LOCK:
+ 	case SHM_UNLOCK:
+ 		return shmctl_do_lock(ns, shmid, cmd);
+-		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
 _
 
-Patches currently in -mm which might be from cuibixuan@huawei.com are
+Patches currently in -mm which might be from liao.pingfang@zte.com.cn are
 
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-2.patch
+ipc-shmc-remove-the-superfluous-break.patch
 
