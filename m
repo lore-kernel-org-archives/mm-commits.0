@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 240D6C433E2
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:20:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F3C5C433E1
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:28:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC1A820656
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:20:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A1C820870
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 23:28:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594941619;
-	bh=gh9i/YGezN+6svJR8kuCn8xFpI0IX4o48s0BhVRM3sY=;
+	s=default; t=1594942082;
+	bh=V8Ciaua4djghO6IyEj/rfPCZ1IB+C7Zw1XpJ0pMKSkw=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=kFztUmv9viNiRHfvOuPe8SmoJ/owC0ZVdeJXIjTe1AyFEtIK2o318Xn7bU/jUJSVR
-	 JYDMCG1QTXA7Pfx7qExrlsBvyVwksttLzSrSXMohRppnIrE06hKrYeWlFaOp5/J79b
-	 axyhH8/e81KgOOSQXSU6KiZQYBoflVNuixVUmEus=
+	b=nwZn20DBcGE7LaDiKqGtCRUWTF77PsU3HG4Tu+HWCdpudE2pGAzEq5sPsbTXdFKgk
+	 PAHQV6gE/UWwiwf+rTsNU9GqyC889PMIdwzV7LA7hnsJHBF0J5JlzpNuzQ9DTC666P
+	 DbryI794ZlJCsHhiiNEoGVAwLejx+wqj4npRskHY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727025AbgGPXUS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jul 2020 19:20:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60402 "EHLO mail.kernel.org"
+        id S1726189AbgGPX2C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jul 2020 19:28:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726984AbgGPXUS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jul 2020 19:20:18 -0400
+        id S1726113AbgGPX2B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jul 2020 19:28:01 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0B6432137B;
-        Thu, 16 Jul 2020 23:09:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A692C20760;
+        Thu, 16 Jul 2020 23:28:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594940984;
-        bh=gh9i/YGezN+6svJR8kuCn8xFpI0IX4o48s0BhVRM3sY=;
+        s=default; t=1594942081;
+        bh=V8Ciaua4djghO6IyEj/rfPCZ1IB+C7Zw1XpJ0pMKSkw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=DEz5Y1RzDBm+2UnWXHUvHunuxq6xGNhH6AsBUE5yZwP6t0CJu3g5BVHOJBzbb2dCX
-         snQCUJYn52ypHX29RWWvl2nfQCSZT6BjHj6b4Eo1FrllZMzWArsRKeoI76BR8Dzl5/
-         HLBC5N9NaBPTjEagLpJ6X4Da/rAXJ1cNlebAsQXU=
-Date:   Thu, 16 Jul 2020 16:09:43 -0700
+        b=HwWy8j0gOh4BsUMV519Q/OtypA1Mci1dkZduCAZCKtRzmqK0SyjT1bm8UorEeHvmv
+         0mRKeOLLcTX6LEylIil8tVU5N23k6jVv4xsa3QviRRFGFS9l0pj4INhMdhCcimQ91s
+         Y5vgWy2YCEHEzpsswuVBFzPxZak18q2SvYhWaPDE=
+Date:   Thu, 16 Jul 2020 16:28:00 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     guro@fb.com, hannes@cmpxchg.org, hughd@google.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, vbabka@suse.cz
-Subject:  +
- mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+To:     chris@chrisdown.name, hannes@cmpxchg.org, laoar.shao@gmail.com,
+        mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org,
+        penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com
+Subject:  + memcg-oom-check-memcg-margin-for-parallel-oom.patch
  added to -mm tree
-Message-ID: <20200716230943.tTYEQKnbM%akpm@linux-foundation.org>
+Message-ID: <20200716232800.VpamkVDvF%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: fix /proc/sys/vm/stat_refresh generating false warnings
+     Subject: memcg, oom: check memcg margin for parallel oom
 has been added to the -mm tree.  Its filename is
-     mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+     memcg-oom-check-memcg-margin-for-parallel-oom.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-oom-check-memcg-margin-for-parallel-oom.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-oom-check-memcg-margin-for-parallel-oom.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,172 +77,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: vmstat: fix /proc/sys/vm/stat_refresh generating false warnings
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: memcg, oom: check memcg margin for parallel oom
 
-I've noticed a number of warnings like "vmstat_refresh: nr_free_cma -5" or
-"vmstat_refresh: nr_zone_write_pending -11" on our production hosts.  The
-numbers of these warnings were relatively low and stable, so it didn't
-look like we are systematically leaking the counters.  The corresponding
-vmstat counters also looked sane.
+Memcg oom killer invocation is synchronized by the global oom_lock and
+tasks are sleeping on the lock while somebody is selecting the victim or
+potentially race with the oom_reaper is releasing the victim's memory. 
+This can result in a pointless oom killer invocation because a waiter
+might be racing with the oom_reaper
 
-These warnings are generated by the vmstat_refresh() function, which
-assumes that atomic zone and numa counters can't go below zero.  However,
-on a SMP machine it's not quite right: due to per-cpu caching it can in
-theory be as low as -(zone threshold) * NR_CPUs.
+        P1              oom_reaper              P2
+                        oom_reap_task           mutex_lock(oom_lock)
+                                                out_of_memory # no victim because we have one already
+                        __oom_reap_task_mm      mute_unlock(oom_lock)
+ mutex_lock(oom_lock)
+                        set MMF_OOM_SKIP
+ select_bad_process
+ # finds a new victim
 
-For instance, let's say all cma pages are in use and NR_FREE_CMA_PAGES
-reached 0.  Then we've reclaimed a small number of cma pages on each CPU
-except CPU0, so that most percpu NR_FREE_CMA_PAGES counters are slightly
-positive (the atomic counter is still 0).  Then somebody on CPU0 consumes
-all these pages.  The number of pages can easily exceed the threshold and
-a negative value will be committed to the atomic counter.
+The page allocator prevents from this race by trying to allocate after the
+lock can be acquired (in __alloc_pages_may_oom) which acts as a last
+minute check.  Moreover page allocator simply doesn't block on the
+oom_lock and simply retries the whole reclaim process.
 
-To fix the problem and avoid generating false warnings, let's just relax
-the condition and warn only if the value is less than minus the maximum
-theoretically possible drift value, which is 125 * number of online CPUs. 
-It will still allow to catch systematic leaks, but will not generate bogus
-warnings.
+Memcg oom killer should do the last minute check as well.  Call
+mem_cgroup_margin to do that.  Trylock on the oom_lock could be done as
+well but this doesn't seem to be necessary at this stage.
 
-Link: http://lkml.kernel.org/r/20200714173920.3319063-1-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
+[mhocko@kernel.org: commit log]
+Link: http://lkml.kernel.org/r/1594735034-19190-1-git-send-email-laoar.shao@gmail.com
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |    4 +-
- mm/vmstat.c                             |   30 +++++++++++++---------
- 2 files changed, 21 insertions(+), 13 deletions(-)
+ mm/memcontrol.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -822,8 +822,8 @@ e.g. cat /proc/sys/vm/stat_refresh /proc
+--- a/mm/memcontrol.c~memcg-oom-check-memcg-margin-for-parallel-oom
++++ a/mm/memcontrol.c
+@@ -1665,15 +1665,21 @@ static bool mem_cgroup_out_of_memory(str
+ 		.gfp_mask = gfp_mask,
+ 		.order = order,
+ 	};
+-	bool ret;
++	bool ret = true;
  
- As a side-effect, it also checks for negative totals (elsewhere reported
- as 0) and "fails" with EINVAL if any are found, with a warning in dmesg.
--(At time of writing, a few stats are known sometimes to be found negative,
--with no ill effects: errors and warnings on these stats are suppressed.)
-+(On a SMP machine some stats can temporarily become negative, with no ill
-+effects: errors and warnings on these stats are suppressed.)
- 
- 
- numa_stat
---- a/mm/vmstat.c~mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings
-+++ a/mm/vmstat.c
-@@ -169,6 +169,8 @@ EXPORT_SYMBOL(vm_node_stat);
- 
- #ifdef CONFIG_SMP
- 
-+#define MAX_THRESHOLD 125
+ 	if (mutex_lock_killable(&oom_lock))
+ 		return true;
 +
- int calculate_pressure_threshold(struct zone *zone)
- {
- 	int threshold;
-@@ -186,11 +188,9 @@ int calculate_pressure_threshold(struct
- 	threshold = max(1, (int)(watermark_distance / num_online_cpus()));
- 
++	if (mem_cgroup_margin(memcg) >= (1 << order))
++		goto unlock;
++
  	/*
--	 * Maximum threshold is 125
-+	 * Threshold is capped by MAX_THRESHOLD
+ 	 * A few threads which were not waiting at mutex_lock_killable() can
+ 	 * fail to bail out. Therefore, check again after holding oom_lock.
  	 */
--	threshold = min(125, threshold);
--
--	return threshold;
-+	return min(MAX_THRESHOLD, threshold);
+ 	ret = should_force_charge() || out_of_memory(&oc);
++
++unlock:
+ 	mutex_unlock(&oom_lock);
+ 	return ret;
  }
- 
- int calculate_normal_threshold(struct zone *zone)
-@@ -610,6 +610,9 @@ void dec_node_page_state(struct page *pa
- }
- EXPORT_SYMBOL(dec_node_page_state);
- #else
-+
-+#define MAX_THRESHOLD 0
-+
- /*
-  * Use interrupt disable to serialize counter updates
-  */
-@@ -1810,7 +1813,7 @@ static void refresh_vm_stats(struct work
- int vmstat_refresh(struct ctl_table *table, int write,
- 		   void *buffer, size_t *lenp, loff_t *ppos)
- {
--	long val;
-+	long val, max_drift;
- 	int err;
- 	int i;
- 
-@@ -1821,17 +1824,22 @@ int vmstat_refresh(struct ctl_table *tab
- 	 * pages, immediately after running a test.  /proc/sys/vm/stat_refresh,
- 	 * which can equally be echo'ed to or cat'ted from (by root),
- 	 * can be used to update the stats just before reading them.
--	 *
--	 * Oh, and since global_zone_page_state() etc. are so careful to hide
--	 * transiently negative values, report an error here if any of
--	 * the stats is negative, so we know to go looking for imbalance.
- 	 */
- 	err = schedule_on_each_cpu(refresh_vm_stats);
- 	if (err)
- 		return err;
-+
-+	/*
-+	 * Since global_zone_page_state() etc. are so careful to hide
-+	 * transiently negative values, report an error here if any of
-+	 * the stats is negative and are less than the maximum drift value,
-+	 * so we know to go looking for imbalance.
-+	 */
-+	max_drift = num_online_cpus() * MAX_THRESHOLD;
-+
- 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
- 		val = atomic_long_read(&vm_zone_stat[i]);
--		if (val < 0) {
-+		if (val < -max_drift) {
- 			pr_warn("%s: %s %ld\n",
- 				__func__, zone_stat_name(i), val);
- 			err = -EINVAL;
-@@ -1840,7 +1848,7 @@ int vmstat_refresh(struct ctl_table *tab
- #ifdef CONFIG_NUMA
- 	for (i = 0; i < NR_VM_NUMA_STAT_ITEMS; i++) {
- 		val = atomic_long_read(&vm_numa_stat[i]);
--		if (val < 0) {
-+		if (val < -max_drift) {
- 			pr_warn("%s: %s %ld\n",
- 				__func__, numa_stat_name(i), val);
- 			err = -EINVAL;
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from laoar.shao@gmail.com are
 
-mm-kmem-make-memcg_kmem_enabled-irreversible.patch
-mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
-mm-memcg-prepare-for-byte-sized-vmstat-items.patch
-mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
-mm-slub-implement-slub-version-of-obj_to_index.patch
-mm-memcg-slab-obj_cgroup-api.patch
-mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
-mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
-mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
-mm-memcg-slab-deprecate-memorykmemslabinfo.patch
-mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
-mm-memcg-slab-simplify-memcg-cache-creation.patch
-mm-memcg-slab-remove-memcg_kmem_get_cache.patch
-mm-memcg-slab-deprecate-slab_root_caches.patch
-mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
-kselftests-cgroup-add-kernel-memory-accounting-tests.patch
-tools-cgroup-add-memcg_slabinfopy-tool.patch
-percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics-v3.patch
-mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
-kselftests-cgroup-add-perpcu-memory-accounting-test.patch
-mm-memcg-slab-remove-unused-argument-by-charge_slab_page.patch
-mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
-mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
-mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+mm-memcg-avoid-stale-protection-values-when-cgroup-is-above-protection.patch
+memcg-oom-check-memcg-margin-for-parallel-oom.patch
+mm-oom-make-the-calculation-of-oom-badness-more-accurate.patch
+mm-oom-make-the-calculation-of-oom-badness-more-accurate-v3.patch
 
