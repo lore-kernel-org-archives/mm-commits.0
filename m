@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FB9CC433E2
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:46:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AAA0C433E1
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:46:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 071942076D
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:46:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1168120809
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Jul 2020 21:46:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594935973;
-	bh=qbrN6W7UY/ypuT4/Y7i3sc/riNHtncrxwogQO5OBHRo=;
+	s=default; t=1594935976;
+	bh=nVV9F0Ju+JB0JqQbm092nLbJl7ZFUG5qDqCzO3Ldf7s=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=MtfJ6DEguZGsmDYDQBbws/uyQ8+bqk+Qkj636amYafLojddxof1SdD/apnhA24dHu
-	 w7DHWpauFFANM1Qe2GLoNiJJ3Zj1Ab5lJDpyRHhMEjQD0L/qTIeK7j9N+0+7BHk/6r
-	 K8wACRjJuWAzCDLkYv1SqblToR8VxCLvgrMNxfuU=
+	b=o4dSpUlklIb1mBq8pAgv41bpmHG1PikMQnU1mMMVa91+5PE+s6NpKCHUgJp7PPJNW
+	 eU2aitAoNVeazubGhtmQwR6IDeuY1I8Jecc6HSQH4r8GktXh+EFlh7VaPIvQ0cCXn/
+	 47ZfxK4Al9wLtbw5mcdpnmEdLKxMi50BrWG3HDE0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726359AbgGPVqM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Jul 2020 17:46:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45892 "EHLO mail.kernel.org"
+        id S1726394AbgGPVqP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Jul 2020 17:46:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726002AbgGPVqM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Jul 2020 17:46:12 -0400
+        id S1726002AbgGPVqP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Jul 2020 17:46:15 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E96A7207DD;
-        Thu, 16 Jul 2020 21:46:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E30A42076D;
+        Thu, 16 Jul 2020 21:46:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1594935971;
-        bh=qbrN6W7UY/ypuT4/Y7i3sc/riNHtncrxwogQO5OBHRo=;
+        s=default; t=1594935975;
+        bh=nVV9F0Ju+JB0JqQbm092nLbJl7ZFUG5qDqCzO3Ldf7s=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=lK6i+S9/+/HUcYF+4nD7d9pq3XhmRWByHEAgXrwOG6rLe4u0MTgSXdMlnQS2yUhXL
-         49klvRD7xwy66Eqwyp52MCbEmXfVyh2n2B2FvN6khCuhFt3bvPD53QEtpNE6xjtP9h
-         dZbVcbRksvImDKh8OeH8WsZko1GJJUQ8COcDDB6Q=
-Date:   Thu, 16 Jul 2020 14:46:10 -0700
+        b=kwiq6YWp0GqNO8I8KD0IaJ/25WabH6rpItM/XzxXdRT8EH6lk8ysjC3ZGf7oK2UJu
+         NRUbfG25M+irPCuTX97CmBYXvcSIzIt96ZQEm7Lr4ZcJ9PUCLiGYLottySBvFaUGrd
+         t8RtiBuyMddnW95Gmc4ARKSUAczJBa/TlW6qw3bI=
+Date:   Thu, 16 Jul 2020 14:46:14 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aneesh.kumar@linux.vnet.ibm.com, dave.hansen@intel.com,
         david@redhat.com, mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
-        naoya.horiguchi@nec.com, osalvador@suse.com, tony.luck@intel.com,
-        zeil@yandex-team.ru
+        naoya.horiguchi@nec.com, osalvador@suse.com, osalvador@suse.de,
+        tony.luck@intel.com, zeil@yandex-team.ru
 Subject:  +
- mmhwpoison-remove-flag-argument-from-soft-offline-functions.patch added to
- -mm tree
-Message-ID: <20200716214610.3sjbeM4jS%akpm@linux-foundation.org>
+ mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch added to -mm
+ tree
+Message-ID: <20200716214614.GgZ8gqalO%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -59,14 +59,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: remove flag argument from soft offline functions
+     Subject: mm,hwpoison: Unify THP handling for hard and soft offline
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-remove-flag-argument-from-soft-offline-functions.patch
+     mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-remove-flag-argument-from-soft-offline-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-remove-flag-argument-from-soft-offline-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,15 +80,15 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm,hwpoison: remove flag argument from soft offline functions
+From: Oscar Salvador <osalvador@suse.de>
+Subject: mm,hwpoison: Unify THP handling for hard and soft offline
 
-The argument @flag no longer affects the behavior of soft_offline_page()
-and its variants, so let's remove them.
+Place the THP's page handling in a helper and use it from both hard and
+soft-offline machinery, so we get rid of some duplicated code.
 
-Link: http://lkml.kernel.org/r/20200716123810.25292-10-osalvador@suse.de
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/20200716123810.25292-11-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -100,163 +100,93 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    2 +-
- include/linux/mm.h    |    2 +-
- mm/madvise.c          |    2 +-
- mm/memory-failure.c   |   27 +++++++++++++--------------
- 4 files changed, 16 insertions(+), 17 deletions(-)
+ mm/memory-failure.c |   48 +++++++++++++++++++-----------------------
+ 1 file changed, 22 insertions(+), 26 deletions(-)
 
---- a/drivers/base/memory.c~mmhwpoison-remove-flag-argument-from-soft-offline-functions
-+++ a/drivers/base/memory.c
-@@ -463,7 +463,7 @@ static ssize_t soft_offline_page_store(s
- 	if (kstrtoull(buf, 0, &pfn) < 0)
- 		return -EINVAL;
- 	pfn >>= PAGE_SHIFT;
--	ret = soft_offline_page(pfn, 0);
-+	ret = soft_offline_page(pfn);
- 	return ret == 0 ? count : ret;
- }
- 
---- a/include/linux/mm.h~mmhwpoison-remove-flag-argument-from-soft-offline-functions
-+++ a/include/linux/mm.h
-@@ -2995,7 +2995,7 @@ extern int sysctl_memory_failure_early_k
- extern int sysctl_memory_failure_recovery;
- extern void shake_page(struct page *p, int access);
- extern atomic_long_t num_poisoned_pages __read_mostly;
--extern int soft_offline_page(unsigned long pfn, int flags);
-+extern int soft_offline_page(unsigned long pfn);
- 
- 
- /*
---- a/mm/madvise.c~mmhwpoison-remove-flag-argument-from-soft-offline-functions
-+++ a/mm/madvise.c
-@@ -910,7 +910,7 @@ static int madvise_inject_error(int beha
- 			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
- 				 pfn, start);
- 
--			ret = soft_offline_page(pfn, 0);
-+			ret = soft_offline_page(pfn);
- 		} else {
- 			pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
- 				 pfn, start);
---- a/mm/memory-failure.c~mmhwpoison-remove-flag-argument-from-soft-offline-functions
+--- a/mm/memory-failure.c~mmhwpoison-unify-thp-handling-for-hard-and-soft-offline
 +++ a/mm/memory-failure.c
-@@ -1502,7 +1502,7 @@ static void memory_failure_work_func(str
- 		if (!gotten)
- 			break;
- 		if (entry.flags & MF_SOFT_OFFLINE)
--			soft_offline_page(entry.pfn, entry.flags);
-+			soft_offline_page(entry.pfn);
- 		else
- 			memory_failure(entry.pfn, entry.flags);
+@@ -1103,6 +1103,25 @@ static int identify_page_state(unsigned
+ 	return page_action(ps, p, pfn);
+ }
+ 
++static int try_to_split_thp_page(struct page *page, const char *msg)
++{
++	lock_page(page);
++	if (!PageAnon(page) || unlikely(split_huge_page(page))) {
++		unsigned long pfn = page_to_pfn(page);
++
++		unlock_page(page);
++		if (!PageAnon(page))
++			pr_info("%s: %#lx: non anonymous thp\n", msg, pfn);
++		else
++			pr_info("%s: %#lx: thp split failed\n", msg, pfn);
++		put_page(page);
++		return -EBUSY;
++	}
++	unlock_page(page);
++
++	return 0;
++}
++
+ static int memory_failure_hugetlb(unsigned long pfn, int flags)
+ {
+ 	struct page *p = pfn_to_page(pfn);
+@@ -1325,21 +1344,8 @@ int memory_failure(unsigned long pfn, in
  	}
-@@ -1648,7 +1648,7 @@ static struct page *new_page(struct page
-  * that is not free, and 1 for any other page type.
-  * For 1 the page is returned with increased page count, otherwise not.
-  */
--static int __get_any_page(struct page *p, unsigned long pfn, int flags)
-+static int __get_any_page(struct page *p, unsigned long pfn)
- {
- 	int ret;
  
-@@ -1675,9 +1675,9 @@ static int __get_any_page(struct page *p
- 	return ret;
- }
+ 	if (PageTransHuge(hpage)) {
+-		lock_page(p);
+-		if (!PageAnon(p) || unlikely(split_huge_page(p))) {
+-			unlock_page(p);
+-			if (!PageAnon(p))
+-				pr_err("Memory failure: %#lx: non anonymous thp\n",
+-					pfn);
+-			else
+-				pr_err("Memory failure: %#lx: thp split failed\n",
+-					pfn);
+-			if (TestClearPageHWPoison(p))
+-				num_poisoned_pages_dec();
+-			put_page(p);
++		if (try_to_split_thp_page(p, "Memory Failure") < 0)
+ 			return -EBUSY;
+-		}
+-		unlock_page(p);
+ 		VM_BUG_ON_PAGE(!page_count(p), p);
+ 	}
  
--static int get_any_page(struct page *page, unsigned long pfn, int flags)
-+static int get_any_page(struct page *page, unsigned long pfn)
- {
--	int ret = __get_any_page(page, pfn, flags);
-+	int ret = __get_any_page(page, pfn);
- 
- 	if (ret == 1 && !PageHuge(page) &&
- 	    !PageLRU(page) && !__PageMovable(page)) {
-@@ -1690,7 +1690,7 @@ static int get_any_page(struct page *pag
- 		/*
- 		 * Did it turn free?
- 		 */
--		ret = __get_any_page(page, pfn, 0);
-+		ret = __get_any_page(page, pfn);
- 		if (ret == 1 && !PageLRU(page)) {
- 			/* Drop page reference which is from __get_any_page() */
- 			put_page(page);
-@@ -1702,7 +1702,7 @@ static int get_any_page(struct page *pag
- 	return ret;
- }
- 
--static int soft_offline_huge_page(struct page *page, int flags)
-+static int soft_offline_huge_page(struct page *page)
- {
- 	int ret;
- 	unsigned long pfn = page_to_pfn(page);
-@@ -1761,7 +1761,7 @@ static int soft_offline_huge_page(struct
- 	return ret;
- }
- 
--static int __soft_offline_page(struct page *page, int flags)
-+static int __soft_offline_page(struct page *page)
- {
- 	int ret;
- 	unsigned long pfn = page_to_pfn(page);
-@@ -1841,7 +1841,7 @@ static int __soft_offline_page(struct pa
- 	return ret;
- }
- 
--static int soft_offline_in_use_page(struct page *page, int flags)
-+static int soft_offline_in_use_page(struct page *page)
- {
- 	int ret;
+@@ -1847,19 +1853,9 @@ static int soft_offline_in_use_page(stru
  	int mt;
-@@ -1871,9 +1871,9 @@ static int soft_offline_in_use_page(stru
- 	mt = get_pageblock_migratetype(page);
- 	set_pageblock_migratetype(page, MIGRATE_ISOLATE);
- 	if (PageHuge(page))
--		ret = soft_offline_huge_page(page, flags);
-+		ret = soft_offline_huge_page(page);
- 	else
--		ret = __soft_offline_page(page, flags);
-+		ret = __soft_offline_page(page);
- 	set_pageblock_migratetype(page, mt);
- 	return ret;
- }
-@@ -1894,7 +1894,6 @@ static int soft_offline_free_page(struct
- /**
-  * soft_offline_page - Soft offline a page.
-  * @pfn: pfn to soft-offline
-- * @flags: flags. Same as memory_failure().
-  *
-  * Returns 0 on success, otherwise negated errno.
-  *
-@@ -1913,7 +1912,7 @@ static int soft_offline_free_page(struct
-  * This is not a 100% solution for all memory, but tries to be
-  * ``good enough'' for the majority of memory.
-  */
--int soft_offline_page(unsigned long pfn, int flags)
-+int soft_offline_page(unsigned long pfn)
- {
- 	int ret;
- 	struct page *page;
-@@ -1931,11 +1930,11 @@ int soft_offline_page(unsigned long pfn,
- 	}
+ 	struct page *hpage = compound_head(page);
  
- 	get_online_mems();
--	ret = get_any_page(page, pfn, flags);
-+	ret = get_any_page(page, pfn);
- 	put_online_mems();
+-	if (!PageHuge(page) && PageTransHuge(hpage)) {
+-		lock_page(page);
+-		if (!PageAnon(page) || unlikely(split_huge_page(page))) {
+-			unlock_page(page);
+-			if (!PageAnon(page))
+-				pr_info("soft offline: %#lx: non anonymous thp\n", page_to_pfn(page));
+-			else
+-				pr_info("soft offline: %#lx: thp split failed\n", page_to_pfn(page));
+-			put_page(page);
++	if (!PageHuge(page) && PageTransHuge(hpage))
++		if (try_to_split_thp_page(page, "soft offline") < 0)
+ 			return -EBUSY;
+-		}
+-		unlock_page(page);
+-	}
  
- 	if (ret > 0)
--		ret = soft_offline_in_use_page(page, flags);
-+		ret = soft_offline_in_use_page(page);
- 	else if (ret == 0)
- 		ret = soft_offline_free_page(page);
- 
+ 	/*
+ 	 * Setting MIGRATE_ISOLATE here ensures that the page will be linked
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mmhwpoison-cleanup-unused-pagehuge-check.patch
-mmmadvise-call-soft_offline_page-without-mf_count_increased.patch
-mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
-mmhwpoison-remove-mf_count_increased.patch
-mmhwpoison-remove-flag-argument-from-soft-offline-functions.patch
+mmmadvise-refactor-madvise_inject_error.patch
+mmhwpoison-un-export-get_hwpoison_page-and-make-it-static.patch
+mmhwpoison-kill-put_hwpoison_page.patch
+mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
+mmhwpoison-rework-soft-offline-for-free-pages.patch
+mmhwpoison-rework-soft-offline-for-in-use-pages.patch
+mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
+mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
+mmhwpoison-introduce-mf_msg_unsplit_thp.patch
 
