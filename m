@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4027AC433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:20:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D89AC433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:35:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E28D2076A
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:20:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 082E120704
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:35:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595017209;
-	bh=SEUJoTDfj+oVHAQnRQ42kKjxGO9GK1L+aCRPCmTVxr8=;
+	s=default; t=1595018106;
+	bh=S+qHSL5cD5ixwl9ORoIXSsWj/Me3k35IfJwGDQD9ga0=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=TolPaexMvvbEu5YZvFZvX16UBQuBoO2W6HBd8A7+d8LPGuLt7TUu8uA49jWKUYn2c
-	 3wI/LIkO1lqYeU+DvhiPELpm5cVDKHIR31yNPWanEPr18MsKh2g53XuVe09zoCzE2C
-	 zOCPdYW9RC9/doakDdjNvJBy9QY+toHOd/qazLmI=
+	b=cfIHH7l2QS9A2ix8ZK+S7udt3RdhbQkhW9WopkdKpL05d4Oyryn/cdHiKa1SS4KCs
+	 +TN58Gt0ShFYAfxVk6/kD1Zc+RV39CN5n3C0YUtyqPmdX2Vx6Y0ywbMXSqVBpsovYH
+	 BsVuFpVvRJ7kNiV/CRdm4Dawu5U3hf87KIA6YiOI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728202AbgGQUUI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jul 2020 16:20:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59970 "EHLO mail.kernel.org"
+        id S1728254AbgGQUfE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jul 2020 16:35:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34862 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726771AbgGQUUI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Jul 2020 16:20:08 -0400
+        id S1726815AbgGQUfE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Jul 2020 16:35:04 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A750D20704;
-        Fri, 17 Jul 2020 20:20:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DA95D20684;
+        Fri, 17 Jul 2020 20:35:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595017207;
-        bh=SEUJoTDfj+oVHAQnRQ42kKjxGO9GK1L+aCRPCmTVxr8=;
+        s=default; t=1595018104;
+        bh=S+qHSL5cD5ixwl9ORoIXSsWj/Me3k35IfJwGDQD9ga0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OVE9g9Fe4ctcBNY+tYLhiA9+nnFaiXTIpQDi/F1opNQoUyhZOJMA8l7nFokY0u5cl
-         CTyg7jJoT1vGpEu3bbxOnpgqFt2PS52pdpsMIBZGGZ2P9EKBHqhNHE3wbEDWi0gt/A
-         kMD3Ia3P4vfUwYfGtZlN+9GP7DlTryQSNIcDaojI=
-Date:   Fri, 17 Jul 2020 13:20:07 -0700
+        b=vSb0J1WyO/xFh7rPgJ5d3TXTFb4aqFjFKOpGDRVSwo0fIZ1a5IIbHRQLuTwl3vRSI
+         BGV7ofqsvAjezzKHvLi6RWEFOP3VwtRjZiE34yoO7C39mS3CkgyxcoolFyXP7spPRh
+         xC7O4F//bvQyEGmzaoIYY+996j3pOmL1CT2tj5PA=
+Date:   Fri, 17 Jul 2020 13:35:03 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adrien+dev@schischi.me, bernd.amend@gmail.com, drosen@google.com,
-        groeck@chromium.org, hch@lst.de, mm-commits@vger.kernel.org,
-        phillip@squashfs.org.uk
+To:     akpm@linux-foundation.org, guro@fb.com,
+        jonathan.cameron@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, song.bao.hua@hisilicon.com
 Subject:  +
- squashfs-fix-length-field-overlap-check-in-metadata-reading.patch added to
- -mm tree
-Message-ID: <20200717202007.f0idUL0Hn%akpm@linux-foundation.org>
+ mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
+ added to -mm tree
+Message-ID: <20200717203503.5bMQidYMg%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs: fix length field overlap check in metadata reading
+     Subject: mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
 has been added to the -mm tree.  Its filename is
-     squashfs-fix-length-field-overlap-check-in-metadata-reading.patch
+     mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/squashfs-fix-length-field-overlap-check-in-metadata-reading.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/squashfs-fix-length-field-overlap-check-in-metadata-reading.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,44 +78,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: squashfs: fix length field overlap check in metadata reading
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
 
-This is a regression introduced by the "migrate from ll_rw_block usage to
-BIO" patch.
+fix CONFIG_CMA=n warning
 
-Squashfs packs structures on byte boundaries, and due to that the length
-field (of the metadata block) may not be fully in the current block.  The
-new code rewrote and introduced a faulty check for that edge case.
+mm/hugetlb.c:48:20: warning: hugetlb_cma defined but not used [-Wunused-variable]
 
-Link: http://lkml.kernel.org/r/20200717195536.16069-1-phillip@squashfs.org.uk
-Fixes: 93e72b3c612adcaca1 ("squashfs: migrate from ll_rw_block usage to BIO")
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Reported-by: Bernd Amend <bernd.amend@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Adrien Schildknecht <adrien+dev@schischi.me>
-Cc: Guenter Roeck <groeck@chromium.org>
-Cc: Daniel Rosenberg <drosen@google.com>
+Cc: Barry Song <song.bao.hua@hisilicon.com>
+Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/block.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/fs/squashfs/block.c~squashfs-fix-length-field-overlap-check-in-metadata-reading
-+++ a/fs/squashfs/block.c
-@@ -175,7 +175,7 @@ int squashfs_read_data(struct super_bloc
- 		/* Extract the length of the metadata block */
- 		data = page_address(bvec->bv_page) + bvec->bv_offset;
- 		length = data[offset];
--		if (offset <= bvec->bv_len - 1) {
-+		if (offset < bvec->bv_len - 1) {
- 			length |= data[offset + 1] << 8;
- 		} else {
- 			if (WARN_ON_ONCE(!bio_next_segment(bio, &iter_all))) {
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
++++ a/mm/hugetlb.c
+@@ -45,7 +45,9 @@ int hugetlb_max_hstate __read_mostly;
+ unsigned int default_hstate_idx;
+ struct hstate hstates[HUGE_MAX_HSTATE];
+ 
++#ifdef CONFIG_CMA
+ static struct cma *hugetlb_cma[MAX_NUMNODES];
++#endif
+ static unsigned long hugetlb_cma_size __initdata;
+ 
+ /*
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-squashfs-fix-length-field-overlap-check-in-metadata-reading.patch
+mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch
+mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
+mm.patch
+mm-handle-page-mapping-better-in-dump_page-fix.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
+mm-thp-replace-http-links-with-https-ones-fix.patch
+mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
