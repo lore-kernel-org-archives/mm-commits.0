@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 265F6C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:49:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B79FFC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 21:11:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0069620704
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:49:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9152D2076A
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 21:11:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595018944;
-	bh=7SmbfJTg4dXryQVkdQyP3mvY1qV5EPnRZE1qLd+jgTo=;
+	s=default; t=1595020281;
+	bh=9sdQpoU3zYhVOpDmvCrR5RERP5K38s+g2wEkwuHt5KQ=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=ygP+h5XxZX/nHS7FBqFvRq88Vlzxj+xEpqXL0ji69ccsMh+x0WiC4lRotO/0lC6/r
-	 6ON8AejMWLW9X7in7y9AWCsQlqEo7Sebpf/mvn/P8VOOC2fVlDDbG7/K1HXvNgptWr
-	 Pe+JR57/tQDSRViAmw4J5SibZizcDhO2MICXfu4o=
+	b=0OQHK5JZe+EM2jzT+sEXuu6oq9xUs+VD8jl33IG8qsCQE67yr0Jsjwvkjm+38qCji
+	 HnjFBIhsWGEthquheqP0dOsgScPWrJ+3KzETLAwpPiAOxLcHKPrCAGm74c+IT9tDGK
+	 gz2Q1OU3D4XsN7xx+KqB9GXEj4rf7n/FPaF26jGg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726782AbgGQUtD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jul 2020 16:49:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37558 "EHLO mail.kernel.org"
+        id S1726634AbgGQVLV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jul 2020 17:11:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42530 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726492AbgGQUtD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Jul 2020 16:49:03 -0400
+        id S1726399AbgGQVLU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Jul 2020 17:11:20 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 82C2120691;
-        Fri, 17 Jul 2020 20:49:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DE8C820717;
+        Fri, 17 Jul 2020 21:11:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595018942;
-        bh=7SmbfJTg4dXryQVkdQyP3mvY1qV5EPnRZE1qLd+jgTo=;
+        s=default; t=1595020280;
+        bh=9sdQpoU3zYhVOpDmvCrR5RERP5K38s+g2wEkwuHt5KQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=UqDm3OB8rIZDMtEI8GkZ+f1cSbYZROXljxG/ryFP6Dzi/S8f8SRtnzfDdGnPpTrxC
-         fqi1agfp4TMxZZ0he7jSACUBIyqueec8enUWrSeEkoE+S6m3B9EGDeKl5Us9sUCOk1
-         YZ8OboCPUejIT2tLQGRzZjeDGslOEr4HfoYqcMDM=
-Date:   Fri, 17 Jul 2020 13:49:02 -0700
+        b=aO0SOXt3FrSTUMDShuqaFbK77bQyH7nJnsskpbOLLa8PE9Z3o17nkMuQ/6YYfcuEd
+         rb0W+BNso33R85qZgalFb3q4kSDhwy85fnuZCVt7l2j+ZwQ0KLDNbwR7r+a2tNVh4A
+         0FVV8xrOnldgxfi4RbC17IF8AAy336qYHLvpwIXc=
+Date:   Fri, 17 Jul 2020 14:11:19 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     guro@fb.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To:     mm-commits@vger.kernel.org, palmerdabbelt@google.com,
+        penberg@kernel.org, rientjes@google.com, rppt@linux.ibm.com,
+        thomas.lendacky@amd.com
 Subject:  +
- mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
- added to -mm tree
-Message-ID: <20200717204902.TVUSZsJuX%akpm@linux-foundation.org>
+ mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu.patch added to
+ -mm tree
+Message-ID: <20200717211119.NWJgKf5f7%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix
+     Subject: mm: pgtable: make generic pgprot_* macros available for no-MMU
 has been added to the -mm tree.  Its filename is
-     mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+     mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,77 +78,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix
+From: Pekka Enberg <penberg@kernel.org>
+Subject: mm: pgtable: make generic pgprot_* macros available for no-MMU
 
-fix warnings
+The <linux/pgtable.h> header defines some generic pgprot_*
+implementations, but they are only available when CONFIG_MMU is enabled. 
+The RISC-V architecture, for example, therefore defines some of these
+pgprot_* macros for !NOMMU.
 
-Link: http://lkml.kernel.org/r/20200717174705.GA55916@carbon.DHCP.thefacebook.com
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Let's make the pgprot_* generic available even for !NOMMU so we can remove
+the RISC-V specific definitions.
+
+Compile-tested with x86 defconfig, and riscv defconfig and !MMU defconfig.
+
+Link: http://lkml.kernel.org/r/20200715053340.576300-1-penberg@gmail.com
+Signed-off-by: Pekka Enberg <penberg@kernel.org>
+Suggested-by: Palmer Dabbelt <palmerdabbelt@google.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/pgtable.h |   71 +++++++++++++++++++-------------------
+ 1 file changed, 37 insertions(+), 34 deletions(-)
 
---- a/mm/vmstat.c~mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix
-+++ a/mm/vmstat.c
-@@ -168,9 +168,12 @@ EXPORT_SYMBOL(vm_numa_stat);
- EXPORT_SYMBOL(vm_node_stat);
+--- a/include/linux/pgtable.h~mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu
++++ a/include/linux/pgtable.h
+@@ -647,40 +647,6 @@ static inline int arch_unmap_one(struct
+ #define flush_tlb_fix_spurious_fault(vma, address) flush_tlb_page(vma, address)
+ #endif
  
- #ifdef CONFIG_SMP
+-#ifndef pgprot_nx
+-#define pgprot_nx(prot)	(prot)
+-#endif
 -
- #define MAX_THRESHOLD 125
-+#else
-+#define MAX_THRESHOLD 0
-+#endif
- 
-+#ifdef CONFIG_SMP
- int calculate_pressure_threshold(struct zone *zone)
- {
- 	int threshold;
-@@ -611,8 +614,6 @@ void dec_node_page_state(struct page *pa
- EXPORT_SYMBOL(dec_node_page_state);
- #else
- 
--#define MAX_THRESHOLD 0
+-#ifndef pgprot_noncached
+-#define pgprot_noncached(prot)	(prot)
+-#endif
+-
+-#ifndef pgprot_writecombine
+-#define pgprot_writecombine pgprot_noncached
+-#endif
+-
+-#ifndef pgprot_writethrough
+-#define pgprot_writethrough pgprot_noncached
+-#endif
+-
+-#ifndef pgprot_device
+-#define pgprot_device pgprot_noncached
+-#endif
+-
+-#ifndef pgprot_modify
+-#define pgprot_modify pgprot_modify
+-static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
+-{
+-	if (pgprot_val(oldprot) == pgprot_val(pgprot_noncached(oldprot)))
+-		newprot = pgprot_noncached(newprot);
+-	if (pgprot_val(oldprot) == pgprot_val(pgprot_writecombine(oldprot)))
+-		newprot = pgprot_writecombine(newprot);
+-	if (pgprot_val(oldprot) == pgprot_val(pgprot_device(oldprot)))
+-		newprot = pgprot_device(newprot);
+-	return newprot;
+-}
+-#endif
 -
  /*
-  * Use interrupt disable to serialize counter updates
+  * When walking page tables, get the address of the next boundary,
+  * or the end address of the range if that comes earlier.  Although no
+@@ -840,6 +806,43 @@ static inline void ptep_modify_prot_comm
+  * No-op macros that just return the current protection value. Defined here
+  * because these macros can be used used even if CONFIG_MMU is not defined.
   */
++
++#ifndef pgprot_nx
++#define pgprot_nx(prot)	(prot)
++#endif
++
++#ifndef pgprot_noncached
++#define pgprot_noncached(prot)	(prot)
++#endif
++
++#ifndef pgprot_writecombine
++#define pgprot_writecombine pgprot_noncached
++#endif
++
++#ifndef pgprot_writethrough
++#define pgprot_writethrough pgprot_noncached
++#endif
++
++#ifndef pgprot_device
++#define pgprot_device pgprot_noncached
++#endif
++
++#ifdef CONFIG_MMU
++#ifndef pgprot_modify
++#define pgprot_modify pgprot_modify
++static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
++{
++	if (pgprot_val(oldprot) == pgprot_val(pgprot_noncached(oldprot)))
++		newprot = pgprot_noncached(newprot);
++	if (pgprot_val(oldprot) == pgprot_val(pgprot_writecombine(oldprot)))
++		newprot = pgprot_writecombine(newprot);
++	if (pgprot_val(oldprot) == pgprot_val(pgprot_device(oldprot)))
++		newprot = pgprot_device(newprot);
++	return newprot;
++}
++#endif
++#endif /* CONFIG_MMU */
++
+ #ifndef pgprot_encrypted
+ #define pgprot_encrypted(prot)	(prot)
+ #endif
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from penberg@kernel.org are
 
-mm-kmem-make-memcg_kmem_enabled-irreversible.patch
-mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
-mm-memcg-prepare-for-byte-sized-vmstat-items.patch
-mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
-mm-slub-implement-slub-version-of-obj_to_index.patch
-mm-memcg-slab-obj_cgroup-api.patch
-mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
-mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
-mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
-mm-memcg-slab-deprecate-memorykmemslabinfo.patch
-mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
-mm-memcg-slab-simplify-memcg-cache-creation.patch
-mm-memcg-slab-remove-memcg_kmem_get_cache.patch
-mm-memcg-slab-deprecate-slab_root_caches.patch
-mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
-kselftests-cgroup-add-kernel-memory-accounting-tests.patch
-tools-cgroup-add-memcg_slabinfopy-tool.patch
-percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics-v3.patch
-mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
-kselftests-cgroup-add-perpcu-memory-accounting-test.patch
-mm-memcg-slab-remove-unused-argument-by-charge_slab_page.patch
-mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
-mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
-mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu.patch
+riscv-use-generic-pgprot_-macros-from-linux-pgtableh.patch
 
