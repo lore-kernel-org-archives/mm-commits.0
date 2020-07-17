@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D89AC433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:35:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB655C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:46:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 082E120704
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:35:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9693120704
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:46:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595018106;
-	bh=S+qHSL5cD5ixwl9ORoIXSsWj/Me3k35IfJwGDQD9ga0=;
-	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=cfIHH7l2QS9A2ix8ZK+S7udt3RdhbQkhW9WopkdKpL05d4Oyryn/cdHiKa1SS4KCs
-	 +TN58Gt0ShFYAfxVk6/kD1Zc+RV39CN5n3C0YUtyqPmdX2Vx6Y0ywbMXSqVBpsovYH
-	 BsVuFpVvRJ7kNiV/CRdm4Dawu5U3hf87KIA6YiOI=
+	s=default; t=1595018768;
+	bh=1qRP6EezsK6ueW2LZlXmvWRw9GenvAH4odxF0OxDedg=;
+	h=Date:From:To:Subject:Reply-To:List-ID:From;
+	b=HIR/PYAVw92oRpXMo+3zCPhGizCyQnO0UI/ChVqVfHzWOMpHXcGimYIDAGmtyIaUW
+	 fhJILiqhj2blHloMJ3wdeW0qb+XpQDfwA9rxNG8lMbCXIq2sGLuFaywFZ/+wWs157o
+	 pd8dE4So/ErV6Ilv4HYdtHan9dsXwGwsGG0BFsyo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728254AbgGQUfE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jul 2020 16:35:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34862 "EHLO mail.kernel.org"
+        id S1726815AbgGQUqI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jul 2020 16:46:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36638 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726815AbgGQUfE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Jul 2020 16:35:04 -0400
+        id S1726492AbgGQUqI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Jul 2020 16:46:08 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DA95D20684;
-        Fri, 17 Jul 2020 20:35:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E458F20691;
+        Fri, 17 Jul 2020 20:46:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595018104;
-        bh=S+qHSL5cD5ixwl9ORoIXSsWj/Me3k35IfJwGDQD9ga0=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=vSb0J1WyO/xFh7rPgJ5d3TXTFb4aqFjFKOpGDRVSwo0fIZ1a5IIbHRQLuTwl3vRSI
-         BGV7ofqsvAjezzKHvLi6RWEFOP3VwtRjZiE34yoO7C39mS3CkgyxcoolFyXP7spPRh
-         xC7O4F//bvQyEGmzaoIYY+996j3pOmL1CT2tj5PA=
-Date:   Fri, 17 Jul 2020 13:35:03 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com,
-        jonathan.cameron@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, song.bao.hua@hisilicon.com
+        s=default; t=1595018767;
+        bh=1qRP6EezsK6ueW2LZlXmvWRw9GenvAH4odxF0OxDedg=;
+        h=Date:From:To:Subject:From;
+        b=UNqvncTXNcW5ctPZvFU0ayBvGsxu+FIWgZkM2RsVPdCz+HBxBoRgT33p85fKArTA1
+         WBtAXNi2scDHwhI5gqAO9QoUixViYmUUlUFB0Kfn7Sw5bC0xIk414tqioj+PfaoU2m
+         ZSNtI5EMu0p6v6ShZDgzrW9h9X0PWw1Sa7yQLi38=
+Date:   Fri, 17 Jul 2020 13:46:06 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        naoya.horiguchi@nec.com, rdunlap@infradead.org
 Subject:  +
- mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
- added to -mm tree
-Message-ID: <20200717203503.5bMQidYMg%akpm@linux-foundation.org>
-In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
+ mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch added to -mm tree
+Message-ID: <20200717204606.yahy9RhBV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -57,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
+     Subject: mmhwpoison-rework-soft-offline-for-in-use-pages-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
+     mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,34 +77,97 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
+Subject: mmhwpoison-rework-soft-offline-for-in-use-pages-fix
 
-fix CONFIG_CMA=n warning
+fix build
 
-mm/hugetlb.c:48:20: warning: hugetlb_cma defined but not used [-Wunused-variable]
+../mm/hugetlb.c:1302:20: error: redefinition of `destroy_compound_gigantic_page'
+ static inline void destroy_compound_gigantic_page(struct hstate *h,
+                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../mm/hugetlb.c:1223:13: note: previous definition of `destroy_compound_gigantic_page' was here
+ static void destroy_compound_gigantic_page(struct hstate *h, struct page *page,
+             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Cc: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Roman Gushchin <guro@fb.com>
+Link: http://lkml.kernel.org/r/267a50e8-b7b2-b095-d62e-6e95313bc4c2@infradead.org
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb.c |   51 +++++++++++++++++++++++--------------------------
+ 1 file changed, 24 insertions(+), 27 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
+--- a/mm/hugetlb.c~mmhwpoison-rework-soft-offline-for-in-use-pages-fix
 +++ a/mm/hugetlb.c
-@@ -45,7 +45,9 @@ int hugetlb_max_hstate __read_mostly;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
+@@ -1231,30 +1231,6 @@ static inline void ClearPageHugePoisoned
+ 	page[3].mapping = NULL;
+ }
  
-+#ifdef CONFIG_CMA
- static struct cma *hugetlb_cma[MAX_NUMNODES];
-+#endif
- static unsigned long hugetlb_cma_size __initdata;
+-static void destroy_compound_gigantic_page(struct hstate *h, struct page *page,
+-					   unsigned int order)
+-{
+-	int i;
+-	int nr_pages = 1 << order;
+-	struct page *p = page + 1;
+-
+-	atomic_set(compound_mapcount_ptr(page), 0);
+-	if (hpage_pincount_available(page))
+-		atomic_set(compound_pincount_ptr(page), 0);
+-
+-	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
+-		if (!hstate_is_gigantic(h))
+-			 p->mapping = NULL;
+-		clear_compound_head(p);
+-		set_page_refcounted(p);
+-	}
+-
+-	if (PageHugePoisoned(page))
+-		ClearPageHugePoisoned(page);
+-	set_compound_order(page, 0);
+-	__ClearPageHead(page);
+-}
+-
+ #ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
+ static void free_gigantic_page(struct page *page, unsigned int order)
+ {
+@@ -1310,11 +1286,32 @@ static struct page *alloc_gigantic_page(
+ 	return NULL;
+ }
+ static inline void free_gigantic_page(struct page *page, unsigned int order) { }
+-static inline void destroy_compound_gigantic_page(struct hstate *h,
+-						  struct page *page,
+-						  unsigned int order) { }
+ #endif
  
- /*
++static void destroy_compound_gigantic_page(struct hstate *h, struct page *page,
++					   unsigned int order)
++{
++	int i;
++	int nr_pages = 1 << order;
++	struct page *p = page + 1;
++
++	atomic_set(compound_mapcount_ptr(page), 0);
++	if (hpage_pincount_available(page))
++		atomic_set(compound_pincount_ptr(page), 0);
++
++	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
++		if (!hstate_is_gigantic(h))
++			 p->mapping = NULL;
++		clear_compound_head(p);
++		set_page_refcounted(p);
++	}
++
++	if (PageHugePoisoned(page))
++		ClearPageHugePoisoned(page);
++	set_compound_order(page, 0);
++	__ClearPageHead(page);
++}
++
+ static void update_and_free_page(struct hstate *h, struct page *page)
+ {
+ 	int i;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +180,7 @@ mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
 mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
 mm-thp-replace-http-links-with-https-ones-fix.patch
 mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
+mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
 mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
