@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB655C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:46:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 265F6C433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:49:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9693120704
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:46:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0069620704
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Jul 2020 20:49:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595018768;
-	bh=1qRP6EezsK6ueW2LZlXmvWRw9GenvAH4odxF0OxDedg=;
-	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=HIR/PYAVw92oRpXMo+3zCPhGizCyQnO0UI/ChVqVfHzWOMpHXcGimYIDAGmtyIaUW
-	 fhJILiqhj2blHloMJ3wdeW0qb+XpQDfwA9rxNG8lMbCXIq2sGLuFaywFZ/+wWs157o
-	 pd8dE4So/ErV6Ilv4HYdtHan9dsXwGwsGG0BFsyo=
+	s=default; t=1595018944;
+	bh=7SmbfJTg4dXryQVkdQyP3mvY1qV5EPnRZE1qLd+jgTo=;
+	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
+	b=ygP+h5XxZX/nHS7FBqFvRq88Vlzxj+xEpqXL0ji69ccsMh+x0WiC4lRotO/0lC6/r
+	 6ON8AejMWLW9X7in7y9AWCsQlqEo7Sebpf/mvn/P8VOOC2fVlDDbG7/K1HXvNgptWr
+	 Pe+JR57/tQDSRViAmw4J5SibZizcDhO2MICXfu4o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726815AbgGQUqI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Jul 2020 16:46:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36638 "EHLO mail.kernel.org"
+        id S1726782AbgGQUtD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Jul 2020 16:49:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37558 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726492AbgGQUqI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 17 Jul 2020 16:46:08 -0400
+        id S1726492AbgGQUtD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 17 Jul 2020 16:49:03 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E458F20691;
-        Fri, 17 Jul 2020 20:46:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 82C2120691;
+        Fri, 17 Jul 2020 20:49:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595018767;
-        bh=1qRP6EezsK6ueW2LZlXmvWRw9GenvAH4odxF0OxDedg=;
-        h=Date:From:To:Subject:From;
-        b=UNqvncTXNcW5ctPZvFU0ayBvGsxu+FIWgZkM2RsVPdCz+HBxBoRgT33p85fKArTA1
-         WBtAXNi2scDHwhI5gqAO9QoUixViYmUUlUFB0Kfn7Sw5bC0xIk414tqioj+PfaoU2m
-         ZSNtI5EMu0p6v6ShZDgzrW9h9X0PWw1Sa7yQLi38=
-Date:   Fri, 17 Jul 2020 13:46:06 -0700
-From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com,
-        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
-        naoya.horiguchi@nec.com, rdunlap@infradead.org
+        s=default; t=1595018942;
+        bh=7SmbfJTg4dXryQVkdQyP3mvY1qV5EPnRZE1qLd+jgTo=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=UqDm3OB8rIZDMtEI8GkZ+f1cSbYZROXljxG/ryFP6Dzi/S8f8SRtnzfDdGnPpTrxC
+         fqi1agfp4TMxZZ0he7jSACUBIyqueec8enUWrSeEkoE+S6m3B9EGDeKl5Us9sUCOk1
+         YZ8OboCPUejIT2tLQGRzZjeDGslOEr4HfoYqcMDM=
+Date:   Fri, 17 Jul 2020 13:49:02 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     guro@fb.com, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 Subject:  +
- mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch added to -mm tree
-Message-ID: <20200717204606.yahy9RhBV%akpm@linux-foundation.org>
+ mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+ added to -mm tree
+Message-ID: <20200717204902.TVUSZsJuX%akpm@linux-foundation.org>
+In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmhwpoison-rework-soft-offline-for-in-use-pages-fix
+     Subject: mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
+     mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,115 +76,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmhwpoison-rework-soft-offline-for-in-use-pages-fix
+From: Roman Gushchin <guro@fb.com>
+Subject: mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix
 
-fix build
+fix warnings
 
-../mm/hugetlb.c:1302:20: error: redefinition of `destroy_compound_gigantic_page'
- static inline void destroy_compound_gigantic_page(struct hstate *h,
-                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../mm/hugetlb.c:1223:13: note: previous definition of `destroy_compound_gigantic_page' was here
- static void destroy_compound_gigantic_page(struct hstate *h, struct page *page,
-             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Link: http://lkml.kernel.org/r/267a50e8-b7b2-b095-d62e-6e95313bc4c2@infradead.org
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/20200717174705.GA55916@carbon.DHCP.thefacebook.com
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   51 +++++++++++++++++++++++--------------------------
- 1 file changed, 24 insertions(+), 27 deletions(-)
+ mm/vmstat.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mmhwpoison-rework-soft-offline-for-in-use-pages-fix
-+++ a/mm/hugetlb.c
-@@ -1231,30 +1231,6 @@ static inline void ClearPageHugePoisoned
- 	page[3].mapping = NULL;
- }
+--- a/mm/vmstat.c~mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix
++++ a/mm/vmstat.c
+@@ -168,9 +168,12 @@ EXPORT_SYMBOL(vm_numa_stat);
+ EXPORT_SYMBOL(vm_node_stat);
  
--static void destroy_compound_gigantic_page(struct hstate *h, struct page *page,
--					   unsigned int order)
--{
--	int i;
--	int nr_pages = 1 << order;
--	struct page *p = page + 1;
+ #ifdef CONFIG_SMP
 -
--	atomic_set(compound_mapcount_ptr(page), 0);
--	if (hpage_pincount_available(page))
--		atomic_set(compound_pincount_ptr(page), 0);
--
--	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
--		if (!hstate_is_gigantic(h))
--			 p->mapping = NULL;
--		clear_compound_head(p);
--		set_page_refcounted(p);
--	}
--
--	if (PageHugePoisoned(page))
--		ClearPageHugePoisoned(page);
--	set_compound_order(page, 0);
--	__ClearPageHead(page);
--}
--
- #ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
- static void free_gigantic_page(struct page *page, unsigned int order)
- {
-@@ -1310,11 +1286,32 @@ static struct page *alloc_gigantic_page(
- 	return NULL;
- }
- static inline void free_gigantic_page(struct page *page, unsigned int order) { }
--static inline void destroy_compound_gigantic_page(struct hstate *h,
--						  struct page *page,
--						  unsigned int order) { }
- #endif
+ #define MAX_THRESHOLD 125
++#else
++#define MAX_THRESHOLD 0
++#endif
  
-+static void destroy_compound_gigantic_page(struct hstate *h, struct page *page,
-+					   unsigned int order)
-+{
-+	int i;
-+	int nr_pages = 1 << order;
-+	struct page *p = page + 1;
-+
-+	atomic_set(compound_mapcount_ptr(page), 0);
-+	if (hpage_pincount_available(page))
-+		atomic_set(compound_pincount_ptr(page), 0);
-+
-+	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
-+		if (!hstate_is_gigantic(h))
-+			 p->mapping = NULL;
-+		clear_compound_head(p);
-+		set_page_refcounted(p);
-+	}
-+
-+	if (PageHugePoisoned(page))
-+		ClearPageHugePoisoned(page);
-+	set_compound_order(page, 0);
-+	__ClearPageHead(page);
-+}
-+
- static void update_and_free_page(struct hstate *h, struct page *page)
++#ifdef CONFIG_SMP
+ int calculate_pressure_threshold(struct zone *zone)
  {
- 	int i;
+ 	int threshold;
+@@ -611,8 +614,6 @@ void dec_node_page_state(struct page *pa
+ EXPORT_SYMBOL(dec_node_page_state);
+ #else
+ 
+-#define MAX_THRESHOLD 0
+-
+ /*
+  * Use interrupt disable to serialize counter updates
+  */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from guro@fb.com are
 
-mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch
-mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
-mm.patch
-mm-handle-page-mapping-better-in-dump_page-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
-mm-thp-replace-http-links-with-https-ones-fix.patch
-mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
-mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-kmem-make-memcg_kmem_enabled-irreversible.patch
+mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
+mm-memcg-prepare-for-byte-sized-vmstat-items.patch
+mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
+mm-slub-implement-slub-version-of-obj_to_index.patch
+mm-memcg-slab-obj_cgroup-api.patch
+mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
+mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
+mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
+mm-memcg-slab-deprecate-memorykmemslabinfo.patch
+mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
+mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
+mm-memcg-slab-simplify-memcg-cache-creation.patch
+mm-memcg-slab-remove-memcg_kmem_get_cache.patch
+mm-memcg-slab-deprecate-slab_root_caches.patch
+mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
+mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
+kselftests-cgroup-add-kernel-memory-accounting-tests.patch
+tools-cgroup-add-memcg_slabinfopy-tool.patch
+percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
+mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
+mm-memcg-percpu-per-memcg-percpu-memory-statistics-v3.patch
+mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
+kselftests-cgroup-add-perpcu-memory-accounting-test.patch
+mm-memcg-slab-remove-unused-argument-by-charge_slab_page.patch
+mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
+mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
+mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
