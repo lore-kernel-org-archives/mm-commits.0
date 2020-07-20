@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02EC5C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Jul 2020 23:26:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FF20C433E4
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Jul 2020 23:31:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C77A321702
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Jul 2020 23:26:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 54B6921702
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Jul 2020 23:31:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595287576;
-	bh=IX1nKUJR1JQ0KPB/JaSMxZaPlg+TRJtLH7U5JcIa5Fg=;
+	s=default; t=1595287893;
+	bh=zmrSBJFNBTMHjlueC3vlNZpmaNh1p0WBjG7Hd4+I60w=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=HH0qobEkpWZDPMrS4aY8tPf6iPpWEF3iQEn4k9HVw38IdkHkCe4xGkmYrpEPCKIOz
-	 Jbj//7Go5ENOdzr1c6vD8lVSPW2GfPfgNcjSdeX2anaNTklh6cQK8u/kfj8th79jO1
-	 gLMmzIT0srI3WrBOv1Ud3BQHIFndVoEQQ6+PrrcU=
+	b=Fq4iN5qsjTDInjLlO/CRNTj3LsvEQIPPRlUpy65IZLGxG818JotjGZk7knUB1PPcj
+	 T5hy7/lsVlrOiTdqxlvLg0ugdiB+10pLxjyicbKucWT3dkpyPY8Yx9BAPEyUbunNYz
+	 M9Vzls/auOVoJxXEzMSEaHOrci9WN4sxNvrNXx1g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726109AbgGTX0Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Jul 2020 19:26:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52582 "EHLO mail.kernel.org"
+        id S1726611AbgGTXbd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Jul 2020 19:31:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57862 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726021AbgGTX0Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 20 Jul 2020 19:26:16 -0400
+        id S1726521AbgGTXbc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 20 Jul 2020 19:31:32 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8E6B62080D;
-        Mon, 20 Jul 2020 23:26:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 682252080D;
+        Mon, 20 Jul 2020 23:31:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595287575;
-        bh=IX1nKUJR1JQ0KPB/JaSMxZaPlg+TRJtLH7U5JcIa5Fg=;
+        s=default; t=1595287892;
+        bh=zmrSBJFNBTMHjlueC3vlNZpmaNh1p0WBjG7Hd4+I60w=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=gPIodgEwMecmXs1STa6czpye1H6cjrZkwcC3r0XEdmCPuTP7rn2s54CUQ/1ptjqC2
-         gGpLvVN9sgEs3zLZqA7zj3uHllMR0/wkZrFZ0CHZpeZHRX1lem9IgS/xup/yolAeAu
-         DbCruvXArn01v7PZwKJ/NgbK6HZLbg/1pgwF5jIU=
-Date:   Mon, 20 Jul 2020 16:26:15 -0700
+        b=HhXDMNThCP2r0h1adviGUoVcNZ+LixZCZt+ReKpNhb/IDizTlNkybQgixhIOuyaC6
+         Ni6DZzKxI5mKgkyc6Tvl2gh8DYuL0yXJeb3G9U7FKk1cVyJJUAQLyrbHumYwdAC7ac
+         Tjyq27b6mE/Yz18Qc8GOaeipj6QakHjuKm9BPSMc=
+Date:   Mon, 20 Jul 2020 16:31:31 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        tangyizhou@huawei.com
-Subject:  +
- mm-gupc-fix-the-comment-of-return-value-for-populate_vma_page_range.patch
- added to -mm tree
-Message-ID: <20200720232615.kH7FLWhXz%akpm@linux-foundation.org>
+To:     jlbec@evilplan.org, joseph.qi@linux.alibaba.com, mark@fasheh.com,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org
+Subject:  + ocfs2-suballoch-delete-a-duplicated-word.patch added to
+ -mm tree
+Message-ID: <20200720233131.tSmwjqUfo%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup.c: Fix the comment of return value for populate_vma_page_range()
+     Subject: ocfs2: suballoc.h: delete a duplicated word
 has been added to the -mm tree.  Its filename is
-     mm-gupc-fix-the-comment-of-return-value-for-populate_vma_page_range.patch
+     ocfs2-suballoch-delete-a-duplicated-word.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gupc-fix-the-comment-of-return-value-for-populate_vma_page_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-suballoch-delete-a-duplicated-word.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gupc-fix-the-comment-of-return-value-for-populate_vma_page_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-suballoch-delete-a-duplicated-word.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,36 +76,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tang Yizhou <tangyizhou@huawei.com>
-Subject: mm/gup.c: Fix the comment of return value for populate_vma_page_range()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: ocfs2: suballoc.h: delete a duplicated word
 
-The return value of populate_vma_page_range() is consistent with
-__get_user_pages(), and so is the function comment of return value.
+Drop the repeated word "is" in a comment.
 
-Link: http://lkml.kernel.org/r/20200720034303.29920-1-tangyizhou@huawei.com
-Signed-off-by: Tang Yizhou <tangyizhou@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/20200720001421.28823-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/suballoc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gupc-fix-the-comment-of-return-value-for-populate_vma_page_range
-+++ a/mm/gup.c
-@@ -1404,7 +1404,8 @@ retry:
-  *
-  * This takes care of mlocking the pages too if VM_LOCKED is set.
-  *
-- * return 0 on success, negative error code on error.
-+ * Return either number of pages pinned in the vma, or a negative error
-+ * code on error.
-  *
-  * vma->vm_mm->mmap_lock must be held.
-  *
+--- a/fs/ocfs2/suballoc.h~ocfs2-suballoch-delete-a-duplicated-word
++++ a/fs/ocfs2/suballoc.h
+@@ -40,7 +40,7 @@ struct ocfs2_alloc_context {
+ 
+ 	u64    ac_last_group;
+ 	u64    ac_max_block;  /* Highest block number to allocate. 0 is
+-				 is the same as ~0 - unlimited */
++				 the same as ~0 - unlimited */
+ 
+ 	int    ac_find_loc_only;  /* hack for reflink operation ordering */
+ 	struct ocfs2_suballoc_result *ac_find_loc_priv; /* */
 _
 
-Patches currently in -mm which might be from tangyizhou@huawei.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-gupc-fix-the-comment-of-return-value-for-populate_vma_page_range.patch
+ocfs2-suballoch-delete-a-duplicated-word.patch
+linux-sched-mmh-drop-duplicated-words-in-comments.patch
+mm-drop-duplicated-words-in-linux-pgtableh.patch
+mm-drop-duplicated-words-in-linux-mmh.patch
+autofs-fix-doubled-word.patch
 
