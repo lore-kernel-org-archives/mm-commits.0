@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72F67C433E2
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 21:18:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDED2C433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 21:20:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F32F2072E
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 21:18:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1FAB20729
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 21:20:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595366330;
-	bh=CeczpHHunHGCrJHOExwIYzPMQbHL9sK52FzNWh2mkIs=;
+	s=default; t=1595366414;
+	bh=+6WS9OzBfdy5ItIHGo2EZ+jS9GEgNIfmJ0QS/X5QLsc=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=vPVTZWFt/3wVgMC3RdRLJekojK0I+sKtH+dwfUrwQSGkNGxNRWN+MPGsrTQgO3mQm
-	 FSXcWcVzy1jLxcHUvHLYxIXtd7Jocjiz43tfaRDuWsRwRrV0KvdE8IlpAhQP0DDPVm
-	 20F/R1R3eG2l5EbuFSXR5k0E6JQhaslf4TR1K5xw=
+	b=ewYVkAYl8ed9Uv0ltGyvqZFX6W1H3KOBoQGlB39+CYptNrgcXY1w9YJEObFdftaDS
+	 SXDUNI2iezKx4MmgqHw6Z6GKqLVguOkrauK+bNdavhYVIVIxs45NScD5Zh2PQwo8ZJ
+	 Hwdp7kRyUBJqKccgZdUHR44PNy+hTfEaYXT9jGZE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731175AbgGUVSu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Jul 2020 17:18:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36552 "EHLO mail.kernel.org"
+        id S1730592AbgGUVUO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Jul 2020 17:20:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731201AbgGUVSt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 21 Jul 2020 17:18:49 -0400
+        id S1730304AbgGUVUO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 21 Jul 2020 17:20:14 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8A23F20729;
-        Tue, 21 Jul 2020 21:18:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 909BF20717;
+        Tue, 21 Jul 2020 21:20:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595366328;
-        bh=CeczpHHunHGCrJHOExwIYzPMQbHL9sK52FzNWh2mkIs=;
+        s=default; t=1595366413;
+        bh=+6WS9OzBfdy5ItIHGo2EZ+jS9GEgNIfmJ0QS/X5QLsc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=iOmxMxovyfQJi1XOKli5fSn1HEaJy1IloJgl5WrJbFksGzQjPoS/hjB3S13+OaOIc
-         HBCUzTv1c7GAu17T0qc9AlqVe5JtVJT0Vfi3S9rtlel0bFD3MDpQ5Zs0UcNB2Tf/AG
-         IYUw3qEAkWZNacTrs0/VOL0DZ9oB3WWwOsukLbQw=
-Date:   Tue, 21 Jul 2020 14:18:48 -0700
+        b=qt7kqXqGSkxRBmPWBBX444hcaAdH/q1YF+3I0b9gSP1qNtXohBPDpZ1b1Pw3XLrQi
+         SFhWiNuq8MJ+ojQ03nGgQIm16Wsr18wERmETnkIGqNffF/w9+K0PbfrEly4ZN46bCv
+         T1280Bb8mhVKjBV8acAOFTjtz0py8vaMOfr7zr2E=
+Date:   Tue, 21 Jul 2020 14:20:13 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, ebiederm@xmission.com, hch@lst.de,
-        mcgrof@kernel.org, mm-commits@vger.kernel.org
-Subject:  + kernel-add-a-kernel_wait-helper.patch added to -mm tree
-Message-ID: <20200721211848.fuACqplx9%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, mm-commits@vger.kernel.org
+Subject:  + maintainers-add-kcov-section.patch added to -mm tree
+Message-ID: <20200721212013.9FWAa7WST%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel: add a kernel_wait helper
+     Subject: MAINTAINERS: add KCOV section
 has been added to the -mm tree.  Its filename is
-     kernel-add-a-kernel_wait-helper.patch
+     maintainers-add-kcov-section.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-add-a-kernel_wait-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-kcov-section.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-add-a-kernel_wait-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-kcov-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,116 +75,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: kernel: add a kernel_wait helper
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: MAINTAINERS: add KCOV section
 
-Add a helper that waits for a pid and stores the status in the passed in
-kernel pointer.  Use it to fix the usage of kernel_wait4 in
-call_usermodehelper_exec_sync that only happens to work due to the
-implicit set_fs(KERNEL_DS) for kernel threads.
+To link KCOV to the kasan-dev@ mailing list.
 
-Link: http://lkml.kernel.org/r/20200721130449.5008-1-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+Link: http://lkml.kernel.org/r/5fa344db7ac4af2213049e5656c0f43d6ecaa379.1595331682.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Acked-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/task.h |    1 +
- kernel/exit.c              |   16 ++++++++++++++++
- kernel/umh.c               |   29 ++++-------------------------
- 3 files changed, 21 insertions(+), 25 deletions(-)
+ MAINTAINERS |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/include/linux/sched/task.h~kernel-add-a-kernel_wait-helper
-+++ a/include/linux/sched/task.h
-@@ -102,6 +102,7 @@ struct task_struct *fork_idle(int);
- struct mm_struct *copy_init_mm(void);
- extern pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags);
- extern long kernel_wait4(pid_t, int __user *, int, struct rusage *);
-+int kernel_wait(pid_t pid, int *stat);
+--- a/MAINTAINERS~maintainers-add-kcov-section
++++ a/MAINTAINERS
+@@ -9305,6 +9305,17 @@ F:	Documentation/kbuild/kconfig*
+ F:	scripts/Kconfig.include
+ F:	scripts/kconfig/
  
- extern void free_task(struct task_struct *tsk);
- 
---- a/kernel/exit.c~kernel-add-a-kernel_wait-helper
-+++ a/kernel/exit.c
-@@ -1626,6 +1626,22 @@ long kernel_wait4(pid_t upid, int __user
- 	return ret;
- }
- 
-+int kernel_wait(pid_t pid, int *stat)
-+{
-+	struct wait_opts wo = {
-+		.wo_type	= PIDTYPE_PID,
-+		.wo_pid		= find_get_pid(pid),
-+		.wo_flags	= WEXITED,
-+	};
-+	int ret;
++KCOV
++R:	Dmitry Vyukov <dvyukov@google.com>
++R:	Andrey Konovalov <andreyknvl@google.com>
++L:	kasan-dev@googlegroups.com
++S:	Maintained
++F:	Documentation/dev-tools/kcov.rst
++F:	include/linux/kcov.h
++F:	include/uapi/linux/kcov.h
++F:	kernel/kcov.c
++F:	scripts/Makefile.kcov
 +
-+	ret = do_wait(&wo);
-+	if (ret > 0 && wo.wo_stat)
-+		*stat = wo.wo_stat;
-+	put_pid(wo.wo_pid);
-+	return ret;
-+}
-+
- SYSCALL_DEFINE4(wait4, pid_t, upid, int __user *, stat_addr,
- 		int, options, struct rusage __user *, ru)
- {
---- a/kernel/umh.c~kernel-add-a-kernel_wait-helper
-+++ a/kernel/umh.c
-@@ -130,37 +130,16 @@ static void call_usermodehelper_exec_syn
- {
- 	pid_t pid;
- 
--	/* If SIGCLD is ignored kernel_wait4 won't populate the status. */
-+	/* If SIGCLD is ignored do_wait won't populate the status. */
- 	kernel_sigaction(SIGCHLD, SIG_DFL);
- 	pid = kernel_thread(call_usermodehelper_exec_async, sub_info, SIGCHLD);
--	if (pid < 0) {
-+	if (pid < 0)
- 		sub_info->retval = pid;
--	} else {
--		int ret = -ECHILD;
--		/*
--		 * Normally it is bogus to call wait4() from in-kernel because
--		 * wait4() wants to write the exit code to a userspace address.
--		 * But call_usermodehelper_exec_sync() always runs as kernel
--		 * thread (workqueue) and put_user() to a kernel address works
--		 * OK for kernel threads, due to their having an mm_segment_t
--		 * which spans the entire address space.
--		 *
--		 * Thus the __user pointer cast is valid here.
--		 */
--		kernel_wait4(pid, (int __user *)&ret, 0, NULL);
--
--		/*
--		 * If ret is 0, either call_usermodehelper_exec_async failed and
--		 * the real error code is already in sub_info->retval or
--		 * sub_info->retval is 0 anyway, so don't mess with it then.
--		 */
--		if (ret)
--			sub_info->retval = ret;
--	}
-+	else
-+		kernel_wait(pid, &sub_info->retval);
- 
- 	/* Restore default kernel sig handler */
- 	kernel_sigaction(SIGCHLD, SIG_IGN);
--
- 	umh_complete(sub_info);
- }
- 
+ KCSAN
+ M:	Marco Elver <elver@google.com>
+ R:	Dmitry Vyukov <dvyukov@google.com>
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-syscalls-use-uaccess_kernel-in-addr_limit_user_check.patch
-nds32-use-uaccess_kernel-in-show_regs.patch
-riscv-include-asm-pgtableh-in-asm-uaccessh.patch
-uaccess-remove-segment_eq.patch
-uaccess-add-force_uaccess_beginend-helpers.patch
-uaccess-add-force_uaccess_beginend-helpers-v2.patch
-exec-use-force_uaccess_begin-during-exec-and-exit.patch
-kernel-add-a-kernel_wait-helper.patch
+maintainers-add-kcov-section.patch
 
