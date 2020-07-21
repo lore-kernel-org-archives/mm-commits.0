@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2410C433E5
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 21:21:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F4F5C433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 22:40:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BCCD12073A
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 21:21:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B48A20771
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 22:40:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595366476;
-	bh=UBq93mqDKgL1Gcjv2HZgi3PZjjx/VSFHr0BbTuZjhCI=;
-	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=d7kXiBEzS0WrtO2sGtDivyAE6o0goUCFf43HE3mFqSPrgjjo38fTksx8/UDp+FBFY
-	 r0a5d7C8ntRHAt+7chdWsrqPDpMyRpwiZnElfI5RtLxI8Tp/Bs4mu1WRBcevbz60mY
-	 u8JtVfVBs1u/o93iYJRKjSCB9P7E9zR4TaLWRW2k=
+	s=default; t=1595371212;
+	bh=DVox5rkH76fqUqmRfZGRlJhKpm9fMpVIqmOJRl6Daag=;
+	h=Date:From:To:Subject:Reply-To:List-ID:From;
+	b=zXhxlXv6GoVKGHlXCt5uxZ+qUjhVO6x8tzYUy2WLGONLCHrnxpT9NBJN1sNSQrHmG
+	 oo4rsUUIiuc9E0z/Vi81JPbQtv/PbSrLY5CeWZEE7KAE34sZhUPIckFAlqVmI7j4h8
+	 qqixCo+16dWt4LJJ0a8b0SLl0R/4dA5SwXdFLxk4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730304AbgGUVVQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Jul 2020 17:21:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39542 "EHLO mail.kernel.org"
+        id S1727771AbgGUWkL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Jul 2020 18:40:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35880 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1731231AbgGUVVP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 21 Jul 2020 17:21:15 -0400
+        id S1726587AbgGUWkL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 21 Jul 2020 18:40:11 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 806F320717;
-        Tue, 21 Jul 2020 21:21:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B280A2073A;
+        Tue, 21 Jul 2020 22:40:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595366475;
-        bh=UBq93mqDKgL1Gcjv2HZgi3PZjjx/VSFHr0BbTuZjhCI=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=j3yonOFc2tpNJ4PUbD2jNBO0BoZ7lrmVNKvHmPCMpjbRywArAscrLouYHabixpL+4
-         TgT2dBmXBsmBWDtcDgthJ8xpHEmZdf4E0+jzOd6rAksj1lpuI6sHkfYXqBqiS0qfWN
-         BiVOWXb9orott1P7X4L8pOQFTsPSroC3p8WdT3Uw=
-Date:   Tue, 21 Jul 2020 14:21:15 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        s=default; t=1595371210;
+        bh=DVox5rkH76fqUqmRfZGRlJhKpm9fMpVIqmOJRl6Daag=;
+        h=Date:From:To:Subject:From;
+        b=tKpx7VxD0NalYoh+FiG6DF/LhHDWtJXB+z8rlb88Ygc7sc6gQAUx/elHBCOmm6h+D
+         vlSgQKiUW/Y9d7j6j0z3oSclIbdFdFERJIvTUlmBdeCjZa+iZ3whuU5qWDoXIzxlVe
+         UbwBqjD7GmJLAd/B58wWvPOTVqP2SN3E4DMJaT0I=
+Date:   Tue, 21 Jul 2020 15:40:10 -0700
+From:   akpm@linux-foundation.org
+To:     hch@lst.de, linux@roeck-us.net, mm-commits@vger.kernel.org,
         sfr@canb.auug.org.au
 Subject:  +
- mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix-fix.patch
- added to -mm tree
-Message-ID: <20200721212115.yv1m5BuHF%akpm@linux-foundation.org>
-In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
+ syscalls-use-uaccess_kernel-in-addr_limit_user_check-fix.patch added to -mm
+ tree
+Message-ID: <20200721224010.2FOnOz5Fx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: better checks before using hugetlb_cma
+     Subject: arm: don't call addr_limit_user_check for nommu
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix-fix.patch
+     syscalls-use-uaccess_kernel-in-addr_limit_user_check-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/syscalls-use-uaccess_kernel-in-addr_limit_user_check-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/syscalls-use-uaccess_kernel-in-addr_limit_user_check-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,54 +76,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm/hugetlb: better checks before using hugetlb_cma
+From: Christoph Hellwig <hch@lst.de>
+Subject: arm: don't call addr_limit_user_check for nommu
 
-Link: http://lkml.kernel.org/r/20200721205716.6dbaa56b@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+On arm nommu kernel use the same constant for USER_DS and KERNEL_DS, and
+seqment_eq always returns false.  With the current check in
+addr_limit_user_check that works by accident, but when replacing
+seqment_eq with uaccess_kerne it will fail.  Just remove the not needed
+check entirely.
+
+Link: http://lkml.kernel.org/r/20200721045834.GA9613@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/arm/kernel/signal.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix-fix
-+++ a/mm/hugetlb.c
-@@ -1238,9 +1238,10 @@ static void free_gigantic_page(struct pa
- 	 * If the page isn't allocated using the cma allocator,
- 	 * cma_release() returns false.
- 	 */
--	if (IS_ENABLED(CONFIG_CMA) &&
--	    cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order))
-+#ifdef CONFIG_CMA
-+	if (cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order))
- 		return;
-+#endif
- 
- 	free_contig_range(page_to_pfn(page), 1 << order);
- }
-@@ -1251,7 +1252,8 @@ static struct page *alloc_gigantic_page(
+--- a/arch/arm/kernel/signal.c~syscalls-use-uaccess_kernel-in-addr_limit_user_check-fix
++++ a/arch/arm/kernel/signal.c
+@@ -713,7 +713,9 @@ struct page *get_signal_page(void)
+ /* Defer to generic check */
+ asmlinkage void addr_limit_check_failed(void)
  {
- 	unsigned long nr_pages = 1UL << huge_page_order(h);
- 
--	if (IS_ENABLED(CONFIG_CMA)) {
-+#ifdef CONFIG_CMA
-+	{
- 		struct page *page;
- 		int node;
- 
-@@ -1265,6 +1267,7 @@ static struct page *alloc_gigantic_page(
- 				return page;
- 		}
- 	}
++#ifdef CONFIG_MMU
+ 	addr_limit_user_check();
 +#endif
- 
- 	return alloc_contig_pages(nr_pages, gfp_mask, nid, nodemask);
  }
+ 
+ #ifdef CONFIG_DEBUG_RSEQ
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix-fix.patch
+syscalls-use-uaccess_kernel-in-addr_limit_user_check.patch
+syscalls-use-uaccess_kernel-in-addr_limit_user_check-fix.patch
+nds32-use-uaccess_kernel-in-show_regs.patch
+riscv-include-asm-pgtableh-in-asm-uaccessh.patch
+uaccess-remove-segment_eq.patch
+uaccess-add-force_uaccess_beginend-helpers.patch
+uaccess-add-force_uaccess_beginend-helpers-v2.patch
+exec-use-force_uaccess_begin-during-exec-and-exit.patch
+kernel-add-a-kernel_wait-helper.patch
 
