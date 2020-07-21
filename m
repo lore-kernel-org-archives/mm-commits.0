@@ -2,49 +2,51 @@ Return-Path: <SRS0=3Kjr=BA=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B230C433E2
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 20:49:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1294C433E1
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 20:57:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 667F72072E
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 20:49:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8825E20729
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Jul 2020 20:57:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595364570;
-	bh=sFDPbRrZ8r+/PiGLHBuN4i4zwMJ8TfW2SYocOT0d+RE=;
+	s=default; t=1595365040;
+	bh=47HH6QkGny3t+PJsAhLsLtAlYgrRhHjchOOHZ5uJMBc=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=CsOL3huz3U19jczG6Vvo3YLyPmlyVyrdGST7w1p/JNbmTMBd2zvIEGufBp0dAgvtl
-	 78ms4b+Lm1S2iib4Q1s57E/w843RcMYzz2JskFQHLcISOkSnqFsMZCLOAFnuaTfnns
-	 aHpmi57+pvCpWUahLj+oRWFRyEOEEM6cTDUS8FmQ=
+	b=TxGqnnliGPaxPT/sTQpStM58MouZFrvLoHkFwxyaAjMUio1MDR9A6eU0OmPSIkZIY
+	 1EkhWrCIC1ENWAEvr13hQ65FzY6FZ4HzpxcbV+Uzk6DUAsOnxesBRr4dABb72cWHJ8
+	 e3KimuH7MJEEyt31aJCN+CHYDXrNimJ4ACghRr5k=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728878AbgGUUta (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Jul 2020 16:49:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53724 "EHLO mail.kernel.org"
+        id S1730254AbgGUU5U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Jul 2020 16:57:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726029AbgGUUt3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 21 Jul 2020 16:49:29 -0400
+        id S1726658AbgGUU5U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 21 Jul 2020 16:57:20 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B6B8E20717;
-        Tue, 21 Jul 2020 20:49:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id F235E2068F;
+        Tue, 21 Jul 2020 20:57:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595364568;
-        bh=sFDPbRrZ8r+/PiGLHBuN4i4zwMJ8TfW2SYocOT0d+RE=;
+        s=default; t=1595365039;
+        bh=47HH6QkGny3t+PJsAhLsLtAlYgrRhHjchOOHZ5uJMBc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2PqVVB+xfBifSjLmKdKcj2mAwvJ+ZifdX6HPKjgwSUQjU1rkxBsTNRZa9wdaRhIB/
-         HB9RYO4Y6yUO5uPjKyDGVBAh2BhBtGN8zfaI6PVfU/z9evfilJg4DUN7PPbMKfe8eA
-         cUKuUBdA1bMJcAl1dl+Jlmm1JRx24UzUe39N780Q=
-Date:   Tue, 21 Jul 2020 13:49:28 -0700
+        b=vyPS86kwYpBcJpfryYFhmTsp2DXCoNEofWLirVyu4+MFeHojAg9RrbUCUa0MR6tFF
+         B9lUqUUbvY8cVp+naeWkwx34vRzF1+c7jNQt1Qs+qzlMM7K1dHK1IwDFVdXy6MsiSu
+         lnBaoYU3Q0Pqx/B+FWoFuv+GTPhE7PW1+kkq9d2o=
+Date:   Tue, 21 Jul 2020 13:57:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     cai@lca.pw, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        peterz@infradead.org, stable@vger.kernel.org
-Subject:  + fork-silence-a-false-postive-warning-in-__mmdrop.patch
- added to -mm tree
-Message-ID: <20200721204928.ScSj1rpgM%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
+        chris@chris-wilson.co.uk, michael.j.ruhl@intel.com,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        stable@vger.kernel.org
+Subject:  + io-mapping-indicate-mapping-failure.patch added to -mm
+ tree
+Message-ID: <20200721205718.2Tm852Zqu%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fork: silence a false postive warning in __mmdrop
+     Subject: io-mapping: indicate mapping failure
 has been added to the -mm tree.  Its filename is
-     fork-silence-a-false-postive-warning-in-__mmdrop.patch
+     io-mapping-indicate-mapping-failure.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fork-silence-a-false-postive-warning-in-__mmdrop.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/io-mapping-indicate-mapping-failure.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fork-silence-a-false-postive-warning-in-__mmdrop.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/io-mapping-indicate-mapping-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,68 +78,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <cai@lca.pw>
-Subject: fork: silence a false postive warning in __mmdrop
+From: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
+Subject: io-mapping: indicate mapping failure
 
-commit bf2c59fce407 ("sched/core: Fix illegal RCU from offline CPUs")
-delayed,
+The !ATOMIC_IOMAP version of io_maping_init_wc will always return success,
+even when the ioremap fails.
 
-idle->active_mm = &init_mm;
+Since the ATOMIC_IOMAP version returns NULL when the init fails, and
+callers check for a NULL return on error this is unexpected.
 
-into finish_cpu() instead of idle_task_exit() which results in a false
-positive warning that was originally designed in the commit 3eda69c92d47
-("kernel/fork.c: detect early free of a live mm").
+During a device probe, where the ioremap failed, a crash can look
+like this:
 
- WARNING: CPU: 127 PID: 72976 at kernel/fork.c:697
- __mmdrop+0x230/0x2c0
- do_exit+0x424/0xfa0
- Call Trace:
- do_exit+0x424/0xfa0
- do_group_exit+0x64/0xd0
- sys_exit_group+0x24/0x30
- system_call_exception+0x108/0x1d0
- system_call_common+0xf0/0x278
+BUG: unable to handle page fault for address: 0000000000210000
+ #PF: supervisor write access in kernel mode
+ #PF: error_code(0x0002) - not-present page
+ Oops: 0002 [#1] PREEMPT SMP
+ CPU: 0 PID: 177 Comm:
+ RIP: 0010:fill_page_dma [i915]
+  gen8_ppgtt_create [i915]
+  i915_ppgtt_create [i915]
+  intel_gt_init [i915]
+  i915_gem_init [i915]
+  i915_driver_probe [i915]
+  pci_device_probe
+  really_probe
+  driver_probe_device
 
-Link: http://lkml.kernel.org/r/20200604150344.1796-1-cai@lca.pw
-Fixes: bf2c59fce407 ("sched/core: Fix illegal RCU from offline CPUs")
-Signed-off-by: Qian Cai <cai@lca.pw>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+The remap failure occurred much earlier in the probe.  If it had
+been propagated, the driver would have exited with an error.
+
+Return NULL on ioremap failure.
+
+Link: http://lkml.kernel.org/r/20200721171936.81563-1-michael.j.ruhl@intel.com
+Fixes: cafaf14a5d8f ("io-mapping: Always create a struct to hold metadata about the io-mapping")
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/io-mapping.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/fork.c~fork-silence-a-false-postive-warning-in-__mmdrop
-+++ a/kernel/fork.c
-@@ -694,7 +694,6 @@ void __mmdrop(struct mm_struct *mm)
- {
- 	BUG_ON(mm == &init_mm);
- 	WARN_ON_ONCE(mm == current->mm);
--	WARN_ON_ONCE(mm == current->active_mm);
- 	mm_free_pgd(mm);
- 	destroy_context(mm);
- 	mmu_notifier_subscriptions_destroy(mm);
+--- a/include/linux/io-mapping.h~io-mapping-indicate-mapping-failure
++++ a/include/linux/io-mapping.h
+@@ -118,7 +118,7 @@ io_mapping_init_wc(struct io_mapping *io
+ 	iomap->prot = pgprot_noncached(PAGE_KERNEL);
+ #endif
+ 
+-	return iomap;
++	return iomap->iomem ? iomap : NULL;
+ }
+ 
+ static inline void
 _
 
-Patches currently in -mm which might be from cai@lca.pw are
+Patches currently in -mm which might be from michael.j.ruhl@intel.com are
 
-fork-silence-a-false-postive-warning-in-__mmdrop.patch
-mm-page_alloc-silence-a-kasan-false-positive.patch
-mm-kmemleak-silence-kcsan-splats-in-checksum.patch
-mm-frontswap-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races.patch
-mm-page_io-mark-various-intentional-data-races-v2.patch
-mm-swap_state-mark-various-intentional-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races.patch
-mm-swapfile-fix-and-annotate-various-data-races-v2.patch
-mm-page_counter-fix-various-data-races-at-memsw.patch
-mm-memcontrol-fix-a-data-race-in-scan-count.patch
-mm-list_lru-fix-a-data-race-in-list_lru_count_one.patch
-mm-mempool-fix-a-data-race-in-mempool_free.patch
-mm-rmap-annotate-a-data-race-at-tlb_flush_batched.patch
-mm-swap-annotate-data-races-for-lru_rotate_pvecs.patch
-mm-annotate-a-data-race-in-page_zonenum.patch
+io-mapping-indicate-mapping-failure.patch
 
