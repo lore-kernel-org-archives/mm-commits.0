@@ -7,42 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4E1FC433E8
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 03:18:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 502D0C433E8
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 810C620723
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 03:18:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F14920792
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595474331;
-	bh=+rDVkh7wamoqPSreleGlzRpgbl0Ucu89syoZ6SSqiiE=;
+	s=default; t=1595546588;
+	bh=RdDl6WPxlZC2imlJ2kMlDRWbXEGhtNChKmUwaRlir2g=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=bELhbKlpcIVmhflN43kG1e8rjWoE+SzAKHueXidkJ/vAOwx38FcLUuqqMKp5O48NJ
-	 t5FOy7TeUZvd8DdcoM9dFfx1bzpntZciImSvSHDxE1SOhPBVOO43dzaSRYZJmNJrcT
-	 GTXwax/GvKwsA8OzoPl258ZM0yP1WKN1TLJ43vDU=
+	b=lZRbq99fIfvdn4AnjMYYl+kShMB9RvAiO5rQqFdTp3tUFsRoqnyDAwpUe/KQuqkyz
+	 wu4aKVOvHQ1/I75YWdBhGvYTvdqBAWNY4tqbQV2TMxPGr28/0/U3OjuZZpD58uicDg
+	 zu4d6eknKo+WU06Tp2LIvQJ4PtwPsFRjSILi5xV0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728914AbgGWDSv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Jul 2020 23:18:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44276 "EHLO mail.kernel.org"
+        id S1728264AbgGWXXH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Jul 2020 19:23:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35084 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728902AbgGWDSv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 22 Jul 2020 23:18:51 -0400
+        id S1726723AbgGWXXH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Jul 2020 19:23:07 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0B3E320723;
-        Thu, 23 Jul 2020 03:18:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 397CB20825;
+        Thu, 23 Jul 2020 23:23:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595474329;
-        bh=+rDVkh7wamoqPSreleGlzRpgbl0Ucu89syoZ6SSqiiE=;
+        s=default; t=1595546586;
+        bh=RdDl6WPxlZC2imlJ2kMlDRWbXEGhtNChKmUwaRlir2g=;
         h=Date:From:To:Subject:From;
-        b=oysyasZonoi8EPx5EbS9Vwqtpt9hYeidrlhaQAcFd9XkZVFx3LkwHNMEtPzQHqv39
-         z/Ely95Ld7TjPUu5btTLZikEaGBZ0ZElR53QDbMB+cMHQ7R7Sg4+ShOop/EqiDXw/S
-         YB0rf9YHDrmOwfMuLk6Pe3RvdJBbaMVSUxaTN5TE=
-Date:   Wed, 22 Jul 2020 20:18:48 -0700
+        b=JFX68m7BtntFz3HPcWIBjpMsGYon4l2qGMlqOvBAZJPFWoWDS5DW6kZxAygnPnN2O
+         CzQt81kHCkPJy55t4jEOl7ID3geny3ZkQIrJPIRSbXmpQR6u8AzPQr/SwE/Wo8DFY8
+         YMCDZah7Q5F7JpMSgfFrHUS/qHlt2IIvOcx08TrQ=
+Date:   Thu, 23 Jul 2020 16:23:05 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20200723031848.bpjkLHFLX%akpm@linux-foundation.org>
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20200723232305.ucMMoUIG1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,24 +54,10 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -193,5 +180,4 @@ mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-re
 mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
 mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
 
