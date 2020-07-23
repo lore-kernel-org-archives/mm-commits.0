@@ -7,43 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 502D0C433E8
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F25AC433E0
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F14920792
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 493B420825
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595546588;
-	bh=RdDl6WPxlZC2imlJ2kMlDRWbXEGhtNChKmUwaRlir2g=;
+	s=default; t=1595546614;
+	bh=2oedVtpbtAy9lgoiyUXqG2iModrzrZuvn9EfboqhglM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=lZRbq99fIfvdn4AnjMYYl+kShMB9RvAiO5rQqFdTp3tUFsRoqnyDAwpUe/KQuqkyz
-	 wu4aKVOvHQ1/I75YWdBhGvYTvdqBAWNY4tqbQV2TMxPGr28/0/U3OjuZZpD58uicDg
-	 zu4d6eknKo+WU06Tp2LIvQJ4PtwPsFRjSILi5xV0=
+	b=dk5WS4yb6LO1oZRi0UT2M8tBr2R3sq9pCCTthJIe78SwYDa9lUBZX5G3xgfofnDxP
+	 ybV67Zk4Ua5g8eHV3zoHLjCix+WTH9h7H5IHP1gz/6DpMxRaj7/Fhz8MvRDWX696S2
+	 lozPvjNmd5li5xPyCvoKgFJwYlliEW4kmvqLihMw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728264AbgGWXXH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Jul 2020 19:23:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35084 "EHLO mail.kernel.org"
+        id S1726791AbgGWXXe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Jul 2020 19:23:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726723AbgGWXXH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Jul 2020 19:23:07 -0400
+        id S1726723AbgGWXXd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Jul 2020 19:23:33 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 397CB20825;
-        Thu, 23 Jul 2020 23:23:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D09FE20792;
+        Thu, 23 Jul 2020 23:23:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595546586;
-        bh=RdDl6WPxlZC2imlJ2kMlDRWbXEGhtNChKmUwaRlir2g=;
+        s=default; t=1595546613;
+        bh=2oedVtpbtAy9lgoiyUXqG2iModrzrZuvn9EfboqhglM=;
         h=Date:From:To:Subject:From;
-        b=JFX68m7BtntFz3HPcWIBjpMsGYon4l2qGMlqOvBAZJPFWoWDS5DW6kZxAygnPnN2O
-         CzQt81kHCkPJy55t4jEOl7ID3geny3ZkQIrJPIRSbXmpQR6u8AzPQr/SwE/Wo8DFY8
-         YMCDZah7Q5F7JpMSgfFrHUS/qHlt2IIvOcx08TrQ=
-Date:   Thu, 23 Jul 2020 16:23:05 -0700
+        b=hz6eZxETQdxg4bxlIzP9fNZmJ/RyfJIJgoB1K2xuYR50w+5vXv6WYm8Ej5Pbi2JL4
+         jbalJj4A5bj5PhVmSXZyR//BchzopQq0Vsidz/4eJnPiwJ46IPy90FQxmOBASUkmev
+         5uH4i+W1BwBxVapG7dWbYfdD5cP1I2jw4KRw0qhA=
+Date:   Thu, 23 Jul 2020 16:23:32 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20200723232305.ucMMoUIG1%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, palmerdabbelt@google.com,
+        penberg@kernel.org, rientjes@google.com, rppt@linux.ibm.com,
+        thomas.lendacky@amd.com
+Subject:  [merged]
+ mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu.patch removed
+ from -mm tree
+Message-ID: <20200723232332.NaeVoeeW6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,131 +56,127 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm: pgtable: make generic pgprot_* macros available for no-MMU
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Pekka Enberg <penberg@kernel.org>
+Subject: mm: pgtable: make generic pgprot_* macros available for no-MMU
 
+The <linux/pgtable.h> header defines some generic pgprot_*
+implementations, but they are only available when CONFIG_MMU is enabled. 
+The RISC-V architecture, for example, therefore defines some of these
+pgprot_* macros for !NOMMU.
+
+Let's make the pgprot_* generic available even for !NOMMU so we can remove
+the RISC-V specific definitions.
+
+Compile-tested with x86 defconfig, and riscv defconfig and !MMU defconfig.
+
+Link: http://lkml.kernel.org/r/20200715053340.576300-1-penberg@gmail.com
+Signed-off-by: Pekka Enberg <penberg@kernel.org>
+Suggested-by: Palmer Dabbelt <palmerdabbelt@google.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/soc/codecs/rt5670.c               |   15 ---------------
- sound/soc/intel/boards/cht_bsw_rt5672.c |   10 ----------
- sound/soc/soc-topology.c                |    3 ---
- 3 files changed, 28 deletions(-)
+ include/linux/pgtable.h |   71 +++++++++++++++++++-------------------
+ 1 file changed, 37 insertions(+), 34 deletions(-)
 
---- a/sound/soc/codecs/rt5670.c~linux-next-git-rejects
-+++ a/sound/soc/codecs/rt5670.c
-@@ -30,11 +30,8 @@
- #include "rt5670.h"
- #include "rt5670-dsp.h"
+--- a/include/linux/pgtable.h~mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu
++++ a/include/linux/pgtable.h
+@@ -675,40 +675,6 @@ static inline void arch_swap_restore(swp
+ #define flush_tlb_fix_spurious_fault(vma, address) flush_tlb_page(vma, address)
+ #endif
  
--<<<<<<< HEAD
- #define RT5670_DEV_GPIO			BIT(0)
--=======
- #define RT5670_GPIO1_IS_IRQ			BIT(0)
-->>>>>>> linux-next/akpm-base
- #define RT5670_IN2_DIFF			BIT(1)
- #define RT5670_DMIC_EN			BIT(2)
- #define RT5670_DMIC1_IN2P		BIT(3)
-@@ -1457,11 +1454,7 @@ static int rt5670_spk_event(struct snd_s
- 	struct snd_soc_component *component = snd_soc_dapm_to_component(w->dapm);
- 	struct rt5670_priv *rt5670 = snd_soc_component_get_drvdata(component);
- 
--<<<<<<< HEAD
--	if (!rt5670->pdata.gpio1_is_ext_spk_en)
--=======
- 	if (!rt5670->gpio1_is_ext_spk_en)
-->>>>>>> linux-next/akpm-base
- 		return 0;
- 
- 	switch (event) {
-@@ -3064,22 +3057,14 @@ static int rt5670_i2c_probe(struct i2c_c
- 				   RT5670_GP1_PF_MASK, RT5670_GP1_PF_OUT);
- 	}
- 
--<<<<<<< HEAD
--	if (rt5670->pdata.gpio1_is_ext_spk_en) {
--=======
- 	if (rt5670->gpio1_is_ext_spk_en) {
-->>>>>>> linux-next/akpm-base
- 		regmap_update_bits(rt5670->regmap, RT5670_GPIO_CTRL1,
- 				   RT5670_GP1_PIN_MASK, RT5670_GP1_PIN_GPIO1);
- 		regmap_update_bits(rt5670->regmap, RT5670_GPIO_CTRL2,
- 				   RT5670_GP1_PF_MASK, RT5670_GP1_PF_OUT);
- 	}
- 
--<<<<<<< HEAD
--	if (rt5670->pdata.jd_mode) {
--=======
- 	if (rt5670->jd_mode) {
-->>>>>>> linux-next/akpm-base
- 		regmap_update_bits(rt5670->regmap, RT5670_GLB_CLK,
- 				   RT5670_SCLK_SRC_MASK, RT5670_SCLK_SRC_RCCLK);
- 		rt5670->sysclk = 0;
---- a/sound/soc/intel/boards/cht_bsw_rt5672.c~linux-next-git-rejects
-+++ a/sound/soc/intel/boards/cht_bsw_rt5672.c
-@@ -253,15 +253,6 @@ static int cht_codec_fixup(struct snd_so
- 	params_set_format(params, SNDRV_PCM_FORMAT_S24_LE);
- 
- 	/*
--<<<<<<< HEAD
--	 * Default mode for SSP configuration is TDM 4 slot. One board/design,
--	 * the Lenovo Miix 2 10 uses not 1 but 2 codecs connected to SSP2. The
--	 * second piggy-backed, output-only codec is inside the keyboard-dock
--	 * (which has extra speakers). Unlike the main rt5672 codec, we cannot
--	 * configure this codec, it is hard coded to use 2 channel 24 bit I2S.
--	 * Since we only support 2 channels anyways, there is no need for TDM
--	 * on any cht-bsw-rt5672 designs. So we simply use I2S 2ch everywhere.
--=======
- 	 * The default mode for the cpu-dai is TDM 4 slot. The default mode
- 	 * for the codec-dai is I2S. So we need to either set the cpu-dai to
- 	 * I2S mode to match the codec-dai, or set the codec-dai to TDM 4 slot
-@@ -273,7 +264,6 @@ static int cht_codec_fixup(struct snd_so
- 	 * 2 channel 24 bit I2S. For this to work we must use I2S mode on this
- 	 * board. Since we only support 2 channels anyways, there is no need
- 	 * for TDM on any cht-bsw-rt5672 designs. So we use I2S 2ch everywhere.
-->>>>>>> linux-next/akpm-base
- 	 */
- 	ret = snd_soc_dai_set_fmt(asoc_rtd_to_cpu(rtd, 0),
- 				  SND_SOC_DAIFMT_I2S     |
---- a/sound/soc/soc-topology.c~linux-next-git-rejects
-+++ a/sound/soc/soc-topology.c
-@@ -1263,10 +1263,7 @@ static int soc_tplg_dapm_graph_elems_loa
- 
- 		ret = soc_tplg_add_route(tplg, routes[i]);
- 		if (ret < 0) {
--<<<<<<< HEAD
--=======
- 			dev_err(tplg->dev, "ASoC: topology: add_route failed: %d\n", ret);
-->>>>>>> linux-next/akpm-base
- 			/*
- 			 * this route was added to the list, it will
- 			 * be freed in remove_route() so increment the
+-#ifndef pgprot_nx
+-#define pgprot_nx(prot)	(prot)
+-#endif
+-
+-#ifndef pgprot_noncached
+-#define pgprot_noncached(prot)	(prot)
+-#endif
+-
+-#ifndef pgprot_writecombine
+-#define pgprot_writecombine pgprot_noncached
+-#endif
+-
+-#ifndef pgprot_writethrough
+-#define pgprot_writethrough pgprot_noncached
+-#endif
+-
+-#ifndef pgprot_device
+-#define pgprot_device pgprot_noncached
+-#endif
+-
+-#ifndef pgprot_modify
+-#define pgprot_modify pgprot_modify
+-static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
+-{
+-	if (pgprot_val(oldprot) == pgprot_val(pgprot_noncached(oldprot)))
+-		newprot = pgprot_noncached(newprot);
+-	if (pgprot_val(oldprot) == pgprot_val(pgprot_writecombine(oldprot)))
+-		newprot = pgprot_writecombine(newprot);
+-	if (pgprot_val(oldprot) == pgprot_val(pgprot_device(oldprot)))
+-		newprot = pgprot_device(newprot);
+-	return newprot;
+-}
+-#endif
+-
+ /*
+  * When walking page tables, get the address of the next boundary,
+  * or the end address of the range if that comes earlier.  Although no
+@@ -868,6 +834,43 @@ static inline void ptep_modify_prot_comm
+  * No-op macros that just return the current protection value. Defined here
+  * because these macros can be used even if CONFIG_MMU is not defined.
+  */
++
++#ifndef pgprot_nx
++#define pgprot_nx(prot)	(prot)
++#endif
++
++#ifndef pgprot_noncached
++#define pgprot_noncached(prot)	(prot)
++#endif
++
++#ifndef pgprot_writecombine
++#define pgprot_writecombine pgprot_noncached
++#endif
++
++#ifndef pgprot_writethrough
++#define pgprot_writethrough pgprot_noncached
++#endif
++
++#ifndef pgprot_device
++#define pgprot_device pgprot_noncached
++#endif
++
++#ifdef CONFIG_MMU
++#ifndef pgprot_modify
++#define pgprot_modify pgprot_modify
++static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
++{
++	if (pgprot_val(oldprot) == pgprot_val(pgprot_noncached(oldprot)))
++		newprot = pgprot_noncached(newprot);
++	if (pgprot_val(oldprot) == pgprot_val(pgprot_writecombine(oldprot)))
++		newprot = pgprot_writecombine(newprot);
++	if (pgprot_val(oldprot) == pgprot_val(pgprot_device(oldprot)))
++		newprot = pgprot_device(newprot);
++	return newprot;
++}
++#endif
++#endif /* CONFIG_MMU */
++
+ #ifndef pgprot_encrypted
+ #define pgprot_encrypted(prot)	(prot)
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from penberg@kernel.org are
 
-mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch
-mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
-io-mapping-indicate-mapping-failure-fix.patch
-mm-fix-kthread_use_mm-vs-tlb-invalidate-fix.patch
-mm.patch
-mm-handle-page-mapping-better-in-dump_page-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
-mm-thp-replace-http-links-with-https-ones-fix.patch
-mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
-mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-linux-next-rejects.patch
-mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
