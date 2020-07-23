@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F25AC433E0
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86F8EC433E1
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 493B420825
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C30320792
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Jul 2020 23:23:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595546614;
-	bh=2oedVtpbtAy9lgoiyUXqG2iModrzrZuvn9EfboqhglM=;
+	s=default; t=1595546616;
+	bh=iTZMOGJAo/3NQLuhEg3gh60t8l63Zhn9YUxzBezCsMA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=dk5WS4yb6LO1oZRi0UT2M8tBr2R3sq9pCCTthJIe78SwYDa9lUBZX5G3xgfofnDxP
-	 ybV67Zk4Ua5g8eHV3zoHLjCix+WTH9h7H5IHP1gz/6DpMxRaj7/Fhz8MvRDWX696S2
-	 lozPvjNmd5li5xPyCvoKgFJwYlliEW4kmvqLihMw=
+	b=0jefqt2buI+6yCUEpOCKIzWNaO7sMkKNY85gY8jbgYS25xpFTpnmxScMkIgIffw+1
+	 VvRuppjNzQaLbDTNeLfTWTq+zb5Va+dQ8vZqI+hdo50NV6Eqltt0gHXuvImWGaksLL
+	 H7OmW7lUK0WEMbNSFMYLadG3xvtq0uJY1TlgizNM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726791AbgGWXXe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Jul 2020 19:23:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35198 "EHLO mail.kernel.org"
+        id S1726833AbgGWXXg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Jul 2020 19:23:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35226 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726723AbgGWXXd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Jul 2020 19:23:33 -0400
+        id S1726723AbgGWXXf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Jul 2020 19:23:35 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D09FE20792;
-        Thu, 23 Jul 2020 23:23:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6BB3420825;
+        Thu, 23 Jul 2020 23:23:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595546613;
-        bh=2oedVtpbtAy9lgoiyUXqG2iModrzrZuvn9EfboqhglM=;
+        s=default; t=1595546615;
+        bh=iTZMOGJAo/3NQLuhEg3gh60t8l63Zhn9YUxzBezCsMA=;
         h=Date:From:To:Subject:From;
-        b=hz6eZxETQdxg4bxlIzP9fNZmJ/RyfJIJgoB1K2xuYR50w+5vXv6WYm8Ej5Pbi2JL4
-         jbalJj4A5bj5PhVmSXZyR//BchzopQq0Vsidz/4eJnPiwJ46IPy90FQxmOBASUkmev
-         5uH4i+W1BwBxVapG7dWbYfdD5cP1I2jw4KRw0qhA=
-Date:   Thu, 23 Jul 2020 16:23:32 -0700
+        b=sV5SyMEOtJuV93DcT83acr7+3Gtwgt+tm4e52t4hC3yIyhfiCOzqZ/bNoM1k6AXVx
+         ipg2QLdM5xwnXK2K9LBlDiGXdoLfxlWtdhfsvRuA7c8tybqBFVK1ndKEAbr1+Eiv13
+         Qc0ag11Kqwrcnyz7E+rjpRLBPbQ0tSoVAeKQVugY=
+Date:   Thu, 23 Jul 2020 16:23:35 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, palmerdabbelt@google.com,
         penberg@kernel.org, rientjes@google.com, rppt@linux.ibm.com,
         thomas.lendacky@amd.com
 Subject:  [merged]
- mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu.patch removed
- from -mm tree
-Message-ID: <20200723232332.NaeVoeeW6%akpm@linux-foundation.org>
+ riscv-use-generic-pgprot_-macros-from-linux-pgtableh.patch removed from -mm
+ tree
+Message-ID: <20200723232335.E9Mp9riZq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,125 +56,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pgtable: make generic pgprot_* macros available for no-MMU
+     Subject: riscv: use generic pgprot_* macros from <linux/pgtable.h>
 has been removed from the -mm tree.  Its filename was
-     mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu.patch
+     riscv-use-generic-pgprot_-macros-from-linux-pgtableh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Pekka Enberg <penberg@kernel.org>
-Subject: mm: pgtable: make generic pgprot_* macros available for no-MMU
+Subject: riscv: use generic pgprot_* macros from <linux/pgtable.h>
 
-The <linux/pgtable.h> header defines some generic pgprot_*
-implementations, but they are only available when CONFIG_MMU is enabled. 
-The RISC-V architecture, for example, therefore defines some of these
-pgprot_* macros for !NOMMU.
+The <linux/pgtable.h> header now defines generic pgprot_ macros also for
+the no-MMU configuration, so let's use them.
 
-Let's make the pgprot_* generic available even for !NOMMU so we can remove
-the RISC-V specific definitions.
-
-Compile-tested with x86 defconfig, and riscv defconfig and !MMU defconfig.
-
-Link: http://lkml.kernel.org/r/20200715053340.576300-1-penberg@gmail.com
+Link: http://lkml.kernel.org/r/20200715053340.576300-2-penberg@gmail.com
 Signed-off-by: Pekka Enberg <penberg@kernel.org>
-Suggested-by: Palmer Dabbelt <palmerdabbelt@google.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: Tom Lendacky <thomas.lendacky@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   71 +++++++++++++++++++-------------------
- 1 file changed, 37 insertions(+), 34 deletions(-)
+ arch/riscv/include/asm/mmio.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/include/linux/pgtable.h~mm-pgtable-make-generic-pgprot_-macros-available-for-no-mmu
-+++ a/include/linux/pgtable.h
-@@ -675,40 +675,6 @@ static inline void arch_swap_restore(swp
- #define flush_tlb_fix_spurious_fault(vma, address) flush_tlb_page(vma, address)
- #endif
+--- a/arch/riscv/include/asm/mmio.h~riscv-use-generic-pgprot_-macros-from-linux-pgtableh
++++ a/arch/riscv/include/asm/mmio.h
+@@ -14,12 +14,6 @@
+ #include <linux/types.h>
+ #include <asm/mmiowb.h>
  
--#ifndef pgprot_nx
--#define pgprot_nx(prot)	(prot)
--#endif
+-#ifndef CONFIG_MMU
+-#define pgprot_noncached(x)	(x)
+-#define pgprot_writecombine(x)	(x)
+-#define pgprot_device(x)	(x)
+-#endif /* CONFIG_MMU */
 -
--#ifndef pgprot_noncached
--#define pgprot_noncached(prot)	(prot)
--#endif
--
--#ifndef pgprot_writecombine
--#define pgprot_writecombine pgprot_noncached
--#endif
--
--#ifndef pgprot_writethrough
--#define pgprot_writethrough pgprot_noncached
--#endif
--
--#ifndef pgprot_device
--#define pgprot_device pgprot_noncached
--#endif
--
--#ifndef pgprot_modify
--#define pgprot_modify pgprot_modify
--static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
--{
--	if (pgprot_val(oldprot) == pgprot_val(pgprot_noncached(oldprot)))
--		newprot = pgprot_noncached(newprot);
--	if (pgprot_val(oldprot) == pgprot_val(pgprot_writecombine(oldprot)))
--		newprot = pgprot_writecombine(newprot);
--	if (pgprot_val(oldprot) == pgprot_val(pgprot_device(oldprot)))
--		newprot = pgprot_device(newprot);
--	return newprot;
--}
--#endif
--
- /*
-  * When walking page tables, get the address of the next boundary,
-  * or the end address of the range if that comes earlier.  Although no
-@@ -868,6 +834,43 @@ static inline void ptep_modify_prot_comm
-  * No-op macros that just return the current protection value. Defined here
-  * because these macros can be used even if CONFIG_MMU is not defined.
-  */
-+
-+#ifndef pgprot_nx
-+#define pgprot_nx(prot)	(prot)
-+#endif
-+
-+#ifndef pgprot_noncached
-+#define pgprot_noncached(prot)	(prot)
-+#endif
-+
-+#ifndef pgprot_writecombine
-+#define pgprot_writecombine pgprot_noncached
-+#endif
-+
-+#ifndef pgprot_writethrough
-+#define pgprot_writethrough pgprot_noncached
-+#endif
-+
-+#ifndef pgprot_device
-+#define pgprot_device pgprot_noncached
-+#endif
-+
-+#ifdef CONFIG_MMU
-+#ifndef pgprot_modify
-+#define pgprot_modify pgprot_modify
-+static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
-+{
-+	if (pgprot_val(oldprot) == pgprot_val(pgprot_noncached(oldprot)))
-+		newprot = pgprot_noncached(newprot);
-+	if (pgprot_val(oldprot) == pgprot_val(pgprot_writecombine(oldprot)))
-+		newprot = pgprot_writecombine(newprot);
-+	if (pgprot_val(oldprot) == pgprot_val(pgprot_device(oldprot)))
-+		newprot = pgprot_device(newprot);
-+	return newprot;
-+}
-+#endif
-+#endif /* CONFIG_MMU */
-+
- #ifndef pgprot_encrypted
- #define pgprot_encrypted(prot)	(prot)
- #endif
+ /* Generic IO read/write.  These perform native-endian accesses. */
+ #define __raw_writeb __raw_writeb
+ static inline void __raw_writeb(u8 val, volatile void __iomem *addr)
 _
 
 Patches currently in -mm which might be from penberg@kernel.org are
