@@ -7,48 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 657C2C433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:06:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E359AC433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:07:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FBC920792
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:06:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA4B720792
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:07:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595563619;
-	bh=UssriG3wF4Q8V7+vMZ+SCEQ/pYPj+o5EDl4JsbhVTqU=;
+	s=default; t=1595563668;
+	bh=AUp1VjkQTU1RGgpHHpEtYTIDX+DsqUbDk2lxYrq/gP0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=WgUbTwv4MPeF9pzfmv9HB+8mWuw/hvymUJRgEgiRwAhKDaXmetdapU8U9aabbbWSl
-	 wUx6bmkndx9+V/59aGN5AKoBgt8mlmelBh1YyhEfqlMXgPsFHk6wqYynZQIVRtEDk2
-	 qmVKrpr1DOW4GfD+6uBazfZqNw+0ZFVM+kI3AGRc=
+	b=z3zJp6jewRbE+nii+bcnBDvhxH3L3jbh30wwCHh4s9fVrzL9s3xEUuPfWaXO9eYeo
+	 LM8ilD5pGHmICr4ZYjpLbkDBtxraZH0YUMVSMPeVmMUMqEuBjg67grDQ06sRAIT/Ee
+	 ZzOEj00S904s5F9R99SXrEfnKxhtKXnwmH9AwgjY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725987AbgGXEG6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jul 2020 00:06:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51896 "EHLO mail.kernel.org"
+        id S1725860AbgGXEHs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jul 2020 00:07:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51954 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725813AbgGXEG6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Jul 2020 00:06:58 -0400
+        id S1725813AbgGXEHs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Jul 2020 00:07:48 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BDAF120709;
-        Fri, 24 Jul 2020 04:06:57 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 83C5820709;
+        Fri, 24 Jul 2020 04:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595563618;
-        bh=UssriG3wF4Q8V7+vMZ+SCEQ/pYPj+o5EDl4JsbhVTqU=;
+        s=default; t=1595563667;
+        bh=AUp1VjkQTU1RGgpHHpEtYTIDX+DsqUbDk2lxYrq/gP0=;
         h=Date:From:To:Subject:From;
-        b=JvkPsyYLoMSMUhcpxzCwRqyeKUivlMNEkXT2ofEjUNCxjz9Ao2VbhvyzDjInygxai
-         ikYeYoJ5DNBxnhLsLCWYn6uqgrN2JNoMjurQ6IqPKx4C1z0gRAELxhyHhHQ9BFkQLJ
-         H3lZgJVA+aGLJHSmFKfZaRMzqHaonfg4ulYNsSM8=
-Date:   Thu, 23 Jul 2020 21:06:57 -0700
+        b=a87t0RhOOy0icVJgM6IpqNIsvSCd5fHMs5H4lEIrVRRSO5GZ2oG6Zv82IW5Vstr7H
+         88wIPtk8dTCHFeHaNFGnGaUxWkunluomnR8ruoensS/nlp4hxIjxFUNWuTCu3fkHhG
+         XyzEh9tOc4UDDfxx0v8PBaAhpAdl3SUJ5KQGxP3E=
+Date:   Thu, 23 Jul 2020 21:07:47 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, hannes@cmpxchg.org, hdanton@sina.com,
-        hughd@google.com, josef@toxicpanda.com,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        will.deacon@arm.com, willy@infradead.org, xuyu@linux.alibaba.com,
-        yang.shi@linux.alibaba.com
+To:     akpm@linux-foundation.org, guro@fb.com,
+        jonathan.cameron@huawei.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, song.bao.hua@hisilicon.com
 Subject:  [folded-merged]
- mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2.patch
+ mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
  removed from -mm tree
-Message-ID: <20200724040657.3IJBV4e1N%akpm@linux-foundation.org>
+Message-ID: <20200724040747.Hs5XDdKIQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -58,62 +56,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2
+     Subject: mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2.patch
+     mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
 
-This patch was dropped because it was folded into mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault.patch
+This patch was dropped because it was folded into mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled.patch
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
 
-incorporat comment from Will Deacon, update commit log per discussion
+fix CONFIG_CMA=n warning
 
-Link: http://lkml.kernel.org/r/1594848990-55657-1-git-send-email-yang.shi@linux.alibaba.com
-Fixes: 89b15332af7c ("mm: drop mmap_sem before calling balance_dirty_pages() in write fault")
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Reported-by: Xu Yu <xuyu@linux.alibaba.com>
-Debugged-by: Xu Yu <xuyu@linux.alibaba.com>
-Tested-by: Xu Yu <xuyu@linux.alibaba.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+mm/hugetlb.c:48:20: warning: hugetlb_cma defined but not used [-Wunused-variable]
+
+Cc: Barry Song <song.bao.hua@hisilicon.com>
+Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memory.c~mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2
-+++ a/mm/memory.c
-@@ -4243,11 +4243,12 @@ static vm_fault_t handle_pte_fault(struc
- 			return do_wp_page(vmf);
- 	}
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
++++ a/mm/hugetlb.c
+@@ -45,7 +45,9 @@ int hugetlb_max_hstate __read_mostly;
+ unsigned int default_hstate_idx;
+ struct hstate hstates[HUGE_MAX_HSTATE];
  
--	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vmf->flags & FAULT_FLAG_TRIED))
--		entry = pte_mkdirty(entry);
--	else if (vmf->flags & FAULT_FLAG_TRIED)
-+	if (vmf->flags & FAULT_FLAG_TRIED)
- 		goto unlock;
++#ifdef CONFIG_CMA
+ static struct cma *hugetlb_cma[MAX_NUMNODES];
++#endif
+ static unsigned long hugetlb_cma_size __initdata;
  
-+	if (vmf->flags & FAULT_FLAG_WRITE)
-+		entry = pte_mkdirty(entry);
-+
- 	entry = pte_mkyoung(entry);
- 	if (ptep_set_access_flags(vmf->vma, vmf->address, vmf->pte, entry,
- 				vmf->flags & FAULT_FLAG_WRITE)) {
+ /*
 _
 
-Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault.patch
-mm-filemap-clear-idle-flag-for-writes.patch
-mm-filemap-add-missing-fgp_-flags-in-kerneldoc-comment-for-pagecache_get_page.patch
-mm-thp-remove-debug_cow-switch.patch
+mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch
+mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled.patch
+io-mapping-indicate-mapping-failure-fix.patch
+mm-fix-kthread_use_mm-vs-tlb-invalidate-fix.patch
+mm.patch
+mm-handle-page-mapping-better-in-dump_page-fix.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
+mm-thp-replace-http-links-with-https-ones-fix.patch
+mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
+mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+linux-next-rejects.patch
+revert-revert-mm-vmalloc-modify-struct-vmap_area-to-reduce-its-size.patch
+mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
