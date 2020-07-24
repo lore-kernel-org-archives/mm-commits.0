@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07139C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 230D5C433E3
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CEBF4206E3
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F10862070E
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595633922;
-	bh=WpKwu90EQcQelSso1y5IFZ/8flz1Es7URrSkEYI7hF8=;
+	s=default; t=1595633926;
+	bh=PqIo/Y+y3mtbDI5zt4wtGGVMNeYhnWvhRtpw0CK0yXg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=PvICeU+Ub7Pgw/q4s82nl4TVTBRxyrjHDj6CKgWEx2E2n21ZmJgoI5pqX4eEIUyft
-	 vgdwMtAzyNd6If5Pd60tKMHNU4AwfoRUwQ7v9cnrMOtGlmSiaqkwSJCChDsuTR9oR9
-	 JpMgsK681wACitJHSeQyX5ENj1qYP9LWbcj3cEiY=
+	b=G8a5+ihCfZRx7b7WzACGDIfASSQ76VXAmhp7NsW1ar2G/cH7mVuxrhUe54mlHsalw
+	 z4MoeWERE0sY75IaqAS5KWq2mwrq37UzwLDUFI6pfMxrnFInDrd2Yp/dYk/iusi4F2
+	 SCQoSbPfNLswIEj9u0oONBFh1cG5KSZ4LNOJMTLU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726763AbgGXXim (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jul 2020 19:38:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44446 "EHLO mail.kernel.org"
+        id S1726768AbgGXXip (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jul 2020 19:38:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726760AbgGXXim (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Jul 2020 19:38:42 -0400
+        id S1726552AbgGXXip (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Jul 2020 19:38:45 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 92FEF2070E;
-        Fri, 24 Jul 2020 23:38:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A855A206E3;
+        Fri, 24 Jul 2020 23:38:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595633921;
-        bh=WpKwu90EQcQelSso1y5IFZ/8flz1Es7URrSkEYI7hF8=;
+        s=default; t=1595633925;
+        bh=PqIo/Y+y3mtbDI5zt4wtGGVMNeYhnWvhRtpw0CK0yXg=;
         h=Date:From:To:Subject:From;
-        b=0Myg8XA2A5Sf0ojKmAFkinzxhMaV/F8NqU4xn1ppTXtNySvJn9N/vOrytFCbmq6WJ
-         Ee9h7MVpPHn05Ge4KMFMr6TsTEfm+lLSyBv9nAE/3y/V9HnYQ2EVglFyU1lxHKxvLH
-         727DWSiS9qlUVmdQDYyRAGItZCBO29wMSMPW7d9A=
-Date:   Fri, 24 Jul 2020 16:38:41 -0700
+        b=A8rD/yjjX8d3lvarfqPjpPPc6eskmYrWp2oEF4qCMU7GFCvAz9dlYQSO3wMYm3eRT
+         Q1onf8nLi8hxozSgQ4o0Rr/T7m/HEYduBBCKzIaTsR6F2EE06EoBo631DHy8QyEcUZ
+         IiMmblSe79gC1Z0ircxoAogfmgnjJIgVXTesc3cY=
+Date:   Fri, 24 Jul 2020 16:38:44 -0700
 From:   akpm@linux-foundation.org
-To:     drinkcat@chromium.org, jslaby@suse.cz, mm-commits@vger.kernel.org,
-        pihsun@chromium.org, sashal@kernel.org, shik@chromium.org,
-        swboyd@chromium.org
-Subject:  [merged]
- scripts-decode_stacktrace-strip-basepath-from-all-paths.patch removed from
- -mm tree
-Message-ID: <20200724233841.tD4JjXYJa%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
+        chris@chris-wilson.co.uk, daniel@ffwll.ch,
+        michael.j.ruhl@intel.com, mm-commits@vger.kernel.org,
+        rppt@linux.ibm.com, stable@vger.kernel.org
+Subject:  [merged] io-mapping-indicate-mapping-failure.patch
+ removed from -mm tree
+Message-ID: <20200724233844.KN5M21L8L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,52 +56,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/decode_stacktrace: strip basepath from all paths
+     Subject: io-mapping: indicate mapping failure
 has been removed from the -mm tree.  Its filename was
-     scripts-decode_stacktrace-strip-basepath-from-all-paths.patch
+     io-mapping-indicate-mapping-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pi-Hsun Shih <pihsun@chromium.org>
-Subject: scripts/decode_stacktrace: strip basepath from all paths
+From: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
+Subject: io-mapping: indicate mapping failure
 
-Currently the basepath is removed only from the beginning of the string. 
-When the symbol is inlined and there's multiple line outputs of addr2line,
-only the first line would have basepath removed.
+The !ATOMIC_IOMAP version of io_maping_init_wc will always return success,
+even when the ioremap fails.
 
-Change to remove the basepath prefix from all lines.
+Since the ATOMIC_IOMAP version returns NULL when the init fails, and
+callers check for a NULL return on error this is unexpected.
 
-Link: http://lkml.kernel.org/r/20200720082709.252805-1-pihsun@chromium.org
-Fixes: 31013836a71e ("scripts/decode_stacktrace: match basepath using shell prefix operator, not regex")
-Signed-off-by: Pi-Hsun Shih <pihsun@chromium.org>
-Signed-off-by: Shik Chen <shik@chromium.org>
-Co-developed-by: Shik Chen <shik@chromium.org>
-Reviewed-by: Stephen Boyd <swboyd@chromium.org>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Nicolas Boichat <drinkcat@chromium.org>
-Cc: Jiri Slaby <jslaby@suse.cz>
+During a device probe, where the ioremap failed, a crash can look
+like this:
+
+BUG: unable to handle page fault for address: 0000000000210000
+ #PF: supervisor write access in kernel mode
+ #PF: error_code(0x0002) - not-present page
+ Oops: 0002 [#1] PREEMPT SMP
+ CPU: 0 PID: 177 Comm:
+ RIP: 0010:fill_page_dma [i915]
+  gen8_ppgtt_create [i915]
+  i915_ppgtt_create [i915]
+  intel_gt_init [i915]
+  i915_gem_init [i915]
+  i915_driver_probe [i915]
+  pci_device_probe
+  really_probe
+  driver_probe_device
+
+The remap failure occurred much earlier in the probe.  If it had
+been propagated, the driver would have exited with an error.
+
+Return NULL on ioremap failure.
+
+[akpm@linux-foundation.org: detect ioremap_wc() errors earlier]
+Link: http://lkml.kernel.org/r/20200721171936.81563-1-michael.j.ruhl@intel.com
+Fixes: cafaf14a5d8f ("io-mapping: Always create a struct to hold metadata about the io-mapping")
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/io-mapping.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktrace-strip-basepath-from-all-paths
-+++ a/scripts/decode_stacktrace.sh
-@@ -87,8 +87,8 @@ parse_symbol() {
- 		return
- 	fi
- 
--	# Strip out the base of the path
--	code=${code#$basepath/}
-+	# Strip out the base of the path on each line
-+	code=$(while read -r line; do echo "${line#$basepath/}"; done <<< "$code")
- 
- 	# In the case of inlines, move everything to same line
- 	code=${code//$'\n'/' '}
+--- a/include/linux/io-mapping.h~io-mapping-indicate-mapping-failure
++++ a/include/linux/io-mapping.h
+@@ -107,9 +107,12 @@ io_mapping_init_wc(struct io_mapping *io
+ 		   resource_size_t base,
+ 		   unsigned long size)
+ {
++	iomap->iomem = ioremap_wc(base, size);
++	if (!iomap->iomem)
++		return NULL;
++
+ 	iomap->base = base;
+ 	iomap->size = size;
+-	iomap->iomem = ioremap_wc(base, size);
+ #if defined(pgprot_noncached_wc) /* archs can't agree on a name ... */
+ 	iomap->prot = pgprot_noncached_wc(PAGE_KERNEL);
+ #elif defined(pgprot_writecombine)
 _
 
-Patches currently in -mm which might be from pihsun@chromium.org are
+Patches currently in -mm which might be from michael.j.ruhl@intel.com are
 
 
