@@ -7,45 +7,48 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3381FC433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 03:01:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 657C2C433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:06:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C4EF207FC
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 03:01:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3FBC920792
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:06:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595559695;
-	bh=Tyo6xKt+JBhuwxl6OxSpTJl0B7x2Rw6GMZTQ4uzx5Og=;
-	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=lmsFn0XEWkpcsIcvz9D7AZtYRGLbsObca5OwLxpLDzRNzbWebzka835D63iog5Lo0
-	 ZZLhCR77EE/VY/4HKrQHJK2tBReRVgJyrabH5spUKDLh0+WJn4p1VubqZKzAvmF/JE
-	 E22otGCb3XfRrE3ukHK3SXnLek/OkpnnabpX/YZs=
+	s=default; t=1595563619;
+	bh=UssriG3wF4Q8V7+vMZ+SCEQ/pYPj+o5EDl4JsbhVTqU=;
+	h=Date:From:To:Subject:Reply-To:List-ID:From;
+	b=WgUbTwv4MPeF9pzfmv9HB+8mWuw/hvymUJRgEgiRwAhKDaXmetdapU8U9aabbbWSl
+	 wUx6bmkndx9+V/59aGN5AKoBgt8mlmelBh1YyhEfqlMXgPsFHk6wqYynZQIVRtEDk2
+	 qmVKrpr1DOW4GfD+6uBazfZqNw+0ZFVM+kI3AGRc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726726AbgGXDBe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Jul 2020 23:01:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41084 "EHLO mail.kernel.org"
+        id S1725987AbgGXEG6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jul 2020 00:06:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51896 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726178AbgGXDBe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Jul 2020 23:01:34 -0400
+        id S1725813AbgGXEG6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Jul 2020 00:06:58 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 97E9420737;
-        Fri, 24 Jul 2020 03:01:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BDAF120709;
+        Fri, 24 Jul 2020 04:06:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595559693;
-        bh=Tyo6xKt+JBhuwxl6OxSpTJl0B7x2Rw6GMZTQ4uzx5Og=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=htFriFRXmq0/j0BpQrCXex7GGCjWwcXOS3W9e3Q9NqShrfh3zJzT62PAJ6tL9qWMo
-         TFAm9QrChpQst6qdvjbnmhcAqzwIujWhgHJTcb6gdycZOr6lnPDFYRJMJa+qXtxm/u
-         05sj9gr1TT9DbFuKDKewRVnw0vZ6nGUL6AyInLrc=
-Date:   Thu, 23 Jul 2020 20:01:33 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
-        louhongxiang@huawei.com, mm-commits@vger.kernel.org
-Subject:  + mm-mmap-merge-vma-after-call_mmap-if-possible.patch
- added to -mm tree
-Message-ID: <20200724030133.LsRHiqvP5%akpm@linux-foundation.org>
-In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
+        s=default; t=1595563618;
+        bh=UssriG3wF4Q8V7+vMZ+SCEQ/pYPj+o5EDl4JsbhVTqU=;
+        h=Date:From:To:Subject:From;
+        b=JvkPsyYLoMSMUhcpxzCwRqyeKUivlMNEkXT2ofEjUNCxjz9Ao2VbhvyzDjInygxai
+         ikYeYoJ5DNBxnhLsLCWYn6uqgrN2JNoMjurQ6IqPKx4C1z0gRAELxhyHhHQ9BFkQLJ
+         H3lZgJVA+aGLJHSmFKfZaRMzqHaonfg4ulYNsSM8=
+Date:   Thu, 23 Jul 2020 21:06:57 -0700
+From:   akpm@linux-foundation.org
+To:     catalin.marinas@arm.com, hannes@cmpxchg.org, hdanton@sina.com,
+        hughd@google.com, josef@toxicpanda.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        will.deacon@arm.com, willy@infradead.org, xuyu@linux.alibaba.com,
+        yang.shi@linux.alibaba.com
+Subject:  [folded-merged]
+ mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2.patch
+ removed from -mm tree
+Message-ID: <20200724040657.3IJBV4e1N%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,93 +58,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mmap: merge vma after call_mmap() if possible
-has been added to the -mm tree.  Its filename is
-     mm-mmap-merge-vma-after-call_mmap-if-possible.patch
+     Subject: mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2
+has been removed from the -mm tree.  Its filename was
+     mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-merge-vma-after-call_mmap-if-possible.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-merge-vma-after-call_mmap-if-possible.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault.patch
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: mmap: merge vma after call_mmap() if possible
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2
 
-The vm_flags may be changed after call_mmap() because drivers may set some
-flags for their own purpose.  As a result, we failed to merge the adjacent
-vma due to the different vm_flags as userspace can't pass in the same one.
-Try to merge vma after call_mmap() to fix this issue.
+incorporat comment from Will Deacon, update commit log per discussion
 
-Link: http://lkml.kernel.org/r/1594954065-23733-1-git-send-email-linmiaohe@huawei.com
-Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: http://lkml.kernel.org/r/1594848990-55657-1-git-send-email-yang.shi@linux.alibaba.com
+Fixes: 89b15332af7c ("mm: drop mmap_sem before calling balance_dirty_pages() in write fault")
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Reported-by: Xu Yu <xuyu@linux.alibaba.com>
+Debugged-by: Xu Yu <xuyu@linux.alibaba.com>
+Tested-by: Xu Yu <xuyu@linux.alibaba.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ mm/memory.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-merge-vma-after-call_mmap-if-possible
-+++ a/mm/mmap.c
-@@ -1690,7 +1690,7 @@ unsigned long mmap_region(struct file *f
- 		struct list_head *uf)
- {
- 	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma, *prev;
-+	struct vm_area_struct *vma, *prev, *merge;
- 	int error;
- 	struct rb_node **rb_link, *rb_parent;
- 	unsigned long charged = 0;
-@@ -1774,6 +1774,25 @@ unsigned long mmap_region(struct file *f
- 		if (error)
- 			goto unmap_and_free_vma;
+--- a/mm/memory.c~mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault-v2
++++ a/mm/memory.c
+@@ -4243,11 +4243,12 @@ static vm_fault_t handle_pte_fault(struc
+ 			return do_wp_page(vmf);
+ 	}
  
-+		/* If vm_flags changed after call_mmap(), we should try merge vma again
-+		 * as we may succeed this time.
-+		 */
-+		if (unlikely(vm_flags != vma->vm_flags && prev)) {
-+			merge = vma_merge(mm, prev, vma->vm_start, vma->vm_end, vma->vm_flags,
-+				NULL, vma->vm_file, vma->vm_pgoff, NULL, NULL_VM_UFFD_CTX);
-+			if (merge) {
-+				fput(file);
-+				vm_area_free(vma);
-+				vma = merge;
-+				/* Update vm_flags and possible addr to pick up the change. We don't
-+				 * warn here if addr changed as the vma is not linked by vma_link().
-+				 */
-+				addr = vma->vm_start;
-+				vm_flags = vma->vm_flags;
-+				goto unmap_writable;
-+			}
-+		}
+-	if ((vmf->flags & FAULT_FLAG_WRITE) && !(vmf->flags & FAULT_FLAG_TRIED))
+-		entry = pte_mkdirty(entry);
+-	else if (vmf->flags & FAULT_FLAG_TRIED)
++	if (vmf->flags & FAULT_FLAG_TRIED)
+ 		goto unlock;
+ 
++	if (vmf->flags & FAULT_FLAG_WRITE)
++		entry = pte_mkdirty(entry);
 +
- 		/* Can addr have changed??
- 		 *
- 		 * Answer: Yes, several device drivers can do it in their
-@@ -1796,6 +1815,7 @@ unsigned long mmap_region(struct file *f
- 	vma_link(mm, vma, prev, rb_link, rb_parent);
- 	/* Once vma denies write, undo our temporary denial count */
- 	if (file) {
-+unmap_writable:
- 		if (vm_flags & VM_SHARED)
- 			mapping_unmap_writable(file->f_mapping);
- 		if (vm_flags & VM_DENYWRITE)
+ 	entry = pte_mkyoung(entry);
+ 	if (ptep_set_access_flags(vmf->vma, vmf->address, vmf->pte, entry,
+ 				vmf->flags & FAULT_FLAG_WRITE)) {
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
 
-mm-mmap-merge-vma-after-call_mmap-if-possible.patch
+mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault.patch
+mm-filemap-clear-idle-flag-for-writes.patch
+mm-filemap-add-missing-fgp_-flags-in-kerneldoc-comment-for-pagecache_get_page.patch
+mm-thp-remove-debug_cow-switch.patch
 
