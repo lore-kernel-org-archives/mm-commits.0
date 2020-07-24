@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7312C433F1
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68456C433E3
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8556206E3
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3919A2070E
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595633917;
-	bh=o46IDBTB+1kCR1FecIk+SJTBdit23i/o5BbolVqT368=;
+	s=default; t=1595633920;
+	bh=pFQn52XOfp1zZE3zKgK/DF7hv4vRmQNd3x5Z5Q91t5k=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=hmjJ7mvljLKiTBBGW/UH/8HiHg/sLNpjDys2Pnm5ngg+53QXp7UNq9D5vakCJMKQP
-	 kozOgIZF0xiBW7mKpMMzWur22ObNvJf1SH8LtqMgpjeHMTobNcF67yfB3JDuh9Ho9X
-	 xMKln183RytKqNqxsno9eVvydM3pyWyyouDpIskw=
+	b=UyyrCFfOBZ88lcnMg9yUh/ZsXZZ41JdEyEGzV+dUNQUaR9Q/1pjVJm0j9IkxE+Zh7
+	 s0WOfQQAfQOMVdzNjCc14izQeSn6Cc9CfSVaodVxtJmAPtegxxpUyq3KodAatEqfOG
+	 7ofS/yKes/Uc2IJ4TzTsMqXJ7d9PIDPUonZdWP0M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726754AbgGXXih (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jul 2020 19:38:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44392 "EHLO mail.kernel.org"
+        id S1726759AbgGXXij (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jul 2020 19:38:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44412 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726552AbgGXXih (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Jul 2020 19:38:37 -0400
+        id S1726552AbgGXXij (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Jul 2020 19:38:39 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6AEEA20737;
-        Fri, 24 Jul 2020 23:38:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 91FF9206E3;
+        Fri, 24 Jul 2020 23:38:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595633916;
-        bh=o46IDBTB+1kCR1FecIk+SJTBdit23i/o5BbolVqT368=;
+        s=default; t=1595633919;
+        bh=pFQn52XOfp1zZE3zKgK/DF7hv4vRmQNd3x5Z5Q91t5k=;
         h=Date:From:To:Subject:From;
-        b=g2PR4nNKezTesFqdxBcsR1S4xEu+zm9YGkd8fUsNkVfl7XdV+WXcmaop1nSltz5e4
-         uISfDHMSmLJAEIwcDQHjBSwT02uh0lp38rRNOmzTAYjxBpYAssgAyz713FGh5lULJp
-         q+lv4V1BJgjukV0k7zEbOsq42P7GSmdSH7rXVRRI=
-Date:   Fri, 24 Jul 2020 16:38:36 -0700
+        b=PT3wn+qET52OKNFMg2qsgP0HiKP1w6ZG9De9p3gwEjDQXDljrR5uyAYZsiry7sK2E
+         IblMPROXOyY24yAyDpxHakP4pYNl5UDxOQ4Xeo60YqtOylNiiwPk8Qxwf9OuDzxF0M
+         olCQd/S4h/b4XaN3zmNKj012+fmH9HGKVMXUciMc=
+Date:   Fri, 24 Jul 2020 16:38:38 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com
-Subject:  [merged] mailmap-add-entry-for-mike-rapoport.patch
- removed from -mm tree
-Message-ID: <20200724233836.xdpKOdqTg%akpm@linux-foundation.org>
+To:     adrien+dev@schischi.me, bernd.amend@gmail.com, drosen@google.com,
+        groeck@chromium.org, hch@lst.de, mm-commits@vger.kernel.org,
+        phillip@squashfs.org.uk
+Subject:  [merged]
+ squashfs-fix-length-field-overlap-check-in-metadata-reading.patch removed
+ from -mm tree
+Message-ID: <20200724233838.cPL9au5Ep%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,52 +56,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: add entry for Mike Rapoport
+     Subject: squashfs: fix length field overlap check in metadata reading
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-entry-for-mike-rapoport.patch
+     squashfs-fix-length-field-overlap-check-in-metadata-reading.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mailmap: add entry for Mike Rapoport
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: squashfs: fix length field overlap check in metadata reading
 
-Add an entry to correct my email addresses.
+This is a regression introduced by the "migrate from ll_rw_block usage to
+BIO" patch.
 
-Link: http://lkml.kernel.org/r/20200708095414.12275-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Squashfs packs structures on byte boundaries, and due to that the length
+field (of the metadata block) may not be fully in the current block.  The
+new code rewrote and introduced a faulty check for that edge case.
+
+Link: http://lkml.kernel.org/r/20200717195536.16069-1-phillip@squashfs.org.uk
+Fixes: 93e72b3c612adcaca1 ("squashfs: migrate from ll_rw_block usage to BIO")
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: Bernd Amend <bernd.amend@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Adrien Schildknecht <adrien+dev@schischi.me>
+Cc: Guenter Roeck <groeck@chromium.org>
+Cc: Daniel Rosenberg <drosen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/squashfs/block.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~mailmap-add-entry-for-mike-rapoport
-+++ a/.mailmap
-@@ -198,6 +198,9 @@ Maxime Ripard <mripard@kernel.org> <maxi
- Mayuresh Janorkar <mayur@ti.com>
- Michael Buesch <m@bues.ch>
- Michel D=C3=A4nzer <michel@tungstengraphics.com>
-+Mike Rapoport <rppt@kernel.org> <mike@compulab.co.il>
-+Mike Rapoport <rppt@kernel.org> <mike.rapoport@gmail.com>
-+Mike Rapoport <rppt@kernel.org> <rppt@linux.ibm.com>
- Miodrag Dinic <miodrag.dinic@mips.com> <miodrag.dinic@imgtec.com>
- Miquel Raynal <miquel.raynal@bootlin.com> <miquel.raynal@free-electrons.co=
-m>
- Mitesh shah <mshah@teja.com>
+--- a/fs/squashfs/block.c~squashfs-fix-length-field-overlap-check-in-metadata-reading
++++ a/fs/squashfs/block.c
+@@ -175,7 +175,7 @@ int squashfs_read_data(struct super_bloc
+ 		/* Extract the length of the metadata block */
+ 		data = page_address(bvec->bv_page) + bvec->bv_offset;
+ 		length = data[offset];
+-		if (offset <= bvec->bv_len - 1) {
++		if (offset < bvec->bv_len - 1) {
+ 			length |= data[offset + 1] << 8;
+ 		} else {
+ 			if (WARN_ON_ONCE(!bio_next_segment(bio, &iter_all))) {
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-mm-remove-unneeded-includes-of-asm-pgalloch.patch
-mm-remove-unneeded-includes-of-asm-pgalloch-fix.patch
-opeinrisc-switch-to-generic-version-of-pte-allocation.patch
-xtensa-switch-to-generic-version-of-pte-allocation.patch
-asm-generic-pgalloc-provide-generic-pmd_alloc_one-and-pmd_free_one.patch
-asm-generic-pgalloc-provide-generic-pud_alloc_one-and-pud_free_one.patch
-asm-generic-pgalloc-provide-generic-pgd_free.patch
-mm-move-lib-ioremapc-to-mm.patch
-mm-sparse-cleanup-the-code-surrounding-memory_present.patch
-mm-vmalloc-remove-redundant-asignmnet-in-unmap_kernel_range_noflush.patch
 
