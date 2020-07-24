@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06E16C433EB
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7312C433F1
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D362720748
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8556206E3
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595633914;
-	bh=8olXSwI7XbITy+KTrli4U1lrez7EbJQsBd5n7umBzqs=;
+	s=default; t=1595633917;
+	bh=o46IDBTB+1kCR1FecIk+SJTBdit23i/o5BbolVqT368=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=gnrhw14zGcp8t/+Py/001ocf3B9JbClSLeMIPSGmp4nCDbAwTSQfHONEYRoG/AQcE
-	 +sxNmNbgMB8dMRFruD5h4nxRMmHT8gaSMuvck5rtRAiRXto/Y1Y3MERp/fHaZB/Kns
-	 rvBvTj9zanwZAA2ogfjy0g+IrT0ncea7Vgqxc5Y8=
+	b=hmjJ7mvljLKiTBBGW/UH/8HiHg/sLNpjDys2Pnm5ngg+53QXp7UNq9D5vakCJMKQP
+	 kozOgIZF0xiBW7mKpMMzWur22ObNvJf1SH8LtqMgpjeHMTobNcF67yfB3JDuh9Ho9X
+	 xMKln183RytKqNqxsno9eVvydM3pyWyyouDpIskw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726739AbgGXXie (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jul 2020 19:38:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44328 "EHLO mail.kernel.org"
+        id S1726754AbgGXXih (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jul 2020 19:38:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44392 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726552AbgGXXie (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Jul 2020 19:38:34 -0400
+        id S1726552AbgGXXih (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Jul 2020 19:38:37 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 96D7B20737;
-        Fri, 24 Jul 2020 23:38:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6AEEA20737;
+        Fri, 24 Jul 2020 23:38:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595633913;
-        bh=8olXSwI7XbITy+KTrli4U1lrez7EbJQsBd5n7umBzqs=;
+        s=default; t=1595633916;
+        bh=o46IDBTB+1kCR1FecIk+SJTBdit23i/o5BbolVqT368=;
         h=Date:From:To:Subject:From;
-        b=O3dBeCJme7wEAP7btAslUkmHWx4/090V4qyKElQ3InV2OJmMVbpWyiwmVAYh9D1xz
-         O4fwah9xAuF2TDbf94A8JfpV86ob6fqFvM0DECIFyRMoagkF5LwEnbE86SiqKEw+57
-         VR8pPoYRGJuD5YJQtaocsORwmpraGMQxUSo9h0bY=
-Date:   Fri, 24 Jul 2020 16:38:33 -0700
+        b=g2PR4nNKezTesFqdxBcsR1S4xEu+zm9YGkd8fUsNkVfl7XdV+WXcmaop1nSltz5e4
+         uISfDHMSmLJAEIwcDQHjBSwT02uh0lp38rRNOmzTAYjxBpYAssgAyz713FGh5lULJp
+         q+lv4V1BJgjukV0k7zEbOsq42P7GSmdSH7rXVRRI=
+Date:   Fri, 24 Jul 2020 16:38:36 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, kirill.shutemov@linux.intel.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        yang.shi@linux.alibaba.com
-Subject:  [merged]
- khugepaged-fix-null-pointer-dereference-due-to-race.patch removed from -mm
- tree
-Message-ID: <20200724233833.i0s-CROqQ%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com
+Subject:  [merged] mailmap-add-entry-for-mike-rapoport.patch
+ removed from -mm tree
+Message-ID: <20200724233836.xdpKOdqTg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,65 +56,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: fix null-pointer dereference due to race
+     Subject: mailmap: add entry for Mike Rapoport
 has been removed from the -mm tree.  Its filename was
-     khugepaged-fix-null-pointer-dereference-due-to-race.patch
+     mailmap-add-entry-for-mike-rapoport.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: fix null-pointer dereference due to race
+=46rom: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mailmap: add entry for Mike Rapoport
 
-khugepaged has to drop mmap lock several times while collapsing a page. 
-The situation can change while the lock is dropped and we need to
-re-validate that the VMA is still in place and the PMD is still subject
-for collapse.
+Add an entry to correct my email addresses.
 
-But we miss one corner case: while collapsing an anonymous pages the VMA
-could be replaced with file VMA. If the file VMA doesn't have any
-private pages we get NULL pointer dereference:
-
-	general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN
-	KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
-	anon_vma_lock_write include/linux/rmap.h:120 [inline]
-	collapse_huge_page mm/khugepaged.c:1110 [inline]
-	khugepaged_scan_pmd mm/khugepaged.c:1349 [inline]
-	khugepaged_scan_mm_slot mm/khugepaged.c:2110 [inline]
-	khugepaged_do_scan mm/khugepaged.c:2193 [inline]
-	khugepaged+0x3bba/0x5a10 mm/khugepaged.c:2238
-
-The fix is to make sure that the VMA is anonymous in
-hugepage_vma_revalidate().  The helper is only used for collapsing
-anonymous pages.
-
-Link: http://lkml.kernel.org/r/20200722121439.44328-1-kirill.shutemov@linux.intel.com
-Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: syzbot+ed318e8b790ca72c5ad0@syzkaller.appspotmail.com
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200708095414.12275-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    3 +++
+ .mailmap |    3 +++
  1 file changed, 3 insertions(+)
 
---- a/mm/khugepaged.c~khugepaged-fix-null-pointer-dereference-due-to-race
-+++ a/mm/khugepaged.c
-@@ -958,6 +958,9 @@ static int hugepage_vma_revalidate(struc
- 		return SCAN_ADDRESS_RANGE;
- 	if (!hugepage_vma_check(vma, vma->vm_flags))
- 		return SCAN_VMA_CHECK;
-+	/* Anon VMA expected */
-+	if (!vma->anon_vma || vma->vm_ops)
-+		return SCAN_VMA_CHECK;
- 	return 0;
- }
- 
+--- a/.mailmap~mailmap-add-entry-for-mike-rapoport
++++ a/.mailmap
+@@ -198,6 +198,9 @@ Maxime Ripard <mripard@kernel.org> <maxi
+ Mayuresh Janorkar <mayur@ti.com>
+ Michael Buesch <m@bues.ch>
+ Michel D=C3=A4nzer <michel@tungstengraphics.com>
++Mike Rapoport <rppt@kernel.org> <mike@compulab.co.il>
++Mike Rapoport <rppt@kernel.org> <mike.rapoport@gmail.com>
++Mike Rapoport <rppt@kernel.org> <rppt@linux.ibm.com>
+ Miodrag Dinic <miodrag.dinic@mips.com> <miodrag.dinic@imgtec.com>
+ Miquel Raynal <miquel.raynal@bootlin.com> <miquel.raynal@free-electrons.co=
+m>
+ Mitesh shah <mshah@teja.com>
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
+mm-remove-unneeded-includes-of-asm-pgalloch.patch
+mm-remove-unneeded-includes-of-asm-pgalloch-fix.patch
+opeinrisc-switch-to-generic-version-of-pte-allocation.patch
+xtensa-switch-to-generic-version-of-pte-allocation.patch
+asm-generic-pgalloc-provide-generic-pmd_alloc_one-and-pmd_free_one.patch
+asm-generic-pgalloc-provide-generic-pud_alloc_one-and-pud_free_one.patch
+asm-generic-pgalloc-provide-generic-pgd_free.patch
+mm-move-lib-ioremapc-to-mm.patch
+mm-sparse-cleanup-the-code-surrounding-memory_present.patch
+mm-vmalloc-remove-redundant-asignmnet-in-unmap_kernel_range_noflush.patch
 
