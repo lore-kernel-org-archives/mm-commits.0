@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44AF1C433E3
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 02:20:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59BA4C433E3
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 02:20:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 22657207FC
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 02:20:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 394CC207FC
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 02:20:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595557230;
-	bh=CQRkEBwhx5CHPucZoTtoT3wdewt3oL3HlRmh5QsLnH4=;
+	s=default; t=1595557231;
+	bh=aBaaKnGtlpVLXF6hTKnwkprLRfEuYFmq5Xxu2lpgkxI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=b2hbsV1+RCi1I0xq1WcTtH+fRMIMUoovoNMmQp1espPq4+uwikdjYTtxmhkRllEg8
-	 LYjVEQ43Rcn0F+61OtralEL3QaIny8YHVTxSM+kCdRaAyihqRIG+SVZac3Wnn+XWkR
-	 EsXju9g4UwTzY30vTdcvdgqssX4HccK6nKfFZkJs=
+	b=MAXXlEkyV+3iYXlMp9cDqgJnq+gVexktySps55H8L2a5pSvaIqVzSpkNzXLB6TuZI
+	 pyfWyERKngZK9HewpPLi7AhqmRPhrCaSPLBfOD9bEUChDitmDuweaw0PY0myc0Jgmc
+	 WZeJT3vinFEDIsZFnRG136pWoufjfGT7DUlXJ8+s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726349AbgGXCU2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Jul 2020 22:20:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60200 "EHLO mail.kernel.org"
+        id S1726454AbgGXCUa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Jul 2020 22:20:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60238 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726284AbgGXCU2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Jul 2020 22:20:28 -0400
+        id S1726284AbgGXCUa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Jul 2020 22:20:30 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CB50420737;
-        Fri, 24 Jul 2020 02:20:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 06390207DF;
+        Fri, 24 Jul 2020 02:20:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595557228;
-        bh=CQRkEBwhx5CHPucZoTtoT3wdewt3oL3HlRmh5QsLnH4=;
+        s=default; t=1595557230;
+        bh=aBaaKnGtlpVLXF6hTKnwkprLRfEuYFmq5Xxu2lpgkxI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=nNJ+Z880YdGuIepiiXgPXvGEypfXGceiGIMhogprn3nbXNTQUpLp7jy0E70zKEIpw
-         gxpCdMYK4AZ9jb7EBTEttNJ0mCUXQG1VxeRmIFywnnvLYsrxbt1JGTgwUNTB78SlHY
-         8GHWP5ytXxODyA7PGhvByji2B0OXnzrNqBdFBrx8=
-Date:   Thu, 23 Jul 2020 19:20:27 -0700
+        b=e3sBjoeR5wo+g+HXSq7btXr+lK5xqTeF9F1mmFKv8CXHirCoK1sL9GU/ZHzqeRuVj
+         St5sJOtiazjqMxJbEF4sJahG7n+sQyfz4MJcmnua38YythnkNdMa+4MzZY7WtlMIGz
+         r2h7+/J6BleeI8p1XZ7JQlc0KmB2GnvpmyljZ8nU=
+Date:   Thu, 23 Jul 2020 19:20:29 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     keescook@chromium.org, khlebnikov@yandex-team.ru,
         linux@roeck-us.net, mm-commits@vger.kernel.org,
         yangtiezhu@loongson.cn
 Subject:  +
- lib-kconfigdebug-make-test_lockup-depend-on-module.patch added to -mm tree
-Message-ID: <20200724022027.jiouTjV_x%akpm@linux-foundation.org>
+ lib-test_lockupc-fix-return-value-of-test_lockup_init.patch added to -mm
+ tree
+Message-ID: <20200724022029.OUaYY9XD7%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/Kconfig.debug: make TEST_LOCKUP depend on module
+     Subject: lib/test_lockup.c: fix return value of test_lockup_init()
 has been added to the -mm tree.  Its filename is
-     lib-kconfigdebug-make-test_lockup-depend-on-module.patch
+     lib-test_lockupc-fix-return-value-of-test_lockup_init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-kconfigdebug-make-test_lockup-depend-on-module.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_lockupc-fix-return-value-of-test_lockup_init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-kconfigdebug-make-test_lockup-depend-on-module.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_lockupc-fix-return-value-of-test_lockup_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,13 +79,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: lib/Kconfig.debug: make TEST_LOCKUP depend on module
+Subject: lib/test_lockup.c: fix return value of test_lockup_init()
 
-Since test_lockup is a test module to generate lockups, it is better to
-limit TEST_LOCKUP to module (=m) or disabled (=n) because we can not use
-the module parameters when CONFIG_TEST_LOCKUP=y.
+Since filp_open() returns an error pointer, we should use IS_ERR() to
+check the return value and then return PTR_ERR() if failed to get the
+actual return value instead of always -EINVAL.
 
-Link: http://lkml.kernel.org/r/1595555407-29875-1-git-send-email-yangtiezhu@loongson.cn
+E.g. without this patch:
+
+[root@localhost loongson]# ls no_such_file
+ls: cannot access no_such_file: No such file or directory
+[root@localhost loongson]# modprobe test_lockup file_path=no_such_file lock_sb_umount time_secs=60 state=S
+modprobe: ERROR: could not insert 'test_lockup': Invalid argument
+[root@localhost loongson]# dmesg | tail -1
+[  126.100596] test_lockup: cannot find file_path
+
+With this patch:
+
+[root@localhost loongson]# ls no_such_file
+ls: cannot access no_such_file: No such file or directory
+[root@localhost loongson]# modprobe test_lockup file_path=no_such_file lock_sb_umount time_secs=60 state=S
+modprobe: ERROR: could not insert 'test_lockup': Unknown symbol in module, or unknown parameter (see dmesg)
+[root@localhost loongson]# dmesg | tail -1
+[   95.134362] test_lockup: failed to open no_such_file: -2
+
+Link: http://lkml.kernel.org/r/1595555407-29875-2-git-send-email-yangtiezhu@loongson.cn
+Fixes: aecd42df6d39 ("lib/test_lockup.c: add parameters for locking generic vfs locks")
 Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
 Reviewed-by: Guenter Roeck <linux@roeck-us.net>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
@@ -92,19 +112,22 @@ Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 +
- 1 file changed, 1 insertion(+)
+ lib/test_lockup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/Kconfig.debug~lib-kconfigdebug-make-test_lockup-depend-on-module
-+++ a/lib/Kconfig.debug
-@@ -1046,6 +1046,7 @@ config WQ_WATCHDOG
- 
- config TEST_LOCKUP
- 	tristate "Test module to generate lockups"
-+	depends on m
- 	help
- 	  This builds the "test_lockup" module that helps to make sure
- 	  that watchdogs and lockup detectors are working properly.
+--- a/lib/test_lockup.c~lib-test_lockupc-fix-return-value-of-test_lockup_init
++++ a/lib/test_lockup.c
+@@ -512,8 +512,8 @@ static int __init test_lockup_init(void)
+ 	if (test_file_path[0]) {
+ 		test_file = filp_open(test_file_path, O_RDONLY, 0);
+ 		if (IS_ERR(test_file)) {
+-			pr_err("cannot find file_path\n");
+-			return -EINVAL;
++			pr_err("failed to open %s: %ld\n", test_file_path, PTR_ERR(test_file));
++			return PTR_ERR(test_file);
+ 		}
+ 		test_inode = file_inode(test_file);
+ 	} else if (test_lock_inode ||
 _
 
 Patches currently in -mm which might be from yangtiezhu@loongson.cn are
