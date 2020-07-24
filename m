@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E359AC433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:07:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C2A8C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:07:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA4B720792
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:07:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 718E9207BB
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:07:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595563668;
-	bh=AUp1VjkQTU1RGgpHHpEtYTIDX+DsqUbDk2lxYrq/gP0=;
+	s=default; t=1595563671;
+	bh=BuLEU2j+F1G7l2dIom/c4LLiCN9gT1S7CphEasd6gBk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=z3zJp6jewRbE+nii+bcnBDvhxH3L3jbh30wwCHh4s9fVrzL9s3xEUuPfWaXO9eYeo
-	 LM8ilD5pGHmICr4ZYjpLbkDBtxraZH0YUMVSMPeVmMUMqEuBjg67grDQ06sRAIT/Ee
-	 ZzOEj00S904s5F9R99SXrEfnKxhtKXnwmH9AwgjY=
+	b=u4mDMZ6RgCFU/L4GN8+jcqD7lUT5Qex5+TWWGmePTpqsE3MeWWsIlb9y9MlGfWKp9
+	 jXZXXNwrV5TY025AUhwsRFrJ2cIepHVQwhZg5W9G+jiNvfAWUKdw5iPlYILxyIucqJ
+	 eAw28OOd3juGvU2Vs2Wvw3JxVk3qUiiumMtwSHlc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725860AbgGXEHs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jul 2020 00:07:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51954 "EHLO mail.kernel.org"
+        id S1726001AbgGXEHv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jul 2020 00:07:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51982 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725813AbgGXEHs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Jul 2020 00:07:48 -0400
+        id S1725813AbgGXEHv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Jul 2020 00:07:51 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 83C5820709;
-        Fri, 24 Jul 2020 04:07:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A144220792;
+        Fri, 24 Jul 2020 04:07:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595563667;
-        bh=AUp1VjkQTU1RGgpHHpEtYTIDX+DsqUbDk2lxYrq/gP0=;
+        s=default; t=1595563670;
+        bh=BuLEU2j+F1G7l2dIom/c4LLiCN9gT1S7CphEasd6gBk=;
         h=Date:From:To:Subject:From;
-        b=a87t0RhOOy0icVJgM6IpqNIsvSCd5fHMs5H4lEIrVRRSO5GZ2oG6Zv82IW5Vstr7H
-         88wIPtk8dTCHFeHaNFGnGaUxWkunluomnR8ruoensS/nlp4hxIjxFUNWuTCu3fkHhG
-         XyzEh9tOc4UDDfxx0v8PBaAhpAdl3SUJ5KQGxP3E=
-Date:   Thu, 23 Jul 2020 21:07:47 -0700
+        b=FBzQG1k622SAawBQXQCliTg8ogyearvB8ouD0GvJRt1/NmFjhVApsOC/y7KuaiGjL
+         Iz6TnNa5dHMI0KGjg2Az90saE0rJEQDvk0nZkMYRhC7a+BJlsuqksI9r9tSSM7DVKC
+         pKgLWSjHf+R5AoZRLbbJunTl2lskH2Ct3x59ooOQ=
+Date:   Thu, 23 Jul 2020 21:07:50 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, guro@fb.com,
-        jonathan.cameron@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, song.bao.hua@hisilicon.com
+To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
 Subject:  [folded-merged]
- mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
+ mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix-fix.patch
  removed from -mm tree
-Message-ID: <20200724040747.Hs5XDdKIQ%akpm@linux-foundation.org>
+Message-ID: <20200724040750.QKU1u9m44%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,62 +55,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
+     Subject: mm/hugetlb: better checks before using hugetlb_cma
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix.patch
+     mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix-fix.patch
 
 This patch was dropped because it was folded into mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: mm/hugetlb: better checks before using hugetlb_cma
 
-fix CONFIG_CMA=n warning
-
-mm/hugetlb.c:48:20: warning: hugetlb_cma defined but not used [-Wunused-variable]
-
-Cc: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Roman Gushchin <guro@fb.com>
+Link: http://lkml.kernel.org/r/20200721205716.6dbaa56b@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled-fix-fix
 +++ a/mm/hugetlb.c
-@@ -45,7 +45,9 @@ int hugetlb_max_hstate __read_mostly;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
- 
+@@ -1238,9 +1238,10 @@ static void free_gigantic_page(struct pa
+ 	 * If the page isn't allocated using the cma allocator,
+ 	 * cma_release() returns false.
+ 	 */
+-	if (IS_ENABLED(CONFIG_CMA) &&
+-	    cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order))
 +#ifdef CONFIG_CMA
- static struct cma *hugetlb_cma[MAX_NUMNODES];
++	if (cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order))
+ 		return;
 +#endif
- static unsigned long hugetlb_cma_size __initdata;
  
- /*
+ 	free_contig_range(page_to_pfn(page), 1 << order);
+ }
+@@ -1251,7 +1252,8 @@ static struct page *alloc_gigantic_page(
+ {
+ 	unsigned long nr_pages = 1UL << huge_page_order(h);
+ 
+-	if (IS_ENABLED(CONFIG_CMA)) {
++#ifdef CONFIG_CMA
++	{
+ 		struct page *page;
+ 		int node;
+ 
+@@ -1265,6 +1267,7 @@ static struct page *alloc_gigantic_page(
+ 				return page;
+ 		}
+ 	}
++#endif
+ 
+ 	return alloc_contig_pages(nr_pages, gfp_mask, nid, nodemask);
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch
 mm-hugetlb-avoid-hardcoding-while-checking-if-cma-is-enabled.patch
-io-mapping-indicate-mapping-failure-fix.patch
-mm-fix-kthread_use_mm-vs-tlb-invalidate-fix.patch
-mm.patch
-mm-handle-page-mapping-better-in-dump_page-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
-mm-thp-replace-http-links-with-https-ones-fix.patch
-mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
-mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-linux-next-rejects.patch
-revert-revert-mm-vmalloc-modify-struct-vmap_area-to-reduce-its-size.patch
-mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
