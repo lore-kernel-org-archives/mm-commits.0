@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 124F8C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 02:53:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3381FC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 03:01:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC4FC20737
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 02:53:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C4EF207FC
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 03:01:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595559229;
-	bh=boxyFjvfDIkSuqVJBgeokxTf3/fLmC/ChOQ5M8PrIWk=;
+	s=default; t=1595559695;
+	bh=Tyo6xKt+JBhuwxl6OxSpTJl0B7x2Rw6GMZTQ4uzx5Og=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=SbEIpJ/ChJ9UR68K64HowV5Ene3C2Z8tYkMuxJDijMGhd+ZnCLEX01GP5iQkaItRi
-	 yDom9VTToQLoI1Z3z14keHp8gC4JDEbpwQDvNJs+mSDF95Zh0nTAi9kH94EH6WQzyA
-	 CEyTOnDnmnpE9Z4BvHQ4Ottwnpd2bOibtQ9HKcLA=
+	b=lmsFn0XEWkpcsIcvz9D7AZtYRGLbsObca5OwLxpLDzRNzbWebzka835D63iog5Lo0
+	 ZZLhCR77EE/VY/4HKrQHJK2tBReRVgJyrabH5spUKDLh0+WJn4p1VubqZKzAvmF/JE
+	 E22otGCb3XfRrE3ukHK3SXnLek/OkpnnabpX/YZs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726425AbgGXCxt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Jul 2020 22:53:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39634 "EHLO mail.kernel.org"
+        id S1726726AbgGXDBe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Jul 2020 23:01:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41084 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726178AbgGXCxt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Jul 2020 22:53:49 -0400
+        id S1726178AbgGXDBe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Jul 2020 23:01:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9DCF3206C1;
-        Fri, 24 Jul 2020 02:53:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 97E9420737;
+        Fri, 24 Jul 2020 03:01:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595559228;
-        bh=boxyFjvfDIkSuqVJBgeokxTf3/fLmC/ChOQ5M8PrIWk=;
+        s=default; t=1595559693;
+        bh=Tyo6xKt+JBhuwxl6OxSpTJl0B7x2Rw6GMZTQ4uzx5Og=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=XMaYDTxLHkPXlN9cZTxXfkKaDsylGaPOv+JE7HhZ3OA+VLHjnQNIGSFRoVipGmmxp
-         qnk21WyIxeCoh6f+hXOrz43GXribP2x4XRtjH33zD03ZAlfoz//gPETmC9ACuKe3z3
-         rJpPFRutvRH4gRfB8+6Atgb2+r5WrZkR2qSLQilk=
-Date:   Thu, 23 Jul 2020 19:53:48 -0700
+        b=htFriFRXmq0/j0BpQrCXex7GGCjWwcXOS3W9e3Q9NqShrfh3zJzT62PAJ6tL9qWMo
+         TFAm9QrChpQst6qdvjbnmhcAqzwIujWhgHJTcb6gdycZOr6lnPDFYRJMJa+qXtxm/u
+         05sj9gr1TT9DbFuKDKewRVnw0vZ6nGUL6AyInLrc=
+Date:   Thu, 23 Jul 2020 20:01:33 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     david@redhat.com, kirill.shutemov@linux.intel.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        yang.shi@linux.alibaba.com
-Subject:  +
- khugepaged-fix-null-pointer-dereference-due-to-race.patch added to -mm tree
-Message-ID: <20200724025348.d8QLr5y18%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        louhongxiang@huawei.com, mm-commits@vger.kernel.org
+Subject:  + mm-mmap-merge-vma-after-call_mmap-if-possible.patch
+ added to -mm tree
+Message-ID: <20200724030133.LsRHiqvP5%akpm@linux-foundation.org>
 In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: fix null-pointer dereference due to race
+     Subject: mm: mmap: merge vma after call_mmap() if possible
 has been added to the -mm tree.  Its filename is
-     khugepaged-fix-null-pointer-dereference-due-to-race.patch
+     mm-mmap-merge-vma-after-call_mmap-if-possible.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-fix-null-pointer-dereference-due-to-race.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-merge-vma-after-call_mmap-if-possible.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-fix-null-pointer-dereference-due-to-race.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-merge-vma-after-call_mmap-if-possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,60 +76,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: fix null-pointer dereference due to race
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm: mmap: merge vma after call_mmap() if possible
 
-khugepaged has to drop mmap lock several times while collapsing a page. 
-The situation can change while the lock is dropped and we need to
-re-validate that the VMA is still in place and the PMD is still subject
-for collapse.
+The vm_flags may be changed after call_mmap() because drivers may set some
+flags for their own purpose.  As a result, we failed to merge the adjacent
+vma due to the different vm_flags as userspace can't pass in the same one.
+Try to merge vma after call_mmap() to fix this issue.
 
-But we miss one corner case: while collapsing an anonymous pages the VMA
-could be replaced with file VMA. If the file VMA doesn't have any
-private pages we get NULL pointer dereference:
-
-	general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN
-	KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
-	anon_vma_lock_write include/linux/rmap.h:120 [inline]
-	collapse_huge_page mm/khugepaged.c:1110 [inline]
-	khugepaged_scan_pmd mm/khugepaged.c:1349 [inline]
-	khugepaged_scan_mm_slot mm/khugepaged.c:2110 [inline]
-	khugepaged_do_scan mm/khugepaged.c:2193 [inline]
-	khugepaged+0x3bba/0x5a10 mm/khugepaged.c:2238
-
-The fix is to make sure that the VMA is anonymous in
-hugepage_vma_revalidate().  The helper is only used for collapsing
-anonymous pages.
-
-Link: http://lkml.kernel.org/r/20200722121439.44328-1-kirill.shutemov@linux.intel.com
-Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: syzbot+ed318e8b790ca72c5ad0@syzkaller.appspotmail.com
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1594954065-23733-1-git-send-email-linmiaohe@huawei.com
+Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/mmap.c |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~khugepaged-fix-null-pointer-dereference-due-to-race
-+++ a/mm/khugepaged.c
-@@ -958,6 +958,9 @@ static int hugepage_vma_revalidate(struc
- 		return SCAN_ADDRESS_RANGE;
- 	if (!hugepage_vma_check(vma, vma->vm_flags))
- 		return SCAN_VMA_CHECK;
-+	/* Anon VMA expected */
-+	if (!vma->anon_vma || vma->vm_ops)
-+		return SCAN_VMA_CHECK;
- 	return 0;
- }
+--- a/mm/mmap.c~mm-mmap-merge-vma-after-call_mmap-if-possible
++++ a/mm/mmap.c
+@@ -1690,7 +1690,7 @@ unsigned long mmap_region(struct file *f
+ 		struct list_head *uf)
+ {
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma, *prev;
++	struct vm_area_struct *vma, *prev, *merge;
+ 	int error;
+ 	struct rb_node **rb_link, *rb_parent;
+ 	unsigned long charged = 0;
+@@ -1774,6 +1774,25 @@ unsigned long mmap_region(struct file *f
+ 		if (error)
+ 			goto unmap_and_free_vma;
  
++		/* If vm_flags changed after call_mmap(), we should try merge vma again
++		 * as we may succeed this time.
++		 */
++		if (unlikely(vm_flags != vma->vm_flags && prev)) {
++			merge = vma_merge(mm, prev, vma->vm_start, vma->vm_end, vma->vm_flags,
++				NULL, vma->vm_file, vma->vm_pgoff, NULL, NULL_VM_UFFD_CTX);
++			if (merge) {
++				fput(file);
++				vm_area_free(vma);
++				vma = merge;
++				/* Update vm_flags and possible addr to pick up the change. We don't
++				 * warn here if addr changed as the vma is not linked by vma_link().
++				 */
++				addr = vma->vm_start;
++				vm_flags = vma->vm_flags;
++				goto unmap_writable;
++			}
++		}
++
+ 		/* Can addr have changed??
+ 		 *
+ 		 * Answer: Yes, several device drivers can do it in their
+@@ -1796,6 +1815,7 @@ unsigned long mmap_region(struct file *f
+ 	vma_link(mm, vma, prev, rb_link, rb_parent);
+ 	/* Once vma denies write, undo our temporary denial count */
+ 	if (file) {
++unmap_writable:
+ 		if (vm_flags & VM_SHARED)
+ 			mapping_unmap_writable(file->f_mapping);
+ 		if (vm_flags & VM_DENYWRITE)
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-close-race-between-munmap-and-expand_upwards-downwards.patch
-khugepaged-fix-null-pointer-dereference-due-to-race.patch
+mm-mmap-merge-vma-after-call_mmap-if-possible.patch
 
