@@ -7,45 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14EA0C433E1
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:08:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D7CC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:09:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E47BE20792
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:08:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D5BBD20792
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:09:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595563717;
-	bh=sUAoIBKKCWgj3Gv+Y9tBEQj+gyKK8qy8MGbkrKF7YU4=;
+	s=default; t=1595563758;
+	bh=Cjw7N6UXlRQiPas/n/owXX19G2OH9+xQ6u8AOJ2V2fk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=wTnnrTEt0YdggWQkwwEBv9vboiDfwBhBQjXHOnjDpSMjADkF1uhXILnfBOuQQcYuB
-	 clerZxKUTg0xe9J7oc0OfxALdo1E4MOMUfDcNzncimq6SYO07ryvPtOHJY5tvEwgn6
-	 ZNHcT4+uCGO5XqNORGasVYnOkeQ5NdNuMlLUZljE=
+	b=YxedyfiV0AF8OCRG1pekF+TG/k7wq5K7Cwe9xvqIj+MGBr/whs6qR37k7ysjrKLKH
+	 fKO59wto+MikyS1fHQdtOiiK/wBmpJIkS20wt8oRYb52UPhG2tn6JSfXhzkNOStowv
+	 7V1PPeKZb92IsibMKy4q/giJZh1gQTDuYqR7CoK4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725898AbgGXEIh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jul 2020 00:08:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52030 "EHLO mail.kernel.org"
+        id S1725886AbgGXEJS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jul 2020 00:09:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52082 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725886AbgGXEIh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Jul 2020 00:08:37 -0400
+        id S1725860AbgGXEJS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Jul 2020 00:09:18 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0D86620709;
-        Fri, 24 Jul 2020 04:08:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8993320709;
+        Fri, 24 Jul 2020 04:09:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595563717;
-        bh=sUAoIBKKCWgj3Gv+Y9tBEQj+gyKK8qy8MGbkrKF7YU4=;
+        s=default; t=1595563757;
+        bh=Cjw7N6UXlRQiPas/n/owXX19G2OH9+xQ6u8AOJ2V2fk=;
         h=Date:From:To:Subject:From;
-        b=yoCKA9G18DBWRMhRw8y01JTSJ5D7CtmgpHB8A2DdSqfikyf4qU1G9oihsf9cxRQgH
-         uoG1tLodD+xJajKxdp8re82zM4liLVJCLMX6wI+llV5lFIu+LvaXwGgeJGeIRZ1xzw
-         p1C/Bf4emSwSXdXJF+/vKR5TChoiUsUgtC1wsev8=
-Date:   Thu, 23 Jul 2020 21:08:36 -0700
+        b=idIn5AZO4sJDn9x+hZyz0GtvZi9oFzZJU9ZEsl0GvTyQNjVTR3krfPxpZK4nHrmuY
+         nLZsf3sewEn9mtsKq9ETZKB9X2pDjxZLdQQqpnU2oTe8hcMIIXEkrQnDRd2p+Fddg2
+         aJTgRvyFZlA4G8SFNaPLKONFyBpQI9IozAt3dqJA=
+Date:   Thu, 23 Jul 2020 21:09:17 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
-        chris@chris-wilson.co.uk, michael.j.ruhl@intel.com,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com
+To:     akpm@linux-foundation.org, jannh@google.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        oleg@redhat.com, vbabka@suse.cz, willy@infradead.org,
+        yang.shi@linux.alibaba.com
 Subject:  [folded-merged]
- io-mapping-indicate-mapping-failure-fix.patch removed from -mm tree
-Message-ID: <20200724040836.EjQBLzsih%akpm@linux-foundation.org>
+ mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch removed
+ from -mm tree
+Message-ID: <20200724040917.zCTggwUue%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,59 +57,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: io-mapping-indicate-mapping-failure-fix
+     Subject: mm-close-race-between-munmap-and-expand_upwards-downwards-fix
 has been removed from the -mm tree.  Its filename was
-     io-mapping-indicate-mapping-failure-fix.patch
+     mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch
 
-This patch was dropped because it was folded into io-mapping-indicate-mapping-failure.patch
+This patch was dropped because it was folded into mm-close-race-between-munmap-and-expand_upwards-downwards.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: io-mapping-indicate-mapping-failure-fix
+Subject: mm-close-race-between-munmap-and-expand_upwards-downwards-fix
 
-detact ioremap_wc() errors earlier
+s/mmap_sem/mmap_lock/ in comment
 
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io-mapping.h |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/mmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/io-mapping.h~io-mapping-indicate-mapping-failure-fix
-+++ a/include/linux/io-mapping.h
-@@ -107,9 +107,12 @@ io_mapping_init_wc(struct io_mapping *io
- 		   resource_size_t base,
- 		   unsigned long size)
- {
-+	iomap->iomem = ioremap_wc(base, size);
-+	if (!iomap->iomem)
-+		return NULL;
-+
- 	iomap->base = base;
- 	iomap->size = size;
--	iomap->iomem = ioremap_wc(base, size);
- #if defined(pgprot_noncached_wc) /* archs can't agree on a name ... */
- 	iomap->prot = pgprot_noncached_wc(PAGE_KERNEL);
- #elif defined(pgprot_writecombine)
-@@ -118,7 +121,7 @@ io_mapping_init_wc(struct io_mapping *io
- 	iomap->prot = pgprot_noncached(PAGE_KERNEL);
- #endif
+--- a/mm/mmap.c~mm-close-race-between-munmap-and-expand_upwards-downwards-fix
++++ a/mm/mmap.c
+@@ -2647,9 +2647,9 @@ detach_vmas_to_be_unmapped(struct mm_str
+ 	vmacache_invalidate(mm);
  
--	return iomap->iomem ? iomap : NULL;
-+	return iomap;
- }
- 
- static inline void
+ 	/*
+-	 * Do not downgrade mmap_sem if we are next to VM_GROWSDOWN or
++	 * Do not downgrade mmap_lock if we are next to VM_GROWSDOWN or
+ 	 * VM_GROWSUP VMA. Such VMAs can change their size under
+-	 * down_read(mmap_sem) and collide with the VMA we are about to unmap.
++	 * down_read(mmap_lock) and collide with the VMA we are about to unmap.
+ 	 */
+ 	if (vma && (vma->vm_flags & VM_GROWSDOWN))
+ 		return false;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-close-race-between-munmap-and-expand_upwards-downwards-fix.patch
-io-mapping-indicate-mapping-failure.patch
+mm-close-race-between-munmap-and-expand_upwards-downwards.patch
 mm-fix-kthread_use_mm-vs-tlb-invalidate-fix.patch
 mm.patch
 mm-handle-page-mapping-better-in-dump_page-fix.patch
