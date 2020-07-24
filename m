@@ -7,47 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26191C433E5
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:15:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E9F9C433E5
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:15:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E7795207BB
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:15:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4557D2064B
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 04:15:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595564117;
-	bh=kt0yceBtbIz5J/qj9WCX67e24e6DuOFl1zeYhxsx4gQ=;
+	s=default; t=1595564119;
+	bh=G/wTxNE4Iu39BL5jRshmlFvJbVBTa7OMxxcJ5Dre+w0=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=gOYQ+8KR8A+kJ5VX0o+CrYgdLE9P1g4fU/QO7yD7bqGi/BHlrvWy8J8HptgHvp8jA
-	 7db3Y9mHilshg+mHHv+NMDkxHJZGYFDhdoROgyLywH2HIBYs+NmpYy6xInLyH5MFp9
-	 IOYN16CRkFnuc92vhoOxleZuwJ+Cp+T3j0TvPL6E=
+	b=MVuprcY3JjjFHgv8JAYtb3nJh73MfhNw/9Fb/05hs+18mS29b68hm059YSRNmPMnB
+	 +RgVXgfASoS6wetCMR2cx1OeQQ04IZvqLsOgk+1108Q6kAib3iDsN3vrthk88iefzs
+	 sxPBp05EIBQTCel4jVVaiDtk8QJsktcJdt99QXU0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726731AbgGXEPQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jul 2020 00:15:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53602 "EHLO mail.kernel.org"
+        id S1726739AbgGXEPT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jul 2020 00:15:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53692 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725860AbgGXEPQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Jul 2020 00:15:16 -0400
+        id S1725860AbgGXEPS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Jul 2020 00:15:18 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 34D7F22B3F;
-        Fri, 24 Jul 2020 04:15:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 63F21206F0;
+        Fri, 24 Jul 2020 04:15:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595564115;
-        bh=kt0yceBtbIz5J/qj9WCX67e24e6DuOFl1zeYhxsx4gQ=;
+        s=default; t=1595564118;
+        bh=G/wTxNE4Iu39BL5jRshmlFvJbVBTa7OMxxcJ5Dre+w0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=dis5xthtYKfn+aXrw3aKsvcOmt9evGJZ82oVQ6YvuYd3VZOnmXzJC1mY2Wv4gHZRw
-         cnH9t2nMRE5xYGk1z2D7RA/ihriiqmvmy/h9Tl+QGAovLGs4/zVDF0yk7YHvNSPDt6
-         nsNq/2Zu+0Z5Lu1h7NmNzIpyIgtGeqmaEfFoWSFQ=
-Date:   Thu, 23 Jul 2020 21:15:14 -0700
+        b=mHtwXnpxMvQWi7T+km/0UsiKf5SrjxVTmP6xLp30BcYfdZw5ZBX+NuXTULV9FrMWO
+         tGXe69MQQZDSk/mDkwWV3zk2v5+/CDcptO0ziJIJfMXKbwjQtp9naoC35s8pe/uSrU
+         EUNcbg7DvZRQWrVSdcKyzrJmPI/trDXA8xxCCEo8=
+Date:   Thu, 23 Jul 2020 21:15:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adilger@dilger.ca, akpm@linux-foundation.org, cgxu519@mykernel.net,
-        chris@chrisdown.name, dxu@dxuuu.xyz, gregkh@linuxfoundation.org,
-        hughd@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, tj@kernel.org,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
-Subject:  [patch 03/15] vfs/xattr: mm/shmem: kernfs: release simple
- xattr entry in a right way
-Message-ID: <20200724041514.cYG0-OSOt%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        trix@redhat.com
+Subject:  [patch 04/15] mm: initialize return of vm_insert_pages
+Message-ID: <20200724041518.SVl_3hkf2%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,59 +53,36 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Chengguang Xu <cgxu519@mykernel.net>
-Subject: vfs/xattr: mm/shmem: kernfs: release simple xattr entry in a right way
+From: Tom Rix <trix@redhat.com>
+Subject: mm: initialize return of vm_insert_pages
 
-After commit fdc85222d58e ("kernfs: kvmalloc xattr value instead of
-kmalloc"), simple xattr entry is allocated with kvmalloc() instead of
-kmalloc(), so we should release it with kvfree() instead of kfree().
+clang static analysis reports a garbage return
 
-Link: http://lkml.kernel.org/r/20200704051608.15043-1-cgxu519@mykernel.net
-Fixes: fdc85222d58e ("kernfs: kvmalloc xattr value instead of kmalloc")
-Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Daniel Xu <dxu@dxuuu.xyz>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Andreas Dilger <adilger@dilger.ca>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>	[5.7]
+In file included from mm/memory.c:84:
+mm/memory.c:1612:2: warning: Undefined or garbage value returned to caller [core.uninitialized.UndefReturn]
+        return err;
+        ^~~~~~~~~~
+
+The setting of err depends on a loop executing.
+So initialize err.
+
+Link: http://lkml.kernel.org/r/20200703155354.29132-1-trix@redhat.com
+Signed-off-by: Tom Rix <trix@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/xattr.h |    3 ++-
- mm/shmem.c            |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/xattr.h~vfs-xattr-mm-shmem-kernfs-release-simple-xattr-entry-in-a-right-way
-+++ a/include/linux/xattr.h
-@@ -15,6 +15,7 @@
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/spinlock.h>
-+#include <linux/mm.h>
- #include <uapi/linux/xattr.h>
+--- a/mm/memory.c~mm-initialize-return-of-vm_insert_pages
++++ a/mm/memory.c
+@@ -1601,7 +1601,7 @@ int vm_insert_pages(struct vm_area_struc
+ 	return insert_pages(vma, addr, pages, num, vma->vm_page_prot);
+ #else
+ 	unsigned long idx = 0, pgcount = *num;
+-	int err;
++	int err = -EINVAL;
  
- struct inode;
-@@ -94,7 +95,7 @@ static inline void simple_xattrs_free(st
- 
- 	list_for_each_entry_safe(xattr, node, &xattrs->head, list) {
- 		kfree(xattr->name);
--		kfree(xattr);
-+		kvfree(xattr);
- 	}
- }
- 
---- a/mm/shmem.c~vfs-xattr-mm-shmem-kernfs-release-simple-xattr-entry-in-a-right-way
-+++ a/mm/shmem.c
-@@ -3178,7 +3178,7 @@ static int shmem_initxattrs(struct inode
- 		new_xattr->name = kmalloc(XATTR_SECURITY_PREFIX_LEN + len,
- 					  GFP_KERNEL);
- 		if (!new_xattr->name) {
--			kfree(new_xattr);
-+			kvfree(new_xattr);
- 			return -ENOMEM;
- 		}
- 
+ 	for (; idx < pgcount; ++idx) {
+ 		err = vm_insert_page(vma, addr + (PAGE_SIZE * idx), pages[idx]);
 _
