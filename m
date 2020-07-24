@@ -7,42 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A059C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:37:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD56EC433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D3FE6206E3
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:37:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94DB42070B
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 23:38:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595633834;
-	bh=Amd/GUVY+Xh+pTzqZuBRwE+q2UnGAxoe0ehfOyey4/0=;
+	s=default; t=1595633895;
+	bh=MfqXerlTWmruPnCjXD44JMzM+C6e1M6Dp6HE1y9ZH/c=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=ACk+keOLB8yqkA2X0vspRd9a4l0scEVxwLJV9TWuW6tuph9eP37gx7kTITKg4Ve+N
-	 lIb8sv7fo89FeEZzuqcXmRwuOI6+2E52CBnufjOLJyjiwg+2isBNe29IW4K4j3y+rn
-	 KFUzvW2cpovKgHk6vZeK74Ejc6OzTOgHaExkPTRI=
+	b=LVy+0UMG5vfawZMACc8jwxM9I+ucJeuAnyer19oYCk1lZ5euu2biqv3Xff/Aj9f4T
+	 US0yXVcfLyqXxjGQEoO4lLYaVSHZ6qzE6lovEq8gCsZAEZExqJznGfvc7HX2PbwR7V
+	 6+Hi4V8o4oTPdwcdHxTs0oUdZfVCL7hkTRp1O2M8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726557AbgGXXhO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Jul 2020 19:37:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43672 "EHLO mail.kernel.org"
+        id S1726666AbgGXXiP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Jul 2020 19:38:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726552AbgGXXhO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Jul 2020 19:37:14 -0400
+        id S1726552AbgGXXiO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Jul 2020 19:38:14 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 384FD206E3;
-        Fri, 24 Jul 2020 23:37:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A79A4206E3;
+        Fri, 24 Jul 2020 23:38:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595633833;
-        bh=Amd/GUVY+Xh+pTzqZuBRwE+q2UnGAxoe0ehfOyey4/0=;
+        s=default; t=1595633893;
+        bh=MfqXerlTWmruPnCjXD44JMzM+C6e1M6Dp6HE1y9ZH/c=;
         h=Date:From:To:Subject:From;
-        b=SDrG6lQIEzPz/agGpNz9tyXfR0NRy7v4DYnOht8HRYsl+rvZtPFNICZV/c/929LtM
-         /WS503MS786y60EdZ6GNZPEIAwTHBouXOu3bS1qJ+KDDRypOGemuW0/duUakVJk85f
-         BRgv298hEoAZfM+CUBV+lpBlh01Mg6/NSm/HbLkU=
-Date:   Fri, 24 Jul 2020 16:37:12 -0700
+        b=cMQcevUePRWtujJqVE3aQaeQM3JejDUOgOY/urhMMuUht6uvn94Lm95h0QJfihz1X
+         MRVRGSrDzPDSYcVPCg1WlY/7tJyRFixF40tny9JO2H9IoHZxSRwQToSOf5h6K3/cLH
+         NLtbkcJ61CfTymPebv/n7TjXytn1QKqQL9O//Tdg=
+Date:   Fri, 24 Jul 2020 16:38:13 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20200724233712.7BDTqVCXn%akpm@linux-foundation.org>
+To:     jannh@google.com, kirill.shutemov@linux.intel.com,
+        mm-commits@vger.kernel.org, oleg@redhat.com,
+        stable@vger.kernel.org, vbabka@suse.cz, willy@infradead.org,
+        yang.shi@linux.alibaba.com
+Subject:  [merged]
+ mm-close-race-between-munmap-and-expand_upwards-downwards.patch removed
+ from -mm tree
+Message-ID: <20200724233813.pdqrWibid%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -52,115 +57,95 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: mm/mmap.c: close race between munmap() and expand_upwards()/downwards()
+has been removed from the -mm tree.  Its filename was
+     mm-close-race-between-munmap-and-expand_upwards-downwards.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm/mmap.c: close race between munmap() and expand_upwards()/downwards()
 
+VMA with VM_GROWSDOWN or VM_GROWSUP flag set can change their size under
+mmap_read_lock().  It can lead to race with __do_munmap():
+
+	Thread A			Thread B
+__do_munmap()
+  detach_vmas_to_be_unmapped()
+  mmap_write_downgrade()
+				expand_downwards()
+				  vma->vm_start = address;
+				  // The VMA now overlaps with
+				  // VMAs detached by the Thread A
+				// page fault populates expanded part
+				// of the VMA
+  unmap_region()
+    // Zaps pagetables partly
+    // populated by Thread B
+
+Similar race exists for expand_upwards().
+
+The fix is to avoid downgrading mmap_lock in __do_munmap() if detached
+VMAs are next to VM_GROWSDOWN or VM_GROWSUP VMA.
+
+[akpm@linux-foundation.org: s/mmap_sem/mmap_lock/ in comment]
+Link: http://lkml.kernel.org/r/20200709105309.42495-1-kirill.shutemov@linux.intel.com
+Fixes: dd2283f2605e ("mm: mmap: zap pages with read mmap_sem in munmap")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Jann Horn <jannh@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>	[4.20+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/inode.c |    4 ----
- fs/io_uring.c    |   30 ------------------------------
- 2 files changed, 34 deletions(-)
+ mm/mmap.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
---- a/fs/btrfs/inode.c~linux-next-git-rejects
-+++ a/fs/btrfs/inode.c
-@@ -8176,11 +8176,7 @@ again:
- 	 *    bit of its io_tree, and free the qgroup reserved data space.
- 	 *    Since the IO will never happen for this page.
- 	 */
--<<<<<<< HEAD
--	btrfs_qgroup_free_data(inode, NULL, page_start, PAGE_SIZE);
--=======
- 	btrfs_qgroup_free_data(BTRFS_I(inode), NULL, page_start, PAGE_SIZE);
-->>>>>>> linux-next/akpm-base
- 	if (!inode_evicting) {
- 		clear_extent_bit(tree, page_start, page_end, EXTENT_LOCKED |
- 				 EXTENT_DELALLOC | EXTENT_DELALLOC_NEW |
---- a/fs/io_uring.c~linux-next-git-rejects
-+++ a/fs/io_uring.c
-@@ -4644,31 +4644,6 @@ static void io_async_queue_proc(struct f
- 	struct async_poll *apoll = pt->req->apoll;
+--- a/mm/mmap.c~mm-close-race-between-munmap-and-expand_upwards-downwards
++++ a/mm/mmap.c
+@@ -2620,7 +2620,7 @@ static void unmap_region(struct mm_struc
+  * Create a list of vma's touched by the unmap, removing them from the mm's
+  * vma list as we go..
+  */
+-static void
++static bool
+ detach_vmas_to_be_unmapped(struct mm_struct *mm, struct vm_area_struct *vma,
+ 	struct vm_area_struct *prev, unsigned long end)
+ {
+@@ -2645,6 +2645,17 @@ detach_vmas_to_be_unmapped(struct mm_str
  
- 	__io_queue_proc(&apoll->poll, pt, head, &apoll->double_poll);
--<<<<<<< HEAD
--}
--
--static void io_sq_thread_drop_mm(struct io_ring_ctx *ctx)
--{
--	struct mm_struct *mm = current->mm;
--
--	if (mm) {
--		kthread_unuse_mm(mm);
--		mmput(mm);
--	}
--}
--
--static int io_sq_thread_acquire_mm(struct io_ring_ctx *ctx,
--				   struct io_kiocb *req)
--{
--	if (io_op_defs[req->opcode].needs_mm && !current->mm) {
--		if (unlikely(!mmget_not_zero(ctx->sqo_mm)))
--			return -EFAULT;
--		kthread_use_mm(ctx->sqo_mm);
--	}
--
--	return 0;
--=======
-->>>>>>> linux-next/akpm-base
+ 	/* Kill the cache */
+ 	vmacache_invalidate(mm);
++
++	/*
++	 * Do not downgrade mmap_lock if we are next to VM_GROWSDOWN or
++	 * VM_GROWSUP VMA. Such VMAs can change their size under
++	 * down_read(mmap_lock) and collide with the VMA we are about to unmap.
++	 */
++	if (vma && (vma->vm_flags & VM_GROWSDOWN))
++		return false;
++	if (prev && (prev->vm_flags & VM_GROWSUP))
++		return false;
++	return true;
  }
  
- static void io_async_task_func(struct callback_head *cb)
-@@ -4694,11 +4669,6 @@ static void io_async_task_func(struct ca
- 	/* restore ->work in case we need to retry again */
- 	if (req->flags & REQ_F_WORK_INITIALIZED)
- 		memcpy(&req->work, &apoll->work, sizeof(req->work));
--<<<<<<< HEAD
--	kfree(apoll->double_poll);
--	kfree(apoll);
--=======
-->>>>>>> linux-next/akpm-base
+ /*
+@@ -2825,7 +2836,8 @@ int __do_munmap(struct mm_struct *mm, un
+ 	}
  
- 	if (!READ_ONCE(apoll->poll.canceled))
- 		__io_req_task_submit(req);
+ 	/* Detach vmas from rbtree */
+-	detach_vmas_to_be_unmapped(mm, vma, prev, end);
++	if (!detach_vmas_to_be_unmapped(mm, vma, prev, end))
++		downgrade = false;
+ 
+ 	if (downgrade)
+ 		mmap_write_downgrade(mm);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-fix-kthread_use_mm-vs-tlb-invalidate-fix.patch
-mm.patch
-mm-handle-page-mapping-better-in-dump_page-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
-mm-thp-replace-http-links-with-https-ones-fix.patch
-mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
-mmhwpoison-rework-soft-offline-for-in-use-pages-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-revert-revert-mm-vmalloc-modify-struct-vmap_area-to-reduce-its-size.patch
-mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
