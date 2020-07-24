@@ -7,47 +7,50 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68A48C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 00:26:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5376EC433E1
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 00:38:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43D2920792
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 00:26:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2CCE0206E3
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Jul 2020 00:38:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595550367;
-	bh=mmmUgtJIqCuum9i+Rl2RLr7LpDvzjaD/WYlag2iXbuI=;
-	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=ELm6MxvDoLBimr9yzV+7hBmBfNJavQLpqhWigF2GGQId1tjO5G+egOfBlNyhQWkBA
-	 aGxKR4ilg4NdzhgUGmlZFuqxBnkBWASCvYESibCj5y8bm/mHFupeBxc4uE/MzAZXds
-	 PURaVIjgKyJh9mkBioMBY7Mzljw/IAA1WdVzHlXU=
+	s=default; t=1595551083;
+	bh=hHVdqKroiefvALzTZgAoJ8j/q2r6mRXTSsGx4zEtLQU=;
+	h=Date:From:To:Subject:Reply-To:List-ID:From;
+	b=vA9BVRal/OgcVf3M306jq1MjByUFufYca7DnMrY74DY9rjxoYSARST4Pzw+wtnWEW
+	 0dAzZAlbiqg7cMIdoJMwEBsU/IpzSbkK8mB+r6axirrcQ8ymhwrsZzuSvgjpXvcAQU
+	 uF22qFNVolJmsV1lkHUxkQXLsW7/UJ4Cvi/qRZ34=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727778AbgGXA0G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Jul 2020 20:26:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52978 "EHLO mail.kernel.org"
+        id S1728174AbgGXAiD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Jul 2020 20:38:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57560 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726723AbgGXA0G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Jul 2020 20:26:06 -0400
+        id S1728005AbgGXAiC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Jul 2020 20:38:02 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CD6A0206E3;
-        Fri, 24 Jul 2020 00:26:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9BF9B2064B;
+        Fri, 24 Jul 2020 00:38:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595550366;
-        bh=mmmUgtJIqCuum9i+Rl2RLr7LpDvzjaD/WYlag2iXbuI=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=MOSrPFl6cgF3UxH9/ZRk0aSlg2rylpQvQ1lTG5kGAk0Srq2cgvAJ9afgE2w0unQ19
-         rq9ZesCOftu/2qutRmUuXFBCJ4HiDfdC2yHTs2Mq9Gj2KV9L4opEbJHVBg4aLoIGKv
-         z8yHST7jfPQXZaIp+sNLotFNet393KLsVSiyX6z0=
-Date:   Thu, 23 Jul 2020 17:26:05 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     jan.kiszka@siemens.com, kbingham@kernel.org,
-        mm-commits@vger.kernel.org, sgarzare@redhat.com
+        s=default; t=1595551081;
+        bh=hHVdqKroiefvALzTZgAoJ8j/q2r6mRXTSsGx4zEtLQU=;
+        h=Date:From:To:Subject:From;
+        b=du3Ao6z+wXJHErhsfDzjMldWDAyLBQnndfrvSW6FnyOG8aE2cWODrRypemtx2Wew3
+         sSZD6U4G7jL0RoTW+PFDA480yIJAKhVNr7RoycIDbJwDmZcAyiAioStxu6Lzt1v0lW
+         mZQKOfnEmNIChMWWHrlFLfBKxuyBadhMhXw/jkEI=
+Date:   Thu, 23 Jul 2020 17:38:01 -0700
+From:   akpm@linux-foundation.org
+To:     dalias@libc.org, geert+renesas@glider.be,
+        glaubitz@physik.fu-berlin.de, krzk@kernel.org,
+        kuninori.morimoto.gx@renesas.com, mm-commits@vger.kernel.org,
+        ysato@users.sourceforge.jp
 Subject:  +
- scripts-gdb-fix-lx-symbols-gdberror-while-loading-modules.patch added to
- -mm tree
-Message-ID: <20200724002605.8zaXJjauX%akpm@linux-foundation.org>
-In-Reply-To: <20200703151445.b6a0cfee402c7c5c4651f1b1@linux-foundation.org>
+ =?US-ASCII?Q?iomap-constify-ioreadx-iomem-argument-as-in-generic-implemen?=
+ =?US-ASCII?Q?tation-fix.patch?= added to -mm tree
+Message-ID: <20200724003801.sjXZaLFc3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,14 +59,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: fix lx-symbols 'gdb.error' while loading modules
+     Subject: sh: clk: fix assignment from incompatible pointer type for ioreadX()
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-fix-lx-symbols-gdberror-while-loading-modules.patch
+     iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-fix-lx-symbols-gdberror-while-loading-modules.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-fix-lx-symbols-gdberror-while-loading-modules.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,48 +80,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stefano Garzarella <sgarzare@redhat.com>
-Subject: scripts/gdb: fix lx-symbols 'gdb.error' while loading modules
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: sh: clk: fix assignment from incompatible pointer type for ioreadX()
 
-Commit ed66f991bb19 ("module: Refactor section attr into bin
-attribute") removed the 'name' field from 'struct module_sect_attr'
-triggering the following error when invoking lx-symbols:
+The ioreadX() helpers accept now pointer to const memory so declaration
+of read function needs updating.
 
-  (gdb) lx-symbols
-  loading vmlinux
-  scanning for modules in linux/build
-  loading @0xffffffffc014f000: linux/build/drivers/net/tun.ko
-  Python Exception <class 'gdb.error'> There is no member named name.:
-  Error occurred in Python: There is no member named name.
+This fixes build errors like:
 
-This patch fixes the issue taking the module name from the 'struct
-attribute'.
+    drivers/sh/clk/cpg.c: In function `sh_clk_mstp_enable':
+    drivers/sh/clk/cpg.c:49:9: error: assignment from incompatible pointer type [-Werror=incompatible-pointer-types]
+        read = ioread8;
 
-Link: http://lkml.kernel.org/r/20200722102239.313231-1-sgarzare@redhat.com
-Fixes: ed66f991bb19 ("module: Refactor section attr into bin attribute")
-Signed-off-by: Stefano Garzarella <sgarzare@redhat.com>
-Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
-Reviewed-by: Kieran Bingham <kbingham@kernel.org>
+Link: http://lkml.kernel.org/r/20200723082017.24053-1-krzk@kernel.org
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/symbols.py |    2 +-
+ drivers/sh/clk/cpg.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/gdb/linux/symbols.py~scripts-gdb-fix-lx-symbols-gdberror-while-loading-modules
-+++ a/scripts/gdb/linux/symbols.py
-@@ -96,7 +96,7 @@ lx-symbols command."""
-             return ""
-         attrs = sect_attrs['attrs']
-         section_name_to_address = {
--            attrs[n]['name'].string(): attrs[n]['address']
-+            attrs[n]['battr']['attr']['name'].string(): attrs[n]['address']
-             for n in range(int(sect_attrs['nsections']))}
-         args = []
-         for section_name in [".data", ".data..read_mostly", ".rodata", ".bss",
+--- a/drivers/sh/clk/cpg.c~iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix
++++ a/drivers/sh/clk/cpg.c
+@@ -40,7 +40,7 @@ static int sh_clk_mstp_enable(struct clk
+ {
+ 	sh_clk_write(sh_clk_read(clk) & ~(1 << clk->enable_bit), clk);
+ 	if (clk->status_reg) {
+-		unsigned int (*read)(void __iomem *addr);
++		unsigned int (*read)(const void __iomem *addr);
+ 		int i;
+ 		void __iomem *mapped_status = (phys_addr_t)clk->status_reg -
+ 			(phys_addr_t)clk->enable_reg + clk->mapped_reg;
 _
 
-Patches currently in -mm which might be from sgarzare@redhat.com are
+Patches currently in -mm which might be from krzk@kernel.org are
 
-scripts-gdb-fix-lx-symbols-gdberror-while-loading-modules.patch
+iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
+iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix.patch
+rtl818x-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
+ntb-intel-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
+virtio-pci-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
 
