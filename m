@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CED0C433E5
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:12:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36204C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:12:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12FD120759
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:12:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0934B2074F
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:12:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595880733;
-	bh=dvyh79rMCwngBVHk62lCVK5Q5OYXpfrFPSwFIMUoEPI=;
+	s=default; t=1595880777;
+	bh=hQTH5D0pAPBiZZqXLA30SwAu+PO//9t/2sTX5idq5RE=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=quwMGRATlzvJ3oP05KWQwpktoj2YJqI3ElYXChMz4JKGMO+wJu5JIH8oSsOY/XTT7
-	 FCvCmB7vY1Mlx1KlfHQrvIkHnknp1haZ5eAKTPbCQSsrJanqz00wGgZh5sEHdm7sDR
-	 UBoTBhpC8xUs+U0QLEjlPcaILz3McwVlKXkrU4zg=
+	b=W4VlyVd/AzLcwYr049yM1jc7sUYCHwNOmWRcYcDnT5yryzKZ6WzbfhHAaixmZCLFL
+	 u34Eu+GobL/EOGk9y/E46FBS0XLHwl+kXnutvi/n8J0AInxCiefBwH2I9a4GddELtV
+	 i+bG+JQ8gX7VA8KJ+k0TfF5vChGS6Z6o7CkZol28=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729094AbgG0UMM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Jul 2020 16:12:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47604 "EHLO mail.kernel.org"
+        id S1729103AbgG0UM4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Jul 2020 16:12:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47728 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726451AbgG0UMM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 27 Jul 2020 16:12:12 -0400
+        id S1726451AbgG0UM4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Jul 2020 16:12:56 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8AF3420729;
-        Mon, 27 Jul 2020 20:12:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9379520729;
+        Mon, 27 Jul 2020 20:12:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595880731;
-        bh=dvyh79rMCwngBVHk62lCVK5Q5OYXpfrFPSwFIMUoEPI=;
+        s=default; t=1595880774;
+        bh=hQTH5D0pAPBiZZqXLA30SwAu+PO//9t/2sTX5idq5RE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OH9bZ0WX3YYQOscIFMkU6epJbpvD7MxtD7bnowQCmqpQ1TFNHbWU62UzFoRy6yxKx
-         hDKrg27/ZQWE4BNOd/b68Xf2QXtrtMMZzgA9hXMlj9SKwLVmsC0IQO3lAuHQs5SfOc
-         18/Ta6MNYRutDfT65+9Y2HX8oUNG62AJhtOzH2NU=
-Date:   Mon, 27 Jul 2020 13:12:11 -0700
+        b=PIBrbxM3KAPSTBnQM1IX1Qy8IO/ULuvyhLkQjbe85Pe1Lm+E/mx/NZ7R/JNwpo5Yf
+         RjRDAPb9U1f17ZZde05s+BAXWnrvR0c+g/hHNeNcrEcUQHN5AOEPHmUGZjpJK7p57t
+         TkWHnEqxkGaPHedoKBk0X9GaQGQJ0LdhtTpXh5hw=
+Date:   Mon, 27 Jul 2020 13:12:54 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     colyli@suse.de, grandmaster@al2klimov.de,
-        mm-commits@vger.kernel.org
-Subject:  + lib-replace-http-links-with-https-ones.patch added to
- -mm tree
-Message-ID: <20200727201211.SMzFKLcyn%akpm@linux-foundation.org>
+To:     grandmaster@al2klimov.de, mm-commits@vger.kernel.org
+Subject:  + include-replace-http-links-with-https-ones.patch added
+ to -mm tree
+Message-ID: <20200727201254.owIGSaus7%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,14 +57,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/: replace HTTP links with HTTPS ones
+     Subject: include/: replace HTTP links with HTTPS ones
 has been added to the -mm tree.  Its filename is
-     lib-replace-http-links-with-https-ones.patch
+     include-replace-http-links-with-https-ones.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-replace-http-links-with-https-ones.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-replace-http-links-wit=
+h-https-ones.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-replace-http-links-with-https-ones.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-replace-http-links-wit=
+h-https-ones.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,137 +74,325 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Subject: lib/: replace HTTP links with HTTPS ones
+=46rom: "Alexander A. Klimov" <grandmaster@al2klimov.de>
+Subject: include/: replace HTTP links with HTTPS ones
 
 Rationale:
 Reduces attack surface on kernel devs opening the links for MITM
 as HTTPS traffic is much harder to manipulate.
 
-Link: http://lkml.kernel.org/r/20200726112154.16510-1-grandmaster@al2klimov.de
+Link: http://lkml.kernel.org/r/20200726110117.16346-1-grandmaster@al2klimov=
+.de
 Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
-Acked-by: Coly Li <colyli@suse.de>	[crc64.c]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug        |    2 +-
- lib/crc64.c              |    2 +-
- lib/decompress_bunzip2.c |    2 +-
- lib/decompress_unlzma.c  |    6 +++---
- lib/math/rational.c      |    2 +-
- lib/rbtree.c             |    2 +-
- lib/ts_bm.c              |    2 +-
- lib/xxhash.c             |    2 +-
- lib/xz/xz_crc32.c        |    2 +-
- lib/xz/xz_dec_bcj.c      |    2 +-
- lib/xz/xz_dec_lzma2.c    |    2 +-
- lib/xz/xz_lzma2.h        |    2 +-
- lib/xz/xz_stream.h       |    2 +-
- 13 files changed, 15 insertions(+), 15 deletions(-)
+ include/clocksource/timer-ti-dm.h               |    2 +-
+ include/linux/btree.h                           |    2 +-
+ include/linux/delay.h                           |    2 +-
+ include/linux/dma/k3-psil.h                     |    2 +-
+ include/linux/dma/k3-udma-glue.h                |    2 +-
+ include/linux/dma/ti-cppi5.h                    |    2 +-
+ include/linux/irqchip/irq-omap-intc.h           |    2 +-
+ include/linux/jhash.h                           |    2 +-
+ include/linux/leds-ti-lmu-common.h              |    2 +-
+ include/linux/platform_data/davinci-cpufreq.h   |    2 +-
+ include/linux/platform_data/davinci_asp.h       |    2 +-
+ include/linux/platform_data/elm.h               |    2 +-
+ include/linux/platform_data/gpio-davinci.h      |    2 +-
+ include/linux/platform_data/gpmc-omap.h         |    2 +-
+ include/linux/platform_data/mtd-davinci-aemif.h |    2 +-
+ include/linux/platform_data/omap-twl4030.h      |    2 +-
+ include/linux/platform_data/uio_pruss.h         |    2 +-
+ include/linux/platform_data/usb-omap.h          |    2 +-
+ include/linux/soc/ti/k3-ringacc.h               |    2 +-
+ include/linux/soc/ti/knav_qmss.h                |    2 +-
+ include/linux/soc/ti/ti-msgmgr.h                |    2 +-
+ include/linux/wkup_m3_ipc.h                     |    2 +-
+ include/linux/xxhash.h                          |    2 +-
+ include/linux/xz.h                              |    2 +-
+ include/linux/zlib.h                            |    2 +-
+ include/soc/arc/aux.h                           |    2 +-
+ include/uapi/linux/elf.h                        |    2 +-
+ include/uapi/linux/map_to_7segment.h            |    2 +-
+ include/uapi/linux/types.h                      |    2 +-
+ include/uapi/linux/usb/ch9.h                    |    2 +-
+ 30 files changed, 30 insertions(+), 30 deletions(-)
 
---- a/lib/crc64.c~lib-replace-http-links-with-https-ones
-+++ a/lib/crc64.c
-@@ -4,7 +4,7 @@
-  *
-  * This is a basic crc64 implementation following ECMA-182 specification,
-  * which can be found from,
-- * http://www.ecma-international.org/publications/standards/Ecma-182.htm
-+ * https://www.ecma-international.org/publications/standards/Ecma-182.htm
-  *
-  * Dr. Ross N. Williams has a great document to introduce the idea of CRC
-  * algorithm, here the CRC64 code is also inspired by the table-driven
---- a/lib/decompress_bunzip2.c~lib-replace-http-links-with-https-ones
-+++ a/lib/decompress_bunzip2.c
-@@ -34,7 +34,7 @@
- 		Phone (337) 232-1234 or 1-800-738-2226
- 		Fax   (337) 232-1297
- 
--		http://www.hospiceacadiana.com/
-+		https://www.hospiceacadiana.com/
- 
- 	Manuel
-  */
---- a/lib/decompress_unlzma.c~lib-replace-http-links-with-https-ones
-+++ a/lib/decompress_unlzma.c
-@@ -8,7 +8,7 @@
-  *implementation for lzma.
-  *Copyright (C) 2006  Aurelien Jacobs < aurel@gnuage.org >
-  *
-- *Based on LzmaDecode.c from the LZMA SDK 4.22 (http://www.7-zip.org/)
-+ *Based on LzmaDecode.c from the LZMA SDK 4.22 (https://www.7-zip.org/)
-  *Copyright (C) 1999-2005  Igor Pavlov
-  *
-  *Copyrights of the parts, see headers below.
-@@ -56,7 +56,7 @@ static long long INIT read_int(unsigned
- /* Small range coder implementation for lzma.
-  *Copyright (C) 2006  Aurelien Jacobs < aurel@gnuage.org >
-  *
-- *Based on LzmaDecode.c from the LZMA SDK 4.22 (http://www.7-zip.org/)
-+ *Based on LzmaDecode.c from the LZMA SDK 4.22 (https://www.7-zip.org/)
-  *Copyright (c) 1999-2005  Igor Pavlov
-  */
- 
-@@ -213,7 +213,7 @@ rc_bit_tree_decode(struct rc *rc, uint16
-  * Small lzma deflate implementation.
-  * Copyright (C) 2006  Aurelien Jacobs < aurel@gnuage.org >
-  *
-- * Based on LzmaDecode.c from the LZMA SDK 4.22 (http://www.7-zip.org/)
-+ * Based on LzmaDecode.c from the LZMA SDK 4.22 (https://www.7-zip.org/)
-  * Copyright (C) 1999-2005  Igor Pavlov
-  */
- 
---- a/lib/Kconfig.debug~lib-replace-http-links-with-https-ones
-+++ a/lib/Kconfig.debug
-@@ -2164,7 +2164,7 @@ config LIST_KUNIT_TEST
- 	  and associated macros.
- 
- 	  KUnit tests run during boot and output the results to the debug log
--	  in TAP format (http://testanything.org/). Only useful for kernel devs
-+	  in TAP format (https://testanything.org/). Only useful for kernel devs
- 	  running the KUnit test harness, and not intended for inclusion into a
- 	  production build.
- 
---- a/lib/math/rational.c~lib-replace-http-links-with-https-ones
-+++ a/lib/math/rational.c
-@@ -27,7 +27,7 @@
-  * with the fractional part size described in given_denominator.
-  *
-  * for theoretical background, see:
-- * http://en.wikipedia.org/wiki/Continued_fraction
-+ * https://en.wikipedia.org/wiki/Continued_fraction
-  */
- 
- void rational_best_approximation(
---- a/lib/rbtree.c~lib-replace-http-links-with-https-ones
-+++ a/lib/rbtree.c
-@@ -13,7 +13,7 @@
- #include <linux/export.h>
- 
+--- a/include/clocksource/timer-ti-dm.h~include-replace-http-links-with-htt=
+ps-ones
++++ a/include/clocksource/timer-ti-dm.h
+@@ -1,7 +1,7 @@
  /*
-- * red-black trees properties:  http://en.wikipedia.org/wiki/Rbtree
-+ * red-black trees properties:  https://en.wikipedia.org/wiki/Rbtree
+  * OMAP Dual-Mode Timers
   *
-  *  1) A node is either red or black
-  *  2) The root is black
---- a/lib/ts_bm.c~lib-replace-http-links-with-https-ones
-+++ a/lib/ts_bm.c
-@@ -11,7 +11,7 @@
-  *   [1] A Fast String Searching Algorithm, R.S. Boyer and Moore.
-  *       Communications of the Association for Computing Machinery, 
-  *       20(10), 1977, pp. 762-772.
-- *       http://www.cs.utexas.edu/users/moore/publications/fstrpos.pdf
-+ *       https://www.cs.utexas.edu/users/moore/publications/fstrpos.pdf
+- * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2010 Texas Instruments Incorporated - https://www.ti.com/
+  * Tarun Kanti DebBarma <tarun.kanti@ti.com>
+  * Thara Gopinath <thara@ti.com>
   *
-  *   [2] Handbook of Exact String Matching Algorithms, Thierry Lecroq, 2004
-  *       http://www-igm.univ-mlv.fr/~lecroq/string/string.pdf
---- a/lib/xxhash.c~lib-replace-http-links-with-https-ones
-+++ a/lib/xxhash.c
+--- a/include/linux/btree.h~include-replace-http-links-with-https-ones
++++ a/include/linux/btree.h
+@@ -10,7 +10,7 @@
+  *
+  * A B+Tree is a data structure for looking up arbitrary (currently allowi=
+ng
+  * unsigned long, u32, u64 and 2 * u64) keys into pointers. The data struc=
+ture
+- * is described at http://en.wikipedia.org/wiki/B-tree, we currently do not
++ * is described at https://en.wikipedia.org/wiki/B-tree, we currently do n=
+ot
+  * use binary search to find the key on lookups.
+  *
+  * Each B+Tree consists of a head, that contains bookkeeping information a=
+nd
+--- a/include/linux/delay.h~include-replace-http-links-with-https-ones
++++ a/include/linux/delay.h
+@@ -16,7 +16,7 @@
+  *  3. CPU clock rate changes.
+  *
+  * Please see this thread:
+- *   http://lists.openwall.net/linux-kernel/2011/01/09/56
++ *   https://lists.openwall.net/linux-kernel/2011/01/09/56
+  */
+=20
+ #include <linux/kernel.h>
+--- a/include/linux/dma/k3-psil.h~include-replace-http-links-with-https-ones
++++ a/include/linux/dma/k3-psil.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ /*
+- *  Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
++ *  Copyright (C) 2019 Texas Instruments Incorporated - https://www.ti.com
+  */
+=20
+ #ifndef K3_PSIL_H_
+--- a/include/linux/dma/k3-udma-glue.h~include-replace-http-links-with-http=
+s-ones
++++ a/include/linux/dma/k3-udma-glue.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ /*
+- *  Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
++ *  Copyright (C) 2019 Texas Instruments Incorporated - https://www.ti.com
+  */
+=20
+ #ifndef K3_UDMA_GLUE_H_
+--- a/include/linux/dma/ti-cppi5.h~include-replace-http-links-with-https-on=
+es
++++ a/include/linux/dma/ti-cppi5.h
+@@ -2,7 +2,7 @@
+ /*
+  * CPPI5 descriptors interface
+  *
+- * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2019 Texas Instruments Incorporated - https://www.ti.com
+  */
+=20
+ #ifndef __TI_CPPI5_H__
+--- a/include/linux/irqchip/irq-omap-intc.h~include-replace-http-links-with=
+-https-ones
++++ a/include/linux/irqchip/irq-omap-intc.h
+@@ -2,7 +2,7 @@
+ /**
+  * irq-omap-intc.h - INTC Idle Functions
+  *
+- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2014 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * Author: Felipe Balbi <balbi@ti.com>
+  */
+--- a/include/linux/jhash.h~include-replace-http-links-with-https-ones
++++ a/include/linux/jhash.h
+@@ -5,7 +5,7 @@
+  *
+  * Copyright (C) 2006. Bob Jenkins (bob_jenkins@burtleburtle.net)
+  *
+- * http://burtleburtle.net/bob/hash/
++ * https://burtleburtle.net/bob/hash/
+  *
+  * These are the credits from Bob's sources:
+  *
+--- a/include/linux/leds-ti-lmu-common.h~include-replace-http-links-with-ht=
+tps-ones
++++ a/include/linux/leds-ti-lmu-common.h
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ // TI LMU Common Core
+-// Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com/
++// Copyright (C) 2018 Texas Instruments Incorporated - https://www.ti.com/
+=20
+ #ifndef _TI_LMU_COMMON_H_
+ #define _TI_LMU_COMMON_H_
+--- a/include/linux/platform_data/davinci_asp.h~include-replace-http-links-=
+with-https-ones
++++ a/include/linux/platform_data/davinci_asp.h
+@@ -1,7 +1,7 @@
+ /*
+  * TI DaVinci Audio Serial Port support
+  *
+- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com/
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License as
+--- a/include/linux/platform_data/davinci-cpufreq.h~include-replace-http-li=
+nks-with-https-ones
++++ a/include/linux/platform_data/davinci-cpufreq.h
+@@ -2,7 +2,7 @@
+ /*
+  * TI DaVinci CPUFreq platform support.
+  *
+- * Copyright (C) 2009 Texas Instruments, Inc. http://www.ti.com/
++ * Copyright (C) 2009 Texas Instruments, Inc. https://www.ti.com/
+  */
+=20
+ #ifndef _MACH_DAVINCI_CPUFREQ_H
+--- a/include/linux/platform_data/elm.h~include-replace-http-links-with-htt=
+ps-ones
++++ a/include/linux/platform_data/elm.h
+@@ -2,7 +2,7 @@
+ /*
+  * BCH Error Location Module
+  *
+- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com/
+  */
+=20
+ #ifndef __ELM_H
+--- a/include/linux/platform_data/gpio-davinci.h~include-replace-http-links=
+-with-https-ones
++++ a/include/linux/platform_data/gpio-davinci.h
+@@ -1,7 +1,7 @@
+ /*
+  * DaVinci GPIO Platform Related Defines
+  *
+- * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2013 Texas Instruments Incorporated - https://www.ti.com/
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License as
+--- a/include/linux/platform_data/gpmc-omap.h~include-replace-http-links-wi=
+th-https-ones
++++ a/include/linux/platform_data/gpmc-omap.h
+@@ -2,7 +2,7 @@
+ /*
+  * OMAP GPMC Platform data
+  *
+- * Copyright (C) 2014 Texas Instruments, Inc. - http://www.ti.com
++ * Copyright (C) 2014 Texas Instruments, Inc. - https://www.ti.com
+  *	Roger Quadros <rogerq@ti.com>
+  */
+=20
+--- a/include/linux/platform_data/mtd-davinci-aemif.h~include-replace-http-=
+links-with-https-ones
++++ a/include/linux/platform_data/mtd-davinci-aemif.h
+@@ -1,7 +1,7 @@
+ /*
+  * TI DaVinci AEMIF support
+  *
+- * Copyright 2010 (C) Texas Instruments, Inc. http://www.ti.com/
++ * Copyright 2010 (C) Texas Instruments, Inc. https://www.ti.com/
+  *
+  * This file is licensed under the terms of the GNU General Public License
+  * version 2. This program is licensed "as is" without any warranty of any
+--- a/include/linux/platform_data/omap-twl4030.h~include-replace-http-links=
+-with-https-ones
++++ a/include/linux/platform_data/omap-twl4030.h
+@@ -3,7 +3,7 @@
+  * omap-twl4030.h - ASoC machine driver for TI SoC based boards with twl40=
+30
+  *		    codec, header.
+  *
+- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com
+  * All rights reserved.
+  *
+  * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
+--- a/include/linux/platform_data/uio_pruss.h~include-replace-http-links-wi=
+th-https-ones
++++ a/include/linux/platform_data/uio_pruss.h
+@@ -3,7 +3,7 @@
+  *
+  * Platform data for uio_pruss driver
+  *
+- * Copyright (C) 2010-11 Texas Instruments Incorporated - http://www.ti.co=
+m/
++ * Copyright (C) 2010-11 Texas Instruments Incorporated - https://www.ti.c=
+om/
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License as
+--- a/include/linux/platform_data/usb-omap.h~include-replace-http-links-wit=
+h-https-ones
++++ a/include/linux/platform_data/usb-omap.h
+@@ -1,7 +1,7 @@
+ /*
+  * usb-omap.h - Platform data for the various OMAP USB IPs
+  *
+- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com
+  *
+  * This software is distributed under the terms of the GNU General Public
+  * License ("GPL") version 2, as published by the Free Software Foundation.
+--- a/include/linux/soc/ti/k3-ringacc.h~include-replace-http-links-with-htt=
+ps-ones
++++ a/include/linux/soc/ti/k3-ringacc.h
+@@ -2,7 +2,7 @@
+ /*
+  * K3 Ring Accelerator (RA) subsystem interface
+  *
+- * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2019 Texas Instruments Incorporated - https://www.ti.com
+  */
+=20
+ #ifndef __SOC_TI_K3_RINGACC_API_H_
+--- a/include/linux/soc/ti/knav_qmss.h~include-replace-http-links-with-http=
+s-ones
++++ a/include/linux/soc/ti/knav_qmss.h
+@@ -1,7 +1,7 @@
+ /*
+  * Keystone Navigator Queue Management Sub-System header
+  *
+- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com
++ * Copyright (C) 2014 Texas Instruments Incorporated - https://www.ti.com
+  * Author:	Sandeep Nair <sandeep_n@ti.com>
+  *		Cyril Chemparathy <cyril@ti.com>
+  *		Santosh Shilimkar <santosh.shilimkar@ti.com>
+--- a/include/linux/soc/ti/ti-msgmgr.h~include-replace-http-links-with-http=
+s-ones
++++ a/include/linux/soc/ti/ti-msgmgr.h
+@@ -1,7 +1,7 @@
+ /*
+  * Texas Instruments' Message Manager
+  *
+- * Copyright (C) 2015-2016 Texas Instruments Incorporated - http://www.ti.=
+com/
++ * Copyright (C) 2015-2016 Texas Instruments Incorporated - https://www.ti=
+.com/
+  *	Nishanth Menon
+  *
+  * This program is free software; you can redistribute it and/or modify
+--- a/include/linux/wkup_m3_ipc.h~include-replace-http-links-with-https-ones
++++ a/include/linux/wkup_m3_ipc.h
+@@ -1,7 +1,7 @@
+ /*
+  * TI Wakeup M3 for AMx3 SoCs Power Management Routines
+  *
+- * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com/
++ * Copyright (C) 2015 Texas Instruments Incorporated - https://www.ti.com/
+  * Dave Gerlach <d-gerlach@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or
+--- a/include/linux/xxhash.h~include-replace-http-links-with-https-ones
++++ a/include/linux/xxhash.h
 @@ -34,7 +34,7 @@
   * ("BSD").
   *
@@ -209,11 +401,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 + * - xxHash homepage: https://cyan4973.github.io/xxHash/
   * - xxHash source repository: https://github.com/Cyan4973/xxHash
   */
- 
---- a/lib/xz/xz_crc32.c~lib-replace-http-links-with-https-ones
-+++ a/lib/xz/xz_crc32.c
+=20
+--- a/include/linux/xz.h~include-replace-http-links-with-https-ones
++++ a/include/linux/xz.h
 @@ -2,7 +2,7 @@
-  * CRC32 using the polynomial from IEEE-802.3
+  * XZ decompressor
   *
   * Authors: Lasse Collin <lasse.collin@tukaani.org>
 - *          Igor Pavlov <http://7-zip.org/>
@@ -221,50 +413,82 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
   *
   * This file has been put into the public domain.
   * You can do whatever you want with this file.
---- a/lib/xz/xz_dec_bcj.c~lib-replace-http-links-with-https-ones
-+++ a/lib/xz/xz_dec_bcj.c
-@@ -2,7 +2,7 @@
-  * Branch/Call/Jump (BCJ) filter decoders
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-- *          Igor Pavlov <http://7-zip.org/>
-+ *          Igor Pavlov <https://7-zip.org/>
-  *
-  * This file has been put into the public domain.
-  * You can do whatever you want with this file.
---- a/lib/xz/xz_dec_lzma2.c~lib-replace-http-links-with-https-ones
-+++ a/lib/xz/xz_dec_lzma2.c
-@@ -2,7 +2,7 @@
-  * LZMA2 decoder
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-- *          Igor Pavlov <http://7-zip.org/>
-+ *          Igor Pavlov <https://7-zip.org/>
-  *
-  * This file has been put into the public domain.
-  * You can do whatever you want with this file.
---- a/lib/xz/xz_lzma2.h~lib-replace-http-links-with-https-ones
-+++ a/lib/xz/xz_lzma2.h
-@@ -2,7 +2,7 @@
-  * LZMA2 definitions
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-- *          Igor Pavlov <http://7-zip.org/>
-+ *          Igor Pavlov <https://7-zip.org/>
-  *
-  * This file has been put into the public domain.
-  * You can do whatever you want with this file.
---- a/lib/xz/xz_stream.h~lib-replace-http-links-with-https-ones
-+++ a/lib/xz/xz_stream.h
-@@ -19,7 +19,7 @@
- 
+--- a/include/linux/zlib.h~include-replace-http-links-with-https-ones
++++ a/include/linux/zlib.h
+@@ -23,7 +23,7 @@
+=20
+=20
+   The data format used by the zlib library is described by RFCs (Request f=
+or
+-  Comments) 1950 to 1952 in the files http://www.ietf.org/rfc/rfc1950.txt
++  Comments) 1950 to 1952 in the files https://www.ietf.org/rfc/rfc1950.txt
+   (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format=
+).
+ */
+=20
+--- a/include/soc/arc/aux.h~include-replace-http-links-with-https-ones
++++ a/include/soc/arc/aux.h
+@@ -22,7 +22,7 @@ static inline int read_aux_reg(u32 r)
+=20
  /*
-  * See the .xz file format specification at
-- * http://tukaani.org/xz/xz-file-format.txt
-+ * https://tukaani.org/xz/xz-file-format.txt
-  * to understand the container format.
+  * function helps elide unused variable warning
+- * see: http://lists.infradead.org/pipermail/linux-snps-arc/2016-November/=
+001748.html
++ * see: https://lists.infradead.org/pipermail/linux-snps-arc/2016-November=
+/001748.html
   */
- 
+ static inline void write_aux_reg(u32 r, u32 v)
+ {
+--- a/include/uapi/linux/elf.h~include-replace-http-links-with-https-ones
++++ a/include/uapi/linux/elf.h
+@@ -53,7 +53,7 @@ typedef __s64	Elf64_Sxword;
+  *
+  * - Oracle: Linker and Libraries.
+  *   Part No: 817=E2=80=931984=E2=80=9319, August 2011.
+- *   http://docs.oracle.com/cd/E18752_01/pdf/817-1984.pdf
++ *   https://docs.oracle.com/cd/E18752_01/pdf/817-1984.pdf
+  *
+  * - System V ABI AMD64 Architecture Processor Supplement
+  *   Draft Version 0.99.4,
+--- a/include/uapi/linux/map_to_7segment.h~include-replace-http-links-with-=
+https-ones
++++ a/include/uapi/linux/map_to_7segment.h
+@@ -24,7 +24,7 @@
+  * of (ASCII) characters to a 7-segments notation.
+  *
+  * The 7 segment's wikipedia notation below is used as standard.
+- * See: http://en.wikipedia.org/wiki/Seven_segment_display
++ * See: https://en.wikipedia.org/wiki/Seven_segment_display
+  *
+  * Notation:	+-a-+
+  *		f   b
+--- a/include/uapi/linux/types.h~include-replace-http-links-with-https-ones
++++ a/include/uapi/linux/types.h
+@@ -7,7 +7,7 @@
+ #ifndef __ASSEMBLY__
+ #ifndef	__KERNEL__
+ #ifndef __EXPORTED_HEADERS__
+-#warning "Attempt to use kernel headers from user space, see http://kernel=
+newbies.org/KernelHeaders"
++#warning "Attempt to use kernel headers from user space, see https://kerne=
+lnewbies.org/KernelHeaders"
+ #endif /* __EXPORTED_HEADERS__ */
+ #endif
+=20
+--- a/include/uapi/linux/usb/ch9.h~include-replace-http-links-with-https-on=
+es
++++ a/include/uapi/linux/usb/ch9.h
+@@ -1222,7 +1222,7 @@ struct usb_set_sel_req {
+  * As per USB compliance update, a device that is actively drawing
+  * more than 100mA from USB must report itself as bus-powered in
+  * the GetStatus(DEVICE) call.
+- * http://compliance.usb.org/index.asp?UpdateFile=3DElectrical&Format=3DSt=
+andard#34
++ * https://compliance.usb.org/index.asp?UpdateFile=3DElectrical&Format=3DS=
+tandard#34
+  */
+ #define USB_SELF_POWER_VBUS_MAX_DRAW		100
+=20
 _
 
 Patches currently in -mm which might be from grandmaster@al2klimov.de are
@@ -272,6 +496,7 @@ Patches currently in -mm which might be from grandmaster@al2klimov.de are
 tools-replace-http-links-with-https-ones.patch
 ocfs2-replace-http-links-with-https-ones.patch
 mm-thp-replace-http-links-with-https-ones.patch
+include-replace-http-links-with-https-ones.patch
 lib-replace-http-links-with-https-ones.patch
 vfat-fat-msdos-filesystem-replace-http-links-with-https-ones.patch
 
