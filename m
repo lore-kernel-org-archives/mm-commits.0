@@ -7,50 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C114C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:34:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F9CBC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:37:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5CCC220792
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:34:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FA0720792
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:37:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595882070;
-	bh=nitalBN+aMZ8oRJpUGJePgS7yuovPam86+AlHm+gtl8=;
+	s=default; t=1595882256;
+	bh=p2SrElFD1YEyItEJ6DPz3jguIAEZL6b0nZWodWDybDY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Ym+WlLVqxlgEE76o6I0VHNgm4qH0cnuD+dJwFwwq0FUy/ptqhe8yTRalukoxlrw+H
-	 6+X26fGC3CJo+6zIJtgJYG8mbNRlPrEBodtxZ0VnGumlG06IuVMYPxHB0QYKJgr1Pq
-	 ApNCK9/t8ZXSMcCkxFBmB4syrwQJUtiiKPUAuHDo=
+	b=To/hp9J7FKKgt7G7B/q9He88a3l4sqTTi5YfzXdcMAmUGoSsi2z8UUyVxrZJFMn7l
+	 ArJatQdcqDOV56Lpx776UmCD80vXlWM+5a5bv4XcuyVozRCgbNJta9OgGkfmGy5ZiT
+	 NUjE2tuBGulPXxZK/275hlkhtCYWSYYWNFLSIv+8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728746AbgG0Uea (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Jul 2020 16:34:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56788 "EHLO mail.kernel.org"
+        id S1728324AbgG0Uhf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Jul 2020 16:37:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57570 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728356AbgG0Ue3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 27 Jul 2020 16:34:29 -0400
+        id S1726196AbgG0Uhf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Jul 2020 16:37:35 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1CDE520786;
-        Mon, 27 Jul 2020 20:34:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B15F32074F;
+        Mon, 27 Jul 2020 20:37:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595882068;
-        bh=nitalBN+aMZ8oRJpUGJePgS7yuovPam86+AlHm+gtl8=;
+        s=default; t=1595882255;
+        bh=p2SrElFD1YEyItEJ6DPz3jguIAEZL6b0nZWodWDybDY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xBJt4aDFNd5JlC8xq1nC9dSHHhHSbgtfmoBElCTUwGD4+FeLxEFXtTbUYw3yjwc6I
-         dzYsEFImy4uEkCca0A0WrHzr+Bcb2kZYpZO85GXTikSThTZ3DIO/q0cPCDZax53Kvc
-         E0PN8JGbxQ0WahysK1dVahK2q8gfbIxCWLg2A/3Q=
-Date:   Mon, 27 Jul 2020 13:34:27 -0700
+        b=oBOX3yflR9oX1MjgVzuhjS4nn78bCwYh5Z3iW9KJhfl6XT0ROMwZ88K+3IUoTnsUT
+         wyhyfX2iQp298v2MebyMjUOfDHYQJcfHy/sLg/CXQR9YNQ6fNPDB6iyqzZTBzklIkG
+         8ygsHZL8gTKQ1GYxd4n+ioBb0UM8HIainGL8IYBA=
+Date:   Mon, 27 Jul 2020 13:37:34 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     alex.williamson@redhat.com, bmt@zurich.ibm.com, cohuck@redhat.com,
-        daniel.m.jordan@oracle.com, dbueso@suse.de, dledford@redhat.com,
-        fly@kernel.page, hughd@google.com, jgg@ziepe.ca,
-        jglisse@redhat.com, jhubbard@nvidia.com,
-        kirill.shutemov@linux.intel.com, ldufour@linux.ibm.com,
-        Liam.Howlett@oracle.com, mm-commits@vger.kernel.org,
-        peterz@infradead.org, rientjes@google.com, vbabka@suse.cz,
-        walken@google.com, willy@infradead.org, yinghan@google.com
-Subject:  + mm-util-account_locked_vm-does-not-hold-mmap_lock.patch
- added to -mm tree
-Message-ID: <20200727203427.4q1kvBOcr%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, chris@chrisdown.name,
+        christian.brauner@ubuntu.com, gaurav1086@gmail.com, guro@fb.com,
+        mkoutny@suse.com, mm-commits@vger.kernel.org, shuah@kernel.org,
+        tj@kernel.org
+Subject:  + cg_read_strcmp-fix-null-pointer-dereference.patch added
+ to -mm tree
+Message-ID: <20200727203734.reNl0RoVr%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -61,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, util: account_locked_vm() does not hold mmap_lock
+     Subject: tools/testing/selftests/cgroup/cgroup_util.c: cg_read_strcmp: fix null pointer dereference
 has been added to the -mm tree.  Its filename is
-     mm-util-account_locked_vm-does-not-hold-mmap_lock.patch
+     cg_read_strcmp-fix-null-pointer-dereference.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-util-account_locked_vm-does-not-hold-mmap_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cg_read_strcmp-fix-null-pointer-dereference.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-util-account_locked_vm-does-not-hold-mmap_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cg_read_strcmp-fix-null-pointer-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -82,102 +78,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pengfei Li <fly@kernel.page>
-Subject: mm, util: account_locked_vm() does not hold mmap_lock
+From: Gaurav Singh <gaurav1086@gmail.com>
+Subject: tools/testing/selftests/cgroup/cgroup_util.c: cg_read_strcmp: fix null pointer dereference
 
-Since mm->locked_vm is already an atomic counter, account_locked_vm()
-does not need to hold mmap_lock.
+Haven't reproduced this issue. This PR is does a minor code cleanup.
 
-Link: http://lkml.kernel.org/r/20200726080224.205470-2-fly@kernel.page
-Signed-off-by: Pengfei Li <fly@kernel.page>
-Cc: Bernard Metzler <bmt@zurich.ibm.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Alex Williamson <alex.williamson@redhat.com>
-Cc: Cornelia Huck <cohuck@redhat.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Liam Howlett <Liam.Howlett@oracle.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ying Han <yinghan@google.com>
+Link: http://lkml.kernel.org/r/20200726013808.22242-1-gaurav1086@gmail.com
+Signed-off-by: Gaurav Singh <gaurav1086@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Michal Koutn <mkoutny@suse.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Chris Down <chris@chrisdown.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/vfio/vfio_iommu_type1.c |    8 ++------
- mm/util.c                       |   15 +++------------
- 2 files changed, 5 insertions(+), 18 deletions(-)
+ tools/testing/selftests/cgroup/cgroup_util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/vfio/vfio_iommu_type1.c~mm-util-account_locked_vm-does-not-hold-mmap_lock
-+++ a/drivers/vfio/vfio_iommu_type1.c
-@@ -376,12 +376,8 @@ static int vfio_lock_acct(struct vfio_dm
- 	if (!mm)
- 		return -ESRCH; /* process exited */
+--- a/tools/testing/selftests/cgroup/cgroup_util.c~cg_read_strcmp-fix-null-pointer-dereference
++++ a/tools/testing/selftests/cgroup/cgroup_util.c
+@@ -106,7 +106,7 @@ int cg_read_strcmp(const char *cgroup, c
  
--	ret = mmap_write_lock_killable(mm);
--	if (!ret) {
--		ret = __account_locked_vm(mm, abs(npage), npage > 0, dma->task,
--					  dma->lock_cap);
--		mmap_write_unlock(mm);
--	}
-+	ret = __account_locked_vm(mm, abs(npage), npage > 0,
-+					dma->task, dma->lock_cap);
- 
- 	if (async)
- 		mmput(mm);
---- a/mm/util.c~mm-util-account_locked_vm-does-not-hold-mmap_lock
-+++ a/mm/util.c
-@@ -424,8 +424,7 @@ void arch_pick_mmap_layout(struct mm_str
-  * @task:        task used to check RLIMIT_MEMLOCK
-  * @bypass_rlim: %true if checking RLIMIT_MEMLOCK should be skipped
-  *
-- * Assumes @task and @mm are valid (i.e. at least one reference on each), and
-- * that mmap_lock is held as writer.
-+ * Assumes @task and @mm are valid (i.e. at least one reference on each).
-  *
-  * Return:
-  * * 0       on success
-@@ -437,8 +436,6 @@ int __account_locked_vm(struct mm_struct
- 	unsigned long locked_vm, limit;
- 	int ret = 0;
- 
--	mmap_assert_write_locked(mm);
--
- 	locked_vm = atomic64_read(&mm->locked_vm);
- 	if (inc) {
- 		if (!bypass_rlim) {
-@@ -476,17 +473,11 @@ EXPORT_SYMBOL_GPL(__account_locked_vm);
-  */
- int account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc)
- {
--	int ret;
--
- 	if (pages == 0 || !mm)
- 		return 0;
- 
--	mmap_write_lock(mm);
--	ret = __account_locked_vm(mm, pages, inc, current,
--				  capable(CAP_IPC_LOCK));
--	mmap_write_unlock(mm);
--
--	return ret;
-+	return __account_locked_vm(mm, pages, inc,
-+					current, capable(CAP_IPC_LOCK));
- }
- EXPORT_SYMBOL_GPL(account_locked_vm);
+ 	/* Handle the case of comparing against empty string */
+ 	if (!expected)
+-		size = 32;
++		return -1;
+ 	else
+ 		size = strlen(expected) + 1;
  
 _
 
-Patches currently in -mm which might be from fly@kernel.page are
+Patches currently in -mm which might be from gaurav1086@gmail.com are
 
-mm-make-mm-locked_vm-an-atomic64-counter.patch
-mm-util-account_locked_vm-does-not-hold-mmap_lock.patch
+cg_read_strcmp-fix-null-pointer-dereference.patch
 
