@@ -2,53 +2,57 @@ Return-Path: <SRS0=lzHQ=BG=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36204C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:12:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26524C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:34:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0934B2074F
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:12:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E64762075D
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:34:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595880777;
-	bh=hQTH5D0pAPBiZZqXLA30SwAu+PO//9t/2sTX5idq5RE=;
+	s=default; t=1595882065;
+	bh=A9dy15ho1YbUNqDW6a2I4NeBzhYylCEvdBhhf9NzQ34=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=W4VlyVd/AzLcwYr049yM1jc7sUYCHwNOmWRcYcDnT5yryzKZ6WzbfhHAaixmZCLFL
-	 u34Eu+GobL/EOGk9y/E46FBS0XLHwl+kXnutvi/n8J0AInxCiefBwH2I9a4GddELtV
-	 i+bG+JQ8gX7VA8KJ+k0TfF5vChGS6Z6o7CkZol28=
+	b=H4VpRcGrmhvgQTf2z70Ac5yJPSwinOiDBie4o+kfZ8JqqDkjEnDwoglTb8t45r8MY
+	 pyrt+7r1Ey4i+mxabB953AZ+5pb0w8cqmSCo8ImknxBvddW9F6BsqV6Obu/gggdNL+
+	 Q7NiX3tKdCSJxoGKsSnk4TPFWgoLnbr7OObrznGA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729103AbgG0UM4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Jul 2020 16:12:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47728 "EHLO mail.kernel.org"
+        id S1727008AbgG0UeY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Jul 2020 16:34:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56742 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726451AbgG0UM4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 27 Jul 2020 16:12:56 -0400
+        id S1728356AbgG0UeY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Jul 2020 16:34:24 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9379520729;
-        Mon, 27 Jul 2020 20:12:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 420AA20759;
+        Mon, 27 Jul 2020 20:34:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595880774;
-        bh=hQTH5D0pAPBiZZqXLA30SwAu+PO//9t/2sTX5idq5RE=;
+        s=default; t=1595882063;
+        bh=A9dy15ho1YbUNqDW6a2I4NeBzhYylCEvdBhhf9NzQ34=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=PIBrbxM3KAPSTBnQM1IX1Qy8IO/ULuvyhLkQjbe85Pe1Lm+E/mx/NZ7R/JNwpo5Yf
-         RjRDAPb9U1f17ZZde05s+BAXWnrvR0c+g/hHNeNcrEcUQHN5AOEPHmUGZjpJK7p57t
-         TkWHnEqxkGaPHedoKBk0X9GaQGQJ0LdhtTpXh5hw=
-Date:   Mon, 27 Jul 2020 13:12:54 -0700
+        b=e/HwKZY0uCLLC/S9d9fPn0PLpJhrYto9PiHxnR/20Dtr8t08x/SZI2/1NBiyAFFp1
+         WiiqRw0uv2qD5OVKt/zOTCSC4XwO+U60hmqAnIBfN8DwplOpt26SA/RPSq6uBAV+CY
+         hUoxKSdJxEQwimz/xVTS617AvMo86e3+CqRvsbhc=
+Date:   Mon, 27 Jul 2020 13:34:21 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     grandmaster@al2klimov.de, mm-commits@vger.kernel.org
-Subject:  + include-replace-http-links-with-https-ones.patch added
- to -mm tree
-Message-ID: <20200727201254.owIGSaus7%akpm@linux-foundation.org>
+To:     alex.williamson@redhat.com, bmt@zurich.ibm.com, cohuck@redhat.com,
+        daniel.m.jordan@oracle.com, dbueso@suse.de, dledford@redhat.com,
+        fly@kernel.page, hughd@google.com, jgg@ziepe.ca,
+        jglisse@redhat.com, jhubbard@nvidia.com,
+        kirill.shutemov@linux.intel.com, ldufour@linux.ibm.com,
+        Liam.Howlett@oracle.com, mm-commits@vger.kernel.org,
+        peterz@infradead.org, rientjes@google.com, vbabka@suse.cz,
+        walken@google.com, willy@infradead.org, yinghan@google.com
+Subject:  + mm-make-mm-locked_vm-an-atomic64-counter.patch added to
+ -mm tree
+Message-ID: <20200727203421.TaNVXG6F_%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,16 +61,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/: replace HTTP links with HTTPS ones
+     Subject: mm: make mm->locked_vm an atomic64 counter
 has been added to the -mm tree.  Its filename is
-     include-replace-http-links-with-https-ones.patch
+     mm-make-mm-locked_vm-an-atomic64-counter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-replace-http-links-wit=
-h-https-ones.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-mm-locked_vm-an-atomic64-counter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-replace-http-links-wit=
-h-https-ones.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-mm-locked_vm-an-atomic64-counter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,429 +76,338 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Subject: include/: replace HTTP links with HTTPS ones
+From: Pengfei Li <fly@kernel.page>
+Subject: mm: make mm->locked_vm an atomic64 counter
 
-Rationale:
-Reduces attack surface on kernel devs opening the links for MITM
-as HTTPS traffic is much harder to manipulate.
+Like commit 70f8a3ca68d3 ("mm: make mm->pinned_vm an atomic64 counter").
 
-Link: http://lkml.kernel.org/r/20200726110117.16346-1-grandmaster@al2klimov=
-.de
-Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
+By making mm->locked_vm an atomic64 counter, we can safely modify it
+without holding mmap_lock.
+
+The reason for using atomic64 instead of atomic_long is to keep the same
+as mm->pinned_vm, and there is no need to worry about overflow.
+
+Link: http://lkml.kernel.org/r/20200726080224.205470-1-fly@kernel.page
+Signed-off-by: Pengfei Li <fly@kernel.page>
+Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Bernard Metzler <bmt@zurich.ibm.com>
+Cc: Cornelia Huck <cohuck@redhat.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Liam Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/clocksource/timer-ti-dm.h               |    2 +-
- include/linux/btree.h                           |    2 +-
- include/linux/delay.h                           |    2 +-
- include/linux/dma/k3-psil.h                     |    2 +-
- include/linux/dma/k3-udma-glue.h                |    2 +-
- include/linux/dma/ti-cppi5.h                    |    2 +-
- include/linux/irqchip/irq-omap-intc.h           |    2 +-
- include/linux/jhash.h                           |    2 +-
- include/linux/leds-ti-lmu-common.h              |    2 +-
- include/linux/platform_data/davinci-cpufreq.h   |    2 +-
- include/linux/platform_data/davinci_asp.h       |    2 +-
- include/linux/platform_data/elm.h               |    2 +-
- include/linux/platform_data/gpio-davinci.h      |    2 +-
- include/linux/platform_data/gpmc-omap.h         |    2 +-
- include/linux/platform_data/mtd-davinci-aemif.h |    2 +-
- include/linux/platform_data/omap-twl4030.h      |    2 +-
- include/linux/platform_data/uio_pruss.h         |    2 +-
- include/linux/platform_data/usb-omap.h          |    2 +-
- include/linux/soc/ti/k3-ringacc.h               |    2 +-
- include/linux/soc/ti/knav_qmss.h                |    2 +-
- include/linux/soc/ti/ti-msgmgr.h                |    2 +-
- include/linux/wkup_m3_ipc.h                     |    2 +-
- include/linux/xxhash.h                          |    2 +-
- include/linux/xz.h                              |    2 +-
- include/linux/zlib.h                            |    2 +-
- include/soc/arc/aux.h                           |    2 +-
- include/uapi/linux/elf.h                        |    2 +-
- include/uapi/linux/map_to_7segment.h            |    2 +-
- include/uapi/linux/types.h                      |    2 +-
- include/uapi/linux/usb/ch9.h                    |    2 +-
- 30 files changed, 30 insertions(+), 30 deletions(-)
+ drivers/infiniband/sw/siw/siw_verbs.c |   12 +++++++-----
+ drivers/vfio/vfio_iommu_type1.c       |    6 ++++--
+ fs/io_uring.c                         |    4 ++--
+ fs/proc/task_mmu.c                    |    2 +-
+ include/linux/mm_types.h              |    4 ++--
+ kernel/fork.c                         |    2 +-
+ mm/debug.c                            |    5 +++--
+ mm/mlock.c                            |    4 ++--
+ mm/mmap.c                             |   18 +++++++++---------
+ mm/mremap.c                           |    6 +++---
+ mm/util.c                             |    6 +++---
+ 11 files changed, 37 insertions(+), 32 deletions(-)
 
---- a/include/clocksource/timer-ti-dm.h~include-replace-http-links-with-htt=
-ps-ones
-+++ a/include/clocksource/timer-ti-dm.h
-@@ -1,7 +1,7 @@
- /*
-  * OMAP Dual-Mode Timers
-  *
-- * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-+ * Copyright (C) 2010 Texas Instruments Incorporated - https://www.ti.com/
-  * Tarun Kanti DebBarma <tarun.kanti@ti.com>
-  * Thara Gopinath <thara@ti.com>
-  *
---- a/include/linux/btree.h~include-replace-http-links-with-https-ones
-+++ a/include/linux/btree.h
-@@ -10,7 +10,7 @@
-  *
-  * A B+Tree is a data structure for looking up arbitrary (currently allowi=
-ng
-  * unsigned long, u32, u64 and 2 * u64) keys into pointers. The data struc=
-ture
-- * is described at http://en.wikipedia.org/wiki/B-tree, we currently do not
-+ * is described at https://en.wikipedia.org/wiki/B-tree, we currently do n=
-ot
-  * use binary search to find the key on lookups.
-  *
-  * Each B+Tree consists of a head, that contains bookkeeping information a=
-nd
---- a/include/linux/delay.h~include-replace-http-links-with-https-ones
-+++ a/include/linux/delay.h
-@@ -16,7 +16,7 @@
-  *  3. CPU clock rate changes.
-  *
-  * Please see this thread:
-- *   http://lists.openwall.net/linux-kernel/2011/01/09/56
-+ *   https://lists.openwall.net/linux-kernel/2011/01/09/56
-  */
-=20
- #include <linux/kernel.h>
---- a/include/linux/dma/k3-psil.h~include-replace-http-links-with-https-ones
-+++ a/include/linux/dma/k3-psil.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- /*
-- *  Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
-+ *  Copyright (C) 2019 Texas Instruments Incorporated - https://www.ti.com
-  */
-=20
- #ifndef K3_PSIL_H_
---- a/include/linux/dma/k3-udma-glue.h~include-replace-http-links-with-http=
-s-ones
-+++ a/include/linux/dma/k3-udma-glue.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- /*
-- *  Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
-+ *  Copyright (C) 2019 Texas Instruments Incorporated - https://www.ti.com
-  */
-=20
- #ifndef K3_UDMA_GLUE_H_
---- a/include/linux/dma/ti-cppi5.h~include-replace-http-links-with-https-on=
-es
-+++ a/include/linux/dma/ti-cppi5.h
-@@ -2,7 +2,7 @@
- /*
-  * CPPI5 descriptors interface
-  *
-- * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
-+ * Copyright (C) 2019 Texas Instruments Incorporated - https://www.ti.com
-  */
-=20
- #ifndef __TI_CPPI5_H__
---- a/include/linux/irqchip/irq-omap-intc.h~include-replace-http-links-with=
--https-ones
-+++ a/include/linux/irqchip/irq-omap-intc.h
-@@ -2,7 +2,7 @@
- /**
-  * irq-omap-intc.h - INTC Idle Functions
-  *
-- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com
-+ * Copyright (C) 2014 Texas Instruments Incorporated - https://www.ti.com
-  *
-  * Author: Felipe Balbi <balbi@ti.com>
-  */
---- a/include/linux/jhash.h~include-replace-http-links-with-https-ones
-+++ a/include/linux/jhash.h
-@@ -5,7 +5,7 @@
-  *
-  * Copyright (C) 2006. Bob Jenkins (bob_jenkins@burtleburtle.net)
-  *
-- * http://burtleburtle.net/bob/hash/
-+ * https://burtleburtle.net/bob/hash/
-  *
-  * These are the credits from Bob's sources:
-  *
---- a/include/linux/leds-ti-lmu-common.h~include-replace-http-links-with-ht=
-tps-ones
-+++ a/include/linux/leds-ti-lmu-common.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- // TI LMU Common Core
--// Copyright (C) 2018 Texas Instruments Incorporated - http://www.ti.com/
-+// Copyright (C) 2018 Texas Instruments Incorporated - https://www.ti.com/
-=20
- #ifndef _TI_LMU_COMMON_H_
- #define _TI_LMU_COMMON_H_
---- a/include/linux/platform_data/davinci_asp.h~include-replace-http-links-=
-with-https-ones
-+++ a/include/linux/platform_data/davinci_asp.h
-@@ -1,7 +1,7 @@
- /*
-  * TI DaVinci Audio Serial Port support
-  *
-- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com/
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
---- a/include/linux/platform_data/davinci-cpufreq.h~include-replace-http-li=
-nks-with-https-ones
-+++ a/include/linux/platform_data/davinci-cpufreq.h
-@@ -2,7 +2,7 @@
- /*
-  * TI DaVinci CPUFreq platform support.
-  *
-- * Copyright (C) 2009 Texas Instruments, Inc. http://www.ti.com/
-+ * Copyright (C) 2009 Texas Instruments, Inc. https://www.ti.com/
-  */
-=20
- #ifndef _MACH_DAVINCI_CPUFREQ_H
---- a/include/linux/platform_data/elm.h~include-replace-http-links-with-htt=
-ps-ones
-+++ a/include/linux/platform_data/elm.h
-@@ -2,7 +2,7 @@
- /*
-  * BCH Error Location Module
-  *
-- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
-+ * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com/
-  */
-=20
- #ifndef __ELM_H
---- a/include/linux/platform_data/gpio-davinci.h~include-replace-http-links=
--with-https-ones
-+++ a/include/linux/platform_data/gpio-davinci.h
-@@ -1,7 +1,7 @@
- /*
-  * DaVinci GPIO Platform Related Defines
-  *
-- * Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
-+ * Copyright (C) 2013 Texas Instruments Incorporated - https://www.ti.com/
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
---- a/include/linux/platform_data/gpmc-omap.h~include-replace-http-links-wi=
-th-https-ones
-+++ a/include/linux/platform_data/gpmc-omap.h
-@@ -2,7 +2,7 @@
- /*
-  * OMAP GPMC Platform data
-  *
-- * Copyright (C) 2014 Texas Instruments, Inc. - http://www.ti.com
-+ * Copyright (C) 2014 Texas Instruments, Inc. - https://www.ti.com
-  *	Roger Quadros <rogerq@ti.com>
-  */
-=20
---- a/include/linux/platform_data/mtd-davinci-aemif.h~include-replace-http-=
-links-with-https-ones
-+++ a/include/linux/platform_data/mtd-davinci-aemif.h
-@@ -1,7 +1,7 @@
- /*
-  * TI DaVinci AEMIF support
-  *
-- * Copyright 2010 (C) Texas Instruments, Inc. http://www.ti.com/
-+ * Copyright 2010 (C) Texas Instruments, Inc. https://www.ti.com/
-  *
-  * This file is licensed under the terms of the GNU General Public License
-  * version 2. This program is licensed "as is" without any warranty of any
---- a/include/linux/platform_data/omap-twl4030.h~include-replace-http-links=
--with-https-ones
-+++ a/include/linux/platform_data/omap-twl4030.h
-@@ -3,7 +3,7 @@
-  * omap-twl4030.h - ASoC machine driver for TI SoC based boards with twl40=
-30
-  *		    codec, header.
-  *
-- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
-+ * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com
-  * All rights reserved.
-  *
-  * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
---- a/include/linux/platform_data/uio_pruss.h~include-replace-http-links-wi=
-th-https-ones
-+++ a/include/linux/platform_data/uio_pruss.h
-@@ -3,7 +3,7 @@
-  *
-  * Platform data for uio_pruss driver
-  *
-- * Copyright (C) 2010-11 Texas Instruments Incorporated - http://www.ti.co=
-m/
-+ * Copyright (C) 2010-11 Texas Instruments Incorporated - https://www.ti.c=
-om/
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
---- a/include/linux/platform_data/usb-omap.h~include-replace-http-links-wit=
-h-https-ones
-+++ a/include/linux/platform_data/usb-omap.h
-@@ -1,7 +1,7 @@
- /*
-  * usb-omap.h - Platform data for the various OMAP USB IPs
-  *
-- * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com
-+ * Copyright (C) 2012 Texas Instruments Incorporated - https://www.ti.com
-  *
-  * This software is distributed under the terms of the GNU General Public
-  * License ("GPL") version 2, as published by the Free Software Foundation.
---- a/include/linux/soc/ti/k3-ringacc.h~include-replace-http-links-with-htt=
-ps-ones
-+++ a/include/linux/soc/ti/k3-ringacc.h
-@@ -2,7 +2,7 @@
- /*
-  * K3 Ring Accelerator (RA) subsystem interface
-  *
-- * Copyright (C) 2019 Texas Instruments Incorporated - http://www.ti.com
-+ * Copyright (C) 2019 Texas Instruments Incorporated - https://www.ti.com
-  */
-=20
- #ifndef __SOC_TI_K3_RINGACC_API_H_
---- a/include/linux/soc/ti/knav_qmss.h~include-replace-http-links-with-http=
-s-ones
-+++ a/include/linux/soc/ti/knav_qmss.h
-@@ -1,7 +1,7 @@
- /*
-  * Keystone Navigator Queue Management Sub-System header
-  *
-- * Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com
-+ * Copyright (C) 2014 Texas Instruments Incorporated - https://www.ti.com
-  * Author:	Sandeep Nair <sandeep_n@ti.com>
-  *		Cyril Chemparathy <cyril@ti.com>
-  *		Santosh Shilimkar <santosh.shilimkar@ti.com>
---- a/include/linux/soc/ti/ti-msgmgr.h~include-replace-http-links-with-http=
-s-ones
-+++ a/include/linux/soc/ti/ti-msgmgr.h
-@@ -1,7 +1,7 @@
- /*
-  * Texas Instruments' Message Manager
-  *
-- * Copyright (C) 2015-2016 Texas Instruments Incorporated - http://www.ti.=
-com/
-+ * Copyright (C) 2015-2016 Texas Instruments Incorporated - https://www.ti=
-.com/
-  *	Nishanth Menon
-  *
-  * This program is free software; you can redistribute it and/or modify
---- a/include/linux/wkup_m3_ipc.h~include-replace-http-links-with-https-ones
-+++ a/include/linux/wkup_m3_ipc.h
-@@ -1,7 +1,7 @@
- /*
-  * TI Wakeup M3 for AMx3 SoCs Power Management Routines
-  *
-- * Copyright (C) 2015 Texas Instruments Incorporated - http://www.ti.com/
-+ * Copyright (C) 2015 Texas Instruments Incorporated - https://www.ti.com/
-  * Dave Gerlach <d-gerlach@ti.com>
-  *
-  * This program is free software; you can redistribute it and/or
---- a/include/linux/xxhash.h~include-replace-http-links-with-https-ones
-+++ a/include/linux/xxhash.h
-@@ -34,7 +34,7 @@
-  * ("BSD").
-  *
-  * You can contact the author at:
-- * - xxHash homepage: http://cyan4973.github.io/xxHash/
-+ * - xxHash homepage: https://cyan4973.github.io/xxHash/
-  * - xxHash source repository: https://github.com/Cyan4973/xxHash
-  */
-=20
---- a/include/linux/xz.h~include-replace-http-links-with-https-ones
-+++ a/include/linux/xz.h
-@@ -2,7 +2,7 @@
-  * XZ decompressor
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-- *          Igor Pavlov <http://7-zip.org/>
-+ *          Igor Pavlov <https://7-zip.org/>
-  *
-  * This file has been put into the public domain.
-  * You can do whatever you want with this file.
---- a/include/linux/zlib.h~include-replace-http-links-with-https-ones
-+++ a/include/linux/zlib.h
-@@ -23,7 +23,7 @@
-=20
-=20
-   The data format used by the zlib library is described by RFCs (Request f=
-or
--  Comments) 1950 to 1952 in the files http://www.ietf.org/rfc/rfc1950.txt
-+  Comments) 1950 to 1952 in the files https://www.ietf.org/rfc/rfc1950.txt
-   (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format=
-).
- */
-=20
---- a/include/soc/arc/aux.h~include-replace-http-links-with-https-ones
-+++ a/include/soc/arc/aux.h
-@@ -22,7 +22,7 @@ static inline int read_aux_reg(u32 r)
-=20
- /*
-  * function helps elide unused variable warning
-- * see: http://lists.infradead.org/pipermail/linux-snps-arc/2016-November/=
-001748.html
-+ * see: https://lists.infradead.org/pipermail/linux-snps-arc/2016-November=
-/001748.html
-  */
- static inline void write_aux_reg(u32 r, u32 v)
- {
---- a/include/uapi/linux/elf.h~include-replace-http-links-with-https-ones
-+++ a/include/uapi/linux/elf.h
-@@ -53,7 +53,7 @@ typedef __s64	Elf64_Sxword;
-  *
-  * - Oracle: Linker and Libraries.
-  *   Part No: 817=E2=80=931984=E2=80=9319, August 2011.
-- *   http://docs.oracle.com/cd/E18752_01/pdf/817-1984.pdf
-+ *   https://docs.oracle.com/cd/E18752_01/pdf/817-1984.pdf
-  *
-  * - System V ABI AMD64 Architecture Processor Supplement
-  *   Draft Version 0.99.4,
---- a/include/uapi/linux/map_to_7segment.h~include-replace-http-links-with-=
-https-ones
-+++ a/include/uapi/linux/map_to_7segment.h
-@@ -24,7 +24,7 @@
-  * of (ASCII) characters to a 7-segments notation.
-  *
-  * The 7 segment's wikipedia notation below is used as standard.
-- * See: http://en.wikipedia.org/wiki/Seven_segment_display
-+ * See: https://en.wikipedia.org/wiki/Seven_segment_display
-  *
-  * Notation:	+-a-+
-  *		f   b
---- a/include/uapi/linux/types.h~include-replace-http-links-with-https-ones
-+++ a/include/uapi/linux/types.h
-@@ -7,7 +7,7 @@
- #ifndef __ASSEMBLY__
- #ifndef	__KERNEL__
- #ifndef __EXPORTED_HEADERS__
--#warning "Attempt to use kernel headers from user space, see http://kernel=
-newbies.org/KernelHeaders"
-+#warning "Attempt to use kernel headers from user space, see https://kerne=
-lnewbies.org/KernelHeaders"
- #endif /* __EXPORTED_HEADERS__ */
+--- a/drivers/infiniband/sw/siw/siw_verbs.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/drivers/infiniband/sw/siw/siw_verbs.c
+@@ -1293,14 +1293,16 @@ struct ib_mr *siw_reg_user_mr(struct ib_
+ 		goto err_out;
+ 	}
+ 	if (mem_limit != RLIM_INFINITY) {
+-		unsigned long num_pages =
+-			(PAGE_ALIGN(len + (start & ~PAGE_MASK))) >> PAGE_SHIFT;
++		unsigned long num_pages, locked_pages;
++
++		num_pages = (PAGE_ALIGN(len + (start & ~PAGE_MASK)))
++				>> PAGE_SHIFT;
++		locked_pages = atomic64_read(&current->mm->locked_vm);
+ 		mem_limit >>= PAGE_SHIFT;
+ 
+-		if (num_pages > mem_limit - current->mm->locked_vm) {
++		if (num_pages > mem_limit - locked_pages) {
+ 			siw_dbg_pd(pd, "pages req %lu, max %lu, lock %lu\n",
+-				   num_pages, mem_limit,
+-				   current->mm->locked_vm);
++				   num_pages, mem_limit, locked_pages);
+ 			rv = -ENOMEM;
+ 			goto err_out;
+ 		}
+--- a/drivers/vfio/vfio_iommu_type1.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/drivers/vfio/vfio_iommu_type1.c
+@@ -509,7 +509,8 @@ static long vfio_pin_pages_remote(struct
+ 	 * pages are already counted against the user.
+ 	 */
+ 	if (!rsvd && !vfio_find_vpfn(dma, iova)) {
+-		if (!dma->lock_cap && current->mm->locked_vm + 1 > limit) {
++		if (!dma->lock_cap &&
++		    atomic64_read(&current->mm->locked_vm) + 1 > limit) {
+ 			put_pfn(*pfn_base, dma->prot);
+ 			pr_warn("%s: RLIMIT_MEMLOCK (%ld) exceeded\n", __func__,
+ 					limit << PAGE_SHIFT);
+@@ -536,7 +537,8 @@ static long vfio_pin_pages_remote(struct
+ 
+ 		if (!rsvd && !vfio_find_vpfn(dma, iova)) {
+ 			if (!dma->lock_cap &&
+-			    current->mm->locked_vm + lock_acct + 1 > limit) {
++			    atomic64_read(&current->mm->locked_vm) +
++			    lock_acct + 1 > limit) {
+ 				put_pfn(pfn, dma->prot);
+ 				pr_warn("%s: RLIMIT_MEMLOCK (%ld) exceeded\n",
+ 					__func__, limit << PAGE_SHIFT);
+--- a/fs/io_uring.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/fs/io_uring.c
+@@ -7383,7 +7383,7 @@ static void io_unaccount_mem(struct io_r
+ 
+ 	if (ctx->sqo_mm) {
+ 		if (acct == ACCT_LOCKED)
+-			ctx->sqo_mm->locked_vm -= nr_pages;
++			atomic64_sub(nr_pages, &ctx->sqo_mm->locked_vm);
+ 		else if (acct == ACCT_PINNED)
+ 			atomic64_sub(nr_pages, &ctx->sqo_mm->pinned_vm);
+ 	}
+@@ -7402,7 +7402,7 @@ static int io_account_mem(struct io_ring
+ 
+ 	if (ctx->sqo_mm) {
+ 		if (acct == ACCT_LOCKED)
+-			ctx->sqo_mm->locked_vm += nr_pages;
++			atomic64_add(nr_pages, &ctx->sqo_mm->locked_vm);
+ 		else if (acct == ACCT_PINNED)
+ 			atomic64_add(nr_pages, &ctx->sqo_mm->pinned_vm);
+ 	}
+--- a/fs/proc/task_mmu.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/fs/proc/task_mmu.c
+@@ -58,7 +58,7 @@ void task_mem(struct seq_file *m, struct
+ 	swap = get_mm_counter(mm, MM_SWAPENTS);
+ 	SEQ_PUT_DEC("VmPeak:\t", hiwater_vm);
+ 	SEQ_PUT_DEC(" kB\nVmSize:\t", total_vm);
+-	SEQ_PUT_DEC(" kB\nVmLck:\t", mm->locked_vm);
++	SEQ_PUT_DEC(" kB\nVmLck:\t", atomic64_read(&mm->locked_vm));
+ 	SEQ_PUT_DEC(" kB\nVmPin:\t", atomic64_read(&mm->pinned_vm));
+ 	SEQ_PUT_DEC(" kB\nVmHWM:\t", hiwater_rss);
+ 	SEQ_PUT_DEC(" kB\nVmRSS:\t", total_rss);
+--- a/include/linux/mm_types.h~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/include/linux/mm_types.h
+@@ -457,8 +457,8 @@ struct mm_struct {
+ 		unsigned long hiwater_vm;  /* High-water virtual memory usage */
+ 
+ 		unsigned long total_vm;	   /* Total pages mapped */
+-		unsigned long locked_vm;   /* Pages that have PG_mlocked set */
+-		atomic64_t    pinned_vm;   /* Refcount permanently increased */
++		atomic64_t locked_vm;	   /* Pages that have PG_mlocked set */
++		atomic64_t pinned_vm;	   /* Refcount permanently increased */
+ 		unsigned long data_vm;	   /* VM_WRITE & ~VM_SHARED & ~VM_STACK */
+ 		unsigned long exec_vm;	   /* VM_EXEC & ~VM_WRITE & ~VM_STACK */
+ 		unsigned long stack_vm;	   /* VM_STACK */
+--- a/kernel/fork.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/kernel/fork.c
+@@ -1008,7 +1008,7 @@ static struct mm_struct *mm_init(struct
+ 	mm->core_state = NULL;
+ 	mm_pgtables_bytes_init(mm);
+ 	mm->map_count = 0;
+-	mm->locked_vm = 0;
++	atomic64_set(&mm->locked_vm, 0);
+ 	atomic64_set(&mm->pinned_vm, 0);
+ 	memset(&mm->rss_stat, 0, sizeof(mm->rss_stat));
+ 	spin_lock_init(&mm->page_table_lock);
+--- a/mm/debug.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/mm/debug.c
+@@ -218,7 +218,7 @@ void dump_mm(const struct mm_struct *mm)
  #endif
-=20
---- a/include/uapi/linux/usb/ch9.h~include-replace-http-links-with-https-on=
-es
-+++ a/include/uapi/linux/usb/ch9.h
-@@ -1222,7 +1222,7 @@ struct usb_set_sel_req {
-  * As per USB compliance update, a device that is actively drawing
-  * more than 100mA from USB must report itself as bus-powered in
-  * the GetStatus(DEVICE) call.
-- * http://compliance.usb.org/index.asp?UpdateFile=3DElectrical&Format=3DSt=
-andard#34
-+ * https://compliance.usb.org/index.asp?UpdateFile=3DElectrical&Format=3DS=
-tandard#34
-  */
- #define USB_SELF_POWER_VBUS_MAX_DRAW		100
-=20
+ 		"mmap_base %lu mmap_legacy_base %lu highest_vm_end %lu\n"
+ 		"pgd %px mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
+-		"hiwater_rss %lx hiwater_vm %lx total_vm %lx locked_vm %lx\n"
++		"hiwater_rss %lx hiwater_vm %lx total_vm %lx locked_vm %llx\n"
+ 		"pinned_vm %llx data_vm %lx exec_vm %lx stack_vm %lx\n"
+ 		"start_code %lx end_code %lx start_data %lx end_data %lx\n"
+ 		"start_brk %lx brk %lx start_stack %lx\n"
+@@ -249,7 +249,8 @@ void dump_mm(const struct mm_struct *mm)
+ 		atomic_read(&mm->mm_count),
+ 		mm_pgtables_bytes(mm),
+ 		mm->map_count,
+-		mm->hiwater_rss, mm->hiwater_vm, mm->total_vm, mm->locked_vm,
++		mm->hiwater_rss, mm->hiwater_vm, mm->total_vm,
++		(u64)atomic64_read(&mm->locked_vm),
+ 		(u64)atomic64_read(&mm->pinned_vm),
+ 		mm->data_vm, mm->exec_vm, mm->stack_vm,
+ 		mm->start_code, mm->end_code, mm->start_data, mm->end_data,
+--- a/mm/mlock.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/mm/mlock.c
+@@ -561,7 +561,7 @@ success:
+ 		nr_pages = -nr_pages;
+ 	else if (old_flags & VM_LOCKED)
+ 		nr_pages = 0;
+-	mm->locked_vm += nr_pages;
++	atomic64_add(nr_pages, &mm->locked_vm);
+ 
+ 	/*
+ 	 * vm_flags is protected by the mmap_lock held in write mode.
+@@ -688,7 +688,7 @@ static __must_check int do_mlock(unsigne
+ 	if (mmap_write_lock_killable(current->mm))
+ 		return -EINTR;
+ 
+-	locked += current->mm->locked_vm;
++	locked += atomic64_read(&current->mm->locked_vm);
+ 	if ((locked > lock_limit) && (!capable(CAP_IPC_LOCK))) {
+ 		/*
+ 		 * It is possible that the regions requested intersect with
+--- a/mm/mmap.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/mm/mmap.c
+@@ -1319,7 +1319,7 @@ static inline int mlock_future_check(str
+ 	/*  mlock MCL_FUTURE? */
+ 	if (flags & VM_LOCKED) {
+ 		locked = len >> PAGE_SHIFT;
+-		locked += mm->locked_vm;
++		locked += atomic64_read(&mm->locked_vm);
+ 		lock_limit = rlimit(RLIMIT_MEMLOCK);
+ 		lock_limit >>= PAGE_SHIFT;
+ 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
+@@ -1832,7 +1832,7 @@ out:
+ 					vma == get_gate_vma(current->mm))
+ 			vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
+ 		else
+-			mm->locked_vm += (len >> PAGE_SHIFT);
++			atomic64_add(len >> PAGE_SHIFT, &mm->locked_vm);
+ 	}
+ 
+ 	if (file)
+@@ -2343,7 +2343,7 @@ static int acct_stack_growth(struct vm_a
+ 	if (vma->vm_flags & VM_LOCKED) {
+ 		unsigned long locked;
+ 		unsigned long limit;
+-		locked = mm->locked_vm + grow;
++		locked = atomic64_read(&mm->locked_vm) + grow;
+ 		limit = rlimit(RLIMIT_MEMLOCK);
+ 		limit >>= PAGE_SHIFT;
+ 		if (locked > limit && !capable(CAP_IPC_LOCK))
+@@ -2436,7 +2436,7 @@ int expand_upwards(struct vm_area_struct
+ 				 */
+ 				spin_lock(&mm->page_table_lock);
+ 				if (vma->vm_flags & VM_LOCKED)
+-					mm->locked_vm += grow;
++					atomic64_add(grow, &mm->locked_vm);
+ 				vm_stat_account(mm, vma->vm_flags, grow);
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_end = address;
+@@ -2516,7 +2516,7 @@ int expand_downwards(struct vm_area_stru
+ 				 */
+ 				spin_lock(&mm->page_table_lock);
+ 				if (vma->vm_flags & VM_LOCKED)
+-					mm->locked_vm += grow;
++					atomic64_add(grow, &mm->locked_vm);
+ 				vm_stat_account(mm, vma->vm_flags, grow);
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_start = address;
+@@ -2859,11 +2859,11 @@ int __do_munmap(struct mm_struct *mm, un
+ 	/*
+ 	 * unlock any mlock()ed ranges before detaching vmas
+ 	 */
+-	if (mm->locked_vm) {
++	if (atomic64_read(&mm->locked_vm)) {
+ 		struct vm_area_struct *tmp = vma;
+ 		while (tmp && tmp->vm_start < end) {
+ 			if (tmp->vm_flags & VM_LOCKED) {
+-				mm->locked_vm -= vma_pages(tmp);
++				atomic64_sub(vma_pages(tmp), &mm->locked_vm);
+ 				munlock_vma_pages_all(tmp);
+ 			}
+ 
+@@ -3103,7 +3103,7 @@ out:
+ 	mm->total_vm += len >> PAGE_SHIFT;
+ 	mm->data_vm += len >> PAGE_SHIFT;
+ 	if (flags & VM_LOCKED)
+-		mm->locked_vm += (len >> PAGE_SHIFT);
++		atomic64_add(len >> PAGE_SHIFT, &mm->locked_vm);
+ 	vma->vm_flags |= VM_SOFTDIRTY;
+ 	return 0;
+ }
+@@ -3175,7 +3175,7 @@ void exit_mmap(struct mm_struct *mm)
+ 		mmap_write_unlock(mm);
+ 	}
+ 
+-	if (mm->locked_vm) {
++	if (atomic64_read(&mm->locked_vm)) {
+ 		vma = mm->mmap;
+ 		while (vma) {
+ 			if (vma->vm_flags & VM_LOCKED)
+--- a/mm/mremap.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/mm/mremap.c
+@@ -455,7 +455,7 @@ static unsigned long move_vma(struct vm_
+ 	}
+ 
+ 	if (vm_flags & VM_LOCKED) {
+-		mm->locked_vm += new_len >> PAGE_SHIFT;
++		atomic64_add(new_len >> PAGE_SHIFT, &mm->locked_vm);
+ 		*locked = true;
+ 	}
+ out:
+@@ -520,7 +520,7 @@ static struct vm_area_struct *vma_to_res
+ 
+ 	if (vma->vm_flags & VM_LOCKED) {
+ 		unsigned long locked, lock_limit;
+-		locked = mm->locked_vm << PAGE_SHIFT;
++		locked = atomic64_read(&mm->locked_vm) << PAGE_SHIFT;
+ 		lock_limit = rlimit(RLIMIT_MEMLOCK);
+ 		locked += new_len - old_len;
+ 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
+@@ -765,7 +765,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 
+ 			vm_stat_account(mm, vma->vm_flags, pages);
+ 			if (vma->vm_flags & VM_LOCKED) {
+-				mm->locked_vm += pages;
++				atomic64_add(pages, &mm->locked_vm);
+ 				locked = true;
+ 				new_addr = addr;
+ 			}
+--- a/mm/util.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/mm/util.c
+@@ -439,7 +439,7 @@ int __account_locked_vm(struct mm_struct
+ 
+ 	mmap_assert_write_locked(mm);
+ 
+-	locked_vm = mm->locked_vm;
++	locked_vm = atomic64_read(&mm->locked_vm);
+ 	if (inc) {
+ 		if (!bypass_rlim) {
+ 			limit = task_rlimit(task, RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+@@ -447,10 +447,10 @@ int __account_locked_vm(struct mm_struct
+ 				ret = -ENOMEM;
+ 		}
+ 		if (!ret)
+-			mm->locked_vm = locked_vm + pages;
++			atomic64_add(pages, &mm->locked_vm);
+ 	} else {
+ 		WARN_ON_ONCE(pages > locked_vm);
+-		mm->locked_vm = locked_vm - pages;
++		atomic64_sub(pages, &mm->locked_vm);
+ 	}
+ 
+ 	pr_debug("%s: [%d] caller %ps %c%lu %lu/%lu%s\n", __func__, task->pid,
 _
 
-Patches currently in -mm which might be from grandmaster@al2klimov.de are
+Patches currently in -mm which might be from fly@kernel.page are
 
-tools-replace-http-links-with-https-ones.patch
-ocfs2-replace-http-links-with-https-ones.patch
-mm-thp-replace-http-links-with-https-ones.patch
-include-replace-http-links-with-https-ones.patch
-lib-replace-http-links-with-https-ones.patch
-vfat-fat-msdos-filesystem-replace-http-links-with-https-ones.patch
+mm-make-mm-locked_vm-an-atomic64-counter.patch
+mm-util-account_locked_vm-does-not-hold-mmap_lock.patch
 
