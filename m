@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7109EC433E4
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:51:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE3F8C43461
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:53:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4DDDC20729
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:51:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB79722CB3
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Jul 2020 20:53:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595883100;
-	bh=pHCh07we7L9Ntv3UFjFxh16/1zQgy58O9GwOwmOaouc=;
+	s=default; t=1595883181;
+	bh=syfdimmeMgmZ9oIVe7F0MhaSsLZ75vxi9RGAsfALHeE=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=APyVzGkB86Kt64DzPddsRVUWW62WoWs6hEgpTv1G72pM8Ak3z53aVTwtvES7MReUy
-	 Ua5oIkx4hEgk7HsqqhFwYplU+5hZJaMWl6BDP8m7XnFdOWAXQWI1AGrOqeNhPlAN8B
-	 7wr1PYmu1PZ4wgLNOGJVnPih0bkPmJRHG/psTYd0=
+	b=zQYS9QKtK/MQshSINPa3GlGPgQTibFrQcMXKRM7PKFDKHg+wx68wj3ofIiSCsRXsI
+	 flhAO4aUtvtPXXQ+9HE4lCovpqjVpMdfiRyF6kz9gRJ9nD8DitMPOdAMpEwzowWeAN
+	 Ta+YpGJmCH/gpOKM5Y5lUZa579DrpSvpRYaDEmYg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726320AbgG0Uvj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Jul 2020 16:51:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60712 "EHLO mail.kernel.org"
+        id S1726782AbgG0Uw4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Jul 2020 16:52:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727098AbgG0Uvi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 27 Jul 2020 16:51:38 -0400
+        id S1726676AbgG0Uwz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 27 Jul 2020 16:52:55 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C041D20792;
-        Mon, 27 Jul 2020 20:51:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BA4CB22CA0;
+        Mon, 27 Jul 2020 20:52:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595883098;
-        bh=pHCh07we7L9Ntv3UFjFxh16/1zQgy58O9GwOwmOaouc=;
+        s=default; t=1595883174;
+        bh=syfdimmeMgmZ9oIVe7F0MhaSsLZ75vxi9RGAsfALHeE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=BmRjiPxffT/+EZe1GzlxhEQh+LrAKscRclY1zyWogZDfOCu1WIYTVFuIH0ziMzvxq
-         taLyBS8aCky/HY/p4ps3mx/cvodpkgvF/CvKfMBCb2qRcrW/PXRJZc5lAl6sDfzUjx
-         OM4zn+n2Usab0+43GYE4h11nL3IlF6MUGY6oPiHE=
-Date:   Mon, 27 Jul 2020 13:51:37 -0700
+        b=NK/JmHFyPXrYB+XlPhroTivfI2uMjiZUVxRLHC8vewFPWkwvHdW/C/8tD7x2sM6qC
+         pUCZzE/GlwEZbNV2mojNldfHoZRNrh3dlsb6gqX3rOG3aDJt40PV+hskqnGr+umdIL
+         PPXbFLEYpc4EJEmH3xAIsKwcxTMbK6QplpiXcOqw=
+Date:   Mon, 27 Jul 2020 13:52:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     guojianchao@bytedance.com, mgorman@suse.de, mhocko@kernel.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        rientjes@google.com, songmuchun@bytedance.com, walken@google.com
-Subject:  +
- mm-hugetlb-add-mempolicy-check-in-the-reservation-routine.patch added to
- -mm tree
-Message-ID: <20200727205137.gTb-0AGi8%akpm@linux-foundation.org>
+To:     colin.king@canonical.com, jslaby@suse.cz,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        sj38.park@gmail.com, sjpark@amazon.de
+Subject:  [withdrawn]
+ checkpatch-support-deprecated-terms-checking.patch removed from -mm tree
+Message-ID: <20200727205253.YoNX2lRBF%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,141 +56,153 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: add mempolicy check in the reservation routine
-has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-mempolicy-check-in-the-reservation-routine.patch
+     Subject: checkpatch: support deprecated terms checking
+has been removed from the -mm tree.  Its filename was
+     checkpatch-support-deprecated-terms-checking.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-mempolicy-check-in-the-reservation-routine.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-mempolicy-check-in-the-reservation-routine.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/hugetlb: add mempolicy check in the reservation routine
+From: SeongJae Park <sjpark@amazon.de>
+Subject: checkpatch: support deprecated terms checking
 
-In the reservation routine, we only check whether the cpuset meets the
-memory allocation requirements.  But we ignore the mempolicy of MPOL_BIND
-case.  If someone mmap hugetlb succeeds, but the subsequent memory
-allocation may fail due to mempolicy restrictions and receives the SIGBUS
-signal.  This can be reproduced by the follow steps.
+Patch series "Recommend denylist/allowlist instead of blacklist/whitelist:, v4.
 
- 1) Compile the test case.
-    cd tools/testing/selftests/vm/
-    gcc map_hugetlb.c -o map_hugetlb
+This patchset 1) adds support of deprecated terms in the 'checkpatch.pl'
+and 2) set the 'blacklist' and 'whitelist' as deprecated with replacement
+suggestion of 'denylist' and 'allowlist', because the suggestions are
+incontrovertible, doesn't make people hurt, and more self-explanatory.
 
- 2) Pre-allocate huge pages. Suppose there are 2 numa nodes in the
-    system. Each node will pre-allocate one huge page.
-    echo 2 > /proc/sys/vm/nr_hugepages
 
- 3) Run test case(mmap 4MB). We receive the SIGBUS signal.
-    numactl --membind=0 ./map_hugetlb 4
+This patch (of 2):
 
-With this patch applied, the mmap will fail in the step 3) and throw
-"mmap: Cannot allocate memory".
+Some terms could be deprecated for various reasons, but it is hard to
+update the entire old usages.  That said, we could at least encourage new
+patches to use the suggested replacements.  This commit adds check of
+deprecated terms in the 'checkpatch.pl' for that.  The script will get
+deprecated terms and suggested replacements of those from
+'scripts/deprecated_terms.txt' file and warn if the deprecated terms are
+used.  The mechanism and the format of the file are almost the same as
+that of 'spelling.txt'.  For the reason, this commit modularizes the read
+of the 'spelling.txt' and reuses.
 
-Link: http://lkml.kernel.org/r/20200725080749.70470-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: Jianchao Guo <guojianchao@bytedance.com>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michel Lespinasse <walken@google.com>
+Link: http://lkml.kernel.org/r/20200611062550.20113-1-sjpark@amazon.com
+Link: http://lkml.kernel.org/r/20200611062550.20113-2-sjpark@amazon.com
+Signed-off-by: SeongJae Park <sjpark@amazon.de>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: SeongJae Park <sj38.park@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    1 +
- mm/hugetlb.c              |   25 ++++++++++++++++++++-----
- mm/mempolicy.c            |    2 +-
- 3 files changed, 22 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl        |   60 ++++++++++++++++++++++++---------
+ scripts/deprecated_terms.txt |    5 ++
+ 2 files changed, 50 insertions(+), 15 deletions(-)
 
---- a/include/linux/mempolicy.h~mm-hugetlb-add-mempolicy-check-in-the-reservation-routine
-+++ a/include/linux/mempolicy.h
-@@ -152,6 +152,7 @@ extern int huge_node(struct vm_area_stru
- extern bool init_nodemask_of_mempolicy(nodemask_t *mask);
- extern bool mempolicy_nodemask_intersects(struct task_struct *tsk,
- 				const nodemask_t *mask);
-+extern nodemask_t *policy_nodemask(gfp_t gfp, struct mempolicy *policy);
- extern unsigned int mempolicy_slab_node(void);
+--- a/scripts/checkpatch.pl~checkpatch-support-deprecated-terms-checking
++++ a/scripts/checkpatch.pl
+@@ -57,6 +57,7 @@ my $max_line_length = 100;
+ my $ignore_perl_version = 0;
+ my $minimum_perl_version = 5.10.0;
+ my $min_conf_desc_length = 4;
++my $deprecated_terms_file = "$D/deprecated_terms.txt";
+ my $spelling_file = "$D/spelling.txt";
+ my $codespell = 0;
+ my $codespellfile = "/usr/share/codespell/dictionary.txt";
+@@ -692,29 +693,40 @@ our $allowed_asm_includes = qr{(?x:
+ )};
+ # memory.h: ARM has a custom one
  
- extern enum zone_type policy_zone;
---- a/mm/hugetlb.c~mm-hugetlb-add-mempolicy-check-in-the-reservation-routine
-+++ a/mm/hugetlb.c
-@@ -3458,13 +3458,22 @@ static int __init default_hugepagesz_set
+-# Load common spelling mistakes and build regular expression list.
+-my $misspellings;
+-my %spelling_fix;
++sub read_word_corrections {
++	my ($file, $fixesRef) = @_;
++	my $suspects;
+ 
+-if (open(my $spelling, '<', $spelling_file)) {
+-	while (<$spelling>) {
+-		my $line = $_;
++	if (open(my $corrections, '<', $file)) {
++		while (<$corrections>) {
++			my $line = $_;
+ 
+-		$line =~ s/\s*\n?$//g;
+-		$line =~ s/^\s*//g;
++			$line =~ s/\s*\n?$//g;
++			$line =~ s/^\s*//g;
+ 
+-		next if ($line =~ m/^\s*#/);
+-		next if ($line =~ m/^\s*$/);
++			next if ($line =~ m/^\s*#/);
++			next if ($line =~ m/^\s*$/);
+ 
+-		my ($suspect, $fix) = split(/\|\|/, $line);
++			my ($suspect, $fix) = split(/\|\|/, $line);
+ 
+-		$spelling_fix{$suspect} = $fix;
++			$fixesRef->{$suspect} = $fix;
++		}
++		close($corrections);
++	} else {
++		warn "No correction will be found - file '$file': $!\n";
+ 	}
+-	close($spelling);
+-} else {
+-	warn "No typos will be found - file '$spelling_file': $!\n";
  }
- __setup("default_hugepagesz=", default_hugepagesz_setup);
  
--static unsigned int cpuset_mems_nr(unsigned int *array)
-+static unsigned int allowed_mems_nr(struct hstate *h)
- {
- 	int node;
- 	unsigned int nr = 0;
--
--	for_each_node_mask(node, cpuset_current_mems_allowed)
--		nr += array[node];
-+	struct mempolicy *mpol = get_task_policy(current);
-+	nodemask_t *mpol_allowed;
-+	unsigned int *array = h->free_huge_pages_node;
-+	gfp_t gfp_mask = htlb_alloc_mask(h);
++# Load deprecated terms and build regular expression list.
++my %deprecated_terms_fix;
++read_word_corrections($deprecated_terms_file, \%deprecated_terms_fix);
++my $deprecated_terms = join("|", sort keys %deprecated_terms_fix) if keys %deprecated_terms_fix;
 +
-+	mpol_allowed = policy_nodemask(gfp_mask, mpol);
++# Load common spelling mistakes and build regular expression list.
++my $misspellings;
++my %spelling_fix;
++read_word_corrections($spelling_file, \%spelling_fix);
 +
-+	for_each_node_mask(node, cpuset_current_mems_allowed) {
-+		if (!mpol_allowed ||
-+		    (mpol_allowed && node_isset(node, *mpol_allowed)))
-+			nr += array[node];
-+	}
- 
- 	return nr;
- }
-@@ -3643,12 +3652,18 @@ static int hugetlb_acct_memory(struct hs
- 	 * we fall back to check against current free page availability as
- 	 * a best attempt and hopefully to minimize the impact of changing
- 	 * semantics that cpuset has.
-+	 *
-+	 * Apart from cpuset, we also have memory policy mechanism that
-+	 * also determines from which node the kernel will allocate memory
-+	 * in a NUMA system. So similar to cpuset, we also should consider
-+	 * the memory policy of the current task. Similar to the description
-+	 * above.
- 	 */
- 	if (delta > 0) {
- 		if (gather_surplus_pages(h, delta) < 0)
- 			goto out;
- 
--		if (delta > cpuset_mems_nr(h->free_huge_pages_node)) {
-+		if (delta > allowed_mems_nr(h)) {
- 			return_unused_surplus_pages(h, delta);
- 			goto out;
+ if ($codespell) {
+ 	if (open(my $spelling, '<', $codespellfile)) {
+ 		while (<$spelling>) {
+@@ -2956,6 +2968,24 @@ sub process {
+ 				}
+ 			}
  		}
---- a/mm/mempolicy.c~mm-hugetlb-add-mempolicy-check-in-the-reservation-routine
-+++ a/mm/mempolicy.c
-@@ -1890,7 +1890,7 @@ static int apply_policy_zone(struct memp
-  * Return a nodemask representing a mempolicy for filtering nodes for
-  * page allocation
-  */
--static nodemask_t *policy_nodemask(gfp_t gfp, struct mempolicy *policy)
-+nodemask_t *policy_nodemask(gfp_t gfp, struct mempolicy *policy)
- {
- 	/* Lower zones don't get a nodemask applied for MPOL_BIND */
- 	if (unlikely(policy->mode == MPOL_BIND) &&
++
++# Check for deprecated terms
++		if (defined($deprecated_terms) &&
++		    ($in_commit_log || $line =~ /^(?:\+|Subject:)/i)) {
++			while ($rawline =~ /(?:^|[^a-z@])($deprecated_terms)(?:\b|$|[^a-z@])/gi) {
++				my $deprecated_term = $1;
++				my $suggested = $deprecated_terms_fix{lc($deprecated_term)};
++				$suggested = ucfirst($suggested) if ($deprecated_term=~ /^[A-Z]/);
++				$suggested = uc($suggested) if ($deprecated_term =~ /^[A-Z]+$/);
++				my $msg_level = \&WARN;
++				$msg_level = \&CHK if ($file);
++				if (&{$msg_level}("DEPRECATED_TERM",
++						  "Use of '$deprecated_term' is deprecated, please '$suggested', instead.\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/(^|[^A-Za-z@])($deprecated_term)($|[^A-Za-z@])/$1$suggested$3/;
++				}
++			}
++		}
+ 
+ # Check for various typo / spelling mistakes
+ 		if (defined($misspellings) &&
+--- /dev/null
++++ a/scripts/deprecated_terms.txt
+@@ -0,0 +1,5 @@
++# License: GPLv2
++#
++# The format of each line is:
++# deprecated||suggested
++#
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from sjpark@amazon.de are
 
-mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt.patch
-mm-hugetlb-add-mempolicy-check-in-the-reservation-routine.patch
+scripts-deprecated_terms-recommend-denylist-allowlist-instead-of-blacklist-whitelist.patch
+scripts-deprecated_terms-sync-with-inclusive-terms.patch
 
