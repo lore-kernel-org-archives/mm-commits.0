@@ -7,43 +7,56 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC41EC433E3
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 20:26:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3C9AC433E3
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 20:28:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A68492065E
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 20:26:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C950A20825
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 20:28:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595967986;
-	bh=uYjA0ZuKom3c7Ir7sy53+eBDw5kn5A/on+/vbzrTIJw=;
+	s=default; t=1595968128;
+	bh=DZa23iQd1u0Zt0+baOJ3N5SjhG14X7OdVrrXeq9/DLY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=0lZrhbuX47gXTAvZ8RkpKu5CWefZ8ZqI87Opn1F8bPKGGslVSvuO08l1QVRRApnia
-	 oybrU1jJjBK/Env8mbzuIYUEMjcdOfTc18ktYQJhOn4A6h/9SHAEn9Ju60jvBfOkmX
-	 jGhvuYd861iyFgRXJLG39w40B0wpn+j2H3FRQQnw=
+	b=pQXo400A2iu5dSkFDulKUTEu2jLltQdd1X40WIHHI0WB6BZW1dnsDdkI351CGZHuU
+	 re/hns9Xm2tlAihuuO/Zdlx8szYk7XjRcpO33SY5xPXk+fBsB/+FNW61t2rtVwsto2
+	 xeoCfeX+uYI7ebGEL3OSfWowGWGH3qhOONNkog98=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728723AbgG1U00 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Jul 2020 16:26:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54562 "EHLO mail.kernel.org"
+        id S1728698AbgG1U2s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Jul 2020 16:28:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56312 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728346AbgG1U00 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Jul 2020 16:26:26 -0400
+        id S1728346AbgG1U2s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 28 Jul 2020 16:28:48 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 277F12065E;
-        Tue, 28 Jul 2020 20:26:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0DCFF2065E;
+        Tue, 28 Jul 2020 20:28:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595967985;
-        bh=uYjA0ZuKom3c7Ir7sy53+eBDw5kn5A/on+/vbzrTIJw=;
+        s=default; t=1595968127;
+        bh=DZa23iQd1u0Zt0+baOJ3N5SjhG14X7OdVrrXeq9/DLY=;
         h=Date:From:To:Subject:From;
-        b=h83gI6RiDLEFoMX2HRhU2UJA8ZP8mN11Sluxyn0vkI3b6FJK8TNVL3KC0JPKxS8+Z
-         9Pm3RdAJjulCAReeZczIRfL3RovmyrKnI8w87I3iQNn1T6tBLi2gJ0iSGHOy+p9CYv
-         uTcPKxG8XlDdkhIV7/M7HN3ZXuSc42/l4TM//27M=
-Date:   Tue, 28 Jul 2020 13:26:24 -0700
+        b=oRjZAOksvLmT9TFCvx84rzBWu3trT5wgxLU2VH35mFDff/ODs2BL6LAfuimHubEb2
+         UPfLgG1K1eglxGi2kf60SvjJbcDQXv84jc0vcHuNfrxC9C3l3RMy9CY2mZY/R39Rw3
+         A7KGC7Ei49aTKrDHtGM0KGEGal1mlNaQPjdx+aHM=
+Date:   Tue, 28 Jul 2020 13:28:46 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20200728202624.plKlLgf7E%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alexander.h.duyck@linux.intel.com,
+        axboe@kernel.dk, bgeffon@google.com, christian.brauner@ubuntu.com,
+        christian@brauner.io, dancol@google.com, hannes@cmpxchg.org,
+        jannh@google.com, joaodias@google.com, joel@joelfernandes.org,
+        ktkhai@virtuozzo.com, linux-man@vger.kernel.org, mhocko@suse.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        oleksandr@redhat.com, rientjes@google.com, shakeelb@google.com,
+        sj38.park@gmail.com, sjpark@amazon.de, sonnyrao@google.com,
+        sspatil@google.com, surenb@google.com, timmurray@google.com,
+        vbabka@suse.cz
+Subject:  [obsolete]
+ =?US-ASCII?Q?mm-madvise-introduce-process=5Fmadvise-syscall-an-externa?=
+ =?US-ASCII?Q?l-memory-hinting-api-fix-2.patch?= removed from -mm tree
+Message-ID: <20200728202846.mSH6rkodT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -52,76 +65,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2
+has been removed from the -mm tree.  Its filename was
+     mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2
 
+fix include/uapi/asm-generic/unistd.h whoops
+
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Christian Brauner <christian@brauner.io>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Daniel Colascione <dancol@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Dias <joaodias@google.com>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: <linux-man@vger.kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Oleksandr Natalenko <oleksandr@redhat.com>
+Cc: Sandeep Patil <sspatil@google.com>
+Cc: SeongJae Park <sj38.park@gmail.com>
+Cc: SeongJae Park <sjpark@amazon.de>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tim Murray <timmurray@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/entry-common.S |   31 -------------------------------
- 1 file changed, 31 deletions(-)
+ include/uapi/asm-generic/unistd.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sh/kernel/entry-common.S~linux-next-git-rejects
-+++ a/arch/sh/kernel/entry-common.S
-@@ -178,37 +178,6 @@ syscall_exit_work:
- 	bra	resume_userspace
- 	 nop
+--- a/include/uapi/asm-generic/unistd.h~mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2
++++ a/include/uapi/asm-generic/unistd.h
+@@ -863,7 +863,7 @@ __SYSCALL(__NR_faccessat2, sys_faccessat
+ __SYSCALL(__NR_watch_mount, sys_watch_mount)
+ #define __NR_fsinfo 442
+ __SYSCALL(__NR_fsinfo, sys_fsinfo)
+-#define __NR_fsinfo 443
++#define __NR_process_madvise 443
+ __SC_COMP(__NR_process_madvise, sys_process_madvise, compat_sys_process_madvise)
  
--<<<<<<< HEAD
--	.align	2
--syscall_trace_entry:
--	!                     	Yes it is traced.
--	mov     r15, r4
--	mov.l	7f, r11		! Call do_syscall_trace_enter which notifies
--	jsr	@r11	    	! superior (will chomp R[0-7])
--	 nop
--	mov.l	r0, @(OFF_R0,r15)	! Save return value
--	!			Reload R0-R4 from kernel stack, where the
--	!   	    	    	parent may have modified them using
--	!   	    	    	ptrace(POKEUSR).  (Note that R0-R2 are
--	!   	    	    	reloaded from the kernel stack by syscall_call
--	!   	    	    	below, so don't need to be reloaded here.)
--	!   	    	    	This allows the parent to rewrite system calls
--	!   	    	    	and args on the fly.
--	mov.l	@(OFF_R4,r15), r4   ! arg0
--	mov.l	@(OFF_R5,r15), r5
--	mov.l	@(OFF_R6,r15), r6
--	mov.l	@(OFF_R7,r15), r7   ! arg3
--	mov.l	@(OFF_R3,r15), r3   ! syscall_nr
--	!
--	mov.l	6f, r10			! Number of syscalls
--	cmp/hs	r10, r3
--	bf	syscall_call
--	mov	#-ENOSYS, r0
--	bra	syscall_exit
--	 mov.l	r0, @(OFF_R0,r15)	! Return value
--
--=======
-->>>>>>> linux-next/akpm-base
- __restore_all:
- 	mov	#OFF_SR, r0
- 	mov.l	@(r0,r15), r0	! get status register
+ #undef __NR_syscalls
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,6 +135,5 @@ linux-next-rejects.patch
 linux-next-git-rejects.patch
 mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
 mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix-2.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 
