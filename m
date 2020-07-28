@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BF5EC433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 22:21:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91DFEC433E3
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 22:21:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D08EE2074F
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 22:21:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F67F2074F
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 22:21:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595974902;
-	bh=n0NBn5nz7a0g6H/t6fSK5dBR8kLi3g7fW2QCTMEF07o=;
+	s=default; t=1595974919;
+	bh=Ag5JUIN2l+ucDFVHL/jkaUlKUGxnxhOyqGMmIPXi5jY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=I1AP4WA8IqaXM0+sc4BsfEm+f4lNFlevLm+xKCkyQE7AbGs31BEfdx2hwE20Jmwjs
-	 +i7wDjFJkn/QpR9LQkcQ/EcXIYInQ83OqwBiQXOJoyOLbBHAqJEsWYWroNP2C0/29o
-	 3qvOt0+E/+HN/52hFjmV7IefM+8WGgPayd5MbfbY=
+	b=EVetvqeSxPgbSz9Q9JpAecNIQtbS4QKwGf2PM6XWbO7U1MAZ8MjbZfzkZT3BYrxub
+	 aaDO8Z6G++4+mJgVS9YnVrG+GuR+AtdwGWGOqVJaxzcC+5DPD5DBaVNLvo2ToKba4d
+	 m0vXj1DknhtSR/TpNR/Y5WaNtr0Maa/nMgd4J874=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729597AbgG1WVm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Jul 2020 18:21:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36882 "EHLO mail.kernel.org"
+        id S1729602AbgG1WV7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Jul 2020 18:21:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37044 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729491AbgG1WVm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Jul 2020 18:21:42 -0400
+        id S1729491AbgG1WV6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 28 Jul 2020 18:21:58 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A731F2070B;
-        Tue, 28 Jul 2020 22:21:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 36CF72070B;
+        Tue, 28 Jul 2020 22:21:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595974901;
-        bh=n0NBn5nz7a0g6H/t6fSK5dBR8kLi3g7fW2QCTMEF07o=;
+        s=default; t=1595974918;
+        bh=Ag5JUIN2l+ucDFVHL/jkaUlKUGxnxhOyqGMmIPXi5jY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=MNq3cyz21Mwez7Bg+EanDCRc6ctDmmeF5DnK9YlTE2MioA8I/auW6wpOXGq2CUHGb
-         TwdKfzAqITgtTu4Oqz7THnn1UfSA4jqiamfjVmmxvtrh0teTK5sW2xrLRazc40K5n3
-         aZ0vqDe1W5DIQlBcB/EKpsMae3CL7Uz6d7Y5SybY=
-Date:   Tue, 28 Jul 2020 15:21:41 -0700
+        b=NWDaXXk9BjT2auFhhjLvdVd6SlUyUuIWtwAjguHCtKhekb7qL1tN3H2Qz+t/H9igu
+         gQF8Vd4hq4Tw5plY2CljzejEvAi4M8RwjM2otE0Dx30uTcGKT6KCJElgXjVeJKCvV0
+         iDtc0USRhM21jmfQF9BOmJ6hFb2iPWXkwCUd9Ul4=
+Date:   Tue, 28 Jul 2020 15:21:57 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     jcmvbkbc@gmail.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+To:     jcmvbkbc@gmail.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        sfr@canb.auug.org.au
 Subject:  +
  xtensa-switch-to-generic-version-of-pte-allocation-fix.patch added to -mm
  tree
-Message-ID: <20200728222141.Z7xhxyTTM%akpm@linux-foundation.org>
+Message-ID: <20200728222157.v3FMETQLL%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -89,6 +90,7 @@ Link: http://lkml.kernel.org/r/20200721024751.1257-1-jcmvbkbc@gmail.com
 Fixes: 8f74afa22d9b ("xtensa: switch to generic version of pte allocation")
 Signed-off-by: Max Filippov <jcmvbkbc@gmail.com>
 Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
