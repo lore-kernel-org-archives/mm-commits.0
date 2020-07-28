@@ -7,43 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 293C0C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 20:53:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15874C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 20:54:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01E0920714
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 20:53:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0C54206D8
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 20:54:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595969607;
-	bh=ug2Pok+TAyEnNyP2Xk/8bQXnjz/s1oC0oBv9GVCcKbw=;
+	s=default; t=1595969657;
+	bh=AZEmflOBOvyNVfaJJE1JY5l6Pze7qJpbq/FpBioySR4=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=OFEN8qJS2oUWGOUpKTm2DcxjQ+S0c/klbMNiG+dx53ieXMwK6YC2fgYmwLoCxkcc3
-	 QvBOlHG7NHe6s3oRXQJdi2CzpfPtpP/b2Nn3QPtoj971egrbbv9HOQ8O1VinzacPZe
-	 ccRi0aBw3zAfugb6b+gkz21GmZifiRKq8nMq7q4M=
+	b=XLNRtOrnS36ireAML/b9oyWLZEmFYwo7NADiKllFZb3Cdcf1ASr6N/cFtL7Wf21xV
+	 +hQrVCt346lorMNtc//hqWKVlYgSfNRc/22x5plcNhrGHn+l2QsgBhDxC4WL3qzWmQ
+	 WA85K0DlGtxle43ByCY3utDcc8LwgBXT83mu9zoQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728625AbgG1Ux0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Jul 2020 16:53:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36612 "EHLO mail.kernel.org"
+        id S1728625AbgG1UyR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Jul 2020 16:54:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36944 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728202AbgG1Ux0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Jul 2020 16:53:26 -0400
+        id S1728202AbgG1UyR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 28 Jul 2020 16:54:17 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 93DDF206D8;
-        Tue, 28 Jul 2020 20:53:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8FC5B206D8;
+        Tue, 28 Jul 2020 20:54:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595969605;
-        bh=ug2Pok+TAyEnNyP2Xk/8bQXnjz/s1oC0oBv9GVCcKbw=;
+        s=default; t=1595969656;
+        bh=AZEmflOBOvyNVfaJJE1JY5l6Pze7qJpbq/FpBioySR4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oec/7qzbdzXYxa0JZtXkfjfQfc9NYgVPxImZC2bz+BoVGt4wn1VMobfe3h6HQYZhG
-         svtITsT8GYAqXF/fZM4/sdjUCqGObqhwqWPN2pr3lEjZcJaMO4OMxwsSw2vf2IbjEN
-         ysdoduw1wmgUHKfKJVYjARPlkSsNVBJ7JQUwjJtE=
-Date:   Tue, 28 Jul 2020 13:53:25 -0700
+        b=IfMQQLkWBAeEWX3VyOxnaQ9UL9HZszjZPfnadNecVirYRaRk3UM3jwUyZ0iMp95hU
+         ZD6CHg+atso6rIbFtm6XS30hHSHDGgwPYNC3ZReQd9MS679iYzw/tNWyfPHPUeMo+R
+         QVgvoJ4IAmXZD2koya9xu1az9XMtwM5SV2e0hEEY=
+Date:   Tue, 28 Jul 2020 13:54:16 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     jgg@nvidia.com, krzk@kernel.org, mm-commits@vger.kernel.org
-Subject:  + mm-mmu_notifier-fix-and-extend-kerneldoc.patch added to
- -mm tree
-Message-ID: <20200728205325.wr6YAAtQ5%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, krzk@kernel.org,
+        mm-commits@vger.kernel.org
+Subject:  + mm-swap-fix-kerneldoc-of-swap_vma_readahead.patch added
+ to -mm tree
+Message-ID: <20200728205416.Tnnn1Lai5%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mmu_notifier: fix and extend kerneldoc
+     Subject: mm: swap: fix kerneldoc of swap_vma_readahead()
 has been added to the -mm tree.  Its filename is
-     mm-mmu_notifier-fix-and-extend-kerneldoc.patch
+     mm-swap-fix-kerneldoc-of-swap_vma_readahead.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmu_notifier-fix-and-extend-kerneldoc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-fix-kerneldoc-of-swap_vma_readahead.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmu_notifier-fix-and-extend-kerneldoc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-fix-kerneldoc-of-swap_vma_readahead.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,65 +77,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <krzk@kernel.org>
-Subject: mm: mmu_notifier: fix and extend kerneldoc
+Subject: mm: swap: fix kerneldoc of swap_vma_readahead()
 
 Fix W=1 compile warnings (invalid kerneldoc):
 
-    mm/mmu_notifier.c:187: warning: Function parameter or member 'interval_sub' not described in 'mmu_interval_read_bgin'
-    mm/mmu_notifier.c:708: warning: Function parameter or member 'subscription' not described in 'mmu_notifier_registr'
-    mm/mmu_notifier.c:708: warning: Excess function parameter 'mn' description in 'mmu_notifier_register'
-    mm/mmu_notifier.c:880: warning: Function parameter or member 'subscription' not described in 'mmu_notifier_put'
-    mm/mmu_notifier.c:880: warning: Excess function parameter 'mn' description in 'mmu_notifier_put'
-    mm/mmu_notifier.c:982: warning: Function parameter or member 'ops' not described in 'mmu_interval_notifier_insert'
+    mm/swap_state.c:742: warning: Function parameter or member 'fentry' not described in 'swap_vma_readahead'
+    mm/swap_state.c:742: warning: Excess function parameter 'entry' description in 'swap_vma_readahead'
 
-Link: http://lkml.kernel.org/r/20200728171109.28687-4-krzk@kernel.org
+Link: http://lkml.kernel.org/r/20200728171109.28687-2-krzk@kernel.org
 Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mmu_notifier.c~mm-mmu_notifier-fix-and-extend-kerneldoc
-+++ a/mm/mmu_notifier.c
-@@ -166,7 +166,7 @@ static void mn_itree_inv_end(struct mmu_
- /**
-  * mmu_interval_read_begin - Begin a read side critical section against a VA
-  *                           range
-- * interval_sub: The interval subscription
-+ * @interval_sub: The interval subscription
-  *
-  * mmu_iterval_read_begin()/mmu_iterval_read_retry() implement a
-  * collision-retry scheme similar to seqcount for the VA range under
-@@ -686,7 +686,7 @@ EXPORT_SYMBOL_GPL(__mmu_notifier_registe
+--- a/mm/swap_state.c~mm-swap-fix-kerneldoc-of-swap_vma_readahead
++++ a/mm/swap_state.c
+@@ -725,7 +725,7 @@ static void swap_ra_info(struct vm_fault
  
  /**
-  * mmu_notifier_register - Register a notifier on a mm
-- * @mn: The notifier to attach
-+ * @subscription: The notifier to attach
-  * @mm: The mm to attach the notifier to
+  * swap_vma_readahead - swap in pages in hope we need them soon
+- * @entry: swap entry of this memory
++ * @fentry: swap entry of this memory
+  * @gfp_mask: memory allocation flags
+  * @vmf: fault information
   *
-  * Must not hold mmap_lock nor any other VM related lock when calling
-@@ -856,7 +856,7 @@ static void mmu_notifier_free_rcu(struct
- 
- /**
-  * mmu_notifier_put - Release the reference on the notifier
-- * @mn: The notifier to act on
-+ * @subscription: The notifier to act on
-  *
-  * This function must be paired with each mmu_notifier_get(), it releases the
-  * reference obtained by the get. If this is the last reference then process
-@@ -965,7 +965,8 @@ static int __mmu_interval_notifier_inser
-  * @interval_sub: Interval subscription to register
-  * @start: Starting virtual address to monitor
-  * @length: Length of the range to monitor
-- * @mm : mm_struct to attach to
-+ * @mm: mm_struct to attach to
-+ * @ops: Interval notifier operations to be called on matching events
-  *
-  * This function subscribes the interval notifier for notifications from the
-  * mm.  Upon return the ops related to mmu_interval_notifier will be called
 _
 
 Patches currently in -mm which might be from krzk@kernel.org are
