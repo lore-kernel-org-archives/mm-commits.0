@@ -2,124 +2,131 @@ Return-Path: <SRS0=nZXm=BH=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-4.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 395D6C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 21:01:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CF84C433E4
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 21:55:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0F1D520768
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 21:01:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 495FA20775
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 21:55:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595970062;
-	bh=4u88W983JaNxFXw0xNcnbCZNxA3qOLOY5kOeIxMcJw4=;
-	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=VtLWSfnNrFkhpAjK6l0sM3j4eHIvMJTOJlZ5JOu/AJKPiEabDa02xpqtuS6hFDQSw
-	 UQ9UAwVmosq4PQsfbPTZ+bMdLpLNHW+aiyPQIUhgiVTuz+NmHxWhkPLz1drLWFkdle
-	 IC5/Qp+XWs5uGYGIOsJfXO60VN3R+hLmZVR5nPOw=
+	s=default; t=1595973359;
+	bh=iHwgETSwMYC9wiqhA4AumxvqL8yv08TTtqWNcMzlamY=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:Reply-To:List-ID:
+	 From;
+	b=JiTpb9yXldOJp2RSvuZmr2aaxY6Osu/ZXERQcX8QdFN1V0HjuG5gVQdKq4wKII8lt
+	 t4txiawG63iYJtkZlRwpmDjqu96tKZQFHSSHfn15GHqvSwUqiGrP56HXjaQI5/8GuP
+	 I9knb7ixlKA7NwvOtXWWo4hFaDPDEmeZ5ycpYAhw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728928AbgG1VBB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Jul 2020 17:01:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40032 "EHLO mail.kernel.org"
+        id S1729484AbgG1Vzz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Jul 2020 17:55:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60856 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728728AbgG1VBB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Jul 2020 17:01:01 -0400
+        id S1728149AbgG1Vzz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 28 Jul 2020 17:55:55 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A63292075D;
-        Tue, 28 Jul 2020 21:01:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6375B206D4;
+        Tue, 28 Jul 2020 21:55:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595970060;
-        bh=4u88W983JaNxFXw0xNcnbCZNxA3qOLOY5kOeIxMcJw4=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=E9W3+RjEQJhv82lEPAovC4cEqonZrFBC7TRr60tDC/hNS81deI3vVrSdL9gEAK1N7
-         n9MCBAo5y/K9Hux+NOLpuf09SAV9hb8ZWtUKcOTJhqfX2ZMzuqKAZFc5ut1iKaBGir
-         hBUOOStz87YMfpHW81BrS1oHSxFsw8GpQG/LP000=
-Date:   Tue, 28 Jul 2020 14:01:00 -0700
+        s=default; t=1595973354;
+        bh=iHwgETSwMYC9wiqhA4AumxvqL8yv08TTtqWNcMzlamY=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=l5YXwP19L5ctPXEi1iX/s1kox20cdAYURxF6KpqQbK6OL8B3WbykWVyTkErlUU2Vo
+         Ubvm25JXVritJ23Cwg+aAHPIOva1RDwH5kFTi3I0c+gkJxvEbm1HFOntpi/yyyMdLZ
+         JMAs8GZQKyw/ozzB/WKOqJ+pHwkHkw/uHnTzNqV8=
+Date:   Tue, 28 Jul 2020 14:55:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com
-Subject:  +
- mm-memcontrol-restore-proper-dirty-throttling-when-memoryhigh-changes.patch
- added to -mm tree
-Message-ID: <20200728210100.2xDwI8tcE%akpm@linux-foundation.org>
-In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+Subject: Re: mmotm 2020-07-27-18-18 uploaded (mm/page_alloc.c)
+Message-Id: <20200728145553.2a69fa2080de01922b3a74e0@linux-foundation.org>
+In-Reply-To: <ae87385b-f830-dbdf-ebc7-1afb82a7fed0@infradead.org>
+References: <20200728011914.S-8vAYUK0%akpm@linux-foundation.org>
+        <ae87385b-f830-dbdf-ebc7-1afb82a7fed0@infradead.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Tue, 28 Jul 2020 05:33:58 -0700 Randy Dunlap <rdunlap@infradead.org> wrote:
 
-The patch titled
-     Subject: mm: memcontrol: restore proper dirty throttling when memory.high changes
-has been added to the -mm tree.  Its filename is
-     mm-memcontrol-restore-proper-dirty-throttling-when-memoryhigh-changes.patch
+> On 7/27/20 6:19 PM, Andrew Morton wrote:
+> > The mm-of-the-moment snapshot 2020-07-27-18-18 has been uploaded to
+> > 
+> >    http://www.ozlabs.org/~akpm/mmotm/
+> > 
+> > mmotm-readme.txt says
+> > 
+> > README for mm-of-the-moment:
+> > 
+> > http://www.ozlabs.org/~akpm/mmotm/
+> > 
+> > This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+> > more than once a week.
+> > 
+> > You will need quilt to apply these patches to the latest Linus release (5.x
+> > or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+> > http://ozlabs.org/~akpm/mmotm/series
+> > 
+> 
+> on x86_64:
+> 
+> ../mm/page_alloc.c:8355:48: warning: ‘struct compact_control’ declared inside parameter list will not be visible outside of this definition or declaration
+>  static int __alloc_contig_migrate_range(struct compact_control *cc,
+>                                                 ^~~~~~~~~~~~~~~
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-restore-proper-dirty-throttling-when-memoryhigh-changes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-restore-proper-dirty-throttling-when-memoryhigh-changes.patch
+As is usually the case with your reports, I can't figure out how to
+reproduce it.  I copy then .config, run `make oldconfig' (need to hit
+enter a zillion times because the .config is whacky) then the build
+succeeds.  What's the secret?
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Anyway,
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+#ifdef CONFIG_CONTIG_ALLOC
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+...
 
-------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: restore proper dirty throttling when memory.high changes
+/* [start, end) must belong to a single zone. */
+static int __alloc_contig_migrate_range(struct compact_control *cc,
+					unsigned long start, unsigned long end)
 
-Commit 8c8c383c04f6 ("mm: memcontrol: try harder to set a new
-memory.high") inadvertently removed a callback to recalculate the
-writeback cache size in light of a newly configured memory.high limit.
 
-Without letting the writeback cache know about a potentially heavily
-reduced limit, it may permit too many dirty pages, which can cause
-unnecessary reclaim latencies or even avoidable OOM situations.
+and
 
-This was spotted while reading the code, it hasn't knowingly caused any
-problems in practice so far.
+#if defined CONFIG_COMPACTION || defined CONFIG_CMA
 
-Link: http://lkml.kernel.org/r/20200728135210.379885-1-hannes@cmpxchg.org
-Fixes: 8c8c383c04f6 ("mm: memcontrol: try harder to set a new memory.high")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Chris Down <chris@chrisdown.name>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+...
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+struct compact_control {
 
---- a/mm/memcontrol.c~mm-memcontrol-restore-proper-dirty-throttling-when-memoryhigh-changes
-+++ a/mm/memcontrol.c
-@@ -6283,6 +6283,8 @@ static ssize_t memory_high_write(struct
- 
- 	page_counter_set_high(&memcg->memory, high);
- 
-+	memcg_wb_domain_size_changed(memcg);
-+
- 	return nbytes;
- }
- 
-_
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+so we presumably have
+	CONFIG_CONTIG_ALLOC=y
+	CONFIG_COMPACTION=n
+	CONFIG_CMA=n
 
-mm-memcontrol-decouple-reference-counting-from-page-accounting.patch
-mm-memcontrol-restore-proper-dirty-throttling-when-memoryhigh-changes.patch
-mm-memcontrol-dont-count-limit-setting-reclaim-as-memory-pressure.patch
+which is indeed what's in your config file.
+
+But
+
+config CONTIG_ALLOC
+        def_bool (MEMORY_ISOLATION && COMPACTION) || CMA
+
+says this is an improper combination.  And `make oldconfig' fixes it up.
+
+What's happening here?
+
 
