@@ -2,131 +2,121 @@ Return-Path: <SRS0=nZXm=BH=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CF84C433E4
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 21:55:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5894C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 22:06:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 495FA20775
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 21:55:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C0CAA2070A
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Jul 2020 22:06:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595973359;
-	bh=iHwgETSwMYC9wiqhA4AumxvqL8yv08TTtqWNcMzlamY=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:Reply-To:List-ID:
-	 From;
-	b=JiTpb9yXldOJp2RSvuZmr2aaxY6Osu/ZXERQcX8QdFN1V0HjuG5gVQdKq4wKII8lt
-	 t4txiawG63iYJtkZlRwpmDjqu96tKZQFHSSHfn15GHqvSwUqiGrP56HXjaQI5/8GuP
-	 I9knb7ixlKA7NwvOtXWWo4hFaDPDEmeZ5ycpYAhw=
+	s=default; t=1595973991;
+	bh=kLDvPh5+ZG9dUTEDQ7H0mEammFKmGlC4VEeXF3s9Hjo=;
+	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
+	b=CBMEu5DMjWDtwr82rZxPZoHSpkvo+LADtazmUnCG8xhIZuR+Gm5VwJhZpF/sx62t5
+	 m+xzG6Cbn+p0SHyR0rQ/ERmzveHhpIM2Z2Q5kNHuG09Ld9yt5C8llrbUFyd+n7d3m5
+	 oYJrXha/ALdE4EC7vgCvucXXc9VIp/4bh43M0PL4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729484AbgG1Vzz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Jul 2020 17:55:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60856 "EHLO mail.kernel.org"
+        id S1729512AbgG1WGb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Jul 2020 18:06:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728149AbgG1Vzz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Jul 2020 17:55:55 -0400
+        id S1729427AbgG1WGb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 28 Jul 2020 18:06:31 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6375B206D4;
-        Tue, 28 Jul 2020 21:55:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 91DF420672;
+        Tue, 28 Jul 2020 22:06:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595973354;
-        bh=iHwgETSwMYC9wiqhA4AumxvqL8yv08TTtqWNcMzlamY=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=l5YXwP19L5ctPXEi1iX/s1kox20cdAYURxF6KpqQbK6OL8B3WbykWVyTkErlUU2Vo
-         Ubvm25JXVritJ23Cwg+aAHPIOva1RDwH5kFTi3I0c+gkJxvEbm1HFOntpi/yyyMdLZ
-         JMAs8GZQKyw/ozzB/WKOqJ+pHwkHkw/uHnTzNqV8=
-Date:   Tue, 28 Jul 2020 14:55:53 -0700
+        s=default; t=1595973990;
+        bh=kLDvPh5+ZG9dUTEDQ7H0mEammFKmGlC4VEeXF3s9Hjo=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=WjvSz9NoI6Uibo5vs1LE+q+WaLV/FgEzQgzPn3h0Y+IWoDuYW1ILmxArKh27m7h6g
+         9QDG/V+ZboIDzCwO/LhPkS26zjziV7GQhdSjK1mweh20j/1bzR41j2sGsRxGQh0Wht
+         lH9VvF3zickheJ77NURdQcGGjK96edDNrCuGv7kU=
+Date:   Tue, 28 Jul 2020 15:06:30 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject: Re: mmotm 2020-07-27-18-18 uploaded (mm/page_alloc.c)
-Message-Id: <20200728145553.2a69fa2080de01922b3a74e0@linux-foundation.org>
-In-Reply-To: <ae87385b-f830-dbdf-ebc7-1afb82a7fed0@infradead.org>
-References: <20200728011914.S-8vAYUK0%akpm@linux-foundation.org>
-        <ae87385b-f830-dbdf-ebc7-1afb82a7fed0@infradead.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To:     alex.shi@linux.alibaba.com, alexander.h.duyck@linux.intel.com,
+        mm-commits@vger.kernel.org
+Subject:  +
+ mm-compaction-correct-the-comments-of-compact_defer_shift.patch added to
+ -mm tree
+Message-ID: <20200728220630.TWjWwOIAQ%akpm@linux-foundation.org>
+In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, 28 Jul 2020 05:33:58 -0700 Randy Dunlap <rdunlap@infradead.org> wrote:
 
-> On 7/27/20 6:19 PM, Andrew Morton wrote:
-> > The mm-of-the-moment snapshot 2020-07-27-18-18 has been uploaded to
-> > 
-> >    http://www.ozlabs.org/~akpm/mmotm/
-> > 
-> > mmotm-readme.txt says
-> > 
-> > README for mm-of-the-moment:
-> > 
-> > http://www.ozlabs.org/~akpm/mmotm/
-> > 
-> > This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> > more than once a week.
-> > 
-> > You will need quilt to apply these patches to the latest Linus release (5.x
-> > or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-> > http://ozlabs.org/~akpm/mmotm/series
-> > 
-> 
-> on x86_64:
-> 
-> ../mm/page_alloc.c:8355:48: warning: ‘struct compact_control’ declared inside parameter list will not be visible outside of this definition or declaration
->  static int __alloc_contig_migrate_range(struct compact_control *cc,
->                                                 ^~~~~~~~~~~~~~~
+The patch titled
+     Subject: mm/compaction: correct the comments of compact_defer_shift
+has been added to the -mm tree.  Its filename is
+     mm-compaction-correct-the-comments-of-compact_defer_shift.patch
 
-As is usually the case with your reports, I can't figure out how to
-reproduce it.  I copy then .config, run `make oldconfig' (need to hit
-enter a zillion times because the .config is whacky) then the build
-succeeds.  What's the secret?
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-correct-the-comments-of-compact_defer_shift.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-correct-the-comments-of-compact_defer_shift.patch
 
-Anyway,
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-#ifdef CONFIG_CONTIG_ALLOC
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-...
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-/* [start, end) must belong to a single zone. */
-static int __alloc_contig_migrate_range(struct compact_control *cc,
-					unsigned long start, unsigned long end)
+------------------------------------------------------
+From: Alex Shi <alex.shi@linux.alibaba.com>
+Subject: mm/compaction: correct the comments of compact_defer_shift
 
+There is no compact_defer_limit. It should be compact_defer_shift in
+use. and add compact_order_failed explanation.
 
-and
+Link: http://lkml.kernel.org/r/3bd60e1b-a74e-050d-ade4-6e8f54e00b92@linux.alibaba.com
+Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
+Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-#if defined CONFIG_COMPACTION || defined CONFIG_CMA
+ include/linux/mmzone.h |    1 +
+ mm/compaction.c        |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-...
+--- a/include/linux/mmzone.h~mm-compaction-correct-the-comments-of-compact_defer_shift
++++ a/include/linux/mmzone.h
+@@ -536,6 +536,7 @@ struct zone {
+ 	 * On compaction failure, 1<<compact_defer_shift compactions
+ 	 * are skipped before trying again. The number attempted since
+ 	 * last failure is tracked with compact_considered.
++	 * compact_order_failed is the minimum compaction failed order.
+ 	 */
+ 	unsigned int		compact_considered;
+ 	unsigned int		compact_defer_shift;
+--- a/mm/compaction.c~mm-compaction-correct-the-comments-of-compact_defer_shift
++++ a/mm/compaction.c
+@@ -154,7 +154,7 @@ EXPORT_SYMBOL(__ClearPageMovable);
+ 
+ /*
+  * Compaction is deferred when compaction fails to result in a page
+- * allocation success. 1 << compact_defer_limit compactions are skipped up
++ * allocation success. 1 << compact_defer_shift, compactions are skipped up
+  * to a limit of 1 << COMPACT_MAX_DEFER_SHIFT
+  */
+ void defer_compaction(struct zone *zone, int order)
+_
 
-struct compact_control {
+Patches currently in -mm which might be from alex.shi@linux.alibaba.com are
 
-
-so we presumably have
-	CONFIG_CONTIG_ALLOC=y
-	CONFIG_COMPACTION=n
-	CONFIG_CMA=n
-
-which is indeed what's in your config file.
-
-But
-
-config CONTIG_ALLOC
-        def_bool (MEMORY_ISOLATION && COMPACTION) || CMA
-
-says this is an improper combination.  And `make oldconfig' fixes it up.
-
-What's happening here?
-
+mm-compaction-correct-the-comments-of-compact_defer_shift.patch
 
