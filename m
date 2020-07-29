@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 840EDC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Jul 2020 21:49:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56AA3C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Jul 2020 23:52:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C28520838
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Jul 2020 21:49:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3288A2082E
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Jul 2020 23:52:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596059394;
-	bh=86L98aBIueN22v85snIfw6A6bnjZQKy/lKHFSxUfWNw=;
+	s=default; t=1596066737;
+	bh=3ZOFMcKHcASP9u2vm4G+/gxwCfjBWsHYVBbVLFjI3uU=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=WXNv1OZqWGmvcXrNIqiMNNX3hDN4kZGjhwT+HYel7o88h0dtJ0MKcdPZY8BhsLT7n
-	 31vlcmbFi90nJapC8OZZPWTwy+iF9UnBFnONElUNRjmu1VLLEeRB9TcwNjK9QpL4Vd
-	 K3FxSkLc1Wl0h7t/tGRc1D2jyPnaoszQnbwJKk4c=
+	b=xXo+blm/uhh29HJLaTTsJn7WCO5kSSc/HHmqmZfFTRevdPPIRV3R69PwpoA5Q8RcU
+	 WDjI76rKEV2b7MtBsY+LrhEBJAMjWjL0MCSItCNFTLpnvW47+3DLWD6v701zkj6wZR
+	 26gcnWTvXTOECeT4EUNdPbobpIRkCa8nqcrHKDdk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726628AbgG2Vty (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 29 Jul 2020 17:49:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44846 "EHLO mail.kernel.org"
+        id S1728010AbgG2XwQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Jul 2020 19:52:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37726 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726476AbgG2Vtx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 29 Jul 2020 17:49:53 -0400
+        id S1727115AbgG2XwQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 29 Jul 2020 19:52:16 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D654E20809;
-        Wed, 29 Jul 2020 21:49:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1982B207E8;
+        Wed, 29 Jul 2020 23:52:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596059393;
-        bh=86L98aBIueN22v85snIfw6A6bnjZQKy/lKHFSxUfWNw=;
+        s=default; t=1596066736;
+        bh=3ZOFMcKHcASP9u2vm4G+/gxwCfjBWsHYVBbVLFjI3uU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=tjk4yVWOmiGclqGRWucTYFXAkMBURkKwihLaFitLi7hYxxIDfcojc8wHuFS9B56cf
-         3FBK8G7QBpAbl/ttDMu5XfVitF07Ev2PCbmEQzTMu1mfCcA48gITxaQZxBZCK/0U+G
-         84QAX8ZWTljART6duId78jErCL4Y8R7LzVoHVteY=
-Date:   Wed, 29 Jul 2020 14:49:52 -0700
+        b=1h1J5W95fLau0UpdaXqfSywIX+2EXHk17OJpq0Zq8/wlU+nk3ICrIxzETRWF5IUKU
+         aTEh/YLoTOJla+whpPatFDQ0NYI79IdPQS8FrL/ojRWo+SqaAFxoqSV71gZmYAWrnV
+         VZIR1B4YCBXQ2UBLWhm8RhRWTb0MeZ6DOH6EEN1I=
+Date:   Wed, 29 Jul 2020 16:52:15 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
         penberg@kernel.org, rientjes@google.com, zhaoqianli@xiaomi.com
-Subject:  +
+Subject:  [obsolete]
  mm-slab-avoid-the-use-of-one-element-array-and-use-struct_size-helper.patch
- added to -mm tree
-Message-ID: <20200729214952.PnzePiWMx%akpm@linux-foundation.org>
+ removed from -mm tree
+Message-ID: <20200729235215.H6WuFknWp%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -61,28 +61,11 @@ X-Mailing-List: mm-commits@vger.kernel.org
 The patch titled
      Subject: mm: slab: avoid the use of one-element array and use struct_s=
 ize() helper
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-slab-avoid-the-use-of-one-element-array-and-use-struct_size-helper.=
 patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-avoid-the-use-of-one-e=
-lement-array-and-use-struct_size-helper.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-avoid-the-use-of-one-e=
-lement-array-and-use-struct_size-helper.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 =46rom: Qianli Zhao <zhaoqianli@xiaomi.com>
@@ -157,5 +140,4 @@ _
 
 Patches currently in -mm which might be from zhaoqianli@xiaomi.com are
 
-mm-slab-avoid-the-use-of-one-element-array-and-use-struct_size-helper.patch
 
