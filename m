@@ -2,107 +2,160 @@ Return-Path: <SRS0=JcVV=BI=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0334C433E5
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Jul 2020 01:44:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 840EDC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Jul 2020 21:49:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 86CDC20656
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Jul 2020 01:44:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C28520838
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Jul 2020 21:49:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1595987064;
-	bh=WGU+RwgUDV1Np4h4picpfMVw+HoxLK7aOFBh58G7DpU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:Reply-To:List-ID:
-	 From;
-	b=BtGdDSvI7ixcnguVrmmralVLe4URQIBt2NilVm1BbTZbKN6SvlRyJ3nYx6XwNi80F
-	 wcZ0eIY88T/qF7F6/NZcYL3IKAzGMhl1kncd/uMC0gzx5nr/Uv3QvQFeN3faEqkZic
-	 G2DNbf3iFTPNQmLWTzglUN01fqKuWDhK0KlGf9bY=
+	s=default; t=1596059394;
+	bh=86L98aBIueN22v85snIfw6A6bnjZQKy/lKHFSxUfWNw=;
+	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
+	b=WXNv1OZqWGmvcXrNIqiMNNX3hDN4kZGjhwT+HYel7o88h0dtJ0MKcdPZY8BhsLT7n
+	 31vlcmbFi90nJapC8OZZPWTwy+iF9UnBFnONElUNRjmu1VLLEeRB9TcwNjK9QpL4Vd
+	 K3FxSkLc1Wl0h7t/tGRc1D2jyPnaoszQnbwJKk4c=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730415AbgG2BoU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Jul 2020 21:44:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50238 "EHLO mail.kernel.org"
+        id S1726628AbgG2Vty (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Jul 2020 17:49:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44846 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1730207AbgG2BoU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Jul 2020 21:44:20 -0400
+        id S1726476AbgG2Vtx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 29 Jul 2020 17:49:53 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A23A62076E;
-        Wed, 29 Jul 2020 01:44:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D654E20809;
+        Wed, 29 Jul 2020 21:49:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1595987060;
-        bh=WGU+RwgUDV1Np4h4picpfMVw+HoxLK7aOFBh58G7DpU=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=nneT/uOCq8J+xa61cFEtSgzI3t0O9XNtf3cRni7FxwDYiNfvmSyCN8isbVM+OcMd3
-         r9Z1z7FOrh0ABsM6rZpyBwP1JbscCy92SvO7m4Sopc825sj3dkqnYHEsWIHqTqeePh
-         jnVV67kmT15wDMBA1iWFRRQjzvqqrZ4e+iVDVjq0=
-Date:   Tue, 28 Jul 2020 18:44:19 -0700
+        s=default; t=1596059393;
+        bh=86L98aBIueN22v85snIfw6A6bnjZQKy/lKHFSxUfWNw=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=tjk4yVWOmiGclqGRWucTYFXAkMBURkKwihLaFitLi7hYxxIDfcojc8wHuFS9B56cf
+         3FBK8G7QBpAbl/ttDMu5XfVitF07Ev2PCbmEQzTMu1mfCcA48gITxaQZxBZCK/0U+G
+         84QAX8ZWTljART6duId78jErCL4Y8R7LzVoHVteY=
+Date:   Wed, 29 Jul 2020 14:49:52 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject: Re: mmotm 2020-07-27-18-18 uploaded (mm/page_alloc.c)
-Message-Id: <20200728184419.4b137162844987c9199542bb@linux-foundation.org>
-In-Reply-To: <048cef07-ad4b-8788-94a4-e144de731ab6@infradead.org>
-References: <20200728011914.S-8vAYUK0%akpm@linux-foundation.org>
-        <ae87385b-f830-dbdf-ebc7-1afb82a7fed0@infradead.org>
-        <20200728145553.2a69fa2080de01922b3a74e0@linux-foundation.org>
-        <048cef07-ad4b-8788-94a4-e144de731ab6@infradead.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, zhaoqianli@xiaomi.com
+Subject:  +
+ mm-slab-avoid-the-use-of-one-element-array-and-use-struct_size-helper.patch
+ added to -mm tree
+Message-ID: <20200729214952.PnzePiWMx%akpm@linux-foundation.org>
+In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
+User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, 28 Jul 2020 15:39:21 -0700 Randy Dunlap <rdunlap@infradead.org> wrote:
 
-> On 7/28/20 2:55 PM, Andrew Morton wrote:
-> > On Tue, 28 Jul 2020 05:33:58 -0700 Randy Dunlap <rdunlap@infradead.org> wrote:
-> > 
-> >> On 7/27/20 6:19 PM, Andrew Morton wrote:
-> >>> The mm-of-the-moment snapshot 2020-07-27-18-18 has been uploaded to
-> >>>
-> >>>    http://www.ozlabs.org/~akpm/mmotm/
-> 
-> 
-> >> on x86_64:
-> >>
-> >> ../mm/page_alloc.c:8355:48: warning: ‘struct compact_control’ declared inside parameter list will not be visible outside of this definition or declaration
-> >>  static int __alloc_contig_migrate_range(struct compact_control *cc,
-> >>                                                 ^~~~~~~~~~~~~~~
-> > 
-> > As is usually the case with your reports, I can't figure out how to
-> > reproduce it.  I copy then .config, run `make oldconfig' (need to hit
-> > enter a zillion times because the .config is whacky) then the build
-> > succeeds.  What's the secret?
-> 
-> I was not aware that there was a problem. cp .config and make oldconfig
-> should be sufficient -- and I don't understand why you would need to hit
-> enter many times.
-> 
-> I repeated this on my system without having to answer any oldconfig prompts
-> and still got build errors.
-> 
-> There is no secret that I know of, but it would be good to get to the
-> bottom of this problem.
+The patch titled
+     Subject: mm: slab: avoid the use of one-element array and use struct_s=
+ize() helper
+has been added to the -mm tree.  Its filename is
+     mm-slab-avoid-the-use-of-one-element-array-and-use-struct_size-helper.=
+patch
 
-Well the first thing I hit was
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-avoid-the-use-of-one-e=
+lement-array-and-use-struct_size-helper.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-avoid-the-use-of-one-e=
+lement-array-and-use-struct_size-helper.patch
 
-Support for big SMP systems with more than 8 CPUs (X86_BIGSMP) [N/y/?] (NEW) 
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-and your .config doesn't mention that.
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
-make mrproper
-cp ~/config-randy .config
-make oldconfig
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
+------------------------------------------------------
+=46rom: Qianli Zhao <zhaoqianli@xiaomi.com>
+Subject: mm: slab: avoid the use of one-element array and use struct_size()=
+ helper
+
+There is a regular need in the kernel to provide a way to declare having a
+dynamically sized set of trailing elements in a structure.  Kernel code
+should always use =E2=80=9Cflexible array members=E2=80=9D[1] for these cas=
+es.  The
+older style of one-element or zero-length arrays should no longer be
+used[2].
+
+Make use of the struct_size() helper instead of an open-coded version in
+order to avoid any potential type mistakes.
+
+[1] https://en.wikipedia.org/wiki/Flexible_array_member
+[2] https://github.com/KSPP/linux/issues/21
+
+Link: http://lkml.kernel.org/r/1596034214-15010-1-git-send-email-zhaoqianli=
+good@gmail.com
+Signed-off-by: Qianli Zhao <zhaoqianli@xiaomi.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/slab.h        |    2 +-
+ mm/slab_common.c |    7 ++-----
+ 2 files changed, 3 insertions(+), 6 deletions(-)
+
+--- a/mm/slab_common.c~mm-slab-avoid-the-use-of-one-element-array-and-use-s=
+truct_size-helper
++++ a/mm/slab_common.c
+@@ -168,9 +168,7 @@ static int init_memcg_params(struct kmem
+ 	if (!memcg_nr_cache_ids)
+ 		return 0;
+=20
+-	arr =3D kvzalloc(sizeof(struct memcg_cache_array) +
+-		       memcg_nr_cache_ids * sizeof(void *),
+-		       GFP_KERNEL);
++	arr =3D kvzalloc(struct_size(arr, entries, memcg_nr_cache_ids), GFP_KERNE=
+L);
+ 	if (!arr)
+ 		return -ENOMEM;
+=20
+@@ -201,8 +199,7 @@ static int update_memcg_params(struct km
+ {
+ 	struct memcg_cache_array *old, *new;
+=20
+-	new =3D kvzalloc(sizeof(struct memcg_cache_array) +
+-		       new_array_size * sizeof(void *), GFP_KERNEL);
++	new =3D kvzalloc(struct_size(new, entries, new_array_size), GFP_KERNEL);
+ 	if (!new)
+ 		return -ENOMEM;
+=20
+--- a/mm/slab.h~mm-slab-avoid-the-use-of-one-element-array-and-use-struct_s=
+ize-helper
++++ a/mm/slab.h
+@@ -34,7 +34,7 @@ struct kmem_cache {
+=20
+ struct memcg_cache_array {
+ 	struct rcu_head rcu;
+-	struct kmem_cache *entries[0];
++	struct kmem_cache *entries[];
+ };
+=20
+ /*
+_
+
+Patches currently in -mm which might be from zhaoqianli@xiaomi.com are
+
+mm-slab-avoid-the-use-of-one-element-array-and-use-struct_size-helper.patch
 
