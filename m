@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80425C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:05:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 363E8C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:05:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6128022B43
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:05:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1AEBC22B43
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:05:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596225941;
-	bh=2sAOeL4j1gHMNn5Bu3rkSSWaesdLAJILYn7cfNLu6bo=;
+	s=default; t=1596225944;
+	bh=LqKpqXrLYXJfeqkm0sCHnlXtzc988B9nVz66A30Z9s0=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=guUOVmx1kB3xtZ2fPCpfPzcNHr/j65s6ulF+tWXf5hSK3AeniubTGLoHS/YqXwF3R
-	 g04g9t7PEKLnRdPHkQFRjDbhMvlvn2aftSYTsYyEjuTjGDh8WFIeIviAGY9aXAXN5+
-	 W5atVZd0X+zlaEe+q27qfzVmM01n7mORm7SPqUl0=
+	b=qmSQDFWSDfF3zFZK++oCVJWaRu0kDZOqLW8l3ZsOCsBjI69T5VFPxjMuY7oXp/RxE
+	 aofA9p7mkDoYiZ6yDWwoUnR7uYCN+vl+9eKKEegpoqEctAjI7TXZFoo4cX0VgvP7ww
+	 krwt4UDJhSdUC8WlxYjukqiFIRWB62+Eqbp6YawA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725938AbgGaUFl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 31 Jul 2020 16:05:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46780 "EHLO mail.kernel.org"
+        id S1726150AbgGaUFn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 31 Jul 2020 16:05:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46846 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726077AbgGaUFk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jul 2020 16:05:40 -0400
+        id S1726077AbgGaUFn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jul 2020 16:05:43 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 392BD208E4;
-        Fri, 31 Jul 2020 20:05:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EC41622B42;
+        Fri, 31 Jul 2020 20:05:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596225939;
-        bh=2sAOeL4j1gHMNn5Bu3rkSSWaesdLAJILYn7cfNLu6bo=;
+        s=default; t=1596225942;
+        bh=LqKpqXrLYXJfeqkm0sCHnlXtzc988B9nVz66A30Z9s0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=hJRNEEcrsJZdUMgTf9MP02hLEZQBnC8mbOmSgAjAHYY1kYeeYJJ+mfZVjZI7iFIyy
-         YUY7E4YhQx6U9a49UN3NeiH2kCLRrNGXbsRWIGKyE6kffcWwvtmzU8R+MCaQkFUA8L
-         N7CpWlxTiYuPt+XkxGJjBT2jUHGgpSgQbwM/gWXw=
-Date:   Fri, 31 Jul 2020 13:05:38 -0700
+        b=TKC44xe4r2644cFA8i/35nT9Wxt4EXtieDxUjiow1AwhK9i1XsutSUQbROlugLrte
+         RiBCLsc9n+CAB7aGP5t24wkrZ/VUBCY+7oYNO4ss0jKwhwrVLRJNUoUQb4lotdHuk9
+         5dZ2w1usLa44k+GKLX5lWN6CG3+KOe/qVtBBVKkE=
+Date:   Fri, 31 Jul 2020 13:05:41 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aneesh.kumar@linux.ibm.com, aneesh.kumar@linux.vnet.ibm.com,
         cai@lca.pw, dave.hansen@intel.com, david@redhat.com,
@@ -46,9 +46,9 @@ To:     aneesh.kumar@linux.ibm.com, aneesh.kumar@linux.vnet.ibm.com,
         mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
         naoya.horiguchi@nec.com, osalvador@suse.com, osalvador@suse.de,
         tony.luck@intel.com, zeil@yandex-team.ru
-Subject:  + mmhwpoison-cleanup-unused-pagehuge-check.patch added to
+Subject:  + mm-hwpoison-remove-recalculating-hpage.patch added to
  -mm tree
-Message-ID: <20200731200538.th6NlaAXe%akpm@linux-foundation.org>
+Message-ID: <20200731200541.xBUIlKZxd%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -59,14 +59,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: cleanup unused PageHuge() check
+     Subject: mm, hwpoison: remove recalculating hpage
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-cleanup-unused-pagehuge-check.patch
+     mm-hwpoison-remove-recalculating-hpage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-cleanup-unused-pagehuge-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-remove-recalculating-hpage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-cleanup-unused-pagehuge-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-remove-recalculating-hpage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -81,70 +81,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm,hwpoison: cleanup unused PageHuge() check
+Subject: mm, hwpoison: remove recalculating hpage
 
-Patch series "HWPOISON: soft offline rework", v5.
+hpage is never used after try_to_split_thp_page() in memory_failure(), so
+we don't have to update hpage.  So let's not recalculate/use hpage.
 
-Main focus of this series is to stabilize soft offline.  Historically soft
-offlined pages have suffered from racy conditions because PageHWPoison is
-used to a little too aggressively, which (directly or indirectly) invades
-other mm code which cares little about hwpoison.  This results in
-unexpected behavior or kernel panic, which is very far from soft offline's
-"do not disturb userspace or other kernel component" policy.
-
-Main point of this change set is to contain target page "via buddy
-allocator", where we first free the target page as we do for normal pages,
-and remove from buddy only when we confirm that it reaches free list. 
-There is surely race window of page allocation, but that's fine because
-someone really want that page and the page is still working, so soft
-offline can happily give up.
-
-
-This patch (of 16):
-
-Drop the PageHuge check, which is dead code since memory_failure() forks
-into memory_failure_hugetlb() for hugetlb pages.
-
-memory_failure() and memory_failure_hugetlb() shares some functions like
-hwpoison_user_mappings() and identify_page_state(), so they should
-properly handle 4kB page, thp, and hugetlb.
-
-Link: http://lkml.kernel.org/r/20200731122112.11263-1-nao.horiguchi@gmail.com
-Link: http://lkml.kernel.org/r/20200731122112.11263-2-nao.horiguchi@gmail.com
+Link: http://lkml.kernel.org/r/20200731122112.11263-3-nao.horiguchi@gmail.com
+Suggested-by: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Signed-off-by: Oscar Salvador <osalvador@suse.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Dmitry Yakunin <zeil@yandex-team.ru>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Qian Cai <cai@lca.pw>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/memory-failure.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/mm/memory-failure.c~mmhwpoison-cleanup-unused-pagehuge-check
+--- a/mm/memory-failure.c~mm-hwpoison-remove-recalculating-hpage
 +++ a/mm/memory-failure.c
-@@ -1382,10 +1382,7 @@ int memory_failure(unsigned long pfn, in
- 	 * page_remove_rmap() in try_to_unmap_one(). So to determine page status
- 	 * correctly, we save a copy of the page flags at this time.
- 	 */
--	if (PageHuge(p))
--		page_flags = hpage->flags;
--	else
--		page_flags = p->flags;
-+	page_flags = p->flags;
+@@ -1342,7 +1342,6 @@ int memory_failure(unsigned long pfn, in
+ 		}
+ 		unlock_page(p);
+ 		VM_BUG_ON_PAGE(!page_count(p), p);
+-		hpage = compound_head(p);
+ 	}
  
  	/*
- 	 * unpoison always clear PG_hwpoison inside page lock
+@@ -1414,11 +1413,8 @@ int memory_failure(unsigned long pfn, in
+ 	/*
+ 	 * Now take care of user space mappings.
+ 	 * Abort on fail: __delete_from_page_cache() assumes unmapped page.
+-	 *
+-	 * When the raw error page is thp tail page, hpage points to the raw
+-	 * page after thp split.
+ 	 */
+-	if (!hwpoison_user_mappings(p, pfn, flags, &hpage)) {
++	if (!hwpoison_user_mappings(p, pfn, flags, &p)) {
+ 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
 _
 
 Patches currently in -mm which might be from naoya.horiguchi@nec.com are
