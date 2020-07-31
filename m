@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A164C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:49:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2BEAC433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:57:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6CCE721744
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:49:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9898222B42
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:57:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596228585;
-	bh=g0vHIYxaF6Z8m2SOfIg0YgMTmVHZ+V7/WkXyUXqGnTc=;
+	s=default; t=1596229032;
+	bh=vdXEGu/7qMDVaKN9D44BCySt6O+PHbNNjTVbqhCGH4c=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=2eyD7Zz1zoWaKz1sDTJs9EPATyxknHzlt3bxW+7Aw2ZooS9dytsbuGMCrZEB3rmrU
-	 3qwSXllgEXNNIIGm4XpS6JS9OedqjedKweABgYZ/dqlE2iaEE/TshEq7wQCoYYBzoO
-	 5/l/hxoSYFug4fFlZBqoaRtCxE9Qm8kOKS9i2MqM=
+	b=SNki7N5eXdHFvG+NleHgsL71RmHHjqScnMtSFC1sK+TwLZWnLMJO4fzCMazK5JJaQ
+	 RNdREuicRBmIQtbXL8cpbOdgdQOLwgyksp1ga3hYq2Z8EeVUc+dBiLTd0vbrTvGwAb
+	 FlZaQ6k7EaXP2h5f9vS00QJTqC0djyVb96ee/+nw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727850AbgGaUtp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 31 Jul 2020 16:49:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38642 "EHLO mail.kernel.org"
+        id S1727121AbgGaU5M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 31 Jul 2020 16:57:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43328 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726884AbgGaUto (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jul 2020 16:49:44 -0400
+        id S1726884AbgGaU5M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jul 2020 16:57:12 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E0D4722B3F;
-        Fri, 31 Jul 2020 20:49:43 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EC9A1208E4;
+        Fri, 31 Jul 2020 20:57:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596228584;
-        bh=g0vHIYxaF6Z8m2SOfIg0YgMTmVHZ+V7/WkXyUXqGnTc=;
+        s=default; t=1596229031;
+        bh=vdXEGu/7qMDVaKN9D44BCySt6O+PHbNNjTVbqhCGH4c=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=srsEIeTY6dEJ1BgieC+12K2EHSXTSznzqqsvniFtuPrMLLxn6MmVWIG4drUzoeG/2
-         2YfntWFzGNzxuGWdYI6fdo8d8n5XVgaMQzW94AV1ODQYsQIt64xB8QYdBdMBFzAGPM
-         b/zaI2KDH5u6Hm0t+iOQ7qAMdMfteGzP49PzkkeI=
-Date:   Fri, 31 Jul 2020 13:49:43 -0700
+        b=xtm1XKF9cdjegSad07S+5xZLBKEiT/NU8aKvxKguh6Ip7ZZLFcErz/JiV/jQadhuV
+         gmmjFvDIyB1DLOcM4dOOcOFI+Ta+XLbL2hVYR0WpTj0Q0/nHibo05eHXf9y1Gb/ls/
+         c1E1BtJKab7R2tkbP2IbJmcNpCDjPqFkRDWWJweM=
+Date:   Fri, 31 Jul 2020 13:57:10 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     andriy.shevchenko@linux.intel.com, eldad@fogrefinery.com,
-        geert+renesas@glider.be, kerneldev@karsmulder.nl, mans@mansr.com,
-        miguel.ojeda.sandonis@gmail.com, mm-commits@vger.kernel.org,
-        pmladek@suse.com
+To:     aarcange@redhat.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, peterx@redhat.com,
+        stable@vger.kernel.org, willy@infradead.org
 Subject:  +
- kstrto-do-not-describe-simple_strto-as-obsolete-replaced.patch added to -mm
- tree
-Message-ID: <20200731204943.O1mBHFjSH%akpm@linux-foundation.org>
+ mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible.patch
+ added to -mm tree
+Message-ID: <20200731205710.iB3KouoTG%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -58,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kstrto*: do not  describe simple_strto*() as  obsolete/replaced
+     Subject: mm/hugetlb: fix calculation of adjust_range_if_pmd_sharing_possible
 has been added to the -mm tree.  Its filename is
-     kstrto-do-not-describe-simple_strto-as-obsolete-replaced.patch
+     mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kstrto-do-not-describe-simple_strto-as-obsolete-replaced.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kstrto-do-not-describe-simple_strto-as-obsolete-replaced.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,101 +78,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kars Mulder" <kerneldev@karsmulder.nl>
-Subject: kstrto*: do not  describe simple_strto*() as  obsolete/replaced
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/hugetlb: fix calculation of adjust_range_if_pmd_sharing_possible
 
-The documentation of the kstrto*() functions describes kstrto*() as
-"replacements" of the "obsolete" simple_strto*() functions.  Both of these
-terms are inaccurate: they're not replacements because they have different
-behaviour, and the simple_strto*() are not obsolete because there are
-cases where they have benefits over kstrto*().
+This is found by code observation only.
 
-Remove usage of the terms "replacement" and "obsolete" in reference to
-simple_strto*(), and instead use the term "preferred over".
+Firstly, the worst case scenario should assume the whole range was covered
+by pmd sharing.  The old algorithm might not work as expected for ranges
+like (1g-2m, 1g+2m), where the adjusted range should be (0, 1g+2m) but the
+expected range should be (0, 2g).
 
-Link: http://lkml.kernel.org/r/29b9-5f234c80-13-4e3aa200@244003027
-Fixes: 4c925d6031f71 ("kstrto*: add documentation")
-Fixes: 885e68e8b7b13 ("kernel.h: update comment about simple_strto<foo>() functions")
-Signed-off-by: Kars Mulder <kerneldev@karsmulder.nl>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Eldad Zack <eldad@fogrefinery.com>
-Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Mans Rullgard <mans@mansr.com>
-Cc: Petr Mladek <pmladek@suse.com>
+Since at it, remove the loop since it should not be required.  With that,
+the new code should be faster too when the invalidating range is huge.
+
+Mike said:
+
+: With range (1g-2m, 1g+2m) within a vma (0, 2g) the existing code will only
+: adjust to (0, 1g+2m) which is incorrect.
+: 
+: We should cc stable.  The original reason for adjusting the range was to
+: prevent data corruption (getting wrong page).  Since the range is not
+: always adjusted correctly, the potential for corruption still exists.
+: 
+: However, I am fairly confident that adjust_range_if_pmd_sharing_possible
+: is only gong to be called in two cases:
+: 
+: 1) for a single page
+: 2) for range == entire vma
+: 
+: In those cases, the current code should produce the correct results.
+: 
+: To be safe, let's just cc stable.
+
+Link: http://lkml.kernel.org/r/20200730201636.74778-1-peterx@redhat.com
+Fixes: 017b1660df89 ("mm: migration: fix migration of huge PMD shared pages")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 ++--
- lib/kstrtox.c          |   12 ++++--------
- 2 files changed, 6 insertions(+), 10 deletions(-)
+ mm/hugetlb.c |   24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
---- a/include/linux/kernel.h~kstrto-do-not-describe-simple_strto-as-obsolete-replaced
-+++ a/include/linux/kernel.h
-@@ -345,7 +345,7 @@ int __must_check kstrtoll(const char *s,
-  * @res: Where to write the result of the conversion on success.
-  *
-  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the simple_strtoul(). Return code must be checked.
-+ * Preferred over simple_strtoul(). Return code must be checked.
- */
- static inline int __must_check kstrtoul(const char *s, unsigned int base, unsigned long *res)
+--- a/mm/hugetlb.c~mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible
++++ a/mm/hugetlb.c
+@@ -5314,25 +5314,21 @@ static bool vma_shareable(struct vm_area
+ void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
+ 				unsigned long *start, unsigned long *end)
  {
-@@ -373,7 +373,7 @@ static inline int __must_check kstrtoul(
-  * @res: Where to write the result of the conversion on success.
-  *
-  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the simple_strtol(). Return code must be checked.
-+ * Preferred over simple_strtol(). Return code must be checked.
-  */
- static inline int __must_check kstrtol(const char *s, unsigned int base, long *res)
- {
---- a/lib/kstrtox.c~kstrto-do-not-describe-simple_strto-as-obsolete-replaced
-+++ a/lib/kstrtox.c
-@@ -115,8 +115,7 @@ static int _kstrtoull(const char *s, uns
-  * @res: Where to write the result of the conversion on success.
-  *
-  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the obsolete simple_strtoull(). Return code must
-- * be checked.
-+ * Preferred over simple_strtoull(). Return code must be checked.
-  */
- int kstrtoull(const char *s, unsigned int base, unsigned long long *res)
- {
-@@ -139,8 +138,7 @@ EXPORT_SYMBOL(kstrtoull);
-  * @res: Where to write the result of the conversion on success.
-  *
-  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the obsolete simple_strtoll(). Return code must
-- * be checked.
-+ * Preferred over simple_strtoll(). Return code must be checked.
-  */
- int kstrtoll(const char *s, unsigned int base, long long *res)
- {
-@@ -211,8 +209,7 @@ EXPORT_SYMBOL(_kstrtol);
-  * @res: Where to write the result of the conversion on success.
-  *
-  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the obsolete simple_strtoul(). Return code must
-- * be checked.
-+ * Preferred over simple_strtoul(). Return code must be checked.
-  */
- int kstrtouint(const char *s, unsigned int base, unsigned int *res)
- {
-@@ -242,8 +239,7 @@ EXPORT_SYMBOL(kstrtouint);
-  * @res: Where to write the result of the conversion on success.
-  *
-  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the obsolete simple_strtol(). Return code must
-- * be checked.
-+ * Preferred over simple_strtol(). Return code must be checked.
-  */
- int kstrtoint(const char *s, unsigned int base, int *res)
- {
+-	unsigned long check_addr;
++	unsigned long a_start, a_end;
+ 
+ 	if (!(vma->vm_flags & VM_MAYSHARE))
+ 		return;
+ 
+-	for (check_addr = *start; check_addr < *end; check_addr += PUD_SIZE) {
+-		unsigned long a_start = check_addr & PUD_MASK;
+-		unsigned long a_end = a_start + PUD_SIZE;
++	/* Extend the range to be PUD aligned for a worst case scenario */
++	a_start = ALIGN_DOWN(*start, PUD_SIZE);
++	a_end = ALIGN(*end, PUD_SIZE);
+ 
+-		/*
+-		 * If sharing is possible, adjust start/end if necessary.
+-		 */
+-		if (range_in_vma(vma, a_start, a_end)) {
+-			if (a_start < *start)
+-				*start = a_start;
+-			if (a_end > *end)
+-				*end = a_end;
+-		}
+-	}
++	/*
++	 * Intersect the range with the vma range, since pmd sharing won't be
++	 * across vma after all
++	 */
++	*start = max(vma->vm_start, a_start);
++	*end = min(vma->vm_end, a_end);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from kerneldev@karsmulder.nl are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-kstrto-correct-documentation-references-to-simple_strto.patch
-kstrto-do-not-describe-simple_strto-as-obsolete-replaced.patch
+mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible.patch
+mm-do-page-fault-accounting-in-handle_mm_fault.patch
+mm-alpha-use-general-page-fault-accounting.patch
+mm-arc-use-general-page-fault-accounting.patch
+mm-arm-use-general-page-fault-accounting.patch
+mm-arm64-use-general-page-fault-accounting.patch
+mm-csky-use-general-page-fault-accounting.patch
+mm-hexagon-use-general-page-fault-accounting.patch
+mm-ia64-use-general-page-fault-accounting.patch
+mm-m68k-use-general-page-fault-accounting.patch
+mm-microblaze-use-general-page-fault-accounting.patch
+mm-mips-use-general-page-fault-accounting.patch
+mm-nds32-use-general-page-fault-accounting.patch
+mm-nios2-use-general-page-fault-accounting.patch
+mm-openrisc-use-general-page-fault-accounting.patch
+mm-parisc-use-general-page-fault-accounting.patch
+mm-powerpc-use-general-page-fault-accounting.patch
+mm-riscv-use-general-page-fault-accounting.patch
+mm-s390-use-general-page-fault-accounting.patch
+mm-sh-use-general-page-fault-accounting.patch
+mm-sparc32-use-general-page-fault-accounting.patch
+mm-sparc64-use-general-page-fault-accounting.patch
+mm-x86-use-general-page-fault-accounting.patch
+mm-xtensa-use-general-page-fault-accounting.patch
+mm-clean-up-the-last-pieces-of-page-fault-accountings.patch
+mm-gup-remove-task_struct-pointer-for-all-gup-code.patch
 
