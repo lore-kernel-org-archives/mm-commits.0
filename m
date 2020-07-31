@@ -7,47 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACECAC433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 21:02:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DDE0C433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 21:10:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 87E3122B3F
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 21:02:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4074822B3F
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 21:10:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596229362;
-	bh=19y8/KKQ8jl9+eV+2LtatR+BvE+gcbjazfqyRtLIq74=;
+	s=default; t=1596229855;
+	bh=Mtm0otEqEFv4WYJA/XxFgOlJdoCFvbvTtW0gJA+dKzo=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=0xYFRWdmqLXEZJd77CJvIRAamxPDTAlmzz/oKgQmrmW8GErITSnonafMJrOVKSb7y
-	 U5VI75GvnikDIDNNjZEl0y2JZ4HBWxGdhPiurHP7ZFMWZv0EJxDxPmsOItJeBydsTk
-	 ethf6nuChrrNugUPfOo8kAWZC8E/GOfeIDz7DuFE=
+	b=oqhnkorOTqxSxktApD+xSLEhtx5YkM6Yo0//AtUP7LaatkvAlUA+kGogJYxOvh9aJ
+	 DLDrgSGyVZnaRp2rsC3Mb0q16TubLAZ0h/GVNxSXlkjAnbEWqPmJZM/1WEoCIX5bqh
+	 SmzRSgADJLeJU7k/mdTCR9E5q++RCixa4Y36ZmGs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728015AbgGaVCm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 31 Jul 2020 17:02:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44622 "EHLO mail.kernel.org"
+        id S1727811AbgGaVKz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 31 Jul 2020 17:10:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726884AbgGaVCm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jul 2020 17:02:42 -0400
+        id S1727053AbgGaVKy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jul 2020 17:10:54 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D3547208E4;
-        Fri, 31 Jul 2020 21:02:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 582BD2087C;
+        Fri, 31 Jul 2020 21:10:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596229361;
-        bh=19y8/KKQ8jl9+eV+2LtatR+BvE+gcbjazfqyRtLIq74=;
+        s=default; t=1596229854;
+        bh=Mtm0otEqEFv4WYJA/XxFgOlJdoCFvbvTtW0gJA+dKzo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=H1N9xGJOi8O+U0LPVkkkJ8FCg1zgusZUWncFB5Ds82QjQ+1oZkrQyXKNdlP8DOlju
-         IsOz8R4GRiV50J5GiKak5YpIefiyGnfAF6hfb+s7KJBR75fHHsaOzkmgiTlGkAot3j
-         ebBomMP7C03rPgm48jOizZeKru0+H7uZxG7vyebo=
-Date:   Fri, 31 Jul 2020 14:02:40 -0700
+        b=igrMc9UbtDfSymUb34loE6XlsQ2uBEcfNc9PNWxWi+alS6yzI53vqPasqW38MrqhC
+         cHaf72zr0MwkRcvi8qTdeaveDYYxHIbnOeCfT5O4eA7c6AQ6a3mYvk1tZrBFkcPUMc
+         dw7/Z6fpy7RYGruQgGdvDihDEy4mmPi+xyvSvALA=
+Date:   Fri, 31 Jul 2020 14:10:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     guro@fb.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com,
-        m.szyprowski@samsung.com, mike.kravetz@oracle.com,
-        mina86@mina86.com, mm-commits@vger.kernel.org,
-        song.bao.hua@hisilicon.com, stable@vger.kernel.org
-Subject:  +
- cma-dont-quit-at-first-error-when-activating-reserved-areas.patch added to
- -mm tree
-Message-ID: <20200731210240.clQf5q43Q%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, qiang.zhang@windriver.com,
+        willy@infradead.org
+Subject:  [nacked]
+ mm-dmapoolc-add-warn_on-in-dma_pool_destroy.patch removed from -mm tree
+Message-ID: <20200731211053.4pSqAGYMJ%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -58,153 +55,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma: don't quit at first error when activating reserved areas
-has been added to the -mm tree.  Its filename is
-     cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
+     Subject: mm/dmapool.c: add WARN_ON() in dma_pool_destroy
+has been removed from the -mm tree.  Its filename was
+     mm-dmapoolc-add-warn_on-in-dma_pool_destroy.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: cma: don't quit at first error when activating reserved areas
+From: Zhang Qiang <qiang.zhang@windriver.com>
+Subject: mm/dmapool.c: add WARN_ON() in dma_pool_destroy
 
-The routine cma_init_reserved_areas is designed to activate all
-reserved cma areas.  It quits when it first encounters an error.
-This can leave some areas in a state where they are reserved but
-not activated.  There is no feedback to code which performed the
-reservation.  Attempting to allocate memory from areas in such a
-state will result in a BUG.
+The pool is being destroyed so all pages which are in the pool should be
+free.  If some page is still in use by somebody, we should not just output
+error logs, also should also add a WARN message so the stack backtrace may
+be used to identify the caller.
 
-Modify cma_init_reserved_areas to always attempt to activate all
-areas.  The called routine, cma_activate_area is responsible for
-leaving the area in a valid state.  No one is making active use
-of returned error codes, so change the routine to void.
-
-How to reproduce:  This example uses kernelcore, hugetlb and cma
-as an easy way to reproduce.  However, this is a more general cma
-issue.
-
-Two node x86 VM 16GB total, 8GB per node
-Kernel command line parameters, kernelcore=4G hugetlb_cma=8G
-Related boot time messages,
-  hugetlb_cma: reserve 8192 MiB, up to 4096 MiB per node
-  cma: Reserved 4096 MiB at 0x0000000100000000
-  hugetlb_cma: reserved 4096 MiB on node 0
-  cma: Reserved 4096 MiB at 0x0000000300000000
-  hugetlb_cma: reserved 4096 MiB on node 1
-  cma: CMA area hugetlb could not be activated
-
- # echo 8 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-
-  BUG: kernel NULL pointer dereference, address: 0000000000000000
-  #PF: supervisor read access in kernel mode
-  #PF: error_code(0x0000) - not-present page
-  PGD 0 P4D 0
-  Oops: 0000 [#1] SMP PTI
-  ...
-  Call Trace:
-    bitmap_find_next_zero_area_off+0x51/0x90
-    cma_alloc+0x1a5/0x310
-    alloc_fresh_huge_page+0x78/0x1a0
-    alloc_pool_huge_page+0x6f/0xf0
-    set_max_huge_pages+0x10c/0x250
-    nr_hugepages_store_common+0x92/0x120
-    ? __kmalloc+0x171/0x270
-    kernfs_fop_write+0xc1/0x1a0
-    vfs_write+0xc7/0x1f0
-    ksys_write+0x5f/0xe0
-    do_syscall_64+0x4d/0x90
-    entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-Link: http://lkml.kernel.org/r/20200730163123.6451-1-mike.kravetz@oracle.com
-Fixes: c64be2bb1c6e ("drivers: add Contiguous Memory Allocator")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Acked-by: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200731023939.19206-1-qiang.zhang@windriver.com
+Signed-off-by: Zhang Qiang <qiang.zhang@windriver.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ mm/dmapool.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/cma.c~cma-dont-quit-at-first-error-when-activating-reserved-areas
-+++ a/mm/cma.c
-@@ -93,17 +93,15 @@ static void cma_clear_bitmap(struct cma
- 	mutex_unlock(&cma->lock);
- }
- 
--static int __init cma_activate_area(struct cma *cma)
-+static void __init cma_activate_area(struct cma *cma)
- {
- 	unsigned long base_pfn = cma->base_pfn, pfn = base_pfn;
- 	unsigned i = cma->count >> pageblock_order;
- 	struct zone *zone;
- 
- 	cma->bitmap = bitmap_zalloc(cma_bitmap_maxno(cma), GFP_KERNEL);
--	if (!cma->bitmap) {
--		cma->count = 0;
--		return -ENOMEM;
--	}
-+	if (!cma->bitmap)
-+		goto out_error;
- 
- 	WARN_ON_ONCE(!pfn_valid(pfn));
- 	zone = page_zone(pfn_to_page(pfn));
-@@ -133,25 +131,22 @@ static int __init cma_activate_area(stru
- 	spin_lock_init(&cma->mem_head_lock);
- #endif
- 
--	return 0;
-+	return;
- 
- not_in_zone:
--	pr_err("CMA area %s could not be activated\n", cma->name);
- 	bitmap_free(cma->bitmap);
-+out_error:
- 	cma->count = 0;
--	return -EINVAL;
-+	pr_err("CMA area %s could not be activated\n", cma->name);
-+	return;
- }
- 
- static int __init cma_init_reserved_areas(void)
- {
- 	int i;
- 
--	for (i = 0; i < cma_area_count; i++) {
--		int ret = cma_activate_area(&cma_areas[i]);
--
--		if (ret)
--			return ret;
--	}
-+	for (i = 0; i < cma_area_count; i++)
-+		cma_activate_area(&cma_areas[i]);
- 
- 	return 0;
- }
+--- a/mm/dmapool.c~mm-dmapoolc-add-warn_on-in-dma_pool_destroy
++++ a/mm/dmapool.c
+@@ -285,7 +285,7 @@ void dma_pool_destroy(struct dma_pool *p
+ 		struct dma_page *page;
+ 		page = list_entry(pool->page_list.next,
+ 				  struct dma_page, page_list);
+-		if (is_page_busy(page)) {
++		if (WARN_ON(is_page_busy(page))) {
+ 			if (pool->dev)
+ 				dev_err(pool->dev,
+ 					"dma_pool_destroy %s, %p busy\n",
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from qiang.zhang@windriver.com are
 
-hugetlbfs-prevent-filesystem-stacking-of-hugetlbfs.patch
-cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
 
