@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7EF3C433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:23:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8772C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:23:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 955642087C
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:23:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9765D208E4
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:23:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596226990;
-	bh=zzWCTj76WG+xd4tbC4W02plzSxxAcqfiaWIydU2s5jg=;
+	s=default; t=1596226993;
+	bh=gOte3wVnB6RNTTBaiGPqy7CZ2lso7GgVOLbk17V/t50=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=hCOOKXFBEN6ckfe9/FVgTq6B6R7Jm8qZXJ20SFP0NPcyVtmGqFqVLSOyFM0Yz9g2A
-	 AZPfcjbw8eJLia6/QDG+djeZGT75GbohCy6HYV1kFZlOkjWBy+vxJbEFVRP3MrUTLh
-	 6e+TRkj6WyG/lR84mmVClRWb8Rdoe0u4rO8AjFr4=
+	b=V3FuzDjRr04041mftQr5YD3d/QHEdW78X4NxRifflkcE4N0DOPdGo+3evW9ClEYWm
+	 xkSqJl3a/bX4kRk5EVXvNQZ5pSXDPb1yu+PtloyF1zyrYxPfrY0BgrrPJF39NiOZxr
+	 a2peuLgK1NiFP5WAO3JxgDOAGgU6EeW/adMT4oqM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726976AbgGaUXK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 31 Jul 2020 16:23:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50738 "EHLO mail.kernel.org"
+        id S1727014AbgGaUXN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 31 Jul 2020 16:23:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50768 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726950AbgGaUXK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jul 2020 16:23:10 -0400
+        id S1726950AbgGaUXN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jul 2020 16:23:13 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EAA0C208E4;
-        Fri, 31 Jul 2020 20:23:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DA7C72087C;
+        Fri, 31 Jul 2020 20:23:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596226989;
-        bh=zzWCTj76WG+xd4tbC4W02plzSxxAcqfiaWIydU2s5jg=;
+        s=default; t=1596226992;
+        bh=gOte3wVnB6RNTTBaiGPqy7CZ2lso7GgVOLbk17V/t50=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=tF9HK9tCN7EIqSp+j8jfiZ2Owm6mYsMOvjrONroVuMuoEp7+jm9JYFLGIANo5ZoeP
-         IufD4cOCvul0MEoikEsbZRXkXoX4InHxZ55nYnzvvZXqPN4/t1wU+eU8b+hMAEEu0+
-         sTBPvJjY9T63FgHCSr/Wq0sDQTZxqrlchca9YBHc=
-Date:   Fri, 31 Jul 2020 13:23:08 -0700
+        b=LSyay1p+kgsn6hreUaS1M/sTDuT2DndT+66626RFamfWbQR5+kRno6096va+60HKM
+         EsCU4pGr8q4Wyo/SN0qkPaxlddJuOYVpnMUqraiiPMSd9ko91nLUiNEzggWXAnHXk0
+         gvspHcjm7v9Ni1IBx1KdrHXzzp4bDcgfMy+fKvrA=
+Date:   Fri, 31 Jul 2020 13:23:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aneesh.kumar@linux.ibm.com, guro@fb.com, hch@infradead.org,
         iamjoonsoo.kim@lge.com, mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
         vbabka@suse.cz
 Subject:  +
- mm-hugetlb-make-hugetlb-migration-callback-cma-aware.patch added to -mm
- tree
-Message-ID: <20200731202308.qnoHMtsAo%akpm@linux-foundation.org>
+ mm-gup-use-a-standard-migration-target-allocation-callback.patch added to
+ -mm tree
+Message-ID: <20200731202311.443ypjMoy%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -58,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: make hugetlb migration callback CMA aware
+     Subject: mm/gup: use a standard migration target allocation callback
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-make-hugetlb-migration-callback-cma-aware.patch
+     mm-gup-use-a-standard-migration-target-allocation-callback.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-make-hugetlb-migration-callback-cma-aware.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-use-a-standard-migration-target-allocation-callback.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-make-hugetlb-migration-callback-cma-aware.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-use-a-standard-migration-target-allocation-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,107 +80,102 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/hugetlb: make hugetlb migration callback CMA aware
+Subject: mm/gup: use a standard migration target allocation callback
 
-new_non_cma_page() in gup.c requires to allocate the new page that is not
-on the CMA area.  new_non_cma_page() implements it by using allocation
-scope APIs.
+There is a well-defined migration target allocation callback. Use it.
 
-However, there is a work-around for hugetlb.  Normal hugetlb page
-allocation API for migration is alloc_huge_page_nodemask().  It consists
-of two steps.  First is dequeing from the pool.  Second is, if there is no
-available page on the queue, allocating by using the page allocator.
-
-new_non_cma_page() can't use this API since first step (deque) isn't aware
-of scope API to exclude CMA area.  So, new_non_cma_page() exports hugetlb
-internal function for the second step, alloc_migrate_huge_page(), to
-global scope and uses it directly.  This is suboptimal since hugetlb pages
-on the queue cannot be utilized.
-
-This patch tries to fix this situation by making the deque function on
-hugetlb CMA aware.  In the deque function, CMA memory is skipped if
-PF_MEMALLOC_NOCMA flag is found.
-
-Link: http://lkml.kernel.org/r/1596180906-8442-2-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1596180906-8442-3-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 --
- mm/gup.c                |    6 +-----
- mm/hugetlb.c            |   11 +++++++++--
- 3 files changed, 10 insertions(+), 9 deletions(-)
+ mm/gup.c |   54 +++++------------------------------------------------
+ 1 file changed, 6 insertions(+), 48 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-make-hugetlb-migration-callback-cma-aware
-+++ a/include/linux/hugetlb.h
-@@ -509,8 +509,6 @@ struct page *alloc_huge_page_nodemask(st
- 				nodemask_t *nmask, gfp_t gfp_mask);
- struct page *alloc_huge_page_vma(struct hstate *h, struct vm_area_struct *vma,
- 				unsigned long address);
--struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
--				     int nid, nodemask_t *nmask);
- int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
- 			pgoff_t idx);
- 
---- a/mm/gup.c~mm-hugetlb-make-hugetlb-migration-callback-cma-aware
+--- a/mm/gup.c~mm-gup-use-a-standard-migration-target-allocation-callback
 +++ a/mm/gup.c
-@@ -1635,11 +1635,7 @@ static struct page *new_non_cma_page(str
- 		struct hstate *h = page_hstate(page);
- 
- 		gfp_mask = htlb_modify_alloc_mask(h, gfp_mask);
--		/*
--		 * We don't want to dequeue from the pool because pool pages will
--		 * mostly be from the CMA region.
--		 */
--		return alloc_migrate_huge_page(h, gfp_mask, nid, NULL);
-+		return alloc_huge_page_nodemask(h, nid, NULL, gfp_mask);
- 	}
- #endif
- 	if (PageTransHuge(page)) {
---- a/mm/hugetlb.c~mm-hugetlb-make-hugetlb-migration-callback-cma-aware
-+++ a/mm/hugetlb.c
-@@ -19,6 +19,7 @@
- #include <linux/memblock.h>
- #include <linux/sysfs.h>
- #include <linux/slab.h>
-+#include <linux/sched/mm.h>
- #include <linux/mmdebug.h>
- #include <linux/sched/signal.h>
- #include <linux/rmap.h>
-@@ -1040,10 +1041,16 @@ static void enqueue_huge_page(struct hst
- static struct page *dequeue_huge_page_node_exact(struct hstate *h, int nid)
- {
- 	struct page *page;
-+	bool nocma = !!(current->flags & PF_MEMALLOC_NOCMA);
-+
-+	list_for_each_entry(page, &h->hugepage_freelists[nid], lru) {
-+		if (nocma && is_migrate_cma_page(page))
-+			continue;
- 
--	list_for_each_entry(page, &h->hugepage_freelists[nid], lru)
- 		if (!PageHWPoison(page))
- 			break;
-+	}
-+
- 	/*
- 	 * if 'non-isolated free hugepage' not found on the list,
- 	 * the allocation fails.
-@@ -1935,7 +1942,7 @@ out_unlock:
- 	return page;
+@@ -1609,52 +1609,6 @@ static bool check_dax_vmas(struct vm_are
  }
  
--struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
-+static struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
- 				     int nid, nodemask_t *nmask)
- {
- 	struct page *page;
+ #ifdef CONFIG_CMA
+-static struct page *new_non_cma_page(struct page *page, unsigned long private)
+-{
+-	/*
+-	 * We want to make sure we allocate the new page from the same node
+-	 * as the source page.
+-	 */
+-	int nid = page_to_nid(page);
+-	/*
+-	 * Trying to allocate a page for migration. Ignore allocation
+-	 * failure warnings. We don't force __GFP_THISNODE here because
+-	 * this node here is the node where we have CMA reservation and
+-	 * in some case these nodes will have really less non CMA
+-	 * allocation memory.
+-	 *
+-	 * Note that CMA region is prohibited by allocation scope.
+-	 */
+-	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_NOWARN;
+-
+-	if (PageHighMem(page))
+-		gfp_mask |= __GFP_HIGHMEM;
+-
+-#ifdef CONFIG_HUGETLB_PAGE
+-	if (PageHuge(page)) {
+-		struct hstate *h = page_hstate(page);
+-
+-		gfp_mask = htlb_modify_alloc_mask(h, gfp_mask);
+-		return alloc_huge_page_nodemask(h, nid, NULL, gfp_mask);
+-	}
+-#endif
+-	if (PageTransHuge(page)) {
+-		struct page *thp;
+-		/*
+-		 * ignore allocation failure warnings
+-		 */
+-		gfp_t thp_gfpmask = GFP_TRANSHUGE | __GFP_NOWARN;
+-
+-		thp = __alloc_pages_node(nid, thp_gfpmask, HPAGE_PMD_ORDER);
+-		if (!thp)
+-			return NULL;
+-		prep_transhuge_page(thp);
+-		return thp;
+-	}
+-
+-	return __alloc_pages_node(nid, gfp_mask, 0);
+-}
+-
+ static long check_and_migrate_cma_pages(struct task_struct *tsk,
+ 					struct mm_struct *mm,
+ 					unsigned long start,
+@@ -1669,6 +1623,10 @@ static long check_and_migrate_cma_pages(
+ 	bool migrate_allow = true;
+ 	LIST_HEAD(cma_page_list);
+ 	long ret = nr_pages;
++	struct migration_target_control mtc = {
++		.nid = NUMA_NO_NODE,
++		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_NOWARN,
++	};
+ 
+ check_again:
+ 	for (i = 0; i < nr_pages;) {
+@@ -1714,8 +1672,8 @@ check_again:
+ 		for (i = 0; i < nr_pages; i++)
+ 			put_page(pages[i]);
+ 
+-		if (migrate_pages(&cma_page_list, new_non_cma_page,
+-				  NULL, 0, MIGRATE_SYNC, MR_CONTIG_RANGE)) {
++		if (migrate_pages(&cma_page_list, alloc_migration_target, NULL,
++			(unsigned long)&mtc, MIGRATE_SYNC, MR_CONTIG_RANGE)) {
+ 			/*
+ 			 * some of the pages failed migration. Do get_user_pages
+ 			 * without migration.
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
