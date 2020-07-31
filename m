@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD9A8C433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:05:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF5B6C433DF
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:05:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B3BDA22B43
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:05:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1FA122B42
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:05:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596225949;
-	bh=xaGvTXMe2M09gx9jyhrCAshH+q0DsQqboht5qW7JMuQ=;
+	s=default; t=1596225952;
+	bh=AkyLXKSObepv2DDe5pRZKQVsvK9QkIQeltvMY31ubXo=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=DNSZ9pvpp064MPoCIGQhA3mxBykzJxa3k3G8Qqc6JAlpAg+yTnRFECs+7KnJM8jeU
-	 lyXN0+BtQ3ymgic6QJ0u9oi6fAqLF/ul4RXE2BHgPjk7aw1x05C0NjxU+KGyBzypSN
-	 KSgbKbnLSWmQLbRrfA8l6kZP5anQt9DSAkggXf1M=
+	b=0jGyKCe95Eix63TejDxYNAoJWWAgaTp7KfzwEZ4gslPi6wOWbRuB4iCLXRvQ1K25b
+	 /+fRNO6t2iIRUoHAQRGfG0JYzmX25fRWSCVAjxGzlWGGPiq7JRApUEobkjK7wayMTk
+	 an9qUCEHG24OgZKRLtqDzlyseP0Bi0iqa9rLTf8M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726802AbgGaUFt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 31 Jul 2020 16:05:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46950 "EHLO mail.kernel.org"
+        id S1726810AbgGaUFw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 31 Jul 2020 16:05:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726077AbgGaUFt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jul 2020 16:05:49 -0400
+        id S1726077AbgGaUFw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jul 2020 16:05:52 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EE59722B42;
-        Fri, 31 Jul 2020 20:05:47 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 10EBA208E4;
+        Fri, 31 Jul 2020 20:05:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596225948;
-        bh=xaGvTXMe2M09gx9jyhrCAshH+q0DsQqboht5qW7JMuQ=;
+        s=default; t=1596225951;
+        bh=AkyLXKSObepv2DDe5pRZKQVsvK9QkIQeltvMY31ubXo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=KoXWP/wuM9dmNQ3u7E+7dmjJ7HFQYbggS6ualaiPY6NfEpGyEIGVf1yi55xpyvyH+
-         MDwhCnzF0m49eiNKmEKPTWby7tW0VD6eQnQRoyySSLorg5Kg74pzdrFRsNRlTz6f1B
-         nkcaTaOqJLERp7tS9B21vAOlcurruWXPxV7P5RcU=
-Date:   Fri, 31 Jul 2020 13:05:47 -0700
+        b=XfAA2hjlehNH+Z1apLfrJbrArk0bJoNzvq5WBNROLUfMghISxT6UMh9d7d8MQOaG/
+         mOshlqS3DOR0Tt1h9/YKoUA4+y8L6pLzoGYrloHEcCAcVpM0O0WmHa6nWttCsGo7Ce
+         ImT9ba99hBV/jL4SrVPD23SCAAUsLLYqJDdc5Aso=
+Date:   Fri, 31 Jul 2020 13:05:50 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aneesh.kumar@linux.ibm.com, aneesh.kumar@linux.vnet.ibm.com,
         cai@lca.pw, dave.hansen@intel.com, david@redhat.com,
@@ -46,9 +46,9 @@ To:     aneesh.kumar@linux.ibm.com, aneesh.kumar@linux.vnet.ibm.com,
         mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
         naoya.horiguchi@nec.com, osalvador@suse.com, osalvador@suse.de,
         tony.luck@intel.com, zeil@yandex-team.ru
-Subject:  + mmmadvise-refactor-madvise_inject_error.patch added to
- -mm tree
-Message-ID: <20200731200547.QUd7aMyog%akpm@linux-foundation.org>
+Subject:  + mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
+ added to -mm tree
+Message-ID: <20200731200550.sv8F-EsQE%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -59,14 +59,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,madvise: refactor madvise_inject_error
+     Subject: mm,hwpoison-inject: don't pin for hwpoison_filter
 has been added to the -mm tree.  Its filename is
-     mmmadvise-refactor-madvise_inject_error.patch
+     mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmmadvise-refactor-madvise_inject_error.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmmadvise-refactor-madvise_inject_error.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,14 +80,17 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,madvise: refactor madvise_inject_error
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm,hwpoison-inject: don't pin for hwpoison_filter
 
-Make a proper if-else condition for {hard,soft}-offline.
+Another memory error injection interface debugfs:hwpoison/corrupt-pfn also
+takes bogus refcount for hwpoison_filter().  It's justified because this
+does a coarse filter, expecting that memory_failure() redoes the check for
+sure.
 
-Link: http://lkml.kernel.org/r/20200731122112.11263-5-nao.horiguchi@gmail.com
-Signed-off-by: Oscar Salvador <osalvador@suse.com>
+Link: http://lkml.kernel.org/r/20200731122112.11263-6-nao.horiguchi@gmail.com
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Signed-off-by: Oscar Salvador <osalvador@suse.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -96,67 +99,68 @@ Cc: Dmitry Yakunin <zeil@yandex-team.ru>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Qian Cai <cai@lca.pw>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ mm/hwpoison-inject.c |   18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
---- a/mm/madvise.c~mmmadvise-refactor-madvise_inject_error
-+++ a/mm/madvise.c
-@@ -869,16 +869,15 @@ static long madvise_remove(struct vm_are
- static int madvise_inject_error(int behavior,
- 		unsigned long start, unsigned long end)
- {
--	struct page *page;
- 	struct zone *zone;
- 	unsigned long size;
+--- a/mm/hwpoison-inject.c~mmhwpoison-inject-dont-pin-for-hwpoison_filter
++++ a/mm/hwpoison-inject.c
+@@ -26,11 +26,6 @@ static int hwpoison_inject(void *data, u
  
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
+ 	p = pfn_to_page(pfn);
+ 	hpage = compound_head(p);
+-	/*
+-	 * This implies unable to support free buddy pages.
+-	 */
+-	if (!get_hwpoison_page(p))
+-		return 0;
  
--
- 	for (; start < end; start += size) {
- 		unsigned long pfn;
-+		struct page *page;
- 		int ret;
+ 	if (!hwpoison_filter_enable)
+ 		goto inject;
+@@ -40,23 +35,20 @@ static int hwpoison_inject(void *data, u
+ 	 * This implies unable to support non-LRU pages.
+ 	 */
+ 	if (!PageLRU(hpage) && !PageHuge(p))
+-		goto put_out;
++		return 0;
  
- 		ret = get_user_pages_fast(start, 1, 0, &page);
-@@ -908,17 +907,14 @@ static int madvise_inject_error(int beha
+ 	/*
+-	 * do a racy check with elevated page count, to make sure PG_hwpoison
+-	 * will only be set for the targeted owner (or on a free page).
++	 * do a racy check to make sure PG_hwpoison will only be set for
++	 * the targeted owner (or on a free page).
+ 	 * memory_failure() will redo the check reliably inside page lock.
+ 	 */
+ 	err = hwpoison_filter(hpage);
+ 	if (err)
+-		goto put_out;
++		return 0;
  
- 		if (behavior == MADV_SOFT_OFFLINE) {
- 			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
--					pfn, start);
--
-+				pfn, start);
- 			ret = soft_offline_page(pfn, 0);
--			if (ret)
--				return ret;
--			continue;
-+		} else {
-+			pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
-+				pfn, start);
-+			ret = memory_failure(pfn, 0);
- 		}
+ inject:
+ 	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
+-	return memory_failure(pfn, MF_COUNT_INCREASED);
+-put_out:
+-	put_hwpoison_page(p);
+-	return 0;
++	return memory_failure(pfn, 0);
+ }
  
--		pr_info("Injecting memory failure for pfn %#lx at process virtual address %#lx\n",
--				pfn, start);
--		ret = memory_failure(pfn, 0);
- 		if (ret)
- 			return ret;
- 	}
+ static int hwpoison_unpoison(void *data, u64 val)
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-mmmadvise-refactor-madvise_inject_error.patch
-mmhwpoison-un-export-get_hwpoison_page-and-make-it-static.patch
-mmhwpoison-kill-put_hwpoison_page.patch
-mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
-mmhwpoison-rework-soft-offline-for-free-pages.patch
-mmhwpoison-rework-soft-offline-for-in-use-pages.patch
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
-mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
+mmhwpoison-cleanup-unused-pagehuge-check.patch
+mm-hwpoison-remove-recalculating-hpage.patch
+mmmadvise-call-soft_offline_page-without-mf_count_increased.patch
+mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
+mmhwpoison-remove-mf_count_increased.patch
+mmhwpoison-remove-flag-argument-from-soft-offline-functions.patch
+mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+mmhwpoison-double-check-page-count-in-__get_any_page.patch
 
