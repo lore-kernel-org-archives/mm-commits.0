@@ -7,46 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2BEAC433DF
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:57:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF5DBC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:59:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9898222B42
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:57:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD0FF22BEA
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:59:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596229032;
-	bh=vdXEGu/7qMDVaKN9D44BCySt6O+PHbNNjTVbqhCGH4c=;
+	s=default; t=1596229165;
+	bh=Vu+TEeOYmbHo2Jb3n+3vykRHNTeUG/yIUBM2keiE4T8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=SNki7N5eXdHFvG+NleHgsL71RmHHjqScnMtSFC1sK+TwLZWnLMJO4fzCMazK5JJaQ
-	 RNdREuicRBmIQtbXL8cpbOdgdQOLwgyksp1ga3hYq2Z8EeVUc+dBiLTd0vbrTvGwAb
-	 FlZaQ6k7EaXP2h5f9vS00QJTqC0djyVb96ee/+nw=
+	b=jaDwX4/xdyHdKEQuK852SLCGetv2VFOAlBeo2mzbJZoSvBB17aXh8qbkIXGIjbleb
+	 YllXCIh8Zp57ZXRuvcKTtkTX1qMNySL74G/+duAdm94OSCIJVo5xLhftps11Snc0HI
+	 wzOkSRFk71V6DFxqnZqsfq8nrW87AP3zQLbZU2LE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727121AbgGaU5M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 31 Jul 2020 16:57:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43328 "EHLO mail.kernel.org"
+        id S1727121AbgGaU7Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 31 Jul 2020 16:59:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43674 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726884AbgGaU5M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jul 2020 16:57:12 -0400
+        id S1727053AbgGaU7Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jul 2020 16:59:25 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EC9A1208E4;
-        Fri, 31 Jul 2020 20:57:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 912B7208E4;
+        Fri, 31 Jul 2020 20:59:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596229031;
-        bh=vdXEGu/7qMDVaKN9D44BCySt6O+PHbNNjTVbqhCGH4c=;
+        s=default; t=1596229164;
+        bh=Vu+TEeOYmbHo2Jb3n+3vykRHNTeUG/yIUBM2keiE4T8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xtm1XKF9cdjegSad07S+5xZLBKEiT/NU8aKvxKguh6Ip7ZZLFcErz/JiV/jQadhuV
-         gmmjFvDIyB1DLOcM4dOOcOFI+Ta+XLbL2hVYR0WpTj0Q0/nHibo05eHXf9y1Gb/ls/
-         c1E1BtJKab7R2tkbP2IbJmcNpCDjPqFkRDWWJweM=
-Date:   Fri, 31 Jul 2020 13:57:10 -0700
+        b=OBzuMZj7dWFpQw5kQlcjLbsi+AS7AJyG66Inw1Z3t/eHYPOJjhnHMM/Hfsx3IW/dD
+         U6y1iaceK4QcgGfzKqwRjmqr0bi2LwxcojTEhZAidsKLse9SCTlcY2luU2GYvBR8hT
+         aABv86HwoO1a5ATtpfAnF+9aUdV6tI0AuEYSs7a0=
+Date:   Fri, 31 Jul 2020 13:59:24 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, peterx@redhat.com,
-        stable@vger.kernel.org, willy@infradead.org
-Subject:  +
- mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible.patch
- added to -mm tree
-Message-ID: <20200731205710.iB3KouoTG%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, segoon@openwall.com,
+        tglx@linutronix.de, willy@infradead.org
+Subject:  + poison-remove-obsolete-comment.patch added to -mm tree
+Message-ID: <20200731205924.__-tFlA_R%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix calculation of adjust_range_if_pmd_sharing_possible
+     Subject: include/linux/poison.h: remove obsolete comment
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible.patch
+     poison-remove-obsolete-comment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/poison-remove-obsolete-comment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/poison-remove-obsolete-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,117 +75,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: fix calculation of adjust_range_if_pmd_sharing_possible
+From: Matthew Wilcox <willy@infradead.org>
+Subject: include/linux/poison.h: remove obsolete comment
 
-This is found by code observation only.
+When the definition was changed, the comment became stale.  Just remove
+it since there isn't anything useful to say here.
 
-Firstly, the worst case scenario should assume the whole range was covered
-by pmd sharing.  The old algorithm might not work as expected for ranges
-like (1g-2m, 1g+2m), where the adjusted range should be (0, 1g+2m) but the
-expected range should be (0, 2g).
-
-Since at it, remove the loop since it should not be required.  With that,
-the new code should be faster too when the invalidating range is huge.
-
-Mike said:
-
-: With range (1g-2m, 1g+2m) within a vma (0, 2g) the existing code will only
-: adjust to (0, 1g+2m) which is incorrect.
-: 
-: We should cc stable.  The original reason for adjusting the range was to
-: prevent data corruption (getting wrong page).  Since the range is not
-: always adjusted correctly, the potential for corruption still exists.
-: 
-: However, I am fairly confident that adjust_range_if_pmd_sharing_possible
-: is only gong to be called in two cases:
-: 
-: 1) for a single page
-: 2) for range == entire vma
-: 
-: In those cases, the current code should produce the correct results.
-: 
-: To be safe, let's just cc stable.
-
-Link: http://lkml.kernel.org/r/20200730201636.74778-1-peterx@redhat.com
-Fixes: 017b1660df89 ("mm: migration: fix migration of huge PMD shared pages")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200730174108.GJ23808@casper.infradead.org
+Fixes: b8a0255db958 ("include/linux/poison.h: use POISON_POINTER_DELTA for poison pointers")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vasily Kulikov <segoon@openwall.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ include/linux/poison.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible
-+++ a/mm/hugetlb.c
-@@ -5314,25 +5314,21 @@ static bool vma_shareable(struct vm_area
- void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
- 				unsigned long *start, unsigned long *end)
- {
--	unsigned long check_addr;
-+	unsigned long a_start, a_end;
+--- a/include/linux/poison.h~poison-remove-obsolete-comment
++++ a/include/linux/poison.h
+@@ -24,10 +24,6 @@
+ #define LIST_POISON2  ((void *) 0x122 + POISON_POINTER_DELTA)
  
- 	if (!(vma->vm_flags & VM_MAYSHARE))
- 		return;
+ /********** include/linux/timer.h **********/
+-/*
+- * Magic number "tsta" to indicate a static timer initializer
+- * for the object debugging code.
+- */
+ #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
  
--	for (check_addr = *start; check_addr < *end; check_addr += PUD_SIZE) {
--		unsigned long a_start = check_addr & PUD_MASK;
--		unsigned long a_end = a_start + PUD_SIZE;
-+	/* Extend the range to be PUD aligned for a worst case scenario */
-+	a_start = ALIGN_DOWN(*start, PUD_SIZE);
-+	a_end = ALIGN(*end, PUD_SIZE);
- 
--		/*
--		 * If sharing is possible, adjust start/end if necessary.
--		 */
--		if (range_in_vma(vma, a_start, a_end)) {
--			if (a_start < *start)
--				*start = a_start;
--			if (a_end > *end)
--				*end = a_end;
--		}
--	}
-+	/*
-+	 * Intersect the range with the vma range, since pmd sharing won't be
-+	 * across vma after all
-+	 */
-+	*start = max(vma->vm_start, a_start);
-+	*end = min(vma->vm_end, a_end);
- }
- 
- /*
+ /********** mm/page_poison.c **********/
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible.patch
-mm-do-page-fault-accounting-in-handle_mm_fault.patch
-mm-alpha-use-general-page-fault-accounting.patch
-mm-arc-use-general-page-fault-accounting.patch
-mm-arm-use-general-page-fault-accounting.patch
-mm-arm64-use-general-page-fault-accounting.patch
-mm-csky-use-general-page-fault-accounting.patch
-mm-hexagon-use-general-page-fault-accounting.patch
-mm-ia64-use-general-page-fault-accounting.patch
-mm-m68k-use-general-page-fault-accounting.patch
-mm-microblaze-use-general-page-fault-accounting.patch
-mm-mips-use-general-page-fault-accounting.patch
-mm-nds32-use-general-page-fault-accounting.patch
-mm-nios2-use-general-page-fault-accounting.patch
-mm-openrisc-use-general-page-fault-accounting.patch
-mm-parisc-use-general-page-fault-accounting.patch
-mm-powerpc-use-general-page-fault-accounting.patch
-mm-riscv-use-general-page-fault-accounting.patch
-mm-s390-use-general-page-fault-accounting.patch
-mm-sh-use-general-page-fault-accounting.patch
-mm-sparc32-use-general-page-fault-accounting.patch
-mm-sparc64-use-general-page-fault-accounting.patch
-mm-x86-use-general-page-fault-accounting.patch
-mm-xtensa-use-general-page-fault-accounting.patch
-mm-clean-up-the-last-pieces-of-page-fault-accountings.patch
-mm-gup-remove-task_struct-pointer-for-all-gup-code.patch
+mm-handle-page-mapping-better-in-dump_page.patch
+mm-dump-compound-page-information-on-a-second-line.patch
+mm-print-head-flags-in-dump_page.patch
+mm-switch-dump_page-to-get_kernel_nofault.patch
+mm-print-the-inode-number-in-dump_page.patch
+mm-print-hashed-address-of-struct-page.patch
+vmalloc-convert-to-xarray.patch
+mm-store-compound_nr-as-well-as-compound_order.patch
+mm-move-page-flags-include-to-top-of-file.patch
+mm-add-thp_order.patch
+mm-add-thp_size.patch
+mm-replace-hpage_nr_pages-with-thp_nr_pages.patch
+mm-add-thp_head.patch
+mm-introduce-offset_in_thp.patch
+poison-remove-obsolete-comment.patch
 
