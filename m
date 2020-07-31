@@ -7,43 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF5DBC433E0
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:59:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACECAC433E0
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 21:02:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD0FF22BEA
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 20:59:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87E3122B3F
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Jul 2020 21:02:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596229165;
-	bh=Vu+TEeOYmbHo2Jb3n+3vykRHNTeUG/yIUBM2keiE4T8=;
+	s=default; t=1596229362;
+	bh=19y8/KKQ8jl9+eV+2LtatR+BvE+gcbjazfqyRtLIq74=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=jaDwX4/xdyHdKEQuK852SLCGetv2VFOAlBeo2mzbJZoSvBB17aXh8qbkIXGIjbleb
-	 YllXCIh8Zp57ZXRuvcKTtkTX1qMNySL74G/+duAdm94OSCIJVo5xLhftps11Snc0HI
-	 wzOkSRFk71V6DFxqnZqsfq8nrW87AP3zQLbZU2LE=
+	b=0xYFRWdmqLXEZJd77CJvIRAamxPDTAlmzz/oKgQmrmW8GErITSnonafMJrOVKSb7y
+	 U5VI75GvnikDIDNNjZEl0y2JZ4HBWxGdhPiurHP7ZFMWZv0EJxDxPmsOItJeBydsTk
+	 ethf6nuChrrNugUPfOo8kAWZC8E/GOfeIDz7DuFE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727121AbgGaU7Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 31 Jul 2020 16:59:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43674 "EHLO mail.kernel.org"
+        id S1728015AbgGaVCm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 31 Jul 2020 17:02:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44622 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1727053AbgGaU7Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 31 Jul 2020 16:59:25 -0400
+        id S1726884AbgGaVCm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 31 Jul 2020 17:02:42 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 912B7208E4;
-        Fri, 31 Jul 2020 20:59:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D3547208E4;
+        Fri, 31 Jul 2020 21:02:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596229164;
-        bh=Vu+TEeOYmbHo2Jb3n+3vykRHNTeUG/yIUBM2keiE4T8=;
+        s=default; t=1596229361;
+        bh=19y8/KKQ8jl9+eV+2LtatR+BvE+gcbjazfqyRtLIq74=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OBzuMZj7dWFpQw5kQlcjLbsi+AS7AJyG66Inw1Z3t/eHYPOJjhnHMM/Hfsx3IW/dD
-         U6y1iaceK4QcgGfzKqwRjmqr0bi2LwxcojTEhZAidsKLse9SCTlcY2luU2GYvBR8hT
-         aABv86HwoO1a5ATtpfAnF+9aUdV6tI0AuEYSs7a0=
-Date:   Fri, 31 Jul 2020 13:59:24 -0700
+        b=H1N9xGJOi8O+U0LPVkkkJ8FCg1zgusZUWncFB5Ds82QjQ+1oZkrQyXKNdlP8DOlju
+         IsOz8R4GRiV50J5GiKak5YpIefiyGnfAF6hfb+s7KJBR75fHHsaOzkmgiTlGkAot3j
+         ebBomMP7C03rPgm48jOizZeKru0+H7uZxG7vyebo=
+Date:   Fri, 31 Jul 2020 14:02:40 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     mm-commits@vger.kernel.org, segoon@openwall.com,
-        tglx@linutronix.de, willy@infradead.org
-Subject:  + poison-remove-obsolete-comment.patch added to -mm tree
-Message-ID: <20200731205924.__-tFlA_R%akpm@linux-foundation.org>
+To:     guro@fb.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com,
+        m.szyprowski@samsung.com, mike.kravetz@oracle.com,
+        mina86@mina86.com, mm-commits@vger.kernel.org,
+        song.bao.hua@hisilicon.com, stable@vger.kernel.org
+Subject:  +
+ cma-dont-quit-at-first-error-when-activating-reserved-areas.patch added to
+ -mm tree
+Message-ID: <20200731210240.clQf5q43Q%akpm@linux-foundation.org>
 In-Reply-To: <20200723211432.b31831a0df3bc2cbdae31b40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/poison.h: remove obsolete comment
+     Subject: cma: don't quit at first error when activating reserved areas
 has been added to the -mm tree.  Its filename is
-     poison-remove-obsolete-comment.patch
+     cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/poison-remove-obsolete-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/poison-remove-obsolete-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,53 +79,132 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: include/linux/poison.h: remove obsolete comment
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: cma: don't quit at first error when activating reserved areas
 
-When the definition was changed, the comment became stale.  Just remove
-it since there isn't anything useful to say here.
+The routine cma_init_reserved_areas is designed to activate all
+reserved cma areas.  It quits when it first encounters an error.
+This can leave some areas in a state where they are reserved but
+not activated.  There is no feedback to code which performed the
+reservation.  Attempting to allocate memory from areas in such a
+state will result in a BUG.
 
-Link: http://lkml.kernel.org/r/20200730174108.GJ23808@casper.infradead.org
-Fixes: b8a0255db958 ("include/linux/poison.h: use POISON_POINTER_DELTA for poison pointers")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vasily Kulikov <segoon@openwall.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Modify cma_init_reserved_areas to always attempt to activate all
+areas.  The called routine, cma_activate_area is responsible for
+leaving the area in a valid state.  No one is making active use
+of returned error codes, so change the routine to void.
+
+How to reproduce:  This example uses kernelcore, hugetlb and cma
+as an easy way to reproduce.  However, this is a more general cma
+issue.
+
+Two node x86 VM 16GB total, 8GB per node
+Kernel command line parameters, kernelcore=4G hugetlb_cma=8G
+Related boot time messages,
+  hugetlb_cma: reserve 8192 MiB, up to 4096 MiB per node
+  cma: Reserved 4096 MiB at 0x0000000100000000
+  hugetlb_cma: reserved 4096 MiB on node 0
+  cma: Reserved 4096 MiB at 0x0000000300000000
+  hugetlb_cma: reserved 4096 MiB on node 1
+  cma: CMA area hugetlb could not be activated
+
+ # echo 8 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+
+  BUG: kernel NULL pointer dereference, address: 0000000000000000
+  #PF: supervisor read access in kernel mode
+  #PF: error_code(0x0000) - not-present page
+  PGD 0 P4D 0
+  Oops: 0000 [#1] SMP PTI
+  ...
+  Call Trace:
+    bitmap_find_next_zero_area_off+0x51/0x90
+    cma_alloc+0x1a5/0x310
+    alloc_fresh_huge_page+0x78/0x1a0
+    alloc_pool_huge_page+0x6f/0xf0
+    set_max_huge_pages+0x10c/0x250
+    nr_hugepages_store_common+0x92/0x120
+    ? __kmalloc+0x171/0x270
+    kernfs_fop_write+0xc1/0x1a0
+    vfs_write+0xc7/0x1f0
+    ksys_write+0x5f/0xe0
+    do_syscall_64+0x4d/0x90
+    entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Link: http://lkml.kernel.org/r/20200730163123.6451-1-mike.kravetz@oracle.com
+Fixes: c64be2bb1c6e ("drivers: add Contiguous Memory Allocator")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Acked-by: Barry Song <song.bao.hua@hisilicon.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/cma.c |   23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
---- a/include/linux/poison.h~poison-remove-obsolete-comment
-+++ a/include/linux/poison.h
-@@ -24,10 +24,6 @@
- #define LIST_POISON2  ((void *) 0x122 + POISON_POINTER_DELTA)
+--- a/mm/cma.c~cma-dont-quit-at-first-error-when-activating-reserved-areas
++++ a/mm/cma.c
+@@ -93,17 +93,15 @@ static void cma_clear_bitmap(struct cma
+ 	mutex_unlock(&cma->lock);
+ }
  
- /********** include/linux/timer.h **********/
--/*
-- * Magic number "tsta" to indicate a static timer initializer
-- * for the object debugging code.
-- */
- #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
+-static int __init cma_activate_area(struct cma *cma)
++static void __init cma_activate_area(struct cma *cma)
+ {
+ 	unsigned long base_pfn = cma->base_pfn, pfn = base_pfn;
+ 	unsigned i = cma->count >> pageblock_order;
+ 	struct zone *zone;
  
- /********** mm/page_poison.c **********/
+ 	cma->bitmap = bitmap_zalloc(cma_bitmap_maxno(cma), GFP_KERNEL);
+-	if (!cma->bitmap) {
+-		cma->count = 0;
+-		return -ENOMEM;
+-	}
++	if (!cma->bitmap)
++		goto out_error;
+ 
+ 	WARN_ON_ONCE(!pfn_valid(pfn));
+ 	zone = page_zone(pfn_to_page(pfn));
+@@ -133,25 +131,22 @@ static int __init cma_activate_area(stru
+ 	spin_lock_init(&cma->mem_head_lock);
+ #endif
+ 
+-	return 0;
++	return;
+ 
+ not_in_zone:
+-	pr_err("CMA area %s could not be activated\n", cma->name);
+ 	bitmap_free(cma->bitmap);
++out_error:
+ 	cma->count = 0;
+-	return -EINVAL;
++	pr_err("CMA area %s could not be activated\n", cma->name);
++	return;
+ }
+ 
+ static int __init cma_init_reserved_areas(void)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < cma_area_count; i++) {
+-		int ret = cma_activate_area(&cma_areas[i]);
+-
+-		if (ret)
+-			return ret;
+-	}
++	for (i = 0; i < cma_area_count; i++)
++		cma_activate_area(&cma_areas[i]);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-handle-page-mapping-better-in-dump_page.patch
-mm-dump-compound-page-information-on-a-second-line.patch
-mm-print-head-flags-in-dump_page.patch
-mm-switch-dump_page-to-get_kernel_nofault.patch
-mm-print-the-inode-number-in-dump_page.patch
-mm-print-hashed-address-of-struct-page.patch
-vmalloc-convert-to-xarray.patch
-mm-store-compound_nr-as-well-as-compound_order.patch
-mm-move-page-flags-include-to-top-of-file.patch
-mm-add-thp_order.patch
-mm-add-thp_size.patch
-mm-replace-hpage_nr_pages-with-thp_nr_pages.patch
-mm-add-thp_head.patch
-mm-introduce-offset_in_thp.patch
-poison-remove-obsolete-comment.patch
+hugetlbfs-prevent-filesystem-stacking-of-hugetlbfs.patch
+cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
 
