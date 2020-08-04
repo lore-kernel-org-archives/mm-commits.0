@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41B13C433DF
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22CC7C433DF
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 48E7D206DA
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2991A2068F
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596511308;
-	bh=RtAYYuNX/5nJzt5RNyauk1u2kvjex6QoJltgqho/Rjs=;
+	s=default; t=1596511310;
+	bh=rKFQb08yKIaqAgxae/VvPY+xHUEzktWp8fDZRvclBL4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=14VwJHcuNsgJ8VJgXCOMWbUtQesW/YR9Vfx7ltoZKdMMGtXmczJQ0J5pmdfdqqHWd
-	 o4sZGMKkLyxN0IJci0tj4Ortrb+ApkjjHokd2kAjvQ9/FIkCTWOjzJ9EjUjQDOHLWo
-	 1qgDiZoMprtqRcHcidIn0A/PbI1Ew3HUWph9mOqE=
+	b=b0rs8uKu5ZNX/YxVsDvmCdcq+Qq/B1SWvtTxutOAkJmRre+Cks7dFgH+eGoBbg0Bt
+	 dSfeuxvB1DeyaWF2zOk7OR9JUFxJFHkt63qWDdgLj5nNOTiRWDdjWeoU8c7e2yyExd
+	 MJo6C2b1D2qeVSkXvYIWgIyvg7bHfjjzhdfb4njs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730179AbgHDDVr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Aug 2020 23:21:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40636 "EHLO mail.kernel.org"
+        id S1730180AbgHDDVt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Aug 2020 23:21:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40658 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729636AbgHDDVr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Aug 2020 23:21:47 -0400
+        id S1729636AbgHDDVt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Aug 2020 23:21:49 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 00F3B2068F;
-        Tue,  4 Aug 2020 03:21:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0634E206DA;
+        Tue,  4 Aug 2020 03:21:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596511307;
-        bh=RtAYYuNX/5nJzt5RNyauk1u2kvjex6QoJltgqho/Rjs=;
+        s=default; t=1596511309;
+        bh=rKFQb08yKIaqAgxae/VvPY+xHUEzktWp8fDZRvclBL4=;
         h=Date:From:To:Subject:From;
-        b=d/Dj/U12J8rsGi9EHhLGc1kfJ/rvyK9H+HfTNNJrBs9mT1vtT/uQ2hvA+quxRiq9U
-         mxF8+W5edKQBu1OKXNgsxExJl+7ZK9CN506K9GRo/8GZtfOZYH90WsFfzRIp5LJoqG
-         aG3mZURuknKjCrwdX744MJpt0MNI5VEdrX1g2g88=
-Date:   Mon, 03 Aug 2020 20:21:46 -0700
+        b=hLZeAjald9JBRC//QmRKOdCzQpZ7HeTs61oXIWPFBsXl8/wPKYRYhqZ3dP/fv/Sva
+         hNx+TP3IL+wQwqqIghEOPVlei0La0TfzMJ/cFdUK3ZKW/omJxo91EmT1c2zbXo4yd8
+         erJvhJgg2tBTDcVSO90p8QeSGm6jsZnnOmOvoUh0=
+Date:   Mon, 03 Aug 2020 20:21:48 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
         rdunlap@infradead.org
-Subject:  + mm-zpoolc-delete-duplicated-word-and-fix-grammar.patch
- added to -mm tree
-Message-ID: <20200804032146.bTtlK40pB%akpm@linux-foundation.org>
+Subject:  + mm-zsmallocc-fix-duplicated-words.patch added to -mm
+ tree
+Message-ID: <20200804032148.cs9a6axDm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zpool.c: delete duplicated word and fix grammar
+     Subject: mm/zsmalloc.c: fix duplicated words
 has been added to the -mm tree.  Its filename is
-     mm-zpoolc-delete-duplicated-word-and-fix-grammar.patch
+     mm-zsmallocc-fix-duplicated-words.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zpoolc-delete-duplicated-word-and-fix-grammar.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmallocc-fix-duplicated-words.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zpoolc-delete-duplicated-word-and-fix-grammar.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmallocc-fix-duplicated-words.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,42 +76,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/zpool.c: delete duplicated word and fix grammar
+Subject: mm/zsmalloc.c: fix duplicated words
 
-Drop the repeated word "if".
-Fix subject/verb agreement.
+Change "as as" to "as a".
 
-Link: http://lkml.kernel.org/r/20200801173822.14973-15-rdunlap@infradead.org
+Link: http://lkml.kernel.org/r/20200801173822.14973-16-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zpool.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zpool.c~mm-zpoolc-delete-duplicated-word-and-fix-grammar
-+++ a/mm/zpool.c
-@@ -239,15 +239,15 @@ const char *zpool_get_type(struct zpool
- }
+--- a/mm/zsmalloc.c~mm-zsmallocc-fix-duplicated-words
++++ a/mm/zsmalloc.c
+@@ -79,7 +79,7 @@
  
- /**
-- * zpool_malloc_support_movable() - Check if the zpool support
-- * allocate movable memory
-+ * zpool_malloc_support_movable() - Check if the zpool supports
-+ *	allocating movable memory
-  * @zpool:	The zpool to check
+ /*
+  * Object location (<PFN>, <obj_idx>) is encoded as
+- * as single (unsigned long) handle value.
++ * a single (unsigned long) handle value.
   *
-- * This returns if the zpool support allocate movable memory.
-+ * This returns if the zpool supports allocating movable memory.
+  * Note that object index <obj_idx> starts from 0.
   *
-  * Implementations must guarantee this to be thread-safe.
-  *
-- * Returns: true if if the zpool support allocate movable memory, false if not
-+ * Returns: true if the zpool supports allocating movable memory, false if not
-  */
- bool zpool_malloc_support_movable(struct zpool *zpool)
- {
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
