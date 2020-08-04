@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48864C433E0
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4AE4C433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4FEF4206DA
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB265206DA
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596511302;
-	bh=oIuUAPYGDm/gitiWKOCDMausVIOAfFUJmrGT0ORSTF4=;
+	s=default; t=1596511303;
+	bh=QaC5ffKvOz/iDBQ6O9Q0po1Wcdw+nQtaupsDTrE+OD4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=yLRVbm9RQPoZBUBzGC2N0olxgiv8J3kCbRGVcdIRYVqEpddy1MOec5onzDtyv5hHl
-	 8Jz6U4hWZ4loo6qggCy8SvbM3DFYq7osz8yNJ26k764LnByBmv6tuxnmAXfgfUtVub
-	 9MkklTxoWkA4DrFHe9M1z1Ktr04H4k25lyKQmYAI=
+	b=i56BSJ3jpXvkxpcKcP+3qtJGbhMN6/rA5ZfYatZXhdh3W/wG6iNCXPN7EvHDhV1sI
+	 EV7HthH3pVTOns7fVqqSM4ZpnR1O3UP9poyB/SPKXa7TEDh1EzS5pU3qVEvOSzLygQ
+	 LUvGmgJsJYhNtZaaua8Ae3qJZxTilSCVYnzypEyk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730098AbgHDDVl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Aug 2020 23:21:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40566 "EHLO mail.kernel.org"
+        id S1730099AbgHDDVn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Aug 2020 23:21:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40592 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729636AbgHDDVl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Aug 2020 23:21:41 -0400
+        id S1729636AbgHDDVn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Aug 2020 23:21:43 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F19362068F;
-        Tue,  4 Aug 2020 03:21:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EA1882068F;
+        Tue,  4 Aug 2020 03:21:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596511301;
-        bh=oIuUAPYGDm/gitiWKOCDMausVIOAfFUJmrGT0ORSTF4=;
+        s=default; t=1596511303;
+        bh=QaC5ffKvOz/iDBQ6O9Q0po1Wcdw+nQtaupsDTrE+OD4=;
         h=Date:From:To:Subject:From;
-        b=bo17zZWGLQ1pwgAENDhfTMxdPRjcp+T/9TjN/im85jx5X0Xkm2Y1WSeiaicORSZqf
-         FUAEYw/4Cy5uh52Qld1VeApOXQA0rs1TiaugHdzYXJDKQk8wormruxDod4LC+d9f9j
-         VNnn8J+zfeVSPqisTJEfEokFozPwVi2jxso5MVuI=
-Date:   Mon, 03 Aug 2020 20:21:40 -0700
+        b=phOkV1CxbNEWm4wj/yZHz/2ZDR5anIUZ6PLSgZVFf5nq0e9as8V64in6GYrUNtaGR
+         LhMYezGhKmhBF2yRiH+PMuh5/pjykQbeAOTyV/tPCxVtGHkCKBg0TnxA/gbd9HGZDc
+         fCIdl2V5C0bNQJlJ3B+hxwY9wCk/TqefnRdcYVHQ=
+Date:   Mon, 03 Aug 2020 20:21:42 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
         rdunlap@infradead.org
-Subject:  + mm-slab_commonc-delete-duplicated-word.patch added to
- -mm tree
-Message-ID: <20200804032140.GAo3Y7_Ip%akpm@linux-foundation.org>
+Subject:  + mm-usercopyc-delete-duplicated-word.patch added to -mm
+ tree
+Message-ID: <20200804032142.0dfTlw8y5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common.c: delete duplicated word
+     Subject: mm/usercopy.c: delete duplicated word
 has been added to the -mm tree.  Its filename is
-     mm-slab_commonc-delete-duplicated-word.patch
+     mm-usercopyc-delete-duplicated-word.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab_commonc-delete-duplicated-word.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-usercopyc-delete-duplicated-word.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_commonc-delete-duplicated-word.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-usercopyc-delete-duplicated-word.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,30 +76,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/slab_common.c: delete duplicated word
+Subject: mm/usercopy.c: delete duplicated word
 
-Drop the repeated word "and".
+Drop the repeated word "the".
 
-Link: http://lkml.kernel.org/r/20200801173822.14973-12-rdunlap@infradead.org
+Link: http://lkml.kernel.org/r/20200801173822.14973-13-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    2 +-
+ mm/usercopy.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slab_common.c~mm-slab_commonc-delete-duplicated-word
-+++ a/mm/slab_common.c
-@@ -419,7 +419,7 @@ static void slab_caches_to_rcu_destroy_w
+--- a/mm/usercopy.c~mm-usercopyc-delete-duplicated-word
++++ a/mm/usercopy.c
+@@ -43,7 +43,7 @@ static noinline int check_stack_object(c
+ 
  	/*
- 	 * On destruction, SLAB_TYPESAFE_BY_RCU kmem_caches are put on the
- 	 * @slab_caches_to_rcu_destroy list.  The slab pages are freed
--	 * through RCU and and the associated kmem_cache are dereferenced
-+	 * through RCU and the associated kmem_cache are dereferenced
- 	 * while freeing the pages, so the kmem_caches should be freed only
- 	 * after the pending RCU operations are finished.  As rcu_barrier()
- 	 * is a pretty slow operation, we batch all pending destructions
+ 	 * Reject: object partially overlaps the stack (passing the
+-	 * the check above means at least one end is within the stack,
++	 * check above means at least one end is within the stack,
+ 	 * so if this check fails, the other end is outside the stack).
+ 	 */
+ 	if (obj < stack || stackend < obj + len)
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
