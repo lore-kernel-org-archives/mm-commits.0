@@ -7,48 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D57D8C433DF
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 00:03:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34307C433DF
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 00:11:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D90FE20792
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 00:03:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EA6D2086A
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 00:11:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596499403;
-	bh=N6QHjdb/DQV2ZLM6TQWJrwqac5QwLsnE85j4EcwohBk=;
+	s=default; t=1596499878;
+	bh=OJakgQN2QFLO0xsgGSp/8TRg4dqUmop2FnflVLWVw+s=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=PvOgpXNtOxOIe4TmWcQxY2kHTXLqPGOKc9YA3kajbON8M0Bz0kchsxq2cuBHZprwj
-	 eVkW7RG34l5RMhTAIvlyghOFbmzWcaRusgou56FjsjY8elwJ8yVCDzvUmmz1h5A04N
-	 B6J5fT4rFmsEPI81uo7WzgkFwTcKwWRoVXxGiOII=
+	b=Wlb8hNBL2iGG5jeykE7zFp+8PiD7+CXeWhrmKAMOiC6TDN/YzxFnZ+iIUzljrWAdF
+	 f9aWxE/0OYw2jTZX/Fob8Zkg7sGSP7fnkhtdDG9cTyZEbxhN/q/7lRmYamyzbPDM6g
+	 jSS+YUC1h/u241f9+wH8BNQA5DqyibLeuX0lm0h0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728793AbgHDADX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Aug 2020 20:03:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52158 "EHLO mail.kernel.org"
+        id S1728037AbgHDALR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Aug 2020 20:11:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726725AbgHDADX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Aug 2020 20:03:23 -0400
+        id S1728010AbgHDALP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Aug 2020 20:11:15 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 52C6020786;
-        Tue,  4 Aug 2020 00:03:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D95632076E;
+        Tue,  4 Aug 2020 00:11:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596499402;
-        bh=N6QHjdb/DQV2ZLM6TQWJrwqac5QwLsnE85j4EcwohBk=;
+        s=default; t=1596499874;
+        bh=OJakgQN2QFLO0xsgGSp/8TRg4dqUmop2FnflVLWVw+s=;
         h=Date:From:To:Subject:From;
-        b=kMW+ps94OhlEa8R7nMFhRDGvbaNhDBr8rikL624j+ItSddeZtRx07h+e6cTAB8NC9
-         svrZdf6IF4zej4YQKtx1zyLYXHLB7HjWqo+wIUZUA7kgqYsJy2Gy7pdAX4zKDFQPOk
-         pwDhVzJGX8fGbZJIAM/AK6eYE/HSifQILPYX4dWs=
-Date:   Mon, 03 Aug 2020 17:03:21 -0700
+        b=RBsNycY0fl8VA52fmi462H3MpotBsBFoXzPrbYSRyM8Pnj0HTxSWVce6Nwt2p4dP9
+         4IT7sZo0dFJYNgXbpde0Iv4pV08yiMSWdIvqRfFPJt1e1dEurRPo4zM4T+CMqL3u+g
+         /d5diis+vGesm2xr5Q0AwAo/pC+GkGUcXhwL2apE=
+Date:   Mon, 03 Aug 2020 17:11:13 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mkoutny@suse.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org, tj@kernel.org
-Subject:  + mm-fix-protection-usage-propagation.patch added to -mm
+To:     akpm@linux-foundation.org, axboe@kernel.dk, bvanassche@acm.org,
+        hare@suse.de, hughd@google.com, ming.lei@redhat.com,
+        mm-commits@vger.kernel.org, xianting_tian@126.com
+Subject:  +
+ mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch added to -mm
  tree
-Message-ID: <20200804000321.PxQ1KP_0d%akpm@linux-foundation.org>
+Message-ID: <20200804001113.0toe3M3uW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,16 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_counter.c: fix protection usage propagation
+     Subject: mm/page_io.c: use blk_io_schedule() for avoiding task hung in sync io
 has been added to the -mm tree.  Its filename is
-     mm-fix-protection-usage-propagation.patch
+     mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-protection-usage-propag=
-ation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-protection-usage-propag=
-ation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -74,84 +71,54 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Michal Koutn=C3=BD <mkoutny@suse.com>
-Subject: mm/page_counter.c: fix protection usage propagation
+From: Xianting Tian <xianting_tian@126.com>
+Subject: mm/page_io.c: use blk_io_schedule() for avoiding task hung in sync io
 
-When workload runs in cgroups that aren't directly below root cgroup and
-their parent specifies reclaim protection, it may end up ineffective.
+swap_readpage() does the sync io for one page, the io is not big,
+normally, the io can be finished quickly, but it may take long time or
+wait forever in case of io failure or discard.
 
-The reason is that propagate_protected_usage() is not called in all
-hierarchy up.  All the protected usage is incorrectly accumulated in the
-workload's parent.  This means that siblings_low_usage is overestimated
-and effective protection underestimated.  Even though it is transitional
-phenomenon (uncharge path does correct propagation and fixes the wrong
-children_low_usage), it can undermine the indended protection
-unexpectedly.
+This patch uses blk_io_schedule() instead of io_schedule() to avoid task
+hung and crash (when set /proc/sys/kernel/hung_task_panic) when the above
+exception occurs.
 
-We have noticed this problem while seeing a swap out in a descendant of a
-protected memcg (intermediate node) while the parent was conveniently
-under its protection limit and the memory pressure was external to that
-hierarchy.  Michal has pinpointed this down to the wrong
-siblings_low_usage which led to the unwanted reclaim.
+This is similar to the hung task avoidance in submit_bio_wait(),
+blk_execute_rq() and __blkdev_direct_IO().
 
-The fix is simply updating children_low_usage in respective ancestors also
-in the charging path.
-
-Link: http://lkml.kernel.org/r/20200803153231.15477-1-mhocko@kernel.org
-Fixes: 230671533d64 ("mm: memory.low hierarchical behavior")
-Signed-off-by: Michal Koutn=C3=BD <mkoutny@suse.com>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>	[4.18+]
+Link: http://lkml.kernel.org/r/1596461807-21087-1-git-send-email-xianting_tian@126.com
+Signed-off-by: Xianting Tian <xianting_tian@126.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ming Lei <ming.lei@redhat.com>
+Cc: Bart Van Assche <bvanassche@acm.org>
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_counter.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_counter.c~mm-fix-protection-usage-propagation
-+++ a/mm/page_counter.c
-@@ -72,7 +72,7 @@ void page_counter_charge(struct page_cou
- 		long new;
-=20
- 		new =3D atomic_long_add_return(nr_pages, &c->usage);
--		propagate_protected_usage(counter, new);
-+		propagate_protected_usage(c, new);
- 		/*
- 		 * This is indeed racy, but we can live with some
- 		 * inaccuracy in the watermark.
-@@ -116,7 +116,7 @@ bool page_counter_try_charge(struct page
- 		new =3D atomic_long_add_return(nr_pages, &c->usage);
- 		if (new > c->max) {
- 			atomic_long_sub(nr_pages, &c->usage);
--			propagate_protected_usage(counter, new);
-+			propagate_protected_usage(c, new);
- 			/*
- 			 * This is racy, but we can live with some
- 			 * inaccuracy in the failcnt.
-@@ -125,7 +125,7 @@ bool page_counter_try_charge(struct page
- 			*fail =3D c;
- 			goto failed;
- 		}
--		propagate_protected_usage(counter, new);
-+		propagate_protected_usage(c, new);
- 		/*
- 		 * Just like with failcnt, we can live with some
- 		 * inaccuracy in the watermark.
+--- a/mm/page_io.c~mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io
++++ a/mm/page_io.c
+@@ -441,7 +441,7 @@ int swap_readpage(struct page *page, boo
+ 			break;
+ 
+ 		if (!blk_poll(disk->queue, qc, true))
+-			io_schedule();
++			blk_io_schedule();
+ 	}
+ 	__set_current_state(TASK_RUNNING);
+ 	bio_put(bio);
 _
 
-Patches currently in -mm which might be from mkoutny@suse.com are
+Patches currently in -mm which might be from xianting_tian@126.com are
 
-mm-fix-protection-usage-propagation.patch
-proc-pid-smaps-consistent-whitespace-output-format.patch
+mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch
 
