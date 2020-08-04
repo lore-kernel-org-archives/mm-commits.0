@@ -7,49 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C016C433E0
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 02:59:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FDD1C433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:16:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59D592075D
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 02:59:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D15C2245C
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:16:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596509965;
-	bh=LDOy1eyWGHUUIkgyHWlTzqn1p/8CiO7tqJB+KrfA80Y=;
+	s=default; t=1596511015;
+	bh=zw4s7TPWJNfm2BEZVIXC8M87hR+mCgknLOIFWeceNKc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=1yJx+jAWL94sf5NICD7Jzd0dsXXIEm0NFSh4RYfVsoMjXdpOQ4wHvOTn+2oO40+e/
-	 jCOjAxBrxUbJgJyQvjXgbmKW3Hr9hwdl8xxm9BL1tIblR7nL+e0PrFjAEf4FoGWEGS
-	 qMT5YAEVsC3hY8chpTeO4YAWUL6o8uhBhUHfxg0w=
+	b=CRpacbioUie6SU9tEKLAfgNXlksEYtOQC6PNoDMIX+whT4cl4h2oBD/7YpbOHmPKc
+	 SB5cAAqFoXWptuVvQhNJAqvy9gWFpfC3cZWE8lQwnCc4lqc2g5Mqm8gW2PfdkJBUqu
+	 HqkUJpJaxU3hY38fzJkbasYpC1g/sKZOvxVmwoGI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725917AbgHDC7Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Aug 2020 22:59:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37796 "EHLO mail.kernel.org"
+        id S1729539AbgHDDQz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Aug 2020 23:16:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39630 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725840AbgHDC7Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Aug 2020 22:59:24 -0400
+        id S1729524AbgHDDQy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Aug 2020 23:16:54 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 05A6520738;
-        Tue,  4 Aug 2020 02:59:22 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id D0A592086A;
+        Tue,  4 Aug 2020 03:16:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596509963;
-        bh=LDOy1eyWGHUUIkgyHWlTzqn1p/8CiO7tqJB+KrfA80Y=;
+        s=default; t=1596511014;
+        bh=zw4s7TPWJNfm2BEZVIXC8M87hR+mCgknLOIFWeceNKc=;
         h=Date:From:To:Subject:From;
-        b=SRMSYpbhf2tv3ku5zzT0t2B2bJNny7ZHjXhsXCLsk0PzEdulykikXQ/sfJy9Fxd38
-         y1uhvXkGcvMlvWu3Pz2AhznWDgC44vHiCF0d3Yuv5nKmjaECim+jsHGuOgTsBKgAjt
-         eDvNd1b4uiowc37Jz4S3LtW9H+WQlxtlpnOtcozc=
-Date:   Mon, 03 Aug 2020 19:59:22 -0700
+        b=Civ1AJL33etfBw5Sfw6vzuPjpsbyubIV9l39N5mE62vzwZaLvdwN4V4jegh86YyiB
+         Lulpt3TdZT7jBo16qzt4wLz+Q5CeXI7Z0R931Bl56LF8/+0Fe5urvVDRnW/I4m0IxE
+         CzG5mhrRytaTArwCmc4dfEIk2LrMelbFZbJTWbeQ=
+Date:   Mon, 03 Aug 2020 20:16:53 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com,
-        dave@stgolabs.net, hughd@google.com,
-        kirill.shutemov@linux.intel.com, mhocko@kernel.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        n-horiguchi@ah.jp.nec.com, prakash.sangappa@oracle.com,
-        stable@vger.kernel.org, willy@infradead.org
-Subject:  +
- hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem.patch added to
+To:     amir73il@gmail.com, hannes@cmpxchg.org, hughd@google.com,
+        jlayton@kernel.org, mm-commits@vger.kernel.org, tj@kernel.org,
+        viro@zeniv.linux.org.uk, willy@infradead.org
+Subject:  + tmpfs-support-64-bit-inums-per-sb-fix.patch added to
  -mm tree
-Message-ID: <20200804025922._txyOJrwR%akpm@linux-foundation.org>
+Message-ID: <20200804031653.Tc5MASFr7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -59,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: remove call to huge_pte_alloc without i_mmap_rwsem
+     Subject: tmpfs: support 64-bit inums per-sb fix
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem.patch
+     tmpfs-support-64-bit-inums-per-sb-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tmpfs-support-64-bit-inums-per-sb-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-support-64-bit-inums-per-sb-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,169 +76,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlbfs: remove call to huge_pte_alloc without i_mmap_rwsem
+From: Hugh Dickins <hughd@google.com>
+Subject: tmpfs: support 64-bit inums per-sb fix
 
-Commit c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing
-synchronization") requires callers of huge_pte_alloc to hold i_mmap_rwsem
-in at least read mode.  This is because the explicit locking in
-huge_pmd_share (called by huge_pte_alloc) was removed.  When restructuring
-the code, the call to huge_pte_alloc in the else block at the beginning of
-hugetlb_fault was missed.
+Expanded Chris's Documentation and Kconfig help on tmpfs inode64. 
+TMPFS_INODE64 still there, still default N, but writing down its very
+limited limitation does make me wonder again if we want the option.
 
-Unfortunately, that else clause is exercised when there is no page table
-entry.  This will likely lead to a call to huge_pmd_share.  If
-huge_pmd_share thinks pmd sharing is possible, it will traverse the
-mapping tree (i_mmap) without holding i_mmap_rwsem.  If someone else is
-modifying the tree, bad things such as addressing exceptions or worse
-could happen.
-
-Simply remove the else clause.  It should have been removed previously. 
-The code following the else will call huge_pte_alloc with the appropriate
-locking.
-
-To prevent this type of issue in the future, add routines to assert that
-i_mmap_rwsem is held, and call these routines in huge pmd sharing
-routines.
-
-Link: http://lkml.kernel.org/r/e670f327-5cf9-1959-96e4-6dc7cc30d3d5@oracle.com
-Fixes: c0d0381ade79 ("hugetlbfs: use i_mmap_rwsem for more pmd sharing synchronization")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A.Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Prakash Sangappa <prakash.sangappa@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008011928010.13320@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h      |   10 ++++++++++
- include/linux/hugetlb.h |    8 +++++---
- mm/hugetlb.c            |   15 +++++++--------
- mm/rmap.c               |    2 +-
- 4 files changed, 23 insertions(+), 12 deletions(-)
+ Documentation/filesystems/tmpfs.rst |   13 ++++++++++---
+ fs/Kconfig                          |   16 +++++++++++-----
+ 2 files changed, 21 insertions(+), 8 deletions(-)
 
---- a/include/linux/fs.h~hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem
-+++ a/include/linux/fs.h
-@@ -518,6 +518,16 @@ static inline void i_mmap_unlock_read(st
- 	up_read(&mapping->i_mmap_rwsem);
- }
+--- a/Documentation/filesystems/tmpfs.rst~tmpfs-support-64-bit-inums-per-sb-fix
++++ a/Documentation/filesystems/tmpfs.rst
+@@ -153,11 +153,18 @@ parameters with chmod(1), chown(1) and c
+ tmpfs has a mount option to select whether it will wrap at 32- or 64-bit inode
+ numbers:
  
-+static inline void i_mmap_assert_locked(struct address_space *mapping)
-+{
-+	lockdep_assert_held(&mapping->i_mmap_rwsem);
-+}
++=======   ========================
+ inode64   Use 64-bit inode numbers
+ inode32   Use 32-bit inode numbers
++=======   ========================
 +
-+static inline void i_mmap_assert_write_locked(struct address_space *mapping)
-+{
-+	lockdep_assert_held_write(&mapping->i_mmap_rwsem);
-+}
++On a 32-bit kernel, inode32 is implicit, and inode64 is refused at mount time.
++On a 64-bit kernel, CONFIG_TMPFS_INODE64 sets the default.  inode64 avoids the
++possibility of multiple files with the same inode number on a single device;
++but risks glibc failing with EOVERFLOW once 33-bit inode numbers are reached -
++if a long-lived tmpfs is accessed by 32-bit applications so ancient that
++opening a file larger than 2GiB fails with EINVAL.
+ 
+-On 64-bit, the default is set by CONFIG_TMPFS_INODE64. On 32-bit, inode64 is
+-not legal and will produce an error at mount time.
+ 
+ So 'mount -t tmpfs -o size=10G,nr_inodes=10k,mode=700 tmpfs /mytmpfs'
+ will give you tmpfs instance on /mytmpfs which can allocate 10GB
+@@ -170,5 +177,5 @@ RAM/SWAP in 10240 inodes and it is only
+    Hugh Dickins, 4 June 2007
+ :Updated:
+    KOSAKI Motohiro, 16 Mar 2010
+-Updated:
++:Updated:
+    Chris Down, 13 July 2020
+--- a/fs/Kconfig~tmpfs-support-64-bit-inums-per-sb-fix
++++ a/fs/Kconfig
+@@ -207,12 +207,18 @@ config TMPFS_INODE64
+ 	default n
+ 	help
+ 	  tmpfs has historically used only inode numbers as wide as an unsigned
+-	  int. In some cases this can cause wraparound, potentially resulting in
+-	  multiple files with the same inode number on a single device. This option
+-	  makes tmpfs use the full width of ino_t by default, similarly to the
+-	  inode64 mount option.
++	  int. In some cases this can cause wraparound, potentially resulting
++	  in multiple files with the same inode number on a single device. This
++	  option makes tmpfs use the full width of ino_t by default, without
++	  needing to specify the inode64 option when mounting.
+ 
+-	  To override this default, use the inode32 or inode64 mount options.
++	  But if a long-lived tmpfs is to be accessed by 32-bit applications so
++	  ancient that opening a file larger than 2GiB fails with EINVAL, then
++	  the INODE64 config option and inode64 mount option risk operations
++	  failing with EOVERFLOW once 33-bit inode numbers are reached.
 +
- /*
-  * Might pages of this file be mapped into userspace?
-  */
---- a/include/linux/hugetlb.h~hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem
-+++ a/include/linux/hugetlb.h
-@@ -164,7 +164,8 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 			unsigned long addr, unsigned long sz);
- pte_t *huge_pte_offset(struct mm_struct *mm,
- 		       unsigned long addr, unsigned long sz);
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep);
-+int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
-+				unsigned long *addr, pte_t *ptep);
- void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
- 				unsigned long *start, unsigned long *end);
- struct page *follow_huge_addr(struct mm_struct *mm, unsigned long address,
-@@ -203,8 +204,9 @@ static inline struct address_space *huge
- 	return NULL;
- }
++	  To override this configured default, use the inode32 or inode64
++	  option when mounting.
  
--static inline int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr,
--					pte_t *ptep)
-+static inline int huge_pmd_unshare(struct mm_struct *mm,
-+					struct vm_area_struct *vma,
-+					unsigned long *addr, pte_t *ptep)
- {
- 	return 0;
- }
---- a/mm/hugetlb.c~hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem
-+++ a/mm/hugetlb.c
-@@ -3953,7 +3953,7 @@ void __unmap_hugepage_range(struct mmu_g
- 			continue;
+ 	  If unsure, say N.
  
- 		ptl = huge_pte_lock(h, mm, ptep);
--		if (huge_pmd_unshare(mm, &address, ptep)) {
-+		if (huge_pmd_unshare(mm, vma, &address, ptep)) {
- 			spin_unlock(ptl);
- 			/*
- 			 * We just unmapped a page of PMDs by clearing a PUD.
-@@ -4540,10 +4540,6 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
- 			return VM_FAULT_HWPOISON_LARGE |
- 				VM_FAULT_SET_HINDEX(hstate_index(h));
--	} else {
--		ptep = huge_pte_alloc(mm, haddr, huge_page_size(h));
--		if (!ptep)
--			return VM_FAULT_OOM;
- 	}
- 
- 	/*
-@@ -5020,7 +5016,7 @@ unsigned long hugetlb_change_protection(
- 		if (!ptep)
- 			continue;
- 		ptl = huge_pte_lock(h, mm, ptep);
--		if (huge_pmd_unshare(mm, &address, ptep)) {
-+		if (huge_pmd_unshare(mm, vma, &address, ptep)) {
- 			pages++;
- 			spin_unlock(ptl);
- 			shared_pmd = true;
-@@ -5401,12 +5397,14 @@ out:
-  * returns: 1 successfully unmapped a shared pte page
-  *	    0 the underlying pte page is not shared, or it is the last user
-  */
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
-+int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
-+					unsigned long *addr, pte_t *ptep)
- {
- 	pgd_t *pgd = pgd_offset(mm, *addr);
- 	p4d_t *p4d = p4d_offset(pgd, *addr);
- 	pud_t *pud = pud_offset(p4d, *addr);
- 
-+	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
- 	BUG_ON(page_count(virt_to_page(ptep)) == 0);
- 	if (page_count(virt_to_page(ptep)) == 1)
- 		return 0;
-@@ -5424,7 +5422,8 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	return NULL;
- }
- 
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
-+int huge_pmd_unshare(struct mm_struct *mm, struct vm_area_struct *vma,
-+				unsigned long *addr, pte_t *ptep)
- {
- 	return 0;
- }
---- a/mm/rmap.c~hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem
-+++ a/mm/rmap.c
-@@ -1469,7 +1469,7 @@ static bool try_to_unmap_one(struct page
- 			 * do this outside rmap routines.
- 			 */
- 			VM_BUG_ON(!(flags & TTU_RMAP_LOCKED));
--			if (huge_pmd_unshare(mm, &address, pvmw.pte)) {
-+			if (huge_pmd_unshare(mm, vma, &address, pvmw.pte)) {
- 				/*
- 				 * huge_pmd_unshare unmapped an entire PMD
- 				 * page.  There is no way of knowing exactly
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-hugetlbfs-prevent-filesystem-stacking-of-hugetlbfs.patch
-hugetlbfs-remove-call-to-huge_pte_alloc-without-i_mmap_rwsem.patch
-cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
+tmpfs-support-64-bit-inums-per-sb-fix.patch
+mm-memcontrol-decouple-reference-counting-from-page-accounting-fix.patch
+khugepaged-collapse_pte_mapped_thp-flush-the-right-range.patch
+khugepaged-collapse_pte_mapped_thp-protect-the-pmd-lock.patch
+khugepaged-retract_page_tables-remember-to-test-exit.patch
+khugepaged-khugepaged_test_exit-check-mmget_still_valid.patch
 
