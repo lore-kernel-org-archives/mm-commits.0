@@ -7,45 +7,50 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A128EC433DF
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 01:23:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28F9EC433DF
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 01:23:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A89132072A
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 01:23:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14F9E2076E
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 01:23:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596504195;
-	bh=9ZLepuIllq9fo8dVeYQZq/zlWxogBdtJdckuWymTRQ8=;
+	s=default; t=1596504231;
+	bh=gFazaTQXM3fWXeCKy0wdxG6lHSYv+D+DdcfLOxtrmXw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=F5E/7NUp33Ku+kCs/gIXqt1fvyOVOXVRE8ijWsRNU9sbhhISbUT/FtFVx6A7Xi9DI
-	 /T7cnxdNQZnENGQCdIj+ZXYyvKInQcbgTBoeU5/iwrH240L469ZpLJvDFH0enWM36H
-	 3jhb4tnAaxKt2abo1TI7dk5GzwFyGvESffhxSk0I=
+	b=Wn+tayni1Xn49TfIMY+MN4VZil18iWtNVPi8E2dd4sfI/c+1Jb/OQyw1EGUiV8Ga7
+	 MfLRw0/dNOdruFIDwEBcZTq6R/Ywuf8+MH/i3L6k2MiaEN1nH2D39mfkR4ZSV6BZ4G
+	 cyX4E6uJR7ps9Qcxrqtg80YyNj08H0HndVW+iI1Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728462AbgHDBXP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Aug 2020 21:23:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39982 "EHLO mail.kernel.org"
+        id S1728926AbgHDBXu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Aug 2020 21:23:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40078 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726276AbgHDBXO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Aug 2020 21:23:14 -0400
+        id S1726276AbgHDBXu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Aug 2020 21:23:50 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 089B320781;
-        Tue,  4 Aug 2020 01:23:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 202B32072A;
+        Tue,  4 Aug 2020 01:23:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596504194;
-        bh=9ZLepuIllq9fo8dVeYQZq/zlWxogBdtJdckuWymTRQ8=;
+        s=default; t=1596504228;
+        bh=gFazaTQXM3fWXeCKy0wdxG6lHSYv+D+DdcfLOxtrmXw=;
         h=Date:From:To:Subject:From;
-        b=WBvWMnHENl9qszoi+Had2eDmDLGX/fm3hXkZS27O2ujVyx3j27ANhC2u7PqNf6nNS
-         zUN7k51vefKLZispkfdYvd4d9NDGnXSTR4cJ1vo0IG1ENg8f8b6vH/0Nx3kFGjozog
-         Gg4yaCKqjJwszV68si1JjOxEug/EwBxDMJD0xYdU=
-Date:   Mon, 03 Aug 2020 18:23:13 -0700
+        b=hjTo9Bbt6+8QbsMBgPtVJ0xsNUlHeEwAHveX253A3exY+MJCN7xSrK5PviUIaSrHV
+         OltE3vcanWil1p5+OsE1Ll+Uw8dPK0aq9QeHcjzILMaeg+J7PsOdZYyrB9ifdiKvAh
+         Ii2/A1S0n00P4Evo5QnW4sAgg8gWpaKX5kwsEOS8=
+Date:   Mon, 03 Aug 2020 18:23:47 -0700
 From:   akpm@linux-foundation.org
-To:     charante@codeaurora.org, david@redhat.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, vbabka@suse.cz, vinmenon@codeaurora.org
-Subject:  +
- mm-memory_hotplug-update-pcp-lists-everytime-onlining-a-memory-block.patch
- added to -mm tree
-Message-ID: <20200804012313.lTUQ4H-OP%akpm@linux-foundation.org>
+To:     alex.williamson@redhat.com, bmt@zurich.ibm.com, cohuck@redhat.com,
+        daniel.m.jordan@oracle.com, dbueso@suse.de, dledford@redhat.com,
+        fly@kernel.page, hughd@google.com, jgg@ziepe.ca,
+        jglisse@redhat.com, jhubbard@nvidia.com,
+        kirill.shutemov@linux.intel.com, ldufour@linux.ibm.com,
+        Liam.Howlett@oracle.com, mm-commits@vger.kernel.org,
+        peterz@infradead.org, rientjes@google.com, vbabka@suse.cz,
+        walken@google.com, willy@infradead.org, yinghan@google.com
+Subject:  [withdrawn]
+ mm-make-mm-locked_vm-an-atomic64-counter.patch removed from -mm tree
+Message-ID: <20200804012347.DWV-eyWS4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,73 +60,338 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: update pcp lists everytime onlining a memory block
-has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-update-pcp-lists-everytime-onlining-a-memory-block.patch
+     Subject: mm: make mm->locked_vm an atomic64 counter
+has been removed from the -mm tree.  Its filename was
+     mm-make-mm-locked_vm-an-atomic64-counter.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-update-pcp-lists-everytime-onlining-a-memory-block.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-update-pcp-lists-everytime-onlining-a-memory-block.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm, memory_hotplug: update pcp lists everytime onlining a memory block
+From: Pengfei Li <fly@kernel.page>
+Subject: mm: make mm->locked_vm an atomic64 counter
 
-When onlining a first memory block in a zone, pcp lists are not updated
-thus pcp struct will have the default setting of ->high = 0,->batch = 1.
+Like commit 70f8a3ca68d3 ("mm: make mm->pinned_vm an atomic64 counter").
 
-This means till the second memory block in a zone(if it have) is onlined
-the pcp lists of this zone will not contain any pages because pcp's
-->count is always greater than ->high thus free_pcppages_bulk() is called
-to free batch size(=1) pages every time system wants to add a page to the
-pcp list through free_unref_page().
+By making mm->locked_vm an atomic64 counter, we can safely modify it
+without holding mmap_lock.
 
-To put this in a word, system is not using benefits offered by the pcp
-lists when there is a single onlineable memory block in a zone.  Correct
-this by always updating the pcp lists when memory block is onlined.
+The reason for using atomic64 instead of atomic_long is to keep the same
+as mm->pinned_vm, and there is no need to worry about overflow.
 
-Link: http://lkml.kernel.org/r/1596372896-15336-1-git-send-email-charante@codeaurora.org
-Fixes: 1f522509c77a ("mem-hotplug: avoid multiple zones sharing same boot strapping boot_pageset")
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Link: http://lkml.kernel.org/r/20200726080224.205470-1-fly@kernel.page
+Signed-off-by: Pengfei Li <fly@kernel.page>
+Cc: Alex Williamson <alex.williamson@redhat.com>
+Cc: Bernard Metzler <bmt@zurich.ibm.com>
+Cc: Cornelia Huck <cohuck@redhat.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Liam Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/sw/siw/siw_verbs.c |   12 +++++++-----
+ drivers/vfio/vfio_iommu_type1.c       |    6 ++++--
+ fs/io_uring.c                         |    4 ++--
+ fs/proc/task_mmu.c                    |    2 +-
+ include/linux/mm_types.h              |    4 ++--
+ kernel/fork.c                         |    2 +-
+ mm/debug.c                            |    5 +++--
+ mm/mlock.c                            |    4 ++--
+ mm/mmap.c                             |   18 +++++++++---------
+ mm/mremap.c                           |    6 +++---
+ mm/util.c                             |    6 +++---
+ 11 files changed, 37 insertions(+), 32 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-update-pcp-lists-everytime-onlining-a-memory-block
-+++ a/mm/memory_hotplug.c
-@@ -854,8 +854,7 @@ int __ref online_pages(unsigned long pfn
- 	node_states_set_node(nid, &arg);
- 	if (need_zonelists_rebuild)
- 		build_all_zonelists(NULL);
--	else
--		zone_pcp_update(zone);
-+	zone_pcp_update(zone);
+--- a/drivers/infiniband/sw/siw/siw_verbs.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/drivers/infiniband/sw/siw/siw_verbs.c
+@@ -1293,14 +1293,16 @@ struct ib_mr *siw_reg_user_mr(struct ib_
+ 		goto err_out;
+ 	}
+ 	if (mem_limit != RLIM_INFINITY) {
+-		unsigned long num_pages =
+-			(PAGE_ALIGN(len + (start & ~PAGE_MASK))) >> PAGE_SHIFT;
++		unsigned long num_pages, locked_pages;
++
++		num_pages = (PAGE_ALIGN(len + (start & ~PAGE_MASK)))
++				>> PAGE_SHIFT;
++		locked_pages = atomic64_read(&current->mm->locked_vm);
+ 		mem_limit >>= PAGE_SHIFT;
  
- 	init_per_zone_wmark_min();
+-		if (num_pages > mem_limit - current->mm->locked_vm) {
++		if (num_pages > mem_limit - locked_pages) {
+ 			siw_dbg_pd(pd, "pages req %lu, max %lu, lock %lu\n",
+-				   num_pages, mem_limit,
+-				   current->mm->locked_vm);
++				   num_pages, mem_limit, locked_pages);
+ 			rv = -ENOMEM;
+ 			goto err_out;
+ 		}
+--- a/drivers/vfio/vfio_iommu_type1.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/drivers/vfio/vfio_iommu_type1.c
+@@ -509,7 +509,8 @@ static long vfio_pin_pages_remote(struct
+ 	 * pages are already counted against the user.
+ 	 */
+ 	if (!rsvd && !vfio_find_vpfn(dma, iova)) {
+-		if (!dma->lock_cap && current->mm->locked_vm + 1 > limit) {
++		if (!dma->lock_cap &&
++		    atomic64_read(&current->mm->locked_vm) + 1 > limit) {
+ 			put_pfn(*pfn_base, dma->prot);
+ 			pr_warn("%s: RLIMIT_MEMLOCK (%ld) exceeded\n", __func__,
+ 					limit << PAGE_SHIFT);
+@@ -536,7 +537,8 @@ static long vfio_pin_pages_remote(struct
  
+ 		if (!rsvd && !vfio_find_vpfn(dma, iova)) {
+ 			if (!dma->lock_cap &&
+-			    current->mm->locked_vm + lock_acct + 1 > limit) {
++			    atomic64_read(&current->mm->locked_vm) +
++			    lock_acct + 1 > limit) {
+ 				put_pfn(pfn, dma->prot);
+ 				pr_warn("%s: RLIMIT_MEMLOCK (%ld) exceeded\n",
+ 					__func__, limit << PAGE_SHIFT);
+--- a/fs/io_uring.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/fs/io_uring.c
+@@ -7358,7 +7358,7 @@ static void io_unaccount_mem(struct io_r
+ 
+ 	if (ctx->sqo_mm) {
+ 		if (acct == ACCT_LOCKED)
+-			ctx->sqo_mm->locked_vm -= nr_pages;
++			atomic64_sub(nr_pages, &ctx->sqo_mm->locked_vm);
+ 		else if (acct == ACCT_PINNED)
+ 			atomic64_sub(nr_pages, &ctx->sqo_mm->pinned_vm);
+ 	}
+@@ -7377,7 +7377,7 @@ static int io_account_mem(struct io_ring
+ 
+ 	if (ctx->sqo_mm) {
+ 		if (acct == ACCT_LOCKED)
+-			ctx->sqo_mm->locked_vm += nr_pages;
++			atomic64_add(nr_pages, &ctx->sqo_mm->locked_vm);
+ 		else if (acct == ACCT_PINNED)
+ 			atomic64_add(nr_pages, &ctx->sqo_mm->pinned_vm);
+ 	}
+--- a/fs/proc/task_mmu.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/fs/proc/task_mmu.c
+@@ -58,7 +58,7 @@ void task_mem(struct seq_file *m, struct
+ 	swap = get_mm_counter(mm, MM_SWAPENTS);
+ 	SEQ_PUT_DEC("VmPeak:\t", hiwater_vm);
+ 	SEQ_PUT_DEC(" kB\nVmSize:\t", total_vm);
+-	SEQ_PUT_DEC(" kB\nVmLck:\t", mm->locked_vm);
++	SEQ_PUT_DEC(" kB\nVmLck:\t", atomic64_read(&mm->locked_vm));
+ 	SEQ_PUT_DEC(" kB\nVmPin:\t", atomic64_read(&mm->pinned_vm));
+ 	SEQ_PUT_DEC(" kB\nVmHWM:\t", hiwater_rss);
+ 	SEQ_PUT_DEC(" kB\nVmRSS:\t", total_rss);
+--- a/include/linux/mm_types.h~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/include/linux/mm_types.h
+@@ -457,8 +457,8 @@ struct mm_struct {
+ 		unsigned long hiwater_vm;  /* High-water virtual memory usage */
+ 
+ 		unsigned long total_vm;	   /* Total pages mapped */
+-		unsigned long locked_vm;   /* Pages that have PG_mlocked set */
+-		atomic64_t    pinned_vm;   /* Refcount permanently increased */
++		atomic64_t locked_vm;	   /* Pages that have PG_mlocked set */
++		atomic64_t pinned_vm;	   /* Refcount permanently increased */
+ 		unsigned long data_vm;	   /* VM_WRITE & ~VM_SHARED & ~VM_STACK */
+ 		unsigned long exec_vm;	   /* VM_EXEC & ~VM_WRITE & ~VM_STACK */
+ 		unsigned long stack_vm;	   /* VM_STACK */
+--- a/kernel/fork.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/kernel/fork.c
+@@ -1009,7 +1009,7 @@ static struct mm_struct *mm_init(struct
+ 	mm->core_state = NULL;
+ 	mm_pgtables_bytes_init(mm);
+ 	mm->map_count = 0;
+-	mm->locked_vm = 0;
++	atomic64_set(&mm->locked_vm, 0);
+ 	atomic64_set(&mm->pinned_vm, 0);
+ 	memset(&mm->rss_stat, 0, sizeof(mm->rss_stat));
+ 	spin_lock_init(&mm->page_table_lock);
+--- a/mm/debug.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/mm/debug.c
+@@ -218,7 +218,7 @@ void dump_mm(const struct mm_struct *mm)
+ #endif
+ 		"mmap_base %lu mmap_legacy_base %lu highest_vm_end %lu\n"
+ 		"pgd %px mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
+-		"hiwater_rss %lx hiwater_vm %lx total_vm %lx locked_vm %lx\n"
++		"hiwater_rss %lx hiwater_vm %lx total_vm %lx locked_vm %llx\n"
+ 		"pinned_vm %llx data_vm %lx exec_vm %lx stack_vm %lx\n"
+ 		"start_code %lx end_code %lx start_data %lx end_data %lx\n"
+ 		"start_brk %lx brk %lx start_stack %lx\n"
+@@ -249,7 +249,8 @@ void dump_mm(const struct mm_struct *mm)
+ 		atomic_read(&mm->mm_count),
+ 		mm_pgtables_bytes(mm),
+ 		mm->map_count,
+-		mm->hiwater_rss, mm->hiwater_vm, mm->total_vm, mm->locked_vm,
++		mm->hiwater_rss, mm->hiwater_vm, mm->total_vm,
++		(u64)atomic64_read(&mm->locked_vm),
+ 		(u64)atomic64_read(&mm->pinned_vm),
+ 		mm->data_vm, mm->exec_vm, mm->stack_vm,
+ 		mm->start_code, mm->end_code, mm->start_data, mm->end_data,
+--- a/mm/mlock.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/mm/mlock.c
+@@ -561,7 +561,7 @@ success:
+ 		nr_pages = -nr_pages;
+ 	else if (old_flags & VM_LOCKED)
+ 		nr_pages = 0;
+-	mm->locked_vm += nr_pages;
++	atomic64_add(nr_pages, &mm->locked_vm);
+ 
+ 	/*
+ 	 * vm_flags is protected by the mmap_lock held in write mode.
+@@ -688,7 +688,7 @@ static __must_check int do_mlock(unsigne
+ 	if (mmap_write_lock_killable(current->mm))
+ 		return -EINTR;
+ 
+-	locked += current->mm->locked_vm;
++	locked += atomic64_read(&current->mm->locked_vm);
+ 	if ((locked > lock_limit) && (!capable(CAP_IPC_LOCK))) {
+ 		/*
+ 		 * It is possible that the regions requested intersect with
+--- a/mm/mmap.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/mm/mmap.c
+@@ -1319,7 +1319,7 @@ static inline int mlock_future_check(str
+ 	/*  mlock MCL_FUTURE? */
+ 	if (flags & VM_LOCKED) {
+ 		locked = len >> PAGE_SHIFT;
+-		locked += mm->locked_vm;
++		locked += atomic64_read(&mm->locked_vm);
+ 		lock_limit = rlimit(RLIMIT_MEMLOCK);
+ 		lock_limit >>= PAGE_SHIFT;
+ 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
+@@ -1832,7 +1832,7 @@ out:
+ 					vma == get_gate_vma(current->mm))
+ 			vma->vm_flags &= VM_LOCKED_CLEAR_MASK;
+ 		else
+-			mm->locked_vm += (len >> PAGE_SHIFT);
++			atomic64_add(len >> PAGE_SHIFT, &mm->locked_vm);
+ 	}
+ 
+ 	if (file)
+@@ -2343,7 +2343,7 @@ static int acct_stack_growth(struct vm_a
+ 	if (vma->vm_flags & VM_LOCKED) {
+ 		unsigned long locked;
+ 		unsigned long limit;
+-		locked = mm->locked_vm + grow;
++		locked = atomic64_read(&mm->locked_vm) + grow;
+ 		limit = rlimit(RLIMIT_MEMLOCK);
+ 		limit >>= PAGE_SHIFT;
+ 		if (locked > limit && !capable(CAP_IPC_LOCK))
+@@ -2436,7 +2436,7 @@ int expand_upwards(struct vm_area_struct
+ 				 */
+ 				spin_lock(&mm->page_table_lock);
+ 				if (vma->vm_flags & VM_LOCKED)
+-					mm->locked_vm += grow;
++					atomic64_add(grow, &mm->locked_vm);
+ 				vm_stat_account(mm, vma->vm_flags, grow);
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_end = address;
+@@ -2516,7 +2516,7 @@ int expand_downwards(struct vm_area_stru
+ 				 */
+ 				spin_lock(&mm->page_table_lock);
+ 				if (vma->vm_flags & VM_LOCKED)
+-					mm->locked_vm += grow;
++					atomic64_add(grow, &mm->locked_vm);
+ 				vm_stat_account(mm, vma->vm_flags, grow);
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_start = address;
+@@ -2859,11 +2859,11 @@ int __do_munmap(struct mm_struct *mm, un
+ 	/*
+ 	 * unlock any mlock()ed ranges before detaching vmas
+ 	 */
+-	if (mm->locked_vm) {
++	if (atomic64_read(&mm->locked_vm)) {
+ 		struct vm_area_struct *tmp = vma;
+ 		while (tmp && tmp->vm_start < end) {
+ 			if (tmp->vm_flags & VM_LOCKED) {
+-				mm->locked_vm -= vma_pages(tmp);
++				atomic64_sub(vma_pages(tmp), &mm->locked_vm);
+ 				munlock_vma_pages_all(tmp);
+ 			}
+ 
+@@ -3103,7 +3103,7 @@ out:
+ 	mm->total_vm += len >> PAGE_SHIFT;
+ 	mm->data_vm += len >> PAGE_SHIFT;
+ 	if (flags & VM_LOCKED)
+-		mm->locked_vm += (len >> PAGE_SHIFT);
++		atomic64_add(len >> PAGE_SHIFT, &mm->locked_vm);
+ 	vma->vm_flags |= VM_SOFTDIRTY;
+ 	return 0;
+ }
+@@ -3175,7 +3175,7 @@ void exit_mmap(struct mm_struct *mm)
+ 		mmap_write_unlock(mm);
+ 	}
+ 
+-	if (mm->locked_vm) {
++	if (atomic64_read(&mm->locked_vm)) {
+ 		vma = mm->mmap;
+ 		while (vma) {
+ 			if (vma->vm_flags & VM_LOCKED)
+--- a/mm/mremap.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/mm/mremap.c
+@@ -455,7 +455,7 @@ static unsigned long move_vma(struct vm_
+ 	}
+ 
+ 	if (vm_flags & VM_LOCKED) {
+-		mm->locked_vm += new_len >> PAGE_SHIFT;
++		atomic64_add(new_len >> PAGE_SHIFT, &mm->locked_vm);
+ 		*locked = true;
+ 	}
+ out:
+@@ -520,7 +520,7 @@ static struct vm_area_struct *vma_to_res
+ 
+ 	if (vma->vm_flags & VM_LOCKED) {
+ 		unsigned long locked, lock_limit;
+-		locked = mm->locked_vm << PAGE_SHIFT;
++		locked = atomic64_read(&mm->locked_vm) << PAGE_SHIFT;
+ 		lock_limit = rlimit(RLIMIT_MEMLOCK);
+ 		locked += new_len - old_len;
+ 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
+@@ -765,7 +765,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
+ 
+ 			vm_stat_account(mm, vma->vm_flags, pages);
+ 			if (vma->vm_flags & VM_LOCKED) {
+-				mm->locked_vm += pages;
++				atomic64_add(pages, &mm->locked_vm);
+ 				locked = true;
+ 				new_addr = addr;
+ 			}
+--- a/mm/util.c~mm-make-mm-locked_vm-an-atomic64-counter
++++ a/mm/util.c
+@@ -439,7 +439,7 @@ int __account_locked_vm(struct mm_struct
+ 
+ 	mmap_assert_write_locked(mm);
+ 
+-	locked_vm = mm->locked_vm;
++	locked_vm = atomic64_read(&mm->locked_vm);
+ 	if (inc) {
+ 		if (!bypass_rlim) {
+ 			limit = task_rlimit(task, RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+@@ -447,10 +447,10 @@ int __account_locked_vm(struct mm_struct
+ 				ret = -ENOMEM;
+ 		}
+ 		if (!ret)
+-			mm->locked_vm = locked_vm + pages;
++			atomic64_add(pages, &mm->locked_vm);
+ 	} else {
+ 		WARN_ON_ONCE(pages > locked_vm);
+-		mm->locked_vm = locked_vm - pages;
++		atomic64_sub(pages, &mm->locked_vm);
+ 	}
+ 
+ 	pr_debug("%s: [%d] caller %ps %c%lu %lu/%lu%s\n", __func__, task->pid,
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
+Patches currently in -mm which might be from fly@kernel.page are
 
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
-mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
-mm-memory_hotplug-update-pcp-lists-everytime-onlining-a-memory-block.patch
+mm-util-account_locked_vm-does-not-hold-mmap_lock.patch
 
