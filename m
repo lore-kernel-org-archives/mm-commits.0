@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 867F8C433E0
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A178C433DF
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85AB0206DA
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BC932068F
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596511282;
-	bh=1YqtkIzguavvhSsMDbX/4s/HKo+bEsTFxIs+s6Ew7y8=;
+	s=default; t=1596511284;
+	bh=COEEulLpyjd/bwrZifqAGtNuegeTKEfkcwoNjydiAVU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=dNMIeqMy+1m0oGbvilcXAo1qGEwdmt/PuTYoZvGi25+FigQo/8I8ZJOFoL9ExXZc/
-	 Txhbq0Wbt01K8/ZNmU47MzjlEdgIGlB9O1NWI3dgB7krGZonczRJk73yM6Fc9Vo5sx
-	 psuNLaRnm6F8/c+2tcXE4JPCvLcd4NgknR84QBHs=
+	b=MpO6R38UYF+dPTVKWb6riELuHkyYiTWLDNLZGVjHjgT9LiYfH4vVhlxZnbYp0YYxD
+	 Hf6Q07+70ecFodgS9Tdb911Q2QxMdP4NWg1pjtYcNyOuCSbOfLT0n8lThQhYQHGhpJ
+	 ICC4w13twy/TYAnOj0V1e7ZGiSa5U9c2v0Xl2T2s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729637AbgHDDVW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Aug 2020 23:21:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40322 "EHLO mail.kernel.org"
+        id S1729648AbgHDDVX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Aug 2020 23:21:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40348 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729636AbgHDDVV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Aug 2020 23:21:21 -0400
+        id S1729636AbgHDDVX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Aug 2020 23:21:23 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1709C2068F;
-        Tue,  4 Aug 2020 03:21:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EE9C7206DA;
+        Tue,  4 Aug 2020 03:21:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596511281;
-        bh=1YqtkIzguavvhSsMDbX/4s/HKo+bEsTFxIs+s6Ew7y8=;
+        s=default; t=1596511283;
+        bh=COEEulLpyjd/bwrZifqAGtNuegeTKEfkcwoNjydiAVU=;
         h=Date:From:To:Subject:From;
-        b=VCqJp1HxGifHWDW//8/hkOW1sRzvs8o1GeoieP85sW9Ngs1lZx+DnNX6K8x5WhiGl
-         uMTqJO8Q68HTe+2qRKOP5SDXoNUgmG3tH2aC0lRq+tDOlB6ZD6oMj/YBzol70VLwUN
-         ZwMEFFtkXbYeGNUUoHqUQFSsmHvvVIJVz2aFfhBY=
-Date:   Mon, 03 Aug 2020 20:21:20 -0700
+        b=aNkZqrKi8TWZ2WDkmuhTV6qhUi1qVQ0Ra2qMRgvM12hY6xhFuClpnT//R/yg8gRQ8
+         lVip+Azf5fQhxjhiO8DrqM9gyydrCUAUP3oYTnN9cW7TxrMjjdy1EJrWU6LrA4mEEU
+         hLz6xmV1Kywe77JIv691a+mCCiA5xxVhv/V7D+jU=
+Date:   Mon, 03 Aug 2020 20:21:22 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
         rdunlap@infradead.org
-Subject:  + mm-compactionc-delete-duplicated-word.patch added to
- -mm tree
-Message-ID: <20200804032120.GmDHi6gK0%akpm@linux-foundation.org>
+Subject:  + mm-filemapc-delete-duplicated-word.patch added to -mm
+ tree
+Message-ID: <20200804032122.4Znr4FXta%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction.c: delete duplicated word
+     Subject: mm/filemap.c: delete duplicated word
 has been added to the -mm tree.  Its filename is
-     mm-compactionc-delete-duplicated-word.patch
+     mm-filemapc-delete-duplicated-word.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compactionc-delete-duplicated-word.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemapc-delete-duplicated-word.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compactionc-delete-duplicated-word.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemapc-delete-duplicated-word.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,30 +76,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/compaction.c: delete duplicated word
+Subject: mm/filemap.c: delete duplicated word
 
-Drop the repeated word "a".
+Drop the repeated word "the".
 
-Link: http://lkml.kernel.org/r/20200801173822.14973-2-rdunlap@infradead.org
+Link: http://lkml.kernel.org/r/20200801173822.14973-3-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
+ mm/filemap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compactionc-delete-duplicated-word
-+++ a/mm/compaction.c
-@@ -1477,7 +1477,7 @@ static void isolate_freepages(struct com
- 	 * this pfn aligned down to the pageblock boundary, because we do
- 	 * block_start_pfn -= pageblock_nr_pages in the for loop.
- 	 * For ending point, take care when isolating in last pageblock of a
--	 * a zone which ends in the middle of a pageblock.
-+	 * zone which ends in the middle of a pageblock.
- 	 * The low boundary is the end of the pageblock the migration scanner
- 	 * is using.
- 	 */
+--- a/mm/filemap.c~mm-filemapc-delete-duplicated-word
++++ a/mm/filemap.c
+@@ -2885,7 +2885,7 @@ filler:
+ 	 * Case a, the page will be up to date when the page is unlocked.
+ 	 *    There is no need to serialise on the page lock here as the page
+ 	 *    is pinned so the lock gives no additional protection. Even if the
+-	 *    the page is truncated, the data is still valid if PageUptodate as
++	 *    page is truncated, the data is still valid if PageUptodate as
+ 	 *    it's a race vs truncate race.
+ 	 * Case b, the page will not be up to date
+ 	 * Case c, the page may be truncated but in itself, the data may still
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
