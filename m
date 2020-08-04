@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4AE4C433E0
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BDEBC433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB265206DA
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EFEB206DA
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596511303;
-	bh=QaC5ffKvOz/iDBQ6O9Q0po1Wcdw+nQtaupsDTrE+OD4=;
+	s=default; t=1596511306;
+	bh=sKdQBIM/2YP+fAW1Fbnnp9KFLzXeoXv6eihN0pGDTuI=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=i56BSJ3jpXvkxpcKcP+3qtJGbhMN6/rA5ZfYatZXhdh3W/wG6iNCXPN7EvHDhV1sI
-	 EV7HthH3pVTOns7fVqqSM4ZpnR1O3UP9poyB/SPKXa7TEDh1EzS5pU3qVEvOSzLygQ
-	 LUvGmgJsJYhNtZaaua8Ae3qJZxTilSCVYnzypEyk=
+	b=mYxD9CQNBJtaMhp8NNFpPvgsYMAyeNstVRdFEM18pkv9JNRaVJWQXH/6mhgj4tikl
+	 tac3EoK7S1vZwHsu+fCXJ7VbVT2kJ9fLaww2Ywn1HOShgVjApHBz5JACZ78WHpRfWS
+	 wMwh1uvDY8XLpdLcNofuxop7ozvrP2W8gM+zzwB0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730099AbgHDDVn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Aug 2020 23:21:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40592 "EHLO mail.kernel.org"
+        id S1730169AbgHDDVp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Aug 2020 23:21:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40614 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729636AbgHDDVn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Aug 2020 23:21:43 -0400
+        id S1729636AbgHDDVp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Aug 2020 23:21:45 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EA1882068F;
-        Tue,  4 Aug 2020 03:21:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EB9AF2068F;
+        Tue,  4 Aug 2020 03:21:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596511303;
-        bh=QaC5ffKvOz/iDBQ6O9Q0po1Wcdw+nQtaupsDTrE+OD4=;
+        s=default; t=1596511305;
+        bh=sKdQBIM/2YP+fAW1Fbnnp9KFLzXeoXv6eihN0pGDTuI=;
         h=Date:From:To:Subject:From;
-        b=phOkV1CxbNEWm4wj/yZHz/2ZDR5anIUZ6PLSgZVFf5nq0e9as8V64in6GYrUNtaGR
-         LhMYezGhKmhBF2yRiH+PMuh5/pjykQbeAOTyV/tPCxVtGHkCKBg0TnxA/gbd9HGZDc
-         fCIdl2V5C0bNQJlJ3B+hxwY9wCk/TqefnRdcYVHQ=
-Date:   Mon, 03 Aug 2020 20:21:42 -0700
+        b=yllgHWwOEWUqIit0SnU25AqalACjJBIKyeDijBRNtsVFhRszT9riqdoseonYjEFg6
+         1GEnyM2vfQQ8i6DMZXYV5bFPbDO8Z4KnlnO7SbzhaP+a7Isoz0zHe5//PF+79UWsI9
+         msoo3YdqD3+rTcL/2jVM053ALPbX6IYsJbGRF9Gw=
+Date:   Mon, 03 Aug 2020 20:21:44 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
         rdunlap@infradead.org
-Subject:  + mm-usercopyc-delete-duplicated-word.patch added to -mm
- tree
-Message-ID: <20200804032142.0dfTlw8y5%akpm@linux-foundation.org>
+Subject:  + mm-vmscanc-delete-or-fix-duplicated-words.patch added
+ to -mm tree
+Message-ID: <20200804032144.iaSGULvJL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/usercopy.c: delete duplicated word
+     Subject: mm/vmscan.c: delete or fix duplicated words
 has been added to the -mm tree.  Its filename is
-     mm-usercopyc-delete-duplicated-word.patch
+     mm-vmscanc-delete-or-fix-duplicated-words.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-usercopyc-delete-duplicated-word.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscanc-delete-or-fix-duplicated-words.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-usercopyc-delete-duplicated-word.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscanc-delete-or-fix-duplicated-words.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,30 +76,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/usercopy.c: delete duplicated word
+Subject: mm/vmscan.c: delete or fix duplicated words
 
-Drop the repeated word "the".
+Drop the repeated word "marked".
+Change "time time" to "same time".
 
-Link: http://lkml.kernel.org/r/20200801173822.14973-13-rdunlap@infradead.org
+Link: http://lkml.kernel.org/r/20200801173822.14973-14-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/usercopy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/usercopy.c~mm-usercopyc-delete-duplicated-word
-+++ a/mm/usercopy.c
-@@ -43,7 +43,7 @@ static noinline int check_stack_object(c
+--- a/mm/vmscan.c~mm-vmscanc-delete-or-fix-duplicated-words
++++ a/mm/vmscan.c
+@@ -2798,7 +2798,7 @@ again:
+ 			set_bit(PGDAT_DIRTY, &pgdat->flags);
  
+ 		/*
+-		 * If kswapd scans pages marked marked for immediate
++		 * If kswapd scans pages marked for immediate
+ 		 * reclaim and under writeback (nr_immediate), it
+ 		 * implies that pages are cycling through the LRU
+ 		 * faster than they are written so also forcibly stall.
+@@ -3373,7 +3373,7 @@ static bool pgdat_watermark_boosted(pg_d
  	/*
- 	 * Reject: object partially overlaps the stack (passing the
--	 * the check above means at least one end is within the stack,
-+	 * check above means at least one end is within the stack,
- 	 * so if this check fails, the other end is outside the stack).
+ 	 * Check for watermark boosts top-down as the higher zones
+ 	 * are more likely to be boosted. Both watermarks and boosts
+-	 * should not be checked at the time time as reclaim would
++	 * should not be checked at the same time as reclaim would
+ 	 * start prematurely when there is no boosting and a lower
+ 	 * zone is balanced.
  	 */
- 	if (obj < stack || stackend < obj + len)
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
