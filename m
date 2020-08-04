@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33047C433E0
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71CEFC433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3881D206DA
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 777F9206DA
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 03:21:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596511296;
-	bh=45fbW9FAUTS74SugYaAJfC84b6oweMXr8CwY7sMB1qU=;
+	s=default; t=1596511298;
+	bh=Y9D9jx3IOVv65GZ1hKIqRPgyMjaP6l6cwgkjZ+DyPXU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=AuiWgdJbxB+0kYPIMOQK5I8DZqy540lgaozBUyNbLWlMIzDAjYLcgUFwMIACaK5vb
-	 m74jurNJ9HBPrNqyiNyWiZfTzD8TfIrt0ACXGAQz3eZUs0DGaSe1NW+nsEzc7E7o24
-	 e01kU4xIs3NB7zbXbK9iqfEs88aLfSnnefQWf79A=
+	b=FxOE1aewTBFFsdnHbtPsOhHgsA5cx1GVKPvuY24PgL0sTXuEvVBfYlSmOy10zzBOi
+	 9LO6DTe0Tz7d5N1FUqfOmWFBXG3tb3OSt4Nbl9m1UrA+4bxhg+jsygZsnDkm9SxtLi
+	 tKbM2I4tBQ8BeKwq82tZvtQ954ZPItawV8c5Q5oE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730090AbgHDDVf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Aug 2020 23:21:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40496 "EHLO mail.kernel.org"
+        id S1730094AbgHDDVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Aug 2020 23:21:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40518 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1729636AbgHDDVf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Aug 2020 23:21:35 -0400
+        id S1729636AbgHDDVh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Aug 2020 23:21:37 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E96552068F;
-        Tue,  4 Aug 2020 03:21:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0BC692068F;
+        Tue,  4 Aug 2020 03:21:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596511295;
-        bh=45fbW9FAUTS74SugYaAJfC84b6oweMXr8CwY7sMB1qU=;
+        s=default; t=1596511297;
+        bh=Y9D9jx3IOVv65GZ1hKIqRPgyMjaP6l6cwgkjZ+DyPXU=;
         h=Date:From:To:Subject:From;
-        b=NpU8vJyiOs2wB6k4/xGg1hFKCDCqCZ4CWN810ttjm4c2ZMN1UFWG5tNSiPFtDq8SS
-         pkmRSB3OdPYY/rP9vtEAUBB534YMEpNO0bQaysRezEZNrTGs+VR85D80GpEw+dLOIt
-         icOSoiXq/vz46bFXbqfe+98nfVWa338qJ8K/zAKQ=
-Date:   Mon, 03 Aug 2020 20:21:34 -0700
+        b=1AlZvgCYQQDoCGqs8Z3++aHT9hEg5ZIZEYX+GuS/BHheN9KMeqzLsT1b3SkkU8zq+
+         e/S+7wAE5F/ps831vKaaepZ3VggktMyAu4Jl/6sn60kvNdQt8XBP/U1NjRvAQ5RVIS
+         VZ38YGcAPXUtcCymwz5x6lUPxCpJ6i4fXN83ssWE=
+Date:   Mon, 03 Aug 2020 20:21:36 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
         rdunlap@infradead.org
-Subject:  + mm-nommuc-delete-duplicated-words.patch added to -mm
- tree
-Message-ID: <20200804032134.-lRnd6faC%akpm@linux-foundation.org>
+Subject:  + mm-page_allocc-delete-or-fix-duplicated-words.patch
+ added to -mm tree
+Message-ID: <20200804032136.Tt-Jpotnu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/nommu.c: delete duplicated words
+     Subject: mm/page_alloc.c: delete or fix duplicated words
 has been added to the -mm tree.  Its filename is
-     mm-nommuc-delete-duplicated-words.patch
+     mm-page_allocc-delete-or-fix-duplicated-words.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-nommuc-delete-duplicated-words.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-delete-or-fix-duplicated-words.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-nommuc-delete-duplicated-words.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-delete-or-fix-duplicated-words.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,32 +76,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/nommu.c: delete duplicated words
+Subject: mm/page_alloc.c: delete or fix duplicated words
 
-Drop the repeated word "that" in two places.
+Drop the repeated word "them" and "that".
+Change "the the" to "to the".
 
-Link: http://lkml.kernel.org/r/20200801173822.14973-9-rdunlap@infradead.org
+Link: http://lkml.kernel.org/r/20200801173822.14973-10-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/nommu.c~mm-nommuc-delete-duplicated-words
-+++ a/mm/nommu.c
-@@ -1762,8 +1762,8 @@ EXPORT_SYMBOL_GPL(access_process_vm);
-  * @newsize: The proposed filesize of the inode
+--- a/mm/page_alloc.c~mm-page_allocc-delete-or-fix-duplicated-words
++++ a/mm/page_alloc.c
+@@ -4285,7 +4285,7 @@ retry:
+ 	/*
+ 	 * If an allocation failed after direct reclaim, it could be because
+ 	 * pages are pinned on the per-cpu lists or in high alloc reserves.
+-	 * Shrink them them and try again
++	 * Shrink them and try again
+ 	 */
+ 	if (!page && !drained) {
+ 		unreserve_highatomic_pageblock(ac, false);
+@@ -6195,7 +6195,7 @@ static int zone_batchsize(struct zone *z
+  * locking.
   *
-  * Check the shared mappings on an inode on behalf of a shrinking truncate to
-- * make sure that that any outstanding VMAs aren't broken and then shrink the
-- * vm_regions that extend that beyond so that do_mmap() doesn't
-+ * make sure that any outstanding VMAs aren't broken and then shrink the
-+ * vm_regions that extend beyond so that do_mmap() doesn't
-  * automatically grant mappings that are too large.
+  * Any new users of pcp->batch and pcp->high should ensure they can cope with
+- * those fields changing asynchronously (acording the the above rule).
++ * those fields changing asynchronously (acording to the above rule).
+  *
+  * mutex_is_locked(&pcp_batch_high_lock) required when calling this function
+  * outside of boot time (or some other assurance that no concurrent updaters
+@@ -8206,7 +8206,7 @@ void *__init alloc_large_system_hash(con
+  * race condition. So you can't expect this function should be exact.
+  *
+  * Returns a page without holding a reference. If the caller wants to
+- * dereference that page (e.g., dumping), it has to make sure that that it
++ * dereference that page (e.g., dumping), it has to make sure that it
+  * cannot get removed (e.g., via memory unplug) concurrently.
+  *
   */
- int nommu_shrink_inode_mappings(struct inode *inode, size_t size,
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
