@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34307C433DF
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 00:11:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E60BC433E0
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 00:56:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3EA6D2086A
-	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 00:11:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 837F620786
+	for <mm-commits@archiver.kernel.org>; Tue,  4 Aug 2020 00:56:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596499878;
-	bh=OJakgQN2QFLO0xsgGSp/8TRg4dqUmop2FnflVLWVw+s=;
+	s=default; t=1596502604;
+	bh=tXkyPmpo7UI6pexHwYfY6vXz8chg0rnv8My25Ca0dOM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Wlb8hNBL2iGG5jeykE7zFp+8PiD7+CXeWhrmKAMOiC6TDN/YzxFnZ+iIUzljrWAdF
-	 f9aWxE/0OYw2jTZX/Fob8Zkg7sGSP7fnkhtdDG9cTyZEbxhN/q/7lRmYamyzbPDM6g
-	 jSS+YUC1h/u241f9+wH8BNQA5DqyibLeuX0lm0h0=
+	b=wF382G7tJT52BhJpYrBXnxbhIj7CHQSegDhA4QA/HL0wxMTq9y5gsGdRViV0vaprQ
+	 cTWwTHp5fonXVsMInuc7Tj7YwuQTgVKCBrCkFQozd+0DJKMjnf9YZ0GcBNGC8KtyFn
+	 KjyWYvlnB7kB1a3bqPreMeyjbgttELNmANMxSqyY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728037AbgHDALR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 3 Aug 2020 20:11:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53494 "EHLO mail.kernel.org"
+        id S1728793AbgHDA4o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 3 Aug 2020 20:56:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728010AbgHDALP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 3 Aug 2020 20:11:15 -0400
+        id S1727858AbgHDA4n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 3 Aug 2020 20:56:43 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D95632076E;
-        Tue,  4 Aug 2020 00:11:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 160CA2073E;
+        Tue,  4 Aug 2020 00:56:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596499874;
-        bh=OJakgQN2QFLO0xsgGSp/8TRg4dqUmop2FnflVLWVw+s=;
+        s=default; t=1596502603;
+        bh=tXkyPmpo7UI6pexHwYfY6vXz8chg0rnv8My25Ca0dOM=;
         h=Date:From:To:Subject:From;
-        b=RBsNycY0fl8VA52fmi462H3MpotBsBFoXzPrbYSRyM8Pnj0HTxSWVce6Nwt2p4dP9
-         4IT7sZo0dFJYNgXbpde0Iv4pV08yiMSWdIvqRfFPJt1e1dEurRPo4zM4T+CMqL3u+g
-         /d5diis+vGesm2xr5Q0AwAo/pC+GkGUcXhwL2apE=
-Date:   Mon, 03 Aug 2020 17:11:13 -0700
+        b=oYotjQYZLg1HtPwi22Thfp5uaYUWnBhWWPBpuCLq/+Kx4ITDwynj/Ei3jzsoqXQeh
+         MJNJNm9lLc4Z46MrsuUqfN2FWE7OQ5VLxbONmsu79Phh4X2ZRzJN6xOxKZ6/atWppG
+         /14yyBohIJ/6c87+9gEA2RHE3RwlIvhlGIthZNw4=
+Date:   Mon, 03 Aug 2020 17:56:42 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, axboe@kernel.dk, bvanassche@acm.org,
-        hare@suse.de, hughd@google.com, ming.lei@redhat.com,
-        mm-commits@vger.kernel.org, xianting_tian@126.com
+To:     aarcange@redhat.com, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, songliubraving@fb.com,
+        stable@vger.kernel.org
 Subject:  +
- mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch added to -mm
+ khugepaged-collapse_pte_mapped_thp-flush-the-right-range.patch added to -mm
  tree
-Message-ID: <20200804001113.0toe3M3uW%akpm@linux-foundation.org>
+Message-ID: <20200804005642.eY-Fjgl2j%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_io.c: use blk_io_schedule() for avoiding task hung in sync io
+     Subject: khugepaged: collapse_pte_mapped_thp() flush the right range
 has been added to the -mm tree.  Its filename is
-     mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch
+     khugepaged-collapse_pte_mapped_thp-flush-the-right-range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-collapse_pte_mapped_thp-flush-the-right-range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-collapse_pte_mapped_thp-flush-the-right-range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,48 +78,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xianting Tian <xianting_tian@126.com>
-Subject: mm/page_io.c: use blk_io_schedule() for avoiding task hung in sync io
+From: Hugh Dickins <hughd@google.com>
+Subject: khugepaged: collapse_pte_mapped_thp() flush the right range
 
-swap_readpage() does the sync io for one page, the io is not big,
-normally, the io can be finished quickly, but it may take long time or
-wait forever in case of io failure or discard.
+pmdp_collapse_flush() should be given the start address at which the huge
+page is mapped, haddr: it was given addr, which at that point has been
+used as a local variable, incremented to the end address of the extent.
 
-This patch uses blk_io_schedule() instead of io_schedule() to avoid task
-hung and crash (when set /proc/sys/kernel/hung_task_panic) when the above
-exception occurs.
+Found by source inspection while chasing a hugepage locking bug, which I
+then could not explain by this.  At first I thought this was very bad;
+then saw that all of the page translations that were not flushed would
+actually still point to the right pages afterwards, so harmless; then
+realized that I know nothing of how different architectures and models
+cache intermediate paging structures, so maybe it matters after all -
+particularly since the page table concerned is immediately freed.
 
-This is similar to the hung task avoidance in submit_bio_wait(),
-blk_execute_rq() and __blkdev_direct_IO().
+Much easier to fix than to think about.
 
-Link: http://lkml.kernel.org/r/1596461807-21087-1-git-send-email-xianting_tian@126.com
-Signed-off-by: Xianting Tian <xianting_tian@126.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ming Lei <ming.lei@redhat.com>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008021204390.27773@eggly.anvils
+Fixes: 27e1f8273113 ("khugepaged: enable collapse pmd for pte-mapped THP")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: <stable@vger.kernel.org>	[5.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    2 +-
+ mm/khugepaged.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_io.c~mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io
-+++ a/mm/page_io.c
-@@ -441,7 +441,7 @@ int swap_readpage(struct page *page, boo
- 			break;
+--- a/mm/khugepaged.c~khugepaged-collapse_pte_mapped_thp-flush-the-right-range
++++ a/mm/khugepaged.c
+@@ -1502,7 +1502,7 @@ void collapse_pte_mapped_thp(struct mm_s
  
- 		if (!blk_poll(disk->queue, qc, true))
--			io_schedule();
-+			blk_io_schedule();
- 	}
- 	__set_current_state(TASK_RUNNING);
- 	bio_put(bio);
+ 	/* step 4: collapse pmd */
+ 	ptl = pmd_lock(vma->vm_mm, pmd);
+-	_pmd = pmdp_collapse_flush(vma, addr, pmd);
++	_pmd = pmdp_collapse_flush(vma, haddr, pmd);
+ 	spin_unlock(ptl);
+ 	mm_dec_nr_ptes(mm);
+ 	pte_free(mm, pmd_pgtable(_pmd));
 _
 
-Patches currently in -mm which might be from xianting_tian@126.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch
+mm-memcontrol-decouple-reference-counting-from-page-accounting-fix.patch
+khugepaged-collapse_pte_mapped_thp-flush-the-right-range.patch
+khugepaged-collapse_pte_mapped_thp-protect-the-pmd-lock.patch
+khugepaged-retract_page_tables-remember-to-test-exit.patch
+khugepaged-khugepaged_test_exit-check-mmget_still_valid.patch
 
