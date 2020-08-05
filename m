@@ -7,46 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF808C433E0
-	for <mm-commits@archiver.kernel.org>; Wed,  5 Aug 2020 21:14:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCDAAC433DF
+	for <mm-commits@archiver.kernel.org>; Wed,  5 Aug 2020 21:15:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83D6A2065C
-	for <mm-commits@archiver.kernel.org>; Wed,  5 Aug 2020 21:14:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AFDFF2250E
+	for <mm-commits@archiver.kernel.org>; Wed,  5 Aug 2020 21:15:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596662086;
-	bh=Q4pv2Cm12scSXua6eazUf/s7NKFeYDsdIjlaMgHyWpo=;
+	s=default; t=1596662147;
+	bh=iCzxQR/gX7JV26e7oD111UcqMD4BpDA7rZqkLneag5w=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=w9xqb8MNOHS+v8sRdtTcCX3cmQcJ8s6NG631fEVdZQTuWlChtn25NDYZhWYEh97Xm
-	 uqGEdrLudEEwfPma7MZjFmcasMWL4eaOWC65jnKCVtT8SS1bZAZXskxw+EsGfnyHUv
-	 gcEbFUhW9Myx99dKJlTXNGbE6j4LxdL4DR5z82VI=
+	b=Gr5urXcpmXD/AbFLQK63D0oxBY7Ss7hcmfUQSJov2EW/C0WaMOKScLN9faTA9QcdE
+	 W8BygTv23LRXkaNv/fcMEXh+w9+rLzng5SAUHI7eNh0U747uvCut+1+srzFaDjDjzk
+	 PS4lWVod6U3/X7t4lBLTbb3L1u98MWNjcEiGIoZI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726155AbgHEVOq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Aug 2020 17:14:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35278 "EHLO mail.kernel.org"
+        id S1726158AbgHEVPr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Aug 2020 17:15:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35438 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725920AbgHEVOp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 5 Aug 2020 17:14:45 -0400
+        id S1725920AbgHEVPq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 5 Aug 2020 17:15:46 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B20CF2063A;
-        Wed,  5 Aug 2020 21:14:44 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9836E2076E;
+        Wed,  5 Aug 2020 21:15:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596662085;
-        bh=Q4pv2Cm12scSXua6eazUf/s7NKFeYDsdIjlaMgHyWpo=;
+        s=default; t=1596662145;
+        bh=iCzxQR/gX7JV26e7oD111UcqMD4BpDA7rZqkLneag5w=;
         h=Date:From:To:Subject:From;
-        b=fXUdtFqWY458eggrF9M8umq1+ETlVp7nNlBOARQaUeTkphCp2ymH6dLIBsCgdvN++
-         8/nma0D67HV/CqYgwUPwQd19KikOGPpiZ+n6pQ/iRhB/nB5rjSCQK/Y/Nzm2bvmOmK
-         HVKUK1pKWbOVwB9nQfgulLOMpOznKcj1G6Q4Gh1A=
-Date:   Wed, 05 Aug 2020 14:14:44 -0700
+        b=QZXbCoa9LjdJDK7awrkqDAGqNhHpQM4Qg8JCnPEDiXKb8FBbxEYUW4sDVgFjc9jKL
+         nqtixY2xLG6OBDwWdShIaI3TaMUhue2zUZ3ffUo41Qz/3xjBmjz4egZz8mE3BFreSw
+         VglAdlY5Iyvl3ecr4IeDf5glvn6gxz4qi1cvmXNU=
+Date:   Wed, 05 Aug 2020 14:15:45 -0700
 From:   akpm@linux-foundation.org
-To:     cai@lca.pw, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz,
-        william.kucharski@oracle.com, willy@infradead.org
-Subject:  +
- mm-dump_page-do-not-crash-with-bad-compound_mapcount.patch added to -mm
- tree
-Message-ID: <20200805211444.6Tk3utw5Q%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, yangx.jy@cn.fujitsu.com
+Subject:  + mm-slabc-update-outdated-kmem_list3-in-a-comment.patch
+ added to -mm tree
+Message-ID: <20200805211545.RzIOeDJ4I%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +54,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, dump_page: do not crash with bad compound_mapcount()
+     Subject: mm/slab.c: update outdated kmem_list3 in a comment
 has been added to the -mm tree.  Its filename is
-     mm-dump_page-do-not-crash-with-bad-compound_mapcount.patch
+     mm-slabc-update-outdated-kmem_list3-in-a-comment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dump_page-do-not-crash-with-bad-compound_mapcount.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slabc-update-outdated-kmem_list3-in-a-comment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dump_page-do-not-crash-with-bad-compound_mapcount.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slabc-update-outdated-kmem_list3-in-a-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,104 +75,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm, dump_page: do not crash with bad compound_mapcount()
+From: Xiao Yang <yangx.jy@cn.fujitsu.com>
+Subject: mm/slab.c: update outdated kmem_list3 in a comment
 
-If a compound page is being split while dump_page() is being run on that
-page, we can end up calling compound_mapcount() on a page that is no
-longer compound.  This leads to a crash (already seen at least once in the
-field), due to the VM_BUG_ON_PAGE() assertion inside compound_mapcount().
+kmem_list3 has been renamed to kmem_cache_node long long ago so update it.
 
-(The above is from Matthew Wilcox's analysis of Qian Cai's bug report.)
+References:
+6744f087ba2a ("slab: Common name for the per node structures")
+ce8eb6c424c7 ("slab: Rename list3/l3 to node")
 
-A similar problem is possible, via compound_pincount() instead of
-compound_mapcount().
-
-In order to avoid this kind of crash, make dump_page() slightly more
-robust, by providing a pair of simpler routines that don't contain
-assertions: head_mapcount() and head_pincount().
-
-For debug tools, we don't want to go *too* far in this direction, but this
-is a simple small fix, and the crash has already been seen, so it's a good
-trade-off.
-
-Link: http://lkml.kernel.org/r/20200804214807.169256-1-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reported-by: Qian Cai <cai@lca.pw>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
+Link: http://lkml.kernel.org/r/20200722033355.26908-1-yangx.jy@cn.fujitsu.com
+Signed-off-by: Xiao Yang <yangx.jy@cn.fujitsu.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   14 ++++++++++++--
- mm/debug.c         |    6 +++---
- 2 files changed, 15 insertions(+), 5 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-dump_page-do-not-crash-with-bad-compound_mapcount
-+++ a/include/linux/mm.h
-@@ -779,6 +779,11 @@ static inline void *kvcalloc(size_t n, s
- extern void kvfree(const void *addr);
- extern void kvfree_sensitive(const void *addr, size_t len);
- 
-+static inline int head_mapcount(struct page *head)
-+{
-+	return atomic_read(compound_mapcount_ptr(head)) + 1;
-+}
-+
- /*
-  * Mapcount of compound page as a whole, does not include mapped sub-pages.
+--- a/mm/slab.c~mm-slabc-update-outdated-kmem_list3-in-a-comment
++++ a/mm/slab.c
+@@ -1060,7 +1060,7 @@ int slab_prepare_cpu(unsigned int cpu)
+  * offline.
   *
-@@ -788,7 +793,7 @@ static inline int compound_mapcount(stru
- {
- 	VM_BUG_ON_PAGE(!PageCompound(page), page);
- 	page = compound_head(page);
--	return atomic_read(compound_mapcount_ptr(page)) + 1;
-+	return head_mapcount(page);
- }
- 
- /*
-@@ -901,11 +906,16 @@ static inline bool hpage_pincount_availa
- 	return PageCompound(page) && compound_order(page) > 1;
- }
- 
-+static inline int head_pincount(struct page *head)
-+{
-+	return atomic_read(compound_pincount_ptr(head));
-+}
-+
- static inline int compound_pincount(struct page *page)
- {
- 	VM_BUG_ON_PAGE(!hpage_pincount_available(page), page);
- 	page = compound_head(page);
--	return atomic_read(compound_pincount_ptr(page));
-+	return head_pincount(page);
- }
- 
- static inline void set_compound_order(struct page *page, unsigned int order)
---- a/mm/debug.c~mm-dump_page-do-not-crash-with-bad-compound_mapcount
-+++ a/mm/debug.c
-@@ -102,12 +102,12 @@ void __dump_page(struct page *page, cons
- 		if (hpage_pincount_available(page)) {
- 			pr_warn("head:%p order:%u compound_mapcount:%d compound_pincount:%d\n",
- 					head, compound_order(head),
--					compound_mapcount(head),
--					compound_pincount(head));
-+					head_mapcount(head),
-+					head_pincount(head));
- 		} else {
- 			pr_warn("head:%p order:%u compound_mapcount:%d\n",
- 					head, compound_order(head),
--					compound_mapcount(head));
-+					head_mapcount(head));
- 		}
- 	}
- 	if (PageKsm(page))
+  * Even if all the cpus of a node are down, we don't free the
+- * kmem_list3 of any cache. This to avoid a race between cpu_down, and
++ * kmem_cache_node of any cache. This to avoid a race between cpu_down, and
+  * a kmalloc allocation from another cpu for memory from the node of
+  * the cpu going down.  The list3 structure is usually allocated from
+  * kmem_cache_create() and gets destroyed at kmem_cache_destroy().
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from yangx.jy@cn.fujitsu.com are
 
-mm-dump_page-do-not-crash-with-bad-compound_mapcount.patch
+mm-slabc-update-outdated-kmem_list3-in-a-comment.patch
 
