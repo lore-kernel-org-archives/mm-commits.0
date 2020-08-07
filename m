@@ -2,167 +2,127 @@ Return-Path: <SRS0=ze/c=BR=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED1A0C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:22:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1995EC433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:22:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFF71221E5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:22:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA4F922D00
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:22:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781337;
-	bh=57YwXGxS5eIpgfsMtX1iESNczBzRJgaBM2J+QLcJ8mw=;
+	s=default; t=1596781343;
+	bh=oSdNly9aIeyibSd9/S4eMSMD5jPf3sak6mS/2Aqks1A=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=ft0/JRC0454T2a8KdYN7cu0/9a3ktn2SWyOwtUbXlP4wLQ7YH2WSdJjJXiymNLRNH
-	 oHEZILfBGrokJ1gMkWdjiAHEFqzYgyMd0DQ/Tk+Jq6w0QXobN++mIIQHEOwFplEAVm
-	 +gm+hU0QF0g/FS8XTFcwzHOizZBzG5VfvQaiw0yc=
+	b=GleJgfi91mhbGtMxhdonUK77LHmWndEPxg0hpco9f+j4PvxZ/6O7vgOyZj8O6xcwt
+	 Amvp77FYYQim9dwSKL3f7BXQg73KhzBG8aUEDH76hiEdRKhmrNVDAiDusFh4qqqHft
+	 N31+3EdIPY/sctOfPCLOAWEY4T1ed4b8jZmb0DTY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726249AbgHGGWR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:22:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58698 "EHLO mail.kernel.org"
+        id S1726224AbgHGGWW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:22:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGWR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:22:17 -0400
+        id S1725379AbgHGGWU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:22:20 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E17A92177B;
-        Fri,  7 Aug 2020 06:22:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 33CC122C9F;
+        Fri,  7 Aug 2020 06:22:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781336;
-        bh=57YwXGxS5eIpgfsMtX1iESNczBzRJgaBM2J+QLcJ8mw=;
+        s=default; t=1596781339;
+        bh=oSdNly9aIeyibSd9/S4eMSMD5jPf3sak6mS/2Aqks1A=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=EzfEXjag1a8vgc3bbaGHAP7muVKYiyHDUTboSj7tOeNxWLuyaU4f3zToafL1nKJ+r
-         kZgne3bvIH/RpmHDg2GLEhFx0AAwtbI1WgZo8JmX21oKghMIUABiho8H1PIPsg/PBx
-         xBSuZgjciN3mPdvxf+jb1wfxAPlqcBX/A/Szhqa4=
-Date:   Thu, 06 Aug 2020 23:22:15 -0700
+        b=XX7RS8XNlUeUGQWfrxFpo/0uT/lGY26j6IKgkZFLpueXaBLdAiIAABur7zi8FVCzf
+         X+Ll7btLzEg5Vtp8Je/89OT1Mo6vwK+wKDRRfAnjetFf6NoKI+axYh8c4husXYnb8N
+         i7rENz9gdA3cZhTqQnGazowo0YSklM5Shbt6IGhw=
+Date:   Thu, 06 Aug 2020 23:22:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com,
-        hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
+To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
+        linux-mm@kvack.org, mhocko@suse.com, mkoutny@suse.com,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org, tj@kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 092/163] mm: memcontrol: don't count limit-setting
- reclaim as memory pressure
-Message-ID: <20200807062215.hpQOJtMdn%akpm@linux-foundation.org>
+Subject:  [patch 093/163] mm/page_counter.c: fix protection usage
+ propagation
+Message-ID: <20200807062218.U7OzBph9t%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: don't count limit-setting reclaim as memory pressure
+=46rom: Michal Koutn=C3=BD <mkoutny@suse.com>
+Subject: mm/page_counter.c: fix protection usage propagation
 
-When an outside process lowers one of the memory limits of a cgroup (or
-uses the force_empty knob in cgroup1), direct reclaim is performed in the
-context of the write(), in order to directly enforce the new limit and
-have it being met by the time the write() returns.
+When workload runs in cgroups that aren't directly below root cgroup and
+their parent specifies reclaim protection, it may end up ineffective.
 
-Currently, this reclaim activity is accounted as memory pressure in the
-cgroup that the writer(!) belongs to.  This is unexpected.  It
-specifically causes problems for senpai
-(https://github.com/facebookincubator/senpai), which is an agent that
-routinely adjusts the memory limits and performs associated reclaim work
-in tens or even hundreds of cgroups running on the host.  The cgroup that
-senpai is running in itself will report elevated levels of memory
-pressure, even though it itself is under no memory shortage or any sort of
-distress.
+The reason is that propagate_protected_usage() is not called in all
+hierarchy up.  All the protected usage is incorrectly accumulated in the
+workload's parent.  This means that siblings_low_usage is overestimated
+and effective protection underestimated.  Even though it is transitional
+phenomenon (uncharge path does correct propagation and fixes the wrong
+children_low_usage), it can undermine the intended protection
+unexpectedly.
 
-Move the psi annotation from the central cgroup reclaim function to
-callsites in the allocation context, and thereby no longer count any
-limit-setting reclaim as memory pressure.  If the newly set limit causes
-the workload inside the cgroup into direct reclaim, that of course will
-continue to count as memory pressure.
+We have noticed this problem while seeing a swap out in a descendant of a
+protected memcg (intermediate node) while the parent was conveniently
+under its protection limit and the memory pressure was external to that
+hierarchy.  Michal has pinpointed this down to the wrong
+siblings_low_usage which led to the unwanted reclaim.
 
-Link: http://lkml.kernel.org/r/20200728135210.379885-2-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Acked-by: Chris Down <chris@chrisdown.name>
+The fix is simply updating children_low_usage in respective ancestors also
+in the charging path.
+
+Link: http://lkml.kernel.org/r/20200803153231.15477-1-mhocko@kernel.org
+Fixes: 230671533d64 ("mm: memory.low hierarchical behavior")
+Signed-off-by: Michal Koutn=C3=BD <mkoutny@suse.com>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>	[4.18+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 ++++++++++-
- mm/vmscan.c     |    6 ------
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ mm/page_counter.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-dont-count-limit-setting-reclaim-as-memory-pressure
-+++ a/mm/memcontrol.c
-@@ -2374,12 +2374,18 @@ static unsigned long reclaim_high(struct
- 	unsigned long nr_reclaimed = 0;
- 
- 	do {
-+		unsigned long pflags;
-+
- 		if (page_counter_read(&memcg->memory) <=
- 		    READ_ONCE(memcg->memory.high))
- 			continue;
-+
- 		memcg_memory_event(memcg, MEMCG_HIGH);
-+
-+		psi_memstall_enter(&pflags);
- 		nr_reclaimed += try_to_free_mem_cgroup_pages(memcg, nr_pages,
- 							     gfp_mask, true);
-+		psi_memstall_leave(&pflags);
- 	} while ((memcg = parent_mem_cgroup(memcg)) &&
- 		 !mem_cgroup_is_root(memcg));
- 
-@@ -2621,10 +2627,11 @@ static int try_charge(struct mem_cgroup
- 	int nr_retries = MAX_RECLAIM_RETRIES;
- 	struct mem_cgroup *mem_over_limit;
- 	struct page_counter *counter;
-+	enum oom_status oom_status;
- 	unsigned long nr_reclaimed;
- 	bool may_swap = true;
- 	bool drained = false;
--	enum oom_status oom_status;
-+	unsigned long pflags;
- 
- 	if (mem_cgroup_is_root(memcg))
- 		return 0;
-@@ -2684,8 +2691,10 @@ retry:
- 
- 	memcg_memory_event(mem_over_limit, MEMCG_MAX);
- 
-+	psi_memstall_enter(&pflags);
- 	nr_reclaimed = try_to_free_mem_cgroup_pages(mem_over_limit, nr_pages,
- 						    gfp_mask, may_swap);
-+	psi_memstall_leave(&pflags);
- 
- 	if (mem_cgroup_margin(mem_over_limit) >= nr_pages)
- 		goto retry;
---- a/mm/vmscan.c~mm-memcontrol-dont-count-limit-setting-reclaim-as-memory-pressure
-+++ a/mm/vmscan.c
-@@ -3310,7 +3310,6 @@ unsigned long try_to_free_mem_cgroup_pag
- 					   bool may_swap)
- {
- 	unsigned long nr_reclaimed;
--	unsigned long pflags;
- 	unsigned int noreclaim_flag;
- 	struct scan_control sc = {
- 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
-@@ -3331,17 +3330,12 @@ unsigned long try_to_free_mem_cgroup_pag
- 	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
- 
- 	set_task_reclaim_state(current, &sc.reclaim_state);
--
- 	trace_mm_vmscan_memcg_reclaim_begin(0, sc.gfp_mask);
--
--	psi_memstall_enter(&pflags);
- 	noreclaim_flag = memalloc_noreclaim_save();
- 
- 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
- 
- 	memalloc_noreclaim_restore(noreclaim_flag);
--	psi_memstall_leave(&pflags);
--
- 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
- 	set_task_reclaim_state(current, NULL);
- 
+--- a/mm/page_counter.c~mm-fix-protection-usage-propagation
++++ a/mm/page_counter.c
+@@ -72,7 +72,7 @@ void page_counter_charge(struct page_cou
+ 		long new;
+=20
+ 		new =3D atomic_long_add_return(nr_pages, &c->usage);
+-		propagate_protected_usage(counter, new);
++		propagate_protected_usage(c, new);
+ 		/*
+ 		 * This is indeed racy, but we can live with some
+ 		 * inaccuracy in the watermark.
+@@ -116,7 +116,7 @@ bool page_counter_try_charge(struct page
+ 		new =3D atomic_long_add_return(nr_pages, &c->usage);
+ 		if (new > c->max) {
+ 			atomic_long_sub(nr_pages, &c->usage);
+-			propagate_protected_usage(counter, new);
++			propagate_protected_usage(c, new);
+ 			/*
+ 			 * This is racy, but we can live with some
+ 			 * inaccuracy in the failcnt.
+@@ -125,7 +125,7 @@ bool page_counter_try_charge(struct page
+ 			*fail =3D c;
+ 			goto failed;
+ 		}
+-		propagate_protected_usage(counter, new);
++		propagate_protected_usage(c, new);
+ 		/*
+ 		 * Just like with failcnt, we can live with some
+ 		 * inaccuracy in the watermark.
 _
