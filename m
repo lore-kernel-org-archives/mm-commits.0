@@ -7,45 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4C0BC433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:26:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA9CBC433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:26:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8DB0222CAE
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:26:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 801D122CF6
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:26:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781563;
-	bh=uPxPl7fj33NhHRitqMtGFKS3Mnq8K9kSTW0t/ChhI14=;
+	s=default; t=1596781568;
+	bh=UEfTgQjDYcxWaAF+cf2UHfau4lgVzD7tN9C9HPC+RG4=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=DGtfzRACh1dzgvjgjxgSYm/1kRoDYv3M309HUuRHyEUEPpJxt8DQPEmHm4FrgFUET
-	 HrmfHK1KgHQYNqMBqJ4ILjdgHizjf+iALPtL+PFoXtMHWVDO+VUtZkpGLpdLz1F/T1
-	 RIzY4B0rN+ZiElEwenp8N89ASoXWIwiJUlfmm4BU=
+	b=WTPiPU4QUWrqfhEq0I/K7yZaPm3It0YL+NoUe8g97P6Ayb4bF7McslScNRGTVCOAR
+	 DHqyPlb/Ir+Tiu2HHboHjlrjWY3be2xDzP18b76ulhgDiYAsGNzy/pPRbPKVgbLWOj
+	 Hv0nwUPTk6vADBM+3Nn72Pu+jQZcrPKqjiXJDHZg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726542AbgHGG0D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:26:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34614 "EHLO mail.kernel.org"
+        id S1726605AbgHGG0H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:26:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725805AbgHGG0C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:26:02 -0400
+        id S1725805AbgHGG0G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:26:06 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E450322CF6;
-        Fri,  7 Aug 2020 06:26:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5C9F422CAE;
+        Fri,  7 Aug 2020 06:26:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781562;
-        bh=uPxPl7fj33NhHRitqMtGFKS3Mnq8K9kSTW0t/ChhI14=;
+        s=default; t=1596781565;
+        bh=UEfTgQjDYcxWaAF+cf2UHfau4lgVzD7tN9C9HPC+RG4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=y4RP1TvTtg/yPdNs0LItx5l6U3pKW+NFeEM/9YDekHY/dK3BeeDA7HHI39lJENkhT
-         sCaYGtgyKxsokC9uBkPm9v2Pye8v3jWBCknmgBLyIGuh8yxcxaxGpyvPWwnSxOv77M
-         RYW5bLTRzMyjXrRpsyT4+rBuTEjc9+2IcMnz2NrQ=
-Date:   Thu, 06 Aug 2020 23:26:01 -0700
+        b=gHT7nTvbuaIMeu2kL65c6PmX2fEdqqvDxh45dCOwrj32xlpt2Du5t4aFzBOFe4Hyu
+         pfUBuYupuKWec8SeSk4Ma5mP5zafRuHvL/O6rgUQKzxHAwViY0tvKqyWcjt0J/SpVI
+         aNngaPNc0NiGLYYu06UburE0FFjMfzXH+zJeXsUk=
+Date:   Thu, 06 Aug 2020 23:26:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        songmuchun@bytedance.com, torvalds@linux-foundation.org
-Subject:  [patch 154/163] mm/page_alloc.c: skip setting nodemask
- when we are in interrupt
-Message-ID: <20200807062601.7kNJ1Pi0Y%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com, guro@fb.com,
+        hch@infradead.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
+        mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 155/163] mm/page_alloc: fix
+ memalloc_nocma_{save/restore} APIs
+Message-ID: <20200807062604.b4fQe0zYx%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,41 +56,152 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/page_alloc.c: skip setting nodemask when we are in interrupt
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/page_alloc: fix memalloc_nocma_{save/restore} APIs
 
-When we are in the interrupt context, it is irrelevant to the current task
-context.  If we use current task's mems_allowed, we can be fair to alloc
-pages in the fast path and fall back to slow path memory allocation when
-the current node(which is the current task mems_allowed) does not have
-enough memory to allocate.  In this case, it slows down the memory
-allocation speed of interrupt context.  So we can skip setting the
-nodemask to allow any node to allocate memory, so that fast path
-allocation can success.
+Currently, memalloc_nocma_{save/restore} API that prevents CMA area
+in page allocation is implemented by using current_gfp_context(). However,
+there are two problems of this implementation.
 
-Link: http://lkml.kernel.org/r/20200706025921.53683-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
+First, this doesn't work for allocation fastpath. In the fastpath,
+original gfp_mask is used since current_gfp_context() is introduced in
+order to control reclaim and it is on slowpath. So, CMA area can be
+allocated through the allocation fastpath even if
+memalloc_nocma_{save/restore} APIs are used. Currently, there is just
+one user for these APIs and it has a fallback method to prevent actual
+problem.
+Second, clearing __GFP_MOVABLE in current_gfp_context() has a side effect
+to exclude the memory on the ZONE_MOVABLE for allocation target.
+
+To fix these problems, this patch changes the implementation to exclude
+CMA area in page allocation. Main point of this change is using the
+alloc_flags. alloc_flags is mainly used to control allocation so it fits
+for excluding CMA area in allocation.
+
+Link: http://lkml.kernel.org/r/1595468942-29687-1-git-send-email-iamjoonsoo.kim@lge.com
+Fixes: d7fefcc8de91 (mm/cma: add PF flag to force non cma alloc)
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/sched/mm.h |    8 +-------
+ mm/page_alloc.c          |   31 +++++++++++++++++++++----------
+ 2 files changed, 22 insertions(+), 17 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-skip-setting-nodemask-when-we-are-in-interrupt
+--- a/include/linux/sched/mm.h~mm-page_alloc-fix-memalloc_nocma_save-restore-apis
++++ a/include/linux/sched/mm.h
+@@ -175,12 +175,10 @@ static inline bool in_vfork(struct task_
+  * Applies per-task gfp context to the given allocation flags.
+  * PF_MEMALLOC_NOIO implies GFP_NOIO
+  * PF_MEMALLOC_NOFS implies GFP_NOFS
+- * PF_MEMALLOC_NOCMA implies no allocation from CMA region.
+  */
+ static inline gfp_t current_gfp_context(gfp_t flags)
+ {
+-	if (unlikely(current->flags &
+-		     (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS | PF_MEMALLOC_NOCMA))) {
++	if (unlikely(current->flags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS))) {
+ 		/*
+ 		 * NOIO implies both NOIO and NOFS and it is a weaker context
+ 		 * so always make sure it makes precedence
+@@ -189,10 +187,6 @@ static inline gfp_t current_gfp_context(
+ 			flags &= ~(__GFP_IO | __GFP_FS);
+ 		else if (current->flags & PF_MEMALLOC_NOFS)
+ 			flags &= ~__GFP_FS;
+-#ifdef CONFIG_CMA
+-		if (current->flags & PF_MEMALLOC_NOCMA)
+-			flags &= ~__GFP_MOVABLE;
+-#endif
+ 	}
+ 	return flags;
+ }
+--- a/mm/page_alloc.c~mm-page_alloc-fix-memalloc_nocma_save-restore-apis
 +++ a/mm/page_alloc.c
-@@ -4788,7 +4788,11 @@ static inline bool prepare_alloc_pages(g
+@@ -2785,7 +2785,7 @@ __rmqueue(struct zone *zone, unsigned in
+ 	 * allocating from CMA when over half of the zone's free memory
+ 	 * is in the CMA area.
+ 	 */
+-	if (migratetype == MIGRATE_MOVABLE &&
++	if (alloc_flags & ALLOC_CMA &&
+ 	    zone_page_state(zone, NR_FREE_CMA_PAGES) >
+ 	    zone_page_state(zone, NR_FREE_PAGES) / 2) {
+ 		page = __rmqueue_cma_fallback(zone, order);
+@@ -2796,7 +2796,7 @@ __rmqueue(struct zone *zone, unsigned in
+ retry:
+ 	page = __rmqueue_smallest(zone, order, migratetype);
+ 	if (unlikely(!page)) {
+-		if (migratetype == MIGRATE_MOVABLE)
++		if (alloc_flags & ALLOC_CMA)
+ 			page = __rmqueue_cma_fallback(zone, order);
  
- 	if (cpusets_enabled()) {
- 		*alloc_mask |= __GFP_HARDWALL;
--		if (!ac->nodemask)
-+		/*
-+		 * When we are in the interrupt context, it is irrelevant
-+		 * to the current task context. It means that any node ok.
-+		 */
-+		if (!in_interrupt() && !ac->nodemask)
- 			ac->nodemask = &cpuset_current_mems_allowed;
- 		else
- 			*alloc_flags |= ALLOC_CPUSET;
+ 		if (!page && __rmqueue_fallback(zone, order, migratetype,
+@@ -3687,6 +3687,20 @@ alloc_flags_nofragment(struct zone *zone
+ 	return alloc_flags;
+ }
+ 
++static inline unsigned int current_alloc_flags(gfp_t gfp_mask,
++					unsigned int alloc_flags)
++{
++#ifdef CONFIG_CMA
++	unsigned int pflags = current->flags;
++
++	if (!(pflags & PF_MEMALLOC_NOCMA) &&
++			gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
++		alloc_flags |= ALLOC_CMA;
++
++#endif
++	return alloc_flags;
++}
++
+ /*
+  * get_page_from_freelist goes through the zonelist trying to allocate
+  * a page.
+@@ -4333,10 +4347,8 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	} else if (unlikely(rt_task(current)) && !in_interrupt())
+ 		alloc_flags |= ALLOC_HARDER;
+ 
+-#ifdef CONFIG_CMA
+-	if (gfp_migratetype(gfp_mask) == MIGRATE_MOVABLE)
+-		alloc_flags |= ALLOC_CMA;
+-#endif
++	alloc_flags = current_alloc_flags(gfp_mask, alloc_flags);
++
+ 	return alloc_flags;
+ }
+ 
+@@ -4637,7 +4649,7 @@ retry:
+ 
+ 	reserve_flags = __gfp_pfmemalloc_flags(gfp_mask);
+ 	if (reserve_flags)
+-		alloc_flags = reserve_flags;
++		alloc_flags = current_alloc_flags(gfp_mask, reserve_flags);
+ 
+ 	/*
+ 	 * Reset the nodemask and zonelist iterators if memory policies can be
+@@ -4714,7 +4726,7 @@ retry:
+ 
+ 	/* Avoid allocations with no watermarks from looping endlessly */
+ 	if (tsk_is_oom_victim(current) &&
+-	    (alloc_flags == ALLOC_OOM ||
++	    (alloc_flags & ALLOC_OOM ||
+ 	     (gfp_mask & __GFP_NOMEMALLOC)))
+ 		goto nopage;
+ 
+@@ -4806,8 +4818,7 @@ static inline bool prepare_alloc_pages(g
+ 	if (should_fail_alloc_page(gfp_mask, order))
+ 		return false;
+ 
+-	if (IS_ENABLED(CONFIG_CMA) && ac->migratetype == MIGRATE_MOVABLE)
+-		*alloc_flags |= ALLOC_CMA;
++	*alloc_flags = current_alloc_flags(gfp_mask, *alloc_flags);
+ 
+ 	return true;
+ }
 _
