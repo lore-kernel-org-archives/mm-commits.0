@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87FD1C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:26:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10FB4C433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:26:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C29F22CAE
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:26:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D051A22CF6
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:26:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781570;
-	bh=2xJbUln9aDC0YWWrHAT4MCCjeEmJ50MCGNZYEQbYMRo=;
+	s=default; t=1596781574;
+	bh=9vvKDgJBhmzpnVGlr68RQj6uv0/viRH/J2s/tIT/nEI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Rj9QRexeez6ZW0sYeco53c6UerGKwOxFF7Evfihz76lCu27e/Yey+Vu2yr6wt0jfD
-	 kx1E+VUf2A56bAEzWhAT199PjTBlCRk7RTNbEYmAS5UBj5HIepAr/viAkkCZ3Tu54q
-	 ONulYK5aDK37OEkB7JMILOy9utco3TR4/HUHN1O4=
+	b=XWT3+UTaNN4rxrjM/m4zUHnaNSSLTQFBFU82nkSebHLera46ji1kzYBUkwwfUkowI
+	 vwVDk+uozGWw3Zpy+vaol1vILNIv+EIVt9el8M9EEKNhbn9TAcqfKNk3WBFMhYFBVy
+	 nO3zC0YYR/uWrhzEwid1I20Rjhfc/5eom/ifiZEI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726166AbgHGG0K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:26:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34684 "EHLO mail.kernel.org"
+        id S1726393AbgHGG0O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:26:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725805AbgHGG0J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:26:09 -0400
+        id S1725805AbgHGG0N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:26:13 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CF4BA22CF6;
-        Fri,  7 Aug 2020 06:26:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7140222D07;
+        Fri,  7 Aug 2020 06:26:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781569;
-        bh=2xJbUln9aDC0YWWrHAT4MCCjeEmJ50MCGNZYEQbYMRo=;
+        s=default; t=1596781572;
+        bh=9vvKDgJBhmzpnVGlr68RQj6uv0/viRH/J2s/tIT/nEI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=TRzxUwsUSsVrC+ZpoYFDMttKhbSoKX5fzak+9d0g0C+9qAkwuP/tzGDGOr66N34aC
-         ByOXxptRA5E7qqKboQSW0epY6bDFcoUTaTovU41DZq4qKO/8xemZmUdTkjvwbP+qJx
-         +iu850KsdnCDlWxzwMHE8l3cYkMqNTHUqZHs1vZ0=
-Date:   Thu, 06 Aug 2020 23:26:08 -0700
+        b=a4g+Y6A011ftX0aX5yfLd9TjTdvHz+k/6/3a6E9wVVQetmWPC0EPetpepwDCy5teH
+         Qdxj1pN60obk5rDaWXKGd+XrtH1PKVNXdjkXcS2WCuGorPzG3ZaINPzSyjGO8ZW84j
+         QAIlx5noJnrZTuBsd5qLw+GWRW/eCyMOl/may8IY=
+Date:   Thu, 06 Aug 2020 23:26:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, grandmaster@al2klimov.de,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 156/163] mm: thp: replace HTTP links with HTTPS
- ones
-Message-ID: <20200807062608.WadMSEwki%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org, linux-mm@kvack.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        peterx@redhat.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org, willy@infradead.org
+Subject:  [patch 157/163] mm/hugetlb: fix calculation of
+ adjust_range_if_pmd_sharing_possible
+Message-ID: <20200807062611.RGbHdqUiZ%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,46 +55,87 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Subject: mm: thp: replace HTTP links with HTTPS ones
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/hugetlb: fix calculation of adjust_range_if_pmd_sharing_possible
 
-Rationale:
-Reduces attack surface on kernel devs opening the links for MITM
-as HTTPS traffic is much harder to manipulate.
+This is found by code observation only.
 
-Deterministic algorithm:
-For each file:
-  If not .svg:
-    For each line:
-      If doesn't contain `xmlns`:
-        For each link, `http://[^# 	]*(?:\w|/)`:
-	  If neither `gnu\.org/license`, nor `mozilla\.org/MPL`:
-            If both the HTTP and HTTPS versions
-            return 200 OK and serve the same content:
-              Replace HTTP with HTTPS.
+Firstly, the worst case scenario should assume the whole range was covered
+by pmd sharing.  The old algorithm might not work as expected for ranges
+like (1g-2m, 1g+2m), where the adjusted range should be (0, 1g+2m) but the
+expected range should be (0, 2g).
 
-[akpm@linux-foundation.org: fix amd.com URL, per Vlastimil]
-Link: http://lkml.kernel.org/r/20200713164345.36088-1-grandmaster@al2klimov.de
-Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Since at it, remove the loop since it should not be required.  With that,
+the new code should be faster too when the invalidating range is huge.
+
+Mike said:
+
+: With range (1g-2m, 1g+2m) within a vma (0, 2g) the existing code will only
+: adjust to (0, 1g+2m) which is incorrect.
+: 
+: We should cc stable.  The original reason for adjusting the range was to
+: prevent data corruption (getting wrong page).  Since the range is not
+: always adjusted correctly, the potential for corruption still exists.
+: 
+: However, I am fairly confident that adjust_range_if_pmd_sharing_possible
+: is only gong to be called in two cases:
+: 
+: 1) for a single page
+: 2) for range == entire vma
+: 
+: In those cases, the current code should produce the correct results.
+: 
+: To be safe, let's just cc stable.
+
+Link: http://lkml.kernel.org/r/20200730201636.74778-1-peterx@redhat.com
+Fixes: 017b1660df89 ("mm: migration: fix migration of huge PMD shared pages")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-replace-http-links-with-https-ones
-+++ a/mm/huge_memory.c
-@@ -2063,8 +2063,8 @@ static void __split_huge_pmd_locked(stru
- 	 * free), userland could trigger a small page size TLB miss on the
- 	 * small sized TLB while the hugepage TLB entry is still established in
- 	 * the huge TLB. Some CPU doesn't like that.
--	 * See http://support.amd.com/us/Processor_TechDocs/41322.pdf, Erratum
--	 * 383 on page 93. Intel should be safe but is also warns that it's
-+	 * See http://support.amd.com/TechDocs/41322_10h_Rev_Gd.pdf, Erratum
-+	 * 383 on page 105. Intel should be safe but is also warns that it's
- 	 * only safe if the permission and cache attributes of the two entries
- 	 * loaded in the two TLB is identical (which should be the case here).
- 	 * But it is generally safer to never allow small and huge TLB entries
+--- a/mm/hugetlb.c~mm-hugetlb-fix-calculation-of-adjust_range_if_pmd_sharing_possible
++++ a/mm/hugetlb.c
+@@ -5314,25 +5314,21 @@ static bool vma_shareable(struct vm_area
+ void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
+ 				unsigned long *start, unsigned long *end)
+ {
+-	unsigned long check_addr;
++	unsigned long a_start, a_end;
+ 
+ 	if (!(vma->vm_flags & VM_MAYSHARE))
+ 		return;
+ 
+-	for (check_addr = *start; check_addr < *end; check_addr += PUD_SIZE) {
+-		unsigned long a_start = check_addr & PUD_MASK;
+-		unsigned long a_end = a_start + PUD_SIZE;
++	/* Extend the range to be PUD aligned for a worst case scenario */
++	a_start = ALIGN_DOWN(*start, PUD_SIZE);
++	a_end = ALIGN(*end, PUD_SIZE);
+ 
+-		/*
+-		 * If sharing is possible, adjust start/end if necessary.
+-		 */
+-		if (range_in_vma(vma, a_start, a_end)) {
+-			if (a_start < *start)
+-				*start = a_start;
+-			if (a_end > *end)
+-				*end = a_end;
+-		}
+-	}
++	/*
++	 * Intersect the range with the vma range, since pmd sharing won't be
++	 * across vma after all
++	 */
++	*start = max(vma->vm_start, a_start);
++	*end = min(vma->vm_end, a_end);
+ }
+ 
+ /*
 _
