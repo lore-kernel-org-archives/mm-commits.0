@@ -7,49 +7,47 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26950C433E1
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 01:07:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CE21C433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 01:07:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 17CFA221E4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 01:07:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F22EF21744
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 01:07:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596762442;
-	bh=uKeAzMeVK+grlRNRRqL1cWVhInLYCBPx5A/iJN2X4Ck=;
+	s=default; t=1596762445;
+	bh=pMKJNkfv+ae1V0WCGOJ7hNDxmY+dojZvkO62sZzquio=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=weFSSnCjefzY4Kvh6PMSLWBLcxe9ycEo393BEq7gVB7dTRVakVQsPHJtuHcvJE6hl
-	 nwXD8XuN75PGIiq4TU43KoyTH9Ckd3vuM7e+2sXZ+kcep9BsVz4DXyUOk4mgHvTJf7
-	 L8n8blgiYgGZ78sHidJIgeg2GnwqWtkd2Ao7mRUM=
+	b=onsOidS02Zg8zEnLa9jeS620oY6E619nen8b/eDtVB6EIeiip/YyeVCWH1RobCK/6
+	 ojGS6TyNgpjVkjNpXCMCi/wJ55saAvECNTfofOmbh2l0ZLHVVqDkrKe26+3WfvYlFF
+	 xcjpl5WZoWVcRp4E6bCybq2kLZtNhxlaJeXblUds=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726224AbgHGBHV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Aug 2020 21:07:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40394 "EHLO mail.kernel.org"
+        id S1726238AbgHGBHY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Aug 2020 21:07:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40436 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726011AbgHGBHV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 Aug 2020 21:07:21 -0400
+        id S1726011AbgHGBHY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 Aug 2020 21:07:24 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2424F21744;
-        Fri,  7 Aug 2020 01:07:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0B677221E2;
+        Fri,  7 Aug 2020 01:07:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596762440;
-        bh=uKeAzMeVK+grlRNRRqL1cWVhInLYCBPx5A/iJN2X4Ck=;
+        s=default; t=1596762443;
+        bh=pMKJNkfv+ae1V0WCGOJ7hNDxmY+dojZvkO62sZzquio=;
         h=Date:From:To:Subject:From;
-        b=OdlB4o1BOYdxq7dlPiVU6olXjV7L587SpnSEDR13klFmhst2trSX4pxeZCF72C/lZ
-         brcjRP5raYTrL1OCgMGl23PS4THjaIpDBXFKiurCHFOXPFnH0zh0FEEGQvK0Nc7fhv
-         hu8fb8wEE3pHVpCFHYonvG8mpgEY6eb+pT5kmwwc=
-Date:   Thu, 06 Aug 2020 18:07:19 -0700
+        b=rArW5LxV2bBamDbf616cQx9zJwHZucWrfI/vhT6sDwHejLe05DvMGLdkpz98K7YCp
+         iJtF2cFqE0YaTprYbR7HdJxH3FL63ZDGE36EG8S1YV28JYFtgr/DUvIVXDIFiXHnjp
+         3h2cHSc3X0GRmRjqLZQhzXR1x1UuwU6qzZtkBmCU=
+Date:   Thu, 06 Aug 2020 18:07:22 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, aneesh.kumar@linux.vnet.ibm.com,
         cai@lca.pw, dave.hansen@intel.com, david@redhat.com,
         mhocko@kernel.org, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.com, osalvador@suse.de, tony.luck@intel.com,
-        zeil@yandex-team.ru
-Subject:  +
- mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
- added to -mm tree
-Message-ID: <20200807010719.NFD2d_hDq%akpm@linux-foundation.org>
+        osalvador@suse.com, tony.luck@intel.com, zeil@yandex-team.ru
+Subject:  + mmhwpoison-introduce-mf_msg_unsplit_thp.patch added to
+ -mm tree
+Message-ID: <20200807010722.cPWIcRjbr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -59,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hwpoison: return 0 if the page is already poisoned in soft-offline
+     Subject: mm,hwpoison: introduce MF_MSG_UNSPLIT_THP
 has been added to the -mm tree.  Its filename is
-     mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
+     mmhwpoison-introduce-mf_msg_unsplit_thp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-introduce-mf_msg_unsplit_thp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-introduce-mf_msg_unsplit_thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -80,35 +78,18 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,hwpoison: return 0 if the page is already poisoned in soft-offline
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm,hwpoison: introduce MF_MSG_UNSPLIT_THP
 
-Currently, there is an inconsistency when calling soft-offline from
-different paths on a page that is already poisoned.
+memory_failure() is supposed to call action_result() when it handles a
+memory error event, but there's one missing case.  So let's add it.
 
-1) madvise:
+I find that include/ras/ras_event.h has some other MF_MSG_* undefined, so
+this patch also adds them.
 
-        madvise_inject_error skips any poisoned page and continues
-        the loop.
-        If that was the only page to madvise, it returns 0.
-
-2) /sys/devices/system/memory/:
-
-        When calling soft_offline_page_store()->soft_offline_page(),
-        we return -EBUSY in case the page is already poisoned.
-        This is inconsistent with a) the above example and b)
-        memory_failure, where we return 0 if the page was poisoned.
-
-Fix this by dropping the PageHWPoison() check in madvise_inject_error, and
-let soft_offline_page return 0 if it finds the page already poisoned.
-
-Please, note that this represents a user-api change, since now the return
-error when calling soft_offline_page_store()->soft_offline_page() will be
-different.
-
-Link: http://lkml.kernel.org/r/20200806184923.7007-11-nao.horiguchi@gmail.com
-Signed-off-by: Oscar Salvador <osalvador@suse.com>
+Link: http://lkml.kernel.org/r/20200806184923.7007-12-nao.horiguchi@gmail.com
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Signed-off-by: Oscar Salvador <osalvador@suse.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -121,53 +102,69 @@ Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c        |    5 -----
- mm/memory-failure.c |    4 ++--
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ include/linux/mm.h      |    1 +
+ include/ras/ras_event.h |    3 +++
+ mm/memory-failure.c     |    5 ++++-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/madvise.c~mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline
-+++ a/mm/madvise.c
-@@ -893,11 +893,6 @@ static int madvise_inject_error(int beha
- 		 */
- 		size = page_size(compound_head(page));
+--- a/include/linux/mm.h~mmhwpoison-introduce-mf_msg_unsplit_thp
++++ a/include/linux/mm.h
+@@ -3032,6 +3032,7 @@ enum mf_action_page_type {
+ 	MF_MSG_BUDDY,
+ 	MF_MSG_BUDDY_2ND,
+ 	MF_MSG_DAX,
++	MF_MSG_UNSPLIT_THP,
+ 	MF_MSG_UNKNOWN,
+ };
  
--		if (PageHWPoison(page)) {
--			put_page(page);
--			continue;
--		}
--
- 		if (behavior == MADV_SOFT_OFFLINE) {
- 			pr_info("Soft offlining pfn %#lx at process virtual address %#lx\n",
- 					pfn, start);
---- a/mm/memory-failure.c~mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline
+--- a/include/ras/ras_event.h~mmhwpoison-introduce-mf_msg_unsplit_thp
++++ a/include/ras/ras_event.h
+@@ -361,6 +361,7 @@ TRACE_EVENT(aer_event,
+ 	EM ( MF_MSG_POISONED_HUGE, "huge page already hardware poisoned" )	\
+ 	EM ( MF_MSG_HUGE, "huge page" )					\
+ 	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
++	EM ( MF_MSG_NON_PMD_HUGE, "non-pmd-sized huge page" )		\
+ 	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
+ 	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
+ 	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
+@@ -373,6 +374,8 @@ TRACE_EVENT(aer_event,
+ 	EM ( MF_MSG_TRUNCATED_LRU, "already truncated LRU page" )	\
+ 	EM ( MF_MSG_BUDDY, "free buddy page" )				\
+ 	EM ( MF_MSG_BUDDY_2ND, "free buddy page (2nd try)" )		\
++	EM ( MF_MSG_DAX, "dax page" )					\
++	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
+ 	EMe ( MF_MSG_UNKNOWN, "unknown page" )
+ 
+ /*
+--- a/mm/memory-failure.c~mmhwpoison-introduce-mf_msg_unsplit_thp
 +++ a/mm/memory-failure.c
-@@ -1804,7 +1804,7 @@ static int __soft_offline_page(struct pa
- 		unlock_page(page);
- 		put_page(page);
- 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
--		return -EBUSY;
-+		return 0;
+@@ -583,6 +583,7 @@ static const char * const action_page_ty
+ 	[MF_MSG_BUDDY]			= "free buddy page",
+ 	[MF_MSG_BUDDY_2ND]		= "free buddy page (2nd try)",
+ 	[MF_MSG_DAX]			= "dax page",
++	[MF_MSG_UNSPLIT_THP]		= "unsplit thp",
+ 	[MF_MSG_UNKNOWN]		= "unknown page",
+ };
+ 
+@@ -1373,8 +1374,10 @@ int memory_failure(unsigned long pfn, in
  	}
  
- 	if (!PageHuge(page))
-@@ -1907,7 +1907,7 @@ int soft_offline_page(unsigned long pfn,
- 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
- 		if (flags & MF_COUNT_INCREASED)
- 			put_page(page);
--		return -EBUSY;
-+		return 0;
+ 	if (PageTransHuge(hpage)) {
+-		if (try_to_split_thp_page(p, "Memory Failure") < 0)
++		if (try_to_split_thp_page(p, "Memory Failure") < 0) {
++			action_result(pfn, MF_MSG_UNSPLIT_THP, MF_IGNORED);
+ 			return -EBUSY;
++		}
+ 		VM_BUG_ON_PAGE(!page_count(p), p);
  	}
  
- 	get_online_mems();
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-mmhwpoison-un-export-get_hwpoison_page-and-make-it-static.patch
-mmhwpoison-kill-put_hwpoison_page.patch
-mmhwpoison-unify-thp-handling-for-hard-and-soft-offline.patch
-mmhwpoison-rework-soft-offline-for-free-pages.patch
-mmhwpoison-rework-soft-offline-for-in-use-pages.patch
-mmhwpoison-refactor-soft_offline_huge_page-and-__soft_offline_page.patch
-mmhwpoison-return-0-if-the-page-is-already-poisoned-in-soft-offline.patch
+mmhwpoison-cleanup-unused-pagehuge-check.patch
+mm-hwpoison-remove-recalculating-hpage.patch
+mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
+mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+mmhwpoison-double-check-page-count-in-__get_any_page.patch
 
