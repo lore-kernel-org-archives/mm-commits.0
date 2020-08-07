@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3690C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:49:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F917C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:50:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6EC22086A
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:49:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 430FD2086A
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:50:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596779368;
-	bh=dgvJlWfKQugWLJ4y+pfFhG7FRpkavV5oXNyrRsCFhUU=;
+	s=default; t=1596779415;
+	bh=xoOda5M6hOquZr439a/G6klTQjCOIezEiv+AMXXl6ps=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=aNORm1GUJ161yhb1+yh5W5IQh6n1y0z0CkQZITjfRJ6FO5+mktNR6LFf4niwz/Zcb
-	 q3lcUF31b8DItUtx5LjVYWsH0beK7W12a0cnDFbBzw8YFytHyOzKZt9hDhQi3bvxGw
-	 J8/IlrvEn2WqQPxcg/ROjEYCnE179tCTln+OenRU=
+	b=xngGmnvbrGkDTTG4aEa5OMkb22r4iZZG0H/jRdrbZ0XELiBv+TgFF1lUYc7uN1RxN
+	 UzZN+8ZXdjK2iAOSOSYtkGwC2vNFtCXGyIytT6T1UrppzDRfRyFqTFvf8EM6MhFpXw
+	 P6KX0YgRd6Uygeo3B+f5okDWBqV5GReEsXD6/4rM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725805AbgHGFt2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:49:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43570 "EHLO mail.kernel.org"
+        id S1725379AbgHGFuO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:50:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43650 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725287AbgHGFt2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:49:28 -0400
+        id S1725287AbgHGFuO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:50:14 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5BDF020866;
-        Fri,  7 Aug 2020 05:49:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6F46A20866;
+        Fri,  7 Aug 2020 05:50:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596779367;
-        bh=dgvJlWfKQugWLJ4y+pfFhG7FRpkavV5oXNyrRsCFhUU=;
+        s=default; t=1596779413;
+        bh=xoOda5M6hOquZr439a/G6klTQjCOIezEiv+AMXXl6ps=;
         h=Date:From:To:Subject:From;
-        b=EDF0n9RcM081eZk0s/0BhkH9A2LAU+AWoWfrBt0uzOw1iLcIeNlSPFdsi2umyEs1a
-         qIylmg655umAN9NWe09fdmsqAkqGCAWGNuwMye1zjVtciFoVyQ5n8REW4MgL8yOzsi
-         TcrdJwSeWDO6nCoTBaaixM9+xuFoQfsbKspWmBCQ=
-Date:   Thu, 06 Aug 2020 22:49:26 -0700
+        b=PZL71gFZLOmT5WcjWtsqLg+UYLyf+8k3sK4susY4eRqZy0zIzSI6+Nk0F+GkqSSay
+         u6you1KIXH7WMulWqh2PuZJhHarwtgTPBLT86Sp4ail/3Xg0vxiC5foIkTab72xztQ
+         uqVrUXURX/r5gzeHarCCY0iDR7MQXK+oYFzdTwZ4=
+Date:   Thu, 06 Aug 2020 22:50:13 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, jhubbard@nvidia.com,
-        kirill@shutemov.name, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com, vbabka@suse.cz, william.kucharski@oracle.com,
-        willy@infradead.org
+To:     amir73il@gmail.com, hannes@cmpxchg.org, hughd@google.com,
+        jlayton@kernel.org, mm-commits@vger.kernel.org, tj@kernel.org,
+        viro@zeniv.linux.org.uk, willy@infradead.org
 Subject:  [folded-merged]
- mm-handle-page-mapping-better-in-dump_page-fix.patch removed from -mm tree
-Message-ID: <20200807054926.DjsdLaWjE%akpm@linux-foundation.org>
+ tmpfs-support-64-bit-inums-per-sb-fix.patch removed from -mm tree
+Message-ID: <20200807055013.x5E8SYxBv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,62 +55,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-handle-page-mapping-better-in-dump_page-fix
+     Subject: tmpfs: support 64-bit inums per-sb fix
 has been removed from the -mm tree.  Its filename was
-     mm-handle-page-mapping-better-in-dump_page-fix.patch
+     tmpfs-support-64-bit-inums-per-sb-fix.patch
 
-This patch was dropped because it was folded into mm-handle-page-mapping-better-in-dump_page.patch
+This patch was dropped because it was folded into tmpfs-support-64-bit-inums-per-sb.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-handle-page-mapping-better-in-dump_page-fix
+From: Hugh Dickins <hughd@google.com>
+Subject: tmpfs: support 64-bit inums per-sb fix
 
-augmented code comment from John
+Expanded Chris's Documentation and Kconfig help on tmpfs inode64. 
+TMPFS_INODE64 still there, still default N, but writing down its very
+limited limitation does make me wonder again if we want the option.
 
-Link: http://lkml.kernel.org/r/15cff11a-6762-8a6a-3f0e-dd227280cd6f@nvidia.com
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: William Kucharski <william.kucharski@oracle.com>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008011928010.13320@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ Documentation/filesystems/tmpfs.rst |   13 ++++++++++---
+ fs/Kconfig                          |   16 +++++++++++-----
+ 2 files changed, 21 insertions(+), 8 deletions(-)
 
---- a/mm/debug.c~mm-handle-page-mapping-better-in-dump_page-fix
-+++ a/mm/debug.c
-@@ -69,7 +69,13 @@ void __dump_page(struct page *page, cons
- 	}
+--- a/Documentation/filesystems/tmpfs.rst~tmpfs-support-64-bit-inums-per-sb-fix
++++ a/Documentation/filesystems/tmpfs.rst
+@@ -153,11 +153,18 @@ parameters with chmod(1), chown(1) and c
+ tmpfs has a mount option to select whether it will wrap at 32- or 64-bit inode
+ numbers:
  
- 	if (page < head || (page >= head + MAX_ORDER_NR_PAGES)) {
--		/* Corrupt page, cannot call page_mapping */
-+		/*
-+		 * Corrupt page, so we cannot call page_mapping. Instead, do a
-+		 * safe subset of the steps that page_mapping() does. Caution:
-+		 * this will be misleading for tail pages, PageSwapCache pages,
-+		 * and potentially other situations. (See the page_mapping()
-+		 * implementation for what's missing here.)
-+		 */
- 		unsigned long tmp = (unsigned long)page->mapping;
++=======   ========================
+ inode64   Use 64-bit inode numbers
+ inode32   Use 32-bit inode numbers
++=======   ========================
++
++On a 32-bit kernel, inode32 is implicit, and inode64 is refused at mount time.
++On a 64-bit kernel, CONFIG_TMPFS_INODE64 sets the default.  inode64 avoids the
++possibility of multiple files with the same inode number on a single device;
++but risks glibc failing with EOVERFLOW once 33-bit inode numbers are reached -
++if a long-lived tmpfs is accessed by 32-bit applications so ancient that
++opening a file larger than 2GiB fails with EINVAL.
  
- 		if (tmp & PAGE_MAPPING_ANON)
+-On 64-bit, the default is set by CONFIG_TMPFS_INODE64. On 32-bit, inode64 is
+-not legal and will produce an error at mount time.
+ 
+ So 'mount -t tmpfs -o size=10G,nr_inodes=10k,mode=700 tmpfs /mytmpfs'
+ will give you tmpfs instance on /mytmpfs which can allocate 10GB
+@@ -170,5 +177,5 @@ RAM/SWAP in 10240 inodes and it is only
+    Hugh Dickins, 4 June 2007
+ :Updated:
+    KOSAKI Motohiro, 16 Mar 2010
+-Updated:
++:Updated:
+    Chris Down, 13 July 2020
+--- a/fs/Kconfig~tmpfs-support-64-bit-inums-per-sb-fix
++++ a/fs/Kconfig
+@@ -207,12 +207,18 @@ config TMPFS_INODE64
+ 	default n
+ 	help
+ 	  tmpfs has historically used only inode numbers as wide as an unsigned
+-	  int. In some cases this can cause wraparound, potentially resulting in
+-	  multiple files with the same inode number on a single device. This option
+-	  makes tmpfs use the full width of ino_t by default, similarly to the
+-	  inode64 mount option.
++	  int. In some cases this can cause wraparound, potentially resulting
++	  in multiple files with the same inode number on a single device. This
++	  option makes tmpfs use the full width of ino_t by default, without
++	  needing to specify the inode64 option when mounting.
+ 
+-	  To override this default, use the inode32 or inode64 mount options.
++	  But if a long-lived tmpfs is to be accessed by 32-bit applications so
++	  ancient that opening a file larger than 2GiB fails with EINVAL, then
++	  the INODE64 config option and inode64 mount option risk operations
++	  failing with EOVERFLOW once 33-bit inode numbers are reached.
++
++	  To override this configured default, use the inode32 or inode64
++	  option when mounting.
+ 
+ 	  If unsure, say N.
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-handle-page-mapping-better-in-dump_page.patch
-mm-thp-replace-http-links-with-https-ones-fix.patch
-mm.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
-mm-hugetlb-add-mempolicy-check-in-the-reservation-routine-fix.patch
-mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
-mm-migrate-make-a-standard-migration-target-allocation-function-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+tmpfs-support-64-bit-inums-per-sb.patch
+mm-memcontrol-decouple-reference-counting-from-page-accounting-fix.patch
+khugepaged-collapse_pte_mapped_thp-flush-the-right-range.patch
+khugepaged-collapse_pte_mapped_thp-protect-the-pmd-lock.patch
+khugepaged-retract_page_tables-remember-to-test-exit.patch
+khugepaged-khugepaged_test_exit-check-mmget_still_valid.patch
 
