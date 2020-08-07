@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3847AC433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A357C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D9F92177B
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52E58221E5
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781210;
-	bh=A5XTRG/WG6FSRjHL8HCFSEvfNsiBkY/8EkP+IYiv6Kk=;
+	s=default; t=1596781213;
+	bh=/i2Y/Aazfea7Zv50E/etBC9vl3UoPf9bBDuPixAtoDw=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=z1L3sWt4kKQ0OWrv4VoIbkOAGJhUjayNfiSnGkURBQoIMGUBGcSsUCKpJgOId1bBa
-	 s60iA4GDALvu/4uezS3NsYw7FF+fHunJ0dS+6VrchyA6OrgSaZ2SQl/9Hb/6aQ7c/c
-	 brR6iWLRCs6/iLSyR7CVqgkALn2K5aCV8u+L5Mww=
+	b=0LfefG+GwcsbbiX+6w0sberD6AtQthAShgMBL52umkjh4Tym5gAJk+m1R0VqzdacX
+	 1UGMWqNtqZkQbK8XNHP9ehHCR/wsOFBgXbJEhvzDtd3RiXc80jOBlEWjjsiCYXPAFY
+	 M2ohYJi4zaVXTgHey7kEEH81VmH2/bFC0xuUlZpg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725872AbgHGGUJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:20:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55986 "EHLO mail.kernel.org"
+        id S1725805AbgHGGUN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:20:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56048 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGUJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:20:09 -0400
+        id S1725379AbgHGGUM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:20:12 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C19E722C9F;
-        Fri,  7 Aug 2020 06:20:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id EA6D42177B;
+        Fri,  7 Aug 2020 06:20:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781209;
-        bh=A5XTRG/WG6FSRjHL8HCFSEvfNsiBkY/8EkP+IYiv6Kk=;
+        s=default; t=1596781212;
+        bh=/i2Y/Aazfea7Zv50E/etBC9vl3UoPf9bBDuPixAtoDw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=y7m20ZAwRlQQUjSMR3WjhBLCXkE0dt3X+NwF7czXSEcH2UGgyp3Fdr92itU79Ocjj
-         OCaY9gIzK86PgtcUDpcrar70ff7mrPlDTqEebKZV8EFRi9jJuFWRkO0dY2jB0Au6DQ
-         WYBqRpxHsKyNjm3mL7oOZQsv2oFz6/SZ9nN0OQAU=
-Date:   Thu, 06 Aug 2020 23:20:08 -0700
+        b=z6qwmgWIYnx228fShuZVxw7Zc0/tFJac8S1xQO34ZVNm5AwtrufE6koG5UumHSC05
+         FZUE4TtCQrbcmVvE6F82OIbO/JxFDQg3QATwMb8WjILtnxMRTQOxE2lmnj//5X2ytp
+         LKA23tv9lQZJTXlt3LKgb355YZlL2/gcttF4XCak=
+Date:   Thu, 06 Aug 2020 23:20:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
         tim.c.chen@linux.intel.com, torvalds@linux-foundation.org
-Subject:  [patch 055/163] mm/swap_slots.c: simplify
- enable_swap_slots_cache()
-Message-ID: <20200807062008.XfHKlbvxo%akpm@linux-foundation.org>
+Subject:  [patch 056/163] mm/swap_slots.c: remove redundant check
+ for swap_slot_cache_initialized
+Message-ID: <20200807062011.jX4N4N-JP%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,57 +55,51 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: mm/swap_slots.c: simplify enable_swap_slots_cache()
+Subject: mm/swap_slots.c: remove redundant check for swap_slot_cache_initialized
 
-Whether swap_slot_cache_initialized is true or false,
-__reenable_swap_slots_cache() is always called.  To make this meaning
-clear, leave only one call to __reenable_swap_slots_cache().  This also
-make it clearer what extra needs be done when swap_slot_cache_initialized
-is false.
+Because enable_swap_slots_cache can only become true in
+enable_swap_slots_cache(), and depends on swap_slot_cache_initialized is
+true before.  That means, when enable_swap_slots_cache is true,
+swap_slot_cache_initialized is true also.
 
-No functional change.
+So the condition:
+"swap_slot_cache_enabled && swap_slot_cache_initialized"
+can be reduced to "swap_slot_cache_enabled"
 
-Link: http://lkml.kernel.org/r/20200430061143.450-3-thunder.leizhen@huawei.com
+And in mathematics:
+"!swap_slot_cache_enabled || !swap_slot_cache_initialized"
+is equal to "!(swap_slot_cache_enabled && swap_slot_cache_initialized)"
+
+So no functional change.
+
+Link: http://lkml.kernel.org/r/20200430061143.450-4-thunder.leizhen@huawei.com
 Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
 Acked-by: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_slots.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ mm/swap_slots.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/swap_slots.c~mm-swap-simplify-enable_swap_slots_cache
+--- a/mm/swap_slots.c~mm-swap-remove-redundant-check-for-swap_slot_cache_initialized
 +++ a/mm/swap_slots.c
-@@ -240,21 +240,19 @@ static int free_slot_cache(unsigned int
+@@ -46,8 +46,7 @@ static void __drain_swap_slots_cache(uns
+ static void deactivate_swap_slots_cache(void);
+ static void reactivate_swap_slots_cache(void);
  
- int enable_swap_slots_cache(void)
+-#define use_swap_slot_cache (swap_slot_cache_active && \
+-		swap_slot_cache_enabled && swap_slot_cache_initialized)
++#define use_swap_slot_cache (swap_slot_cache_active && swap_slot_cache_enabled)
+ #define SLOTS_CACHE 0x1
+ #define SLOTS_CACHE_RET 0x2
+ 
+@@ -94,7 +93,7 @@ static bool check_cache_active(void)
  {
--	int ret = 0;
--
- 	mutex_lock(&swap_slots_cache_enable_mutex);
--	if (swap_slot_cache_initialized) {
--		__reenable_swap_slots_cache();
--		goto out_unlock;
--	}
-+	if (!swap_slot_cache_initialized) {
-+		int ret;
+ 	long pages;
  
--	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "swap_slots_cache",
--				alloc_swap_slot_cache, free_slot_cache);
--	if (WARN_ONCE(ret < 0, "Cache allocation failed (%s), operating "
--			       "without swap slots cache.\n", __func__))
--		goto out_unlock;
-+		ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "swap_slots_cache",
-+					alloc_swap_slot_cache, free_slot_cache);
-+		if (WARN_ONCE(ret < 0, "Cache allocation failed (%s), operating "
-+				       "without swap slots cache.\n", __func__))
-+			goto out_unlock;
-+
-+		swap_slot_cache_initialized = true;
-+	}
+-	if (!swap_slot_cache_enabled || !swap_slot_cache_initialized)
++	if (!swap_slot_cache_enabled)
+ 		return false;
  
--	swap_slot_cache_initialized = true;
- 	__reenable_swap_slots_cache();
- out_unlock:
- 	mutex_unlock(&swap_slots_cache_enable_mutex);
+ 	pages = get_nr_swap_pages();
 _
