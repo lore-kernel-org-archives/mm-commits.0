@@ -2,51 +2,52 @@ Return-Path: <SRS0=ze/c=BR=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6F60C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 00:36:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B6A5C433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 01:06:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9DB0C2173E
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 00:36:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E460221E2
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 01:06:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596760610;
-	bh=OYwC3RFIeOV6IZ6zH7jzUQqE7fAwOvCpzkTPKKT/9wg=;
+	s=default; t=1596762415;
+	bh=lqFwfZlFj8M+JBaLsg1u0QjRsrOw3isMv/BG4pDKZNA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=OSQHjQa+031DEa67Z3rTOM491X7M33j55b0eyFcq1B518FKlW39sytDRLGBsxdNd9
-	 KkhAmMTQUrUlbeHb7pH+O6AH9cfMgBfzID4IzPdFT8yjkvTM6u0xyoKSHWDFab6FrZ
-	 nbUoYaL+IMgS8Cc3DrK5u33XR8H03KHt5ZeQ00ts=
+	b=v0vNmJcF+EHk1vU0gaMfFvitmrCzx8K7bbN0H/+EAiZRUXv9ra/Lz8VHPCoWvmkw4
+	 LfL8s8uQu21c2g1HmBio80RD+uxZXeOdBaVGzPbcOB+f5sUanVbquKudBKkS/OO89k
+	 ijIRG8CLLxBhcDZ+OyWemlV248RxPkptmbIa0xjM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726224AbgHGAgu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Aug 2020 20:36:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59732 "EHLO mail.kernel.org"
+        id S1726013AbgHGBGy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Aug 2020 21:06:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39990 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725998AbgHGAgt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 Aug 2020 20:36:49 -0400
+        id S1726011AbgHGBGy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 Aug 2020 21:06:54 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 841B2206B5;
-        Fri,  7 Aug 2020 00:36:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 323BD21744;
+        Fri,  7 Aug 2020 01:06:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596760608;
-        bh=OYwC3RFIeOV6IZ6zH7jzUQqE7fAwOvCpzkTPKKT/9wg=;
+        s=default; t=1596762413;
+        bh=lqFwfZlFj8M+JBaLsg1u0QjRsrOw3isMv/BG4pDKZNA=;
         h=Date:From:To:Subject:From;
-        b=uPh7LofHkAh+lWHRJb39hLxKRCr7TPf+Mn8JQUdfpj8up0V8tbs/nVnl9bGIQA7FP
-         ug6vJoUPR3Pizo0pm4PSMceiegTt3qtsYGr6dAm3nBpKsnTXv21Z6k35CggwLVxtXv
-         c0msuBMQcLOXYuXx2QcBYBZCIEu+TPsV97DnscG4=
-Date:   Thu, 06 Aug 2020 17:36:47 -0700
+        b=YhXrWuXsSc8MlHOzje3mkFz/UTMLkicXO2qFVag3V3ql3TclY2c5/5mVw2oy3fHOX
+         eemDzHnSDX/INnPHThALrP+DfJ45q5dpYoQZIeB0p7lvlep5XH49yg25+UZ8x6L7OC
+         yjF/kUCOtISr+jKe4wzkQq+coS9abiRsDyhsB1n0=
+Date:   Thu, 06 Aug 2020 18:06:52 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, jgg@mellanox.com, jglisse@redhat.com,
-        jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, rdunlap@infradead.org
-Subject:  +
- mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier.patch added to
+To:     aneesh.kumar@linux.ibm.com, aneesh.kumar@linux.vnet.ibm.com,
+        cai@lca.pw, dave.hansen@intel.com, david@redhat.com,
+        mhocko@kernel.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, tony.luck@intel.com, zeil@yandex-team.ru
+Subject:  + mmhwpoison-cleanup-unused-pagehuge-check.patch added to
  -mm tree
-Message-ID: <20200807003647.2kYmh8kVp%akpm@linux-foundation.org>
+Message-ID: <20200807010652.l3GOeWEgK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: fix migrate_pgmap_owner w/o CONFIG_MMU_NOTIFIER
+     Subject: mm,hwpoison: cleanup unused PageHuge() check
 has been added to the -mm tree.  Its filename is
-     mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier.patch
+     mmhwpoison-cleanup-unused-pagehuge-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-cleanup-unused-pagehuge-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-cleanup-unused-pagehuge-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,86 +78,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/migrate: fix migrate_pgmap_owner w/o CONFIG_MMU_NOTIFIER
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm,hwpoison: cleanup unused PageHuge() check
 
-On x86_64, when CONFIG_MMU_NOTIFIER is not set/enabled, there is a
-compiler error:
+Patch series "HWPOISON: soft offline rework", v6.
 
-../mm/migrate.c: In function 'migrate_vma_collect':
-../mm/migrate.c:2481:7: error: 'struct mmu_notifier_range' has no member
-named 'migrate_pgmap_owner'
-  range.migrate_pgmap_owner = migrate->pgmap_owner;
-       ^
+Main focus of this series is to stabilize soft offline.  Historically soft
+offlined pages have suffered from racy conditions because PageHWPoison is
+used to a little too aggressively, which (directly or indirectly) invades
+other mm code which cares little about hwpoison.  This results in
+unexpected behavior or kernel panic, which is very far from soft offline's
+"do not disturb userspace or other kernel component" policy.
 
-Link: http://lkml.kernel.org/r/20200806193353.7124-1-rcampbell@nvidia.com
-Fixes: 998427b3ad2c ("mm/notifier: add migration invalidation type")
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Jason Gunthorpe" <jgg@mellanox.com>
+Main point of this change set is to contain target page "via buddy
+allocator", where we first free the target page as we do for normal pages,
+and remove from buddy only when we confirm that it reaches free list. 
+There is surely race window of page allocation, but that's fine because
+someone really want that page and the page is still working, so soft
+offline can happily give up.
+
+
+This patch (of 12):
+
+Drop the PageHuge check, which is dead code since memory_failure() forks
+into memory_failure_hugetlb() for hugetlb pages.
+
+memory_failure() and memory_failure_hugetlb() shares some functions like
+hwpoison_user_mappings() and identify_page_state(), so they should
+properly handle 4kB page, thp, and hugetlb.
+
+Link: http://lkml.kernel.org/r/20200806184923.7007-1-nao.horiguchi@gmail.com
+Link: http://lkml.kernel.org/r/20200806184923.7007-2-nao.horiguchi@gmail.com
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Dmitry Yakunin <zeil@yandex-team.ru>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   13 +++++++++++++
- mm/migrate.c                 |    6 +++---
- 2 files changed, 16 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/include/linux/mmu_notifier.h~mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier
-+++ a/include/linux/mmu_notifier.h
-@@ -521,6 +521,16 @@ static inline void mmu_notifier_range_in
- 	range->flags = flags;
- }
- 
-+static inline void mmu_notifier_range_init_migrate(
-+			struct mmu_notifier_range *range, unsigned int flags,
-+			struct vm_area_struct *vma, struct mm_struct *mm,
-+			unsigned long start, unsigned long end, void *pgmap)
-+{
-+	mmu_notifier_range_init(range, MMU_NOTIFY_MIGRATE, flags, vma, mm,
-+				start, end);
-+	range->migrate_pgmap_owner = pgmap;
-+}
-+
- #define ptep_clear_flush_young_notify(__vma, __address, __ptep)		\
- ({									\
- 	int __young;							\
-@@ -645,6 +655,9 @@ static inline void _mmu_notifier_range_i
- 
- #define mmu_notifier_range_init(range,event,flags,vma,mm,start,end)  \
- 	_mmu_notifier_range_init(range, start, end)
-+#define mmu_notifier_range_init_migrate(range, flags, vma, mm, start, end, \
-+					pgmap) \
-+	_mmu_notifier_range_init(range, start, end)
- 
- static inline bool
- mmu_notifier_range_blockable(const struct mmu_notifier_range *range)
---- a/mm/migrate.c~mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier
-+++ a/mm/migrate.c
-@@ -2429,9 +2429,9 @@ static void migrate_vma_collect(struct m
- 	 * that the registered device driver can skip invalidating device
- 	 * private page mappings that won't be migrated.
+--- a/mm/memory-failure.c~mmhwpoison-cleanup-unused-pagehuge-check
++++ a/mm/memory-failure.c
+@@ -1382,10 +1382,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * page_remove_rmap() in try_to_unmap_one(). So to determine page status
+ 	 * correctly, we save a copy of the page flags at this time.
  	 */
--	mmu_notifier_range_init(&range, MMU_NOTIFY_MIGRATE, 0, migrate->vma,
--			migrate->vma->vm_mm, migrate->start, migrate->end);
--	range.migrate_pgmap_owner = migrate->pgmap_owner;
-+	mmu_notifier_range_init_migrate(&range, 0, migrate->vma,
-+		migrate->vma->vm_mm, migrate->start, migrate->end,
-+		migrate->pgmap_owner);
- 	mmu_notifier_invalidate_range_start(&range);
+-	if (PageHuge(p))
+-		page_flags = hpage->flags;
+-	else
+-		page_flags = p->flags;
++	page_flags = p->flags;
  
- 	walk_page_range(migrate->vma->vm_mm, migrate->start, migrate->end,
+ 	/*
+ 	 * unpoison always clear PG_hwpoison inside page lock
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-mm-remove-redundant-check-non_swap_entry.patch
-mm-migrate-optimize-migrate_vma_setup-for-holes.patch
-mm-migrate-optimize-migrate_vma_setup-for-holes-v2.patch
-mm-migrate-add-migrate-shared-test-for-migrate_vma_.patch
-mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier.patch
+mmhwpoison-cleanup-unused-pagehuge-check.patch
+mm-hwpoison-remove-recalculating-hpage.patch
+mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
+mmhwpoison-introduce-mf_msg_unsplit_thp.patch
+mmhwpoison-double-check-page-count-in-__get_any_page.patch
 
