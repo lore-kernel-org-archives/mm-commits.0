@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FC07C433E1
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA091C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 39C1C22CB3
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8F93F22C9F
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781117;
-	bh=IrQmuDLnmKO8nJeUqsiRdNTHP8cYpnJR9kJ8og74ckc=;
+	s=default; t=1596781120;
+	bh=mCOp824s/TjDQryEW8XBnyyOzo3OO+ME6LhykY5FJCw=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=vPBw7YijXWbUrwERKlj1TYn3tn/9mcXoxLLUL8Gzoas9AAqp5T/opZsPpwTFFB1Hv
-	 3ffOfTaBa2WyfaB41bQ5ptogk0VU5dPbqK/AlksbJVEZ9nZ/yTW9DctPSr60cDqLcK
-	 3IO+ljAGHAvxSVBwQJlHUiSSAIzcwKmUKLlUksD4=
+	b=1cZQq0PT+OoFcoELw9tLt/YU2J/OE7gMIMV4lzw+q1r8ic2g1bG66BYlTi5hXZgus
+	 P9q0+9lMMTTTF7CuRWeTbI/wPq2t/mzCB1YvnoLaAVwDMgNh8DG9LZ6DFHCACE9rch
+	 eB/Xomc5NFWwgWC6TnhX0X7T2JI/10FDpO0OOrAQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726038AbgHGGSh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:18:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53936 "EHLO mail.kernel.org"
+        id S1726150AbgHGGSk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:18:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGSg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:18:36 -0400
+        id S1725379AbgHGGSk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:18:40 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 76104221E5;
-        Fri,  7 Aug 2020 06:18:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DBD8E2177B;
+        Fri,  7 Aug 2020 06:18:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781116;
-        bh=IrQmuDLnmKO8nJeUqsiRdNTHP8cYpnJR9kJ8og74ckc=;
+        s=default; t=1596781119;
+        bh=mCOp824s/TjDQryEW8XBnyyOzo3OO+ME6LhykY5FJCw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=mC7SlJKviedINVAjcr61oqktSFvF4dnoxWc3twPsq0K5zobIkKeUBSQR9Xps5T+1Y
-         mz7ICWS45PxEIIRKBXkfcWcSCAwyL7ZKsD/KK/8VRqWFfbHLUKSnBIH4f1Z8CBuCmL
-         +UlufmqqBsMpDPmOjvaV5vvhfhvHU9w4W9AAe3/I=
-Date:   Thu, 06 Aug 2020 23:18:35 -0700
+        b=Ljvfh/Ner5ifuJVt3NcehM93X4xPypGSMCt1fU6bMJ/kFf/2cvMmLR1ZEwmuZWwrp
+         9fFYnFtn+oKewRKauZWHiO1KGQccwwkirQp8Nz8uAIevAf2BUJ7o3Zvk4gAjd+Tycw
+         3i+21DgGmeROCfJ0T/jYXdryMU9j7y/OxJuP52tg=
+Date:   Thu, 06 Aug 2020 23:18:38 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
         iamjoonsoo.kim@lge.com, jannh@google.com, keescook@chromium.org,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz,
         vjitta@codeaurora.org
-Subject:  [patch 028/163] mm, slub: extend slub_debug syntax for
- multiple blocks
-Message-ID: <20200807061835.tEBeaeVg9%akpm@linux-foundation.org>
+Subject:  [patch 029/163] mm, slub: make some slub_debug related
+ attributes read-only
+Message-ID: <20200807061838.DsBROPWcO%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,331 +57,161 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: extend slub_debug syntax for multiple blocks
+Subject: mm, slub: make some slub_debug related attributes read-only
 
-Patch series "slub_debug fixes and improvements".
+SLUB_DEBUG creates several files under /sys/kernel/slab/<cache>/ that can
+be read to check if the respective debugging options are enabled for given
+cache.  The options can be also toggled at runtime by writing into the
+files.  Some of those, namely red_zone, poison, and store_user can be
+toggled only when no objects yet exist in the cache.
 
+Vijayanand reports [1] that there is a problem with freelist randomization
+if changing the debugging option's state results in different number of
+objects per page, and the random sequence cache needs thus needs to be
+recomputed.
 
-The slub_debug kernel boot parameter can either apply a single set of
-options to all caches or a list of caches.  There is a use case where
-debugging is applied for all caches and then disabled at runtime for
-specific caches, for performance and memory consumption reasons [1].  As
-runtime changes are dangerous, extend the boot parameter syntax so that
-multiple blocks of either global or slab-specific options can be
-specified, with blocks delimited by ';'.  This will also support the use
-case of [1] without runtime changes.
+However, another problem is that the check for "no objects yet exist in
+the cache" is racy, as noted by Jann [2] and fixing that would add
+overhead or otherwise complicate the allocation/freeing paths.  Thus it
+would be much simpler just to remove the runtime toggling support.  The
+documentation describes it's "In case you forgot to enable debugging on
+the kernel command line", but the neccessity of having no objects limits
+its usefulness anyway for many caches.
 
-For details see the updated Documentation/vm/slub.rst
+Vijayanand describes an use case [3] where debugging is enabled for all
+but zram caches for memory overhead reasons, and using the runtime toggles
+was the only way to achieve such configuration.  After the previous patch
+it's now possible to do that directly from the kernel boot option, so we
+can remove the dangerous runtime toggles by making the /sys attribute
+files read-only.
 
-[1] https://lore.kernel.org/r/1383cd32-1ddc-4dac-b5f8-9c42282fa81c@codeaurora.org
+While updating it, also improve the documentation of the debugging /sys files.
 
-[weiyongjun1@huawei.com: make parse_slub_debug_flags() static]
-  Link: http://lkml.kernel.org/r/20200702150522.4940-1-weiyongjun1@huawei.com
-Link: http://lkml.kernel.org/r/20200610163135.17364-2-vbabka@suse.cz
+[1] https://lkml.kernel.org/r/1580379523-32272-1-git-send-email-vjitta@codeaurora.org
+[2] https://lore.kernel.org/r/CAG48ez31PP--h6_FzVyfJ4H86QYczAFPdxtJHUEEan+7VJETAQ@mail.gmail.com
+[3] https://lore.kernel.org/r/1383cd32-1ddc-4dac-b5f8-9c42282fa81c@codeaurora.org
+
+Link: http://lkml.kernel.org/r/20200610163135.17364-3-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Vijayanand Jitta <vjitta@codeaurora.org>
+Reported-by: Jann Horn <jannh@google.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Roman Gushchin <guro@fb.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    2 
- Documentation/vm/slub.rst                       |   18 +
- mm/slub.c                                       |  179 +++++++++-----
- 3 files changed, 146 insertions(+), 53 deletions(-)
+ Documentation/vm/slub.rst |   26 ++++++++++++--------
+ mm/slub.c                 |   46 ++----------------------------------
+ 2 files changed, 19 insertions(+), 53 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-slub-extend-slub_debug-syntax-for-multiple-blocks
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4689,7 +4689,7 @@
- 			fragmentation.  Defaults to 1 for systems with
- 			more than 32MB of RAM, 0 otherwise.
- 
--	slub_debug[=options[,slabs]]	[MM, SLUB]
-+	slub_debug[=options[,slabs][;[options[,slabs]]...]	[MM, SLUB]
- 			Enabling slub_debug allows one to determine the
- 			culprit if slab objects become corrupted. Enabling
- 			slub_debug can create guard zones around objects and
---- a/Documentation/vm/slub.rst~mm-slub-extend-slub_debug-syntax-for-multiple-blocks
+--- a/Documentation/vm/slub.rst~mm-slub-make-some-slub_debug-related-attributes-read-only
 +++ a/Documentation/vm/slub.rst
-@@ -41,6 +41,11 @@ slub_debug=<Debug-Options>,<slab name1>,
- 	Enable options only for select slabs (no spaces
- 	after a comma)
+@@ -101,20 +101,26 @@ with "-" as options::
  
-+Multiple blocks of options for all slabs or selected slabs can be given, with
-+blocks of options delimited by ';'. The last of "all slabs" blocks is applied
-+to all slabs except those that match one of the "select slabs" block. Options
-+of the first "select slabs" blocks that matches the slab's name are applied.
-+
- Possible debug options are::
+ 	slub_debug=FZ;-,zs_handle,zspage
  
- 	F		Sanity checks on (enables SLAB_DEBUG_CONSISTENCY_CHECKS
-@@ -83,6 +88,19 @@ switch off debugging for such caches by
+-In case you forgot to enable debugging on the kernel command line: It is
+-possible to enable debugging manually when the kernel is up. Look at the
+-contents of::
++The state of each debug option for a slab can be found in the respective files
++under::
  
- 	slub_debug=O
+ 	/sys/kernel/slab/<slab name>/
  
-+You can apply different options to different list of slab names, using blocks
-+of options. This will enable red zoning for dentry and user tracking for
-+kmalloc. All other slabs will not get any debugging enabled::
+-Look at the writable files. Writing 1 to them will enable the
+-corresponding debug option. All options can be set on a slab that does
+-not contain objects. If the slab already contains objects then sanity checks
+-and tracing may only be enabled. The other options may cause the realignment
+-of objects.
++If the file contains 1, the option is enabled, 0 means disabled. The debug
++options from the ``slub_debug`` parameter translate to the following files::
+ 
+-Careful with tracing: It may spew out lots of information and never stop if
+-used on the wrong slab.
++	F	sanity_checks
++	Z	red_zone
++	P	poison
++	U	store_user
++	T	trace
++	A	failslab
 +
-+	slub_debug=Z,dentry;U,kmalloc-*
-+
-+You can also enable options (e.g. sanity checks and poisoning) for all caches
-+except some that are deemed too performance critical and don't need to be
-+debugged by specifying global debug options followed by a list of slab names
-+with "-" as options::
-+
-+	slub_debug=FZ;-,zs_handle,zspage
-+
- In case you forgot to enable debugging on the kernel command line: It is
- possible to enable debugging manually when the kernel is up. Look at the
- contents of::
---- a/mm/slub.c~mm-slub-extend-slub_debug-syntax-for-multiple-blocks
++The sanity_checks, trace and failslab files are writable, so writing 1 or 0
++will enable or disable the option at runtime. The writes to trace and failslab
++may return -EINVAL if the cache is subject to slab merging. Careful with
++tracing: It may spew out lots of information and never stop if used on the
++wrong slab.
+ 
+ Slab merging
+ ============
+--- a/mm/slub.c~mm-slub-make-some-slub_debug-related-attributes-read-only
 +++ a/mm/slub.c
-@@ -499,7 +499,7 @@ static slab_flags_t slub_debug = DEBUG_D
- static slab_flags_t slub_debug;
- #endif
- 
--static char *slub_debug_slabs;
-+static char *slub_debug_string;
- static int disable_higher_order_debug;
- 
- /*
-@@ -1262,68 +1262,132 @@ out:
- 	return ret;
+@@ -5335,61 +5335,21 @@ static ssize_t red_zone_show(struct kmem
+ 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_RED_ZONE));
  }
  
--static int __init setup_slub_debug(char *str)
-+/*
-+ * Parse a block of slub_debug options. Blocks are delimited by ';'
-+ *
-+ * @str:    start of block
-+ * @flags:  returns parsed flags, or DEBUG_DEFAULT_FLAGS if none specified
-+ * @slabs:  return start of list of slabs, or NULL when there's no list
-+ * @init:   assume this is initial parsing and not per-kmem-create parsing
-+ *
-+ * returns the start of next block if there's any, or NULL
-+ */
-+static char *
-+parse_slub_debug_flags(char *str, slab_flags_t *flags, char **slabs, bool init)
+-static ssize_t red_zone_store(struct kmem_cache *s,
+-				const char *buf, size_t length)
+-{
+-	if (any_slab_objects(s))
+-		return -EBUSY;
+-
+-	s->flags &= ~SLAB_RED_ZONE;
+-	if (buf[0] == '1') {
+-		s->flags |= SLAB_RED_ZONE;
+-	}
+-	calculate_sizes(s, -1);
+-	return length;
+-}
+-SLAB_ATTR(red_zone);
++SLAB_ATTR_RO(red_zone);
+ 
+ static ssize_t poison_show(struct kmem_cache *s, char *buf)
  {
--	slub_debug = DEBUG_DEFAULT_FLAGS;
--	if (*str++ != '=' || !*str)
--		/*
--		 * No options specified. Switch on full debugging.
--		 */
--		goto out;
-+	bool higher_order_disable = false;
- 
--	if (*str == ',')
-+	/* Skip any completely empty blocks */
-+	while (*str && *str == ';')
-+		str++;
-+
-+	if (*str == ',') {
- 		/*
- 		 * No options but restriction on slabs. This means full
- 		 * debugging for slabs matching a pattern.
- 		 */
-+		*flags = DEBUG_DEFAULT_FLAGS;
- 		goto check_slabs;
-+	}
-+	*flags = 0;
- 
--	slub_debug = 0;
--	if (*str == '-')
--		/*
--		 * Switch off all debugging measures.
--		 */
--		goto out;
--
--	/*
--	 * Determine which debug features should be switched on
--	 */
--	for (; *str && *str != ','; str++) {
-+	/* Determine which debug features should be switched on */
-+	for (; *str && *str != ',' && *str != ';'; str++) {
- 		switch (tolower(*str)) {
-+		case '-':
-+			*flags = 0;
-+			break;
- 		case 'f':
--			slub_debug |= SLAB_CONSISTENCY_CHECKS;
-+			*flags |= SLAB_CONSISTENCY_CHECKS;
- 			break;
- 		case 'z':
--			slub_debug |= SLAB_RED_ZONE;
-+			*flags |= SLAB_RED_ZONE;
- 			break;
- 		case 'p':
--			slub_debug |= SLAB_POISON;
-+			*flags |= SLAB_POISON;
- 			break;
- 		case 'u':
--			slub_debug |= SLAB_STORE_USER;
-+			*flags |= SLAB_STORE_USER;
- 			break;
- 		case 't':
--			slub_debug |= SLAB_TRACE;
-+			*flags |= SLAB_TRACE;
- 			break;
- 		case 'a':
--			slub_debug |= SLAB_FAILSLAB;
-+			*flags |= SLAB_FAILSLAB;
- 			break;
- 		case 'o':
- 			/*
- 			 * Avoid enabling debugging on caches if its minimum
- 			 * order would increase as a result.
- 			 */
--			disable_higher_order_debug = 1;
-+			higher_order_disable = true;
- 			break;
- 		default:
--			pr_err("slub_debug option '%c' unknown. skipped\n",
--			       *str);
-+			if (init)
-+				pr_err("slub_debug option '%c' unknown. skipped\n", *str);
- 		}
- 	}
--
- check_slabs:
- 	if (*str == ',')
--		slub_debug_slabs = str + 1;
-+		*slabs = ++str;
-+	else
-+		*slabs = NULL;
-+
-+	/* Skip over the slab list */
-+	while (*str && *str != ';')
-+		str++;
-+
-+	/* Skip any completely empty blocks */
-+	while (*str && *str == ';')
-+		str++;
-+
-+	if (init && higher_order_disable)
-+		disable_higher_order_debug = 1;
-+
-+	if (*str)
-+		return str;
-+	else
-+		return NULL;
-+}
-+
-+static int __init setup_slub_debug(char *str)
-+{
-+	slab_flags_t flags;
-+	char *saved_str;
-+	char *slab_list;
-+	bool global_slub_debug_changed = false;
-+	bool slab_list_specified = false;
-+
-+	slub_debug = DEBUG_DEFAULT_FLAGS;
-+	if (*str++ != '=' || !*str)
-+		/*
-+		 * No options specified. Switch on full debugging.
-+		 */
-+		goto out;
-+
-+	saved_str = str;
-+	while (str) {
-+		str = parse_slub_debug_flags(str, &flags, &slab_list, true);
-+
-+		if (!slab_list) {
-+			slub_debug = flags;
-+			global_slub_debug_changed = true;
-+		} else {
-+			slab_list_specified = true;
-+		}
-+	}
-+
-+	/*
-+	 * For backwards compatibility, a single list of flags with list of
-+	 * slabs means debugging is only enabled for those slabs, so the global
-+	 * slub_debug should be 0. We can extended that to multiple lists as
-+	 * long as there is no option specifying flags without a slab list.
-+	 */
-+	if (slab_list_specified) {
-+		if (!global_slub_debug_changed)
-+			slub_debug = 0;
-+		slub_debug_string = saved_str;
-+	}
- out:
- 	if ((static_branch_unlikely(&init_on_alloc) ||
- 	     static_branch_unlikely(&init_on_free)) &&
-@@ -1352,36 +1416,47 @@ slab_flags_t kmem_cache_flags(unsigned i
- {
- 	char *iter;
- 	size_t len;
-+	char *next_block;
-+	slab_flags_t block_flags;
- 
- 	/* If slub_debug = 0, it folds into the if conditional. */
--	if (!slub_debug_slabs)
-+	if (!slub_debug_string)
- 		return flags | slub_debug;
- 
- 	len = strlen(name);
--	iter = slub_debug_slabs;
--	while (*iter) {
--		char *end, *glob;
--		size_t cmplen;
--
--		end = strchrnul(iter, ',');
--
--		glob = strnchr(iter, end - iter, '*');
--		if (glob)
--			cmplen = glob - iter;
--		else
--			cmplen = max_t(size_t, len, (end - iter));
-+	next_block = slub_debug_string;
-+	/* Go through all blocks of debug options, see if any matches our slab's name */
-+	while (next_block) {
-+		next_block = parse_slub_debug_flags(next_block, &block_flags, &iter, false);
-+		if (!iter)
-+			continue;
-+		/* Found a block that has a slab list, search it */
-+		while (*iter) {
-+			char *end, *glob;
-+			size_t cmplen;
-+
-+			end = strchrnul(iter, ',');
-+			if (next_block && next_block < end)
-+				end = next_block - 1;
-+
-+			glob = strnchr(iter, end - iter, '*');
-+			if (glob)
-+				cmplen = glob - iter;
-+			else
-+				cmplen = max_t(size_t, len, (end - iter));
- 
--		if (!strncmp(name, iter, cmplen)) {
--			flags |= slub_debug;
--			break;
--		}
-+			if (!strncmp(name, iter, cmplen)) {
-+				flags |= block_flags;
-+				return flags;
-+			}
- 
--		if (!*end)
--			break;
--		iter = end + 1;
-+			if (!*end || *end == ';')
-+				break;
-+			iter = end + 1;
-+		}
- 	}
- 
--	return flags;
-+	return slub_debug;
+ 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_POISON));
  }
- #else /* !CONFIG_SLUB_DEBUG */
- static inline void setup_object_debug(struct kmem_cache *s,
+ 
+-static ssize_t poison_store(struct kmem_cache *s,
+-				const char *buf, size_t length)
+-{
+-	if (any_slab_objects(s))
+-		return -EBUSY;
+-
+-	s->flags &= ~SLAB_POISON;
+-	if (buf[0] == '1') {
+-		s->flags |= SLAB_POISON;
+-	}
+-	calculate_sizes(s, -1);
+-	return length;
+-}
+-SLAB_ATTR(poison);
++SLAB_ATTR_RO(poison);
+ 
+ static ssize_t store_user_show(struct kmem_cache *s, char *buf)
+ {
+ 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_STORE_USER));
+ }
+ 
+-static ssize_t store_user_store(struct kmem_cache *s,
+-				const char *buf, size_t length)
+-{
+-	if (any_slab_objects(s))
+-		return -EBUSY;
+-
+-	s->flags &= ~SLAB_STORE_USER;
+-	if (buf[0] == '1') {
+-		s->flags &= ~__CMPXCHG_DOUBLE;
+-		s->flags |= SLAB_STORE_USER;
+-	}
+-	calculate_sizes(s, -1);
+-	return length;
+-}
+-SLAB_ATTR(store_user);
++SLAB_ATTR_RO(store_user);
+ 
+ static ssize_t validate_show(struct kmem_cache *s, char *buf)
+ {
 _
