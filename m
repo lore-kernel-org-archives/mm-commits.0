@@ -7,56 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51AEFC433E4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78627C433E1
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1A71322C9F
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 59E3C22CB3
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781418;
-	bh=BYgXQkk0YpzEpZs+H3DKrPqJ+d4D9s9TZ2WNsBZkKLc=;
+	s=default; t=1596781420;
+	bh=J3ne5N9GlgjmKN8hmoTrnuGRHod6Y/jhhnSOVJ2HH1M=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Hug34+mOSEoGbZyn381HFKN+aiTjQt/jaIB+koRKsOwoV1moIMWxUPBRz2TBNd6ou
-	 e10DB+jAW8Cla7tvfd+zMAl0YYWoTpZPz5AtRp3cTSfA9pKpVF52cACNGjY+uU/aC3
-	 JIZuSdW70xX2nJk+7azsWGr/a3u3KdsrZF1rbV3s=
+	b=ZOcH2DNRKHdUd4fOlRiSFFzpvt0qJrosM68frSI1lGgZke7Y7I056UYpPq2N/CxjT
+	 c1Gb49vul82E0N1ml/xtyxVPwoJ2D6ST/Ub6VkW2T3Bt18uBo4aKXPUEc6zGqn1F1w
+	 wGyh31MniDIJly/n4EOLPLVETvsjcqlzrIX4ejWQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726224AbgHGGXh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:23:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60494 "EHLO mail.kernel.org"
+        id S1725379AbgHGGXj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:23:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60682 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726249AbgHGGXc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:23:32 -0400
+        id S1726249AbgHGGXj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:23:39 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1D19B22D08;
-        Fri,  7 Aug 2020 06:23:30 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A1EAE22D3E;
+        Fri,  7 Aug 2020 06:23:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781411;
-        bh=BYgXQkk0YpzEpZs+H3DKrPqJ+d4D9s9TZ2WNsBZkKLc=;
+        s=default; t=1596781418;
+        bh=J3ne5N9GlgjmKN8hmoTrnuGRHod6Y/jhhnSOVJ2HH1M=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=W4GaR8ddiWZDruadX5ttkBapGc0cNgg/r1aSsJi5AA+MbQWj69HHWqBi0/CY42/X7
-         Kgrgdx/JhCSGCH8WO4sbFh4yn/A4paKw7UMa85aSIxyh25uyGVskCP0BYzS/owGkV9
-         UcQKNUNLlP8GoK+m5ixI9CK6p5TAKuCovDr613pg=
-Date:   Thu, 06 Aug 2020 23:23:29 -0700
+        b=kehVFLz7nzsfE6zz/PWM0rWPMHSFO2/vjSzN5dmtDHbwFhB4DRxaMCCyBaScAVrfN
+         zUCyDVA0ZMh8WBvP/v7TO22aWQi7zuMG1v8kSf/ViRyr4ScBlxwEoY868kiGhrEXyN
+         7RV3pkh+9+Nt7ojlzsKqxBYFdLjguA/FNOfWjfvo=
+Date:   Thu, 06 Aug 2020 23:23:37 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
-        benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com,
-        corbet@lwn.net, dan.j.williams@intel.com,
-        dave.hansen@linux.intel.com, david@redhat.com,
-        fenghua.yu@intel.com, hpa@zytor.com, hsinyi@chromium.org,
-        justin.he@arm.com, kirill.shutemov@linux.intel.com,
-        linux-mm@kvack.org, luto@kernel.org, mark.rutland@arm.com,
-        mhocko@suse.com, mingo@redhat.com, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, palmer@dabbelt.com, pasha.tatashin@soleen.com,
-        paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org,
-        robin.murphy@arm.com, rppt@linux.ibm.com, steve.capper@arm.com,
-        tglx@linutronix.de, tony.luck@intel.com,
-        torvalds@linux-foundation.org, will@kernel.org,
-        willy@infradead.org, yuzhao@google.com
-Subject:  [patch 111/163] arm64/mm: enable vmem_altmap support for
- vmemmap mappings
-Message-ID: <20200807062329.wUIkG4Im_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, pcc@google.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 113/163] mm: remove unnecessary wrapper function
+ do_mmap_pgoff()
+Message-ID: <20200807062337.sbenOoxBu%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -65,225 +54,234 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: arm64/mm: enable vmem_altmap support for vmemmap mappings
+From: Peter Collingbourne <pcc@google.com>
+Subject: mm: remove unnecessary wrapper function do_mmap_pgoff()
 
-Device memory ranges when getting hot added into ZONE_DEVICE, might
-require their vmemmap mapping's backing memory to be allocated from their
-own range instead of consuming system memory.  This prevents large system
-memory usage for potentially large device memory ranges.  Device driver
-communicates this request via vmem_altmap structure.  Architecture needs
-to take this request into account while creating and tearing down vemmmap
-mappings.
+The current split between do_mmap() and do_mmap_pgoff() was introduced in
+commit 1fcfd8db7f82 ("mm, mpx: add "vm_flags_t vm_flags" arg to
+do_mmap_pgoff()") to support MPX.
 
-This enables vmem_altmap support in vmemmap_populate() and vmemmap_free()
-which includes vmemmap_populate_basepages() used for ARM64_16K_PAGES and
-ARM64_64K_PAGES configs.
+The wrapper function do_mmap_pgoff() always passed 0 as the value of the
+vm_flags argument to do_mmap().  However, MPX support has subsequently
+been removed from the kernel and there were no more direct callers of
+do_mmap(); all calls were going via do_mmap_pgoff().
 
-Link: http://lkml.kernel.org/r/1594004178-8861-4-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Tested-by: Jia He <justin.he@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Hsin-Yi Wang <hsinyi@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Simplify the code by removing do_mmap_pgoff() and changing all callers to
+directly call do_mmap(), which now no longer takes a vm_flags argument.
+
+Link: http://lkml.kernel.org/r/20200727194109.1371462-1-pcc@google.com
+Signed-off-by: Peter Collingbourne <pcc@google.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |   58 +++++++++++++++++++++++++++---------------
- 1 file changed, 38 insertions(+), 20 deletions(-)
+ fs/aio.c             |    6 +++---
+ fs/hugetlbfs/inode.c |    2 +-
+ include/linux/fs.h   |    2 +-
+ include/linux/mm.h   |   12 +-----------
+ ipc/shm.c            |    2 +-
+ mm/mmap.c            |   16 ++++++++--------
+ mm/nommu.c           |    6 +++---
+ mm/shmem.c           |    2 +-
+ mm/util.c            |    4 ++--
+ 9 files changed, 21 insertions(+), 31 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~arm64-mm-enable-vmem_altmap-support-for-vmemmap-mappings
-+++ a/arch/arm64/mm/mmu.c
-@@ -761,15 +761,20 @@ int kern_addr_valid(unsigned long addr)
- }
+--- a/fs/aio.c~mm-remove-unnecessary-wrapper-function-do_mmap_pgoff
++++ a/fs/aio.c
+@@ -525,9 +525,9 @@ static int aio_setup_ring(struct kioctx
+ 		return -EINTR;
+ 	}
  
- #ifdef CONFIG_MEMORY_HOTPLUG
--static void free_hotplug_page_range(struct page *page, size_t size)
-+static void free_hotplug_page_range(struct page *page, size_t size,
-+				    struct vmem_altmap *altmap)
+-	ctx->mmap_base = do_mmap_pgoff(ctx->aio_ring_file, 0, ctx->mmap_size,
+-				       PROT_READ | PROT_WRITE,
+-				       MAP_SHARED, 0, &unused, NULL);
++	ctx->mmap_base = do_mmap(ctx->aio_ring_file, 0, ctx->mmap_size,
++				 PROT_READ | PROT_WRITE,
++				 MAP_SHARED, 0, &unused, NULL);
+ 	mmap_write_unlock(mm);
+ 	if (IS_ERR((void *)ctx->mmap_base)) {
+ 		ctx->mmap_size = 0;
+--- a/fs/hugetlbfs/inode.c~mm-remove-unnecessary-wrapper-function-do_mmap_pgoff
++++ a/fs/hugetlbfs/inode.c
+@@ -140,7 +140,7 @@ static int hugetlbfs_file_mmap(struct fi
+ 	 * already been checked by prepare_hugepage_range.  If you add
+ 	 * any error returns here, do so after setting VM_HUGETLB, so
+ 	 * is_vm_hugetlb_page tests below unmap_region go the right
+-	 * way when do_mmap_pgoff unwinds (may be important on powerpc
++	 * way when do_mmap unwinds (may be important on powerpc
+ 	 * and ia64).
+ 	 */
+ 	vma->vm_flags |= VM_HUGETLB | VM_DONTEXPAND;
+--- a/include/linux/fs.h~mm-remove-unnecessary-wrapper-function-do_mmap_pgoff
++++ a/include/linux/fs.h
+@@ -528,7 +528,7 @@ static inline int mapping_mapped(struct
+ 
+ /*
+  * Might pages of this file have been modified in userspace?
+- * Note that i_mmap_writable counts all VM_SHARED vmas: do_mmap_pgoff
++ * Note that i_mmap_writable counts all VM_SHARED vmas: do_mmap
+  * marks vma as VM_SHARED if it is shared, and the file was opened for
+  * writing i.e. vma may be mprotected writable even if now readonly.
+  *
+--- a/include/linux/mm.h~mm-remove-unnecessary-wrapper-function-do_mmap_pgoff
++++ a/include/linux/mm.h
+@@ -2546,23 +2546,13 @@ extern unsigned long mmap_region(struct
+ 	struct list_head *uf);
+ extern unsigned long do_mmap(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot, unsigned long flags,
+-	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate,
+-	struct list_head *uf);
++	unsigned long pgoff, unsigned long *populate, struct list_head *uf);
+ extern int __do_munmap(struct mm_struct *, unsigned long, size_t,
+ 		       struct list_head *uf, bool downgrade);
+ extern int do_munmap(struct mm_struct *, unsigned long, size_t,
+ 		     struct list_head *uf);
+ extern int do_madvise(unsigned long start, size_t len_in, int behavior);
+ 
+-static inline unsigned long
+-do_mmap_pgoff(struct file *file, unsigned long addr,
+-	unsigned long len, unsigned long prot, unsigned long flags,
+-	unsigned long pgoff, unsigned long *populate,
+-	struct list_head *uf)
+-{
+-	return do_mmap(file, addr, len, prot, flags, 0, pgoff, populate, uf);
+-}
+-
+ #ifdef CONFIG_MMU
+ extern int __mm_populate(unsigned long addr, unsigned long len,
+ 			 int ignore_errors);
+--- a/ipc/shm.c~mm-remove-unnecessary-wrapper-function-do_mmap_pgoff
++++ a/ipc/shm.c
+@@ -1558,7 +1558,7 @@ long do_shmat(int shmid, char __user *sh
+ 			goto invalid;
+ 	}
+ 
+-	addr = do_mmap_pgoff(file, addr, size, prot, flags, 0, &populate, NULL);
++	addr = do_mmap(file, addr, size, prot, flags, 0, &populate, NULL);
+ 	*raddr = addr;
+ 	err = 0;
+ 	if (IS_ERR_VALUE(addr))
+--- a/mm/mmap.c~mm-remove-unnecessary-wrapper-function-do_mmap_pgoff
++++ a/mm/mmap.c
+@@ -1030,7 +1030,7 @@ static inline int is_mergeable_anon_vma(
+  * anon_vmas, nor if same anon_vma is assigned but offsets incompatible.
+  *
+  * We don't check here for the merged mmap wrapping around the end of pagecache
+- * indices (16TB on ia32) because do_mmap_pgoff() does not permit mmap's which
++ * indices (16TB on ia32) because do_mmap() does not permit mmap's which
+  * wrap, nor mmaps which cover the final page at index -1UL.
+  */
+ static int
+@@ -1365,11 +1365,11 @@ static inline bool file_mmap_ok(struct f
+  */
+ unsigned long do_mmap(struct file *file, unsigned long addr,
+ 			unsigned long len, unsigned long prot,
+-			unsigned long flags, vm_flags_t vm_flags,
+-			unsigned long pgoff, unsigned long *populate,
+-			struct list_head *uf)
++			unsigned long flags, unsigned long pgoff,
++			unsigned long *populate, struct list_head *uf)
  {
--	WARN_ON(PageReserved(page));
--	free_pages((unsigned long)page_address(page), get_order(size));
-+	if (altmap) {
-+		vmem_altmap_free(altmap, size >> PAGE_SHIFT);
-+	} else {
-+		WARN_ON(PageReserved(page));
-+		free_pages((unsigned long)page_address(page), get_order(size));
-+	}
- }
+ 	struct mm_struct *mm = current->mm;
++	vm_flags_t vm_flags;
+ 	int pkey = 0;
  
- static void free_hotplug_pgtable_page(struct page *page)
+ 	*populate = 0;
+@@ -1431,7 +1431,7 @@ unsigned long do_mmap(struct file *file,
+ 	 * to. we assume access permissions have been handled by the open
+ 	 * of the memory object, so we don't do any here.
+ 	 */
+-	vm_flags |= calc_vm_prot_bits(prot, pkey) | calc_vm_flag_bits(flags) |
++	vm_flags = calc_vm_prot_bits(prot, pkey) | calc_vm_flag_bits(flags) |
+ 			mm->def_flags | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
+ 
+ 	if (flags & MAP_LOCKED)
+@@ -2230,7 +2230,7 @@ get_unmapped_area(struct file *file, uns
+ 		/*
+ 		 * mmap_region() will call shmem_zero_setup() to create a file,
+ 		 * so use shmem's get_unmapped_area in case it can be huge.
+-		 * do_mmap_pgoff() will clear pgoff, so match alignment.
++		 * do_mmap() will clear pgoff, so match alignment.
+ 		 */
+ 		pgoff = 0;
+ 		get_area = shmem_get_unmapped_area;
+@@ -3003,7 +3003,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	}
+ 
+ 	file = get_file(vma->vm_file);
+-	ret = do_mmap_pgoff(vma->vm_file, start, size,
++	ret = do_mmap(vma->vm_file, start, size,
+ 			prot, flags, pgoff, &populate, NULL);
+ 	fput(file);
+ out:
+@@ -3223,7 +3223,7 @@ int insert_vm_struct(struct mm_struct *m
+ 	 * By setting it to reflect the virtual start address of the
+ 	 * vma, merges and splits can happen in a seamless way, just
+ 	 * using the existing file pgoff checks and manipulations.
+-	 * Similarly in do_mmap_pgoff and in do_brk.
++	 * Similarly in do_mmap and in do_brk.
+ 	 */
+ 	if (vma_is_anonymous(vma)) {
+ 		BUG_ON(vma->anon_vma);
+--- a/mm/nommu.c~mm-remove-unnecessary-wrapper-function-do_mmap_pgoff
++++ a/mm/nommu.c
+@@ -1078,7 +1078,6 @@ unsigned long do_mmap(struct file *file,
+ 			unsigned long len,
+ 			unsigned long prot,
+ 			unsigned long flags,
+-			vm_flags_t vm_flags,
+ 			unsigned long pgoff,
+ 			unsigned long *populate,
+ 			struct list_head *uf)
+@@ -1086,6 +1085,7 @@ unsigned long do_mmap(struct file *file,
+ 	struct vm_area_struct *vma;
+ 	struct vm_region *region;
+ 	struct rb_node *rb;
++	vm_flags_t vm_flags;
+ 	unsigned long capabilities, result;
+ 	int ret;
+ 
+@@ -1104,7 +1104,7 @@ unsigned long do_mmap(struct file *file,
+ 
+ 	/* we've determined that we can make the mapping, now translate what we
+ 	 * now know into VMA flags */
+-	vm_flags |= determine_vm_flags(file, prot, flags, capabilities);
++	vm_flags = determine_vm_flags(file, prot, flags, capabilities);
+ 
+ 	/* we're going to need to record the mapping */
+ 	region = kmem_cache_zalloc(vm_region_jar, GFP_KERNEL);
+@@ -1763,7 +1763,7 @@ EXPORT_SYMBOL_GPL(access_process_vm);
+  *
+  * Check the shared mappings on an inode on behalf of a shrinking truncate to
+  * make sure that that any outstanding VMAs aren't broken and then shrink the
+- * vm_regions that extend that beyond so that do_mmap_pgoff() doesn't
++ * vm_regions that extend that beyond so that do_mmap() doesn't
+  * automatically grant mappings that are too large.
+  */
+ int nommu_shrink_inode_mappings(struct inode *inode, size_t size,
+--- a/mm/shmem.c~mm-remove-unnecessary-wrapper-function-do_mmap_pgoff
++++ a/mm/shmem.c
+@@ -4245,7 +4245,7 @@ EXPORT_SYMBOL_GPL(shmem_file_setup_with_
+ 
+ /**
+  * shmem_zero_setup - setup a shared anonymous mapping
+- * @vma: the vma to be mmapped is prepared by do_mmap_pgoff
++ * @vma: the vma to be mmapped is prepared by do_mmap
+  */
+ int shmem_zero_setup(struct vm_area_struct *vma)
  {
--	free_hotplug_page_range(page, PAGE_SIZE);
-+	free_hotplug_page_range(page, PAGE_SIZE, NULL);
- }
- 
- static bool pgtable_range_aligned(unsigned long start, unsigned long end,
-@@ -792,7 +797,8 @@ static bool pgtable_range_aligned(unsign
- }
- 
- static void unmap_hotplug_pte_range(pmd_t *pmdp, unsigned long addr,
--				    unsigned long end, bool free_mapped)
-+				    unsigned long end, bool free_mapped,
-+				    struct vmem_altmap *altmap)
- {
- 	pte_t *ptep, pte;
- 
-@@ -806,12 +812,14 @@ static void unmap_hotplug_pte_range(pmd_
- 		pte_clear(&init_mm, addr, ptep);
- 		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
- 		if (free_mapped)
--			free_hotplug_page_range(pte_page(pte), PAGE_SIZE);
-+			free_hotplug_page_range(pte_page(pte),
-+						PAGE_SIZE, altmap);
- 	} while (addr += PAGE_SIZE, addr < end);
- }
- 
- static void unmap_hotplug_pmd_range(pud_t *pudp, unsigned long addr,
--				    unsigned long end, bool free_mapped)
-+				    unsigned long end, bool free_mapped,
-+				    struct vmem_altmap *altmap)
- {
- 	unsigned long next;
- 	pmd_t *pmdp, pmd;
-@@ -834,16 +842,17 @@ static void unmap_hotplug_pmd_range(pud_
- 			flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
- 			if (free_mapped)
- 				free_hotplug_page_range(pmd_page(pmd),
--							PMD_SIZE);
-+							PMD_SIZE, altmap);
- 			continue;
- 		}
- 		WARN_ON(!pmd_table(pmd));
--		unmap_hotplug_pte_range(pmdp, addr, next, free_mapped);
-+		unmap_hotplug_pte_range(pmdp, addr, next, free_mapped, altmap);
- 	} while (addr = next, addr < end);
- }
- 
- static void unmap_hotplug_pud_range(p4d_t *p4dp, unsigned long addr,
--				    unsigned long end, bool free_mapped)
-+				    unsigned long end, bool free_mapped,
-+				    struct vmem_altmap *altmap)
- {
- 	unsigned long next;
- 	pud_t *pudp, pud;
-@@ -866,16 +875,17 @@ static void unmap_hotplug_pud_range(p4d_
- 			flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
- 			if (free_mapped)
- 				free_hotplug_page_range(pud_page(pud),
--							PUD_SIZE);
-+							PUD_SIZE, altmap);
- 			continue;
- 		}
- 		WARN_ON(!pud_table(pud));
--		unmap_hotplug_pmd_range(pudp, addr, next, free_mapped);
-+		unmap_hotplug_pmd_range(pudp, addr, next, free_mapped, altmap);
- 	} while (addr = next, addr < end);
- }
- 
- static void unmap_hotplug_p4d_range(pgd_t *pgdp, unsigned long addr,
--				    unsigned long end, bool free_mapped)
-+				    unsigned long end, bool free_mapped,
-+				    struct vmem_altmap *altmap)
- {
- 	unsigned long next;
- 	p4d_t *p4dp, p4d;
-@@ -888,16 +898,24 @@ static void unmap_hotplug_p4d_range(pgd_
- 			continue;
- 
- 		WARN_ON(!p4d_present(p4d));
--		unmap_hotplug_pud_range(p4dp, addr, next, free_mapped);
-+		unmap_hotplug_pud_range(p4dp, addr, next, free_mapped, altmap);
- 	} while (addr = next, addr < end);
- }
- 
- static void unmap_hotplug_range(unsigned long addr, unsigned long end,
--				bool free_mapped)
-+				bool free_mapped, struct vmem_altmap *altmap)
- {
- 	unsigned long next;
- 	pgd_t *pgdp, pgd;
- 
-+	/*
-+	 * altmap can only be used as vmemmap mapping backing memory.
-+	 * In case the backing memory itself is not being freed, then
-+	 * altmap is irrelevant. Warn about this inconsistency when
-+	 * encountered.
-+	 */
-+	WARN_ON(!free_mapped && altmap);
-+
- 	do {
- 		next = pgd_addr_end(addr, end);
- 		pgdp = pgd_offset_k(addr);
-@@ -906,7 +924,7 @@ static void unmap_hotplug_range(unsigned
- 			continue;
- 
- 		WARN_ON(!pgd_present(pgd));
--		unmap_hotplug_p4d_range(pgdp, addr, next, free_mapped);
-+		unmap_hotplug_p4d_range(pgdp, addr, next, free_mapped, altmap);
- 	} while (addr = next, addr < end);
- }
- 
-@@ -1070,7 +1088,7 @@ static void free_empty_tables(unsigned l
- int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
- 		struct vmem_altmap *altmap)
- {
--	return vmemmap_populate_basepages(start, end, node, NULL);
-+	return vmemmap_populate_basepages(start, end, node, altmap);
- }
- #else	/* !ARM64_SWAPPER_USES_SECTION_MAPS */
- int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
-@@ -1102,7 +1120,7 @@ int __meminit vmemmap_populate(unsigned
- 		if (pmd_none(READ_ONCE(*pmdp))) {
- 			void *p = NULL;
- 
--			p = vmemmap_alloc_block_buf(PMD_SIZE, node, NULL);
-+			p = vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
- 			if (!p)
- 				return -ENOMEM;
- 
-@@ -1120,7 +1138,7 @@ void vmemmap_free(unsigned long start, u
- #ifdef CONFIG_MEMORY_HOTPLUG
- 	WARN_ON((start < VMEMMAP_START) || (end > VMEMMAP_END));
- 
--	unmap_hotplug_range(start, end, true);
-+	unmap_hotplug_range(start, end, true, altmap);
- 	free_empty_tables(start, end, VMEMMAP_START, VMEMMAP_END);
- #endif
- }
-@@ -1411,7 +1429,7 @@ static void __remove_pgd_mapping(pgd_t *
- 	WARN_ON(pgdir != init_mm.pgd);
- 	WARN_ON((start < PAGE_OFFSET) || (end > PAGE_END));
- 
--	unmap_hotplug_range(start, end, false);
-+	unmap_hotplug_range(start, end, false, NULL);
- 	free_empty_tables(start, end, PAGE_OFFSET, PAGE_END);
- }
- 
+--- a/mm/util.c~mm-remove-unnecessary-wrapper-function-do_mmap_pgoff
++++ a/mm/util.c
+@@ -503,8 +503,8 @@ unsigned long vm_mmap_pgoff(struct file
+ 	if (!ret) {
+ 		if (mmap_write_lock_killable(mm))
+ 			return -EINTR;
+-		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
+-				    &populate, &uf);
++		ret = do_mmap(file, addr, len, prot, flag, pgoff, &populate,
++			      &uf);
+ 		mmap_write_unlock(mm);
+ 		userfaultfd_unmap_complete(mm, &uf);
+ 		if (populate)
 _
