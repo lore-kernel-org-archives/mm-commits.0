@@ -7,48 +7,51 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0FBEC433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:47:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D294AC433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:48:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFC3A21744
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:47:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B33B62086A
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:48:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596779245;
-	bh=nytIREH12tYH5V30eGU6EcEqUiVh9trWCCIgGdxphCE=;
+	s=default; t=1596779300;
+	bh=m3TRKGG0rVtUM7dxhUWtVm3d98wJ/XZmDKSMD0qSoIs=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=V7CI3GzDraSrBt1rlqWXS00h8utYP+gGMlpCGdcJ79S7/zWjYwOF6/tvIYj/N1i4c
-	 i2vfLLzLLHtWDJyq4D74oo/3MQkiBw8ykaUcPa1nHhAe8mHLvhGb8L4zyF9qAG1f0P
-	 xeooCWOHlCk081ofZWXEZQlNuEvLlyMTfTQdi6cQ=
+	b=uFbsHgbK+LcutR+AW7QVmEoNCjRBlB6d5Oqxdk8YSkVu0n0j+mbYSJdHl5LatNvlo
+	 AXF32PdkjJyzTmVGRDGmYWpjIy3q43sYDRD2XFK0flWLL8sotUE50BYIVYcTB4QX6c
+	 y4pIkPEx7OlTaRoI9jGVMmhc9q4Pnl0Dyrx0f9cI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725379AbgHGFrZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:47:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42820 "EHLO mail.kernel.org"
+        id S1725379AbgHGFsU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:48:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43242 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725287AbgHGFrZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:47:25 -0400
+        id S1725287AbgHGFsU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:48:20 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4BE9920866;
-        Fri,  7 Aug 2020 05:47:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9C0E820866;
+        Fri,  7 Aug 2020 05:48:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596779244;
-        bh=nytIREH12tYH5V30eGU6EcEqUiVh9trWCCIgGdxphCE=;
+        s=default; t=1596779299;
+        bh=m3TRKGG0rVtUM7dxhUWtVm3d98wJ/XZmDKSMD0qSoIs=;
         h=Date:From:To:Subject:From;
-        b=M8Hz78cS2w87ucTUHBygOFu6xuerunmHNKUBw1oxoD1rxR/3RD9daw7n/qq+h3jm3
-         b2HvbOwkUIR0N1o8rIPscjEim+poSWSt81xFZdD+TVH7aeYCzkWNiV0ojT6i5GFMlm
-         ziadN+uqj5tTxhlvzW1/I7Y+XcbcMr+SjE56pUw8=
-Date:   Thu, 06 Aug 2020 22:47:23 -0700
+        b=RNo1zdL5Kvgvc22xd22X2hRhIGu8rNpEpBuPknJsrbh7rs+71ZNUg7lYz8noOkmO5
+         scIolAg0j8f417oaygjam7RMPoHHBC9IZgMWDMAbf+GfnJq9xQdeFzFeAqDZdupQB7
+         t2381z2o0KYoFnaNNxwwTD5g0QBH22STHwIcIWrw=
+Date:   Thu, 06 Aug 2020 22:48:18 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com,
-        jannh@google.com, keescook@chromium.org, mjg59@google.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, rong.a.chen@intel.com, vbabka@suse.cz,
-        vinmenon@codeaurora.org, vjitta@codeaurora.org
+To:     anshuman.khandual@arm.com, benh@kernel.crashing.org,
+        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
+        corbet@lwn.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com,
+        hpa@zytor.com, kirill@shutemov.name, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, palmer@dabbelt.com,
+        paul.walmsley@sifive.com, paulus@samba.org, rppt@kernel.org,
+        rppt@linux.ibm.com, tglx@linutronix.de, vgupta@synopsys.com,
+        will@kernel.org, ziy@nvidia.com
 Subject:  [folded-merged]
- =?US-ASCII?Q?mm-slab-slub-improve-error-reporting-and-overhead-of-cach?=
- =?US-ASCII?Q?e=5Ffrom=5Fobj-fix.patch?= removed from -mm tree
-Message-ID: <20200807054723.uaglucOXY%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-debug=5Fvm=5Fpgtable-add-tests-validating-advanced-arch?=
+ =?US-ASCII?Q?-page-table-helpers-v5.patch?= removed from -mm tree
+Message-ID: <20200807054818.Zckq9C-SM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -60,66 +63,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab/slub: improve error reporting and overhead of cache_from_obj()-fix
+     Subject: mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5
 has been removed from the -mm tree.  Its filename was
-     mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix.patch
+     mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5.patch
 
-This patch was dropped because it was folded into mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
+This patch was dropped because it was folded into mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers.patch
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slab/slub: improve error reporting and overhead of cache_from_obj()-fix
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5
 
-The added VM_WARN_ON_ONCE triggers [1] with CONFIG_SLAB, as
-SLAB_DEBUG_FLAGS doesn't include SLAB_CONSISTENCY_CHECKS.  Move the check
-under #ifdef SLUB_DEBUG.
+drop RANDOM_ORVALUE from hugetlb_advanced_tests()
 
-[1] https://lore.kernel.org/r/20200623090213.GW5535@shao2-debian
-
-Link: http://lkml.kernel.org/r/b33e0fa7-cd28-4788-9e54-5927846329ef@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: kernel test robot <rong.a.chen@intel.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Garrett <mjg59@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Link: http://lkml.kernel.org/r/1594610587-4172-3-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Tested-by: Vineet Gupta <vgupta@synopsys.com>	[arc]
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |    2 +-
+ mm/debug_vm_pgtable.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slab.h~mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix
-+++ a/mm/slab.h
-@@ -296,8 +296,8 @@ static inline void print_tracking(struct
-  */
- static inline bool kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers-v5
++++ a/mm/debug_vm_pgtable.c
+@@ -745,7 +745,7 @@ static void __init hugetlb_advanced_test
  {
--	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
- #ifdef CONFIG_SLUB_DEBUG
-+	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
- 	if (static_branch_unlikely(&slub_debug_enabled))
- 		return s->flags & flags;
- #endif
+ 	struct page *page = pfn_to_page(pfn);
+ 	pte_t pte = ptep_get(ptep);
+-	unsigned long paddr = (__pfn_to_phys(pfn) | RANDOM_ORVALUE) & PMD_MASK;
++	unsigned long paddr = __pfn_to_phys(pfn) & PMD_MASK;
+ 
+ 	pte = pte_mkhuge(mk_pte(pfn_to_page(PHYS_PFN(paddr)), prot));
+ 	set_huge_pte_at(mm, vaddr, ptep, pte);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
-mm-slub-make-some-slub_debug-related-attributes-read-only.patch
-mm-slub-remove-runtime-allocation-order-changes.patch
-mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
-mm-slub-make-reclaim_account-attribute-read-only.patch
-mm-slub-introduce-static-key-for-slub_debug.patch
-mm-slub-introduce-kmem_cache_debug_flags.patch
-mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
-mm-slab-slub-move-and-improve-cache_from_obj.patch
-mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
-mm-page_alloc-use-unlikely-in-task_capc.patch
+mm-debug_vm_pgtable-add-tests-validating-arch-helpers-for-core-mm-features.patch
+mm-debug_vm_pgtable-add-tests-validating-advanced-arch-page-table-helpers.patch
+mm-debug_vm_pgtable-add-debug-prints-for-individual-tests.patch
+documentation-mm-add-descriptions-for-arch-page-table-helpers.patch
+documentation-mm-add-descriptions-for-arch-page-table-helpers-v5.patch
+mm-sparsemem-enable-vmem_altmap-support-in-vmemmap_populate_basepages.patch
+mm-sparsemem-enable-vmem_altmap-support-in-vmemmap_alloc_block_buf.patch
+arm64-mm-enable-vmem_altmap-support-for-vmemmap-mappings.patch
+mm-vmstat-add-events-for-thp-migration-without-split.patch
 
