@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8955C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:21:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94CE3C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:21:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81FFC22CAF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:21:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A97F22CAF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:21:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781265;
-	bh=kcYw7rdPT7nf8C8LR4PoU61MLtrCwNXJJnbBH6t2mX4=;
+	s=default; t=1596781269;
+	bh=vSUkyCrxSJ4h5T+2raEVazvOOFp7gHy2SXsHVtILgd8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=lJtj0j5GYhoR1p6SqioFIYy35AOMCYZgwj5JEfr1f0FTzy6lGmbDP2e0mA/Bhc6/5
-	 KIG060FdaM9iqUb3VGRR/Xqgf5Eme6N6ZA401Dl/nnSiWm9YgxlM6yyyhevvJ1MvlP
-	 yY9qsF8vGFDWQF8gnhsrUNye5NHUYQjIQZ8eE91g=
+	b=NSm/njfEJphai0J5JR3YNekgO3ZcL+zXv6Vm6NMj/KjleJHzXu7pb4Nle48ytJ6hZ
+	 oy8H+HoGy6kuySUsIcYVucG2rzJQhtd0y1QGwTXmG2nv2wY5V/rdy4xDLfc4rQQ6KA
+	 817Wvhbb+pHbG/2fmgbeY7cAYcQubYt1HxTtmlSQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726038AbgHGGVF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:21:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57126 "EHLO mail.kernel.org"
+        id S1726150AbgHGGVJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:21:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725845AbgHGGVF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:21:05 -0400
+        id S1725845AbgHGGVI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:21:08 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C700C2177B;
-        Fri,  7 Aug 2020 06:21:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4F6DB2177B;
+        Fri,  7 Aug 2020 06:21:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781264;
-        bh=kcYw7rdPT7nf8C8LR4PoU61MLtrCwNXJJnbBH6t2mX4=;
+        s=default; t=1596781267;
+        bh=vSUkyCrxSJ4h5T+2raEVazvOOFp7gHy2SXsHVtILgd8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=h2Oibxo1DIBLXBYBgK4jvJ8t64MYQPYJgdQMZAtyk5NwgIagFLwp1YI7u9UUxcOdu
-         uUwaU0fzXfCgjd4ylzIBLXEQPFfKFbuK45u0zRU1yi/CiLd/U7TeRjpjTftlkx6flD
-         37CcQ9++8jHDqtZduEwH3F3IZ6aqqz6itwdWKInk=
-Date:   Thu, 06 Aug 2020 23:21:03 -0700
+        b=0smpSvB07S8vt+B4ycabX7NmPgSG6K8W0+XKS38hPao4ywxzZ4f+9sq7Em8QfqJjG
+         Xhv+1FDM7Du+CoUfDqayeMlf/8JOoNV7bHBc3zuSOXAiQ4y6Fp78e4PQDlftbef3MG
+         YNfrZZEDvhzwN58raBxbfCBY+pe+JsZ+MnSmjTDk=
+Date:   Thu, 06 Aug 2020 23:21:06 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
         hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@kernel.org,
         mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 071/163] mm: memcg/slab: deprecate
- memory.kmem.slabinfo
-Message-ID: <20200807062103.qn4835jCL%akpm@linux-foundation.org>
+Subject:  [patch 072/163] mm: memcg/slab: move memcg_kmem_bypass()
+ to memcontrol.h
+Message-ID: <20200807062106.N7mmmABPp%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,93 +56,69 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg/slab: deprecate memory.kmem.slabinfo
+Subject: mm: memcg/slab: move memcg_kmem_bypass() to memcontrol.h
 
-Deprecate memory.kmem.slabinfo.
+To make the memcg_kmem_bypass() function available outside of the
+memcontrol.c, let's move it to memcontrol.h.  The function is small and
+nicely fits into static inline sort of functions.
 
-An empty file will be presented if corresponding config options are
-enabled.
+It will be used from the slab code.
 
-The interface is implementation dependent, isn't present in cgroup v2, and
-is generally useful only for core mm debugging purposes.  In other words,
-it doesn't provide any value for the absolute majority of users.
-
-A drgn-based replacement can be found in
-tools/cgroup/memcg_slabinfo.py.  It does support cgroup v1 and v2,
-mimics memory.kmem.slabinfo output and also allows to get any
-additional information without a need to recompile the kernel.
-
-If a drgn-based solution is too slow for a task, a bpf-based tracing tool
-can be used, which can easily keep track of all slab allocations belonging
-to a memory cgroup.
-
-Link: http://lkml.kernel.org/r/20200623174037.3951353-11-guro@fb.com
+Link: http://lkml.kernel.org/r/20200623174037.3951353-12-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c  |    3 ---
- mm/slab_common.c |   31 ++++---------------------------
- 2 files changed, 4 insertions(+), 30 deletions(-)
+ include/linux/memcontrol.h |   12 ++++++++++++
+ mm/memcontrol.c            |   12 ------------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-slab-deprecate-memorykmemslabinfo
-+++ a/mm/memcontrol.c
-@@ -5114,9 +5114,6 @@ static struct cftype mem_cgroup_legacy_f
- 	(defined(CONFIG_SLAB) || defined(CONFIG_SLUB_DEBUG))
- 	{
- 		.name = "kmem.slabinfo",
--		.seq_start = memcg_slab_start,
--		.seq_next = memcg_slab_next,
--		.seq_stop = memcg_slab_stop,
- 		.seq_show = memcg_slab_show,
- 	},
- #endif
---- a/mm/slab_common.c~mm-memcg-slab-deprecate-memorykmemslabinfo
-+++ a/mm/slab_common.c
-@@ -1561,35 +1561,12 @@ void dump_unreclaimable_slab(void)
+--- a/include/linux/memcontrol.h~mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh
++++ a/include/linux/memcontrol.h
+@@ -1440,6 +1440,18 @@ static inline bool memcg_kmem_enabled(vo
+ 	return static_branch_unlikely(&memcg_kmem_enabled_key);
  }
  
- #if defined(CONFIG_MEMCG_KMEM)
--void *memcg_slab_start(struct seq_file *m, loff_t *pos)
--{
--	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
--
--	mutex_lock(&slab_mutex);
--	return seq_list_start(&memcg->kmem_caches, *pos);
--}
--
--void *memcg_slab_next(struct seq_file *m, void *p, loff_t *pos)
--{
--	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
--
--	return seq_list_next(p, &memcg->kmem_caches, pos);
--}
--
--void memcg_slab_stop(struct seq_file *m, void *p)
--{
--	mutex_unlock(&slab_mutex);
--}
--
- int memcg_slab_show(struct seq_file *m, void *p)
++static inline bool memcg_kmem_bypass(void)
++{
++	if (in_interrupt())
++		return true;
++
++	/* Allow remote memcg charging in kthread contexts. */
++	if ((!current->mm || (current->flags & PF_KTHREAD)) &&
++	     !current->active_memcg)
++		return true;
++	return false;
++}
++
+ static inline int memcg_kmem_charge_page(struct page *page, gfp_t gfp,
+ 					 int order)
  {
--	struct kmem_cache *s = list_entry(p, struct kmem_cache,
--					  memcg_params.kmem_caches_node);
--	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
--
--	if (p == memcg->kmem_caches.next)
--		print_slabinfo_header(m);
--	cache_show(s, m);
-+	/*
-+	 * Deprecated.
-+	 * Please, take a look at tools/cgroup/slabinfo.py .
-+	 */
- 	return 0;
+--- a/mm/memcontrol.c~mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh
++++ a/mm/memcontrol.c
+@@ -2945,18 +2945,6 @@ static void memcg_schedule_kmem_cache_cr
+ 	queue_work(memcg_kmem_cache_wq, &cw->work);
  }
- #endif
+ 
+-static inline bool memcg_kmem_bypass(void)
+-{
+-	if (in_interrupt())
+-		return true;
+-
+-	/* Allow remote memcg charging in kthread contexts. */
+-	if ((!current->mm || (current->flags & PF_KTHREAD)) &&
+-	     !current->active_memcg)
+-		return true;
+-	return false;
+-}
+-
+ /**
+  * memcg_kmem_get_cache: select the correct per-memcg cache for allocation
+  * @cachep: the original global kmem cache
 _
