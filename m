@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9AB3C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:01:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84A49C433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:10:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A5AA22CAF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:01:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CC5F2086A
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:10:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596776509;
-	bh=RrgArAuvfoZQ+km4zwT4qdLG/BnWT82O99V5ugrTAD0=;
+	s=default; t=1596777035;
+	bh=R6lCjtqqK93Q0Ss1AFovVkfUnyXdLTru2tjtsu7tbgk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=A1EkRxxADJ+kOWclJYpur8ztogx0XTX4SUHuMIDTVsx2TaZD6Y70wCrKdxxPj5m2j
-	 8UNv+uSLFho8FTpMMP59wNrI0OTnoZ3YGTE/KslGs/JlpS7sXFDSHBOzVdElLse8EE
-	 JySbhJi8fiNBvn+PnQpASbrFeclWfUNwOn6UtUpI=
+	b=dTLBfoksbVrkBlAp7r9+hBDOTX8l9Y089QWT6o3lskUGqSZxrICX+eSfueJfiV8XB
+	 FpEtBxe5jn/er+G0WeqXYcwJcnMRw8sqgja5Z1P88biUs3y5opsM6qQyUDuqLfyfYf
+	 Nq2chGM34iK7TUqciFD0KrmnDy8LZTS+hrJdy3fM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725265AbgHGFBt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:01:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52524 "EHLO mail.kernel.org"
+        id S1725805AbgHGFKf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:10:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55008 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725263AbgHGFBs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:01:48 -0400
+        id S1725379AbgHGFKe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:10:34 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 428E120866;
-        Fri,  7 Aug 2020 05:01:48 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 750BB20866;
+        Fri,  7 Aug 2020 05:10:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596776508;
-        bh=RrgArAuvfoZQ+km4zwT4qdLG/BnWT82O99V5ugrTAD0=;
+        s=default; t=1596777034;
+        bh=R6lCjtqqK93Q0Ss1AFovVkfUnyXdLTru2tjtsu7tbgk=;
         h=Date:From:To:Subject:From;
-        b=WgZPKij78syq3e4b0FP80uNCn7YUwvPo0PqyV8EEsdagKjyYibfOyeP0ZUGm3oWIf
-         84lSM6ycItraPLo1ebjiKQAbfl38JqcAaHXSTcq2tzrb1NRybWC2nO3qv5HynVPZLY
-         MLRqgI6poyQWntl9YaBPZEmBpzm6XZALlGRvYvzc=
-Date:   Thu, 06 Aug 2020 22:01:47 -0700
+        b=lg1yNjUXlJBUysz3krbqqwKrKfZyMrLaBLKZNS45kljWsWpfiCw6cO6douCNDmW+c
+         ILVIKxjrxKv2RiTygLcnWxqVTRas4jKywNUETFDb93/qyO23w4rlTN0w/goYaflr+W
+         +K7JE0vLz9nmPD2g3UBBPa0bHxPYsPPxr5xbFbPY=
+Date:   Thu, 06 Aug 2020 22:10:34 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, longman@redhat.com,
         mm-commits@vger.kernel.org
-Subject:  + mm-treewide-rename-kzfree-to-kfree_sensitive-fix.patch
- added to -mm tree
-Message-ID: <20200807050147.DeS666pef%akpm@linux-foundation.org>
+Subject:  +
+ mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix.patch added to -mm
+ tree
+Message-ID: <20200807051034.OobQkbNIS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-treewide-rename-kzfree-to-kfree_sensitive-fix
+     Subject: mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-treewide-rename-kzfree-to-kfree_sensitive-fix.patch
+     mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-treewide-rename-kzfree-to-kfree_sensitive-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-treewide-rename-kzfree-to-kfree_sensitive-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,26 +77,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-treewide-rename-kzfree-to-kfree_sensitive-fix
+Subject: mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix
 
-fs/crypto/inline_crypt.c needs linux/slab.h
+fix fs/crypto/inline_crypt.c some more
 
 Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/crypto/inline_crypt.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/crypto/inline_crypt.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/crypto/inline_crypt.c~mm-treewide-rename-kzfree-to-kfree_sensitive-fix
+--- a/fs/crypto/inline_crypt.c~mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix
 +++ a/fs/crypto/inline_crypt.c
-@@ -16,6 +16,7 @@
- #include <linux/blkdev.h>
- #include <linux/buffer_head.h>
- #include <linux/sched/mm.h>
-+#include <linux/slab.h>
+@@ -188,7 +188,7 @@ int fscrypt_prepare_inline_crypt_key(str
+ fail:
+ 	for (i = 0; i < queue_refs; i++)
+ 		blk_put_queue(blk_key->devs[i]);
+-	kzfree_sensitive(blk_key);
++	kfree_sensitive(blk_key);
+ 	return err;
+ }
  
- #include "fscrypt_private.h"
+@@ -202,7 +202,7 @@ void fscrypt_destroy_inline_crypt_key(st
+ 			blk_crypto_evict_key(blk_key->devs[i], &blk_key->base);
+ 			blk_put_queue(blk_key->devs[i]);
+ 		}
+-		kzfree_sensitive(blk_key);
++		kfree_sensitive(blk_key);
+ 	}
+ }
  
 _
 
@@ -103,6 +114,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-fix-kthread_use_mm-vs-tlb-invalidate-fix.patch
 mm-treewide-rename-kzfree-to-kfree_sensitive-fix.patch
+mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix.patch
 mm-handle-page-mapping-better-in-dump_page-fix.patch
 mm-thp-replace-http-links-with-https-ones-fix.patch
 mm.patch
