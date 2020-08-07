@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89687C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B265FC433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6AF3C221E5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 920C02177B
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781244;
-	bh=QEkddzHsPzcFJl6bK129y1bGxKDyUlj86tDV9kStRPo=;
+	s=default; t=1596781248;
+	bh=TWdGH2iD3gJ1mjv8ERqfAFtuk1gCjJcVcJxU+ZVQQQg=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=C18KfZ8lyOTe8rBAObvwHFGBafHmGlJAhIcKhrRgm84YpAd4ehOVAPXZ0WIWydrbs
-	 1kZQSsd4KKjKUeccsW1m7hqq5Ni74rpC1YMr5ZIZzvM3AJhuyz0JYEMogyvHlIL8DZ
-	 Cj2xB91n0hGNzvLZ8lMIYYrDtFMpHnm0Ku/8JFEg=
+	b=iYOUPIIuN9WZ0a7IWqxKaGFa7d2gIS7nwiJr+lCWTDDlCIE7BhXe++27wsnXRGnLD
+	 ZSW7ntN5DhAM9ly2cGamQI5AsZ23afBisOJEtgckbVdFsLR7AlrhhGJGw0U22hfd7r
+	 ePaHpGM3eV6P58YuXaMwic2LbS8o5qnUEftN2eMM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725872AbgHGGUo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:20:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56690 "EHLO mail.kernel.org"
+        id S1725805AbgHGGUs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:20:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56770 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726094AbgHGGUo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:20:44 -0400
+        id S1726094AbgHGGUs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:20:48 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0EB852177B;
-        Fri,  7 Aug 2020 06:20:43 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7D9D9221E5;
+        Fri,  7 Aug 2020 06:20:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781243;
-        bh=QEkddzHsPzcFJl6bK129y1bGxKDyUlj86tDV9kStRPo=;
+        s=default; t=1596781247;
+        bh=TWdGH2iD3gJ1mjv8ERqfAFtuk1gCjJcVcJxU+ZVQQQg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=cYcxa1svXcaYbEBpeQRFduBoWUh0q0ANE0f4l+8UMZTfvqSdHsLPviRkf2M2iVqWr
-         oz+Ul3Ds9SHmWbO6ETgsvwaa0TS7Cpjf6s+LQLVQBG+oPQAKlSgMWApwTzC/WNgWBu
-         qtLqUokD4bW3eEnnUtWmNupe5mFk5JHEnB14ZekA=
-Date:   Thu, 06 Aug 2020 23:20:42 -0700
+        b=xcHNkCb0WZg+8ob1gUfThBIUT9bnqUtxe1f99Q9v+9U2K7cG4vSgWvbihl6+q/LTp
+         c/LAwDUAiZ2nO1u388Sedo14OO08UZMBjvOq1FljHu8V0MURW5bWIc/PRF3VqUaleO
+         7Q2nTxyboYcfBY3YS0lnkaMp6fWsAAGIPSg3JnfI=
+Date:   Thu, 06 Aug 2020 23:20:45 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
-        hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 065/163] mm: slub: implement SLUB version of
- obj_to_index()
-Message-ID: <20200807062042.okGJP8Ttd%akpm@linux-foundation.org>
+        hannes@cmpxchg.org, hughd@google.com, linux-mm@kvack.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com,
+        tj@kernel.org, torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 066/163] mm: memcontrol: decouple reference
+ counting from page accounting
+Message-ID: <20200807062045.cn7WdkUEx%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,136 +55,241 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Roman Gushchin <guro@fb.com>
-Subject: mm: slub: implement SLUB version of obj_to_index()
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: decouple reference counting from page accounting
 
-This commit implements SLUB version of the obj_to_index() function, which
-will be required to calculate the offset of obj_cgroup in the obj_cgroups
-vector to store/obtain the objcg ownership data.
+The reference counting of a memcg is currently coupled directly to how
+many 4k pages are charged to it.  This doesn't work well with Roman's new
+slab controller, which maintains pools of objects and doesn't want to keep
+an extra balance sheet for the pages backing those objects.
 
-To make it faster, let's repeat the SLAB's trick introduced by commit
-6a2d7a955d8d ("SLAB: use a multiply instead of a divide in
-obj_to_index()") and avoid an expensive division.
+This unusual refcounting design (reference counts usually track pointers
+to an object) is only for historical reasons: memcg used to not take any
+css references and simply stalled offlining until all charges had been
+reparented and the page counters had dropped to zero.  When we got rid of
+the reparenting requirement, the simple mechanical translation was to take
+a reference for every charge.
 
-Vlastimil Babka noticed, that SLUB does have already a similar function
-called slab_index(), which is defined only if SLUB_DEBUG is enabled.  The
-function does a similar math, but with a division, and it also takes a
-page address instead of a page pointer.
+More historical context can be found in commit e8ea14cc6ead ("mm:
+memcontrol: take a css reference for each charged page"), commit
+64f219938941 ("mm: memcontrol: remove obsolete kmemcg pinning tricks") and
+commit b2052564e66d ("mm: memcontrol: continue cache reclaim from offlined
+groups").
 
-Let's remove slab_index() and replace it with the new helper
-__obj_to_index(), which takes a page address.  obj_to_index() will be a
-simple wrapper taking a page pointer and passing page_address(page) into
-__obj_to_index().
+The new slab controller exposes the limitations in this scheme, so let's
+switch it to a more idiomatic reference counting model based on actual
+kernel pointers to the memcg:
 
-Link: http://lkml.kernel.org/r/20200623174037.3951353-5-guro@fb.com
+- The per-cpu stock holds a reference to the memcg its caching
+
+- User pages hold a reference for their page->mem_cgroup. Transparent
+  huge pages will no longer acquire tail references in advance, we'll
+  get them if needed during the split.
+
+- Kernel pages hold a reference for their page->mem_cgroup
+
+- Pages allocated in the root cgroup will acquire and release css
+  references for simplicity. css_get() and css_put() optimize that.
+
+- The current memcg_charge_slab() already hacked around the per-charge
+  references; this change gets rid of that as well.
+
+- tcp accounting will handle reference in mem_cgroup_sk_{alloc,free}
+
+Roman:
+1) Rebased on top of the current mm tree: added css_get() in
+   mem_cgroup_charge(), dropped mem_cgroup_try_charge() part
+2) I've reformatted commit references in the commit log to make
+   checkpatch.pl happy.
+
+[hughd@google.com: remove css_put_many() from __mem_cgroup_clear_mc()]
+  Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2007302011450.2347@eggly.anvils
+Link: http://lkml.kernel.org/r/20200623174037.3951353-6-guro@fb.com
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Roman Gushchin <guro@fb.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |   16 ++++++++++++++++
- mm/slub.c                |   15 +++++----------
- 2 files changed, 21 insertions(+), 10 deletions(-)
+ mm/memcontrol.c |   39 +++++++++++++++++++++------------------
+ mm/slab.h       |    2 --
+ 2 files changed, 21 insertions(+), 20 deletions(-)
 
---- a/include/linux/slub_def.h~mm-slub-implement-slub-version-of-obj_to_index
-+++ a/include/linux/slub_def.h
-@@ -8,6 +8,7 @@
-  * (C) 2007 SGI, Christoph Lameter
-  */
- #include <linux/kobject.h>
-+#include <linux/reciprocal_div.h>
- 
- enum stat_item {
- 	ALLOC_FASTPATH,		/* Allocation from cpu slab */
-@@ -86,6 +87,7 @@ struct kmem_cache {
- 	unsigned long min_partial;
- 	unsigned int size;	/* The size of an object including metadata */
- 	unsigned int object_size;/* The size of an object without metadata */
-+	struct reciprocal_value reciprocal_size;
- 	unsigned int offset;	/* Free pointer offset */
- #ifdef CONFIG_SLUB_CPU_PARTIAL
- 	/* Number of per cpu partial objects to keep around */
-@@ -182,4 +184,18 @@ static inline void *nearest_obj(struct k
- 	return result;
- }
- 
-+/* Determine object index from a given position */
-+static inline unsigned int __obj_to_index(const struct kmem_cache *cache,
-+					  void *addr, void *obj)
-+{
-+	return reciprocal_divide(kasan_reset_tag(obj) - addr,
-+				 cache->reciprocal_size);
-+}
-+
-+static inline unsigned int obj_to_index(const struct kmem_cache *cache,
-+					const struct page *page, void *obj)
-+{
-+	return __obj_to_index(cache, page_address(page), obj);
-+}
-+
- #endif /* _LINUX_SLUB_DEF_H */
---- a/mm/slub.c~mm-slub-implement-slub-version-of-obj_to_index
-+++ a/mm/slub.c
-@@ -317,12 +317,6 @@ static inline void set_freepointer(struc
- 		__p < (__addr) + (__objects) * (__s)->size; \
- 		__p += (__s)->size)
- 
--/* Determine object index from a given position */
--static inline unsigned int slab_index(void *p, struct kmem_cache *s, void *addr)
--{
--	return (kasan_reset_tag(p) - addr) / s->size;
--}
--
- static inline unsigned int order_objects(unsigned int order, unsigned int size)
+--- a/mm/memcontrol.c~mm-memcontrol-decouple-reference-counting-from-page-accounting
++++ a/mm/memcontrol.c
+@@ -2094,13 +2094,17 @@ static void drain_stock(struct memcg_sto
  {
- 	return ((unsigned int)PAGE_SIZE << order) / size;
-@@ -465,7 +459,7 @@ static unsigned long *get_map(struct kme
- 	bitmap_zero(object_map, page->objects);
+ 	struct mem_cgroup *old = stock->cached;
  
- 	for (p = page->freelist; p; p = get_freepointer(s, p))
--		set_bit(slab_index(p, s, addr), object_map);
-+		set_bit(__obj_to_index(s, addr, p), object_map);
- 
- 	return object_map;
++	if (!old)
++		return;
++
+ 	if (stock->nr_pages) {
+ 		page_counter_uncharge(&old->memory, stock->nr_pages);
+ 		if (do_memsw_account())
+ 			page_counter_uncharge(&old->memsw, stock->nr_pages);
+-		css_put_many(&old->css, stock->nr_pages);
+ 		stock->nr_pages = 0;
+ 	}
++
++	css_put(&old->css);
+ 	stock->cached = NULL;
  }
-@@ -3754,6 +3748,7 @@ static int calculate_sizes(struct kmem_c
- 	 */
- 	size = ALIGN(size, s->align);
- 	s->size = size;
-+	s->reciprocal_size = reciprocal_value(size);
- 	if (forced_order >= 0)
- 		order = forced_order;
- 	else
-@@ -3858,7 +3853,7 @@ static void list_slab_objects(struct kme
- 	map = get_map(s, page);
- 	for_each_object(p, s, addr, page->objects) {
  
--		if (!test_bit(slab_index(p, s, addr), map)) {
-+		if (!test_bit(__obj_to_index(s, addr, p), map)) {
- 			pr_err("INFO: Object 0x%p @offset=%tu\n", p, p - addr);
- 			print_tracking(s, p);
+@@ -2136,6 +2140,7 @@ static void refill_stock(struct mem_cgro
+ 	stock = this_cpu_ptr(&memcg_stock);
+ 	if (stock->cached != memcg) { /* reset if necessary */
+ 		drain_stock(stock);
++		css_get(&memcg->css);
+ 		stock->cached = memcg;
+ 	}
+ 	stock->nr_pages += nr_pages;
+@@ -2594,12 +2599,10 @@ force:
+ 	page_counter_charge(&memcg->memory, nr_pages);
+ 	if (do_memsw_account())
+ 		page_counter_charge(&memcg->memsw, nr_pages);
+-	css_get_many(&memcg->css, nr_pages);
+ 
+ 	return 0;
+ 
+ done_restock:
+-	css_get_many(&memcg->css, batch);
+ 	if (batch > nr_pages)
+ 		refill_stock(memcg, batch - nr_pages);
+ 
+@@ -2657,8 +2660,6 @@ static void cancel_charge(struct mem_cgr
+ 	page_counter_uncharge(&memcg->memory, nr_pages);
+ 	if (do_memsw_account())
+ 		page_counter_uncharge(&memcg->memsw, nr_pages);
+-
+-	css_put_many(&memcg->css, nr_pages);
+ }
+ #endif
+ 
+@@ -2966,6 +2967,7 @@ int __memcg_kmem_charge_page(struct page
+ 		if (!ret) {
+ 			page->mem_cgroup = memcg;
+ 			__SetPageKmemcg(page);
++			return 0;
  		}
-@@ -4574,7 +4569,7 @@ static void validate_slab(struct kmem_ca
- 	/* Now we know that a valid freelist exists */
- 	map = get_map(s, page);
- 	for_each_object(p, s, addr, page->objects) {
--		u8 val = test_bit(slab_index(p, s, addr), map) ?
-+		u8 val = test_bit(__obj_to_index(s, addr, p), map) ?
- 			 SLUB_RED_INACTIVE : SLUB_RED_ACTIVE;
+ 	}
+ 	css_put(&memcg->css);
+@@ -2988,12 +2990,11 @@ void __memcg_kmem_uncharge_page(struct p
+ 	VM_BUG_ON_PAGE(mem_cgroup_is_root(memcg), page);
+ 	__memcg_kmem_uncharge(memcg, nr_pages);
+ 	page->mem_cgroup = NULL;
++	css_put(&memcg->css);
  
- 		if (!check_object(s, page, p, val))
-@@ -4765,7 +4760,7 @@ static void process_slab(struct loc_trac
- 
- 	map = get_map(s, page);
- 	for_each_object(p, s, addr, page->objects)
--		if (!test_bit(slab_index(p, s, addr), map))
-+		if (!test_bit(__obj_to_index(s, addr, p), map))
- 			add_location(t, s, get_track(s, p, alloc));
- 	put_map(map);
+ 	/* slab pages do not have PageKmemcg flag set */
+ 	if (PageKmemcg(page))
+ 		__ClearPageKmemcg(page);
+-
+-	css_put_many(&memcg->css, nr_pages);
  }
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+@@ -3005,13 +3006,16 @@ void __memcg_kmem_uncharge_page(struct p
+  */
+ void mem_cgroup_split_huge_fixup(struct page *head)
+ {
++	struct mem_cgroup *memcg = head->mem_cgroup;
+ 	int i;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+-	for (i = 1; i < HPAGE_PMD_NR; i++)
+-		head[i].mem_cgroup = head->mem_cgroup;
++	for (i = 1; i < HPAGE_PMD_NR; i++) {
++		css_get(&memcg->css);
++		head[i].mem_cgroup = memcg;
++	}
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+@@ -5452,7 +5456,10 @@ static int mem_cgroup_move_account(struc
+ 	 */
+ 	smp_mb();
+ 
+-	page->mem_cgroup = to; 	/* caller should have done css_get */
++	css_get(&to->css);
++	css_put(&from->css);
++
++	page->mem_cgroup = to;
+ 
+ 	__unlock_page_memcg(from);
+ 
+@@ -5673,8 +5680,6 @@ static void __mem_cgroup_clear_mc(void)
+ 		if (!mem_cgroup_is_root(mc.to))
+ 			page_counter_uncharge(&mc.to->memory, mc.moved_swap);
+ 
+-		css_put_many(&mc.to->css, mc.moved_swap);
+-
+ 		mc.moved_swap = 0;
+ 	}
+ 	memcg_oom_recover(from);
+@@ -6502,6 +6507,7 @@ int mem_cgroup_charge(struct page *page,
+ 	if (ret)
+ 		goto out_put;
+ 
++	css_get(&memcg->css);
+ 	commit_charge(page, memcg);
+ 
+ 	local_irq_disable();
+@@ -6556,9 +6562,6 @@ static void uncharge_batch(const struct
+ 	__this_cpu_add(ug->memcg->vmstats_percpu->nr_page_events, ug->nr_pages);
+ 	memcg_check_events(ug->memcg, ug->dummy_page);
+ 	local_irq_restore(flags);
+-
+-	if (!mem_cgroup_is_root(ug->memcg))
+-		css_put_many(&ug->memcg->css, ug->nr_pages);
+ }
+ 
+ static void uncharge_page(struct page *page, struct uncharge_gather *ug)
+@@ -6596,6 +6599,7 @@ static void uncharge_page(struct page *p
+ 
+ 	ug->dummy_page = page;
+ 	page->mem_cgroup = NULL;
++	css_put(&ug->memcg->css);
+ }
+ 
+ static void uncharge_list(struct list_head *page_list)
+@@ -6701,8 +6705,8 @@ void mem_cgroup_migrate(struct page *old
+ 	page_counter_charge(&memcg->memory, nr_pages);
+ 	if (do_memsw_account())
+ 		page_counter_charge(&memcg->memsw, nr_pages);
+-	css_get_many(&memcg->css, nr_pages);
+ 
++	css_get(&memcg->css);
+ 	commit_charge(newpage, memcg);
+ 
+ 	local_irq_save(flags);
+@@ -6939,8 +6943,7 @@ void mem_cgroup_swapout(struct page *pag
+ 	mem_cgroup_charge_statistics(memcg, page, -nr_entries);
+ 	memcg_check_events(memcg, page);
+ 
+-	if (!mem_cgroup_is_root(memcg))
+-		css_put_many(&memcg->css, nr_entries);
++	css_put(&memcg->css);
+ }
+ 
+ /**
+--- a/mm/slab.h~mm-memcontrol-decouple-reference-counting-from-page-accounting
++++ a/mm/slab.h
+@@ -402,9 +402,7 @@ static __always_inline int memcg_charge_
+ 	lruvec = mem_cgroup_lruvec(memcg, page_pgdat(page));
+ 	mod_lruvec_state(lruvec, cache_vmstat_idx(s), nr_pages << PAGE_SHIFT);
+ 
+-	/* transer try_charge() page references to kmem_cache */
+ 	percpu_ref_get_many(&s->memcg_params.refcnt, nr_pages);
+-	css_put_many(&memcg->css, nr_pages);
+ out:
+ 	css_put(&memcg->css);
+ 	return ret;
 _
