@@ -7,45 +7,48 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 362BAC433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:26:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8BD0C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 19:32:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F252A22CAE
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:26:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 807312224D
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 19:32:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781595;
-	bh=DRFCcEScmQDmGhb5Lm/X4w55dtL6vDILWoa6JBc/yEw=;
+	s=default; t=1596828765;
+	bh=hGcru2JSer3MpZfoxGSOpqOSU2mQifE57/0Zud94SVI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=tCjVrNfv0+9PFiq59UC/kpxsapQ1MS4saQGzusP1WSp7oqfeGn52tKNJ3rD3AjXEK
-	 W4rMxO8zE+EhjX9GIWVZiQ+Uzh80NdtHZ+2sF7uQX6jTfNjc+Ul08H/RIfqmLMr/jG
-	 j7goVJngbHbJRSX0QwabpNcJRpnZEu5N+EYIQw1k=
+	b=kFrPHdHkVToqCAiN2We8o4JMeFh67xT7vlgorMQL5VURQzpD/vvklOBT6sT6iqT1V
+	 0Jz+U116evOzq3gqt4PcyqRQBV7mZ3CZx7ECfYY9i15NOZT6uA4QKHdIHw2My0j8M+
+	 ai0pzOVVlR8wV3Jjoua/4KqQG0+fRaMaF/oJ6xII=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725970AbgHGG0e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:26:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35182 "EHLO mail.kernel.org"
+        id S1726635AbgHGTcp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 15:32:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33282 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725805AbgHGG0e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:26:34 -0400
+        id S1725893AbgHGTcp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 15:32:45 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7A56422CF6;
-        Fri,  7 Aug 2020 06:26:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 550B9204EC;
+        Fri,  7 Aug 2020 19:32:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781593;
-        bh=DRFCcEScmQDmGhb5Lm/X4w55dtL6vDILWoa6JBc/yEw=;
+        s=default; t=1596828763;
+        bh=hGcru2JSer3MpZfoxGSOpqOSU2mQifE57/0Zud94SVI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=0wmJPurs5alYMTmXme/aBdS7VerirRzLboitYXUK3sPBVs9GQRGOsiQFko8hYSu0O
-         xJz3U0NtPajJ1CFoJy8qdXfdNTvYUvrC8lrrie3Anmrf7b179UrzXwuIEedlV4Pl3y
-         3AP5dsDD9Tz3GGqP1bIKXaXmfpQchPTfuJhsTsXo=
-Date:   Thu, 06 Aug 2020 23:26:32 -0700
+        b=ZT6gdCVBZEkXFJJPPWErK0oBetvQDeO90fj+tixuebpw9qUVfxmCHr8PuPHjq9Bk6
+         44G9/mPHiE49DIdDGV3hvOTP2y0JCaSHljs4CuC4XASKx8EloIdgSgocqFjFP+Klua
+         BfPWMc9LYH+qa7YOcLbMIGpsSmnEUaJB6DUZlF8k=
+Date:   Fri, 07 Aug 2020 12:32:42 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com,
-        hannes@cmpxchg.org, laoar.shao@gmail.com, linux-mm@kvack.org,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 163/163] mm: vmscan: consistent update to pgrefill
-Message-ID: <20200807062632.VjEnptD9e%akpm@linux-foundation.org>
+To:     catalin.marinas@arm.com, hannes@cmpxchg.org, hdanton@sina.com,
+        hughd@google.com, josef@toxicpanda.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, will.deacon@arm.com, willy@infradead.org,
+        xuyu@linux.alibaba.com, yang.shi@linux.alibaba.com
+Subject:  [nacked]
+ mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault.patch removed
+ from -mm tree
+Message-ID: <20200807193242.CtxqvgfOg%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,40 +57,102 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: vmscan: consistent update to pgrefill
 
-The vmstat pgrefill is useful together with pgscan and pgsteal stats to
-measure the reclaim efficiency.  However vmstat's pgrefill is not updated
-consistently at system level.  It gets updated for both global and memcg
-reclaim however pgscan and pgsteal are updated for only global reclaim. 
-So, update pgrefill only for global reclaim.  If someone is interested in
-the stats representing both system level as well as memcg level reclaim,
-then consult the root memcg's memory.stat instead of /proc/vmstat.
+The patch titled
+     Subject: mm/memory.c: avoid access flag update TLB flush for retried page fault
+has been removed from the -mm tree.  Its filename was
+     mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault.patch
 
-Link: http://lkml.kernel.org/r/20200711011459.1159929-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Yafang Shao <laoar.shao@gmail.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Acked-by: Chris Down <chris@chrisdown.name>
+This patch was dropped because it was nacked
+
+------------------------------------------------------
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm/memory.c: avoid access flag update TLB flush for retried page fault
+
+Recently we found regression when running will_it_scale/page_fault3 test
+on ARM64.  Over 70% down for the multi processes cases and over 20% down
+for the multi threads cases.  It turns out the regression is caused by
+commit 89b15332af7c0312a41e50846819ca6613b58b4c ("mm: drop mmap_sem before
+calling balance_dirty_pages() in write fault").
+
+The test mmaps a memory size file then write to the mapping, this would
+make all memory dirty and trigger dirty pages throttle, that upstream
+commit would release mmap_sem then retry the page fault.  The retried page
+fault would see correct PTEs installed by the first try then update dirty
+bit and clear read-only bit and flush TLBs for ARM.  The regression is
+caused by the excessive TLB flush.  It is fine on x86 since x86 doesn't
+clear read-only bit so there is no need to flush TLB for this case.
+
+The page fault would be retried due to:
+1. Waiting for page readahead
+2. Waiting for page swapped in
+3. Waiting for dirty pages throttling
+
+The first two cases don't have PTEs set up at all, so the retried page
+fault would install the PTEs, so they don't reach there.  But the #3 case
+usually has PTEs installed, the retried page fault would reach the dirty
+bit and read-only bit update.  But it seems not necessary to modify those
+bits again for #3 since they should be already set by the first page fault
+try.
+
+Of course the parallel page fault may set up PTEs, but we just need care
+about write fault.  If the parallel page fault setup a writable and dirty
+PTE then the retried fault doesn't need do anything extra.  If the
+parallel page fault setup a clean read-only PTE, the retried fault should
+just call do_wp_page() then return as the below code snippet shows:
+
+if (vmf->flags & FAULT_FLAG_WRITE) {
+        if (!pte_write(entry))
+            return do_wp_page(vmf);
+}
+
+With this fix the test result get back to normal.
+
+[yang.shi@linux.alibaba.com: incorporate comment from Will Deacon, update commit log per discussion]
+  Link: http://lkml.kernel.org/r/1594848990-55657-1-git-send-email-yang.shi@linux.alibaba.com
+Link: http://lkml.kernel.org/r/1594148072-91273-1-git-send-email-yang.shi@linux.alibaba.com
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Reported-by: Xu Yu <xuyu@linux.alibaba.com>
+Debugged-by: Xu Yu <xuyu@linux.alibaba.com>
+Tested-by: Xu Yu <xuyu@linux.alibaba.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-consistent-update-to-pgrefill
-+++ a/mm/vmscan.c
-@@ -2030,7 +2030,8 @@ static void shrink_active_list(unsigned
- 
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
- 
--	__count_vm_events(PGREFILL, nr_scanned);
-+	if (!cgroup_reclaim(sc))
-+		__count_vm_events(PGREFILL, nr_scanned);
- 	__count_memcg_events(lruvec_memcg(lruvec), PGREFILL, nr_scanned);
- 
- 	spin_unlock_irq(&pgdat->lru_lock);
+--- a/mm/memory.c~mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault
++++ a/mm/memory.c
+@@ -4241,8 +4241,14 @@ static vm_fault_t handle_pte_fault(struc
+ 	if (vmf->flags & FAULT_FLAG_WRITE) {
+ 		if (!pte_write(entry))
+ 			return do_wp_page(vmf);
+-		entry = pte_mkdirty(entry);
+ 	}
++
++	if (vmf->flags & FAULT_FLAG_TRIED)
++		goto unlock;
++
++	if (vmf->flags & FAULT_FLAG_WRITE)
++		entry = pte_mkdirty(entry);
++
+ 	entry = pte_mkyoung(entry);
+ 	if (ptep_set_access_flags(vmf->vma, vmf->address, vmf->pte, entry,
+ 				vmf->flags & FAULT_FLAG_WRITE)) {
 _
+
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+
+mm-filemap-clear-idle-flag-for-writes.patch
+mm-filemap-add-missing-fgp_-flags-in-kerneldoc-comment-for-pagecache_get_page.patch
+mm-thp-remove-debug_cow-switch.patch
+
