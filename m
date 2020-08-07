@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 453E5C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:19:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C85FEC433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:19:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2084D2177B
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:19:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5BDE2177B
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:19:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781187;
-	bh=t93+l4YlV+uP0W6/wlwhRLXpXRg9wB62OX2UFHk/pog=;
+	s=default; t=1596781190;
+	bh=ItaENuLzbga2ZYUsDhfJatfHSMpzLwPFCFJTP1wRIYs=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=xUw9vJM2P75QAUqwWcI30roCr6g8j2bfUsTfIsvm12SiBl96fL7Kg22r128VrnF5l
-	 gTAcclj44uFbm06KFmqNoAO1RqA9Cf6P892u+tNde8tC9SIqhWp/H1Bkois2Xk6+X7
-	 1m15UkFNioqG0TXMXLryX0ZSmNS5jNtQH4sNck5Q=
+	b=KPtpmQois2D4HJhJUnDIjWhzxEBdvNVRbc4HOQi/lyRGy99dco1azoeeQhHY/vq3r
+	 nWCSEQjNOkUmw6OAuvYkYU6Bnh95F+UffVreuPlBGFHIY5Z5wPJKhNQDaTtdgD3dpv
+	 HtvA63milsmL6E8hD/8odSIn/ji2mnGjcNmTaxsw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726205AbgHGGTq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:19:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55526 "EHLO mail.kernel.org"
+        id S1726038AbgHGGTu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:19:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGTq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:19:46 -0400
+        id S1725379AbgHGGTu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:19:50 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id D0166221E5;
-        Fri,  7 Aug 2020 06:19:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0D9EB221E5;
+        Fri,  7 Aug 2020 06:19:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781186;
-        bh=t93+l4YlV+uP0W6/wlwhRLXpXRg9wB62OX2UFHk/pog=;
+        s=default; t=1596781189;
+        bh=ItaENuLzbga2ZYUsDhfJatfHSMpzLwPFCFJTP1wRIYs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=R5qu9uOwka0Z/XaxmbPb+6V2RutsVCkgDJPSNdcVhnZa3H+nx5DJwhhnqztL/KJcN
-         y4xYXHJEzYZKmnm3SCkuYgSvbK4Wvhn9CZdF47uWxXPoyApvAAWJDCdh91mCNI01zp
-         EGhkKw0Er6QfbqydVQIr4JEOkXdLdKGCUo/q/doE=
-Date:   Thu, 06 Aug 2020 23:19:45 -0700
+        b=Se3yqsVe+qRWcqEugDyTGzYFzMlGA79IK0HrXfxZdk8eTN03tpned3oCWLfKz238F
+         fsdYKWuydeAa0QqNRbHqyVKLtd+/OLHGvh8GVVzdkLV0yL+S9PUm6FyfU0atwMvaON
+         LF+pe8fgWPsz+IcuhSlNp3LPahlAjCzanL/WtPfo=
+Date:   Thu, 06 Aug 2020 23:19:48 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, jhubbard@nvidia.com,
         kirill@shutemov.name, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, rppt@linux.ibm.com,
         torvalds@linux-foundation.org, vbabka@suse.cz,
         william.kucharski@oracle.com, willy@infradead.org
-Subject:  [patch 048/163] mm/debug: print the inode number in
- dump_page
-Message-ID: <20200807061945.pbfgaDBnc%akpm@linux-foundation.org>
+Subject:  [patch 049/163] mm/debug: print hashed address of struct
+ page
+Message-ID: <20200807061948.8LG6yOu9l%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,12 +57,14 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/debug: print the inode number in dump_page
+Subject: mm/debug: print hashed address of struct page
 
-The inode number helps correlate this page with debug messages elsewhere
-in the kernel.
+The actual address of the struct page isn't particularly helpful, while
+the hashed address helps match with other messages elsewhere.  Add the PFN
+that the page refers to in order to help diagnose problems where the page
+is improperly aligned for the purpose.
 
-Link: http://lkml.kernel.org/r/20200709202117.7216-6-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200709202117.7216-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
@@ -72,29 +74,31 @@ Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/debug.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/debug.c~mm-print-the-inode-number-in-dump_page
+--- a/mm/debug.c~mm-print-hashed-address-of-struct-page
 +++ a/mm/debug.c
-@@ -143,7 +143,7 @@ void __dump_page(struct page *page, cons
- 		}
+@@ -95,17 +95,17 @@ void __dump_page(struct page *page, cons
+ 	 */
+ 	mapcount = PageSlab(head) ? 0 : page_mapcount(page);
  
- 		if (!dentry_first) {
--			pr_warn("aops:%ps\n", a_ops);
-+			pr_warn("aops:%ps ino:%lx\n", a_ops, host->i_ino);
- 			goto out_mapping;
+-	pr_warn("page:%px refcount:%d mapcount:%d mapping:%p index:%#lx\n",
++	pr_warn("page:%p refcount:%d mapcount:%d mapping:%p index:%#lx pfn:%#lx\n",
+ 			page, page_ref_count(head), mapcount, mapping,
+-			page_to_pgoff(page));
++			page_to_pgoff(page), page_to_pfn(page));
+ 	if (compound) {
+ 		if (hpage_pincount_available(page)) {
+-			pr_warn("head:%px order:%u compound_mapcount:%d compound_pincount:%d\n",
++			pr_warn("head:%p order:%u compound_mapcount:%d compound_pincount:%d\n",
+ 					head, compound_order(head),
+ 					compound_mapcount(head),
+ 					compound_pincount(head));
+ 		} else {
+-			pr_warn("head:%px order:%u compound_mapcount:%d\n",
++			pr_warn("head:%p order:%u compound_mapcount:%d\n",
+ 					head, compound_order(head),
+ 					compound_mapcount(head));
  		}
- 
-@@ -157,8 +157,8 @@ void __dump_page(struct page *page, cons
- 			 * crash, but it's unlikely that we reach here with a
- 			 * corrupted struct page
- 			 */
--			pr_warn("aops:%ps dentry name:\"%pd\"\n", a_ops,
--					&dentry);
-+			pr_warn("aops:%ps ino:%lx dentry name:\"%pd\"\n",
-+					a_ops, host->i_ino, &dentry);
- 		}
- 	}
- out_mapping:
 _
