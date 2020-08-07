@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D812AC433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:58:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 888F3C433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:58:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC80F2177B
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:58:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60F952177B
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:58:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596779886;
-	bh=gMtDbqG7Y8Dqi7y9a/I9maeP3ujqPxaG+HmQh0juH4E=;
+	s=default; t=1596779923;
+	bh=k67lGesIiirbz10D158O50wTsZTRranX/XJ6ZN+yVls=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=yhTQjy0oHElFZAAtPO9VavrBofiwhXmSZgB5HOrbnsPx/I0rakRfjQpj6OC2jQr8s
-	 F07dIWCePEIgAWGgYSd5e+2lyv1QjzNLmsz/CaSGWh915wg6KZ2xLscnzGRG5kmegv
-	 TcFrPVzlmLuirsYEV/q/PJMJNarPAMgdSFcF6r94=
+	b=kw+tPrx9kbiCViu/PFkqjtRkmU38QdKrXLLQrOvhm1O4ATf0nejCBlWQAymISKD7A
+	 Xr1XVK4iH8wZaEo7WggMi86cbtODgnGX6PNryJ69jn5MT5AeBgXpbGzSTX+mqTe3e9
+	 aPas1YGAyHyp3mD5m2e999IedwgoPR0Z/92Z8IRY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725845AbgHGF6G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:58:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46632 "EHLO mail.kernel.org"
+        id S1725845AbgHGF6n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:58:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGF6G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:58:06 -0400
+        id S1725379AbgHGF6m (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:58:42 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5890821744;
-        Fri,  7 Aug 2020 05:58:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 28FB721744;
+        Fri,  7 Aug 2020 05:58:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596779885;
-        bh=gMtDbqG7Y8Dqi7y9a/I9maeP3ujqPxaG+HmQh0juH4E=;
+        s=default; t=1596779922;
+        bh=k67lGesIiirbz10D158O50wTsZTRranX/XJ6ZN+yVls=;
         h=Date:From:To:Subject:From;
-        b=f0JpymrrXLmXzKYFDeqX94pXfEti+LmH+wRKHq1Dfey1RRw/TF0OZbmt4BVsK6vjL
-         o6R845mvEWi5VvVH34L9UXmu1jekFFc4i42VvmWNFMQl9CfjIS1EBDz20S6ebjjJyu
-         5gZkKjH9pyRon/PH4f5RBDa9Tm3OUIHre25/7mKs=
-Date:   Thu, 06 Aug 2020 22:58:04 -0700
+        b=SLOeKJSdxz3yzxfo39K+rDNgKY/3AlcdIoUsdYLSysA75PLsgtpdJzai+LewJMWQi
+         BJGw1VB+O/iBdWhqN3W3aVhYmjzCve1T5uqcLrPDDZq0CETvuNkRGopixjh4nfcWdB
+         WtiK5WzB7INzS0ZmAhv2ai0VPBTW2R+cWeP7etH0=
+Date:   Thu, 06 Aug 2020 22:58:41 -0700
 From:   akpm@linux-foundation.org
-To:     charante@codeaurora.org, mgorman@techsingularity.net,
-        mm-commits@vger.kernel.org, vinmenon@codeaurora.org
+To:     akpm@linux-foundation.org, grandmaster@al2klimov.de,
+        mm-commits@vger.kernel.org, vbabka@suse.cz
 Subject:  [folded-merged]
- mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
- removed from -mm tree
-Message-ID: <20200807055804.-5k8xyaJi%akpm@linux-foundation.org>
+ mm-thp-replace-http-links-with-https-ones-fix.patch removed from -mm tree
+Message-ID: <20200807055841.UZJ3tqFOH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,92 +54,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: skip ->watermark_boost for atomic order-0 allocations-fix
+     Subject: mm-thp-replace-http-links-with-https-ones-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix.patch
+     mm-thp-replace-http-links-with-https-ones-fix.patch
 
-This patch was dropped because it was folded into mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
+This patch was dropped because it was folded into mm-thp-replace-http-links-with-https-ones.patch
 
 ------------------------------------------------------
-From: Charan Teja Kalla <charante@codeaurora.org>
-Subject: mm, page_alloc: skip ->watermark_boost for atomic order-0 allocations-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-thp-replace-http-links-with-https-ones-fix
 
-fix suggested by Mel Gorman
+fix amd.com URL, per Vlastimil
 
-Link: http://lkml.kernel.org/r/31556793-57b1-1c21-1a9d-22674d9bd938@codeaurora.org
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: "Alexander A. Klimov" <grandmaster@al2klimov.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   36 ++++++++++++++++++++----------------
- 1 file changed, 20 insertions(+), 16 deletions(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-skip-watermark_boost-for-atomic-order-0-allocations-fix
-+++ a/mm/page_alloc.c
-@@ -3588,7 +3588,7 @@ bool zone_watermark_ok(struct zone *z, u
- 
- static inline bool zone_watermark_fast(struct zone *z, unsigned int order,
- 				unsigned long mark, int highest_zoneidx,
--				unsigned int alloc_flags)
-+				unsigned int alloc_flags, gfp_t gfp_mask)
- {
- 	long free_pages;
- 
-@@ -3607,8 +3607,23 @@ static inline bool zone_watermark_fast(s
- 			return true;
- 	}
- 
--	return __zone_watermark_ok(z, order, mark, highest_zoneidx, alloc_flags,
--					free_pages);
-+	if (__zone_watermark_ok(z, order, mark, highest_zoneidx, alloc_flags,
-+					free_pages))
-+		return true;
-+	/*
-+	 * Ignore watermark boosting for GFP_ATOMIC order-0 allocations
-+	 * when checking the min watermark. The min watermark is the
-+	 * point where boosting is ignored so that kswapd is woken up
-+	 * when below the low watermark.
-+	 */
-+	if (unlikely(!order && (gfp_mask & __GFP_ATOMIC) && z->watermark_boost
-+		&& ((alloc_flags & ALLOC_WMARK_MASK) == WMARK_MIN))) {
-+		mark = z->_watermark[WMARK_MIN];
-+		return __zone_watermark_ok(z, order, mark, highest_zoneidx,
-+					alloc_flags, free_pages);
-+	}
-+
-+	return false;
- }
- 
- bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
-@@ -3751,20 +3766,9 @@ retry:
- 		}
- 
- 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
--		/*
--		 * Allow GFP_ATOMIC order-0 allocations to exclude the
--		 * zone->watermark_boost in their watermark calculations.
--		 * We rely on the ALLOC_ flags set for GFP_ATOMIC requests in
--		 * gfp_to_alloc_flags() for this.  Reason not to use the
--		 * GFP_ATOMIC directly is that we want to fall back to slow path
--		 * thus wake up kswapd.
--		 */
--		if (unlikely(!order && !(alloc_flags & ALLOC_WMARK_MASK) &&
--		     (alloc_flags & (ALLOC_HARDER | ALLOC_HIGH)))) {
--			mark = zone->_watermark[WMARK_MIN];
--		}
- 		if (!zone_watermark_fast(zone, order, mark,
--				       ac->highest_zoneidx, alloc_flags)) {
-+				       ac->highest_zoneidx, alloc_flags,
-+				       gfp_mask)) {
- 			int ret;
- 
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+--- a/mm/huge_memory.c~mm-thp-replace-http-links-with-https-ones-fix
++++ a/mm/huge_memory.c
+@@ -2066,8 +2066,8 @@ static void __split_huge_pmd_locked(stru
+ 	 * free), userland could trigger a small page size TLB miss on the
+ 	 * small sized TLB while the hugepage TLB entry is still established in
+ 	 * the huge TLB. Some CPU doesn't like that.
+-	 * See https://support.amd.com/us/Processor_TechDocs/41322.pdf, Erratum
+-	 * 383 on page 93. Intel should be safe but is also warns that it's
++	 * See http://support.amd.com/TechDocs/41322_10h_Rev_Gd.pdf, Erratum
++	 * 383 on page 105. Intel should be safe but is also warns that it's
+ 	 * only safe if the permission and cache attributes of the two entries
+ 	 * loaded in the two TLB is identical (which should be the case here).
+ 	 * But it is generally safer to never allow small and huge TLB entries
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-skip-waternark_boost-for-atomic-order-0-allocations.patch
-mm-memory_hotplug-update-pcp-lists-everytime-onlining-a-memory-block.patch
+mm-thp-replace-http-links-with-https-ones.patch
+mm.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
+mm-hugetlb-add-mempolicy-check-in-the-reservation-routine-fix.patch
+mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
+mm-migrate-make-a-standard-migration-target-allocation-function-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
