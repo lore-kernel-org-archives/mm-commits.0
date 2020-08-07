@@ -7,45 +7,50 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1904CC433E1
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11E96C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D50B2221E5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFAB322D0A
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781381;
-	bh=AAmWkQvvZBKmqp4aVbr8oXCk1LrZkBLh/2YaYAxgK/U=;
+	s=default; t=1596781385;
+	bh=x5XI0e+PD1K5/WMcEyJMto6bUXiu0canCXug7o/7e5c=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=04DbZrMWxWdq10sS+vwJ9Wo16Kh4roKu2/CWK/zX7aBttoCPgXVLTtl7odCEXBCou
-	 hOFFm+kIDk0ylMRknQHwpXLtUE+5wa+kRTSFF/y2If2xia1NaEzwrnsgSZQwO5i+TH
-	 oVPKm9Jgs73Wfm/L32mTMoojsPcBSZbvPv6JuvWU=
+	b=dzkOxlNKHMiWgizzc+uS/cGUCl2vqJUFM0yMBPu4qQ2yTcudZRnZ3cDolZhlp+J7k
+	 fsdBm7n9A2AHOq3hFkcws6YDVegNA0jQu24/CRarXFEaQjwGdW85u3rLHneEwrHsLD
+	 C+ayo+kCUBHc8rhKTuzrMQnMhvlx5dpYaOSsOKVg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726224AbgHGGXB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:23:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59718 "EHLO mail.kernel.org"
+        id S1725845AbgHGGXF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:23:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59810 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725845AbgHGGXB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:23:01 -0400
+        id S1725379AbgHGGXF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:23:05 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 585CB22C9F;
-        Fri,  7 Aug 2020 06:23:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DABDE22CB3;
+        Fri,  7 Aug 2020 06:23:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781380;
-        bh=AAmWkQvvZBKmqp4aVbr8oXCk1LrZkBLh/2YaYAxgK/U=;
+        s=default; t=1596781384;
+        bh=x5XI0e+PD1K5/WMcEyJMto6bUXiu0canCXug7o/7e5c=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Cj30MXfiy9vJN/28rFSojY1S7+uKUeVky0Nee9JE3nGxA+jXmfIWGvsJRxTDZPyXI
-         wUsiVETGTDVNMS9QQqwrH04DudmDsq0X2hovoxkyHsOFGgfcbFRhY9wkkQtSk5Km1P
-         6wSoPu2LEm3aYm8+mvPaDH+83jgJASTNaChtHx7s=
-Date:   Thu, 06 Aug 2020 23:22:59 -0700
+        b=x/tYvjZG1wKGzolsPEDng4fNoyvkxd3ccMUGGo9qqG34YzY89Y5w3w9fvJLa/Ovk7
+         RGcIt5zQ0qreuE0uEpla7+JuYhefdtNd7JHt3XB8+zUDbDZ0quPtK5uwVxjSUZ9lBo
+         /vV/z4XY3XkT+Gkqi8ovZnchFTdIi2CVl9nUV4fw=
+Date:   Thu, 06 Aug 2020 23:23:03 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 104/163] mm/mmap: optimize a branch judgment in
- ksys_mmap_pgoff()
-Message-ID: <20200807062259.JNE-ENp6G%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andi.kleen@intel.com, cai@lca.pw,
+        cl@linux.com, dave.hansen@intel.com, dennis@kernel.org,
+        feng.tang@intel.com, haiyangz@microsoft.com, hannes@cmpxchg.org,
+        keescook@chromium.org, kys@microsoft.com, linux-mm@kvack.org,
+        mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org,
+        rong.a.chen@intel.com, tim.c.chen@intel.com, tj@kernel.org,
+        torvalds@linux-foundation.org, willy@infradead.org,
+        ying.huang@intel.com
+Subject:  [patch 105/163] proc/meminfo: avoid open coded reading of
+ vm_committed_as
+Message-ID: <20200807062303.lSAmVBTlH%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,66 +59,89 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: mm/mmap: optimize a branch judgment in ksys_mmap_pgoff()
+From: Feng Tang <feng.tang@intel.com>
+Subject: proc/meminfo: avoid open coded reading of vm_committed_as
 
-Look at the pseudo code below.  It's very clear that, the judgement
-"!is_file_hugepages(file)" at 3) is duplicated to the one at 1), we can
-use "else if" to avoid it.  And the assignment "retval = -EINVAL" at 2) is
-only needed by the branch 3), because "retval" will be overwritten at 4).
+Patch series "make vm_committed_as_batch aware of vm overcommit policy", v6.
 
-No functional change, but it can reduce the code size. Maybe more clearer?
-Before:
-text    data     bss     dec     hex filename
-28733    1590       1   30324    7674 mm/mmap.o
+When checking a performance change for will-it-scale scalability mmap test
+[1], we found very high lock contention for spinlock of percpu counter
+'vm_committed_as':
 
-After:
-text    data     bss     dec     hex filename
-28701    1590       1   30292    7654 mm/mmap.o
+    94.14%     0.35%  [kernel.kallsyms]         [k] _raw_spin_lock_irqsave
+    48.21% _raw_spin_lock_irqsave;percpu_counter_add_batch;__vm_enough_memory;mmap_region;do_mmap;
+    45.91% _raw_spin_lock_irqsave;percpu_counter_add_batch;__do_munmap;
 
-====pseudo code====:
-	if (!(flags & MAP_ANONYMOUS)) {
-		...
-1)		if (is_file_hugepages(file))
-			len = ALIGN(len, huge_page_size(hstate_file(file)));
-2)		retval = -EINVAL;
-3)		if (unlikely(flags & MAP_HUGETLB && !is_file_hugepages(file)))
-			goto out_fput;
-	} else if (flags & MAP_HUGETLB) {
-		...
-	}
-	...
+Actually this heavy lock contention is not always necessary.  The
+'vm_committed_as' needs to be very precise when the strict
+OVERCOMMIT_NEVER policy is set, which requires a rather small batch number
+for the percpu counter.
 
-4)	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
-out_fput:
-	...
-	return retval;
+So keep 'batch' number unchanged for strict OVERCOMMIT_NEVER policy, and
+enlarge it for not-so-strict OVERCOMMIT_ALWAYS and OVERCOMMIT_GUESS
+policies.
 
-Link: http://lkml.kernel.org/r/20200705080112.1405-1-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Benchmark with the same testcase in [1] shows 53% improvement on a 8C/16T
+desktop, and 2097%(20X) on a 4S/72C/144T server.  And for that case,
+whether it shows improvements depends on if the test mmap size is bigger
+than the batch number computed.
+
+We tested 10+ platforms in 0day (server, desktop and laptop).  If we lift
+it to 64X, 80%+ platforms show improvements, and for 16X lift, 1/3 of the
+platforms will show improvements.
+
+And generally it should help the mmap/unmap usage,as Michal Hocko
+mentioned:
+
+: I believe that there are non-synthetic worklaods which would benefit
+: from a larger batch. E.g. large in memory databases which do large
+: mmaps during startups from multiple threads.
+
+Note: There are some style complain from checkpatch for patch 4, as sysctl
+handler declaration follows the similar format of sibling functions
+
+[1] https://lore.kernel.org/lkml/20200305062138.GI5972@shao2-debian/
+
+
+This patch (of 4):
+
+Use the existing vm_memory_committed() instead, which is also convenient
+for future change.
+
+Link: http://lkml.kernel.org/r/1594389708-60781-1-git-send-email-feng.tang@intel.com
+Link: http://lkml.kernel.org/r/1594389708-60781-2-git-send-email-feng.tang@intel.com
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: kernel test robot <rong.a.chen@intel.com>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/proc/meminfo.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mmap.c~mm-mmap-optimize-a-branch-judgment-in-ksys_mmap_pgoff
-+++ a/mm/mmap.c
-@@ -1562,11 +1562,12 @@ unsigned long ksys_mmap_pgoff(unsigned l
- 		file = fget(fd);
- 		if (!file)
- 			return -EBADF;
--		if (is_file_hugepages(file))
-+		if (is_file_hugepages(file)) {
- 			len = ALIGN(len, huge_page_size(hstate_file(file)));
--		retval = -EINVAL;
--		if (unlikely(flags & MAP_HUGETLB && !is_file_hugepages(file)))
-+		} else if (unlikely(flags & MAP_HUGETLB)) {
-+			retval = -EINVAL;
- 			goto out_fput;
-+		}
- 	} else if (flags & MAP_HUGETLB) {
- 		struct user_struct *user = NULL;
- 		struct hstate *hs;
+--- a/fs/proc/meminfo.c~proc-meminfo-avoid-open-coded-reading-of-vm_committed_as
++++ a/fs/proc/meminfo.c
+@@ -41,7 +41,7 @@ static int meminfo_proc_show(struct seq_
+ 
+ 	si_meminfo(&i);
+ 	si_swapinfo(&i);
+-	committed = percpu_counter_read_positive(&vm_committed_as);
++	committed = vm_memory_committed();
+ 
+ 	cached = global_node_page_state(NR_FILE_PAGES) -
+ 			total_swapcache_pages() - i.bufferram;
 _
