@@ -7,49 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 252A7C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BC53C433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 04F38221E5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3355D22C9F
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781029;
-	bh=MCnaqNJ6WIuDxo8PWl+PeGkryXJcTchOMpSH4xm+irQ=;
+	s=default; t=1596781032;
+	bh=5G2wDP9QWKyn+JHhF726/Cc2UeOzBeoGwYmuq4sUMGI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=IM3X/4Sm2MvkuhQoMObedCp2OPYvO10X0xpSOPdXvf5okQiH3ULVEOoM4XliQB6mP
-	 6Iyv8D//xksgdZO54d5tpMfF79nwjVF/Lpu4sAeuxS3LnUGJps//iLuCuZeJKmrDHn
-	 eyBmeiz69xKp1LjAM6H+KCRhcbH6FPwTBQvckR7Y=
+	b=puIEIXeW1Gee/0B4Ac+uN3JhQLDIcN9FzX4LUvOvHQtExKcuZ9Jrnlmik7trChBLs
+	 FFQpqaPahXjoAI1uSd8+Bmq2OTljhX6nhyC7yBRg0lVw7xGOHT3gsgd/RtDoDUEv7f
+	 YGPQWc/F03B2KDEoKJLWbOWTGu+wnslSYl1aV9Cw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725872AbgHGGRI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:17:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52120 "EHLO mail.kernel.org"
+        id S1725900AbgHGGRL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:17:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52212 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGRI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:17:08 -0400
+        id S1725379AbgHGGRL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:17:11 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E93372177B;
-        Fri,  7 Aug 2020 06:17:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5AF4B22CAF;
+        Fri,  7 Aug 2020 06:17:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781027;
-        bh=MCnaqNJ6WIuDxo8PWl+PeGkryXJcTchOMpSH4xm+irQ=;
+        s=default; t=1596781030;
+        bh=5G2wDP9QWKyn+JHhF726/Cc2UeOzBeoGwYmuq4sUMGI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=N6VO3pLQCxzag37HewKG+OIc9wWHES5HRHVGCIadcEQ/DDsdZO3fZu2oYxDIZ14bu
-         Gb4QFBf6XIcWyfVcO5TnUspvPCpqMdiHypwkToaopU0hKqZHUGDDWHUKeKYYfZQKel
-         CVUsOXK1POowhG5o9WEUJfl3ffNB2bvuwbk+V+Lc=
-Date:   Thu, 06 Aug 2020 23:17:06 -0700
+        b=Zc/68k2ibppvB0quoP+wRl+bclFk0Vro/2RW02m9XLtdZS6IsgD9mPN0I2u0f7XZe
+         dw4qz161GCnZa/2/zC3uTC8xZdOIgtQUm+wc3WTfU29VgUPaXtjrsKKECdGK2Iw79I
+         4SmVl4tRbVyxXSJutS8+XCAFs5ROdqKttjsRxKnM=
+Date:   Thu, 06 Aug 2020 23:17:09 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, catalin.marinas@arm.com,
-        hannes@cmpxchg.org, hdanton@sina.com, hughd@google.com,
-        josef@toxicpanda.com, kirill.shutemov@linux.intel.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, torvalds@linux-foundation.org,
-        will.deacon@arm.com, willy@infradead.org, xuyu@linux.alibaba.com,
-        yang.shi@linux.alibaba.com
-Subject:  [patch 001/163] mm/memory.c: avoid access flag update TLB
- flush for retried page fault
-Message-ID: <20200807061706.unk5_0KtC%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hch@lst.de, jgg@mellanox.com,
+        jglisse@redhat.com, jhubbard@nvidia.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com,
+        rdunlap@infradead.org, torvalds@linux-foundation.org
+Subject:  [patch 002/163] mm/migrate: fix migrate_pgmap_owner w/o
+ CONFIG_MMU_NOTIFIER
+Message-ID: <20200807061709.xu5tflYEQ%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -58,86 +55,77 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm/memory.c: avoid access flag update TLB flush for retried page fault
+From: Ralph Campbell <rcampbell@nvidia.com>
+Subject: mm/migrate: fix migrate_pgmap_owner w/o CONFIG_MMU_NOTIFIER
 
-Recently we found regression when running will_it_scale/page_fault3 test
-on ARM64.  Over 70% down for the multi processes cases and over 20% down
-for the multi threads cases.  It turns out the regression is caused by
-commit 89b15332af7c0312a41e50846819ca6613b58b4c ("mm: drop mmap_sem before
-calling balance_dirty_pages() in write fault").
+On x86_64, when CONFIG_MMU_NOTIFIER is not set/enabled, there is a
+compiler error:
 
-The test mmaps a memory size file then write to the mapping, this would
-make all memory dirty and trigger dirty pages throttle, that upstream
-commit would release mmap_sem then retry the page fault.  The retried page
-fault would see correct PTEs installed by the first try then update dirty
-bit and clear read-only bit and flush TLBs for ARM.  The regression is
-caused by the excessive TLB flush.  It is fine on x86 since x86 doesn't
-clear read-only bit so there is no need to flush TLB for this case.
+../mm/migrate.c: In function 'migrate_vma_collect':
+../mm/migrate.c:2481:7: error: 'struct mmu_notifier_range' has no member
+named 'migrate_pgmap_owner'
+  range.migrate_pgmap_owner = migrate->pgmap_owner;
+       ^
 
-The page fault would be retried due to:
-1. Waiting for page readahead
-2. Waiting for page swapped in
-3. Waiting for dirty pages throttling
-
-The first two cases don't have PTEs set up at all, so the retried page
-fault would install the PTEs, so they don't reach there.  But the #3 case
-usually has PTEs installed, the retried page fault would reach the dirty
-bit and read-only bit update.  But it seems not necessary to modify those
-bits again for #3 since they should be already set by the first page fault
-try.
-
-Of course the parallel page fault may set up PTEs, but we just need care
-about write fault.  If the parallel page fault setup a writable and dirty
-PTE then the retried fault doesn't need do anything extra.  If the
-parallel page fault setup a clean read-only PTE, the retried fault should
-just call do_wp_page() then return as the below code snippet shows:
-
-if (vmf->flags & FAULT_FLAG_WRITE) {
-        if (!pte_write(entry))
-            return do_wp_page(vmf);
-}
-
-With this fix the test result get back to normal.
-
-[yang.shi@linux.alibaba.com: incorporate comment from Will Deacon, update commit log per discussion]
-  Link: http://lkml.kernel.org/r/1594848990-55657-1-git-send-email-yang.shi@linux.alibaba.com
-Link: http://lkml.kernel.org/r/1594148072-91273-1-git-send-email-yang.shi@linux.alibaba.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
-Reported-by: Xu Yu <xuyu@linux.alibaba.com>
-Debugged-by: Xu Yu <xuyu@linux.alibaba.com>
-Tested-by: Xu Yu <xuyu@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200806193353.7124-1-rcampbell@nvidia.com
+Fixes: 998427b3ad2c ("mm/notifier: add migration invalidation type")
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Jason Gunthorpe" <jgg@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ include/linux/mmu_notifier.h |   13 +++++++++++++
+ mm/migrate.c                 |    6 +++---
+ 2 files changed, 16 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-avoid-access-flag-update-tlb-flush-for-retried-page-fault
-+++ a/mm/memory.c
-@@ -4241,8 +4241,14 @@ static vm_fault_t handle_pte_fault(struc
- 	if (vmf->flags & FAULT_FLAG_WRITE) {
- 		if (!pte_write(entry))
- 			return do_wp_page(vmf);
--		entry = pte_mkdirty(entry);
- 	}
+--- a/include/linux/mmu_notifier.h~mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier
++++ a/include/linux/mmu_notifier.h
+@@ -521,6 +521,16 @@ static inline void mmu_notifier_range_in
+ 	range->flags = flags;
+ }
+ 
++static inline void mmu_notifier_range_init_migrate(
++			struct mmu_notifier_range *range, unsigned int flags,
++			struct vm_area_struct *vma, struct mm_struct *mm,
++			unsigned long start, unsigned long end, void *pgmap)
++{
++	mmu_notifier_range_init(range, MMU_NOTIFY_MIGRATE, flags, vma, mm,
++				start, end);
++	range->migrate_pgmap_owner = pgmap;
++}
 +
-+	if (vmf->flags & FAULT_FLAG_TRIED)
-+		goto unlock;
-+
-+	if (vmf->flags & FAULT_FLAG_WRITE)
-+		entry = pte_mkdirty(entry);
-+
- 	entry = pte_mkyoung(entry);
- 	if (ptep_set_access_flags(vmf->vma, vmf->address, vmf->pte, entry,
- 				vmf->flags & FAULT_FLAG_WRITE)) {
+ #define ptep_clear_flush_young_notify(__vma, __address, __ptep)		\
+ ({									\
+ 	int __young;							\
+@@ -645,6 +655,9 @@ static inline void _mmu_notifier_range_i
+ 
+ #define mmu_notifier_range_init(range,event,flags,vma,mm,start,end)  \
+ 	_mmu_notifier_range_init(range, start, end)
++#define mmu_notifier_range_init_migrate(range, flags, vma, mm, start, end, \
++					pgmap) \
++	_mmu_notifier_range_init(range, start, end)
+ 
+ static inline bool
+ mmu_notifier_range_blockable(const struct mmu_notifier_range *range)
+--- a/mm/migrate.c~mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier
++++ a/mm/migrate.c
+@@ -2386,9 +2386,9 @@ static void migrate_vma_collect(struct m
+ 	 * that the registered device driver can skip invalidating device
+ 	 * private page mappings that won't be migrated.
+ 	 */
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_MIGRATE, 0, migrate->vma,
+-			migrate->vma->vm_mm, migrate->start, migrate->end);
+-	range.migrate_pgmap_owner = migrate->pgmap_owner;
++	mmu_notifier_range_init_migrate(&range, 0, migrate->vma,
++		migrate->vma->vm_mm, migrate->start, migrate->end,
++		migrate->pgmap_owner);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+ 	walk_page_range(migrate->vma->vm_mm, migrate->start, migrate->end,
 _
