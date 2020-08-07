@@ -2,51 +2,51 @@ Return-Path: <SRS0=ze/c=BR=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B4C6C433E1
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F180C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E2F7822D00
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D67BB221E5
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781232;
-	bh=/+GjuyI/einNEPcWggkqcOYCxaQ8Rpt+T+rqa38Zqwo=;
+	s=default; t=1596781234;
+	bh=/MQJhpgxRti/bb9C8yvPEHdXg3jHNWOqyZUdWhzLx+U=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=eua2LrnGIUhmqvW2jsLY8SwSLFYwvaORgozK/XIyXYhh7fZlwVw0dD8NfUhhSjI7U
-	 riDbSRnYhSW3h9tFIg1sHbA4ZFIymK83q7ia8yGEzYLUzDOC2/nuF2Fm+P8Tov34yK
-	 nVf0ey+gxNiyMfGEYP2dDDUtHxUHbY4SjnRb2CJU=
+	b=1ONHzrbjECUNtDkWiCjtd+fZeRaxmDJDa2xOPPMdUBaLfxUrE3TVAFpxIP3KtkbIg
+	 VviwkJ+yZ19ZmEu3M2vbkXB3r3+hZ4XlD1TOTo81DpK5xZmQhpnzi1FY2JUOwX5SaX
+	 u0L+vt1YSK3d3cBRuD7iG6K6cNkoa6DavG9a4DXo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726150AbgHGGUc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:20:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56388 "EHLO mail.kernel.org"
+        id S1726205AbgHGGUe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:20:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725900AbgHGGUa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:20:30 -0400
+        id S1726094AbgHGGUe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:20:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 34DEC221E5;
-        Fri,  7 Aug 2020 06:20:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A71D02177B;
+        Fri,  7 Aug 2020 06:20:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781229;
-        bh=/+GjuyI/einNEPcWggkqcOYCxaQ8Rpt+T+rqa38Zqwo=;
+        s=default; t=1596781233;
+        bh=/MQJhpgxRti/bb9C8yvPEHdXg3jHNWOqyZUdWhzLx+U=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ICF0VlBESrUh5vw8C0dxRLkpAmZRmhBBGP/WSdcbcNNMaSO5z7NK4DPnq8I0aB9SL
-         pD8d8LETxQdWF9bIsy0FxzXXYLDlsGL2HjKhNDFK9ihKMxavLHsed88cprvDATEyIu
-         unc2z0X1jtSCv8TQfT0Snj42+OZ1SoFgftHh3P2U=
-Date:   Thu, 06 Aug 2020 23:20:28 -0700
+        b=aAbSVwcRRZ4OSEAzGSIXsqL4SegCinZqmfo2RCAV8AyrR2j/Wzp1uQ5ZifeDLsDBa
+         4q/gMflTIBxc6d94KAkQ65Qz98zu51cbOY4VkwVzCAj2DuYcjo3aRmoZIM8PBbauU+
+         He9C1u2nZnEUIDiS4SGcHuya/t/xNXWH58Ww/0hc=
+Date:   Thu, 06 Aug 2020 23:20:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, linux-mm@kvack.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org,
-        naresh.kamboju@linaro.org, shakeelb@google.com,
+To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
+        hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 061/163] mm: kmem: make memcg_kmem_enabled()
- irreversible
-Message-ID: <20200807062028.9dTsF8Lvx%akpm@linux-foundation.org>
+Subject:  [patch 062/163] mm: memcg: factor out memcg- and
+ lruvec-level changes out of __mod_lruvec_state()
+Message-ID: <20200807062032.W074XjPoi%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,60 +56,211 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: kmem: make memcg_kmem_enabled() irreversible
+Subject: mm: memcg: factor out memcg- and lruvec-level changes out of __mod_lruvec_state()
 
-Historically the kernel memory accounting was an opt-in feature, which
-could be enabled for individual cgroups.  But now it's not true, and it's
-on by default both on cgroup v1 and cgroup v2.  And as long as a user has
-at least one non-root memory cgroup, the kernel memory accounting is on. 
-So in most setups it's either always on (if memory cgroups are in use and
-kmem accounting is not disabled), either always off (otherwise).
+Patch series "The new cgroup slab memory controller", v7.
 
-memcg_kmem_enabled() is used in many places to guard the kernel memory
-accounting code.  If memcg_kmem_enabled() can reverse from returning true
-to returning false (as now), we can't rely on it on release paths and have
-to check if it was on before.
+The patchset moves the accounting from the page level to the object level.
+It allows to share slab pages between memory cgroups.  This leads to a
+significant win in the slab utilization (up to 45%) and the corresponding
+drop in the total kernel memory footprint.  The reduced number of
+unmovable slab pages should also have a positive effect on the memory
+fragmentation.
 
-If we'll make memcg_kmem_enabled() irreversible (always returning true
-after returning it for the first time), it'll make the general logic more
-simple and robust.  It also will allow to guard some checks which
-otherwise would stay unguarded.
+The patchset makes the slab accounting code simpler: there is no more need
+in the complicated dynamic creation and destruction of per-cgroup slab
+caches, all memory cgroups use a global set of shared slab caches.  The
+lifetime of slab caches is not more connected to the lifetime of memory
+cgroups.
 
-Link: http://lkml.kernel.org/r/20200702180926.1330769-1-guro@fb.com
+The more precise accounting does require more CPU, however in practice the
+difference seems to be negligible.  We've been using the new slab
+controller in Facebook production for several months with different
+workloads and haven't seen any noticeable regressions.  What we've seen
+were memory savings in order of 1 GB per host (it varied heavily depending
+on the actual workload, size of RAM, number of CPUs, memory pressure,
+etc).
+
+The third version of the patchset added yet another step towards the
+simplification of the code: sharing of slab caches between accounted and
+non-accounted allocations.  It comes with significant upsides (most
+noticeable, a complete elimination of dynamic slab caches creation) but
+not without some regression risks, so this change sits on top of the
+patchset and is not completely merged in.  So in the unlikely event of a
+noticeable performance regression it can be reverted separately.
+
+The slab memory accounting works in exactly the same way for SLAB and
+SLUB.  With both allocators the new controller shows significant memory
+savings, with SLUB the difference is bigger.  On my 16-core desktop
+machine running Fedora 32 the size of the slab memory measured after the
+start of the system was lower by 58% and 38% with SLUB and SLAB
+correspondingly.
+
+As an estimation of a potential CPU overhead, below are results of
+slab_bulk_test01 test, kindly provided by Jesper D.  Brouer.  He also
+helped with the evaluation of results.
+
+The test can be found here: https://github.com/netoptimizer/prototype-kernel/
+The smallest number in each row should be picked for a comparison.
+
+SLUB-patched - bulk-API
+ - SLUB-patched : bulk_quick_reuse objects=1 : 187 -  90 - 224  cycles(tsc)
+ - SLUB-patched : bulk_quick_reuse objects=2 : 110 -  53 - 133  cycles(tsc)
+ - SLUB-patched : bulk_quick_reuse objects=3 :  88 -  95 -  42  cycles(tsc)
+ - SLUB-patched : bulk_quick_reuse objects=4 :  91 -  85 -  36  cycles(tsc)
+ - SLUB-patched : bulk_quick_reuse objects=8 :  32 -  66 -  32  cycles(tsc)
+
+SLUB-original -  bulk-API
+ - SLUB-original: bulk_quick_reuse objects=1 :  87 -  87 - 142  cycles(tsc)
+ - SLUB-original: bulk_quick_reuse objects=2 :  52 -  53 -  53  cycles(tsc)
+ - SLUB-original: bulk_quick_reuse objects=3 :  42 -  42 -  91  cycles(tsc)
+ - SLUB-original: bulk_quick_reuse objects=4 :  91 -  37 -  37  cycles(tsc)
+ - SLUB-original: bulk_quick_reuse objects=8 :  31 -  79 -  76  cycles(tsc)
+
+SLAB-patched -  bulk-API
+ - SLAB-patched : bulk_quick_reuse objects=1 :  67 -  67 - 140  cycles(tsc)
+ - SLAB-patched : bulk_quick_reuse objects=2 :  55 -  46 -  46  cycles(tsc)
+ - SLAB-patched : bulk_quick_reuse objects=3 :  93 -  94 -  39  cycles(tsc)
+ - SLAB-patched : bulk_quick_reuse objects=4 :  35 -  88 -  85  cycles(tsc)
+ - SLAB-patched : bulk_quick_reuse objects=8 :  30 -  30 -  30  cycles(tsc)
+
+SLAB-original-  bulk-API
+ - SLAB-original: bulk_quick_reuse objects=1 : 143 - 136 -  67  cycles(tsc)
+ - SLAB-original: bulk_quick_reuse objects=2 :  45 -  46 -  46  cycles(tsc)
+ - SLAB-original: bulk_quick_reuse objects=3 :  38 -  39 -  39  cycles(tsc)
+ - SLAB-original: bulk_quick_reuse objects=4 :  35 -  87 -  87  cycles(tsc)
+ - SLAB-original: bulk_quick_reuse objects=8 :  29 -  66 -  30  cycles(tsc)
+
+
+This patch (of 19):
+
+To convert memcg and lruvec slab counters to bytes there must be a way to
+change these counters without touching node counters.  Factor out
+__mod_memcg_lruvec_state() out of __mod_lruvec_state().
+
+Link: http://lkml.kernel.org/r/20200623174037.3951353-1-guro@fb.com
+Link: http://lkml.kernel.org/r/20200623174037.3951353-2-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
-Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ include/linux/memcontrol.h |   17 +++++++++++++
+ mm/memcontrol.c            |   43 +++++++++++++++++++----------------
+ 2 files changed, 41 insertions(+), 19 deletions(-)
 
---- a/mm/memcontrol.c~mm-kmem-make-memcg_kmem_enabled-irreversible
-+++ a/mm/memcontrol.c
-@@ -3416,7 +3416,8 @@ static int memcg_online_kmem(struct mem_
- 	if (memcg_id < 0)
- 		return memcg_id;
- 
--	static_branch_inc(&memcg_kmem_enabled_key);
-+	static_branch_enable(&memcg_kmem_enabled_key);
-+
- 	/*
- 	 * A memory cgroup is considered kmem-online as soon as it gets
- 	 * kmemcg_id. Setting the id after enabling static branching will
-@@ -3486,11 +3487,6 @@ static void memcg_free_kmem(struct mem_c
- 	/* css_alloc() failed, offlining didn't happen */
- 	if (unlikely(memcg->kmem_state == KMEM_ONLINE))
- 		memcg_offline_kmem(memcg);
--
--	if (memcg->kmem_state == KMEM_ALLOCATED) {
--		WARN_ON(!list_empty(&memcg->kmem_caches));
--		static_branch_dec(&memcg_kmem_enabled_key);
--	}
+--- a/include/linux/memcontrol.h~mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state
++++ a/include/linux/memcontrol.h
+@@ -679,11 +679,23 @@ static inline unsigned long lruvec_page_
+ 	return x;
  }
- #else
- static int memcg_online_kmem(struct mem_cgroup *memcg)
+ 
++void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
++			      int val);
+ void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+ 			int val);
+ void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val);
+ void mod_memcg_obj_state(void *p, int idx, int val);
+ 
++static inline void mod_memcg_lruvec_state(struct lruvec *lruvec,
++					  enum node_stat_item idx, int val)
++{
++	unsigned long flags;
++
++	local_irq_save(flags);
++	__mod_memcg_lruvec_state(lruvec, idx, val);
++	local_irq_restore(flags);
++}
++
+ static inline void mod_lruvec_state(struct lruvec *lruvec,
+ 				    enum node_stat_item idx, int val)
+ {
+@@ -1057,6 +1069,11 @@ static inline unsigned long lruvec_page_
+ 	return node_page_state(lruvec_pgdat(lruvec), idx);
+ }
+ 
++static inline void __mod_memcg_lruvec_state(struct lruvec *lruvec,
++					    enum node_stat_item idx, int val)
++{
++}
++
+ static inline void __mod_lruvec_state(struct lruvec *lruvec,
+ 				      enum node_stat_item idx, int val)
+ {
+--- a/mm/memcontrol.c~mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state
++++ a/mm/memcontrol.c
+@@ -713,30 +713,13 @@ parent_nodeinfo(struct mem_cgroup_per_no
+ 	return mem_cgroup_nodeinfo(parent, nid);
+ }
+ 
+-/**
+- * __mod_lruvec_state - update lruvec memory statistics
+- * @lruvec: the lruvec
+- * @idx: the stat item
+- * @val: delta to add to the counter, can be negative
+- *
+- * The lruvec is the intersection of the NUMA node and a cgroup. This
+- * function updates the all three counters that are affected by a
+- * change of state at this level: per-node, per-cgroup, per-lruvec.
+- */
+-void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+-			int val)
++void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
++			      int val)
+ {
+-	pg_data_t *pgdat = lruvec_pgdat(lruvec);
+ 	struct mem_cgroup_per_node *pn;
+ 	struct mem_cgroup *memcg;
+ 	long x;
+ 
+-	/* Update node */
+-	__mod_node_page_state(pgdat, idx, val);
+-
+-	if (mem_cgroup_disabled())
+-		return;
+-
+ 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+ 	memcg = pn->memcg;
+ 
+@@ -748,6 +731,7 @@ void __mod_lruvec_state(struct lruvec *l
+ 
+ 	x = val + __this_cpu_read(pn->lruvec_stat_cpu->count[idx]);
+ 	if (unlikely(abs(x) > MEMCG_CHARGE_BATCH)) {
++		pg_data_t *pgdat = lruvec_pgdat(lruvec);
+ 		struct mem_cgroup_per_node *pi;
+ 
+ 		for (pi = pn; pi; pi = parent_nodeinfo(pi, pgdat->node_id))
+@@ -757,6 +741,27 @@ void __mod_lruvec_state(struct lruvec *l
+ 	__this_cpu_write(pn->lruvec_stat_cpu->count[idx], x);
+ }
+ 
++/**
++ * __mod_lruvec_state - update lruvec memory statistics
++ * @lruvec: the lruvec
++ * @idx: the stat item
++ * @val: delta to add to the counter, can be negative
++ *
++ * The lruvec is the intersection of the NUMA node and a cgroup. This
++ * function updates the all three counters that are affected by a
++ * change of state at this level: per-node, per-cgroup, per-lruvec.
++ */
++void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
++			int val)
++{
++	/* Update node */
++	__mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
++
++	/* Update memcg and lruvec */
++	if (!mem_cgroup_disabled())
++		__mod_memcg_lruvec_state(lruvec, idx, val);
++}
++
+ void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val)
+ {
+ 	pg_data_t *pgdat = page_pgdat(virt_to_page(p));
 _
