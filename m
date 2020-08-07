@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC8FAC433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57B19C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8D24422C9F
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E16022C9F
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781081;
-	bh=cx03duJfSEM3xER1ayQx0ZitLE6DIqG3as1jVLmYEOo=;
+	s=default; t=1596781085;
+	bh=JEjT5MjxPtlExL/ndg5RGSqopRhTQSjzsLnn9XKylbs=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=rHEJ6cDelgDMlFpR184JsuAUF0ufpgdtvCY3hWffAYyx+w4ImWLOS1z75yc8/T1d2
-	 g6C9IEu2yqzGWmGiet1uB7Z5kFEqddwB4mWU/Y3J9zk3zWrHe05PM39dn02V1q6eIC
-	 YzW23RZ86uc/HTKna7nJc8sDaXPoN3Y2+0Avw2/c=
+	b=QtihSRicg8kI0le/7rd8b6w6NPvOLw4mkZYLYwfyMlGWYWESTCcuDdWKjqByOEjME
+	 BbxZte/Dmi/rtpjmd3S3IspHRUwwTg8yEts82Y8i7hrCxbZOcSrArDlwtlrUmGDQKv
+	 aEo2wQcHdj5EwY0FsZ/MiAmUwP3gNT9BzQPhSKPw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726038AbgHGGSB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:18:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53158 "EHLO mail.kernel.org"
+        id S1726249AbgHGGSE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:18:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53238 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGSA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:18:00 -0400
+        id S1725379AbgHGGSE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:18:04 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0E4492177B;
-        Fri,  7 Aug 2020 06:18:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2CCA922CAE;
+        Fri,  7 Aug 2020 06:18:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781080;
-        bh=cx03duJfSEM3xER1ayQx0ZitLE6DIqG3as1jVLmYEOo=;
+        s=default; t=1596781083;
+        bh=JEjT5MjxPtlExL/ndg5RGSqopRhTQSjzsLnn9XKylbs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=XvtMAZA1Bq82d+C6tHdR757PD9Yl2E15jGoEJw1Q2kCDXJTS/u7wDiydsTY1jEpti
-         g16jRoWCXXEVLEAI1gMHspctF87LI2MMwisG8E3urzLGcN6vnFNkOpJ7E2TTAdggcL
-         avFonacXYKptcpwvN3+7OVn2EbKHPPWzoVJUNmAY=
-Date:   Thu, 06 Aug 2020 23:17:59 -0700
+        b=V6YFwy07FiK8iF+0DsXVL4sLoeSuhRsp7Zvf9xoViRMScDvQRQanPIJTrH0DdrtqE
+         w3kbUdrbfFazzee8l+1XlZSmnAHGKxFJ3LYXDebH05wSSpMHqFAtzEtuxpOruzj0HB
+         OCEc05BKNamekNVzz0lnfnQRFAXgFBl7hTpjjOT4=
+Date:   Thu, 06 Aug 2020 23:18:02 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, linux-mm@kvack.org, mark@fasheh.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+To:     akpm@linux-foundation.org, dan.carpenter@oracle.com,
+        gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
+        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
+        linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org,
+        piaojun@huawei.com, stable@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 018/163] ocfs2: suballoc.h: delete a duplicated
- word
-Message-ID: <20200807061759.oznPk9awL%akpm@linux-foundation.org>
+Subject:  [patch 019/163] ocfs2: change slot number type s16 to u16
+Message-ID: <20200807061802.UMoDJErtC%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,32 +56,83 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: ocfs2: suballoc.h: delete a duplicated word
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: change slot number type s16 to u16
 
-Drop the repeated word "is" in a comment.
+Dan Carpenter reported the following static checker warning.
 
-Link: http://lkml.kernel.org/r/20200720001421.28823-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+	fs/ocfs2/super.c:1269 ocfs2_parse_options() warn: '(-1)' 65535 can't fit into 32767 'mopt->slot'
+	fs/ocfs2/suballoc.c:859 ocfs2_init_inode_steal_slot() warn: '(-1)' 65535 can't fit into 32767 'osb->s_inode_steal_slot'
+	fs/ocfs2/suballoc.c:867 ocfs2_init_meta_steal_slot() warn: '(-1)' 65535 can't fit into 32767 'osb->s_meta_steal_slot'
+
+That's because OCFS2_INVALID_SLOT is (u16)-1. Slot number in ocfs2 can be
+never negative, so change s16 to u16.
+
+Link: http://lkml.kernel.org/r/20200627001259.19757-1-junxiao.bi@oracle.com
+Fixes: 9277f8334ffc ("ocfs2: fix value of OCFS2_INVALID_SLOT")
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Gang He <ghe@suse.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/ocfs2.h    |    4 ++--
+ fs/ocfs2/suballoc.c |    4 ++--
+ fs/ocfs2/super.c    |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/ocfs2/suballoc.h~ocfs2-suballoch-delete-a-duplicated-word
-+++ a/fs/ocfs2/suballoc.h
-@@ -40,7 +40,7 @@ struct ocfs2_alloc_context {
+--- a/fs/ocfs2/ocfs2.h~ocfs2-change-slot-number-type-s16-to-u16
++++ a/fs/ocfs2/ocfs2.h
+@@ -327,8 +327,8 @@ struct ocfs2_super
+ 	spinlock_t osb_lock;
+ 	u32 s_next_generation;
+ 	unsigned long osb_flags;
+-	s16 s_inode_steal_slot;
+-	s16 s_meta_steal_slot;
++	u16 s_inode_steal_slot;
++	u16 s_meta_steal_slot;
+ 	atomic_t s_num_inodes_stolen;
+ 	atomic_t s_num_meta_stolen;
  
- 	u64    ac_last_group;
- 	u64    ac_max_block;  /* Highest block number to allocate. 0 is
--				 is the same as ~0 - unlimited */
-+				 the same as ~0 - unlimited */
+--- a/fs/ocfs2/suballoc.c~ocfs2-change-slot-number-type-s16-to-u16
++++ a/fs/ocfs2/suballoc.c
+@@ -879,9 +879,9 @@ static void __ocfs2_set_steal_slot(struc
+ {
+ 	spin_lock(&osb->osb_lock);
+ 	if (type == INODE_ALLOC_SYSTEM_INODE)
+-		osb->s_inode_steal_slot = slot;
++		osb->s_inode_steal_slot = (u16)slot;
+ 	else if (type == EXTENT_ALLOC_SYSTEM_INODE)
+-		osb->s_meta_steal_slot = slot;
++		osb->s_meta_steal_slot = (u16)slot;
+ 	spin_unlock(&osb->osb_lock);
+ }
  
- 	int    ac_find_loc_only;  /* hack for reflink operation ordering */
- 	struct ocfs2_suballoc_result *ac_find_loc_priv; /* */
+--- a/fs/ocfs2/super.c~ocfs2-change-slot-number-type-s16-to-u16
++++ a/fs/ocfs2/super.c
+@@ -78,7 +78,7 @@ struct mount_options
+ 	unsigned long	commit_interval;
+ 	unsigned long	mount_opt;
+ 	unsigned int	atime_quantum;
+-	signed short	slot;
++	unsigned short	slot;
+ 	int		localalloc_opt;
+ 	unsigned int	resv_level;
+ 	int		dir_resv_level;
+@@ -1349,7 +1349,7 @@ static int ocfs2_parse_options(struct su
+ 				goto bail;
+ 			}
+ 			if (option)
+-				mopt->slot = (s16)option;
++				mopt->slot = (u16)option;
+ 			break;
+ 		case Opt_commit:
+ 			if (match_int(&args[0], &option)) {
 _
