@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F917C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:50:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8B3EC433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:51:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 430FD2086A
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:50:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99E422086A
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:51:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596779415;
-	bh=xoOda5M6hOquZr439a/G6klTQjCOIezEiv+AMXXl6ps=;
+	s=default; t=1596779467;
+	bh=4VTlevQsVlPkC2ra2MeIt2uroaXjOLCwJd8b+lTdzZg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=xngGmnvbrGkDTTG4aEa5OMkb22r4iZZG0H/jRdrbZ0XELiBv+TgFF1lUYc7uN1RxN
-	 UzZN+8ZXdjK2iAOSOSYtkGwC2vNFtCXGyIytT6T1UrppzDRfRyFqTFvf8EM6MhFpXw
-	 P6KX0YgRd6Uygeo3B+f5okDWBqV5GReEsXD6/4rM=
+	b=KIz+ZkBqfkQQlWBSn0c3KUH8wWouCWAM0wRBtxctdWite8tfgY0R1Go8n+vjdXujh
+	 Ggt4xC7dtA5+lR6x3HS/MwoYiMQ54XwLZGc/KlBW558b1xwVvEywlaEiqZSagvJMpP
+	 fxV85O9zD0NMR/aPEzxRi04F6XjV1lMfJXNjUS88=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725379AbgHGFuO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:50:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43650 "EHLO mail.kernel.org"
+        id S1725805AbgHGFvH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:51:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43952 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725287AbgHGFuO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:50:14 -0400
+        id S1725379AbgHGFvH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:51:07 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6F46A20866;
-        Fri,  7 Aug 2020 05:50:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4BD2420866;
+        Fri,  7 Aug 2020 05:51:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596779413;
-        bh=xoOda5M6hOquZr439a/G6klTQjCOIezEiv+AMXXl6ps=;
+        s=default; t=1596779466;
+        bh=4VTlevQsVlPkC2ra2MeIt2uroaXjOLCwJd8b+lTdzZg=;
         h=Date:From:To:Subject:From;
-        b=PZL71gFZLOmT5WcjWtsqLg+UYLyf+8k3sK4susY4eRqZy0zIzSI6+Nk0F+GkqSSay
-         u6you1KIXH7WMulWqh2PuZJhHarwtgTPBLT86Sp4ail/3Xg0vxiC5foIkTab72xztQ
-         uqVrUXURX/r5gzeHarCCY0iDR7MQXK+oYFzdTwZ4=
-Date:   Thu, 06 Aug 2020 22:50:13 -0700
+        b=EErbxSA9TivB7cK8TaDgCKnPP2J/74Fv4bW+Ljn6Q7zLxa/Srx4NwbWt4V4uPwoEN
+         QemOhQUJpMWdA24pnKrJMXsl+J9c8mvG4TSUZG/xdvataQBhZ33Vpsf4DfxYu2de9M
+         1WXEpLRA28sTi5NKeWvzZw70X9vzf9v7cyywpprA=
+Date:   Thu, 06 Aug 2020 22:51:05 -0700
 From:   akpm@linux-foundation.org
-To:     amir73il@gmail.com, hannes@cmpxchg.org, hughd@google.com,
-        jlayton@kernel.org, mm-commits@vger.kernel.org, tj@kernel.org,
-        viro@zeniv.linux.org.uk, willy@infradead.org
+To:     cl@linux.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com,
+        tj@kernel.org, vbabka@suse.cz
 Subject:  [folded-merged]
- tmpfs-support-64-bit-inums-per-sb-fix.patch removed from -mm tree
-Message-ID: <20200807055013.x5E8SYxBv%akpm@linux-foundation.org>
+ mm-memcontrol-decouple-reference-counting-from-page-accounting-fix.patch
+ removed from -mm tree
+Message-ID: <20200807055105.o1VAUTSAK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,97 +56,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: support 64-bit inums per-sb fix
+     Subject: mm: memcontrol: decouple reference counting from page accounting fix
 has been removed from the -mm tree.  Its filename was
-     tmpfs-support-64-bit-inums-per-sb-fix.patch
+     mm-memcontrol-decouple-reference-counting-from-page-accounting-fix.patch
 
-This patch was dropped because it was folded into tmpfs-support-64-bit-inums-per-sb.patch
+This patch was dropped because it was folded into mm-memcontrol-decouple-reference-counting-from-page-accounting.patch
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: support 64-bit inums per-sb fix
+Subject: mm: memcontrol: decouple reference counting from page accounting fix
 
-Expanded Chris's Documentation and Kconfig help on tmpfs inode64. 
-TMPFS_INODE64 still there, still default N, but writing down its very
-limited limitation does make me wonder again if we want the option.
+Moving tasks between mem cgroups with memory.move_charge_at_immigrate 3,
+while swapping, crashes soon on mmotm (and so presumably on linux-next):
+for example, spinlock found corrupted when lock_page_memcg() is called. 
+It's as if the mem cgroup structures have been freed too early.
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008011928010.13320@eggly.anvils
+Stab in the dark: what if all the accounting is right, except that the
+css_put_many() in __mem_cgroup_clear_mc() is now (worse than) redundant? 
+Removing it fixes the crashes, but that's hardly surprising; and stats
+temporarily hacked into mem_cgroup_css_alloc() and mem_cgroup_css_free()
+showed that mem cgroups were not being leaked with this change.
+
+Note: this removes the last call to css_put_many() from the tree; and
+mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
+removes the last call to css_get_many(): now that their last references
+have gone, I expect them soon to be freed from include/linux/cgroup.h.
+
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2007302011450.2347@eggly.anvils
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.rst |   13 ++++++++++---
- fs/Kconfig                          |   16 +++++++++++-----
- 2 files changed, 21 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/Documentation/filesystems/tmpfs.rst~tmpfs-support-64-bit-inums-per-sb-fix
-+++ a/Documentation/filesystems/tmpfs.rst
-@@ -153,11 +153,18 @@ parameters with chmod(1), chown(1) and c
- tmpfs has a mount option to select whether it will wrap at 32- or 64-bit inode
- numbers:
+--- a/mm/memcontrol.c~mm-memcontrol-decouple-reference-counting-from-page-accounting-fix
++++ a/mm/memcontrol.c
+@@ -5680,8 +5680,6 @@ static void __mem_cgroup_clear_mc(void)
+ 		if (!mem_cgroup_is_root(mc.to))
+ 			page_counter_uncharge(&mc.to->memory, mc.moved_swap);
  
-+=======   ========================
- inode64   Use 64-bit inode numbers
- inode32   Use 32-bit inode numbers
-+=======   ========================
-+
-+On a 32-bit kernel, inode32 is implicit, and inode64 is refused at mount time.
-+On a 64-bit kernel, CONFIG_TMPFS_INODE64 sets the default.  inode64 avoids the
-+possibility of multiple files with the same inode number on a single device;
-+but risks glibc failing with EOVERFLOW once 33-bit inode numbers are reached -
-+if a long-lived tmpfs is accessed by 32-bit applications so ancient that
-+opening a file larger than 2GiB fails with EINVAL.
- 
--On 64-bit, the default is set by CONFIG_TMPFS_INODE64. On 32-bit, inode64 is
--not legal and will produce an error at mount time.
- 
- So 'mount -t tmpfs -o size=10G,nr_inodes=10k,mode=700 tmpfs /mytmpfs'
- will give you tmpfs instance on /mytmpfs which can allocate 10GB
-@@ -170,5 +177,5 @@ RAM/SWAP in 10240 inodes and it is only
-    Hugh Dickins, 4 June 2007
- :Updated:
-    KOSAKI Motohiro, 16 Mar 2010
--Updated:
-+:Updated:
-    Chris Down, 13 July 2020
---- a/fs/Kconfig~tmpfs-support-64-bit-inums-per-sb-fix
-+++ a/fs/Kconfig
-@@ -207,12 +207,18 @@ config TMPFS_INODE64
- 	default n
- 	help
- 	  tmpfs has historically used only inode numbers as wide as an unsigned
--	  int. In some cases this can cause wraparound, potentially resulting in
--	  multiple files with the same inode number on a single device. This option
--	  makes tmpfs use the full width of ino_t by default, similarly to the
--	  inode64 mount option.
-+	  int. In some cases this can cause wraparound, potentially resulting
-+	  in multiple files with the same inode number on a single device. This
-+	  option makes tmpfs use the full width of ino_t by default, without
-+	  needing to specify the inode64 option when mounting.
- 
--	  To override this default, use the inode32 or inode64 mount options.
-+	  But if a long-lived tmpfs is to be accessed by 32-bit applications so
-+	  ancient that opening a file larger than 2GiB fails with EINVAL, then
-+	  the INODE64 config option and inode64 mount option risk operations
-+	  failing with EOVERFLOW once 33-bit inode numbers are reached.
-+
-+	  To override this configured default, use the inode32 or inode64
-+	  option when mounting.
- 
- 	  If unsure, say N.
- 
+-		css_put_many(&mc.to->css, mc.moved_swap);
+-
+ 		mc.moved_swap = 0;
+ 	}
+ 	memcg_oom_recover(from);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
 
-tmpfs-support-64-bit-inums-per-sb.patch
-mm-memcontrol-decouple-reference-counting-from-page-accounting-fix.patch
+mm-memcontrol-decouple-reference-counting-from-page-accounting.patch
 khugepaged-collapse_pte_mapped_thp-flush-the-right-range.patch
 khugepaged-collapse_pte_mapped_thp-protect-the-pmd-lock.patch
 khugepaged-retract_page_tables-remember-to-test-exit.patch
