@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48845C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:45:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE689C433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:46:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1C04A2086A
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:45:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0EF521744
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:46:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596779131;
-	bh=BYvBMftADKhkthZeyz3Xh/GTwT13fORGun7q1kvfgJE=;
+	s=default; t=1596779191;
+	bh=F4OlPeqedwfHbAcT7QZEdPG3RmYjxHhnqaiYQisL834=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=sAey0m0M59E/ehv+xpy/hSzMn+D9Q4Eh8Xy5rK2ViMjX3uw9RhdeFtG/rZ/fG9yDE
-	 trvu3mLszNgGAvnGfHky42gb9YmeLQ90Z1ZWROpiZsbmFbCYPvmgx4GOs815AW6Dsk
-	 IzytxjRFMmokrsXnEXhq8wruG9/CuQP7/NvNbS5M=
+	b=1lqw6OeW62DKXDYDQRm5aAfR5RPMg5gk27iI6Fh6W+zeiDSgizOsO4U3Qtd3WTNeX
+	 yx6cto2c4SWTAEiAoBDIfhJlo3GsbqlhMaPh76abZKrShbHC5LNH/fR789YT9mI/kx
+	 sr+9i4L/Q5BuKx06bcg2sfQUmGMviXzRhfokbagw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725379AbgHGFpa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:45:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41944 "EHLO mail.kernel.org"
+        id S1725379AbgHGFqb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:46:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42468 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725287AbgHGFpa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:45:30 -0400
+        id S1725287AbgHGFqb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:46:31 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C803E20866;
-        Fri,  7 Aug 2020 05:45:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3E85D20866;
+        Fri,  7 Aug 2020 05:46:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596779130;
-        bh=BYvBMftADKhkthZeyz3Xh/GTwT13fORGun7q1kvfgJE=;
+        s=default; t=1596779190;
+        bh=F4OlPeqedwfHbAcT7QZEdPG3RmYjxHhnqaiYQisL834=;
         h=Date:From:To:Subject:From;
-        b=TMLw0tAHq4euk1eYCWvTARpJhP7QNEKZMjK1G+obS9T8W/6soAXUdrlAXtaelEeb4
-         yTFZKUVxhYX1vN4zUp8c2WoP2mvO/c+bQQND04IrKMx6KK6x9gOxZtIsUKkhiHeqj/
-         UOtwgI4gyeEQx1rplLgcWwC6iU2jle1svgzJ4mEg=
-Date:   Thu, 06 Aug 2020 22:45:29 -0700
+        b=MV6pn0S+j+Zigp3nn9be1g6EPeJlWwb91x+osA/groWp2UgmC8uV+JchzvcYjT2fP
+         iJVTAjKBkhRRC4N+yNnnADh5afVOyln6VVlePrhj2AV6npOvL399xMvMIi+Qzgv3gw
+         AAX1l0u+0JNDPow91lYqNPSj7JVSR4eRn1wpjKes=
+Date:   Thu, 06 Aug 2020 22:46:29 -0700
 From:   akpm@linux-foundation.org
-To:     hulkci@huawei.com, mm-commits@vger.kernel.org, vbabka@suse.cz,
-        weiyongjun1@huawei.com
+To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com,
+        jannh@google.com, keescook@chromium.org,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, vbabka@suse.cz, vjitta@codeaurora.org
 Subject:  [folded-merged]
- mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix.patch removed from
- -mm tree
-Message-ID: <20200807054529.WlPbBvPXc%akpm@linux-foundation.org>
+ mm-slub-introduce-kmem_cache_debug_flags-fix.patch removed from -mm tree
+Message-ID: <20200807054629.gS1pIT1wI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,48 +56,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: make function parse_slub_debug_flags() static
+     Subject: mm, slub: introduce kmem_cache_debug_flags()-fix
 has been removed from the -mm tree.  Its filename was
-     mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix.patch
+     mm-slub-introduce-kmem_cache_debug_flags-fix.patch
 
-This patch was dropped because it was folded into mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
+This patch was dropped because it was folded into mm-slub-introduce-kmem_cache_debug_flags.patch
 
 ------------------------------------------------------
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: mm, slub: make function parse_slub_debug_flags() static
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slub: introduce kmem_cache_debug_flags()-fix
 
-Fix sparse build warning:
+Change return from int to bool, per Kees.  Add VM_WARN_ON_ONCE() for
+invalid flags, per Roman.
 
-mm/slub.c:1267:6: warning:
- symbol 'parse_slub_debug_flags' was not declared. Should it be static?
-
-Link: http://lkml.kernel.org/r/20200702150522.4940-1-weiyongjun1@huawei.com
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/949b90ed-e0f0-07d7-4d21-e30ec0958a7c@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Vijayanand Jitta <vjitta@codeaurora.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/slub.c~mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix
+--- a/mm/slub.c~mm-slub-introduce-kmem_cache_debug_flags-fix
 +++ a/mm/slub.c
-@@ -1272,7 +1272,7 @@ out:
-  *
-  * returns the start of next block if there's any, or NULL
+@@ -127,16 +127,17 @@ DEFINE_STATIC_KEY_FALSE(slub_debug_enabl
+  * cache. Use only for flags parsed by setup_slub_debug() as it also enables
+  * the static key.
   */
--char *
-+static char *
- parse_slub_debug_flags(char *str, slab_flags_t *flags, char **slabs, bool init)
+-static inline int kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
++static inline bool kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
  {
- 	bool higher_order_disable = false;
++	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
+ #ifdef CONFIG_SLUB_DEBUG
+ 	if (static_branch_unlikely(&slub_debug_enabled))
+ 		return s->flags & flags;
+ #endif
+-	return 0;
++	return false;
+ }
+ 
+-static inline int kmem_cache_debug(struct kmem_cache *s)
++static inline bool kmem_cache_debug(struct kmem_cache *s)
+ {
+ 	return kmem_cache_debug_flags(s, SLAB_DEBUG_FLAGS);
+ }
 _
 
-Patches currently in -mm which might be from weiyongjun1@huawei.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
-lib-test_lockupc-make-symbol-test_works-static.patch
-bits-add-tests-of-genmask-fix-2.patch
-kcov-make-some-symbols-static.patch
+mm-slub-make-some-slub_debug-related-attributes-read-only.patch
+mm-slub-remove-runtime-allocation-order-changes.patch
+mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
+mm-slub-make-reclaim_account-attribute-read-only.patch
+mm-slub-introduce-static-key-for-slub_debug.patch
+mm-slub-introduce-kmem_cache_debug_flags.patch
+mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
+mm-slab-slub-move-and-improve-cache_from_obj.patch
+mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj.patch
+mm-slab-slub-improve-error-reporting-and-overhead-of-cache_from_obj-fix.patch
+mm-page_alloc-use-unlikely-in-task_capc.patch
 
