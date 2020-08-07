@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEBE4C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4173C433E1
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 80CE2221E5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEA2A22CAE
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781047;
-	bh=xzzxhU/8SiRsBrTPD9nwPf1PmQq1mdHEor5/lZyDKIs=;
+	s=default; t=1596781050;
+	bh=0J8e97K1uRmENcQYlqcoiBYrSlHuFNGoRr9491BvVWU=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=NEc+c95Qv2hNN846fG929nEGn45H1NTSo05bPCqKr8SKXB3PYEgonNVXySyONkOdq
-	 66Wicna8matHb07i9+bOYVRWJrNSVsVE5/0hdrxWXazX8yuK64rSVz9fKsTLVUDsHJ
-	 dTWmpoLW6siPsytfiURN2xu86vRO6fUjH1QiIlH8=
+	b=TqBMcAxknRf9FEu43ZSEz0/nWPERXItii+SCCC46pDkxLjsD+IikJMYhGDg2ihM95
+	 tE1VadKbTYwRy20/ymcy5QzVwZwqMZd/hkFDhh1mWzukoZiP1n85CRv6bfJz0GR9qW
+	 l4TG91/s5RK2Ue5DTIhap5Hm/SReAYU9C5hmldMo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726202AbgHGGR1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:17:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52556 "EHLO mail.kernel.org"
+        id S1726205AbgHGGRa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:17:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52602 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGR1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:17:27 -0400
+        id S1725379AbgHGGRa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:17:30 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5CFFC22C9F;
-        Fri,  7 Aug 2020 06:17:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 914772177B;
+        Fri,  7 Aug 2020 06:17:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781046;
-        bh=xzzxhU/8SiRsBrTPD9nwPf1PmQq1mdHEor5/lZyDKIs=;
+        s=default; t=1596781050;
+        bh=0J8e97K1uRmENcQYlqcoiBYrSlHuFNGoRr9491BvVWU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=mdSCBu1GrFNJGlkgjqRrkwUYsbUbI70jxufGxBdzhM5OCTQHrdHD1V0aNkPrqrLmV
-         XCJml3xkGDstDFAX9Frg6ak1nWJB2tEToOGPTFh2tOdJvNBRxcCsBVotWalTwVi6ny
-         Z2lIx2lRqfd6KD6YUcaTEcXaodTX+ZgFICbJXk+U=
-Date:   Thu, 06 Aug 2020 23:17:25 -0700
+        b=siHRymgqrQI3/p432q2Wba/dxbv7a/wUhFwpAnwMvW3zqYZcAClxLtdU469p6ZqOj
+         NvUbfOnpuME8/H/fumfWAdmQv5JBZZJosgXuyqRsNycRYIxyzJKou6YziEov9c9KSc
+         Hs6jHzmMwHZ7mbOQjlFPzRotGxHMuJ9m9JR4fYec=
+Date:   Thu, 06 Aug 2020 23:17:29 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, chris@chrisdown.name,
-        christian.brauner@ubuntu.com, gaurav1086@gmail.com, guro@fb.com,
-        linux-mm@kvack.org, mkoutny@suse.com, mm-commits@vger.kernel.org,
-        shuah@kernel.org, tj@kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 007/163]
- tools/testing/selftests/cgroup/cgroup_util.c: cg_read_strcmp: fix null
- pointer dereference
-Message-ID: <20200807061725.WdE4MoFqu%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, corbet@lwn.net,
+        gregkh@linuxfoundation.org, joe@perches.com, linux-mm@kvack.org,
+        masahiroy@kernel.org, mchehab+huawei@kernel.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        xujialu@vimux.org
+Subject:  [patch 008/163] scripts/tags.sh: collect compiled source
+ precisely
+Message-ID: <20200807061729.OFb0Kw9sM%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,35 +56,52 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Gaurav Singh <gaurav1086@gmail.com>
-Subject: tools/testing/selftests/cgroup/cgroup_util.c: cg_read_strcmp: fix null pointer dereference
+From: Jialu Xu <xujialu@vimux.org>
+Subject: scripts/tags.sh: collect compiled source precisely
 
-Haven't reproduced this issue. This PR is does a minor code cleanup.
+Parse compiled source from *.cmd but don't 'find' too many files that are
+not related to compilation.
 
-Link: http://lkml.kernel.org/r/20200726013808.22242-1-gaurav1086@gmail.com
-Signed-off-by: Gaurav Singh <gaurav1086@gmail.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Michal Koutn <mkoutny@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Chris Down <chris@chrisdown.name>
+[xujialu@vimux.org: don't expand symlinks by add option -s for realpath]
+  Link: http://lkml.kernel.org/r/5efc5bfb.1c69fb81.41bf5.7131SMTPIN_ADDED_MISSING@mx.google.com
+Link: http://lkml.kernel.org/r/5ee5d8e3.1c69fb81.9b804.47b2SMTPIN_ADDED_MISSING@mx.google.com
+Signed-off-by: Jialu Xu <xujialu@vimux.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/cgroup_util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/tags.sh |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
---- a/tools/testing/selftests/cgroup/cgroup_util.c~cg_read_strcmp-fix-null-pointer-dereference
-+++ a/tools/testing/selftests/cgroup/cgroup_util.c
-@@ -106,7 +106,7 @@ int cg_read_strcmp(const char *cgroup, c
+--- a/scripts/tags.sh~scripts-tagssh-collect-compiled-source-precisely
++++ a/scripts/tags.sh
+@@ -91,20 +91,10 @@ all_sources()
  
- 	/* Handle the case of comparing against empty string */
- 	if (!expected)
--		size = 32;
-+		return -1;
- 	else
- 		size = strlen(expected) + 1;
+ all_compiled_sources()
+ {
+-	for i in $(all_sources); do
+-		case "$i" in
+-			*.[cS])
+-				j=${i/\.[cS]/\.o}
+-				j="${j#$tree}"
+-				if [ -e $j ]; then
+-					echo $i
+-				fi
+-				;;
+-			*)
+-				echo $i
+-				;;
+-		esac
+-	done
++	realpath -es $([ -z "$KBUILD_ABS_SRCTREE" ] && echo --relative-to=.) \
++		include/generated/autoconf.h $(find -name "*.cmd" -exec \
++		grep -Poh '(?(?=^source_.* \K).*|(?=^  \K\S).*(?= \\))' {} \+ |
++		awk '!a[$0]++') | sort -u
+ }
  
+ all_target_sources()
 _
