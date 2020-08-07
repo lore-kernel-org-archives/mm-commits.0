@@ -2,472 +2,191 @@ Return-Path: <SRS0=ze/c=BR=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAA60C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2011C433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8DB222C9F
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3C8322C9F
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:23:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781436;
-	bh=tv3W76p30fBb41KESHP6CKwJpQen4Xdf/DadVUwvzh8=;
+	s=default; t=1596781439;
+	bh=rnbhHXv2YQS+aGl/5sOHyn+tm1ghIhz2DAN8yFPs5Cg=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=pcAsnLVum9e6vYV70b63skJeyEcD5VAC+L0F6+ZJu0vknBjb2nfacFTSzfe9KRFCm
-	 uTMIpmvyNeizM2BhAgDpZZ7XeY0RH9sAf/EVvjrwGGv/tWyUJCQ1WdcFgPNLaFUoXs
-	 9dYndT9P+Z9KB/GoPtobTpgSEUJnhsloKYzCUtYY=
+	b=cycbntIR/RD8uPNQeY6nl/g8OwQdP40X1DgNp9BHiH9AxqRPk6DTtobQoBNHdgfmW
+	 dgXDMHB3K2DrpncbEW62RlblmfzLCCHmQUAymExWxutkNeRL4RwipjuMCkyEyjxf9T
+	 n2adDZloqtxHoxBcQFlnpaYOz/ODIm0MzXHYJ/7w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726205AbgHGGX4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:23:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32818 "EHLO mail.kernel.org"
+        id S1726282AbgHGGX7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:23:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32888 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726200AbgHGGXz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:23:55 -0400
+        id S1726200AbgHGGX6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:23:58 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3F900221E5;
-        Fri,  7 Aug 2020 06:23:52 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 719BB221E5;
+        Fri,  7 Aug 2020 06:23:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781432;
-        bh=tv3W76p30fBb41KESHP6CKwJpQen4Xdf/DadVUwvzh8=;
+        s=default; t=1596781436;
+        bh=rnbhHXv2YQS+aGl/5sOHyn+tm1ghIhz2DAN8yFPs5Cg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=inbMnplsYP6FcaJ+aeOyi+Wap0leQthgGGgKuQn0hf3QS/Gr37MgEZIaLy9bwR6pY
-         fGQieF1u1EdGtT21HXqR30HkFpjw9FivqqWbpUfn88O36uvTeCODd1k0hVyAYRu3AD
-         DMzhxftrTwskCMDlQEg6a8zzgjdgU7/P4qoAN/SQ=
-Date:   Thu, 06 Aug 2020 23:23:51 -0700
+        b=gWMpAblfCgRwvFhgx1768b3iOpMtyymh2uGrQooeZrlIRpYUvYBWht5Fs4JsS6N8v
+         r8o2A3+Qcf/oX+NxhtWFHoKYHDgcPpHaWBViEfdgcxI4BxASu3kF3O/4oYwHKjb/z+
+         7Jo7H0/hfou7SI11eFQrqmtHVlPscukE+2zcqHpY=
+Date:   Thu, 06 Aug 2020 23:23:55 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, ricardo.canuelo@collabora.com,
+To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
+        david@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        osalvador@suse.de, richard.weiyang@linux.alibaba.com,
         torvalds@linux-foundation.org
-Subject:  [patch 117/163] selftests: add mincore() tests
-Message-ID: <20200807062351.IGy0ZUxvY%akpm@linux-foundation.org>
+Subject:  [patch 118/163] mm/sparse: never partially remove memmap
+ for early section
+Message-ID: <20200807062355.jiySDgHZL%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Ricardo Ca=C3=B1uelo <ricardo.canuelo@collabora.com>
-Subject: selftests: add mincore() tests
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+Subject: mm/sparse: never partially remove memmap for early section
 
-Add a test suite for the mincore() syscall.  It tests most of its use
-cases as well as its interface.
+For early sections, its memmap is handled specially even sub-section is
+enabled.  The memmap could only be populated as a whole.
 
-Tests implemented:
+Quoted from the comment of section_activate():
 
-  - basic interface test
-  - behavior on anonymous mappings
-  - behavior on anonymous mappings with huge tlb pages
-  - file-backed mapping with a regular file
-  - file-backed mapping with a tmpfs file
+    * The early init code does not consider partially populated
+    * initial sections, it simply assumes that memory will never be
+    * referenced.  If we hot-add memory into such a section then we
+    * do not need to populate the memmap and can simply reuse what
+    * is already there.
 
-Link: http://lkml.kernel.org/r/20200728100450.4065-1-ricardo.canuelo@collab=
-ora.com
-Signed-off-by: Ricardo Ca=C3=B1uelo <ricardo.canuelo@collabora.com>
+While current section_deactivate() breaks this rule.  When hot-remove a
+sub-section, section_deactivate() would depopulate its memmap.  The
+consequence is if we hot-add this subsection again, its memmap never get
+proper populated.
+
+We can reproduce the case by following steps:
+
+1. Hacking qemu to allow sub-section early section
+
+:   diff --git a/hw/i386/pc.c b/hw/i386/pc.c
+:   index 51b3050d01..c6a78d83c0 100644
+:   --- a/hw/i386/pc.c
+:   +++ b/hw/i386/pc.c
+:   @@ -1010,7 +1010,7 @@ void pc_memory_init(PCMachineState *pcms,
+:            }
+:
+:            machine->device_memory->base =
+:   -            ROUND_UP(0x100000000ULL + x86ms->above_4g_mem_size, 1 * GiB);
+:   +            0x100000000ULL + x86ms->above_4g_mem_size;
+:
+:            if (pcmc->enforce_aligned_dimm) {
+:                /* size device region assuming 1G page max alignment per slot */
+
+2. Bootup qemu with PSE disabled and a sub-section aligned memory size
+
+   Part of the qemu command would look like this:
+
+   sudo x86_64-softmmu/qemu-system-x86_64 \
+       --enable-kvm -cpu host,pse=off \
+       -m 4160M,maxmem=20G,slots=1 \
+       -smp sockets=2,cores=16 \
+       -numa node,nodeid=0,cpus=0-1 -numa node,nodeid=1,cpus=2-3 \
+       -machine pc,nvdimm \
+       -nographic \
+       -object memory-backend-ram,id=mem0,size=8G \
+       -device nvdimm,id=vm0,memdev=mem0,node=0,addr=0x144000000,label-size=128k
+
+3. Re-config a pmem device with sub-section size in guest
+
+   ndctl create-namespace --force --reconfig=namespace0.0 --mode=devdax --size=16M
+
+Then you would see the following call trace:
+
+   pmem0: detected capacity change from 0 to 16777216
+   BUG: unable to handle page fault for address: ffffec73c51000b4
+   #PF: supervisor write access in kernel mode
+   #PF: error_code(0x0002) - not-present page
+   PGD 81ff8067 P4D 81ff8067 PUD 81ff7067 PMD 1437cb067 PTE 0
+   Oops: 0002 [#1] SMP NOPTI
+   CPU: 16 PID: 1348 Comm: ndctl Kdump: loaded Tainted: G        W         5.8.0-rc2+ #24
+   Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.13.0-0-gf21b5a4aeb02-prebuilt.qemu.4
+   RIP: 0010:memmap_init_zone+0x154/0x1c2
+   Code: 77 16 f6 40 10 02 74 10 48 03 48 08 48 89 cb 48 c1 eb 0c e9 3a ff ff ff 48 89 df 48 c1 e7 06 48f
+   RSP: 0018:ffffbdc7011a39b0 EFLAGS: 00010282
+   RAX: ffffec73c5100088 RBX: 0000000000144002 RCX: 0000000000144000
+   RDX: 0000000000000004 RSI: 007ffe0000000000 RDI: ffffec73c5100080
+   RBP: 027ffe0000000000 R08: 0000000000000001 R09: ffff9f8d38f6d708
+   R10: ffffec73c0000000 R11: 0000000000000000 R12: 0000000000000004
+   R13: 0000000000000001 R14: 0000000000144200 R15: 0000000000000000
+   FS:  00007efe6b65d780(0000) GS:ffff9f8d3f780000(0000) knlGS:0000000000000000
+   CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+   CR2: ffffec73c51000b4 CR3: 000000007d718000 CR4: 0000000000340ee0
+   Call Trace:
+    move_pfn_range_to_zone+0x128/0x150
+    memremap_pages+0x4e4/0x5a0
+    devm_memremap_pages+0x1e/0x60
+    dev_dax_probe+0x69/0x160 [device_dax]
+    really_probe+0x298/0x3c0
+    driver_probe_device+0xe1/0x150
+    ? driver_allows_async_probing+0x50/0x50
+    bus_for_each_drv+0x7e/0xc0
+    __device_attach+0xdf/0x160
+    bus_probe_device+0x8e/0xa0
+    device_add+0x3b9/0x740
+    __devm_create_dev_dax+0x127/0x1c0
+    __dax_pmem_probe+0x1f2/0x219 [dax_pmem_core]
+    dax_pmem_probe+0xc/0x1b [dax_pmem]
+    nvdimm_bus_probe+0x69/0x1c0 [libnvdimm]
+    really_probe+0x147/0x3c0
+    driver_probe_device+0xe1/0x150
+    device_driver_attach+0x53/0x60
+    bind_store+0xd1/0x110
+    kernfs_fop_write+0xce/0x1b0
+    vfs_write+0xb6/0x1a0
+    ksys_write+0x5f/0xe0
+    do_syscall_64+0x4d/0x90
+    entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Link: http://lkml.kernel.org/r/20200625223534.18024-1-richard.weiyang@linux.alibaba.com
+Fixes: ba72b4c8cf60 ("mm/sparsemem: support sub-section hotplug")
+Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile                   |    1=20
- tools/testing/selftests/mincore/.gitignore         |    2=20
- tools/testing/selftests/mincore/Makefile           |    6=20
- tools/testing/selftests/mincore/mincore_selftest.c |  361 +++++++++++
- 4 files changed, 370 insertions(+)
+ mm/sparse.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/Makefile~selftests-add-mincore-tests
-+++ a/tools/testing/selftests/Makefile
-@@ -32,6 +32,7 @@ TARGETS +=3D lkdtm
- TARGETS +=3D membarrier
- TARGETS +=3D memfd
- TARGETS +=3D memory-hotplug
-+TARGETS +=3D mincore
- TARGETS +=3D mount
- TARGETS +=3D mqueue
- TARGETS +=3D net
---- /dev/null
-+++ a/tools/testing/selftests/mincore/.gitignore
-@@ -0,0 +1,2 @@
-+# SPDX-License-Identifier: GPL-2.0+
-+mincore_selftest
---- /dev/null
-+++ a/tools/testing/selftests/mincore/Makefile
-@@ -0,0 +1,6 @@
-+# SPDX-License-Identifier: GPL-2.0+
-+
-+CFLAGS +=3D -Wall
-+
-+TEST_GEN_PROGS :=3D mincore_selftest
-+include ../lib.mk
---- /dev/null
-+++ a/tools/testing/selftests/mincore/mincore_selftest.c
-@@ -0,0 +1,361 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+/*
-+ * kselftest suite for mincore().
-+ *
-+ * Copyright (C) 2020 Collabora, Ltd.
-+ */
-+
-+#define _GNU_SOURCE
-+
-+#include <stdio.h>
-+#include <errno.h>
-+#include <unistd.h>
-+#include <stdlib.h>
-+#include <sys/mman.h>
-+#include <string.h>
-+#include <fcntl.h>
-+#include <string.h>
-+
-+#include "../kselftest.h"
-+#include "../kselftest_harness.h"
-+
-+/* Default test file size: 4MB */
-+#define MB (1UL << 20)
-+#define FILE_SIZE (4 * MB)
-+
-+
-+/*
-+ * Tests the user interface. This test triggers most of the documented
-+ * error conditions in mincore().
-+ */
-+TEST(basic_interface)
-+{
-+	int retval;
-+	int page_size;
-+	unsigned char vec[1];
-+	char *addr;
-+
-+	page_size =3D sysconf(_SC_PAGESIZE);
-+
-+	/* Query a 0 byte sized range */
-+	retval =3D mincore(0, 0, vec);
-+	EXPECT_EQ(0, retval);
-+
-+	/* Addresses in the specified range are invalid or unmapped */
-+	errno =3D 0;
-+	retval =3D mincore(NULL, page_size, vec);
-+	EXPECT_EQ(-1, retval);
-+	EXPECT_EQ(ENOMEM, errno);
-+
-+	errno =3D 0;
-+	addr =3D mmap(NULL, page_size, PROT_READ | PROT_WRITE,
-+		MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(MAP_FAILED, addr) {
-+		TH_LOG("mmap error: %s", strerror(errno));
-+	}
-+
-+	/* <addr> argument is not page-aligned */
-+	errno =3D 0;
-+	retval =3D mincore(addr + 1, page_size, vec);
-+	EXPECT_EQ(-1, retval);
-+	EXPECT_EQ(EINVAL, errno);
-+
-+	/* <length> argument is too large */
-+	errno =3D 0;
-+	retval =3D mincore(addr, -1, vec);
-+	EXPECT_EQ(-1, retval);
-+	EXPECT_EQ(ENOMEM, errno);
-+
-+	/* <vec> argument points to an illegal address */
-+	errno =3D 0;
-+	retval =3D mincore(addr, page_size, NULL);
-+	EXPECT_EQ(-1, retval);
-+	EXPECT_EQ(EFAULT, errno);
-+	munmap(addr, page_size);
-+}
-+
-+
-+/*
-+ * Test mincore() behavior on a private anonymous page mapping.
-+ * Check that the page is not loaded into memory right after the mapping
-+ * but after accessing it (on-demand allocation).
-+ * Then free the page and check that it's not memory-resident.
-+ */
-+TEST(check_anonymous_locked_pages)
-+{
-+	unsigned char vec[1];
-+	char *addr;
-+	int retval;
-+	int page_size;
-+
-+	page_size =3D sysconf(_SC_PAGESIZE);
-+
-+	/* Map one page and check it's not memory-resident */
-+	errno =3D 0;
-+	addr =3D mmap(NULL, page_size, PROT_READ | PROT_WRITE,
-+			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(MAP_FAILED, addr) {
-+		TH_LOG("mmap error: %s", strerror(errno));
-+	}
-+	retval =3D mincore(addr, page_size, vec);
-+	ASSERT_EQ(0, retval);
-+	ASSERT_EQ(0, vec[0]) {
-+		TH_LOG("Page found in memory before use");
-+	}
-+
-+	/* Touch the page and check again. It should now be in memory */
-+	addr[0] =3D 1;
-+	mlock(addr, page_size);
-+	retval =3D mincore(addr, page_size, vec);
-+	ASSERT_EQ(0, retval);
-+	ASSERT_EQ(1, vec[0]) {
-+		TH_LOG("Page not found in memory after use");
-+	}
-+
+--- a/mm/sparse.c~mm-sparse-never-partially-remove-memmap-for-early-section
++++ a/mm/sparse.c
+@@ -824,10 +824,14 @@ static void section_deactivate(unsigned
+ 		ms->section_mem_map &= ~SECTION_HAS_MEM_MAP;
+ 	}
+ 
+-	if (section_is_early && memmap)
+-		free_map_bootmem(memmap);
+-	else
 +	/*
-+	 * It shouldn't be memory-resident after unlocking it and
-+	 * marking it as unneeded.
++	 * The memmap of early sections is always fully populated. See
++	 * section_activate() and pfn_valid() .
 +	 */
-+	munlock(addr, page_size);
-+	madvise(addr, page_size, MADV_DONTNEED);
-+	retval =3D mincore(addr, page_size, vec);
-+	ASSERT_EQ(0, retval);
-+	ASSERT_EQ(0, vec[0]) {
-+		TH_LOG("Page in memory after being zapped");
-+	}
-+	munmap(addr, page_size);
-+}
-+
-+
-+/*
-+ * Check mincore() behavior on huge pages.
-+ * This test will be skipped if the mapping fails (ie. if there are no
-+ * huge pages available).
-+ *
-+ * Make sure the system has at least one free huge page, check
-+ * "HugePages_Free" in /proc/meminfo.
-+ * Increment /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages if
-+ * needed.
-+ */
-+TEST(check_huge_pages)
-+{
-+	unsigned char vec[1];
-+	char *addr;
-+	int retval;
-+	int page_size;
-+
-+	page_size =3D sysconf(_SC_PAGESIZE);
-+
-+	errno =3D 0;
-+	addr =3D mmap(NULL, page_size, PROT_READ | PROT_WRITE,
-+		MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
-+		-1, 0);
-+	if (addr =3D=3D MAP_FAILED) {
-+		if (errno =3D=3D ENOMEM)
-+			SKIP(return, "No huge pages available.");
-+		else
-+			TH_LOG("mmap error: %s", strerror(errno));
-+	}
-+	retval =3D mincore(addr, page_size, vec);
-+	ASSERT_EQ(0, retval);
-+	ASSERT_EQ(0, vec[0]) {
-+		TH_LOG("Page found in memory before use");
-+	}
-+
-+	addr[0] =3D 1;
-+	mlock(addr, page_size);
-+	retval =3D mincore(addr, page_size, vec);
-+	ASSERT_EQ(0, retval);
-+	ASSERT_EQ(1, vec[0]) {
-+		TH_LOG("Page not found in memory after use");
-+	}
-+
-+	munlock(addr, page_size);
-+	munmap(addr, page_size);
-+}
-+
-+
-+/*
-+ * Test mincore() behavior on a file-backed page.
-+ * No pages should be loaded into memory right after the mapping. Then,
-+ * accessing any address in the mapping range should load the page
-+ * containing the address and a number of subsequent pages (readahead).
-+ *
-+ * The actual readahead settings depend on the test environment, so we
-+ * can't make a lot of assumptions about that. This test covers the most
-+ * general cases.
-+ */
-+TEST(check_file_mmap)
-+{
-+	unsigned char *vec;
-+	int vec_size;
-+	char *addr;
-+	int retval;
-+	int page_size;
-+	int fd;
-+	int i;
-+	int ra_pages =3D 0;
-+
-+	page_size =3D sysconf(_SC_PAGESIZE);
-+	vec_size =3D FILE_SIZE / page_size;
-+	if (FILE_SIZE % page_size)
-+		vec_size++;
-+
-+	vec =3D calloc(vec_size, sizeof(unsigned char));
-+	ASSERT_NE(NULL, vec) {
-+		TH_LOG("Can't allocate array");
-+	}
-+
-+	errno =3D 0;
-+	fd =3D open(".", O_TMPFILE | O_RDWR, 0600);
-+	ASSERT_NE(-1, fd) {
-+		TH_LOG("Can't create temporary file: %s",
-+			strerror(errno));
-+	}
-+	errno =3D 0;
-+	retval =3D fallocate(fd, 0, 0, FILE_SIZE);
-+	ASSERT_EQ(0, retval) {
-+		TH_LOG("Error allocating space for the temporary file: %s",
-+			strerror(errno));
-+	}
-+
-+	/*
-+	 * Map the whole file, the pages shouldn't be fetched yet.
-+	 */
-+	errno =3D 0;
-+	addr =3D mmap(NULL, FILE_SIZE, PROT_READ | PROT_WRITE,
-+			MAP_SHARED, fd, 0);
-+	ASSERT_NE(MAP_FAILED, addr) {
-+		TH_LOG("mmap error: %s", strerror(errno));
-+	}
-+	retval =3D mincore(addr, FILE_SIZE, vec);
-+	ASSERT_EQ(0, retval);
-+	for (i =3D 0; i < vec_size; i++) {
-+		ASSERT_EQ(0, vec[i]) {
-+			TH_LOG("Unexpected page in memory");
-+		}
-+	}
-+
-+	/*
-+	 * Touch a page in the middle of the mapping. We expect the next
-+	 * few pages (the readahead window) to be populated too.
-+	 */
-+	addr[FILE_SIZE / 2] =3D 1;
-+	retval =3D mincore(addr, FILE_SIZE, vec);
-+	ASSERT_EQ(0, retval);
-+	ASSERT_EQ(1, vec[FILE_SIZE / 2 / page_size]) {
-+		TH_LOG("Page not found in memory after use");
-+	}
-+
-+	i =3D FILE_SIZE / 2 / page_size + 1;
-+	while (i < vec_size && vec[i]) {
-+		ra_pages++;
-+		i++;
-+	}
-+	EXPECT_GT(ra_pages, 0) {
-+		TH_LOG("No read-ahead pages found in memory");
-+	}
-+
-+	EXPECT_LT(i, vec_size) {
-+		TH_LOG("Read-ahead pages reached the end of the file");
-+	}
-+	/*
-+	 * End of the readahead window. The rest of the pages shouldn't
-+	 * be in memory.
-+	 */
-+	if (i < vec_size) {
-+		while (i < vec_size && !vec[i])
-+			i++;
-+		EXPECT_EQ(vec_size, i) {
-+			TH_LOG("Unexpected page in memory beyond readahead window");
-+		}
-+	}
-+
-+	munmap(addr, FILE_SIZE);
-+	close(fd);
-+	free(vec);
-+}
-+
-+
-+/*
-+ * Test mincore() behavior on a page backed by a tmpfs file.  This test
-+ * performs the same steps as the previous one. However, we don't expect
-+ * any readahead in this case.
-+ */
-+TEST(check_tmpfs_mmap)
-+{
-+	unsigned char *vec;
-+	int vec_size;
-+	char *addr;
-+	int retval;
-+	int page_size;
-+	int fd;
-+	int i;
-+	int ra_pages =3D 0;
-+
-+	page_size =3D sysconf(_SC_PAGESIZE);
-+	vec_size =3D FILE_SIZE / page_size;
-+	if (FILE_SIZE % page_size)
-+		vec_size++;
-+
-+	vec =3D calloc(vec_size, sizeof(unsigned char));
-+	ASSERT_NE(NULL, vec) {
-+		TH_LOG("Can't allocate array");
-+	}
-+
-+	errno =3D 0;
-+	fd =3D open("/dev/shm", O_TMPFILE | O_RDWR, 0600);
-+	ASSERT_NE(-1, fd) {
-+		TH_LOG("Can't create temporary file: %s",
-+			strerror(errno));
-+	}
-+	errno =3D 0;
-+	retval =3D fallocate(fd, 0, 0, FILE_SIZE);
-+	ASSERT_EQ(0, retval) {
-+		TH_LOG("Error allocating space for the temporary file: %s",
-+			strerror(errno));
-+	}
-+
-+	/*
-+	 * Map the whole file, the pages shouldn't be fetched yet.
-+	 */
-+	errno =3D 0;
-+	addr =3D mmap(NULL, FILE_SIZE, PROT_READ | PROT_WRITE,
-+			MAP_SHARED, fd, 0);
-+	ASSERT_NE(MAP_FAILED, addr) {
-+		TH_LOG("mmap error: %s", strerror(errno));
-+	}
-+	retval =3D mincore(addr, FILE_SIZE, vec);
-+	ASSERT_EQ(0, retval);
-+	for (i =3D 0; i < vec_size; i++) {
-+		ASSERT_EQ(0, vec[i]) {
-+			TH_LOG("Unexpected page in memory");
-+		}
-+	}
-+
-+	/*
-+	 * Touch a page in the middle of the mapping. We expect only
-+	 * that page to be fetched into memory.
-+	 */
-+	addr[FILE_SIZE / 2] =3D 1;
-+	retval =3D mincore(addr, FILE_SIZE, vec);
-+	ASSERT_EQ(0, retval);
-+	ASSERT_EQ(1, vec[FILE_SIZE / 2 / page_size]) {
-+		TH_LOG("Page not found in memory after use");
-+	}
-+
-+	i =3D FILE_SIZE / 2 / page_size + 1;
-+	while (i < vec_size && vec[i]) {
-+		ra_pages++;
-+		i++;
-+	}
-+	ASSERT_EQ(ra_pages, 0) {
-+		TH_LOG("Read-ahead pages found in memory");
-+	}
-+
-+	munmap(addr, FILE_SIZE);
-+	close(fd);
-+	free(vec);
-+}
-+
-+TEST_HARNESS_MAIN
++	if (!section_is_early)
+ 		depopulate_section_memmap(pfn, nr_pages, altmap);
++	else if (memmap)
++		free_map_bootmem(memmap);
+ 
+ 	if (empty)
+ 		ms->section_mem_map = (unsigned long)NULL;
 _
