@@ -2,51 +2,51 @@ Return-Path: <SRS0=ze/c=BR=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0851CC433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:22:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED1A0C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:22:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D66F6221E5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:22:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFF71221E5
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:22:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781333;
-	bh=4GM+OdBs020kSyD8E3UZo77r6Tblr8fQbRSIP0O90fY=;
+	s=default; t=1596781337;
+	bh=57YwXGxS5eIpgfsMtX1iESNczBzRJgaBM2J+QLcJ8mw=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Lb+AHqWsKHS78MR1jHeAUu6wIiFKfivouveM8pP0bKrrldj2p2EyPcFADOonDGDs3
-	 pWelC09gHV6DUt2fApyubXoMsKzmunF7ei3sR/Ji8s3a1GPHMet/x5OYalS0P2Z0PB
-	 vBftPRCA/AN64QYeTP4Q74YVEhrbfw+6DOf+NRMU=
+	b=ft0/JRC0454T2a8KdYN7cu0/9a3ktn2SWyOwtUbXlP4wLQ7YH2WSdJjJXiymNLRNH
+	 oHEZILfBGrokJ1gMkWdjiAHEFqzYgyMd0DQ/Tk+Jq6w0QXobN++mIIQHEOwFplEAVm
+	 +gm+hU0QF0g/FS8XTFcwzHOizZBzG5VfvQaiw0yc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725845AbgHGGWN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:22:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58626 "EHLO mail.kernel.org"
+        id S1726249AbgHGGWR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:22:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58698 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGWN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:22:13 -0400
+        id S1725379AbgHGGWR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:22:17 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A579E2177B;
-        Fri,  7 Aug 2020 06:22:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id E17A92177B;
+        Fri,  7 Aug 2020 06:22:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781333;
-        bh=4GM+OdBs020kSyD8E3UZo77r6Tblr8fQbRSIP0O90fY=;
+        s=default; t=1596781336;
+        bh=57YwXGxS5eIpgfsMtX1iESNczBzRJgaBM2J+QLcJ8mw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wwNq4cSW+rOfQ09zKGk0FlKNjl7J9BgbgYstyDUlJBIuUsQOXaZN+WnV3EkYpg6Nt
-         OEgjDC4pacZNYuaFxBXJGzCHbyH7tu0wN38Qr62Lccza7vM/BRkHH7p0/iQZ+B7ENu
-         YnYLvhkdp+GZz8QukJ8mK7NaALF4KineU865wo3M=
-Date:   Thu, 06 Aug 2020 23:22:12 -0700
+        b=EzfEXjag1a8vgc3bbaGHAP7muVKYiyHDUTboSj7tOeNxWLuyaU4f3zToafL1nKJ+r
+         kZgne3bvIH/RpmHDg2GLEhFx0AAwtbI1WgZo8JmX21oKghMIUABiho8H1PIPsg/PBx
+         xBSuZgjciN3mPdvxf+jb1wfxAPlqcBX/A/Szhqa4=
+Date:   Thu, 06 Aug 2020 23:22:15 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, chris@chrisdown.name, guro@fb.com,
         hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@suse.com,
         mm-commits@vger.kernel.org, shakeelb@google.com,
         torvalds@linux-foundation.org
-Subject:  [patch 091/163] mm: memcontrol: restore proper dirty
- throttling when memory.high changes
-Message-ID: <20200807062212.z-72hz3Ek%akpm@linux-foundation.org>
+Subject:  [patch 092/163] mm: memcontrol: don't count limit-setting
+ reclaim as memory pressure
+Message-ID: <20200807062215.hpQOJtMdn%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,41 +56,113 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: restore proper dirty throttling when memory.high changes
+Subject: mm: memcontrol: don't count limit-setting reclaim as memory pressure
 
-Commit 8c8c383c04f6 ("mm: memcontrol: try harder to set a new
-memory.high") inadvertently removed a callback to recalculate the
-writeback cache size in light of a newly configured memory.high limit.
+When an outside process lowers one of the memory limits of a cgroup (or
+uses the force_empty knob in cgroup1), direct reclaim is performed in the
+context of the write(), in order to directly enforce the new limit and
+have it being met by the time the write() returns.
 
-Without letting the writeback cache know about a potentially heavily
-reduced limit, it may permit too many dirty pages, which can cause
-unnecessary reclaim latencies or even avoidable OOM situations.
+Currently, this reclaim activity is accounted as memory pressure in the
+cgroup that the writer(!) belongs to.  This is unexpected.  It
+specifically causes problems for senpai
+(https://github.com/facebookincubator/senpai), which is an agent that
+routinely adjusts the memory limits and performs associated reclaim work
+in tens or even hundreds of cgroups running on the host.  The cgroup that
+senpai is running in itself will report elevated levels of memory
+pressure, even though it itself is under no memory shortage or any sort of
+distress.
 
-This was spotted while reading the code, it hasn't knowingly caused any
-problems in practice so far.
+Move the psi annotation from the central cgroup reclaim function to
+callsites in the allocation context, and thereby no longer count any
+limit-setting reclaim as memory pressure.  If the newly set limit causes
+the workload inside the cgroup into direct reclaim, that of course will
+continue to count as memory pressure.
 
-Link: http://lkml.kernel.org/r/20200728135210.379885-1-hannes@cmpxchg.org
-Fixes: 8c8c383c04f6 ("mm: memcontrol: try harder to set a new memory.high")
+Link: http://lkml.kernel.org/r/20200728135210.379885-2-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Chris Down <chris@chrisdown.name>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Acked-by: Chris Down <chris@chrisdown.name>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memcontrol.c |   11 ++++++++++-
+ mm/vmscan.c     |    6 ------
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-restore-proper-dirty-throttling-when-memoryhigh-changes
+--- a/mm/memcontrol.c~mm-memcontrol-dont-count-limit-setting-reclaim-as-memory-pressure
 +++ a/mm/memcontrol.c
-@@ -6273,6 +6273,8 @@ static ssize_t memory_high_write(struct
+@@ -2374,12 +2374,18 @@ static unsigned long reclaim_high(struct
+ 	unsigned long nr_reclaimed = 0;
  
- 	page_counter_set_high(&memcg->memory, high);
- 
-+	memcg_wb_domain_size_changed(memcg);
+ 	do {
++		unsigned long pflags;
 +
- 	return nbytes;
- }
+ 		if (page_counter_read(&memcg->memory) <=
+ 		    READ_ONCE(memcg->memory.high))
+ 			continue;
++
+ 		memcg_memory_event(memcg, MEMCG_HIGH);
++
++		psi_memstall_enter(&pflags);
+ 		nr_reclaimed += try_to_free_mem_cgroup_pages(memcg, nr_pages,
+ 							     gfp_mask, true);
++		psi_memstall_leave(&pflags);
+ 	} while ((memcg = parent_mem_cgroup(memcg)) &&
+ 		 !mem_cgroup_is_root(memcg));
+ 
+@@ -2621,10 +2627,11 @@ static int try_charge(struct mem_cgroup
+ 	int nr_retries = MAX_RECLAIM_RETRIES;
+ 	struct mem_cgroup *mem_over_limit;
+ 	struct page_counter *counter;
++	enum oom_status oom_status;
+ 	unsigned long nr_reclaimed;
+ 	bool may_swap = true;
+ 	bool drained = false;
+-	enum oom_status oom_status;
++	unsigned long pflags;
+ 
+ 	if (mem_cgroup_is_root(memcg))
+ 		return 0;
+@@ -2684,8 +2691,10 @@ retry:
+ 
+ 	memcg_memory_event(mem_over_limit, MEMCG_MAX);
+ 
++	psi_memstall_enter(&pflags);
+ 	nr_reclaimed = try_to_free_mem_cgroup_pages(mem_over_limit, nr_pages,
+ 						    gfp_mask, may_swap);
++	psi_memstall_leave(&pflags);
+ 
+ 	if (mem_cgroup_margin(mem_over_limit) >= nr_pages)
+ 		goto retry;
+--- a/mm/vmscan.c~mm-memcontrol-dont-count-limit-setting-reclaim-as-memory-pressure
++++ a/mm/vmscan.c
+@@ -3310,7 +3310,6 @@ unsigned long try_to_free_mem_cgroup_pag
+ 					   bool may_swap)
+ {
+ 	unsigned long nr_reclaimed;
+-	unsigned long pflags;
+ 	unsigned int noreclaim_flag;
+ 	struct scan_control sc = {
+ 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
+@@ -3331,17 +3330,12 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
+ 
+ 	set_task_reclaim_state(current, &sc.reclaim_state);
+-
+ 	trace_mm_vmscan_memcg_reclaim_begin(0, sc.gfp_mask);
+-
+-	psi_memstall_enter(&pflags);
+ 	noreclaim_flag = memalloc_noreclaim_save();
+ 
+ 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
+ 
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+-	psi_memstall_leave(&pflags);
+-
+ 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
+ 	set_task_reclaim_state(current, NULL);
  
 _
