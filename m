@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C859C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:43:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 238F2C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:44:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F69C2177B
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:43:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFACA2086A
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:44:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596779025;
-	bh=GDgerawtW5HShlH01bCMugpWUYY5/CBrzo4NHkQZV4I=;
+	s=default; t=1596779059;
+	bh=K5GsZGmXlCsrWlXE8ePcOHEmNmK/SoEdcYaKCMEcrEc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=uAxuviz0phuqauY16BomQaRDS5UJ9V/+f4q8sAfWVyDzh8i4/grLO6EgJ/HIkiKef
-	 rx5RDiQSyBI3/Zyh+zEP+rUripxU/veu4JWskC5+fdW7zrxYhloIj5uxIkhUZTQ2Ci
-	 WC+oarHuEAXP/mLWE+/LovHdVr9yQLR3OQpI5U3Q=
+	b=iL2AwcWoL6ino4YIBjbrv4gwvhZAHdrFo3qlJ8HL+96zhTWZIr+1WOHpOsXw62Yv1
+	 +TYK5xE/v+1h7sgZHBA51Lu9Ju5geo2Yuz6ufJ/YcZZ0Ce1hwP89jL9ysAe42nW3YI
+	 K5tMQtWfPjZck806pQVXmkeZoDvp8ettotVFtHlk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725379AbgHGFno (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:43:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40810 "EHLO mail.kernel.org"
+        id S1725805AbgHGFoS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:44:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725287AbgHGFno (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:43:44 -0400
+        id S1725287AbgHGFoS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:44:18 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E8D0120855;
-        Fri,  7 Aug 2020 05:43:43 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id CFB4320855;
+        Fri,  7 Aug 2020 05:44:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596779024;
-        bh=GDgerawtW5HShlH01bCMugpWUYY5/CBrzo4NHkQZV4I=;
+        s=default; t=1596779058;
+        bh=K5GsZGmXlCsrWlXE8ePcOHEmNmK/SoEdcYaKCMEcrEc=;
         h=Date:From:To:Subject:From;
-        b=kz28aTM7okYv+3rXGa+YM4NJym/tJHDBMgWRCWmDgkbM/0/ZGBNK3tTCcBUWjP46L
-         WHHnhCUQm25VEXYi3DdFQWIy38F9mhlKf0RXov1WcWn3PTDxyi4vOLHomNs/p9ZKas
-         Qso40g3gN9WHTrwnuitp2FN86NF6nrRnCftPaVgQ=
-Date:   Thu, 06 Aug 2020 22:43:43 -0700
+        b=Yl8h8Y67iDAWggJHfexorO1ydyEE6OGExCRpirJWSIjYDJw4xhv0f12MViSahvjGU
+         IzomtVFJGdIjivs8CrjtawJdnEv30ow/TSnmxNqPoWoOyxNGV2+z8sw0mEmUDSk9p2
+         y9+FMroQ2L0wSghtwD9WX9E+6CW3MGu5fJNHEqpY=
+Date:   Thu, 06 Aug 2020 22:44:17 -0700
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, gregkh@linuxfoundation.org, joe@perches.com,
-        masahiroy@kernel.org, mchehab+huawei@kernel.org,
-        mm-commits@vger.kernel.org, xujialu@vimux.org
+To:     akpm@linux-foundation.org, longman@redhat.com,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- scripts-tagssh-collect-compiled-source-precisely-v2.patch removed from -mm
+ mm-treewide-rename-kzfree-to-kfree_sensitive-fix.patch removed from -mm
  tree
-Message-ID: <20200807054343.ibO4XhS7P%akpm@linux-foundation.org>
+Message-ID: <20200807054417.KQR6cfCBf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,45 +55,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts-tagssh-collect-compiled-source-precisely-v2
+     Subject: mm-treewide-rename-kzfree-to-kfree_sensitive-fix
 has been removed from the -mm tree.  Its filename was
-     scripts-tagssh-collect-compiled-source-precisely-v2.patch
+     mm-treewide-rename-kzfree-to-kfree_sensitive-fix.patch
 
-This patch was dropped because it was folded into scripts-tagssh-collect-compiled-source-precisely.patch
+This patch was dropped because it was folded into mm-treewide-rename-kzfree-to-kfree_sensitive.patch
 
 ------------------------------------------------------
-From: Jialu Xu <xujialu@vimux.org>
-Subject: scripts-tagssh-collect-compiled-source-precisely-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-treewide-rename-kzfree-to-kfree_sensitive-fix
 
-don't expand symlinks by add option -s for realpath
+fs/crypto/inline_crypt.c needs linux/slab.h
 
-Link: http://lkml.kernel.org/r/5efc5bfb.1c69fb81.41bf5.7131SMTPIN_ADDED_MISSING@mx.google.com
-Signed-off-by: Jialu Xu <xujialu@vimux.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/tags.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/crypto/inline_crypt.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/scripts/tags.sh~scripts-tagssh-collect-compiled-source-precisely-v2
-+++ a/scripts/tags.sh
-@@ -91,7 +91,7 @@ all_sources()
+--- a/fs/crypto/inline_crypt.c~mm-treewide-rename-kzfree-to-kfree_sensitive-fix
++++ a/fs/crypto/inline_crypt.c
+@@ -16,6 +16,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/buffer_head.h>
+ #include <linux/sched/mm.h>
++#include <linux/slab.h>
  
- all_compiled_sources()
- {
--	realpath -e $([ -z "$KBUILD_ABS_SRCTREE" ] && echo --relative-to=.) \
-+	realpath -es $([ -z "$KBUILD_ABS_SRCTREE" ] && echo --relative-to=.) \
- 		include/generated/autoconf.h $(find -name "*.cmd" -exec \
- 		grep -Poh '(?(?=^source_.* \K).*|(?=^  \K\S).*(?= \\))' {} \+ |
- 		awk '!a[$0]++') | sort -u
+ #include "fscrypt_private.h"
+ 
 _
 
-Patches currently in -mm which might be from xujialu@vimux.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scripts-tagssh-collect-compiled-source-precisely.patch
+mm-treewide-rename-kzfree-to-kfree_sensitive.patch
+mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix.patch
+mm-handle-page-mapping-better-in-dump_page-fix.patch
+mm-thp-replace-http-links-with-https-ones-fix.patch
+mm.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
+mm-hugetlb-add-mempolicy-check-in-the-reservation-routine-fix.patch
+mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
+mm-migrate-make-a-standard-migration-target-allocation-function-fix.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
