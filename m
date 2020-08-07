@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8B3EC433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:51:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E338CC433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:52:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99E422086A
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:51:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4DBD2086A
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:52:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596779467;
-	bh=4VTlevQsVlPkC2ra2MeIt2uroaXjOLCwJd8b+lTdzZg=;
+	s=default; t=1596779543;
+	bh=ZbN8ApDHVvVO8o5AUUI3wlOOUPMZ8ilWftc0cDj6HWA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=KIz+ZkBqfkQQlWBSn0c3KUH8wWouCWAM0wRBtxctdWite8tfgY0R1Go8n+vjdXujh
-	 Ggt4xC7dtA5+lR6x3HS/MwoYiMQ54XwLZGc/KlBW558b1xwVvEywlaEiqZSagvJMpP
-	 fxV85O9zD0NMR/aPEzxRi04F6XjV1lMfJXNjUS88=
+	b=KWpa1bfHXn3PPL7ezPTFfcoiE5vL8YoHXC/zClNyZOfzWJ2FFHN8tZ/yJXicNSLiS
+	 ouT+u0oEcDe33OpNYnfnsePCTDTM78LgtKj0Wy/+mY/jd8e/u9Hn+oBRf9vB7kgrHP
+	 BJUlNxht1jy/jpyFGOnJr+o/4rky3yRXz+tBvdSs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725805AbgHGFvH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:51:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43952 "EHLO mail.kernel.org"
+        id S1726191AbgHGFwX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:52:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44274 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGFvH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:51:07 -0400
+        id S1725379AbgHGFwX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:52:23 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4BD2420866;
-        Fri,  7 Aug 2020 05:51:06 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4D38320866;
+        Fri,  7 Aug 2020 05:52:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596779466;
-        bh=4VTlevQsVlPkC2ra2MeIt2uroaXjOLCwJd8b+lTdzZg=;
+        s=default; t=1596779542;
+        bh=ZbN8ApDHVvVO8o5AUUI3wlOOUPMZ8ilWftc0cDj6HWA=;
         h=Date:From:To:Subject:From;
-        b=EErbxSA9TivB7cK8TaDgCKnPP2J/74Fv4bW+Ljn6Q7zLxa/Srx4NwbWt4V4uPwoEN
-         QemOhQUJpMWdA24pnKrJMXsl+J9c8mvG4TSUZG/xdvataQBhZ33Vpsf4DfxYu2de9M
-         1WXEpLRA28sTi5NKeWvzZw70X9vzf9v7cyywpprA=
-Date:   Thu, 06 Aug 2020 22:51:05 -0700
+        b=DtWiSp39vy9xSrbPgYvNeOTpHq+Zp3oBDYQ7w2eUn/FY6bhdCWJzsw7uPnp0C4qs6
+         RT3XVBSNuhaROt6tHvuWC5Z0fc+K94uk7nFpo39iNTvmKrlcBICjEQ2cy8OmlQnhmE
+         p20xQ2QHTWqJuKSr/ksQFnKESt6x1B4HBhiCvwLE=
+Date:   Thu, 06 Aug 2020 22:52:21 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, guro@fb.com, hannes@cmpxchg.org, hughd@google.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com,
-        tj@kernel.org, vbabka@suse.cz
+To:     guro@fb.com, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        sfr@canb.auug.org.au
 Subject:  [folded-merged]
- mm-memcontrol-decouple-reference-counting-from-page-accounting-fix.patch
+ mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations-fix.patch
  removed from -mm tree
-Message-ID: <20200807055105.o1VAUTSAK%akpm@linux-foundation.org>
+Message-ID: <20200807055221.Z2vpNigwE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,65 +55,159 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: decouple reference counting from page accounting fix
+     Subject: mm: slab/memcg: fix build on MIPS
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-decouple-reference-counting-from-page-accounting-fix.patch
+     mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations-fix.patch
 
-This patch was dropped because it was folded into mm-memcontrol-decouple-reference-counting-from-page-accounting.patch
+This patch was dropped because it was folded into mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: memcontrol: decouple reference counting from page accounting fix
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: slab/memcg: fix build on MIPS
 
-Moving tasks between mem cgroups with memory.move_charge_at_immigrate 3,
-while swapping, crashes soon on mmotm (and so presumably on linux-next):
-for example, spinlock found corrupted when lock_page_memcg() is called. 
-It's as if the mem cgroup structures have been freed too early.
+Naresh reported that linux-next build is broken on MIPS.  The problem is
+reproducible using gcc 8 and 9, but not 10.
 
-Stab in the dark: what if all the accounting is right, except that the
-css_put_many() in __mem_cgroup_clear_mc() is now (worse than) redundant? 
-Removing it fixes the crashes, but that's hardly surprising; and stats
-temporarily hacked into mem_cgroup_css_alloc() and mem_cgroup_css_free()
-showed that mem cgroups were not being leaked with this change.
+make -sk KBUILD_BUILD_USER=TuxBuild -C/linux -j16 ARCH=mips
+CROSS_COMPILE=mips-linux-gnu- HOSTCC=gcc CC="sccache
+mips-linux-gnu-gcc" O=build
+../mm/slub.c: In function `slab_alloc.constprop':
+../mm/slub.c:2897:30: error: inlining failed in call to always_inline
+`slab_alloc.constprop': recursive inlining
+ 2897 | static __always_inline void *slab_alloc(struct kmem_cache *s,
+      |                              ^~~~~~~~~~
+../mm/slub.c:2905:14: note: called from here
+ 2905 |  void *ret = slab_alloc(s, gfpflags, _RET_IP_);
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../mm/slub.c: In function `sysfs_slab_alias':
+../mm/slub.c:2897:30: error: inlining failed in call to always_inline
+`slab_alloc.constprop': recursive inlining
+ 2897 | static __always_inline void *slab_alloc(struct kmem_cache *s,
+      |                              ^~~~~~~~~~
+../mm/slub.c:2905:14: note: called from here
+ 2905 |  void *ret = slab_alloc(s, gfpflags, _RET_IP_);
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../mm/slub.c: In function `sysfs_slab_add':
+../mm/slub.c:2897:30: error: inlining failed in call to always_inline
+`slab_alloc.constprop': recursive inlining
+ 2897 | static __always_inline void *slab_alloc(struct kmem_cache *s,
+      |                              ^~~~~~~~~~
+../mm/slub.c:2905:14: note: called from here
+ 2905 |  void *ret = slab_alloc(s, gfpflags, _RET_IP_);
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note: this removes the last call to css_put_many() from the tree; and
-mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
-removes the last call to css_get_many(): now that their last references
-have gone, I expect them soon to be freed from include/linux/cgroup.h.
+The problem was introduced by commit "mem: memcg/slab: use a single set of
+kmem_caches for all allocations", which added an allocation of the space
+for the obj_cgroup vector into the slab post hook and created a recursive
+inlining.
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2007302011450.2347@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The easies way to fix this is to move memcg_alloc_page_obj_cgroups() to
+memcontrol.c and make it a generic (not static inline) function.  It
+breaks the inlining recursion and fixes the build.
+
+Link: http://lkml.kernel.org/r/20200717214810.3733082-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/memcontrol.c |   20 ++++++++++++++++++++
+ mm/slab.h       |   21 ++-------------------
+ 2 files changed, 22 insertions(+), 19 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-decouple-reference-counting-from-page-accounting-fix
+--- a/mm/memcontrol.c~mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations-fix
 +++ a/mm/memcontrol.c
-@@ -5680,8 +5680,6 @@ static void __mem_cgroup_clear_mc(void)
- 		if (!mem_cgroup_is_root(mc.to))
- 			page_counter_uncharge(&mc.to->memory, mc.moved_swap);
+@@ -2800,6 +2800,26 @@ static void commit_charge(struct page *p
+ }
  
--		css_put_many(&mc.to->css, mc.moved_swap);
+ #ifdef CONFIG_MEMCG_KMEM
++int memcg_alloc_page_obj_cgroups(struct page *page, struct kmem_cache *s,
++				 gfp_t gfp)
++{
++	unsigned int objects = objs_per_slab_page(s, page);
++	void *vec;
++
++	vec = kcalloc_node(objects, sizeof(struct obj_cgroup *), gfp,
++			   page_to_nid(page));
++	if (!vec)
++		return -ENOMEM;
++
++	if (cmpxchg(&page->obj_cgroups, NULL,
++		    (struct obj_cgroup **) ((unsigned long)vec | 0x1UL)))
++		kfree(vec);
++	else
++		kmemleak_not_leak(vec);
++
++	return 0;
++}
++
+ /*
+  * Returns a pointer to the memory cgroup to which the kernel object is charged.
+  *
+--- a/mm/slab.h~mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations-fix
++++ a/mm/slab.h
+@@ -257,25 +257,8 @@ static inline bool page_has_obj_cgroups(
+ 	return ((unsigned long)page->obj_cgroups & 0x1UL);
+ }
+ 
+-static inline int memcg_alloc_page_obj_cgroups(struct page *page,
+-					       struct kmem_cache *s, gfp_t gfp)
+-{
+-	unsigned int objects = objs_per_slab_page(s, page);
+-	void *vec;
 -
- 		mc.moved_swap = 0;
- 	}
- 	memcg_oom_recover(from);
+-	vec = kcalloc_node(objects, sizeof(struct obj_cgroup *), gfp,
+-			   page_to_nid(page));
+-	if (!vec)
+-		return -ENOMEM;
+-
+-	if (cmpxchg(&page->obj_cgroups, NULL,
+-		    (struct obj_cgroup **) ((unsigned long)vec | 0x1UL)))
+-		kfree(vec);
+-	else
+-		kmemleak_not_leak(vec);
+-
+-	return 0;
+-}
++int memcg_alloc_page_obj_cgroups(struct page *page, struct kmem_cache *s,
++				 gfp_t gfp);
+ 
+ static inline void memcg_free_page_obj_cgroups(struct page *page)
+ {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from guro@fb.com are
 
-mm-memcontrol-decouple-reference-counting-from-page-accounting.patch
-khugepaged-collapse_pte_mapped_thp-flush-the-right-range.patch
-khugepaged-collapse_pte_mapped_thp-protect-the-pmd-lock.patch
-khugepaged-retract_page_tables-remember-to-test-exit.patch
-khugepaged-khugepaged_test_exit-check-mmget_still_valid.patch
+mm-kmem-make-memcg_kmem_enabled-irreversible.patch
+mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state.patch
+mm-memcg-prepare-for-byte-sized-vmstat-items.patch
+mm-memcg-convert-vmstat-slab-counters-to-bytes.patch
+mm-slub-implement-slub-version-of-obj_to_index.patch
+mm-memcg-slab-obj_cgroup-api.patch
+mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
+mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
+mm-memcg-slab-charge-individual-slab-objects-instead-of-pages.patch
+mm-memcg-slab-deprecate-memorykmemslabinfo.patch
+mm-memcg-slab-move-memcg_kmem_bypass-to-memcontrolh.patch
+mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-accounted-allocations.patch
+mm-memcg-slab-simplify-memcg-cache-creation.patch
+mm-memcg-slab-remove-memcg_kmem_get_cache.patch
+mm-memcg-slab-deprecate-slab_root_caches.patch
+mm-memcg-slab-remove-redundant-check-in-memcg_accumulate_slabinfo.patch
+mm-memcg-slab-use-a-single-set-of-kmem_caches-for-all-allocations.patch
+kselftests-cgroup-add-kernel-memory-accounting-tests.patch
+tools-cgroup-add-memcg_slabinfopy-tool.patch
+mm-memcg-slab-remove-unused-argument-by-charge_slab_page.patch
+mm-slab-rename-uncharge_slab_page-to-unaccount_slab_page.patch
+mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
+mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
+percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
+mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
+mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
+mm-memcg-percpu-per-memcg-percpu-memory-statistics-v3.patch
+mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
+kselftests-cgroup-add-perpcu-memory-accounting-test.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
