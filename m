@@ -7,47 +7,49 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FFB2C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:24:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 050FAC433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:24:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7FE322CAF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:24:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB6F622C9F
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:24:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781473;
-	bh=O7UkGCmIaQsRzlwYMDLRds2JWhI++2Unus3K9L/h+Ms=;
+	s=default; t=1596781478;
+	bh=1cqPt/WeUHPDVgwW+rtuwtTHGAmqccOLD532p86cNF8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=R9Z1fy6sh/cGQukcNu9mBgQ8pZ8vrt567Ynrmv1rK1Ap2lQwr8SCKESpfZdZZ/yo/
-	 gVM+Q3mg+LYTmT68zvrYO8PKzQpmPm6P0atO2QK8c72VKmtwuj90j4Ug5lQdjbRlBR
-	 SnRyz2OvsTIbFZ8U4HuedifcKpbR8T+g/TQJHRkY=
+	b=cAnG9zHt4nMqLHUIW+FeYPe5iYCucVM/H+zP1gZhmxJeP0EjB0SmpL6Evq5N3EXoe
+	 a0CW2ZZQ/a43KMtiL51Vd6MpDWv2QT0300PrUFSbUxvEh4L6FL4gvBPbbAjjUaro6g
+	 4bAmvEMrWBh9SMT407DY9JIxhWVxd0vcSZcMdXvo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725805AbgHGGYd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:24:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33370 "EHLO mail.kernel.org"
+        id S1726316AbgHGGYi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:24:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33414 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGYd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:24:33 -0400
+        id S1725379AbgHGGYh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:24:37 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1C25E22CAE;
-        Fri,  7 Aug 2020 06:24:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BBE8F22CAF;
+        Fri,  7 Aug 2020 06:24:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781472;
-        bh=O7UkGCmIaQsRzlwYMDLRds2JWhI++2Unus3K9L/h+Ms=;
+        s=default; t=1596781476;
+        bh=1cqPt/WeUHPDVgwW+rtuwtTHGAmqccOLD532p86cNF8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=F4H/PHk08xSdqm1uleXkPYVAd++k470U+sAD7H6IQ/qBKxujbULjuRUggNo88JYZS
-         VqLDKyrN+JotcDSNKKsK9Plim+ZzzZxiMEa7GKiYciuCT4pDrjAVt+i/Rkd3G5FNML
-         coirlf8tMiAANxTZ2IsxUlqDTDAARtvj1IPwVxko=
-Date:   Thu, 06 Aug 2020 23:24:31 -0700
+        b=qkALVxGbd4ZxluHr8/AFvZw5DZWmf/SqY1adHtbHIUPGLZPqmty6cbpt/RnGnD66g
+         iq8Nk+ae1u/giP/nrm0tQlgqOKIoa1/4UHxQ4bYv2XbYrAMU4Jz68tCA6rEBVRV6h8
+         SuMmgbfJbbsKeynjJMlhOY/l8mY0Cyk6hLEMj7fk=
+Date:   Thu, 06 Aug 2020 23:24:35 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@google.com, arnd@arndb.de,
-        aryabinin@virtuozzo.com, dja@axtens.net, dvyukov@google.com,
-        elver@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        ndesaulniers@google.com, torvalds@linux-foundation.org,
-        walter-zh.wu@mediatek.com
-Subject:  [patch 129/163] kasan: update required compiler versions
- in documentation
-Message-ID: <20200807062431.ohz9Pz_Qw%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@google.com,
+        aryabinin@virtuozzo.com, corbet@lwn.net, dvyukov@google.com,
+        glider@google.com, jiangshanlai@gmail.com, joel@joelfernandes.org,
+        josh@joshtriplett.org, linux-mm@kvack.org,
+        mathieu.desnoyers@efficios.com, matthias.bgg@gmail.com,
+        mm-commits@vger.kernel.org, paulmck@kernel.org,
+        torvalds@linux-foundation.org, walter-zh.wu@mediatek.com
+Subject:  [patch 130/163] rcu: kasan: record and print call_rcu()
+ call stack
+Message-ID: <20200807062435.VJcElwQ4R%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,110 +58,239 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Marco Elver <elver@google.com>
-Subject: kasan: update required compiler versions in documentation
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: rcu: kasan: record and print call_rcu() call stack
 
-Updates the recently changed compiler requirements for KASAN.  In
-particular, we require GCC >= 8.3.0, and add a note that Clang 11 supports
-OOB detection of globals.
+Patch series "kasan: memorize and print call_rcu stack", v8.
 
-Link: http://lkml.kernel.org/r/20200629104157.3242503-2-elver@google.com
-Fixes: 7b861a53e46b ("kasan: Bump required compiler version")
-Fixes: acf7b0bf7dcf ("kasan: Fix required compiler version")
-Signed-off-by: Marco Elver <elver@google.com>
+This patchset improves KASAN reports by making them to have call_rcu()
+call stack information.  It is useful for programmers to solve
+use-after-free or double-free memory issue.
+
+The KASAN report was as follows(cleaned up slightly):
+
+BUG: KASAN: use-after-free in kasan_rcu_reclaim+0x58/0x60
+
+Freed by task 0:
+ kasan_save_stack+0x24/0x50
+ kasan_set_track+0x24/0x38
+ kasan_set_free_info+0x18/0x20
+ __kasan_slab_free+0x10c/0x170
+ kasan_slab_free+0x10/0x18
+ kfree+0x98/0x270
+ kasan_rcu_reclaim+0x1c/0x60
+
+Last call_rcu():
+ kasan_save_stack+0x24/0x50
+ kasan_record_aux_stack+0xbc/0xd0
+ call_rcu+0x8c/0x580
+ kasan_rcu_uaf+0xf4/0xf8
+
+Generic KASAN will record the last two call_rcu() call stacks and print up
+to 2 call_rcu() call stacks in KASAN report.  it is only suitable for
+generic KASAN.
+
+This feature considers the size of struct kasan_alloc_meta and
+kasan_free_meta, we try to optimize the structure layout and size, lets it
+get better memory consumption.
+
+[1]https://bugzilla.kernel.org/show_bug.cgi?id=198437
+[2]https://groups.google.com/forum/#!searchin/kasan-dev/better$20stack$20traces$20for$20rcu%7Csort:date/kasan-dev/KQsjT_88hDE/7rNUZprRBgAJ
+
+
+This patch (of 4):
+
+This feature will record the last two call_rcu() call stacks and prints up
+to 2 call_rcu() call stacks in KASAN report.
+
+When call_rcu() is called, we store the call_rcu() call stack into slub
+alloc meta-data, so that the KASAN report can print rcu stack.
+
+[1]https://bugzilla.kernel.org/show_bug.cgi?id=198437
+[2]https://groups.google.com/forum/#!searchin/kasan-dev/better$20stack$20traces$20for$20rcu%7Csort:date/kasan-dev/KQsjT_88hDE/7rNUZprRBgAJ
+
+[walter-zh.wu@mediatek.com: build fix]
+  Link: http://lkml.kernel.org/r/20200710162401.23816-1-walter-zh.wu@mediatek.com
+Link: http://lkml.kernel.org/r/20200710162123.23713-1-walter-zh.wu@mediatek.com
+Link: http://lkml.kernel.org/r/20200601050847.1096-1-walter-zh.wu@mediatek.com
+Link: http://lkml.kernel.org/r/20200601050927.1153-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Suggested-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Paul E. McKenney <paulmck@kernel.org>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Tested-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Walter Wu <walter-zh.wu@mediatek.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Daniel Axtens <dja@axtens.net>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Lai Jiangshan <jiangshanlai@gmail.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |    7 ++-----
- lib/Kconfig.kasan                 |   24 +++++++++++++++---------
- 2 files changed, 17 insertions(+), 14 deletions(-)
+ include/linux/kasan.h |    2 ++
+ kernel/rcu/tree.c     |    2 ++
+ mm/kasan/common.c     |    4 ++--
+ mm/kasan/generic.c    |   21 +++++++++++++++++++++
+ mm/kasan/kasan.h      |    9 +++++++++
+ mm/kasan/report.c     |   28 +++++++++++++++++++++++-----
+ 6 files changed, 59 insertions(+), 7 deletions(-)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-update-required-compiler-versions-in-documentation
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -13,11 +13,8 @@ KASAN uses compile-time instrumentation
- memory access, and therefore requires a compiler version that supports that.
+--- a/include/linux/kasan.h~rcu-kasan-record-and-print-call_rcu-call-stack
++++ a/include/linux/kasan.h
+@@ -174,11 +174,13 @@ static inline size_t kasan_metadata_size
  
- Generic KASAN is supported in both GCC and Clang. With GCC it requires version
--4.9.2 or later for basic support and version 5.0 or later for detection of
--out-of-bounds accesses for stack and global variables and for inline
--instrumentation mode (see the Usage section). With Clang it requires version
--7.0.0 or later and it doesn't support detection of out-of-bounds accesses for
--global variables yet.
-+8.3.0 or later. With Clang it requires version 7.0.0 or later, but detection of
-+out-of-bounds accesses for global variables is only supported since Clang 11.
+ void kasan_cache_shrink(struct kmem_cache *cache);
+ void kasan_cache_shutdown(struct kmem_cache *cache);
++void kasan_record_aux_stack(void *ptr);
  
- Tag-based KASAN is only supported in Clang and requires version 7.0.0 or later.
+ #else /* CONFIG_KASAN_GENERIC */
  
---- a/lib/Kconfig.kasan~kasan-update-required-compiler-versions-in-documentation
-+++ a/lib/Kconfig.kasan
-@@ -40,6 +40,7 @@ choice
- 	  software tag-based KASAN (a version based on software memory
- 	  tagging, arm64 only, similar to userspace HWASan, enabled with
- 	  CONFIG_KASAN_SW_TAGS).
-+
- 	  Both generic and tag-based KASAN are strictly debugging features.
+ static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
+ static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
++static inline void kasan_record_aux_stack(void *ptr) {}
  
- config KASAN_GENERIC
-@@ -51,16 +52,18 @@ config KASAN_GENERIC
- 	select STACKDEPOT
- 	help
- 	  Enables generic KASAN mode.
--	  Supported in both GCC and Clang. With GCC it requires version 4.9.2
--	  or later for basic support and version 5.0 or later for detection of
--	  out-of-bounds accesses for stack and global variables and for inline
--	  instrumentation mode (CONFIG_KASAN_INLINE). With Clang it requires
--	  version 3.7.0 or later and it doesn't support detection of
--	  out-of-bounds accesses for global variables yet.
-+
-+	  This mode is supported in both GCC and Clang. With GCC it requires
-+	  version 8.3.0 or later. With Clang it requires version 7.0.0 or
-+	  later, but detection of out-of-bounds accesses for global variables
-+	  is supported only since Clang 11.
-+
- 	  This mode consumes about 1/8th of available memory at kernel start
- 	  and introduces an overhead of ~x1.5 for the rest of the allocations.
- 	  The performance slowdown is ~x3.
-+
- 	  For better error detection enable CONFIG_STACKTRACE.
-+
- 	  Currently CONFIG_KASAN_GENERIC doesn't work with CONFIG_DEBUG_SLAB
- 	  (the resulting kernel does not boot).
+ #endif /* CONFIG_KASAN_GENERIC */
  
-@@ -73,15 +76,19 @@ config KASAN_SW_TAGS
- 	select STACKDEPOT
- 	help
- 	  Enables software tag-based KASAN mode.
-+
- 	  This mode requires Top Byte Ignore support by the CPU and therefore
--	  is only supported for arm64.
--	  This mode requires Clang version 7.0.0 or later.
-+	  is only supported for arm64. This mode requires Clang version 7.0.0
-+	  or later.
-+
- 	  This mode consumes about 1/16th of available memory at kernel start
- 	  and introduces an overhead of ~20% for the rest of the allocations.
- 	  This mode may potentially introduce problems relating to pointer
- 	  casting and comparison, as it embeds tags into the top byte of each
- 	  pointer.
-+
- 	  For better error detection enable CONFIG_STACKTRACE.
-+
- 	  Currently CONFIG_KASAN_SW_TAGS doesn't work with CONFIG_DEBUG_SLAB
- 	  (the resulting kernel does not boot).
+--- a/kernel/rcu/tree.c~rcu-kasan-record-and-print-call_rcu-call-stack
++++ a/kernel/rcu/tree.c
+@@ -59,6 +59,7 @@
+ #include <linux/sched/clock.h>
+ #include <linux/vmalloc.h>
+ #include <linux/mm.h>
++#include <linux/kasan.h>
+ #include "../time/tick-internal.h"
  
-@@ -107,7 +114,6 @@ config KASAN_INLINE
- 	  memory accesses. This is faster than outline (in some workloads
- 	  it gives about x2 boost over outline instrumentation), but
- 	  make kernel's .text size much bigger.
--	  For CONFIG_KASAN_GENERIC this requires GCC 5.0 or later.
+ #include "tree.h"
+@@ -2890,6 +2891,7 @@ __call_rcu(struct rcu_head *head, rcu_ca
+ 	head->func = func;
+ 	head->next = NULL;
+ 	local_irq_save(flags);
++	kasan_record_aux_stack(head);
+ 	rdp = this_cpu_ptr(&rcu_data);
  
- endchoice
+ 	/* Add the callback to our list. */
+--- a/mm/kasan/common.c~rcu-kasan-record-and-print-call_rcu-call-stack
++++ a/mm/kasan/common.c
+@@ -40,7 +40,7 @@
+ #include "kasan.h"
+ #include "../slab.h"
  
+-static inline depot_stack_handle_t save_stack(gfp_t flags)
++depot_stack_handle_t kasan_save_stack(gfp_t flags)
+ {
+ 	unsigned long entries[KASAN_STACK_DEPTH];
+ 	unsigned int nr_entries;
+@@ -53,7 +53,7 @@ static inline depot_stack_handle_t save_
+ static inline void set_track(struct kasan_track *track, gfp_t flags)
+ {
+ 	track->pid = current->pid;
+-	track->stack = save_stack(flags);
++	track->stack = kasan_save_stack(flags);
+ }
+ 
+ void kasan_enable_current(void)
+--- a/mm/kasan/generic.c~rcu-kasan-record-and-print-call_rcu-call-stack
++++ a/mm/kasan/generic.c
+@@ -324,3 +324,24 @@ DEFINE_ASAN_SET_SHADOW(f2);
+ DEFINE_ASAN_SET_SHADOW(f3);
+ DEFINE_ASAN_SET_SHADOW(f5);
+ DEFINE_ASAN_SET_SHADOW(f8);
++
++void kasan_record_aux_stack(void *addr)
++{
++	struct page *page = kasan_addr_to_page(addr);
++	struct kmem_cache *cache;
++	struct kasan_alloc_meta *alloc_info;
++	void *object;
++
++	if (!(page && PageSlab(page)))
++		return;
++
++	cache = page->slab_cache;
++	object = nearest_obj(cache, page, addr);
++	alloc_info = get_alloc_info(cache, object);
++
++	/*
++	 * record the last two call_rcu() call stacks.
++	 */
++	alloc_info->aux_stack[1] = alloc_info->aux_stack[0];
++	alloc_info->aux_stack[0] = kasan_save_stack(GFP_NOWAIT);
++}
+--- a/mm/kasan/kasan.h~rcu-kasan-record-and-print-call_rcu-call-stack
++++ a/mm/kasan/kasan.h
+@@ -104,6 +104,13 @@ struct kasan_track {
+ 
+ struct kasan_alloc_meta {
+ 	struct kasan_track alloc_track;
++#ifdef CONFIG_KASAN_GENERIC
++	/*
++	 * call_rcu() call stack is stored into struct kasan_alloc_meta.
++	 * The free stack is stored into struct kasan_free_meta.
++	 */
++	depot_stack_handle_t aux_stack[2];
++#endif
+ 	struct kasan_track free_track[KASAN_NR_FREE_STACKS];
+ #ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
+ 	u8 free_pointer_tag[KASAN_NR_FREE_STACKS];
+@@ -159,6 +166,8 @@ void kasan_report_invalid_free(void *obj
+ 
+ struct page *kasan_addr_to_page(const void *addr);
+ 
++depot_stack_handle_t kasan_save_stack(gfp_t flags);
++
+ #if defined(CONFIG_KASAN_GENERIC) && \
+ 	(defined(CONFIG_SLAB) || defined(CONFIG_SLUB))
+ void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache);
+--- a/mm/kasan/report.c~rcu-kasan-record-and-print-call_rcu-call-stack
++++ a/mm/kasan/report.c
+@@ -106,15 +106,20 @@ static void end_report(unsigned long *fl
+ 	kasan_enable_current();
+ }
+ 
++static void print_stack(depot_stack_handle_t stack)
++{
++	unsigned long *entries;
++	unsigned int nr_entries;
++
++	nr_entries = stack_depot_fetch(stack, &entries);
++	stack_trace_print(entries, nr_entries, 0);
++}
++
+ static void print_track(struct kasan_track *track, const char *prefix)
+ {
+ 	pr_err("%s by task %u:\n", prefix, track->pid);
+ 	if (track->stack) {
+-		unsigned long *entries;
+-		unsigned int nr_entries;
+-
+-		nr_entries = stack_depot_fetch(track->stack, &entries);
+-		stack_trace_print(entries, nr_entries, 0);
++		print_stack(track->stack);
+ 	} else {
+ 		pr_err("(stack is not available)\n");
+ 	}
+@@ -193,6 +198,19 @@ static void describe_object(struct kmem_
+ 		free_track = kasan_get_free_track(cache, object, tag);
+ 		print_track(free_track, "Freed");
+ 		pr_err("\n");
++
++#ifdef CONFIG_KASAN_GENERIC
++		if (alloc_info->aux_stack[0]) {
++			pr_err("Last call_rcu():\n");
++			print_stack(alloc_info->aux_stack[0]);
++			pr_err("\n");
++		}
++		if (alloc_info->aux_stack[1]) {
++			pr_err("Second to last call_rcu():\n");
++			print_stack(alloc_info->aux_stack[1]);
++			pr_err("\n");
++		}
++#endif
+ 	}
+ 
+ 	describe_object_addr(cache, object, addr);
 _
