@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1858DC433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:44:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81B93C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:44:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F03E42086A
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:44:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5361E2086A
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:44:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596779062;
-	bh=+otwkpchMgEGXNJUcotB8nK2VcCPDYGybJzjjyVar5Q=;
+	s=default; t=1596779095;
+	bh=HkG4E/T45k5OXtL7SlF4MM5ggZ2yWlZXgYq7MDAIC0Q=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=lim74/yCdVb6XbKqHc9dn9ck8ugk4mp/zUF43SS/sYFlc/b+lM3JF7fNUle0H7/AB
-	 5gpJN/AsM2ERinmFPVcBw1lOo3+vu0afc/iR7bSblC/juS5Tw2Bk5QBbrK/Ux9ggbf
-	 fjJutloJGZIrnmnaeqRCDMQ70xMTjj8dVNJZ1WnU=
+	b=XngM4ExX2/iWlfEtlBZkelesTQLML5h6hdylFcFGqOSWSKNglu2q0fg3EWdtq6D9s
+	 so76B09HyO3od46NNMfFGpdvbo4UnoXogkKhlChLVkLwjUXFnsEKo1LuTAxGoneV7U
+	 1NWlRpNDO6ss24z1nKjv87fFU5qY9+/XpqjhGNIQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725845AbgHGFoV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:44:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41272 "EHLO mail.kernel.org"
+        id S1725379AbgHGFoz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:44:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41644 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725287AbgHGFoV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:44:21 -0400
+        id S1725287AbgHGFoy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:44:54 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9A7B220855;
-        Fri,  7 Aug 2020 05:44:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1FA8620855;
+        Fri,  7 Aug 2020 05:44:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596779060;
-        bh=+otwkpchMgEGXNJUcotB8nK2VcCPDYGybJzjjyVar5Q=;
+        s=default; t=1596779094;
+        bh=HkG4E/T45k5OXtL7SlF4MM5ggZ2yWlZXgYq7MDAIC0Q=;
         h=Date:From:To:Subject:From;
-        b=uovcwX6nDuVAcrBKRP74hxgcLe2F090wKbFFgLfghEM8IvXTwuIvow3fIDnSFpuBp
-         Sl7zTyTxMh6i4MXG6KqtLAgwd17G95ANmEx/wYKOj4zNmBvchvNJtsbCH2cB3fmNcw
-         1nCUK4GqGqLnEBP7w3JcSzNGhGKT6QfYWCgWXors=
-Date:   Thu, 06 Aug 2020 22:44:20 -0700
+        b=U0Wz7coQpGouOCvth/pEjdfixEtsP/IoFJUrp/UKblofJ4QEQIF9rRY4O/oer9UP5
+         YZet2RlBsGro607mYjn+F/dIiHN3lvUYxCGQ6JTHod9Abs7NPm0R4o6U6D1kb+ZV1C
+         /Lsv0Zx+8+H8UqRHO65Z25ES+jmmOFn50K6KCO2I=
+Date:   Thu, 06 Aug 2020 22:44:53 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, longman@redhat.com,
-        mm-commits@vger.kernel.org
+To:     keescook@chromium.org, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, sfr@canb.auug.org.au
 Subject:  [folded-merged]
- mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix.patch removed from -mm
- tree
-Message-ID: <20200807054420.T4hE2D4m0%akpm@linux-foundation.org>
+ slab-add-naive-detection-of-double-free-fix.patch removed from -mm tree
+Message-ID: <20200807054453.ryk_6Mtr4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,60 +54,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix
+     Subject: slab: fix misplaced __free_one()
 has been removed from the -mm tree.  Its filename was
-     mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix.patch
+     slab-add-naive-detection-of-double-free-fix.patch
 
-This patch was dropped because it was folded into mm-treewide-rename-kzfree-to-kfree_sensitive.patch
+This patch was dropped because it was folded into slab-add-naive-detection-of-double-free.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix
+From: Kees Cook <keescook@chromium.org>
+Subject: slab: fix misplaced __free_one()
 
-fix fs/crypto/inline_crypt.c some more
+The implementation of __free_one() was accidentally placed inside a
+CONFIG_NUMA #ifdef. Move it above.
 
-Cc: Waiman Long <longman@redhat.com>
+Link: http://lkml.kernel.org/r/202006261306.0D82A2B@keescook
+Link: https://lore.kernel.org/lkml/7ff248c7-d447-340c-a8e2-8c02972aca70@infradead.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>	[build tested]
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/crypto/inline_crypt.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slab.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/fs/crypto/inline_crypt.c~mm-treewide-rename-kzfree-to-kfree_sensitive-fix-fix
-+++ a/fs/crypto/inline_crypt.c
-@@ -188,7 +188,7 @@ int fscrypt_prepare_inline_crypt_key(str
- fail:
- 	for (i = 0; i < queue_refs; i++)
- 		blk_put_queue(blk_key->devs[i]);
--	kzfree_sensitive(blk_key);
-+	kfree_sensitive(blk_key);
- 	return err;
+--- a/mm/slab.c~slab-add-naive-detection-of-double-free-fix
++++ a/mm/slab.c
+@@ -588,6 +588,16 @@ static int transfer_objects(struct array
+ 	return nr;
  }
  
-@@ -202,7 +202,7 @@ void fscrypt_destroy_inline_crypt_key(st
- 			blk_crypto_evict_key(blk_key->devs[i], &blk_key->base);
- 			blk_put_queue(blk_key->devs[i]);
- 		}
--		kzfree_sensitive(blk_key);
-+		kfree_sensitive(blk_key);
++/* &alien->lock must be held by alien callers. */
++static __always_inline void __free_one(struct array_cache *ac, void *objp)
++{
++	/* Avoid trivial double-free. */
++	if (IS_ENABLED(CONFIG_SLAB_FREELIST_HARDENED) &&
++	    WARN_ON_ONCE(ac->avail > 0 && ac->entry[ac->avail - 1] == objp))
++		return;
++	ac->entry[ac->avail++] = objp;
++}
++
+ #ifndef CONFIG_NUMA
+ 
+ #define drain_alien_cache(cachep, alien) do { } while (0)
+@@ -749,16 +759,6 @@ static void drain_alien_cache(struct kme
  	}
  }
  
+-/* &alien->lock must be held by alien callers. */
+-static __always_inline void __free_one(struct array_cache *ac, void *objp)
+-{
+-	/* Avoid trivial double-free. */
+-	if (IS_ENABLED(CONFIG_SLAB_FREELIST_HARDENED) &&
+-	    WARN_ON_ONCE(ac->avail > 0 && ac->entry[ac->avail - 1] == objp))
+-		return;
+-	ac->entry[ac->avail++] = objp;
+-}
+-
+ static int __cache_free_alien(struct kmem_cache *cachep, void *objp,
+ 				int node, int page_node)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-mm-treewide-rename-kzfree-to-kfree_sensitive.patch
-mm-handle-page-mapping-better-in-dump_page-fix.patch
-mm-thp-replace-http-links-with-https-ones-fix.patch
-mm.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups-fix-fix.patch
-mm-hugetlb-add-mempolicy-check-in-the-reservation-routine-fix.patch
-mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
-mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
-mm-migrate-make-a-standard-migration-target-allocation-function-fix.patch
-mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-expand-config_slab_freelist_hardened-to-include-slab.patch
+slab-add-naive-detection-of-double-free.patch
+exec-change-uselib2-is_sreg-failure-to-eacces.patch
+exec-move-s_isreg-check-earlier.patch
+exec-move-path_noexec-check-earlier.patch
 
