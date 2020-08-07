@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 783B2C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 01:06:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EB05C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 01:07:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D6F2221E4
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 01:06:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32DB72177B
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 01:07:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596762417;
-	bh=rwN+S36E5R3s7aijNrpxulCq+9FOy6+XMgLOJArnq6k=;
+	s=default; t=1596762421;
+	bh=TArZV5hdJIl6GEAHBIAiMSQErKxARpZDgbwRkezhG/I=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=CwxWce8Ub4ZNKSsfdJO4v79oGZ6cAenQDoX6K1qfI3Es3dSufQQmPXjjLrfFztvw4
-	 /4VfCcRwCeCz0IotVyXAIQ14p2x+gjVtsp44pXoOyXdjEVJ0LGb3sh4jKFrjLOwWpV
-	 AnrLRgz9ErCUPB226eKKetxJXaEQvnlfQytZtCsA=
+	b=05fGd48c2f6v1bmljtaylox5Qq/+PAIFTYek2Bo6LBdOEq1bSwDrTEKUoXhqVthKx
+	 GV/4fRjd/jbi9uIenWxQaxseRCDM7Yr5dCYtA0ZATe6E4XF3gKxkv7XgOBkxQJxEYo
+	 w9m6fBrPhlSJ+0mivV6BOA81gTb/gI999uk5NAmQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726027AbgHGBG5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 6 Aug 2020 21:06:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40036 "EHLO mail.kernel.org"
+        id S1726175AbgHGBHA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 6 Aug 2020 21:07:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40078 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726011AbgHGBG4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 6 Aug 2020 21:06:56 -0400
+        id S1726011AbgHGBHA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 6 Aug 2020 21:07:00 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 0908A2177B;
-        Fri,  7 Aug 2020 01:06:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 0D3E621744;
+        Fri,  7 Aug 2020 01:06:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596762416;
-        bh=rwN+S36E5R3s7aijNrpxulCq+9FOy6+XMgLOJArnq6k=;
+        s=default; t=1596762419;
+        bh=TArZV5hdJIl6GEAHBIAiMSQErKxARpZDgbwRkezhG/I=;
         h=Date:From:To:Subject:From;
-        b=KxpitkZKS8n9X0IfvnE9HBXMq/z0oDyQqYQ/scytVIdHUKXgHMpFYYFYqCe1rZsV9
-         hnVl6oon0r6/FAoSco1/GaesJ+v11n2IUYjpZo+dEL/saqjZKJIMK/RX1OLNh8wfJi
-         xw4V/SawsXG3d8jwMXrXtRQmV3TdXAJvVuWL2z5Y=
-Date:   Thu, 06 Aug 2020 18:06:55 -0700
+        b=DXejUhQ7M+cjA0ZKC9TR6hDpnDuyzgt79jiXoeanbJ3E8jkKqT+1zZN4GBzo64PDF
+         +Lp4O/A09ArB6xD+ar/eoBs9cr1m/UbuqxvKN57wNjdLbQ7S28XwpR98jnodKPUIjt
+         3ldYG/fPUh8s2EY33QBNQm9lPzkFcarQBDPQvQVQ=
+Date:   Thu, 06 Aug 2020 18:06:58 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, aneesh.kumar@linux.vnet.ibm.com,
         cai@lca.pw, dave.hansen@intel.com, david@redhat.com,
         mhocko@kernel.org, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         osalvador@suse.com, tony.luck@intel.com, zeil@yandex-team.ru
-Subject:  + mm-hwpoison-remove-recalculating-hpage.patch added to
- -mm tree
-Message-ID: <20200807010655.Kwta4yBO0%akpm@linux-foundation.org>
+Subject:  + mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
+ added to -mm tree
+Message-ID: <20200807010658.eBQhuo6Bc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -57,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hwpoison: remove recalculating hpage
+     Subject: mm,hwpoison-inject: don't pin for hwpoison_filter
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-remove-recalculating-hpage.patch
+     mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-remove-recalculating-hpage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-remove-recalculating-hpage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmhwpoison-inject-dont-pin-for-hwpoison_filter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,52 +79,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm, hwpoison: remove recalculating hpage
+Subject: mm,hwpoison-inject: don't pin for hwpoison_filter
 
-hpage is never used after try_to_split_thp_page() in memory_failure(), so
-we don't have to update hpage.  So let's not recalculate/use hpage.
+Another memory error injection interface debugfs:hwpoison/corrupt-pfn also
+takes bogus refcount for hwpoison_filter().  It's justified because this
+does a coarse filter, expecting that memory_failure() redoes the check for
+sure.
 
-Link: http://lkml.kernel.org/r/20200806184923.7007-3-nao.horiguchi@gmail.com
+Link: http://lkml.kernel.org/r/20200806184923.7007-4-nao.horiguchi@gmail.com
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Oscar Salvador <osalvador@suse.com>
-Suggested-by: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Dmitry Yakunin <zeil@yandex-team.ru>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Qian Cai <cai@lca.pw>
 Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/hwpoison-inject.c |   18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-remove-recalculating-hpage
-+++ a/mm/memory-failure.c
-@@ -1342,7 +1342,6 @@ int memory_failure(unsigned long pfn, in
- 		}
- 		unlock_page(p);
- 		VM_BUG_ON_PAGE(!page_count(p), p);
--		hpage = compound_head(p);
- 	}
+--- a/mm/hwpoison-inject.c~mmhwpoison-inject-dont-pin-for-hwpoison_filter
++++ a/mm/hwpoison-inject.c
+@@ -26,11 +26,6 @@ static int hwpoison_inject(void *data, u
+ 
+ 	p = pfn_to_page(pfn);
+ 	hpage = compound_head(p);
+-	/*
+-	 * This implies unable to support free buddy pages.
+-	 */
+-	if (!get_hwpoison_page(p))
+-		return 0;
+ 
+ 	if (!hwpoison_filter_enable)
+ 		goto inject;
+@@ -40,23 +35,20 @@ static int hwpoison_inject(void *data, u
+ 	 * This implies unable to support non-LRU pages.
+ 	 */
+ 	if (!PageLRU(hpage) && !PageHuge(p))
+-		goto put_out;
++		return 0;
  
  	/*
-@@ -1414,11 +1413,8 @@ int memory_failure(unsigned long pfn, in
- 	/*
- 	 * Now take care of user space mappings.
- 	 * Abort on fail: __delete_from_page_cache() assumes unmapped page.
--	 *
--	 * When the raw error page is thp tail page, hpage points to the raw
--	 * page after thp split.
+-	 * do a racy check with elevated page count, to make sure PG_hwpoison
+-	 * will only be set for the targeted owner (or on a free page).
++	 * do a racy check to make sure PG_hwpoison will only be set for
++	 * the targeted owner (or on a free page).
+ 	 * memory_failure() will redo the check reliably inside page lock.
  	 */
--	if (!hwpoison_user_mappings(p, pfn, flags, &hpage)) {
-+	if (!hwpoison_user_mappings(p, pfn, flags, &p)) {
- 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		res = -EBUSY;
- 		goto out;
+ 	err = hwpoison_filter(hpage);
+ 	if (err)
+-		goto put_out;
++		return 0;
+ 
+ inject:
+ 	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
+-	return memory_failure(pfn, MF_COUNT_INCREASED);
+-put_out:
+-	put_hwpoison_page(p);
+-	return 0;
++	return memory_failure(pfn, 0);
+ }
+ 
+ static int hwpoison_unpoison(void *data, u64 val)
 _
 
 Patches currently in -mm which might be from naoya.horiguchi@nec.com are
