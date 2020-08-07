@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0E91C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EF81C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9165822C9F
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D15E022CAF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781127;
-	bh=gO2FE7FeoupRREpR0ndTnvKOHLpWsYeQ0jFwu6mPS00=;
+	s=default; t=1596781130;
+	bh=MfO/fZsVOJp9DxsWMlg6hC+zRDpAKLgREa7mDK4tp+Q=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=E+K6cd48TdZAP4KHrQncEbKvVXCUTcAtFaQExcIaJZBhH6pSqPc6ukTHQh0a0ibUU
-	 0S8wl8sQ/pBU6H2bJeGjAl3w6y59iHbdSllj/SqBNONm/971swyZPYQgRzTSHx5xDr
-	 S0MYS/8/VbEYzdcRIg2cgwhiWMShHx590gZGwNIU=
+	b=LsnWiScRs6MmiXJjBpPv5Ib09gGAfJAUomG5V+boWh96Kv71lbywoC+JBdBONc8mQ
+	 BYG/72/GoCIAv0prvnsYr/M1+T822fL/IplKzEvEOTx83mzdUaTVxQ60h29UeSVZFA
+	 1PGck1Su9sRo2xWgxFZfqW0P5/I9CIoZ9xy0Dnro=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726200AbgHGGSr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:18:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54168 "EHLO mail.kernel.org"
+        id S1726202AbgHGGSu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:18:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54240 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGSr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:18:47 -0400
+        id S1725379AbgHGGSu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:18:50 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 76B4622CAF;
-        Fri,  7 Aug 2020 06:18:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 1620922CB3;
+        Fri,  7 Aug 2020 06:18:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781126;
-        bh=gO2FE7FeoupRREpR0ndTnvKOHLpWsYeQ0jFwu6mPS00=;
+        s=default; t=1596781129;
+        bh=MfO/fZsVOJp9DxsWMlg6hC+zRDpAKLgREa7mDK4tp+Q=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=mYw5yV9R0NQ0V0lGvfnxnwolXGHhzWPtL+iFyQebwLOVxXENMCzqqFdfWLOwk1p68
-         lrqSmbwUZ/udr1Aq3W5pXscjEBRFL1eRZxUKcX3fcJo+Ay0xFqwQChY99+qrl540h+
-         gp95h2tmz0p9Z9tF19aYGzMMhhs7QY7wHZeCYYMg=
-Date:   Thu, 06 Aug 2020 23:18:45 -0700
+        b=csOCmnfY8MqClNgY5H17Q5Lzk/IQ6RD/ss+Jk369U4tzCGN7NYU3NmArV2+f2bGPD
+         NJhwYsA8hHiwrDOBgfaR67LiDzYoIcDXMXG8naHzHzs0p8QRQcaPPjqLL7VcKWey0H
+         uLVzS0J+S9nb9IRJ5TWwTkFoQkLJmVWTlfWuXnrQ=
+Date:   Thu, 06 Aug 2020 23:18:48 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
         iamjoonsoo.kim@lge.com, jannh@google.com, keescook@chromium.org,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz,
         vjitta@codeaurora.org
-Subject:  [patch 031/163] mm, slub: make remaining slub_debug
- related attributes read-only
-Message-ID: <20200807061845.TEH4F98qc%akpm@linux-foundation.org>
+Subject:  [patch 032/163] mm, slub: make reclaim_account attribute
+ read-only
+Message-ID: <20200807061848.vF8DVDKGT%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,23 +57,22 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: make remaining slub_debug related attributes read-only
+Subject: mm, slub: make reclaim_account attribute read-only
 
-SLUB_DEBUG creates several files under /sys/kernel/slab/<cache>/ that can
-be read to check if the respective debugging options are enabled for given
-cache.  Some options, namely sanity_checks, trace, and failslab can be
-also enabled and disabled at runtime by writing into the files.
+The attribute reflects the SLAB_RECLAIM_ACCOUNT cache flag.  It's not
+clear why this attribute was writable in the first place, as it's tied to
+how the cache is used by its creator, it's not a user tunable. 
+Furthermore:
 
-The runtime toggling is racy.  Some options disable __CMPXCHG_DOUBLE when
-enabled, which means that in case of concurrent allocations, some can
-still use __CMPXCHG_DOUBLE and some not, leading to potential corruption. 
-The s->flags field is also not updated or checked atomically.  The
-simplest solution is to remove the runtime toggling.  The extended
-slub_debug boot parameter syntax introduced by earlier patch should allow
-to fine-tune the debugging configuration during boot with same
-granularity.
+- it affects slab merging, but that's not being checked while toggled
+- if affects whether __GFP_RECLAIMABLE flag is used to allocate page, but
+  the runtime toggle doesn't update allocflags
+- it affects cache_vmstat_idx() so runtime toggling might lead to incosistency
+  of NR_SLAB_RECLAIMABLE and NR_SLAB_UNRECLAIMABLE
 
-Link: http://lkml.kernel.org/r/20200610163135.17364-5-vbabka@suse.cz
+Thus make it read-only.
+
+Link: http://lkml.kernel.org/r/20200610163135.17364-6-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Acked-by: Roman Gushchin <guro@fb.com>
@@ -86,114 +85,27 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.rst |    7 +---
- mm/slub.c                 |   62 +-----------------------------------
- 2 files changed, 5 insertions(+), 64 deletions(-)
+ mm/slub.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
---- a/Documentation/vm/slub.rst~mm-slub-make-remaining-slub_debug-related-attributes-read-only
-+++ a/Documentation/vm/slub.rst
-@@ -116,11 +116,8 @@ options from the ``slub_debug`` paramete
- 	T	trace
- 	A	failslab
- 
--The sanity_checks, trace and failslab files are writable, so writing 1 or 0
--will enable or disable the option at runtime. The writes to trace and failslab
--may return -EINVAL if the cache is subject to slab merging. Careful with
--tracing: It may spew out lots of information and never stop if used on the
--wrong slab.
-+Careful with tracing: It may spew out lots of information and never stop if
-+used on the wrong slab.
- 
- Slab merging
- ============
---- a/mm/slub.c~mm-slub-make-remaining-slub_debug-related-attributes-read-only
+--- a/mm/slub.c~mm-slub-make-reclaim_account-attribute-read-only
 +++ a/mm/slub.c
-@@ -5040,20 +5040,6 @@ static ssize_t show_slab_objects(struct
- 	return x + sprintf(buf + x, "\n");
- }
- 
--#ifdef CONFIG_SLUB_DEBUG
--static int any_slab_objects(struct kmem_cache *s)
--{
--	int node;
--	struct kmem_cache_node *n;
--
--	for_each_kmem_cache_node(s, node, n)
--		if (atomic_long_read(&n->total_objects))
--			return 1;
--
--	return 0;
--}
--#endif
--
- #define to_slab_attr(n) container_of(n, struct slab_attribute, attr)
- #define to_slab(n) container_of(n, struct kmem_cache, kobj)
- 
-@@ -5275,43 +5261,13 @@ static ssize_t sanity_checks_show(struct
+@@ -5207,16 +5207,7 @@ static ssize_t reclaim_account_show(stru
  {
- 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_CONSISTENCY_CHECKS));
+ 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_RECLAIM_ACCOUNT));
  }
 -
--static ssize_t sanity_checks_store(struct kmem_cache *s,
+-static ssize_t reclaim_account_store(struct kmem_cache *s,
 -				const char *buf, size_t length)
 -{
--	s->flags &= ~SLAB_CONSISTENCY_CHECKS;
--	if (buf[0] == '1') {
--		s->flags &= ~__CMPXCHG_DOUBLE;
--		s->flags |= SLAB_CONSISTENCY_CHECKS;
--	}
--	return length;
--}
--SLAB_ATTR(sanity_checks);
-+SLAB_ATTR_RO(sanity_checks);
- 
- static ssize_t trace_show(struct kmem_cache *s, char *buf)
- {
- 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_TRACE));
- }
--
--static ssize_t trace_store(struct kmem_cache *s, const char *buf,
--							size_t length)
--{
--	/*
--	 * Tracing a merged cache is going to give confusing results
--	 * as well as cause other issues like converting a mergeable
--	 * cache into an umergeable one.
--	 */
--	if (s->refcount > 1)
--		return -EINVAL;
--
--	s->flags &= ~SLAB_TRACE;
--	if (buf[0] == '1') {
--		s->flags &= ~__CMPXCHG_DOUBLE;
--		s->flags |= SLAB_TRACE;
--	}
--	return length;
--}
--SLAB_ATTR(trace);
-+SLAB_ATTR_RO(trace);
- 
- static ssize_t red_zone_show(struct kmem_cache *s, char *buf)
- {
-@@ -5375,19 +5331,7 @@ static ssize_t failslab_show(struct kmem
- {
- 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_FAILSLAB));
- }
--
--static ssize_t failslab_store(struct kmem_cache *s, const char *buf,
--							size_t length)
--{
--	if (s->refcount > 1)
--		return -EINVAL;
--
--	s->flags &= ~SLAB_FAILSLAB;
+-	s->flags &= ~SLAB_RECLAIM_ACCOUNT;
 -	if (buf[0] == '1')
--		s->flags |= SLAB_FAILSLAB;
+-		s->flags |= SLAB_RECLAIM_ACCOUNT;
 -	return length;
 -}
--SLAB_ATTR(failslab);
-+SLAB_ATTR_RO(failslab);
- #endif
+-SLAB_ATTR(reclaim_account);
++SLAB_ATTR_RO(reclaim_account);
  
- static ssize_t shrink_show(struct kmem_cache *s, char *buf)
+ static ssize_t hwcache_align_show(struct kmem_cache *s, char *buf)
+ {
 _
