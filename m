@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53824C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4092DC433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30619221E5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24E7C2177B
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781060;
-	bh=BzNFnikdwUm2ueekbCaXzR1+hwYi6tFIhMeqZpbBYv4=;
+	s=default; t=1596781063;
+	bh=3lygZn61skO3nENgvbN9CEK39S+HwKM4TZIeg/IYHsI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=tuDZo1cvChX7vLaKBx0DBNjpkweiXb7fjbC1EgCJyj2q4NocgEZkcgzbLtVdHziSI
-	 nkSRXfiWy2ZxKYGQbybf7sc1F3DJvYPYHb6EhSDZukXE0A8Mj4muk414kDXLuJgTEl
-	 GskqyTEjibyPJYJevOPlDlvI6qOrZS6CXO3Usazw=
+	b=dXZ7V+b+cJftJKoQa4rRJVJAXSDUlWckjQ5WRBjGe16m4ovC4470Lb/LoRYw9dR60
+	 DfZFin2wy7noOw3IR6hnOuPg0GZ1h75AkKFtuDfOpPWKnopkyTWUhQEhq6BnTAamra
+	 wymtTVEJXuFKWhPUWZjS/7Qs/XXnIWAzcPXhHAuc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725845AbgHGGRj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:17:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52758 "EHLO mail.kernel.org"
+        id S1726217AbgHGGRm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:17:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52798 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGRj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:17:39 -0400
+        id S1725379AbgHGGRm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:17:42 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 73F1C2177B;
-        Fri,  7 Aug 2020 06:17:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 675BC221E5;
+        Fri,  7 Aug 2020 06:17:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781058;
-        bh=BzNFnikdwUm2ueekbCaXzR1+hwYi6tFIhMeqZpbBYv4=;
+        s=default; t=1596781061;
+        bh=3lygZn61skO3nENgvbN9CEK39S+HwKM4TZIeg/IYHsI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=K5fzZ13D+CFYGWqhZ+oV1ehQKNTRTD1UDrz7a8S5CgAVu5ENDffsNDAx7xZum1HxE
-         dLWemmuT8z9iDUqjCZG50QtKtR2GD8x3q3LZDOkEQX+4luVC+vpFsfsziF3EvgK8g5
-         6kTupA0Cn6b6kuG8D5uKrl9umrCruX5S9Z8AWB8s=
-Date:   Thu, 06 Aug 2020 23:17:38 -0700
+        b=fF4RKBA/Dw5gVi1GAWOD5pgAYZqucoU+6Vpnw7HdYzPup4RdNl5a6dj5/OqdSAvYH
+         vqMS6HqM9PqRBXUf/wlUrBgJD9S46Q9uST0yfWFEb3Kewma0+p/hmmDee5QuNMLzc8
+         8cmVwZDtrTjXRQh1jDDWpJhD08Zc2rLSmFUj7VMg=
+Date:   Thu, 06 Aug 2020 23:17:41 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, khlebnikov@yandex-team.ru,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, sashal@kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 011/163] scripts/decode_stacktrace.sh: guess
- basepath if not specified
-Message-ID: <20200807061738.5uS4tlDwj%akpm@linux-foundation.org>
+Subject:  [patch 012/163] scripts/decode_stacktrace.sh: guess path
+ to modules
+Message-ID: <20200807061741.ZN18xMsId%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,63 +55,90 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: scripts/decode_stacktrace.sh: guess basepath if not specified
+Subject: scripts/decode_stacktrace.sh: guess path to modules
 
-Guess path to kernel sources using known location of symbol "kernel_init".
-Make basepath argument optional.
+Try to find module in directory with vmlinux (for fresh build).  Then try
+standard paths where debuginfo are usually placed.  Pick first file which
+have elf section '.debug_line'.
 
 Before:
 
-$ echo 'vfs_open+0x0/0x0' | ./scripts/decode_stacktrace.sh vmlinux ""
-vfs_open (home/khlebnikov/src/linux/fs/open.c:912)
+$ echo 'tap_open+0x0/0x0 [tap]' |
+  ./scripts/decode_stacktrace.sh /usr/lib/debug/boot/vmlinux-5.4.0-37-generic
+WARNING! Modules path isn't set, but is needed to parse this symbol
+tap_open+0x0/0x0 tap
 
 After:
 
-$ echo 'vfs_open+0x0/0x0' | ./scripts/decode_stacktrace.sh vmlinux
-vfs_open (fs/open.c:912)
+$ echo 'tap_open+0x0/0x0 [tap]' |
+  ./scripts/decode_stacktrace.sh /usr/lib/debug/boot/vmlinux-5.4.0-37-generic
+tap_open (drivers/net/tap.c:502) tap
 
-Link: http://lkml.kernel.org/r/159282922803.248444.2379229451667913634.stgit@buzz
+Link: http://lkml.kernel.org/r/159282923068.248444.5461337458421616083.stgit@buzz
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ scripts/decode_stacktrace.sh |   36 ++++++++++++++++++++++++++++++---
+ 1 file changed, 33 insertions(+), 3 deletions(-)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktrace-guess-basepath-if-not-specified
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktrace-guess-path-to-modules
 +++ a/scripts/decode_stacktrace.sh
-@@ -3,14 +3,14 @@
- # (c) 2014, Sasha Levin <sasha.levin@oracle.com>
- #set -x
- 
--if [[ $# < 2 ]]; then
-+if [[ $# < 1 ]]; then
- 	echo "Usage:"
--	echo "	$0 [vmlinux] [base path] [modules path]"
-+	echo "	$0 <vmlinux> [base path] [modules path]"
- 	exit 1
- fi
- 
+@@ -12,9 +12,40 @@ fi
  vmlinux=$1
--basepath=$2
-+basepath=${2-auto}
+ basepath=${2-auto}
  modpath=$3
++release=""
++
  declare -A cache
  declare -A modcache
-@@ -152,6 +152,14 @@ handle_line() {
- 	echo "${words[@]}" "$symbol $module"
- }
  
-+if [[ $basepath == "auto" ]] ; then
-+	module=""
-+	symbol="kernel_init+0x0/0x0"
-+	parse_symbol
-+	basepath=${symbol#kernel_init (}
-+	basepath=${basepath%/init/main.c:*)}
-+fi
++find_module() {
++	if [[ "$modpath" != "" ]] ; then
++		for fn in $(find "$modpath" -name "${module//_/[-_]}.ko*") ; do
++			if readelf -WS "$fn" | grep -qwF .debug_line ; then
++				echo $fn
++				return
++			fi
++		done
++		return 1
++	fi
 +
- while read line; do
- 	# Let's see if we have an address in the line
- 	if [[ $line =~ \[\<([^]]+)\>\] ]] ||
++	modpath=$(dirname "$vmlinux")
++	find_module && return
++
++	if [[ $release == "" ]] ; then
++		release=$(gdb -ex 'print init_uts_ns.name.release' -ex 'quit' -quiet -batch "$vmlinux" | sed -n 's/\$1 = "\(.*\)".*/\1/p')
++	fi
++
++	for dn in {/usr/lib/debug,}/lib/modules/$release ; do
++		if [ -e "$dn" ] ; then
++			modpath="$dn"
++			find_module && return
++		fi
++	done
++
++	modpath=""
++	return 1
++}
++
+ parse_symbol() {
+ 	# The structure of symbol at this point is:
+ 	#   ([name]+[offset]/[total length])
+@@ -27,12 +58,11 @@ parse_symbol() {
+ 	elif [[ "${modcache[$module]+isset}" == "isset" ]]; then
+ 		local objfile=${modcache[$module]}
+ 	else
+-		if [[ $modpath == "" ]]; then
++		local objfile=$(find_module)
++		if [[ $objfile == "" ]] ; then
+ 			echo "WARNING! Modules path isn't set, but is needed to parse this symbol" >&2
+ 			return
+ 		fi
+-		local objfile=$(find "$modpath" -name "${module//_/[-_]}.ko*" -print -quit)
+-		[[ $objfile == "" ]] && return
+ 		modcache[$module]=$objfile
+ 	fi
+ 
 _
