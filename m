@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D22AC433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:24:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F4A1C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:24:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4723722CAE
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:24:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35E0F22C9F
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:24:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781485;
-	bh=NEWTFKbeXMs6X35eaBwhoU6LJS6a/ZSjHevVS+cNwE4=;
+	s=default; t=1596781489;
+	bh=0pwmDf6RKAj4GsHA6WJNrrGdfM0GOFri15aa4i5FvDo=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=GrJ7wLi+i/RH+XbprLXjjfhg2kDdgIU5C693vLufTeAqHc6lFkGTr19hOcQ1/X/en
-	 OIpx62+v4M3kbXSpP16Lw0feWDkIk91dzYXQQf62GO/cTuOF7bro7l32GEtm4UpfHk
-	 ZD7ySpx7f8qy9hcvrEyUmeGM46BhEdz8j/q2VwCM=
+	b=rUhdyvN2zOhu9a5kOQALNoMaWZCpO+6Yj1SPaikF+6xFLjl6hLYj67rTYxL3f4nlt
+	 HDSBqB0yazH6W/xvcAmdDAy36BxfBgw4v8OVn8xTRG+G0XTLDBqkeTT68xj/pRfOc/
+	 eU6Xk74Y9H325ciDpTPZ3ZonQ985cd9Tr1B1vaTc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726205AbgHGGYp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:24:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33572 "EHLO mail.kernel.org"
+        id S1726282AbgHGGYs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:24:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGYo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:24:44 -0400
+        id S1725379AbgHGGYs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:24:48 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5B80F221E5;
-        Fri,  7 Aug 2020 06:24:43 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3A4B422CAE;
+        Fri,  7 Aug 2020 06:24:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781484;
-        bh=NEWTFKbeXMs6X35eaBwhoU6LJS6a/ZSjHevVS+cNwE4=;
+        s=default; t=1596781488;
+        bh=0pwmDf6RKAj4GsHA6WJNrrGdfM0GOFri15aa4i5FvDo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oS7eQESWW7FpnQKS2eZVw+VJfSnfLa9BtJGCfg+ppHqHjgZ7evddbyVWzLsepMNt6
-         ngjCbzLazeCGO4fiOow0l6s4J5JQTc7XVtbFMNG8dsDwqwfqT4ble7eGqDr8CqPfAh
-         7mQN7lTyHQGS2q0ZVp4BT1erts+ZIIYWjsoSEhOk=
-Date:   Thu, 06 Aug 2020 23:24:42 -0700
+        b=SA/e0f9QtGxKy2uftQuH6LgKWDOyTPgr9ii53Wdd+/75hXLUSKiORySS3KOzyUz4J
+         BDXL21lYgUI2cU+nSI0qeQrKn2RvE9eTuFcvq57pyShGWwdCIidHekwCnftbQSIZVa
+         EBGqcnWLnKg6icd76F4/qLrHXdkFYZrjhhJevNo0=
+Date:   Thu, 06 Aug 2020 23:24:46 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@google.com,
         aryabinin@virtuozzo.com, corbet@lwn.net, dvyukov@google.com,
@@ -47,9 +47,9 @@ To:     akpm@linux-foundation.org, andreyknvl@google.com,
         mathieu.desnoyers@efficios.com, matthias.bgg@gmail.com,
         mm-commits@vger.kernel.org, paulmck@kernel.org,
         torvalds@linux-foundation.org, walter-zh.wu@mediatek.com
-Subject:  [patch 132/163] kasan: add tests for call_rcu stack
- recording
-Message-ID: <20200807062442.wgksHZUL3%akpm@linux-foundation.org>
+Subject:  [patch 133/163] kasan: update documentation for generic
+ kasan
+Message-ID: <20200807062446.EMPtGEWYE%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -59,75 +59,41 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Walter Wu <walter-zh.wu@mediatek.com>
-Subject: kasan: add tests for call_rcu stack recording
+Subject: kasan: update documentation for generic kasan
 
-Test call_rcu() call stack recording and verify whether it correctly is
-printed in KASAN report.
+Generic KASAN will support to record the last two call_rcu() call stacks
+and print them in KASAN report.  So that need to update documentation.
 
-Link: http://lkml.kernel.org/r/20200601051045.1294-1-walter-zh.wu@mediatek.com
+Link: http://lkml.kernel.org/r/20200601051111.1359-1-walter-zh.wu@mediatek.com
 Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Tested-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Lai Jiangshan <jiangshanlai@gmail.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ Documentation/dev-tools/kasan.rst |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/lib/test_kasan.c~kasan-add-tests-for-call_rcu-stack-recording
-+++ a/lib/test_kasan.c
-@@ -801,6 +801,35 @@ static noinline void __init vmalloc_oob(
- static void __init vmalloc_oob(void) {}
- #endif
+--- a/Documentation/dev-tools/kasan.rst~kasan-update-documentation-for-generic-kasan
++++ a/Documentation/dev-tools/kasan.rst
+@@ -190,6 +190,9 @@ function calls GCC directly inserts the
+ This option significantly enlarges kernel but it gives x1.1-x2 performance
+ boost over outline instrumented kernel.
  
-+static struct kasan_rcu_info {
-+	int i;
-+	struct rcu_head rcu;
-+} *global_rcu_ptr;
++Generic KASAN prints up to 2 call_rcu() call stacks in reports, the last one
++and the second to last.
 +
-+static noinline void __init kasan_rcu_reclaim(struct rcu_head *rp)
-+{
-+	struct kasan_rcu_info *fp = container_of(rp,
-+						struct kasan_rcu_info, rcu);
-+
-+	kfree(fp);
-+	fp->i = 1;
-+}
-+
-+static noinline void __init kasan_rcu_uaf(void)
-+{
-+	struct kasan_rcu_info *ptr;
-+
-+	pr_info("use-after-free in kasan_rcu_reclaim\n");
-+	ptr = kmalloc(sizeof(struct kasan_rcu_info), GFP_KERNEL);
-+	if (!ptr) {
-+		pr_err("Allocation failed\n");
-+		return;
-+	}
-+
-+	global_rcu_ptr = rcu_dereference_protected(ptr, NULL);
-+	call_rcu(&global_rcu_ptr->rcu, kasan_rcu_reclaim);
-+}
-+
- static int __init kmalloc_tests_init(void)
- {
- 	/*
-@@ -848,6 +877,7 @@ static int __init kmalloc_tests_init(voi
- 	kasan_bitops();
- 	kmalloc_double_kzfree();
- 	vmalloc_oob();
-+	kasan_rcu_uaf();
- 
- 	kasan_restore_multi_shot(multishot);
+ Software tag-based KASAN
+ ~~~~~~~~~~~~~~~~~~~~~~~~
  
 _
