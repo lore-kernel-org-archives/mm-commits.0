@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1ED4C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B4C6C433E1
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E6E422C9F
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E2F7822D00
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781227;
-	bh=vC8PJadMiLum6Wk3wBw3my5YygU2rTn7SeI+0FcBL28=;
+	s=default; t=1596781232;
+	bh=/+GjuyI/einNEPcWggkqcOYCxaQ8Rpt+T+rqa38Zqwo=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=azrKOAWrTu1j/lY9u4Y5kMIPcGeplYFam8XUkHAQNTHNCa1JcyhScw+V+oie/yxTl
-	 gM3aaEGNazkuaFqOBROsDbLrylQpoO4p0xRdbP4NRH7deaPdiU8eYZSKOroDBer3SF
-	 3x/PmR1OMeSskFPfsVnYk33KVveCq1u5OJmXP1Pw=
+	b=eua2LrnGIUhmqvW2jsLY8SwSLFYwvaORgozK/XIyXYhh7fZlwVw0dD8NfUhhSjI7U
+	 riDbSRnYhSW3h9tFIg1sHbA4ZFIymK83q7ia8yGEzYLUzDOC2/nuF2Fm+P8Tov34yK
+	 nVf0ey+gxNiyMfGEYP2dDDUtHxUHbY4SjnRb2CJU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726038AbgHGGU1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:20:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56318 "EHLO mail.kernel.org"
+        id S1726150AbgHGGUc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:20:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725900AbgHGGU1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:20:27 -0400
+        id S1725900AbgHGGUa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:20:30 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id EFB7222CB3;
-        Fri,  7 Aug 2020 06:20:25 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 34DEC221E5;
+        Fri,  7 Aug 2020 06:20:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781226;
-        bh=vC8PJadMiLum6Wk3wBw3my5YygU2rTn7SeI+0FcBL28=;
+        s=default; t=1596781229;
+        bh=/+GjuyI/einNEPcWggkqcOYCxaQ8Rpt+T+rqa38Zqwo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2hoZGHkm9+AaTTpw4QMpDE/D+C0oL52agXmQ0vCp95wFYJWFXy5AUhqtDcQ5qV6Z5
-         OA3UGOUDIBHTmHaSZAX15bYvsa55M8Gt0xn/BZ6I0l1u4CInSEgI+Shf5T5F7d5VXU
-         DiRkL0xhX6B9NRSEU7Zl1wLven25IPQMrxsNLMGA=
-Date:   Thu, 06 Aug 2020 23:20:25 -0700
+        b=ICF0VlBESrUh5vw8C0dxRLkpAmZRmhBBGP/WSdcbcNNMaSO5z7NK4DPnq8I0aB9SL
+         pD8d8LETxQdWF9bIsy0FxzXXYLDlsGL2HjKhNDFK9ihKMxavLHsed88cprvDATEyIu
+         unc2z0X1jtSCv8TQfT0Snj42+OZ1SoFgftHh3P2U=
+Date:   Thu, 06 Aug 2020 23:20:28 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, amir73il@gmail.com,
-        chris@chrisdown.name, hannes@cmpxchg.org, hughd@google.com,
-        jlayton@kernel.org, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        tj@kernel.org, torvalds@linux-foundation.org,
-        viro@zeniv.linux.org.uk, willy@infradead.org
-Subject:  [patch 060/163] tmpfs: support 64-bit inums per-sb
-Message-ID: <20200807062025.I1TSnFj3V%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, guro@fb.com, linux-mm@kvack.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org,
+        naresh.kamboju@linaro.org, shakeelb@google.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 061/163] mm: kmem: make memcg_kmem_enabled()
+ irreversible
+Message-ID: <20200807062028.9dTsF8Lvx%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,257 +55,61 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Chris Down <chris@chrisdown.name>
-Subject: tmpfs: support 64-bit inums per-sb
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: kmem: make memcg_kmem_enabled() irreversible
 
-The default is still set to inode32 for backwards compatibility, but
-system administrators can opt in to the new 64-bit inode numbers by
-either:
+Historically the kernel memory accounting was an opt-in feature, which
+could be enabled for individual cgroups.  But now it's not true, and it's
+on by default both on cgroup v1 and cgroup v2.  And as long as a user has
+at least one non-root memory cgroup, the kernel memory accounting is on. 
+So in most setups it's either always on (if memory cgroups are in use and
+kmem accounting is not disabled), either always off (otherwise).
 
-1. Passing inode64 on the command line when mounting, or
-2. Configuring the kernel with CONFIG_TMPFS_INODE64=y
+memcg_kmem_enabled() is used in many places to guard the kernel memory
+accounting code.  If memcg_kmem_enabled() can reverse from returning true
+to returning false (as now), we can't rely on it on release paths and have
+to check if it was on before.
 
-The inode64 and inode32 names are used based on existing precedent from
-XFS.
+If we'll make memcg_kmem_enabled() irreversible (always returning true
+after returning it for the first time), it'll make the general logic more
+simple and robust.  It also will allow to guard some checks which
+otherwise would stay unguarded.
 
-[hughd@google.com: Kconfig fixes]
-  Link: http://lkml.kernel.org/r/alpine.LSU.2.11.2008011928010.13320@eggly.anvils
-Link: http://lkml.kernel.org/r/8b23758d0c66b5e2263e08baf9c4b6a7565cbd8f.1594661218.git.chris@chrisdown.name
-Signed-off-by: Chris Down <chris@chrisdown.name>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
+Link: http://lkml.kernel.org/r/20200702180926.1330769-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.rst |   18 +++++++
- fs/Kconfig                          |   21 ++++++++
- include/linux/shmem_fs.h            |    1 
- mm/shmem.c                          |   65 +++++++++++++++++++++++++-
- 4 files changed, 103 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/Documentation/filesystems/tmpfs.rst~tmpfs-support-64-bit-inums-per-sb
-+++ a/Documentation/filesystems/tmpfs.rst
-@@ -150,6 +150,22 @@ These options do not have any effect on
- parameters with chmod(1), chown(1) and chgrp(1) on a mounted filesystem.
+--- a/mm/memcontrol.c~mm-kmem-make-memcg_kmem_enabled-irreversible
++++ a/mm/memcontrol.c
+@@ -3416,7 +3416,8 @@ static int memcg_online_kmem(struct mem_
+ 	if (memcg_id < 0)
+ 		return memcg_id;
  
- 
-+tmpfs has a mount option to select whether it will wrap at 32- or 64-bit inode
-+numbers:
+-	static_branch_inc(&memcg_kmem_enabled_key);
++	static_branch_enable(&memcg_kmem_enabled_key);
 +
-+=======   ========================
-+inode64   Use 64-bit inode numbers
-+inode32   Use 32-bit inode numbers
-+=======   ========================
-+
-+On a 32-bit kernel, inode32 is implicit, and inode64 is refused at mount time.
-+On a 64-bit kernel, CONFIG_TMPFS_INODE64 sets the default.  inode64 avoids the
-+possibility of multiple files with the same inode number on a single device;
-+but risks glibc failing with EOVERFLOW once 33-bit inode numbers are reached -
-+if a long-lived tmpfs is accessed by 32-bit applications so ancient that
-+opening a file larger than 2GiB fails with EINVAL.
-+
-+
- So 'mount -t tmpfs -o size=10G,nr_inodes=10k,mode=700 tmpfs /mytmpfs'
- will give you tmpfs instance on /mytmpfs which can allocate 10GB
- RAM/SWAP in 10240 inodes and it is only accessible by root.
-@@ -161,3 +177,5 @@ RAM/SWAP in 10240 inodes and it is only
-    Hugh Dickins, 4 June 2007
- :Updated:
-    KOSAKI Motohiro, 16 Mar 2010
-+:Updated:
-+   Chris Down, 13 July 2020
---- a/fs/Kconfig~tmpfs-support-64-bit-inums-per-sb
-+++ a/fs/Kconfig
-@@ -201,6 +201,27 @@ config TMPFS_XATTR
- 
- 	  If unsure, say N.
- 
-+config TMPFS_INODE64
-+	bool "Use 64-bit ino_t by default in tmpfs"
-+	depends on TMPFS && 64BIT
-+	default n
-+	help
-+	  tmpfs has historically used only inode numbers as wide as an unsigned
-+	  int. In some cases this can cause wraparound, potentially resulting
-+	  in multiple files with the same inode number on a single device. This
-+	  option makes tmpfs use the full width of ino_t by default, without
-+	  needing to specify the inode64 option when mounting.
-+
-+	  But if a long-lived tmpfs is to be accessed by 32-bit applications so
-+	  ancient that opening a file larger than 2GiB fails with EINVAL, then
-+	  the INODE64 config option and inode64 mount option risk operations
-+	  failing with EOVERFLOW once 33-bit inode numbers are reached.
-+
-+	  To override this configured default, use the inode32 or inode64
-+	  option when mounting.
-+
-+	  If unsure, say N.
-+
- config HUGETLBFS
- 	bool "HugeTLB file system support"
- 	depends on X86 || IA64 || SPARC64 || (S390 && 64BIT) || \
---- a/include/linux/shmem_fs.h~tmpfs-support-64-bit-inums-per-sb
-+++ a/include/linux/shmem_fs.h
-@@ -36,6 +36,7 @@ struct shmem_sb_info {
- 	unsigned char huge;	    /* Whether to try for hugepages */
- 	kuid_t uid;		    /* Mount uid for root directory */
- 	kgid_t gid;		    /* Mount gid for root directory */
-+	bool full_inums;	    /* If i_ino should be uint or ino_t */
- 	ino_t next_ino;		    /* The next per-sb inode number to use */
- 	ino_t __percpu *ino_batch;  /* The next per-cpu inode number to use */
- 	struct mempolicy *mpol;     /* default memory policy for mappings */
---- a/mm/shmem.c~tmpfs-support-64-bit-inums-per-sb
-+++ a/mm/shmem.c
-@@ -114,11 +114,13 @@ struct shmem_options {
- 	kuid_t uid;
- 	kgid_t gid;
- 	umode_t mode;
-+	bool full_inums;
- 	int huge;
- 	int seen;
- #define SHMEM_SEEN_BLOCKS 1
- #define SHMEM_SEEN_INODES 2
- #define SHMEM_SEEN_HUGE 4
-+#define SHMEM_SEEN_INUMS 8
- };
- 
- #ifdef CONFIG_TMPFS
-@@ -286,12 +288,17 @@ static int shmem_reserve_inode(struct su
- 			ino = sbinfo->next_ino++;
- 			if (unlikely(is_zero_ino(ino)))
- 				ino = sbinfo->next_ino++;
--			if (unlikely(ino > UINT_MAX)) {
-+			if (unlikely(!sbinfo->full_inums &&
-+				     ino > UINT_MAX)) {
- 				/*
- 				 * Emulate get_next_ino uint wraparound for
- 				 * compatibility
- 				 */
--				ino = 1;
-+				if (IS_ENABLED(CONFIG_64BIT))
-+					pr_warn("%s: inode number overflow on device %d, consider using inode64 mount option\n",
-+						__func__, MINOR(sb->s_dev));
-+				sbinfo->next_ino = 1;
-+				ino = sbinfo->next_ino++;
- 			}
- 			*inop = ino;
- 		}
-@@ -304,6 +311,10 @@ static int shmem_reserve_inode(struct su
- 		 * unknown contexts. As such, use a per-cpu batched allocator
- 		 * which doesn't require the per-sb stat_lock unless we are at
- 		 * the batch boundary.
-+		 *
-+		 * We don't need to worry about inode{32,64} since SB_KERNMOUNT
-+		 * shmem mounts are not exposed to userspace, so we don't need
-+		 * to worry about things like glibc compatibility.
- 		 */
- 		ino_t *next_ino;
- 		next_ino = per_cpu_ptr(sbinfo->ino_batch, get_cpu());
-@@ -3397,6 +3408,8 @@ enum shmem_param {
- 	Opt_nr_inodes,
- 	Opt_size,
- 	Opt_uid,
-+	Opt_inode32,
-+	Opt_inode64,
- };
- 
- static const struct constant_table shmem_param_enums_huge[] = {
-@@ -3416,6 +3429,8 @@ const struct fs_parameter_spec shmem_fs_
- 	fsparam_string("nr_inodes",	Opt_nr_inodes),
- 	fsparam_string("size",		Opt_size),
- 	fsparam_u32   ("uid",		Opt_uid),
-+	fsparam_flag  ("inode32",	Opt_inode32),
-+	fsparam_flag  ("inode64",	Opt_inode64),
- 	{}
- };
- 
-@@ -3487,6 +3502,18 @@ static int shmem_parse_one(struct fs_con
- 			break;
- 		}
- 		goto unsupported_parameter;
-+	case Opt_inode32:
-+		ctx->full_inums = false;
-+		ctx->seen |= SHMEM_SEEN_INUMS;
-+		break;
-+	case Opt_inode64:
-+		if (sizeof(ino_t) < 8) {
-+			return invalfc(fc,
-+				       "Cannot use inode64 with <64bit inums in kernel\n");
-+		}
-+		ctx->full_inums = true;
-+		ctx->seen |= SHMEM_SEEN_INUMS;
-+		break;
- 	}
- 	return 0;
- 
-@@ -3578,8 +3605,16 @@ static int shmem_reconfigure(struct fs_c
- 		}
- 	}
- 
-+	if ((ctx->seen & SHMEM_SEEN_INUMS) && !ctx->full_inums &&
-+	    sbinfo->next_ino > UINT_MAX) {
-+		err = "Current inum too high to switch to 32-bit inums";
-+		goto out;
-+	}
-+
- 	if (ctx->seen & SHMEM_SEEN_HUGE)
- 		sbinfo->huge = ctx->huge;
-+	if (ctx->seen & SHMEM_SEEN_INUMS)
-+		sbinfo->full_inums = ctx->full_inums;
- 	if (ctx->seen & SHMEM_SEEN_BLOCKS)
- 		sbinfo->max_blocks  = ctx->blocks;
- 	if (ctx->seen & SHMEM_SEEN_INODES) {
-@@ -3619,6 +3654,29 @@ static int shmem_show_options(struct seq
- 	if (!gid_eq(sbinfo->gid, GLOBAL_ROOT_GID))
- 		seq_printf(seq, ",gid=%u",
- 				from_kgid_munged(&init_user_ns, sbinfo->gid));
-+
-+	/*
-+	 * Showing inode{64,32} might be useful even if it's the system default,
-+	 * since then people don't have to resort to checking both here and
-+	 * /proc/config.gz to confirm 64-bit inums were successfully applied
-+	 * (which may not even exist if IKCONFIG_PROC isn't enabled).
-+	 *
-+	 * We hide it when inode64 isn't the default and we are using 32-bit
-+	 * inodes, since that probably just means the feature isn't even under
-+	 * consideration.
-+	 *
-+	 * As such:
-+	 *
-+	 *                     +-----------------+-----------------+
-+	 *                     | TMPFS_INODE64=y | TMPFS_INODE64=n |
-+	 *  +------------------+-----------------+-----------------+
-+	 *  | full_inums=true  | show            | show            |
-+	 *  | full_inums=false | show            | hide            |
-+	 *  +------------------+-----------------+-----------------+
-+	 *
-+	 */
-+	if (IS_ENABLED(CONFIG_TMPFS_INODE64) || sbinfo->full_inums)
-+		seq_printf(seq, ",inode%d", (sbinfo->full_inums ? 64 : 32));
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	/* Rightly or wrongly, show huge mount option unmasked by shmem_huge */
- 	if (sbinfo->huge)
-@@ -3667,6 +3725,8 @@ static int shmem_fill_super(struct super
- 			ctx->blocks = shmem_default_max_blocks();
- 		if (!(ctx->seen & SHMEM_SEEN_INODES))
- 			ctx->inodes = shmem_default_max_inodes();
-+		if (!(ctx->seen & SHMEM_SEEN_INUMS))
-+			ctx->full_inums = IS_ENABLED(CONFIG_TMPFS_INODE64);
- 	} else {
- 		sb->s_flags |= SB_NOUSER;
- 	}
-@@ -3684,6 +3744,7 @@ static int shmem_fill_super(struct super
- 	}
- 	sbinfo->uid = ctx->uid;
- 	sbinfo->gid = ctx->gid;
-+	sbinfo->full_inums = ctx->full_inums;
- 	sbinfo->mode = ctx->mode;
- 	sbinfo->huge = ctx->huge;
- 	sbinfo->mpol = ctx->mpol;
+ 	/*
+ 	 * A memory cgroup is considered kmem-online as soon as it gets
+ 	 * kmemcg_id. Setting the id after enabling static branching will
+@@ -3486,11 +3487,6 @@ static void memcg_free_kmem(struct mem_c
+ 	/* css_alloc() failed, offlining didn't happen */
+ 	if (unlikely(memcg->kmem_state == KMEM_ONLINE))
+ 		memcg_offline_kmem(memcg);
+-
+-	if (memcg->kmem_state == KMEM_ALLOCATED) {
+-		WARN_ON(!list_empty(&memcg->kmem_caches));
+-		static_branch_dec(&memcg_kmem_enabled_key);
+-	}
+ }
+ #else
+ static int memcg_online_kmem(struct mem_cgroup *memcg)
 _
