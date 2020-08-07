@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E9E9C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85EB9C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:19:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 43E912177B
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:18:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D15222CB3
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:19:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781137;
-	bh=qQTtSDa6o1vI/6AAveAi9Qdhgiu0qNk/FT0N/qiTuVw=;
+	s=default; t=1596781140;
+	bh=bc48BL73VXwV/bxiX0u8KlfYKhcdsULjFa5h3rzwa/g=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=SwKUaTmUVyI7Yg4C01YUhHgvACc7Q7P32esp/1yoQcxOJDK4rJaQhLKYKZsBGzkhF
-	 Oq3ByzpFxgvytz9QrDKqtQp/KvRGv3VBlsLTijxQclLzvBJMfEkBdScBt3yo1P6jUo
-	 q+XuyQlhTHYaF9l12033d/tOEwpqBeNB8ePDcE9A=
+	b=Q1rCwad7Wm7r539LoEIiskT9EDeYvKkixXRlNsPK7t0cMl/1omwntMZss2XYKY06+
+	 yYPAUjCidyToV/n9hN/jBeGNql9FO4GuQysSfvVF2iICz/SQVj9bSYrGalSHUqCoii
+	 a004NvlvpuaR0EkLFQfkDS21Clw7hRTRpnv0D2zw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725805AbgHGGS5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:18:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54376 "EHLO mail.kernel.org"
+        id S1725872AbgHGGTA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:19:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGS4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:18:56 -0400
+        id S1725379AbgHGGTA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:19:00 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8A7FD22CAF;
-        Fri,  7 Aug 2020 06:18:55 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id DCC3F2177B;
+        Fri,  7 Aug 2020 06:18:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781136;
-        bh=qQTtSDa6o1vI/6AAveAi9Qdhgiu0qNk/FT0N/qiTuVw=;
+        s=default; t=1596781139;
+        bh=bc48BL73VXwV/bxiX0u8KlfYKhcdsULjFa5h3rzwa/g=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=px2oTUnbsROli+QWpZEZIMiEfw/nCl+NmAtvrT9IV0woEh3eoXhzgn5igw0hqzV+a
-         GPBANSUtwFnb6xe2P+xuNFQ3lKXEdh1z5OWyR1i+l4SvKn34iz7Oi4fGMnBxOGzMxt
-         mg2cUcs5ycZHP2QaO8PsCFvZtt4ovRAIkYopL6S4=
-Date:   Thu, 06 Aug 2020 23:18:55 -0700
+        b=s3tUUtDqyjMcH4mF9j+ZpHeY1PtxjWeQWUyDlmwawgs6w2oyJGpq7teRL7arNLKBY
+         v2FzHTK+3DGWznvJXPDaUJBmRIwKP0KMvtlhesVSUQLvqfjHmgM8p3hU3dSikYrIoK
+         Df52xeRA5alhMfvZziB1ZqQNK1t4rHZgYUsDnrl8=
+Date:   Thu, 06 Aug 2020 23:18:58 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
         iamjoonsoo.kim@lge.com, jannh@google.com, keescook@chromium.org,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz,
         vjitta@codeaurora.org
-Subject:  [patch 034/163] mm, slub: introduce
- kmem_cache_debug_flags()
-Message-ID: <20200807061855.wsvIYh1Qy%akpm@linux-foundation.org>
+Subject:  [patch 035/163] mm, slub: extend checks guarded by
+ slub_debug static key
+Message-ID: <20200807061858.P7bD7iz08%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,23 +57,21 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: introduce kmem_cache_debug_flags()
+Subject: mm, slub: extend checks guarded by slub_debug static key
 
-There are few places that call kmem_cache_debug(s) (which tests if any of
-debug flags are enabled for a cache) immediately followed by a test for a
-specific flag.  The compiler can probably eliminate the extra check, but
-we can make the code nicer by introducing kmem_cache_debug_flags() that
-works like kmem_cache_debug() (including the static key check) but tests
-for specific flag(s).  The next patches will add more users.
+There are few more places in SLUB that could benefit from reduced overhead
+of the static key introduced by a previous patch:
 
-[vbabka@suse.cz: change return from int to bool, per Kees.  Add VM_WARN_ON_ONCE() for invalid flags, per Roman]
-  Link: http://lkml.kernel.org/r/949b90ed-e0f0-07d7-4d21-e30ec0958a7c@suse.cz
-Link: http://lkml.kernel.org/r/20200610163135.17364-8-vbabka@suse.cz
+- setup_object_debug() called on each object in newly allocated slab page
+- setup_page_debug() called on newly allocated slab page
+- __free_slab() called on freed slab page
+
+Link: http://lkml.kernel.org/r/20200610163135.17364-9-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Roman Gushchin <guro@fb.com>
 Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Jann Horn <jannh@google.com>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Vijayanand Jitta <vjitta@codeaurora.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -81,52 +79,36 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ mm/slub.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/slub.c~mm-slub-introduce-kmem_cache_debug_flags
+--- a/mm/slub.c~mm-slub-extend-checks-guarded-by-slub_debug-static-key
 +++ a/mm/slub.c
-@@ -122,18 +122,29 @@ DEFINE_STATIC_KEY_FALSE(slub_debug_enabl
- #endif
- #endif
- 
--static inline int kmem_cache_debug(struct kmem_cache *s)
-+/*
-+ * Returns true if any of the specified slub_debug flags is enabled for the
-+ * cache. Use only for flags parsed by setup_slub_debug() as it also enables
-+ * the static key.
-+ */
-+static inline bool kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
+@@ -1131,7 +1131,7 @@ static inline void dec_slabs_node(struct
+ static void setup_object_debug(struct kmem_cache *s, struct page *page,
+ 								void *object)
  {
-+	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
- #ifdef CONFIG_SLUB_DEBUG
- 	if (static_branch_unlikely(&slub_debug_enabled))
--		return s->flags & SLAB_DEBUG_FLAGS;
-+		return s->flags & flags;
- #endif
--	return 0;
-+	return false;
-+}
-+
-+static inline bool kmem_cache_debug(struct kmem_cache *s)
-+{
-+	return kmem_cache_debug_flags(s, SLAB_DEBUG_FLAGS);
- }
+-	if (!(s->flags & (SLAB_STORE_USER|SLAB_RED_ZONE|__OBJECT_POISON)))
++	if (!kmem_cache_debug_flags(s, SLAB_STORE_USER|SLAB_RED_ZONE|__OBJECT_POISON))
+ 		return;
  
- void *fixup_red_left(struct kmem_cache *s, void *p)
+ 	init_object(s, object, SLUB_RED_INACTIVE);
+@@ -1141,7 +1141,7 @@ static void setup_object_debug(struct km
+ static
+ void setup_page_debug(struct kmem_cache *s, struct page *page, void *addr)
  {
--	if (kmem_cache_debug(s) && s->flags & SLAB_RED_ZONE)
-+	if (kmem_cache_debug_flags(s, SLAB_RED_ZONE))
- 		p += s->red_left_pad;
+-	if (!(s->flags & SLAB_POISON))
++	if (!kmem_cache_debug_flags(s, SLAB_POISON))
+ 		return;
  
- 	return p;
-@@ -4060,7 +4071,7 @@ void __check_heap_object(const void *ptr
- 	offset = (ptr - page_address(page)) % s->size;
+ 	metadata_access_enable();
+@@ -1853,7 +1853,7 @@ static void __free_slab(struct kmem_cach
+ 	int order = compound_order(page);
+ 	int pages = 1 << order;
  
- 	/* Adjust for redzone and reject if within the redzone. */
--	if (kmem_cache_debug(s) && s->flags & SLAB_RED_ZONE) {
-+	if (kmem_cache_debug_flags(s, SLAB_RED_ZONE)) {
- 		if (offset < s->red_left_pad)
- 			usercopy_abort("SLUB object in left red zone",
- 				       s->name, to_user, offset, n);
+-	if (s->flags & SLAB_CONSISTENCY_CHECKS) {
++	if (kmem_cache_debug_flags(s, SLAB_CONSISTENCY_CHECKS)) {
+ 		void *p;
+ 
+ 		slab_pad_check(s, page);
 _
