@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A934C433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:54:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A67DC433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:55:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D46E2177B
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:54:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12A702177B
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:55:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596779672;
-	bh=H889yGLQpSokcW5LKpbXsfLQYWniBADTR17872KCoJM=;
+	s=default; t=1596779736;
+	bh=0lxWvYZvR0c7eqPHbKxd/vbHwRr21lBX0thzWUXoBvM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=QS4UmEHGy/Ta44iw0PxQEqpQO5k48sFzxZ3rhfNCA05/b4WJpluY5naLS57ImeIEE
-	 Hrie+pCxkVU+CcrpAkU8+v0Tb2Z0W6JdsUJR/VYG7GjzHbXBzLf45JB2qqOKRyLuQX
-	 wkvuT1gUuPhzDdQWVT7bXK/3BuFvU9TnTbSorAC0=
+	b=F8nqswsRfAFAh/lYZaE/Os/ncICKSCZSjzbTa6AQV4bGzhbGtJ5rU/L8OpCwq0LQR
+	 7JctguGIMHS1Psz83XMm+8iEehi4ZBBIpgW6N/h5ERWzZIMncwr5lLxDgLH4iUdI79
+	 uOr0NHnEnOgBOaNw6sUCAhTihTpc2qjM3nJMcEpM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725805AbgHGFyb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:54:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45386 "EHLO mail.kernel.org"
+        id S1725805AbgHGFzf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:55:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45852 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGFyb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:54:31 -0400
+        id S1725379AbgHGFzf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:55:35 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 27EED21744;
-        Fri,  7 Aug 2020 05:54:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2720B21744;
+        Fri,  7 Aug 2020 05:55:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596779671;
-        bh=H889yGLQpSokcW5LKpbXsfLQYWniBADTR17872KCoJM=;
+        s=default; t=1596779735;
+        bh=0lxWvYZvR0c7eqPHbKxd/vbHwRr21lBX0thzWUXoBvM=;
         h=Date:From:To:Subject:From;
-        b=sKvOVPQrWGv5/NFXnUSUZFX3ODjwtkKcF4i6ZAukzEQWzP0UAcAAfg8bjTRFIqShU
-         GIVBPff6uRBpyWKKAk0oICqK7apX9WnWEW4NCBYW/jOcMe7TE2f3A1arLDLz4SnBqo
-         XPvFjouo+gJW1uTmeA22Sj+hSz8uOhD/DUwgh2rY=
-Date:   Thu, 06 Aug 2020 22:54:30 -0700
+        b=hdQw3ms7EwkTljn9j6V0mCVsK1lzGWAUjfJ09l7swRDdunWWNya+ar25gYqvBE3QK
+         oZuAtTkomihF+Q07S3cKP6lK107UZf2mHKrBZrenMUFuyAVyVHHiu5vZop39eFKVU0
+         nc1qaTCqByQnCFWGhSAAQtN9TFKcsYrgAr1+tOLw=
+Date:   Thu, 06 Aug 2020 22:55:34 -0700
 From:   akpm@linux-foundation.org
-To:     jcmvbkbc@gmail.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        sfr@canb.auug.org.au
+To:     mm-commits@vger.kernel.org, walter-zh.wu@mediatek.com
 Subject:  [folded-merged]
- xtensa-switch-to-generic-version-of-pte-allocation-fix.patch removed from
- -mm tree
-Message-ID: <20200807055430.rJu6AUSm7%akpm@linux-foundation.org>
+ rcu-kasan-record-and-print-call_rcu-call-stack-v8.patch removed from -mm
+ tree
+Message-ID: <20200807055534.Ti9Ksb4Lr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,46 +54,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: fix closing endif comment
+     Subject: rcu-kasan-record-and-print-call_rcu-call-stack-v8
 has been removed from the -mm tree.  Its filename was
-     xtensa-switch-to-generic-version-of-pte-allocation-fix.patch
+     rcu-kasan-record-and-print-call_rcu-call-stack-v8.patch
 
-This patch was dropped because it was folded into xtensa-switch-to-generic-version-of-pte-allocation.patch
+This patch was dropped because it was folded into rcu-kasan-record-and-print-call_rcu-call-stack.patch
 
 ------------------------------------------------------
-From: Max Filippov <jcmvbkbc@gmail.com>
-Subject: xtensa: fix closing endif comment
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: rcu-kasan-record-and-print-call_rcu-call-stack-v8
 
-Commit 8f74afa22d9b ("xtensa: switch to generic version of pte
-allocation") introduced the following build warning for xtensa
-  arch/xtensa/include/asm/pgalloc.h:67:8: warning: extra tokens at end of
-  #endif directive [-Wendif-labels]
-Fix #endif comment.
+build fix
 
-Link: http://lkml.kernel.org/r/20200721024751.1257-1-jcmvbkbc@gmail.com
-Fixes: 8f74afa22d9b ("xtensa: switch to generic version of pte allocation")
-Signed-off-by: Max Filippov <jcmvbkbc@gmail.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/20200710162401.23816-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/pgalloc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/kasan.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/arch/xtensa/include/asm/pgalloc.h~xtensa-switch-to-generic-version-of-pte-allocation-fix
-+++ a/arch/xtensa/include/asm/pgalloc.h
-@@ -69,6 +69,6 @@ static inline pgtable_t pte_alloc_one(st
- }
- 
- #define pmd_pgtable(pmd) pmd_page(pmd)
--#endif CONFIG_MMU
-+#endif /* CONFIG_MMU */
- 
- #endif /* _XTENSA_PGALLOC_H */
+--- a/mm/kasan/kasan.h~rcu-kasan-record-and-print-call_rcu-call-stack-v8
++++ a/mm/kasan/kasan.h
+@@ -110,9 +110,8 @@ struct kasan_alloc_meta {
+ 	 * The free stack is stored into struct kasan_free_meta.
+ 	 */
+ 	depot_stack_handle_t aux_stack[2];
+-#else
+-	struct kasan_track free_track[KASAN_NR_FREE_STACKS];
+ #endif
++	struct kasan_track free_track[KASAN_NR_FREE_STACKS];
+ #ifdef CONFIG_KASAN_SW_TAGS_IDENTIFY
+ 	u8 free_pointer_tag[KASAN_NR_FREE_STACKS];
+ 	u8 free_track_idx;
 _
 
-Patches currently in -mm which might be from jcmvbkbc@gmail.com are
+Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
 
-xtensa-switch-to-generic-version-of-pte-allocation.patch
+rcu-kasan-record-and-print-call_rcu-call-stack.patch
+kasan-record-and-print-the-free-track.patch
+kasan-record-and-print-the-free-track-v8.patch
+kasan-add-tests-for-call_rcu-stack-recording.patch
+kasan-update-documentation-for-generic-kasan.patch
+kasan-fix-kasan-unit-tests-for-tag-based-kasan.patch
+kasan-fix-kasan-unit-tests-for-tag-based-kasan-v4.patch
 
