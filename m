@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0790AC433DF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9409C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E41E3221E5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CFE092177B
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:17:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781041;
-	bh=2BFBHw3XZvwXwNRkBzrcop/NSxWNyJBMp5dQKM4eftE=;
+	s=default; t=1596781044;
+	bh=iOQku6WUzYr21BCqT4QFwL8gAQwzMMrfzFVs36xdQbc=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=BIHSy6aNEgNTP2IZPEb9gd1wqwQ0so2yfRgH7bOBAdTIBjFVMLRXGBR0S5ZRsonYm
-	 1PLrhJU+S12T3xEHi16+zoyO0PnK8qeXApa5UmCJab7X3uyPUapLvkhjqjL7sTb0KN
-	 v/QwgHdlB8CnNXjWKxDifdMFPA5k6ljdcTotNiw4=
+	b=viAbNtbArsDvb9EwF/taxLVNjafLNCkB/y5n/qUYZQtZ/Ejw6iMDA6IUZT4L8sIqL
+	 g8NKevVInnswpGMu4lj4GRg3cpNctF2ElnKbPxt97ec0L793Mxsh9PZWyyzWYVZTSV
+	 Tw8b5x5PgCBk2xy/pXFkwjkfljJi7mHoYD6JeM34=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726198AbgHGGRV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:17:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52446 "EHLO mail.kernel.org"
+        id S1726200AbgHGGRY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:17:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52502 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725379AbgHGGRU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:17:20 -0400
+        id S1725379AbgHGGRY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:17:24 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5EFAF22C9F;
-        Fri,  7 Aug 2020 06:17:20 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6481C221E5;
+        Fri,  7 Aug 2020 06:17:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781040;
-        bh=2BFBHw3XZvwXwNRkBzrcop/NSxWNyJBMp5dQKM4eftE=;
+        s=default; t=1596781043;
+        bh=iOQku6WUzYr21BCqT4QFwL8gAQwzMMrfzFVs36xdQbc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=CFFCKCYHzzen0Wiyu6XcPm1JKb8s8bZblQCcMcfnGTtnXuwNSidvQCgaW8MeM3HQ7
-         f0cWwr4p0anyuGM9mvO+D3+p73nQxIm16Twv2OJygn/U35ndQBwtc8053nyxwX28By
-         O5szumLg89lGiwTE3JPEPvhLiOqR7wSTCK2al11k=
-Date:   Thu, 06 Aug 2020 23:17:19 -0700
+        b=m1MRVAM35M3BXouHY6LXeWcoJn4Sgx51e8pDwd+sPQtnhVMYwF8+8y9nnarcpjyTb
+         ZfN/iPsFdR09vf5W7chUjS4mpS5pklSo+0nroGn9LECgDjFrpC2VP9ToTT4cAS+uOY
+         Ii9XPynue982rxp1gWzydffITR6eeSLHy3XFkaD0=
+Date:   Thu, 06 Aug 2020 23:17:22 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, pmladek@suse.com,
-        stamatis.iliass@gmail.com, torvalds@linux-foundation.org
-Subject:  [patch 005/163] kthread: remove incorrect comment in
- kthread_create_on_cpu()
-Message-ID: <20200807061719.Bc1q_uR0m%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, grandmaster@al2klimov.de,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 006/163] tools/: replace HTTP links with HTTPS
+ ones
+Message-ID: <20200807061722.Z9iuNCxnG%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,32 +54,78 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Ilias Stamatis <stamatis.iliass@gmail.com>
-Subject: kthread: remove incorrect comment in kthread_create_on_cpu()
+From: "Alexander A. Klimov" <grandmaster@al2klimov.de>
+Subject: tools/: replace HTTP links with HTTPS ones
 
-Originally kthread_create_on_cpu() parked and woke up the new thread. 
-However, since commit a65d40961dc7 ("kthread/smpboot: do not park in
-kthread_create_on_cpu()") this is no longer the case.  This patch removes
-the comment that has been left behind and is now incorrect / stale.
+Rationale:
+Reduces attack surface on kernel devs opening the links for MITM
+as HTTPS traffic is much harder to manipulate.
 
-Link: http://lkml.kernel.org/r/20200611135920.240551-1-stamatis.iliass@gmail.com
-Fixes: a65d40961dc7 ("kthread/smpboot: do not park in kthread_create_on_cpu()")
-Signed-off-by: Ilias Stamatis <stamatis.iliass@gmail.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
+Link: http://lkml.kernel.org/r/20200726120752.16768-1-grandmaster@al2klimov.de
+Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    1 -
- 1 file changed, 1 deletion(-)
+ tools/include/linux/jhash.h                  |    2 +-
+ tools/lib/rbtree.c                           |    2 +-
+ tools/lib/traceevent/event-parse.h           |    2 +-
+ tools/testing/ktest/examples/README          |    2 +-
+ tools/testing/ktest/examples/crosstests.conf |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/kernel/kthread.c~kthread-remove-incorrect-comment-in-kthread_create_on_cpu
-+++ a/kernel/kthread.c
-@@ -480,7 +480,6 @@ EXPORT_SYMBOL(kthread_bind);
-  *	     to "name.*%u". Code fills in cpu number.
+--- a/tools/include/linux/jhash.h~tools-replace-http-links-with-https-ones
++++ a/tools/include/linux/jhash.h
+@@ -5,7 +5,7 @@
   *
-  * Description: This helper function creates and names a kernel thread
-- * The thread will be woken and put into park mode.
-  */
- struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
- 					  void *data, unsigned int cpu,
+  * Copyright (C) 2006. Bob Jenkins (bob_jenkins@burtleburtle.net)
+  *
+- * http://burtleburtle.net/bob/hash/
++ * https://burtleburtle.net/bob/hash/
+  *
+  * These are the credits from Bob's sources:
+  *
+--- a/tools/lib/rbtree.c~tools-replace-http-links-with-https-ones
++++ a/tools/lib/rbtree.c
+@@ -13,7 +13,7 @@
+ #include <linux/export.h>
+ 
+ /*
+- * red-black trees properties:  http://en.wikipedia.org/wiki/Rbtree
++ * red-black trees properties:  https://en.wikipedia.org/wiki/Rbtree
+  *
+  *  1) A node is either red or black
+  *  2) The root is black
+--- a/tools/lib/traceevent/event-parse.h~tools-replace-http-links-with-https-ones
++++ a/tools/lib/traceevent/event-parse.h
+@@ -379,7 +379,7 @@ enum tep_errno {
+ 	 * errno since SUS requires the errno has distinct positive values.
+ 	 * See 'Issue 6' in the link below.
+ 	 *
+-	 * http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html
++	 * https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html
+ 	 */
+ 	__TEP_ERRNO__START			= -100000,
+ 
+--- a/tools/testing/ktest/examples/crosstests.conf~tools-replace-http-links-with-https-ones
++++ a/tools/testing/ktest/examples/crosstests.conf
+@@ -3,7 +3,7 @@
+ #
+ # In this config, it is expected that the tool chains from:
+ #
+-#   http://kernel.org/pub/tools/crosstool/files/bin/x86_64/
++#   https://kernel.org/pub/tools/crosstool/files/bin/x86_64/
+ #
+ # running on a x86_64 system have been downloaded and installed into:
+ #
+--- a/tools/testing/ktest/examples/README~tools-replace-http-links-with-https-ones
++++ a/tools/testing/ktest/examples/README
+@@ -11,7 +11,7 @@ crosstests.conf - this config shows an e
+     lots of different architectures. It only does build tests, but makes
+     it easy to compile test different archs. You can download the arch
+     cross compilers from:
+-  http://kernel.org/pub/tools/crosstool/files/bin/x86_64/
++  https://kernel.org/pub/tools/crosstool/files/bin/x86_64/
+ 
+ test.conf - A generic example of a config. This is based on an actual config
+      used to perform real testing.
 _
