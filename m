@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81B93C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:44:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48845C433E0
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:45:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5361E2086A
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:44:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C04A2086A
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 05:45:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596779095;
-	bh=HkG4E/T45k5OXtL7SlF4MM5ggZ2yWlZXgYq7MDAIC0Q=;
+	s=default; t=1596779131;
+	bh=BYvBMftADKhkthZeyz3Xh/GTwT13fORGun7q1kvfgJE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=XngM4ExX2/iWlfEtlBZkelesTQLML5h6hdylFcFGqOSWSKNglu2q0fg3EWdtq6D9s
-	 so76B09HyO3od46NNMfFGpdvbo4UnoXogkKhlChLVkLwjUXFnsEKo1LuTAxGoneV7U
-	 1NWlRpNDO6ss24z1nKjv87fFU5qY9+/XpqjhGNIQ=
+	b=sAey0m0M59E/ehv+xpy/hSzMn+D9Q4Eh8Xy5rK2ViMjX3uw9RhdeFtG/rZ/fG9yDE
+	 trvu3mLszNgGAvnGfHky42gb9YmeLQ90Z1ZWROpiZsbmFbCYPvmgx4GOs815AW6Dsk
+	 IzytxjRFMmokrsXnEXhq8wruG9/CuQP7/NvNbS5M=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725379AbgHGFoz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 01:44:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41644 "EHLO mail.kernel.org"
+        id S1725379AbgHGFpa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 01:45:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41944 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725287AbgHGFoy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 01:44:54 -0400
+        id S1725287AbgHGFpa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 01:45:30 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1FA8620855;
-        Fri,  7 Aug 2020 05:44:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C803E20866;
+        Fri,  7 Aug 2020 05:45:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596779094;
-        bh=HkG4E/T45k5OXtL7SlF4MM5ggZ2yWlZXgYq7MDAIC0Q=;
+        s=default; t=1596779130;
+        bh=BYvBMftADKhkthZeyz3Xh/GTwT13fORGun7q1kvfgJE=;
         h=Date:From:To:Subject:From;
-        b=U0Wz7coQpGouOCvth/pEjdfixEtsP/IoFJUrp/UKblofJ4QEQIF9rRY4O/oer9UP5
-         YZet2RlBsGro607mYjn+F/dIiHN3lvUYxCGQ6JTHod9Abs7NPm0R4o6U6D1kb+ZV1C
-         /Lsv0Zx+8+H8UqRHO65Z25ES+jmmOFn50K6KCO2I=
-Date:   Thu, 06 Aug 2020 22:44:53 -0700
+        b=TMLw0tAHq4euk1eYCWvTARpJhP7QNEKZMjK1G+obS9T8W/6soAXUdrlAXtaelEeb4
+         yTFZKUVxhYX1vN4zUp8c2WoP2mvO/c+bQQND04IrKMx6KK6x9gOxZtIsUKkhiHeqj/
+         UOtwgI4gyeEQx1rplLgcWwC6iU2jle1svgzJ4mEg=
+Date:   Thu, 06 Aug 2020 22:45:29 -0700
 From:   akpm@linux-foundation.org
-To:     keescook@chromium.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, sfr@canb.auug.org.au
+To:     hulkci@huawei.com, mm-commits@vger.kernel.org, vbabka@suse.cz,
+        weiyongjun1@huawei.com
 Subject:  [folded-merged]
- slab-add-naive-detection-of-double-free-fix.patch removed from -mm tree
-Message-ID: <20200807054453.ryk_6Mtr4%akpm@linux-foundation.org>
+ mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix.patch removed from
+ -mm tree
+Message-ID: <20200807054529.WlPbBvPXc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,74 +55,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: fix misplaced __free_one()
+     Subject: mm, slub: make function parse_slub_debug_flags() static
 has been removed from the -mm tree.  Its filename was
-     slab-add-naive-detection-of-double-free-fix.patch
+     mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix.patch
 
-This patch was dropped because it was folded into slab-add-naive-detection-of-double-free.patch
+This patch was dropped because it was folded into mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: slab: fix misplaced __free_one()
+From: Wei Yongjun <weiyongjun1@huawei.com>
+Subject: mm, slub: make function parse_slub_debug_flags() static
 
-The implementation of __free_one() was accidentally placed inside a
-CONFIG_NUMA #ifdef. Move it above.
+Fix sparse build warning:
 
-Link: http://lkml.kernel.org/r/202006261306.0D82A2B@keescook
-Link: https://lore.kernel.org/lkml/7ff248c7-d447-340c-a8e2-8c02972aca70@infradead.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>	[build tested]
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+mm/slub.c:1267:6: warning:
+ symbol 'parse_slub_debug_flags' was not declared. Should it be static?
+
+Link: http://lkml.kernel.org/r/20200702150522.4940-1-weiyongjun1@huawei.com
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slab.c~slab-add-naive-detection-of-double-free-fix
-+++ a/mm/slab.c
-@@ -588,6 +588,16 @@ static int transfer_objects(struct array
- 	return nr;
- }
- 
-+/* &alien->lock must be held by alien callers. */
-+static __always_inline void __free_one(struct array_cache *ac, void *objp)
-+{
-+	/* Avoid trivial double-free. */
-+	if (IS_ENABLED(CONFIG_SLAB_FREELIST_HARDENED) &&
-+	    WARN_ON_ONCE(ac->avail > 0 && ac->entry[ac->avail - 1] == objp))
-+		return;
-+	ac->entry[ac->avail++] = objp;
-+}
-+
- #ifndef CONFIG_NUMA
- 
- #define drain_alien_cache(cachep, alien) do { } while (0)
-@@ -749,16 +759,6 @@ static void drain_alien_cache(struct kme
- 	}
- }
- 
--/* &alien->lock must be held by alien callers. */
--static __always_inline void __free_one(struct array_cache *ac, void *objp)
--{
--	/* Avoid trivial double-free. */
--	if (IS_ENABLED(CONFIG_SLAB_FREELIST_HARDENED) &&
--	    WARN_ON_ONCE(ac->avail > 0 && ac->entry[ac->avail - 1] == objp))
--		return;
--	ac->entry[ac->avail++] = objp;
--}
--
- static int __cache_free_alien(struct kmem_cache *cachep, void *objp,
- 				int node, int page_node)
+--- a/mm/slub.c~mm-slub-extend-slub_debug-syntax-for-multiple-blocks-fix
++++ a/mm/slub.c
+@@ -1272,7 +1272,7 @@ out:
+  *
+  * returns the start of next block if there's any, or NULL
+  */
+-char *
++static char *
+ parse_slub_debug_flags(char *str, slab_flags_t *flags, char **slabs, bool init)
  {
+ 	bool higher_order_disable = false;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from weiyongjun1@huawei.com are
 
-mm-expand-config_slab_freelist_hardened-to-include-slab.patch
-slab-add-naive-detection-of-double-free.patch
-exec-change-uselib2-is_sreg-failure-to-eacces.patch
-exec-move-s_isreg-check-earlier.patch
-exec-move-path_noexec-check-earlier.patch
+mm-slub-extend-slub_debug-syntax-for-multiple-blocks.patch
+lib-test_lockupc-make-symbol-test_works-static.patch
+bits-add-tests-of-genmask-fix-2.patch
+kcov-make-some-symbols-static.patch
 
