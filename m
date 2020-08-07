@@ -2,51 +2,51 @@ Return-Path: <SRS0=ze/c=BR=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F180C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57419C433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D67BB221E5
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2895922C9F
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:20:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781234;
-	bh=/MQJhpgxRti/bb9C8yvPEHdXg3jHNWOqyZUdWhzLx+U=;
+	s=default; t=1596781238;
+	bh=O75JKJbWs2woGqPh0xCflNLWM40HPNgNPbf+KdfLXno=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=1ONHzrbjECUNtDkWiCjtd+fZeRaxmDJDa2xOPPMdUBaLfxUrE3TVAFpxIP3KtkbIg
-	 VviwkJ+yZ19ZmEu3M2vbkXB3r3+hZ4XlD1TOTo81DpK5xZmQhpnzi1FY2JUOwX5SaX
-	 u0L+vt1YSK3d3cBRuD7iG6K6cNkoa6DavG9a4DXo=
+	b=p8pyvIDwxICoVXBiJ4l4Y90VWy+AM6Yk4K5MylS4l4eSjm6wi+debBu4AqTMs3Rsh
+	 9Fe0lcDlh+R227BcHnSoXXdv6BeXad3sL9+xSWvnhtK8bQl+ZI2WzXIhHcM5MXppzh
+	 fTYO4stP1pCpENICqx4yEI3GqHCPJrAUW6ompTsg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726205AbgHGGUe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:20:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56462 "EHLO mail.kernel.org"
+        id S1726198AbgHGGUh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:20:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56554 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726094AbgHGGUe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:20:34 -0400
+        id S1726094AbgHGGUh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:20:37 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A71D02177B;
-        Fri,  7 Aug 2020 06:20:32 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3162C22CAF;
+        Fri,  7 Aug 2020 06:20:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781233;
-        bh=/MQJhpgxRti/bb9C8yvPEHdXg3jHNWOqyZUdWhzLx+U=;
+        s=default; t=1596781236;
+        bh=O75JKJbWs2woGqPh0xCflNLWM40HPNgNPbf+KdfLXno=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=aAbSVwcRRZ4OSEAzGSIXsqL4SegCinZqmfo2RCAV8AyrR2j/Wzp1uQ5ZifeDLsDBa
-         4q/gMflTIBxc6d94KAkQ65Qz98zu51cbOY4VkwVzCAj2DuYcjo3aRmoZIM8PBbauU+
-         He9C1u2nZnEUIDiS4SGcHuya/t/xNXWH58Ww/0hc=
-Date:   Thu, 06 Aug 2020 23:20:32 -0700
+        b=erEuyib1S8ceatUpecdI01ShsO1PynZAjOpqynrBUmFiSyy0jm8WV5QjJetNg8HEh
+         S1BfAfkpIMNxNbYLD94clDO8asB+H3ZIpJ0puUoK/eyYvG6unI07N/A8W5Wwewme8g
+         5+gn2hOjQYyaheYOlAT8JD+IKxCBaDyVrXCixRwE=
+Date:   Thu, 06 Aug 2020 23:20:35 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
         hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@kernel.org,
         mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 062/163] mm: memcg: factor out memcg- and
- lruvec-level changes out of __mod_lruvec_state()
-Message-ID: <20200807062032.W074XjPoi%akpm@linux-foundation.org>
+Subject:  [patch 063/163] mm: memcg: prepare for byte-sized vmstat
+ items
+Message-ID: <20200807062035.okJt5Kevx%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,90 +56,34 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg: factor out memcg- and lruvec-level changes out of __mod_lruvec_state()
+Subject: mm: memcg: prepare for byte-sized vmstat items
 
-Patch series "The new cgroup slab memory controller", v7.
+To implement per-object slab memory accounting, we need to convert slab
+vmstat counters to bytes.  Actually, out of 4 levels of counters: global,
+per-node, per-memcg and per-lruvec only two last levels will require
+byte-sized counters.  It's because global and per-node counters will be
+counting the number of slab pages, and per-memcg and per-lruvec will be
+counting the amount of memory taken by charged slab objects.
 
-The patchset moves the accounting from the page level to the object level.
-It allows to share slab pages between memory cgroups.  This leads to a
-significant win in the slab utilization (up to 45%) and the corresponding
-drop in the total kernel memory footprint.  The reduced number of
-unmovable slab pages should also have a positive effect on the memory
-fragmentation.
+Converting all vmstat counters to bytes or even all slab counters to bytes
+would introduce an additional overhead.  So instead let's store global and
+per-node counters in pages, and memcg and lruvec counters in bytes.
 
-The patchset makes the slab accounting code simpler: there is no more need
-in the complicated dynamic creation and destruction of per-cgroup slab
-caches, all memory cgroups use a global set of shared slab caches.  The
-lifetime of slab caches is not more connected to the lifetime of memory
-cgroups.
+To make the API clean all access helpers (both on the read and write
+sides) are dealing with bytes.
 
-The more precise accounting does require more CPU, however in practice the
-difference seems to be negligible.  We've been using the new slab
-controller in Facebook production for several months with different
-workloads and haven't seen any noticeable regressions.  What we've seen
-were memory savings in order of 1 GB per host (it varied heavily depending
-on the actual workload, size of RAM, number of CPUs, memory pressure,
-etc).
+To avoid back-and-forth conversions a new flavor of read-side helpers is
+introduced, which always returns values in pages: node_page_state_pages()
+and global_node_page_state_pages().
 
-The third version of the patchset added yet another step towards the
-simplification of the code: sharing of slab caches between accounted and
-non-accounted allocations.  It comes with significant upsides (most
-noticeable, a complete elimination of dynamic slab caches creation) but
-not without some regression risks, so this change sits on top of the
-patchset and is not completely merged in.  So in the unlikely event of a
-noticeable performance regression it can be reverted separately.
+Actually new helpers are just reading raw values.  Old helpers are simple
+wrappers, which will complain on an attempt to read byte value, because at
+the moment no one actually needs bytes.
 
-The slab memory accounting works in exactly the same way for SLAB and
-SLUB.  With both allocators the new controller shows significant memory
-savings, with SLUB the difference is bigger.  On my 16-core desktop
-machine running Fedora 32 the size of the slab memory measured after the
-start of the system was lower by 58% and 38% with SLUB and SLAB
-correspondingly.
+Thanks to Johannes Weiner for the idea of having the byte-sized API on top
+of the page-sized internal storage.
 
-As an estimation of a potential CPU overhead, below are results of
-slab_bulk_test01 test, kindly provided by Jesper D.  Brouer.  He also
-helped with the evaluation of results.
-
-The test can be found here: https://github.com/netoptimizer/prototype-kernel/
-The smallest number in each row should be picked for a comparison.
-
-SLUB-patched - bulk-API
- - SLUB-patched : bulk_quick_reuse objects=1 : 187 -  90 - 224  cycles(tsc)
- - SLUB-patched : bulk_quick_reuse objects=2 : 110 -  53 - 133  cycles(tsc)
- - SLUB-patched : bulk_quick_reuse objects=3 :  88 -  95 -  42  cycles(tsc)
- - SLUB-patched : bulk_quick_reuse objects=4 :  91 -  85 -  36  cycles(tsc)
- - SLUB-patched : bulk_quick_reuse objects=8 :  32 -  66 -  32  cycles(tsc)
-
-SLUB-original -  bulk-API
- - SLUB-original: bulk_quick_reuse objects=1 :  87 -  87 - 142  cycles(tsc)
- - SLUB-original: bulk_quick_reuse objects=2 :  52 -  53 -  53  cycles(tsc)
- - SLUB-original: bulk_quick_reuse objects=3 :  42 -  42 -  91  cycles(tsc)
- - SLUB-original: bulk_quick_reuse objects=4 :  91 -  37 -  37  cycles(tsc)
- - SLUB-original: bulk_quick_reuse objects=8 :  31 -  79 -  76  cycles(tsc)
-
-SLAB-patched -  bulk-API
- - SLAB-patched : bulk_quick_reuse objects=1 :  67 -  67 - 140  cycles(tsc)
- - SLAB-patched : bulk_quick_reuse objects=2 :  55 -  46 -  46  cycles(tsc)
- - SLAB-patched : bulk_quick_reuse objects=3 :  93 -  94 -  39  cycles(tsc)
- - SLAB-patched : bulk_quick_reuse objects=4 :  35 -  88 -  85  cycles(tsc)
- - SLAB-patched : bulk_quick_reuse objects=8 :  30 -  30 -  30  cycles(tsc)
-
-SLAB-original-  bulk-API
- - SLAB-original: bulk_quick_reuse objects=1 : 143 - 136 -  67  cycles(tsc)
- - SLAB-original: bulk_quick_reuse objects=2 :  45 -  46 -  46  cycles(tsc)
- - SLAB-original: bulk_quick_reuse objects=3 :  38 -  39 -  39  cycles(tsc)
- - SLAB-original: bulk_quick_reuse objects=4 :  35 -  87 -  87  cycles(tsc)
- - SLAB-original: bulk_quick_reuse objects=8 :  29 -  66 -  30  cycles(tsc)
-
-
-This patch (of 19):
-
-To convert memcg and lruvec slab counters to bytes there must be a way to
-change these counters without touching node counters.  Factor out
-__mod_memcg_lruvec_state() out of __mod_lruvec_state().
-
-Link: http://lkml.kernel.org/r/20200623174037.3951353-1-guro@fb.com
-Link: http://lkml.kernel.org/r/20200623174037.3951353-2-guro@fb.com
+Link: http://lkml.kernel.org/r/20200623174037.3951353-3-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
@@ -150,117 +94,219 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   17 +++++++++++++
- mm/memcontrol.c            |   43 +++++++++++++++++++----------------
- 2 files changed, 41 insertions(+), 19 deletions(-)
+ drivers/base/node.c    |    2 +-
+ include/linux/mmzone.h |   10 ++++++++++
+ include/linux/vmstat.h |   14 +++++++++++++-
+ mm/memcontrol.c        |   14 ++++++++++----
+ mm/vmstat.c            |   30 ++++++++++++++++++++++++++----
+ 5 files changed, 60 insertions(+), 10 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state
-+++ a/include/linux/memcontrol.h
-@@ -679,11 +679,23 @@ static inline unsigned long lruvec_page_
+--- a/drivers/base/node.c~mm-memcg-prepare-for-byte-sized-vmstat-items
++++ a/drivers/base/node.c
+@@ -513,7 +513,7 @@ static ssize_t node_read_vmstat(struct d
+ 
+ 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+ 		n += sprintf(buf+n, "%s %lu\n", node_stat_name(i),
+-			     node_page_state(pgdat, i));
++			     node_page_state_pages(pgdat, i));
+ 
+ 	return n;
+ }
+--- a/include/linux/mmzone.h~mm-memcg-prepare-for-byte-sized-vmstat-items
++++ a/include/linux/mmzone.h
+@@ -207,6 +207,16 @@ enum node_stat_item {
+ };
+ 
+ /*
++ * Returns true if the value is measured in bytes (most vmstat values are
++ * measured in pages). This defines the API part, the internal representation
++ * might be different.
++ */
++static __always_inline bool vmstat_item_in_bytes(int idx)
++{
++	return false;
++}
++
++/*
+  * We do arithmetic on the LRU lists in various places in the code,
+  * so it is important to keep the active lists LRU_ACTIVE higher in
+  * the array than the corresponding inactive lists, and to keep
+--- a/include/linux/vmstat.h~mm-memcg-prepare-for-byte-sized-vmstat-items
++++ a/include/linux/vmstat.h
+@@ -8,6 +8,7 @@
+ #include <linux/vm_event_item.h>
+ #include <linux/atomic.h>
+ #include <linux/static_key.h>
++#include <linux/mmdebug.h>
+ 
+ extern int sysctl_stat_interval;
+ 
+@@ -192,7 +193,8 @@ static inline unsigned long global_zone_
  	return x;
  }
  
-+void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
-+			      int val);
- void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
- 			int val);
- void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val);
- void mod_memcg_obj_state(void *p, int idx, int val);
- 
-+static inline void mod_memcg_lruvec_state(struct lruvec *lruvec,
-+					  enum node_stat_item idx, int val)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__mod_memcg_lruvec_state(lruvec, idx, val);
-+	local_irq_restore(flags);
-+}
-+
- static inline void mod_lruvec_state(struct lruvec *lruvec,
- 				    enum node_stat_item idx, int val)
+-static inline unsigned long global_node_page_state(enum node_stat_item item)
++static inline
++unsigned long global_node_page_state_pages(enum node_stat_item item)
  {
-@@ -1057,6 +1069,11 @@ static inline unsigned long lruvec_page_
- 	return node_page_state(lruvec_pgdat(lruvec), idx);
+ 	long x = atomic_long_read(&vm_node_stat[item]);
+ #ifdef CONFIG_SMP
+@@ -202,6 +204,13 @@ static inline unsigned long global_node_
+ 	return x;
  }
  
-+static inline void __mod_memcg_lruvec_state(struct lruvec *lruvec,
-+					    enum node_stat_item idx, int val)
++static inline unsigned long global_node_page_state(enum node_stat_item item)
 +{
++	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
++
++	return global_node_page_state_pages(item);
 +}
 +
- static inline void __mod_lruvec_state(struct lruvec *lruvec,
- 				      enum node_stat_item idx, int val)
+ static inline unsigned long zone_page_state(struct zone *zone,
+ 					enum zone_stat_item item)
  {
---- a/mm/memcontrol.c~mm-memcg-factor-out-memcg-and-lruvec-level-changes-out-of-__mod_lruvec_state
+@@ -242,9 +251,12 @@ extern unsigned long sum_zone_node_page_
+ extern unsigned long sum_zone_numa_state(int node, enum numa_stat_item item);
+ extern unsigned long node_page_state(struct pglist_data *pgdat,
+ 						enum node_stat_item item);
++extern unsigned long node_page_state_pages(struct pglist_data *pgdat,
++					   enum node_stat_item item);
+ #else
+ #define sum_zone_node_page_state(node, item) global_zone_page_state(item)
+ #define node_page_state(node, item) global_node_page_state(item)
++#define node_page_state_pages(node, item) global_node_page_state_pages(item)
+ #endif /* CONFIG_NUMA */
+ 
+ #ifdef CONFIG_SMP
+--- a/mm/memcontrol.c~mm-memcg-prepare-for-byte-sized-vmstat-items
 +++ a/mm/memcontrol.c
-@@ -713,30 +713,13 @@ parent_nodeinfo(struct mem_cgroup_per_no
- 	return mem_cgroup_nodeinfo(parent, nid);
- }
- 
--/**
-- * __mod_lruvec_state - update lruvec memory statistics
-- * @lruvec: the lruvec
-- * @idx: the stat item
-- * @val: delta to add to the counter, can be negative
-- *
-- * The lruvec is the intersection of the NUMA node and a cgroup. This
-- * function updates the all three counters that are affected by a
-- * change of state at this level: per-node, per-cgroup, per-lruvec.
-- */
--void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
--			int val)
-+void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
-+			      int val)
+@@ -681,13 +681,16 @@ mem_cgroup_largest_soft_limit_node(struc
+  */
+ void __mod_memcg_state(struct mem_cgroup *memcg, int idx, int val)
  {
--	pg_data_t *pgdat = lruvec_pgdat(lruvec);
+-	long x;
++	long x, threshold = MEMCG_CHARGE_BATCH;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
++	if (vmstat_item_in_bytes(idx))
++		threshold <<= PAGE_SHIFT;
++
+ 	x = val + __this_cpu_read(memcg->vmstats_percpu->stat[idx]);
+-	if (unlikely(abs(x) > MEMCG_CHARGE_BATCH)) {
++	if (unlikely(abs(x) > threshold)) {
+ 		struct mem_cgroup *mi;
+ 
+ 		/*
+@@ -718,7 +721,7 @@ void __mod_memcg_lruvec_state(struct lru
+ {
  	struct mem_cgroup_per_node *pn;
  	struct mem_cgroup *memcg;
- 	long x;
+-	long x;
++	long x, threshold = MEMCG_CHARGE_BATCH;
  
--	/* Update node */
--	__mod_node_page_state(pgdat, idx, val);
--
--	if (mem_cgroup_disabled())
--		return;
--
  	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
  	memcg = pn->memcg;
+@@ -729,8 +732,11 @@ void __mod_memcg_lruvec_state(struct lru
+ 	/* Update lruvec */
+ 	__this_cpu_add(pn->lruvec_stat_local->count[idx], val);
  
-@@ -748,6 +731,7 @@ void __mod_lruvec_state(struct lruvec *l
- 
++	if (vmstat_item_in_bytes(idx))
++		threshold <<= PAGE_SHIFT;
++
  	x = val + __this_cpu_read(pn->lruvec_stat_cpu->count[idx]);
- 	if (unlikely(abs(x) > MEMCG_CHARGE_BATCH)) {
-+		pg_data_t *pgdat = lruvec_pgdat(lruvec);
+-	if (unlikely(abs(x) > MEMCG_CHARGE_BATCH)) {
++	if (unlikely(abs(x) > threshold)) {
+ 		pg_data_t *pgdat = lruvec_pgdat(lruvec);
  		struct mem_cgroup_per_node *pi;
  
- 		for (pi = pn; pi; pi = parent_nodeinfo(pi, pgdat->node_id))
-@@ -757,6 +741,27 @@ void __mod_lruvec_state(struct lruvec *l
- 	__this_cpu_write(pn->lruvec_stat_cpu->count[idx], x);
- }
+--- a/mm/vmstat.c~mm-memcg-prepare-for-byte-sized-vmstat-items
++++ a/mm/vmstat.c
+@@ -341,6 +341,11 @@ void __mod_node_page_state(struct pglist
+ 	long x;
+ 	long t;
  
-+/**
-+ * __mod_lruvec_state - update lruvec memory statistics
-+ * @lruvec: the lruvec
-+ * @idx: the stat item
-+ * @val: delta to add to the counter, can be negative
-+ *
-+ * The lruvec is the intersection of the NUMA node and a cgroup. This
-+ * function updates the all three counters that are affected by a
-+ * change of state at this level: per-node, per-cgroup, per-lruvec.
-+ */
-+void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
-+			int val)
-+{
-+	/* Update node */
-+	__mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
++	if (vmstat_item_in_bytes(item)) {
++		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
++		delta >>= PAGE_SHIFT;
++	}
 +
-+	/* Update memcg and lruvec */
-+	if (!mem_cgroup_disabled())
-+		__mod_memcg_lruvec_state(lruvec, idx, val);
-+}
+ 	x = delta + __this_cpu_read(*p);
+ 
+ 	t = __this_cpu_read(pcp->stat_threshold);
+@@ -398,6 +403,8 @@ void __inc_node_state(struct pglist_data
+ 	s8 __percpu *p = pcp->vm_node_stat_diff + item;
+ 	s8 v, t;
+ 
++	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
 +
- void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val)
+ 	v = __this_cpu_inc_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v > t)) {
+@@ -442,6 +449,8 @@ void __dec_node_state(struct pglist_data
+ 	s8 __percpu *p = pcp->vm_node_stat_diff + item;
+ 	s8 v, t;
+ 
++	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
++
+ 	v = __this_cpu_dec_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v < - t)) {
+@@ -541,6 +550,11 @@ static inline void mod_node_state(struct
+ 	s8 __percpu *p = pcp->vm_node_stat_diff + item;
+ 	long o, n, t, z;
+ 
++	if (vmstat_item_in_bytes(item)) {
++		VM_WARN_ON_ONCE(delta & (PAGE_SIZE - 1));
++		delta >>= PAGE_SHIFT;
++	}
++
+ 	do {
+ 		z = 0;  /* overflow to node counters */
+ 
+@@ -989,8 +1003,8 @@ unsigned long sum_zone_numa_state(int no
+ /*
+  * Determine the per node value of a stat item.
+  */
+-unsigned long node_page_state(struct pglist_data *pgdat,
+-				enum node_stat_item item)
++unsigned long node_page_state_pages(struct pglist_data *pgdat,
++				    enum node_stat_item item)
  {
- 	pg_data_t *pgdat = page_pgdat(virt_to_page(p));
+ 	long x = atomic_long_read(&pgdat->vm_stat[item]);
+ #ifdef CONFIG_SMP
+@@ -999,6 +1013,14 @@ unsigned long node_page_state(struct pgl
+ #endif
+ 	return x;
+ }
++
++unsigned long node_page_state(struct pglist_data *pgdat,
++			      enum node_stat_item item)
++{
++	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
++
++	return node_page_state_pages(pgdat, item);
++}
+ #endif
+ 
+ #ifdef CONFIG_COMPACTION
+@@ -1577,7 +1599,7 @@ static void zoneinfo_show_print(struct s
+ 		seq_printf(m, "\n  per-node stats");
+ 		for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
+ 			seq_printf(m, "\n      %-12s %lu", node_stat_name(i),
+-				   node_page_state(pgdat, i));
++				   node_page_state_pages(pgdat, i));
+ 		}
+ 	}
+ 	seq_printf(m,
+@@ -1698,7 +1720,7 @@ static void *vmstat_start(struct seq_fil
+ #endif
+ 
+ 	for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+-		v[i] = global_node_page_state(i);
++		v[i] = global_node_page_state_pages(i);
+ 	v += NR_VM_NODE_STAT_ITEMS;
+ 
+ 	global_dirty_limits(v + NR_DIRTY_BG_THRESHOLD,
 _
