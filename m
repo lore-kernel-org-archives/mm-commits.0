@@ -7,45 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3351C433E0
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:21:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12134C433DF
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:21:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA96022C9F
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:21:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E22132177B
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Aug 2020 06:21:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1596781300;
-	bh=7lTOnYs2XH9AD5uvPszcKj3AytJenemPC3++jcHRye8=;
+	s=default; t=1596781302;
+	bh=sCu/LXHeNRB3b7T1bXZGPdiJpSQ0GevMbRfzdCd1y8k=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=FKqHfZ4TmQIghYHqxQdWLFTZ6y7Xuiri2xMSCmouaQI63d5emKXaDclAxlHl84aLj
-	 2zZ7DkRIMRPnCqnuCRL1kYThyYPrKaB+Wrz30DaOffs67cNC8+O+IoklRGNFB0a/GF
-	 REOV+a8JJnFbptKds8hL6anQx/QtiuFFSWFvnJjs=
+	b=atuOYLGmqwJdr7X12gdMhJ/ezXRpX0hDgSnnPU0fVQAgzzTj7Hpi5GqFVHCMmcUXI
+	 3MROJU4eZuZxcsNysj1VZ+gTepNxuYKfV6KPbtn6jPgLYtzTnAxxw7Pa+jmHVP+OqO
+	 23Ogre3+O2p7bgAuabXqca+a12lSUbimBKwu+EFw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726038AbgHGGVk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Aug 2020 02:21:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57898 "EHLO mail.kernel.org"
+        id S1726224AbgHGGVm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Aug 2020 02:21:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57970 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725893AbgHGGVk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 7 Aug 2020 02:21:40 -0400
+        id S1725893AbgHGGVm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 7 Aug 2020 02:21:42 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 24FF9221E5;
-        Fri,  7 Aug 2020 06:21:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 4955C22CAF;
+        Fri,  7 Aug 2020 06:21:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1596781298;
-        bh=7lTOnYs2XH9AD5uvPszcKj3AytJenemPC3++jcHRye8=;
+        s=default; t=1596781301;
+        bh=sCu/LXHeNRB3b7T1bXZGPdiJpSQ0GevMbRfzdCd1y8k=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=LruEwtSc2zzVz9lnL3PDTmki8rzswSFj3xcyeL14QQt4MwVoW3MUkNyEM3dXuUJoo
-         FNmNiD2IEOAMw1LbP69XqbJ0B990ibaoIjRP1TmHlK/QHnQVTK8qghR3YqjHnW9+mf
-         WxfAZEAoANLc5pzQP0LhEuJUH/xyhoIQ9ssLJfhM=
-Date:   Thu, 06 Aug 2020 23:21:37 -0700
+        b=cwhzIOQos2CPex616yp3EZv9cVfFH7Ss3tk6Oj+DZPkhqn10ypvZWoxV1OC2gLWBL
+         5N9kuvXRxf8jtAAx0jXBX1xd+OTRCZPFbGiC/jxKlocY1R7/iDzT4QpwRFTRJCdxvq
+         5aBMH1RqrniwOkyIKsSULpKimYNBf8fglxD3DvP0=
+Date:   Thu, 06 Aug 2020 23:21:40 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
-        linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        shakeelb@google.com, torvalds@linux-foundation.org
-Subject:  [patch 081/163] mm: memcontrol: account kernel stack per
- node
-Message-ID: <20200807062137.o44Vg87wz%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
+        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, shakeelb@google.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 082/163] mm: memcg/slab: remove unused argument by
+ charge_slab_page()
+Message-ID: <20200807062140.bVEg7TBZa%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,311 +56,62 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: memcontrol: account kernel stack per node
+From: Roman Gushchin <guro@fb.com>
+Subject: mm: memcg/slab: remove unused argument by charge_slab_page()
 
-Currently the kernel stack is being accounted per-zone.  There is no need
-to do that.  In addition due to being per-zone, memcg has to keep a
-separate MEMCG_KERNEL_STACK_KB.  Make the stat per-node and deprecate
-MEMCG_KERNEL_STACK_KB as memcg_stat_item is an extension of
-node_stat_item.  In addition localize the kernel stack stats updates to
-account_kernel_stack().
+charge_slab_page() is not using the gfp argument anymore,
+remove it.
 
-Link: http://lkml.kernel.org/r/20200630161539.1759185-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
+Link: http://lkml.kernel.org/r/20200707173612.124425-1-guro@fb.com
+Signed-off-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c        |    4 +-
- fs/proc/meminfo.c          |    4 +-
- include/linux/memcontrol.h |   21 +++++++++++++-
- include/linux/mmzone.h     |    8 ++---
- kernel/fork.c              |   51 +++++++++--------------------------
- kernel/scs.c               |    2 -
- mm/memcontrol.c            |    2 -
- mm/page_alloc.c            |   16 +++++-----
- mm/vmstat.c                |    8 ++---
- 9 files changed, 55 insertions(+), 61 deletions(-)
+ mm/slab.c |    2 +-
+ mm/slab.h |    3 +--
+ mm/slub.c |    2 +-
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
---- a/drivers/base/node.c~mm-memcontrol-account-kernel-stack-per-node
-+++ a/drivers/base/node.c
-@@ -440,9 +440,9 @@ static ssize_t node_read_meminfo(struct
- 		       nid, K(node_page_state(pgdat, NR_FILE_MAPPED)),
- 		       nid, K(node_page_state(pgdat, NR_ANON_MAPPED)),
- 		       nid, K(i.sharedram),
--		       nid, sum_zone_node_page_state(nid, NR_KERNEL_STACK_KB),
-+		       nid, node_page_state(pgdat, NR_KERNEL_STACK_KB),
- #ifdef CONFIG_SHADOW_CALL_STACK
--		       nid, sum_zone_node_page_state(nid, NR_KERNEL_SCS_KB),
-+		       nid, node_page_state(pgdat, NR_KERNEL_SCS_KB),
- #endif
- 		       nid, K(sum_zone_node_page_state(nid, NR_PAGETABLE)),
- 		       nid, 0UL,
---- a/fs/proc/meminfo.c~mm-memcontrol-account-kernel-stack-per-node
-+++ a/fs/proc/meminfo.c
-@@ -101,10 +101,10 @@ static int meminfo_proc_show(struct seq_
- 	show_val_kb(m, "SReclaimable:   ", sreclaimable);
- 	show_val_kb(m, "SUnreclaim:     ", sunreclaim);
- 	seq_printf(m, "KernelStack:    %8lu kB\n",
--		   global_zone_page_state(NR_KERNEL_STACK_KB));
-+		   global_node_page_state(NR_KERNEL_STACK_KB));
- #ifdef CONFIG_SHADOW_CALL_STACK
- 	seq_printf(m, "ShadowCallStack:%8lu kB\n",
--		   global_zone_page_state(NR_KERNEL_SCS_KB));
-+		   global_node_page_state(NR_KERNEL_SCS_KB));
- #endif
- 	show_val_kb(m, "PageTables:     ",
- 		    global_zone_page_state(NR_PAGETABLE));
---- a/include/linux/memcontrol.h~mm-memcontrol-account-kernel-stack-per-node
-+++ a/include/linux/memcontrol.h
-@@ -32,8 +32,6 @@ struct kmem_cache;
- enum memcg_stat_item {
- 	MEMCG_SWAP = NR_VM_NODE_STAT_ITEMS,
- 	MEMCG_SOCK,
--	/* XXX: why are these zone and not node counters? */
--	MEMCG_KERNEL_STACK_KB,
- 	MEMCG_NR_STAT,
- };
- 
-@@ -729,8 +727,19 @@ void __mod_memcg_lruvec_state(struct lru
- void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
- 			int val);
- void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val);
-+
- void mod_memcg_obj_state(void *p, int idx, int val);
- 
-+static inline void mod_lruvec_slab_state(void *p, enum node_stat_item idx,
-+					 int val)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__mod_lruvec_slab_state(p, idx, val);
-+	local_irq_restore(flags);
-+}
-+
- static inline void mod_memcg_lruvec_state(struct lruvec *lruvec,
- 					  enum node_stat_item idx, int val)
- {
-@@ -1151,6 +1160,14 @@ static inline void __mod_lruvec_slab_sta
- 	__mod_node_page_state(page_pgdat(page), idx, val);
- }
- 
-+static inline void mod_lruvec_slab_state(void *p, enum node_stat_item idx,
-+					 int val)
-+{
-+	struct page *page = virt_to_head_page(p);
-+
-+	mod_node_page_state(page_pgdat(page), idx, val);
-+}
-+
- static inline void mod_memcg_obj_state(void *p, int idx, int val)
- {
- }
---- a/include/linux/mmzone.h~mm-memcontrol-account-kernel-stack-per-node
-+++ a/include/linux/mmzone.h
-@@ -155,10 +155,6 @@ enum zone_stat_item {
- 	NR_ZONE_WRITE_PENDING,	/* Count of dirty, writeback and unstable pages */
- 	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
- 	NR_PAGETABLE,		/* used for pagetables */
--	NR_KERNEL_STACK_KB,	/* measured in KiB */
--#if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
--	NR_KERNEL_SCS_KB,	/* measured in KiB */
--#endif
- 	/* Second 128 byte cacheline */
- 	NR_BOUNCE,
- #if IS_ENABLED(CONFIG_ZSMALLOC)
-@@ -203,6 +199,10 @@ enum node_stat_item {
- 	NR_KERNEL_MISC_RECLAIMABLE,	/* reclaimable non-slab kernel pages */
- 	NR_FOLL_PIN_ACQUIRED,	/* via: pin_user_page(), gup flag: FOLL_PIN */
- 	NR_FOLL_PIN_RELEASED,	/* pages returned via unpin_user_page() */
-+	NR_KERNEL_STACK_KB,	/* measured in KiB */
-+#if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
-+	NR_KERNEL_SCS_KB,	/* measured in KiB */
-+#endif
- 	NR_VM_NODE_STAT_ITEMS
- };
- 
---- a/kernel/fork.c~mm-memcontrol-account-kernel-stack-per-node
-+++ a/kernel/fork.c
-@@ -276,13 +276,8 @@ static inline void free_thread_stack(str
- 	if (vm) {
- 		int i;
- 
--		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
--			mod_memcg_page_state(vm->pages[i],
--					     MEMCG_KERNEL_STACK_KB,
--					     -(int)(PAGE_SIZE / 1024));
--
-+		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++)
- 			memcg_kmem_uncharge_page(vm->pages[i], 0);
--		}
- 
- 		for (i = 0; i < NR_CACHED_STACKS; i++) {
- 			if (this_cpu_cmpxchg(cached_stacks[i],
-@@ -382,31 +377,14 @@ static void account_kernel_stack(struct
- 	void *stack = task_stack_page(tsk);
- 	struct vm_struct *vm = task_stack_vm_area(tsk);
- 
--	BUILD_BUG_ON(IS_ENABLED(CONFIG_VMAP_STACK) && PAGE_SIZE % 1024 != 0);
- 
--	if (vm) {
--		int i;
--
--		BUG_ON(vm->nr_pages != THREAD_SIZE / PAGE_SIZE);
--
--		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
--			mod_zone_page_state(page_zone(vm->pages[i]),
--					    NR_KERNEL_STACK_KB,
--					    PAGE_SIZE / 1024 * account);
--		}
--	} else {
--		/*
--		 * All stack pages are in the same zone and belong to the
--		 * same memcg.
--		 */
--		struct page *first_page = virt_to_page(stack);
--
--		mod_zone_page_state(page_zone(first_page), NR_KERNEL_STACK_KB,
--				    THREAD_SIZE / 1024 * account);
--
--		mod_memcg_obj_state(stack, MEMCG_KERNEL_STACK_KB,
--				    account * (THREAD_SIZE / 1024));
--	}
-+	/* All stack pages are in the same node. */
-+	if (vm)
-+		mod_lruvec_page_state(vm->pages[0], NR_KERNEL_STACK_KB,
-+				      account * (THREAD_SIZE / 1024));
-+	else
-+		mod_lruvec_slab_state(stack, NR_KERNEL_STACK_KB,
-+				      account * (THREAD_SIZE / 1024));
- }
- 
- static int memcg_charge_kernel_stack(struct task_struct *tsk)
-@@ -415,24 +393,23 @@ static int memcg_charge_kernel_stack(str
- 	struct vm_struct *vm = task_stack_vm_area(tsk);
- 	int ret;
- 
-+	BUILD_BUG_ON(IS_ENABLED(CONFIG_VMAP_STACK) && PAGE_SIZE % 1024 != 0);
-+
- 	if (vm) {
- 		int i;
- 
-+		BUG_ON(vm->nr_pages != THREAD_SIZE / PAGE_SIZE);
-+
- 		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
- 			/*
- 			 * If memcg_kmem_charge_page() fails, page->mem_cgroup
--			 * pointer is NULL, and both memcg_kmem_uncharge_page()
--			 * and mod_memcg_page_state() in free_thread_stack()
--			 * will ignore this page. So it's safe.
-+			 * pointer is NULL, and memcg_kmem_uncharge_page() in
-+			 * free_thread_stack() will ignore this page.
- 			 */
- 			ret = memcg_kmem_charge_page(vm->pages[i], GFP_KERNEL,
- 						     0);
- 			if (ret)
- 				return ret;
--
--			mod_memcg_page_state(vm->pages[i],
--					     MEMCG_KERNEL_STACK_KB,
--					     PAGE_SIZE / 1024);
- 		}
+--- a/mm/slab.c~mm-memcg-slab-remove-unused-argument-by-charge_slab_page
++++ a/mm/slab.c
+@@ -1379,7 +1379,7 @@ static struct page *kmem_getpages(struct
+ 		return NULL;
  	}
- #endif
---- a/kernel/scs.c~mm-memcontrol-account-kernel-stack-per-node
-+++ a/kernel/scs.c
-@@ -17,7 +17,7 @@ static void __scs_account(void *s, int a
- {
- 	struct page *scs_page = virt_to_page(s);
  
--	mod_zone_page_state(page_zone(scs_page), NR_KERNEL_SCS_KB,
-+	mod_node_page_state(page_pgdat(scs_page), NR_KERNEL_SCS_KB,
- 			    account * (SCS_SIZE / SZ_1K));
+-	charge_slab_page(page, flags, cachep->gfporder, cachep);
++	charge_slab_page(page, cachep->gfporder, cachep);
+ 	__SetPageSlab(page);
+ 	/* Record if ALLOC_NO_WATERMARKS was set when allocating the slab */
+ 	if (sk_memalloc_socks() && page_is_pfmemalloc(page))
+--- a/mm/slab.h~mm-memcg-slab-remove-unused-argument-by-charge_slab_page
++++ a/mm/slab.h
+@@ -423,8 +423,7 @@ static inline struct kmem_cache *virt_to
+ 	return page->slab_cache;
  }
  
---- a/mm/memcontrol.c~mm-memcontrol-account-kernel-stack-per-node
-+++ a/mm/memcontrol.c
-@@ -1485,7 +1485,7 @@ static char *memory_stat_format(struct m
- 		       (u64)memcg_page_state(memcg, NR_FILE_PAGES) *
- 		       PAGE_SIZE);
- 	seq_buf_printf(&s, "kernel_stack %llu\n",
--		       (u64)memcg_page_state(memcg, MEMCG_KERNEL_STACK_KB) *
-+		       (u64)memcg_page_state(memcg, NR_KERNEL_STACK_KB) *
- 		       1024);
- 	seq_buf_printf(&s, "slab %llu\n",
- 		       (u64)(memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
---- a/mm/page_alloc.c~mm-memcontrol-account-kernel-stack-per-node
-+++ a/mm/page_alloc.c
-@@ -5396,6 +5396,10 @@ void show_free_areas(unsigned int filter
- 			" anon_thp: %lukB"
- #endif
- 			" writeback_tmp:%lukB"
-+			" kernel_stack:%lukB"
-+#ifdef CONFIG_SHADOW_CALL_STACK
-+			" shadow_call_stack:%lukB"
-+#endif
- 			" all_unreclaimable? %s"
- 			"\n",
- 			pgdat->node_id,
-@@ -5417,6 +5421,10 @@ void show_free_areas(unsigned int filter
- 			K(node_page_state(pgdat, NR_ANON_THPS) * HPAGE_PMD_NR),
- #endif
- 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
-+			node_page_state(pgdat, NR_KERNEL_STACK_KB),
-+#ifdef CONFIG_SHADOW_CALL_STACK
-+			node_page_state(pgdat, NR_KERNEL_SCS_KB),
-+#endif
- 			pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ?
- 				"yes" : "no");
- 	}
-@@ -5448,10 +5456,6 @@ void show_free_areas(unsigned int filter
- 			" present:%lukB"
- 			" managed:%lukB"
- 			" mlocked:%lukB"
--			" kernel_stack:%lukB"
--#ifdef CONFIG_SHADOW_CALL_STACK
--			" shadow_call_stack:%lukB"
--#endif
- 			" pagetables:%lukB"
- 			" bounce:%lukB"
- 			" free_pcp:%lukB"
-@@ -5473,10 +5477,6 @@ void show_free_areas(unsigned int filter
- 			K(zone->present_pages),
- 			K(zone_managed_pages(zone)),
- 			K(zone_page_state(zone, NR_MLOCK)),
--			zone_page_state(zone, NR_KERNEL_STACK_KB),
--#ifdef CONFIG_SHADOW_CALL_STACK
--			zone_page_state(zone, NR_KERNEL_SCS_KB),
--#endif
- 			K(zone_page_state(zone, NR_PAGETABLE)),
- 			K(zone_page_state(zone, NR_BOUNCE)),
- 			K(free_pcp),
---- a/mm/vmstat.c~mm-memcontrol-account-kernel-stack-per-node
-+++ a/mm/vmstat.c
-@@ -1140,10 +1140,6 @@ const char * const vmstat_text[] = {
- 	"nr_zone_write_pending",
- 	"nr_mlock",
- 	"nr_page_table_pages",
--	"nr_kernel_stack",
--#if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
--	"nr_shadow_call_stack",
--#endif
- 	"nr_bounce",
- #if IS_ENABLED(CONFIG_ZSMALLOC)
- 	"nr_zspages",
-@@ -1194,6 +1190,10 @@ const char * const vmstat_text[] = {
- 	"nr_kernel_misc_reclaimable",
- 	"nr_foll_pin_acquired",
- 	"nr_foll_pin_released",
-+	"nr_kernel_stack",
-+#if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
-+	"nr_shadow_call_stack",
-+#endif
+-static __always_inline void charge_slab_page(struct page *page,
+-					     gfp_t gfp, int order,
++static __always_inline void charge_slab_page(struct page *page, int order,
+ 					     struct kmem_cache *s)
+ {
+ 	mod_node_page_state(page_pgdat(page), cache_vmstat_idx(s),
+--- a/mm/slub.c~mm-memcg-slab-remove-unused-argument-by-charge_slab_page
++++ a/mm/slub.c
+@@ -1621,7 +1621,7 @@ static inline struct page *alloc_slab_pa
+ 		page = __alloc_pages_node(node, flags, order);
  
- 	/* enum writeback_stat_item counters */
- 	"nr_dirty_threshold",
+ 	if (page)
+-		charge_slab_page(page, flags, order, s);
++		charge_slab_page(page, order, s);
+ 
+ 	return page;
+ }
 _
