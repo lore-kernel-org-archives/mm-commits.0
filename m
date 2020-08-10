@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A545C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A85DC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3E482065D
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2904D206C3
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027196;
-	bh=pGd2EdoCNhsipzIOmnjUp+iSQudg03wdTDA3ach/zgI=;
+	s=default; t=1597027198;
+	bh=DfbtzeYltxi3pf7VzDb+fo2+iBetBU/EB/UfxR0pdRg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=fyOyZag2V21xv+YnUcw6vNYI7fHpOqwTPq6jfNZNCE6/rZcPykL66+pcvv9Hnax5K
-	 DdPpD4mzRC8NqEGtanjOM8gWf3IDerdOXUkAeRncwVbFGFLBI+NeEqqo0kIWLTyv1y
-	 gV/e4wIKla+R0MS+EzH7g7zpuqp4nUtcvbArpDbw=
+	b=TbKFKL6lHwBDRKOhOW1M9VhX1voQn+Nyt7Br5vdIus1zpJogDkj+bFV+3O0Bufo3v
+	 +cYYtgWm5ZlPPuT1EQeQkhy80IEbt4s+KDrRqEsiTxIfJTe214XYlB9PJ7t+V3gmpf
+	 9tLhrQBHquBN82O6uRs0RZrhKwhQVhKdTcYsZzTQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726389AbgHJCjz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:39:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42972 "EHLO mail.kernel.org"
+        id S1726361AbgHJCj5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:39:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43016 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726338AbgHJCjz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:39:55 -0400
+        id S1726338AbgHJCj5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:39:57 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9EE21206C3;
-        Mon, 10 Aug 2020 02:39:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A1D362065D;
+        Mon, 10 Aug 2020 02:39:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027194;
-        bh=pGd2EdoCNhsipzIOmnjUp+iSQudg03wdTDA3ach/zgI=;
+        s=default; t=1597027196;
+        bh=DfbtzeYltxi3pf7VzDb+fo2+iBetBU/EB/UfxR0pdRg=;
         h=Date:From:To:Subject:From;
-        b=GKKPfZ27ElQDZV4bbm7HB1iNjJJ6E5TN2JkFGMjQM4jDMU3/7e0iSwknpwGX/ETbj
-         BF9vA47XPsJ/xaNAQKwVYJfEuAM16mFS8nNXUFib9uldfNYETMKjd/GBV9YYsBGkP9
-         MCnhhLbt5pU2NaAhK4Ae0r593MNaDnKsZd7SU6TE=
-Date:   Sun, 09 Aug 2020 19:39:53 -0700
+        b=nUbtHhF8jJbPwETicJdqUbdRQxpo/v5zxFeGQFBjqVnrDKfEN2GpZ5xisG0LwpRDy
+         9bW6uIUkJ+mC0DlWOivwJoeHh/95cghjVTkJb6MLY2WA5sLEzastIzhzY2ZgmkmDJy
+         WiAC6zc1sE09uL6wzIJgDOFCcSVi465kUGni2mIM=
+Date:   Sun, 09 Aug 2020 19:39:56 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, hannes@cmpxchg.org, mhocko@suse.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org,
-        pankaj.gupta.linux@gmail.com, richard.weiyang@gmail.com,
-        rppt@linux.ibm.com, ying.huang@intel.com
-Subject:  [merged] mm-page_alloc-drop-nr_free_pagecache_pages.patch
- removed from -mm tree
-Message-ID: <20200810023953.zUHBYvb9-%akpm@linux-foundation.org>
+To:     alexander.h.duyck@linux.intel.com, dan.j.williams@intel.com,
+        david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org
+Subject:  [merged]
+ mm-memory_hotplug-document-why-shuffle_zone-is-relevant.patch removed from
+ -mm tree
+Message-ID: <20200810023956.9ZnzPsq3e%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,78 +55,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: remove nr_free_pagecache_pages()
+     Subject: mm/memory_hotplug: document why shuffle_zone() is relevant
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-drop-nr_free_pagecache_pages.patch
+     mm-memory_hotplug-document-why-shuffle_zone-is-relevant.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/page_alloc: remove nr_free_pagecache_pages()
+Subject: mm/memory_hotplug: document why shuffle_zone() is relevant
 
-nr_free_pagecache_pages() isn't used outside page_alloc.c anymore - and
-the name does not really help to understand what's going on.  Let's
-open-code it instead and add a comment.
+It's not completely obvious why we have to shuffle the complete zone -
+introduced in commit e900a918b098 ("mm: shuffle initial free memory to
+improve memory-side-cache utilization") - because some sort of shuffling
+is already performed when onlining pages via __free_one_page(), placing
+MAX_ORDER-1 pages either to the head or the tail of the freelist.  Let's
+document why we have to shuffle the complete zone when exposing larger,
+contiguous physical memory areas to the buddy.
 
-Link: http://lkml.kernel.org/r/20200619132410.23859-3-david@redhat.com
+Link: http://lkml.kernel.org/r/20200624094741.9918-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 -
- mm/page_alloc.c      |   16 ++--------------
- 2 files changed, 2 insertions(+), 15 deletions(-)
+ mm/memory_hotplug.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/include/linux/swap.h~mm-page_alloc-drop-nr_free_pagecache_pages
-+++ a/include/linux/swap.h
-@@ -328,7 +328,6 @@ void workingset_update_node(struct xa_no
- /* linux/mm/page_alloc.c */
- extern unsigned long totalreserve_pages;
- extern unsigned long nr_free_buffer_pages(void);
--extern unsigned long nr_free_pagecache_pages(void);
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-document-why-shuffle_zone-is-relevant
++++ a/mm/memory_hotplug.c
+@@ -831,6 +831,14 @@ int __ref online_pages(unsigned long pfn
+ 	zone->zone_pgdat->node_present_pages += onlined_pages;
+ 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
  
- /* Definition of global_zone_page_state not available yet */
- #define nr_free_pages() global_zone_page_state(NR_FREE_PAGES)
---- a/mm/page_alloc.c~mm-page_alloc-drop-nr_free_pagecache_pages
-+++ a/mm/page_alloc.c
-@@ -5186,19 +5186,6 @@ unsigned long nr_free_buffer_pages(void)
- }
- EXPORT_SYMBOL_GPL(nr_free_buffer_pages);
++	/*
++	 * When exposing larger, physically contiguous memory areas to the
++	 * buddy, shuffling in the buddy (when freeing onlined pages, putting
++	 * them either to the head or the tail of the freelist) is only helpful
++	 * for maintaining the shuffle, but not for creating the initial
++	 * shuffle. Shuffle the whole zone to make sure the just onlined pages
++	 * are properly distributed across the whole freelist.
++	 */
+ 	shuffle_zone(zone);
  
--/**
-- * nr_free_pagecache_pages - count number of pages beyond high watermark
-- *
-- * nr_free_pagecache_pages() counts the number of pages which are beyond the
-- * high watermark within all zones.
-- *
-- * Return: number of pages beyond high watermark within all zones.
-- */
--unsigned long nr_free_pagecache_pages(void)
--{
--	return nr_free_zone_pages(gfp_zone(GFP_HIGHUSER_MOVABLE));
--}
--
- static inline void show_node(struct zone *zone)
- {
- 	if (IS_ENABLED(CONFIG_NUMA))
-@@ -5920,7 +5907,8 @@ void __ref build_all_zonelists(pg_data_t
- 		__build_all_zonelists(pgdat);
- 		/* cpuset refresh routine should be here */
- 	}
--	vm_total_pages = nr_free_pagecache_pages();
-+	/* Get the number of free pages beyond high watermark in all zones. */
-+	vm_total_pages = nr_free_zone_pages(gfp_zone(GFP_HIGHUSER_MOVABLE));
- 	/*
- 	 * Disable grouping by mobility if the number of pages in the
- 	 * system is too low to allow the mechanism to work. It would be
+ 	node_states_set_node(nid, &arg);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
