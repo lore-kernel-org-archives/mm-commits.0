@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 649EFC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78089C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30E5B2075D
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3F55F206CD
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027033;
-	bh=EqBuDFfWbtjJ1+CszApHZKND+45Ks1Ix2EFKO3CuXy8=;
+	s=default; t=1597027036;
+	bh=pHM/7IbYLnFC+k6aeDo/INxzPRIZS6djLrGpTJognlE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=GELWIyxNHR7XmFtSQvZIrDBgWam8eEP7TSqiQx18UFD1kgs5KAKO+JBI2t581TzbQ
-	 VppXmro591wyGjHdViy25OkY+fUOV8ifC2OqEi39MRnazewgKVpCQE6qmcYFuGjvnI
-	 YqSyJe46wG8QeaacntLvI1oN47wweZDl9kdaPeH0=
+	b=vei3Dqr29W/q7BFPOV3QJa6ffIsvOUdVs6W1WSFVWgnzAmabeABNgYO/RzwR1oob2
+	 NHHXXoSkpQk0xKyLZPi3oWeVBPrGSAKVDuEUlAIpJxwsU+1vuKUl8+SkVTzORaQ+tj
+	 A0A3clwMS37FMgoIYY75XwYrlWVf7NVyjxUsXDUk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726344AbgHJChM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:37:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40348 "EHLO mail.kernel.org"
+        id S1726350AbgHJChQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:37:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40386 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726338AbgHJChM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:37:12 -0400
+        id S1726338AbgHJChP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:37:15 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B2299206CD;
-        Mon, 10 Aug 2020 02:37:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6DF36206C3;
+        Mon, 10 Aug 2020 02:37:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027032;
-        bh=EqBuDFfWbtjJ1+CszApHZKND+45Ks1Ix2EFKO3CuXy8=;
+        s=default; t=1597027034;
+        bh=pHM/7IbYLnFC+k6aeDo/INxzPRIZS6djLrGpTJognlE=;
         h=Date:From:To:Subject:From;
-        b=oL8XI5DpQ36YByzz4rcAnIHWjuRrxtuaAd1J48LbUCAfmSzNoltzq/tSCuwi4Jfk2
-         p+yWPfgklU7UM+Dm9zlLhWBNBJ/yc6yG1WVdHFOS0prjgpFJS20aPFFA7Uv2HpbslP
-         ODTu/uYrRohOnPMt1zycPVEvTO+uKnLXvqPEdqaI=
-Date:   Sun, 09 Aug 2020 19:37:11 -0700
+        b=poRJ+RxzXco/T53y0XKtNGR3PgriXFamWTN8L2mUlJK6PJwGu3VqnDf6y5NiqS6iu
+         2l77DEuMMkCvr6auFDzcb6NGRdXMOnQQFBJL1qo/DyWHKK3XdaQLFZ4Gd22UFD+ybE
+         iM7mEClK41XSqVKlFvwNGutK33N9whI2UfwKN1wU=
+Date:   Sun, 09 Aug 2020 19:37:14 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, guro@fb.com, hannes@cmpxchg.org,
-        iamjoonsoo.kim@lge.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, shakeelb@google.com, vbabka@suse.cz
+To:     chris@chrisdown.name, domas@fb.com, guro@fb.com,
+        hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org,
+        shakeelb@google.com, tj@kernel.org
 Subject:  [merged]
- mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch removed
+ mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch removed
  from -mm tree
-Message-ID: <20200810023711.wkvqRFUPH%akpm@linux-foundation.org>
+Message-ID: <20200810023714.I7Df-LsA8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -57,54 +56,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmem: switch to static_branch_likely() in memcg_kmem_enabled()
+     Subject: mm: memcontrol: avoid workload stalls when lowering memory.high
 has been removed from the -mm tree.  Its filename was
-     mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled.patch
+     mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: kmem: switch to static_branch_likely() in memcg_kmem_enabled()
+Subject: mm: memcontrol: avoid workload stalls when lowering memory.high
 
-Currently memcg_kmem_enabled() is optimized for the kernel memory
-accounting being off.  It was so for a long time, and arguably the reason
-behind was that the kernel memory accounting was initially an opt-in
-feature.  However, now it's on by default on both cgroup v1 and cgroup v2,
-and it's on for all cgroups.  So let's switch over to
-static_branch_likely() to reflect this fact.
+Memory.high limit is implemented in a way such that the kernel penalizes
+all threads which are allocating a memory over the limit.  Forcing all
+threads into the synchronous reclaim and adding some artificial delays
+allows to slow down the memory consumption and potentially give some time
+for userspace oom handlers/resource control agents to react.
 
-Unlikely there is a significant performance difference, as the cost of a
-memory allocation and its accounting significantly exceeds the cost of a
-jump.  However, the conversion makes the code look more logically.
+It works nicely if the memory usage is hitting the limit from below,
+however it works sub-optimal if a user adjusts memory.high to a value way
+below the current memory usage.  It basically forces all workload threads
+(doing any memory allocations) into the synchronous reclaim and sleep. 
+This makes the workload completely unresponsive for a long period of time
+and can also lead to a system-wide contention on lru locks.  It can happen
+even if the workload is not actually tight on memory and has, for example,
+a ton of cold pagecache.
 
-Link: http://lkml.kernel.org/r/20200707173612.124425-3-guro@fb.com
+In the current implementation writing to memory.high causes an atomic
+update of page counter's high value followed by an attempt to reclaim
+enough memory to fit into the new limit.  To fix the problem described
+above, all we need is to change the order of execution: try to push the
+memory usage under the limit first, and only then set the new high limit.
+
+Link: http://lkml.kernel.org/r/20200709194718.189231-1-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
+Reported-by: Domas Mituzas <domas@fb.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Chris Down <chris@chrisdown.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-kmem-switch-to-static_branch_likely-in-memcg_kmem_enabled
-+++ a/include/linux/memcontrol.h
-@@ -1448,7 +1448,7 @@ void memcg_put_cache_ids(void);
+--- a/mm/memcontrol.c~mm-memcontrol-avoid-workload-stalls-when-lowering-memoryhigh
++++ a/mm/memcontrol.c
+@@ -6213,8 +6213,6 @@ static ssize_t memory_high_write(struct
+ 	if (err)
+ 		return err;
  
- static inline bool memcg_kmem_enabled(void)
- {
--	return static_branch_unlikely(&memcg_kmem_enabled_key);
-+	return static_branch_likely(&memcg_kmem_enabled_key);
+-	page_counter_set_high(&memcg->memory, high);
+-
+ 	for (;;) {
+ 		unsigned long nr_pages = page_counter_read(&memcg->memory);
+ 		unsigned long reclaimed;
+@@ -6238,6 +6236,8 @@ static ssize_t memory_high_write(struct
+ 			break;
+ 	}
+ 
++	page_counter_set_high(&memcg->memory, high);
++
+ 	return nbytes;
  }
  
- static inline bool memcg_kmem_bypass(void)
 _
 
 Patches currently in -mm which might be from guro@fb.com are
