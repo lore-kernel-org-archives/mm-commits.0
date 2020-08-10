@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37DA0C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACB4AC433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 178AB206C3
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 81DDE2065D
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026971;
-	bh=tQL53iN9IxAd/kvujLgXuTjzpUF5sHzfM8d6IYlasaw=;
+	s=default; t=1597026972;
+	bh=9FEiO6W0fkhoX1Y346iC19h4bc0cBBKeMXsoRvRUEso=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=fJ6z6+3gAUEv9r41CXBfRdfgVUMsZh7Uk6HKZUCC2nc+W1ttBPI01Yuk2rCFmafWa
-	 0hOIzA8AjYEIrn6K30E1gvDqLRtZR2TbLdgJfojhQCJkSK4YKK1r+XvVBGLYsD4okM
-	 gwsYt5Kvtn2GaPKjh6b4LUOf8wFDPNKJvElz0cYk=
+	b=q+1oYlPAWm+JrBwYKba975SB26OH8ZajN5BIJQ1iQ0tz0pfvHFeeoYRhfA8RxZsFT
+	 2gEX/M6Evop8ZVvqTrhwmpeFEoywBAQ6t2OYCJlb4u7VpU9i5s0R2n4yNbRpG2Wbe4
+	 /nOXLJQkay05erF8N8OYHrLiCh5MYUiWyboI4qK4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726401AbgHJCgK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:36:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39268 "EHLO mail.kernel.org"
+        id S1726429AbgHJCgM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:36:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCgK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:36:10 -0400
+        id S1726219AbgHJCgM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:36:12 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8E8832065D;
-        Mon, 10 Aug 2020 02:36:09 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 78D50206C3;
+        Mon, 10 Aug 2020 02:36:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026969;
-        bh=tQL53iN9IxAd/kvujLgXuTjzpUF5sHzfM8d6IYlasaw=;
+        s=default; t=1597026971;
+        bh=9FEiO6W0fkhoX1Y346iC19h4bc0cBBKeMXsoRvRUEso=;
         h=Date:From:To:Subject:From;
-        b=ftwES5ItVIlB70uOqD3yNBhma+czlbfYOvUBkUkjwrZoSWtKEOtTPjVGdhEidFYZN
-         tEfZgkOHK+sbyyJPz7LVW/WIivNoitTRK+KBu+bA8QTnl8mSVPXHcY7Kj8njcGpy7G
-         MUyE8qUwknpOw9F6+r8S3SwGDLW9kb/wVggBSVM0=
-Date:   Sun, 09 Aug 2020 19:36:09 -0700
+        b=VUGwWfKDEVdgpceulzCYQ1/7Vw4sT1Ln602Hy6QIYCKUPqmMkkl3uJTXfgy8LKiHs
+         K7Uj2T3GnGZnis1wFQQBrXHjKrSuahZsVfw1RQqsbSVTbkk/m8OLF5TfjjbgSvH0O0
+         7LfbCZs/Htsakj5fWERRrC+ev7wWZ7086tecndII=
+Date:   Sun, 09 Aug 2020 19:36:11 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
         tim.c.chen@linux.intel.com
-Subject:  [merged] mm-swap-simplify-enable_swap_slots_cache.patch
+Subject:  [merged]
+ mm-swap-remove-redundant-check-for-swap_slot_cache_initialized.patch
  removed from -mm tree
-Message-ID: <20200810023609.mrXAo9Mkr%akpm@linux-foundation.org>
+Message-ID: <20200810023611.AE6Ygo66B%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,67 +55,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap_slots.c: simplify enable_swap_slots_cache()
+     Subject: mm/swap_slots.c: remove redundant check for swap_slot_cache_initialized
 has been removed from the -mm tree.  Its filename was
-     mm-swap-simplify-enable_swap_slots_cache.patch
+     mm-swap-remove-redundant-check-for-swap_slot_cache_initialized.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: mm/swap_slots.c: simplify enable_swap_slots_cache()
+Subject: mm/swap_slots.c: remove redundant check for swap_slot_cache_initialized
 
-Whether swap_slot_cache_initialized is true or false,
-__reenable_swap_slots_cache() is always called.  To make this meaning
-clear, leave only one call to __reenable_swap_slots_cache().  This also
-make it clearer what extra needs be done when swap_slot_cache_initialized
-is false.
+Because enable_swap_slots_cache can only become true in
+enable_swap_slots_cache(), and depends on swap_slot_cache_initialized is
+true before.  That means, when enable_swap_slots_cache is true,
+swap_slot_cache_initialized is true also.
 
-No functional change.
+So the condition:
+"swap_slot_cache_enabled && swap_slot_cache_initialized"
+can be reduced to "swap_slot_cache_enabled"
 
-Link: http://lkml.kernel.org/r/20200430061143.450-3-thunder.leizhen@huawei.com
+And in mathematics:
+"!swap_slot_cache_enabled || !swap_slot_cache_initialized"
+is equal to "!(swap_slot_cache_enabled && swap_slot_cache_initialized)"
+
+So no functional change.
+
+Link: http://lkml.kernel.org/r/20200430061143.450-4-thunder.leizhen@huawei.com
 Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
 Acked-by: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_slots.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ mm/swap_slots.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/swap_slots.c~mm-swap-simplify-enable_swap_slots_cache
+--- a/mm/swap_slots.c~mm-swap-remove-redundant-check-for-swap_slot_cache_initialized
 +++ a/mm/swap_slots.c
-@@ -240,21 +240,19 @@ static int free_slot_cache(unsigned int
+@@ -46,8 +46,7 @@ static void __drain_swap_slots_cache(uns
+ static void deactivate_swap_slots_cache(void);
+ static void reactivate_swap_slots_cache(void);
  
- int enable_swap_slots_cache(void)
+-#define use_swap_slot_cache (swap_slot_cache_active && \
+-		swap_slot_cache_enabled && swap_slot_cache_initialized)
++#define use_swap_slot_cache (swap_slot_cache_active && swap_slot_cache_enabled)
+ #define SLOTS_CACHE 0x1
+ #define SLOTS_CACHE_RET 0x2
+ 
+@@ -94,7 +93,7 @@ static bool check_cache_active(void)
  {
--	int ret = 0;
--
- 	mutex_lock(&swap_slots_cache_enable_mutex);
--	if (swap_slot_cache_initialized) {
--		__reenable_swap_slots_cache();
--		goto out_unlock;
--	}
-+	if (!swap_slot_cache_initialized) {
-+		int ret;
+ 	long pages;
  
--	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "swap_slots_cache",
--				alloc_swap_slot_cache, free_slot_cache);
--	if (WARN_ONCE(ret < 0, "Cache allocation failed (%s), operating "
--			       "without swap slots cache.\n", __func__))
--		goto out_unlock;
-+		ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "swap_slots_cache",
-+					alloc_swap_slot_cache, free_slot_cache);
-+		if (WARN_ONCE(ret < 0, "Cache allocation failed (%s), operating "
-+				       "without swap slots cache.\n", __func__))
-+			goto out_unlock;
-+
-+		swap_slot_cache_initialized = true;
-+	}
+-	if (!swap_slot_cache_enabled || !swap_slot_cache_initialized)
++	if (!swap_slot_cache_enabled)
+ 		return false;
  
--	swap_slot_cache_initialized = true;
- 	__reenable_swap_slots_cache();
- out_unlock:
- 	mutex_unlock(&swap_slots_cache_enable_mutex);
+ 	pages = get_nr_swap_pages();
 _
 
 Patches currently in -mm which might be from thunder.leizhen@huawei.com are
