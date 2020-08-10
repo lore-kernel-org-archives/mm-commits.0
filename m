@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77647C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECF95C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50B36206CD
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB2FF206CD
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026965;
-	bh=Mjk4iMVtL8jaRdcAHhS+bp5dY8slsW3AGpBTERtmSa4=;
+	s=default; t=1597026968;
+	bh=JMpyfV1glrTdr/yqJAQz9Qh3/MhF7soHGb96pZ2YOjQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=WZWV9d/tAbRRJXxNSptJf+6QVBVSTv0emv7IVgD6ih53mV4GSlyDeZZb4jdB++djf
-	 nrLDHrmQ2DH3uyXcz3mytsKZzuhfFYZ8uuQAPYFCQXalUr9LsYf3/+4ovg52n08US9
-	 A4a3A4pMh0xjbZdFF+rTK9GD7HSqQst++WNZafmw=
+	b=x9/pTvfySuY9rpWUPb+uRfeJ6GbDWzebxblu3qr2972jq5wAnRF5BfeOlavCjDjyA
+	 idwmL7vT4D7Djv4Zp2Y8U/PspXKKvbprb+O7aZTbKUKi7Tj29qzDl8EaMY7Dz8yGww
+	 A/7YnY+9xzqXjoCuUIC1m7cwjNMJ0M7tt+5UlSLw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726428AbgHJCgF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:36:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39212 "EHLO mail.kernel.org"
+        id S1726389AbgHJCgI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:36:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39240 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCgE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:36:04 -0400
+        id S1726219AbgHJCgI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:36:08 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6A69D2065D;
-        Mon, 10 Aug 2020 02:36:04 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 85425206C3;
+        Mon, 10 Aug 2020 02:36:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026964;
-        bh=Mjk4iMVtL8jaRdcAHhS+bp5dY8slsW3AGpBTERtmSa4=;
+        s=default; t=1597026967;
+        bh=JMpyfV1glrTdr/yqJAQz9Qh3/MhF7soHGb96pZ2YOjQ=;
         h=Date:From:To:Subject:From;
-        b=M8sjZ9ATPLAh4bQ4yFcLYuLHZuzRBPmweiDohai9PoA4DOHwTa6niO2S6wR2qI012
-         gJTxu8cH/q2VmoNrGW8HupEJCRruzaLv6CCVi5Xebj5i/xsclXfMw0DOILMTIl350p
-         jLUT7uDEX1DWL0/peMVckYCMW4TuXxpxsD0JSYq4=
-Date:   Sun, 09 Aug 2020 19:36:04 -0700
+        b=m5p7A3rZFvro8zLMX9YZMcilimTVGf8TDM/O01DYmxqtwazo2kZ27fk2/yE+0VaGk
+         q6eq/7Y3irc5bg0y+yKOajwXrD7rNWvTewjqhTYnRI1NYp0Pj/4TEQ5bMjhqZjQcS0
+         Y+DL+NlrFjQb/+8bch0Cp5tNbKyFgI1X5RgjZ0r4=
+Date:   Sun, 09 Aug 2020 19:36:07 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, ira.weiny@intel.com,
-        mm-commits@vger.kernel.org, tangyizhou@huawei.com
-Subject:  [merged]
- mm-gupc-fix-the-comment-of-return-value-for-populate_vma_page_range.patch
+To:     mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
+        tim.c.chen@linux.intel.com
+Subject:  [merged] mm-swap-simplify-alloc_swap_slot_cache.patch
  removed from -mm tree
-Message-ID: <20200810023604.YnipH4kH1%akpm@linux-foundation.org>
+Message-ID: <20200810023607.aOXQHfRFK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,43 +54,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup.c: fix the comment of return value for populate_vma_page_range()
+     Subject: mm/swap_slots.c: simplify alloc_swap_slot_cache()
 has been removed from the -mm tree.  Its filename was
-     mm-gupc-fix-the-comment-of-return-value-for-populate_vma_page_range.patch
+     mm-swap-simplify-alloc_swap_slot_cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Yizhou <tangyizhou@huawei.com>
-Subject: mm/gup.c: fix the comment of return value for populate_vma_page_range()
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: mm/swap_slots.c: simplify alloc_swap_slot_cache()
 
-The return value of populate_vma_page_range() is consistent with
-__get_user_pages(), and so is the function comment of return value.
+Patch series "clean up some functions in mm/swap_slots.c".
 
-Link: http://lkml.kernel.org/r/20200720034303.29920-1-tangyizhou@huawei.com
-Signed-off-by: Tang Yizhou <tangyizhou@huawei.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+When I studied the code of mm/swap_slots.c, I found some places can be
+improved.
+
+
+This patch (of 3):
+
+Both "slots" and "slots_ret" are only need to be freed when cache already
+allocated.  Make them closer, seems more clear.
+
+No functional change.
+
+Link: http://lkml.kernel.org/r/20200430061143.450-1-thunder.leizhen@huawei.com
+Link: http://lkml.kernel.org/r/20200430061143.450-2-thunder.leizhen@huawei.com
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Acked-by: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/swap_slots.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/gup.c~mm-gupc-fix-the-comment-of-return-value-for-populate_vma_page_range
-+++ a/mm/gup.c
-@@ -1404,7 +1404,8 @@ retry:
-  *
-  * This takes care of mlocking the pages too if VM_LOCKED is set.
-  *
-- * return 0 on success, negative error code on error.
-+ * Return either number of pages pinned in the vma, or a negative error
-+ * code on error.
-  *
-  * vma->vm_mm->mmap_lock must be held.
-  *
+--- a/mm/swap_slots.c~mm-swap-simplify-alloc_swap_slot_cache
++++ a/mm/swap_slots.c
+@@ -136,9 +136,16 @@ static int alloc_swap_slot_cache(unsigne
+ 
+ 	mutex_lock(&swap_slots_cache_mutex);
+ 	cache = &per_cpu(swp_slots, cpu);
+-	if (cache->slots || cache->slots_ret)
++	if (cache->slots || cache->slots_ret) {
+ 		/* cache already allocated */
+-		goto out;
++		mutex_unlock(&swap_slots_cache_mutex);
++
++		kvfree(slots);
++		kvfree(slots_ret);
++
++		return 0;
++	}
++
+ 	if (!cache->lock_initialized) {
+ 		mutex_init(&cache->alloc_lock);
+ 		spin_lock_init(&cache->free_lock);
+@@ -155,15 +162,8 @@ static int alloc_swap_slot_cache(unsigne
+ 	 */
+ 	mb();
+ 	cache->slots = slots;
+-	slots = NULL;
+ 	cache->slots_ret = slots_ret;
+-	slots_ret = NULL;
+-out:
+ 	mutex_unlock(&swap_slots_cache_mutex);
+-	if (slots)
+-		kvfree(slots);
+-	if (slots_ret)
+-		kvfree(slots_ret);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from tangyizhou@huawei.com are
+Patches currently in -mm which might be from thunder.leizhen@huawei.com are
 
 
