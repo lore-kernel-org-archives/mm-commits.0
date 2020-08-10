@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8914CC433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7019EC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66948206CD
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B4212065D
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027146;
-	bh=6EBTzKOcpQr4WsAWcP6jYrk13kRU7iIlv9pI0/fZk48=;
+	s=default; t=1597027149;
+	bh=/xsaVc3P0aRRkUL47rq97I0USpSJ/Ami1Ky2EEnNUk8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=SyBwzjdxYZeJF95pOVi5YPBkJOcpx69bgfzu4qP1v25zd0Ibn2VFtagy3RANW/UoF
-	 FTfM5IGVU5Vo6RyAe5ifb6mszvF/fNxYzdKlnofkCxb4eZYh58zUkttcvr1dAtxiiq
-	 DfPSu9j9YnR/4tlr1GD+NyQnZU/Wiqdg1buleco4=
+	b=JRsbq0+tR7yB4ZoZjQ+V+s/Ct14J7cMAzzdcsjjnwQzA+r7WUPzzbOfniqKorvdyw
+	 RhcoMYE1bk0kWYHg/WwE6tzMOOBjCg+nxK5BTzE3zgfP/rhH41bWVprb0Z4nkrjYkh
+	 MQU4aSpqeiPMS3iQJtukFa5FstRIr6UxzziiCvF8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726382AbgHJCjG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:39:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42310 "EHLO mail.kernel.org"
+        id S1726406AbgHJCjJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:39:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42346 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726335AbgHJCjG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:39:06 -0400
+        id S1726335AbgHJCjI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:39:08 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 63BAD2065D;
-        Mon, 10 Aug 2020 02:39:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6A32D206CD;
+        Mon, 10 Aug 2020 02:39:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027145;
-        bh=6EBTzKOcpQr4WsAWcP6jYrk13kRU7iIlv9pI0/fZk48=;
+        s=default; t=1597027147;
+        bh=/xsaVc3P0aRRkUL47rq97I0USpSJ/Ami1Ky2EEnNUk8=;
         h=Date:From:To:Subject:From;
-        b=aPOdg++u3KC5OxvRh0gvVHaN/WMKEs0G6sYQb/SALBXfZPoEAE9oLdFhioJt/vbGn
-         LzrxGZUjbXEWAH+3SqKjXzp1g3DdzP3rteOGrN5O5bz6NWV3E7AIKABz9Eq0ne6y02
-         JbEHTz+xFWG2awCG43LNXsAg/RzfKM4rad7Z9M+E=
-Date:   Sun, 09 Aug 2020 19:39:05 -0700
+        b=s1t+hEsLuuDHubSyWJWurJ7TbkhdjfsnfV46N+SejX42gGId6loSvU1ezv88CRdm8
+         dnd62u8cAWWc8mP0YNPhac8yDo9RqbobOaceL8xnGwT5m5ZWo2y+Y/fryFlWMDkk97
+         e7u3m4V8yNQ8+GvdwIucaGZnt6iWnuylrIO3Kz+A=
+Date:   Sun, 09 Aug 2020 19:39:07 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, arnd@arndb.de, aryabinin@virtuozzo.com,
         dja@axtens.net, dvyukov@google.com, elver@google.com,
         mm-commits@vger.kernel.org, ndesaulniers@google.com,
         walter-zh.wu@mediatek.com
-Subject:  [merged] kasan-improve-and-simplify-kconfigkasan.patch
- removed from -mm tree
-Message-ID: <20200810023905.KCBhCDKHh%akpm@linux-foundation.org>
+Subject:  [merged]
+ kasan-update-required-compiler-versions-in-documentation.patch removed from
+ -mm tree
+Message-ID: <20200810023907.Ax1LMl9JJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,104 +57,119 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: improve and simplify Kconfig.kasan
+     Subject: kasan: update required compiler versions in documentation
 has been removed from the -mm tree.  Its filename was
-     kasan-improve-and-simplify-kconfigkasan.patch
+     kasan-update-required-compiler-versions-in-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kasan: improve and simplify Kconfig.kasan
+Subject: kasan: update required compiler versions in documentation
 
-Turn 'KASAN' into a menuconfig, to avoid cluttering its parent menu with
-the suboptions if enabled.  Use 'if KASAN ...  endif' instead of having to
-'depend on KASAN' for each entry.
+Updates the recently changed compiler requirements for KASAN.  In
+particular, we require GCC >= 8.3.0, and add a note that Clang 11 supports
+OOB detection of globals.
 
-Link: http://lkml.kernel.org/r/20200629104157.3242503-1-elver@google.com
+Link: http://lkml.kernel.org/r/20200629104157.3242503-2-elver@google.com
+Fixes: 7b861a53e46b ("kasan: Bump required compiler version")
+Fixes: acf7b0bf7dcf ("kasan: Fix required compiler version")
 Signed-off-by: Marco Elver <elver@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Daniel Axtens <dja@axtens.net>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Nick Desaulniers <ndesaulniers@google.com>
 Cc: Walter Wu <walter-zh.wu@mediatek.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Axtens <dja@axtens.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ Documentation/dev-tools/kasan.rst |    7 ++-----
+ lib/Kconfig.kasan                 |   24 +++++++++++++++---------
+ 2 files changed, 17 insertions(+), 14 deletions(-)
 
---- a/lib/Kconfig.kasan~kasan-improve-and-simplify-kconfigkasan
+--- a/Documentation/dev-tools/kasan.rst~kasan-update-required-compiler-versions-in-documentation
++++ a/Documentation/dev-tools/kasan.rst
+@@ -13,11 +13,8 @@ KASAN uses compile-time instrumentation
+ memory access, and therefore requires a compiler version that supports that.
+ 
+ Generic KASAN is supported in both GCC and Clang. With GCC it requires version
+-4.9.2 or later for basic support and version 5.0 or later for detection of
+-out-of-bounds accesses for stack and global variables and for inline
+-instrumentation mode (see the Usage section). With Clang it requires version
+-7.0.0 or later and it doesn't support detection of out-of-bounds accesses for
+-global variables yet.
++8.3.0 or later. With Clang it requires version 7.0.0 or later, but detection of
++out-of-bounds accesses for global variables is only supported since Clang 11.
+ 
+ Tag-based KASAN is only supported in Clang and requires version 7.0.0 or later.
+ 
+--- a/lib/Kconfig.kasan~kasan-update-required-compiler-versions-in-documentation
 +++ a/lib/Kconfig.kasan
-@@ -18,7 +18,7 @@ config CC_HAS_KASAN_SW_TAGS
- config CC_HAS_WORKING_NOSANITIZE_ADDRESS
- 	def_bool !CC_IS_GCC || GCC_VERSION >= 80300
- 
--config KASAN
-+menuconfig KASAN
- 	bool "KASAN: runtime memory debugger"
- 	depends on (HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC) || \
- 		   (HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS)
-@@ -29,9 +29,10 @@ config KASAN
- 	  designed to find out-of-bounds accesses and use-after-free bugs.
- 	  See Documentation/dev-tools/kasan.rst for details.
- 
-+if KASAN
+@@ -40,6 +40,7 @@ choice
+ 	  software tag-based KASAN (a version based on software memory
+ 	  tagging, arm64 only, similar to userspace HWASan, enabled with
+ 	  CONFIG_KASAN_SW_TAGS).
 +
- choice
- 	prompt "KASAN mode"
--	depends on KASAN
- 	default KASAN_GENERIC
+ 	  Both generic and tag-based KASAN are strictly debugging features.
+ 
+ config KASAN_GENERIC
+@@ -51,16 +52,18 @@ config KASAN_GENERIC
+ 	select STACKDEPOT
  	help
- 	  KASAN has two modes: generic KASAN (similar to userspace ASan,
-@@ -88,7 +89,6 @@ endchoice
- 
- choice
- 	prompt "Instrumentation type"
--	depends on KASAN
- 	default KASAN_OUTLINE
- 
- config KASAN_OUTLINE
-@@ -113,7 +113,6 @@ endchoice
- 
- config KASAN_STACK_ENABLE
- 	bool "Enable stack instrumentation (unsafe)" if CC_IS_CLANG && !COMPILE_TEST
--	depends on KASAN
- 	help
- 	  The LLVM stack address sanitizer has a know problem that
- 	  causes excessive stack usage in a lot of functions, see
-@@ -134,7 +133,7 @@ config KASAN_STACK
- 
- config KASAN_S390_4_LEVEL_PAGING
- 	bool "KASan: use 4-level paging"
--	depends on KASAN && S390
-+	depends on S390
- 	help
- 	  Compiling the kernel with KASan disables automatic 3-level vs
- 	  4-level paging selection. 3-level paging is used by default (up
-@@ -151,7 +150,7 @@ config KASAN_SW_TAGS_IDENTIFY
- 
- config KASAN_VMALLOC
- 	bool "Back mappings in vmalloc space with real shadow memory"
--	depends on KASAN && HAVE_ARCH_KASAN_VMALLOC
-+	depends on HAVE_ARCH_KASAN_VMALLOC
- 	help
- 	  By default, the shadow region for vmalloc space is the read-only
- 	  zero page. This means that KASAN cannot detect errors involving
-@@ -164,8 +163,10 @@ config KASAN_VMALLOC
- 
- config TEST_KASAN
- 	tristate "Module for testing KASAN for bug detection"
--	depends on m && KASAN
-+	depends on m
- 	help
- 	  This is a test module doing various nasty things like
- 	  out of bounds accesses, use after free. It is useful for testing
- 	  kernel debugging features like KASAN.
+ 	  Enables generic KASAN mode.
+-	  Supported in both GCC and Clang. With GCC it requires version 4.9.2
+-	  or later for basic support and version 5.0 or later for detection of
+-	  out-of-bounds accesses for stack and global variables and for inline
+-	  instrumentation mode (CONFIG_KASAN_INLINE). With Clang it requires
+-	  version 3.7.0 or later and it doesn't support detection of
+-	  out-of-bounds accesses for global variables yet.
 +
-+endif # KASAN
++	  This mode is supported in both GCC and Clang. With GCC it requires
++	  version 8.3.0 or later. With Clang it requires version 7.0.0 or
++	  later, but detection of out-of-bounds accesses for global variables
++	  is supported only since Clang 11.
++
+ 	  This mode consumes about 1/8th of available memory at kernel start
+ 	  and introduces an overhead of ~x1.5 for the rest of the allocations.
+ 	  The performance slowdown is ~x3.
++
+ 	  For better error detection enable CONFIG_STACKTRACE.
++
+ 	  Currently CONFIG_KASAN_GENERIC doesn't work with CONFIG_DEBUG_SLAB
+ 	  (the resulting kernel does not boot).
+ 
+@@ -73,15 +76,19 @@ config KASAN_SW_TAGS
+ 	select STACKDEPOT
+ 	help
+ 	  Enables software tag-based KASAN mode.
++
+ 	  This mode requires Top Byte Ignore support by the CPU and therefore
+-	  is only supported for arm64.
+-	  This mode requires Clang version 7.0.0 or later.
++	  is only supported for arm64. This mode requires Clang version 7.0.0
++	  or later.
++
+ 	  This mode consumes about 1/16th of available memory at kernel start
+ 	  and introduces an overhead of ~20% for the rest of the allocations.
+ 	  This mode may potentially introduce problems relating to pointer
+ 	  casting and comparison, as it embeds tags into the top byte of each
+ 	  pointer.
++
+ 	  For better error detection enable CONFIG_STACKTRACE.
++
+ 	  Currently CONFIG_KASAN_SW_TAGS doesn't work with CONFIG_DEBUG_SLAB
+ 	  (the resulting kernel does not boot).
+ 
+@@ -107,7 +114,6 @@ config KASAN_INLINE
+ 	  memory accesses. This is faster than outline (in some workloads
+ 	  it gives about x2 boost over outline instrumentation), but
+ 	  make kernel's .text size much bigger.
+-	  For CONFIG_KASAN_GENERIC this requires GCC 5.0 or later.
+ 
+ endchoice
+ 
 _
 
 Patches currently in -mm which might be from elver@google.com are
