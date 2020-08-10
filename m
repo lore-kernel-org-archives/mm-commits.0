@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D91BEC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73593C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1A1F20723
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4960D20723
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026976;
-	bh=vzu2u1H+vMflyMPs4IuBRbuhucJHzRa5i2XmGzI4tOw=;
+	s=default; t=1597026979;
+	bh=Ibhs/NQmH9MfyQUkU73+YsB52ltRzh1WhTKQrRb7qsk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=JkKLNVKUvDNW1IgEtlgE1KPLgke/Vh8M0/jrA2CPZlfk0XqoUCguAnVuP4+MgCxHe
-	 A094oSctIg2V0yyx8V8lOWdPlx8OgMzb+QnOEZGEL2hpGn1opdUdje7il7zN488cwA
-	 Mx7fm6j0r1c5R1sv/Rr2LUWDbKRfA5dUuRKm/loE=
+	b=xCTNl0nR0BiJVidOtPzK6P3fbH13ttefuJotClCB/d2rbqps/swb2gZPqlQXdPpg/
+	 3SMSddMGg5pFh0yQawLfSId2tH/EbaVO8gtQNp+SVdgbMVHzu5jCC15bX12/qDO6Xw
+	 0ZLjV4ipPgHGVQ4ZImA5p+MJ9TczQtgGpPzX+j7E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726361AbgHJCgQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:36:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39344 "EHLO mail.kernel.org"
+        id S1726406AbgHJCgT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:36:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39384 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCgQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:36:16 -0400
+        id S1726219AbgHJCgS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:36:18 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 78E462065D;
-        Mon, 10 Aug 2020 02:36:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B55BC206CD;
+        Mon, 10 Aug 2020 02:36:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026975;
-        bh=vzu2u1H+vMflyMPs4IuBRbuhucJHzRa5i2XmGzI4tOw=;
+        s=default; t=1597026978;
+        bh=Ibhs/NQmH9MfyQUkU73+YsB52ltRzh1WhTKQrRb7qsk=;
         h=Date:From:To:Subject:From;
-        b=ZXafCGLS8bj6eD/ciGTZQNfAjtLJOUD3KYMismh/F5W19Hck1akJRkkbTj0PK+C0t
-         xKGIdYhSXbujs2hVMs9vcyk8gXNHfHad2Ui2q7wAfzTAytWlyFpYpavIMebwB5eGM/
-         0dMrybV7V3W2VaVVi5Eu53dJXdolFqdow1eo6XBc=
-Date:   Sun, 09 Aug 2020 19:36:15 -0700
+        b=mPVvqz+nFE/iLetIi3CbFwNay0BWk5N5uWcckkamJlOmcLgLpiiavI3ACD1UKnkOA
+         2/CYi1RZd+nQtKqqrygXd7/dOOj/9+9gNJIQUwySejUmd6l6/YNwEWJohwoNEfVUhU
+         Db6eS0/3OVRyOPuMW8jDzUGxDnefOMikNMG8dlCc=
+Date:   Sun, 09 Aug 2020 19:36:17 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, axboe@kernel.dk, bvanassche@acm.org,
-        hare@suse.de, hughd@google.com, ming.lei@redhat.com,
-        mm-commits@vger.kernel.org, xianting_tian@126.com
-Subject:  [merged]
- mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch removed from
- -mm tree
-Message-ID: <20200810023615.iL5LXAqyW%akpm@linux-foundation.org>
+To:     amir73il@gmail.com, chris@chrisdown.name, hannes@cmpxchg.org,
+        hughd@google.com, jlayton@kernel.org, mm-commits@vger.kernel.org,
+        tj@kernel.org, viro@zeniv.linux.org.uk, willy@infradead.org
+Subject:  [merged] tmpfs-per-superblock-i_ino-support.patch removed
+ from -mm tree
+Message-ID: <20200810023617.Ke_kQ-6qS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,54 +55,250 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_io.c: use blk_io_schedule() for avoiding task hung in sync io
+     Subject: tmpfs: per-superblock i_ino support
 has been removed from the -mm tree.  Its filename was
-     mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io.patch
+     tmpfs-per-superblock-i_ino-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xianting Tian <xianting_tian@126.com>
-Subject: mm/page_io.c: use blk_io_schedule() for avoiding task hung in sync io
+From: Chris Down <chris@chrisdown.name>
+Subject: tmpfs: per-superblock i_ino support
 
-swap_readpage() does the sync io for one page, the io is not big,
-normally, the io can be finished quickly, but it may take long time or
-wait forever in case of io failure or discard.
+Patch series "tmpfs: inode: Reduce risk of inum overflow", v7.
 
-This patch uses blk_io_schedule() instead of io_schedule() to avoid task
-hung and crash (when set /proc/sys/kernel/hung_task_panic) when the above
-exception occurs.
+In Facebook production we are seeing heavy i_ino wraparounds on tmpfs.  On
+affected tiers, in excess of 10% of hosts show multiple files with
+different content and the same inode number, with some servers even having
+as many as 150 duplicated inode numbers with differing file content.
 
-This is similar to the hung task avoidance in submit_bio_wait(),
-blk_execute_rq() and __blkdev_direct_IO().
+This causes actual, tangible problems in production.  For example, we have
+complaints from those working on remote caches that their application is
+reporting cache corruptions because it uses (device, inodenum) to
+establish the identity of a particular cache object, but because it's not
+unique any more, the application refuses to continue and reports cache
+corruption.  Even worse, sometimes applications may not even detect the
+corruption but may continue anyway, causing phantom and hard to debug
+behaviour.
 
-Link: http://lkml.kernel.org/r/1596461807-21087-1-git-send-email-xianting_tian@126.com
-Signed-off-by: Xianting Tian <xianting_tian@126.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ming Lei <ming.lei@redhat.com>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Hugh Dickins <hughd@google.com>
+In general, userspace applications expect that (device, inodenum) should
+be enough to be uniquely point to one inode, which seems fair enough.  One
+might also need to check the generation, but in this case:
+
+1. That's not currently exposed to userspace
+   (ioctl(...FS_IOC_GETVERSION...) returns ENOTTY on tmpfs);
+2. Even with generation, there shouldn't be two live inodes with the
+   same inode number on one device.
+
+In order to mitigate this, we take a two-pronged approach:
+
+1. Moving inum generation from being global to per-sb for tmpfs. This
+   itself allows some reduction in i_ino churn. This works on both 64-
+   and 32- bit machines.
+2. Adding inode{64,32} for tmpfs. This fix is supported on machines with
+   64-bit ino_t only: we allow users to mount tmpfs with a new inode64
+   option that uses the full width of ino_t, or CONFIG_TMPFS_INODE64.
+
+You can see how this compares to previous related patches which didn't
+implement this per-superblock:
+
+- https://patchwork.kernel.org/patch/11254001/
+- https://patchwork.kernel.org/patch/11023915/
+
+
+This patch (of 2):
+
+get_next_ino has a number of problems:
+
+- It uses and returns a uint, which is susceptible to become overflowed
+  if a lot of volatile inodes that use get_next_ino are created.
+- It's global, with no specificity per-sb or even per-filesystem. This
+  means it's not that difficult to cause inode number wraparounds on a
+  single device, which can result in having multiple distinct inodes
+  with the same inode number.
+
+This patch adds a per-superblock counter that mitigates the second case. 
+This design also allows us to later have a specific i_ino size per-device,
+for example, allowing users to choose whether to use 32- or 64-bit inodes
+for each tmpfs mount.  This is implemented in the next commit.
+
+For internal shmem mounts which may be less tolerant to spinlock delays,
+we implement a percpu batching scheme which only takes the stat_lock at
+each batch boundary.
+
+Link: http://lkml.kernel.org/r/cover.1594661218.git.chris@chrisdown.name
+Link: http://lkml.kernel.org/r/1986b9d63b986f08ec07a4aa4b2275e718e47d8a.1594661218.git.chris@chrisdown.name
+Signed-off-by: Chris Down <chris@chrisdown.name>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/fs.h       |   15 ++++++++
+ include/linux/shmem_fs.h |    2 +
+ mm/shmem.c               |   66 ++++++++++++++++++++++++++++++++++---
+ 3 files changed, 78 insertions(+), 5 deletions(-)
 
---- a/mm/page_io.c~mm-use-blk_io_schedule-for-avoiding-task-hung-in-sync-io
-+++ a/mm/page_io.c
-@@ -441,7 +441,7 @@ int swap_readpage(struct page *page, boo
- 			break;
+--- a/include/linux/fs.h~tmpfs-per-superblock-i_ino-support
++++ a/include/linux/fs.h
+@@ -2946,6 +2946,21 @@ extern void discard_new_inode(struct ino
+ extern unsigned int get_next_ino(void);
+ extern void evict_inodes(struct super_block *sb);
  
- 		if (!blk_poll(disk->queue, qc, true))
--			io_schedule();
-+			blk_io_schedule();
++/*
++ * Userspace may rely on the the inode number being non-zero. For example, glibc
++ * simply ignores files with zero i_ino in unlink() and other places.
++ *
++ * As an additional complication, if userspace was compiled with
++ * _FILE_OFFSET_BITS=32 on a 64-bit kernel we'll only end up reading out the
++ * lower 32 bits, so we need to check that those aren't zero explicitly. With
++ * _FILE_OFFSET_BITS=64, this may cause some harmless false-negatives, but
++ * better safe than sorry.
++ */
++static inline bool is_zero_ino(ino_t ino)
++{
++	return (u32)ino == 0;
++}
++
+ extern void __iget(struct inode * inode);
+ extern void iget_failed(struct inode *);
+ extern void clear_inode(struct inode *);
+--- a/include/linux/shmem_fs.h~tmpfs-per-superblock-i_ino-support
++++ a/include/linux/shmem_fs.h
+@@ -36,6 +36,8 @@ struct shmem_sb_info {
+ 	unsigned char huge;	    /* Whether to try for hugepages */
+ 	kuid_t uid;		    /* Mount uid for root directory */
+ 	kgid_t gid;		    /* Mount gid for root directory */
++	ino_t next_ino;		    /* The next per-sb inode number to use */
++	ino_t __percpu *ino_batch;  /* The next per-cpu inode number to use */
+ 	struct mempolicy *mpol;     /* default memory policy for mappings */
+ 	spinlock_t shrinklist_lock;   /* Protects shrinklist */
+ 	struct list_head shrinklist;  /* List of shinkable inodes */
+--- a/mm/shmem.c~tmpfs-per-superblock-i_ino-support
++++ a/mm/shmem.c
+@@ -260,18 +260,67 @@ bool vma_is_shmem(struct vm_area_struct
+ static LIST_HEAD(shmem_swaplist);
+ static DEFINE_MUTEX(shmem_swaplist_mutex);
+ 
+-static int shmem_reserve_inode(struct super_block *sb)
++/*
++ * shmem_reserve_inode() performs bookkeeping to reserve a shmem inode, and
++ * produces a novel ino for the newly allocated inode.
++ *
++ * It may also be called when making a hard link to permit the space needed by
++ * each dentry. However, in that case, no new inode number is needed since that
++ * internally draws from another pool of inode numbers (currently global
++ * get_next_ino()). This case is indicated by passing NULL as inop.
++ */
++#define SHMEM_INO_BATCH 1024
++static int shmem_reserve_inode(struct super_block *sb, ino_t *inop)
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
+-	if (sbinfo->max_inodes) {
++	ino_t ino;
++
++	if (!(sb->s_flags & SB_KERNMOUNT)) {
+ 		spin_lock(&sbinfo->stat_lock);
+ 		if (!sbinfo->free_inodes) {
+ 			spin_unlock(&sbinfo->stat_lock);
+ 			return -ENOSPC;
+ 		}
+ 		sbinfo->free_inodes--;
++		if (inop) {
++			ino = sbinfo->next_ino++;
++			if (unlikely(is_zero_ino(ino)))
++				ino = sbinfo->next_ino++;
++			if (unlikely(ino > UINT_MAX)) {
++				/*
++				 * Emulate get_next_ino uint wraparound for
++				 * compatibility
++				 */
++				ino = 1;
++			}
++			*inop = ino;
++		}
+ 		spin_unlock(&sbinfo->stat_lock);
++	} else if (inop) {
++		/*
++		 * __shmem_file_setup, one of our callers, is lock-free: it
++		 * doesn't hold stat_lock in shmem_reserve_inode since
++		 * max_inodes is always 0, and is called from potentially
++		 * unknown contexts. As such, use a per-cpu batched allocator
++		 * which doesn't require the per-sb stat_lock unless we are at
++		 * the batch boundary.
++		 */
++		ino_t *next_ino;
++		next_ino = per_cpu_ptr(sbinfo->ino_batch, get_cpu());
++		ino = *next_ino;
++		if (unlikely(ino % SHMEM_INO_BATCH == 0)) {
++			spin_lock(&sbinfo->stat_lock);
++			ino = sbinfo->next_ino;
++			sbinfo->next_ino += SHMEM_INO_BATCH;
++			spin_unlock(&sbinfo->stat_lock);
++			if (unlikely(is_zero_ino(ino)))
++				ino++;
++		}
++		*inop = ino;
++		*next_ino = ++ino;
++		put_cpu();
  	}
- 	__set_current_state(TASK_RUNNING);
- 	bio_put(bio);
++
+ 	return 0;
+ }
+ 
+@@ -2222,13 +2271,14 @@ static struct inode *shmem_get_inode(str
+ 	struct inode *inode;
+ 	struct shmem_inode_info *info;
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
++	ino_t ino;
+ 
+-	if (shmem_reserve_inode(sb))
++	if (shmem_reserve_inode(sb, &ino))
+ 		return NULL;
+ 
+ 	inode = new_inode(sb);
+ 	if (inode) {
+-		inode->i_ino = get_next_ino();
++		inode->i_ino = ino;
+ 		inode_init_owner(inode, dir, mode);
+ 		inode->i_blocks = 0;
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
+@@ -2932,7 +2982,7 @@ static int shmem_link(struct dentry *old
+ 	 * first link must skip that, to get the accounting right.
+ 	 */
+ 	if (inode->i_nlink) {
+-		ret = shmem_reserve_inode(inode->i_sb);
++		ret = shmem_reserve_inode(inode->i_sb, NULL);
+ 		if (ret)
+ 			goto out;
+ 	}
+@@ -3584,6 +3634,7 @@ static void shmem_put_super(struct super
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
+ 
++	free_percpu(sbinfo->ino_batch);
+ 	percpu_counter_destroy(&sbinfo->used_blocks);
+ 	mpol_put(sbinfo->mpol);
+ 	kfree(sbinfo);
+@@ -3626,6 +3677,11 @@ static int shmem_fill_super(struct super
+ #endif
+ 	sbinfo->max_blocks = ctx->blocks;
+ 	sbinfo->free_inodes = sbinfo->max_inodes = ctx->inodes;
++	if (sb->s_flags & SB_KERNMOUNT) {
++		sbinfo->ino_batch = alloc_percpu(ino_t);
++		if (!sbinfo->ino_batch)
++			goto failed;
++	}
+ 	sbinfo->uid = ctx->uid;
+ 	sbinfo->gid = ctx->gid;
+ 	sbinfo->mode = ctx->mode;
 _
 
-Patches currently in -mm which might be from xianting_tian@126.com are
+Patches currently in -mm which might be from chris@chrisdown.name are
 
 
