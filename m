@@ -2,50 +2,51 @@ Return-Path: <SRS0=A/n1=BU=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4302BC433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C8C9C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1082F206C3
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D1E0206C3
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026955;
-	bh=FusuCiGGmgmxVuz4xdnoRZzQKVWgUc35TjZZ127Zv7A=;
+	s=default; t=1597026958;
+	bh=dkJxN9O0UMDsyQtMn8opVRGlCPOXvxXkq7t01ahl/YA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=KxO+rcncxBZT0E5K09oMVZHo3x0FapAj7fGa6Fbe5QP/iG54KQpLxQ5qAsEvJrVno
-	 //wQfl3c3tMlJXCkXv3MGl1HO55LVM8zekvpwo+IHqRb+arTWKXKXt7OL8c4DoZyVI
-	 zfspX3SwSkr2ECzDBj18WdFdZI8hIy6zQe+g65k8=
+	b=r9ojEuOfzk7/Hd1IQYb4jihI5CCVrdp8nTLyVvfLQaLoxEsWbREiVBztTXViIrMFZ
+	 dpc6AwGnponU2Q/pkmBljTYNaLNOZrNePn44vWRe8XG/lFVh9Z7suc6EuvJBt2nYFr
+	 BhyJJP/BVpknkAOEVElGOVBRWAtGHu4kpAz8kNYs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726335AbgHJCfy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:35:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39078 "EHLO mail.kernel.org"
+        id S1726338AbgHJCf6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:35:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39116 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCfy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:35:54 -0400
+        id S1726219AbgHJCf5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:35:57 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A22E42065D;
-        Mon, 10 Aug 2020 02:35:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B97CD2065D;
+        Mon, 10 Aug 2020 02:35:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026954;
-        bh=FusuCiGGmgmxVuz4xdnoRZzQKVWgUc35TjZZ127Zv7A=;
+        s=default; t=1597026957;
+        bh=dkJxN9O0UMDsyQtMn8opVRGlCPOXvxXkq7t01ahl/YA=;
         h=Date:From:To:Subject:From;
-        b=VvtEvNOL4KY0iBvJjxmGbXIsu+FLWkE3kVAAlc3BItiYd47UPtEbFZ3AbJL2iPvwa
-         dePCgI828q8XfF/j1TPSqiSlAtr7XCBn5LPPJz7poTYoqV7ACm7QdTH3Y1GfXNjwYf
-         GNTp4sDjS6xvBnFl5SQukgfiQmwOeSYLFtQLaZgM=
-Date:   Sun, 09 Aug 2020 19:35:53 -0700
+        b=fqg4sn+SXdMnRwI/+3ZNlXFYaEtjon+Js9kjBfNYXt/5t7k6mlkSCsgagsdb56iv0
+         ig0p/x8P38A6Xx7t9eEhAG2r2yK/CUm5iA/f2b5LRuj89aHKzNvASMwNP2h4UxlQub
+         Pe8U0WswWVnB1v+0+Wk6PvXFa0NZJnCFtHzsHB+E=
+Date:   Sun, 09 Aug 2020 19:35:56 -0700
 From:   akpm@linux-foundation.org
-To:     jhubbard@nvidia.com, kirill@shutemov.name,
+To:     cai@lca.pw, jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
         mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz,
         william.kucharski@oracle.com, willy@infradead.org
-Subject:  [merged] mm-print-hashed-address-of-struct-page.patch
- removed from -mm tree
-Message-ID: <20200810023553.V2uAn2e8d%akpm@linux-foundation.org>
+Subject:  [merged]
+ mm-dump_page-do-not-crash-with-bad-compound_mapcount.patch removed from -mm
+ tree
+Message-ID: <20200810023556.zZKgDIZPE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,68 +56,110 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug: print hashed address of struct page
+     Subject: mm, dump_page: do not crash with bad compound_mapcount()
 has been removed from the -mm tree.  Its filename was
-     mm-print-hashed-address-of-struct-page.patch
+     mm-dump_page-do-not-crash-with-bad-compound_mapcount.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/debug: print hashed address of struct page
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm, dump_page: do not crash with bad compound_mapcount()
 
-The actual address of the struct page isn't particularly helpful, while
-the hashed address helps match with other messages elsewhere.  Add the PFN
-that the page refers to in order to help diagnose problems where the page
-is improperly aligned for the purpose.
+If a compound page is being split while dump_page() is being run on that
+page, we can end up calling compound_mapcount() on a page that is no
+longer compound.  This leads to a crash (already seen at least once in the
+field), due to the VM_BUG_ON_PAGE() assertion inside compound_mapcount().
 
-Link: http://lkml.kernel.org/r/20200709202117.7216-7-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+(The above is from Matthew Wilcox's analysis of Qian Cai's bug report.)
+
+A similar problem is possible, via compound_pincount() instead of
+compound_mapcount().
+
+In order to avoid this kind of crash, make dump_page() slightly more
+robust, by providing a pair of simpler routines that don't contain
+assertions: head_mapcount() and head_pincount().
+
+For debug tools, we don't want to go *too* far in this direction, but this
+is a simple small fix, and the crash has already been seen, so it's a good
+trade-off.
+
+Link: http://lkml.kernel.org/r/20200804214807.169256-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reported-by: Qian Cai <cai@lca.pw>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/mm.h |   14 ++++++++++++--
+ mm/debug.c         |    6 +++---
+ 2 files changed, 15 insertions(+), 5 deletions(-)
 
---- a/mm/debug.c~mm-print-hashed-address-of-struct-page
-+++ a/mm/debug.c
-@@ -95,17 +95,17 @@ void __dump_page(struct page *page, cons
- 	 */
- 	mapcount = PageSlab(head) ? 0 : page_mapcount(page);
+--- a/include/linux/mm.h~mm-dump_page-do-not-crash-with-bad-compound_mapcount
++++ a/include/linux/mm.h
+@@ -779,6 +779,11 @@ static inline void *kvcalloc(size_t n, s
+ extern void kvfree(const void *addr);
+ extern void kvfree_sensitive(const void *addr, size_t len);
  
--	pr_warn("page:%px refcount:%d mapcount:%d mapping:%p index:%#lx\n",
-+	pr_warn("page:%p refcount:%d mapcount:%d mapping:%p index:%#lx pfn:%#lx\n",
- 			page, page_ref_count(head), mapcount, mapping,
--			page_to_pgoff(page));
-+			page_to_pgoff(page), page_to_pfn(page));
- 	if (compound) {
++static inline int head_mapcount(struct page *head)
++{
++	return atomic_read(compound_mapcount_ptr(head)) + 1;
++}
++
+ /*
+  * Mapcount of compound page as a whole, does not include mapped sub-pages.
+  *
+@@ -788,7 +793,7 @@ static inline int compound_mapcount(stru
+ {
+ 	VM_BUG_ON_PAGE(!PageCompound(page), page);
+ 	page = compound_head(page);
+-	return atomic_read(compound_mapcount_ptr(page)) + 1;
++	return head_mapcount(page);
+ }
+ 
+ /*
+@@ -901,11 +906,16 @@ static inline bool hpage_pincount_availa
+ 	return PageCompound(page) && compound_order(page) > 1;
+ }
+ 
++static inline int head_pincount(struct page *head)
++{
++	return atomic_read(compound_pincount_ptr(head));
++}
++
+ static inline int compound_pincount(struct page *page)
+ {
+ 	VM_BUG_ON_PAGE(!hpage_pincount_available(page), page);
+ 	page = compound_head(page);
+-	return atomic_read(compound_pincount_ptr(page));
++	return head_pincount(page);
+ }
+ 
+ static inline void set_compound_order(struct page *page, unsigned int order)
+--- a/mm/debug.c~mm-dump_page-do-not-crash-with-bad-compound_mapcount
++++ a/mm/debug.c
+@@ -102,12 +102,12 @@ void __dump_page(struct page *page, cons
  		if (hpage_pincount_available(page)) {
--			pr_warn("head:%px order:%u compound_mapcount:%d compound_pincount:%d\n",
-+			pr_warn("head:%p order:%u compound_mapcount:%d compound_pincount:%d\n",
+ 			pr_warn("head:%p order:%u compound_mapcount:%d compound_pincount:%d\n",
  					head, compound_order(head),
- 					compound_mapcount(head),
- 					compound_pincount(head));
+-					compound_mapcount(head),
+-					compound_pincount(head));
++					head_mapcount(head),
++					head_pincount(head));
  		} else {
--			pr_warn("head:%px order:%u compound_mapcount:%d\n",
-+			pr_warn("head:%p order:%u compound_mapcount:%d\n",
+ 			pr_warn("head:%p order:%u compound_mapcount:%d\n",
  					head, compound_order(head),
- 					compound_mapcount(head));
+-					compound_mapcount(head));
++					head_mapcount(head));
  		}
+ 	}
+ 	if (PageKsm(page))
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-store-compound_nr-as-well-as-compound_order.patch
-mm-move-page-flags-include-to-top-of-file.patch
-mm-add-thp_order.patch
-mm-add-thp_size.patch
-mm-replace-hpage_nr_pages-with-thp_nr_pages.patch
-mm-add-thp_head.patch
-mm-introduce-offset_in_thp.patch
-poison-remove-obsolete-comment.patch
 
