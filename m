@@ -7,46 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB7F4C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83858C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CC3220723
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6084E206CD
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026855;
-	bh=2Hp5as77g0t7khjJkf36v58zY2NBgkXJ2e/NrK/7Rwg=;
+	s=default; t=1597026858;
+	bh=vPIu5AFqW1r/YMCfn25mdwvUEb/xy49FhMUaMhKshzA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=IF1QP281sor3/k85cx2t31QvSAfNotoC0rEdRKu3kmrGjE1IhmLQTwB/4TzAEcrq9
-	 qXin/wDqfx5OAuKWvxdCR6lGStuDA0b7qqMU+4d6XiEwB3J/Aj2X3E4zfRf114Fjap
-	 5zAK2+g+ZbdNxIH6vvlN/9TS/954ho7PmhbtOvuI=
+	b=SZHakqSbF9+p0SzDlxCkVYskJ5YFHXtoJF1MgW3yhcA5E70t3sk47bsWked9qJYFo
+	 XgQwxDvNVEVhrpX+/p94UNmA1MZVhkwPp2a3Xzp7vjAwaipnmceVgKvcu2SUJV6gCC
+	 vSJ+5cLbtC9zW48wZJ4DZ0Xr8z4N9o8uxyQdvbaY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726446AbgHJCeP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:34:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37728 "EHLO mail.kernel.org"
+        id S1726457AbgHJCeS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:34:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCeP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:34:15 -0400
+        id S1726219AbgHJCeR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:34:17 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 65631206C3;
-        Mon, 10 Aug 2020 02:34:14 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 59CA6206C3;
+        Mon, 10 Aug 2020 02:34:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026854;
-        bh=2Hp5as77g0t7khjJkf36v58zY2NBgkXJ2e/NrK/7Rwg=;
+        s=default; t=1597026857;
+        bh=vPIu5AFqW1r/YMCfn25mdwvUEb/xy49FhMUaMhKshzA=;
         h=Date:From:To:Subject:From;
-        b=F+lc9518A2UCPU1/9tPOaqMDuKybvTbxkZPX84j9OBEsXeGta/PpbP9HRdCG899Zx
-         qQ620sy3chYpTP96jTdfv7qMpceOnZIKBsYFG9WVc+BM+KpPcJdzvgj423wI98v88L
-         gIo6QaQeWp/am6ArnSk3mKhJRaa/sDKjPVTLkTAA=
-Date:   Sun, 09 Aug 2020 19:34:14 -0700
+        b=YKYqCn8EMNbDRnDHJrH2BUS/PL0kFjFlj/BTsSsUfVvI1hUoKT2+0ljEJ4717FO30
+         LodPO8hmyhMI86islrZ2bU/wZNhDFHE/e4XByu1WbJuF+BeyVY5xqL3XGYFPsePDfM
+         o+cO4/RakcnOMCVIc0V7WBQnysDuY3Njgj6gk9eA=
+Date:   Sun, 09 Aug 2020 19:34:17 -0700
 From:   akpm@linux-foundation.org
-To:     bleung@chromium.org, broonie@kernel.org,
-        enric.balletbo@collabora.com, groeck@chromium.org, joe@perches.com,
-        lgirdwood@gmail.com, mm-commits@vger.kernel.org,
-        pihsun@chromium.org, rikard.falkeborn@gmail.com
-Subject:  [merged] const_structscheckpatch-add-regulator_ops.patch
- removed from -mm tree
-Message-ID: <20200810023414.VXPqgAMaO%akpm@linux-foundation.org>
+To:     colin.king@canonical.com, mm-commits@vger.kernel.org
+Subject:  [merged]
+ scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch removed from
+ -mm tree
+Message-ID: <20200810023417._5Alq6qhP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,52 +54,172 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: const_structs.checkpatch: add regulator_ops
+     Subject: scripts/spelling.txt: add more spellings to spelling.txt
 has been removed from the -mm tree.  Its filename was
-     const_structscheckpatch-add-regulator_ops.patch
+     scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: const_structs.checkpatch: add regulator_ops
+From: Colin Ian King <colin.king@canonical.com>
+Subject: scripts/spelling.txt: add more spellings to spelling.txt
 
-Add regulator_ops to expected to be const list.
+Here are some of the more common spelling mistakes and typos that I've
+found while fixing up spelling mistakes in the kernel since April 2020.
 
-Link: http://lkml.kernel.org/r/dab1ba1aa03a8236933cfb7a28937efb0b808f13.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Pi-Hsun Shih <pihsun@chromium.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Benson Leung <bleung@chromium.org>
-Cc: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Cc: Guenter Roeck <groeck@chromium.org>
-Cc: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Link: http://lkml.kernel.org/r/20200714092837.173796-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/const_structs.checkpatch |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/spelling.txt |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
---- a/scripts/const_structs.checkpatch~const_structscheckpatch-add-regulator_ops
-+++ a/scripts/const_structs.checkpatch
-@@ -44,6 +44,7 @@ platform_hibernation_ops
- platform_suspend_ops
- proto_ops
- regmap_access_table
-+regulator_ops
- rpc_pipe_ops
- rtc_class_ops
- sd_desc
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spellings-to-spellingtxt
++++ a/scripts/spelling.txt
+@@ -149,6 +149,7 @@ arbitary||arbitrary
+ architechture||architecture
+ arguement||argument
+ arguements||arguments
++arithmatic||arithmetic
+ aritmetic||arithmetic
+ arne't||aren't
+ arraival||arrival
+@@ -454,6 +455,7 @@ destorys||destroys
+ destroied||destroyed
+ detabase||database
+ deteced||detected
++detectt||detect
+ develope||develop
+ developement||development
+ developped||developed
+@@ -545,6 +547,7 @@ entires||entries
+ entites||entities
+ entrys||entries
+ enocded||encoded
++enought||enough
+ enterily||entirely
+ enviroiment||environment
+ enviroment||environment
+@@ -556,11 +559,14 @@ equivelant||equivalent
+ equivilant||equivalent
+ eror||error
+ errorr||error
++errror||error
+ estbalishment||establishment
+ etsablishment||establishment
+ etsbalishment||establishment
++evalution||evaluation
+ excecutable||executable
+ exceded||exceeded
++exceds||exceeds
+ exceeed||exceed
+ excellant||excellent
+ execeeded||exceeded
+@@ -583,6 +589,7 @@ explictly||explicitly
+ expresion||expression
+ exprimental||experimental
+ extened||extended
++exteneded||extended||extended
+ extensability||extensibility
+ extention||extension
+ extenstion||extension
+@@ -610,10 +617,12 @@ feautures||features
+ fetaure||feature
+ fetaures||features
+ fileystem||filesystem
++fimrware||firmware
+ fimware||firmware
+ firmare||firmware
+ firmaware||firmware
+ firware||firmware
++firwmare||firmware
+ finanize||finalize
+ findn||find
+ finilizes||finalizes
+@@ -661,6 +670,7 @@ globel||global
+ grabing||grabbing
+ grahical||graphical
+ grahpical||graphical
++granularty||granularity
+ grapic||graphic
+ grranted||granted
+ guage||gauge
+@@ -906,6 +916,7 @@ miximum||maximum
+ mmnemonic||mnemonic
+ mnay||many
+ modfiy||modify
++modifer||modifier
+ modulues||modules
+ momery||memory
+ memomry||memory
+@@ -915,6 +926,7 @@ monochromo||monochrome
+ monocrome||monochrome
+ mopdule||module
+ mroe||more
++multipler||multiplier
+ mulitplied||multiplied
+ multidimensionnal||multidimensional
+ multipe||multiple
+@@ -952,6 +964,7 @@ occassionally||occasionally
+ occationally||occasionally
+ occurance||occurrence
+ occurances||occurrences
++occurd||occurred
+ occured||occurred
+ occurence||occurrence
+ occure||occurred
+@@ -1058,6 +1071,7 @@ precission||precision
+ preemptable||preemptible
+ prefered||preferred
+ prefferably||preferably
++prefitler||prefilter
+ premption||preemption
+ prepaired||prepared
+ preperation||preparation
+@@ -1101,6 +1115,7 @@ pronunce||pronounce
+ propery||property
+ propigate||propagate
+ propigation||propagation
++propogation||propagation
+ propogate||propagate
+ prosess||process
+ protable||portable
+@@ -1316,6 +1331,7 @@ sturcture||structure
+ subdirectoires||subdirectories
+ suble||subtle
+ substract||subtract
++submited||submitted
+ submition||submission
+ suceed||succeed
+ succesfully||successfully
+@@ -1324,6 +1340,7 @@ successed||succeeded
+ successfull||successful
+ successfuly||successfully
+ sucessfully||successfully
++sucessful||successful
+ sucess||success
+ superflous||superfluous
+ superseeded||superseded
+@@ -1409,6 +1426,7 @@ transormed||transformed
+ trasfer||transfer
+ trasmission||transmission
+ treshold||threshold
++triggerd||triggered
+ trigerred||triggered
+ trigerring||triggering
+ trun||turn
+@@ -1421,6 +1439,7 @@ uknown||unknown
+ usccess||success
+ usupported||unsupported
+ uncommited||uncommitted
++uncompatible||incompatible
+ unconditionaly||unconditionally
+ undeflow||underflow
+ underun||underrun
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-checkpatch-test-git_dir-changes.patch
-checkpatch-add-test-for-possible-misuse-of-is_enabled-without-config_.patch
-checkpatch-add-fix-option-for-assign_in_if.patch
-checkpatch-add-test-for-repeated-words.patch
-checkpatch-remove-missing-switch-case-break-test.patch
-nilfs2-convert-__nilfs_msg-to-integrate-the-level-and-format.patch
-nilfs2-use-a-more-common-logging-style.patch
+fs-ufs-avoid-potential-u32-multiplication-overflow.patch
 
