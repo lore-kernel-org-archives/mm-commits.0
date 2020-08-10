@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0281C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BD13C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BBA7C2065D
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE706206C3
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027176;
-	bh=5Lku47CeWNOicxLTSGbpV4a7XPYf01+IujXOE2jBWyc=;
+	s=default; t=1597027180;
+	bh=blVplkP8ihezzCuNE/DkX+Cdcv8Bk+KNWma78acIHgg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=KB45GUWArafaTAkz1RvZx9laGTJ61jt5f5X3cWBIWkmZHexjkCBfGCT4DHZnE0McV
-	 neD6sIYTn4LHJkBetWN3zXSmSomav8liN9UARt7rSwF53valxpTstN73ms96Q2kczo
-	 ii6fONOJOgHcyBxCEIL3mX2gNKMnjuixD+0kr3h4=
+	b=Ofrd2oWrZSLKYMm5FcdOZmwsrhP7w7RbQKSViO1TtLjCZqT4ZmJOjZYfNsvBLwyPs
+	 gpRGcLF2kru4gu1zs4HLK/zyCNjPVlSnAd5mnRElGrcJnQEqARhDUmOmZRiMy8coOw
+	 t2vj4jCn0jXy+VYQ1dUmhfQJkCCIfNlumpMmGgL0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726344AbgHJCjg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:39:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42742 "EHLO mail.kernel.org"
+        id S1726219AbgHJCjj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:39:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCjg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:39:36 -0400
+        id S1726350AbgHJCjj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:39:39 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 97290206C3;
-        Mon, 10 Aug 2020 02:39:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 930C02065D;
+        Mon, 10 Aug 2020 02:39:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027176;
-        bh=5Lku47CeWNOicxLTSGbpV4a7XPYf01+IujXOE2jBWyc=;
+        s=default; t=1597027178;
+        bh=blVplkP8ihezzCuNE/DkX+Cdcv8Bk+KNWma78acIHgg=;
         h=Date:From:To:Subject:From;
-        b=rY9kvO1vOzexL4Nbk6dXoNOwEZ2uJ7CyqQ0pbzra5oqwAFZuA2ErRsMv2NkNoo46j
-         eUy80RZTkX4Ay5G+hTlzth1MdcE1VHy6yOCrRm/0hMDdftPOqia+7ovX/eETOoClr2
-         owWBNk7yk5BNqd7mGAGs4iq5VAhW9v6ugNBLfgTQ=
-Date:   Sun, 09 Aug 2020 19:39:35 -0700
+        b=oNnCVZxR3Y/nLtLGDljxuer265x4BvnRFcNRnCzcsLHj7Iu817d82ZeQXRra+jWx2
+         pQ+vPFIgugOXYWCCzoF2Cn5OxnLTibcdm6P9ukKzASoxgjoclkWFqjyiH1ZhCfuUOy
+         jgSWD053VQyelLdroX14NZQwXQzPo998hzpg+SG4=
+Date:   Sun, 09 Aug 2020 19:39:38 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, ardb@kernel.org, aryabinin@virtuozzo.com,
         catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
         glider@google.com, lenaptr@google.com, mm-commits@vger.kernel.org,
         vincenzo.frascino@arm.com, walter-zh.wu@mediatek.com
 Subject:  [merged]
- kasan-allow-enabling-stack-tagging-for-tag-based-mode.patch removed from
- -mm tree
-Message-ID: <20200810023935.6q1K-cuKV%akpm@linux-foundation.org>
+ kasan-adjust-kasan_stack_oob-for-tag-based-mode.patch removed from -mm tree
+Message-ID: <20200810023938.Yo_qsD6B3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -57,26 +56,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: allow enabling stack tagging for tag-based mode
+     Subject: kasan: adjust kasan_stack_oob for tag-based mode
 has been removed from the -mm tree.  Its filename was
-     kasan-allow-enabling-stack-tagging-for-tag-based-mode.patch
+     kasan-adjust-kasan_stack_oob-for-tag-based-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: allow enabling stack tagging for tag-based mode
+Subject: kasan: adjust kasan_stack_oob for tag-based mode
 
-Use CONFIG_KASAN_STACK to enable stack tagging.
+Use OOB_TAG_OFF as access offset to land the access into the next granule.
 
-Note, that HWASAN short granules [1] are disabled. Supporting those will
-require more kernel changes.
-
-[1] https://clang.llvm.org/docs/HardwareAssistedAddressSanitizerDesign.html
-
-Link: http://lkml.kernel.org/r/e7febb907b539c3730780df587ce0b38dc558c3d.1596199677.git.andreyknvl@google.com
-Link: http://lkml.kernel.org/r/99f7d90a4237431bf5988599fb41358e92876eb0.1596544734.git.andreyknvl@google.com
+Link: http://lkml.kernel.org/r/403b259f1de49a7a3694531c851ac28326a586a8.1596199677.git.andreyknvl@google.com
+Link: http://lkml.kernel.org/r/3063ab1411e92bce36061a96e25b651212e70ba6.1596544734.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Suggested-by: Walter Wu <walter-zh.wu@mediatek.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -84,26 +79,24 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Elena Petrova <lenaptr@google.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Walter Wu <walter-zh.wu@mediatek.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.kasan |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/test_kasan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/Makefile.kasan~kasan-allow-enabling-stack-tagging-for-tag-based-mode
-+++ a/scripts/Makefile.kasan
-@@ -44,7 +44,8 @@ else
- endif
+--- a/lib/test_kasan.c~kasan-adjust-kasan_stack_oob-for-tag-based-mode
++++ a/lib/test_kasan.c
+@@ -488,7 +488,7 @@ static noinline void __init kasan_global
+ static noinline void __init kasan_stack_oob(void)
+ {
+ 	char stack_array[10];
+-	volatile int i = 0;
++	volatile int i = OOB_TAG_OFF;
+ 	char *p = &stack_array[ARRAY_SIZE(stack_array) + i];
  
- CFLAGS_KASAN := -fsanitize=kernel-hwaddress \
--		-mllvm -hwasan-instrument-stack=0 \
-+		-mllvm -hwasan-instrument-stack=$(CONFIG_KASAN_STACK) \
-+		-mllvm -hwasan-use-short-granules=0 \
- 		$(instrumentation_flags)
- 
- endif # CONFIG_KASAN_SW_TAGS
+ 	pr_info("out-of-bounds on stack\n");
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
