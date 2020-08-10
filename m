@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88EEBC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BD10C433E3
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5CBC5206CD
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B46720723
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027116;
-	bh=eGgQm/clcvQHDNozh83RUZ9bMofTnNdHBFpUHHN0eAQ=;
+	s=default; t=1597027118;
+	bh=qt5/oE2UDYI12iWGuZx2VYd1Dse9L/zaEO1nqjF89LE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=HAM+/yi2yGrAkUQzBJC6IJiWfvbHCMPZS9eAyDnmcDE/KH4j2PJRP8hUPKfVila1h
-	 YGf5lxQDODrKYaUsoI16klhpHFFUebYo/j3+TwtxH+vddAXstUbw4BLHlY401T5Qwd
-	 3h8sNZnizlAHcPExwTKosdCKatY7eEGWl0B9RKPE=
+	b=aCTjnwY7ZbTNon26AK1FN+rsqIWqK0Dx6k16t3YM2PzPaAhO57pQWmHksBt2Zqwbj
+	 y8lUt9TM2jZ6cn5NffwaYzEVZ83K6pjiMdPFHRcDYdvlRxEb2CaqD0r7XVM9+yTjHP
+	 lKX/1qDCc7voSJ5aYlxUZuE0VGDOIgHhbee3C6h4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726219AbgHJCif (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:38:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41768 "EHLO mail.kernel.org"
+        id S1726338AbgHJCih (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:38:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41808 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726401AbgHJCif (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:38:35 -0400
+        id S1726401AbgHJCig (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:38:36 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id C65182073E;
-        Mon, 10 Aug 2020 02:38:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id AAA7B2065D;
+        Mon, 10 Aug 2020 02:38:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027114;
-        bh=eGgQm/clcvQHDNozh83RUZ9bMofTnNdHBFpUHHN0eAQ=;
+        s=default; t=1597027116;
+        bh=qt5/oE2UDYI12iWGuZx2VYd1Dse9L/zaEO1nqjF89LE=;
         h=Date:From:To:Subject:From;
-        b=PLVY1HcZsm08MMILGYXzPBj71lYzquXBaQoufh3SNotIhX2SHmXevJJf+DiWAc0/Z
-         q7nGa2hden7EfnpwW73g5T5Yf+hgsir6dtlmYxI2XxfJQ3vLnJFRQBKaILDtKEmzok
-         9MaRQ4WaTEWMI563NQ3fSqa8hS8lfAF/Xsh0CLeg=
-Date:   Sun, 09 Aug 2020 19:38:33 -0700
+        b=YLLcU8+sjB1r5cMv1c6n86T8Ki1Pdf01Z/GoM2DihkoZPZV0w1sHkpCJ2rN0YeZtY
+         5B3lyzMWPCdqnSnNLgXkhq1u1UR+wwHJL8XXewEZMLsBL1iQo3jztnNg+GnTo3ataV
+         B99VMfuAfrX1fP+WxdVkH5QD0r9VdrjfMVpaJMY4=
+Date:   Sun, 09 Aug 2020 19:38:35 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
         digetx@gmail.com, kirill.shutemov@linux.intel.com,
@@ -46,13 +46,10 @@ To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
         richard.weiyang@linux.alibaba.com, sean.j.christopherson@intel.com,
         thellstrom@vmware.com, thomas_os@shipmail.org, vbabka@suse.cz,
         willy@infradead.org, yang.shi@linux.alibaba.com
-Subject:  [merged]
- =?US-ASCII?Q?mm-mremap-it-is-sure-to-have-enough-space-when-extent-mee?=
- =?US-ASCII?Q?ts-requirement.patch?= removed from -mm tree
-Message-ID: <20200810023833.tlcW_eTuO%akpm@linux-foundation.org>
+Subject:  [merged] mm-mremap-calculate-extent-in-one-place.patch
+ removed from -mm tree
+Message-ID: <20200810023835.rqwNP107T%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -61,139 +58,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: it is sure to have enough space when extent meets requirement
+     Subject: mm/mremap: calculate extent in one place
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement.patch
+     mm-mremap-calculate-extent-in-one-place.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Wei Yang <richard.weiyang@linux.alibaba.com>
-Subject: mm/mremap: it is sure to have enough space when extent meets requirement
+Subject: mm/mremap: calculate extent in one place
 
-Patch series "mm/mremap: cleanup move_page_tables() a little", v5.
+Page tables is moved on the base of PMD.  This requires both source and
+destination range should meet the requirement.
 
-move_page_tables() tries to move page table by PMD or PTE.
+Current code works well since move_huge_pmd() and move_normal_pmd() would
+check old_addr and new_addr again.  And then return to move_ptes() if the
+either of them is not aligned.
 
-The root reason is if it tries to move PMD, both old and new range should
-be PMD aligned.  But current code calculate old range and new range
-separately.  This leads to some redundant check and calculation.
+Instead of calculating the extent separately, it is better to calculate in
+one place, so we know it is not necessary to try move pmd.  By doing so,
+the logic seems a little clear.
 
-This cleanup tries to consolidate the range check in one place to reduce
-some extra range handling.
-
-
-This patch (of 3):
-
-old_end is passed to these two functions to check whether there is enough
-space to do the move, while this check is done before invoking these
-functions.
-
-These two functions only would be invoked when extent meets the
-requirement and there is one check before invoking these functions:
-
-    if (extent > old_end - old_addr)
-        extent = old_end - old_addr;
-
-This implies (old_end - old_addr) won't fail the check in these two
-functions.
-
-Link: http://lkml.kernel.org/r/20200710092835.56368-1-richard.weiyang@linux.alibaba.com
-Link: http://lkml.kernel.org/r/20200710092835.56368-2-richard.weiyang@linux.alibaba.com
-Link: http://lkml.kernel.org/r/20200708095028.41706-1-richard.weiyang@linux.alibaba.com
-Link: http://lkml.kernel.org/r/20200708095028.41706-2-richard.weiyang@linux.alibaba.com
+Link: http://lkml.kernel.org/r/20200708095028.41706-3-richard.weiyang@linux.alibaba.com
 Signed-off-by: Wei Yang <richard.weiyang@linux.alibaba.com>
 Tested-by: Dmitry Osipenko <digetx@gmail.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sean Christopherson <sean.j.christopherson@intel.com>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: Thomas Hellstrom (VMware) <thomas_os@shipmail.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Thomas Hellstrom (VMware) <thomas_os@shipmail.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Sean Christopherson <sean.j.christopherson@intel.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
- mm/huge_memory.c        |    7 ++-----
- mm/mremap.c             |   10 ++++------
- 3 files changed, 7 insertions(+), 12 deletions(-)
+ mm/mremap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement
-+++ a/include/linux/huge_mm.h
-@@ -42,7 +42,7 @@ extern int mincore_huge_pmd(struct vm_ar
- 			unsigned long addr, unsigned long end,
- 			unsigned char *vec);
- extern bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
--			 unsigned long new_addr, unsigned long old_end,
-+			 unsigned long new_addr,
- 			 pmd_t *old_pmd, pmd_t *new_pmd);
- extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 			unsigned long addr, pgprot_t newprot,
---- a/mm/huge_memory.c~mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement
-+++ a/mm/huge_memory.c
-@@ -1722,17 +1722,14 @@ static pmd_t move_soft_dirty_pmd(pmd_t p
- }
- 
- bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
--		  unsigned long new_addr, unsigned long old_end,
--		  pmd_t *old_pmd, pmd_t *new_pmd)
-+		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
- {
- 	spinlock_t *old_ptl, *new_ptl;
- 	pmd_t pmd;
- 	struct mm_struct *mm = vma->vm_mm;
- 	bool force_flush = false;
- 
--	if ((old_addr & ~HPAGE_PMD_MASK) ||
--	    (new_addr & ~HPAGE_PMD_MASK) ||
--	    old_end - old_addr < HPAGE_PMD_SIZE)
-+	if ((old_addr & ~HPAGE_PMD_MASK) || (new_addr & ~HPAGE_PMD_MASK))
- 		return false;
- 
- 	/*
---- a/mm/mremap.c~mm-mremap-it-is-sure-to-have-enough-space-when-extent-meets-requirement
+--- a/mm/mremap.c~mm-mremap-calculate-extent-in-one-place
 +++ a/mm/mremap.c
-@@ -193,15 +193,13 @@ static void move_ptes(struct vm_area_str
+@@ -277,6 +277,9 @@ unsigned long move_page_tables(struct vm
+ 		extent = next - old_addr;
+ 		if (extent > old_end - old_addr)
+ 			extent = old_end - old_addr;
++		next = (new_addr + PMD_SIZE) & PMD_MASK;
++		if (extent > next - new_addr)
++			extent = next - new_addr;
+ 		old_pmd = get_old_pmd(vma->vm_mm, old_addr);
+ 		if (!old_pmd)
+ 			continue;
+@@ -320,9 +323,6 @@ unsigned long move_page_tables(struct vm
  
- #ifdef CONFIG_HAVE_MOVE_PMD
- static bool move_normal_pmd(struct vm_area_struct *vma, unsigned long old_addr,
--		  unsigned long new_addr, unsigned long old_end,
--		  pmd_t *old_pmd, pmd_t *new_pmd)
-+		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
- {
- 	spinlock_t *old_ptl, *new_ptl;
- 	struct mm_struct *mm = vma->vm_mm;
- 	pmd_t pmd;
- 
--	if ((old_addr & ~PMD_MASK) || (new_addr & ~PMD_MASK)
--	    || old_end - old_addr < PMD_SIZE)
-+	if ((old_addr & ~PMD_MASK) || (new_addr & ~PMD_MASK))
- 		return false;
- 
- 	/*
-@@ -292,7 +290,7 @@ unsigned long move_page_tables(struct vm
- 				if (need_rmap_locks)
- 					take_rmap_locks(vma);
- 				moved = move_huge_pmd(vma, old_addr, new_addr,
--						    old_end, old_pmd, new_pmd);
-+						      old_pmd, new_pmd);
- 				if (need_rmap_locks)
- 					drop_rmap_locks(vma);
- 				if (moved)
-@@ -312,7 +310,7 @@ unsigned long move_page_tables(struct vm
- 			if (need_rmap_locks)
- 				take_rmap_locks(vma);
- 			moved = move_normal_pmd(vma, old_addr, new_addr,
--					old_end, old_pmd, new_pmd);
-+						old_pmd, new_pmd);
- 			if (need_rmap_locks)
- 				drop_rmap_locks(vma);
- 			if (moved)
+ 		if (pte_alloc(new_vma->vm_mm, new_pmd))
+ 			break;
+-		next = (new_addr + PMD_SIZE) & PMD_MASK;
+-		if (extent > next - new_addr)
+-			extent = next - new_addr;
+ 		move_ptes(vma, old_pmd, old_addr, old_addr + extent, new_vma,
+ 			  new_pmd, new_addr, need_rmap_locks);
+ 	}
 _
 
 Patches currently in -mm which might be from richard.weiyang@linux.alibaba.com are
