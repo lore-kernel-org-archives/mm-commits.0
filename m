@@ -7,43 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2018FC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:33:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CED1AC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F10E7206E9
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:33:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A3EE8206E9
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026839;
-	bh=p5yw3+SmB06+t4QeywzZXIPAhPpXaY0MiK1vwuo59GY=;
+	s=default; t=1597026840;
+	bh=K3U3BI632jGS2PkapqDKBXrU0eCtcI9bTcLum9JY2k4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=mo76wvPvhbUgLWHDekckcWBPO7rj956T/IjBsrVhaRUaOpGzUa+jtkhRtyCbSNf/n
-	 kzDiG5VsYzbEfOeQ4hLOJaXKyasXqpL9GysG13Zje7kehmcHBFpJ7VSSJNn86b63xt
-	 1vj/qT6b+IXt9jvu88gNLC8JymOfswRVNqEOwT08=
+	b=dIrky+i9dwgK+SSuNPtYd8yKyKYvlTuFEtnlbn1W9FbBv1G4JkrYk2vgmZhXDeYSG
+	 ilxVrew/t8Gun5/N55BV7byUvO7dl9HX3Zqkms1LegQrSC9wgpnoR5WLnibdjj/CgF
+	 uCToRARfQJp3J7w27Kcw+ciztCo0Ai2kQ9gEnF8s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726350AbgHJCd6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:33:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37498 "EHLO mail.kernel.org"
+        id S1726401AbgHJCeA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:34:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37522 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCd6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:33:58 -0400
+        id S1726219AbgHJCeA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:34:00 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 76CAC206CD;
-        Mon, 10 Aug 2020 02:33:57 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8A46F206C3;
+        Mon, 10 Aug 2020 02:33:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026837;
-        bh=p5yw3+SmB06+t4QeywzZXIPAhPpXaY0MiK1vwuo59GY=;
+        s=default; t=1597026839;
+        bh=K3U3BI632jGS2PkapqDKBXrU0eCtcI9bTcLum9JY2k4=;
         h=Date:From:To:Subject:From;
-        b=RCnlvZJyx5GoR+W727VPklL9HyBn/umq3+Ed+NrfFVJALK2IFZoKoKPpPlc/JHnvd
-         AQZKOM2C8n5R/WUeZbmvSehiTG4b/LJ8lUVo6tc56l39TMbinmhKqHB51PSCkRzkNH
-         g9yHXNRpBPeXfC5pWusDZCP+6ZTfqg5LJoWeVt/A=
-Date:   Sun, 09 Aug 2020 19:33:57 -0700
+        b=a33fNSFdTIoNPPGETl6eHtgkEh41m7U3vLShL1D4MWmlD6UaOlmNAhEFXC3uLzpuv
+         usqki4lPFp89dfAJ6eP4nDpg4EMQ5PeuUvUH4B1v71M8O3bNQ0K1ClogRO+HB1t1aZ
+         Uj7UcUQnDcUAUUtJKOB6oPfPDbShw6I/AWl7jydA=
+Date:   Sun, 09 Aug 2020 19:33:59 -0700
 From:   akpm@linux-foundation.org
-To:     grandmaster@al2klimov.de, mm-commits@vger.kernel.org
-Subject:  [merged] tools-replace-http-links-with-https-ones.patch
- removed from -mm tree
-Message-ID: <20200810023357.ujOaLevPg%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, chris@chrisdown.name,
+        christian.brauner@ubuntu.com, gaurav1086@gmail.com, guro@fb.com,
+        mkoutny@suse.com, mm-commits@vger.kernel.org, shuah@kernel.org,
+        tj@kernel.org
+Subject:  [merged]
+ cg_read_strcmp-fix-null-pointer-dereference.patch removed from -mm tree
+Message-ID: <20200810023359.lTerF2Oef%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,92 +56,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/: replace HTTP links with HTTPS ones
+     Subject: tools/testing/selftests/cgroup/cgroup_util.c: cg_read_strcmp: fix null pointer dereference
 has been removed from the -mm tree.  Its filename was
-     tools-replace-http-links-with-https-ones.patch
+     cg_read_strcmp-fix-null-pointer-dereference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Subject: tools/: replace HTTP links with HTTPS ones
+From: Gaurav Singh <gaurav1086@gmail.com>
+Subject: tools/testing/selftests/cgroup/cgroup_util.c: cg_read_strcmp: fix null pointer dereference
 
-Rationale:
-Reduces attack surface on kernel devs opening the links for MITM
-as HTTPS traffic is much harder to manipulate.
+Haven't reproduced this issue. This PR is does a minor code cleanup.
 
-Link: http://lkml.kernel.org/r/20200726120752.16768-1-grandmaster@al2klimov.de
-Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
+Link: http://lkml.kernel.org/r/20200726013808.22242-1-gaurav1086@gmail.com
+Signed-off-by: Gaurav Singh <gaurav1086@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Michal Koutn <mkoutny@suse.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Chris Down <chris@chrisdown.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/linux/jhash.h                  |    2 +-
- tools/lib/rbtree.c                           |    2 +-
- tools/lib/traceevent/event-parse.h           |    2 +-
- tools/testing/ktest/examples/README          |    2 +-
- tools/testing/ktest/examples/crosstests.conf |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ tools/testing/selftests/cgroup/cgroup_util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/include/linux/jhash.h~tools-replace-http-links-with-https-ones
-+++ a/tools/include/linux/jhash.h
-@@ -5,7 +5,7 @@
-  *
-  * Copyright (C) 2006. Bob Jenkins (bob_jenkins@burtleburtle.net)
-  *
-- * http://burtleburtle.net/bob/hash/
-+ * https://burtleburtle.net/bob/hash/
-  *
-  * These are the credits from Bob's sources:
-  *
---- a/tools/lib/rbtree.c~tools-replace-http-links-with-https-ones
-+++ a/tools/lib/rbtree.c
-@@ -13,7 +13,7 @@
- #include <linux/export.h>
+--- a/tools/testing/selftests/cgroup/cgroup_util.c~cg_read_strcmp-fix-null-pointer-dereference
++++ a/tools/testing/selftests/cgroup/cgroup_util.c
+@@ -106,7 +106,7 @@ int cg_read_strcmp(const char *cgroup, c
  
- /*
-- * red-black trees properties:  http://en.wikipedia.org/wiki/Rbtree
-+ * red-black trees properties:  https://en.wikipedia.org/wiki/Rbtree
-  *
-  *  1) A node is either red or black
-  *  2) The root is black
---- a/tools/lib/traceevent/event-parse.h~tools-replace-http-links-with-https-ones
-+++ a/tools/lib/traceevent/event-parse.h
-@@ -379,7 +379,7 @@ enum tep_errno {
- 	 * errno since SUS requires the errno has distinct positive values.
- 	 * See 'Issue 6' in the link below.
- 	 *
--	 * http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html
-+	 * https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/errno.h.html
- 	 */
- 	__TEP_ERRNO__START			= -100000,
+ 	/* Handle the case of comparing against empty string */
+ 	if (!expected)
+-		size = 32;
++		return -1;
+ 	else
+ 		size = strlen(expected) + 1;
  
---- a/tools/testing/ktest/examples/crosstests.conf~tools-replace-http-links-with-https-ones
-+++ a/tools/testing/ktest/examples/crosstests.conf
-@@ -3,7 +3,7 @@
- #
- # In this config, it is expected that the tool chains from:
- #
--#   http://kernel.org/pub/tools/crosstool/files/bin/x86_64/
-+#   https://kernel.org/pub/tools/crosstool/files/bin/x86_64/
- #
- # running on a x86_64 system have been downloaded and installed into:
- #
---- a/tools/testing/ktest/examples/README~tools-replace-http-links-with-https-ones
-+++ a/tools/testing/ktest/examples/README
-@@ -11,7 +11,7 @@ crosstests.conf - this config shows an e
-     lots of different architectures. It only does build tests, but makes
-     it easy to compile test different archs. You can download the arch
-     cross compilers from:
--  http://kernel.org/pub/tools/crosstool/files/bin/x86_64/
-+  https://kernel.org/pub/tools/crosstool/files/bin/x86_64/
- 
- test.conf - A generic example of a config. This is based on an actual config
-      used to perform real testing.
 _
 
-Patches currently in -mm which might be from grandmaster@al2klimov.de are
+Patches currently in -mm which might be from gaurav1086@gmail.com are
 
-include-replace-http-links-with-https-ones.patch
-lib-replace-http-links-with-https-ones.patch
-vfat-fat-msdos-filesystem-replace-http-links-with-https-ones.patch
 
