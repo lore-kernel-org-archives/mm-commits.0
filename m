@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 572B3C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:40:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E518BC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:40:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 37ACC206C3
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:40:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B6AE1206CD
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:40:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027242;
-	bh=7fbx3EPVh4EORpHj2GHFLd6IKvw3ARhPPiIg6u2g6CA=;
+	s=default; t=1597027244;
+	bh=putPR2xNAkGIGsixvwZw3M/bF/d6azam6Sf+s230ANY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=bsrVlQTxPNT9EZlb/DGEp4elurd/X9rUJlAZhHqUnpauUxjcGuGaeWFuOXj7ltFOr
-	 fVelUI5H+/7kDng5MHmRNosd3JYMId9k6Ow0kewO7bdsAHGeOQaSdhJqIIzRZshu9T
-	 RmFrwVjq8AVB15xgVV1yqjQWFitY+68I8cJ8elWc=
+	b=JX4lmG+j+kqueUCgMYda3fgyerSlOLxiEs3YNI/NopZ3uKtuEHvfIXGvaPTkCnPIZ
+	 XOfX0OxE0QBoGV0EGQuBiOdd7DyyEDHSfSDbDe0IqRACsueAP2r1IhkgybY25lUk6D
+	 ejHwwUTjtImQV4ZeBL9ZmMALDyKe6DPPCswXgeDU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726370AbgHJCkl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:40:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43706 "EHLO mail.kernel.org"
+        id S1726412AbgHJCko (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:40:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43736 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCkl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:40:41 -0400
+        id S1726219AbgHJCko (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:40:44 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 70AAE2065D;
-        Mon, 10 Aug 2020 02:40:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 874FE2065D;
+        Mon, 10 Aug 2020 02:40:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027241;
-        bh=7fbx3EPVh4EORpHj2GHFLd6IKvw3ARhPPiIg6u2g6CA=;
+        s=default; t=1597027243;
+        bh=putPR2xNAkGIGsixvwZw3M/bF/d6azam6Sf+s230ANY=;
         h=Date:From:To:Subject:From;
-        b=USdHJg+pUHEFtMldHrXSb8d7lOSGFuejst4qW0Xq3GCo2BM4ECDFKbVEwEtkzkilS
-         RYvN6mDHBddyk89yZW22dlhjgmvCUymyvc5Fu2BKVYXuIL0lPgq2OXqQfawkpo53HC
-         Xk+m+h08wfRNttE0Ce44nbyFn6rTi0b/1nHcIBJ4=
-Date:   Sun, 09 Aug 2020 19:40:41 -0700
+        b=JQoQRvxc7li3RIfXz2P/8qPqyUIeK45KZLFnVMpOk61lM4oVUAzyAJFDnSnVIHrtt
+         x2vQB2Gd/qpykGWYMjHinsKsY56X7WzqVJtS3lLVCjd8479zqBzVSNt4D5AtrFtKja
+         3vLdjvN+SRoZ1FGUtSA8xKUjCd+yGAKna8I4CYG4=
+Date:   Sun, 09 Aug 2020 19:40:43 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mm-commits@vger.kernel.org,
-        spacct.spacct@gmail.com
-Subject:  [merged] mm-vmscanc-fixed-typo.patch removed from -mm
- tree
-Message-ID: <20200810024041.vsT1Aey9Q%akpm@linux-foundation.org>
+To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
+        laoar.shao@gmail.com, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com
+Subject:  [merged] mm-vmscan-consistent-update-to-pgrefill.patch
+ removed from -mm tree
+Message-ID: <20200810024043.yOHz8M-SI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,40 +55,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: fix typo
+     Subject: mm: vmscan: consistent update to pgrefill
 has been removed from the -mm tree.  Its filename was
-     mm-vmscanc-fixed-typo.patch
+     mm-vmscan-consistent-update-to-pgrefill.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: dylan-meiners <spacct.spacct@gmail.com>
-Subject: mm/vmscan.c: fix typo
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: vmscan: consistent update to pgrefill
 
-Change "optizimation" to "optimization".
+The vmstat pgrefill is useful together with pgscan and pgsteal stats to
+measure the reclaim efficiency.  However vmstat's pgrefill is not updated
+consistently at system level.  It gets updated for both global and memcg
+reclaim however pgscan and pgsteal are updated for only global reclaim. 
+So, update pgrefill only for global reclaim.  If someone is interested in
+the stats representing both system level as well as memcg level reclaim,
+then consult the root memcg's memory.stat instead of /proc/vmstat.
 
-Link: http://lkml.kernel.org/r/20200609185144.10049-1-spacct.spacct@gmail.com
-Signed-off-by: dylan-meiners <spacct.spacct@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: http://lkml.kernel.org/r/20200711011459.1159929-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Yafang Shao <laoar.shao@gmail.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscanc-fixed-typo
+--- a/mm/vmscan.c~mm-vmscan-consistent-update-to-pgrefill
 +++ a/mm/vmscan.c
-@@ -910,7 +910,7 @@ static int __remove_mapping(struct addre
- 		 * order to detect refaults, thus thrashing, later on.
- 		 *
- 		 * But don't store shadows in an address space that is
--		 * already exiting.  This is not just an optizimation,
-+		 * already exiting.  This is not just an optimization,
- 		 * inode reclaim needs to empty out the radix tree or
- 		 * the nodes are lost.  Don't plant shadows behind its
- 		 * back.
+@@ -2030,7 +2030,8 @@ static void shrink_active_list(unsigned
+ 
+ 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
+ 
+-	__count_vm_events(PGREFILL, nr_scanned);
++	if (!cgroup_reclaim(sc))
++		__count_vm_events(PGREFILL, nr_scanned);
+ 	__count_memcg_events(lruvec_memcg(lruvec), PGREFILL, nr_scanned);
+ 
+ 	spin_unlock_irq(&pgdat->lru_lock);
 _
 
-Patches currently in -mm which might be from spacct.spacct@gmail.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
 
