@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DA0CC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79EFBC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 397E820723
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A0B120723
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026864;
-	bh=hJ/099QeJeo82vMiri5703LTZaV6UdHilRyJcZxTLno=;
+	s=default; t=1597026867;
+	bh=7BlARFhx/MK1YeaCmaiwzsMzuvd4acIcreoHEWobrH0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=sruFwdN3PeAkvlrJDBjGoS6UtISH46ogfxyxHbZbQBn2CZm3dst3rplvNOJOKUGS4
-	 /7/3WR/mBWcaJRCcfAqNRghxXE1NT4S51BFh2vDABBW1yy/JSmLiBiYQrO0ziyjbED
-	 f/29L6LvbLSMwLqcBeMO+LAd4I+7vZSj83i55UPQ=
+	b=PZqMUAJTCowtixYyzKFHKmmaglJV193ZPuvyBncZ6Rhx8yF5RhQTuOGs+4EY9QHHy
+	 X2ZFy8L0gXDn/nTaDRNbIceiVu1gOGw4lk4vo3nB7iH8SeY/McWNOzKrci2vUHzRE3
+	 2QMCH2nCBQNW0ylQizIAHCsy5Km4D+bmojKSyo9E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726465AbgHJCeX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:34:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37844 "EHLO mail.kernel.org"
+        id S1726466AbgHJCe1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:34:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37872 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCeX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:34:23 -0400
+        id S1726219AbgHJCe0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:34:26 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5AEDD206E9;
-        Mon, 10 Aug 2020 02:34:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B1A48206C3;
+        Mon, 10 Aug 2020 02:34:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026863;
-        bh=hJ/099QeJeo82vMiri5703LTZaV6UdHilRyJcZxTLno=;
+        s=default; t=1597026866;
+        bh=7BlARFhx/MK1YeaCmaiwzsMzuvd4acIcreoHEWobrH0=;
         h=Date:From:To:Subject:From;
-        b=N8VfvdCGcOwuR2XXgjuplBr8JcDv1K4DrUM+wR87i9VpMHr6E/Vm2/yZVJB0mXKQL
-         N5CANhkuSF+49OtwhvSuTan4LbKPgFhrXDDK0fItzk/j9ytD1/P+z0fAFtw7nvmQTb
-         /TBsxbtGAbI+LIhmJprPY/2ilXD4E8RglEt+QQNU=
-Date:   Sun, 09 Aug 2020 19:34:23 -0700
+        b=vDlmKjeD7VcgHN00A+8FjBVNuErtgp1i1QvSUOtYe912p2NCasvBW3Uh1BeXT7UWE
+         4oiFqdBsC9asYkUyfU74cp5q+L5vHPsz5By3uZl/tG2ukX1Xdt0ne43ibVecSdzapq
+         CU8A8w0LhCJYdCrAxkgRxdPMcIDkwoH8YVjsLx0E=
+Date:   Sun, 09 Aug 2020 19:34:25 -0700
 From:   akpm@linux-foundation.org
-To:     jlbec@evilplan.org, joseph.qi@linux.alibaba.com, mark@fasheh.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  [merged] ocfs2-suballoch-delete-a-duplicated-word.patch
+To:     dan.carpenter@oracle.com, gechangwei@live.cn, ghe@suse.com,
+        jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
+        junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org,
+        piaojun@huawei.com, stable@vger.kernel.org
+Subject:  [merged] ocfs2-change-slot-number-type-s16-to-u16.patch
  removed from -mm tree
-Message-ID: <20200810023423.M4QvDrB1D%akpm@linux-foundation.org>
+Message-ID: <20200810023425.MG_JvF1Gq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,68 +56,94 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: suballoc.h: delete a duplicated word
+     Subject: ocfs2: change slot number type s16 to u16
 has been removed from the -mm tree.  Its filename was
-     ocfs2-suballoch-delete-a-duplicated-word.patch
+     ocfs2-change-slot-number-type-s16-to-u16.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: ocfs2: suballoc.h: delete a duplicated word
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: change slot number type s16 to u16
 
-Drop the repeated word "is" in a comment.
+Dan Carpenter reported the following static checker warning.
 
-Link: http://lkml.kernel.org/r/20200720001421.28823-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+	fs/ocfs2/super.c:1269 ocfs2_parse_options() warn: '(-1)' 65535 can't fit into 32767 'mopt->slot'
+	fs/ocfs2/suballoc.c:859 ocfs2_init_inode_steal_slot() warn: '(-1)' 65535 can't fit into 32767 'osb->s_inode_steal_slot'
+	fs/ocfs2/suballoc.c:867 ocfs2_init_meta_steal_slot() warn: '(-1)' 65535 can't fit into 32767 'osb->s_meta_steal_slot'
+
+That's because OCFS2_INVALID_SLOT is (u16)-1. Slot number in ocfs2 can be
+never negative, so change s16 to u16.
+
+Link: http://lkml.kernel.org/r/20200627001259.19757-1-junxiao.bi@oracle.com
+Fixes: 9277f8334ffc ("ocfs2: fix value of OCFS2_INVALID_SLOT")
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Gang He <ghe@suse.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/ocfs2.h    |    4 ++--
+ fs/ocfs2/suballoc.c |    4 ++--
+ fs/ocfs2/super.c    |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/ocfs2/suballoc.h~ocfs2-suballoch-delete-a-duplicated-word
-+++ a/fs/ocfs2/suballoc.h
-@@ -40,7 +40,7 @@ struct ocfs2_alloc_context {
+--- a/fs/ocfs2/ocfs2.h~ocfs2-change-slot-number-type-s16-to-u16
++++ a/fs/ocfs2/ocfs2.h
+@@ -327,8 +327,8 @@ struct ocfs2_super
+ 	spinlock_t osb_lock;
+ 	u32 s_next_generation;
+ 	unsigned long osb_flags;
+-	s16 s_inode_steal_slot;
+-	s16 s_meta_steal_slot;
++	u16 s_inode_steal_slot;
++	u16 s_meta_steal_slot;
+ 	atomic_t s_num_inodes_stolen;
+ 	atomic_t s_num_meta_stolen;
  
- 	u64    ac_last_group;
- 	u64    ac_max_block;  /* Highest block number to allocate. 0 is
--				 is the same as ~0 - unlimited */
-+				 the same as ~0 - unlimited */
+--- a/fs/ocfs2/suballoc.c~ocfs2-change-slot-number-type-s16-to-u16
++++ a/fs/ocfs2/suballoc.c
+@@ -879,9 +879,9 @@ static void __ocfs2_set_steal_slot(struc
+ {
+ 	spin_lock(&osb->osb_lock);
+ 	if (type == INODE_ALLOC_SYSTEM_INODE)
+-		osb->s_inode_steal_slot = slot;
++		osb->s_inode_steal_slot = (u16)slot;
+ 	else if (type == EXTENT_ALLOC_SYSTEM_INODE)
+-		osb->s_meta_steal_slot = slot;
++		osb->s_meta_steal_slot = (u16)slot;
+ 	spin_unlock(&osb->osb_lock);
+ }
  
- 	int    ac_find_loc_only;  /* hack for reflink operation ordering */
- 	struct ocfs2_suballoc_result *ac_find_loc_priv; /* */
+--- a/fs/ocfs2/super.c~ocfs2-change-slot-number-type-s16-to-u16
++++ a/fs/ocfs2/super.c
+@@ -78,7 +78,7 @@ struct mount_options
+ 	unsigned long	commit_interval;
+ 	unsigned long	mount_opt;
+ 	unsigned int	atime_quantum;
+-	signed short	slot;
++	unsigned short	slot;
+ 	int		localalloc_opt;
+ 	unsigned int	resv_level;
+ 	int		dir_resv_level;
+@@ -1349,7 +1349,7 @@ static int ocfs2_parse_options(struct su
+ 				goto bail;
+ 			}
+ 			if (option)
+-				mopt->slot = (s16)option;
++				mopt->slot = (u16)option;
+ 			break;
+ 		case Opt_commit:
+ 			if (match_int(&args[0], &option)) {
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-mm-drop-duplicated-words-in-linux-pgtableh.patch
-mm-drop-duplicated-words-in-linux-mmh.patch
-highmem-linux-highmemh-fix-duplicated-words-in-a-comment.patch
-frontswap-linux-frontswaph-drop-duplicated-word-in-a-comment.patch
-memcontrol-drop-duplicate-word-and-fix-spello-in-linux-memcontrolh.patch
-mm-compactionc-delete-duplicated-word.patch
-mm-filemapc-delete-duplicated-word.patch
-mm-hmmc-delete-duplicated-word.patch
-mm-hugetlbc-delete-duplicated-words.patch
-mm-memcontrolc-delete-duplicated-words.patch
-mm-memoryc-delete-duplicated-words.patch
-mm-migratec-delete-duplicated-word.patch
-mm-nommuc-delete-duplicated-words.patch
-mm-page_allocc-delete-or-fix-duplicated-words.patch
-mm-shmemc-delete-duplicated-word.patch
-mm-slab_commonc-delete-duplicated-word.patch
-mm-usercopyc-delete-duplicated-word.patch
-mm-vmscanc-delete-or-fix-duplicated-words.patch
-mm-zpoolc-delete-duplicated-word-and-fix-grammar.patch
-mm-zsmallocc-fix-duplicated-words.patch
-clang-linux-compiler-clangh-drop-duplicated-word-in-a-comment.patch
-linux-exportfsh-drop-duplicated-word-in-a-comment.patch
-linux-async_txh-drop-duplicated-word-in-a-comment.patch
-xz-drop-duplicated-word-in-linux-xzh.patch
-autofs-fix-doubled-word.patch
 
