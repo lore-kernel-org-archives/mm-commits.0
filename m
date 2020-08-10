@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 075F1C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20E88C433E1
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D15D820791
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00FD820723
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027090;
-	bh=5xmAnROHN/acJCj6UKVwXadvrrN5f5b4Hfgem/lrzTg=;
+	s=default; t=1597027092;
+	bh=oLAqoPbYyWG4jmm3JPM0aWaJEgT5xfqWwoG7mCN9buI=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=OGlS3UHw/KkxJfTLpMWfDEOwkBt49Y4/68RnBCaFv4t1iJ2Ch1BcRShXUcx/Av2zK
-	 hSkqMjmCjFrPS0Rw4y7av8zEOWALEqdy27vlZymnBG7TpRFW6gvl1Ah0plKxsonv60
-	 M3OC+PC85EmQ8yBZhCXmFYFbE0i9HW2OuGs+t83Q=
+	b=Qh/9O0lFVmxuOTiaakLuFK71gD8s0fj8fKVh7Paml1wwFY0rOhV3BwHrCEdDIc1sO
+	 AUr2TQh6hlBCHelbWjc/tpkVcvMjO6j7bGFEI6ApSfOQ80rXx2WYf68UArcBnDokC5
+	 /Vv7pm2ctlIlwOVktdbqlQU02YICmOizYu+yqB9o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726396AbgHJCiK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:38:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41294 "EHLO mail.kernel.org"
+        id S1726426AbgHJCiL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:38:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41338 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCiK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:38:10 -0400
+        id S1726219AbgHJCiL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:38:11 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DA845207BB;
-        Mon, 10 Aug 2020 02:38:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BD0E120773;
+        Mon, 10 Aug 2020 02:38:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027088;
-        bh=5xmAnROHN/acJCj6UKVwXadvrrN5f5b4Hfgem/lrzTg=;
+        s=default; t=1597027090;
+        bh=oLAqoPbYyWG4jmm3JPM0aWaJEgT5xfqWwoG7mCN9buI=;
         h=Date:From:To:Subject:From;
-        b=WnkWhmoczWJ3xSanbwF4OAbuATY54YJZdWyrKHborZ7op3oObx4rzR73BzpS7UUDU
-         YW6tc976j2swzoFO6cKTdSBMfnqRrEO47vHDgx4LJuPH+u9BMAHxPe1vw2+L8IS2fy
-         mhb5NC0A42uRB0PdsEkXRPnUkaoLVNFOWN0nA6eQ=
-Date:   Sun, 09 Aug 2020 19:38:07 -0700
+        b=m3krAR+ZFJ9dwCXkaeeAM/R5KDYoRJr3DJSAJbdBxUbQpi2hT//LZ0N9qcLoXdXt5
+         1ZVAP5Oordc+rhKAh8deXebqNg7SZ94TyEE7VzormSRIHUqvNzmwwGe5KQl1c+DxC9
+         vVMW94ClXSpdxQ3mMmC8Rnz7mfYL5dnT35jPjK1M=
+Date:   Sun, 09 Aug 2020 19:38:09 -0700
 From:   akpm@linux-foundation.org
 To:     andi.kleen@intel.com, cai@lca.pw, cl@linux.com,
         dave.hansen@intel.com, dennis@kernel.org, feng.tang@intel.com,
@@ -48,9 +48,8 @@ To:     andi.kleen@intel.com, cai@lca.pw, cl@linux.com,
         tim.c.chen@intel.com, tj@kernel.org, willy@infradead.org,
         ying.huang@intel.com
 Subject:  [merged]
- proc-meminfo-avoid-open-coded-reading-of-vm_committed_as.patch removed from
- -mm tree
-Message-ID: <20200810023807.4jeH0Az4g%akpm@linux-foundation.org>
+ mm-utilc-make-vm_memory_committed-more-accurate.patch removed from -mm tree
+Message-ID: <20200810023809.Zhs8G9y4O%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -60,98 +59,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc/meminfo: avoid open coded reading of vm_committed_as
+     Subject: mm/util.c: make vm_memory_committed() more accurate
 has been removed from the -mm tree.  Its filename was
-     proc-meminfo-avoid-open-coded-reading-of-vm_committed_as.patch
+     mm-utilc-make-vm_memory_committed-more-accurate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Feng Tang <feng.tang@intel.com>
-Subject: proc/meminfo: avoid open coded reading of vm_committed_as
+Subject: mm/util.c: make vm_memory_committed() more accurate
 
-Patch series "make vm_committed_as_batch aware of vm overcommit policy", v6.
+percpu_counter_sum_positive() will provide more accurate info.
 
-When checking a performance change for will-it-scale scalability mmap test
-[1], we found very high lock contention for spinlock of percpu counter
-'vm_committed_as':
+As with percpu_counter_read_positive(), in worst case the deviation could
+be 'batch * nr_cpus', which is totalram_pages/256 for now, and will be
+more when the batch gets enlarged.
 
-    94.14%     0.35%  [kernel.kallsyms]         [k] _raw_spin_lock_irqsave
-    48.21% _raw_spin_lock_irqsave;percpu_counter_add_batch;__vm_enough_memory;mmap_region;do_mmap;
-    45.91% _raw_spin_lock_irqsave;percpu_counter_add_batch;__do_munmap;
+Its time cost is about 800 nanoseconds on a 2C/4T platform and 2~3
+microseconds on a 2S/36C/72T Skylake server in normal case, and in worst
+case where vm_committed_as's spinlock is under severe contention, it costs
+30~40 microseconds for the 2S/36C/72T Skylake sever, which should be fine
+for its only two users: /proc/meminfo and HyperV balloon driver's status
+trace per second.
 
-Actually this heavy lock contention is not always necessary.  The
-'vm_committed_as' needs to be very precise when the strict
-OVERCOMMIT_NEVER policy is set, which requires a rather small batch number
-for the percpu counter.
-
-So keep 'batch' number unchanged for strict OVERCOMMIT_NEVER policy, and
-enlarge it for not-so-strict OVERCOMMIT_ALWAYS and OVERCOMMIT_GUESS
-policies.
-
-Benchmark with the same testcase in [1] shows 53% improvement on a 8C/16T
-desktop, and 2097%(20X) on a 4S/72C/144T server.  And for that case,
-whether it shows improvements depends on if the test mmap size is bigger
-than the batch number computed.
-
-We tested 10+ platforms in 0day (server, desktop and laptop).  If we lift
-it to 64X, 80%+ platforms show improvements, and for 16X lift, 1/3 of the
-platforms will show improvements.
-
-And generally it should help the mmap/unmap usage,as Michal Hocko
-mentioned:
-
-: I believe that there are non-synthetic worklaods which would benefit
-: from a larger batch. E.g. large in memory databases which do large
-: mmaps during startups from multiple threads.
-
-Note: There are some style complain from checkpatch for patch 4, as sysctl
-handler declaration follows the similar format of sibling functions
-
-[1] https://lore.kernel.org/lkml/20200305062138.GI5972@shao2-debian/
-
-
-This patch (of 4):
-
-Use the existing vm_memory_committed() instead, which is also convenient
-for future change.
-
-Link: http://lkml.kernel.org/r/1594389708-60781-1-git-send-email-feng.tang@intel.com
-Link: http://lkml.kernel.org/r/1594389708-60781-2-git-send-email-feng.tang@intel.com
+Link: http://lkml.kernel.org/r/1592725000-73486-3-git-send-email-feng.tang@intel.com
+Link: http://lkml.kernel.org/r/1594389708-60781-3-git-send-email-feng.tang@intel.com
 Signed-off-by: Feng Tang <feng.tang@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com> # for /proc/meminfo
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Qian Cai <cai@lca.pw>
-Cc: Kees Cook <keescook@chromium.org>
 Cc: Andi Kleen <andi.kleen@intel.com>
 Cc: Tim Chen <tim.c.chen@intel.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Huang Ying <ying.huang@intel.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: kernel test robot <rong.a.chen@intel.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/util.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/fs/proc/meminfo.c~proc-meminfo-avoid-open-coded-reading-of-vm_committed_as
-+++ a/fs/proc/meminfo.c
-@@ -41,7 +41,7 @@ static int meminfo_proc_show(struct seq_
+--- a/mm/util.c~mm-utilc-make-vm_memory_committed-more-accurate
++++ a/mm/util.c
+@@ -787,10 +787,15 @@ struct percpu_counter vm_committed_as __
+  * balancing memory across competing virtual machines that are hosted.
+  * Several metrics drive this policy engine including the guest reported
+  * memory commitment.
++ *
++ * The time cost of this is very low for small platforms, and for big
++ * platform like a 2S/36C/72T Skylake server, in worst case where
++ * vm_committed_as's spinlock is under severe contention, the time cost
++ * could be about 30~40 microseconds.
+  */
+ unsigned long vm_memory_committed(void)
+ {
+-	return percpu_counter_read_positive(&vm_committed_as);
++	return percpu_counter_sum_positive(&vm_committed_as);
+ }
+ EXPORT_SYMBOL_GPL(vm_memory_committed);
  
- 	si_meminfo(&i);
- 	si_swapinfo(&i);
--	committed = percpu_counter_read_positive(&vm_committed_as);
-+	committed = vm_memory_committed();
- 
- 	cached = global_node_page_state(NR_FILE_PAGES) -
- 			total_swapcache_pages() - i.bufferram;
 _
 
 Patches currently in -mm which might be from feng.tang@intel.com are
