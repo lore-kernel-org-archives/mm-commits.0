@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D1D3C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9F14C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB16320768
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9DA4A206C3
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026897;
-	bh=KLhXLDztuNI+t9sm7QLXMADUS5iv3/rPKMnWOPaL7Ro=;
+	s=default; t=1597026901;
+	bh=jB/9KzN9LK+t/w/qMYuGcwQMSUmoXu+lwQLTW9L8fv4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=o+WX2v+4Cv9hmVeAbrV8IlWTAowSUEOsLexa4pFJ5kZLX5qSBbhAoe43kCGub8muG
-	 Gfggc+C7ECAGc4HiFS+czgpaucbEIe3zQD8RHIy0u9BV9uoc3GmvHCU/BIAnhYPcmG
-	 /YZAPEkaEJaGq+XOkfBiFem+yLoNySP9u3RBgmEA=
+	b=rxzI4QsifT3C6v2dne30UGw2pnq9FB9005UEMK3hd9KMsUr1STRRVVbEG6wCqLI+e
+	 OsyZiEA3h9zQtHzckk3MuP+aWLg6JD/pG+Oj37qyhb1aMLev3bLpk7KFHKwiD+lS75
+	 9Oi/vZJ448dSqehkj1cEYULCQoRqYXLtVce7Xkgg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726406AbgHJCe5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:34:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38306 "EHLO mail.kernel.org"
+        id S1726412AbgHJCfB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:35:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCe5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:34:57 -0400
+        id S1726219AbgHJCfA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:35:00 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 96B2C20723;
-        Mon, 10 Aug 2020 02:34:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9F1C12075D;
+        Mon, 10 Aug 2020 02:34:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026896;
-        bh=KLhXLDztuNI+t9sm7QLXMADUS5iv3/rPKMnWOPaL7Ro=;
+        s=default; t=1597026900;
+        bh=jB/9KzN9LK+t/w/qMYuGcwQMSUmoXu+lwQLTW9L8fv4=;
         h=Date:From:To:Subject:From;
-        b=c6b7JEDKqCB9fcRFZrgHA39vI8a6c9g4ROiVT9Rc8lxyYCUwFFcOCJJ1N0ndIyZgZ
-         XUVhXP7UUtGuMGVNz8AvsjPI4eTSQaVtgiit6r7TzR22jtkLSZjVgbyAX9Tr9CweL1
-         zOH+sv8DiLYhOeo4GxMWLSQOZPCxmqiTJXz8kIrM=
-Date:   Sun, 09 Aug 2020 19:34:56 -0700
+        b=CPWk/bzACT2tb7F25GjlKuoBcDE6zEHSAhRInfvSuKj6pY81g/H97xw59D+M5Amew
+         oFpMAx1BOjM1a3HiA5MHbLEoAJ1drDBUQ5Li+NXhVdPF2fndmnBlFCZqA9tXuR8AQ8
+         BD+A72ovuRJGLok5VCrFMJteHA+JgKrwkHMjRx18=
+Date:   Sun, 09 Aug 2020 19:34:59 -0700
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com,
         jannh@google.com, keescook@chromium.org,
         mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, vbabka@suse.cz, vjitta@codeaurora.org
 Subject:  [merged]
- mm-slub-remove-runtime-allocation-order-changes.patch removed from -mm tree
-Message-ID: <20200810023456.GcezaeKpS%akpm@linux-foundation.org>
+ mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
+ removed from -mm tree
+Message-ID: <20200810023459.1Pgxp6d_1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,43 +57,36 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: remove runtime allocation order changes
+     Subject: mm, slub: make remaining slub_debug related attributes read-only
 has been removed from the -mm tree.  Its filename was
-     mm-slub-remove-runtime-allocation-order-changes.patch
+     mm-slub-make-remaining-slub_debug-related-attributes-read-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: remove runtime allocation order changes
+Subject: mm, slub: make remaining slub_debug related attributes read-only
 
-SLUB allows runtime changing of page allocation order by writing into the
-/sys/kernel/slab/<cache>/order file.  Jann has reported [1] that this
-interface allows the order to be set too small, leading to crashes.
+SLUB_DEBUG creates several files under /sys/kernel/slab/<cache>/ that can
+be read to check if the respective debugging options are enabled for given
+cache.  Some options, namely sanity_checks, trace, and failslab can be
+also enabled and disabled at runtime by writing into the files.
 
-While it's possible to fix the immediate issue, closer inspection reveals
-potential races.  Storing the new order calls calculate_sizes() which
-non-atomically updates a lot of kmem_cache fields while the cache is still
-in use.  Unexpected behavior might occur even if the fields are set to the
-same value as they were.
+The runtime toggling is racy.  Some options disable __CMPXCHG_DOUBLE when
+enabled, which means that in case of concurrent allocations, some can
+still use __CMPXCHG_DOUBLE and some not, leading to potential corruption. 
+The s->flags field is also not updated or checked atomically.  The
+simplest solution is to remove the runtime toggling.  The extended
+slub_debug boot parameter syntax introduced by earlier patch should allow
+to fine-tune the debugging configuration during boot with same
+granularity.
 
-This could be fixed by splitting out the part of calculate_sizes() that
-depends on forced_order, so that we only update kmem_cache.oo field.  This
-could still race with init_cache_random_seq(), shuffle_freelist(),
-allocate_slab().  Perhaps it's possible to audit and e.g.  add some
-READ_ONCE/WRITE_ONCE accesses, it might be easier just to remove the
-runtime order changes, which is what this patch does.  If there are valid
-usecases for per-cache order setting, we could e.g.  extend the boot
-parameters to do that.
-
-[1] https://lore.kernel.org/r/CAG48ez31PP--h6_FzVyfJ4H86QYczAFPdxtJHUEEan+7VJETAQ@mail.gmail.com
-
-Link: http://lkml.kernel.org/r/20200610163135.17364-4-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20200610163135.17364-5-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Christoph Lameter <cl@linux.com>
-Reported-by: Jann Horn <jannh@google.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Vijayanand Jitta <vjitta@codeaurora.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -100,41 +94,116 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   19 +------------------
- 1 file changed, 1 insertion(+), 18 deletions(-)
+ Documentation/vm/slub.rst |    7 +---
+ mm/slub.c                 |   62 +-----------------------------------
+ 2 files changed, 5 insertions(+), 64 deletions(-)
 
---- a/mm/slub.c~mm-slub-remove-runtime-allocation-order-changes
-+++ a/mm/slub.c
-@@ -5095,28 +5095,11 @@ static ssize_t objs_per_slab_show(struct
- }
- SLAB_ATTR_RO(objs_per_slab);
+--- a/Documentation/vm/slub.rst~mm-slub-make-remaining-slub_debug-related-attributes-read-only
++++ a/Documentation/vm/slub.rst
+@@ -116,11 +116,8 @@ options from the ``slub_debug`` paramete
+ 	T	trace
+ 	A	failslab
  
--static ssize_t order_store(struct kmem_cache *s,
+-The sanity_checks, trace and failslab files are writable, so writing 1 or 0
+-will enable or disable the option at runtime. The writes to trace and failslab
+-may return -EINVAL if the cache is subject to slab merging. Careful with
+-tracing: It may spew out lots of information and never stop if used on the
+-wrong slab.
++Careful with tracing: It may spew out lots of information and never stop if
++used on the wrong slab.
+ 
+ Slab merging
+ ============
+--- a/mm/slub.c~mm-slub-make-remaining-slub_debug-related-attributes-read-only
++++ a/mm/slub.c
+@@ -5040,20 +5040,6 @@ static ssize_t show_slab_objects(struct
+ 	return x + sprintf(buf + x, "\n");
+ }
+ 
+-#ifdef CONFIG_SLUB_DEBUG
+-static int any_slab_objects(struct kmem_cache *s)
+-{
+-	int node;
+-	struct kmem_cache_node *n;
+-
+-	for_each_kmem_cache_node(s, node, n)
+-		if (atomic_long_read(&n->total_objects))
+-			return 1;
+-
+-	return 0;
+-}
+-#endif
+-
+ #define to_slab_attr(n) container_of(n, struct slab_attribute, attr)
+ #define to_slab(n) container_of(n, struct kmem_cache, kobj)
+ 
+@@ -5275,43 +5261,13 @@ static ssize_t sanity_checks_show(struct
+ {
+ 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_CONSISTENCY_CHECKS));
+ }
+-
+-static ssize_t sanity_checks_store(struct kmem_cache *s,
 -				const char *buf, size_t length)
 -{
--	unsigned int order;
--	int err;
--
--	err = kstrtouint(buf, 10, &order);
--	if (err)
--		return err;
--
--	if (order > slub_max_order || order < slub_min_order)
--		return -EINVAL;
--
--	calculate_sizes(s, order);
+-	s->flags &= ~SLAB_CONSISTENCY_CHECKS;
+-	if (buf[0] == '1') {
+-		s->flags &= ~__CMPXCHG_DOUBLE;
+-		s->flags |= SLAB_CONSISTENCY_CHECKS;
+-	}
 -	return length;
 -}
--
- static ssize_t order_show(struct kmem_cache *s, char *buf)
- {
- 	return sprintf(buf, "%u\n", oo_order(s->oo));
- }
--SLAB_ATTR(order);
-+SLAB_ATTR_RO(order);
+-SLAB_ATTR(sanity_checks);
++SLAB_ATTR_RO(sanity_checks);
  
- static ssize_t min_partial_show(struct kmem_cache *s, char *buf)
+ static ssize_t trace_show(struct kmem_cache *s, char *buf)
  {
+ 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_TRACE));
+ }
+-
+-static ssize_t trace_store(struct kmem_cache *s, const char *buf,
+-							size_t length)
+-{
+-	/*
+-	 * Tracing a merged cache is going to give confusing results
+-	 * as well as cause other issues like converting a mergeable
+-	 * cache into an umergeable one.
+-	 */
+-	if (s->refcount > 1)
+-		return -EINVAL;
+-
+-	s->flags &= ~SLAB_TRACE;
+-	if (buf[0] == '1') {
+-		s->flags &= ~__CMPXCHG_DOUBLE;
+-		s->flags |= SLAB_TRACE;
+-	}
+-	return length;
+-}
+-SLAB_ATTR(trace);
++SLAB_ATTR_RO(trace);
+ 
+ static ssize_t red_zone_show(struct kmem_cache *s, char *buf)
+ {
+@@ -5375,19 +5331,7 @@ static ssize_t failslab_show(struct kmem
+ {
+ 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_FAILSLAB));
+ }
+-
+-static ssize_t failslab_store(struct kmem_cache *s, const char *buf,
+-							size_t length)
+-{
+-	if (s->refcount > 1)
+-		return -EINVAL;
+-
+-	s->flags &= ~SLAB_FAILSLAB;
+-	if (buf[0] == '1')
+-		s->flags |= SLAB_FAILSLAB;
+-	return length;
+-}
+-SLAB_ATTR(failslab);
++SLAB_ATTR_RO(failslab);
+ #endif
+ 
+ static ssize_t shrink_show(struct kmem_cache *s, char *buf)
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
