@@ -2,53 +2,51 @@ Return-Path: <SRS0=A/n1=BU=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7F08C433E3
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C4BBC433E1
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9635620723
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 718722076C
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026882;
-	bh=HYLUWVNKJBO0L5nwsSHkJlguGzGoAJKzHwDoOj5v91I=;
+	s=default; t=1597026888;
+	bh=bFJagmgB1/xJcqa56LcP2MTOLD1S1TgZWXE4EXiROvA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=BbA34/ewyRymyfbEnOSzWr7ZOa0rc9cz/LkmJyiQn4gzPBZQfmvP5ZS82c6c0tzyh
-	 bHP+pL3JIyHXGqMEVFJzK3XU5KY9kvnjVd2PwwYPgXV+JDQ7+/dxkDUC7VEO+BkTYn
-	 USyFZHs/uDx+uXBF+bGah7BYVrv8oOKJtHDjXa1k=
+	b=2BskTdA52qvD6RXw9vNV8JtFm39S5N7fbu8EHQWaRfLKcEO+2i8eCB0rqImSrTr/o
+	 qUrDxF9Qy/RpRrO+o71JRvvhwCRI7N67uqum6gFwhUdAbWwv3V1r6IJY/OXYmvbyau
+	 d8tFs4UEU4JQO67Ayj/M3Qx4SW9RgCfW1trVh+4A=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726478AbgHJCem (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:34:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38098 "EHLO mail.kernel.org"
+        id S1726344AbgHJCes (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:34:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38176 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCem (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:34:42 -0400
+        id S1726219AbgHJCes (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:34:48 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CFA6B2073E;
-        Mon, 10 Aug 2020 02:34:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9D3D52073E;
+        Mon, 10 Aug 2020 02:34:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026881;
-        bh=HYLUWVNKJBO0L5nwsSHkJlguGzGoAJKzHwDoOj5v91I=;
+        s=default; t=1597026886;
+        bh=bFJagmgB1/xJcqa56LcP2MTOLD1S1TgZWXE4EXiROvA=;
         h=Date:From:To:Subject:From;
-        b=LUhlvGOIjDqqj6pKBDbH+9F9TyYh3d7obue7hpg/Q66VmxUMtJsEegjjUy5cuHgmZ
-         4joL/vFPz/xM4lqwmlAjvT5hmDWkrFp+m1Pf0HjO0YVGFoOYoU1RqDcqjeWM1vh1yG
-         g1GJa3nBq+RazITOTJCySLnHmudlUeVHAWm1R5ts=
-Date:   Sun, 09 Aug 2020 19:34:40 -0700
+        b=R3v4w1cYzrVZhR/06bgmJc3w7zjwlWU6hxDttpZ4hnxYlpF6g4GacaBXK2dqFuupm
+         7iiXVueUFQGiOX+qEGmkM2LBtY1miEm+G8QW94h/i9bYtPZnueMTnquaTA1H/pzaln
+         fzPh8631q1/BFq5N2Gi1rtTKQyZ2sepCIELE4+2U=
+Date:   Sun, 09 Aug 2020 19:34:46 -0700
 From:   akpm@linux-foundation.org
-To:     alex.popov@linux.com, cl@linux.com, guro@fb.com,
-        iamjoonsoo.kim@lge.com, jannh@google.com, keescook@chromium.org,
-        mjg59@google.com, mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz, vinmenon@codeaurora.org,
-        vjitta@codeaurora.org
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, lonuxli.64@gmail.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, willy@infradead.org
 Subject:  [merged]
- mm-expand-config_slab_freelist_hardened-to-include-slab.patch removed from
- -mm tree
-Message-ID: <20200810023440.W9yvpaKxv%akpm@linux-foundation.org>
+ mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
+ removed from -mm tree
+Message-ID: <20200810023446.b6eGUKIu0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -58,104 +56,127 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: expand CONFIG_SLAB_FREELIST_HARDENED to include SLAB
+     Subject: mm, slab: check GFP_SLAB_BUG_MASK before alloc_pages in kmalloc_order
 has been removed from the -mm tree.  Its filename was
-     mm-expand-config_slab_freelist_hardened-to-include-slab.patch
+     mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm/slab: expand CONFIG_SLAB_FREELIST_HARDENED to include SLAB
+From: Long Li <lonuxli.64@gmail.com>
+Subject: mm, slab: check GFP_SLAB_BUG_MASK before alloc_pages in kmalloc_order
 
-Patch series "mm: Expand CONFIG_SLAB_FREELIST_HARDENED to include SLAB"
+kmalloc cannot allocate memory from HIGHMEM.  Allocating large amounts of
+memory currently bypasses the check and will simply leak the memory when
+page_address() returns NULL.  To fix this, factor the GFP_SLAB_BUG_MASK
+check out of slab & slub, and call it from kmalloc_order() as well.  In
+order to make the code clear, the warning message is put in one place.
 
-In reviewing Vlastimil Babka's latest slub debug series, I realized[1]
-that several checks under CONFIG_SLAB_FREELIST_HARDENED weren't being
-applied to SLAB.  Fix this by expanding the Kconfig coverage, and adding a
-simple double-free test for SLAB.
-
-
-This patch (of 2):
-
-Include SLAB caches when performing kmem_cache pointer verification.  A
-defense against such corruption[1] should be applied to all the
-allocators.  With this added, the "SLAB_FREE_CROSS" and "SLAB_FREE_PAGE"
-LKDTM tests now pass on SLAB:
-
-  lkdtm: Performing direct entry SLAB_FREE_CROSS
-  lkdtm: Attempting cross-cache slab free ...
-  ------------[ cut here ]------------
-  cache_from_obj: Wrong slab cache. lkdtm-heap-b but object is from lkdtm-heap-a
-  WARNING: CPU: 2 PID: 2195 at mm/slab.h:530 kmem_cache_free+0x8d/0x1d0
-  ...
-  lkdtm: Performing direct entry SLAB_FREE_PAGE
-  lkdtm: Attempting non-Slab slab free ...
-  ------------[ cut here ]------------
-  virt_to_cache: Object is not a Slab page!
-  WARNING: CPU: 1 PID: 2202 at mm/slab.h:489 kmem_cache_free+0x196/0x1d0
-
-Additionally clean up neighboring Kconfig entries for clarity,
-readability, and redundant option removal.
-
-[1] https://github.com/ThomasKing2014/slides/raw/master/Building%20universal%20Android%20rooting%20with%20a%20type%20confusion%20vulnerability.pdf
-
-Link: http://lkml.kernel.org/r/20200625215548.389774-1-keescook@chromium.org
-Link: http://lkml.kernel.org/r/20200625215548.389774-2-keescook@chromium.org
-Fixes: 598a0717a816 ("mm/slab: validate cache membership under freelist hardening")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexander Popov <alex.popov@linux.com>
+Link: http://lkml.kernel.org/r/20200704035027.GA62481@lilong
+Signed-off-by: Long Li <lonuxli.64@gmail.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jann Horn <jannh@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Garrett <mjg59@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/slab.c        |   10 +++-------
+ mm/slab.h        |    1 +
+ mm/slab_common.c |   17 +++++++++++++++++
+ mm/slub.c        |    9 ++-------
+ 4 files changed, 23 insertions(+), 14 deletions(-)
 
---- a/init/Kconfig~mm-expand-config_slab_freelist_hardened-to-include-slab
-+++ a/init/Kconfig
-@@ -1913,9 +1913,8 @@ config SLAB_MERGE_DEFAULT
- 	  command line.
+--- a/mm/slab.c~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
++++ a/mm/slab.c
+@@ -2589,13 +2589,9 @@ static struct page *cache_grow_begin(str
+ 	 * Be lazy and only check for valid flags here,  keeping it out of the
+ 	 * critical path in kmem_cache_alloc().
+ 	 */
+-	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
+-		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
+-		flags &= ~GFP_SLAB_BUG_MASK;
+-		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
+-				invalid_mask, &invalid_mask, flags, &flags);
+-		dump_stack();
+-	}
++	if (unlikely(flags & GFP_SLAB_BUG_MASK))
++		flags = kmalloc_fix_flags(flags);
++
+ 	WARN_ON_ONCE(cachep->ctor && (flags & __GFP_ZERO));
+ 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
  
- config SLAB_FREELIST_RANDOM
--	default n
-+	bool "Randomize slab freelist"
- 	depends on SLAB || SLUB
--	bool "SLAB freelist randomization"
- 	help
- 	  Randomizes the freelist order used on creating new pages. This
- 	  security feature reduces the predictability of the kernel slab
-@@ -1923,12 +1922,14 @@ config SLAB_FREELIST_RANDOM
+--- a/mm/slab_common.c~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
++++ a/mm/slab_common.c
+@@ -26,6 +26,8 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/kmem.h>
  
- config SLAB_FREELIST_HARDENED
- 	bool "Harden slab freelist metadata"
--	depends on SLUB
-+	depends on SLAB || SLUB
- 	help
- 	  Many kernel heap attacks try to target slab cache metadata and
- 	  other infrastructure. This options makes minor performance
- 	  sacrifices to harden the kernel slab allocator against common
--	  freelist exploit methods.
-+	  freelist exploit methods. Some slab implementations have more
-+	  sanity-checking than others. This option is most effective with
-+	  CONFIG_SLUB.
++#include "internal.h"
++
+ #include "slab.h"
  
- config SHUFFLE_PAGE_ALLOCATOR
- 	bool "Page allocator randomization"
+ enum slab_state slab_state;
+@@ -1332,6 +1334,18 @@ void __init create_kmalloc_caches(slab_f
+ }
+ #endif /* !CONFIG_SLOB */
+ 
++gfp_t kmalloc_fix_flags(gfp_t flags)
++{
++	gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
++
++	flags &= ~GFP_SLAB_BUG_MASK;
++	pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
++			invalid_mask, &invalid_mask, flags, &flags);
++	dump_stack();
++
++	return flags;
++}
++
+ /*
+  * To avoid unnecessary overhead, we pass through large allocation requests
+  * directly to the page allocator. We use __GFP_COMP, because we will need to
+@@ -1342,6 +1356,9 @@ void *kmalloc_order(size_t size, gfp_t f
+ 	void *ret = NULL;
+ 	struct page *page;
+ 
++	if (unlikely(flags & GFP_SLAB_BUG_MASK))
++		flags = kmalloc_fix_flags(flags);
++
+ 	flags |= __GFP_COMP;
+ 	page = alloc_pages(flags, order);
+ 	if (likely(page)) {
+--- a/mm/slab.h~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
++++ a/mm/slab.h
+@@ -152,6 +152,7 @@ void create_kmalloc_caches(slab_flags_t)
+ struct kmem_cache *kmalloc_slab(size_t, gfp_t);
+ #endif
+ 
++gfp_t kmalloc_fix_flags(gfp_t flags);
+ 
+ /* Functions provided by the slab allocators */
+ int __kmem_cache_create(struct kmem_cache *, slab_flags_t flags);
+--- a/mm/slub.c~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
++++ a/mm/slub.c
+@@ -1745,13 +1745,8 @@ out:
+ 
+ static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
+ {
+-	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
+-		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
+-		flags &= ~GFP_SLAB_BUG_MASK;
+-		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
+-				invalid_mask, &invalid_mask, flags, &flags);
+-		dump_stack();
+-	}
++	if (unlikely(flags & GFP_SLAB_BUG_MASK))
++		flags = kmalloc_fix_flags(flags);
+ 
+ 	return allocate_slab(s,
+ 		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from lonuxli.64@gmail.com are
 
-exec-change-uselib2-is_sreg-failure-to-eacces.patch
-exec-move-s_isreg-check-earlier.patch
-exec-move-path_noexec-check-earlier.patch
 
