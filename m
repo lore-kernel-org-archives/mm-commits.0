@@ -7,55 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEF9AC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37428C433E1
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9CC32075D
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 065C12075D
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027106;
-	bh=QWbzXqASExlm4OfOaI342ESF/YWtdqMSPO3IsW6D5VQ=;
+	s=default; t=1597027109;
+	bh=jY13Tyyma85mosH9FtEACJUmmvFKaeqCOuW9OciT/Lc=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=xbj7tp/XZwusSkE2VuzHWp3wSuj2QAUhJBykozaWYKxJMir/0KdihndQYvavOO/5U
-	 rMYyfjc0JJu+C2Ck1ka06tK0DJT2em3d4EAAajFIzE68NKM7voSozvfhptk5pmHztp
-	 /fL0DTDLt3jNi18MGocLwqWIhx82bGBNpozFM/fo=
+	b=uFSGtsS5q60cIUVpaoCGKSYkOEvTOkS3Is1H7B6BDVXKa0DvLRY4eS3brqblQMHeN
+	 en7mr4cLaofeRtVYW90Wpj+95YUcPtZU+05NqbpxpMYvJ16b4z0ouVXcb9YVVHCoAp
+	 XSWSdD1U46lXHCUIxNPHDSuJvitZYOlD7LB3xw5g=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726344AbgHJCi0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:38:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41634 "EHLO mail.kernel.org"
+        id S1726350AbgHJCi2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:38:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41710 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCi0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:38:26 -0400
+        id S1726219AbgHJCi2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:38:28 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 15E1C20723;
-        Mon, 10 Aug 2020 02:38:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A21962065D;
+        Mon, 10 Aug 2020 02:38:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027105;
-        bh=QWbzXqASExlm4OfOaI342ESF/YWtdqMSPO3IsW6D5VQ=;
+        s=default; t=1597027107;
+        bh=jY13Tyyma85mosH9FtEACJUmmvFKaeqCOuW9OciT/Lc=;
         h=Date:From:To:Subject:From;
-        b=QWMIAQLie0YSMEbg4bsUNxeyH/vXgsWilSuYhauWJ7xVsjlpKsFiIH7rk9xvnLxkE
-         WySpNiVpic53wQzpwtjMneSR5z7T3S8XNGfCsjhOjqgHX/FyDQxkfz5co21yWTOqXP
-         wx8zwry6OCG4qRYHEwPMJ44jiQndS9Oy4V1UbZ20=
-Date:   Sun, 09 Aug 2020 19:38:23 -0700
+        b=gKQxIN+kx847+Yv5vuCVF3Mt0UxRfyC2PM/7kgLy4JOSNPb+gVUJ7VyRkZDge0h3o
+         zyl50ruHQz6/IRjZeubaXmcn1v6Qj+cI7lGmT0mdhFd4E5eIbaAQrUYX1Yve6Xs+47
+         okT7IxyyzeFtVsa4HrDfhp2I1vpuCR9eVwAsNBF0=
+Date:   Sun, 09 Aug 2020 19:38:27 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, benh@kernel.crashing.org, bp@alien8.de,
-        catalin.marinas@arm.com, corbet@lwn.net, dan.j.williams@intel.com,
-        dave.hansen@linux.intel.com, david@redhat.com,
-        fenghua.yu@intel.com, hpa@zytor.com, hsinyi@chromium.org,
-        justin.he@arm.com, kirill.shutemov@linux.intel.com,
-        luto@kernel.org, mark.rutland@arm.com, mhocko@suse.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        palmer@dabbelt.com, pasha.tatashin@soleen.com,
-        paul.walmsley@sifive.com, paulus@samba.org, peterz@infradead.org,
-        robin.murphy@arm.com, rppt@linux.ibm.com, steve.capper@arm.com,
-        tglx@linutronix.de, tony.luck@intel.com, will@kernel.org,
-        willy@infradead.org, yuzhao@google.com
+To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+        louhongxiang@huawei.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- arm64-mm-enable-vmem_altmap-support-for-vmemmap-mappings.patch removed from
- -mm tree
-Message-ID: <20200810023823.aP92NWLLd%akpm@linux-foundation.org>
+ mm-mmap-merge-vma-after-call_mmap-if-possible.patch removed from -mm tree
+Message-ID: <20200810023827.XqfZnqZFU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -65,237 +54,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64/mm: enable vmem_altmap support for vmemmap mappings
+     Subject: mm: mmap: merge vma after call_mmap() if possible
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-enable-vmem_altmap-support-for-vmemmap-mappings.patch
+     mm-mmap-merge-vma-after-call_mmap-if-possible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: arm64/mm: enable vmem_altmap support for vmemmap mappings
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm: mmap: merge vma after call_mmap() if possible
 
-Device memory ranges when getting hot added into ZONE_DEVICE, might
-require their vmemmap mapping's backing memory to be allocated from their
-own range instead of consuming system memory.  This prevents large system
-memory usage for potentially large device memory ranges.  Device driver
-communicates this request via vmem_altmap structure.  Architecture needs
-to take this request into account while creating and tearing down vemmmap
-mappings.
+The vm_flags may be changed after call_mmap() because drivers may set some
+flags for their own purpose.  As a result, we failed to merge the adjacent
+vma due to the different vm_flags as userspace can't pass in the same one.
+Try to merge vma after call_mmap() to fix this issue.
 
-This enables vmem_altmap support in vmemmap_populate() and vmemmap_free()
-which includes vmemmap_populate_basepages() used for ARM64_16K_PAGES and
-ARM64_64K_PAGES configs.
-
-Link: http://lkml.kernel.org/r/1594004178-8861-4-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Tested-by: Jia He <justin.he@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Hsin-Yi Wang <hsinyi@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Link: http://lkml.kernel.org/r/1594954065-23733-1-git-send-email-linmiaohe@huawei.com
+Signed-off-by: Hongxiang Lou <louhongxiang@huawei.com>
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmu.c |   58 +++++++++++++++++++++++++++---------------
- 1 file changed, 38 insertions(+), 20 deletions(-)
+ mm/mmap.c |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/mm/mmu.c~arm64-mm-enable-vmem_altmap-support-for-vmemmap-mappings
-+++ a/arch/arm64/mm/mmu.c
-@@ -761,15 +761,20 @@ int kern_addr_valid(unsigned long addr)
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--static void free_hotplug_page_range(struct page *page, size_t size)
-+static void free_hotplug_page_range(struct page *page, size_t size,
-+				    struct vmem_altmap *altmap)
+--- a/mm/mmap.c~mm-mmap-merge-vma-after-call_mmap-if-possible
++++ a/mm/mmap.c
+@@ -1690,7 +1690,7 @@ unsigned long mmap_region(struct file *f
+ 		struct list_head *uf)
  {
--	WARN_ON(PageReserved(page));
--	free_pages((unsigned long)page_address(page), get_order(size));
-+	if (altmap) {
-+		vmem_altmap_free(altmap, size >> PAGE_SHIFT);
-+	} else {
-+		WARN_ON(PageReserved(page));
-+		free_pages((unsigned long)page_address(page), get_order(size));
-+	}
- }
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma, *prev;
++	struct vm_area_struct *vma, *prev, *merge;
+ 	int error;
+ 	struct rb_node **rb_link, *rb_parent;
+ 	unsigned long charged = 0;
+@@ -1774,6 +1774,25 @@ unsigned long mmap_region(struct file *f
+ 		if (error)
+ 			goto unmap_and_free_vma;
  
- static void free_hotplug_pgtable_page(struct page *page)
- {
--	free_hotplug_page_range(page, PAGE_SIZE);
-+	free_hotplug_page_range(page, PAGE_SIZE, NULL);
- }
- 
- static bool pgtable_range_aligned(unsigned long start, unsigned long end,
-@@ -792,7 +797,8 @@ static bool pgtable_range_aligned(unsign
- }
- 
- static void unmap_hotplug_pte_range(pmd_t *pmdp, unsigned long addr,
--				    unsigned long end, bool free_mapped)
-+				    unsigned long end, bool free_mapped,
-+				    struct vmem_altmap *altmap)
- {
- 	pte_t *ptep, pte;
- 
-@@ -806,12 +812,14 @@ static void unmap_hotplug_pte_range(pmd_
- 		pte_clear(&init_mm, addr, ptep);
- 		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
- 		if (free_mapped)
--			free_hotplug_page_range(pte_page(pte), PAGE_SIZE);
-+			free_hotplug_page_range(pte_page(pte),
-+						PAGE_SIZE, altmap);
- 	} while (addr += PAGE_SIZE, addr < end);
- }
- 
- static void unmap_hotplug_pmd_range(pud_t *pudp, unsigned long addr,
--				    unsigned long end, bool free_mapped)
-+				    unsigned long end, bool free_mapped,
-+				    struct vmem_altmap *altmap)
- {
- 	unsigned long next;
- 	pmd_t *pmdp, pmd;
-@@ -834,16 +842,17 @@ static void unmap_hotplug_pmd_range(pud_
- 			flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
- 			if (free_mapped)
- 				free_hotplug_page_range(pmd_page(pmd),
--							PMD_SIZE);
-+							PMD_SIZE, altmap);
- 			continue;
- 		}
- 		WARN_ON(!pmd_table(pmd));
--		unmap_hotplug_pte_range(pmdp, addr, next, free_mapped);
-+		unmap_hotplug_pte_range(pmdp, addr, next, free_mapped, altmap);
- 	} while (addr = next, addr < end);
- }
- 
- static void unmap_hotplug_pud_range(p4d_t *p4dp, unsigned long addr,
--				    unsigned long end, bool free_mapped)
-+				    unsigned long end, bool free_mapped,
-+				    struct vmem_altmap *altmap)
- {
- 	unsigned long next;
- 	pud_t *pudp, pud;
-@@ -866,16 +875,17 @@ static void unmap_hotplug_pud_range(p4d_
- 			flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
- 			if (free_mapped)
- 				free_hotplug_page_range(pud_page(pud),
--							PUD_SIZE);
-+							PUD_SIZE, altmap);
- 			continue;
- 		}
- 		WARN_ON(!pud_table(pud));
--		unmap_hotplug_pmd_range(pudp, addr, next, free_mapped);
-+		unmap_hotplug_pmd_range(pudp, addr, next, free_mapped, altmap);
- 	} while (addr = next, addr < end);
- }
- 
- static void unmap_hotplug_p4d_range(pgd_t *pgdp, unsigned long addr,
--				    unsigned long end, bool free_mapped)
-+				    unsigned long end, bool free_mapped,
-+				    struct vmem_altmap *altmap)
- {
- 	unsigned long next;
- 	p4d_t *p4dp, p4d;
-@@ -888,16 +898,24 @@ static void unmap_hotplug_p4d_range(pgd_
- 			continue;
- 
- 		WARN_ON(!p4d_present(p4d));
--		unmap_hotplug_pud_range(p4dp, addr, next, free_mapped);
-+		unmap_hotplug_pud_range(p4dp, addr, next, free_mapped, altmap);
- 	} while (addr = next, addr < end);
- }
- 
- static void unmap_hotplug_range(unsigned long addr, unsigned long end,
--				bool free_mapped)
-+				bool free_mapped, struct vmem_altmap *altmap)
- {
- 	unsigned long next;
- 	pgd_t *pgdp, pgd;
- 
-+	/*
-+	 * altmap can only be used as vmemmap mapping backing memory.
-+	 * In case the backing memory itself is not being freed, then
-+	 * altmap is irrelevant. Warn about this inconsistency when
-+	 * encountered.
-+	 */
-+	WARN_ON(!free_mapped && altmap);
++		/* If vm_flags changed after call_mmap(), we should try merge vma again
++		 * as we may succeed this time.
++		 */
++		if (unlikely(vm_flags != vma->vm_flags && prev)) {
++			merge = vma_merge(mm, prev, vma->vm_start, vma->vm_end, vma->vm_flags,
++				NULL, vma->vm_file, vma->vm_pgoff, NULL, NULL_VM_UFFD_CTX);
++			if (merge) {
++				fput(file);
++				vm_area_free(vma);
++				vma = merge;
++				/* Update vm_flags and possible addr to pick up the change. We don't
++				 * warn here if addr changed as the vma is not linked by vma_link().
++				 */
++				addr = vma->vm_start;
++				vm_flags = vma->vm_flags;
++				goto unmap_writable;
++			}
++		}
 +
- 	do {
- 		next = pgd_addr_end(addr, end);
- 		pgdp = pgd_offset_k(addr);
-@@ -906,7 +924,7 @@ static void unmap_hotplug_range(unsigned
- 			continue;
- 
- 		WARN_ON(!pgd_present(pgd));
--		unmap_hotplug_p4d_range(pgdp, addr, next, free_mapped);
-+		unmap_hotplug_p4d_range(pgdp, addr, next, free_mapped, altmap);
- 	} while (addr = next, addr < end);
- }
- 
-@@ -1070,7 +1088,7 @@ static void free_empty_tables(unsigned l
- int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
- 		struct vmem_altmap *altmap)
- {
--	return vmemmap_populate_basepages(start, end, node, NULL);
-+	return vmemmap_populate_basepages(start, end, node, altmap);
- }
- #else	/* !ARM64_SWAPPER_USES_SECTION_MAPS */
- int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
-@@ -1102,7 +1120,7 @@ int __meminit vmemmap_populate(unsigned
- 		if (pmd_none(READ_ONCE(*pmdp))) {
- 			void *p = NULL;
- 
--			p = vmemmap_alloc_block_buf(PMD_SIZE, node, NULL);
-+			p = vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
- 			if (!p)
- 				return -ENOMEM;
- 
-@@ -1120,7 +1138,7 @@ void vmemmap_free(unsigned long start, u
- #ifdef CONFIG_MEMORY_HOTPLUG
- 	WARN_ON((start < VMEMMAP_START) || (end > VMEMMAP_END));
- 
--	unmap_hotplug_range(start, end, true);
-+	unmap_hotplug_range(start, end, true, altmap);
- 	free_empty_tables(start, end, VMEMMAP_START, VMEMMAP_END);
- #endif
- }
-@@ -1411,7 +1429,7 @@ static void __remove_pgd_mapping(pgd_t *
- 	WARN_ON(pgdir != init_mm.pgd);
- 	WARN_ON((start < PAGE_OFFSET) || (end > PAGE_END));
- 
--	unmap_hotplug_range(start, end, false);
-+	unmap_hotplug_range(start, end, false, NULL);
- 	free_empty_tables(start, end, PAGE_OFFSET, PAGE_END);
- }
- 
+ 		/* Can addr have changed??
+ 		 *
+ 		 * Answer: Yes, several device drivers can do it in their
+@@ -1796,6 +1815,7 @@ unsigned long mmap_region(struct file *f
+ 	vma_link(mm, vma, prev, rb_link, rb_parent);
+ 	/* Once vma denies write, undo our temporary denial count */
+ 	if (file) {
++unmap_writable:
+ 		if (vm_flags & VM_SHARED)
+ 			mapping_unmap_writable(file->f_mapping);
+ 		if (vm_flags & VM_DENYWRITE)
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-vmstat-add-events-for-thp-migration-without-split.patch
 
