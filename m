@@ -7,46 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98880C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DA0CC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B549206E9
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 397E820723
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026862;
-	bh=iLpc6w/qrLA5F3CT12Ywr7VWcYawfPwPiMry8rMVL7c=;
+	s=default; t=1597026864;
+	bh=hJ/099QeJeo82vMiri5703LTZaV6UdHilRyJcZxTLno=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=yQQ3OHbSCdJC4O662tsKlNVvt9hzxYs7FTwCEdIpipNqwJqBa9wUO30Ml+LOVllN5
-	 zXft+jcrAn2fnT4xiBs3EH9ziE8aQ/p6LwWGJq/r29u6XaBLiJG1PkyeKUh2qkYDMG
-	 Kog4XB266kKqbxdE9P3OIWTJ4H8ab7PN9c1xslJ8=
+	b=sruFwdN3PeAkvlrJDBjGoS6UtISH46ogfxyxHbZbQBn2CZm3dst3rplvNOJOKUGS4
+	 /7/3WR/mBWcaJRCcfAqNRghxXE1NT4S51BFh2vDABBW1yy/JSmLiBiYQrO0ziyjbED
+	 f/29L6LvbLSMwLqcBeMO+LAd4I+7vZSj83i55UPQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726460AbgHJCeW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:34:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37806 "EHLO mail.kernel.org"
+        id S1726465AbgHJCeX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:34:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37844 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCeW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:34:22 -0400
+        id S1726219AbgHJCeX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:34:23 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 78A34206CD;
-        Mon, 10 Aug 2020 02:34:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5AEDD206E9;
+        Mon, 10 Aug 2020 02:34:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026861;
-        bh=iLpc6w/qrLA5F3CT12Ywr7VWcYawfPwPiMry8rMVL7c=;
+        s=default; t=1597026863;
+        bh=hJ/099QeJeo82vMiri5703LTZaV6UdHilRyJcZxTLno=;
         h=Date:From:To:Subject:From;
-        b=imxoAF+u8wvU4quUHRM8VFCH7s1hQOhCDLA7wZ07PqvXRVlUUsgJGWcx1O72lQuHn
-         jzl/3a1CCW7pcUjAKuQ8/M54ffnZzo0Y8JU3rD3pFL/Y8T9k3OI8O+cB3IWoMOT5PP
-         vgyh7dQ34lMnXa8Wd9dYgyLO8zFePRbaYd3ooZJo=
-Date:   Sun, 09 Aug 2020 19:34:21 -0700
+        b=N8VfvdCGcOwuR2XXgjuplBr8JcDv1K4DrUM+wR87i9VpMHr6E/Vm2/yZVJB0mXKQL
+         N5CANhkuSF+49OtwhvSuTan4LbKPgFhrXDDK0fItzk/j9ytD1/P+z0fAFtw7nvmQTb
+         /TBsxbtGAbI+LIhmJprPY/2ilXD4E8RglEt+QQNU=
+Date:   Sun, 09 Aug 2020 19:34:23 -0700
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
-Subject:  [merged]
- ocfs2-fix-remounting-needed-after-setfacl-command.patch removed from -mm
- tree
-Message-ID: <20200810023421.WdovsWtgd%akpm@linux-foundation.org>
+To:     jlbec@evilplan.org, joseph.qi@linux.alibaba.com, mark@fasheh.com,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org
+Subject:  [merged] ocfs2-suballoch-delete-a-duplicated-word.patch
+ removed from -mm tree
+Message-ID: <20200810023423.M4QvDrB1D%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,62 +54,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix remounting needed after setfacl command
+     Subject: ocfs2: suballoc.h: delete a duplicated word
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-remounting-needed-after-setfacl-command.patch
+     ocfs2-suballoch-delete-a-duplicated-word.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: fix remounting needed after setfacl command
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: ocfs2: suballoc.h: delete a duplicated word
 
-When use setfacl command to change a file's acl, the user cannot get the
-latest acl information from the file via getfacl command, until remounting
-the file system.
+Drop the repeated word "is" in a comment.
 
-e.g.
-setfacl -m u:ivan:rw /ocfs2/ivan
-getfacl /ocfs2/ivan
-getfacl: Removing leading '/' from absolute path names
-file: ocfs2/ivan
-owner: root
-group: root
-user::rw-
-group::r--
-mask::r--
-other::r--
-
-The latest acl record("u:ivan:rw") cannot be returned via getfacl
-command until remounting.
-
-Link: http://lkml.kernel.org/r/20200717023751.9922-1-ghe@suse.com
-Signed-off-by: Gang He <ghe@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/20200720001421.28823-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/acl.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ocfs2/suballoc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/acl.c~ocfs2-fix-remounting-needed-after-setfacl-command
-+++ a/fs/ocfs2/acl.c
-@@ -256,6 +256,8 @@ static int ocfs2_set_acl(handle_t *handl
- 		ret = ocfs2_xattr_set(inode, name_index, "", value, size, 0);
+--- a/fs/ocfs2/suballoc.h~ocfs2-suballoch-delete-a-duplicated-word
++++ a/fs/ocfs2/suballoc.h
+@@ -40,7 +40,7 @@ struct ocfs2_alloc_context {
  
- 	kfree(value);
-+	if (!ret)
-+		set_cached_acl(inode, type, acl);
+ 	u64    ac_last_group;
+ 	u64    ac_max_block;  /* Highest block number to allocate. 0 is
+-				 is the same as ~0 - unlimited */
++				 the same as ~0 - unlimited */
  
- 	return ret;
- }
+ 	int    ac_find_loc_only;  /* hack for reflink operation ordering */
+ 	struct ocfs2_suballoc_result *ac_find_loc_priv; /* */
 _
 
-Patches currently in -mm which might be from ghe@suse.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
+mm-drop-duplicated-words-in-linux-pgtableh.patch
+mm-drop-duplicated-words-in-linux-mmh.patch
+highmem-linux-highmemh-fix-duplicated-words-in-a-comment.patch
+frontswap-linux-frontswaph-drop-duplicated-word-in-a-comment.patch
+memcontrol-drop-duplicate-word-and-fix-spello-in-linux-memcontrolh.patch
+mm-compactionc-delete-duplicated-word.patch
+mm-filemapc-delete-duplicated-word.patch
+mm-hmmc-delete-duplicated-word.patch
+mm-hugetlbc-delete-duplicated-words.patch
+mm-memcontrolc-delete-duplicated-words.patch
+mm-memoryc-delete-duplicated-words.patch
+mm-migratec-delete-duplicated-word.patch
+mm-nommuc-delete-duplicated-words.patch
+mm-page_allocc-delete-or-fix-duplicated-words.patch
+mm-shmemc-delete-duplicated-word.patch
+mm-slab_commonc-delete-duplicated-word.patch
+mm-usercopyc-delete-duplicated-word.patch
+mm-vmscanc-delete-or-fix-duplicated-words.patch
+mm-zpoolc-delete-duplicated-word-and-fix-grammar.patch
+mm-zsmallocc-fix-duplicated-words.patch
+clang-linux-compiler-clangh-drop-duplicated-word-in-a-comment.patch
+linux-exportfsh-drop-duplicated-word-in-a-comment.patch
+linux-async_txh-drop-duplicated-word-in-a-comment.patch
+xz-drop-duplicated-word-in-linux-xzh.patch
+autofs-fix-doubled-word.patch
 
