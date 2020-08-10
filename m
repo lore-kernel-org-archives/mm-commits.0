@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44F1DC433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE300C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1536F2065D
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6C3A206C3
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026943;
-	bh=wG8wELLpNop4wfRGeYRsjb0EkooU7pKu5fd7CLH/JR0=;
+	s=default; t=1597026945;
+	bh=Q58VBq7/OpB9c38nz3WEUlBpi/Dg7Iuihpg2Pn45Y7U=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=nnVKqGpOlKKxTrK1eoLeubbXRHyegw4pCIqGkKQg/dM9ZvQzf4sEpbd9DnofRV/3m
-	 tqtw5cXG5Ja55296lB7o0z5BVMiqrLq74tUomu+ZiaRm6ct2Mp5c/ios6xIgsQAECt
-	 j3qAdaWxuzVsMWp7Rx4mVDRwtrV3EID5PfjihObo=
+	b=HrN7YEA+GMbZgtaZLbDGEsaydcpEF2MZ2X1RFgv35z7Sszb8SnwMnJpK+TqKTkrEs
+	 b5oOvDO7Zo3oWhL7m2EsnJMqEonih3j14iBYrV75LncTbkf6Ue7vy5OLeFmhqztzzm
+	 Elus7UNGeLThFcane1ZHVECgnFSRotPBkavVzXkI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726406AbgHJCfm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:35:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38936 "EHLO mail.kernel.org"
+        id S1726370AbgHJCfp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:35:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCfm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:35:42 -0400
+        id S1726219AbgHJCfp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:35:45 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9591B2073E;
-        Mon, 10 Aug 2020 02:35:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8A9912065D;
+        Mon, 10 Aug 2020 02:35:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026941;
-        bh=wG8wELLpNop4wfRGeYRsjb0EkooU7pKu5fd7CLH/JR0=;
+        s=default; t=1597026944;
+        bh=Q58VBq7/OpB9c38nz3WEUlBpi/Dg7Iuihpg2Pn45Y7U=;
         h=Date:From:To:Subject:From;
-        b=Zq5sIUkMWsPfsL0fhDfKUeE7VQiTbP68onJJvxD3CK8XfRHRSF5aCbasgs5Lv3If3
-         WEey6A8GfyQhwzJ/5ogX0G1HR7j//evhea4RHS9Nuw8WIELAf44OckM4EC5uz61Vno
-         A0MSNcOcG2y7WUIrqwzZ75L8ipB9lxfS4dZgKaYE=
-Date:   Sun, 09 Aug 2020 19:35:41 -0700
+        b=Bp5AiuNS8WUMwrtgUFdPBe+o7VC/l8nhNIetAbO5w4c1nJc76LocQxaDAxt18AUCr
+         G38eWlElMwR0KXD92W57dGF4qxFS1A4Sy4Qjs9hXrSq/iUhUV1RwC2TiCnMopMq6Ux
+         yclfvNtyEKTCvoTXbWj8Or2az6Wm7dxRuYcHYUw8=
+Date:   Sun, 09 Aug 2020 19:35:44 -0700
 From:   akpm@linux-foundation.org
 To:     jhubbard@nvidia.com, kirill@shutemov.name,
         mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz,
         william.kucharski@oracle.com, willy@infradead.org
-Subject:  [merged]
- mm-dump-compound-page-information-on-a-second-line.patch removed from -mm
- tree
-Message-ID: <20200810023541.LirL2DYyW%akpm@linux-foundation.org>
+Subject:  [merged] mm-print-head-flags-in-dump_page.patch removed
+ from -mm tree
+Message-ID: <20200810023544.aNig9ddJw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,76 +55,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug: dump compound page information on a second line
+     Subject: mm/debug: print head flags in dump_page
 has been removed from the -mm tree.  Its filename was
-     mm-dump-compound-page-information-on-a-second-line.patch
+     mm-print-head-flags-in-dump_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/debug: dump compound page information on a second line
+Subject: mm/debug: print head flags in dump_page
 
-Simplify both the implementation and the output by splitting all the
-compound page information onto a second line.
+Tail page flags contain very little useful information.  Print the head
+page's flags instead.  While the flags will contain "head" for tail pages,
+this should not be too confusing as the previous line starts with the word
+"head:" and so the flags should be interpreted as belonging to the head
+page.
 
-Link: http://lkml.kernel.org/r/20200709202117.7216-3-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200709202117.7216-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Tested-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: William Kucharski <william.kucharski@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |   30 ++++++++++++------------------
- 1 file changed, 12 insertions(+), 18 deletions(-)
+ mm/debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/debug.c~mm-dump-compound-page-information-on-a-second-line
+--- a/mm/debug.c~mm-print-head-flags-in-dump_page
 +++ a/mm/debug.c
-@@ -95,27 +95,21 @@ void __dump_page(struct page *page, cons
- 	 */
- 	mapcount = PageSlab(head) ? 0 : page_mapcount(page);
+@@ -168,7 +168,7 @@ void __dump_page(struct page *page, cons
+ out_mapping:
+ 	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
  
--	if (compound)
-+	pr_warn("page:%px refcount:%d mapcount:%d mapping:%p index:%#lx\n",
-+			page, page_ref_count(head), mapcount, mapping,
-+			page_to_pgoff(page));
-+	if (compound) {
- 		if (hpage_pincount_available(page)) {
--			pr_warn("page:%px refcount:%d mapcount:%d mapping:%p "
--				"index:%#lx head:%px order:%u "
--				"compound_mapcount:%d compound_pincount:%d\n",
--				page, page_ref_count(head), mapcount,
--				mapping, page_to_pgoff(page), head,
--				compound_order(head), compound_mapcount(page),
--				compound_pincount(page));
-+			pr_warn("head:%px order:%u compound_mapcount:%d compound_pincount:%d\n",
-+					head, compound_order(head),
-+					compound_mapcount(head),
-+					compound_pincount(head));
- 		} else {
--			pr_warn("page:%px refcount:%d mapcount:%d mapping:%p "
--				"index:%#lx head:%px order:%u "
--				"compound_mapcount:%d\n",
--				page, page_ref_count(head), mapcount,
--				mapping, page_to_pgoff(page), head,
--				compound_order(head), compound_mapcount(page));
-+			pr_warn("head:%px order:%u compound_mapcount:%d\n",
-+					head, compound_order(head),
-+					compound_mapcount(head));
- 		}
--	else
--		pr_warn("page:%px refcount:%d mapcount:%d mapping:%p index:%#lx\n",
--			page, page_ref_count(page), mapcount,
--			mapping, page_to_pgoff(page));
-+	}
- 	if (PageKsm(page))
- 		type = "ksm ";
- 	else if (PageAnon(page))
+-	pr_warn("%sflags: %#lx(%pGp)%s\n", type, page->flags, &page->flags,
++	pr_warn("%sflags: %#lx(%pGp)%s\n", type, head->flags, &head->flags,
+ 		page_cma ? " CMA" : "");
+ 
+ hex_only:
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
