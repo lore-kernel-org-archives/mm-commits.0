@@ -7,47 +7,51 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7989FC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:33:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3330C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:33:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A9DA206CD
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:33:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A295B206E9
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:33:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026827;
-	bh=I4c7C98BN+IjkslhKO5ptV3BwK5hw877ou7kVBWDR5E=;
+	s=default; t=1597026830;
+	bh=lbkyxV1P7nWYNF0cXQ3+4zFx8IUBGz6+5Ha3FnO0Sc8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=xG3nfKiP2uWPf7M59pHCN1GsidaQfhwFZFOazL9oJr6SlP53JyIMUna6yC5AmB3j0
-	 Z34uWor+lsSLKyHp62nIv62vZ4+8Aq4tHxq03vUCLIcTFLgRg9bCeh3QOayRorAwPi
-	 4CJA6tkSIhIs11x3128FqNaM19DXTaX9VbhDNciU=
+	b=cuNzJDL3qRybWffCE5GtigBguvxUtkeH/3P0KBa85zMdeSD5JKGk6Qoq+bU6Uu+WG
+	 xpUVuWBkwJRm4T/Rm+WCrIWt58m7vefqawbQnP0blf9DzPFwXAgevLm4+q+uXoYrZq
+	 E/aJZBRnchURsH9PvBlsP6UcXq9GQ8MhwyMaPma0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726338AbgHJCdq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:33:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37300 "EHLO mail.kernel.org"
+        id S1726344AbgHJCdu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:33:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCdq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:33:46 -0400
+        id S1726219AbgHJCdu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:33:50 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 76A64206C3;
-        Mon, 10 Aug 2020 02:33:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id C3652206CD;
+        Mon, 10 Aug 2020 02:33:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026825;
-        bh=I4c7C98BN+IjkslhKO5ptV3BwK5hw877ou7kVBWDR5E=;
+        s=default; t=1597026829;
+        bh=lbkyxV1P7nWYNF0cXQ3+4zFx8IUBGz6+5Ha3FnO0Sc8=;
         h=Date:From:To:Subject:From;
-        b=HJzRjQBERaUWw8l5f1dLhaKH96/jJuuLdurY2Id/Yq+DFUezRVlse4QsuxmqABW+n
-         dfopwa13IyiMAVmAuPIkVp9WNte1FdbcI7YGOtWJH/nnTHeZnQZFaTal72qiwd2QxX
-         icXmp3CPRQ3KtZrQeynQNQHYUuO6CI7642wAIsOI=
-Date:   Sun, 09 Aug 2020 19:33:45 -0700
+        b=VuihkWCyGNxS2g7Diah4HDpuORoU2aHqU7WE1LoNLpa5iu8kMlwMms5UdBbkbNPAd
+         wOhVKqnpO6J8iLLHvvkR/8aTNJXnmkJw2E3jrkD5ruAXT+p12tNa4zSllDZv8Wi19S
+         Nqy6Ra++Gj6BkLpUWhmHA+6ZCAJy761NFGv4MuQo=
+Date:   Sun, 09 Aug 2020 19:33:48 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, jgg@mellanox.com, jglisse@redhat.com,
-        jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, rdunlap@infradead.org
+To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
+        david@redhat.com, hannes@cmpxchg.org, mgorman@techsingularity.net,
+        mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, richard.weiyang@linux.alibaba.com,
+        stable@vger.kernel.org, ying.huang@intel.com
 Subject:  [merged]
- mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier.patch removed
- from -mm tree
-Message-ID: <20200810023345.W0yaU83Lu%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-shuffle-dont-move-pages-between-zones-and-dont-read-garba?=
+ =?US-ASCII?Q?ge-memmaps.patch?= removed from -mm tree
+Message-ID: <20200810023348.yVOCGVpkJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,91 +60,109 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: fix migrate_pgmap_owner w/o CONFIG_MMU_NOTIFIER
+     Subject: mm/shuffle: don't move pages between zones and don't read garbage memmaps
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier.patch
+     mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/migrate: fix migrate_pgmap_owner w/o CONFIG_MMU_NOTIFIER
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/shuffle: don't move pages between zones and don't read garbage memmaps
 
-On x86_64, when CONFIG_MMU_NOTIFIER is not set/enabled, there is a
-compiler error:
+Especially with memory hotplug, we can have offline sections (with a
+garbage memmap) and overlapping zones.  We have to make sure to only touch
+initialized memmaps (online sections managed by the buddy) and that the
+zone matches, to not move pages between zones.
 
-../mm/migrate.c: In function 'migrate_vma_collect':
-../mm/migrate.c:2481:7: error: 'struct mmu_notifier_range' has no member
-named 'migrate_pgmap_owner'
-  range.migrate_pgmap_owner = migrate->pgmap_owner;
-       ^
+To test if this can actually happen, I added a simple
 
-Link: http://lkml.kernel.org/r/20200806193353.7124-1-rcampbell@nvidia.com
-Fixes: 998427b3ad2c ("mm/notifier: add migration invalidation type")
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Jason Gunthorpe" <jgg@mellanox.com>
+	BUG_ON(page_zone(page_i) != page_zone(page_j));
+
+right before the swap.  When hotplugging a 256M DIMM to a 4G x86-64 VM and
+onlining the first memory block "online_movable" and the second memory
+block "online_kernel", it will trigger the BUG, as both zones (NORMAL and
+MOVABLE) overlap.
+
+This might result in all kinds of weird situations (e.g., double
+allocations, list corruptions, unmovable allocations ending up in the
+movable zone).
+
+Link: http://lkml.kernel.org/r/20200624094741.9918-2-david@redhat.com
+Fixes: e900a918b098 ("mm: shuffle initial free memory to improve memory-side-cache utilization")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: <stable@vger.kernel.org>	[5.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   13 +++++++++++++
- mm/migrate.c                 |    6 +++---
- 2 files changed, 16 insertions(+), 3 deletions(-)
+ mm/shuffle.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/mmu_notifier.h~mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier
-+++ a/include/linux/mmu_notifier.h
-@@ -521,6 +521,16 @@ static inline void mmu_notifier_range_in
- 	range->flags = flags;
- }
+--- a/mm/shuffle.c~mm-shuffle-dont-move-pages-between-zones-and-dont-read-garbage-memmaps
++++ a/mm/shuffle.c
+@@ -58,25 +58,25 @@ module_param_call(shuffle, shuffle_store
+  * For two pages to be swapped in the shuffle, they must be free (on a
+  * 'free_area' lru), have the same order, and have the same migratetype.
+  */
+-static struct page * __meminit shuffle_valid_page(unsigned long pfn, int order)
++static struct page * __meminit shuffle_valid_page(struct zone *zone,
++						  unsigned long pfn, int order)
+ {
+-	struct page *page;
++	struct page *page = pfn_to_online_page(pfn);
  
-+static inline void mmu_notifier_range_init_migrate(
-+			struct mmu_notifier_range *range, unsigned int flags,
-+			struct vm_area_struct *vma, struct mm_struct *mm,
-+			unsigned long start, unsigned long end, void *pgmap)
-+{
-+	mmu_notifier_range_init(range, MMU_NOTIFY_MIGRATE, flags, vma, mm,
-+				start, end);
-+	range->migrate_pgmap_owner = pgmap;
-+}
-+
- #define ptep_clear_flush_young_notify(__vma, __address, __ptep)		\
- ({									\
- 	int __young;							\
-@@ -645,6 +655,9 @@ static inline void _mmu_notifier_range_i
- 
- #define mmu_notifier_range_init(range,event,flags,vma,mm,start,end)  \
- 	_mmu_notifier_range_init(range, start, end)
-+#define mmu_notifier_range_init_migrate(range, flags, vma, mm, start, end, \
-+					pgmap) \
-+	_mmu_notifier_range_init(range, start, end)
- 
- static inline bool
- mmu_notifier_range_blockable(const struct mmu_notifier_range *range)
---- a/mm/migrate.c~mm-migrate-fix-migrate_pgmap_owner-w-o-config_mmu_notifier
-+++ a/mm/migrate.c
-@@ -2386,9 +2386,9 @@ static void migrate_vma_collect(struct m
- 	 * that the registered device driver can skip invalidating device
- 	 * private page mappings that won't be migrated.
+ 	/*
+ 	 * Given we're dealing with randomly selected pfns in a zone we
+ 	 * need to ask questions like...
  	 */
--	mmu_notifier_range_init(&range, MMU_NOTIFY_MIGRATE, 0, migrate->vma,
--			migrate->vma->vm_mm, migrate->start, migrate->end);
--	range.migrate_pgmap_owner = migrate->pgmap_owner;
-+	mmu_notifier_range_init_migrate(&range, 0, migrate->vma,
-+		migrate->vma->vm_mm, migrate->start, migrate->end,
-+		migrate->pgmap_owner);
- 	mmu_notifier_invalidate_range_start(&range);
  
- 	walk_page_range(migrate->vma->vm_mm, migrate->start, migrate->end,
+-	/* ...is the pfn even in the memmap? */
+-	if (!pfn_valid_within(pfn))
++	/* ... is the page managed by the buddy? */
++	if (!page)
+ 		return NULL;
+ 
+-	/* ...is the pfn in a present section or a hole? */
+-	if (!pfn_in_present_section(pfn))
++	/* ... is the page assigned to the same zone? */
++	if (page_zone(page) != zone)
+ 		return NULL;
+ 
+ 	/* ...is the page free and currently on a free_area list? */
+-	page = pfn_to_page(pfn);
+ 	if (!PageBuddy(page))
+ 		return NULL;
+ 
+@@ -123,7 +123,7 @@ void __meminit __shuffle_zone(struct zon
+ 		 * page_j randomly selected in the span @zone_start_pfn to
+ 		 * @spanned_pages.
+ 		 */
+-		page_i = shuffle_valid_page(i, order);
++		page_i = shuffle_valid_page(z, i, order);
+ 		if (!page_i)
+ 			continue;
+ 
+@@ -137,7 +137,7 @@ void __meminit __shuffle_zone(struct zon
+ 			j = z->zone_start_pfn +
+ 				ALIGN_DOWN(get_random_long() % z->spanned_pages,
+ 						order_pages);
+-			page_j = shuffle_valid_page(j, order);
++			page_j = shuffle_valid_page(z, j, order);
+ 			if (page_j && page_j != page_i)
+ 				break;
+ 		}
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-migrate-optimize-migrate_vma_setup-for-holes.patch
-mm-migrate-optimize-migrate_vma_setup-for-holes-v2.patch
-mm-migrate-add-migrate-shared-test-for-migrate_vma_.patch
 
