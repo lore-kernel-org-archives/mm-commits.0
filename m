@@ -7,48 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3116C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EE08C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A41242065D
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C8CC206C3
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027056;
-	bh=PbtXW3wK5DdqPv7t4YzCMMJVEP+0zy5byMe0gqLetE8=;
+	s=default; t=1597027058;
+	bh=jxcSue6gmG20jmtJnA2L4eIO3rCYei0B4DGP3Ev+oKA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=2MbyXWB5J7QBnZBlMQ8sztfBZFRb0BTMy03m+MymKGaQOqHFjYGchfQLeREYhJ6yF
-	 YiohbJKtf7vn+KcOftEcFUXgrkokZOizNZBETeuC5WbUptVAIujktHUPTmgISyX258
-	 NdTEH3RbA86w8H6MpvqB+dMmPdogNv1YkfGp39EA=
+	b=hIcyZFIhxbhho81+Iq/Zw3Xe+3Fs/XQwMn1E1lqmj0+Tsd8GDbntqu9hdAjC59MhX
+	 B+NHUYc+Qucf9LOc9j8fNk08si3yr/jml8iSq/M4DdQ42jVytQu+OcZwaDhyzlhXTw
+	 uDlzbQbFKEStP245B469IdOl+IpHO50oZPo2yHzA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726429AbgHJChg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:37:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40710 "EHLO mail.kernel.org"
+        id S1726426AbgHJChi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:37:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40754 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJChf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:37:35 -0400
+        id S1726219AbgHJChh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:37:37 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AB375206C3;
-        Mon, 10 Aug 2020 02:37:34 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7D7CF2065D;
+        Mon, 10 Aug 2020 02:37:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027055;
-        bh=PbtXW3wK5DdqPv7t4YzCMMJVEP+0zy5byMe0gqLetE8=;
+        s=default; t=1597027057;
+        bh=jxcSue6gmG20jmtJnA2L4eIO3rCYei0B4DGP3Ev+oKA=;
         h=Date:From:To:Subject:From;
-        b=USBQ5u9Tj6/danS7N9v8HtkJWJyeb5K3MRlQf8RWXnLVhvJbtQ0Lj1ZktZ0I/GV+B
-         HMu1nyyMvx/nRLSVPVpjvrB13aEChISzshY15i0Tj8OFgMeku8w/967U3Yr/wqFMlG
-         ywsubHzZsTsjLiWQ7BiNotmCqyaBV+uleYyrnHm8=
-Date:   Sun, 09 Aug 2020 19:37:34 -0700
+        b=gHscxFR3g8fnTk8H7ZXgO7ZwIA4Gv+M0Vs3eHbrO4P/mjLB8REGSQNQVtQ6AscgLK
+         2/3HC/To86cAnn3Cdtp0+tsnBpOcY4UJIJRYgJPVYtnpArR0uzYIc1NBWtpl0I6Mkh
+         ScnxeObznxM64oYOqKn3OIWzbxWl6YNdz418JCr8=
+Date:   Sun, 09 Aug 2020 19:37:37 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com, mkoutny@suse.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org, tj@kernel.org
-Subject:  [merged] mm-fix-protection-usage-propagation.patch
+To:     david@redhat.com, jgg@mellanox.com, mm-commits@vger.kernel.org,
+        rcampbell@nvidia.com
+Subject:  [merged] mm-remove-redundant-check-non_swap_entry.patch
  removed from -mm tree
-Message-ID: <20200810023734.lluPebODj%akpm@linux-foundation.org>
+Message-ID: <20200810023737.iLrrUX5j2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -57,84 +54,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_counter.c: fix protection usage propagation
+     Subject: mm: remove redundant check non_swap_entry()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-protection-usage-propagation.patch
+     mm-remove-redundant-check-non_swap_entry.patch
 
-This patch was dropped because it was merged into mainline or a subsystem t=
-ree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Michal Koutn=C3=BD <mkoutny@suse.com>
-Subject: mm/page_counter.c: fix protection usage propagation
+From: Ralph Campbell <rcampbell@nvidia.com>
+Subject: mm: remove redundant check non_swap_entry()
 
-When workload runs in cgroups that aren't directly below root cgroup and
-their parent specifies reclaim protection, it may end up ineffective.
+In zap_pte_range(), the check for non_swap_entry() and
+is_device_private_entry() is unnecessary since the latter is sufficient to
+determine if the page is a device private page.  Remove the test for
+non_swap_entry() to simplify the code and for clarity.
 
-The reason is that propagate_protected_usage() is not called in all
-hierarchy up.  All the protected usage is incorrectly accumulated in the
-workload's parent.  This means that siblings_low_usage is overestimated
-and effective protection underestimated.  Even though it is transitional
-phenomenon (uncharge path does correct propagation and fixes the wrong
-children_low_usage), it can undermine the intended protection
-unexpectedly.
-
-We have noticed this problem while seeing a swap out in a descendant of a
-protected memcg (intermediate node) while the parent was conveniently
-under its protection limit and the memory pressure was external to that
-hierarchy.  Michal has pinpointed this down to the wrong
-siblings_low_usage which led to the unwanted reclaim.
-
-The fix is simply updating children_low_usage in respective ancestors also
-in the charging path.
-
-Link: http://lkml.kernel.org/r/20200803153231.15477-1-mhocko@kernel.org
-Fixes: 230671533d64 ("mm: memory.low hierarchical behavior")
-Signed-off-by: Michal Koutn=C3=BD <mkoutny@suse.com>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>	[4.18+]
+Link: http://lkml.kernel.org/r/20200615175405.4613-1-rcampbell@nvidia.com
+Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_counter.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_counter.c~mm-fix-protection-usage-propagation
-+++ a/mm/page_counter.c
-@@ -72,7 +72,7 @@ void page_counter_charge(struct page_cou
- 		long new;
-=20
- 		new =3D atomic_long_add_return(nr_pages, &c->usage);
--		propagate_protected_usage(counter, new);
-+		propagate_protected_usage(c, new);
- 		/*
- 		 * This is indeed racy, but we can live with some
- 		 * inaccuracy in the watermark.
-@@ -116,7 +116,7 @@ bool page_counter_try_charge(struct page
- 		new =3D atomic_long_add_return(nr_pages, &c->usage);
- 		if (new > c->max) {
- 			atomic_long_sub(nr_pages, &c->usage);
--			propagate_protected_usage(counter, new);
-+			propagate_protected_usage(c, new);
- 			/*
- 			 * This is racy, but we can live with some
- 			 * inaccuracy in the failcnt.
-@@ -125,7 +125,7 @@ bool page_counter_try_charge(struct page
- 			*fail =3D c;
- 			goto failed;
+--- a/mm/memory.c~mm-remove-redundant-check-non_swap_entry
++++ a/mm/memory.c
+@@ -1098,7 +1098,7 @@ again:
  		}
--		propagate_protected_usage(counter, new);
-+		propagate_protected_usage(c, new);
- 		/*
- 		 * Just like with failcnt, we can live with some
- 		 * inaccuracy in the watermark.
+ 
+ 		entry = pte_to_swp_entry(ptent);
+-		if (non_swap_entry(entry) && is_device_private_entry(entry)) {
++		if (is_device_private_entry(entry)) {
+ 			struct page *page = device_private_entry_to_page(entry);
+ 
+ 			if (unlikely(details && details->check_mapping)) {
 _
 
-Patches currently in -mm which might be from mkoutny@suse.com are
+Patches currently in -mm which might be from rcampbell@nvidia.com are
 
-proc-pid-smaps-consistent-whitespace-output-format.patch
+mm-migrate-optimize-migrate_vma_setup-for-holes.patch
+mm-migrate-optimize-migrate_vma_setup-for-holes-v2.patch
+mm-migrate-add-migrate-shared-test-for-migrate_vma_.patch
 
