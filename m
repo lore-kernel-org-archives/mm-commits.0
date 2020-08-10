@@ -7,45 +7,50 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E518BC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:40:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7226C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:40:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6AE1206CD
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:40:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E06A206C3
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:40:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027244;
-	bh=putPR2xNAkGIGsixvwZw3M/bF/d6azam6Sf+s230ANY=;
+	s=default; t=1597027248;
+	bh=tfCGpamwPOC9hblre1uGHt/DiLU6dVNKZTaDZ78Aa6E=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=JX4lmG+j+kqueUCgMYda3fgyerSlOLxiEs3YNI/NopZ3uKtuEHvfIXGvaPTkCnPIZ
-	 XOfX0OxE0QBoGV0EGQuBiOdd7DyyEDHSfSDbDe0IqRACsueAP2r1IhkgybY25lUk6D
-	 ejHwwUTjtImQV4ZeBL9ZmMALDyKe6DPPCswXgeDU=
+	b=XBwtqegVxMH2zESCJPEILrU5TZAYQhfKIN5kHGS3vSFVWlaLLgqqHML91ppyGfq7w
+	 n62kMrStlYdi6oalIXo/96m4l5zQV+HilBT6x9IMoOytpNqfa3RgNk64M2UChpuCYC
+	 TbAa1k9pFIc/qxSkoUw2h60ywuEoBqQUCkVDFw6Y=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726412AbgHJCko (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:40:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43736 "EHLO mail.kernel.org"
+        id S1726344AbgHJCks (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:40:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCko (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:40:44 -0400
+        id S1726219AbgHJCks (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:40:48 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 874FE2065D;
-        Mon, 10 Aug 2020 02:40:43 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BD0A72065D;
+        Mon, 10 Aug 2020 02:40:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027243;
-        bh=putPR2xNAkGIGsixvwZw3M/bF/d6azam6Sf+s230ANY=;
+        s=default; t=1597027247;
+        bh=tfCGpamwPOC9hblre1uGHt/DiLU6dVNKZTaDZ78Aa6E=;
         h=Date:From:To:Subject:From;
-        b=JQoQRvxc7li3RIfXz2P/8qPqyUIeK45KZLFnVMpOk61lM4oVUAzyAJFDnSnVIHrtt
-         x2vQB2Gd/qpykGWYMjHinsKsY56X7WzqVJtS3lLVCjd8479zqBzVSNt4D5AtrFtKja
-         3vLdjvN+SRoZ1FGUtSA8xKUjCd+yGAKna8I4CYG4=
-Date:   Sun, 09 Aug 2020 19:40:43 -0700
+        b=IAJ7ED2pMbneutOwJDgW0obQmz6Oh8Lgy96kLwy3i3FHg5QooGAXlEmyJ6Bmpx1xc
+         NHO4pMcwkKQUpAziW79gfosdFvh4qiP+X5zWlp0qwoDV7Moa1gWKZwtLzHbBvIuqC4
+         /jUwaJhonfN015TYjudfIPV7koDLwR+PsaSPGI3s=
+Date:   Sun, 09 Aug 2020 19:40:46 -0700
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
-        laoar.shao@gmail.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shakeelb@google.com
-Subject:  [merged] mm-vmscan-consistent-update-to-pgrefill.patch
- removed from -mm tree
-Message-ID: <20200810024043.yOHz8M-SI%akpm@linux-foundation.org>
+To:     andriin@fb.com, anil.s.keshavamurthy@intel.com, ast@kernel.org,
+        daniel@iogearbox.net, davem@davemloft.net,
+        john.fastabend@gmail.com, kafai@fb.com, kpsingh@chromium.org,
+        mhiramat@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org,
+        naveen.n.rao@linux.ibm.com, rostedt@goodmis.org,
+        sfr@canb.auug.org.au, songliubraving@fb.com,
+        songmuchun@bytedance.com, yhs@fb.com
+Subject:  [merged]
+ kprobes-fix-compiler-warning-for-config_kprobes_on_ftrace.patch removed
+ from -mm tree
+Message-ID: <20200810024046.teUgSUgwY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,51 +60,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: consistent update to pgrefill
+     Subject: kprobes: fix compiler warning for !CONFIG_KPROBES_ON_FTRACE
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-consistent-update-to-pgrefill.patch
+     kprobes-fix-compiler-warning-for-config_kprobes_on_ftrace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: vmscan: consistent update to pgrefill
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: kprobes: fix compiler warning for !CONFIG_KPROBES_ON_FTRACE
 
-The vmstat pgrefill is useful together with pgscan and pgsteal stats to
-measure the reclaim efficiency.  However vmstat's pgrefill is not updated
-consistently at system level.  It gets updated for both global and memcg
-reclaim however pgscan and pgsteal are updated for only global reclaim. 
-So, update pgrefill only for global reclaim.  If someone is interested in
-the stats representing both system level as well as memcg level reclaim,
-then consult the root memcg's memory.stat instead of /proc/vmstat.
+Fix compiler warning(as show below) for !CONFIG_KPROBES_ON_FTRACE.
 
-Link: http://lkml.kernel.org/r/20200711011459.1159929-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Yafang Shao <laoar.shao@gmail.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+kernel/kprobes.c: In function 'kill_kprobe':
+kernel/kprobes.c:1116:33: warning: statement with no effect
+[-Wunused-value]
+ 1116 | #define disarm_kprobe_ftrace(p) (-ENODEV)
+      |                                 ^
+kernel/kprobes.c:2154:3: note: in expansion of macro
+'disarm_kprobe_ftrace'
+ 2154 |   disarm_kprobe_ftrace(p);
+
+Link: https://lore.kernel.org/r/20200805142136.0331f7ea@canb.auug.org.au
+
+Link: http://lkml.kernel.org/r/20200805172046.19066-1-songmuchun@bytedance.com
+Fixes: 0cb2f1372baa ("kprobes: Fix NULL pointer dereference at kprobe_ftrace_handler")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Martin KaFai Lau <kafai@fb.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Yonghong Song <yhs@fb.com>
+Cc: Andrii Nakryiko <andriin@fb.com>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: KP Singh <kpsingh@chromium.org>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/kprobes.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-consistent-update-to-pgrefill
-+++ a/mm/vmscan.c
-@@ -2030,7 +2030,8 @@ static void shrink_active_list(unsigned
+--- a/kernel/kprobes.c~kprobes-fix-compiler-warning-for-config_kprobes_on_ftrace
++++ a/kernel/kprobes.c
+@@ -1111,9 +1111,20 @@ static int disarm_kprobe_ftrace(struct k
+ 		ipmodify ? &kprobe_ipmodify_enabled : &kprobe_ftrace_enabled);
+ }
+ #else	/* !CONFIG_KPROBES_ON_FTRACE */
+-#define prepare_kprobe(p)	arch_prepare_kprobe(p)
+-#define arm_kprobe_ftrace(p)	(-ENODEV)
+-#define disarm_kprobe_ftrace(p)	(-ENODEV)
++static inline int prepare_kprobe(struct kprobe *p)
++{
++	return arch_prepare_kprobe(p);
++}
++
++static inline int arm_kprobe_ftrace(struct kprobe *p)
++{
++	return -ENODEV;
++}
++
++static inline int disarm_kprobe_ftrace(struct kprobe *p)
++{
++	return -ENODEV;
++}
+ #endif
  
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
- 
--	__count_vm_events(PGREFILL, nr_scanned);
-+	if (!cgroup_reclaim(sc))
-+		__count_vm_events(PGREFILL, nr_scanned);
- 	__count_memcg_events(lruvec_memcg(lruvec), PGREFILL, nr_scanned);
- 
- 	spin_unlock_irq(&pgdat->lru_lock);
+ /* Arm a kprobe with text_mutex */
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-hugetlb-add-mempolicy-check-in-the-reservation-routine.patch
 
