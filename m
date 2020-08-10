@@ -7,46 +7,48 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2718C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C54FC433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C36D1206C3
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 280452065D
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027167;
-	bh=msQFkIefC80Q5vTSfqZc+2fim41CDrV4cqYbVK/r2m8=;
+	s=default; t=1597027171;
+	bh=m2lHzxg5h0RhKgXOuKR2m0i8Vzc2yJwsgFMXxNUOMmQ=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=1cMfAlVvEDk/TFjH1ATrPjR3kjTxGJ9UPBXL5rwTBIiqGWiiFkcIz6I2EIfaO6Bou
-	 SDUjCVbVxYPxEnFs9nofG4Ne01lJt1hlRNL4qOE/irR4KgPP+thAgjaqQJuerL6D/I
-	 w5qNPEh7yvGnElVBZ1GxocQI2hc4kQ+oIdNHzAuw=
+	b=aHRurSSh+XpBFGgS6MeLInKJEnCy3fLbH7Tns57n+ejVpSU5RqRwWsHzayPy8lf7j
+	 XMJZKfN6paKxj83Wnf5PvFep8sKFsDl4KTA5/KVgCragbD3LSuC7ZgJ8nmZjHIOe0O
+	 7jFp8sIkS+WHtYAP7b2/lb/R/NuhIT5dEZTIbp9o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726401AbgHJCj1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:39:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42634 "EHLO mail.kernel.org"
+        id S1726370AbgHJCja (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:39:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42666 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCj1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:39:27 -0400
+        id S1726219AbgHJCja (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:39:30 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 71A542065D;
-        Mon, 10 Aug 2020 02:39:26 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B1DE9206C3;
+        Mon, 10 Aug 2020 02:39:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027166;
-        bh=msQFkIefC80Q5vTSfqZc+2fim41CDrV4cqYbVK/r2m8=;
+        s=default; t=1597027170;
+        bh=m2lHzxg5h0RhKgXOuKR2m0i8Vzc2yJwsgFMXxNUOMmQ=;
         h=Date:From:To:Subject:From;
-        b=okjeBe82PCmGnO0yY4eQ4+NZwDii/lw71FR7670Ukr2q2d7Sg02vYAqVrgdYjnK2A
-         Q/orH9t6QGh9xGEFn4XIkab+pgVuVU26w7YDDRHxinAgQoRTTQEmYlnAGpIZ/YpJSJ
-         JFvyxwBEfc/8kffAOENYRMgU3cPgto9COC5zX+Nw=
-Date:   Sun, 09 Aug 2020 19:39:26 -0700
+        b=UiNw333p3r7f3IlQ8hTe8PVY2kdBdhnlouasZZbDWMBODoRMiHg7kTdqC8ldeCQ6x
+         d1bb6Z4VBv62j1GoFh+dSodS8eE3dK9R4TUe2o6OOU1ypBWFsyiRvzIVWFZMGUHLe/
+         qJhv6ph0IheBa66boC8XHgNJxpwqKl448/3L+WSA=
+Date:   Sun, 09 Aug 2020 19:39:29 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, ardb@kernel.org, aryabinin@virtuozzo.com,
         catalin.marinas@arm.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, lenaptr@google.com, mm-commits@vger.kernel.org,
-        vincenzo.frascino@arm.com, walter-zh.wu@mediatek.com
+        glider@google.com, lenaptr@google.com, lkp@intel.com,
+        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        walter-zh.wu@mediatek.com
 Subject:  [merged]
- kasan-dont-tag-stacks-allocated-with-pagealloc.patch removed from -mm tree
-Message-ID: <20200810023926.mn-PQjILd%akpm@linux-foundation.org>
+ efi-provide-empty-efi_enter_virtual_mode-implementation.patch removed from
+ -mm tree
+Message-ID: <20200810023929.xyUCDlLLz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,69 +58,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: don't tag stacks allocated with pagealloc
+     Subject: efi: provide empty efi_enter_virtual_mode implementation
 has been removed from the -mm tree.  Its filename was
-     kasan-dont-tag-stacks-allocated-with-pagealloc.patch
+     efi-provide-empty-efi_enter_virtual_mode-implementation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: don't tag stacks allocated with pagealloc
+Subject: efi: provide empty efi_enter_virtual_mode implementation
 
-Patch series "kasan: support stack instrumentation for tag-based mode", v2.
+When CONFIG_EFI is not enabled, we might get an undefined reference to
+efi_enter_virtual_mode() error, if this efi_enabled() call isn't inlined
+into start_kernel().  This happens in particular, if start_kernel() is
+annodated with __no_sanitize_address.
 
-This patch (of 5):
-
-Prepare Software Tag-Based KASAN for stack tagging support.
-
-With Tag-Based KASAN when kernel stacks are allocated via pagealloc (which
-happens when CONFIG_VMAP_STACK is not enabled), they get tagged.  KASAN
-instrumentation doesn't expect the sp register to be tagged, and this
-leads to false-positive reports.
-
-Fix by resetting the tag of kernel stack pointers after allocation.
-
-Link: http://lkml.kernel.org/r/cover.1596199677.git.andreyknvl@google.com
-Link: http://lkml.kernel.org/r/cover.1596544734.git.andreyknvl@google.com
-Link: http://lkml.kernel.org/r/12d8c678869268dd0884b01271ab592f30792abf.1596544734.git.andreyknvl@google.com
-Link: http://lkml.kernel.org/r/01c678b877755bcf29009176592402cdf6f2cb15.1596199677.git.andreyknvl@google.com
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=203497
+Link: http://lkml.kernel.org/r/6514652d3a32d3ed33d6eb5c91d0af63bf0d1a0c.1596544734.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Acked-by: Ard Biesheuvel <ardb@kernel.org>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Walter Wu <walter-zh.wu@mediatek.com>
-Cc: Elena Petrova <lenaptr@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Elena Petrova <lenaptr@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Walter Wu <walter-zh.wu@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/efi.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/kernel/fork.c~kasan-dont-tag-stacks-allocated-with-pagealloc
-+++ a/kernel/fork.c
-@@ -261,7 +261,7 @@ static unsigned long *alloc_thread_stack
- 					     THREAD_SIZE_ORDER);
- 
- 	if (likely(page)) {
--		tsk->stack = page_address(page);
-+		tsk->stack = kasan_reset_tag(page_address(page));
- 		return tsk->stack;
- 	}
- 	return NULL;
-@@ -302,6 +302,7 @@ static unsigned long *alloc_thread_stack
- {
- 	unsigned long *stack;
- 	stack = kmem_cache_alloc_node(thread_stack_cache, THREADINFO_GFP, node);
-+	stack = kasan_reset_tag(stack);
- 	tsk->stack = stack;
- 	return stack;
- }
+--- a/include/linux/efi.h~efi-provide-empty-efi_enter_virtual_mode-implementation
++++ a/include/linux/efi.h
+@@ -606,7 +606,11 @@ extern void *efi_get_pal_addr (void);
+ extern void efi_map_pal_code (void);
+ extern void efi_memmap_walk (efi_freemem_callback_t callback, void *arg);
+ extern void efi_gettimeofday (struct timespec64 *ts);
++#ifdef CONFIG_EFI
+ extern void efi_enter_virtual_mode (void);	/* switch EFI to virtual mode, if possible */
++#else
++static inline void efi_enter_virtual_mode (void) {}
++#endif
+ #ifdef CONFIG_X86
+ extern efi_status_t efi_query_variable_store(u32 attributes,
+ 					     unsigned long size,
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
