@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACB4AC433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D7F5C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81DDE2065D
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6E552065D
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026972;
-	bh=9FEiO6W0fkhoX1Y346iC19h4bc0cBBKeMXsoRvRUEso=;
+	s=default; t=1597026974;
+	bh=YfZbZYCwxpdUOPcJiD2iQVTL7nzyrDQMWMdrGnytX4E=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=q+1oYlPAWm+JrBwYKba975SB26OH8ZajN5BIJQ1iQ0tz0pfvHFeeoYRhfA8RxZsFT
-	 2gEX/M6Evop8ZVvqTrhwmpeFEoywBAQ6t2OYCJlb4u7VpU9i5s0R2n4yNbRpG2Wbe4
-	 /nOXLJQkay05erF8N8OYHrLiCh5MYUiWyboI4qK4=
+	b=U9lFlTzB2gTNF+pepblaAfmbVnZf7Qy9iK+ahqYsZRpXGhD97WHvspIAej6sidv81
+	 etHBLnmEgXVhwBniIt3uTQpPLPTZBoCR7j9MkqVfhkVH7dro7Cr650BTJfXVxIRrln
+	 b6qiu5cEJHRcbTKce/E7BE28nHE2KA5hAVZ1zkqk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726429AbgHJCgM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:36:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39292 "EHLO mail.kernel.org"
+        id S1726396AbgHJCgO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:36:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39318 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCgM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:36:12 -0400
+        id S1726219AbgHJCgO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:36:14 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 78D50206C3;
-        Mon, 10 Aug 2020 02:36:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 80D932065D;
+        Mon, 10 Aug 2020 02:36:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026971;
-        bh=9FEiO6W0fkhoX1Y346iC19h4bc0cBBKeMXsoRvRUEso=;
+        s=default; t=1597026973;
+        bh=YfZbZYCwxpdUOPcJiD2iQVTL7nzyrDQMWMdrGnytX4E=;
         h=Date:From:To:Subject:From;
-        b=VUGwWfKDEVdgpceulzCYQ1/7Vw4sT1Ln602Hy6QIYCKUPqmMkkl3uJTXfgy8LKiHs
-         K7Uj2T3GnGZnis1wFQQBrXHjKrSuahZsVfw1RQqsbSVTbkk/m8OLF5TfjjbgSvH0O0
-         7LfbCZs/Htsakj5fWERRrC+ev7wWZ7086tecndII=
-Date:   Sun, 09 Aug 2020 19:36:11 -0700
+        b=I1R4YXhA3bmQ/K5dP23i4nu5FgiH7yHE2jRhbiFLzK+OvzZt8wqoZ145Q1qupppXT
+         QcVuMxXb34vl6xEAFCd7X/DNmAM5O+bryt5qXu+Qrbhbk52NEEJZ8SdhYt7pfFnRQI
+         +plt4uG8+QUXipeGO41PmAqUqTh7CSUBCegrsCD0=
+Date:   Sun, 09 Aug 2020 19:36:13 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
-        tim.c.chen@linux.intel.com
+To:     akpm@linux-foundation.org, krzk@kernel.org,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-swap-remove-redundant-check-for-swap_slot_cache_initialized.patch
- removed from -mm tree
-Message-ID: <20200810023611.AE6Ygo66B%akpm@linux-foundation.org>
+ mm-swap-fix-kerneldoc-of-swap_vma_readahead.patch removed from -mm tree
+Message-ID: <20200810023613.5ORr217pA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,63 +54,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap_slots.c: remove redundant check for swap_slot_cache_initialized
+     Subject: mm: swap: fix kerneldoc of swap_vma_readahead()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-remove-redundant-check-for-swap_slot_cache_initialized.patch
+     mm-swap-fix-kerneldoc-of-swap_vma_readahead.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: mm/swap_slots.c: remove redundant check for swap_slot_cache_initialized
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: mm: swap: fix kerneldoc of swap_vma_readahead()
 
-Because enable_swap_slots_cache can only become true in
-enable_swap_slots_cache(), and depends on swap_slot_cache_initialized is
-true before.  That means, when enable_swap_slots_cache is true,
-swap_slot_cache_initialized is true also.
+Fix W=1 compile warnings (invalid kerneldoc):
 
-So the condition:
-"swap_slot_cache_enabled && swap_slot_cache_initialized"
-can be reduced to "swap_slot_cache_enabled"
+    mm/swap_state.c:742: warning: Function parameter or member 'fentry' not described in 'swap_vma_readahead'
+    mm/swap_state.c:742: warning: Excess function parameter 'entry' description in 'swap_vma_readahead'
 
-And in mathematics:
-"!swap_slot_cache_enabled || !swap_slot_cache_initialized"
-is equal to "!(swap_slot_cache_enabled && swap_slot_cache_initialized)"
-
-So no functional change.
-
-Link: http://lkml.kernel.org/r/20200430061143.450-4-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Acked-by: Tim Chen <tim.c.chen@linux.intel.com>
+Link: http://lkml.kernel.org/r/20200728171109.28687-2-krzk@kernel.org
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_slots.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swap_slots.c~mm-swap-remove-redundant-check-for-swap_slot_cache_initialized
-+++ a/mm/swap_slots.c
-@@ -46,8 +46,7 @@ static void __drain_swap_slots_cache(uns
- static void deactivate_swap_slots_cache(void);
- static void reactivate_swap_slots_cache(void);
+--- a/mm/swap_state.c~mm-swap-fix-kerneldoc-of-swap_vma_readahead
++++ a/mm/swap_state.c
+@@ -725,7 +725,7 @@ static void swap_ra_info(struct vm_fault
  
--#define use_swap_slot_cache (swap_slot_cache_active && \
--		swap_slot_cache_enabled && swap_slot_cache_initialized)
-+#define use_swap_slot_cache (swap_slot_cache_active && swap_slot_cache_enabled)
- #define SLOTS_CACHE 0x1
- #define SLOTS_CACHE_RET 0x2
- 
-@@ -94,7 +93,7 @@ static bool check_cache_active(void)
- {
- 	long pages;
- 
--	if (!swap_slot_cache_enabled || !swap_slot_cache_initialized)
-+	if (!swap_slot_cache_enabled)
- 		return false;
- 
- 	pages = get_nr_swap_pages();
+ /**
+  * swap_vma_readahead - swap in pages in hope we need them soon
+- * @entry: swap entry of this memory
++ * @fentry: swap entry of this memory
+  * @gfp_mask: memory allocation flags
+  * @vmf: fault information
+  *
 _
 
-Patches currently in -mm which might be from thunder.leizhen@huawei.com are
+Patches currently in -mm which might be from krzk@kernel.org are
 
+mm-mempolicy-fix-kerneldoc-of-numa_map_to_online_node.patch
+mm-mmu_notifier-fix-and-extend-kerneldoc.patch
+iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
+iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix.patch
+rtl818x-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
+ntb-intel-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
+virtio-pci-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
 
