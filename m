@@ -4,49 +4,48 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C4BBC433E1
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D524C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 718722076C
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C091206CD
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026888;
-	bh=bFJagmgB1/xJcqa56LcP2MTOLD1S1TgZWXE4EXiROvA=;
+	s=default; t=1597026890;
+	bh=+6BW2uT4M1OLmLlkVcx/S+SeoZB8wfN6jZ3P5y+np+w=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=2BskTdA52qvD6RXw9vNV8JtFm39S5N7fbu8EHQWaRfLKcEO+2i8eCB0rqImSrTr/o
-	 qUrDxF9Qy/RpRrO+o71JRvvhwCRI7N67uqum6gFwhUdAbWwv3V1r6IJY/OXYmvbyau
-	 d8tFs4UEU4JQO67Ayj/M3Qx4SW9RgCfW1trVh+4A=
+	b=KlM0gfu0bt5QIZ53je+D3FWbaoXfjieJN8zQOhZwxiUwONT2CmbuuIOapOGu51A9f
+	 poaWt1rCAJlJFIKAxTq5h+LWyEt9uNN8PpKjuM/ww51oIO/1Z5XWQQXrnUcMwVSHfz
+	 huWztqbk1aqkg1inAhY4qviL2DqvaY13IsiirddM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726344AbgHJCes (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:34:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38176 "EHLO mail.kernel.org"
+        id S1726350AbgHJCet (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:34:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCes (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:34:48 -0400
+        id S1726219AbgHJCet (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:34:49 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9D3D52073E;
-        Mon, 10 Aug 2020 02:34:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8A1A12078D;
+        Mon, 10 Aug 2020 02:34:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026886;
-        bh=bFJagmgB1/xJcqa56LcP2MTOLD1S1TgZWXE4EXiROvA=;
+        s=default; t=1597026888;
+        bh=+6BW2uT4M1OLmLlkVcx/S+SeoZB8wfN6jZ3P5y+np+w=;
         h=Date:From:To:Subject:From;
-        b=R3v4w1cYzrVZhR/06bgmJc3w7zjwlWU6hxDttpZ4hnxYlpF6g4GacaBXK2dqFuupm
-         7iiXVueUFQGiOX+qEGmkM2LBtY1miEm+G8QW94h/i9bYtPZnueMTnquaTA1H/pzaln
-         fzPh8631q1/BFq5N2Gi1rtTKQyZ2sepCIELE4+2U=
-Date:   Sun, 09 Aug 2020 19:34:46 -0700
+        b=fTK+UygqPWNzycqizbHg9pYklvZ5SxI87GL/oUjP4ZPnFJMR+N5SLTC4/4n9uOcl5
+         HozwMri/e/yEnRZzDku1U/qkTBjRmsjDozBFKPPtt/aq2BKeAaoUzTCrPERikKg57s
+         oaRlIDcwEi/zKe23t/hgQLsiC/vfRGBzY7m23/mI=
+Date:   Sun, 09 Aug 2020 19:34:48 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, lonuxli.64@gmail.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, willy@infradead.org
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, yangx.jy@cn.fujitsu.com
 Subject:  [merged]
- mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
- removed from -mm tree
-Message-ID: <20200810023446.b6eGUKIu0%akpm@linux-foundation.org>
+ mm-slabc-update-outdated-kmem_list3-in-a-comment.patch removed from -mm
+ tree
+Message-ID: <20200810023448.bYxFamaZY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,127 +55,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab: check GFP_SLAB_BUG_MASK before alloc_pages in kmalloc_order
+     Subject: mm/slab.c: update outdated kmem_list3 in a comment
 has been removed from the -mm tree.  Its filename was
-     mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order.patch
+     mm-slabc-update-outdated-kmem_list3-in-a-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Long Li <lonuxli.64@gmail.com>
-Subject: mm, slab: check GFP_SLAB_BUG_MASK before alloc_pages in kmalloc_order
+From: Xiao Yang <yangx.jy@cn.fujitsu.com>
+Subject: mm/slab.c: update outdated kmem_list3 in a comment
 
-kmalloc cannot allocate memory from HIGHMEM.  Allocating large amounts of
-memory currently bypasses the check and will simply leak the memory when
-page_address() returns NULL.  To fix this, factor the GFP_SLAB_BUG_MASK
-check out of slab & slub, and call it from kmalloc_order() as well.  In
-order to make the code clear, the warning message is put in one place.
+kmem_list3 has been renamed to kmem_cache_node long long ago so update it.
 
-Link: http://lkml.kernel.org/r/20200704035027.GA62481@lilong
-Signed-off-by: Long Li <lonuxli.64@gmail.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+References:
+6744f087ba2a ("slab: Common name for the per node structures")
+ce8eb6c424c7 ("slab: Rename list3/l3 to node")
+
+Link: http://lkml.kernel.org/r/20200722033355.26908-1-yangx.jy@cn.fujitsu.com
+Signed-off-by: Xiao Yang <yangx.jy@cn.fujitsu.com>
 Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c        |   10 +++-------
- mm/slab.h        |    1 +
- mm/slab_common.c |   17 +++++++++++++++++
- mm/slub.c        |    9 ++-------
- 4 files changed, 23 insertions(+), 14 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slab.c~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
+--- a/mm/slab.c~mm-slabc-update-outdated-kmem_list3-in-a-comment
 +++ a/mm/slab.c
-@@ -2589,13 +2589,9 @@ static struct page *cache_grow_begin(str
- 	 * Be lazy and only check for valid flags here,  keeping it out of the
- 	 * critical path in kmem_cache_alloc().
- 	 */
--	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
--		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
--		flags &= ~GFP_SLAB_BUG_MASK;
--		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
--				invalid_mask, &invalid_mask, flags, &flags);
--		dump_stack();
--	}
-+	if (unlikely(flags & GFP_SLAB_BUG_MASK))
-+		flags = kmalloc_fix_flags(flags);
-+
- 	WARN_ON_ONCE(cachep->ctor && (flags & __GFP_ZERO));
- 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
- 
---- a/mm/slab_common.c~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
-+++ a/mm/slab_common.c
-@@ -26,6 +26,8 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/kmem.h>
- 
-+#include "internal.h"
-+
- #include "slab.h"
- 
- enum slab_state slab_state;
-@@ -1332,6 +1334,18 @@ void __init create_kmalloc_caches(slab_f
- }
- #endif /* !CONFIG_SLOB */
- 
-+gfp_t kmalloc_fix_flags(gfp_t flags)
-+{
-+	gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
-+
-+	flags &= ~GFP_SLAB_BUG_MASK;
-+	pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
-+			invalid_mask, &invalid_mask, flags, &flags);
-+	dump_stack();
-+
-+	return flags;
-+}
-+
- /*
-  * To avoid unnecessary overhead, we pass through large allocation requests
-  * directly to the page allocator. We use __GFP_COMP, because we will need to
-@@ -1342,6 +1356,9 @@ void *kmalloc_order(size_t size, gfp_t f
- 	void *ret = NULL;
- 	struct page *page;
- 
-+	if (unlikely(flags & GFP_SLAB_BUG_MASK))
-+		flags = kmalloc_fix_flags(flags);
-+
- 	flags |= __GFP_COMP;
- 	page = alloc_pages(flags, order);
- 	if (likely(page)) {
---- a/mm/slab.h~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
-+++ a/mm/slab.h
-@@ -152,6 +152,7 @@ void create_kmalloc_caches(slab_flags_t)
- struct kmem_cache *kmalloc_slab(size_t, gfp_t);
- #endif
- 
-+gfp_t kmalloc_fix_flags(gfp_t flags);
- 
- /* Functions provided by the slab allocators */
- int __kmem_cache_create(struct kmem_cache *, slab_flags_t flags);
---- a/mm/slub.c~mm-slab-check-gfp_slab_bug_mask-before-alloc_pages-in-kmalloc_order
-+++ a/mm/slub.c
-@@ -1745,13 +1745,8 @@ out:
- 
- static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
- {
--	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
--		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
--		flags &= ~GFP_SLAB_BUG_MASK;
--		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
--				invalid_mask, &invalid_mask, flags, &flags);
--		dump_stack();
--	}
-+	if (unlikely(flags & GFP_SLAB_BUG_MASK))
-+		flags = kmalloc_fix_flags(flags);
- 
- 	return allocate_slab(s,
- 		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
+@@ -1060,7 +1060,7 @@ int slab_prepare_cpu(unsigned int cpu)
+  * offline.
+  *
+  * Even if all the cpus of a node are down, we don't free the
+- * kmem_list3 of any cache. This to avoid a race between cpu_down, and
++ * kmem_cache_node of any cache. This to avoid a race between cpu_down, and
+  * a kmalloc allocation from another cpu for memory from the node of
+  * the cpu going down.  The list3 structure is usually allocated from
+  * kmem_cache_create() and gets destroyed at kmem_cache_destroy().
 _
 
-Patches currently in -mm which might be from lonuxli.64@gmail.com are
+Patches currently in -mm which might be from yangx.jy@cn.fujitsu.com are
 
 
