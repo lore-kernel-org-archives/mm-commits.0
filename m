@@ -7,51 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D1AAC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A49E0C433E1
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5FEF62065D
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 769A62073E
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026938;
-	bh=yPxWOxb9L6yRyTzlstM/xGVk2zd+FxpXZS9J+N+s0ac=;
+	s=default; t=1597026940;
+	bh=4Rnx/52CQ5ZO/bSKRAIRSrBrVfVQ1ZPXZAHTRq4e0HA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=mJPPKmH19Ksgk4H4bpxaQAvK9auNWQMxTR/uKXuPtvWDnz6sYU5dZwKWo1e7E38iY
-	 FBHV2F/4om9R9aTK/SMTDI4qM2E9y0ve403/PSpTa2UExIakJBQGcikrr2SMM4YXYK
-	 K/3xAATIUy7D7dvql1TnGrSUqUSzGi6ucsk37w8A=
+	b=RbH9r23rR68l/ozpqY8z1jy0/EGLbuyHjF8uM+FrXUb+3hgALGQmqsfHqYSwyw6fU
+	 mBv4NssW3Vvt5mRwBdvHJTzA79/wkyyVhVFHel3Z0sw3ULzaWqfNIMdXXBuTDauB01
+	 k/EtXdTwKqe+lAuinDXeTu1rsxMltOjHjsqGOWDY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726396AbgHJCfi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:35:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38840 "EHLO mail.kernel.org"
+        id S1726361AbgHJCfk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:35:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCfh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:35:37 -0400
+        id S1726219AbgHJCfj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:35:39 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id DF94420723;
-        Mon, 10 Aug 2020 02:35:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BEB312065D;
+        Mon, 10 Aug 2020 02:35:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026936;
-        bh=yPxWOxb9L6yRyTzlstM/xGVk2zd+FxpXZS9J+N+s0ac=;
+        s=default; t=1597026939;
+        bh=4Rnx/52CQ5ZO/bSKRAIRSrBrVfVQ1ZPXZAHTRq4e0HA=;
         h=Date:From:To:Subject:From;
-        b=GrMO5Gznc8u1uTOPa+nuyEFdARl9JkyrMtP8bXecAnkA8+DHeEbScI/F0kd2/EWL7
-         HRhaTTZ9KMIgwu5mLIu/w75UPxPvdl1qkYRHkkOF3Hh8puNPdHVZbZEHu6UJ8DdmEl
-         rl8lBrE7fNzLjEFmD4aa6Puoi2b7VorGHJCEnsNA=
-Date:   Sun, 09 Aug 2020 19:35:35 -0700
+        b=WHSnzYHAFWs3Luj03G+4ujGCePhBekMFZBbTbO7gKEuL4qbqMr4uZHndAchvsKwb0
+         3uvpaBxidBj0CxUGXD1h2oz9G7RqlITPb7JAeZpEqr0W51Dyjtxq9526EDMeD8W0aC
+         m5zKW7PxZIUk1RnlOOKHXNm/CIdnkMDIxeBEau6s=
+Date:   Sun, 09 Aug 2020 19:35:38 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, benh@kernel.crashing.org,
-        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
-        corbet@lwn.net, gor@linux.ibm.com, heiko.carstens@de.ibm.com,
-        hpa@zytor.com, kirill@shutemov.name, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, palmer@dabbelt.com,
-        paul.walmsley@sifive.com, paulus@samba.org, rppt@kernel.org,
-        rppt@linux.ibm.com, tglx@linutronix.de, vgupta@synopsys.com,
-        will@kernel.org, ziy@nvidia.com
-Subject:  [merged]
- documentation-mm-add-descriptions-for-arch-page-table-helpers.patch removed
- from -mm tree
-Message-ID: <20200810023535.F7I95mbFz%akpm@linux-foundation.org>
+To:     jhubbard@nvidia.com, kirill@shutemov.name,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com, vbabka@suse.cz,
+        william.kucharski@oracle.com, willy@infradead.org
+Subject:  [merged] mm-handle-page-mapping-better-in-dump_page.patch
+ removed from -mm tree
+Message-ID: <20200810023538.6iPMhongx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -61,332 +55,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/mm: add descriptions for arch page table helpers
+     Subject: mm/debug: handle page->mapping better in dump_page
 has been removed from the -mm tree.  Its filename was
-     documentation-mm-add-descriptions-for-arch-page-table-helpers.patch
+     mm-handle-page-mapping-better-in-dump_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Documentation/mm: add descriptions for arch page table helpers
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm/debug: handle page->mapping better in dump_page
 
-This adds a specific description file for all arch page table helpers which
-is in sync with the semantics being tested via CONFIG_DEBUG_VM_PGTABLE. All
-future changes either to these descriptions here or the debug test should
-always remain in sync.
+Patch series "Improvements for dump_page()", v2.
 
-[anshuman.khandual@arm.com: fold in Mike's patch for the rst document, fix typos in the rst document]
-  Link: http://lkml.kernel.org/r/1594610587-4172-5-git-send-email-anshuman.khandual@arm.com
-Link: http://lkml.kernel.org/r/1593996516-7186-5-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
+Here's a sample dump of a pagecache tail page with all of the patches
+applied:
+
+page:000000006d1c49ca refcount:6 mapcount:0 mapping:00000000136b8d90 index:0x109 pfn:0x6c645
+head:000000008bd38076 order:2 compound_mapcount:0 compound_pincount:0
+aops:xfs_address_space_operations ino:800042 dentry name:"fd"
+flags: 0x4000000000012014(uptodate|lru|private|head)
+raw: 4000000000000000 ffffd46ac1b19101 ffffffff00000202 dead000000000004
+raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+head: 4000000000012014 ffffd46ac1b1bbc8 ffffd46ac1b1bc08 ffff91976f659560
+head: 0000000000000108 ffff919773220680 00000006ffffffff 0000000000000000
+page dumped because: testing
+
+
+This patch (of 6):
+
+If we can't call page_mapping() to get the page mapping, handle the
+anon/ksm/movable bits correctly.
+
+[akpm@linux-foundation.org: augmented code comment from John]
+  Link: http://lkml.kernel.org/r/15cff11a-6762-8a6a-3f0e-dd227280cd6f@nvidia.com
+Link: http://lkml.kernel.org/r/20200709202117.7216-1-willy@infradead.org
+Link: http://lkml.kernel.org/r/20200709202117.7216-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/arch_pgtable_helpers.rst |  258 ++++++++++++++++++++
- mm/debug_vm_pgtable.c                     |    6 
- 2 files changed, 264 insertions(+)
+ mm/debug.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
---- /dev/null
-+++ a/Documentation/vm/arch_pgtable_helpers.rst
-@@ -0,0 +1,258 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+
-+.. _arch_page_table_helpers:
-+
-+===============================
-+Architecture Page Table Helpers
-+===============================
-+
-+Generic MM expects architectures (with MMU) to provide helpers to create, access
-+and modify page table entries at various level for different memory functions.
-+These page table helpers need to conform to a common semantics across platforms.
-+Following tables describe the expected semantics which can also be tested during
-+boot via CONFIG_DEBUG_VM_PGTABLE option. All future changes in here or the debug
-+test need to be in sync.
-+
-+======================
-+PTE Page Table Helpers
-+======================
-+
-++---------------------------+--------------------------------------------------+
-+| pte_same                  | Tests whether both PTE entries are the same      |
-++---------------------------+--------------------------------------------------+
-+| pte_bad                   | Tests a non-table mapped PTE                     |
-++---------------------------+--------------------------------------------------+
-+| pte_present               | Tests a valid mapped PTE                         |
-++---------------------------+--------------------------------------------------+
-+| pte_young                 | Tests a young PTE                                |
-++---------------------------+--------------------------------------------------+
-+| pte_dirty                 | Tests a dirty PTE                                |
-++---------------------------+--------------------------------------------------+
-+| pte_write                 | Tests a writable PTE                             |
-++---------------------------+--------------------------------------------------+
-+| pte_special               | Tests a special PTE                              |
-++---------------------------+--------------------------------------------------+
-+| pte_protnone              | Tests a PROT_NONE PTE                            |
-++---------------------------+--------------------------------------------------+
-+| pte_devmap                | Tests a ZONE_DEVICE mapped PTE                   |
-++---------------------------+--------------------------------------------------+
-+| pte_soft_dirty            | Tests a soft dirty PTE                           |
-++---------------------------+--------------------------------------------------+
-+| pte_swp_soft_dirty        | Tests a soft dirty swapped PTE                   |
-++---------------------------+--------------------------------------------------+
-+| pte_mkyoung               | Creates a young PTE                              |
-++---------------------------+--------------------------------------------------+
-+| pte_mkold                 | Creates an old PTE                               |
-++---------------------------+--------------------------------------------------+
-+| pte_mkdirty               | Creates a dirty PTE                              |
-++---------------------------+--------------------------------------------------+
-+| pte_mkclean               | Creates a clean PTE                              |
-++---------------------------+--------------------------------------------------+
-+| pte_mkwrite               | Creates a writable PTE                           |
-++---------------------------+--------------------------------------------------+
-+| pte_mkwrprotect           | Creates a write protected PTE                    |
-++---------------------------+--------------------------------------------------+
-+| pte_mkspecial             | Creates a special PTE                            |
-++---------------------------+--------------------------------------------------+
-+| pte_mkdevmap              | Creates a ZONE_DEVICE mapped PTE                 |
-++---------------------------+--------------------------------------------------+
-+| pte_mksoft_dirty          | Creates a soft dirty PTE                         |
-++---------------------------+--------------------------------------------------+
-+| pte_clear_soft_dirty      | Clears a soft dirty PTE                          |
-++---------------------------+--------------------------------------------------+
-+| pte_swp_mksoft_dirty      | Creates a soft dirty swapped PTE                 |
-++---------------------------+--------------------------------------------------+
-+| pte_swp_clear_soft_dirty  | Clears a soft dirty swapped PTE                  |
-++---------------------------+--------------------------------------------------+
-+| pte_mknotpresent          | Invalidates a mapped PTE                         |
-++---------------------------+--------------------------------------------------+
-+| ptep_get_and_clear        | Clears a PTE                                     |
-++---------------------------+--------------------------------------------------+
-+| ptep_get_and_clear_full   | Clears a PTE                                     |
-++---------------------------+--------------------------------------------------+
-+| ptep_test_and_clear_young | Clears young from a PTE                          |
-++---------------------------+--------------------------------------------------+
-+| ptep_set_wrprotect        | Converts into a write protected PTE              |
-++---------------------------+--------------------------------------------------+
-+| ptep_set_access_flags     | Converts into a more permissive PTE              |
-++---------------------------+--------------------------------------------------+
-+
-+======================
-+PMD Page Table Helpers
-+======================
-+
-++---------------------------+--------------------------------------------------+
-+| pmd_same                  | Tests whether both PMD entries are the same      |
-++---------------------------+--------------------------------------------------+
-+| pmd_bad                   | Tests a non-table mapped PMD                     |
-++---------------------------+--------------------------------------------------+
-+| pmd_leaf                  | Tests a leaf mapped PMD                          |
-++---------------------------+--------------------------------------------------+
-+| pmd_huge                  | Tests a HugeTLB mapped PMD                       |
-++---------------------------+--------------------------------------------------+
-+| pmd_trans_huge            | Tests a Transparent Huge Page (THP) at PMD       |
-++---------------------------+--------------------------------------------------+
-+| pmd_present               | Tests a valid mapped PMD                         |
-++---------------------------+--------------------------------------------------+
-+| pmd_young                 | Tests a young PMD                                |
-++---------------------------+--------------------------------------------------+
-+| pmd_dirty                 | Tests a dirty PMD                                |
-++---------------------------+--------------------------------------------------+
-+| pmd_write                 | Tests a writable PMD                             |
-++---------------------------+--------------------------------------------------+
-+| pmd_special               | Tests a special PMD                              |
-++---------------------------+--------------------------------------------------+
-+| pmd_protnone              | Tests a PROT_NONE PMD                            |
-++---------------------------+--------------------------------------------------+
-+| pmd_devmap                | Tests a ZONE_DEVICE mapped PMD                   |
-++---------------------------+--------------------------------------------------+
-+| pmd_soft_dirty            | Tests a soft dirty PMD                           |
-++---------------------------+--------------------------------------------------+
-+| pmd_swp_soft_dirty        | Tests a soft dirty swapped PMD                   |
-++---------------------------+--------------------------------------------------+
-+| pmd_mkyoung               | Creates a young PMD                              |
-++---------------------------+--------------------------------------------------+
-+| pmd_mkold                 | Creates an old PMD                               |
-++---------------------------+--------------------------------------------------+
-+| pmd_mkdirty               | Creates a dirty PMD                              |
-++---------------------------+--------------------------------------------------+
-+| pmd_mkclean               | Creates a clean PMD                              |
-++---------------------------+--------------------------------------------------+
-+| pmd_mkwrite               | Creates a writable PMD                           |
-++---------------------------+--------------------------------------------------+
-+| pmd_mkwrprotect           | Creates a write protected PMD                    |
-++---------------------------+--------------------------------------------------+
-+| pmd_mkspecial             | Creates a special PMD                            |
-++---------------------------+--------------------------------------------------+
-+| pmd_mkdevmap              | Creates a ZONE_DEVICE mapped PMD                 |
-++---------------------------+--------------------------------------------------+
-+| pmd_mksoft_dirty          | Creates a soft dirty PMD                         |
-++---------------------------+--------------------------------------------------+
-+| pmd_clear_soft_dirty      | Clears a soft dirty PMD                          |
-++---------------------------+--------------------------------------------------+
-+| pmd_swp_mksoft_dirty      | Creates a soft dirty swapped PMD                 |
-++---------------------------+--------------------------------------------------+
-+| pmd_swp_clear_soft_dirty  | Clears a soft dirty swapped PMD                  |
-++---------------------------+--------------------------------------------------+
-+| pmd_mkinvalid             | Invalidates a mapped PMD [1]                     |
-++---------------------------+--------------------------------------------------+
-+| pmd_set_huge              | Creates a PMD huge mapping                       |
-++---------------------------+--------------------------------------------------+
-+| pmd_clear_huge            | Clears a PMD huge mapping                        |
-++---------------------------+--------------------------------------------------+
-+| pmdp_get_and_clear        | Clears a PMD                                     |
-++---------------------------+--------------------------------------------------+
-+| pmdp_get_and_clear_full   | Clears a PMD                                     |
-++---------------------------+--------------------------------------------------+
-+| pmdp_test_and_clear_young | Clears young from a PMD                          |
-++---------------------------+--------------------------------------------------+
-+| pmdp_set_wrprotect        | Converts into a write protected PMD              |
-++---------------------------+--------------------------------------------------+
-+| pmdp_set_access_flags     | Converts into a more permissive PMD              |
-++---------------------------+--------------------------------------------------+
-+
-+======================
-+PUD Page Table Helpers
-+======================
-+
-++---------------------------+--------------------------------------------------+
-+| pud_same                  | Tests whether both PUD entries are the same      |
-++---------------------------+--------------------------------------------------+
-+| pud_bad                   | Tests a non-table mapped PUD                     |
-++---------------------------+--------------------------------------------------+
-+| pud_leaf                  | Tests a leaf mapped PUD                          |
-++---------------------------+--------------------------------------------------+
-+| pud_huge                  | Tests a HugeTLB mapped PUD                       |
-++---------------------------+--------------------------------------------------+
-+| pud_trans_huge            | Tests a Transparent Huge Page (THP) at PUD       |
-++---------------------------+--------------------------------------------------+
-+| pud_present               | Tests a valid mapped PUD                         |
-++---------------------------+--------------------------------------------------+
-+| pud_young                 | Tests a young PUD                                |
-++---------------------------+--------------------------------------------------+
-+| pud_dirty                 | Tests a dirty PUD                                |
-++---------------------------+--------------------------------------------------+
-+| pud_write                 | Tests a writable PUD                             |
-++---------------------------+--------------------------------------------------+
-+| pud_devmap                | Tests a ZONE_DEVICE mapped PUD                   |
-++---------------------------+--------------------------------------------------+
-+| pud_mkyoung               | Creates a young PUD                              |
-++---------------------------+--------------------------------------------------+
-+| pud_mkold                 | Creates an old PUD                               |
-++---------------------------+--------------------------------------------------+
-+| pud_mkdirty               | Creates a dirty PUD                              |
-++---------------------------+--------------------------------------------------+
-+| pud_mkclean               | Creates a clean PUD                              |
-++---------------------------+--------------------------------------------------+
-+| pud_mkwrite               | Creates a writable PUD                           |
-++---------------------------+--------------------------------------------------+
-+| pud_mkwrprotect           | Creates a write protected PUD                    |
-++---------------------------+--------------------------------------------------+
-+| pud_mkdevmap              | Creates a ZONE_DEVICE mapped PUD                 |
-++---------------------------+--------------------------------------------------+
-+| pud_mkinvalid             | Invalidates a mapped PUD [1]                     |
-++---------------------------+--------------------------------------------------+
-+| pud_set_huge              | Creates a PUD huge mapping                       |
-++---------------------------+--------------------------------------------------+
-+| pud_clear_huge            | Clears a PUD huge mapping                        |
-++---------------------------+--------------------------------------------------+
-+| pudp_get_and_clear        | Clears a PUD                                     |
-++---------------------------+--------------------------------------------------+
-+| pudp_get_and_clear_full   | Clears a PUD                                     |
-++---------------------------+--------------------------------------------------+
-+| pudp_test_and_clear_young | Clears young from a PUD                          |
-++---------------------------+--------------------------------------------------+
-+| pudp_set_wrprotect        | Converts into a write protected PUD              |
-++---------------------------+--------------------------------------------------+
-+| pudp_set_access_flags     | Converts into a more permissive PUD              |
-++---------------------------+--------------------------------------------------+
-+
-+==========================
-+HugeTLB Page Table Helpers
-+==========================
-+
-++---------------------------+--------------------------------------------------+
-+| pte_huge                  | Tests a HugeTLB                                  |
-++---------------------------+--------------------------------------------------+
-+| pte_mkhuge                | Creates a HugeTLB                                |
-++---------------------------+--------------------------------------------------+
-+| huge_pte_dirty            | Tests a dirty HugeTLB                            |
-++---------------------------+--------------------------------------------------+
-+| huge_pte_write            | Tests a writable HugeTLB                         |
-++---------------------------+--------------------------------------------------+
-+| huge_pte_mkdirty          | Creates a dirty HugeTLB                          |
-++---------------------------+--------------------------------------------------+
-+| huge_pte_mkwrite          | Creates a writable HugeTLB                       |
-++---------------------------+--------------------------------------------------+
-+| huge_pte_mkwrprotect      | Creates a write protected HugeTLB                |
-++---------------------------+--------------------------------------------------+
-+| huge_ptep_get_and_clear   | Clears a HugeTLB                                 |
-++---------------------------+--------------------------------------------------+
-+| huge_ptep_set_wrprotect   | Converts into a write protected HugeTLB          |
-++---------------------------+--------------------------------------------------+
-+| huge_ptep_set_access_flags  | Converts into a more permissive HugeTLB        |
-++---------------------------+--------------------------------------------------+
-+
-+========================
-+SWAP Page Table Helpers
-+========================
-+
-++---------------------------+--------------------------------------------------+
-+| __pte_to_swp_entry        | Creates a swapped entry (arch) from a mapped PTE |
-++---------------------------+--------------------------------------------------+
-+| __swp_to_pte_entry        | Creates a mapped PTE from a swapped entry (arch) |
-++---------------------------+--------------------------------------------------+
-+| __pmd_to_swp_entry        | Creates a swapped entry (arch) from a mapped PMD |
-++---------------------------+--------------------------------------------------+
-+| __swp_to_pmd_entry        | Creates a mapped PMD from a swapped entry (arch) |
-++---------------------------+--------------------------------------------------+
-+| is_migration_entry        | Tests a migration (read or write) swapped entry  |
-++---------------------------+--------------------------------------------------+
-+| is_write_migration_entry  | Tests a write migration swapped entry            |
-++---------------------------+--------------------------------------------------+
-+| make_migration_entry_read | Converts into read migration swapped entry       |
-++---------------------------+--------------------------------------------------+
-+| make_migration_entry      | Creates a migration swapped entry (read or write)|
-++---------------------------+--------------------------------------------------+
-+
-+[1] https://lore.kernel.org/linux-mm/20181017020930.GN30832@redhat.com/
---- a/mm/debug_vm_pgtable.c~documentation-mm-add-descriptions-for-arch-page-table-helpers
-+++ a/mm/debug_vm_pgtable.c
-@@ -31,6 +31,12 @@
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
+--- a/mm/debug.c~mm-handle-page-mapping-better-in-dump_page
++++ a/mm/debug.c
+@@ -69,8 +69,19 @@ void __dump_page(struct page *page, cons
+ 	}
  
-+/*
-+ * Please refer Documentation/vm/arch_pgtable_helpers.rst for the semantics
-+ * expectations that are being validated here. All future changes in here
-+ * or the documentation need to be in sync.
-+ */
+ 	if (page < head || (page >= head + MAX_ORDER_NR_PAGES)) {
+-		/* Corrupt page, cannot call page_mapping */
+-		mapping = page->mapping;
++		/*
++		 * Corrupt page, so we cannot call page_mapping. Instead, do a
++		 * safe subset of the steps that page_mapping() does. Caution:
++		 * this will be misleading for tail pages, PageSwapCache pages,
++		 * and potentially other situations. (See the page_mapping()
++		 * implementation for what's missing here.)
++		 */
++		unsigned long tmp = (unsigned long)page->mapping;
 +
- #define VMFLAGS	(VM_READ|VM_WRITE|VM_EXEC)
- 
- /*
++		if (tmp & PAGE_MAPPING_ANON)
++			mapping = NULL;
++		else
++			mapping = (void *)(tmp & ~PAGE_MAPPING_FLAGS);
+ 		head = page;
+ 		compound = false;
+ 	} else {
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-vmstat-add-events-for-thp-migration-without-split.patch
+mm-store-compound_nr-as-well-as-compound_order.patch
+mm-move-page-flags-include-to-top-of-file.patch
+mm-add-thp_order.patch
+mm-add-thp_size.patch
+mm-replace-hpage_nr_pages-with-thp_nr_pages.patch
+mm-add-thp_head.patch
+mm-introduce-offset_in_thp.patch
+poison-remove-obsolete-comment.patch
 
