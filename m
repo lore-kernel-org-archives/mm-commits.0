@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C5CEC433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB7F4C433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CB0620723
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CC3220723
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026853;
-	bh=k6rYg6uAatvB+Xynt2dtrGFAhNlTLSKNz9jXfTT7l5o=;
+	s=default; t=1597026855;
+	bh=2Hp5as77g0t7khjJkf36v58zY2NBgkXJ2e/NrK/7Rwg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=h1no5+aRh2GErz75pMwi8w8YUwqsXX5HMEEhZM2eMmHSyUUPGnvhJ9h5toMpcgEWn
-	 /5Ad5HYD6GuwxKeScxcw3Iy4lNT5s45FCPjVOsmxfsm7JVYhu2SQQvpKNu322DeKnI
-	 ZwY/0rZjE9abJPTWbPg2jVK/GlTd3gKAu7rG+jIQ=
+	b=IF1QP281sor3/k85cx2t31QvSAfNotoC0rEdRKu3kmrGjE1IhmLQTwB/4TzAEcrq9
+	 qXin/wDqfx5OAuKWvxdCR6lGStuDA0b7qqMU+4d6XiEwB3J/Aj2X3E4zfRf114Fjap
+	 5zAK2+g+ZbdNxIH6vvlN/9TS/954ho7PmhbtOvuI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726439AbgHJCeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:34:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37698 "EHLO mail.kernel.org"
+        id S1726446AbgHJCeP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:34:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37728 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCeN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:34:13 -0400
+        id S1726219AbgHJCeP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:34:15 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 73A68206CD;
-        Mon, 10 Aug 2020 02:34:12 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 65631206C3;
+        Mon, 10 Aug 2020 02:34:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026852;
-        bh=k6rYg6uAatvB+Xynt2dtrGFAhNlTLSKNz9jXfTT7l5o=;
+        s=default; t=1597026854;
+        bh=2Hp5as77g0t7khjJkf36v58zY2NBgkXJ2e/NrK/7Rwg=;
         h=Date:From:To:Subject:From;
-        b=w/MMYqf8OAvSbidQWKWY2voslmzZj/DBGelqJm8y0hgMjUBftQjQsIMKMkIVVz71W
-         wuJ+KrtOVxkGiuCnxN3ETY8chW2RB+UBVgr9xVBxdc5rCrRioPP3fQQ0z2bNfD+Gjz
-         mGZomot03RR/rkaMDzOPYfJ5eWGXzom137Oi7Jn8=
-Date:   Sun, 09 Aug 2020 19:34:12 -0700
+        b=F+lc9518A2UCPU1/9tPOaqMDuKybvTbxkZPX84j9OBEsXeGta/PpbP9HRdCG899Zx
+         qQ620sy3chYpTP96jTdfv7qMpceOnZIKBsYFG9WVc+BM+KpPcJdzvgj423wI98v88L
+         gIo6QaQeWp/am6ArnSk3mKhJRaa/sDKjPVTLkTAA=
+Date:   Sun, 09 Aug 2020 19:34:14 -0700
 From:   akpm@linux-foundation.org
-To:     khlebnikov@yandex-team.ru, mm-commits@vger.kernel.org,
-        sashal@kernel.org
-Subject:  [merged]
- scripts-decode_stacktrace-guess-path-to-vmlinux-by-release-name.patch
+To:     bleung@chromium.org, broonie@kernel.org,
+        enric.balletbo@collabora.com, groeck@chromium.org, joe@perches.com,
+        lgirdwood@gmail.com, mm-commits@vger.kernel.org,
+        pihsun@chromium.org, rikard.falkeborn@gmail.com
+Subject:  [merged] const_structscheckpatch-add-regulator_ops.patch
  removed from -mm tree
-Message-ID: <20200810023412.ivqYLYtB4%akpm@linux-foundation.org>
+Message-ID: <20200810023414.VXPqgAMaO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,78 +56,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/decode_stacktrace.sh: guess path to vmlinux by release name
+     Subject: const_structs.checkpatch: add regulator_ops
 has been removed from the -mm tree.  Its filename was
-     scripts-decode_stacktrace-guess-path-to-vmlinux-by-release-name.patch
+     const_structscheckpatch-add-regulator_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: scripts/decode_stacktrace.sh: guess path to vmlinux by release name
+From: Joe Perches <joe@perches.com>
+Subject: const_structs.checkpatch: add regulator_ops
 
-Add option decode_stacktrace -r <release> to specify only release name. 
-This is enough to guess standard paths to vmlinux and modules:
+Add regulator_ops to expected to be const list.
 
-$ echo -e 'schedule+0x0/0x0
-tap_open+0x0/0x0 [tap]' |
-	./scripts/decode_stacktrace.sh -r 5.4.0-37-generic
-schedule (kernel/sched/core.c:4138)
-tap_open (drivers/net/tap.c:502) tap
-
-Link: http://lkml.kernel.org/r/159282923334.248444.2399153100007347838.stgit@buzz
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Sasha Levin <sashal@kernel.org>
+Link: http://lkml.kernel.org/r/dab1ba1aa03a8236933cfb7a28937efb0b808f13.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Pi-Hsun Shih <pihsun@chromium.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Benson Leung <bleung@chromium.org>
+Cc: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Cc: Guenter Roeck <groeck@chromium.org>
+Cc: Rikard Falkeborn <rikard.falkeborn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |   29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ scripts/const_structs.checkpatch |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktrace-guess-path-to-vmlinux-by-release-name
-+++ a/scripts/decode_stacktrace.sh
-@@ -5,14 +5,33 @@
- 
- if [[ $# < 1 ]]; then
- 	echo "Usage:"
--	echo "	$0 <vmlinux> [base path] [modules path]"
-+	echo "	$0 -r <release> | <vmlinux> [base path] [modules path]"
- 	exit 1
- fi
- 
--vmlinux=$1
--basepath=${2-auto}
--modpath=$3
--release=""
-+if [[ $1 == "-r" ]] ; then
-+	vmlinux=""
-+	basepath="auto"
-+	modpath=""
-+	release=$2
-+
-+	for fn in {,/usr/lib/debug}/boot/vmlinux-$release{,.debug} /lib/modules/$release{,/build}/vmlinux ; do
-+		if [ -e "$fn" ] ; then
-+			vmlinux=$fn
-+			break
-+		fi
-+	done
-+
-+	if [[ $vmlinux == "" ]] ; then
-+		echo "ERROR! vmlinux image for release $release is not found" >&2
-+		exit 2
-+	fi
-+else
-+	vmlinux=$1
-+	basepath=${2-auto}
-+	modpath=$3
-+	release=""
-+fi
- 
- declare -A cache
- declare -A modcache
+--- a/scripts/const_structs.checkpatch~const_structscheckpatch-add-regulator_ops
++++ a/scripts/const_structs.checkpatch
+@@ -44,6 +44,7 @@ platform_hibernation_ops
+ platform_suspend_ops
+ proto_ops
+ regmap_access_table
++regulator_ops
+ rpc_pipe_ops
+ rtc_class_ops
+ sd_desc
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from joe@perches.com are
 
-kernel-watchdog-flush-all-printk-nmi-buffers-when-hardlockup-detected.patch
+checkpatch-test-git_dir-changes.patch
+checkpatch-add-test-for-possible-misuse-of-is_enabled-without-config_.patch
+checkpatch-add-fix-option-for-assign_in_if.patch
+checkpatch-add-test-for-repeated-words.patch
+checkpatch-remove-missing-switch-case-break-test.patch
+nilfs2-convert-__nilfs_msg-to-integrate-the-level-and-format.patch
+nilfs2-use-a-more-common-logging-style.patch
 
