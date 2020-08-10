@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 377AAC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57BACC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E74B206C3
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 333B92065D
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:39:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027163;
-	bh=U2mHAUQ+YvrdzGwMkVyIG8lDawS7v1y/MknhzBeMGgM=;
+	s=default; t=1597027165;
+	bh=B/2R+wf0ehrAGThtpkZCtkDpLLRZXvJzPRLKIkm9ESg=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=M3+DgkvPBIxbPfXRfPFr4OSxbCTtvO/yMBGwV4lHM49EVCG8hdZQAlt2G0jjL1M24
-	 2Ej9zeF02sbQ1gWE3B/cQC1p0W/h1sJQ6E5Cw2FYMF2LwvsdWZRNM0/4Dz/7jyK3no
-	 V/O+s1jBTYgvI2FkXJU7Y0vjOEZ2D5miVkiZbH5c=
+	b=rAiwwvrqRzzkdD6G/Q7XGMnT/mJy57rUKott8Fsmmk8ASGne0qXm7U0aOC+srKiC/
+	 YHT8ksz5k3SmiNIvMzV61NgYZlAs8Cw+x4mxqzZcge6xE6t3R/q89y/JlBGC09nsUN
+	 URooY+YykC15/Dm6kK/ch8dq2mScQ6VKFtaI5no0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726361AbgHJCjW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:39:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42566 "EHLO mail.kernel.org"
+        id S1726396AbgHJCjY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:39:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCjW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:39:22 -0400
+        id S1726219AbgHJCjY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:39:24 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 691292065D;
-        Mon, 10 Aug 2020 02:39:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 98C98206C3;
+        Mon, 10 Aug 2020 02:39:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027161;
-        bh=U2mHAUQ+YvrdzGwMkVyIG8lDawS7v1y/MknhzBeMGgM=;
+        s=default; t=1597027163;
+        bh=B/2R+wf0ehrAGThtpkZCtkDpLLRZXvJzPRLKIkm9ESg=;
         h=Date:From:To:Subject:From;
-        b=F0fkBhPhBNvDOzbPRwm4Wstw1VKUPLwKmqr9D72YaFn92c0aIcZAzpJrgLs2n80LA
-         eBH3W61t82RkVaeuAK/Xm1ROJkjkyNq5Wh6IeEcUn1Ju6ImZ8K0iqTSotuVe9m0FXK
-         U1hnGWCZZAJT27hwXT0WQMFuD5sAXpEveM5JU7fI=
-Date:   Sun, 09 Aug 2020 19:39:21 -0700
+        b=sRT11Yr1UjmaS5bDo4nZv1m0bLofE0ezke1KPzz8NIze7MNtrDySeWvpDiv3U9UmE
+         G6qalTZ5fHCB4hOtWwayU4m9486+xwzqEgADs6xOG8mNdloyHoPR8KEebc2JA/2Er/
+         00Kc4VoUYLvOWpRvTKK0gBeTdiLavyxxMt+tSnkk=
+Date:   Sun, 09 Aug 2020 19:39:23 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com,
-        glider@google.com, mark.rutland@arm.com,
-        mm-commits@vger.kernel.org, vincenzo.frascino@arm.com
+        glider@google.com, matthias.bgg@gmail.com,
+        mm-commits@vger.kernel.org, walter-zh.wu@mediatek.com
 Subject:  [merged]
- kasan-remove-kasan_unpoison_stack_above_sp_to.patch removed from -mm tree
-Message-ID: <20200810023921.oGl38zGtM%akpm@linux-foundation.org>
+ kasan-fix-kasan-unit-tests-for-tag-based-kasan.patch removed from -mm tree
+Message-ID: <20200810023923.VeCcdO_jA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,90 +55,190 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: remove kasan_unpoison_stack_above_sp_to()
+     Subject: lib/test_kasan.c: fix KASAN unit tests for tag-based KASAN
 has been removed from the -mm tree.  Its filename was
-     kasan-remove-kasan_unpoison_stack_above_sp_to.patch
+     kasan-fix-kasan-unit-tests-for-tag-based-kasan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Subject: kasan: remove kasan_unpoison_stack_above_sp_to()
+From: Walter Wu <walter-zh.wu@mediatek.com>
+Subject: lib/test_kasan.c: fix KASAN unit tests for tag-based KASAN
 
-kasan_unpoison_stack_above_sp_to() is defined in kasan code but never
-used.  The function was introduced as part of the commit:
+We use tag-based KASAN, then KASAN unit tests don't detect out-of-bounds
+memory access. They need to be fixed.
 
-   commit 9f7d416c36124667 ("kprobes: Unpoison stack in jprobe_return() for KASAN")
+With tag-based KASAN, the state of each 16 aligned bytes of memory is
+encoded in one shadow byte and the shadow value is tag of pointer, so
+we need to read next shadow byte, the shadow value is not equal to tag
+value of pointer, so that tag-based KASAN will detect out-of-bounds
+memory access.
 
-... where it was necessary because x86's jprobe_return() would leave
-stale shadow on the stack, and was an oddity in that regard.
-
-Since then, jprobes were removed entirely, and as of commit:
-
-  commit 80006dbee674f9fa ("kprobes/x86: Remove jprobe implementation")
-
-... there have been no callers of this function.
-
-Remove the declaration and the implementation.
-
-Link: http://lkml.kernel.org/r/20200706143505.23299-1-vincenzo.frascino@arm.com
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Reviewed-by: Mark Rutland <mark.rutland@arm.com>
+[walter-zh.wu@mediatek.com: use KASAN_SHADOW_SCALE_SIZE instead of 13]
+  Link: http://lkml.kernel.org/r/20200708132524.11688-1-walter-zh.wu@mediatek.com
+Link: http://lkml.kernel.org/r/20200706115039.16750-1-walter-zh.wu@mediatek.com
+Signed-off-by: Walter Wu <walter-zh.wu@mediatek.com>
+Suggested-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Dmitry Vyukov <dvyukov@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    2 --
- mm/kasan/common.c     |   15 ---------------
- 2 files changed, 17 deletions(-)
+ lib/test_kasan.c |   49 +++++++++++++++++++++++++++++----------------
+ 1 file changed, 32 insertions(+), 17 deletions(-)
 
---- a/include/linux/kasan.h~kasan-remove-kasan_unpoison_stack_above_sp_to
-+++ a/include/linux/kasan.h
-@@ -38,7 +38,6 @@ extern void kasan_disable_current(void);
- void kasan_unpoison_shadow(const void *address, size_t size);
+--- a/lib/test_kasan.c~kasan-fix-kasan-unit-tests-for-tag-based-kasan
++++ a/lib/test_kasan.c
+@@ -23,6 +23,10 @@
  
- void kasan_unpoison_task_stack(struct task_struct *task);
--void kasan_unpoison_stack_above_sp_to(const void *watermark);
+ #include <asm/page.h>
  
- void kasan_alloc_pages(struct page *page, unsigned int order);
- void kasan_free_pages(struct page *page, unsigned int order);
-@@ -101,7 +100,6 @@ void kasan_restore_multi_shot(bool enabl
- static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
++#include "../mm/kasan/kasan.h"
++
++#define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_SHADOW_SCALE_SIZE)
++
+ /*
+  * We assign some test results to these globals to make sure the tests
+  * are not eliminated as dead code.
+@@ -48,7 +52,8 @@ static noinline void __init kmalloc_oob_
+ 		return;
+ 	}
  
- static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
--static inline void kasan_unpoison_stack_above_sp_to(const void *watermark) {}
- 
- static inline void kasan_enable_current(void) {}
- static inline void kasan_disable_current(void) {}
---- a/mm/kasan/common.c~kasan-remove-kasan_unpoison_stack_above_sp_to
-+++ a/mm/kasan/common.c
-@@ -180,21 +180,6 @@ asmlinkage void kasan_unpoison_task_stac
- 	kasan_unpoison_shadow(base, watermark - base);
+-	ptr[size] = 'x';
++	ptr[size + OOB_TAG_OFF] = 'x';
++
+ 	kfree(ptr);
  }
  
--/*
-- * Clear all poison for the region between the current SP and a provided
-- * watermark value, as is sometimes required prior to hand-crafted asm function
-- * returns in the middle of functions.
-- */
--void kasan_unpoison_stack_above_sp_to(const void *watermark)
--{
--	const void *sp = __builtin_frame_address(0);
--	size_t size = watermark - sp;
--
--	if (WARN_ON(sp > watermark))
--		return;
--	kasan_unpoison_shadow(sp, size);
--}
--
- void kasan_alloc_pages(struct page *page, unsigned int order)
- {
- 	u8 tag;
+@@ -100,7 +105,8 @@ static noinline void __init kmalloc_page
+ 		return;
+ 	}
+ 
+-	ptr[size] = 0;
++	ptr[size + OOB_TAG_OFF] = 0;
++
+ 	kfree(ptr);
+ }
+ 
+@@ -170,7 +176,8 @@ static noinline void __init kmalloc_oob_
+ 		return;
+ 	}
+ 
+-	ptr2[size2] = 'x';
++	ptr2[size2 + OOB_TAG_OFF] = 'x';
++
+ 	kfree(ptr2);
+ }
+ 
+@@ -188,7 +195,9 @@ static noinline void __init kmalloc_oob_
+ 		kfree(ptr1);
+ 		return;
+ 	}
+-	ptr2[size2] = 'x';
++
++	ptr2[size2 + OOB_TAG_OFF] = 'x';
++
+ 	kfree(ptr2);
+ }
+ 
+@@ -224,7 +233,8 @@ static noinline void __init kmalloc_oob_
+ 		return;
+ 	}
+ 
+-	memset(ptr+7, 0, 2);
++	memset(ptr + 7 + OOB_TAG_OFF, 0, 2);
++
+ 	kfree(ptr);
+ }
+ 
+@@ -240,7 +250,8 @@ static noinline void __init kmalloc_oob_
+ 		return;
+ 	}
+ 
+-	memset(ptr+5, 0, 4);
++	memset(ptr + 5 + OOB_TAG_OFF, 0, 4);
++
+ 	kfree(ptr);
+ }
+ 
+@@ -257,7 +268,8 @@ static noinline void __init kmalloc_oob_
+ 		return;
+ 	}
+ 
+-	memset(ptr+1, 0, 8);
++	memset(ptr + 1 + OOB_TAG_OFF, 0, 8);
++
+ 	kfree(ptr);
+ }
+ 
+@@ -273,7 +285,8 @@ static noinline void __init kmalloc_oob_
+ 		return;
+ 	}
+ 
+-	memset(ptr+1, 0, 16);
++	memset(ptr + 1 + OOB_TAG_OFF, 0, 16);
++
+ 	kfree(ptr);
+ }
+ 
+@@ -289,7 +302,8 @@ static noinline void __init kmalloc_oob_
+ 		return;
+ 	}
+ 
+-	memset(ptr, 0, size+5);
++	memset(ptr, 0, size + 5 + OOB_TAG_OFF);
++
+ 	kfree(ptr);
+ }
+ 
+@@ -423,7 +437,8 @@ static noinline void __init kmem_cache_o
+ 		return;
+ 	}
+ 
+-	*p = p[size];
++	*p = p[size + OOB_TAG_OFF];
++
+ 	kmem_cache_free(cache, p);
+ 	kmem_cache_destroy(cache);
+ }
+@@ -520,25 +535,25 @@ static noinline void __init copy_user_te
+ 	}
+ 
+ 	pr_info("out-of-bounds in copy_from_user()\n");
+-	unused = copy_from_user(kmem, usermem, size + 1);
++	unused = copy_from_user(kmem, usermem, size + 1 + OOB_TAG_OFF);
+ 
+ 	pr_info("out-of-bounds in copy_to_user()\n");
+-	unused = copy_to_user(usermem, kmem, size + 1);
++	unused = copy_to_user(usermem, kmem, size + 1 + OOB_TAG_OFF);
+ 
+ 	pr_info("out-of-bounds in __copy_from_user()\n");
+-	unused = __copy_from_user(kmem, usermem, size + 1);
++	unused = __copy_from_user(kmem, usermem, size + 1 + OOB_TAG_OFF);
+ 
+ 	pr_info("out-of-bounds in __copy_to_user()\n");
+-	unused = __copy_to_user(usermem, kmem, size + 1);
++	unused = __copy_to_user(usermem, kmem, size + 1 + OOB_TAG_OFF);
+ 
+ 	pr_info("out-of-bounds in __copy_from_user_inatomic()\n");
+-	unused = __copy_from_user_inatomic(kmem, usermem, size + 1);
++	unused = __copy_from_user_inatomic(kmem, usermem, size + 1 + OOB_TAG_OFF);
+ 
+ 	pr_info("out-of-bounds in __copy_to_user_inatomic()\n");
+-	unused = __copy_to_user_inatomic(usermem, kmem, size + 1);
++	unused = __copy_to_user_inatomic(usermem, kmem, size + 1 + OOB_TAG_OFF);
+ 
+ 	pr_info("out-of-bounds in strncpy_from_user()\n");
+-	unused = strncpy_from_user(kmem, usermem, size + 1);
++	unused = strncpy_from_user(kmem, usermem, size + 1 + OOB_TAG_OFF);
+ 
+ 	vm_munmap((unsigned long)usermem, PAGE_SIZE);
+ 	kfree(kmem);
 _
 
-Patches currently in -mm which might be from vincenzo.frascino@arm.com are
+Patches currently in -mm which might be from walter-zh.wu@mediatek.com are
 
 
