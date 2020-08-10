@@ -2,50 +2,50 @@ Return-Path: <SRS0=A/n1=BU=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 165AAC433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F4DCC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CCBD52065D
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D0D2206C3
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027049;
-	bh=CATPg4knbaqTUnNJtuNnE6kKXOQ/r+Z1swl1AeFS4xY=;
+	s=default; t=1597027053;
+	bh=ciXd0Hydi3B7YhpjLv9dDy1+D+C3qB0StF7fhepEtAk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=b91yuvYCrOB+JoH/Xo0ahT92fNrZ9w0vm4yf1mDidxKRVWbGNRarLV3fYEpJzcyy8
-	 ER/tZ5LoHK5WpgOT1mxQUVtP/O5U55dZBiQ4oFHpzbF/WVYRuUGKNINPF/TqLKclkM
-	 s9quUZO00BaASK++GCzvk2ARKkxZr8FrdWYeYpq0=
+	b=iWvEMNEMPEA9dVVpWHZEtw6i4GgFoRhbwv2mr2UgkvsEy3varARwP78Au/YITZ+Cr
+	 j2D6FEI3RzXQgrlkHVbTebArIDezId2JbPriPe/ML2T5bzbu7k2i/toAsXVQxlHujM
+	 bzLeBlv1LaD7XIzv2QB41QAMgXXFY9NuZ/ewLUMk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726446AbgHJCh3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:37:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40630 "EHLO mail.kernel.org"
+        id S1726389AbgHJChd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:37:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40670 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726389AbgHJCh3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:37:29 -0400
+        id S1726219AbgHJChc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:37:32 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 937BE206C3;
-        Mon, 10 Aug 2020 02:37:28 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 961AB2065D;
+        Mon, 10 Aug 2020 02:37:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027048;
-        bh=CATPg4knbaqTUnNJtuNnE6kKXOQ/r+Z1swl1AeFS4xY=;
+        s=default; t=1597027051;
+        bh=ciXd0Hydi3B7YhpjLv9dDy1+D+C3qB0StF7fhepEtAk=;
         h=Date:From:To:Subject:From;
-        b=zwbKkl06E5hp5rmouKvOrEe74jSJktDiO/4V1magfpTwaEkIzlDALAQqn6LXmuelj
-         +l4YPznhN57YRq2ebe6Qsyx0fgNMBIkEFjo+ms/PL/A6ze2CMaAt+AFzN5Rbeb5BMn
-         u9IlQZ2OR8BsQFaJ5NqcOxG63NvonW0AFHUWUd0U=
-Date:   Sun, 09 Aug 2020 19:37:28 -0700
+        b=dxODwQHIAtX0232uSIXWNtprx20G87y73Qoj2v/fBdibIiD8xvVFcl4yatPl9h2PM
+         U9eBvA6+YsyQX6YPfrKz2cs1+tS0q5sew5Ub6KFIppLEBisnDNpVYLgETD6eMP2mqg
+         qf7lJUmddG0/VPhIvQGMIRq1e5Q9JXWKRlCw2QOE=
+Date:   Sun, 09 Aug 2020 19:37:31 -0700
 From:   akpm@linux-foundation.org
 To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
         mhocko@suse.com, mm-commits@vger.kernel.org, shakeelb@google.com
 Subject:  [merged]
- mm-memcontrol-restore-proper-dirty-throttling-when-memoryhigh-changes.patch
+ mm-memcontrol-dont-count-limit-setting-reclaim-as-memory-pressure.patch
  removed from -mm tree
-Message-ID: <20200810023728.fKamxyMZu%akpm@linux-foundation.org>
+Message-ID: <20200810023731.wXB97qLZp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,50 +55,122 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: restore proper dirty throttling when memory.high changes
+     Subject: mm: memcontrol: don't count limit-setting reclaim as memory pressure
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-restore-proper-dirty-throttling-when-memoryhigh-changes.patch
+     mm-memcontrol-dont-count-limit-setting-reclaim-as-memory-pressure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: restore proper dirty throttling when memory.high changes
+Subject: mm: memcontrol: don't count limit-setting reclaim as memory pressure
 
-Commit 8c8c383c04f6 ("mm: memcontrol: try harder to set a new
-memory.high") inadvertently removed a callback to recalculate the
-writeback cache size in light of a newly configured memory.high limit.
+When an outside process lowers one of the memory limits of a cgroup (or
+uses the force_empty knob in cgroup1), direct reclaim is performed in the
+context of the write(), in order to directly enforce the new limit and
+have it being met by the time the write() returns.
 
-Without letting the writeback cache know about a potentially heavily
-reduced limit, it may permit too many dirty pages, which can cause
-unnecessary reclaim latencies or even avoidable OOM situations.
+Currently, this reclaim activity is accounted as memory pressure in the
+cgroup that the writer(!) belongs to.  This is unexpected.  It
+specifically causes problems for senpai
+(https://github.com/facebookincubator/senpai), which is an agent that
+routinely adjusts the memory limits and performs associated reclaim work
+in tens or even hundreds of cgroups running on the host.  The cgroup that
+senpai is running in itself will report elevated levels of memory
+pressure, even though it itself is under no memory shortage or any sort of
+distress.
 
-This was spotted while reading the code, it hasn't knowingly caused any
-problems in practice so far.
+Move the psi annotation from the central cgroup reclaim function to
+callsites in the allocation context, and thereby no longer count any
+limit-setting reclaim as memory pressure.  If the newly set limit causes
+the workload inside the cgroup into direct reclaim, that of course will
+continue to count as memory pressure.
 
-Link: http://lkml.kernel.org/r/20200728135210.379885-1-hannes@cmpxchg.org
-Fixes: 8c8c383c04f6 ("mm: memcontrol: try harder to set a new memory.high")
+Link: http://lkml.kernel.org/r/20200728135210.379885-2-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Chris Down <chris@chrisdown.name>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Acked-by: Chris Down <chris@chrisdown.name>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memcontrol.c |   11 ++++++++++-
+ mm/vmscan.c     |    6 ------
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-restore-proper-dirty-throttling-when-memoryhigh-changes
+--- a/mm/memcontrol.c~mm-memcontrol-dont-count-limit-setting-reclaim-as-memory-pressure
 +++ a/mm/memcontrol.c
-@@ -6273,6 +6273,8 @@ static ssize_t memory_high_write(struct
+@@ -2374,12 +2374,18 @@ static unsigned long reclaim_high(struct
+ 	unsigned long nr_reclaimed = 0;
  
- 	page_counter_set_high(&memcg->memory, high);
- 
-+	memcg_wb_domain_size_changed(memcg);
+ 	do {
++		unsigned long pflags;
 +
- 	return nbytes;
- }
+ 		if (page_counter_read(&memcg->memory) <=
+ 		    READ_ONCE(memcg->memory.high))
+ 			continue;
++
+ 		memcg_memory_event(memcg, MEMCG_HIGH);
++
++		psi_memstall_enter(&pflags);
+ 		nr_reclaimed += try_to_free_mem_cgroup_pages(memcg, nr_pages,
+ 							     gfp_mask, true);
++		psi_memstall_leave(&pflags);
+ 	} while ((memcg = parent_mem_cgroup(memcg)) &&
+ 		 !mem_cgroup_is_root(memcg));
+ 
+@@ -2621,10 +2627,11 @@ static int try_charge(struct mem_cgroup
+ 	int nr_retries = MAX_RECLAIM_RETRIES;
+ 	struct mem_cgroup *mem_over_limit;
+ 	struct page_counter *counter;
++	enum oom_status oom_status;
+ 	unsigned long nr_reclaimed;
+ 	bool may_swap = true;
+ 	bool drained = false;
+-	enum oom_status oom_status;
++	unsigned long pflags;
+ 
+ 	if (mem_cgroup_is_root(memcg))
+ 		return 0;
+@@ -2684,8 +2691,10 @@ retry:
+ 
+ 	memcg_memory_event(mem_over_limit, MEMCG_MAX);
+ 
++	psi_memstall_enter(&pflags);
+ 	nr_reclaimed = try_to_free_mem_cgroup_pages(mem_over_limit, nr_pages,
+ 						    gfp_mask, may_swap);
++	psi_memstall_leave(&pflags);
+ 
+ 	if (mem_cgroup_margin(mem_over_limit) >= nr_pages)
+ 		goto retry;
+--- a/mm/vmscan.c~mm-memcontrol-dont-count-limit-setting-reclaim-as-memory-pressure
++++ a/mm/vmscan.c
+@@ -3310,7 +3310,6 @@ unsigned long try_to_free_mem_cgroup_pag
+ 					   bool may_swap)
+ {
+ 	unsigned long nr_reclaimed;
+-	unsigned long pflags;
+ 	unsigned int noreclaim_flag;
+ 	struct scan_control sc = {
+ 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
+@@ -3331,17 +3330,12 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
+ 
+ 	set_task_reclaim_state(current, &sc.reclaim_state);
+-
+ 	trace_mm_vmscan_memcg_reclaim_begin(0, sc.gfp_mask);
+-
+-	psi_memstall_enter(&pflags);
+ 	noreclaim_flag = memalloc_noreclaim_save();
+ 
+ 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
+ 
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+-	psi_memstall_leave(&pflags);
+-
+ 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
+ 	set_task_reclaim_state(current, NULL);
  
 _
 
