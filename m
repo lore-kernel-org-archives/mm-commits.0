@@ -2,50 +2,49 @@ Return-Path: <SRS0=A/n1=BU=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C1F3C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11AA3C433E1
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 275542065D
+	by mail.kernel.org (Postfix) with ESMTP id D87562075D
 	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1597027025;
-	bh=fne+IQXCIm25z+XVL/nq5/PZJyFooXvcqEaNBfPtHYc=;
+	bh=+M2fPJSYnnJonv8j9pYqGSOYSkZUnFqWEA9UCXKglJk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=tf75UaM7BqCZaNQjQ7FMVGUwkMRiX76P1juJon9WfyRikL4hsbdvn5javcdzEvc3B
-	 Tm4mVCZGFPJShKmxi+XlD1HSFTwJXIuRbCZvy/W+rK6/SDvGuPIlo58PrKUY2U7Vm8
-	 a7DsOXTjUiqexBnv2TqW0PqLGU5sZnGTsQzj+F7w=
+	b=w7G9EhdOP3A6upJubW/RS8zG6wltTS1qod9kZJmklTikC6c5C6neKG2FiJSz8JUS0
+	 XFZLsFRKsDiOTAJKB9FYhMqe+mEM+Nfgx9jAH9xvnm0x69oxvMD4dHOZP865S/Jn0U
+	 QtKkzIiqJOP7N+S2qdYbceGNlKsaPXLhs/PMEEmc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726335AbgHJChE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:37:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40190 "EHLO mail.kernel.org"
+        id S1726370AbgHJChF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:37:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40222 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726370AbgHJChC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:37:02 -0400
+        id S1726406AbgHJChF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:37:05 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A187D2065D;
-        Mon, 10 Aug 2020 02:37:01 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 64181206C3;
+        Mon, 10 Aug 2020 02:37:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027021;
-        bh=fne+IQXCIm25z+XVL/nq5/PZJyFooXvcqEaNBfPtHYc=;
+        s=default; t=1597027023;
+        bh=+M2fPJSYnnJonv8j9pYqGSOYSkZUnFqWEA9UCXKglJk=;
         h=Date:From:To:Subject:From;
-        b=jEoG9H/xSa9YHPNimIN1Ug58Fd+lkvyNlZEsylFqUFfy+b1/QkoPIPXxGW6OlWPDj
-         5Ac6Wh2kvGmbKcpQBWItb0YmAbJsSaRMjgRD8bldTq2bBQL7dhEW/CieQNycQW8UUU
-         A45r34eq9/cMrpE/PErwNPasYonGnsyl+vg+20Vk=
-Date:   Sun, 09 Aug 2020 19:37:01 -0700
+        b=FxlRpk/95xmAupUOZLTYeX5jvziQO858po7mNNy/x6awcsZqA7YwlcBfSitf490ca
+         C5WPE/P2ScZd3G+5eXoJipaZg8GBSfFXxTIeu7WIDYEbrhqoq7+WFbyPATQMVMiE0F
+         vuQMuNYEGMFZqmoSDyakKTD5nXn4/gkZ3i8WnM1A=
+Date:   Sun, 09 Aug 2020 19:37:03 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org,
-        vbabka@suse.cz
-Subject:  [merged] tools-cgroup-add-memcg_slabinfopy-tool.patch
- removed from -mm tree
-Message-ID: <20200810023701.slRckOpoj%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com
+Subject:  [merged]
+ mm-memcontrol-account-kernel-stack-per-node.patch removed from -mm tree
+Message-ID: <20200810023703.OC4fvHYLq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,308 +54,322 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/cgroup: add memcg_slabinfo.py tool
+     Subject: mm: memcontrol: account kernel stack per node
 has been removed from the -mm tree.  Its filename was
-     tools-cgroup-add-memcg_slabinfopy-tool.patch
+     mm-memcontrol-account-kernel-stack-per-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: tools/cgroup: add memcg_slabinfo.py tool
+From: Shakeel Butt <shakeelb@google.com>
+Subject: mm: memcontrol: account kernel stack per node
 
-Add a drgn-based tool to display slab information for a given memcg.  Can
-replace cgroup v1 memory.kmem.slabinfo interface on cgroup v2, but in a
-more flexiable way.
+Currently the kernel stack is being accounted per-zone.  There is no need
+to do that.  In addition due to being per-zone, memcg has to keep a
+separate MEMCG_KERNEL_STACK_KB.  Make the stat per-node and deprecate
+MEMCG_KERNEL_STACK_KB as memcg_stat_item is an extension of
+node_stat_item.  In addition localize the kernel stack stats updates to
+account_kernel_stack().
 
-Currently supports only SLUB configuration, but SLAB can be trivially
-added later.
-
-Output example:
-$ sudo ./tools/cgroup/memcg_slabinfo.py /sys/fs/cgroup/user.slice/user-111017.slice/user\@111017.service
-shmem_inode_cache     92     92    704   46    8 : tunables    0    0    0 : slabdata      2      2      0
-eventpoll_pwq         56     56     72   56    1 : tunables    0    0    0 : slabdata      1      1      0
-eventpoll_epi         32     32    128   32    1 : tunables    0    0    0 : slabdata      1      1      0
-kmalloc-8              0      0      8  512    1 : tunables    0    0    0 : slabdata      0      0      0
-kmalloc-96             0      0     96   42    1 : tunables    0    0    0 : slabdata      0      0      0
-kmalloc-2048           0      0   2048   16    8 : tunables    0    0    0 : slabdata      0      0      0
-kmalloc-64           128    128     64   64    1 : tunables    0    0    0 : slabdata      2      2      0
-mm_struct            160    160   1024   32    8 : tunables    0    0    0 : slabdata      5      5      0
-signal_cache          96     96   1024   32    8 : tunables    0    0    0 : slabdata      3      3      0
-sighand_cache         45     45   2112   15    8 : tunables    0    0    0 : slabdata      3      3      0
-files_cache          138    138    704   46    8 : tunables    0    0    0 : slabdata      3      3      0
-task_delay_info      153    153     80   51    1 : tunables    0    0    0 : slabdata      3      3      0
-task_struct           27     27   3520    9    8 : tunables    0    0    0 : slabdata      3      3      0
-radix_tree_node       56     56    584   28    4 : tunables    0    0    0 : slabdata      2      2      0
-btrfs_inode          140    140   1136   28    8 : tunables    0    0    0 : slabdata      5      5      0
-kmalloc-1024          64     64   1024   32    8 : tunables    0    0    0 : slabdata      2      2      0
-kmalloc-192           84     84    192   42    2 : tunables    0    0    0 : slabdata      2      2      0
-inode_cache           54     54    600   27    4 : tunables    0    0    0 : slabdata      2      2      0
-kmalloc-128            0      0    128   32    1 : tunables    0    0    0 : slabdata      0      0      0
-kmalloc-512           32     32    512   32    4 : tunables    0    0    0 : slabdata      1      1      0
-skbuff_head_cache     32     32    256   32    2 : tunables    0    0    0 : slabdata      1      1      0
-sock_inode_cache      46     46    704   46    8 : tunables    0    0    0 : slabdata      1      1      0
-cred_jar             378    378    192   42    2 : tunables    0    0    0 : slabdata      9      9      0
-proc_inode_cache      96     96    672   24    4 : tunables    0    0    0 : slabdata      4      4      0
-dentry               336    336    192   42    2 : tunables    0    0    0 : slabdata      8      8      0
-filp                 697    864    256   32    2 : tunables    0    0    0 : slabdata     27     27      0
-anon_vma             644    644     88   46    1 : tunables    0    0    0 : slabdata     14     14      0
-pid                 1408   1408     64   64    1 : tunables    0    0    0 : slabdata     22     22      0
-vm_area_struct      1200   1200    200   40    2 : tunables    0    0    0 : slabdata     30     30      0
-
-Link: http://lkml.kernel.org/r/20200623174037.3951353-20-guro@fb.com
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/20200630161539.1759185-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/cgroup/memcg_slabinfo.py |  226 +++++++++++++++++++++++++++++++
- 1 file changed, 226 insertions(+)
+ drivers/base/node.c        |    4 +-
+ fs/proc/meminfo.c          |    4 +-
+ include/linux/memcontrol.h |   21 +++++++++++++-
+ include/linux/mmzone.h     |    8 ++---
+ kernel/fork.c              |   51 +++++++++--------------------------
+ kernel/scs.c               |    2 -
+ mm/memcontrol.c            |    2 -
+ mm/page_alloc.c            |   16 +++++-----
+ mm/vmstat.c                |    8 ++---
+ 9 files changed, 55 insertions(+), 61 deletions(-)
 
---- /dev/null
-+++ a/tools/cgroup/memcg_slabinfo.py
-@@ -0,0 +1,226 @@
-+#!/usr/bin/env drgn
-+#
-+# Copyright (C) 2020 Roman Gushchin <guro@fb.com>
-+# Copyright (C) 2020 Facebook
+--- a/drivers/base/node.c~mm-memcontrol-account-kernel-stack-per-node
++++ a/drivers/base/node.c
+@@ -440,9 +440,9 @@ static ssize_t node_read_meminfo(struct
+ 		       nid, K(node_page_state(pgdat, NR_FILE_MAPPED)),
+ 		       nid, K(node_page_state(pgdat, NR_ANON_MAPPED)),
+ 		       nid, K(i.sharedram),
+-		       nid, sum_zone_node_page_state(nid, NR_KERNEL_STACK_KB),
++		       nid, node_page_state(pgdat, NR_KERNEL_STACK_KB),
+ #ifdef CONFIG_SHADOW_CALL_STACK
+-		       nid, sum_zone_node_page_state(nid, NR_KERNEL_SCS_KB),
++		       nid, node_page_state(pgdat, NR_KERNEL_SCS_KB),
+ #endif
+ 		       nid, K(sum_zone_node_page_state(nid, NR_PAGETABLE)),
+ 		       nid, 0UL,
+--- a/fs/proc/meminfo.c~mm-memcontrol-account-kernel-stack-per-node
++++ a/fs/proc/meminfo.c
+@@ -101,10 +101,10 @@ static int meminfo_proc_show(struct seq_
+ 	show_val_kb(m, "SReclaimable:   ", sreclaimable);
+ 	show_val_kb(m, "SUnreclaim:     ", sunreclaim);
+ 	seq_printf(m, "KernelStack:    %8lu kB\n",
+-		   global_zone_page_state(NR_KERNEL_STACK_KB));
++		   global_node_page_state(NR_KERNEL_STACK_KB));
+ #ifdef CONFIG_SHADOW_CALL_STACK
+ 	seq_printf(m, "ShadowCallStack:%8lu kB\n",
+-		   global_zone_page_state(NR_KERNEL_SCS_KB));
++		   global_node_page_state(NR_KERNEL_SCS_KB));
+ #endif
+ 	show_val_kb(m, "PageTables:     ",
+ 		    global_zone_page_state(NR_PAGETABLE));
+--- a/include/linux/memcontrol.h~mm-memcontrol-account-kernel-stack-per-node
++++ a/include/linux/memcontrol.h
+@@ -32,8 +32,6 @@ struct kmem_cache;
+ enum memcg_stat_item {
+ 	MEMCG_SWAP = NR_VM_NODE_STAT_ITEMS,
+ 	MEMCG_SOCK,
+-	/* XXX: why are these zone and not node counters? */
+-	MEMCG_KERNEL_STACK_KB,
+ 	MEMCG_NR_STAT,
+ };
+ 
+@@ -729,8 +727,19 @@ void __mod_memcg_lruvec_state(struct lru
+ void __mod_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+ 			int val);
+ void __mod_lruvec_slab_state(void *p, enum node_stat_item idx, int val);
 +
-+from os import stat
-+import argparse
-+import sys
+ void mod_memcg_obj_state(void *p, int idx, int val);
+ 
++static inline void mod_lruvec_slab_state(void *p, enum node_stat_item idx,
++					 int val)
++{
++	unsigned long flags;
 +
-+from drgn.helpers.linux import list_for_each_entry, list_empty
-+from drgn.helpers.linux import for_each_page
-+from drgn.helpers.linux.cpumask import for_each_online_cpu
-+from drgn.helpers.linux.percpu import per_cpu_ptr
-+from drgn import container_of, FaultError, Object
++	local_irq_save(flags);
++	__mod_lruvec_slab_state(p, idx, val);
++	local_irq_restore(flags);
++}
 +
+ static inline void mod_memcg_lruvec_state(struct lruvec *lruvec,
+ 					  enum node_stat_item idx, int val)
+ {
+@@ -1151,6 +1160,14 @@ static inline void __mod_lruvec_slab_sta
+ 	__mod_node_page_state(page_pgdat(page), idx, val);
+ }
+ 
++static inline void mod_lruvec_slab_state(void *p, enum node_stat_item idx,
++					 int val)
++{
++	struct page *page = virt_to_head_page(p);
 +
-+DESC = """
-+This is a drgn script to provide slab statistics for memory cgroups.
-+It supports cgroup v2 and v1 and can emulate memory.kmem.slabinfo
-+interface of cgroup v1.
-+For drgn, visit https://github.com/osandov/drgn.
-+"""
++	mod_node_page_state(page_pgdat(page), idx, val);
++}
 +
+ static inline void mod_memcg_obj_state(void *p, int idx, int val)
+ {
+ }
+--- a/include/linux/mmzone.h~mm-memcontrol-account-kernel-stack-per-node
++++ a/include/linux/mmzone.h
+@@ -155,10 +155,6 @@ enum zone_stat_item {
+ 	NR_ZONE_WRITE_PENDING,	/* Count of dirty, writeback and unstable pages */
+ 	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
+ 	NR_PAGETABLE,		/* used for pagetables */
+-	NR_KERNEL_STACK_KB,	/* measured in KiB */
+-#if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
+-	NR_KERNEL_SCS_KB,	/* measured in KiB */
+-#endif
+ 	/* Second 128 byte cacheline */
+ 	NR_BOUNCE,
+ #if IS_ENABLED(CONFIG_ZSMALLOC)
+@@ -203,6 +199,10 @@ enum node_stat_item {
+ 	NR_KERNEL_MISC_RECLAIMABLE,	/* reclaimable non-slab kernel pages */
+ 	NR_FOLL_PIN_ACQUIRED,	/* via: pin_user_page(), gup flag: FOLL_PIN */
+ 	NR_FOLL_PIN_RELEASED,	/* pages returned via unpin_user_page() */
++	NR_KERNEL_STACK_KB,	/* measured in KiB */
++#if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
++	NR_KERNEL_SCS_KB,	/* measured in KiB */
++#endif
+ 	NR_VM_NODE_STAT_ITEMS
+ };
+ 
+--- a/kernel/fork.c~mm-memcontrol-account-kernel-stack-per-node
++++ a/kernel/fork.c
+@@ -276,13 +276,8 @@ static inline void free_thread_stack(str
+ 	if (vm) {
+ 		int i;
+ 
+-		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
+-			mod_memcg_page_state(vm->pages[i],
+-					     MEMCG_KERNEL_STACK_KB,
+-					     -(int)(PAGE_SIZE / 1024));
+-
++		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++)
+ 			memcg_kmem_uncharge_page(vm->pages[i], 0);
+-		}
+ 
+ 		for (i = 0; i < NR_CACHED_STACKS; i++) {
+ 			if (this_cpu_cmpxchg(cached_stacks[i],
+@@ -382,31 +377,14 @@ static void account_kernel_stack(struct
+ 	void *stack = task_stack_page(tsk);
+ 	struct vm_struct *vm = task_stack_vm_area(tsk);
+ 
+-	BUILD_BUG_ON(IS_ENABLED(CONFIG_VMAP_STACK) && PAGE_SIZE % 1024 != 0);
+ 
+-	if (vm) {
+-		int i;
+-
+-		BUG_ON(vm->nr_pages != THREAD_SIZE / PAGE_SIZE);
+-
+-		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
+-			mod_zone_page_state(page_zone(vm->pages[i]),
+-					    NR_KERNEL_STACK_KB,
+-					    PAGE_SIZE / 1024 * account);
+-		}
+-	} else {
+-		/*
+-		 * All stack pages are in the same zone and belong to the
+-		 * same memcg.
+-		 */
+-		struct page *first_page = virt_to_page(stack);
+-
+-		mod_zone_page_state(page_zone(first_page), NR_KERNEL_STACK_KB,
+-				    THREAD_SIZE / 1024 * account);
+-
+-		mod_memcg_obj_state(stack, MEMCG_KERNEL_STACK_KB,
+-				    account * (THREAD_SIZE / 1024));
+-	}
++	/* All stack pages are in the same node. */
++	if (vm)
++		mod_lruvec_page_state(vm->pages[0], NR_KERNEL_STACK_KB,
++				      account * (THREAD_SIZE / 1024));
++	else
++		mod_lruvec_slab_state(stack, NR_KERNEL_STACK_KB,
++				      account * (THREAD_SIZE / 1024));
+ }
+ 
+ static int memcg_charge_kernel_stack(struct task_struct *tsk)
+@@ -415,24 +393,23 @@ static int memcg_charge_kernel_stack(str
+ 	struct vm_struct *vm = task_stack_vm_area(tsk);
+ 	int ret;
+ 
++	BUILD_BUG_ON(IS_ENABLED(CONFIG_VMAP_STACK) && PAGE_SIZE % 1024 != 0);
 +
-+MEMCGS = {}
+ 	if (vm) {
+ 		int i;
+ 
++		BUG_ON(vm->nr_pages != THREAD_SIZE / PAGE_SIZE);
 +
-+OO_SHIFT = 16
-+OO_MASK = ((1 << OO_SHIFT) - 1)
-+
-+
-+def err(s):
-+    print('slabinfo.py: error: %s' % s, file=sys.stderr, flush=True)
-+    sys.exit(1)
-+
-+
-+def find_memcg_ids(css=prog['root_mem_cgroup'].css, prefix=''):
-+    if not list_empty(css.children.address_of_()):
-+        for css in list_for_each_entry('struct cgroup_subsys_state',
-+                                       css.children.address_of_(),
-+                                       'sibling'):
-+            name = prefix + '/' + css.cgroup.kn.name.string_().decode('utf-8')
-+            memcg = container_of(css, 'struct mem_cgroup', 'css')
-+            MEMCGS[css.cgroup.kn.id.value_()] = memcg
-+            find_memcg_ids(css, name)
-+
-+
-+def is_root_cache(s):
-+    try:
-+        return False if s.memcg_params.root_cache else True
-+    except AttributeError:
-+        return True
-+
-+
-+def cache_name(s):
-+    if is_root_cache(s):
-+        return s.name.string_().decode('utf-8')
-+    else:
-+        return s.memcg_params.root_cache.name.string_().decode('utf-8')
-+
-+
-+# SLUB
-+
-+def oo_order(s):
-+    return s.oo.x >> OO_SHIFT
-+
-+
-+def oo_objects(s):
-+    return s.oo.x & OO_MASK
-+
-+
-+def count_partial(n, fn):
-+    nr_pages = 0
-+    for page in list_for_each_entry('struct page', n.partial.address_of_(),
-+                                    'lru'):
-+         nr_pages += fn(page)
-+    return nr_pages
-+
-+
-+def count_free(page):
-+    return page.objects - page.inuse
-+
-+
-+def slub_get_slabinfo(s, cfg):
-+    nr_slabs = 0
-+    nr_objs = 0
-+    nr_free = 0
-+
-+    for node in range(cfg['nr_nodes']):
-+        n = s.node[node]
-+        nr_slabs += n.nr_slabs.counter.value_()
-+        nr_objs += n.total_objects.counter.value_()
-+        nr_free += count_partial(n, count_free)
-+
-+    return {'active_objs': nr_objs - nr_free,
-+            'num_objs': nr_objs,
-+            'active_slabs': nr_slabs,
-+            'num_slabs': nr_slabs,
-+            'objects_per_slab': oo_objects(s),
-+            'cache_order': oo_order(s),
-+            'limit': 0,
-+            'batchcount': 0,
-+            'shared': 0,
-+            'shared_avail': 0}
-+
-+
-+def cache_show(s, cfg, objs):
-+    if cfg['allocator'] == 'SLUB':
-+        sinfo = slub_get_slabinfo(s, cfg)
-+    else:
-+        err('SLAB isn\'t supported yet')
-+
-+    if cfg['shared_slab_pages']:
-+        sinfo['active_objs'] = objs
-+        sinfo['num_objs'] = objs
-+
-+    print('%-17s %6lu %6lu %6u %4u %4d'
-+          ' : tunables %4u %4u %4u'
-+          ' : slabdata %6lu %6lu %6lu' % (
-+              cache_name(s), sinfo['active_objs'], sinfo['num_objs'],
-+              s.size, sinfo['objects_per_slab'], 1 << sinfo['cache_order'],
-+              sinfo['limit'], sinfo['batchcount'], sinfo['shared'],
-+              sinfo['active_slabs'], sinfo['num_slabs'],
-+              sinfo['shared_avail']))
-+
-+
-+def detect_kernel_config():
-+    cfg = {}
-+
-+    cfg['nr_nodes'] = prog['nr_online_nodes'].value_()
-+
-+    if prog.type('struct kmem_cache').members[1][1] == 'flags':
-+        cfg['allocator'] = 'SLUB'
-+    elif prog.type('struct kmem_cache').members[1][1] == 'batchcount':
-+        cfg['allocator'] = 'SLAB'
-+    else:
-+        err('Can\'t determine the slab allocator')
-+
-+    cfg['shared_slab_pages'] = False
-+    try:
-+        if prog.type('struct obj_cgroup'):
-+            cfg['shared_slab_pages'] = True
-+    except:
-+        pass
-+
-+    return cfg
-+
-+
-+def for_each_slab_page(prog):
-+    PGSlab = 1 << prog.constant('PG_slab')
-+    PGHead = 1 << prog.constant('PG_head')
-+
-+    for page in for_each_page(prog):
-+        try:
-+            if page.flags.value_() & PGSlab:
-+                yield page
-+        except FaultError:
-+            pass
-+
-+
-+def main():
-+    parser = argparse.ArgumentParser(description=DESC,
-+                                     formatter_class=
-+                                     argparse.RawTextHelpFormatter)
-+    parser.add_argument('cgroup', metavar='CGROUP',
-+                        help='Target memory cgroup')
-+    args = parser.parse_args()
-+
-+    try:
-+        cgroup_id = stat(args.cgroup).st_ino
-+        find_memcg_ids()
-+        memcg = MEMCGS[cgroup_id]
-+    except KeyError:
-+        err('Can\'t find the memory cgroup')
-+
-+    cfg = detect_kernel_config()
-+
-+    print('# name            <active_objs> <num_objs> <objsize> <objperslab> <pagesperslab>'
-+          ' : tunables <limit> <batchcount> <sharedfactor>'
-+          ' : slabdata <active_slabs> <num_slabs> <sharedavail>')
-+
-+    if cfg['shared_slab_pages']:
-+        obj_cgroups = set()
-+        stats = {}
-+        caches = {}
-+
-+        # find memcg pointers belonging to the specified cgroup
-+        obj_cgroups.add(memcg.objcg.value_())
-+        for ptr in list_for_each_entry('struct obj_cgroup',
-+                                       memcg.objcg_list.address_of_(),
-+                                       'list'):
-+            obj_cgroups.add(ptr.value_())
-+
-+        # look over all slab pages, belonging to non-root memcgs
-+        # and look for objects belonging to the given memory cgroup
-+        for page in for_each_slab_page(prog):
-+            objcg_vec_raw = page.obj_cgroups.value_()
-+            if objcg_vec_raw == 0:
-+                continue
-+            cache = page.slab_cache
-+            if not cache:
-+                continue
-+            addr = cache.value_()
-+            caches[addr] = cache
-+            # clear the lowest bit to get the true obj_cgroups
-+            objcg_vec = Object(prog, page.obj_cgroups.type_,
-+                               value=objcg_vec_raw & ~1)
-+
-+            if addr not in stats:
-+                stats[addr] = 0
-+
-+            for i in range(oo_objects(cache)):
-+                if objcg_vec[i].value_() in obj_cgroups:
-+                    stats[addr] += 1
-+
-+        for addr in caches:
-+            if stats[addr] > 0:
-+                cache_show(caches[addr], cfg, stats[addr])
-+
-+    else:
-+        for s in list_for_each_entry('struct kmem_cache',
-+                                     memcg.kmem_caches.address_of_(),
-+                                     'memcg_params.kmem_caches_node'):
-+            cache_show(s, cfg, None)
-+
-+
-+main()
+ 		for (i = 0; i < THREAD_SIZE / PAGE_SIZE; i++) {
+ 			/*
+ 			 * If memcg_kmem_charge_page() fails, page->mem_cgroup
+-			 * pointer is NULL, and both memcg_kmem_uncharge_page()
+-			 * and mod_memcg_page_state() in free_thread_stack()
+-			 * will ignore this page. So it's safe.
++			 * pointer is NULL, and memcg_kmem_uncharge_page() in
++			 * free_thread_stack() will ignore this page.
+ 			 */
+ 			ret = memcg_kmem_charge_page(vm->pages[i], GFP_KERNEL,
+ 						     0);
+ 			if (ret)
+ 				return ret;
+-
+-			mod_memcg_page_state(vm->pages[i],
+-					     MEMCG_KERNEL_STACK_KB,
+-					     PAGE_SIZE / 1024);
+ 		}
+ 	}
+ #endif
+--- a/kernel/scs.c~mm-memcontrol-account-kernel-stack-per-node
++++ a/kernel/scs.c
+@@ -17,7 +17,7 @@ static void __scs_account(void *s, int a
+ {
+ 	struct page *scs_page = virt_to_page(s);
+ 
+-	mod_zone_page_state(page_zone(scs_page), NR_KERNEL_SCS_KB,
++	mod_node_page_state(page_pgdat(scs_page), NR_KERNEL_SCS_KB,
+ 			    account * (SCS_SIZE / SZ_1K));
+ }
+ 
+--- a/mm/memcontrol.c~mm-memcontrol-account-kernel-stack-per-node
++++ a/mm/memcontrol.c
+@@ -1485,7 +1485,7 @@ static char *memory_stat_format(struct m
+ 		       (u64)memcg_page_state(memcg, NR_FILE_PAGES) *
+ 		       PAGE_SIZE);
+ 	seq_buf_printf(&s, "kernel_stack %llu\n",
+-		       (u64)memcg_page_state(memcg, MEMCG_KERNEL_STACK_KB) *
++		       (u64)memcg_page_state(memcg, NR_KERNEL_STACK_KB) *
+ 		       1024);
+ 	seq_buf_printf(&s, "slab %llu\n",
+ 		       (u64)(memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
+--- a/mm/page_alloc.c~mm-memcontrol-account-kernel-stack-per-node
++++ a/mm/page_alloc.c
+@@ -5396,6 +5396,10 @@ void show_free_areas(unsigned int filter
+ 			" anon_thp: %lukB"
+ #endif
+ 			" writeback_tmp:%lukB"
++			" kernel_stack:%lukB"
++#ifdef CONFIG_SHADOW_CALL_STACK
++			" shadow_call_stack:%lukB"
++#endif
+ 			" all_unreclaimable? %s"
+ 			"\n",
+ 			pgdat->node_id,
+@@ -5417,6 +5421,10 @@ void show_free_areas(unsigned int filter
+ 			K(node_page_state(pgdat, NR_ANON_THPS) * HPAGE_PMD_NR),
+ #endif
+ 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
++			node_page_state(pgdat, NR_KERNEL_STACK_KB),
++#ifdef CONFIG_SHADOW_CALL_STACK
++			node_page_state(pgdat, NR_KERNEL_SCS_KB),
++#endif
+ 			pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES ?
+ 				"yes" : "no");
+ 	}
+@@ -5448,10 +5456,6 @@ void show_free_areas(unsigned int filter
+ 			" present:%lukB"
+ 			" managed:%lukB"
+ 			" mlocked:%lukB"
+-			" kernel_stack:%lukB"
+-#ifdef CONFIG_SHADOW_CALL_STACK
+-			" shadow_call_stack:%lukB"
+-#endif
+ 			" pagetables:%lukB"
+ 			" bounce:%lukB"
+ 			" free_pcp:%lukB"
+@@ -5473,10 +5477,6 @@ void show_free_areas(unsigned int filter
+ 			K(zone->present_pages),
+ 			K(zone_managed_pages(zone)),
+ 			K(zone_page_state(zone, NR_MLOCK)),
+-			zone_page_state(zone, NR_KERNEL_STACK_KB),
+-#ifdef CONFIG_SHADOW_CALL_STACK
+-			zone_page_state(zone, NR_KERNEL_SCS_KB),
+-#endif
+ 			K(zone_page_state(zone, NR_PAGETABLE)),
+ 			K(zone_page_state(zone, NR_BOUNCE)),
+ 			K(free_pcp),
+--- a/mm/vmstat.c~mm-memcontrol-account-kernel-stack-per-node
++++ a/mm/vmstat.c
+@@ -1140,10 +1140,6 @@ const char * const vmstat_text[] = {
+ 	"nr_zone_write_pending",
+ 	"nr_mlock",
+ 	"nr_page_table_pages",
+-	"nr_kernel_stack",
+-#if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
+-	"nr_shadow_call_stack",
+-#endif
+ 	"nr_bounce",
+ #if IS_ENABLED(CONFIG_ZSMALLOC)
+ 	"nr_zspages",
+@@ -1194,6 +1190,10 @@ const char * const vmstat_text[] = {
+ 	"nr_kernel_misc_reclaimable",
+ 	"nr_foll_pin_acquired",
+ 	"nr_foll_pin_released",
++	"nr_kernel_stack",
++#if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
++	"nr_shadow_call_stack",
++#endif
+ 
+ 	/* enum writeback_stat_item counters */
+ 	"nr_dirty_threshold",
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics-v3.patch
-mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
-kselftests-cgroup-add-perpcu-memory-accounting-test.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
 
