@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A18BCC433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D1D3C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7757820723
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB16320768
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:34:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026895;
-	bh=95Jht/JzFxBzWuFVS13z5nRJLCHcLbA3gbBya7VabcQ=;
+	s=default; t=1597026897;
+	bh=KLhXLDztuNI+t9sm7QLXMADUS5iv3/rPKMnWOPaL7Ro=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Rr08wsyGThkMX6Dksa4BHzlMJ8YMt90lXCAgMWNPv0b8CfxjknBPT3x9mgVhRUli6
-	 Z4nReq8e+7jAcHQ41gzWR3Se246e9RjGQA/mh8Pk3UovBdKNHEnEl9hGlNrra2frXj
-	 zGlp+PksKF1g1JwOaZP8L5xRF9DgL6zMuPJIHOiA=
+	b=o+WX2v+4Cv9hmVeAbrV8IlWTAowSUEOsLexa4pFJ5kZLX5qSBbhAoe43kCGub8muG
+	 Gfggc+C7ECAGc4HiFS+czgpaucbEIe3zQD8RHIy0u9BV9uoc3GmvHCU/BIAnhYPcmG
+	 /YZAPEkaEJaGq+XOkfBiFem+yLoNySP9u3RBgmEA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726401AbgHJCez (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:34:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38268 "EHLO mail.kernel.org"
+        id S1726406AbgHJCe5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:34:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38306 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCez (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:34:55 -0400
+        id S1726219AbgHJCe5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:34:57 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9D69820773;
-        Mon, 10 Aug 2020 02:34:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 96B2C20723;
+        Mon, 10 Aug 2020 02:34:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026894;
-        bh=95Jht/JzFxBzWuFVS13z5nRJLCHcLbA3gbBya7VabcQ=;
+        s=default; t=1597026896;
+        bh=KLhXLDztuNI+t9sm7QLXMADUS5iv3/rPKMnWOPaL7Ro=;
         h=Date:From:To:Subject:From;
-        b=ytLBr7MDp27Hx83kyCC5IpbILBmMJKTHUlV/3YE7MpU9YkWQmFfJiSPPt2NWVRe+2
-         LIQ2t7uIH+U7GHYY+3lGHaA9s/IdvKJsNW5o8WzCG0tLEkjeOywwhqCT/2iczDgTqx
-         HHnW6OF6idqZ/+brrFH4ln00huY6okn/KWCMrq5I=
-Date:   Sun, 09 Aug 2020 19:34:53 -0700
+        b=c6b7JEDKqCB9fcRFZrgHA39vI8a6c9g4ROiVT9Rc8lxyYCUwFFcOCJJ1N0ndIyZgZ
+         XUVhXP7UUtGuMGVNz8AvsjPI4eTSQaVtgiit6r7TzR22jtkLSZjVgbyAX9Tr9CweL1
+         zOH+sv8DiLYhOeo4GxMWLSQOZPCxmqiTJXz8kIrM=
+Date:   Sun, 09 Aug 2020 19:34:56 -0700
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com,
         jannh@google.com, keescook@chromium.org,
         mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, vbabka@suse.cz, vjitta@codeaurora.org
 Subject:  [merged]
- mm-slub-make-some-slub_debug-related-attributes-read-only.patch removed
- from -mm tree
-Message-ID: <20200810023453.4f-e0BS5u%akpm@linux-foundation.org>
+ mm-slub-remove-runtime-allocation-order-changes.patch removed from -mm tree
+Message-ID: <20200810023456.GcezaeKpS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -57,170 +56,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: make some slub_debug related attributes read-only
+     Subject: mm, slub: remove runtime allocation order changes
 has been removed from the -mm tree.  Its filename was
-     mm-slub-make-some-slub_debug-related-attributes-read-only.patch
+     mm-slub-remove-runtime-allocation-order-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: make some slub_debug related attributes read-only
+Subject: mm, slub: remove runtime allocation order changes
 
-SLUB_DEBUG creates several files under /sys/kernel/slab/<cache>/ that can
-be read to check if the respective debugging options are enabled for given
-cache.  The options can be also toggled at runtime by writing into the
-files.  Some of those, namely red_zone, poison, and store_user can be
-toggled only when no objects yet exist in the cache.
+SLUB allows runtime changing of page allocation order by writing into the
+/sys/kernel/slab/<cache>/order file.  Jann has reported [1] that this
+interface allows the order to be set too small, leading to crashes.
 
-Vijayanand reports [1] that there is a problem with freelist randomization
-if changing the debugging option's state results in different number of
-objects per page, and the random sequence cache needs thus needs to be
-recomputed.
+While it's possible to fix the immediate issue, closer inspection reveals
+potential races.  Storing the new order calls calculate_sizes() which
+non-atomically updates a lot of kmem_cache fields while the cache is still
+in use.  Unexpected behavior might occur even if the fields are set to the
+same value as they were.
 
-However, another problem is that the check for "no objects yet exist in
-the cache" is racy, as noted by Jann [2] and fixing that would add
-overhead or otherwise complicate the allocation/freeing paths.  Thus it
-would be much simpler just to remove the runtime toggling support.  The
-documentation describes it's "In case you forgot to enable debugging on
-the kernel command line", but the neccessity of having no objects limits
-its usefulness anyway for many caches.
+This could be fixed by splitting out the part of calculate_sizes() that
+depends on forced_order, so that we only update kmem_cache.oo field.  This
+could still race with init_cache_random_seq(), shuffle_freelist(),
+allocate_slab().  Perhaps it's possible to audit and e.g.  add some
+READ_ONCE/WRITE_ONCE accesses, it might be easier just to remove the
+runtime order changes, which is what this patch does.  If there are valid
+usecases for per-cache order setting, we could e.g.  extend the boot
+parameters to do that.
 
-Vijayanand describes an use case [3] where debugging is enabled for all
-but zram caches for memory overhead reasons, and using the runtime toggles
-was the only way to achieve such configuration.  After the previous patch
-it's now possible to do that directly from the kernel boot option, so we
-can remove the dangerous runtime toggles by making the /sys attribute
-files read-only.
+[1] https://lore.kernel.org/r/CAG48ez31PP--h6_FzVyfJ4H86QYczAFPdxtJHUEEan+7VJETAQ@mail.gmail.com
 
-While updating it, also improve the documentation of the debugging /sys files.
-
-[1] https://lkml.kernel.org/r/1580379523-32272-1-git-send-email-vjitta@codeaurora.org
-[2] https://lore.kernel.org/r/CAG48ez31PP--h6_FzVyfJ4H86QYczAFPdxtJHUEEan+7VJETAQ@mail.gmail.com
-[3] https://lore.kernel.org/r/1383cd32-1ddc-4dac-b5f8-9c42282fa81c@codeaurora.org
-
-Link: http://lkml.kernel.org/r/20200610163135.17364-3-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20200610163135.17364-4-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Vijayanand Jitta <vjitta@codeaurora.org>
+Acked-by: Christoph Lameter <cl@linux.com>
 Reported-by: Jann Horn <jannh@google.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Christoph Lameter <cl@linux.com>
+Cc: Vijayanand Jitta <vjitta@codeaurora.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.rst |   26 ++++++++++++--------
- mm/slub.c                 |   46 ++----------------------------------
- 2 files changed, 19 insertions(+), 53 deletions(-)
+ mm/slub.c |   19 +------------------
+ 1 file changed, 1 insertion(+), 18 deletions(-)
 
---- a/Documentation/vm/slub.rst~mm-slub-make-some-slub_debug-related-attributes-read-only
-+++ a/Documentation/vm/slub.rst
-@@ -101,20 +101,26 @@ with "-" as options::
- 
- 	slub_debug=FZ;-,zs_handle,zspage
- 
--In case you forgot to enable debugging on the kernel command line: It is
--possible to enable debugging manually when the kernel is up. Look at the
--contents of::
-+The state of each debug option for a slab can be found in the respective files
-+under::
- 
- 	/sys/kernel/slab/<slab name>/
- 
--Look at the writable files. Writing 1 to them will enable the
--corresponding debug option. All options can be set on a slab that does
--not contain objects. If the slab already contains objects then sanity checks
--and tracing may only be enabled. The other options may cause the realignment
--of objects.
-+If the file contains 1, the option is enabled, 0 means disabled. The debug
-+options from the ``slub_debug`` parameter translate to the following files::
- 
--Careful with tracing: It may spew out lots of information and never stop if
--used on the wrong slab.
-+	F	sanity_checks
-+	Z	red_zone
-+	P	poison
-+	U	store_user
-+	T	trace
-+	A	failslab
-+
-+The sanity_checks, trace and failslab files are writable, so writing 1 or 0
-+will enable or disable the option at runtime. The writes to trace and failslab
-+may return -EINVAL if the cache is subject to slab merging. Careful with
-+tracing: It may spew out lots of information and never stop if used on the
-+wrong slab.
- 
- Slab merging
- ============
---- a/mm/slub.c~mm-slub-make-some-slub_debug-related-attributes-read-only
+--- a/mm/slub.c~mm-slub-remove-runtime-allocation-order-changes
 +++ a/mm/slub.c
-@@ -5335,61 +5335,21 @@ static ssize_t red_zone_show(struct kmem
- 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_RED_ZONE));
+@@ -5095,28 +5095,11 @@ static ssize_t objs_per_slab_show(struct
  }
+ SLAB_ATTR_RO(objs_per_slab);
  
--static ssize_t red_zone_store(struct kmem_cache *s,
+-static ssize_t order_store(struct kmem_cache *s,
 -				const char *buf, size_t length)
 -{
--	if (any_slab_objects(s))
--		return -EBUSY;
+-	unsigned int order;
+-	int err;
 -
--	s->flags &= ~SLAB_RED_ZONE;
--	if (buf[0] == '1') {
--		s->flags |= SLAB_RED_ZONE;
--	}
--	calculate_sizes(s, -1);
+-	err = kstrtouint(buf, 10, &order);
+-	if (err)
+-		return err;
+-
+-	if (order > slub_max_order || order < slub_min_order)
+-		return -EINVAL;
+-
+-	calculate_sizes(s, order);
 -	return length;
 -}
--SLAB_ATTR(red_zone);
-+SLAB_ATTR_RO(red_zone);
- 
- static ssize_t poison_show(struct kmem_cache *s, char *buf)
+-
+ static ssize_t order_show(struct kmem_cache *s, char *buf)
  {
- 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_POISON));
+ 	return sprintf(buf, "%u\n", oo_order(s->oo));
  }
+-SLAB_ATTR(order);
++SLAB_ATTR_RO(order);
  
--static ssize_t poison_store(struct kmem_cache *s,
--				const char *buf, size_t length)
--{
--	if (any_slab_objects(s))
--		return -EBUSY;
--
--	s->flags &= ~SLAB_POISON;
--	if (buf[0] == '1') {
--		s->flags |= SLAB_POISON;
--	}
--	calculate_sizes(s, -1);
--	return length;
--}
--SLAB_ATTR(poison);
-+SLAB_ATTR_RO(poison);
- 
- static ssize_t store_user_show(struct kmem_cache *s, char *buf)
- {
- 	return sprintf(buf, "%d\n", !!(s->flags & SLAB_STORE_USER));
- }
- 
--static ssize_t store_user_store(struct kmem_cache *s,
--				const char *buf, size_t length)
--{
--	if (any_slab_objects(s))
--		return -EBUSY;
--
--	s->flags &= ~SLAB_STORE_USER;
--	if (buf[0] == '1') {
--		s->flags &= ~__CMPXCHG_DOUBLE;
--		s->flags |= SLAB_STORE_USER;
--	}
--	calculate_sizes(s, -1);
--	return length;
--}
--SLAB_ATTR(store_user);
-+SLAB_ATTR_RO(store_user);
- 
- static ssize_t validate_show(struct kmem_cache *s, char *buf)
+ static ssize_t min_partial_show(struct kmem_cache *s, char *buf)
  {
 _
 
