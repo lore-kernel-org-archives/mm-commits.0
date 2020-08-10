@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 266C0C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EF85C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E367920773
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:37:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52C4C2078D
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:38:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027079;
-	bh=G9n1DVOXHouzk/fpWZSL7PCWMIAN7B3DloP4DNJFxJo=;
+	s=default; t=1597027083;
+	bh=dgkNeaUFIgO2ECK7VDwXzilQvQ5Za4M7NnXmr9shwcI=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=s0GCyuKKsi7xVR6G0NRrBZFianxget5Yr5LYfHaWPSxsZuN/0FIMZkQaYOTJp+pTY
-	 9cie18i82MqfJHar/zp2EnC4vxRnCkZ85csgpdGDC+BEwjJWNv/MKfYC57WJkTF0/d
-	 JdvztKpxcjXUTEibsPenWyArTjJciIAjkP3fbB1U=
+	b=htdq9qskpQBpVihS64u4mrcEdn7rUEbs4elcWOoeBU5Hmo56IJAiM5WBsRy/fpJem
+	 U1xENhDd2inDX6pvKAv5FVtSQ4+DMesFiY8++3Aesg+SoNggHiS/pahT/Lymz8hJYy
+	 27G+YQ5tDuKjSY827xFa1Z/nALQaW8pQNrZ4SlOw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726401AbgHJCh6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:37:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41102 "EHLO mail.kernel.org"
+        id S1726338AbgHJCiD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:38:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41152 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCh6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:37:58 -0400
+        id S1726219AbgHJCiC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:38:02 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BA9132076C;
-        Mon, 10 Aug 2020 02:37:56 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BDB6E2073E;
+        Mon, 10 Aug 2020 02:37:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027077;
-        bh=G9n1DVOXHouzk/fpWZSL7PCWMIAN7B3DloP4DNJFxJo=;
+        s=default; t=1597027080;
+        bh=dgkNeaUFIgO2ECK7VDwXzilQvQ5Za4M7NnXmr9shwcI=;
         h=Date:From:To:Subject:From;
-        b=g6UJU0+auUDhGB8W1czidktAwtffW5QgxOwnjdHSZY5KutN4LmFHJQHPAHk3t7GuN
-         yTt0nUidgVVB28mE1j+DisDgRFxLAlpsTAt83dZLIgzNj7ThbyNqehi0Azs3QEwXV9
-         a59rkgW5GbYJT5hMLOqmDb2DrxrcMy9ZScE1ZGWo=
-Date:   Sun, 09 Aug 2020 19:37:56 -0700
+        b=yOuwq/EDaLLVjmUPMTYS/IbKjyilhMpkFo9KWRUtEf7m2VI1528ULApWDXBwttMLM
+         0LtTPVgsdd9TOcLLXWCdMpmZB/HiSlIJl946p6ghaNUEjveNMfnaB3v547uRMSnXvE
+         /LzrYHR5B/9pLiKP7/6m1jz+RhFXzY4oboypmmTo=
+Date:   Sun, 09 Aug 2020 19:37:59 -0700
 From:   akpm@linux-foundation.org
-To:     abdhalee@linux.vnet.ibm.com, arnd@arndb.de,
-        christophe.leroy@csgroup.eu, geert@linux-m68k.org,
+To:     abdhalee@linux.vnet.ibm.com, akpm@linux-foundation.org,
+        arnd@arndb.de, christophe.leroy@csgroup.eu, geert@linux-m68k.org,
         jcmvbkbc@gmail.com, joro@8bytes.org, jroedel@suse.de,
         luto@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org,
         peterz@infradead.org, rostedt@goodmis.org, rppt@linux.ibm.com,
         sathnaga@linux.vnet.ibm.com, sfr@canb.auug.org.au,
         shorne@gmail.com, willy@infradead.org
-Subject:  [merged]
- asm-generic-pgalloc-provide-generic-pgd_free.patch removed from -mm tree
-Message-ID: <20200810023756.rJK9_Hw4G%akpm@linux-foundation.org>
+Subject:  [merged] mm-move-lib-ioremapc-to-mm.patch removed from
+ -mm tree
+Message-ID: <20200810023759.5yZ3_YAat%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -59,24 +59,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: asm-generic: pgalloc: provide generic pgd_free()
+     Subject: mm: move lib/ioremap.c to mm/
 has been removed from the -mm tree.  Its filename was
-     asm-generic-pgalloc-provide-generic-pgd_free.patch
+     mm-move-lib-ioremapc-to-mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: asm-generic: pgalloc: provide generic pgd_free()
+Subject: mm: move lib/ioremap.c to mm/
 
-Most architectures define pgd_free() as a wrapper for free_page().
+The functionality in lib/ioremap.c deals with pagetables, vmalloc and
+caches, so it naturally belongs to mm/ Moving it there will also allow
+declaring p?d_alloc_track functions in an header file inside mm/ rather
+than having those declarations in include/linux/mm.h
 
-Provide a generic version in asm-generic/pgalloc.h and enable its use for
-most architectures.
-
-Link: http://lkml.kernel.org/r/20200627143453.31835-7-rppt@kernel.org
+Link: http://lkml.kernel.org/r/20200627143453.31835-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>	[m68k]
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Pekka Enberg <penberg@kernel.org>
 Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -90,308 +90,618 @@ Cc: Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>
 Cc: Stafford Horne <shorne@gmail.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/pgalloc.h      |    6 ------
- arch/arm/include/asm/pgalloc.h        |    1 +
- arch/arm64/include/asm/pgalloc.h      |    1 +
- arch/csky/include/asm/pgalloc.h       |    7 +------
- arch/hexagon/include/asm/pgalloc.h    |    7 +------
- arch/ia64/include/asm/pgalloc.h       |    5 -----
- arch/m68k/include/asm/sun3_pgalloc.h  |    7 +------
- arch/microblaze/include/asm/pgalloc.h |    6 ------
- arch/mips/include/asm/pgalloc.h       |    5 -----
- arch/nds32/mm/mm-nds32.c              |    2 ++
- arch/nios2/include/asm/pgalloc.h      |    7 +------
- arch/parisc/include/asm/pgalloc.h     |    1 +
- arch/riscv/include/asm/pgalloc.h      |    5 -----
- arch/sh/include/asm/pgalloc.h         |    1 +
- arch/um/include/asm/pgalloc.h         |    1 -
- arch/um/kernel/mem.c                  |    5 -----
- arch/x86/include/asm/pgalloc.h        |    1 +
- arch/xtensa/include/asm/pgalloc.h     |    5 -----
- include/asm-generic/pgalloc.h         |    7 +++++++
- 19 files changed, 18 insertions(+), 62 deletions(-)
+ lib/Makefile  |    1 
+ lib/ioremap.c |  287 ------------------------------------------------
+ mm/Makefile   |    2 
+ mm/ioremap.c  |  287 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 288 insertions(+), 289 deletions(-)
 
---- a/arch/alpha/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/alpha/include/asm/pgalloc.h
-@@ -34,10 +34,4 @@ pud_populate(struct mm_struct *mm, pud_t
- 
- extern pgd_t *pgd_alloc(struct mm_struct *mm);
- 
--static inline void
--pgd_free(struct mm_struct *mm, pgd_t *pgd)
+--- a/lib/ioremap.c
++++ /dev/null
+@@ -1,287 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- * Re-map IO memory to kernel address space so that we can access it.
+- * This is needed for high PCI addresses that aren't mapped in the
+- * 640k-1MB IO memory area on PC's
+- *
+- * (C) Copyright 1995 1996 Linus Torvalds
+- */
+-#include <linux/vmalloc.h>
+-#include <linux/mm.h>
+-#include <linux/sched.h>
+-#include <linux/io.h>
+-#include <linux/export.h>
+-#include <asm/cacheflush.h>
+-
+-#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+-static int __read_mostly ioremap_p4d_capable;
+-static int __read_mostly ioremap_pud_capable;
+-static int __read_mostly ioremap_pmd_capable;
+-static int __read_mostly ioremap_huge_disabled;
+-
+-static int __init set_nohugeiomap(char *str)
 -{
--	free_page((unsigned long)pgd);
+-	ioremap_huge_disabled = 1;
+-	return 0;
+-}
+-early_param("nohugeiomap", set_nohugeiomap);
+-
+-void __init ioremap_huge_init(void)
+-{
+-	if (!ioremap_huge_disabled) {
+-		if (arch_ioremap_p4d_supported())
+-			ioremap_p4d_capable = 1;
+-		if (arch_ioremap_pud_supported())
+-			ioremap_pud_capable = 1;
+-		if (arch_ioremap_pmd_supported())
+-			ioremap_pmd_capable = 1;
+-	}
 -}
 -
- #endif /* _ALPHA_PGALLOC_H */
---- a/arch/arm64/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/arm64/include/asm/pgalloc.h
-@@ -13,6 +13,7 @@
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
- 
-+#define __HAVE_ARCH_PGD_FREE
- #include <asm-generic/pgalloc.h>
- 
- #define PGD_SIZE	(PTRS_PER_PGD * sizeof(pgd_t))
---- a/arch/arm/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/arm/include/asm/pgalloc.h
-@@ -65,6 +65,7 @@ static inline void clean_pte_table(pte_t
- 
- #define __HAVE_ARCH_PTE_ALLOC_ONE_KERNEL
- #define __HAVE_ARCH_PTE_ALLOC_ONE
-+#define __HAVE_ARCH_PGD_FREE
- #include <asm-generic/pgalloc.h>
- 
- static inline pte_t *
---- a/arch/csky/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/csky/include/asm/pgalloc.h
-@@ -9,7 +9,7 @@
- #include <linux/sched.h>
- 
- #define __HAVE_ARCH_PTE_ALLOC_ONE_KERNEL
--#include <asm-generic/pgalloc.h>	/* for pte_{alloc,free}_one */
-+#include <asm-generic/pgalloc.h>
- 
- static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd,
- 					pte_t *pte)
-@@ -42,11 +42,6 @@ static inline pte_t *pte_alloc_one_kerne
- 	return pte;
- }
- 
--static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+-static inline int ioremap_p4d_enabled(void)
 -{
--	free_pages((unsigned long)pgd, PGD_ORDER);
+-	return ioremap_p4d_capable;
 -}
 -
- static inline pgd_t *pgd_alloc(struct mm_struct *mm)
- {
- 	pgd_t *ret;
---- a/arch/hexagon/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/hexagon/include/asm/pgalloc.h
-@@ -11,7 +11,7 @@
- #include <asm/mem-layout.h>
- #include <asm/atomic.h>
- 
--#include <asm-generic/pgalloc.h>	/* for pte_{alloc,free}_one */
-+#include <asm-generic/pgalloc.h>
- 
- extern unsigned long long kmap_generation;
- 
-@@ -41,11 +41,6 @@ static inline pgd_t *pgd_alloc(struct mm
- 	return pgd;
- }
- 
--static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+-static inline int ioremap_pud_enabled(void)
 -{
--	free_page((unsigned long) pgd);
+-	return ioremap_pud_capable;
 -}
 -
- static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd,
- 				pgtable_t pte)
- {
---- a/arch/ia64/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/ia64/include/asm/pgalloc.h
-@@ -29,11 +29,6 @@ static inline pgd_t *pgd_alloc(struct mm
- 	return (pgd_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
- }
- 
--static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+-static inline int ioremap_pmd_enabled(void)
 -{
--	free_page((unsigned long)pgd);
+-	return ioremap_pmd_capable;
 -}
 -
- #if CONFIG_PGTABLE_LEVELS == 4
- static inline void
- p4d_populate(struct mm_struct *mm, p4d_t * p4d_entry, pud_t * pud)
---- a/arch/m68k/include/asm/sun3_pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/m68k/include/asm/sun3_pgalloc.h
-@@ -13,7 +13,7 @@
- 
- #include <asm/tlb.h>
- 
--#include <asm-generic/pgalloc.h>	/* for pte_{alloc,free}_one */
-+#include <asm-generic/pgalloc.h>
- 
- extern const char bad_pmd_string[];
- 
-@@ -40,11 +40,6 @@ static inline void pmd_populate(struct m
-  */
- #define pmd_free(mm, x)			do { } while (0)
- 
--static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+-#else	/* !CONFIG_HAVE_ARCH_HUGE_VMAP */
+-static inline int ioremap_p4d_enabled(void) { return 0; }
+-static inline int ioremap_pud_enabled(void) { return 0; }
+-static inline int ioremap_pmd_enabled(void) { return 0; }
+-#endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+-
+-static int ioremap_pte_range(pmd_t *pmd, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
+-		pgtbl_mod_mask *mask)
 -{
--        free_page((unsigned long) pgd);
+-	pte_t *pte;
+-	u64 pfn;
+-
+-	pfn = phys_addr >> PAGE_SHIFT;
+-	pte = pte_alloc_kernel_track(pmd, addr, mask);
+-	if (!pte)
+-		return -ENOMEM;
+-	do {
+-		BUG_ON(!pte_none(*pte));
+-		set_pte_at(&init_mm, addr, pte, pfn_pte(pfn, prot));
+-		pfn++;
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	*mask |= PGTBL_PTE_MODIFIED;
+-	return 0;
 -}
 -
- static inline pgd_t * pgd_alloc(struct mm_struct *mm)
- {
-      pgd_t *new_pgd;
---- a/arch/microblaze/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/microblaze/include/asm/pgalloc.h
-@@ -28,12 +28,6 @@ static inline pgd_t *get_pgd(void)
- 	return (pgd_t *)__get_free_pages(GFP_KERNEL|__GFP_ZERO, 0);
- }
- 
--static inline void free_pgd(pgd_t *pgd)
+-static int ioremap_try_huge_pmd(pmd_t *pmd, unsigned long addr,
+-				unsigned long end, phys_addr_t phys_addr,
+-				pgprot_t prot)
 -{
--	free_page((unsigned long)pgd);
+-	if (!ioremap_pmd_enabled())
+-		return 0;
+-
+-	if ((end - addr) != PMD_SIZE)
+-		return 0;
+-
+-	if (!IS_ALIGNED(addr, PMD_SIZE))
+-		return 0;
+-
+-	if (!IS_ALIGNED(phys_addr, PMD_SIZE))
+-		return 0;
+-
+-	if (pmd_present(*pmd) && !pmd_free_pte_page(pmd, addr))
+-		return 0;
+-
+-	return pmd_set_huge(pmd, phys_addr, prot);
 -}
 -
--#define pgd_free(mm, pgd)	free_pgd(pgd)
- #define pgd_alloc(mm)		get_pgd()
- 
- #define pmd_pgtable(pmd)	pmd_page(pmd)
---- a/arch/mips/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/mips/include/asm/pgalloc.h
-@@ -49,11 +49,6 @@ static inline void pud_populate(struct m
- extern void pgd_init(unsigned long page);
- extern pgd_t *pgd_alloc(struct mm_struct *mm);
- 
--static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+-static inline int ioremap_pmd_range(pud_t *pud, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
+-		pgtbl_mod_mask *mask)
 -{
--	free_pages((unsigned long)pgd, PGD_ORDER);
+-	pmd_t *pmd;
+-	unsigned long next;
+-
+-	pmd = pmd_alloc_track(&init_mm, pud, addr, mask);
+-	if (!pmd)
+-		return -ENOMEM;
+-	do {
+-		next = pmd_addr_end(addr, end);
+-
+-		if (ioremap_try_huge_pmd(pmd, addr, next, phys_addr, prot)) {
+-			*mask |= PGTBL_PMD_MODIFIED;
+-			continue;
+-		}
+-
+-		if (ioremap_pte_range(pmd, addr, next, phys_addr, prot, mask))
+-			return -ENOMEM;
+-	} while (pmd++, phys_addr += (next - addr), addr = next, addr != end);
+-	return 0;
 -}
 -
- #define __pte_free_tlb(tlb,pte,address)			\
- do {							\
- 	pgtable_pte_page_dtor(pte);			\
---- a/arch/nds32/mm/mm-nds32.c~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/nds32/mm/mm-nds32.c
-@@ -2,6 +2,8 @@
- // Copyright (C) 2005-2017 Andes Technology Corporation
+-static int ioremap_try_huge_pud(pud_t *pud, unsigned long addr,
+-				unsigned long end, phys_addr_t phys_addr,
+-				pgprot_t prot)
+-{
+-	if (!ioremap_pud_enabled())
+-		return 0;
+-
+-	if ((end - addr) != PUD_SIZE)
+-		return 0;
+-
+-	if (!IS_ALIGNED(addr, PUD_SIZE))
+-		return 0;
+-
+-	if (!IS_ALIGNED(phys_addr, PUD_SIZE))
+-		return 0;
+-
+-	if (pud_present(*pud) && !pud_free_pmd_page(pud, addr))
+-		return 0;
+-
+-	return pud_set_huge(pud, phys_addr, prot);
+-}
+-
+-static inline int ioremap_pud_range(p4d_t *p4d, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
+-		pgtbl_mod_mask *mask)
+-{
+-	pud_t *pud;
+-	unsigned long next;
+-
+-	pud = pud_alloc_track(&init_mm, p4d, addr, mask);
+-	if (!pud)
+-		return -ENOMEM;
+-	do {
+-		next = pud_addr_end(addr, end);
+-
+-		if (ioremap_try_huge_pud(pud, addr, next, phys_addr, prot)) {
+-			*mask |= PGTBL_PUD_MODIFIED;
+-			continue;
+-		}
+-
+-		if (ioremap_pmd_range(pud, addr, next, phys_addr, prot, mask))
+-			return -ENOMEM;
+-	} while (pud++, phys_addr += (next - addr), addr = next, addr != end);
+-	return 0;
+-}
+-
+-static int ioremap_try_huge_p4d(p4d_t *p4d, unsigned long addr,
+-				unsigned long end, phys_addr_t phys_addr,
+-				pgprot_t prot)
+-{
+-	if (!ioremap_p4d_enabled())
+-		return 0;
+-
+-	if ((end - addr) != P4D_SIZE)
+-		return 0;
+-
+-	if (!IS_ALIGNED(addr, P4D_SIZE))
+-		return 0;
+-
+-	if (!IS_ALIGNED(phys_addr, P4D_SIZE))
+-		return 0;
+-
+-	if (p4d_present(*p4d) && !p4d_free_pud_page(p4d, addr))
+-		return 0;
+-
+-	return p4d_set_huge(p4d, phys_addr, prot);
+-}
+-
+-static inline int ioremap_p4d_range(pgd_t *pgd, unsigned long addr,
+-		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
+-		pgtbl_mod_mask *mask)
+-{
+-	p4d_t *p4d;
+-	unsigned long next;
+-
+-	p4d = p4d_alloc_track(&init_mm, pgd, addr, mask);
+-	if (!p4d)
+-		return -ENOMEM;
+-	do {
+-		next = p4d_addr_end(addr, end);
+-
+-		if (ioremap_try_huge_p4d(p4d, addr, next, phys_addr, prot)) {
+-			*mask |= PGTBL_P4D_MODIFIED;
+-			continue;
+-		}
+-
+-		if (ioremap_pud_range(p4d, addr, next, phys_addr, prot, mask))
+-			return -ENOMEM;
+-	} while (p4d++, phys_addr += (next - addr), addr = next, addr != end);
+-	return 0;
+-}
+-
+-int ioremap_page_range(unsigned long addr,
+-		       unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
+-{
+-	pgd_t *pgd;
+-	unsigned long start;
+-	unsigned long next;
+-	int err;
+-	pgtbl_mod_mask mask = 0;
+-
+-	might_sleep();
+-	BUG_ON(addr >= end);
+-
+-	start = addr;
+-	pgd = pgd_offset_k(addr);
+-	do {
+-		next = pgd_addr_end(addr, end);
+-		err = ioremap_p4d_range(pgd, addr, next, phys_addr, prot,
+-					&mask);
+-		if (err)
+-			break;
+-	} while (pgd++, phys_addr += (next - addr), addr = next, addr != end);
+-
+-	flush_cache_vmap(start, end);
+-
+-	if (mask & ARCH_PAGE_TABLE_SYNC_MASK)
+-		arch_sync_kernel_mappings(start, end);
+-
+-	return err;
+-}
+-
+-#ifdef CONFIG_GENERIC_IOREMAP
+-void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot)
+-{
+-	unsigned long offset, vaddr;
+-	phys_addr_t last_addr;
+-	struct vm_struct *area;
+-
+-	/* Disallow wrap-around or zero size */
+-	last_addr = addr + size - 1;
+-	if (!size || last_addr < addr)
+-		return NULL;
+-
+-	/* Page-align mappings */
+-	offset = addr & (~PAGE_MASK);
+-	addr -= offset;
+-	size = PAGE_ALIGN(size + offset);
+-
+-	area = get_vm_area_caller(size, VM_IOREMAP,
+-			__builtin_return_address(0));
+-	if (!area)
+-		return NULL;
+-	vaddr = (unsigned long)area->addr;
+-
+-	if (ioremap_page_range(vaddr, vaddr + size, addr, __pgprot(prot))) {
+-		free_vm_area(area);
+-		return NULL;
+-	}
+-
+-	return (void __iomem *)(vaddr + offset);
+-}
+-EXPORT_SYMBOL(ioremap_prot);
+-
+-void iounmap(volatile void __iomem *addr)
+-{
+-	vunmap((void *)((unsigned long)addr & PAGE_MASK));
+-}
+-EXPORT_SYMBOL(iounmap);
+-#endif /* CONFIG_GENERIC_IOREMAP */
+--- a/lib/Makefile~mm-move-lib-ioremapc-to-mm
++++ a/lib/Makefile
+@@ -37,7 +37,6 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 nmi_backtrace.o nodemask.o win_minmax.o memcat_p.o
  
- #include <linux/init_task.h>
+ lib-$(CONFIG_PRINTK) += dump_stack.o
+-lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
+ 
+ lib-y	+= kobject.o klist.o
+--- /dev/null
++++ a/mm/ioremap.c
+@@ -0,0 +1,287 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Re-map IO memory to kernel address space so that we can access it.
++ * This is needed for high PCI addresses that aren't mapped in the
++ * 640k-1MB IO memory area on PC's
++ *
++ * (C) Copyright 1995 1996 Linus Torvalds
++ */
++#include <linux/vmalloc.h>
++#include <linux/mm.h>
++#include <linux/sched.h>
++#include <linux/io.h>
++#include <linux/export.h>
++#include <asm/cacheflush.h>
 +
-+#define __HAVE_ARCH_PGD_FREE
- #include <asm/pgalloc.h>
- 
- #define FIRST_KERNEL_PGD_NR	(USER_PTRS_PER_PGD)
---- a/arch/nios2/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/nios2/include/asm/pgalloc.h
-@@ -12,7 +12,7 @@
- 
- #include <linux/mm.h>
- 
--#include <asm-generic/pgalloc.h>	/* for pte_{alloc,free}_one */
-+#include <asm-generic/pgalloc.h>
- 
- static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd,
- 	pte_t *pte)
-@@ -34,11 +34,6 @@ extern void pmd_init(unsigned long page,
- 
- extern pgd_t *pgd_alloc(struct mm_struct *mm);
- 
--static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
--{
--	free_pages((unsigned long)pgd, PGD_ORDER);
--}
--
- #define __pte_free_tlb(tlb, pte, addr)				\
- 	do {							\
- 		pgtable_pte_page_dtor(pte);			\
---- a/arch/parisc/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/parisc/include/asm/pgalloc.h
-@@ -11,6 +11,7 @@
- #include <asm/cache.h>
- 
- #define __HAVE_ARCH_PMD_FREE
-+#define __HAVE_ARCH_PGD_FREE
- #include <asm-generic/pgalloc.h>
- 
- /* Allocate the top level pgd (page directory)
---- a/arch/riscv/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/riscv/include/asm/pgalloc.h
-@@ -55,11 +55,6 @@ static inline pgd_t *pgd_alloc(struct mm
- 	return pgd;
- }
- 
--static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
--{
--	free_page((unsigned long)pgd);
--}
--
- #ifndef __PAGETABLE_PMD_FOLDED
- 
- #define __pmd_free_tlb(tlb, pmd, addr)  pmd_free((tlb)->mm, pmd)
---- a/arch/sh/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/sh/include/asm/pgalloc.h
-@@ -6,6 +6,7 @@
- 
- #define __HAVE_ARCH_PMD_ALLOC_ONE
- #define __HAVE_ARCH_PMD_FREE
-+#define __HAVE_ARCH_PGD_FREE
- #include <asm-generic/pgalloc.h>
- 
- extern pgd_t *pgd_alloc(struct mm_struct *);
---- a/arch/um/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/um/include/asm/pgalloc.h
-@@ -25,7 +25,6 @@
-  * Allocate and free page tables.
-  */
- extern pgd_t *pgd_alloc(struct mm_struct *);
--extern void pgd_free(struct mm_struct *mm, pgd_t *pgd);
- 
- #define __pte_free_tlb(tlb,pte, address)		\
- do {							\
---- a/arch/um/kernel/mem.c~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/um/kernel/mem.c
-@@ -196,11 +196,6 @@ pgd_t *pgd_alloc(struct mm_struct *mm)
- 	return pgd;
- }
- 
--void pgd_free(struct mm_struct *mm, pgd_t *pgd)
--{
--	free_page((unsigned long) pgd);
--}
--
- void *uml_kmalloc(int size, int flags)
- {
- 	return kmalloc(size, flags);
---- a/arch/x86/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/x86/include/asm/pgalloc.h
-@@ -7,6 +7,7 @@
- #include <linux/pagemap.h>
- 
- #define __HAVE_ARCH_PTE_ALLOC_ONE
-+#define __HAVE_ARCH_PGD_FREE
- #include <asm-generic/pgalloc.h>
- 
- static inline int  __paravirt_pgd_alloc(struct mm_struct *mm) { return 0; }
---- a/arch/xtensa/include/asm/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/arch/xtensa/include/asm/pgalloc.h
-@@ -33,11 +33,6 @@ pgd_alloc(struct mm_struct *mm)
- 	return (pgd_t*) __get_free_pages(GFP_KERNEL | __GFP_ZERO, PGD_ORDER);
- }
- 
--static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
--{
--	free_page((unsigned long)pgd);
--}
--
- static inline void ptes_clear(pte_t *ptep)
- {
- 	int i;
---- a/include/asm-generic/pgalloc.h~asm-generic-pgalloc-provide-generic-pgd_free
-+++ a/include/asm-generic/pgalloc.h
-@@ -175,6 +175,13 @@ static inline void pud_free(struct mm_st
- 
- #endif /* CONFIG_PGTABLE_LEVELS > 3 */
- 
-+#ifndef __HAVE_ARCH_PGD_FREE
-+static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
++#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
++static int __read_mostly ioremap_p4d_capable;
++static int __read_mostly ioremap_pud_capable;
++static int __read_mostly ioremap_pmd_capable;
++static int __read_mostly ioremap_huge_disabled;
++
++static int __init set_nohugeiomap(char *str)
 +{
-+	free_page((unsigned long)pgd);
++	ioremap_huge_disabled = 1;
++	return 0;
 +}
-+#endif
++early_param("nohugeiomap", set_nohugeiomap);
 +
- #endif /* CONFIG_MMU */
++void __init ioremap_huge_init(void)
++{
++	if (!ioremap_huge_disabled) {
++		if (arch_ioremap_p4d_supported())
++			ioremap_p4d_capable = 1;
++		if (arch_ioremap_pud_supported())
++			ioremap_pud_capable = 1;
++		if (arch_ioremap_pmd_supported())
++			ioremap_pmd_capable = 1;
++	}
++}
++
++static inline int ioremap_p4d_enabled(void)
++{
++	return ioremap_p4d_capable;
++}
++
++static inline int ioremap_pud_enabled(void)
++{
++	return ioremap_pud_capable;
++}
++
++static inline int ioremap_pmd_enabled(void)
++{
++	return ioremap_pmd_capable;
++}
++
++#else	/* !CONFIG_HAVE_ARCH_HUGE_VMAP */
++static inline int ioremap_p4d_enabled(void) { return 0; }
++static inline int ioremap_pud_enabled(void) { return 0; }
++static inline int ioremap_pmd_enabled(void) { return 0; }
++#endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
++
++static int ioremap_pte_range(pmd_t *pmd, unsigned long addr,
++		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
++		pgtbl_mod_mask *mask)
++{
++	pte_t *pte;
++	u64 pfn;
++
++	pfn = phys_addr >> PAGE_SHIFT;
++	pte = pte_alloc_kernel_track(pmd, addr, mask);
++	if (!pte)
++		return -ENOMEM;
++	do {
++		BUG_ON(!pte_none(*pte));
++		set_pte_at(&init_mm, addr, pte, pfn_pte(pfn, prot));
++		pfn++;
++	} while (pte++, addr += PAGE_SIZE, addr != end);
++	*mask |= PGTBL_PTE_MODIFIED;
++	return 0;
++}
++
++static int ioremap_try_huge_pmd(pmd_t *pmd, unsigned long addr,
++				unsigned long end, phys_addr_t phys_addr,
++				pgprot_t prot)
++{
++	if (!ioremap_pmd_enabled())
++		return 0;
++
++	if ((end - addr) != PMD_SIZE)
++		return 0;
++
++	if (!IS_ALIGNED(addr, PMD_SIZE))
++		return 0;
++
++	if (!IS_ALIGNED(phys_addr, PMD_SIZE))
++		return 0;
++
++	if (pmd_present(*pmd) && !pmd_free_pte_page(pmd, addr))
++		return 0;
++
++	return pmd_set_huge(pmd, phys_addr, prot);
++}
++
++static inline int ioremap_pmd_range(pud_t *pud, unsigned long addr,
++		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
++		pgtbl_mod_mask *mask)
++{
++	pmd_t *pmd;
++	unsigned long next;
++
++	pmd = pmd_alloc_track(&init_mm, pud, addr, mask);
++	if (!pmd)
++		return -ENOMEM;
++	do {
++		next = pmd_addr_end(addr, end);
++
++		if (ioremap_try_huge_pmd(pmd, addr, next, phys_addr, prot)) {
++			*mask |= PGTBL_PMD_MODIFIED;
++			continue;
++		}
++
++		if (ioremap_pte_range(pmd, addr, next, phys_addr, prot, mask))
++			return -ENOMEM;
++	} while (pmd++, phys_addr += (next - addr), addr = next, addr != end);
++	return 0;
++}
++
++static int ioremap_try_huge_pud(pud_t *pud, unsigned long addr,
++				unsigned long end, phys_addr_t phys_addr,
++				pgprot_t prot)
++{
++	if (!ioremap_pud_enabled())
++		return 0;
++
++	if ((end - addr) != PUD_SIZE)
++		return 0;
++
++	if (!IS_ALIGNED(addr, PUD_SIZE))
++		return 0;
++
++	if (!IS_ALIGNED(phys_addr, PUD_SIZE))
++		return 0;
++
++	if (pud_present(*pud) && !pud_free_pmd_page(pud, addr))
++		return 0;
++
++	return pud_set_huge(pud, phys_addr, prot);
++}
++
++static inline int ioremap_pud_range(p4d_t *p4d, unsigned long addr,
++		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
++		pgtbl_mod_mask *mask)
++{
++	pud_t *pud;
++	unsigned long next;
++
++	pud = pud_alloc_track(&init_mm, p4d, addr, mask);
++	if (!pud)
++		return -ENOMEM;
++	do {
++		next = pud_addr_end(addr, end);
++
++		if (ioremap_try_huge_pud(pud, addr, next, phys_addr, prot)) {
++			*mask |= PGTBL_PUD_MODIFIED;
++			continue;
++		}
++
++		if (ioremap_pmd_range(pud, addr, next, phys_addr, prot, mask))
++			return -ENOMEM;
++	} while (pud++, phys_addr += (next - addr), addr = next, addr != end);
++	return 0;
++}
++
++static int ioremap_try_huge_p4d(p4d_t *p4d, unsigned long addr,
++				unsigned long end, phys_addr_t phys_addr,
++				pgprot_t prot)
++{
++	if (!ioremap_p4d_enabled())
++		return 0;
++
++	if ((end - addr) != P4D_SIZE)
++		return 0;
++
++	if (!IS_ALIGNED(addr, P4D_SIZE))
++		return 0;
++
++	if (!IS_ALIGNED(phys_addr, P4D_SIZE))
++		return 0;
++
++	if (p4d_present(*p4d) && !p4d_free_pud_page(p4d, addr))
++		return 0;
++
++	return p4d_set_huge(p4d, phys_addr, prot);
++}
++
++static inline int ioremap_p4d_range(pgd_t *pgd, unsigned long addr,
++		unsigned long end, phys_addr_t phys_addr, pgprot_t prot,
++		pgtbl_mod_mask *mask)
++{
++	p4d_t *p4d;
++	unsigned long next;
++
++	p4d = p4d_alloc_track(&init_mm, pgd, addr, mask);
++	if (!p4d)
++		return -ENOMEM;
++	do {
++		next = p4d_addr_end(addr, end);
++
++		if (ioremap_try_huge_p4d(p4d, addr, next, phys_addr, prot)) {
++			*mask |= PGTBL_P4D_MODIFIED;
++			continue;
++		}
++
++		if (ioremap_pud_range(p4d, addr, next, phys_addr, prot, mask))
++			return -ENOMEM;
++	} while (p4d++, phys_addr += (next - addr), addr = next, addr != end);
++	return 0;
++}
++
++int ioremap_page_range(unsigned long addr,
++		       unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
++{
++	pgd_t *pgd;
++	unsigned long start;
++	unsigned long next;
++	int err;
++	pgtbl_mod_mask mask = 0;
++
++	might_sleep();
++	BUG_ON(addr >= end);
++
++	start = addr;
++	pgd = pgd_offset_k(addr);
++	do {
++		next = pgd_addr_end(addr, end);
++		err = ioremap_p4d_range(pgd, addr, next, phys_addr, prot,
++					&mask);
++		if (err)
++			break;
++	} while (pgd++, phys_addr += (next - addr), addr = next, addr != end);
++
++	flush_cache_vmap(start, end);
++
++	if (mask & ARCH_PAGE_TABLE_SYNC_MASK)
++		arch_sync_kernel_mappings(start, end);
++
++	return err;
++}
++
++#ifdef CONFIG_GENERIC_IOREMAP
++void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot)
++{
++	unsigned long offset, vaddr;
++	phys_addr_t last_addr;
++	struct vm_struct *area;
++
++	/* Disallow wrap-around or zero size */
++	last_addr = addr + size - 1;
++	if (!size || last_addr < addr)
++		return NULL;
++
++	/* Page-align mappings */
++	offset = addr & (~PAGE_MASK);
++	addr -= offset;
++	size = PAGE_ALIGN(size + offset);
++
++	area = get_vm_area_caller(size, VM_IOREMAP,
++			__builtin_return_address(0));
++	if (!area)
++		return NULL;
++	vaddr = (unsigned long)area->addr;
++
++	if (ioremap_page_range(vaddr, vaddr + size, addr, __pgprot(prot))) {
++		free_vm_area(area);
++		return NULL;
++	}
++
++	return (void __iomem *)(vaddr + offset);
++}
++EXPORT_SYMBOL(ioremap_prot);
++
++void iounmap(volatile void __iomem *addr)
++{
++	vunmap((void *)((unsigned long)addr & PAGE_MASK));
++}
++EXPORT_SYMBOL(iounmap);
++#endif /* CONFIG_GENERIC_IOREMAP */
+--- a/mm/Makefile~mm-move-lib-ioremapc-to-mm
++++ a/mm/Makefile
+@@ -38,7 +38,7 @@ mmu-y			:= nommu.o
+ mmu-$(CONFIG_MMU)	:= highmem.o memory.o mincore.o \
+ 			   mlock.o mmap.o mmu_gather.o mprotect.o mremap.o \
+ 			   msync.o page_vma_mapped.o pagewalk.o \
+-			   pgtable-generic.o rmap.o vmalloc.o
++			   pgtable-generic.o rmap.o vmalloc.o ioremap.o
  
- #endif /* __ASM_GENERIC_PGALLOC_H */
+ 
+ ifdef CONFIG_CROSS_MEMORY_ATTACH
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
