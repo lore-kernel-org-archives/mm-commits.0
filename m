@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC3AAC433E1
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B78F7C433DF
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A3B1D20723
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D75C20723
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:36:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027000;
-	bh=yFa1TqIJ3qaViVZuAdSGXz2XeUpaeNAPFaMxJQqiWN8=;
+	s=default; t=1597027001;
+	bh=8EsxySbn0EzpY8xMeV/mNvTESTZXP9QwDmH4rSb9QEo=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=p39la7UMTDgiluMTlMwk0EGNdfGFa3EB6AaSnIZOy65fl2WYiM1hV+VonFYZIOtGt
-	 yxU6Rlsl4EqFyV8WwZENFzIjT4ieeu7i/t7p5NMIrF99HQ320CxY6j5PccHM8K6Mwj
-	 IzK1WVBRa6RYxkjF1aS/9cLqhylyZDrytfcsnKDk=
+	b=pbGgt+SDd6id4bi+ezCYerAIRZSbI/z56RX981db1Ve0754cYIdXt1O4crCpooYbU
+	 P8oDWbVSozrrmTvouWty+rCdhYTLm1V+4oBVevUw6wHncsf8egoK2sZPSl96wxi2ZU
+	 eXaFMc7rceeNzn1Kc3sFEsNEjUbrvt3BReq4krKU=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726350AbgHJCgk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:36:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39722 "EHLO mail.kernel.org"
+        id S1726428AbgHJCgl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:36:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39762 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726446AbgHJCgj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:36:39 -0400
+        id S1726219AbgHJCgl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:36:41 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 92A5C206CD;
-        Mon, 10 Aug 2020 02:36:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8BCBE2065D;
+        Mon, 10 Aug 2020 02:36:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026997;
-        bh=yFa1TqIJ3qaViVZuAdSGXz2XeUpaeNAPFaMxJQqiWN8=;
+        s=default; t=1597026999;
+        bh=8EsxySbn0EzpY8xMeV/mNvTESTZXP9QwDmH4rSb9QEo=;
         h=Date:From:To:Subject:From;
-        b=wCxdNbsmPzCKUhv/2tJttuXQpKi0Vq8QbybvZlCzgw4AbaCcThFbftJ6GK5vWMNxs
-         x5CTGpjmY6wcpnsXkPejljIpkxbjc8c1KuHhKJVLAIcrDMQot87ZlViT1IwITjdM5D
-         0Rz32EZXXASCMtdhJPW4Kj9EwJdQMa+f6pa6HH+A=
-Date:   Sun, 09 Aug 2020 19:36:37 -0700
+        b=mXPoSoFpwCLYoCOoO4VHzey1f8Jq3ioxUFrWGZmP2Xh8FCTUHz4GRlGdcrR0WlMe/
+         9uXlj5Z2aEuetkS2hoYPMLvlYnOXTKOLhVR7KbFexhtHJGkWR1hFq+zjnpF4bgjpbo
+         g88w0plrOyiP7XT/gnbESego747CBOvXZzNTERqE=
+Date:   Sun, 09 Aug 2020 19:36:39 -0700
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
         mm-commits@vger.kernel.org, shakeelb@google.com, tj@kernel.org,
         vbabka@suse.cz
 Subject:  [merged]
- mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch removed
- from -mm tree
-Message-ID: <20200810023637.Ye-MT7wAw%akpm@linux-foundation.org>
+ mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch removed from
+ -mm tree
+Message-ID: <20200810023639.wAxbhSZ2Z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,34 +56,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg/slab: allocate obj_cgroups for non-root slab pages
+     Subject: mm: memcg/slab: save obj_cgroup for non-root slab objects
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages.patch
+     mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg/slab: allocate obj_cgroups for non-root slab pages
+Subject: mm: memcg/slab: save obj_cgroup for non-root slab objects
 
-Allocate and release memory to store obj_cgroup pointers for each non-root
-slab page. Reuse page->mem_cgroup pointer to store a pointer to the
-allocated space.
+Store the obj_cgroup pointer in the corresponding place of
+page->obj_cgroups for each allocated non-root slab object.  Make sure that
+each allocated object holds a reference to obj_cgroup.
 
-This commit temporarily increases the memory footprint of the kernel memory
-accounting. To store obj_cgroup pointers we'll need a place for an
-objcg_pointer for each allocated object. However, the following patches
-in the series will enable sharing of slab pages between memory cgroups,
-which will dramatically increase the total slab utilization. And the final
-memory footprint will be significantly smaller than before.
+Objcg pointer is obtained from the memcg->objcg dereferencing in
+memcg_kmem_get_cache() and passed from pre_alloc_hook to post_alloc_hook.
+Then in case of successful allocation(s) it's getting stored in the
+page->obj_cgroups vector.
 
-To distinguish between obj_cgroups and memcg pointers in case when it's
-not obvious which one is used (as in page_cgroup_ino()), let's always set
-the lowest bit in the obj_cgroup case. The original obj_cgroups
-pointer is marked to be ignored by kmemleak, which otherwise would
-report a memory leak for each allocated vector.
+The objcg obtaining part look a bit bulky now, but it will be simplified
+by next commits in the series.
 
-Link: http://lkml.kernel.org/r/20200623174037.3951353-8-guro@fb.com
+Link: http://lkml.kernel.org/r/20200623174037.3951353-9-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
@@ -94,181 +89,293 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    5 ++-
- include/linux/slab_def.h |    6 ++++
- include/linux/slub_def.h |    5 +++
- mm/memcontrol.c          |   17 +++++++++---
- mm/slab.h                |   52 +++++++++++++++++++++++++++++++++++++
- 5 files changed, 81 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |    3 +
+ mm/memcontrol.c            |   14 +++++++-
+ mm/slab.c                  |   18 ++++++----
+ mm/slab.h                  |   60 +++++++++++++++++++++++++++++++----
+ mm/slub.c                  |   14 +++++---
+ 5 files changed, 88 insertions(+), 21 deletions(-)
 
---- a/include/linux/mm_types.h~mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages
-+++ a/include/linux/mm_types.h
-@@ -198,7 +198,10 @@ struct page {
- 	atomic_t _refcount;
- 
- #ifdef CONFIG_MEMCG
--	struct mem_cgroup *mem_cgroup;
-+	union {
-+		struct mem_cgroup *mem_cgroup;
-+		struct obj_cgroup **obj_cgroups;
-+	};
+--- a/include/linux/memcontrol.h~mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects
++++ a/include/linux/memcontrol.h
+@@ -1404,7 +1404,8 @@ static inline void memcg_set_shrinker_bi
+ }
  #endif
  
- 	/*
---- a/include/linux/slab_def.h~mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages
-+++ a/include/linux/slab_def.h
-@@ -114,4 +114,10 @@ static inline unsigned int obj_to_index(
- 	return reciprocal_divide(offset, cache->reciprocal_buffer_size);
- }
+-struct kmem_cache *memcg_kmem_get_cache(struct kmem_cache *cachep);
++struct kmem_cache *memcg_kmem_get_cache(struct kmem_cache *cachep,
++					struct obj_cgroup **objcgp);
+ void memcg_kmem_put_cache(struct kmem_cache *cachep);
  
-+static inline int objs_per_slab_page(const struct kmem_cache *cache,
-+				     const struct page *page)
-+{
-+	return cache->num;
-+}
-+
- #endif	/* _LINUX_SLAB_DEF_H */
---- a/include/linux/slub_def.h~mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages
-+++ a/include/linux/slub_def.h
-@@ -198,4 +198,9 @@ static inline unsigned int obj_to_index(
- 	return __obj_to_index(cache, page_address(page), obj);
- }
- 
-+static inline int objs_per_slab_page(const struct kmem_cache *cache,
-+				     const struct page *page)
-+{
-+	return page->objects;
-+}
- #endif /* _LINUX_SLUB_DEF_H */
---- a/mm/memcontrol.c~mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages
+ #ifdef CONFIG_MEMCG_KMEM
+--- a/mm/memcontrol.c~mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects
 +++ a/mm/memcontrol.c
-@@ -569,10 +569,21 @@ ino_t page_cgroup_ino(struct page *page)
- 	unsigned long ino = 0;
- 
- 	rcu_read_lock();
--	if (PageSlab(page) && !PageTail(page))
-+	if (PageSlab(page) && !PageTail(page)) {
- 		memcg = memcg_from_slab_page(page);
--	else
--		memcg = READ_ONCE(page->mem_cgroup);
-+	} else {
-+		memcg = page->mem_cgroup;
+@@ -2973,7 +2973,8 @@ static inline bool memcg_kmem_bypass(voi
+  * done with it, memcg_kmem_put_cache() must be called to release the
+  * reference.
+  */
+-struct kmem_cache *memcg_kmem_get_cache(struct kmem_cache *cachep)
++struct kmem_cache *memcg_kmem_get_cache(struct kmem_cache *cachep,
++					struct obj_cgroup **objcgp)
+ {
+ 	struct mem_cgroup *memcg;
+ 	struct kmem_cache *memcg_cachep;
+@@ -3029,8 +3030,17 @@ struct kmem_cache *memcg_kmem_get_cache(
+ 	 */
+ 	if (unlikely(!memcg_cachep))
+ 		memcg_schedule_kmem_cache_create(memcg, cachep);
+-	else if (percpu_ref_tryget(&memcg_cachep->memcg_params.refcnt))
++	else if (percpu_ref_tryget(&memcg_cachep->memcg_params.refcnt)) {
++		struct obj_cgroup *objcg = rcu_dereference(memcg->objcg);
 +
-+		/*
-+		 * The lowest bit set means that memcg isn't a valid
-+		 * memcg pointer, but a obj_cgroups pointer.
-+		 * In this case the page is shared and doesn't belong
-+		 * to any specific memory cgroup.
-+		 */
-+		if ((unsigned long) memcg & 0x1UL)
-+			memcg = NULL;
++		if (!objcg || !obj_cgroup_tryget(objcg)) {
++			percpu_ref_put(&memcg_cachep->memcg_params.refcnt);
++			goto out_unlock;
++		}
++
++		*objcgp = objcg;
+ 		cachep = memcg_cachep;
 +	}
-+
- 	while (memcg && !(memcg->css.flags & CSS_ONLINE))
- 		memcg = parent_mem_cgroup(memcg);
- 	if (memcg)
---- a/mm/slab.h~mm-memcg-slab-allocate-obj_cgroups-for-non-root-slab-pages
+ out_unlock:
+ 	rcu_read_unlock();
+ 	return cachep;
+--- a/mm/slab.c~mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects
++++ a/mm/slab.c
+@@ -3228,9 +3228,10 @@ slab_alloc_node(struct kmem_cache *cache
+ 	unsigned long save_flags;
+ 	void *ptr;
+ 	int slab_node = numa_mem_id();
++	struct obj_cgroup *objcg = NULL;
+ 
+ 	flags &= gfp_allowed_mask;
+-	cachep = slab_pre_alloc_hook(cachep, flags);
++	cachep = slab_pre_alloc_hook(cachep, &objcg, 1, flags);
+ 	if (unlikely(!cachep))
+ 		return NULL;
+ 
+@@ -3266,7 +3267,7 @@ slab_alloc_node(struct kmem_cache *cache
+ 	if (unlikely(slab_want_init_on_alloc(flags, cachep)) && ptr)
+ 		memset(ptr, 0, cachep->object_size);
+ 
+-	slab_post_alloc_hook(cachep, flags, 1, &ptr);
++	slab_post_alloc_hook(cachep, objcg, flags, 1, &ptr);
+ 	return ptr;
+ }
+ 
+@@ -3307,9 +3308,10 @@ slab_alloc(struct kmem_cache *cachep, gf
+ {
+ 	unsigned long save_flags;
+ 	void *objp;
++	struct obj_cgroup *objcg = NULL;
+ 
+ 	flags &= gfp_allowed_mask;
+-	cachep = slab_pre_alloc_hook(cachep, flags);
++	cachep = slab_pre_alloc_hook(cachep, &objcg, 1, flags);
+ 	if (unlikely(!cachep))
+ 		return NULL;
+ 
+@@ -3323,7 +3325,7 @@ slab_alloc(struct kmem_cache *cachep, gf
+ 	if (unlikely(slab_want_init_on_alloc(flags, cachep)) && objp)
+ 		memset(objp, 0, cachep->object_size);
+ 
+-	slab_post_alloc_hook(cachep, flags, 1, &objp);
++	slab_post_alloc_hook(cachep, objcg, flags, 1, &objp);
+ 	return objp;
+ }
+ 
+@@ -3450,6 +3452,7 @@ void ___cache_free(struct kmem_cache *ca
+ 		memset(objp, 0, cachep->object_size);
+ 	kmemleak_free_recursive(objp, cachep->flags);
+ 	objp = cache_free_debugcheck(cachep, objp, caller);
++	memcg_slab_free_hook(cachep, virt_to_head_page(objp), objp);
+ 
+ 	/*
+ 	 * Skip calling cache_free_alien() when the platform is not numa.
+@@ -3515,8 +3518,9 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 			  void **p)
+ {
+ 	size_t i;
++	struct obj_cgroup *objcg = NULL;
+ 
+-	s = slab_pre_alloc_hook(s, flags);
++	s = slab_pre_alloc_hook(s, &objcg, size, flags);
+ 	if (!s)
+ 		return 0;
+ 
+@@ -3539,13 +3543,13 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 		for (i = 0; i < size; i++)
+ 			memset(p[i], 0, s->object_size);
+ 
+-	slab_post_alloc_hook(s, flags, size, p);
++	slab_post_alloc_hook(s, objcg, flags, size, p);
+ 	/* FIXME: Trace call missing. Christoph would like a bulk variant */
+ 	return size;
+ error:
+ 	local_irq_enable();
+ 	cache_alloc_debugcheck_after_bulk(s, flags, i, p, _RET_IP_);
+-	slab_post_alloc_hook(s, flags, i, p);
++	slab_post_alloc_hook(s, objcg, flags, i, p);
+ 	__kmem_cache_free_bulk(s, i, p);
+ 	return 0;
+ }
+--- a/mm/slab.h~mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects
 +++ a/mm/slab.h
-@@ -109,6 +109,7 @@ struct memcg_cache_params {
- #include <linux/kmemleak.h>
- #include <linux/random.h>
- #include <linux/sched/mm.h>
-+#include <linux/kmemleak.h>
- 
- /*
-  * State of the slab allocator.
-@@ -348,6 +349,18 @@ static inline struct kmem_cache *memcg_r
- 	return s->memcg_params.root_cache;
+@@ -470,6 +470,41 @@ static inline void memcg_free_page_obj_c
+ 	page->obj_cgroups = NULL;
  }
  
-+static inline struct obj_cgroup **page_obj_cgroups(struct page *page)
++static inline void memcg_slab_post_alloc_hook(struct kmem_cache *s,
++					      struct obj_cgroup *objcg,
++					      size_t size, void **p)
 +{
-+	/*
-+	 * page->mem_cgroup and page->obj_cgroups are sharing the same
-+	 * space. To distinguish between them in case we don't know for sure
-+	 * that the page is a slab page (e.g. page_cgroup_ino()), let's
-+	 * always set the lowest bit of obj_cgroups.
-+	 */
-+	return (struct obj_cgroup **)
-+		((unsigned long)page->obj_cgroups & ~0x1UL);
++	struct page *page;
++	unsigned long off;
++	size_t i;
++
++	for (i = 0; i < size; i++) {
++		if (likely(p[i])) {
++			page = virt_to_head_page(p[i]);
++			off = obj_to_index(s, page, p[i]);
++			obj_cgroup_get(objcg);
++			page_obj_cgroups(page)[off] = objcg;
++		}
++	}
++	obj_cgroup_put(objcg);
++	memcg_kmem_put_cache(s);
 +}
 +
- /*
-  * Expects a pointer to a slab page. Please note, that PageSlab() check
-  * isn't sufficient, as it returns true also for tail compound slab pages,
-@@ -435,6 +448,28 @@ static __always_inline void memcg_unchar
- 	percpu_ref_put_many(&s->memcg_params.refcnt, nr_pages);
- }
- 
-+static inline int memcg_alloc_page_obj_cgroups(struct page *page,
-+					       struct kmem_cache *s, gfp_t gfp)
++static inline void memcg_slab_free_hook(struct kmem_cache *s, struct page *page,
++					void *p)
 +{
-+	unsigned int objects = objs_per_slab_page(s, page);
-+	void *vec;
++	struct obj_cgroup *objcg;
++	unsigned int off;
 +
-+	vec = kcalloc_node(objects, sizeof(struct obj_cgroup *), gfp,
-+			   page_to_nid(page));
-+	if (!vec)
-+		return -ENOMEM;
++	if (!memcg_kmem_enabled() || is_root_cache(s))
++		return;
 +
-+	kmemleak_not_leak(vec);
-+	page->obj_cgroups = (struct obj_cgroup **) ((unsigned long)vec | 0x1UL);
-+	return 0;
-+}
-+
-+static inline void memcg_free_page_obj_cgroups(struct page *page)
-+{
-+	kfree(page_obj_cgroups(page));
-+	page->obj_cgroups = NULL;
++	off = obj_to_index(s, page, p);
++	objcg = page_obj_cgroups(page)[off];
++	page_obj_cgroups(page)[off] = NULL;
++	obj_cgroup_put(objcg);
 +}
 +
  extern void slab_init_memcg_params(struct kmem_cache *);
  extern void memcg_link_cache(struct kmem_cache *s, struct mem_cgroup *memcg);
  
-@@ -484,6 +519,16 @@ static inline void memcg_uncharge_slab(s
+@@ -529,6 +564,17 @@ static inline void memcg_free_page_obj_c
  {
  }
  
-+static inline int memcg_alloc_page_obj_cgroups(struct page *page,
-+					       struct kmem_cache *s, gfp_t gfp)
++static inline void memcg_slab_post_alloc_hook(struct kmem_cache *s,
++					      struct obj_cgroup *objcg,
++					      size_t size, void **p)
 +{
-+	return 0;
 +}
 +
-+static inline void memcg_free_page_obj_cgroups(struct page *page)
++static inline void memcg_slab_free_hook(struct kmem_cache *s, struct page *page,
++					void *p)
 +{
 +}
 +
  static inline void slab_init_memcg_params(struct kmem_cache *s)
  {
  }
-@@ -510,12 +555,18 @@ static __always_inline int charge_slab_p
- 					    gfp_t gfp, int order,
- 					    struct kmem_cache *s)
+@@ -631,7 +677,8 @@ static inline size_t slab_ksize(const st
+ }
+ 
+ static inline struct kmem_cache *slab_pre_alloc_hook(struct kmem_cache *s,
+-						     gfp_t flags)
++						     struct obj_cgroup **objcgp,
++						     size_t size, gfp_t flags)
  {
-+	int ret;
-+
- 	if (is_root_cache(s)) {
- 		mod_node_page_state(page_pgdat(page), cache_vmstat_idx(s),
- 				    PAGE_SIZE << order);
- 		return 0;
- 	}
+ 	flags &= gfp_allowed_mask;
  
-+	ret = memcg_alloc_page_obj_cgroups(page, s, gfp);
-+	if (ret)
-+		return ret;
-+
- 	return memcg_charge_slab(page, gfp, order, s);
+@@ -645,13 +692,14 @@ static inline struct kmem_cache *slab_pr
+ 
+ 	if (memcg_kmem_enabled() &&
+ 	    ((flags & __GFP_ACCOUNT) || (s->flags & SLAB_ACCOUNT)))
+-		return memcg_kmem_get_cache(s);
++		return memcg_kmem_get_cache(s, objcgp);
+ 
+ 	return s;
  }
  
-@@ -528,6 +579,7 @@ static __always_inline void uncharge_sla
- 		return;
+-static inline void slab_post_alloc_hook(struct kmem_cache *s, gfp_t flags,
+-					size_t size, void **p)
++static inline void slab_post_alloc_hook(struct kmem_cache *s,
++					struct obj_cgroup *objcg,
++					gfp_t flags, size_t size, void **p)
+ {
+ 	size_t i;
+ 
+@@ -663,8 +711,8 @@ static inline void slab_post_alloc_hook(
+ 					 s->flags, flags);
  	}
  
-+	memcg_free_page_obj_cgroups(page);
- 	memcg_uncharge_slab(page, order, s);
+-	if (memcg_kmem_enabled())
+-		memcg_kmem_put_cache(s);
++	if (memcg_kmem_enabled() && !is_root_cache(s))
++		memcg_slab_post_alloc_hook(s, objcg, size, p);
  }
  
+ #ifndef CONFIG_SLOB
+--- a/mm/slub.c~mm-memcg-slab-save-obj_cgroup-for-non-root-slab-objects
++++ a/mm/slub.c
+@@ -2817,8 +2817,9 @@ static __always_inline void *slab_alloc_
+ 	struct kmem_cache_cpu *c;
+ 	struct page *page;
+ 	unsigned long tid;
++	struct obj_cgroup *objcg = NULL;
+ 
+-	s = slab_pre_alloc_hook(s, gfpflags);
++	s = slab_pre_alloc_hook(s, &objcg, 1, gfpflags);
+ 	if (!s)
+ 		return NULL;
+ redo:
+@@ -2894,7 +2895,7 @@ redo:
+ 	if (unlikely(slab_want_init_on_alloc(gfpflags, s)) && object)
+ 		memset(object, 0, s->object_size);
+ 
+-	slab_post_alloc_hook(s, gfpflags, 1, &object);
++	slab_post_alloc_hook(s, objcg, gfpflags, 1, &object);
+ 
+ 	return object;
+ }
+@@ -3099,6 +3100,8 @@ static __always_inline void do_slab_free
+ 	void *tail_obj = tail ? : head;
+ 	struct kmem_cache_cpu *c;
+ 	unsigned long tid;
++
++	memcg_slab_free_hook(s, page, head);
+ redo:
+ 	/*
+ 	 * Determine the currently cpus per cpu slab.
+@@ -3278,9 +3281,10 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ {
+ 	struct kmem_cache_cpu *c;
+ 	int i;
++	struct obj_cgroup *objcg = NULL;
+ 
+ 	/* memcg and kmem_cache debug support */
+-	s = slab_pre_alloc_hook(s, flags);
++	s = slab_pre_alloc_hook(s, &objcg, size, flags);
+ 	if (unlikely(!s))
+ 		return false;
+ 	/*
+@@ -3334,11 +3338,11 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 	}
+ 
+ 	/* memcg and kmem_cache debug support */
+-	slab_post_alloc_hook(s, flags, size, p);
++	slab_post_alloc_hook(s, objcg, flags, size, p);
+ 	return i;
+ error:
+ 	local_irq_enable();
+-	slab_post_alloc_hook(s, flags, i, p);
++	slab_post_alloc_hook(s, objcg, flags, i, p);
+ 	__kmem_cache_free_bulk(s, i, p);
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from guro@fb.com are
