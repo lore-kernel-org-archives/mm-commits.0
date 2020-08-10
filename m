@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 342B7C433DF
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14F4BC433E0
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 092E8206E9
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBD3A2073E
+	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:35:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597026910;
-	bh=C5FohiZBO3GRwuUlo2KYmNzDgbChwL7RXPl5hedCIfg=;
+	s=default; t=1597026912;
+	bh=DqomNW+IOC+1Daxpx8+laf0EeSVozqlgl2gLuYuxLvw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=V3Dkne2+kHIGkeCSY5hf74J/FD2YPFu3+I8LvauBgUYCTGhpqhXI8d8Dgvryfwzul
-	 CjDW6a+xx6+0Lx76yUAy8J6IEO8NntyZbv2frDrdCut2u1JdMxURElX2Snop5AtHBk
-	 pyjO376d4TE5gZydMeINzx20ullGRD8QreRoCC6M=
+	b=rrPZt/MZIwYhb3R6xqzEZ+fOslb0cRksR/WeK9By/OnXYEOHcM0KDQLJfKTUUTEX0
+	 bOw2SCiEHLr81xZ8asmofPLNptjU6MN0gkoI7Xyx65wG4HXY/16b1iog4Diy1hfd87
+	 FJiIzWenzOqFQh9JzyvxyGlKvvlod3p5VDxPdzpo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726370AbgHJCfJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:35:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38448 "EHLO mail.kernel.org"
+        id S1726426AbgHJCfM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 9 Aug 2020 22:35:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38484 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCfJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:35:09 -0400
+        id S1726219AbgHJCfM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 9 Aug 2020 22:35:12 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7495F206CD;
-        Mon, 10 Aug 2020 02:35:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 99114206E9;
+        Mon, 10 Aug 2020 02:35:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597026908;
-        bh=C5FohiZBO3GRwuUlo2KYmNzDgbChwL7RXPl5hedCIfg=;
+        s=default; t=1597026911;
+        bh=DqomNW+IOC+1Daxpx8+laf0EeSVozqlgl2gLuYuxLvw=;
         h=Date:From:To:Subject:From;
-        b=jyDT+pccGzDWC1KEvsG9XTcBkfAXzarWnOBzgZbPK/fYhijOI/GykDDEstOugVq9r
-         P8KwAHoxfMFjLeuzSArtEXeRiDN904kp1S2HO+AHzlvQe/Z2Jbd6f+MxdL/iRosMg0
-         AsOhtDQO6UF7OeDn+l7S2XdZjmO+8I5UP4HvNpBk=
-Date:   Sun, 09 Aug 2020 19:35:08 -0700
+        b=hwv/13ueyoWf5NJMEbSTu+uOgUFz0HFcIwsY4G4WLxcOk10UKhSV028EY9a8EaOKa
+         c+vVvZR6dKEuIQY4FlYZ/u2nzjm5y17vYS2YrVrCJXU+6xoN0m99fW1wShLUx7ZPEC
+         kGsvqgpE8rFsYSirmGwb6V8NDWMozZ3gH7hMpc+o=
+Date:   Sun, 09 Aug 2020 19:35:11 -0700
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com,
         jannh@google.com, keescook@chromium.org,
         mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, vbabka@suse.cz, vjitta@codeaurora.org
-Subject:  [merged] mm-slub-introduce-kmem_cache_debug_flags.patch
- removed from -mm tree
-Message-ID: <20200810023508.-RcmMBh4c%akpm@linux-foundation.org>
+Subject:  [merged]
+ mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch removed from
+ -mm tree
+Message-ID: <20200810023511.jmEQMwQBv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,31 +57,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: introduce kmem_cache_debug_flags()
+     Subject: mm, slub: extend checks guarded by slub_debug static key
 has been removed from the -mm tree.  Its filename was
-     mm-slub-introduce-kmem_cache_debug_flags.patch
+     mm-slub-extend-checks-guarded-by-slub_debug-static-key.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: introduce kmem_cache_debug_flags()
+Subject: mm, slub: extend checks guarded by slub_debug static key
 
-There are few places that call kmem_cache_debug(s) (which tests if any of
-debug flags are enabled for a cache) immediately followed by a test for a
-specific flag.  The compiler can probably eliminate the extra check, but
-we can make the code nicer by introducing kmem_cache_debug_flags() that
-works like kmem_cache_debug() (including the static key check) but tests
-for specific flag(s).  The next patches will add more users.
+There are few more places in SLUB that could benefit from reduced overhead
+of the static key introduced by a previous patch:
 
-[vbabka@suse.cz: change return from int to bool, per Kees.  Add VM_WARN_ON_ONCE() for invalid flags, per Roman]
-  Link: http://lkml.kernel.org/r/949b90ed-e0f0-07d7-4d21-e30ec0958a7c@suse.cz
-Link: http://lkml.kernel.org/r/20200610163135.17364-8-vbabka@suse.cz
+- setup_object_debug() called on each object in newly allocated slab page
+- setup_page_debug() called on newly allocated slab page
+- __free_slab() called on freed slab page
+
+Link: http://lkml.kernel.org/r/20200610163135.17364-9-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Roman Gushchin <guro@fb.com>
 Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Jann Horn <jannh@google.com>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Vijayanand Jitta <vjitta@codeaurora.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -88,54 +87,38 @@ Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ mm/slub.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/slub.c~mm-slub-introduce-kmem_cache_debug_flags
+--- a/mm/slub.c~mm-slub-extend-checks-guarded-by-slub_debug-static-key
 +++ a/mm/slub.c
-@@ -122,18 +122,29 @@ DEFINE_STATIC_KEY_FALSE(slub_debug_enabl
- #endif
- #endif
- 
--static inline int kmem_cache_debug(struct kmem_cache *s)
-+/*
-+ * Returns true if any of the specified slub_debug flags is enabled for the
-+ * cache. Use only for flags parsed by setup_slub_debug() as it also enables
-+ * the static key.
-+ */
-+static inline bool kmem_cache_debug_flags(struct kmem_cache *s, slab_flags_t flags)
+@@ -1131,7 +1131,7 @@ static inline void dec_slabs_node(struct
+ static void setup_object_debug(struct kmem_cache *s, struct page *page,
+ 								void *object)
  {
-+	VM_WARN_ON_ONCE(!(flags & SLAB_DEBUG_FLAGS));
- #ifdef CONFIG_SLUB_DEBUG
- 	if (static_branch_unlikely(&slub_debug_enabled))
--		return s->flags & SLAB_DEBUG_FLAGS;
-+		return s->flags & flags;
- #endif
--	return 0;
-+	return false;
-+}
-+
-+static inline bool kmem_cache_debug(struct kmem_cache *s)
-+{
-+	return kmem_cache_debug_flags(s, SLAB_DEBUG_FLAGS);
- }
+-	if (!(s->flags & (SLAB_STORE_USER|SLAB_RED_ZONE|__OBJECT_POISON)))
++	if (!kmem_cache_debug_flags(s, SLAB_STORE_USER|SLAB_RED_ZONE|__OBJECT_POISON))
+ 		return;
  
- void *fixup_red_left(struct kmem_cache *s, void *p)
+ 	init_object(s, object, SLUB_RED_INACTIVE);
+@@ -1141,7 +1141,7 @@ static void setup_object_debug(struct km
+ static
+ void setup_page_debug(struct kmem_cache *s, struct page *page, void *addr)
  {
--	if (kmem_cache_debug(s) && s->flags & SLAB_RED_ZONE)
-+	if (kmem_cache_debug_flags(s, SLAB_RED_ZONE))
- 		p += s->red_left_pad;
+-	if (!(s->flags & SLAB_POISON))
++	if (!kmem_cache_debug_flags(s, SLAB_POISON))
+ 		return;
  
- 	return p;
-@@ -4060,7 +4071,7 @@ void __check_heap_object(const void *ptr
- 	offset = (ptr - page_address(page)) % s->size;
+ 	metadata_access_enable();
+@@ -1853,7 +1853,7 @@ static void __free_slab(struct kmem_cach
+ 	int order = compound_order(page);
+ 	int pages = 1 << order;
  
- 	/* Adjust for redzone and reject if within the redzone. */
--	if (kmem_cache_debug(s) && s->flags & SLAB_RED_ZONE) {
-+	if (kmem_cache_debug_flags(s, SLAB_RED_ZONE)) {
- 		if (offset < s->red_left_pad)
- 			usercopy_abort("SLUB object in left red zone",
- 				       s->name, to_user, offset, n);
+-	if (s->flags & SLAB_CONSISTENCY_CHECKS) {
++	if (kmem_cache_debug_flags(s, SLAB_CONSISTENCY_CHECKS)) {
+ 		void *p;
+ 
+ 		slab_pad_check(s, page);
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
