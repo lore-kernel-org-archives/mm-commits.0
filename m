@@ -7,49 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 616BDC433E0
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Aug 2020 21:14:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5478C433DF
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Aug 2020 21:16:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3711220771
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Aug 2020 21:14:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7221E2076B
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Aug 2020 21:16:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597180460;
-	bh=LIryRR09hQzlZ0NU8lZJyuJHHaAsXi2EQPhO8efVl6g=;
+	s=default; t=1597180588;
+	bh=JFAngJ7tXeMj6+vwB/ctGB51vAQLpK0kVp+hTYlmjNY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=dxqrvXYiufPzg1bofoApCBbp0Zl9M+rd2eZebDMDJEQt0HO3bv2qnzVaJQuMRLOoY
-	 Gm5894dc8tEUMQmUYpUtEqssiRIHOgew1VAGy56CoQiijJKL3VoZMxowe2lHScNBLA
-	 IHH55iU7zrys4J6QnBeUOw8AQqpiHS04FckbWXSk=
+	b=qWqddLp2vf/u/GTUL88RSI19LIcjq0oMgZX/ZN1RCpFJV+tNqoDZcQ3AUujHcI+BY
+	 TJrYFZzf1hUL5Na/RLqobHqSZyxr4Qsnhq7v/VqnfeHIaoIUuYTlKJmthcOIVwjvD5
+	 wcDdVQ7pBXMZvWX3YwBa99+ZiIDnHQufcqRfn9e0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726474AbgHKVOT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 17:14:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48560 "EHLO mail.kernel.org"
+        id S1726164AbgHKVQ2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 17:16:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48812 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725987AbgHKVOT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 17:14:19 -0400
+        id S1725987AbgHKVQ2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 17:16:28 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B1A4C20756;
-        Tue, 11 Aug 2020 21:14:18 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 94415205CB;
+        Tue, 11 Aug 2020 21:16:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597180458;
-        bh=LIryRR09hQzlZ0NU8lZJyuJHHaAsXi2EQPhO8efVl6g=;
+        s=default; t=1597180587;
+        bh=JFAngJ7tXeMj6+vwB/ctGB51vAQLpK0kVp+hTYlmjNY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jV3ahLsuli4iq+FcOnb2W1HwU17NJkYhzLtP7840NuOlDJEVmbDOdA7D14dBUafFm
-         SS5FL926X59ba+l4QmV+dfSIUp2/155PMsA/BHtRIpznCyGxY67HcWWJALs8NE2lIT
-         5/uu9Z9YSfwanTzpOr6LfTx6uWrkix3tl8hC/WJs=
-Date:   Tue, 11 Aug 2020 14:14:18 -0700
+        b=u66CvgASk9xg8NMSpVBTDl3/rpTXSDE2zedYIpYjeqGpXT0kz56ZrOZlnBpML8OxV
+         luSSKO80ualaEMLJytQc3Bo9tmsTOzD3mQKQZqTL9ftE6hZxQMJmyFRisa7JfW2m9/
+         Gp7ZIgALWcrblOfSQ4iEIzBA/I9b+10jb2jro2Fk=
+Date:   Tue, 11 Aug 2020 14:16:27 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     bhe@redhat.com, david@redhat.com, mm-commits@vger.kernel.org,
-        sonnyrao@chromium.org, stable@vger.kernel.org
-Subject:  +
- =?US-ASCII?Q?revert-mm-vmstatc-do-not-show-lowmem-reserve-protection-inf?=
- =?US-ASCII?Q?ormation-of-empty-zone.patch?= added to -mm tree
-Message-ID: <20200811211418._7_whG2wV%akpm@linux-foundation.org>
+To:     dhowells@redhat.com, libing.zhou@nokia-sbell.com,
+        mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
+Subject:  + romfs-support-inode-blocks-calculation.patch added to
+ -mm tree
+Message-ID: <20200811211627.WFoN4zSXu%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,14 +55,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mm/vmstat.c: do not show lowmem reserve protection information of empty zone"
+     Subject: ROMFS: support inode blocks calculation
 has been added to the -mm tree.  Its filename is
-     revert-mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone.patch
+     romfs-support-inode-blocks-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/romfs-support-inode-blocks-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/romfs-support-inode-blocks-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,61 +76,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: Revert "mm/vmstat.c: do not show lowmem reserve protection information of empty zone"
+From: Libing Zhou <libing.zhou@nokia-sbell.com>
+Subject: ROMFS: support inode blocks calculation
 
-This reverts commit 26e7deadaae175.
+When use 'stat' tool to display file status, the 'Blocks' field always in
+'0', this is not good for tool 'du'(e.g.: busybox 'du'), it always output
+'0' size for the files under ROMFS since such tool calculates number of
+512B Blocks.
 
-Sonny reported that one of their tests started failing on the latest
-kernel on their Chrome OS platform.  The root cause is that the above
-commit removed the protection line of empty zone, while the parser used in
-the test relies on the protection line to mark the end of each zone.
+This patch calculates approx.  number of 512B blocks based on inode size.
 
-Let's revert it to avoid breaking userspace testing or applications.
-
-Link: http://lkml.kernel.org/r/20200811075412.12872-1-bhe@redhat.com
-Fixes: 26e7deadaae175 ("mm/vmstat.c: do not show lowmem reserve protection information of empty zone)"
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reported-by: Sonny Rao <sonnyrao@chromium.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>	[5.8.x]
+Link: http://lkml.kernel.org/r/20200811052606.4243-1-libing.zhou@nokia-sbell.com
+Signed-off-by: Libing Zhou <libing.zhou@nokia-sbell.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/romfs/super.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/vmstat.c~revert-mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone
-+++ a/mm/vmstat.c
-@@ -1618,12 +1618,6 @@ static void zoneinfo_show_print(struct s
- 		   zone->present_pages,
- 		   zone_managed_pages(zone));
+--- a/fs/romfs/super.c~romfs-support-inode-blocks-calculation
++++ a/fs/romfs/super.c
+@@ -356,6 +356,7 @@ static struct inode *romfs_iget(struct s
+ 	}
  
--	/* If unpopulated, no other information is useful */
--	if (!populated_zone(zone)) {
--		seq_putc(m, '\n');
--		return;
--	}
--
- 	seq_printf(m,
- 		   "\n        protection: (%ld",
- 		   zone->lowmem_reserve[0]);
-@@ -1631,6 +1625,12 @@ static void zoneinfo_show_print(struct s
- 		seq_printf(m, ", %ld", zone->lowmem_reserve[i]);
- 	seq_putc(m, ')');
+ 	i->i_mode = mode;
++	i->i_blocks = (i->i_size + 511) >> 9;
  
-+	/* If unpopulated, no other information is useful */
-+	if (!populated_zone(zone)) {
-+		seq_putc(m, '\n');
-+		return;
-+	}
-+
- 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
- 		seq_printf(m, "\n      %-12s %lu", zone_stat_name(i),
- 			   zone_page_state(zone, i));
+ 	unlock_new_inode(i);
+ 	return i;
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from libing.zhou@nokia-sbell.com are
 
-revert-mm-vmstatc-do-not-show-lowmem-reserve-protection-information-of-empty-zone.patch
+romfs-support-inode-blocks-calculation.patch
 
