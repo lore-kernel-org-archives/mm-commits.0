@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CD62C433DF
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Aug 2020 20:33:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A96C433E0
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Aug 2020 20:49:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44E3B20781
-	for <mm-commits@archiver.kernel.org>; Tue, 11 Aug 2020 20:33:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8104A20774
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Aug 2020 20:49:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597178013;
-	bh=zni6mIlUWvOukC9xjyy4evW7LY8sfZG8p7Dhr5k1AiA=;
+	s=default; t=1597178975;
+	bh=1YJVJAslRkQGqc29rsD0qf7TOzk0H9zufBKwZBIywos=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=l3RzZ5i+XWa2htJlTGM78JLVsZ/GzTNOzd0L6UKw1AGxXckFjWkXRR4+Rn/pTJRr6
-	 OL7Gj0O0qIYXTgL1fZZqDt3MXcF3F/zjBMyaPZ3Si9iK3NuS2zMe1GtaMRRNux5Vgl
-	 rzQeE+X8yqFvvclOBe96TducLirdP56CV07LeshI=
+	b=BEBxjOC3CUNrF6jYfk4muRUruRY52OTDsDNl5lSwl4hPxHBjlB1O20kNBUvJbVcrU
+	 NnTtn69dF+vWf0aT8W0Uujf4a6LWlDkveeobKtSIB1lnQerjpfQg1d2EvA5sqWV0W/
+	 zmmj3Xg5mpv7hRvjIWiplIVkYAmV0f8KuTZFfBYE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726164AbgHKUdd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 16:33:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58420 "EHLO mail.kernel.org"
+        id S1726165AbgHKUtf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 16:49:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726023AbgHKUdc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 16:33:32 -0400
+        id S1726114AbgHKUte (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 16:49:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B0ACA2076C;
-        Tue, 11 Aug 2020 20:33:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A39CF20756;
+        Tue, 11 Aug 2020 20:49:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597178012;
-        bh=zni6mIlUWvOukC9xjyy4evW7LY8sfZG8p7Dhr5k1AiA=;
+        s=default; t=1597178974;
+        bh=1YJVJAslRkQGqc29rsD0qf7TOzk0H9zufBKwZBIywos=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=MuS1OgWaqrwSY8vgIHqRO3B587l76K1WhVgpUVS4wK2H9w84/hKAIyXxtVP8NRn5Y
-         ZYJUnkU2v1D375d4KCyrBM0OyaTJysfLL1EV2AWjhAgzr/ukBlmQd84vAXmlohbBWi
-         1Y1ZV7lE2lHZbNiNUlrbtabcJAKrwmwL6tWP1oLM=
-Date:   Tue, 11 Aug 2020 13:33:31 -0700
+        b=gUFUkqNWzcHoam6PvnljeCPbzsJnVYsN+OVxibPFjc8NkTmXUS4MSkpQPE3FxChqR
+         fp761Z7ZU1xDId2r1sDZ0oQZjZGxknfz9GlKu4e+JTIdvl2OAvxt2fF5dzMz8jyRWO
+         Mlfr0KNW6xwsZkwV24i7Fls1BxeBfx8T5YrZjUN8=
+Date:   Tue, 11 Aug 2020 13:49:33 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     dennis@kernel.org, guro@fb.com, hannes@cmpxchg.org,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com
-Subject:  +
- mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix.patch added to
- -mm tree
-Message-ID: <20200811203331.B_jewCnTP%akpm@linux-foundation.org>
+To:     cl@linux.com, dongli.zhang@oracle.com, erosca@de.adit-jv.com,
+        iamjoonsoo.kim@lge.com, joe.jin@oracle.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, stable@vger.kernel.org
+Subject:  + mm-slub-fix-conversion-of-freelist_corrupted.patch
+ added to -mm tree
+Message-ID: <20200811204933.HCUm2YkCp%akpm@linux-foundation.org>
 In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,14 +57,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix
+     Subject: mm: slub: fix conversion of freelist_corrupted()
 has been added to the -mm tree.  Its filename is
-     mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix.patch
+     mm-slub-fix-conversion-of-freelist_corrupted.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-conversion-of-freelist_corrupted.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-conversion-of-freelist_corrupted.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,55 +78,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix
+From: Eugeniu Rosca <erosca@de.adit-jv.com>
+Subject: mm: slub: fix conversion of freelist_corrupted()
 
-add WARN_ON_ONCE()s, per Johannes
+Commit 52f23478081ae0 ("mm/slub.c: fix corrupted freechain in
+deactivate_slab()") suffered an update when picked up from LKML [1].
 
-Link: http://lkml.kernel.org/r/20200811170611.GB1507044@carbon.DHCP.thefacebook.com
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Specifically, relocating 'freelist = NULL' into 'freelist_corrupted()'
+created a no-op statement.  Fix it by sticking to the behavior intended in
+the original patch [1].  Prefer the lowest-line-count solution.
+
+[1] https://lore.kernel.org/linux-mm/20200331031450.12182-1-dongli.zhang@oracle.com/
+
+Link: http://lkml.kernel.org/r/20200811124656.10308-1-erosca@de.adit-jv.com
+Fixes: 52f23478081ae0 ("mm/slub.c: fix corrupted freechain in deactivate_slab()")
+Signed-off-by: Eugeniu Rosca <erosca@de.adit-jv.com>
+Cc: Dongli Zhang <dongli.zhang@oracle.com>
+Cc: Joe Jin <joe.jin@oracle.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/slub.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix
-+++ a/mm/memcontrol.c
-@@ -5131,6 +5131,9 @@ static int alloc_mem_cgroup_per_node_inf
- 	if (!pn)
- 		return 1;
- 
-+	/* We charge the parent cgroup, never the current task */
-+	WARN_ON_ONCE(!current->active_memcg);
-+
- 	pn->lruvec_stat_local = alloc_percpu_gfp(struct lruvec_stat,
- 						 GFP_KERNEL_ACCOUNT);
- 	if (!pn->lruvec_stat_local) {
-@@ -5213,6 +5216,9 @@ static struct mem_cgroup *mem_cgroup_all
- 		goto fail;
+--- a/mm/slub.c~mm-slub-fix-conversion-of-freelist_corrupted
++++ a/mm/slub.c
+@@ -677,7 +677,6 @@ static bool freelist_corrupted(struct km
+ 	if ((s->flags & SLAB_CONSISTENCY_CHECKS) &&
+ 	    !check_valid_pointer(s, page, nextfree)) {
+ 		object_err(s, page, freelist, "Freechain corrupt");
+-		freelist = NULL;
+ 		slab_fix(s, "Isolate corrupted freechain");
+ 		return true;
  	}
+@@ -2184,8 +2183,10 @@ static void deactivate_slab(struct kmem_
+ 		 * 'freelist' is already corrupted.  So isolate all objects
+ 		 * starting at 'freelist'.
+ 		 */
+-		if (freelist_corrupted(s, page, freelist, nextfree))
++		if (freelist_corrupted(s, page, freelist, nextfree)) {
++			freelist = NULL;
+ 			break;
++		}
  
-+	/* We charge the parent cgroup, never the current task */
-+	WARN_ON_ONCE(!current->active_memcg);
-+
- 	memcg->vmstats_local = alloc_percpu_gfp(struct memcg_vmstats_percpu,
- 						GFP_KERNEL_ACCOUNT);
- 	if (!memcg->vmstats_local)
+ 		do {
+ 			prior = page->freelist;
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from erosca@de.adit-jv.com are
 
-percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics-v3.patch
-mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
-mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix.patch
-kselftests-cgroup-add-perpcu-memory-accounting-test.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+mm-slub-fix-conversion-of-freelist_corrupted.patch
 
