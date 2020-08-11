@@ -1,4 +1,4 @@
-Return-Path: <SRS0=A/n1=BU=vger.kernel.org=mm-commits-owner@kernel.org>
+Return-Path: <SRS0=Ir1+=BV=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -7,50 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7226C433E0
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:40:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A779FC433E3
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Aug 2020 04:18:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E06A206C3
-	for <mm-commits@archiver.kernel.org>; Mon, 10 Aug 2020 02:40:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6FC2C20772
+	for <mm-commits@archiver.kernel.org>; Tue, 11 Aug 2020 04:18:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597027248;
-	bh=tfCGpamwPOC9hblre1uGHt/DiLU6dVNKZTaDZ78Aa6E=;
-	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=XBwtqegVxMH2zESCJPEILrU5TZAYQhfKIN5kHGS3vSFVWlaLLgqqHML91ppyGfq7w
-	 n62kMrStlYdi6oalIXo/96m4l5zQV+HilBT6x9IMoOytpNqfa3RgNk64M2UChpuCYC
-	 TbAa1k9pFIc/qxSkoUw2h60ywuEoBqQUCkVDFw6Y=
+	s=default; t=1597119487;
+	bh=SuneYn0rGRKgWDdtE2qUWKvNidGVzjnwwQ/ssmtjAts=;
+	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
+	b=2jLcKShwkxrI/270/YDmExgWmOTPh/Ry+Xb44ltO2Vwv9JJf277xpNlrfkBpr0mq7
+	 5ntVFszp1EbOzjHQ0Q8T6YxEAE1NYOZrdZE0DgWPftTjUfTU95Um8macms1ljKpNq1
+	 Kcab3yIDP5prqmT+8cW1q8GU1ATzZEp2U4SMlCEw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726344AbgHJCks (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 9 Aug 2020 22:40:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43782 "EHLO mail.kernel.org"
+        id S1726154AbgHKESG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 00:18:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41566 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726219AbgHJCks (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 9 Aug 2020 22:40:48 -0400
-Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
+        id S1725860AbgHKESG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 00:18:06 -0400
+Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BD0A72065D;
-        Mon, 10 Aug 2020 02:40:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id BBC08206DA;
+        Tue, 11 Aug 2020 04:18:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597027247;
-        bh=tfCGpamwPOC9hblre1uGHt/DiLU6dVNKZTaDZ78Aa6E=;
-        h=Date:From:To:Subject:From;
-        b=IAJ7ED2pMbneutOwJDgW0obQmz6Oh8Lgy96kLwy3i3FHg5QooGAXlEmyJ6Bmpx1xc
-         NHO4pMcwkKQUpAziW79gfosdFvh4qiP+X5zWlp0qwoDV7Moa1gWKZwtLzHbBvIuqC4
-         /jUwaJhonfN015TYjudfIPV7koDLwR+PsaSPGI3s=
-Date:   Sun, 09 Aug 2020 19:40:46 -0700
-From:   akpm@linux-foundation.org
-To:     andriin@fb.com, anil.s.keshavamurthy@intel.com, ast@kernel.org,
-        daniel@iogearbox.net, davem@davemloft.net,
-        john.fastabend@gmail.com, kafai@fb.com, kpsingh@chromium.org,
-        mhiramat@kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org,
-        naveen.n.rao@linux.ibm.com, rostedt@goodmis.org,
-        sfr@canb.auug.org.au, songliubraving@fb.com,
-        songmuchun@bytedance.com, yhs@fb.com
-Subject:  [merged]
- kprobes-fix-compiler-warning-for-config_kprobes_on_ftrace.patch removed
- from -mm tree
-Message-ID: <20200810024046.teUgSUgwY%akpm@linux-foundation.org>
+        s=default; t=1597119486;
+        bh=SuneYn0rGRKgWDdtE2qUWKvNidGVzjnwwQ/ssmtjAts=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=Ul2PwCX+brGalftsBEw6bmoStLu3rqgUrV227gb4y3VQWvDwmieV/cGhnY2tZfzBz
+         RZAqqv7q2vcifMO08ZfNmidVmcbj0+bayQBydII8fa0GCNit0Taj3fN3pgEaT1pDml
+         GtIkWy3eeRyt/4HXXHqM6bZYuCucifMowPj/NQG4=
+Date:   Mon, 10 Aug 2020 21:18:05 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        yanfei.xu@windriver.com
+Subject:  + mempolicyh-fix-typo.patch added to -mm tree
+Message-ID: <20200811041805.vjhMjbc8z%akpm@linux-foundation.org>
+In-Reply-To: <20200806231643.a2711a608dd0f18bff2caf2b@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -60,82 +54,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kprobes: fix compiler warning for !CONFIG_KPROBES_ON_FTRACE
-has been removed from the -mm tree.  Its filename was
-     kprobes-fix-compiler-warning-for-config_kprobes_on_ftrace.patch
+     Subject: include/linux/mempolicy.h: fix typo
+has been added to the -mm tree.  Its filename is
+     mempolicyh-fix-typo.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mempolicyh-fix-typo.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicyh-fix-typo.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: kprobes: fix compiler warning for !CONFIG_KPROBES_ON_FTRACE
+From: Yanfei Xu <yanfei.xu@windriver.com>
+Subject: include/linux/mempolicy.h: fix typo
 
-Fix compiler warning(as show below) for !CONFIG_KPROBES_ON_FTRACE.
+Change "interlave" to "interleave".
 
-kernel/kprobes.c: In function 'kill_kprobe':
-kernel/kprobes.c:1116:33: warning: statement with no effect
-[-Wunused-value]
- 1116 | #define disarm_kprobe_ftrace(p) (-ENODEV)
-      |                                 ^
-kernel/kprobes.c:2154:3: note: in expansion of macro
-'disarm_kprobe_ftrace'
- 2154 |   disarm_kprobe_ftrace(p);
-
-Link: https://lore.kernel.org/r/20200805142136.0331f7ea@canb.auug.org.au
-
-Link: http://lkml.kernel.org/r/20200805172046.19066-1-songmuchun@bytedance.com
-Fixes: 0cb2f1372baa ("kprobes: Fix NULL pointer dereference at kprobe_ftrace_handler")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Martin KaFai Lau <kafai@fb.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Yonghong Song <yhs@fb.com>
-Cc: Andrii Nakryiko <andriin@fb.com>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@chromium.org>
-Cc: Ingo Molnar <mingo@kernel.org>
+Link: http://lkml.kernel.org/r/20200810063454.9357-1-yanfei.xu@windriver.com
+Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ include/linux/mempolicy.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/kprobes.c~kprobes-fix-compiler-warning-for-config_kprobes_on_ftrace
-+++ a/kernel/kprobes.c
-@@ -1111,9 +1111,20 @@ static int disarm_kprobe_ftrace(struct k
- 		ipmodify ? &kprobe_ipmodify_enabled : &kprobe_ftrace_enabled);
- }
- #else	/* !CONFIG_KPROBES_ON_FTRACE */
--#define prepare_kprobe(p)	arch_prepare_kprobe(p)
--#define arm_kprobe_ftrace(p)	(-ENODEV)
--#define disarm_kprobe_ftrace(p)	(-ENODEV)
-+static inline int prepare_kprobe(struct kprobe *p)
-+{
-+	return arch_prepare_kprobe(p);
-+}
-+
-+static inline int arm_kprobe_ftrace(struct kprobe *p)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline int disarm_kprobe_ftrace(struct kprobe *p)
-+{
-+	return -ENODEV;
-+}
- #endif
- 
- /* Arm a kprobe with text_mutex */
+--- a/include/linux/mempolicy.h~mempolicyh-fix-typo
++++ a/include/linux/mempolicy.h
+@@ -28,7 +28,7 @@ struct mm_struct;
+  * the process policy is used. Interrupts ignore the memory policy
+  * of the current process.
+  *
+- * Locking policy for interlave:
++ * Locking policy for interleave:
+  * In process context there is no locking because only the process accesses
+  * its own state. All vma manipulation is somewhat protected by a down_read on
+  * mmap_lock.
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from yanfei.xu@windriver.com are
 
-mm-hugetlb-add-mempolicy-check-in-the-reservation-routine.patch
+mempolicyh-fix-typo.patch
 
