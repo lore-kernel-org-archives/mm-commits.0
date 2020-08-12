@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0DBEC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25077C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 80F672054F
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 007022054F
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196256;
-	bh=EMFik8MCdobnx+ZcxKTzX+oowRZqdUEFlUzfT2AuxUo=;
+	s=default; t=1597196260;
+	bh=RIVx32H+h8RS9USUstVx03pU5Q+ZCVupotOkpbcJweY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=FOr0lW9wYLjNd2p4QF17+icGAYk80PEIuMJLp8TJDTMZjcnsoAaqZkMOn7gt3oWuS
-	 YhuDptFj9VrIheIrVf9D1esZm69zbDrHv034oakOGykkor5BCqmvyDVDvVE9DhMo4t
-	 SL5kLf5HMcU6VM4Xpf/gHjfB/fePfO4HukSBAB0c=
+	b=RBGbaJCGdaLivqCdRZ+1Xh5OOEY/T6eXHHF5j7584D6RxN4WyK+rGxUG3R+IJko8a
+	 6UUMu6QIA2Q+NnGRcL5aoklMVoj1jXqsb9qmq7mNVPOvj5cCIGf9zmnn9RzJIo+b27
+	 6GiiP+ERJPl+a3uYnvXpSxE7nSz+9Iq2wezYZv1o=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726402AbgHLBhg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:37:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39432 "EHLO mail.kernel.org"
+        id S1726430AbgHLBhj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:37:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39520 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBhg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:37:36 -0400
+        id S1726235AbgHLBhj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:37:39 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 2624C207DA;
-        Wed, 12 Aug 2020 01:37:35 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5C66320658;
+        Wed, 12 Aug 2020 01:37:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196255;
-        bh=EMFik8MCdobnx+ZcxKTzX+oowRZqdUEFlUzfT2AuxUo=;
+        s=default; t=1597196258;
+        bh=RIVx32H+h8RS9USUstVx03pU5Q+ZCVupotOkpbcJweY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=KQ/foHhCM7WNy1ctSZ20hekcKGkHV7wa3gN3g7XHFeMTr78gN56pdgj4HBofkNgGx
-         lro8vemTKieJqe9lQLFwBFgr8+iFsvu2s03aEYc8Jum33WRl7iwL4V/XdyIKyxvxm3
-         AWeBKtkVNkmbO21weJO9AXy5ZbbwH8CrM1NnniXo=
-Date:   Tue, 11 Aug 2020 18:37:34 -0700
+        b=Z+nJ7BF1/zKvOAsd4HHoOixax8UMXnznC5QrxN6PsCEzlIVuO/Cs5UD5rLynbBhDZ
+         InhGJvZraZChIIJTYDkzEsyqYooju7MUAXxafQBeMZfqH5JTWniiXR+UyA5SzTmmTi
+         Hj9v41bF/wfnCZfVM4gafOsZTKCC2wmT2Q8Bi8JY=
+Date:   Tue, 11 Aug 2020 18:37:38 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com, guro@fb.com,
         hch@infradead.org, iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
         mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 138/165] mm/gup: restrict CMA region by using
- allocation scope API
-Message-ID: <20200812013734.qMUs8U3ca%akpm@linux-foundation.org>
+Subject:  [patch 139/165] mm/hugetlb: make hugetlb migration
+ callback CMA aware
+Message-ID: <20200812013738.kE_WJcPRN%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,105 +57,105 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/gup: restrict CMA region by using allocation scope API
+Subject: mm/hugetlb: make hugetlb migration callback CMA aware
 
-We have well defined scope API to exclude CMA region.  Use it rather than
-manipulating gfp_mask manually.  With this change, we can now restore
-__GFP_MOVABLE for gfp_mask like as usual migration target allocation.  It
-would result in that the ZONE_MOVABLE is also searched by page allocator. 
-For hugetlb, gfp_mask is redefined since it has a regular allocation mask
-filter for migration target.  __GPF_NOWARN is added to hugetlb gfp_mask
-filter since a new user for gfp_mask filter, gup, want to be silent when
-allocation fails.
+new_non_cma_page() in gup.c requires to allocate the new page that is not
+on the CMA area.  new_non_cma_page() implements it by using allocation
+scope APIs.
 
-Note that this can be considered as a fix for the commit 9a4e9f3b2d73
-("mm: update get_user_pages_longterm to migrate pages allocated from CMA
-region").  However, "Fixes" tag isn't added here since it is just
-suboptimal but it doesn't cause any problem.
+However, there is a work-around for hugetlb.  Normal hugetlb page
+allocation API for migration is alloc_huge_page_nodemask().  It consists
+of two steps.  First is dequeing from the pool.  Second is, if there is no
+available page on the queue, allocating by using the page allocator.
 
-Link: http://lkml.kernel.org/r/1596180906-8442-1-git-send-email-iamjoonsoo.kim@lge.com
+new_non_cma_page() can't use this API since first step (deque) isn't aware
+of scope API to exclude CMA area.  So, new_non_cma_page() exports hugetlb
+internal function for the second step, alloc_migrate_huge_page(), to
+global scope and uses it directly.  This is suboptimal since hugetlb pages
+on the queue cannot be utilized.
+
+This patch tries to fix this situation by making the deque function on
+hugetlb CMA aware.  In the deque function, CMA memory is skipped if
+PF_MEMALLOC_NOCMA flag is found.
+
+Link: http://lkml.kernel.org/r/1596180906-8442-2-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 ++
- mm/gup.c                |   17 ++++++++---------
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ include/linux/hugetlb.h |    2 --
+ mm/gup.c                |    6 +-----
+ mm/hugetlb.c            |   11 +++++++++--
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-gup-restrict-cma-region-by-using-allocation-scope-api
+--- a/include/linux/hugetlb.h~mm-hugetlb-make-hugetlb-migration-callback-cma-aware
 +++ a/include/linux/hugetlb.h
-@@ -710,6 +710,8 @@ static inline gfp_t htlb_modify_alloc_ma
- 	/* Some callers might want to enforce node */
- 	modified_mask |= (gfp_mask & __GFP_THISNODE);
+@@ -511,8 +511,6 @@ struct page *alloc_huge_page_nodemask(st
+ 				nodemask_t *nmask, gfp_t gfp_mask);
+ struct page *alloc_huge_page_vma(struct hstate *h, struct vm_area_struct *vma,
+ 				unsigned long address);
+-struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
+-				     int nid, nodemask_t *nmask);
+ int huge_add_to_page_cache(struct page *page, struct address_space *mapping,
+ 			pgoff_t idx);
  
-+	modified_mask |= (gfp_mask & __GFP_NOWARN);
+--- a/mm/gup.c~mm-hugetlb-make-hugetlb-migration-callback-cma-aware
++++ a/mm/gup.c
+@@ -1635,11 +1635,7 @@ static struct page *new_non_cma_page(str
+ 		struct hstate *h = page_hstate(page);
+ 
+ 		gfp_mask = htlb_modify_alloc_mask(h, gfp_mask);
+-		/*
+-		 * We don't want to dequeue from the pool because pool pages will
+-		 * mostly be from the CMA region.
+-		 */
+-		return alloc_migrate_huge_page(h, gfp_mask, nid, NULL);
++		return alloc_huge_page_nodemask(h, nid, NULL, gfp_mask);
+ 	}
+ #endif
+ 	if (PageTransHuge(page)) {
+--- a/mm/hugetlb.c~mm-hugetlb-make-hugetlb-migration-callback-cma-aware
++++ a/mm/hugetlb.c
+@@ -19,6 +19,7 @@
+ #include <linux/memblock.h>
+ #include <linux/sysfs.h>
+ #include <linux/slab.h>
++#include <linux/sched/mm.h>
+ #include <linux/mmdebug.h>
+ #include <linux/sched/signal.h>
+ #include <linux/rmap.h>
+@@ -1040,10 +1041,16 @@ static void enqueue_huge_page(struct hst
+ static struct page *dequeue_huge_page_node_exact(struct hstate *h, int nid)
+ {
+ 	struct page *page;
++	bool nocma = !!(current->flags & PF_MEMALLOC_NOCMA);
 +
- 	return modified_mask;
++	list_for_each_entry(page, &h->hugepage_freelists[nid], lru) {
++		if (nocma && is_migrate_cma_page(page))
++			continue;
+ 
+-	list_for_each_entry(page, &h->hugepage_freelists[nid], lru)
+ 		if (!PageHWPoison(page))
+ 			break;
++	}
++
+ 	/*
+ 	 * if 'non-isolated free hugepage' not found on the list,
+ 	 * the allocation fails.
+@@ -1935,7 +1942,7 @@ out_unlock:
+ 	return page;
  }
  
---- a/mm/gup.c~mm-gup-restrict-cma-region-by-using-allocation-scope-api
-+++ a/mm/gup.c
-@@ -1620,10 +1620,12 @@ static struct page *new_non_cma_page(str
- 	 * Trying to allocate a page for migration. Ignore allocation
- 	 * failure warnings. We don't force __GFP_THISNODE here because
- 	 * this node here is the node where we have CMA reservation and
--	 * in some case these nodes will have really less non movable
-+	 * in some case these nodes will have really less non CMA
- 	 * allocation memory.
-+	 *
-+	 * Note that CMA region is prohibited by allocation scope.
- 	 */
--	gfp_t gfp_mask = GFP_USER | __GFP_NOWARN;
-+	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_NOWARN;
- 
- 	if (PageHighMem(page))
- 		gfp_mask |= __GFP_HIGHMEM;
-@@ -1631,6 +1633,8 @@ static struct page *new_non_cma_page(str
- #ifdef CONFIG_HUGETLB_PAGE
- 	if (PageHuge(page)) {
- 		struct hstate *h = page_hstate(page);
-+
-+		gfp_mask = htlb_modify_alloc_mask(h, gfp_mask);
- 		/*
- 		 * We don't want to dequeue from the pool because pool pages will
- 		 * mostly be from the CMA region.
-@@ -1645,11 +1649,6 @@ static struct page *new_non_cma_page(str
- 		 */
- 		gfp_t thp_gfpmask = GFP_TRANSHUGE | __GFP_NOWARN;
- 
--		/*
--		 * Remove the movable mask so that we don't allocate from
--		 * CMA area again.
--		 */
--		thp_gfpmask &= ~__GFP_MOVABLE;
- 		thp = __alloc_pages_node(nid, thp_gfpmask, HPAGE_PMD_ORDER);
- 		if (!thp)
- 			return NULL;
-@@ -1795,7 +1794,6 @@ static long __gup_longterm_locked(struct
- 				     vmas_tmp, NULL, gup_flags);
- 
- 	if (gup_flags & FOLL_LONGTERM) {
--		memalloc_nocma_restore(flags);
- 		if (rc < 0)
- 			goto out;
- 
-@@ -1808,9 +1806,10 @@ static long __gup_longterm_locked(struct
- 
- 		rc = check_and_migrate_cma_pages(tsk, mm, start, rc, pages,
- 						 vmas_tmp, gup_flags);
-+out:
-+		memalloc_nocma_restore(flags);
- 	}
- 
--out:
- 	if (vmas_tmp != vmas)
- 		kfree(vmas_tmp);
- 	return rc;
+-struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
++static struct page *alloc_migrate_huge_page(struct hstate *h, gfp_t gfp_mask,
+ 				     int nid, nodemask_t *nmask)
+ {
+ 	struct page *page;
 _
