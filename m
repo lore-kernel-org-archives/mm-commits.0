@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37A76C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 664F3C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11C2A20774
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 391AE20774
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266240;
-	bh=P84duXBVxmEV0IhrJTxgdNeCLa2a9zGQlm78YeiKdig=;
+	s=default; t=1597266242;
+	bh=KZv86SGROQuAxONMdugifOQP9NC6KglC3pUBv1dH0vU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=l09/s2G8CGAOgSEWDQXKtBVRWUujCoeZH8Wn1BYsrSjoyxIJHgxBeVlOnRO8/ZTxO
-	 hnytPm876CzEyz9A89BPIoPGdRW3LUmcepz+nXWJW+IN2Ytq7MgEES6YCwQ4ER3DaL
-	 mk62n0bfQ+az3dPWCSkEu/nduYKVTr+91sMAtHvM=
+	b=mHo7VUUo5QgaDFenq4F8DzgPYe9u0EBTvY9gGoKes9MQ2hFUhW6GnoMxO3w6w7n+o
+	 SXvWCjSY71OWdRafIuV8Nw2e0KRc/tY8e8Xaq58mY8Pttv3FJb3VWkDIB55JNMFXmN
+	 eM9CemNwzcbbCUYvv25p8ArGdcdUjVRwOMa0U6VY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726697AbgHLVD7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:03:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55182 "EHLO mail.kernel.org"
+        id S1726698AbgHLVEC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:04:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726583AbgHLVD7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:03:59 -0400
+        id S1726583AbgHLVEB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:04:01 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 88F57207F7;
-        Wed, 12 Aug 2020 21:03:58 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 72CA120774;
+        Wed, 12 Aug 2020 21:04:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266238;
-        bh=P84duXBVxmEV0IhrJTxgdNeCLa2a9zGQlm78YeiKdig=;
+        s=default; t=1597266241;
+        bh=KZv86SGROQuAxONMdugifOQP9NC6KglC3pUBv1dH0vU=;
         h=Date:From:To:Subject:From;
-        b=a/MFFT64nWSy+NQG7XWw9yywvAel/B6vikGAPgyQwHY+hmKEFwDraPuyO0dP3KmcS
-         n/Co5XiLE42wpjyqAo+GQvMXnBPhE1vua2wvEor723HpW2VCNLcAprObz1bKlGKC6h
-         kTd8vHBI1UetcURuKMewuhrRhhmr90fGWQe2w5TU=
-Date:   Wed, 12 Aug 2020 14:03:58 -0700
+        b=gHBWF4ip3G5fTvdNlEqKsXouGErevHSllo4pj0hkSJlrpe0vmn0rWLWryAF7Q+Sf0
+         m9g94ItApKQRyFEYtpuMDOrOm2TDiF6eFzhymvrggSN4t6qQkw+jquCqjATvTMlfPg
+         VaEpc7fcOXkGAHLG+B+KGxvgQlnxWMMXc6CBAB/E=
+Date:   Wed, 12 Aug 2020 14:04:01 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk,
-        mm-commits@vger.kernel.org, pablo@netfilter.org,
-        sbrivio@redhat.com, yury.norov@gmail.com
-Subject:  [merged] bitmap-add-test-for-bitmap_cut.patch removed
- from -mm tree
-Message-ID: <20200812210358.NhPLJs1lR%akpm@linux-foundation.org>
+To:     kent.overstreet@gmail.com, luc.vanoostenryck@gmail.com,
+        mm-commits@vger.kernel.org
+Subject:  [merged]
+ lib-generic-radix-treec-remove-unneeded-__rcu.patch removed from -mm tree
+Message-ID: <20200812210401.qVHNd9_YX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,108 +54,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_bitmap.c: add test for bitmap_cut()
+     Subject: lib/generic-radix-tree.c: remove unneeded __rcu
 has been removed from the -mm tree.  Its filename was
-     bitmap-add-test-for-bitmap_cut.patch
+     lib-generic-radix-treec-remove-unneeded-__rcu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stefano Brivio <sbrivio@redhat.com>
-Subject: lib/test_bitmap.c: add test for bitmap_cut()
+From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Subject: lib/generic-radix-tree.c: remove unneeded __rcu
 
-Inspired by an original patch from Yury Norov: introduce a test for
-bitmap_cut() that also makes sure functionality is as described for
-partially overlapping src and dst.
+struct __genradix is defined as having its member 'root'
+annotated as __rcu. But in the corresponding API RCU is not used.
+Sparse reports this type mismatch as:
+	lib/generic-radix-tree.c:56:35: warning: incorrect type in initializer (different address spaces)
+	lib/generic-radix-tree.c:56:35:    expected struct genradix_root *r
+	lib/generic-radix-tree.c:56:35:    got struct genradix_root [noderef] <asn:4> *__val
+with 6 other ones.
 
-Link: http://lkml.kernel.org/r/5fc45e6bbd4fa837cd9577f8a0c1d639df90a4ce.1592155364.git.sbrivio@redhat.com
-Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Yury Norov <yury.norov@gmail.com>
+So, correct root's type by removing this unneeded __rcu.
+
+Link: http://lkml.kernel.org/r/20200621161745.55396-1-luc.vanoostenryck@gmail.com
+Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitmap.c |   58 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ include/linux/generic-radix-tree.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/test_bitmap.c~bitmap-add-test-for-bitmap_cut
-+++ a/lib/test_bitmap.c
-@@ -610,6 +610,63 @@ static void __init test_for_each_set_clu
- 		expect_eq_clump8(start, CLUMP_EXP_NUMBITS, clump_exp, &clump);
- }
+--- a/include/linux/generic-radix-tree.h~lib-generic-radix-treec-remove-unneeded-__rcu
++++ a/include/linux/generic-radix-tree.h
+@@ -44,7 +44,7 @@
+ struct genradix_root;
  
-+struct test_bitmap_cut {
-+	unsigned int first;
-+	unsigned int cut;
-+	unsigned int nbits;
-+	unsigned long in[4];
-+	unsigned long expected[4];
-+};
-+
-+static struct test_bitmap_cut test_cut[] = {
-+	{  0,  0,  8, { 0x0000000aUL, }, { 0x0000000aUL, }, },
-+	{  0,  0, 32, { 0xdadadeadUL, }, { 0xdadadeadUL, }, },
-+	{  0,  3,  8, { 0x000000aaUL, }, { 0x00000015UL, }, },
-+	{  3,  3,  8, { 0x000000aaUL, }, { 0x00000012UL, }, },
-+	{  0,  1, 32, { 0xa5a5a5a5UL, }, { 0x52d2d2d2UL, }, },
-+	{  0,  8, 32, { 0xdeadc0deUL, }, { 0x00deadc0UL, }, },
-+	{  1,  1, 32, { 0x5a5a5a5aUL, }, { 0x2d2d2d2cUL, }, },
-+	{  0, 15, 32, { 0xa5a5a5a5UL, }, { 0x00014b4bUL, }, },
-+	{  0, 16, 32, { 0xa5a5a5a5UL, }, { 0x0000a5a5UL, }, },
-+	{ 15, 15, 32, { 0xa5a5a5a5UL, }, { 0x000125a5UL, }, },
-+	{ 15, 16, 32, { 0xa5a5a5a5UL, }, { 0x0000a5a5UL, }, },
-+	{ 16, 15, 32, { 0xa5a5a5a5UL, }, { 0x0001a5a5UL, }, },
-+
-+	{ BITS_PER_LONG, BITS_PER_LONG, BITS_PER_LONG,
-+		{ 0xa5a5a5a5UL, 0xa5a5a5a5UL, },
-+		{ 0xa5a5a5a5UL, 0xa5a5a5a5UL, },
-+	},
-+	{ 1, BITS_PER_LONG - 1, BITS_PER_LONG,
-+		{ 0xa5a5a5a5UL, 0xa5a5a5a5UL, },
-+		{ 0x00000001UL, 0x00000001UL, },
-+	},
-+
-+	{ 0, BITS_PER_LONG * 2, BITS_PER_LONG * 2 + 1,
-+		{ 0xa5a5a5a5UL, 0x00000001UL, 0x00000001UL, 0x00000001UL },
-+		{ 0x00000001UL, },
-+	},
-+	{ 16, BITS_PER_LONG * 2 + 1, BITS_PER_LONG * 2 + 1 + 16,
-+		{ 0x0000ffffUL, 0x5a5a5a5aUL, 0x5a5a5a5aUL, 0x5a5a5a5aUL },
-+		{ 0x2d2dffffUL, },
-+	},
-+};
-+
-+static void __init test_bitmap_cut(void)
-+{
-+	unsigned long b[5], *in = &b[1], *out = &b[0];	/* Partial overlap */
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(test_cut); i++) {
-+		struct test_bitmap_cut *t = &test_cut[i];
-+
-+		memcpy(in, t->in, sizeof(t->in));
-+
-+		bitmap_cut(out, in, t->first, t->cut, t->nbits);
-+
-+		expect_eq_bitmap(t->expected, out, t->nbits);
-+	}
-+}
-+
- static void __init selftest(void)
- {
- 	test_zero_clear();
-@@ -623,6 +680,7 @@ static void __init selftest(void)
- 	test_bitmap_parselist_user();
- 	test_mem_optimisations();
- 	test_for_each_set_clump8();
-+	test_bitmap_cut();
- }
+ struct __genradix {
+-	struct genradix_root __rcu	*root;
++	struct genradix_root		*root;
+ };
  
- KSTM_MODULE_LOADERS(test_bitmap);
+ /*
 _
 
-Patches currently in -mm which might be from sbrivio@redhat.com are
+Patches currently in -mm which might be from luc.vanoostenryck@gmail.com are
 
 
