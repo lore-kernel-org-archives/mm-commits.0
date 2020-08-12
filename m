@@ -7,45 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03F7CC433E1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54A1FC433DF
 	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC62720B1F
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2FD4A2087C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266153;
-	bh=bK9ILJCA9ihlOw7KW7T9/1gOzx4vw79gt3MHhi7dq7U=;
+	s=default; t=1597266154;
+	bh=gU2hckw2E/Msr5xY7cm4kTHSasSJsX5W1FFsm3wNKis=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=1xEx9agLAGZTedaKsW4+MQQ9OhXhthrlLXrFKhqEFpBbdyPHowtwjmPVbFOsAer5m
-	 8NESWhERI+1kYGCdFjjz11Lo1NIvfmSipcbyJlr3EJ5O47/u/0YroRHiChCYiYDPOe
-	 rgmPlxFWSaNlXlLvvqkrCq1PgJRiQttEYK3hY4FU=
+	b=Hd14+VW14rLflUfEMSoyenRRO2D4xnXmTc7vYOWqhzgig02LTnMQb96CThBdnX0Ep
+	 0UbDh5pW6sbQCaOS7mVTUdmkt0LOiMdQq3B/wQ2TU1pnmqV75+fVIvBEIRxESfJRQq
+	 5DJHmh9Ch7apkFtblg3n2YDNNkUdSVT7SceN33h4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726660AbgHLVCd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726609AbgHLVCd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 12 Aug 2020 17:02:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49876 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49990 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726564AbgHLVCc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:02:32 -0400
+        id S1726564AbgHLVCd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:02:33 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8B007207F7;
-        Wed, 12 Aug 2020 21:02:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6CECB20838;
+        Wed, 12 Aug 2020 21:02:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266151;
-        bh=bK9ILJCA9ihlOw7KW7T9/1gOzx4vw79gt3MHhi7dq7U=;
+        s=default; t=1597266153;
+        bh=gU2hckw2E/Msr5xY7cm4kTHSasSJsX5W1FFsm3wNKis=;
         h=Date:From:To:Subject:From;
-        b=KdMaURYQZVnkozmJIzu0TJ3O0EPq+3EnoytQSrVUpx+qjqBUpF8JCLRxXmuP0f6k0
-         Z5z+F357zXahBnFeQpmvX7OSBZR1ZyKsMqk3BMl9Cn09J+lOQD5DVPefzdlX+Fea7W
-         GG4B9xrS/ZfpCUOQxO8X8Yo0BkkKX/IihP93TI5s=
-Date:   Wed, 12 Aug 2020 14:02:31 -0700
+        b=pHCRGSIkfor4knfn9Lq9Y9NuQ6+ZxwEgxrqVcK9b+YOcy/KTdiv8xkeCPJga6qOrX
+         5XUJzb1lq7BNX7B95xbeL/rMCxNQKW+Phhs+8tj86fg8F2g+k+SkNVoAOrWL/uxO3C
+         FVhsoUMujf+SkIinRWngPZd/8U+VbV7bp0Tc8GYA=
+Date:   Wed, 12 Aug 2020 14:02:33 -0700
 From:   akpm@linux-foundation.org
-To:     charante@codeaurora.org, david@redhat.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, vbabka@suse.cz, vinmenon@codeaurora.org
-Subject:  [merged]
- mm-memory_hotplug-update-pcp-lists-everytime-onlining-a-memory-block.patch
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org, sjpark@amazon.de
+Subject:  [merged] mm-drop-duplicated-words-in-linux-pgtableh.patch
  removed from -mm tree
-Message-ID: <20200812210231.EPHr97AH0%akpm@linux-foundation.org>
+Message-ID: <20200812210233.ESy4-ubs_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,56 +53,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug: update pcp lists everytime onlining a memory block
+     Subject: mm: drop duplicated words in <linux/pgtable.h>
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-update-pcp-lists-everytime-onlining-a-memory-block.patch
+     mm-drop-duplicated-words-in-linux-pgtableh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm, memory_hotplug: update pcp lists everytime onlining a memory block
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm: drop duplicated words in <linux/pgtable.h>
 
-When onlining a first memory block in a zone, pcp lists are not updated
-thus pcp struct will have the default setting of ->high = 0,->batch = 1.
+Drop the doubled words "used" and "by".
 
-This means till the second memory block in a zone(if it have) is onlined
-the pcp lists of this zone will not contain any pages because pcp's
-->count is always greater than ->high thus free_pcppages_bulk() is called
-to free batch size(=1) pages every time system wants to add a page to the
-pcp list through free_unref_page().
+Drop the repeated acronym "TLB" and make several other fixes around it.
+(capital letters, spellos)
 
-To put this in a word, system is not using benefits offered by the pcp
-lists when there is a single onlineable memory block in a zone.  Correct
-this by always updating the pcp lists when memory block is onlined.
-
-Link: http://lkml.kernel.org/r/1596372896-15336-1-git-send-email-charante@codeaurora.org
-Fixes: 1f522509c77a ("mem-hotplug: avoid multiple zones sharing same boot strapping boot_pageset")
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Link: http://lkml.kernel.org/r/2bb6e13e-44df-4920-52d9-4d3539945f73@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: SeongJae Park <sjpark@amazon.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/pgtable.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-update-pcp-lists-everytime-onlining-a-memory-block
-+++ a/mm/memory_hotplug.c
-@@ -854,8 +854,7 @@ int __ref online_pages(unsigned long pfn
- 	node_states_set_node(nid, &arg);
- 	if (need_zonelists_rebuild)
- 		build_all_zonelists(NULL);
--	else
--		zone_pcp_update(zone);
-+	zone_pcp_update(zone);
+--- a/include/linux/pgtable.h~mm-drop-duplicated-words-in-linux-pgtableh
++++ a/include/linux/pgtable.h
+@@ -804,7 +804,7 @@ static inline void ptep_modify_prot_comm
  
- 	init_per_zone_wmark_min();
+ /*
+  * No-op macros that just return the current protection value. Defined here
+- * because these macros can be used used even if CONFIG_MMU is not defined.
++ * because these macros can be used even if CONFIG_MMU is not defined.
+  */
  
+ #ifndef pgprot_nx
+@@ -1234,7 +1234,7 @@ static inline int pmd_trans_unstable(pmd
+  * Technically a PTE can be PROTNONE even when not doing NUMA balancing but
+  * the only case the kernel cares is for NUMA balancing and is only ever set
+  * when the VMA is accessible. For PROT_NONE VMAs, the PTEs are not marked
+- * _PAGE_PROTNONE so by by default, implement the helper as "always no". It
++ * _PAGE_PROTNONE so by default, implement the helper as "always no". It
+  * is the responsibility of the caller to distinguish between PROT_NONE
+  * protections and NUMA hinting fault protections.
+  */
+@@ -1318,10 +1318,10 @@ static inline int pmd_free_pte_page(pmd_
+ /*
+  * ARCHes with special requirements for evicting THP backing TLB entries can
+  * implement this. Otherwise also, it can help optimize normal TLB flush in
+- * THP regime. stock flush_tlb_range() typically has optimization to nuke the
+- * entire TLB TLB if flush span is greater than a threshold, which will
+- * likely be true for a single huge page. Thus a single thp flush will
+- * invalidate the entire TLB which is not desitable.
++ * THP regime. Stock flush_tlb_range() typically has optimization to nuke the
++ * entire TLB if flush span is greater than a threshold, which will
++ * likely be true for a single huge page. Thus a single THP flush will
++ * invalidate the entire TLB which is not desirable.
+  * e.g. see arch/arc: flush_pmd_tlb_range
+  */
+ #define flush_pmd_tlb_range(vma, addr, end)	flush_tlb_range(vma, addr, end)
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 
