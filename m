@@ -7,49 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CABFC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:05:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61230C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:06:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 67FF4206F2
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:05:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 409EE206F2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:06:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597194354;
-	bh=Zf/5Hq9ffHWCpzyBNmFOSYX3ARWJzOLcFVU93Ol/UGA=;
+	s=default; t=1597194377;
+	bh=iMjPzPgSWMSRu7t5yF/B6Ut+B5I0EVAORYw3T8Zt5xw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=oI7coGMADT1N1CH51P8HPmNaGa0ItfB99ECIahlpSafTmo3HqV/Odgn8b8PVADXU0
-	 0TPAoqRBZIL/vz86ixQfTfv8Ig/LeIvsZuI4wtdhIxxZqbNcOYy00SsSrLxwBNpzr2
-	 3IJad8EpyuXklb0qeJLxhKDOTGnsUMHJYbxjIXoc=
+	b=E0Oi9maMlNYJWaZ/iIFQm8HVO6Krmn5QVQJ96APFgKE684ScTdYhdhBEdgiQlI+1h
+	 KZ8UTx2JZzuH+6+QQHmTfyCUnWF5ACcSsFnQUqiOpHSfCRgjJtf4gQ9MB+ozdGJfNG
+	 FVV0CRVOvc0f8WWqdGWLt9dowxfQi+cBEHuB8RJk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726368AbgHLBFy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:05:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46238 "EHLO mail.kernel.org"
+        id S1726402AbgHLBGR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:06:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726143AbgHLBFx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:05:53 -0400
+        id S1726143AbgHLBGQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:06:16 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 313F2206B5;
-        Wed, 12 Aug 2020 01:05:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 69B42206B5;
+        Wed, 12 Aug 2020 01:06:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597194353;
-        bh=Zf/5Hq9ffHWCpzyBNmFOSYX3ARWJzOLcFVU93Ol/UGA=;
+        s=default; t=1597194376;
+        bh=iMjPzPgSWMSRu7t5yF/B6Ut+B5I0EVAORYw3T8Zt5xw=;
         h=Date:From:To:Subject:From;
-        b=cX0jCNKWwzRzZBgkmR87LJgXDThsbMHKxXo8QfNMbG+fEQOqOQ9bzBRozXyUE8lrv
-         IpoxvK56oRVbXOhu8JvjzstL9+V653qjwkovPwuROg3lKp3f5wGTmOaOgcWB0B89LL
-         pW4ls1DzE3pTo+t01vhX0fX4n7g6oLiDY7PlHyyg=
-Date:   Tue, 11 Aug 2020 18:05:52 -0700
+        b=nAKmQurbCWN2T65wILR5/BzxhhAICKnrbb70a0VflO2bScqXHlumAaOr7yzJqXieB
+         H/yHSgVqWDgmyJ0NzQNeD9ipC6WvaWeHNfuJmHAO1iZZd7jf85zt+oesiPPz5q4MTj
+         wqhq5sbECSrTwLXE9tujuJrVc1sn2ABE3GOns6q0=
+Date:   Tue, 11 Aug 2020 18:06:16 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, vbabka@suse.cz
+To:     akpm@linux-foundation.org, iamjoonsoo.kim@lge.com,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- =?US-ASCII?Q?mm-migrate-clear-=5F=5Fgfp=5Freclaim-to-make-the-migratio?=
- =?US-ASCII?Q?n-callback-consistent-with-regular-thp-allocations-fix.p?=
- =?US-ASCII?Q?atch?= removed from -mm tree
-Message-ID: <20200812010552.kDR0XIegX%akpm@linux-foundation.org>
+ mm-migrate-make-a-standard-migration-target-allocation-function-fix.patch
+ removed from -mm tree
+Message-ID: <20200812010616._wzr7oPhN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,44 +55,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix
+     Subject: mm-migrate-make-a-standard-migration-target-allocation-function-fix
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
+     mm-migrate-make-a-standard-migration-target-allocation-function-fix.patch
 
-This patch was dropped because it was folded into mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations.patch
+This patch was dropped because it was folded into mm-migrate-make-a-standard-migration-target-allocation-function.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix
+Subject: mm-migrate-make-a-standard-migration-target-allocation-function-fix
 
-fix comment typo, per Vlastimil
+fix typoe in comment
 
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
+ include/linux/hugetlb.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/migrate.c~mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix
-+++ a/mm/migrate.c
-@@ -1550,7 +1550,7 @@ struct page *new_page_nodemask(struct pa
+--- a/include/linux/hugetlb.h~mm-migrate-make-a-standard-migration-target-allocation-function-fix
++++ a/include/linux/hugetlb.h
+@@ -705,7 +705,7 @@ static inline gfp_t htlb_modify_alloc_ma
+ {
+ 	gfp_t modified_mask = htlb_alloc_mask(h);
  
- 	if (PageTransHuge(page)) {
- 		/*
--		 * clear __GFP_RECALIM to make the migration callback
-+		 * clear __GFP_RECLAIM to make the migration callback
- 		 * consistent with regular THP allocations.
- 		 */
- 		gfp_mask &= ~__GFP_RECLAIM;
+-	/* Some callers might want to enfoce node */
++	/* Some callers might want to enforce node */
+ 	modified_mask |= (gfp_mask & __GFP_THISNODE);
+ 
+ 	return modified_mask;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations.patch
-mm-migrate-make-a-standard-migration-target-allocation-function-fix.patch
+mm-migrate-make-a-standard-migration-target-allocation-function.patch
 mm.patch
 mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
 mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
