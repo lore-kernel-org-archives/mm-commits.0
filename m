@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 818E4C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D15C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5ECA5207DA
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 819FF2054F
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196224;
-	bh=HwnkAPmO7+1OKKPmNTySFF02DUcARYfGP0oPpn7FFJw=;
+	s=default; t=1597196226;
+	bh=imZqtRs2Zm6d+Q8CnwkNMxVZRym6ZJZHY5VLNNkVgbg=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Z/P+kk7K3urSDHXwTW7bjw3MRIRCK5xBPSADHhgI1+Qni3/bjTkzNid5DKDG/vUpO
-	 XsPhknhLp5I97YKeI7hwjuP8AeoicuZsaH1xJY/B35TQaL8kIcwRIQVCCWuyvLDegD
-	 nDROA4rXZxLKjv9DPbAs3o8oxIWVQFgA9yMW7ne0=
+	b=HK8Hn7KCVM0UyG3/tqaE6rkz1u9QzIk9nKrMwNScr74UtbLV9wDjk+LbJ8aDygDn6
+	 VkTKVk9RRyP3hTqCaYTl7o19vvYC9iO8DviZknIQOaW6+kO/WxGqlygEq0scyzEEPi
+	 dGPxI7CYMDPr5N2UDQ4qhZBCjgVmRacfcUiPMnI0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726333AbgHLBhE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:37:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38600 "EHLO mail.kernel.org"
+        id S1726488AbgHLBhG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:37:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38660 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBhE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:37:04 -0400
+        id S1726235AbgHLBhG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:37:06 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 882AB2054F;
-        Wed, 12 Aug 2020 01:37:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8B4A42087C;
+        Wed, 12 Aug 2020 01:37:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196222;
-        bh=HwnkAPmO7+1OKKPmNTySFF02DUcARYfGP0oPpn7FFJw=;
+        s=default; t=1597196225;
+        bh=imZqtRs2Zm6d+Q8CnwkNMxVZRym6ZJZHY5VLNNkVgbg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=h+uTFp7FfRnfPRrxwNnPAvh2vz929Xwn9Svj/qpHqTAvsSOFjfRdVtkPUBOPEhn1/
-         /LgHuqy72SML6OtAuLXPCWyDIQ8U8538lCmZ7hrb9IEZtURkfX6f0X0EkpH1ELs/eX
-         zvvLdskmWrFituJgmMQvGdnjm0l/KyaZu2Lem57c=
-Date:   Tue, 11 Aug 2020 18:37:02 -0700
+        b=UkKydZ23RX0Da8JgYaArgBEEoUYr3+b08/TiVHYuUIdMTvVVXvFxPwukmsjEtYt8A
+         9oq82k/Faws1A5rxaPJBptapPqtVwy+2BGZjLScP1oCRLBa/13FyEBmmK8Lkr1A/Wb
+         LHJ+aN3/xHcxtsVQJDwJNT5B9VwDu1QY9eKpZlI4=
+Date:   Tue, 11 Aug 2020 18:37:05 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, aymeric.agon@yandex.com,
-        jan.kiszka@siemens.com, kbingham@kernel.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        swboyd@chromium.org, torvalds@linux-foundation.org
-Subject:  [patch 128/165] scripts/gdb: fix python 3.8 SyntaxWarning
-Message-ID: <20200812013702.CttNEN-O6%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akpm@linux-foundation.org, dave@stgolabs.net,
+        linux-mm@kvack.org, manfred@colorfullife.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 129/165] ipc: uninline functions
+Message-ID: <20200812013705.KtWRJHwph%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,53 +53,45 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: scripts/gdb: fix python 3.8 SyntaxWarning
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: ipc: uninline functions
 
-Fixes the observed warnings:
-scripts/gdb/linux/rbtree.py:20: SyntaxWarning: "is" with a literal. Did
-you mean "=="?
-  if node is 0:
-scripts/gdb/linux/rbtree.py:36: SyntaxWarning: "is" with a literal. Did
-you mean "=="?
-  if node is 0:
+Two functions are only called via function pointers, don't bother
+inlining them.
 
-It looks like this is a new warning added in Python 3.8. I've only seen
-this once after adding the add-auto-load-safe-path rule to my ~/.gdbinit
-for a new tree.
-
-Link: http://lkml.kernel.org/r/20200805225015.2847624-1-ndesaulniers@google.com
-Link: https://adamj.eu/tech/2020/01/21/why-does-python-3-8-syntaxwarning-for-is-literal/
-Fixes: commit 449ca0c95ea2 ("scripts/gdb: add rb tree iterating utilities")
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Reviewed-by: Stephen Boyd <swboyd@chromium.org>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Aymeric Agon-Rambosson <aymeric.agon@yandex.com>
+Link: http://lkml.kernel.org/r/20200710200312.GA960353@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/rbtree.py |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/sem.c |    3 +--
+ ipc/shm.c |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
---- a/scripts/gdb/linux/rbtree.py~scripts-gdb-fix-python-38-syntaxwarning
-+++ a/scripts/gdb/linux/rbtree.py
-@@ -17,7 +17,7 @@ def rb_first(root):
-         raise gdb.GdbError("Must be struct rb_root not {}".format(root.type))
+--- a/ipc/sem.c~ipc-uninline-functions
++++ a/ipc/sem.c
+@@ -585,8 +585,7 @@ static int newary(struct ipc_namespace *
+ /*
+  * Called with sem_ids.rwsem and ipcp locked.
+  */
+-static inline int sem_more_checks(struct kern_ipc_perm *ipcp,
+-				struct ipc_params *params)
++static int sem_more_checks(struct kern_ipc_perm *ipcp, struct ipc_params *params)
+ {
+ 	struct sem_array *sma;
  
-     node = root['rb_node']
--    if node is 0:
-+    if node == 0:
-         return None
+--- a/ipc/shm.c~ipc-uninline-functions
++++ a/ipc/shm.c
+@@ -711,8 +711,7 @@ no_file:
+ /*
+  * Called with shm_ids.rwsem and ipcp locked.
+  */
+-static inline int shm_more_checks(struct kern_ipc_perm *ipcp,
+-				struct ipc_params *params)
++static int shm_more_checks(struct kern_ipc_perm *ipcp, struct ipc_params *params)
+ {
+ 	struct shmid_kernel *shp;
  
-     while node['rb_left']:
-@@ -33,7 +33,7 @@ def rb_last(root):
-         raise gdb.GdbError("Must be struct rb_root not {}".format(root.type))
- 
-     node = root['rb_node']
--    if node is 0:
-+    if node == 0:
-         return None
- 
-     while node['rb_right']:
 _
