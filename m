@@ -7,43 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63789C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFBD6C433E3
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 404862078B
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9229C2078B
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266271;
-	bh=PulSu00/+EfUe8UOsWt6z4iG8BlGuIPsoXwtVoFIqUI=;
+	s=default; t=1597266272;
+	bh=PB4H2qrXt7IfzzuAsEJ5Zmfa3L73cpogTDnGUH55PcA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=o9HtmJIRnuqDezS0Sh7XPUAzkT/YjLjz6mqzFYF2jwf8lyrGuB9hUxmPAbNrEZZfZ
-	 lyv2MAPEpwxbrVatkKsaLEsQFgHo5om47zqP67SS5rGPVG5vVyUlxnZs3M8qJaS6aG
-	 HKHrBRF+UE/N1hOvznqGnW6cdFdFxy6UyASSqiTk=
+	b=Y4iwIE9keOIDOviwXE3plxEo6WN5BSXNm4NQmy8LyGoUuUxIjW2ohEofd5cFXxB8h
+	 Mh+tjB3q2R7mwlP0X6XLAov1U/iuC7nPReWdd+I8CchALHVreMIoMm4PvnGXKt62+A
+	 MKs4iqhd18MzyZE6lS0GhG11xC3zHLcUmCn4VDl0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726528AbgHLVEb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:04:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56956 "EHLO mail.kernel.org"
+        id S1726542AbgHLVEc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:04:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57070 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726531AbgHLVEa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:04:30 -0400
+        id S1726531AbgHLVEc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:04:32 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5AD3820774;
-        Wed, 12 Aug 2020 21:04:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5E2B520838;
+        Wed, 12 Aug 2020 21:04:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266269;
-        bh=PulSu00/+EfUe8UOsWt6z4iG8BlGuIPsoXwtVoFIqUI=;
+        s=default; t=1597266271;
+        bh=PB4H2qrXt7IfzzuAsEJ5Zmfa3L73cpogTDnGUH55PcA=;
         h=Date:From:To:Subject:From;
-        b=ZLfsLTdmj1cXd/c1cEFMBPISN/YCDbNY+ycVPlH/Nk9ZAOXebSXl0qM9InL4q8+jx
-         oJN4QzhiMM2IYbyIbso+gN5Wi1ePgKjrIxz9ByOHg/1PCfcj3AmMwlrzxuAjWOTt1N
-         WAFamvHXNHu5Y5KHRhtOWYP/stwGaXh8BlfgZrck=
-Date:   Wed, 12 Aug 2020 14:04:29 -0700
+        b=f42GKTwDUucrb2zoOnzsNK/BXZKFXCO2NMxg0lj8lv7FJ/MvQPbpHb3wtlYJZSM4k
+         y6Q0kIU6tDYgPFC/5JK+Bsv1H9Ff3zgr3uiXSvsiHihrpFgl7BsRhrJjyFAqPUA433
+         deAREA+ZBnma8aFd5PGCaxwm7leT59/qt54ijAT0=
+Date:   Wed, 12 Aug 2020 14:04:31 -0700
 From:   akpm@linux-foundation.org
-To:     joe@perches.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  [merged] checkpatch-add-test-for-repeated-words.patch
- removed from -mm tree
-Message-ID: <20200812210429._SBYjmMqx%akpm@linux-foundation.org>
+To:     cambda@linux.alibaba.com, joe@perches.com,
+        mm-commits@vger.kernel.org
+Subject:  [merged]
+ checkpatch-remove-missing-switch-case-break-test.patch removed from -mm
+ tree
+Message-ID: <20200812210431.smIV6xV-M%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,95 +55,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add test for repeated words
+     Subject: checkpatch: remove missing switch/case break test
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-test-for-repeated-words.patch
+     checkpatch-remove-missing-switch-case-break-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add test for repeated words
+Subject: checkpatch: remove missing switch/case break test
 
-Try to avoid adding repeated words either on the same line or consecutive
-comment lines in a block
+This test doesn't work well and newer compilers are much better
+at emitting this warning.
 
-e.g.:
-
-duplicated word in comment block
-
-	/*
-	 * this is a comment block where the last word of the previous
-	 * previous line is also the first word of the next line
-	 */
-
-and simple duplication
-
-	/* test this this again */
-
-Link: http://lkml.kernel.org/r/cda9b566ad67976e1acd62b053de50ee44a57250.camel@perches.com
+Link: http://lkml.kernel.org/r/7e25090c79f6a69d502ab8219863300790192fe2.camel@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Inspired-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Cambda Zhu <cambda@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ scripts/checkpatch.pl |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-test-for-repeated-words
+--- a/scripts/checkpatch.pl~checkpatch-remove-missing-switch-case-break-test
 +++ a/scripts/checkpatch.pl
-@@ -588,6 +588,8 @@ our @mode_permission_funcs = (
- 	["__ATTR", 2],
- );
- 
-+my $word_pattern = '\b[A-Z]?[a-z]{2,}\b';
-+
- #Create a search pattern for all these functions to speed up a loop below
- our $mode_perms_search = "";
- foreach my $entry (@mode_permission_funcs) {
-@@ -3312,6 +3314,42 @@ sub process {
+@@ -6543,31 +6543,6 @@ sub process {
  			}
  		}
  
-+# check for repeated words separated by a single space
-+		if ($rawline =~ /^\+/) {
-+			while ($rawline =~ /\b($word_pattern) (?=($word_pattern))/g) {
-+
-+				my $first = $1;
-+				my $second = $2;
-+
-+				if ($first =~ /(?:struct|union|enum)/) {
-+					pos($rawline) += length($first) + length($second) + 1;
-+					next;
-+				}
-+
-+				next if ($first ne $second);
-+				next if ($first eq 'long');
-+
-+				if (WARN("REPEATED_WORD",
-+					 "Possible repeated word: '$first'\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/\b$first $second\b/$first/;
-+				}
-+			}
-+
-+			# if it's a repeated word on consecutive lines in a comment block
-+			if ($prevline =~ /$;+\s*$/ &&
-+			    $prevrawline =~ /($word_pattern)\s*$/) {
-+				my $last_word = $1;
-+				if ($rawline =~ /^\+\s*\*\s*$last_word /) {
-+					if (WARN("REPEATED_WORD",
-+						 "Possible repeated word: '$last_word'\n" . $hereprev) &&
-+					    $fix) {
-+						$fixed[$fixlinenr] =~ s/(\+\s*\*\s*)$last_word /$1/;
-+					}
-+				}
-+			}
-+		}
-+
- # check for space before tabs.
- 		if ($rawline =~ /^\+/ && $rawline =~ / \t/) {
- 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
+-# check for case / default statements not preceded by break/fallthrough/switch
+-		if ($line =~ /^.\s*(?:case\s+(?:$Ident|$Constant)\s*|default):/) {
+-			my $has_break = 0;
+-			my $has_statement = 0;
+-			my $count = 0;
+-			my $prevline = $linenr;
+-			while ($prevline > 1 && ($file || $count < 3) && !$has_break) {
+-				$prevline--;
+-				my $rline = $rawlines[$prevline - 1];
+-				my $fline = $lines[$prevline - 1];
+-				last if ($fline =~ /^\@\@/);
+-				next if ($fline =~ /^\-/);
+-				next if ($fline =~ /^.(?:\s*(?:case\s+(?:$Ident|$Constant)[\s$;]*|default):[\s$;]*)*$/);
+-				$has_break = 1 if ($rline =~ /fall[\s_-]*(through|thru)/i);
+-				next if ($fline =~ /^.[\s$;]*$/);
+-				$has_statement = 1;
+-				$count++;
+-				$has_break = 1 if ($fline =~ /\bswitch\b|\b(?:break\s*;[\s$;]*$|exit\s*\(\b|return\b|goto\b|continue\b)/);
+-			}
+-			if (!$has_break && $has_statement) {
+-				WARN("MISSING_BREAK",
+-				     "Possible switch case/default not preceded by break or fallthrough comment\n" . $herecurr);
+-			}
+-		}
+-
+ # check for /* fallthrough */ like comment, prefer fallthrough;
+ 		my @fallthroughs = (
+ 			'fallthrough',
 _
 
 Patches currently in -mm which might be from joe@perches.com are
