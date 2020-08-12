@@ -7,47 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4222CC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF6A6C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DCE820774
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99E772078B
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266141;
-	bh=91WhLQqXQB4/3dEqcVgcqRmOGGlZ5yB7vF2MFJ3jiaU=;
+	s=default; t=1597266143;
+	bh=7hFNLTmCM53WidHXcPFFqgFpPbgPpER16aFpN2hM6DY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=NXa9z5QjAIBFUGTJOqFpNGqyQu5tt43eIbOl5/sJU/zCLxe8uEUetp6L1kvPFE9Pz
-	 AOIh3B3Q7kd4qBy4agrkSZI2Yp4RBHt7Tp3VOShwyR4I1hn7aCQqzP/ucmrMxmMvOV
-	 aTI0KNB3kmaVNnXnHSuKbO96rcBj/8lcRnQzMmww=
+	b=xVJH5VWxOTjSmK+4MNz6iVTt0GloVngCc90na/mIgT97n+zfBLQWGOvq7OqldsYLS
+	 fgWXYHg55I5Kju8i9GnPjoGCErNQ3A5xJf0SOdoF/stIuXLKk9HWet/33mwSs2fwOJ
+	 q/zqkiyyeaE6HHw1fmMbjJlDq9ph8QC+cLynqVW0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726557AbgHLVCU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:02:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49208 "EHLO mail.kernel.org"
+        id S1726641AbgHLVCX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:02:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726528AbgHLVCU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:02:20 -0400
+        id S1726528AbgHLVCX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:02:23 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id B2FF7207F7;
-        Wed, 12 Aug 2020 21:02:18 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 620EF2087C;
+        Wed, 12 Aug 2020 21:02:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266139;
-        bh=91WhLQqXQB4/3dEqcVgcqRmOGGlZ5yB7vF2MFJ3jiaU=;
+        s=default; t=1597266141;
+        bh=7hFNLTmCM53WidHXcPFFqgFpPbgPpER16aFpN2hM6DY=;
         h=Date:From:To:Subject:From;
-        b=e45d7y0SNNgg+fXYy1le7YAZ2r0/Ldn4b3XYrEaFMo30exs/gRoO3fj3RPXkJQFx6
-         K6TsU1VaUsWnsaGmVpaL8SBvATXU+RM3skMzo/S+Dq3oG6NXOMxu/+jFJrvSDHGliI
-         xOhk0CXnLt2gR+tpwI4qwscIimLoiMiFJ1An3hts=
-Date:   Wed, 12 Aug 2020 14:02:18 -0700
+        b=zqWFsfmnuZgLixMGV0TN2lh8e6DsfvQbxB8ccdtFJPcwWZVjiISJ7GcnUqjb+OkLc
+         WbZAtF6T61lIM8ffr4vDXtrc8Su3ZI1qVd9RvUaU3RFBMGfAcNrPK+Ei1nE26BynD6
+         gJSy0MdYqJCb1ckOp08n7l+lxNLjcONrp9XdVCUQ=
+Date:   Wed, 12 Aug 2020 14:02:21 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com,
-        m.szyprowski@samsung.com, mike.kravetz@oracle.com,
-        mina86@mina86.com, mm-commits@vger.kernel.org,
-        song.bao.hua@hisilicon.com, stable@vger.kernel.org
-Subject:  [merged]
- cma-dont-quit-at-first-error-when-activating-reserved-areas.patch removed
- from -mm tree
-Message-ID: <20200812210218.Bei0iztuR%akpm@linux-foundation.org>
+To:     longman@redhat.com, mathieu.desnoyers@efficios.com,
+        mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org,
+        walken@google.com
+Subject:  [merged] sched-mm-optimize-current_gfp_context.patch
+ removed from -mm tree
+Message-ID: <20200812210221.bNuT5LOO9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -57,137 +55,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma: don't quit at first error when activating reserved areas
+     Subject: include/linux/sched/mm.h: optimize current_gfp_context()
 has been removed from the -mm tree.  Its filename was
-     cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
+     sched-mm-optimize-current_gfp_context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: cma: don't quit at first error when activating reserved areas
+From: Waiman Long <longman@redhat.com>
+Subject: include/linux/sched/mm.h: optimize current_gfp_context()
 
-The routine cma_init_reserved_areas is designed to activate all
-reserved cma areas.  It quits when it first encounters an error.
-This can leave some areas in a state where they are reserved but
-not activated.  There is no feedback to code which performed the
-reservation.  Attempting to allocate memory from areas in such a
-state will result in a BUG.
+The current_gfp_context() converts a number of PF_MEMALLOC_* per-process
+flags into the corresponding GFP_* flags for memory allocation.  In that
+function, current->flags is accessed 3 times.  That may lead to duplicated
+access of the same memory location.
 
-Modify cma_init_reserved_areas to always attempt to activate all
-areas.  The called routine, cma_activate_area is responsible for
-leaving the area in a valid state.  No one is making active use
-of returned error codes, so change the routine to void.
+This is not usually a problem with minimal debug config options on as the
+compiler can optimize away the duplicated memory accesses.  With most of
+the debug config options on, however, that may not be the case.  For
+example, the x86-64 object size of the __need_fs_reclaim() in a debug
+kernel that calls current_gfp_context() was 309 bytes.  With this patch
+applied, the object size is reduced to 202 bytes.  This is a saving of 107
+bytes and will probably be slightly faster too.
 
-How to reproduce:  This example uses kernelcore, hugetlb and cma
-as an easy way to reproduce.  However, this is a more general cma
-issue.
+Use READ_ONCE() to access current->flags to prevent the compiler from
+possibly accessing current->flags multiple times.
 
-Two node x86 VM 16GB total, 8GB per node
-Kernel command line parameters, kernelcore=4G hugetlb_cma=8G
-Related boot time messages,
-  hugetlb_cma: reserve 8192 MiB, up to 4096 MiB per node
-  cma: Reserved 4096 MiB at 0x0000000100000000
-  hugetlb_cma: reserved 4096 MiB on node 0
-  cma: Reserved 4096 MiB at 0x0000000300000000
-  hugetlb_cma: reserved 4096 MiB on node 1
-  cma: CMA area hugetlb could not be activated
-
- # echo 8 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-
-  BUG: kernel NULL pointer dereference, address: 0000000000000000
-  #PF: supervisor read access in kernel mode
-  #PF: error_code(0x0000) - not-present page
-  PGD 0 P4D 0
-  Oops: 0000 [#1] SMP PTI
-  ...
-  Call Trace:
-    bitmap_find_next_zero_area_off+0x51/0x90
-    cma_alloc+0x1a5/0x310
-    alloc_fresh_huge_page+0x78/0x1a0
-    alloc_pool_huge_page+0x6f/0xf0
-    set_max_huge_pages+0x10c/0x250
-    nr_hugepages_store_common+0x92/0x120
-    ? __kmalloc+0x171/0x270
-    kernfs_fop_write+0xc1/0x1a0
-    vfs_write+0xc7/0x1f0
-    ksys_write+0x5f/0xe0
-    do_syscall_64+0x4d/0x90
-    entry_SYSCALL_64_after_hwframe+0x44/0xa9
-
-Link: http://lkml.kernel.org/r/20200730163123.6451-1-mike.kravetz@oracle.com
-Fixes: c64be2bb1c6e ("drivers: add Contiguous Memory Allocator")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Acked-by: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200618212936.9776-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ include/linux/sched/mm.h |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/cma.c~cma-dont-quit-at-first-error-when-activating-reserved-areas
-+++ a/mm/cma.c
-@@ -93,17 +93,15 @@ static void cma_clear_bitmap(struct cma
- 	mutex_unlock(&cma->lock);
- }
- 
--static int __init cma_activate_area(struct cma *cma)
-+static void __init cma_activate_area(struct cma *cma)
+--- a/include/linux/sched/mm.h~sched-mm-optimize-current_gfp_context
++++ a/include/linux/sched/mm.h
+@@ -178,14 +178,16 @@ static inline bool in_vfork(struct task_
+  */
+ static inline gfp_t current_gfp_context(gfp_t flags)
  {
- 	unsigned long base_pfn = cma->base_pfn, pfn = base_pfn;
- 	unsigned i = cma->count >> pageblock_order;
- 	struct zone *zone;
- 
- 	cma->bitmap = bitmap_zalloc(cma_bitmap_maxno(cma), GFP_KERNEL);
--	if (!cma->bitmap) {
--		cma->count = 0;
--		return -ENOMEM;
--	}
-+	if (!cma->bitmap)
-+		goto out_error;
- 
- 	WARN_ON_ONCE(!pfn_valid(pfn));
- 	zone = page_zone(pfn_to_page(pfn));
-@@ -133,25 +131,22 @@ static int __init cma_activate_area(stru
- 	spin_lock_init(&cma->mem_head_lock);
- #endif
- 
--	return 0;
-+	return;
- 
- not_in_zone:
--	pr_err("CMA area %s could not be activated\n", cma->name);
- 	bitmap_free(cma->bitmap);
-+out_error:
- 	cma->count = 0;
--	return -EINVAL;
-+	pr_err("CMA area %s could not be activated\n", cma->name);
-+	return;
- }
- 
- static int __init cma_init_reserved_areas(void)
- {
- 	int i;
- 
--	for (i = 0; i < cma_area_count; i++) {
--		int ret = cma_activate_area(&cma_areas[i]);
--
--		if (ret)
--			return ret;
--	}
-+	for (i = 0; i < cma_area_count; i++)
-+		cma_activate_area(&cma_areas[i]);
- 
- 	return 0;
- }
+-	if (unlikely(current->flags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS))) {
++	unsigned int pflags = READ_ONCE(current->flags);
++
++	if (unlikely(pflags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS))) {
+ 		/*
+ 		 * NOIO implies both NOIO and NOFS and it is a weaker context
+ 		 * so always make sure it makes precedence
+ 		 */
+-		if (current->flags & PF_MEMALLOC_NOIO)
++		if (pflags & PF_MEMALLOC_NOIO)
+ 			flags &= ~(__GFP_IO | __GFP_FS);
+-		else if (current->flags & PF_MEMALLOC_NOFS)
++		else if (pflags & PF_MEMALLOC_NOFS)
+ 			flags &= ~__GFP_FS;
+ 	}
+ 	return flags;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
 
