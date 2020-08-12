@@ -7,45 +7,49 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3179C433E4
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20647C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83B1820829
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2064206B2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597195931;
-	bh=e+27seuMnTrme4v8GgqWjjcVj/3u2w01LyGWJ+OL6xM=;
+	s=default; t=1597195935;
+	bh=ncpsCJ2hPBxYmQsr3dPoAkOMTa9hHDjTw2s9V+rXkCY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=NfPXvoYc9aeSCE/uzevtQvEmSvwJbBoXyWMqZUg0wmCfETkm1LODb3OiCNs5qC9gs
-	 YJRI3ztdGXNCsHHqADcJ3jIkVZerSsjANqPwlwFsLCGsBF9lhYvx+oHp5VIHBQGsPh
-	 KuLncYf6LIA2VUL3k5ToI0Sfwk6muLJ/NHXUEy/c=
+	b=CMhMGKfM73fjysbnRbLLusnHpV1d8aJSOfNLKFzjEUUqHAaMUNZySsZ8zlAzvt6Lb
+	 KkxH0zeAQ8Q5JlWOEcaoPfPDghcWXXax78lBBuRNY5qtRLqkKCm6bym9wJ1N+G+FT1
+	 7ZXwhOR3TkIPTIFwm81VJ7T3vGh/sf7v75lyGgJ0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726492AbgHLBcL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:32:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60354 "EHLO mail.kernel.org"
+        id S1726592AbgHLBcO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:32:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60448 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726531AbgHLBcK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:32:10 -0400
+        id S1726531AbgHLBcO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:32:14 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 169FE2076C;
-        Wed, 12 Aug 2020 01:32:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 33BC5207DA;
+        Wed, 12 Aug 2020 01:32:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195930;
-        bh=e+27seuMnTrme4v8GgqWjjcVj/3u2w01LyGWJ+OL6xM=;
+        s=default; t=1597195933;
+        bh=ncpsCJ2hPBxYmQsr3dPoAkOMTa9hHDjTw2s9V+rXkCY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OW9ZI/hoo8g4ZgqRfb+WWlzzoNWObU+5zsI9H4wFqGvJXtcCtG3JR8Vs1KzOxRUOT
-         EOhQ4/BS0ULtPrWps+NznFs6RPqnSN1AdaEDLedb3jmDpJGVIoF2djOoWOBV8K3wOb
-         qAnDPrOJ/mZTE26BnPyYP/D4QAtiP8c1zhEu8qug=
-Date:   Tue, 11 Aug 2020 18:32:09 -0700
+        b=xeNaXsNdr3QDcX+5zCewzFAdePDBYyVt4DsAO3t/MGqGyERzcANEiytWTUJuAB7/d
+         5gLNCzgsBxYqjDHnEDiugKvHcqbIyeZTeWiKU/JDXvOQFtGKfhn47MbI0OXm2+m1im
+         zzdKF5nJV53OR1ZthPvnQV2DI2U32hmrqIz03tK4=
+Date:   Tue, 11 Aug 2020 18:32:12 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jgg@nvidia.com, krzk@kernel.org,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+To:     akpm@linux-foundation.org, daniel.m.jordan@oracle.com,
+        dave.hansen@linux.intel.com, david@redhat.com, hpa@zytor.com,
+        linux-mm@kvack.org, luto@kernel.org, mhocko@kernel.org,
+        mingo@elte.hu, mm-commits@vger.kernel.org,
+        pasha.tatashin@soleen.com, peterz@infradead.org,
+        steven.sistare@oracle.com, tglx@linutronix.de,
         torvalds@linux-foundation.org
-Subject:  [patch 036/165] mm: mmu_notifier: fix and extend
- kerneldoc
-Message-ID: <20200812013209.hNrqRMQI1%akpm@linux-foundation.org>
+Subject:  [patch 037/165] x86/mm: use max memory block size on bare
+ metal
+Message-ID: <20200812013212.XG-D4Vf-8%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,64 +58,65 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Subject: mm: mmu_notifier: fix and extend kerneldoc
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: x86/mm: use max memory block size on bare metal
 
-Fix W=1 compile warnings (invalid kerneldoc):
+Some of our servers spend significant time at kernel boot initializing
+memory block sysfs directories and then creating symlinks between them and
+the corresponding nodes.  The slowness happens because the machines get
+stuck with the smallest supported memory block size on x86 (128M), which
+results in 16,288 directories to cover the 2T of installed RAM.  The
+search for each memory block is noticeable even with commit 4fb6eabf1037
+("drivers/base/memory.c: cache memory blocks in xarray to accelerate
+lookup").
 
-    mm/mmu_notifier.c:187: warning: Function parameter or member 'interval_sub' not described in 'mmu_interval_read_bgin'
-    mm/mmu_notifier.c:708: warning: Function parameter or member 'subscription' not described in 'mmu_notifier_registr'
-    mm/mmu_notifier.c:708: warning: Excess function parameter 'mn' description in 'mmu_notifier_register'
-    mm/mmu_notifier.c:880: warning: Function parameter or member 'subscription' not described in 'mmu_notifier_put'
-    mm/mmu_notifier.c:880: warning: Excess function parameter 'mn' description in 'mmu_notifier_put'
-    mm/mmu_notifier.c:982: warning: Function parameter or member 'ops' not described in 'mmu_interval_notifier_insert'
+Commit 078eb6aa50dc ("x86/mm/memory_hotplug: determine block size based on
+the end of boot memory") chooses the block size based on alignment with
+memory end.  That addresses hotplug failures in qemu guests, but for bare
+metal systems whose memory end isn't aligned to even the smallest size, it
+leaves them at 128M.
 
-Link: http://lkml.kernel.org/r/20200728171109.28687-4-krzk@kernel.org
-Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Make kernels that aren't running on a hypervisor use the largest supported
+size (2G) to minimize overhead on big machines.  Kernel boot goes 7%
+faster on the aforementioned servers, shaving off half a second.
+
+[daniel.m.jordan@oracle.com: v3]
+  Link: http://lkml.kernel.org/r/20200714205450.945834-1-daniel.m.jordan@oracle.com
+Link: http://lkml.kernel.org/r/20200609225451.3542648-1-daniel.m.jordan@oracle.com
+Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Sistare <steven.sistare@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/x86/mm/init_64.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/mm/mmu_notifier.c~mm-mmu_notifier-fix-and-extend-kerneldoc
-+++ a/mm/mmu_notifier.c
-@@ -166,7 +166,7 @@ static void mn_itree_inv_end(struct mmu_
- /**
-  * mmu_interval_read_begin - Begin a read side critical section against a VA
-  *                           range
-- * interval_sub: The interval subscription
-+ * @interval_sub: The interval subscription
-  *
-  * mmu_iterval_read_begin()/mmu_iterval_read_retry() implement a
-  * collision-retry scheme similar to seqcount for the VA range under
-@@ -686,7 +686,7 @@ EXPORT_SYMBOL_GPL(__mmu_notifier_registe
+--- a/arch/x86/mm/init_64.c~x86-mm-use-max-memory-block-size-on-bare-metal
++++ a/arch/x86/mm/init_64.c
+@@ -1452,6 +1452,15 @@ static unsigned long probe_memory_block_
+ 		goto done;
+ 	}
  
- /**
-  * mmu_notifier_register - Register a notifier on a mm
-- * @mn: The notifier to attach
-+ * @subscription: The notifier to attach
-  * @mm: The mm to attach the notifier to
-  *
-  * Must not hold mmap_lock nor any other VM related lock when calling
-@@ -856,7 +856,7 @@ static void mmu_notifier_free_rcu(struct
- 
- /**
-  * mmu_notifier_put - Release the reference on the notifier
-- * @mn: The notifier to act on
-+ * @subscription: The notifier to act on
-  *
-  * This function must be paired with each mmu_notifier_get(), it releases the
-  * reference obtained by the get. If this is the last reference then process
-@@ -965,7 +965,8 @@ static int __mmu_interval_notifier_inser
-  * @interval_sub: Interval subscription to register
-  * @start: Starting virtual address to monitor
-  * @length: Length of the range to monitor
-- * @mm : mm_struct to attach to
-+ * @mm: mm_struct to attach to
-+ * @ops: Interval notifier operations to be called on matching events
-  *
-  * This function subscribes the interval notifier for notifications from the
-  * mm.  Upon return the ops related to mmu_interval_notifier will be called
++	/*
++	 * Use max block size to minimize overhead on bare metal, where
++	 * alignment for memory hotplug isn't a concern.
++	 */
++	if (!boot_cpu_has(X86_FEATURE_HYPERVISOR)) {
++		bz = MAX_BLOCK_SIZE;
++		goto done;
++	}
++
+ 	/* Find the largest allowed block size that aligns to memory end */
+ 	for (bz = MAX_BLOCK_SIZE; bz > MIN_MEMORY_BLOCK_SIZE; bz >>= 1) {
+ 		if (IS_ALIGNED(boot_mem_end, bz))
 _
