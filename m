@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6805DC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1316AC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 42F1020774
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1E2B2080C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266258;
-	bh=qapG2CZop/oekMq876jqtDKogJTHzOA5E6p00zKcGaY=;
+	s=default; t=1597266260;
+	bh=D7fudLpAMO+VfZLtMyhlcJZaL6ui7lQTCfXiUcnjkIw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=jBhOFivo8va52dkGu98JnQIbAeWK1petdu+C7nWPdnq00U3D/ufW23BoF4XZLBiji
-	 DL0AdeX8sW7B9lAy9hUIguZgBMy2Wzvxv4ghvAAgFQ8Xvfn8rMtyUhU2FwchiADYWO
-	 TWlBeKp0KXwPMvrOY/yMUpa3ZipfpmEs07APqpSg=
+	b=VY5851EidWHWl2i8vVFoSyAtKIzuv+juzMQpp3pgZDQXPALgm6Jz4zyaCOWu5JtgV
+	 nMx1UVslPZgGIncYnS9sR+dnuRpLq8CVrK2mmvMTaWdMjKawGtg6ja1kszkX8rje5M
+	 GTpqB1T5GCvkN8bcpVcBqbKc6Oz/PCibacmVEzF4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726574AbgHLVER (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:04:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56102 "EHLO mail.kernel.org"
+        id S1726609AbgHLVET (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:04:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56284 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726578AbgHLVEQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:04:16 -0400
+        id S1726578AbgHLVET (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:04:19 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 62FC620B1F;
-        Wed, 12 Aug 2020 21:04:15 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6A8FA20838;
+        Wed, 12 Aug 2020 21:04:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266255;
-        bh=qapG2CZop/oekMq876jqtDKogJTHzOA5E6p00zKcGaY=;
+        s=default; t=1597266258;
+        bh=D7fudLpAMO+VfZLtMyhlcJZaL6ui7lQTCfXiUcnjkIw=;
         h=Date:From:To:Subject:From;
-        b=y5hDApcc0n3J7U/9XyDmPbo246p7vzYreoQTPCcyH/VBkCmhR2p5Y+YA0vDu+LTvF
-         PYLu6SsMi9AdHf5tpQFVTn/gJBL7XgtON7Q8YMCEL8kUUOR9YS3qsBh617l0VsxfI/
-         DZ2CLzSW65i8324gpLrhXczJj/pNAnVTHigtBg88=
-Date:   Wed, 12 Aug 2020 14:04:15 -0700
+        b=HCfTUI3tfnvVCTjQU+NjGxf6kzPJZM53Ilz0+0d4MrzzRb1g07qFCrHOhcovfwYBy
+         oSb1vXu+A3JLqd+M+vpJd23tJ7arFyrdcqK/r8b/TOsUbXE2qthcGI+r8SZOpuKubE
+         fLzcsrP9bdAaiozp6nctwoe50Ych6fGj8TWDfcLA=
+Date:   Wed, 12 Aug 2020 14:04:18 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, eldad@fogrefinery.com,
         geert+renesas@glider.be, kerneldev@karsmulder.nl, mans@mansr.com,
         miguel.ojeda.sandonis@gmail.com, mm-commits@vger.kernel.org,
         pmladek@suse.com
 Subject:  [merged]
- kstrto-correct-documentation-references-to-simple_strto.patch removed from
+ kstrto-do-not-describe-simple_strto-as-obsolete-replaced.patch removed from
  -mm tree
-Message-ID: <20200812210415.Rq0mBiZ5E%akpm@linux-foundation.org>
+Message-ID: <20200812210418.q04o94H4_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -57,32 +57,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kstrto*: correct documentation references to simple_strto*()
+     Subject: kstrto*: do not describe simple_strto*() as obsolete/replaced
 has been removed from the -mm tree.  Its filename was
-     kstrto-correct-documentation-references-to-simple_strto.patch
+     kstrto-do-not-describe-simple_strto-as-obsolete-replaced.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kars Mulder" <kerneldev@karsmulder.nl>
-Subject: kstrto*: correct documentation references to simple_strto*()
+Subject: kstrto*: do not describe simple_strto*() as obsolete/replaced
 
-The documentation of the kstrto*() functions reference the simple_strtoull
-function by "used as a replacement for [the obsolete] simple_strtoull". 
-All these functions describes themselves as replacements for the function
-simple_strtoull, even though a function like kstrtol() would be more aptly
-described as a replacement of simple_strtol().
+The documentation of the kstrto*() functions describes kstrto*() as
+"replacements" of the "obsolete" simple_strto*() functions.  Both of these
+terms are inaccurate: they're not replacements because they have different
+behaviour, and the simple_strto*() are not obsolete because there are
+cases where they have benefits over kstrto*().
 
-Fix these references by making the documentation of kstrto*() reference
-the closest simple_strto*() equivalent available.  The functions
-kstrto[u]int() do not have direct simple_strto[u]int() equivalences, so
-these are made to refer to simple_strto[u]l() instead.
+Remove usage of the terms "replacement" and "obsolete" in reference to
+simple_strto*(), and instead use the term "preferred over".
 
-Furthermore, add parentheses after function names, as is standard in
-kernel documentation.
-
-Link: http://lkml.kernel.org/r/1ee1-5f234c00-f3-165a6440@234394593
+Link: http://lkml.kernel.org/r/29b9-5f234c80-13-4e3aa200@244003027
 Fixes: 4c925d6031f71 ("kstrto*: add documentation")
+Fixes: 885e68e8b7b13 ("kernel.h: update comment about simple_strto<foo>() functions")
 Signed-off-by: Kars Mulder <kerneldev@karsmulder.nl>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Eldad Zack <eldad@fogrefinery.com>
@@ -94,17 +90,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/kernel.h |    4 ++--
- lib/kstrtox.c          |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ lib/kstrtox.c          |   12 ++++--------
+ 2 files changed, 6 insertions(+), 10 deletions(-)
 
---- a/include/linux/kernel.h~kstrto-correct-documentation-references-to-simple_strto
+--- a/include/linux/kernel.h~kstrto-do-not-describe-simple_strto-as-obsolete-replaced
 +++ a/include/linux/kernel.h
 @@ -346,7 +346,7 @@ int __must_check kstrtoll(const char *s,
   * @res: Where to write the result of the conversion on success.
   *
   * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the simple_strtoull. Return code must be checked.
-+ * Used as a replacement for the simple_strtoul(). Return code must be checked.
+- * Used as a replacement for the simple_strtoul(). Return code must be checked.
++ * Preferred over simple_strtoul(). Return code must be checked.
  */
  static inline int __must_check kstrtoul(const char *s, unsigned int base, unsigned long *res)
  {
@@ -112,49 +108,53 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
   * @res: Where to write the result of the conversion on success.
   *
   * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the simple_strtoull. Return code must be checked.
-+ * Used as a replacement for the simple_strtol(). Return code must be checked.
+- * Used as a replacement for the simple_strtol(). Return code must be checked.
++ * Preferred over simple_strtol(). Return code must be checked.
   */
  static inline int __must_check kstrtol(const char *s, unsigned int base, long *res)
  {
---- a/lib/kstrtox.c~kstrto-correct-documentation-references-to-simple_strto
+--- a/lib/kstrtox.c~kstrto-do-not-describe-simple_strto-as-obsolete-replaced
 +++ a/lib/kstrtox.c
-@@ -115,7 +115,7 @@ static int _kstrtoull(const char *s, uns
+@@ -115,8 +115,7 @@ static int _kstrtoull(const char *s, uns
   * @res: Where to write the result of the conversion on success.
   *
   * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the obsolete simple_strtoull. Return code must
-+ * Used as a replacement for the obsolete simple_strtoull(). Return code must
-  * be checked.
+- * Used as a replacement for the obsolete simple_strtoull(). Return code must
+- * be checked.
++ * Preferred over simple_strtoull(). Return code must be checked.
   */
  int kstrtoull(const char *s, unsigned int base, unsigned long long *res)
-@@ -139,7 +139,7 @@ EXPORT_SYMBOL(kstrtoull);
+ {
+@@ -139,8 +138,7 @@ EXPORT_SYMBOL(kstrtoull);
   * @res: Where to write the result of the conversion on success.
   *
   * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the obsolete simple_strtoull. Return code must
-+ * Used as a replacement for the obsolete simple_strtoll(). Return code must
-  * be checked.
+- * Used as a replacement for the obsolete simple_strtoll(). Return code must
+- * be checked.
++ * Preferred over simple_strtoll(). Return code must be checked.
   */
  int kstrtoll(const char *s, unsigned int base, long long *res)
-@@ -211,7 +211,7 @@ EXPORT_SYMBOL(_kstrtol);
+ {
+@@ -211,8 +209,7 @@ EXPORT_SYMBOL(_kstrtol);
   * @res: Where to write the result of the conversion on success.
   *
   * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the obsolete simple_strtoull. Return code must
-+ * Used as a replacement for the obsolete simple_strtoul(). Return code must
-  * be checked.
+- * Used as a replacement for the obsolete simple_strtoul(). Return code must
+- * be checked.
++ * Preferred over simple_strtoul(). Return code must be checked.
   */
  int kstrtouint(const char *s, unsigned int base, unsigned int *res)
-@@ -242,7 +242,7 @@ EXPORT_SYMBOL(kstrtouint);
+ {
+@@ -242,8 +239,7 @@ EXPORT_SYMBOL(kstrtouint);
   * @res: Where to write the result of the conversion on success.
   *
   * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-- * Used as a replacement for the obsolete simple_strtoull. Return code must
-+ * Used as a replacement for the obsolete simple_strtol(). Return code must
-  * be checked.
+- * Used as a replacement for the obsolete simple_strtol(). Return code must
+- * be checked.
++ * Preferred over simple_strtol(). Return code must be checked.
   */
  int kstrtoint(const char *s, unsigned int base, int *res)
+ {
 _
 
 Patches currently in -mm which might be from kerneldev@karsmulder.nl are
