@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 235B7C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:36:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD362C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:36:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 00816207DA
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:36:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84E962054F
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:36:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196211;
-	bh=0gz6p+m+UuB66vc8U2RYDWzd6g5Cw8YAgHrFBigCl7g=;
+	s=default; t=1597196214;
+	bh=xSB+rzXnd94oZ8eeo/rboL8ZhBXOt2WMoAAW8dAoNvE=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=LVOpvl94KVcB7aU5heRwXE7y+XEKXNiezq65+kX0lNIx9jwxV/vn0ezWH+IBQ1bbh
-	 Bq/ndm9O1owBM6901abNYdNoqoiM2ZskwY8HA9vmZ8bDHohBRd2vu241Jr4Q2KJ5yU
-	 LGho/R7hQe92uiE7pvaYK8s+E2QHnqUivku5etT8=
+	b=tkxXU+j9p1hzcDaeqEDGu3QfAJrfOnxcDllQmu3flAFouzz5VlD5UBNUCVH9jtdN0
+	 ioPQSjXISBDLegAvIVwqJ9RjoIpDWD1wS2ji0sklzTMs0T7hy6fy3IA4L9nyrgrvWc
+	 aIAZ7sUt5iy2uLRNriOWqWgfFGWo6DkPU+8ke4N0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726430AbgHLBgu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:36:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38310 "EHLO mail.kernel.org"
+        id S1726402AbgHLBgy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:36:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38378 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726333AbgHLBgu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:36:50 -0400
+        id S1726333AbgHLBgy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:36:54 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 06D1D20658;
-        Wed, 12 Aug 2020 01:36:49 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 70B6E20658;
+        Wed, 12 Aug 2020 01:36:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196210;
-        bh=0gz6p+m+UuB66vc8U2RYDWzd6g5Cw8YAgHrFBigCl7g=;
+        s=default; t=1597196213;
+        bh=xSB+rzXnd94oZ8eeo/rboL8ZhBXOt2WMoAAW8dAoNvE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rKgGmZNrAO0fzLYcwkKJM+x6uKt+cffyAY0Ql34slV/7fWYbVg9TjkBjr/2E9/kiW
-         Nc+n2nsdRLNiBPe7R09Ul25rPqUgeK9WRIiVoHZsowLREUipPb7NLj4zwbOmYcXWE1
-         jRBSOEmw7yznxf111p8zN1vOOLxmGnG1CEMPz3cM=
-Date:   Tue, 11 Aug 2020 18:36:49 -0700
+        b=A3hLD+xUwWXOHM2tMWuY9JkwaP1F7DNn9/CPv0dDp726AMD6uofHQVqK+1MJxZuDh
+         IOjO97Samx2+FCLi7RireiZ9MrObaUSu+ou7GqGNdiklnzI8EIikkM6ZUYvtdTdeI2
+         n7sO4pFKJmO4k4Kw7BZVtEa6mtq1DrGOYZzkehsc=
+Date:   Tue, 11 Aug 2020 18:36:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, keescook@chromium.org,
-        linux-mm@kvack.org, lixuefeng@loongson.cn,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        yangtiezhu@loongson.cn
-Subject:  [patch 124/165] lib/Kconfig.debug: fix typo in the help
- text of CONFIG_PANIC_TIMEOUT
-Message-ID: <20200812013649.1MwXgXH3F%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, huyue2@yulong.com,
+        keescook@chromium.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 125/165] panic: make print_oops_end_marker()
+ static
+Message-ID: <20200812013653.9kSGSVf1y%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,31 +54,41 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: lib/Kconfig.debug: fix typo in the help text of CONFIG_PANIC_TIMEOUT
+From: Yue Hu <huyue2@yulong.com>
+Subject: panic: make print_oops_end_marker() static
 
-There exists duplicated "the" in the help text of CONFIG_PANIC_TIMEOUT,
-Remove it.
+Since print_oops_end_marker() is not used externally, also remove it in
+kernel.h at the same time.
 
-Link: http://lkml.kernel.org/r/1591103358-32087-2-git-send-email-yangtiezhu@loongson.cn
-Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Xuefeng Li <lixuefeng@loongson.cn>
+Link: http://lkml.kernel.org/r/20200724011516.12756-1-zbestahu@gmail.com
+Signed-off-by: Yue Hu <huyue2@yulong.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel.h |    1 -
+ kernel/panic.c         |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
---- a/lib/Kconfig.debug~lib-kconfigdebug-fix-typo-in-the-help-text-of-config_panic_timeout
-+++ a/lib/Kconfig.debug
-@@ -917,7 +917,7 @@ config PANIC_TIMEOUT
- 	int "panic timeout"
- 	default 0
- 	help
--	  Set the timeout value (in seconds) until a reboot occurs when the
-+	  Set the timeout value (in seconds) until a reboot occurs when
- 	  the kernel panics. If n = 0, then we wait forever. A timeout
- 	  value n > 0 will wait n seconds before rebooting, while a timeout
- 	  value n < 0 will reboot immediately.
+--- a/include/linux/kernel.h~panic-make-print_oops_end_marker-static
++++ a/include/linux/kernel.h
+@@ -321,7 +321,6 @@ void panic(const char *fmt, ...) __noret
+ void nmi_panic(struct pt_regs *regs, const char *msg);
+ extern void oops_enter(void);
+ extern void oops_exit(void);
+-void print_oops_end_marker(void);
+ extern bool oops_may_print(void);
+ void do_exit(long error_code) __noreturn;
+ void complete_and_exit(struct completion *, long) __noreturn;
+--- a/kernel/panic.c~panic-make-print_oops_end_marker-static
++++ a/kernel/panic.c
+@@ -551,7 +551,7 @@ static int init_oops_id(void)
+ }
+ late_initcall(init_oops_id);
+ 
+-void print_oops_end_marker(void)
++static void print_oops_end_marker(void)
+ {
+ 	init_oops_id();
+ 	pr_warn("---[ end trace %016llx ]---\n", (unsigned long long)oops_id);
 _
