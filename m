@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9D45C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D8ABC433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB5E2207F7
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E2B6207F7
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266159;
-	bh=G2bzpOQFG51Rd+pXuO6y2CXUiNhPa3VlQ1Pxiqg8TXM=;
+	s=default; t=1597266160;
+	bh=EXJwY3PrCjQrwGkqb3SKYpYuC+XjKjy+u1nZ07a+RWM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=qjJ2nDHDzXowmTv2/bYkaiTjazj+ACTJFQDTDtmZhMC+7HaQ2CJbT+jjfqbBhXk1x
-	 ZRsuVuqCAuv6DjEO8UjZiN9DMRDxe3lqwMNc0xUu/ibHgpKBzcVHZqrsXcnmdWcje1
-	 DaZOLz2C4Vwyv0rf9RZvCdNVcWjW/gZJaFJpN5R8=
+	b=2dDwS37qCh6wmQaLJg41i4wNFMNtdCW6imeRC//O0HJBwOwsFuS5x7gMQzEMm5Os+
+	 ji7JxP01+I3IyBBAX+SJjQ+PRKYXCQyT1rUKaADKWWWbcK7wlBmdhZzD6loEg5YLyV
+	 ZGXVH7/Xw/v6bIoDMDRAR4z1XzHA68DB54zJwZAE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726596AbgHLVCj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:02:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50238 "EHLO mail.kernel.org"
+        id S1726627AbgHLVCk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:02:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50382 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
         id S1726526AbgHLVCj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Wed, 12 Aug 2020 17:02:39 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 723F420774;
-        Wed, 12 Aug 2020 21:02:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7C11320774;
+        Wed, 12 Aug 2020 21:02:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266157;
-        bh=G2bzpOQFG51Rd+pXuO6y2CXUiNhPa3VlQ1Pxiqg8TXM=;
+        s=default; t=1597266159;
+        bh=EXJwY3PrCjQrwGkqb3SKYpYuC+XjKjy+u1nZ07a+RWM=;
         h=Date:From:To:Subject:From;
-        b=aelJ7ztfRlHw2I1QmU1Y4wURoEab74LjE/Fx2+lvnafto1jYTnCSwqO2byzNwVm1M
-         HeLuy80OnDBEeYA53t0BP7xtlv8T+fQuLPdqgRnhhC/VogzbE+bHp3oMjS47Eh2rv1
-         p56gBNrt7cWc0oWqUMsfTgAXhra09gQUhKBtsUGY=
-Date:   Wed, 12 Aug 2020 14:02:37 -0700
+        b=YSIRIwTdmkg2MgkhW92x+WJhbD79+YxMgbD6KzxfE7y2bkxk7BrMV1V2xL81jDDcR
+         SZvlVVyHGCGFJGjc0F2bAInBLl4oBCteEC1v10K6whCeHAZX5G3yaL+i5DF46x9hKS
+         cdO1D9EC4GaKQ2O9PeBkElk2DoeFSUKAGp8lVmHk=
+Date:   Wed, 12 Aug 2020 14:02:39 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org
+To:     akpm@linux-foundation.org, konrad.wilk@oracle.com,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org
 Subject:  [merged]
- highmem-linux-highmemh-fix-duplicated-words-in-a-comment.patch removed from
- -mm tree
-Message-ID: <20200812210237.i6hxLjEwI%akpm@linux-foundation.org>
+ frontswap-linux-frontswaph-drop-duplicated-word-in-a-comment.patch removed
+ from -mm tree
+Message-ID: <20200812210239.W-Rbi3am_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,38 +55,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/highmem.h: fix duplicated words in a comment
+     Subject: include/linux/frontswap.h:  drop duplicated word in a comment
 has been removed from the -mm tree.  Its filename was
-     highmem-linux-highmemh-fix-duplicated-words-in-a-comment.patch
+     frontswap-linux-frontswaph-drop-duplicated-word-in-a-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: include/linux/highmem.h: fix duplicated words in a comment
+Subject: include/linux/frontswap.h:  drop duplicated word in a comment
 
-Change the doubled word "is" in a comment to "it is".
+Drop the doubled word "in" in a comment.
 
-Link: http://lkml.kernel.org/r/ad605959-0083-4794-8d31-6b073300dd6f@infradead.org
+Link: http://lkml.kernel.org/r/3af7ed91-ad62-8445-40a4-9e07a64b9523@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    2 +-
+ include/linux/frontswap.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/highmem.h~highmem-linux-highmemh-fix-duplicated-words-in-a-comment
-+++ a/include/linux/highmem.h
-@@ -73,7 +73,7 @@ static inline void kunmap(struct page *p
-  * no global lock is needed and because the kmap code must perform a global TLB
-  * invalidation when the kmap pool wraps.
-  *
-- * However when holding an atomic kmap is is not legal to sleep, so atomic
-+ * However when holding an atomic kmap it is not legal to sleep, so atomic
-  * kmaps are appropriate for short, tight code paths only.
-  *
-  * The use of kmap_atomic/kunmap_atomic is discouraged - kmap/kunmap
+--- a/include/linux/frontswap.h~frontswap-linux-frontswaph-drop-duplicated-word-in-a-comment
++++ a/include/linux/frontswap.h
+@@ -10,7 +10,7 @@
+ /*
+  * Return code to denote that requested number of
+  * frontswap pages are unused(moved to page cache).
+- * Used in in shmem_unuse and try_to_unuse.
++ * Used in shmem_unuse and try_to_unuse.
+  */
+ #define FRONTSWAP_PAGES_UNUSED	2
+ 
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
