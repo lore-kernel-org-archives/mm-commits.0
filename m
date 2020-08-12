@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3527AC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3971FC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 02FBE2076C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 117FA206B2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597195952;
-	bh=9hJymbjeZqLd7jmGL/lICFG778oGHSQhXbpMLZ5rn6g=;
+	s=default; t=1597195955;
+	bh=9ASv3NpcW4/1rNEOjEE3L/vC6ggeuFWi7A7S2ML+5TM=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=GVrjyZzSGLkUSyMJzckqeGVI96Ye59LgW3C8XYOWyBGD8b/OWgyy7IPtnqv2U1Mw+
-	 GNvIpwQAqcoNY3ATv2Yzcs0k3pM6e71N+XwoBLMq/+DBAT7MsgIbTF65UTb6G7oYBA
-	 4GkW1gRBKB6NAKuf8MmcrTmhZOoP5FWRtdXOhNVA=
+	b=vhzXW+CTamcNl3qIAP8H+lj3ukWWrfbGWVJaXAA+VohL4YSyovKaJAia1FvTb3esD
+	 O9HUQq1ebGadVIB4L8JvA5EofnfYhEWWLk2hYG1tBwyjFJZJQSCdv9pNN4llrgCCzk
+	 5DdEVy1cYM179zop71BIoc7XNR9nnHseyS26/6fc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726564AbgHLBcb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:32:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60992 "EHLO mail.kernel.org"
+        id S1726517AbgHLBce (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:32:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32830 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726517AbgHLBcb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:32:31 -0400
+        id S1726761AbgHLBce (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:32:34 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1173A206B2;
-        Wed, 12 Aug 2020 01:32:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 042252076C;
+        Wed, 12 Aug 2020 01:32:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195951;
-        bh=9hJymbjeZqLd7jmGL/lICFG778oGHSQhXbpMLZ5rn6g=;
+        s=default; t=1597195954;
+        bh=9ASv3NpcW4/1rNEOjEE3L/vC6ggeuFWi7A7S2ML+5TM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=yGq07Z4cIgELJ2SB1hGpPxd8EauTiMVsHlApDjAJhGckyeVjnha/qoZAtTEz8weNr
-         ftRnBlSWIynqjBS8GfCm7dOsaiekYL86ltnn88YmKKIjn2HreKQTuvdM5SuBEpZPGm
-         XJAUOJL+CdG5bFNCDZNpbwyhxj4v3EHzmALYJA/k=
-Date:   Tue, 11 Aug 2020 18:32:30 -0700
+        b=f2WdJFQFbc17Cc1k+SsL4apSwmXd6U97N7dh6eM8+MJ70ZQ146itstKGlImjNPDrl
+         +7UndvWes4sIpCRFKipv599t2bUTzyizVtBuHPlJzYtOOQBRvVUfpmuV1qxK9Lj93r
+         t1APTQ3U+XDusJTfUAeck6iv/JA6bfdZ8WUo8FMw=
+Date:   Tue, 11 Aug 2020 18:32:33 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        sjpark@amazon.de, torvalds@linux-foundation.org
-Subject:  [patch 042/165] mm: drop duplicated words in <linux/mm.h>
-Message-ID: <20200812013230.ciBB8kQUq%akpm@linux-foundation.org>
+        torvalds@linux-foundation.org
+Subject:  [patch 043/165] include/linux/highmem.h: fix duplicated
+ words in a comment
+Message-ID: <20200812013233.EprZdFk2h%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,37 +55,28 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: drop duplicated words in <linux/mm.h>
+Subject: include/linux/highmem.h: fix duplicated words in a comment
 
-Drop the doubled words "to" and "the".
+Change the doubled word "is" in a comment to "it is".
 
-Link: http://lkml.kernel.org/r/d9fae8d6-0d60-4d52-9385-3199ee98de49@infradead.org
+Link: http://lkml.kernel.org/r/ad605959-0083-4794-8d31-6b073300dd6f@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: SeongJae Park <sjpark@amazon.de>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/highmem.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-drop-duplicated-words-in-linux-mmh
-+++ a/include/linux/mm.h
-@@ -479,7 +479,7 @@ static inline bool fault_flag_allow_retr
- 	{ FAULT_FLAG_INTERRUPTIBLE,	"INTERRUPTIBLE" }
- 
- /*
-- * vm_fault is filled by the the pagefault handler and passed to the vma's
-+ * vm_fault is filled by the pagefault handler and passed to the vma's
-  * ->fault function. The vma's ->fault is responsible for returning a bitmask
-  * of VM_FAULT_xxx flags that give details about how the fault was handled.
+--- a/include/linux/highmem.h~highmem-linux-highmemh-fix-duplicated-words-in-a-comment
++++ a/include/linux/highmem.h
+@@ -73,7 +73,7 @@ static inline void kunmap(struct page *p
+  * no global lock is needed and because the kmap code must perform a global TLB
+  * invalidation when the kmap pool wraps.
   *
-@@ -2599,7 +2599,7 @@ extern unsigned long stack_guard_gap;
- /* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
- extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
- 
--/* CONFIG_STACK_GROWSUP still needs to to grow downwards at some places */
-+/* CONFIG_STACK_GROWSUP still needs to grow downwards at some places */
- extern int expand_downwards(struct vm_area_struct *vma,
- 		unsigned long address);
- #if VM_GROWSUP
+- * However when holding an atomic kmap is is not legal to sleep, so atomic
++ * However when holding an atomic kmap it is not legal to sleep, so atomic
+  * kmaps are appropriate for short, tight code paths only.
+  *
+  * The use of kmap_atomic/kunmap_atomic is discouraged - kmap/kunmap
 _
