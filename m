@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AAA3C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58110C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 437B2206B2
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 394472076C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196010;
-	bh=dsiebx/prgDTc1RX/im1Jbj6dIu70Cme19t3r3p9nKs=;
+	s=default; t=1597196013;
+	bh=/QplIjiFGGEsQAyH7mRlWRoV+AtFOejf2BpLdOI1feU=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=ZeOzUtwz1JMsJLp/23+sbVTBqlQJ5do8LnTCCc4vD0mXt3xDoHnZ8YEei+bjY0kud
-	 /ALFizrxthftlb1xrwCNOoIX87tsuoV2P5q/q6XMC7zoPCE2w10BkgoqYZnR9xFqu/
-	 mCUx/y1eIqrqMXwSynBjlQVIA9D2aVIrxPmbiyVk=
+	b=cyotm2pVHAGunO+w5zJUQ4YjWnCulpws37ysuHx9Oh52SaksrbJmR05ax7DhZDpeJ
+	 TTqsErkhFf/KRUlYTIuxtnBVFih7eHVEZZKT0s3tdaEbyX2lnZzGRMgWONVp/pok89
+	 eYUAlFSYrG9TArddDQafMpzsXGwFrkZKVakJN5Fg=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726657AbgHLBda (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:33:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33984 "EHLO mail.kernel.org"
+        id S1726793AbgHLBdd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:33:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726630AbgHLBd3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:33:29 -0400
+        id S1726630AbgHLBdc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:33:32 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4A1F82076C;
-        Wed, 12 Aug 2020 01:33:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3144C206B2;
+        Wed, 12 Aug 2020 01:33:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196009;
-        bh=dsiebx/prgDTc1RX/im1Jbj6dIu70Cme19t3r3p9nKs=;
+        s=default; t=1597196012;
+        bh=/QplIjiFGGEsQAyH7mRlWRoV+AtFOejf2BpLdOI1feU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Sc/As5ZkReqWFzL3CE6Df+Lrfxt1MJEJTijo7zy/5I5Qnb3aUWah5St4gAgUJ92bx
-         OTn/Ufz63+vKVHLJ1idrwrlN+VYj5zmaoNRepUhK1f8TqUJZSVQH9mk4KfSt+Jgw/Y
-         J9tN82hb0IGjFAXmSaXOc8E0maq8mSQYLBN7tkoE=
-Date:   Tue, 11 Aug 2020 18:33:28 -0700
+        b=dzDuUF/QI6JskX4NlMmw/uz9t0XdZDeC65X46K6c8ChPae4llNcvVxqNK5voSJVY0
+         N1t/B/QInam0iE9166LvbHpROu6yTYFHjmvxWpVfoFw12paIWxFnL5YXjAMc3rHDXU
+         zMOuFMDNWYWNL/WAk1xiFMj42uG3kOppO2OHpCnw=
+Date:   Tue, 11 Aug 2020 18:33:31 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, rdunlap@infradead.org,
         torvalds@linux-foundation.org, ziy@nvidia.com
-Subject:  [patch 061/165] mm/zpool.c: delete duplicated word and
- fix grammar
-Message-ID: <20200812013328.Ao7kId7a5%akpm@linux-foundation.org>
+Subject:  [patch 062/165] mm/zsmalloc.c: fix duplicated words
+Message-ID: <20200812013331.gbbjZ0ZPB%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,41 +54,29 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/zpool.c: delete duplicated word and fix grammar
+Subject: mm/zsmalloc.c: fix duplicated words
 
-Drop the repeated word "if".
-Fix subject/verb agreement.
+Change "as as" to "as a".
 
-Link: http://lkml.kernel.org/r/20200801173822.14973-15-rdunlap@infradead.org
+Link: http://lkml.kernel.org/r/20200801173822.14973-16-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zpool.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zpool.c~mm-zpoolc-delete-duplicated-word-and-fix-grammar
-+++ a/mm/zpool.c
-@@ -239,15 +239,15 @@ const char *zpool_get_type(struct zpool
- }
+--- a/mm/zsmalloc.c~mm-zsmallocc-fix-duplicated-words
++++ a/mm/zsmalloc.c
+@@ -79,7 +79,7 @@
  
- /**
-- * zpool_malloc_support_movable() - Check if the zpool support
-- * allocate movable memory
-+ * zpool_malloc_support_movable() - Check if the zpool supports
-+ *	allocating movable memory
-  * @zpool:	The zpool to check
+ /*
+  * Object location (<PFN>, <obj_idx>) is encoded as
+- * as single (unsigned long) handle value.
++ * a single (unsigned long) handle value.
   *
-- * This returns if the zpool support allocate movable memory.
-+ * This returns if the zpool supports allocating movable memory.
+  * Note that object index <obj_idx> starts from 0.
   *
-  * Implementations must guarantee this to be thread-safe.
-  *
-- * Returns: true if if the zpool support allocate movable memory, false if not
-+ * Returns: true if the zpool supports allocating movable memory, false if not
-  */
- bool zpool_malloc_support_movable(struct zpool *zpool)
- {
 _
