@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70031C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:35:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B687C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:35:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 480092054F
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:35:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1ECBD20829
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:35:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196142;
-	bh=I/wcnFnwKAE3/ZWJhjXtXqGIC5A2UyJl44Wvpl2PVs8=;
+	s=default; t=1597196145;
+	bh=stNlpvjA4vu2pIGI844iIXj9bl5qygylqHQtnB4xqzU=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=iMxBvbMJImL40x0TEJNasnw1B/o9QYVYhAluDdtjVQZeQHLiZKP16IIF1Cq7C5FkK
-	 JI/ZwllfNbcF2P2urhFZPKipi7yX3RXiwYaZHml7gZedDpmO+hhtIgzi2i7WBCuZMd
-	 o/TYEiv8zfbNpV8/VSzpu1UIuAE46lqc/bnmGR8s=
+	b=AS03yYNEXreDRVI9UbobizBweS8Sy6AZ0BJMLh/FJ/DpgQwbj5HYQ2uI7zYaQNi2O
+	 7Y+f27gsjBnwgxutDUmqOFoDgN/RRiTlieXppTmu3viSNGEDdQWjzx+RMjRie3G7od
+	 goZs+sC+SdwdcWs4is76dsTD4E0zKbtePrNql0oQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726402AbgHLBfm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:35:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36720 "EHLO mail.kernel.org"
+        id S1726368AbgHLBfo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:35:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36796 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726143AbgHLBfl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:35:41 -0400
+        id S1726143AbgHLBfo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:35:44 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3EB5720678;
-        Wed, 12 Aug 2020 01:35:40 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 10BFB2054F;
+        Wed, 12 Aug 2020 01:35:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196141;
-        bh=I/wcnFnwKAE3/ZWJhjXtXqGIC5A2UyJl44Wvpl2PVs8=;
+        s=default; t=1597196144;
+        bh=stNlpvjA4vu2pIGI844iIXj9bl5qygylqHQtnB4xqzU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=BfOYnnXlJq5hG+ZEtq+HagUT5emrPCQ3S5lDEcVaCOcTKHt6M/IKceKMjknb2kvSq
-         NEuauDaBT630NK8mue+Igoj5VRWrr2dAHn54MK/vdpSgC641/0RwnsG3zmBN6IVP1p
-         2OLgpO7UAoRjR3joxL/NGubwpgY0v5dkkoLbRaOY=
-Date:   Tue, 11 Aug 2020 18:35:39 -0700
+        b=WtkA3uXOw8yjWAiPy2QmcjoY07Jtm9bz1oE6XgCT6DtzYiMsxz4/FEW24EZgFhrbK
+         /cWDguVr+hnOdCA0csJzEekvs4xoSLULU9gYHeyhQIo2lbQBpFhPQzVW4UH9vP+uYk
+         jJ++1Lle9oWbo0ogze2EXmneHKYo/16v/u/xXAfk=
+Date:   Tue, 11 Aug 2020 18:35:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anenbupt@gmail.com, ebiggers@google.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
-Subject:  [patch 103/165] fs/minix: remove expected error message
- in block_to_path()
-Message-ID: <20200812013539.1vNyK000i%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, ebiggers@google.com,
+        konishi.ryusuke@gmail.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 104/165] nilfs2: only call unlock_new_inode() if
+ I_NEW
+Message-ID: <20200812013543.RxBpUWlQE%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,67 +55,39 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Eric Biggers <ebiggers@google.com>
-Subject: fs/minix: remove expected error message in block_to_path()
+Subject: nilfs2: only call unlock_new_inode() if I_NEW
 
-When truncating a file to a size within the last allowed logical block,
-block_to_path() is called with the *next* block.  This exceeds the limit,
-causing the "block %ld too big" error message to be printed.
+Patch series "nilfs2 updates".
 
-This case isn't actually an error; there are just no more blocks past that
-point.  So, remove this error message.
 
-Link: http://lkml.kernel.org/r/20200628060846.682158-7-ebiggers@kernel.org
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+This patch (of 3):
+
+unlock_new_inode() is only meant to be called after a new inode has
+already been inserted into the hash table.  But nilfs_new_inode() can call
+it even before it has inserted the inode, triggering the WARNING in
+unlock_new_inode().  Fix this by only calling unlock_new_inode() if the
+inode has the I_NEW flag set, indicating that it's in the table.
+
+Link: http://lkml.kernel.org/r/1595860111-3920-1-git-send-email-konishi.ryusuke@gmail.com
+Link: http://lkml.kernel.org/r/1595860111-3920-2-git-send-email-konishi.ryusuke@gmail.com
 Signed-off-by: Eric Biggers <ebiggers@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Qiujun Huang <anenbupt@gmail.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/itree_v1.c |   12 ++++++------
- fs/minix/itree_v2.c |   12 ++++++------
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ fs/nilfs2/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/minix/itree_v1.c~fs-minix-remove-expected-error-message-in-block_to_path
-+++ a/fs/minix/itree_v1.c
-@@ -29,12 +29,12 @@ static int block_to_path(struct inode *
- 	if (block < 0) {
- 		printk("MINIX-fs: block_to_path: block %ld < 0 on dev %pg\n",
- 			block, inode->i_sb->s_bdev);
--	} else if ((u64)block * BLOCK_SIZE >= inode->i_sb->s_maxbytes) {
--		if (printk_ratelimit())
--			printk("MINIX-fs: block_to_path: "
--			       "block %ld too big on dev %pg\n",
--				block, inode->i_sb->s_bdev);
--	} else if (block < 7) {
-+		return 0;
-+	}
-+	if ((u64)block * BLOCK_SIZE >= inode->i_sb->s_maxbytes)
-+		return 0;
-+
-+	if (block < 7) {
- 		offsets[n++] = block;
- 	} else if ((block -= 7) < 512) {
- 		offsets[n++] = 7;
---- a/fs/minix/itree_v2.c~fs-minix-remove-expected-error-message-in-block_to_path
-+++ a/fs/minix/itree_v2.c
-@@ -32,12 +32,12 @@ static int block_to_path(struct inode *
- 	if (block < 0) {
- 		printk("MINIX-fs: block_to_path: block %ld < 0 on dev %pg\n",
- 			block, sb->s_bdev);
--	} else if ((u64)block * (u64)sb->s_blocksize >= sb->s_maxbytes) {
--		if (printk_ratelimit())
--			printk("MINIX-fs: block_to_path: "
--			       "block %ld too big on dev %pg\n",
--				block, sb->s_bdev);
--	} else if (block < DIRCOUNT) {
-+		return 0;
-+	}
-+	if ((u64)block * (u64)sb->s_blocksize >= sb->s_maxbytes)
-+		return 0;
-+
-+	if (block < DIRCOUNT) {
- 		offsets[n++] = block;
- 	} else if ((block -= DIRCOUNT) < INDIRCOUNT(sb)) {
- 		offsets[n++] = DIRCOUNT;
+--- a/fs/nilfs2/inode.c~nilfs2-only-call-unlock_new_inode-if-i_new
++++ a/fs/nilfs2/inode.c
+@@ -388,7 +388,8 @@ struct inode *nilfs_new_inode(struct ino
+ 
+  failed_after_creation:
+ 	clear_nlink(inode);
+-	unlock_new_inode(inode);
++	if (inode->i_state & I_NEW)
++		unlock_new_inode(inode);
+ 	iput(inode);  /*
+ 		       * raw_inode will be deleted through
+ 		       * nilfs_evict_inode().
 _
