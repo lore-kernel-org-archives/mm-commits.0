@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 082B1C433E3
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 209B6C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BEB54206B2
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFF00206B2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196064;
-	bh=JjleziHZ+p7rOcv+H9iht1ibSFc5pQnD+SosvPZHkCQ=;
+	s=default; t=1597196068;
+	bh=eN9tumu5eXlAH0slpsFTmwQjbSTdLw3oKgLY59i3/Mc=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=gVVGI09ld8qoqyVK7Zy9Puk4Z/e30CNlLtzY43mpCB1t76QMKcnhhc9DiK4wP9jNf
-	 JvM5l715kjYn/jZ1WPXHtyA2Wftewfg5azBs6dQGmzISF40IeqMaJkG9pIUeMhVTJ8
-	 dNMSUqnjsKkoPQrls/4D2ACsgQWr8Cn9YE2gOjQg=
+	b=A1pccIAP63/2spXfHSpvQcJsr3jJrW9I7ThaydyoYGajdKLQlMh5sC92MEk+HLsMS
+	 N7ui/K/1syWyxgnpMcPFTPTHI4ZYZDe+C4yYPuR4VFwBlyIotJCvWsgvEUz4HicPjX
+	 H5sdmuy5jpJP5JKDHzfKujGGaEEiAPjxQTcOD0Z8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726506AbgHLBeY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:34:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35158 "EHLO mail.kernel.org"
+        id S1726255AbgHLBe1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:34:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35230 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726422AbgHLBeX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:34:23 -0400
+        id S1726422AbgHLBe1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:34:27 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 650C020866;
-        Wed, 12 Aug 2020 01:34:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 757342076C;
+        Wed, 12 Aug 2020 01:34:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196063;
-        bh=JjleziHZ+p7rOcv+H9iht1ibSFc5pQnD+SosvPZHkCQ=;
+        s=default; t=1597196066;
+        bh=eN9tumu5eXlAH0slpsFTmwQjbSTdLw3oKgLY59i3/Mc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=EeXkwluEFD8uajzHkQ4Gk+0dXOY6XbWESK5ccesUSRv+dn4P7WwlQ78gTqaYHhwMI
-         hB3KkFSLesBi9r5QwcnUe/gJ6TAwDPEiGoWP8R/CB90lmp2hk8vHaVQJ7gZyLa29pp
-         yZT55wliz9NK3v0aH8ei0MRSfHAWw7p/jiiKosf0=
-Date:   Tue, 11 Aug 2020 18:34:23 -0700
+        b=CL4gWDFDyOHwMYygAn3MWvm4Hoi1OB/9S5PfYUOZ8LFgsvrYikFmQI6RkVN781AuP
+         sLb2MoTL93FwUuxWMATTnJ+Z/fGO9qQw6NYVXyfDlsfAAgfM/qcrDq1+EnNmQVk7MD
+         E/WrhJ/VG6YR4yUCyw18BHN1UiwT5Y5+6WT8QQ4M=
+Date:   Tue, 11 Aug 2020 18:34:26 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, segoon@openwall.com,
-        tglx@linutronix.de, torvalds@linux-foundation.org,
-        willy@infradead.org
-Subject:  [patch 078/165] include/linux/poison.h: remove obsolete
- comment
-Message-ID: <20200812013423.9frsRUb-9%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, geert@linux-m68k.org,
+        linux-mm@kvack.org, luc.vanoostenryck@gmail.com,
+        miguel.ojeda.sandonis@gmail.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 079/165] sparse: group the defines by
+ functionality
+Message-ID: <20200812013426.wQSK9kOCw%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,34 +55,97 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Matthew Wilcox <willy@infradead.org>
-Subject: include/linux/poison.h: remove obsolete comment
+From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Subject: sparse: group the defines by functionality
 
-When the definition was changed, the comment became stale.  Just remove
-it since there isn't anything useful to say here.
+By popular demand, reorder the defines for sparse annotations and group
+them by functionality.
 
-Link: http://lkml.kernel.org/r/20200730174108.GJ23808@casper.infradead.org
-Fixes: b8a0255db958 ("include/linux/poison.h: use POISON_POINTER_DELTA for poison pointers")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vasily Kulikov <segoon@openwall.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: lore.kernel.org/r/CAMuHMdWQsirja-h3wBcZezk+H2Q_HShhAks8Hc8ps5fTAp=ObQ@mail.gmail.com
+Link: http://lkml.kernel.org/r/20200621143652.53798-1-luc.vanoostenryck@gmail.com
+Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Acked-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/compiler_types.h |   44 +++++++++++++++++--------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
 
---- a/include/linux/poison.h~poison-remove-obsolete-comment
-+++ a/include/linux/poison.h
-@@ -24,10 +24,6 @@
- #define LIST_POISON2  ((void *) 0x122 + POISON_POINTER_DELTA)
+--- a/include/linux/compiler_types.h~sparse-group-the-defines-by-functionality
++++ a/include/linux/compiler_types.h
+@@ -5,48 +5,54 @@
+ #ifndef __ASSEMBLY__
  
- /********** include/linux/timer.h **********/
--/*
-- * Magic number "tsta" to indicate a static timer initializer
-- * for the object debugging code.
-- */
- #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
+ #ifdef __CHECKER__
++/* address spaces */
+ # define __kernel	__attribute__((address_space(0)))
+ # define __user		__attribute__((noderef, address_space(__user)))
+-# define __safe		__attribute__((safe))
+-# define __force	__attribute__((force))
+-# define __nocast	__attribute__((nocast))
+ # define __iomem	__attribute__((noderef, address_space(__iomem)))
++# define __percpu	__attribute__((noderef, address_space(__percpu)))
++# define __rcu		__attribute__((noderef, address_space(__rcu)))
++extern void __chk_user_ptr(const volatile void __user *);
++extern void __chk_io_ptr(const volatile void __iomem *);
++/* context/locking */
+ # define __must_hold(x)	__attribute__((context(x,1,1)))
+ # define __acquires(x)	__attribute__((context(x,0,1)))
+ # define __releases(x)	__attribute__((context(x,1,0)))
+ # define __acquire(x)	__context__(x,1)
+ # define __release(x)	__context__(x,-1)
+ # define __cond_lock(x,c)	((c) ? ({ __acquire(x); 1; }) : 0)
+-# define __percpu	__attribute__((noderef, address_space(__percpu)))
+-# define __rcu		__attribute__((noderef, address_space(__rcu)))
++/* other */
++# define __force	__attribute__((force))
++# define __nocast	__attribute__((nocast))
++# define __safe		__attribute__((safe))
+ # define __private	__attribute__((noderef))
+-extern void __chk_user_ptr(const volatile void __user *);
+-extern void __chk_io_ptr(const volatile void __iomem *);
+ # define ACCESS_PRIVATE(p, member) (*((typeof((p)->member) __force *) &(p)->member))
+ #else /* __CHECKER__ */
++/* address spaces */
++# define __kernel
+ # ifdef STRUCTLEAK_PLUGIN
+-#  define __user __attribute__((user))
++#  define __user	__attribute__((user))
+ # else
+ #  define __user
+ # endif
+-# define __kernel
+-# define __safe
+-# define __force
+-# define __nocast
+ # define __iomem
+-# define __chk_user_ptr(x) (void)0
+-# define __chk_io_ptr(x) (void)0
+-# define __builtin_warning(x, y...) (1)
++# define __percpu
++# define __rcu
++# define __chk_user_ptr(x)	(void)0
++# define __chk_io_ptr(x)	(void)0
++/* context/locking */
+ # define __must_hold(x)
+ # define __acquires(x)
+ # define __releases(x)
+-# define __acquire(x) (void)0
+-# define __release(x) (void)0
++# define __acquire(x)	(void)0
++# define __release(x)	(void)0
+ # define __cond_lock(x,c) (c)
+-# define __percpu
+-# define __rcu
++/* other */
++# define __force
++# define __nocast
++# define __safe
+ # define __private
+ # define ACCESS_PRIVATE(p, member) ((p)->member)
++# define __builtin_warning(x, y...) (1)
+ #endif /* __CHECKER__ */
  
- /********** mm/page_poison.c **********/
+ /* Indirect macros required for expanded argument pasting, eg. __LINE__. */
 _
