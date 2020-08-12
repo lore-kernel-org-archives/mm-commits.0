@@ -7,45 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF6A6C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11074C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99E772078B
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E16932078B
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266143;
-	bh=7hFNLTmCM53WidHXcPFFqgFpPbgPpER16aFpN2hM6DY=;
+	s=default; t=1597266145;
+	bh=6utElTIMp6Y9MeCHgu3TyjV0Jmtf8NSbJU9kqfJyuoE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=xVJH5VWxOTjSmK+4MNz6iVTt0GloVngCc90na/mIgT97n+zfBLQWGOvq7OqldsYLS
-	 fgWXYHg55I5Kju8i9GnPjoGCErNQ3A5xJf0SOdoF/stIuXLKk9HWet/33mwSs2fwOJ
-	 q/zqkiyyeaE6HHw1fmMbjJlDq9ph8QC+cLynqVW0=
+	b=BbJjcEZnS3T3MzcLGNiHFBvlgh62WKoioe8phWEI1cGIGameCXhY6Ilppikd1ZKJ6
+	 TmX+Lo2iZTNLjsgZhNERqkF5HPwwuszBwxnpKasqj7ne/9o0MofdfUePBVgMna/NHr
+	 ZmwEemj+zX9iRu6A4MCCfAM3ewM8EDsHAZnatTvQ=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726641AbgHLVCX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:02:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49292 "EHLO mail.kernel.org"
+        id S1726604AbgHLVCZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:02:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49370 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726528AbgHLVCX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:02:23 -0400
+        id S1726528AbgHLVCZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:02:25 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 620EF2087C;
-        Wed, 12 Aug 2020 21:02:21 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 75C4A20774;
+        Wed, 12 Aug 2020 21:02:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266141;
-        bh=7hFNLTmCM53WidHXcPFFqgFpPbgPpER16aFpN2hM6DY=;
+        s=default; t=1597266143;
+        bh=6utElTIMp6Y9MeCHgu3TyjV0Jmtf8NSbJU9kqfJyuoE=;
         h=Date:From:To:Subject:From;
-        b=zqWFsfmnuZgLixMGV0TN2lh8e6DsfvQbxB8ccdtFJPcwWZVjiISJ7GcnUqjb+OkLc
-         WbZAtF6T61lIM8ffr4vDXtrc8Su3ZI1qVd9RvUaU3RFBMGfAcNrPK+Ei1nE26BynD6
-         gJSy0MdYqJCb1ckOp08n7l+lxNLjcONrp9XdVCUQ=
-Date:   Wed, 12 Aug 2020 14:02:21 -0700
+        b=iqfs81rx/agY5ZFLOMMPxpFeys7PB8PU3jWcRBWfZPTUj+UFeC4mPbWZkFxnsW+OF
+         rzTzNFRSUL161D9isQonODlfKjzohuAz2HLISUlmoTTP/UdYoh0EBZrxRC9nHuKJef
+         1QZYS5GANbBOYavN1OwWM5QcNvKmBp/MxweyUZ7U=
+Date:   Wed, 12 Aug 2020 14:02:23 -0700
 From:   akpm@linux-foundation.org
-To:     longman@redhat.com, mathieu.desnoyers@efficios.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org,
-        walken@google.com
-Subject:  [merged] sched-mm-optimize-current_gfp_context.patch
+To:     jgg@nvidia.com, krzk@kernel.org, mm-commits@vger.kernel.org
+Subject:  [merged] mm-mmu_notifier-fix-and-extend-kerneldoc.patch
  removed from -mm tree
-Message-ID: <20200812210221.bNuT5LOO9%akpm@linux-foundation.org>
+Message-ID: <20200812210223.ajF_jYx_h%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,68 +53,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/sched/mm.h: optimize current_gfp_context()
+     Subject: mm: mmu_notifier: fix and extend kerneldoc
 has been removed from the -mm tree.  Its filename was
-     sched-mm-optimize-current_gfp_context.patch
+     mm-mmu_notifier-fix-and-extend-kerneldoc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: include/linux/sched/mm.h: optimize current_gfp_context()
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: mm: mmu_notifier: fix and extend kerneldoc
 
-The current_gfp_context() converts a number of PF_MEMALLOC_* per-process
-flags into the corresponding GFP_* flags for memory allocation.  In that
-function, current->flags is accessed 3 times.  That may lead to duplicated
-access of the same memory location.
+Fix W=1 compile warnings (invalid kerneldoc):
 
-This is not usually a problem with minimal debug config options on as the
-compiler can optimize away the duplicated memory accesses.  With most of
-the debug config options on, however, that may not be the case.  For
-example, the x86-64 object size of the __need_fs_reclaim() in a debug
-kernel that calls current_gfp_context() was 309 bytes.  With this patch
-applied, the object size is reduced to 202 bytes.  This is a saving of 107
-bytes and will probably be slightly faster too.
+    mm/mmu_notifier.c:187: warning: Function parameter or member 'interval_sub' not described in 'mmu_interval_read_bgin'
+    mm/mmu_notifier.c:708: warning: Function parameter or member 'subscription' not described in 'mmu_notifier_registr'
+    mm/mmu_notifier.c:708: warning: Excess function parameter 'mn' description in 'mmu_notifier_register'
+    mm/mmu_notifier.c:880: warning: Function parameter or member 'subscription' not described in 'mmu_notifier_put'
+    mm/mmu_notifier.c:880: warning: Excess function parameter 'mn' description in 'mmu_notifier_put'
+    mm/mmu_notifier.c:982: warning: Function parameter or member 'ops' not described in 'mmu_interval_notifier_insert'
 
-Use READ_ONCE() to access current->flags to prevent the compiler from
-possibly accessing current->flags multiple times.
-
-Link: http://lkml.kernel.org/r/20200618212936.9776-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Michel Lespinasse <walken@google.com>
+Link: http://lkml.kernel.org/r/20200728171109.28687-4-krzk@kernel.org
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/mm.h |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/mmu_notifier.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/include/linux/sched/mm.h~sched-mm-optimize-current_gfp_context
-+++ a/include/linux/sched/mm.h
-@@ -178,14 +178,16 @@ static inline bool in_vfork(struct task_
-  */
- static inline gfp_t current_gfp_context(gfp_t flags)
- {
--	if (unlikely(current->flags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS))) {
-+	unsigned int pflags = READ_ONCE(current->flags);
-+
-+	if (unlikely(pflags & (PF_MEMALLOC_NOIO | PF_MEMALLOC_NOFS))) {
- 		/*
- 		 * NOIO implies both NOIO and NOFS and it is a weaker context
- 		 * so always make sure it makes precedence
- 		 */
--		if (current->flags & PF_MEMALLOC_NOIO)
-+		if (pflags & PF_MEMALLOC_NOIO)
- 			flags &= ~(__GFP_IO | __GFP_FS);
--		else if (current->flags & PF_MEMALLOC_NOFS)
-+		else if (pflags & PF_MEMALLOC_NOFS)
- 			flags &= ~__GFP_FS;
- 	}
- 	return flags;
+--- a/mm/mmu_notifier.c~mm-mmu_notifier-fix-and-extend-kerneldoc
++++ a/mm/mmu_notifier.c
+@@ -166,7 +166,7 @@ static void mn_itree_inv_end(struct mmu_
+ /**
+  * mmu_interval_read_begin - Begin a read side critical section against a VA
+  *                           range
+- * interval_sub: The interval subscription
++ * @interval_sub: The interval subscription
+  *
+  * mmu_iterval_read_begin()/mmu_iterval_read_retry() implement a
+  * collision-retry scheme similar to seqcount for the VA range under
+@@ -686,7 +686,7 @@ EXPORT_SYMBOL_GPL(__mmu_notifier_registe
+ 
+ /**
+  * mmu_notifier_register - Register a notifier on a mm
+- * @mn: The notifier to attach
++ * @subscription: The notifier to attach
+  * @mm: The mm to attach the notifier to
+  *
+  * Must not hold mmap_lock nor any other VM related lock when calling
+@@ -856,7 +856,7 @@ static void mmu_notifier_free_rcu(struct
+ 
+ /**
+  * mmu_notifier_put - Release the reference on the notifier
+- * @mn: The notifier to act on
++ * @subscription: The notifier to act on
+  *
+  * This function must be paired with each mmu_notifier_get(), it releases the
+  * reference obtained by the get. If this is the last reference then process
+@@ -965,7 +965,8 @@ static int __mmu_interval_notifier_inser
+  * @interval_sub: Interval subscription to register
+  * @start: Starting virtual address to monitor
+  * @length: Length of the range to monitor
+- * @mm : mm_struct to attach to
++ * @mm: mm_struct to attach to
++ * @ops: Interval notifier operations to be called on matching events
+  *
+  * This function subscribes the interval notifier for notifications from the
+  * mm.  Upon return the ops related to mmu_interval_notifier will be called
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from krzk@kernel.org are
 
+iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
+iomap-constify-ioreadx-iomem-argument-as-in-generic-implementation-fix.patch
+rtl818x-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
+ntb-intel-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
+virtio-pci-constify-ioreadx-iomem-argument-as-in-generic-implementation.patch
 
