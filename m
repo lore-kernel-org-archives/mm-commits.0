@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D15C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93E91C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 819FF2054F
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 70A5620658
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196226;
-	bh=imZqtRs2Zm6d+Q8CnwkNMxVZRym6ZJZHY5VLNNkVgbg=;
+	s=default; t=1597196230;
+	bh=YzWEZFtlidsjG5CeIpx0KVpBniFI8HOzjKKOZnxctwM=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=HK8Hn7KCVM0UyG3/tqaE6rkz1u9QzIk9nKrMwNScr74UtbLV9wDjk+LbJ8aDygDn6
-	 VkTKVk9RRyP3hTqCaYTl7o19vvYC9iO8DviZknIQOaW6+kO/WxGqlygEq0scyzEEPi
-	 dGPxI7CYMDPr5N2UDQ4qhZBCjgVmRacfcUiPMnI0=
+	b=dYTvomzXOzWnnzxJefb0L1JIU6bii/0vrLIN64fsVf0YpUqVfI1mPkGIcJtEe7ooe
+	 3JmmfRJ+ycKiLAVYnvQr8e6CxkWh6+NgH2A6N+obdRNo8ofdMSf7Q/aLB9qQbZ71xC
+	 NHili2zyoQRdkFtftbORjb3jsVuCiaddIzf9QudA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726488AbgHLBhG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:37:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38660 "EHLO mail.kernel.org"
+        id S1726255AbgHLBhK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:37:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38720 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBhG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:37:06 -0400
+        id S1726235AbgHLBhK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:37:10 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8B4A42087C;
-        Wed, 12 Aug 2020 01:37:05 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 88E3A2054F;
+        Wed, 12 Aug 2020 01:37:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196225;
-        bh=imZqtRs2Zm6d+Q8CnwkNMxVZRym6ZJZHY5VLNNkVgbg=;
+        s=default; t=1597196228;
+        bh=YzWEZFtlidsjG5CeIpx0KVpBniFI8HOzjKKOZnxctwM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=UkKydZ23RX0Da8JgYaArgBEEoUYr3+b08/TiVHYuUIdMTvVVXvFxPwukmsjEtYt8A
-         9oq82k/Faws1A5rxaPJBptapPqtVwy+2BGZjLScP1oCRLBa/13FyEBmmK8Lkr1A/Wb
-         LHJ+aN3/xHcxtsVQJDwJNT5B9VwDu1QY9eKpZlI4=
-Date:   Tue, 11 Aug 2020 18:37:05 -0700
+        b=P9YYgqcXyGiqDeO//x4if4Vxjn1/Rb2c3LyROq8HyJzUmtlZnHt0u99enRQZnjvGI
+         ERwBmidTOQV9y0/MbxfT1ht6JL9jUxVKdnXhGW79drUIbSpSLrDYdJ8NCZ6D7Rsz00
+         kvBEiaz2D2Y20Br9zKIlJpRz485puPg2Mhm6cNjU=
+Date:   Tue, 11 Aug 2020 18:37:08 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adobriyan@gmail.com, akpm@linux-foundation.org, dave@stgolabs.net,
-        linux-mm@kvack.org, manfred@colorfullife.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 129/165] ipc: uninline functions
-Message-ID: <20200812013705.KtWRJHwph%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, liao.pingfang@zte.com.cn,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, wang.yi59@zte.com.cn
+Subject:  [patch 130/165] ipc/shm.c: remove the superfluous break
+Message-ID: <20200812013708.QzztAezN9%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -53,45 +53,29 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: ipc: uninline functions
+From: Liao Pingfang <liao.pingfang@zte.com.cn>
+Subject: ipc/shm.c: remove the superfluous break
 
-Two functions are only called via function pointers, don't bother
-inlining them.
+Remove the superfuous break, as there is a 'return' before it.
 
-Link: http://lkml.kernel.org/r/20200710200312.GA960353@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Link: http://lkml.kernel.org/r/1594724361-11525-1-git-send-email-wang.yi59@zte.com.cn
+Signed-off-by: Liao Pingfang <liao.pingfang@zte.com.cn>
+Signed-off-by: Yi Wang <wang.yi59@zte.com.cn>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    3 +--
- ipc/shm.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ ipc/shm.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/ipc/sem.c~ipc-uninline-functions
-+++ a/ipc/sem.c
-@@ -585,8 +585,7 @@ static int newary(struct ipc_namespace *
- /*
-  * Called with sem_ids.rwsem and ipcp locked.
-  */
--static inline int sem_more_checks(struct kern_ipc_perm *ipcp,
--				struct ipc_params *params)
-+static int sem_more_checks(struct kern_ipc_perm *ipcp, struct ipc_params *params)
- {
- 	struct sem_array *sma;
- 
---- a/ipc/shm.c~ipc-uninline-functions
+--- a/ipc/shm.c~ipc-shmc-remove-the-superfluous-break
 +++ a/ipc/shm.c
-@@ -711,8 +711,7 @@ no_file:
- /*
-  * Called with shm_ids.rwsem and ipcp locked.
-  */
--static inline int shm_more_checks(struct kern_ipc_perm *ipcp,
--				struct ipc_params *params)
-+static int shm_more_checks(struct kern_ipc_perm *ipcp, struct ipc_params *params)
- {
- 	struct shmid_kernel *shp;
- 
+@@ -1380,7 +1380,6 @@ static long compat_ksys_shmctl(int shmid
+ 	case SHM_LOCK:
+ 	case SHM_UNLOCK:
+ 		return shmctl_do_lock(ns, shmid, cmd);
+-		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
 _
