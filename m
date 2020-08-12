@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CE46C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:38:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB805C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:38:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D1AD20658
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:38:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA5D92076C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:38:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196302;
-	bh=skDb6rIE1dOucJDtpd9y4VvtVMjiWtuTNK63f/moOsw=;
+	s=default; t=1597196303;
+	bh=GOSi9vPqlOqXKP1B2V4V+SvPwRb4p6d0CxMlk6Q9bRI=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=S+GveLpqbuIZ7YKZk63YvBkDhMUFuq0UYZ8C6m7NATVGX9Lc5aAmqnknBfbM5byb2
-	 t6ina56TjlfIM+pIcDE44p0JG5hg3csvWfPibBLr9VNvai9t/+QTOy7Bq7OPhS9tQN
-	 nq+jhAq+asaBnG4SMp8O00agg+ldWUPU+KBNo8ic=
+	b=WSkhwIh9gtTgSafW0at8bCN2Q7dsF0dzrrkfrM1la1Nt6g7v/Pw9KQCR8z8YqRW02
+	 Fwkm0+m/H07V/vVJhdeJEeVSlwwZaub97zFZdufxGZ6zxLPK6L6i5YVOha+ysJcSnN
+	 m1gHZPY2nA0lHYUroDQzZ0afbfcynczPR1UJt6nw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726472AbgHLBiU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:38:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40622 "EHLO mail.kernel.org"
+        id S1726492AbgHLBiX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:38:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40702 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBiU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:38:20 -0400
+        id S1726235AbgHLBiX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:38:23 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 832AF2054F;
-        Wed, 12 Aug 2020 01:38:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 851FC20658;
+        Wed, 12 Aug 2020 01:38:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196299;
-        bh=skDb6rIE1dOucJDtpd9y4VvtVMjiWtuTNK63f/moOsw=;
+        s=default; t=1597196302;
+        bh=GOSi9vPqlOqXKP1B2V4V+SvPwRb4p6d0CxMlk6Q9bRI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=TAwaK9d1w8Mo2ZrKduCfOpg97SgjkzeF6AMF80wb4UFWyJ1e3QKxyy0g+tLzIFE6W
-         Rfb5kR9wMCVjwIRBMQOsgzwAOK/gWF1/gSZ19WhEpNweE6E8OANKvMG/pDDoBTO796
-         TjCkabdfV9Tnc2Ljw9Ye3QDbgqSKkz2aFQcUHf1M=
-Date:   Tue, 11 Aug 2020 18:38:19 -0700
+        b=ZEd/GxJhe7eSoflDmjv1NAjC8zH0kTXZNcBC3r6FaUUAwDfgL6/w+xNGDKaLiIfFO
+         iEpvzambmlEUZz2mDq4i+/P9l4/OJnQ13Uref39jp5nh8QpACvyQ04WRiBBXYsvGOY
+         rovuicCD5sNWI2iztt5/9DzzxqSFeSTeaA58nbok=
+Date:   Tue, 11 Aug 2020 18:38:22 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, deanbo422@gmail.com, green.hu@gmail.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        nickhu@andestech.com, peterx@redhat.com,
+To:     akpm@linux-foundation.org, ley.foon.tan@intel.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, peterx@redhat.com,
         torvalds@linux-foundation.org
-Subject:  [patch 152/165] mm/nds32: use general page fault
+Subject:  [patch 153/165] mm/nios2: use general page fault
  accounting
-Message-ID: <20200812013819.iSGvKsBSJ%akpm@linux-foundation.org>
+Message-ID: <20200812013822.rPTB7yXpR%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,66 +55,67 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/nds32: use general page fault accounting
+Subject: mm/nios2: use general page fault accounting
 
 Use the general page fault accounting by passing regs into
 handle_mm_fault().  It naturally solve the issue of multiple page fault
 accounting when page fault retry happened.
 
-Fix PERF_COUNT_SW_PAGE_FAULTS perf event manually for page fault retries,
-by moving it before taking mmap_sem.
+Add the missing PERF_COUNT_SW_PAGE_FAULTS perf events too.  Note, the
+other two perf events (PERF_COUNT_SW_PAGE_FAULTS_[MAJ|MIN]) were done in
+handle_mm_fault().
 
-Link: http://lkml.kernel.org/r/20200707225021.200906-13-peterx@redhat.com
+Link: http://lkml.kernel.org/r/20200707225021.200906-14-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Acked-by: Greentime Hu <green.hu@gmail.com>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Vincent Chen <deanbo422@gmail.com>
+Cc: Ley Foon Tan <ley.foon.tan@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nds32/mm/fault.c |   19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
+ arch/nios2/mm/fault.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
---- a/arch/nds32/mm/fault.c~mm-nds32-use-general-page-fault-accounting
-+++ a/arch/nds32/mm/fault.c
-@@ -121,6 +121,8 @@ void do_page_fault(unsigned long entry,
- 	if (unlikely(faulthandler_disabled() || !mm))
- 		goto no_context;
+--- a/arch/nios2/mm/fault.c~mm-nios2-use-general-page-fault-accounting
++++ a/arch/nios2/mm/fault.c
+@@ -24,6 +24,7 @@
+ #include <linux/mm.h>
+ #include <linux/extable.h>
+ #include <linux/uaccess.h>
++#include <linux/perf_event.h>
  
-+	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, addr);
+ #include <asm/mmu_context.h>
+ #include <asm/traps.h>
+@@ -83,6 +84,8 @@ asmlinkage void do_page_fault(struct pt_
+ 	if (user_mode(regs))
+ 		flags |= FAULT_FLAG_USER;
+ 
++	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
 +
- 	/*
- 	 * As per x86, we may deadlock here. However, since the kernel only
- 	 * validly references user space from well defined areas of the code,
-@@ -206,7 +208,7 @@ good_area:
+ 	if (!mmap_read_trylock(mm)) {
+ 		if (!user_mode(regs) && !search_exception_tables(regs->ea))
+ 			goto bad_area_nosemaphore;
+@@ -131,7 +134,7 @@ good_area:
+ 	 * make sure we exit gracefully rather than endlessly redo
  	 * the fault.
  	 */
+-	fault = handle_mm_fault(vma, address, flags, NULL);
++	fault = handle_mm_fault(vma, address, flags, regs);
  
--	fault = handle_mm_fault(vma, addr, flags, NULL);
-+	fault = handle_mm_fault(vma, addr, flags, regs);
- 
- 	/*
- 	 * If we need to retry but a fatal signal is pending, handle the
-@@ -228,22 +230,7 @@ good_area:
- 			goto bad_area;
+ 	if (fault_signal_pending(fault, regs))
+ 		return;
+@@ -146,16 +149,7 @@ good_area:
+ 		BUG();
  	}
  
 -	/*
--	 * Major/minor page fault accounting is only done on the initial
--	 * attempt. If we go through a retry, it is extremely likely that the
--	 * page will be found in page cache at that point.
+-	 * Major/minor page fault accounting is only done on the
+-	 * initial attempt. If we go through a retry, it is extremely
+-	 * likely that the page will be found in page cache at that point.
 -	 */
--	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, addr);
  	if (flags & FAULT_FLAG_ALLOW_RETRY) {
--		if (fault & VM_FAULT_MAJOR) {
--			tsk->maj_flt++;
--			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ,
--				      1, regs, addr);
--		} else {
--			tsk->min_flt++;
--			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN,
--				      1, regs, addr);
--		}
+-		if (fault & VM_FAULT_MAJOR)
+-			current->maj_flt++;
+-		else
+-			current->min_flt++;
  		if (fault & VM_FAULT_RETRY) {
  			flags |= FAULT_FLAG_TRIED;
  
