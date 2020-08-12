@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3F5FC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 730F6C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81395207DA
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A48D207DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597195911;
-	bh=qzf6RU/v1YGPdrTegkjh8BcYy3sC8488jKIjNK3fYFs=;
+	s=default; t=1597195912;
+	bh=Q/9tUn2pMbMLHYOcmNyiaP59st/oFr3ssKMDobiL838=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=AlFB3bjLIHvr+7cUT8yVUj9yFV2Vvy290e0kQP8PmMCqlOlGlpA789Rjv4XnXFjE5
-	 eMFg7B0KhZELGMCtG703dw+a1Mw9UwtKeL3abTRkImk/eLAietsAqCoH5qP0Oot1ev
-	 FKSfj4Yre5XZrWctcoqlNN4t9taUKk38asFarHWE=
+	b=J7b+igPaEqUzk1q4CqCAx9MLUSvu0TFTV6n2L0ZZc+gZ9UeQojXRQ3gNiu8ibmbHm
+	 nt7VY+RcmfMzqgXLVxK0rs8UfElOSWd+LNvyjKE7L0sH1PfVkAOAPM00pGB6i8BJej
+	 grOZzyrfmfFlNZAAlpS9vLDLtQEwdNGVHAZqHA0s=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726664AbgHLBbr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726657AbgHLBbr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 11 Aug 2020 21:31:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59416 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59536 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726632AbgHLBbo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:31:44 -0400
+        id S1726642AbgHLBbq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:31:46 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 3E2D0207DA;
-        Wed, 12 Aug 2020 01:31:42 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 640B5206B2;
+        Wed, 12 Aug 2020 01:31:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195902;
-        bh=qzf6RU/v1YGPdrTegkjh8BcYy3sC8488jKIjNK3fYFs=;
+        s=default; t=1597195905;
+        bh=Q/9tUn2pMbMLHYOcmNyiaP59st/oFr3ssKMDobiL838=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=VY2gLYlvnM/3AfClxwdjX0ib9i/OXN7p9E+SiaolBsk+9o3al/6XsaiK+gZiO8pC2
-         +8K72G5+euWq1VeyVUq9vaqATrvTjPjlwl8qFUl1BGMUMqTqSu9cQzicO7XCtosH/T
-         Rn17x8jM0cM9Iq6Vyd0AVekOUb1E6KIM5hudsdPM=
-Date:   Tue, 11 Aug 2020 18:31:41 -0700
+        b=INoQK9B+Vh3Je07rJUxLVnxCq1QuhqeZjmXIVjwZBRyESWLnkGaf1ectrb7lMgqpa
+         DL4b3Vj9BRWRL7RbvBAud7z8wjWOrP8UVGjJSGw+yXSBFauUf/SVk7oIeiwuHwz6Ma
+         hpHwLJjBVrRWva0ST7zCSYwNnAVpGMg4bUxXhVwA=
+Date:   Tue, 11 Aug 2020 18:31:45 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bharata@linux.ibm.com, hch@lst.de,
         jgg@mellanox.com, jglisse@redhat.com, jhubbard@nvidia.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         rcampbell@nvidia.com, shuah@kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 027/165] mm/migrate: optimize migrate_vma_setup()
- for holes
-Message-ID: <20200812013141.yw4xch2c0%akpm@linux-foundation.org>
+Subject:  [patch 028/165] mm/migrate: add migrate-shared test for
+ migrate_vma_*()
+Message-ID: <20200812013145.OdoSBJtGw%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,34 +57,13 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/migrate: optimize migrate_vma_setup() for holes
+Subject: mm/migrate: add migrate-shared test for migrate_vma_*()
 
-Patch series "mm/migrate: optimize migrate_vma_setup() for holes".
+Add a migrate_vma_*() self test for mmap(MAP_SHARED) to verify that
+!vma_anonymous() ranges won't be migrated.
 
-A simple optimization for migrate_vma_*() when the source vma is not an
-anonymous vma and a new test case to exercise it.
-
-
-This patch (of 2):
-
-When migrating system memory to device private memory, if the source
-address range is a valid VMA range and there is no memory or a zero page,
-the source PFN array is marked as valid but with no PFN.
-
-This lets the device driver allocate private memory and clear it, then
-insert the new device private struct page into the CPU's page tables when
-migrate_vma_pages() is called.  migrate_vma_pages() only inserts the new
-page if the VMA is an anonymous range.
-
-There is no point in telling the device driver to allocate device private
-memory and then not migrate the page.  Instead, mark the source PFN array
-entries as not migrating to avoid this overhead.
-
-[rcampbell@nvidia.com: v2]
-  Link: http://lkml.kernel.org/r/20200710194840.7602-2-rcampbell@nvidia.com
-Link: http://lkml.kernel.org/r/20200710194840.7602-1-rcampbell@nvidia.com
-Link: http://lkml.kernel.org/r/20200709165711.26584-1-rcampbell@nvidia.com
-Link: http://lkml.kernel.org/r/20200709165711.26584-2-rcampbell@nvidia.com
+Link: http://lkml.kernel.org/r/20200710194840.7602-3-rcampbell@nvidia.com
+Link: http://lkml.kernel.org/r/20200709165711.26584-3-rcampbell@nvidia.com
 Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
@@ -95,39 +74,51 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/hmm-tests.c |   35 +++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
---- a/mm/migrate.c~mm-migrate-optimize-migrate_vma_setup-for-holes
-+++ a/mm/migrate.c
-@@ -2168,6 +2168,16 @@ static int migrate_vma_collect_hole(unsi
- 	struct migrate_vma *migrate = walk->private;
- 	unsigned long addr;
+--- a/tools/testing/selftests/vm/hmm-tests.c~mm-migrate-add-migrate-shared-test-for-migrate_vma_
++++ a/tools/testing/selftests/vm/hmm-tests.c
+@@ -942,6 +942,41 @@ TEST_F(hmm, migrate_fault)
+ }
  
-+	/* Only allow populating anonymous memory. */
-+	if (!vma_is_anonymous(walk->vma)) {
-+		for (addr = start; addr < end; addr += PAGE_SIZE) {
-+			migrate->src[migrate->npages] = 0;
-+			migrate->dst[migrate->npages] = 0;
-+			migrate->npages++;
-+		}
-+		return 0;
-+	}
+ /*
++ * Migrate anonymous shared memory to device private memory.
++ */
++TEST_F(hmm, migrate_shared)
++{
++	struct hmm_buffer *buffer;
++	unsigned long npages;
++	unsigned long size;
++	int ret;
 +
- 	for (addr = start; addr < end; addr += PAGE_SIZE) {
- 		migrate->src[migrate->npages] = MIGRATE_PFN_MIGRATE;
- 		migrate->dst[migrate->npages] = 0;
-@@ -2260,8 +2270,10 @@ again:
- 		pte = *ptep;
- 
- 		if (pte_none(pte)) {
--			mpfn = MIGRATE_PFN_MIGRATE;
--			migrate->cpages++;
-+			if (vma_is_anonymous(vma)) {
-+				mpfn = MIGRATE_PFN_MIGRATE;
-+				migrate->cpages++;
-+			}
- 			goto next;
- 		}
- 
++	npages = ALIGN(HMM_BUFFER_SIZE, self->page_size) >> self->page_shift;
++	ASSERT_NE(npages, 0);
++	size = npages << self->page_shift;
++
++	buffer = malloc(sizeof(*buffer));
++	ASSERT_NE(buffer, NULL);
++
++	buffer->fd = -1;
++	buffer->size = size;
++	buffer->mirror = malloc(size);
++	ASSERT_NE(buffer->mirror, NULL);
++
++	buffer->ptr = mmap(NULL, size,
++			   PROT_READ | PROT_WRITE,
++			   MAP_SHARED | MAP_ANONYMOUS,
++			   buffer->fd, 0);
++	ASSERT_NE(buffer->ptr, MAP_FAILED);
++
++	/* Migrate memory to device. */
++	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_MIGRATE, buffer, npages);
++	ASSERT_EQ(ret, -ENOENT);
++
++	hmm_buffer_free(buffer);
++}
++
++/*
+  * Try to migrate various memory types to device private memory.
+  */
+ TEST_F(hmm2, migrate_mixed)
 _
