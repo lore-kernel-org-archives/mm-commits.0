@@ -2,50 +2,51 @@ Return-Path: <SRS0=McLq=BW=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D66BFC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A93AC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA322206B2
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61B8B207DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597195890;
-	bh=WTrrFAmC/PkbTaKqNlsgJAb+46/7jme6qulexayAfOE=;
+	s=default; t=1597195893;
+	bh=zRGeNM6mpYmWTG1hl4rMZdDYVTJmyd34zKe0DAJKaMs=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=UCZfvugby//DPgCxookFIPBxubyZluLDB+A3POWEanJyr9SBlrOP/a4KjBkk0JUea
-	 wDh8CD7iuz2y+opQJ8uJdcvQ4I4TzdmVtnaod+oIGKIlWg40CIoHS5t3uUr4/CCzPO
-	 MAaRfiPlLFdsfalM5kmsxzCxN4odgUbxa5RzxejI=
+	b=EuQBMvefhmwUR+rTt42xr8z13s1tGeh4TdMkN13KHU49J2gznP/0i2rv3bRW4psVG
+	 w1t5sLy4S0cl4jbnlhSZEz+D9fkKz5/lV6sh4si5432kLiNVPVJCdNTMad08qD5iVN
+	 Wz/FbP1cJcjCvgNOD3cPSAS+GswVYWV7Iu/11qws=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726485AbgHLBba (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:31:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58866 "EHLO mail.kernel.org"
+        id S1726488AbgHLBbd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:31:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBba (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:31:30 -0400
+        id S1726235AbgHLBbd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:31:33 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5DAE92076C;
-        Wed, 12 Aug 2020 01:31:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 6D51E206B2;
+        Wed, 12 Aug 2020 01:31:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195889;
-        bh=WTrrFAmC/PkbTaKqNlsgJAb+46/7jme6qulexayAfOE=;
+        s=default; t=1597195892;
+        bh=zRGeNM6mpYmWTG1hl4rMZdDYVTJmyd34zKe0DAJKaMs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=x38T13cWqblY0MtpLce2zWo0c07/ywDlWyUg9FSH72LUbTW1TEYg4N8svvlRLsw3k
-         e72eFIlL4WZLtN9OoUdcxvdxF2s4VaqJU5V1MC6ZA7H0l0xQEZN21spFJtMrP5b4w7
-         H3JeZpygKWiDA64TeUZASDWGLtpmqyjdJRpi8e0Y=
-Date:   Tue, 11 Aug 2020 18:31:28 -0700
+        b=im5NYhn8mml1t0UHky5AzX/Jcxk4JsBxFi92zHdDckqmF8oumNQYbZZ1DqC1VZhf9
+         asqK9nIt2Cg/aMdaXvRnKGfeqOH6c/HlpDOx/Bkbs2c8sk8/IhdBnXodidAegtU1J9
+         2K71y1Q8I2LV+i2Vq2W9ve8PunaBLCij6SdPLT34=
+Date:   Tue, 11 Aug 2020 18:31:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net, laoar.shao@gmail.com,
+To:     akpm@linux-foundation.org, cai@lca.pw, laoar.shao@gmail.com,
         linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
-        rientjes@google.com, torvalds@linux-foundation.org
-Subject:  [patch 023/165] doc, mm: clarify /proc/<pid>/oom_score
- value range
-Message-ID: <20200812013128.TFhR9DDig%akpm@linux-foundation.org>
+        penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 024/165] mm, oom: show process exiting information
+ in __oom_kill_process()
+Message-ID: <20200812013132.y2HAP8zOp%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,34 +55,36 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: doc, mm: clarify /proc/<pid>/oom_score value range
+From: Yafang Shao <laoar.shao@gmail.com>
+Subject: mm, oom: show process exiting information in __oom_kill_process()
 
-The exported value includes oom_score_adj so the range is no [0, 1000] as
-described in the previous section but rather [0, 2000].  Mention that fact
-explicitly.
+When the OOM killer finds a victim and tryies to kill it, if the victim is
+already exiting, the task mm will be NULL and no process will be killed. 
+But the dump_header() has been already executed, so it will be strange to
+dump so much information without killing a process.  We'd better show some
+helpful information to indicate why this happens.
 
-Link: http://lkml.kernel.org/r/20200709062603.18480-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
+Link: http://lkml.kernel.org/r/20200721010127.17238-1-laoar.shao@gmail.com
+Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Suggested-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: Qian Cai <cai@lca.pw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/oom_kill.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/Documentation/filesystems/proc.rst~doc-mm-clarify-proc-pid-oom_score-value-range
-+++ a/Documentation/filesystems/proc.rst
-@@ -1676,6 +1676,9 @@ This file can be used to check the curre
- any given <pid>. Use it together with /proc/<pid>/oom_score_adj to tune which
- process should be killed in an out-of-memory situation.
+--- a/mm/oom_kill.c~mm-oom-show-process-exiting-information-in-__oom_kill_process
++++ a/mm/oom_kill.c
+@@ -861,6 +861,8 @@ static void __oom_kill_process(struct ta
  
-+Please note that the exported value includes oom_score_adj so it is
-+effectively in range [0,2000].
-+
- 
- 3.3  /proc/<pid>/io - Display the IO accounting fields
- -------------------------------------------------------
+ 	p = find_lock_task_mm(victim);
+ 	if (!p) {
++		pr_info("%s: OOM victim %d (%s) is already exiting. Skip killing the task\n",
++			message, task_pid_nr(victim), victim->comm);
+ 		put_task_struct(victim);
+ 		return;
+ 	} else if (victim != p) {
 _
