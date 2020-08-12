@@ -7,44 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D8F5C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 818E4C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E8BBC2076C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5ECA5207DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:37:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196222;
-	bh=NxD6VGEmdeemBeKXC+QnU9KYiy6Z6wCYBJpjwhSQToE=;
+	s=default; t=1597196224;
+	bh=HwnkAPmO7+1OKKPmNTySFF02DUcARYfGP0oPpn7FFJw=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=cRwVb+Uo9B3ySreab8DvttIjtLiPjiu3m0oU8kVpr8i1fWz2fxgulsHJSEY3jA76w
-	 hL+j0opTQO8C7gWBE7yfYvkglJY+q01K+SmAlBwK6aDTqbnfhb9XrWOOo5WtRCIcS/
-	 GTRETsiXrPNEthkNzgfxfDADdyeg+Tvaaqv0V724=
+	b=Z/P+kk7K3urSDHXwTW7bjw3MRIRCK5xBPSADHhgI1+Qni3/bjTkzNid5DKDG/vUpO
+	 XsPhknhLp5I97YKeI7hwjuP8AeoicuZsaH1xJY/B35TQaL8kIcwRIQVCCWuyvLDegD
+	 nDROA4rXZxLKjv9DPbAs3o8oxIWVQFgA9yMW7ne0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726368AbgHLBhB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:37:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38530 "EHLO mail.kernel.org"
+        id S1726333AbgHLBhE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:37:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726333AbgHLBhB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:37:01 -0400
+        id S1726235AbgHLBhE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:37:04 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8108B20658;
-        Wed, 12 Aug 2020 01:36:59 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 882AB2054F;
+        Wed, 12 Aug 2020 01:37:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196219;
-        bh=NxD6VGEmdeemBeKXC+QnU9KYiy6Z6wCYBJpjwhSQToE=;
+        s=default; t=1597196222;
+        bh=HwnkAPmO7+1OKKPmNTySFF02DUcARYfGP0oPpn7FFJw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=XR0H8d5/HNAOmZmOiAlJqcUY/8IP0o4FOqAAPH+hVdFQkHQwNpYUVJHYkNJQHh6VU
-         kUkqVAqd/TsRpkRnZmM9J1PeLbw2bb5jFgKwJn0bSrRusGYZP33sAUDAl4JUY4vXtZ
-         NjAI8bAjE++p0LWTVvpPn8g4+xF/QIm9CfE4S7NM=
-Date:   Tue, 11 Aug 2020 18:36:59 -0700
+        b=h+uTFp7FfRnfPRrxwNnPAvh2vz929Xwn9Svj/qpHqTAvsSOFjfRdVtkPUBOPEhn1/
+         /LgHuqy72SML6OtAuLXPCWyDIQ8U8538lCmZ7hrb9IEZtURkfX6f0X0EkpH1ELs/eX
+         zvvLdskmWrFituJgmMQvGdnjm0l/KyaZu2Lem57c=
+Date:   Tue, 11 Aug 2020 18:37:02 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@google.com,
-        hulkci@huawei.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, weiyongjun1@huawei.com
-Subject:  [patch 127/165] kcov: make some symbols static
-Message-ID: <20200812013659.4PfL3CDWL%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aymeric.agon@yandex.com,
+        jan.kiszka@siemens.com, kbingham@kernel.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, ndesaulniers@google.com,
+        swboyd@chromium.org, torvalds@linux-foundation.org
+Subject:  [patch 128/165] scripts/gdb: fix python 3.8 SyntaxWarning
+Message-ID: <20200812013702.CttNEN-O6%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -53,55 +54,53 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: kcov: make some symbols static
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: scripts/gdb: fix python 3.8 SyntaxWarning
 
-Fix sparse build warnings:
+Fixes the observed warnings:
+scripts/gdb/linux/rbtree.py:20: SyntaxWarning: "is" with a literal. Did
+you mean "=="?
+  if node is 0:
+scripts/gdb/linux/rbtree.py:36: SyntaxWarning: "is" with a literal. Did
+you mean "=="?
+  if node is 0:
 
-kernel/kcov.c:99:1: warning:
- symbol '__pcpu_scope_kcov_percpu_data' was not declared. Should it be static?
-kernel/kcov.c:778:6: warning:
- symbol 'kcov_remote_softirq_start' was not declared. Should it be static?
-kernel/kcov.c:795:6: warning:
- symbol 'kcov_remote_softirq_stop' was not declared. Should it be static?
+It looks like this is a new warning added in Python 3.8. I've only seen
+this once after adding the add-auto-load-safe-path rule to my ~/.gdbinit
+for a new tree.
 
-Link: http://lkml.kernel.org/r/20200702115501.73077-1-weiyongjun1@huawei.com
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Link: http://lkml.kernel.org/r/20200805225015.2847624-1-ndesaulniers@google.com
+Link: https://adamj.eu/tech/2020/01/21/why-does-python-3-8-syntaxwarning-for-is-literal/
+Fixes: commit 449ca0c95ea2 ("scripts/gdb: add rb tree iterating utilities")
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Reviewed-by: Stephen Boyd <swboyd@chromium.org>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Aymeric Agon-Rambosson <aymeric.agon@yandex.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/gdb/linux/rbtree.py |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/kcov.c~kcov-make-some-symbols-static
-+++ a/kernel/kcov.c
-@@ -96,7 +96,7 @@ struct kcov_percpu_data {
- 	int			saved_sequence;
- };
+--- a/scripts/gdb/linux/rbtree.py~scripts-gdb-fix-python-38-syntaxwarning
++++ a/scripts/gdb/linux/rbtree.py
+@@ -17,7 +17,7 @@ def rb_first(root):
+         raise gdb.GdbError("Must be struct rb_root not {}".format(root.type))
  
--DEFINE_PER_CPU(struct kcov_percpu_data, kcov_percpu_data);
-+static DEFINE_PER_CPU(struct kcov_percpu_data, kcov_percpu_data);
+     node = root['rb_node']
+-    if node is 0:
++    if node == 0:
+         return None
  
- /* Must be called with kcov_remote_lock locked. */
- static struct kcov_remote *kcov_remote_find(u64 handle)
-@@ -775,7 +775,7 @@ static inline bool kcov_mode_enabled(uns
- 	return (mode & ~KCOV_IN_CTXSW) != KCOV_MODE_DISABLED;
- }
+     while node['rb_left']:
+@@ -33,7 +33,7 @@ def rb_last(root):
+         raise gdb.GdbError("Must be struct rb_root not {}".format(root.type))
  
--void kcov_remote_softirq_start(struct task_struct *t)
-+static void kcov_remote_softirq_start(struct task_struct *t)
- {
- 	struct kcov_percpu_data *data = this_cpu_ptr(&kcov_percpu_data);
- 	unsigned int mode;
-@@ -792,7 +792,7 @@ void kcov_remote_softirq_start(struct ta
- 	}
- }
+     node = root['rb_node']
+-    if node is 0:
++    if node == 0:
+         return None
  
--void kcov_remote_softirq_stop(struct task_struct *t)
-+static void kcov_remote_softirq_stop(struct task_struct *t)
- {
- 	struct kcov_percpu_data *data = this_cpu_ptr(&kcov_percpu_data);
- 
+     while node['rb_right']:
 _
