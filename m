@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8F86C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D437C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 882FC2078B
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D451320774
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266433;
-	bh=KYnUGZoIB6kCUjzXNpUcFY5VQECWTuxXGvelxSJQgrw=;
+	s=default; t=1597266435;
+	bh=cSHWe6En45p2zC5rtMoz40QxKCVSuv9scJxUtleXyy0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Y/a12XatjIWIE3ion6AcRcbqTxZk/52UAj50hTqLskLYIEeuHtDcDv0EY+Pzdnubr
-	 exmiiSquUtz4mz+ocadhadLbK2J2urGHdUtbQMGOiz3KU+v7StFaybC83UM1B5qMA0
-	 CRW0QHH167YP6F4+gvBMxiG2yXx2DD32HnB5g5b8=
+	b=tfOHbGt3ThS/as2tv0qU3Ehy6FDFI2gkaPFrZyuH+WyaUgd9Ryo/ZQj0pqIka7Caz
+	 cc4/UIB7ztlAlUDeaQc35cB/cHlEHdLxJIu1bb736B3hR1I9Q3zNTZLJTGBKXKJRLi
+	 e5BvSF3BGicWBERfRBQFem+lbauQrhjxcr6ArCSY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726528AbgHLVHN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:07:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35074 "EHLO mail.kernel.org"
+        id S1726546AbgHLVHP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:07:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35160 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726030AbgHLVHN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:07:13 -0400
+        id S1726030AbgHLVHP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:07:15 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 76ADE20774;
-        Wed, 12 Aug 2020 21:07:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A4CBD2087C;
+        Wed, 12 Aug 2020 21:07:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266431;
-        bh=KYnUGZoIB6kCUjzXNpUcFY5VQECWTuxXGvelxSJQgrw=;
+        s=default; t=1597266434;
+        bh=cSHWe6En45p2zC5rtMoz40QxKCVSuv9scJxUtleXyy0=;
         h=Date:From:To:Subject:From;
-        b=bdzYN3lmH/33JeZaRgN+CAwpNiwD6e3wvVqntf1CGhTAwMS/5xF+nlK1S5ya8Q9v2
-         S6tkpRdlEPSFKm8rHNIIyVFuZa8zMKLj+WuTh4Mo7KumjeWk6zBRY0Uy5pliAVozif
-         aEYohE/IxnBX2G9gvhw6mmLMBR16Wq7c2KQQLy/I=
-Date:   Wed, 12 Aug 2020 14:07:11 -0700
+        b=UbtGrGbobuLcxiirrkI3Mgh3wEVAnUJ6fkNeZPfpdSb/TyPMsS1cbvQi/yv0YFP7d
+         /VtgSrT7LZX1hsSc45b2gAFzAWKDN2LFY5jo7gf3BIhXhJiiPInj9QVw18XyK6PDEb
+         xjvaKrn3kKY8KLPsL16X7eraXDjOiysgDIEVN2NA=
+Date:   Wed, 12 Aug 2020 14:07:13 -0700
 From:   akpm@linux-foundation.org
-To:     jhubbard@nvidia.com, mm-commits@vger.kernel.org, peterx@redhat.com
+To:     hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com,
+        mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org, vbabka@suse.cz, willy@infradead.org
 Subject:  [merged]
- mm-gup-remove-task_struct-pointer-for-all-gup-code.patch removed from -mm
- tree
-Message-ID: <20200812210711.WDW8klXtV%akpm@linux-foundation.org>
+ mm-vmscan-make-active-inactive-ratio-as-1-1-for-anon-lru.patch removed from
+ -mm tree
+Message-ID: <20200812210713.hdCps7WTT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,708 +56,323 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: remove task_struct pointer for all gup code
+     Subject: mm/vmscan: make active/inactive ratio as 1:1 for anon lru
 has been removed from the -mm tree.  Its filename was
-     mm-gup-remove-task_struct-pointer-for-all-gup-code.patch
+     mm-vmscan-make-active-inactive-ratio-as-1-1-for-anon-lru.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup: remove task_struct pointer for all gup code
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/vmscan: make active/inactive ratio as 1:1 for anon lru
 
-After the cleanup of page fault accounting, gup does not need to pass
-task_struct around any more.  Remove that parameter in the whole gup
-stack.
+Patch series "workingset protection/detection on the anonymous LRU list", v7.
 
-Link: http://lkml.kernel.org/r/20200707225021.200906-26-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+
+* PROBLEM
+In current implementation, newly created or swap-in anonymous page is
+started on the active list.  Growing the active list results in
+rebalancing active/inactive list so old pages on the active list are
+demoted to the inactive list.  Hence, hot page on the active list isn't
+protected at all.
+
+Following is an example of this situation.
+
+Assume that 50 hot pages on active list and system can contain total 100
+pages.  Numbers denote the number of pages on active/inactive list (active
+| inactive).  (h) stands for hot pages and (uo) stands for used-once
+pages.
+
+1. 50 hot pages on active list
+50(h) | 0
+
+2. workload: 50 newly created (used-once) pages
+50(uo) | 50(h)
+
+3. workload: another 50 newly created (used-once) pages
+50(uo) | 50(uo), swap-out 50(h)
+
+As we can see, hot pages are swapped-out and it would cause swap-in later.
+
+* SOLUTION
+Since this is what we want to avoid, this patchset implements workingset
+protection.  Like as the file LRU list, newly created or swap-in anonymous
+page is started on the inactive list.  Also, like as the file LRU list, if
+enough reference happens, the page will be promoted.  This simple
+modification changes the above example as following.
+
+1. 50 hot pages on active list
+50(h) | 0
+
+2. workload: 50 newly created (used-once) pages
+50(h) | 50(uo)
+
+3. workload: another 50 newly created (used-once) pages
+50(h) | 50(uo), swap-out 50(uo)
+
+hot pages remains in the active list. :)
+
+* EXPERIMENT
+I tested this scenario on my test bed and confirmed that this problem
+happens on current implementation. I also checked that it is fixed by
+this patchset.
+
+
+* SUBJECT
+workingset detection
+
+* PROBLEM
+Later part of the patchset implements the workingset detection for the
+anonymous LRU list.  There is a corner case that workingset protection
+could cause thrashing.  If we can avoid thrashing by workingset detection,
+we can get the better performance.
+
+Following is an example of thrashing due to the workingset protection.
+
+1. 50 hot pages on active list
+50(h) | 0
+
+2. workload: 50 newly created (will be hot) pages
+50(h) | 50(wh)
+
+3. workload: another 50 newly created (used-once) pages
+50(h) | 50(uo), swap-out 50(wh)
+
+4. workload: 50 (will be hot) pages
+50(h) | 50(wh), swap-in 50(wh)
+
+5. workload: another 50 newly created (used-once) pages
+50(h) | 50(uo), swap-out 50(wh)
+
+6. repeat 4, 5
+
+Without workingset detection, this kind of workload cannot be promoted and
+thrashing happens forever.
+
+* SOLUTION
+Therefore, this patchset implements workingset detection.  All the
+infrastructure for workingset detecion is already implemented, so there is
+not much work to do.  First, extend workingset detection code to deal with
+the anonymous LRU list.  Then, make swap cache handles the exceptional
+value for the shadow entry.  Lastly, install/retrieve the shadow value
+into/from the swap cache and check the refault distance.
+
+* EXPERIMENT
+I made a test program to imitates above scenario and confirmed that
+problem exists.  Then, I checked that this patchset fixes it.
+
+My test setup is a virtual machine with 8 cpus and 6100MB memory.  But,
+the amount of the memory that the test program can use is about 280 MB. 
+This is because the system uses large ram-backed swap and large ramdisk to
+capture the trace.
+
+Test scenario is like as below.
+
+1. allocate cold memory (512MB)
+2. allocate hot-1 memory (96MB)
+3. activate hot-1 memory (96MB)
+4. allocate another hot-2 memory (96MB)
+5. access cold memory (128MB)
+6. access hot-2 memory (96MB)
+7. repeat 5, 6
+
+Since hot-1 memory (96MB) is on the active list, the inactive list can
+contains roughly 190MB pages.  hot-2 memory's re-access interval (96+128
+MB) is more 190MB, so it cannot be promoted without workingset detection
+and swap-in/out happens repeatedly.  With this patchset, workingset
+detection works and promotion happens.  Therefore, swap-in/out occurs
+less.
+
+Here is the result. (average of 5 runs)
+
+type swap-in swap-out
+base 863240 989945
+patch 681565 809273
+
+As we can see, patched kernel do less swap-in/out.
+
+* OVERALL TEST (ebizzy using modified random function)
+ebizzy is the test program that main thread allocates lots of memory and
+child threads access them randomly during the given times.  Swap-in will
+happen if allocated memory is larger than the system memory.
+
+The random function that represents the zipf distribution is used to make
+hot/cold memory.  Hot/cold ratio is controlled by the parameter.  If the
+parameter is high, hot memory is accessed much larger than cold one.  If
+the parameter is low, the number of access on each memory would be
+similar.  I uses various parameters in order to show the effect of
+patchset on various hot/cold ratio workload.
+
+My test setup is a virtual machine with 8 cpus, 1024 MB memory and 5120 MB
+ram swap.
+
+Result format is as following.
+
+param: 1-1024-0.1
+- 1 (number of thread)
+- 1024 (allocated memory size, MB)
+- 0.1 (zipf distribution alpha,
+0.1 works like as roughly uniform random,
+1.3 works like as small portion of memory is hot and the others are cold)
+
+pswpin: smaller is better
+std: standard deviation
+improvement: negative is better
+
+* single thread
+           param        pswpin       std       improvement
+      base 1-1024.0-0.1 14101983.40   79441.19
+      prot 1-1024.0-0.1 14065875.80  136413.01  (   -0.26 )
+    detect 1-1024.0-0.1 13910435.60  100804.82  (   -1.36 )
+      base 1-1024.0-0.7 7998368.80   43469.32
+      prot 1-1024.0-0.7 7622245.80   88318.74  (   -4.70 )
+    detect 1-1024.0-0.7 7618515.20   59742.07  (   -4.75 )
+      base 1-1024.0-1.3 1017400.80   38756.30
+      prot 1-1024.0-1.3  940464.60   29310.69  (   -7.56 )
+    detect 1-1024.0-1.3  945511.40   24579.52  (   -7.07 )
+      base 1-1280.0-0.1 22895541.40   50016.08
+      prot 1-1280.0-0.1 22860305.40   51952.37  (   -0.15 )
+    detect 1-1280.0-0.1 22705565.20   93380.35  (   -0.83 )
+      base 1-1280.0-0.7 13717645.60   46250.65
+      prot 1-1280.0-0.7 12935355.80   64754.43  (   -5.70 )
+    detect 1-1280.0-0.7 13040232.00   63304.00  (   -4.94 )
+      base 1-1280.0-1.3 1654251.40    4159.68
+      prot 1-1280.0-1.3 1522680.60   33673.50  (   -7.95 )
+    detect 1-1280.0-1.3 1599207.00   70327.89  (   -3.33 )
+      base 1-1536.0-0.1 31621775.40   31156.28
+      prot 1-1536.0-0.1 31540355.20   62241.36  (   -0.26 )
+    detect 1-1536.0-0.1 31420056.00  123831.27  (   -0.64 )
+      base 1-1536.0-0.7 19620760.60   60937.60
+      prot 1-1536.0-0.7 18337839.60   56102.58  (   -6.54 )
+    detect 1-1536.0-0.7 18599128.00   75289.48  (   -5.21 )
+      base 1-1536.0-1.3 2378142.40   20994.43
+      prot 1-1536.0-1.3 2166260.60   48455.46  (   -8.91 )
+    detect 1-1536.0-1.3 2183762.20   16883.24  (   -8.17 )
+      base 1-1792.0-0.1 40259714.80   90750.70
+      prot 1-1792.0-0.1 40053917.20   64509.47  (   -0.51 )
+    detect 1-1792.0-0.1 39949736.40  104989.64  (   -0.77 )
+      base 1-1792.0-0.7 25704884.40   69429.68
+      prot 1-1792.0-0.7 23937389.00   79945.60  (   -6.88 )
+    detect 1-1792.0-0.7 24271902.00   35044.30  (   -5.57 )
+      base 1-1792.0-1.3 3129497.00   32731.86
+      prot 1-1792.0-1.3 2796994.40   19017.26  (  -10.62 )
+    detect 1-1792.0-1.3 2886840.40   33938.82  (   -7.75 )
+      base 1-2048.0-0.1 48746924.40   50863.88
+      prot 1-2048.0-0.1 48631954.40   24537.30  (   -0.24 )
+    detect 1-2048.0-0.1 48509419.80   27085.34  (   -0.49 )
+      base 1-2048.0-0.7 32046424.40   78624.22
+      prot 1-2048.0-0.7 29764182.20   86002.26  (   -7.12 )
+    detect 1-2048.0-0.7 30250315.80  101282.14  (   -5.60 )
+      base 1-2048.0-1.3 3916723.60   24048.55
+      prot 1-2048.0-1.3 3490781.60   33292.61  (  -10.87 )
+    detect 1-2048.0-1.3 3585002.20   44942.04  (   -8.47 )
+
+* multi thread
+           param        pswpin       std       improvement
+      base 8-1024.0-0.1 16219822.60  329474.01
+      prot 8-1024.0-0.1 15959494.00  654597.45  (   -1.61 )
+    detect 8-1024.0-0.1 15773790.80  502275.25  (   -2.75 )
+      base 8-1024.0-0.7 9174107.80  537619.33
+      prot 8-1024.0-0.7 8571915.00  385230.08  (   -6.56 )
+    detect 8-1024.0-0.7 8489484.20  364683.00  (   -7.46 )
+      base 8-1024.0-1.3 1108495.60   83555.98
+      prot 8-1024.0-1.3 1038906.20   63465.20  (   -6.28 )
+    detect 8-1024.0-1.3  941817.80   32648.80  (  -15.04 )
+      base 8-1280.0-0.1 25776114.20  450480.45
+      prot 8-1280.0-0.1 25430847.00  465627.07  (   -1.34 )
+    detect 8-1280.0-0.1 25282555.00  465666.55  (   -1.91 )
+      base 8-1280.0-0.7 15218968.00  702007.69
+      prot 8-1280.0-0.7 13957947.80  492643.86  (   -8.29 )
+    detect 8-1280.0-0.7 14158331.20  238656.02  (   -6.97 )
+      base 8-1280.0-1.3 1792482.80   30512.90
+      prot 8-1280.0-1.3 1577686.40   34002.62  (  -11.98 )
+    detect 8-1280.0-1.3 1556133.00   22944.79  (  -13.19 )
+      base 8-1536.0-0.1 33923761.40  575455.85
+      prot 8-1536.0-0.1 32715766.20  300633.51  (   -3.56 )
+    detect 8-1536.0-0.1 33158477.40  117764.51  (   -2.26 )
+      base 8-1536.0-0.7 20628907.80  303851.34
+      prot 8-1536.0-0.7 19329511.20  341719.31  (   -6.30 )
+    detect 8-1536.0-0.7 20013934.00  385358.66  (   -2.98 )
+      base 8-1536.0-1.3 2588106.40  130769.20
+      prot 8-1536.0-1.3 2275222.40   89637.06  (  -12.09 )
+    detect 8-1536.0-1.3 2365008.40  124412.55  (   -8.62 )
+      base 8-1792.0-0.1 43328279.20  946469.12
+      prot 8-1792.0-0.1 41481980.80  525690.89  (   -4.26 )
+    detect 8-1792.0-0.1 41713944.60  406798.93  (   -3.73 )
+      base 8-1792.0-0.7 27155647.40  536253.57
+      prot 8-1792.0-0.7 24989406.80  502734.52  (   -7.98 )
+    detect 8-1792.0-0.7 25524806.40  263237.87  (   -6.01 )
+      base 8-1792.0-1.3 3260372.80  137907.92
+      prot 8-1792.0-1.3 2879187.80   63597.26  (  -11.69 )
+    detect 8-1792.0-1.3 2892962.20   33229.13  (  -11.27 )
+      base 8-2048.0-0.1 50583989.80  710121.48
+      prot 8-2048.0-0.1 49599984.40  228782.42  (   -1.95 )
+    detect 8-2048.0-0.1 50578596.00  660971.66  (   -0.01 )
+      base 8-2048.0-0.7 33765479.60  812659.55
+      prot 8-2048.0-0.7 30767021.20  462907.24  (   -8.88 )
+    detect 8-2048.0-0.7 32213068.80  211884.24  (   -4.60 )
+      base 8-2048.0-1.3 3941675.80   28436.45
+      prot 8-2048.0-1.3 3538742.40   76856.08  (  -10.22 )
+    detect 8-2048.0-1.3 3579397.80   58630.95  (   -9.19 )
+
+As we can see, all the cases show improvement.  Especially, test case with
+zipf distribution 1.3 show more improvements.  It means that if there is a
+hot/cold tendency in anon pages, this patchset works better.
+
+
+This patch (of 6):
+
+Current implementation of LRU management for anonymous page has some
+problems.  Most important one is that it doesn't protect the workingset,
+that is, pages on the active LRU list.  Although, this problem will be
+fixed in the following patchset, the preparation is required and this
+patch does it.
+
+What following patch does is to implement workingset protection.  After
+the following patchset, newly created or swap-in pages will start their
+lifetime on the inactive list.  If inactive list is too small, there is
+not enough chance to be referenced and the page cannot become the
+workingset.
+
+In order to provide the newly anonymous or swap-in pages enough chance to
+be referenced again, this patch makes active/inactive LRU ratio as 1:1.
+
+This is just a temporary measure.  Later patch in the series introduces
+workingset detection for anonymous LRU that will be used to better decide
+if pages should start on the active and inactive list.  Afterwards this
+patch is effectively reverted.
+
+Link: http://lkml.kernel.org/r/1595490560-15117-1-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1595490560-15117-2-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/process.c                   |    2 
- arch/s390/kvm/interrupt.c                   |    2 
- arch/s390/kvm/kvm-s390.c                    |    2 
- arch/s390/kvm/priv.c                        |    8 -
- arch/s390/mm/gmap.c                         |    4 
- drivers/gpu/drm/i915/gem/i915_gem_userptr.c |    2 
- drivers/infiniband/core/umem_odp.c          |    2 
- drivers/vfio/vfio_iommu_type1.c             |    4 
- fs/exec.c                                   |    2 
- include/linux/mm.h                          |    9 -
- kernel/events/uprobes.c                     |    6 -
- kernel/futex.c                              |    2 
- mm/gup.c                                    |  101 +++++++-----------
- mm/memory.c                                 |    2 
- mm/process_vm_access.c                      |    2 
- security/tomoyo/domain.c                    |    2 
- virt/kvm/async_pf.c                         |    2 
- virt/kvm/kvm_main.c                         |    2 
- 18 files changed, 69 insertions(+), 87 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arc/kernel/process.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/arch/arc/kernel/process.c
-@@ -91,7 +91,7 @@ fault:
- 		 goto fail;
+--- a/mm/vmscan.c~mm-vmscan-make-active-inactive-ratio-as-1-1-for-anon-lru
++++ a/mm/vmscan.c
+@@ -2208,7 +2208,7 @@ static bool inactive_is_low(struct lruve
+ 	active = lruvec_page_state(lruvec, NR_LRU_BASE + active_lru);
  
- 	mmap_read_lock(current->mm);
--	ret = fixup_user_fault(current, current->mm, (unsigned long) uaddr,
-+	ret = fixup_user_fault(current->mm, (unsigned long) uaddr,
- 			       FAULT_FLAG_WRITE, NULL);
- 	mmap_read_unlock(current->mm);
- 
---- a/arch/s390/kvm/interrupt.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/arch/s390/kvm/interrupt.c
-@@ -2768,7 +2768,7 @@ static struct page *get_map_page(struct
- 	struct page *page = NULL;
- 
- 	mmap_read_lock(kvm->mm);
--	get_user_pages_remote(NULL, kvm->mm, uaddr, 1, FOLL_WRITE,
-+	get_user_pages_remote(kvm->mm, uaddr, 1, FOLL_WRITE,
- 			      &page, NULL, NULL);
- 	mmap_read_unlock(kvm->mm);
- 	return page;
---- a/arch/s390/kvm/kvm-s390.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/arch/s390/kvm/kvm-s390.c
-@@ -1892,7 +1892,7 @@ static long kvm_s390_set_skeys(struct kv
- 
- 		r = set_guest_storage_key(current->mm, hva, keys[i], 0);
- 		if (r) {
--			r = fixup_user_fault(current, current->mm, hva,
-+			r = fixup_user_fault(current->mm, hva,
- 					     FAULT_FLAG_WRITE, &unlocked);
- 			if (r)
- 				break;
---- a/arch/s390/kvm/priv.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/arch/s390/kvm/priv.c
-@@ -273,7 +273,7 @@ retry:
- 	rc = get_guest_storage_key(current->mm, vmaddr, &key);
- 
- 	if (rc) {
--		rc = fixup_user_fault(current, current->mm, vmaddr,
-+		rc = fixup_user_fault(current->mm, vmaddr,
- 				      FAULT_FLAG_WRITE, &unlocked);
- 		if (!rc) {
- 			mmap_read_unlock(current->mm);
-@@ -319,7 +319,7 @@ retry:
- 	mmap_read_lock(current->mm);
- 	rc = reset_guest_reference_bit(current->mm, vmaddr);
- 	if (rc < 0) {
--		rc = fixup_user_fault(current, current->mm, vmaddr,
-+		rc = fixup_user_fault(current->mm, vmaddr,
- 				      FAULT_FLAG_WRITE, &unlocked);
- 		if (!rc) {
- 			mmap_read_unlock(current->mm);
-@@ -390,7 +390,7 @@ static int handle_sske(struct kvm_vcpu *
- 						m3 & SSKE_MC);
- 
- 		if (rc < 0) {
--			rc = fixup_user_fault(current, current->mm, vmaddr,
-+			rc = fixup_user_fault(current->mm, vmaddr,
- 					      FAULT_FLAG_WRITE, &unlocked);
- 			rc = !rc ? -EAGAIN : rc;
- 		}
-@@ -1094,7 +1094,7 @@ static int handle_pfmf(struct kvm_vcpu *
- 			rc = cond_set_guest_storage_key(current->mm, vmaddr,
- 							key, NULL, nq, mr, mc);
- 			if (rc < 0) {
--				rc = fixup_user_fault(current, current->mm, vmaddr,
-+				rc = fixup_user_fault(current->mm, vmaddr,
- 						      FAULT_FLAG_WRITE, &unlocked);
- 				rc = !rc ? -EAGAIN : rc;
- 			}
---- a/arch/s390/mm/gmap.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/arch/s390/mm/gmap.c
-@@ -649,7 +649,7 @@ retry:
- 		rc = vmaddr;
- 		goto out_up;
- 	}
--	if (fixup_user_fault(current, gmap->mm, vmaddr, fault_flags,
-+	if (fixup_user_fault(gmap->mm, vmaddr, fault_flags,
- 			     &unlocked)) {
- 		rc = -EFAULT;
- 		goto out_up;
-@@ -879,7 +879,7 @@ static int gmap_pte_op_fixup(struct gmap
- 
- 	BUG_ON(gmap_is_shadow(gmap));
- 	fault_flags = (prot == PROT_WRITE) ? FAULT_FLAG_WRITE : 0;
--	if (fixup_user_fault(current, mm, vmaddr, fault_flags, &unlocked))
-+	if (fixup_user_fault(mm, vmaddr, fault_flags, &unlocked))
- 		return -EFAULT;
- 	if (unlocked)
- 		/* lost mmap_lock, caller has to retry __gmap_translate */
---- a/drivers/gpu/drm/i915/gem/i915_gem_userptr.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_userptr.c
-@@ -469,7 +469,7 @@ __i915_gem_userptr_get_pages_worker(stru
- 					locked = 1;
- 				}
- 				ret = pin_user_pages_remote
--					(work->task, mm,
-+					(mm,
- 					 obj->userptr.ptr + pinned * PAGE_SIZE,
- 					 npages - pinned,
- 					 flags,
---- a/drivers/infiniband/core/umem_odp.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/drivers/infiniband/core/umem_odp.c
-@@ -439,7 +439,7 @@ int ib_umem_odp_map_dma_pages(struct ib_
- 		 * complex (and doesn't gain us much performance in most use
- 		 * cases).
- 		 */
--		npages = get_user_pages_remote(owning_process, owning_mm,
-+		npages = get_user_pages_remote(owning_mm,
- 				user_virt, gup_num_pages,
- 				flags, local_page_list, NULL, NULL);
- 		mmap_read_unlock(owning_mm);
---- a/drivers/vfio/vfio_iommu_type1.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/drivers/vfio/vfio_iommu_type1.c
-@@ -425,7 +425,7 @@ static int follow_fault_pfn(struct vm_ar
- 	if (ret) {
- 		bool unlocked = false;
- 
--		ret = fixup_user_fault(NULL, mm, vaddr,
-+		ret = fixup_user_fault(mm, vaddr,
- 				       FAULT_FLAG_REMOTE |
- 				       (write_fault ?  FAULT_FLAG_WRITE : 0),
- 				       &unlocked);
-@@ -453,7 +453,7 @@ static int vaddr_get_pfn(struct mm_struc
- 		flags |= FOLL_WRITE;
- 
- 	mmap_read_lock(mm);
--	ret = pin_user_pages_remote(NULL, mm, vaddr, 1, flags | FOLL_LONGTERM,
-+	ret = pin_user_pages_remote(mm, vaddr, 1, flags | FOLL_LONGTERM,
- 				    page, NULL, NULL);
- 	if (ret == 1) {
- 		*pfn = page_to_pfn(page[0]);
---- a/fs/exec.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/fs/exec.c
-@@ -217,7 +217,7 @@ static struct page *get_arg_page(struct
- 	 * We are doing an exec().  'current' is the process
- 	 * doing the exec and bprm->mm is the new process's mm.
- 	 */
--	ret = get_user_pages_remote(current, bprm->mm, pos, 1, gup_flags,
-+	ret = get_user_pages_remote(bprm->mm, pos, 1, gup_flags,
- 			&page, NULL, NULL);
- 	if (ret <= 0)
- 		return NULL;
---- a/include/linux/mm.h~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/include/linux/mm.h
-@@ -1661,7 +1661,7 @@ int invalidate_inode_page(struct page *p
- extern vm_fault_t handle_mm_fault(struct vm_area_struct *vma,
- 				  unsigned long address, unsigned int flags,
- 				  struct pt_regs *regs);
--extern int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
-+extern int fixup_user_fault(struct mm_struct *mm,
- 			    unsigned long address, unsigned int fault_flags,
- 			    bool *unlocked);
- void unmap_mapping_pages(struct address_space *mapping,
-@@ -1677,8 +1677,7 @@ static inline vm_fault_t handle_mm_fault
- 	BUG();
- 	return VM_FAULT_SIGBUS;
- }
--static inline int fixup_user_fault(struct task_struct *tsk,
--		struct mm_struct *mm, unsigned long address,
-+static inline int fixup_user_fault(struct mm_struct *mm, unsigned long address,
- 		unsigned int fault_flags, bool *unlocked)
- {
- 	/* should never happen if there's no MMU */
-@@ -1704,11 +1703,11 @@ extern int access_remote_vm(struct mm_st
- extern int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
- 		unsigned long addr, void *buf, int len, unsigned int gup_flags);
- 
--long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
-+long get_user_pages_remote(struct mm_struct *mm,
- 			    unsigned long start, unsigned long nr_pages,
- 			    unsigned int gup_flags, struct page **pages,
- 			    struct vm_area_struct **vmas, int *locked);
--long pin_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
-+long pin_user_pages_remote(struct mm_struct *mm,
- 			   unsigned long start, unsigned long nr_pages,
- 			   unsigned int gup_flags, struct page **pages,
- 			   struct vm_area_struct **vmas, int *locked);
---- a/kernel/events/uprobes.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/kernel/events/uprobes.c
-@@ -376,7 +376,7 @@ __update_ref_ctr(struct mm_struct *mm, u
- 	if (!vaddr || !d)
- 		return -EINVAL;
- 
--	ret = get_user_pages_remote(NULL, mm, vaddr, 1,
-+	ret = get_user_pages_remote(mm, vaddr, 1,
- 			FOLL_WRITE, &page, &vma, NULL);
- 	if (unlikely(ret <= 0)) {
- 		/*
-@@ -477,7 +477,7 @@ retry:
- 	if (is_register)
- 		gup_flags |= FOLL_SPLIT_PMD;
- 	/* Read the page with vaddr into memory */
--	ret = get_user_pages_remote(NULL, mm, vaddr, 1, gup_flags,
-+	ret = get_user_pages_remote(mm, vaddr, 1, gup_flags,
- 				    &old_page, &vma, NULL);
- 	if (ret <= 0)
- 		return ret;
-@@ -2029,7 +2029,7 @@ static int is_trap_at_addr(struct mm_str
- 	 * but we treat this as a 'remote' access since it is
- 	 * essentially a kernel access to the memory.
- 	 */
--	result = get_user_pages_remote(NULL, mm, vaddr, 1, FOLL_FORCE, &page,
-+	result = get_user_pages_remote(mm, vaddr, 1, FOLL_FORCE, &page,
- 			NULL, NULL);
- 	if (result < 0)
- 		return result;
---- a/kernel/futex.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/kernel/futex.c
-@@ -678,7 +678,7 @@ static int fault_in_user_writeable(u32 _
- 	int ret;
- 
- 	mmap_read_lock(mm);
--	ret = fixup_user_fault(current, mm, (unsigned long)uaddr,
-+	ret = fixup_user_fault(mm, (unsigned long)uaddr,
- 			       FAULT_FLAG_WRITE, NULL);
- 	mmap_read_unlock(mm);
- 
---- a/mm/gup.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/mm/gup.c
-@@ -859,7 +859,7 @@ unmap:
-  * does not include FOLL_NOWAIT, the mmap_lock may be released.  If it
-  * is, *@locked will be set to 0 and -EBUSY returned.
-  */
--static int faultin_page(struct task_struct *tsk, struct vm_area_struct *vma,
-+static int faultin_page(struct vm_area_struct *vma,
- 		unsigned long address, unsigned int *flags, int *locked)
- {
- 	unsigned int fault_flags = 0;
-@@ -962,7 +962,6 @@ static int check_vma_flags(struct vm_are
- 
- /**
-  * __get_user_pages() - pin user pages in memory
-- * @tsk:	task_struct of target task
-  * @mm:		mm_struct of target mm
-  * @start:	starting user address
-  * @nr_pages:	number of pages from start to pin
-@@ -1021,7 +1020,7 @@ static int check_vma_flags(struct vm_are
-  * instead of __get_user_pages. __get_user_pages should be used only if
-  * you need some special @gup_flags.
-  */
--static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
-+static long __get_user_pages(struct mm_struct *mm,
- 		unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
- 		struct vm_area_struct **vmas, int *locked)
-@@ -1103,8 +1102,7 @@ retry:
- 
- 		page = follow_page_mask(vma, start, foll_flags, &ctx);
- 		if (!page) {
--			ret = faultin_page(tsk, vma, start, &foll_flags,
--					   locked);
-+			ret = faultin_page(vma, start, &foll_flags, locked);
- 			switch (ret) {
- 			case 0:
- 				goto retry;
-@@ -1178,8 +1176,6 @@ static bool vma_permits_fault(struct vm_
- 
- /**
-  * fixup_user_fault() - manually resolve a user page fault
-- * @tsk:	the task_struct to use for page fault accounting, or
-- *		NULL if faults are not to be recorded.
-  * @mm:		mm_struct of target mm
-  * @address:	user address
-  * @fault_flags:flags to pass down to handle_mm_fault()
-@@ -1207,7 +1203,7 @@ static bool vma_permits_fault(struct vm_
-  * This function will not return with an unlocked mmap_lock. So it has not the
-  * same semantics wrt the @mm->mmap_lock as does filemap_fault().
-  */
--int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
-+int fixup_user_fault(struct mm_struct *mm,
- 		     unsigned long address, unsigned int fault_flags,
- 		     bool *unlocked)
- {
-@@ -1256,8 +1252,7 @@ EXPORT_SYMBOL_GPL(fixup_user_fault);
-  * Please note that this function, unlike __get_user_pages will not
-  * return 0 for nr_pages > 0 without FOLL_NOWAIT
-  */
--static __always_inline long __get_user_pages_locked(struct task_struct *tsk,
--						struct mm_struct *mm,
-+static __always_inline long __get_user_pages_locked(struct mm_struct *mm,
- 						unsigned long start,
- 						unsigned long nr_pages,
- 						struct page **pages,
-@@ -1290,7 +1285,7 @@ static __always_inline long __get_user_p
- 	pages_done = 0;
- 	lock_dropped = false;
- 	for (;;) {
--		ret = __get_user_pages(tsk, mm, start, nr_pages, flags, pages,
-+		ret = __get_user_pages(mm, start, nr_pages, flags, pages,
- 				       vmas, locked);
- 		if (!locked)
- 			/* VM_FAULT_RETRY couldn't trigger, bypass */
-@@ -1350,7 +1345,7 @@ retry:
- 		}
- 
- 		*locked = 1;
--		ret = __get_user_pages(tsk, mm, start, 1, flags | FOLL_TRIED,
-+		ret = __get_user_pages(mm, start, 1, flags | FOLL_TRIED,
- 				       pages, NULL, locked);
- 		if (!*locked) {
- 			/* Continue to retry until we succeeded */
-@@ -1437,7 +1432,7 @@ long populate_vma_page_range(struct vm_a
- 	 * We made sure addr is within a VMA, so the following will
- 	 * not result in a stack expansion that recurses back here.
- 	 */
--	return __get_user_pages(current, mm, start, nr_pages, gup_flags,
-+	return __get_user_pages(mm, start, nr_pages, gup_flags,
- 				NULL, NULL, locked);
- }
- 
-@@ -1521,7 +1516,7 @@ struct page *get_dump_page(unsigned long
- 	struct vm_area_struct *vma;
- 	struct page *page;
- 
--	if (__get_user_pages(current, current->mm, addr, 1,
-+	if (__get_user_pages(current->mm, addr, 1,
- 			     FOLL_FORCE | FOLL_DUMP | FOLL_GET, &page, &vma,
- 			     NULL) < 1)
- 		return NULL;
-@@ -1530,8 +1525,7 @@ struct page *get_dump_page(unsigned long
- }
- #endif /* CONFIG_ELF_CORE */
- #else /* CONFIG_MMU */
--static long __get_user_pages_locked(struct task_struct *tsk,
--		struct mm_struct *mm, unsigned long start,
-+static long __get_user_pages_locked(struct mm_struct *mm, unsigned long start,
- 		unsigned long nr_pages, struct page **pages,
- 		struct vm_area_struct **vmas, int *locked,
- 		unsigned int foll_flags)
-@@ -1596,8 +1590,7 @@ static bool check_dax_vmas(struct vm_are
- }
- 
- #ifdef CONFIG_CMA
--static long check_and_migrate_cma_pages(struct task_struct *tsk,
--					struct mm_struct *mm,
-+static long check_and_migrate_cma_pages(struct mm_struct *mm,
- 					unsigned long start,
- 					unsigned long nr_pages,
- 					struct page **pages,
-@@ -1675,7 +1668,7 @@ check_again:
- 		 * again migrating any new CMA pages which we failed to isolate
- 		 * earlier.
- 		 */
--		ret = __get_user_pages_locked(tsk, mm, start, nr_pages,
-+		ret = __get_user_pages_locked(mm, start, nr_pages,
- 						   pages, vmas, NULL,
- 						   gup_flags);
- 
-@@ -1689,8 +1682,7 @@ check_again:
- 	return ret;
- }
- #else
--static long check_and_migrate_cma_pages(struct task_struct *tsk,
--					struct mm_struct *mm,
-+static long check_and_migrate_cma_pages(struct mm_struct *mm,
- 					unsigned long start,
- 					unsigned long nr_pages,
- 					struct page **pages,
-@@ -1705,8 +1697,7 @@ static long check_and_migrate_cma_pages(
-  * __gup_longterm_locked() is a wrapper for __get_user_pages_locked which
-  * allows us to process the FOLL_LONGTERM flag.
-  */
--static long __gup_longterm_locked(struct task_struct *tsk,
--				  struct mm_struct *mm,
-+static long __gup_longterm_locked(struct mm_struct *mm,
- 				  unsigned long start,
- 				  unsigned long nr_pages,
- 				  struct page **pages,
-@@ -1731,7 +1722,7 @@ static long __gup_longterm_locked(struct
- 		flags = memalloc_nocma_save();
- 	}
- 
--	rc = __get_user_pages_locked(tsk, mm, start, nr_pages, pages,
-+	rc = __get_user_pages_locked(mm, start, nr_pages, pages,
- 				     vmas_tmp, NULL, gup_flags);
- 
- 	if (gup_flags & FOLL_LONGTERM) {
-@@ -1745,7 +1736,7 @@ static long __gup_longterm_locked(struct
- 			goto out;
- 		}
- 
--		rc = check_and_migrate_cma_pages(tsk, mm, start, rc, pages,
-+		rc = check_and_migrate_cma_pages(mm, start, rc, pages,
- 						 vmas_tmp, gup_flags);
- out:
- 		memalloc_nocma_restore(flags);
-@@ -1756,22 +1747,20 @@ out:
- 	return rc;
- }
- #else /* !CONFIG_FS_DAX && !CONFIG_CMA */
--static __always_inline long __gup_longterm_locked(struct task_struct *tsk,
--						  struct mm_struct *mm,
-+static __always_inline long __gup_longterm_locked(struct mm_struct *mm,
- 						  unsigned long start,
- 						  unsigned long nr_pages,
- 						  struct page **pages,
- 						  struct vm_area_struct **vmas,
- 						  unsigned int flags)
- {
--	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
-+	return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
- 				       NULL, flags);
- }
- #endif /* CONFIG_FS_DAX || CONFIG_CMA */
- 
- #ifdef CONFIG_MMU
--static long __get_user_pages_remote(struct task_struct *tsk,
--				    struct mm_struct *mm,
-+static long __get_user_pages_remote(struct mm_struct *mm,
- 				    unsigned long start, unsigned long nr_pages,
- 				    unsigned int gup_flags, struct page **pages,
- 				    struct vm_area_struct **vmas, int *locked)
-@@ -1790,20 +1779,18 @@ static long __get_user_pages_remote(stru
- 		 * This will check the vmas (even if our vmas arg is NULL)
- 		 * and return -ENOTSUPP if DAX isn't allowed in this case:
- 		 */
--		return __gup_longterm_locked(tsk, mm, start, nr_pages, pages,
-+		return __gup_longterm_locked(mm, start, nr_pages, pages,
- 					     vmas, gup_flags | FOLL_TOUCH |
- 					     FOLL_REMOTE);
- 	}
- 
--	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
-+	return __get_user_pages_locked(mm, start, nr_pages, pages, vmas,
- 				       locked,
- 				       gup_flags | FOLL_TOUCH | FOLL_REMOTE);
- }
- 
- /**
-  * get_user_pages_remote() - pin user pages in memory
-- * @tsk:	the task_struct to use for page fault accounting, or
-- *		NULL if faults are not to be recorded.
-  * @mm:		mm_struct of target mm
-  * @start:	starting user address
-  * @nr_pages:	number of pages from start to pin
-@@ -1862,7 +1849,7 @@ static long __get_user_pages_remote(stru
-  * should use get_user_pages_remote because it cannot pass
-  * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
-  */
--long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
-+long get_user_pages_remote(struct mm_struct *mm,
- 		unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
- 		struct vm_area_struct **vmas, int *locked)
-@@ -1874,13 +1861,13 @@ long get_user_pages_remote(struct task_s
- 	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
- 		return -EINVAL;
- 
--	return __get_user_pages_remote(tsk, mm, start, nr_pages, gup_flags,
-+	return __get_user_pages_remote(mm, start, nr_pages, gup_flags,
- 				       pages, vmas, locked);
- }
- EXPORT_SYMBOL(get_user_pages_remote);
- 
- #else /* CONFIG_MMU */
--long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
-+long get_user_pages_remote(struct mm_struct *mm,
- 			   unsigned long start, unsigned long nr_pages,
- 			   unsigned int gup_flags, struct page **pages,
- 			   struct vm_area_struct **vmas, int *locked)
-@@ -1888,8 +1875,7 @@ long get_user_pages_remote(struct task_s
- 	return 0;
- }
- 
--static long __get_user_pages_remote(struct task_struct *tsk,
--				    struct mm_struct *mm,
-+static long __get_user_pages_remote(struct mm_struct *mm,
- 				    unsigned long start, unsigned long nr_pages,
- 				    unsigned int gup_flags, struct page **pages,
- 				    struct vm_area_struct **vmas, int *locked)
-@@ -1909,11 +1895,10 @@ static long __get_user_pages_remote(stru
-  * @vmas:       array of pointers to vmas corresponding to each page.
-  *              Or NULL if the caller does not require them.
-  *
-- * This is the same as get_user_pages_remote(), just with a
-- * less-flexible calling convention where we assume that the task
-- * and mm being operated on are the current task's and don't allow
-- * passing of a locked parameter.  We also obviously don't pass
-- * FOLL_REMOTE in here.
-+ * This is the same as get_user_pages_remote(), just with a less-flexible
-+ * calling convention where we assume that the mm being operated on belongs to
-+ * the current task, and doesn't allow passing of a locked parameter.  We also
-+ * obviously don't pass FOLL_REMOTE in here.
-  */
- long get_user_pages(unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
-@@ -1926,7 +1911,7 @@ long get_user_pages(unsigned long start,
- 	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
- 		return -EINVAL;
- 
--	return __gup_longterm_locked(current, current->mm, start, nr_pages,
-+	return __gup_longterm_locked(current->mm, start, nr_pages,
- 				     pages, vmas, gup_flags | FOLL_TOUCH);
- }
- EXPORT_SYMBOL(get_user_pages);
-@@ -1936,7 +1921,7 @@ EXPORT_SYMBOL(get_user_pages);
-  *
-  *      mmap_read_lock(mm);
-  *      do_something()
-- *      get_user_pages(tsk, mm, ..., pages, NULL);
-+ *      get_user_pages(mm, ..., pages, NULL);
-  *      mmap_read_unlock(mm);
-  *
-  *  to:
-@@ -1944,7 +1929,7 @@ EXPORT_SYMBOL(get_user_pages);
-  *      int locked = 1;
-  *      mmap_read_lock(mm);
-  *      do_something()
-- *      get_user_pages_locked(tsk, mm, ..., pages, &locked);
-+ *      get_user_pages_locked(mm, ..., pages, &locked);
-  *      if (locked)
-  *          mmap_read_unlock(mm);
-  *
-@@ -1982,7 +1967,7 @@ long get_user_pages_locked(unsigned long
- 	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
- 		return -EINVAL;
- 
--	return __get_user_pages_locked(current, current->mm, start, nr_pages,
-+	return __get_user_pages_locked(current->mm, start, nr_pages,
- 				       pages, NULL, locked,
- 				       gup_flags | FOLL_TOUCH);
- }
-@@ -1992,12 +1977,12 @@ EXPORT_SYMBOL(get_user_pages_locked);
-  * get_user_pages_unlocked() is suitable to replace the form:
-  *
-  *      mmap_read_lock(mm);
-- *      get_user_pages(tsk, mm, ..., pages, NULL);
-+ *      get_user_pages(mm, ..., pages, NULL);
-  *      mmap_read_unlock(mm);
-  *
-  *  with:
-  *
-- *      get_user_pages_unlocked(tsk, mm, ..., pages);
-+ *      get_user_pages_unlocked(mm, ..., pages);
-  *
-  * It is functionally equivalent to get_user_pages_fast so
-  * get_user_pages_fast should be used instead if specific gup_flags
-@@ -2020,7 +2005,7 @@ long get_user_pages_unlocked(unsigned lo
- 		return -EINVAL;
- 
- 	mmap_read_lock(mm);
--	ret = __get_user_pages_locked(current, mm, start, nr_pages, pages, NULL,
-+	ret = __get_user_pages_locked(mm, start, nr_pages, pages, NULL,
- 				      &locked, gup_flags | FOLL_TOUCH);
- 	if (locked)
- 		mmap_read_unlock(mm);
-@@ -2665,7 +2650,7 @@ static int __gup_longterm_unlocked(unsig
- 	 */
- 	if (gup_flags & FOLL_LONGTERM) {
- 		mmap_read_lock(current->mm);
--		ret = __gup_longterm_locked(current, current->mm,
-+		ret = __gup_longterm_locked(current->mm,
- 					    start, nr_pages,
- 					    pages, NULL, gup_flags);
- 		mmap_read_unlock(current->mm);
-@@ -2908,10 +2893,8 @@ int pin_user_pages_fast_only(unsigned lo
- EXPORT_SYMBOL_GPL(pin_user_pages_fast_only);
- 
- /**
-- * pin_user_pages_remote() - pin pages of a remote process (task != current)
-+ * pin_user_pages_remote() - pin pages of a remote process
-  *
-- * @tsk:	the task_struct to use for page fault accounting, or
-- *		NULL if faults are not to be recorded.
-  * @mm:		mm_struct of target mm
-  * @start:	starting user address
-  * @nr_pages:	number of pages from start to pin
-@@ -2932,7 +2915,7 @@ EXPORT_SYMBOL_GPL(pin_user_pages_fast_on
-  * FOLL_PIN means that the pages must be released via unpin_user_page(). Please
-  * see Documentation/core-api/pin_user_pages.rst for details.
-  */
--long pin_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
-+long pin_user_pages_remote(struct mm_struct *mm,
- 			   unsigned long start, unsigned long nr_pages,
- 			   unsigned int gup_flags, struct page **pages,
- 			   struct vm_area_struct **vmas, int *locked)
-@@ -2942,7 +2925,7 @@ long pin_user_pages_remote(struct task_s
- 		return -EINVAL;
- 
- 	gup_flags |= FOLL_PIN;
--	return __get_user_pages_remote(tsk, mm, start, nr_pages, gup_flags,
-+	return __get_user_pages_remote(mm, start, nr_pages, gup_flags,
- 				       pages, vmas, locked);
- }
- EXPORT_SYMBOL(pin_user_pages_remote);
-@@ -2974,7 +2957,7 @@ long pin_user_pages(unsigned long start,
- 		return -EINVAL;
- 
- 	gup_flags |= FOLL_PIN;
--	return __gup_longterm_locked(current, current->mm, start, nr_pages,
-+	return __gup_longterm_locked(current->mm, start, nr_pages,
- 				     pages, vmas, gup_flags);
- }
- EXPORT_SYMBOL(pin_user_pages);
-@@ -3019,7 +3002,7 @@ long pin_user_pages_locked(unsigned long
- 		return -EINVAL;
- 
- 	gup_flags |= FOLL_PIN;
--	return __get_user_pages_locked(current, current->mm, start, nr_pages,
-+	return __get_user_pages_locked(current->mm, start, nr_pages,
- 				       pages, NULL, locked,
- 				       gup_flags | FOLL_TOUCH);
- }
---- a/mm/memory.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/mm/memory.c
-@@ -4742,7 +4742,7 @@ int __access_remote_vm(struct task_struc
- 		void *maddr;
- 		struct page *page = NULL;
- 
--		ret = get_user_pages_remote(tsk, mm, addr, 1,
-+		ret = get_user_pages_remote(mm, addr, 1,
- 				gup_flags, &page, &vma, NULL);
- 		if (ret <= 0) {
- #ifndef CONFIG_HAVE_IOREMAP_PROT
---- a/mm/process_vm_access.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/mm/process_vm_access.c
-@@ -105,7 +105,7 @@ static int process_vm_rw_single_vec(unsi
- 		 * current/current->mm
- 		 */
- 		mmap_read_lock(mm);
--		pinned_pages = pin_user_pages_remote(task, mm, pa, pinned_pages,
-+		pinned_pages = pin_user_pages_remote(mm, pa, pinned_pages,
- 						     flags, process_pages,
- 						     NULL, &locked);
- 		if (locked)
---- a/security/tomoyo/domain.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/security/tomoyo/domain.c
-@@ -914,7 +914,7 @@ bool tomoyo_dump_page(struct linux_binpr
- 	 * (represented by bprm).  'current' is the process doing
- 	 * the execve().
- 	 */
--	if (get_user_pages_remote(current, bprm->mm, pos, 1,
-+	if (get_user_pages_remote(bprm->mm, pos, 1,
- 				FOLL_FORCE, &page, NULL, NULL) <= 0)
- 		return false;
- #else
---- a/virt/kvm/async_pf.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/virt/kvm/async_pf.c
-@@ -61,7 +61,7 @@ static void async_pf_execute(struct work
- 	 * access remotely.
- 	 */
- 	mmap_read_lock(mm);
--	get_user_pages_remote(NULL, mm, addr, 1, FOLL_WRITE, NULL, NULL,
-+	get_user_pages_remote(mm, addr, 1, FOLL_WRITE, NULL, NULL,
- 			&locked);
- 	if (locked)
- 		mmap_read_unlock(mm);
---- a/virt/kvm/kvm_main.c~mm-gup-remove-task_struct-pointer-for-all-gup-code
-+++ a/virt/kvm/kvm_main.c
-@@ -1893,7 +1893,7 @@ static int hva_to_pfn_remapped(struct vm
- 		 * not call the fault handler, so do it here.
- 		 */
- 		bool unlocked = false;
--		r = fixup_user_fault(current, current->mm, addr,
-+		r = fixup_user_fault(current->mm, addr,
- 				     (write_fault ? FAULT_FLAG_WRITE : 0),
- 				     &unlocked);
- 		if (unlocked)
+ 	gb = (inactive + active) >> (30 - PAGE_SHIFT);
+-	if (gb)
++	if (gb && is_file_lru(inactive_lru))
+ 		inactive_ratio = int_sqrt(10 * gb);
+ 	else
+ 		inactive_ratio = 1;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
+mm-memory-failure-remove-a-wrapper-for-alloc_migration_target.patch
+mm-memory_hotplug-remove-a-wrapper-for-alloc_migration_target.patch
 
