@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2429EC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:03:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 504D1C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:03:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 02F2E2078B
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:03:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F4592078B
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:03:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266185;
-	bh=juJBPwWqsReU/rtgo3zlEkCmtKHPRKTMOT2OD9CKwsU=;
+	s=default; t=1597266186;
+	bh=Vew+iGAhuSvSlAjiYsvXmyXnhgUHtXS8bp83+iwgMZA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=lxxdtEctUlER5AKpEVW4Z83Ap2l5hc32JwoYf3xjZ3mEI7YGqq6lYVyNg9a6RBdqa
-	 FvEZyIzOQhCrdlNv7TkwzjUJRrTmNgtacGVgzrAMgakTI/jMSnmhSdWJH3IGAmi43v
-	 RDJTEuQoOBB/jigeo6P+Y+7jDKjj1HJSxkBktk44=
+	b=fTfrre00g3mOFkABWLHuyeSVaP6O2TpQEJnRSBAEv6LGRQErP0zJ+uf+7pz8N/Yws
+	 RrDicRU2gY825xrfTvvVW26eNCsQl7Qx2RRfbYTh7TWAf288qh909D54QFMrNPcgLt
+	 FCLBmncirevTuD/FFhB/uQwRgF3zfCPmi0ZxzyXo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726612AbgHLVDE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:03:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51916 "EHLO mail.kernel.org"
+        id S1726632AbgHLVDF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:03:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52024 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726557AbgHLVDE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:03:04 -0400
+        id S1726557AbgHLVDF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:03:05 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 73E8120774;
-        Wed, 12 Aug 2020 21:03:03 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5E56620774;
+        Wed, 12 Aug 2020 21:03:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266183;
-        bh=juJBPwWqsReU/rtgo3zlEkCmtKHPRKTMOT2OD9CKwsU=;
+        s=default; t=1597266185;
+        bh=Vew+iGAhuSvSlAjiYsvXmyXnhgUHtXS8bp83+iwgMZA=;
         h=Date:From:To:Subject:From;
-        b=MvKmQ892myESoErNlDbpMfMd0O2cWta3DGYBjbgWJ+lEv09+WrQo3q+YGSlAd+f75
-         C7TQva+VyTaAfd+87P6+fyTUHdZA1hWWLOrk+bM1cZS6u+ToDaCS/sG8Wf6+wHanuq
-         Iz5tAN+/A+iGvPguClHYIMM/99jt+zuX4+p8SQrQ=
-Date:   Wed, 12 Aug 2020 14:03:03 -0700
+        b=yZfSVw7jpASor2SyK0b2R0Z2seADxYHN/mNz4ZW4/DaFRrmHRFiALo2FcYQ08ACID
+         Asbq9k9lMCRFJV7lY82k9CiKET1UeP25izpjTaKG5TyrIFu2O4HzKLIgXAUvCQEWbC
+         yiin5WlwAGhaxUe9STJMCFyfBZMKOp4qm0KucILM=
+Date:   Wed, 12 Aug 2020 14:03:05 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
         rdunlap@infradead.org, ziy@nvidia.com
-Subject:  [merged]
- mm-page_allocc-delete-or-fix-duplicated-words.patch removed from -mm tree
-Message-ID: <20200812210303.4GEpfr1F3%akpm@linux-foundation.org>
+Subject:  [merged] mm-shmemc-delete-duplicated-word.patch removed
+ from -mm tree
+Message-ID: <20200812210305.bZp06LzR-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,58 +54,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: delete or fix duplicated words
+     Subject: mm/shmem.c: delete duplicated word
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-delete-or-fix-duplicated-words.patch
+     mm-shmemc-delete-duplicated-word.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/page_alloc.c: delete or fix duplicated words
+Subject: mm/shmem.c: delete duplicated word
 
-Drop the repeated word "them" and "that".
-Change "the the" to "to the".
+Drop the repeated word "the".
 
-Link: http://lkml.kernel.org/r/20200801173822.14973-10-rdunlap@infradead.org
+Link: http://lkml.kernel.org/r/20200801173822.14973-11-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-delete-or-fix-duplicated-words
-+++ a/mm/page_alloc.c
-@@ -4282,7 +4282,7 @@ retry:
- 	/*
- 	 * If an allocation failed after direct reclaim, it could be because
- 	 * pages are pinned on the per-cpu lists or in high alloc reserves.
--	 * Shrink them them and try again
-+	 * Shrink them and try again
- 	 */
- 	if (!page && !drained) {
- 		unreserve_highatomic_pageblock(ac, false);
-@@ -6192,7 +6192,7 @@ static int zone_batchsize(struct zone *z
-  * locking.
-  *
-  * Any new users of pcp->batch and pcp->high should ensure they can cope with
-- * those fields changing asynchronously (acording the the above rule).
-+ * those fields changing asynchronously (acording to the above rule).
-  *
-  * mutex_is_locked(&pcp_batch_high_lock) required when calling this function
-  * outside of boot time (or some other assurance that no concurrent updaters
-@@ -8203,7 +8203,7 @@ void *__init alloc_large_system_hash(con
-  * race condition. So you can't expect this function should be exact.
-  *
-  * Returns a page without holding a reference. If the caller wants to
-- * dereference that page (e.g., dumping), it has to make sure that that it
-+ * dereference that page (e.g., dumping), it has to make sure that it
-  * cannot get removed (e.g., via memory unplug) concurrently.
-  *
+--- a/mm/shmem.c~mm-shmemc-delete-duplicated-word
++++ a/mm/shmem.c
+@@ -1686,7 +1686,7 @@ static int shmem_replace_page(struct pag
+  * Swap in the page pointed to by *pagep.
+  * Caller has to make sure that *pagep contains a valid swapped page.
+  * Returns 0 and the page in pagep if success. On failure, returns the
+- * the error code and NULL in *pagep.
++ * error code and NULL in *pagep.
   */
+ static int shmem_swapin_page(struct inode *inode, pgoff_t index,
+ 			     struct page **pagep, enum sgp_type sgp,
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
