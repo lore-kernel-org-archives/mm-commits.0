@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D4ACC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A3B2C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 710B42078B
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E56F2078B
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266172;
-	bh=k/Gwy+1UZ6XwiWaxlVQdYizWE//v64ctuKokyOyupNI=;
+	s=default; t=1597266175;
+	bh=CzopMsf+5IPRnkA0CZmqTMPp+LaTFWBSi7hpV5x+m3Y=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=2J31n7XNCKqH9lykZA1FrEDbxca7H2L1TDkp/I4lwSJ0JqRDuFniAtbEdkDlU+SMI
-	 kDbqswTjDofHXlBWO3ikWiCFdJuMGmk35/m3ae1gw/37SswNmSSEBCFmoAaqyY8yet
-	 bpv9YMRaDYoDSVAw+WcsFKeTHw7LoK4w/A1qh6DA=
+	b=0l3HQCOdzkThEE9e8l/nL9nkiGn1JQddPBnQrukfgySRqJcZUjztMrQjdA/MGZFfY
+	 GwkLyk44m34m/VuqfatNRnPEU11095dh3JsoK1c5MZM+a2XpqkSbGwrVNOq3kI5wBA
+	 a4zk1dwf4jJNxIdkIVsrl+vN0UA0OwUEbSugJT3w=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726546AbgHLVCw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:02:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51178 "EHLO mail.kernel.org"
+        id S1726547AbgHLVCy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:02:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51318 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726282AbgHLVCv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:02:51 -0400
+        id S1726282AbgHLVCy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:02:54 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6F73520774;
-        Wed, 12 Aug 2020 21:02:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7582920774;
+        Wed, 12 Aug 2020 21:02:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266171;
-        bh=k/Gwy+1UZ6XwiWaxlVQdYizWE//v64ctuKokyOyupNI=;
+        s=default; t=1597266173;
+        bh=CzopMsf+5IPRnkA0CZmqTMPp+LaTFWBSi7hpV5x+m3Y=;
         h=Date:From:To:Subject:From;
-        b=ma6zbFMuwis+Eip5sTsBZEAQLP2O1nyCLZnMzjEC5FiMbm4MR6xXm1zU/OhcMure8
-         jCn3Ywyvlphf4BkStp1EnmyJ3QvW7Qs8sGpd0D2Ehr+lAu43zqihSsdOm846sk4++S
-         gCBLYC/lIFGlkwCrBH6K9KnuR74xSoMu4/l6ju84=
-Date:   Wed, 12 Aug 2020 14:02:51 -0700
+        b=ANm5LhSnRPNKBghY2Zwvlu/mGdjzvfKUnGH0DjBMeuk6vnoqUVMjqFdD55VlPI03F
+         p+RPVWuxyBHGENgF0M8I5Vsaa5yyh4nV2VEyzb7809L8Xh5fnefI7dQC9uTHI6KdU0
+         keTvP8+NXT0KgDo+kJk1DHsdvAbiXSYIZEHD0Q2g=
+Date:   Wed, 12 Aug 2020 14:02:53 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, ziy@nvidia.com
-Subject:  [merged] mm-hmmc-delete-duplicated-word.patch removed
- from -mm tree
-Message-ID: <20200812210251.Pn10Sb5Uz%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org, ziy@nvidia.com
+Subject:  [merged] mm-hugetlbc-delete-duplicated-words.patch
+ removed from -mm tree
+Message-ID: <20200812210253.szDM439QY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,39 +54,49 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hmm.c: delete duplicated word
+     Subject: mm/hugetlb.c: delete duplicated words
 has been removed from the -mm tree.  Its filename was
-     mm-hmmc-delete-duplicated-word.patch
+     mm-hugetlbc-delete-duplicated-words.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/hmm.c: delete duplicated word
+Subject: mm/hugetlb.c: delete duplicated words
 
-Drop the repeated word "pages".
+Drop the repeated word "the" in two places.
 
-Link: http://lkml.kernel.org/r/20200801173822.14973-4-rdunlap@infradead.org
+Link: http://lkml.kernel.org/r/20200801173822.14973-5-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/hmm.c~mm-hmmc-delete-duplicated-word
-+++ a/mm/hmm.c
-@@ -249,7 +249,7 @@ static int hmm_vma_handle_pte(struct mm_
- 		swp_entry_t entry = pte_to_swp_entry(pte);
- 
- 		/*
--		 * Never fault in device private pages pages, but just report
-+		 * Never fault in device private pages, but just report
- 		 * the PFN even if not present.
- 		 */
- 		if (hmm_is_device_private_entry(range, entry)) {
+--- a/mm/hugetlb.c~mm-hugetlbc-delete-duplicated-words
++++ a/mm/hugetlb.c
+@@ -133,7 +133,7 @@ void hugepage_put_subpool(struct hugepag
+ /*
+  * Subpool accounting for allocating and reserving pages.
+  * Return -ENOMEM if there are not enough resources to satisfy the
+- * the request.  Otherwise, return the number of pages by which the
++ * request.  Otherwise, return the number of pages by which the
+  * global pools must be adjusted (upward).  The returned value may
+  * only be different than the passed value (delta) in the case where
+  * a subpool minimum size must be maintained.
+@@ -2167,7 +2167,7 @@ static void return_unused_surplus_pages(
+ 	 * evenly across all nodes with memory. Iterate across these nodes
+ 	 * until we can no longer free unreserved surplus pages. This occurs
+ 	 * when the nodes with surplus pages have no free pages.
+-	 * free_pool_huge_page() will balance the the freed pages across the
++	 * free_pool_huge_page() will balance the freed pages across the
+ 	 * on-line nodes with memory and will handle the hstate accounting.
+ 	 *
+ 	 * Note that we decrement resv_huge_pages as we free the pages.  If
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
