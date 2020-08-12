@@ -7,46 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D09AC433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10177C433E5
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 704472080C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D911D208A9
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196036;
-	bh=EKEA4pwdWZ5hpTSKkqIaHBuLjcJF511h/S+3ne8ycBY=;
+	s=default; t=1597196038;
+	bh=CuNM5WHO9tIvAJ5E3sbipPLkb7gpdWoOwKyigF1kI50=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=xMvAqjXA6nlsu92avkrJD+HIDchuz9tRWvRIQNxFbrp4yvz4JDpuzf4bzzQtv2tuJ
-	 KuPwLLB1zeUoiWnHihDwO3790VGkpc+aJzPSnhyT0qCWwvtC8yws93nn1dPMkRQR7E
-	 TVovnXG9sRm+DxuaCjEarN+ip5UM4M7f21nMfdkA=
+	b=UCHGMfhQ4d5w9p1pG25B8dsmpLbLwlzbEtBxb92rOLel12WI7szB9IRI2xU3SqGxQ
+	 2l2ApNcu/Yn8s5vI7vVjrFGV5Yi+dSgCBUTfsMCk4GNIApgEUUhAN6SuDIGMiFqHoU
+	 uMctopSzz0H9Kf11ExMNCLwe3nJ4HqQ40AReK2+U=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726564AbgHLBd4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:33:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34662 "EHLO mail.kernel.org"
+        id S1726517AbgHLBd6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:33:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34732 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726492AbgHLBdz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:33:55 -0400
+        id S1726492AbgHLBd6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:33:58 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9919B2076C;
-        Wed, 12 Aug 2020 01:33:54 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B90E32080C;
+        Wed, 12 Aug 2020 01:33:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196035;
-        bh=EKEA4pwdWZ5hpTSKkqIaHBuLjcJF511h/S+3ne8ycBY=;
+        s=default; t=1597196038;
+        bh=CuNM5WHO9tIvAJ5E3sbipPLkb7gpdWoOwKyigF1kI50=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=J0roobCiWgKfasg4BV995+IgJgKvSyvK4HXpRvvZGCRktUHGCI8uSWKIYYdQE/nhN
-         sfGbq8H9w0iKrg77IthZmLHRobQo4k7rPoxdT+OJireAd/QW3fuEdBnB2qppXnNpKo
-         pzAp2+OYsDXJ694Ymqw1qX+QxdzFbnbKCdU3UIe8=
-Date:   Tue, 11 Aug 2020 18:33:54 -0700
+        b=s6d68jaAinnq4gYs0YcpcFeU0L5VMHGm4te/j/48J3C+5rkbuE3aXdIEzfolIFxMH
+         b0Ym6ETiq2/QNZlI5R2bXxPnVnRfTY+as5i+AwCdQ6gptaa9cyUmDOWFGzsSZvfFgE
+         TFLG8FqowK4Ckt5B0G8VCzpwmiayv32S65O9ymuE=
+Date:   Tue, 11 Aug 2020 18:33:57 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, arnd@arndb.de, ink@jurassic.park.msu.ru,
-        linux-mm@kvack.org, lkp@intel.com, luc.vanoostenryck@gmail.com,
-        mattst88@gmail.com, mm-commits@vger.kernel.org, rth@twiddle.net,
-        sboyd@kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 069/165] alpha: fix annotation of
- io{read,write}{16,32}be()
-Message-ID: <20200812013354.U9pSdlJwk%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, natechancellor@gmail.com,
+        rdunlap@infradead.org, torvalds@linux-foundation.org
+Subject:  [patch 070/165] include/linux/compiler-clang.h: drop
+ duplicated word in a comment
+Message-ID: <20200812013357.xcVCdExb5%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -55,49 +54,29 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Subject: alpha: fix annotation of io{read,write}{16,32}be()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: include/linux/compiler-clang.h: drop duplicated word in a comment
 
-These accessors must be used to read/write a big-endian bus.  The value
-returned or written is native-endian.
+Drop the doubled word "the" in a comment.
 
-However, these accessors are defined using be{16,32}_to_cpu() or
-cpu_to_be{16,32}() to make the endian conversion but these expect a
-__be{16,32} when none is present.  Keeping them would need a force cast
-that would solve nothing at all.
-
-So, do the conversion using swab{16,32}, like done in asm-generic for
-similar situations.
-
-Link: http://lkml.kernel.org/r/20200622114232.80039-1-luc.vanoostenryck@gmail.com
-Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Stephen Boyd <sboyd@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: http://lkml.kernel.org/r/6a18c301-3505-742f-4dd7-0f38d0e537b9@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Nathan Chancellor <natechancellor@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/io.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/compiler-clang.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/alpha/include/asm/io.h~fix-annotation-of-ioreadwrite1632be
-+++ a/arch/alpha/include/asm/io.h
-@@ -489,10 +489,10 @@ extern inline void writeq(u64 b, volatil
- }
+--- a/include/linux/compiler-clang.h~clang-linux-compiler-clangh-drop-duplicated-word-in-a-comment
++++ a/include/linux/compiler-clang.h
+@@ -40,7 +40,7 @@
  #endif
  
--#define ioread16be(p) be16_to_cpu(ioread16(p))
--#define ioread32be(p) be32_to_cpu(ioread32(p))
--#define iowrite16be(v,p) iowrite16(cpu_to_be16(v), (p))
--#define iowrite32be(v,p) iowrite32(cpu_to_be32(v), (p))
-+#define ioread16be(p) swab16(ioread16(p))
-+#define ioread32be(p) swab32(ioread32(p))
-+#define iowrite16be(v,p) iowrite16(swab16(v), (p))
-+#define iowrite32be(v,p) iowrite32(swab32(v), (p))
- 
- #define inb_p		inb
- #define inw_p		inw
+ /*
+- * Not all versions of clang implement the the type-generic versions
++ * Not all versions of clang implement the type-generic versions
+  * of the builtin overflow checkers. Fortunately, clang implements
+  * __has_builtin allowing us to avoid awkward version
+  * checks. Unfortunately, we don't know which version of gcc clang
 _
