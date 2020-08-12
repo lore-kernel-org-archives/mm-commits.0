@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4814BC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:36:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 235B7C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:36:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 253AC20658
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:36:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00816207DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:36:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196208;
-	bh=CeUj3+m4ojAqxFjQuq5+9lhBHW+bVAEpwKjaxQ0wQ8M=;
+	s=default; t=1597196211;
+	bh=0gz6p+m+UuB66vc8U2RYDWzd6g5Cw8YAgHrFBigCl7g=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Yzz/uIpoKaXid6hFfwjG+6QLk+bH/RL731MlWRBVXL36HuHW/nVgfFoy3uHfsBnUd
-	 DFEd2tn0wEJ1HQ7HLKuryCMguPSn755RYpKnlC6KNTRyfIHViZr0WLqYIEkvJ/QHdC
-	 yNSNkUwqc36FoCnWtVN9qYSeRQnh4vwAki9XJEKc=
+	b=LVOpvl94KVcB7aU5heRwXE7y+XEKXNiezq65+kX0lNIx9jwxV/vn0ezWH+IBQ1bbh
+	 Bq/ndm9O1owBM6901abNYdNoqoiM2ZskwY8HA9vmZ8bDHohBRd2vu241Jr4Q2KJ5yU
+	 LGho/R7hQe92uiE7pvaYK8s+E2QHnqUivku5etT8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726472AbgHLBgr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:36:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38246 "EHLO mail.kernel.org"
+        id S1726430AbgHLBgu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:36:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38310 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726430AbgHLBgr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:36:47 -0400
+        id S1726333AbgHLBgu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:36:50 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id F35CD207DA;
-        Wed, 12 Aug 2020 01:36:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 06D1D20658;
+        Wed, 12 Aug 2020 01:36:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196207;
-        bh=CeUj3+m4ojAqxFjQuq5+9lhBHW+bVAEpwKjaxQ0wQ8M=;
+        s=default; t=1597196210;
+        bh=0gz6p+m+UuB66vc8U2RYDWzd6g5Cw8YAgHrFBigCl7g=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=JzB9LAo2ypAbRDxkgzRzarDKi2z5K61bL+eKSw222kkmucMYRvPXi9TLcg/vGDTrl
-         EW/cHQRJ93oz8C6a44trXo2QHk269c7REHmDY2cPCkG/WTJSaXs7AwLkcdF7uKCNis
-         DonkIYSpNDWIhq8hXvlyaz+hYspKTGHuFW/XB+oM=
-Date:   Tue, 11 Aug 2020 18:36:46 -0700
+        b=rKgGmZNrAO0fzLYcwkKJM+x6uKt+cffyAY0Ql34slV/7fWYbVg9TjkBjr/2E9/kiW
+         Nc+n2nsdRLNiBPe7R09Ul25rPqUgeK9WRIiVoHZsowLREUipPb7NLj4zwbOmYcXWE1
+         jRBSOEmw7yznxf111p8zN1vOOLxmGnG1CEMPz3cM=
+Date:   Tue, 11 Aug 2020 18:36:49 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, keescook@chromium.org,
         linux-mm@kvack.org, lixuefeng@loongson.cn,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         yangtiezhu@loongson.cn
-Subject:  [patch 123/165] kernel/panic.c: make oops_may_print()
- return bool
-Message-ID: <20200812013646.AC2GVce6S%akpm@linux-foundation.org>
+Subject:  [patch 124/165] lib/Kconfig.debug: fix typo in the help
+ text of CONFIG_PANIC_TIMEOUT
+Message-ID: <20200812013649.1MwXgXH3F%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,42 +56,30 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: kernel/panic.c: make oops_may_print() return bool
+Subject: lib/Kconfig.debug: fix typo in the help text of CONFIG_PANIC_TIMEOUT
 
-The return value of oops_may_print() is true or false, so change its type
-to reflect that.
+There exists duplicated "the" in the help text of CONFIG_PANIC_TIMEOUT,
+Remove it.
 
-Link: http://lkml.kernel.org/r/1591103358-32087-1-git-send-email-yangtiezhu@loongson.cn
+Link: http://lkml.kernel.org/r/1591103358-32087-2-git-send-email-yangtiezhu@loongson.cn
 Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Cc: Xuefeng Li <lixuefeng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 +-
- kernel/panic.c         |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ lib/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kernel.h~kernel-panicc-make-oops_may_print-return-bool
-+++ a/include/linux/kernel.h
-@@ -322,7 +322,7 @@ void nmi_panic(struct pt_regs *regs, con
- extern void oops_enter(void);
- extern void oops_exit(void);
- void print_oops_end_marker(void);
--extern int oops_may_print(void);
-+extern bool oops_may_print(void);
- void do_exit(long error_code) __noreturn;
- void complete_and_exit(struct completion *, long) __noreturn;
- 
---- a/kernel/panic.c~kernel-panicc-make-oops_may_print-return-bool
-+++ a/kernel/panic.c
-@@ -505,7 +505,7 @@ static void do_oops_enter_exit(void)
-  * Return true if the calling CPU is allowed to print oops-related info.
-  * This is a bit racy..
-  */
--int oops_may_print(void)
-+bool oops_may_print(void)
- {
- 	return pause_on_oops_flag == 0;
- }
+--- a/lib/Kconfig.debug~lib-kconfigdebug-fix-typo-in-the-help-text-of-config_panic_timeout
++++ a/lib/Kconfig.debug
+@@ -917,7 +917,7 @@ config PANIC_TIMEOUT
+ 	int "panic timeout"
+ 	default 0
+ 	help
+-	  Set the timeout value (in seconds) until a reboot occurs when the
++	  Set the timeout value (in seconds) until a reboot occurs when
+ 	  the kernel panics. If n = 0, then we wait forever. A timeout
+ 	  value n > 0 will wait n seconds before rebooting, while a timeout
+ 	  value n < 0 will reboot immediately.
 _
