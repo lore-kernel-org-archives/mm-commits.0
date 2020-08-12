@@ -7,46 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 899BAC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A283C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5736D20774
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48F87207F7
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266343;
-	bh=b03nJAD1U/RrO3EvhZ2JFesvNY6Rp0THGcKDYf/DvH0=;
+	s=default; t=1597266345;
+	bh=rLgYRu/i2L1mXlv2102CJVDwgCUcEDzvPriitp6oxZM=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Q5X0F6QooxemcRw7fLNLM5cu6FZHaIvqeTCnZDeyWpiSJ9GXl2gY481h8qGvO7fkd
-	 8g6Ec+2WPbCaF67hAYgKQEtYYKaCGNxh6J+bfjuN1HAw2cYwppIqZi8cFg9IntyK/2
-	 CZWCdu0P33TldqlzRpaO8W2UZqUcv+Hjz+fvqMkk=
+	b=S/SLmCIyn3JVNbn73RHA7/67V59K76ZYc0oI9XxDl7PCn1bSB/93nwfWdSv3jwPdq
+	 wXbRiwwcHWOfl6WfaMJnAHn7HAADtsEyzZGhnqKzuOT5ht5BN6yJMIA+I1stb8gOva
+	 uY4ksM7/6EQgVDetzEpjj9eZkEKvF1ObkvnoTKt4=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726282AbgHLVFm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:05:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59616 "EHLO mail.kernel.org"
+        id S1726512AbgHLVFp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:05:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59722 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726030AbgHLVFm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:05:42 -0400
+        id S1726030AbgHLVFo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:05:44 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8B4152080C;
-        Wed, 12 Aug 2020 21:05:41 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 74B7A20774;
+        Wed, 12 Aug 2020 21:05:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266341;
-        bh=b03nJAD1U/RrO3EvhZ2JFesvNY6Rp0THGcKDYf/DvH0=;
+        s=default; t=1597266344;
+        bh=rLgYRu/i2L1mXlv2102CJVDwgCUcEDzvPriitp6oxZM=;
         h=Date:From:To:Subject:From;
-        b=1cj3GQd/sWYu1HfYy6AvKrE62jl1tb/InLqQLQkmxbTDkvJcT9b6in3npoB1yeSVB
-         dxZ2r9SlX42OGpg2Rc4vBlXEwI3zzCpmpCaa13d49teXXwI+8C/pZ2LSosUCoGmgkG
-         hTmpgyPAEov4i4wfklWolbhbCJ3ioAk3YTdNPMJI=
-Date:   Wed, 12 Aug 2020 14:05:41 -0700
+        b=iqnYBufzi7O6KGWBmDiFv5jemjlAQ87fvVDDfKKl3lOOkQzduh9bxnjXrkZTuN/NV
+         ElO/pxANMn3Zht1Z93cb0HpcMKGaFQvDeehnp2SOZRiMNE4C6jRX0jC575LLRXuVIo
+         mfEgN1cuIr9NmmiQgLgctGc2/998yr0qe8o3wfqQ=
+Date:   Wed, 12 Aug 2020 14:05:44 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@google.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, mm-commits@vger.kernel.org,
-        ndesaulniers@google.com
-Subject:  [merged]
- kcov-unconditionally-add-fno-stack-protector-to-compiler-options.patch
- removed from -mm tree
-Message-ID: <20200812210541.XmFn0L3zm%akpm@linux-foundation.org>
+To:     andreyknvl@google.com, hulkci@huawei.com,
+        mm-commits@vger.kernel.org, weiyongjun1@huawei.com
+Subject:  [merged] kcov-make-some-symbols-static.patch removed from
+ -mm tree
+Message-ID: <20200812210544.N3grjK3dQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,51 +54,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: unconditionally add -fno-stack-protector to compiler options
+     Subject: kcov: make some symbols static
 has been removed from the -mm tree.  Its filename was
-     kcov-unconditionally-add-fno-stack-protector-to-compiler-options.patch
+     kcov-make-some-symbols-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kcov: unconditionally add -fno-stack-protector to compiler options
+From: Wei Yongjun <weiyongjun1@huawei.com>
+Subject: kcov: make some symbols static
 
-Unconditionally add -fno-stack-protector to KCOV's compiler options, as
-all supported compilers support the option.  This saves a compiler
-invocation to determine if the option is supported.
+Fix sparse build warnings:
 
-Because Clang does not support -fno-conserve-stack, and
--fno-stack-protector was wrapped in the same cc-option, we were missing
--fno-stack-protector with Clang. Unconditionally adding this option
-fixes this for Clang.
+kernel/kcov.c:99:1: warning:
+ symbol '__pcpu_scope_kcov_percpu_data' was not declared. Should it be static?
+kernel/kcov.c:778:6: warning:
+ symbol 'kcov_remote_softirq_start' was not declared. Should it be static?
+kernel/kcov.c:795:6: warning:
+ symbol 'kcov_remote_softirq_stop' was not declared. Should it be static?
 
-Link: http://lkml.kernel.org/r/20200615184302.7591-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+Link: http://lkml.kernel.org/r/20200702115501.73077-1-weiyongjun1@huawei.com
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kcov.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/Makefile~kcov-unconditionally-add-fno-stack-protector-to-compiler-options
-+++ a/kernel/Makefile
-@@ -36,7 +36,7 @@ KCOV_INSTRUMENT_stacktrace.o := n
- KCOV_INSTRUMENT_kcov.o := n
- KASAN_SANITIZE_kcov.o := n
- KCSAN_SANITIZE_kcov.o := n
--CFLAGS_kcov.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
-+CFLAGS_kcov.o := $(call cc-option, -fno-conserve-stack) -fno-stack-protector
+--- a/kernel/kcov.c~kcov-make-some-symbols-static
++++ a/kernel/kcov.c
+@@ -96,7 +96,7 @@ struct kcov_percpu_data {
+ 	int			saved_sequence;
+ };
  
- # cond_syscall is currently not LTO compatible
- CFLAGS_sys_ni.o = $(DISABLE_LTO)
+-DEFINE_PER_CPU(struct kcov_percpu_data, kcov_percpu_data);
++static DEFINE_PER_CPU(struct kcov_percpu_data, kcov_percpu_data);
+ 
+ /* Must be called with kcov_remote_lock locked. */
+ static struct kcov_remote *kcov_remote_find(u64 handle)
+@@ -775,7 +775,7 @@ static inline bool kcov_mode_enabled(uns
+ 	return (mode & ~KCOV_IN_CTXSW) != KCOV_MODE_DISABLED;
+ }
+ 
+-void kcov_remote_softirq_start(struct task_struct *t)
++static void kcov_remote_softirq_start(struct task_struct *t)
+ {
+ 	struct kcov_percpu_data *data = this_cpu_ptr(&kcov_percpu_data);
+ 	unsigned int mode;
+@@ -792,7 +792,7 @@ void kcov_remote_softirq_start(struct ta
+ 	}
+ }
+ 
+-void kcov_remote_softirq_stop(struct task_struct *t)
++static void kcov_remote_softirq_stop(struct task_struct *t)
+ {
+ 	struct kcov_percpu_data *data = this_cpu_ptr(&kcov_percpu_data);
+ 
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from weiyongjun1@huawei.com are
 
 
