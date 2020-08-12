@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8824FC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 899BAC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5344D2080C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5736D20774
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266340;
-	bh=t3ZTyz9YD/PsdvbWtV61G57YrS+KFlxXJG4mQDxQr+Q=;
+	s=default; t=1597266343;
+	bh=b03nJAD1U/RrO3EvhZ2JFesvNY6Rp0THGcKDYf/DvH0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=xlcco64J+c9u2CnLKXeizbZm2QarwZFt8U3JwFluKulpJf/6FgaIV4Z2S8dvvSyfJ
-	 shJuYF6ppP3Zz234coNZIQi5s9stOBhzyuP98w0tSmrBWf0eD/Qn7Y0N8ACnzC8ves
-	 7f0beX77OPh7TlDsVVtnr57dmBYOA9U2ng57LTH4=
+	b=Q5X0F6QooxemcRw7fLNLM5cu6FZHaIvqeTCnZDeyWpiSJ9GXl2gY481h8qGvO7fkd
+	 8g6Ec+2WPbCaF67hAYgKQEtYYKaCGNxh6J+bfjuN1HAw2cYwppIqZi8cFg9IntyK/2
+	 CZWCdu0P33TldqlzRpaO8W2UZqUcv+Hjz+fvqMkk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726526AbgHLVFk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:05:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59532 "EHLO mail.kernel.org"
+        id S1726282AbgHLVFm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:05:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59616 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726030AbgHLVFj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:05:39 -0400
+        id S1726030AbgHLVFm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:05:42 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 787522078B;
-        Wed, 12 Aug 2020 21:05:39 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8B4152080C;
+        Wed, 12 Aug 2020 21:05:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266339;
-        bh=t3ZTyz9YD/PsdvbWtV61G57YrS+KFlxXJG4mQDxQr+Q=;
+        s=default; t=1597266341;
+        bh=b03nJAD1U/RrO3EvhZ2JFesvNY6Rp0THGcKDYf/DvH0=;
         h=Date:From:To:Subject:From;
-        b=gUKxfIOJS61QD8UQNalj5T2h1fwejgoQ/AlYC/QO1lFw6DFVV8IAzCRVYiwTloRmN
-         X4/7ju3Ht0cUbb3vGe5IjSZSaMT/Eirph6h7/ahG2LJmd1muebq4bQJ6vTjkmQqKGc
-         GQoLwL5vAJsLDYt9UO17dk1XvrKkPwsL72/JgYqY=
-Date:   Wed, 12 Aug 2020 14:05:39 -0700
+        b=1cj3GQd/sWYu1HfYy6AvKrE62jl1tb/InLqQLQkmxbTDkvJcT9b6in3npoB1yeSVB
+         dxZ2r9SlX42OGpg2Rc4vBlXEwI3zzCpmpCaa13d49teXXwI+8C/pZ2LSosUCoGmgkG
+         hTmpgyPAEov4i4wfklWolbhbCJ3ioAk3YTdNPMJI=
+Date:   Wed, 12 Aug 2020 14:05:41 -0700
 From:   akpm@linux-foundation.org
-To:     huyue2@yulong.com, keescook@chromium.org,
-        mm-commits@vger.kernel.org
-Subject:  [merged] panic-make-print_oops_end_marker-static.patch
+To:     andreyknvl@google.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, mm-commits@vger.kernel.org,
+        ndesaulniers@google.com
+Subject:  [merged]
+ kcov-unconditionally-add-fno-stack-protector-to-compiler-options.patch
  removed from -mm tree
-Message-ID: <20200812210539.umK9NEMDJ%akpm@linux-foundation.org>
+Message-ID: <20200812210541.XmFn0L3zm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,52 +56,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: make print_oops_end_marker() static
+     Subject: kcov: unconditionally add -fno-stack-protector to compiler options
 has been removed from the -mm tree.  Its filename was
-     panic-make-print_oops_end_marker-static.patch
+     kcov-unconditionally-add-fno-stack-protector-to-compiler-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yue Hu <huyue2@yulong.com>
-Subject: panic: make print_oops_end_marker() static
+From: Marco Elver <elver@google.com>
+Subject: kcov: unconditionally add -fno-stack-protector to compiler options
 
-Since print_oops_end_marker() is not used externally, also remove it in
-kernel.h at the same time.
+Unconditionally add -fno-stack-protector to KCOV's compiler options, as
+all supported compilers support the option.  This saves a compiler
+invocation to determine if the option is supported.
 
-Link: http://lkml.kernel.org/r/20200724011516.12756-1-zbestahu@gmail.com
-Signed-off-by: Yue Hu <huyue2@yulong.com>
-Cc: Kees Cook <keescook@chromium.org>
+Because Clang does not support -fno-conserve-stack, and
+-fno-stack-protector was wrapped in the same cc-option, we were missing
+-fno-stack-protector with Clang. Unconditionally adding this option
+fixes this for Clang.
+
+Link: http://lkml.kernel.org/r/20200615184302.7591-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
+Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    1 -
- kernel/panic.c         |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ kernel/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kernel.h~panic-make-print_oops_end_marker-static
-+++ a/include/linux/kernel.h
-@@ -321,7 +321,6 @@ void panic(const char *fmt, ...) __noret
- void nmi_panic(struct pt_regs *regs, const char *msg);
- extern void oops_enter(void);
- extern void oops_exit(void);
--void print_oops_end_marker(void);
- extern bool oops_may_print(void);
- void do_exit(long error_code) __noreturn;
- void complete_and_exit(struct completion *, long) __noreturn;
---- a/kernel/panic.c~panic-make-print_oops_end_marker-static
-+++ a/kernel/panic.c
-@@ -551,7 +551,7 @@ static int init_oops_id(void)
- }
- late_initcall(init_oops_id);
+--- a/kernel/Makefile~kcov-unconditionally-add-fno-stack-protector-to-compiler-options
++++ a/kernel/Makefile
+@@ -36,7 +36,7 @@ KCOV_INSTRUMENT_stacktrace.o := n
+ KCOV_INSTRUMENT_kcov.o := n
+ KASAN_SANITIZE_kcov.o := n
+ KCSAN_SANITIZE_kcov.o := n
+-CFLAGS_kcov.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
++CFLAGS_kcov.o := $(call cc-option, -fno-conserve-stack) -fno-stack-protector
  
--void print_oops_end_marker(void)
-+static void print_oops_end_marker(void)
- {
- 	init_oops_id();
- 	pr_warn("---[ end trace %016llx ]---\n", (unsigned long long)oops_id);
+ # cond_syscall is currently not LTO compatible
+ CFLAGS_sys_ni.o = $(DISABLE_LTO)
 _
 
-Patches currently in -mm which might be from huyue2@yulong.com are
+Patches currently in -mm which might be from elver@google.com are
 
 
