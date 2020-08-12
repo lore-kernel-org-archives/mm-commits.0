@@ -7,48 +7,45 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE8E8C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:02:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1103C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:02:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A1EAC206F2
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:02:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7FD64206F2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:02:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597194134;
-	bh=rrOfMQ0OjU5lExFZJX4UoWVaNEjxT89XRQ6ynQ6eHb8=;
+	s=default; t=1597194177;
+	bh=B1fhprcF/oVb8n8gPm9sYMpl3GqzW5Sl1EAA8GuUJME=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=uT7Ru+Hz/WPjkXhwOm1K6SVLirOVVslCRNU4jV88CrEFMe01S6OHprcJPOKd41gF1
-	 98qG0SBu4TA6lfX+EubKmswMXlQxK0ZwQKWIDm8GJdEL7wIsl4PIzs0QVDJTNujqCE
-	 HQrBZz5Nx5whDh89be18BoDQLUloiM7RO9mcoY0o=
+	b=0uq+JQS2I9DRjmBfttvHJGxClnDquwQGzuGPzhlHKKxT5N+/TuZ1f+HpZtKBo48i0
+	 WmfHHVtPd5DoHN9oqGX6ed2Ks5q6VBXvmfqjcvMkfOTt/5a8HMmFLoHcesOKd2MCp1
+	 0UUgI4jBjSCYdyBGOZYNtS1j1X+Qt3uBS2fk4Yrc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726235AbgHLBCO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:02:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45134 "EHLO mail.kernel.org"
+        id S1726235AbgHLBC5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:02:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726173AbgHLBCO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:02:14 -0400
+        id S1726173AbgHLBC5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:02:57 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 4D64A206B5;
-        Wed, 12 Aug 2020 01:02:13 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 44EBC206B5;
+        Wed, 12 Aug 2020 01:02:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597194133;
-        bh=rrOfMQ0OjU5lExFZJX4UoWVaNEjxT89XRQ6ynQ6eHb8=;
+        s=default; t=1597194176;
+        bh=B1fhprcF/oVb8n8gPm9sYMpl3GqzW5Sl1EAA8GuUJME=;
         h=Date:From:To:Subject:From;
-        b=IFnpqk7PCByQoBjSiPYjlszyCp6SekBtX9CjZhhP3fPrruRU3KYTa9ul96rhZO/ES
-         wfZPlqgRBXT/9SzBS7G+IsY3mQ65eXXxxIyDbe/DrR+rBfNAT6GelGaYVfP7cDOYnt
-         3I4CJTrn5ZQDoOPkyNR6n0lVLwZOm//DRgUcC8sM=
-Date:   Tue, 11 Aug 2020 18:02:12 -0700
+        b=qn9aW0HgHXuei/Q4u1Lwz3t9VEOPCo2ushf6vP2nvlx/OBxht1vppaS7GkF3p3wJq
+         +27nyTh0y/+khHXtTRvI4RHAS9IqLrmd7s7jeQrOlSUVJju8DU7w4c2HCCWOwCL3dq
+         Iib86zr6KsB/ygZ9busWqUSziWtVQrm11QUeRi6Y=
+Date:   Tue, 11 Aug 2020 18:02:55 -0700
 From:   akpm@linux-foundation.org
-To:     daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com,
-        david@redhat.com, hpa@zytor.com, luto@kernel.org,
-        mhocko@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org,
-        pasha.tatashin@soleen.com, peterz@infradead.org,
-        steven.sistare@oracle.com, tglx@linutronix.de
+To:     hch@lst.de, linux@roeck-us.net, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
 Subject:  [folded-merged]
- x86-mm-use-max-memory-block-size-on-bare-metal-v3.patch removed from -mm
- tree
-Message-ID: <20200812010212.jX2LWoewO%akpm@linux-foundation.org>
+ syscalls-use-uaccess_kernel-in-addr_limit_user_check-fix.patch removed from
+ -mm tree
+Message-ID: <20200812010255.eEG3eUFEG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -58,60 +55,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-mm-use-max-memory-block-size-on-bare-metal-v3
+     Subject: arm: don't call addr_limit_user_check for nommu
 has been removed from the -mm tree.  Its filename was
-     x86-mm-use-max-memory-block-size-on-bare-metal-v3.patch
+     syscalls-use-uaccess_kernel-in-addr_limit_user_check-fix.patch
 
-This patch was dropped because it was folded into x86-mm-use-max-memory-block-size-on-bare-metal.patch
+This patch was dropped because it was folded into syscalls-use-uaccess_kernel-in-addr_limit_user_check.patch
 
 ------------------------------------------------------
-From: Daniel Jordan <daniel.m.jordan@oracle.com>
-Subject: x86-mm-use-max-memory-block-size-on-bare-metal-v3
+From: Christoph Hellwig <hch@lst.de>
+Subject: arm: don't call addr_limit_user_check for nommu
 
-Add more accurate hypervisor check.  Someone kindly pointed me to
-517c3ba00916 ("x86/speculation/mds: Apply more accurate check on
-hypervisor platform"), and v2 had the same issue.
+On arm nommu kernel use the same constant for USER_DS and KERNEL_DS, and
+seqment_eq always returns false.  With the current check in
+addr_limit_user_check that works by accident, but when replacing
+seqment_eq with uaccess_kerne it will fail.  Just remove the not needed
+check entirely.
 
-Link: http://lkml.kernel.org/r/20200714205450.945834-1-daniel.m.jordan@oracle.com
-Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/20200721045834.GA9613@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/arm/kernel/signal.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/x86/mm/init_64.c~x86-mm-use-max-memory-block-size-on-bare-metal-v3
-+++ a/arch/x86/mm/init_64.c
-@@ -54,7 +54,6 @@
- #include <asm/uv/uv.h>
- #include <asm/setup.h>
- #include <asm/ftrace.h>
--#include <asm/hypervisor.h>
+--- a/arch/arm/kernel/signal.c~syscalls-use-uaccess_kernel-in-addr_limit_user_check-fix
++++ a/arch/arm/kernel/signal.c
+@@ -713,7 +713,9 @@ struct page *get_signal_page(void)
+ /* Defer to generic check */
+ asmlinkage void addr_limit_check_failed(void)
+ {
++#ifdef CONFIG_MMU
+ 	addr_limit_user_check();
++#endif
+ }
  
- #include "mm_internal.h"
- 
-@@ -1410,7 +1409,7 @@ static unsigned long probe_memory_block_
- 	 * Use max block size to minimize overhead on bare metal, where
- 	 * alignment for memory hotplug isn't a concern.
- 	 */
--	if (hypervisor_is_type(X86_HYPER_NATIVE)) {
-+	if (!boot_cpu_has(X86_FEATURE_HYPERVISOR)) {
- 		bz = MAX_BLOCK_SIZE;
- 		goto done;
- 	}
+ #ifdef CONFIG_DEBUG_RSEQ
 _
 
-Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-x86-mm-use-max-memory-block-size-on-bare-metal.patch
+syscalls-use-uaccess_kernel-in-addr_limit_user_check.patch
+nds32-use-uaccess_kernel-in-show_regs.patch
+riscv-include-asm-pgtableh-in-asm-uaccessh.patch
+uaccess-remove-segment_eq.patch
+uaccess-add-force_uaccess_beginend-helpers.patch
+uaccess-add-force_uaccess_beginend-helpers-v2.patch
+exec-use-force_uaccess_begin-during-exec-and-exit.patch
+kernel-add-a-kernel_wait-helper.patch
 
