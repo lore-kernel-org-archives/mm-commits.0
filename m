@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68B3FC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA7BDC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4154A20774
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB9CB207F7
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266424;
-	bh=6bmRWMRph2R4LB45hiyjk/v3woSDmYFDD8MNpo3g2L4=;
+	s=default; t=1597266426;
+	bh=9wff7d9STfi4wHPECBl4sgT7Wc64mT06lmypXoaKedY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=sTxKCru7q7+Lmb2JLAhuN/j9PiASrKqu6LBRUzcMqO9PSyF6MlKmiij65PF7zrQab
-	 6Ht29yy18wSWe2tSjQ+auN00k4aLIXfsJv6ZuDhw3svJ59csu3uHJSrTpoIqqEqC/m
-	 gQ3d733kQBl8/miJHj626EhJCsITpKBCcQ0M1jxQ=
+	b=qRpoEwTH/EFsk1Q8uKmQZj02ldBiOaeio9NFkltSGjsXnMxht/OqqDYQgahmKClYP
+	 ExWzxKV1jHCQTVk0gtv5qRSQDM835LJm67uGB5Z6Pe1V8ErknrD4qXz36CxlDjtgJe
+	 9CMgyEoegWS7qJhv6ugsidQMpnX0Q6gtRRDDqpZ8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726526AbgHLVHE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:07:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34682 "EHLO mail.kernel.org"
+        id S1726282AbgHLVHG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:07:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726030AbgHLVHD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:07:03 -0400
+        id S1726030AbgHLVHG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:07:06 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id A5B3D2078B;
-        Wed, 12 Aug 2020 21:07:02 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 780ED20774;
+        Wed, 12 Aug 2020 21:07:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266423;
-        bh=6bmRWMRph2R4LB45hiyjk/v3woSDmYFDD8MNpo3g2L4=;
+        s=default; t=1597266425;
+        bh=9wff7d9STfi4wHPECBl4sgT7Wc64mT06lmypXoaKedY=;
         h=Date:From:To:Subject:From;
-        b=x86UtnjiaVhnVS44WkpxktZWZLFeCZSH5AqA0SFFRe+whc7eHJ+dLUK89abnKgaLC
-         Ab1ZxyKJFNzV3/KaIIo152RoXR6rVU1qAZEeK3s0Vx9sf4WfcHOgGY1coWGDeUsD6Q
-         P/wBYMCvq9uvXgk60Vt/AFaE6LVhIanqBmqJPjeI=
-Date:   Wed, 12 Aug 2020 14:07:02 -0700
+        b=RdbdwfLXDW1yqnbYzEuo4aGL72nFI91bebiV9G9H2alcUQjnqWUY+9WNUts/yGve4
+         gCIoiKIxxcNCeuM+TDYY6HkpY2Y+cX+nK1ORZbwqHdHxbSRfllpjwHkL1+btyiiudd
+         7hmOHPPbCUQQTmAHbTmb7Mp9QsMY78m8d+vMSvSc=
+Date:   Wed, 12 Aug 2020 14:07:05 -0700
 From:   akpm@linux-foundation.org
-To:     bp@alien8.de, dave.hansen@linux.intel.com, hpa@zytor.com,
-        luto@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com, peterz@infradead.org, tglx@linutronix.de
-Subject:  [merged] mm-x86-use-general-page-fault-accounting.patch
- removed from -mm tree
-Message-ID: <20200812210702.3pr_rV7FA%akpm@linux-foundation.org>
+To:     chris@zankel.net, jcmvbkbc@gmail.com, mm-commits@vger.kernel.org,
+        peterx@redhat.com
+Subject:  [merged]
+ mm-xtensa-use-general-page-fault-accounting.patch removed from -mm tree
+Message-ID: <20200812210705.HUcPFK01X%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,74 +54,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/x86: use general page fault accounting
+     Subject: mm/xtensa: use general page fault accounting
 has been removed from the -mm tree.  Its filename was
-     mm-x86-use-general-page-fault-accounting.patch
+     mm-xtensa-use-general-page-fault-accounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/x86: use general page fault accounting
+Subject: mm/xtensa: use general page fault accounting
 
 Use the general page fault accounting by passing regs into
-handle_mm_fault().
+handle_mm_fault().  It naturally solve the issue of multiple page fault
+accounting when page fault retry happened.
 
-Link: http://lkml.kernel.org/r/20200707225021.200906-23-peterx@redhat.com
+Remove the PERF_COUNT_SW_PAGE_FAULTS_[MAJ|MIN] perf events because it's
+now also done in handle_mm_fault().
+
+Move the PERF_COUNT_SW_PAGE_FAULTS event higher before taking mmap_sem for
+the fault, then it'll match with the rest of the archs.
+
+Link: http://lkml.kernel.org/r/20200707225021.200906-24-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
+Acked-by: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/fault.c |   17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+ arch/xtensa/mm/fault.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
---- a/arch/x86/mm/fault.c~mm-x86-use-general-page-fault-accounting
-+++ a/arch/x86/mm/fault.c
-@@ -1139,7 +1139,7 @@ void do_user_addr_fault(struct pt_regs *
- 	struct vm_area_struct *vma;
- 	struct task_struct *tsk;
- 	struct mm_struct *mm;
--	vm_fault_t fault, major = 0;
-+	vm_fault_t fault;
- 	unsigned int flags = FAULT_FLAG_DEFAULT;
+--- a/arch/xtensa/mm/fault.c~mm-xtensa-use-general-page-fault-accounting
++++ a/arch/xtensa/mm/fault.c
+@@ -72,6 +72,9 @@ void do_page_fault(struct pt_regs *regs)
  
- 	tsk = current;
-@@ -1291,8 +1291,7 @@ good_area:
- 	 * userland). The return to userland is identified whenever
- 	 * FAULT_FLAG_USER|FAULT_FLAG_KILLABLE are both set in flags.
+ 	if (user_mode(regs))
+ 		flags |= FAULT_FLAG_USER;
++
++	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
++
+ retry:
+ 	mmap_read_lock(mm);
+ 	vma = find_vma(mm, address);
+@@ -107,7 +110,7 @@ good_area:
+ 	 * make sure we exit gracefully rather than endlessly redo
+ 	 * the fault.
  	 */
 -	fault = handle_mm_fault(vma, address, flags, NULL);
--	major |= fault & VM_FAULT_MAJOR;
 +	fault = handle_mm_fault(vma, address, flags, regs);
  
- 	/* Quick path to respond to signals */
- 	if (fault_signal_pending(fault, regs)) {
-@@ -1319,18 +1318,6 @@ good_area:
+ 	if (fault_signal_pending(fault, regs))
  		return;
+@@ -122,10 +125,6 @@ good_area:
+ 		BUG();
+ 	}
+ 	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+-		if (fault & VM_FAULT_MAJOR)
+-			current->maj_flt++;
+-		else
+-			current->min_flt++;
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags |= FAULT_FLAG_TRIED;
+ 
+@@ -139,12 +138,6 @@ good_area:
  	}
  
--	/*
--	 * Major/minor page fault accounting. If any of the events
--	 * returned VM_FAULT_MAJOR, we account it as a major fault.
--	 */
--	if (major) {
--		tsk->maj_flt++;
+ 	mmap_read_unlock(mm);
+-	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
+-	if (flags & VM_FAULT_MAJOR)
 -		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs, address);
--	} else {
--		tsk->min_flt++;
+-	else
 -		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs, address);
--	}
 -
- 	check_v8086_mode(regs, address, tsk);
- }
- NOKPROBE_SYMBOL(do_user_addr_fault);
+ 	return;
+ 
+ 	/* Something tried to access memory that isn't in our memory map..
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
