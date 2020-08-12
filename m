@@ -7,45 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 383CCC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 00:57:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4637C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 00:58:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 087ED20866
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 00:57:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7C4420866
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 00:58:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597193859;
-	bh=pNHup6W1OlE4rZNwrw0AwlsmILgnKceHIPYeKfgtG0w=;
+	s=default; t=1597193889;
+	bh=rq+MEMUDg400wcxLgvqGrFkZZT8Rv1EgDPEiP8D0/ew=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=zG8exiRt+lIEzfOqFdYKR+7vWVS7B40IAZuVRSJ4QE3qjo3rVpMNDRjfT8U4Hm8Mx
-	 NKjEQ/yKVpDbfOo+j83F3gyzAwok0K+OVXnxhfclpmT2rQ8SYfV3WVKF00Ki4r1gfg
-	 c+BJkS0tB1oCGfm4NVHuyqbEOkbRBWIhHjuxfU4g=
+	b=nsra2WYchVqalKePQEAgIrQqByenCwJsqkNpGWO0h7tkQ7WtcrYYtdNp3bcs4wOu+
+	 +SKUqL2k+l3eEr/rjEzPo+bAePnRMEQyOrD+gLJ2fFOGv8+FxQUuoPAxUq6/z7LpX/
+	 e163KttXwlUpScbQouUEj1EpyngNQAK54sIf+8PE=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726422AbgHLA5i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 20:57:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44446 "EHLO mail.kernel.org"
+        id S1726420AbgHLA6J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 20:58:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44490 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726420AbgHLA5i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 20:57:38 -0400
+        id S1726333AbgHLA6J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 20:58:09 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id CEFED207DA;
-        Wed, 12 Aug 2020 00:57:37 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 3DE06207DA;
+        Wed, 12 Aug 2020 00:58:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597193858;
-        bh=pNHup6W1OlE4rZNwrw0AwlsmILgnKceHIPYeKfgtG0w=;
+        s=default; t=1597193888;
+        bh=rq+MEMUDg400wcxLgvqGrFkZZT8Rv1EgDPEiP8D0/ew=;
         h=Date:From:To:Subject:From;
-        b=a7dVXs8jVWwJpoOQ6s/dVX7EVbchu4wrkCfebwqbOR/zFTi1e9ZDaQS7C8R5CTPpK
-         MhMQmKnYM4LJUpeNLHbb3IQvDTolw1naPzoMq+J3md0a4cps2dja9CJlxmo0ZQk6JE
-         C2JJU3QwCBrRGaTRTljVZOfr4ism2d6I9DgL4E50=
-Date:   Tue, 11 Aug 2020 17:57:37 -0700
+        b=vHenSaOS3oDoofTWusBdx+p3CbLE9sz1buGUZ1yjc1wcNXL/05d5OAoSTrAn02Uhz
+         fSCyEMtXt53FzqSIrGMyIX3gtEcQVp+oG3qfgKYQVXPgN0y0t1LCmUQD9frlGZg/Qd
+         oxtAlCG+oL9n0GQW/TiJrsf3jXnnq8SxACZ+2Z1A=
+Date:   Tue, 11 Aug 2020 17:58:07 -0700
 From:   akpm@linux-foundation.org
-To:     dennis@kernel.org, guro@fb.com, hannes@cmpxchg.org,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com
+To:     akpm@linux-foundation.org, bhe@redhat.com,
+        guojianchao@bytedance.com, mgorman@suse.de, mhocko@kernel.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        rientjes@google.com, songmuchun@bytedance.com, walken@google.com
 Subject:  [folded-merged]
- mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix.patch removed
+ mm-hugetlb-add-mempolicy-check-in-the-reservation-routine-fix.patch removed
  from -mm tree
-Message-ID: <20200812005737.3g4IPUtWQ%akpm@linux-foundation.org>
+Message-ID: <20200812005807.p8G3gZJWZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,60 +57,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix
+     Subject: mm-hugetlb-add-mempolicy-check-in-the-reservation-routine-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix.patch
+     mm-hugetlb-add-mempolicy-check-in-the-reservation-routine-fix.patch
 
-This patch was dropped because it was folded into mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
+This patch was dropped because it was folded into mm-hugetlb-add-mempolicy-check-in-the-reservation-routine.patch
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-add-mempolicy-check-in-the-reservation-routine-fix
 
-add WARN_ON_ONCE()s, per Johannes
+include sched.h for `current'
 
-Link: http://lkml.kernel.org/r/20200811170611.GB1507044@carbon.DHCP.thefacebook.com
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jianchao Guo <guojianchao@bytedance.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/mempolicy.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup-fix
-+++ a/mm/memcontrol.c
-@@ -5131,6 +5131,9 @@ static int alloc_mem_cgroup_per_node_inf
- 	if (!pn)
- 		return 1;
+--- a/include/linux/mempolicy.h~mm-hugetlb-add-mempolicy-check-in-the-reservation-routine-fix
++++ a/include/linux/mempolicy.h
+@@ -6,7 +6,7 @@
+ #ifndef _LINUX_MEMPOLICY_H
+ #define _LINUX_MEMPOLICY_H 1
  
-+	/* We charge the parent cgroup, never the current task */
-+	WARN_ON_ONCE(!current->active_memcg);
-+
- 	pn->lruvec_stat_local = alloc_percpu_gfp(struct lruvec_stat,
- 						 GFP_KERNEL_ACCOUNT);
- 	if (!pn->lruvec_stat_local) {
-@@ -5213,6 +5216,9 @@ static struct mem_cgroup *mem_cgroup_all
- 		goto fail;
- 	}
- 
-+	/* We charge the parent cgroup, never the current task */
-+	WARN_ON_ONCE(!current->active_memcg);
-+
- 	memcg->vmstats_local = alloc_percpu_gfp(struct memcg_vmstats_percpu,
- 						GFP_KERNEL_ACCOUNT);
- 	if (!memcg->vmstats_local)
+-
++#include <linux/sched.h>
+ #include <linux/mmzone.h>
+ #include <linux/dax.h>
+ #include <linux/slab.h>
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-percpu-return-number-of-released-bytes-from-pcpu_free_area.patch
-mm-memcg-percpu-account-percpu-memory-to-memory-cgroups.patch
-mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
-mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
-kselftests-cgroup-add-perpcu-memory-accounting-test.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings.patch
-mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix.patch
+mm-hugetlb-add-mempolicy-check-in-the-reservation-routine.patch
+mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
+mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
+mm-migrate-make-a-standard-migration-target-allocation-function-fix.patch
+mm.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
