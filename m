@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71E2DC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:01:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A682DC433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:01:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A68A20774
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:01:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 808FE20774
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:01:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266072;
-	bh=D8haDM+dwR8l1Yh48Lz66RvR2tEciaKBYilBSCEysV0=;
+	s=default; t=1597266073;
+	bh=ni872Nb7tXEQTCWupYvCVUPWd3ozVQbWyA51aDTugOw=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=vyv2MzmnwxV9lgS2w2Z+3IuXQZUFEJLa/b9HyV2lHwpFyI5OXr8UnM1gHlMbFmhGi
-	 YoKRrr1J0UqhUUf/PBv2kvtS9SU2cJf1eJzlVGvmQpxJnpLo32wY/2z2epavF6Tg6O
-	 p+MboxEe1t0Cje8gNyasxN5o9cxPGhJenL966/oU=
+	b=a+bzFn9aEa+IeZAhFUCLal8Sd/wslT1jfFN4FiIAikk4oc3xzScqL0Sny3GJEQras
+	 GZUjlJHINyv/iTsfgA8vqnkaBZhnAkxHXxUcZ2+HZImas8Q6hbqVXhxZ3jveD/yvXv
+	 qIIC6MXwKXEEM4Lue7QzFhAM7WRLXMI4z5Vs1Yx8=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726542AbgHLVBM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:01:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44854 "EHLO mail.kernel.org"
+        id S1726528AbgHLVBN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:01:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45032 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726030AbgHLVBK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:01:10 -0400
+        id S1726030AbgHLVBN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:01:13 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AD7DC2078B;
-        Wed, 12 Aug 2020 21:01:08 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B291220768;
+        Wed, 12 Aug 2020 21:01:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266069;
-        bh=D8haDM+dwR8l1Yh48Lz66RvR2tEciaKBYilBSCEysV0=;
+        s=default; t=1597266072;
+        bh=ni872Nb7tXEQTCWupYvCVUPWd3ozVQbWyA51aDTugOw=;
         h=Date:From:To:Subject:From;
-        b=TfngRq2ZUbMxZAU0ncmy74O1nA0yqA5mYwYtoGnUBFFJ860m4TafpxUB/G5zCzkm9
-         QlieOCEgj9Buy7JuJLuhIN/3JaNqh5Yfc+H2fYmHhsJ8h+MQ/CNxXvyeq6cuytkv4J
-         rjQhhPdhPrz5cST8cl3qzhuHy4DWF6MYbZyg9ui4=
-Date:   Wed, 12 Aug 2020 14:01:08 -0700
+        b=rJYvjAfhNn5QdWbLQdt/n8QOb65ydMBkHWdOrIrEgMVmP0hJEKela8Tl4Ujf/jI0S
+         9KdGn8L6Caac86NDjaxTiEBRtKnu2rFQ/m2pHoJekp7KuKNyAOi3ta0yDVS3axthB5
+         NSsJAdalOtTCsHfsD9KRuzhkpXrICGDIQ3+GERV4=
+Date:   Wed, 12 Aug 2020 14:01:11 -0700
 From:   akpm@linux-foundation.org
 To:     cl@linux.com, cuibixuan@huawei.com, dennis@kernel.org, guro@fb.com,
         hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, longman@redhat.com,
@@ -47,9 +47,9 @@ To:     cl@linux.com, cuibixuan@huawei.com, dennis@kernel.org, guro@fb.com,
         rientjes@google.com, sfr@canb.auug.org.au, shakeelb@google.com,
         tj@kernel.org, tobin@kernel.org, vbabka@suse.cz
 Subject:  [merged]
- mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch removed from -mm
- tree
-Message-ID: <20200812210108.aTAeVO1nl%akpm@linux-foundation.org>
+ mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch removed from
+ -mm tree
+Message-ID: <20200812210111.-QYHkP6u7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -62,29 +62,32 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg/percpu: per-memcg percpu memory statistics
+     Subject: mm: memcg: charge memcg percpu memory to the parent cgroup
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-percpu-per-memcg-percpu-memory-statistics.patch
+     mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem t=
 ree
 
 ------------------------------------------------------
 =46rom: Roman Gushchin <guro@fb.com>
-Subject: mm: memcg/percpu: per-memcg percpu memory statistics
+Subject: mm: memcg: charge memcg percpu memory to the parent cgroup
 
-Percpu memory can represent a noticeable chunk of the total memory
-consumption, especially on big machines with many CPUs.  Let's track
-percpu memory usage for each memcg and display it in memory.stat.
+Memory cgroups are using large chunks of percpu memory to store vmstat
+data.  Yet this memory is not accounted at all, so in the case when there
+are many (dying) cgroups, it's not exactly clear where all the memory is.
 
-A percpu allocation is usually scattered over multiple pages (and nodes),
-and can be significantly smaller than a page.  So let's add a byte-sized
-counter on the memcg level: MEMCG_PERCPU_B.  Byte-sized vmstat infra
-created for slabs can be perfectly reused for percpu case.
+Because the size of memory cgroup internal structures can dramatically
+exceed the size of object or page which is pinning it in the memory, it's
+not a good idea to simply ignore it.  It actually breaks the isolation
+between cgroups.
 
-[guro@fb.com: v3]
-  Link: http://lkml.kernel.org/r/20200623184515.4132564-4-guro@fb.com
-Link: http://lkml.kernel.org/r/20200608230819.832349-4-guro@fb.com
+Let's account the consumed percpu memory to the parent cgroup.
+
+[guro@fb.com: add WARN_ON_ONCE()s, per Johannes]
+  Link: http://lkml.kernel.org/r/20200811170611.GB1507044@carbon.DHCP.thefa=
+cebook.com
+Link: http://lkml.kernel.org/r/20200623184515.4132564-5-guro@fb.com
 Signed-off-by: Roman Gushchin <guro@fb.com>
 Acked-by: Dennis Zhou <dennis@kernel.org>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
@@ -105,96 +108,61 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    4 ++++
- include/linux/memcontrol.h              |    8 ++++++++
- mm/memcontrol.c                         |    4 +++-
- mm/percpu.c                             |   10 ++++++++++
- 4 files changed, 25 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-memcg-percpu-per-memcg-per=
-cpu-memory-statistics
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1274,6 +1274,10 @@ PAGE_SIZE multiple when read back.
- 		Amount of memory used for storing in-kernel data
- 		structures.
-=20
-+	  percpu
-+		Amount of memory used for storing per-cpu kernel
-+		data structures.
-+
- 	  sock
- 		Amount of memory used in network transmission buffers
-=20
---- a/include/linux/memcontrol.h~mm-memcg-percpu-per-memcg-percpu-memory-st=
-atistics
-+++ a/include/linux/memcontrol.h
-@@ -32,6 +32,7 @@ struct kmem_cache;
- enum memcg_stat_item {
- 	MEMCG_SWAP =3D NR_VM_NODE_STAT_ITEMS,
- 	MEMCG_SOCK,
-+	MEMCG_PERCPU_B,
- 	MEMCG_NR_STAT,
- };
-=20
-@@ -339,6 +340,13 @@ struct mem_cgroup {
-=20
- extern struct mem_cgroup *root_mem_cgroup;
-=20
-+static __always_inline bool memcg_stat_item_in_bytes(int idx)
-+{
-+	if (idx =3D=3D MEMCG_PERCPU_B)
-+		return true;
-+	return vmstat_item_in_bytes(idx);
-+}
-+
- static inline bool mem_cgroup_is_root(struct mem_cgroup *memcg)
- {
- 	return (memcg =3D=3D root_mem_cgroup);
---- a/mm/memcontrol.c~mm-memcg-percpu-per-memcg-percpu-memory-statistics
+--- a/mm/memcontrol.c~mm-memcg-charge-memcg-percpu-memory-to-the-parent-cgr=
+oup
 +++ a/mm/memcontrol.c
-@@ -781,7 +781,7 @@ void __mod_memcg_state(struct mem_cgroup
- 	if (mem_cgroup_disabled())
- 		return;
+@@ -5131,13 +5131,18 @@ static int alloc_mem_cgroup_per_node_inf
+ 	if (!pn)
+ 		return 1;
 =20
--	if (vmstat_item_in_bytes(idx))
-+	if (memcg_stat_item_in_bytes(idx))
- 		threshold <<=3D PAGE_SHIFT;
-=20
- 	x =3D val + __this_cpu_read(memcg->vmstats_percpu->stat[idx]);
-@@ -1488,6 +1488,8 @@ static char *memory_stat_format(struct m
- 	seq_buf_printf(&s, "slab %llu\n",
- 		       (u64)(memcg_page_state(memcg, NR_SLAB_RECLAIMABLE_B) +
- 			     memcg_page_state(memcg, NR_SLAB_UNRECLAIMABLE_B)));
-+	seq_buf_printf(&s, "percpu %llu\n",
-+		       (u64)memcg_page_state(memcg, MEMCG_PERCPU_B));
- 	seq_buf_printf(&s, "sock %llu\n",
- 		       (u64)memcg_page_state(memcg, MEMCG_SOCK) *
- 		       PAGE_SIZE);
---- a/mm/percpu.c~mm-memcg-percpu-per-memcg-percpu-memory-statistics
-+++ a/mm/percpu.c
-@@ -1610,6 +1610,11 @@ static void pcpu_memcg_post_alloc_hook(s
-=20
- 	if (chunk) {
- 		chunk->obj_cgroups[off >> PCPU_MIN_ALLOC_SHIFT] =3D objcg;
+-	pn->lruvec_stat_local =3D alloc_percpu(struct lruvec_stat);
++	/* We charge the parent cgroup, never the current task */
++	WARN_ON_ONCE(!current->active_memcg);
 +
-+		rcu_read_lock();
-+		mod_memcg_state(obj_cgroup_memcg(objcg), MEMCG_PERCPU_B,
-+				size * num_possible_cpus());
-+		rcu_read_unlock();
- 	} else {
- 		obj_cgroup_uncharge(objcg, size * num_possible_cpus());
- 		obj_cgroup_put(objcg);
-@@ -1628,6 +1633,11 @@ static void pcpu_memcg_free_hook(struct
++	pn->lruvec_stat_local =3D alloc_percpu_gfp(struct lruvec_stat,
++						 GFP_KERNEL_ACCOUNT);
+ 	if (!pn->lruvec_stat_local) {
+ 		kfree(pn);
+ 		return 1;
+ 	}
 =20
- 	obj_cgroup_uncharge(objcg, size * num_possible_cpus());
+-	pn->lruvec_stat_cpu =3D alloc_percpu(struct lruvec_stat);
++	pn->lruvec_stat_cpu =3D alloc_percpu_gfp(struct lruvec_stat,
++					       GFP_KERNEL_ACCOUNT);
+ 	if (!pn->lruvec_stat_cpu) {
+ 		free_percpu(pn->lruvec_stat_local);
+ 		kfree(pn);
+@@ -5211,11 +5216,16 @@ static struct mem_cgroup *mem_cgroup_all
+ 		goto fail;
+ 	}
 =20
-+	rcu_read_lock();
-+	mod_memcg_state(obj_cgroup_memcg(objcg), MEMCG_PERCPU_B,
-+			-(size * num_possible_cpus()));
-+	rcu_read_unlock();
+-	memcg->vmstats_local =3D alloc_percpu(struct memcg_vmstats_percpu);
++	/* We charge the parent cgroup, never the current task */
++	WARN_ON_ONCE(!current->active_memcg);
 +
- 	obj_cgroup_put(objcg);
- }
++	memcg->vmstats_local =3D alloc_percpu_gfp(struct memcg_vmstats_percpu,
++						GFP_KERNEL_ACCOUNT);
+ 	if (!memcg->vmstats_local)
+ 		goto fail;
+=20
+-	memcg->vmstats_percpu =3D alloc_percpu(struct memcg_vmstats_percpu);
++	memcg->vmstats_percpu =3D alloc_percpu_gfp(struct memcg_vmstats_percpu,
++						 GFP_KERNEL_ACCOUNT);
+ 	if (!memcg->vmstats_percpu)
+ 		goto fail;
+=20
+@@ -5264,7 +5274,9 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	struct mem_cgroup *memcg;
+ 	long error =3D -ENOMEM;
+=20
++	memalloc_use_memcg(parent);
+ 	memcg =3D mem_cgroup_alloc();
++	memalloc_unuse_memcg();
+ 	if (IS_ERR(memcg))
+ 		return ERR_CAST(memcg);
 =20
 _
 
