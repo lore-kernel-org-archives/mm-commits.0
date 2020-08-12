@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E678C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA643C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3CA7E206B2
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9A7E8206B2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196020;
-	bh=uvECdLEPwOi2cJMz45qT2CjqwkzrlP/ONGCGECq5APM=;
+	s=default; t=1597196022;
+	bh=GB4tK0ezu7Jcv1N67CXPz3Tc7St0pYk9qmWpUKu8DLs=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=0VYshCvL3R5YlMSPzvczsDKKOB3JMgGR8tZXugNHtiiSDhE8d1xLeWZz96Z9erT7l
-	 mOViWFE+rcJFqoPGkoJyK5R/Sah+WDI/10tOjPZ1zARsD/OJScEhyl/ekNNytPXxtk
-	 niCKH29QcYfAsTDlWTInV19ucbBb0x5B4XxHAyJ4=
+	b=J6LVpLPFJzZull9JfTsN1jTl4RUunbceygyLxnopO/+CDvkjl1+X4sruY2lA7VWmV
+	 VU9zV8/u3/f4m/eULmSgnxbby0NM8DRvRTMwgfRj4DLcSlBEZeVSdubuoPlQafZkRo
+	 ZlRfSPfqW06YeW6L7jymaR927ST3iERkL1ZBf0bw=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726488AbgHLBdk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:33:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34142 "EHLO mail.kernel.org"
+        id S1726630AbgHLBdm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:33:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34218 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726630AbgHLBdj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:33:39 -0400
+        id S1726492AbgHLBdm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:33:42 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 600B2207DA;
-        Wed, 12 Aug 2020 01:33:38 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 800BF207F7;
+        Wed, 12 Aug 2020 01:33:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196018;
-        bh=uvECdLEPwOi2cJMz45qT2CjqwkzrlP/ONGCGECq5APM=;
+        s=default; t=1597196022;
+        bh=GB4tK0ezu7Jcv1N67CXPz3Tc7St0pYk9qmWpUKu8DLs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=urHbMKeWhevtp5UJC1sonqS8Mco1HvYNi/pCtCP6cqWEQO4btuK3vmRElqvrmU/mC
-         XmdaeV+y5m/MOaKqP36NnwZP24UInVi6Rlx0lRMGli1sDphnvu2yj455LGYQJyfMIq
-         3O/64sengS9JT0VuIgg40aM6LL1nPmO276XE6ecY=
-Date:   Tue, 11 Aug 2020 18:33:38 -0700
+        b=vtFJv4RYH1U3LuM3Xg4FoPG9V+gyaZNIlDOt/qNLztWDGC1Wd872AhZUACRgCDfkn
+         vvYQscI5BBGMd9541srUyeksmqygMOpMCfMirG2hUg6ph9rQ6WEk1J7wkxH2HKwSJY
+         i1dOfcXwV79PyUZURTWXJNMI0ELWnKMUfc0vDvxY=
+Date:   Tue, 11 Aug 2020 18:33:41 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, deanbo422@gmail.com,
         geert@linux-m68k.org, green.hu@gmail.com, hch@lst.de,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        nickhu@andestech.com, palmer@dabbelt.com, paul.walmsley@sifive.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 064/165] nds32: use uaccess_kernel in show_regs
-Message-ID: <20200812013338.nnbYPNGQT%akpm@linux-foundation.org>
+        nickhu@andestech.com, palmerdabbelt@google.com,
+        paul.walmsley@sifive.com, torvalds@linux-foundation.org
+Subject:  [patch 065/165] riscv: include <asm/pgtable.h> in
+ <asm/uaccess.h>
+Message-ID: <20200812013341.gLfmMSVXJ%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,34 +57,34 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Christoph Hellwig <hch@lst.de>
-Subject: nds32: use uaccess_kernel in show_regs
+Subject: riscv: include <asm/pgtable.h> in <asm/uaccess.h>
 
-Use the uaccess_kernel helper instead of duplicating it.
+To ensure TASK_SIZE is defined for USER_DS.
 
-Link: http://lkml.kernel.org/r/20200710135706.537715-3-hch@lst.de
+Link: http://lkml.kernel.org/r/20200710135706.537715-4-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Acked-by: Greentime Hu <green.hu@gmail.com>
+Acked-by: Palmer Dabbelt <palmerdabbelt@google.com>
 Cc: Nick Hu <nickhu@andestech.com>
+Cc: Greentime Hu <green.hu@gmail.com>
 Cc: Vincent Chen <deanbo422@gmail.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nds32/kernel/process.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/riscv/include/asm/uaccess.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/nds32/kernel/process.c~nds32-use-uaccess_kernel-in-show_regs
-+++ a/arch/nds32/kernel/process.c
-@@ -121,7 +121,7 @@ void show_regs(struct pt_regs *regs)
- 		regs->uregs[3], regs->uregs[2], regs->uregs[1], regs->uregs[0]);
- 	pr_info("  IRQs o%s  Segment %s\n",
- 		interrupts_enabled(regs) ? "n" : "ff",
--		segment_eq(get_fs(), KERNEL_DS)? "kernel" : "user");
-+		uaccess_kernel() ? "kernel" : "user");
- }
+--- a/arch/riscv/include/asm/uaccess.h~riscv-include-asm-pgtableh-in-asm-uaccessh
++++ a/arch/riscv/include/asm/uaccess.h
+@@ -8,6 +8,8 @@
+ #ifndef _ASM_RISCV_UACCESS_H
+ #define _ASM_RISCV_UACCESS_H
  
- EXPORT_SYMBOL(show_regs);
++#include <asm/pgtable.h>		/* for TASK_SIZE */
++
+ /*
+  * User space memory access functions
+  */
 _
