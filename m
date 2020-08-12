@@ -2,51 +2,49 @@ Return-Path: <SRS0=McLq=BW=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C25E7C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FD19C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 971862078B
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 300282078B
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266328;
-	bh=UFtznDe6h9khRtQrhJRqqFNXJSaMMVSB6bMCX0gYn10=;
+	s=default; t=1597266329;
+	bh=ukxpV5eEHOBnefB87NlrYqolpGp6PGMBdLjbKnhWGM0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=h8AFyMfeHCZ2yRcGikIVj5lwJXImADywx7PIQC++ELKc5Qa35Qg1yVaNVWYgqNkSi
-	 rKYXtd4fApUf9CkRJoGEbci+LO7qhEPkQwU4k1OjQd1qffjOsFciUZBQi7DxmtzFjG
-	 wN/BMcmw/Z0pgrj9/nHiKfjT+pylEX9j4RiRumT4=
+	b=oAE7kp8Y57CGiN7LJ2Y1P5LrdJE5MVtKjnlKbRwwXZPywH7awbNsfbotql3gMqNFY
+	 m55l5d4KuZlOlhQu1pbUoje2Z9+FAznwEkarmzGvaR8ZmHYKdxkltDwkbFtFmeZCMs
+	 HHC8KaFVeH12Gg+OA1r0DRd7r6/agTEpJcah7vyc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726639AbgHLVF2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1726567AbgHLVF2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 12 Aug 2020 17:05:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58986 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59090 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726567AbgHLVF0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:05:26 -0400
+        id S1726631AbgHLVF2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:05:28 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id E41542078B;
-        Wed, 12 Aug 2020 21:05:24 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8065720774;
+        Wed, 12 Aug 2020 21:05:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266325;
-        bh=UFtznDe6h9khRtQrhJRqqFNXJSaMMVSB6bMCX0gYn10=;
+        s=default; t=1597266327;
+        bh=ukxpV5eEHOBnefB87NlrYqolpGp6PGMBdLjbKnhWGM0=;
         h=Date:From:To:Subject:From;
-        b=hpIpyw4GN0Ycdz9lG8bCvmzUI4GqVFloPk7NRv23WOFCqhVKVd45S6DTJoq2FrzDF
-         6FTD/pj4+86Tuc1Zc7pj5nC3GrVEFLB/YzcJ8bi4IS8NhSGt0VtXDsDpKbT4Xr3XNr
-         13MM67SQvMk/x1lfIGGCch8rP1cM8P2K4l62w3Pc=
-Date:   Wed, 12 Aug 2020 14:05:24 -0700
+        b=wr2ybteolgVuhmUvPGZhqqKTCV8vkYgZYOH4dTezhc2nrwsk821vv+rLfTN+L9HQX
+         4xyvkoQzMFUkWvfZFYSlAyn0uXTmTqIpWbW6xuok+iHGSdwVa1uVS0pCPhfbo1s4R2
+         wrKm5ppsg1HX+80AtoFjQqL6LBrovADpup/p+290=
+Date:   Wed, 12 Aug 2020 14:05:27 -0700
 From:   akpm@linux-foundation.org
-To:     bhe@redhat.com, dyoung@redhat.com, mm-commits@vger.kernel.org,
-        tyhicks@linux.microsoft.com, vgoyal@redhat.com,
-        vijayb@linux.microsoft.com
+To:     alex.bou9@gmail.com, gustavoars@kernel.org,
+        mm-commits@vger.kernel.org, mporter@kernel.crashing.org
 Subject:  [merged]
- kdump-append-kernel-build-id-string-to-vmcoreinfo.patch removed from -mm
- tree
-Message-ID: <20200812210524.04pzgA9V-%akpm@linux-foundation.org>
+ rapidio-rio_mport_cdev-use-struct_size-helper.patch removed from -mm tree
+Message-ID: <20200812210527.XAH_RPyTg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,158 +54,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump: append kernel build-id string to VMCOREINFO
+     Subject: drivers/rapidio/devices/rio_mport_cdev.c: use struct_size() helper
 has been removed from the -mm tree.  Its filename was
-     kdump-append-kernel-build-id-string-to-vmcoreinfo.patch
+     rapidio-rio_mport_cdev-use-struct_size-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vijay Balakrishna <vijayb@linux.microsoft.com>
-Subject: kdump: append kernel build-id string to VMCOREINFO
+From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Subject: drivers/rapidio/devices/rio_mport_cdev.c: use struct_size() helper
 
-Make kernel GNU build-id available in VMCOREINFO.  Having build-id in
-VMCOREINFO facilitates presenting appropriate kernel namelist image with
-debug information file to kernel crash dump analysis tools.  Currently
-VMCOREINFO lacks uniquely identifiable key for crash analysis automation.
+Make use of the struct_size() helper instead of an open-coded version in
+order to avoid any potential type mistakes.
 
-Regarding if this patch is necessary or matching of linux_banner and
-OSRELEASE in VMCOREINFO employed by crash(8) meets the need -- IMO,
-build-id approach more foolproof, in most instances it is a cryptographic
-hash generated using internal code/ELF bits unlike kernel version string
-upon which linux_banner is based that is external to the code.  I feel
-each is intended for a different purpose.  Also OSRELEASE is not suitable
-when two different kernel builds from same version with different features
-enabled.
+This issue was found with the help of Coccinelle and, audited and fixed
+manually.
 
-Currently for most linux (and non-linux) systems build-id can be extracted
-using standard methods for file types such as user mode crash dumps,
-shared libraries, loadable kernel modules etc., This is an exception for
-linux kernel dump.  Having build-id in VMCOREINFO brings some uniformity
-for automation tools.
+Addresses KSPP ID: https://github.com/KSPP/linux/issues/83
 
-Tyler said:
-
-: I think this is a nice improvement over today's linux_banner approach for
-: correlating vmlinux to a kernel dump.
-: 
-: The elf notes parsing in this patch lines up with what is described in in
-: the "Notes (Nhdr)" section of the elf(5) man page.
-: 
-: BUILD_ID_MAX is sufficient to hold a sha1 build-id, which is the default
-: build-id type today in GNU ld(2).  It is also sufficient to hold the
-: "fast" build-id, which is the default build-id type today in LLVM lld(2).
-
-Link: http://lkml.kernel.org/r/1591849672-34104-1-git-send-email-vijayb@linux.microsoft.com
-Signed-off-by: Vijay Balakrishna <vijayb@linux.microsoft.com>
-Reviewed-by: Tyler Hicks <tyhicks@linux.microsoft.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Link: http://lkml.kernel.org/r/20200619170843.GA24923@embeddedor
+Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_core.h |    6 ++++
- kernel/crash_core.c        |   50 +++++++++++++++++++++++++++++++++++
- 2 files changed, 56 insertions(+)
+ drivers/rapidio/devices/rio_mport_cdev.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/crash_core.h~kdump-append-kernel-build-id-string-to-vmcoreinfo
-+++ a/include/linux/crash_core.h
-@@ -38,6 +38,8 @@ phys_addr_t paddr_vmcoreinfo_note(void);
- 
- #define VMCOREINFO_OSRELEASE(value) \
- 	vmcoreinfo_append_str("OSRELEASE=%s\n", value)
-+#define VMCOREINFO_BUILD_ID(value) \
-+	vmcoreinfo_append_str("BUILD-ID=%s\n", value)
- #define VMCOREINFO_PAGESIZE(value) \
- 	vmcoreinfo_append_str("PAGESIZE=%ld\n", value)
- #define VMCOREINFO_SYMBOL(name) \
-@@ -64,6 +66,10 @@ extern unsigned char *vmcoreinfo_data;
- extern size_t vmcoreinfo_size;
- extern u32 *vmcoreinfo_note;
- 
-+/* raw contents of kernel .notes section */
-+extern const void __start_notes __weak;
-+extern const void __stop_notes __weak;
-+
- Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
- 			  void *data, size_t data_len);
- void final_note(Elf_Word *buf);
---- a/kernel/crash_core.c~kdump-append-kernel-build-id-string-to-vmcoreinfo
-+++ a/kernel/crash_core.c
-@@ -11,6 +11,8 @@
- #include <asm/page.h>
- #include <asm/sections.h>
- 
-+#include <crypto/sha.h>
-+
- /* vmcoreinfo stuff */
- unsigned char *vmcoreinfo_data;
- size_t vmcoreinfo_size;
-@@ -376,6 +378,53 @@ phys_addr_t __weak paddr_vmcoreinfo_note
- }
- EXPORT_SYMBOL(paddr_vmcoreinfo_note);
- 
-+#define NOTES_SIZE (&__stop_notes - &__start_notes)
-+#define BUILD_ID_MAX SHA1_DIGEST_SIZE
-+#define NT_GNU_BUILD_ID 3
-+
-+struct elf_note_section {
-+	struct elf_note	n_hdr;
-+	u8 n_data[];
-+};
-+
-+/*
-+ * Add build ID from .notes section as generated by the GNU ld(1)
-+ * or LLVM lld(1) --build-id option.
-+ */
-+static void add_build_id_vmcoreinfo(void)
-+{
-+	char build_id[BUILD_ID_MAX * 2 + 1];
-+	int n_remain = NOTES_SIZE;
-+
-+	while (n_remain >= sizeof(struct elf_note)) {
-+		const struct elf_note_section *note_sec =
-+			&__start_notes + NOTES_SIZE - n_remain;
-+		const u32 n_namesz = note_sec->n_hdr.n_namesz;
-+
-+		if (note_sec->n_hdr.n_type == NT_GNU_BUILD_ID &&
-+		    n_namesz != 0 &&
-+		    !strcmp((char *)&note_sec->n_data[0], "GNU")) {
-+			if (note_sec->n_hdr.n_descsz <= BUILD_ID_MAX) {
-+				const u32 n_descsz = note_sec->n_hdr.n_descsz;
-+				const u8 *s = &note_sec->n_data[n_namesz];
-+
-+				s = PTR_ALIGN(s, 4);
-+				bin2hex(build_id, s, n_descsz);
-+				build_id[2 * n_descsz] = '\0';
-+				VMCOREINFO_BUILD_ID(build_id);
-+				return;
-+			}
-+			pr_warn("Build ID is too large to include in vmcoreinfo: %u > %u\n",
-+				note_sec->n_hdr.n_descsz,
-+				BUILD_ID_MAX);
-+			return;
-+		}
-+		n_remain -= sizeof(struct elf_note) +
-+			ALIGN(note_sec->n_hdr.n_namesz, 4) +
-+			ALIGN(note_sec->n_hdr.n_descsz, 4);
-+	}
-+}
-+
- static int __init crash_save_vmcoreinfo_init(void)
- {
- 	vmcoreinfo_data = (unsigned char *)get_zeroed_page(GFP_KERNEL);
-@@ -394,6 +443,7 @@ static int __init crash_save_vmcoreinfo_
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-rio_mport_cdev-use-struct_size-helper
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -1710,8 +1710,7 @@ static int rio_mport_add_riodev(struct m
+ 	if (rval & RIO_PEF_SWITCH) {
+ 		rio_mport_read_config_32(mport, destid, hopcount,
+ 					 RIO_SWP_INFO_CAR, &swpinfo);
+-		size += (RIO_GET_TOTAL_PORTS(swpinfo) *
+-			 sizeof(rswitch->nextdev[0])) + sizeof(*rswitch);
++		size += struct_size(rswitch, nextdev, RIO_GET_TOTAL_PORTS(swpinfo));
  	}
  
- 	VMCOREINFO_OSRELEASE(init_uts_ns.name.release);
-+	add_build_id_vmcoreinfo();
- 	VMCOREINFO_PAGESIZE(PAGE_SIZE);
- 
- 	VMCOREINFO_SYMBOL(init_uts_ns);
+ 	rdev = kzalloc(size, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from vijayb@linux.microsoft.com are
+Patches currently in -mm which might be from gustavoars@kernel.org are
 
 
