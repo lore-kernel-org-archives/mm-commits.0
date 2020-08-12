@@ -7,44 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EB13C433E1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7AD5C433DF
 	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 45F1820829
+	by mail.kernel.org (Postfix) with ESMTP id 8089320829
 	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=default; t=1597195924;
-	bh=WaEIkNcfMYREm13ULQ8dmpesjXp77yj1RCb28Y9Ya5M=;
+	bh=LR4UGW+njSoXnZHAIRR0pSvQ0DPvccZZtLZeliQC1Vg=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=dK12HxRGpv1eXI8OwTgp2+D271QyUXeEA83864QTgUh+ZynnoKi5cHxMHlgElzAPb
-	 PcmVNdmeyp2yyorffMPTUj/DAWsLKJ4W45DMqGyIkLilkxbaDc4aZJSVsCzvpX6qpX
-	 kwWq/w/C54qVwbpDKi7mpOXOlReoYOn3Pp8bdQuo=
+	b=WcKEXgbeWkv3TY1rp0VJqGxcuBWEIOTIMTTuqjF4d1wrKxAHN/+37+ubI73yEcBjE
+	 Uxt6Ycv1B3on2ZtzI7sc4TstUZ/FTkVVKQdE0eXSmKSNdLa89ZPyHPRouXX3N4vojQ
+	 2ybyym8Q7wB86y7x8+gX/nD0Tqrdh9f2lVQvTevs=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726402AbgHLBcD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:32:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60066 "EHLO mail.kernel.org"
+        id S1726542AbgHLBbh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:31:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726489AbgHLBcB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:32:01 -0400
+        id S1726501AbgHLBbg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:31:36 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id BA7A92076C;
-        Wed, 12 Aug 2020 01:32:00 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9FAA62076C;
+        Wed, 12 Aug 2020 01:31:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195921;
-        bh=WaEIkNcfMYREm13ULQ8dmpesjXp77yj1RCb28Y9Ya5M=;
+        s=default; t=1597195896;
+        bh=LR4UGW+njSoXnZHAIRR0pSvQ0DPvccZZtLZeliQC1Vg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=z883PzYJ0EL3PZiWG2ns0ckwAaZb5QtgbyyjtCk4xIrZEUt2jx5l5yNDDD54cGnQW
-         nc0zm8wzmCYfkOb6Frr3ETp/eOmhy5JuM03OIt3lWwMLNhrZDtatN69FlsYMxenfFh
-         SehgBlMHr0/JmzkXZ5kWoWUhZ4L30AiEJV9gyLhE=
-Date:   Tue, 11 Aug 2020 18:32:00 -0700
+        b=R3/JLmzK/OuNfC0EC3L2nL9tGRjuxBTBY7N1mPutFJpnR0UVxWIBrfSms0x81zEXE
+         DJqLobslLTaetLjxNJ5amsU2FfNYtR5H+9qKPQQaEOM69kz3h4CEd1YxEfK4jVEYD1
+         zgOOAZljpExVAZ3/6t3kPNkcZn/wdqhXFR0kVTgs=
+Date:   Tue, 11 Aug 2020 18:31:35 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, linux-mm@kvack.org,
+To:     akpm@linux-foundation.org, amir73il@gmail.com, linux-mm@kvack.org,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        song.bao.hua@hisilicon.com, torvalds@linux-foundation.org
-Subject:  [patch 033/165] mm: hugetlb: fix the name of hugetlb CMA
-Message-ID: <20200812013200.Wtnbj1Trq%akpm@linux-foundation.org>
+        mszeredi@redhat.com, torvalds@linux-foundation.org,
+        viro@zeniv.linux.org.uk, walters@verbum.org, willy@infradead.org
+Subject:  [patch 025/165] hugetlbfs: prevent filesystem stacking of
+ hugetlbfs
+Message-ID: <20200812013135.OJVdJOjRJ%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -53,40 +55,44 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Barry Song <song.bao.hua@hisilicon.com>
-Subject: mm: hugetlb: fix the name of hugetlb CMA
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlbfs: prevent filesystem stacking of hugetlbfs
 
-Once we enable CMA_DEBUGFS, we will get the below errors: directory
-'cma-hugetlb' with parent 'cma' already present.
+syzbot found issues with having hugetlbfs on a union/overlay as reported
+in [1].  Due to the limitations (no write) and special functionality of
+hugetlbfs, it does not work well in filesystem stacking.  There are no
+know use cases for hugetlbfs stacking.  Rather than making modifications
+to get hugetlbfs working in such environments, simply prevent stacking.
 
-We should have different names for different CMA areas.
+[1] https://lore.kernel.org/linux-mm/000000000000b4684e05a2968ca6@google.com/
 
-Link: http://lkml.kernel.org/r/20200616223131.33828-3-song.bao.hua@hisilicon.com
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: http://lkml.kernel.org/r/80f869aa-810d-ef6c-8888-b46cee135907@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: syzbot+d6ec23007e951dadf3de@syzkaller.appspotmail.com
+Suggested-by: Amir Goldstein <amir73il@gmail.com>
+Acked-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Colin Walters <walters@verbum.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-the-name-of-hugetlb-cma
-+++ a/mm/hugetlb.c
-@@ -5707,12 +5707,14 @@ void __init hugetlb_cma_reserve(int orde
- 	reserved = 0;
- 	for_each_node_state(nid, N_ONLINE) {
- 		int res;
-+		char name[20];
- 
- 		size = min(per_node, hugetlb_cma_size - reserved);
- 		size = round_up(size, PAGE_SIZE << order);
- 
-+		snprintf(name, 20, "hugetlb%d", nid);
- 		res = cma_declare_contiguous_nid(0, size, 0, PAGE_SIZE << order,
--						 0, false, "hugetlb",
-+						 0, false, name,
- 						 &hugetlb_cma[nid], nid);
- 		if (res) {
- 			pr_warn("hugetlb_cma: reservation failed: err %d, node %d",
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-prevent-filesystem-stacking-of-hugetlbfs
++++ a/fs/hugetlbfs/inode.c
+@@ -1364,6 +1364,12 @@ hugetlbfs_fill_super(struct super_block
+ 	sb->s_magic = HUGETLBFS_MAGIC;
+ 	sb->s_op = &hugetlbfs_ops;
+ 	sb->s_time_gran = 1;
++
++	/*
++	 * Due to the special and limited functionality of hugetlbfs, it does
++	 * not work well as a stacking filesystem.
++	 */
++	sb->s_stack_depth = FILESYSTEM_MAX_STACK_DEPTH;
+ 	sb->s_root = d_make_root(hugetlbfs_get_root(sb, ctx));
+ 	if (!sb->s_root)
+ 		goto out_free;
 _
