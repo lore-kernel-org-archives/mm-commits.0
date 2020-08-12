@@ -7,47 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B18DAC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60C19C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 873922076C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E59A206B2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196071;
-	bh=n3akit/kS5Ki7INVqk0MzU8of1pDmKLYQp0MI3SprD8=;
+	s=default; t=1597196074;
+	bh=wnPMbSG0caMVBJ6q3vTMMTN89+MjMxPvdJRJWBQDxBM=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=Hvlroll6Dzh+9XfsPwH9J/8ZGtitbSeNoN3oxZMSWbRECLFFQgljhbH23M+xFOpuS
-	 CwGwafJ8+HHCRgBZmlMRt4xgiGsjR51fhObeWquPBN5HOE79drSoKhLSmLcLMHpa88
-	 YLPvL5xeSuUeB1C6FqsxXyApLfalK5ve1M5vfJFs=
+	b=egKC88funBNnS32+YAxiMgGczdFwHrgESYEygugnkAEiKhPPuWLsprbCssgaKS6wo
+	 CRRuNIQhM+FfEE/mym9OzupK1dfLucUS4VpNNLX4S9VSnhFwxdgjg2+cx19dodRc1g
+	 9VX2s0Gv0gJwbxL+GKRCbXmRk94ldfNDh7IS26p0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726488AbgHLBea (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:34:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35282 "EHLO mail.kernel.org"
+        id S1726518AbgHLBee (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:34:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35342 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726422AbgHLBea (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:34:30 -0400
+        id S1726422AbgHLBed (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:34:33 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 854E2206B2;
-        Wed, 12 Aug 2020 01:34:29 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 94960207F7;
+        Wed, 12 Aug 2020 01:34:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196069;
-        bh=n3akit/kS5Ki7INVqk0MzU8of1pDmKLYQp0MI3SprD8=;
+        s=default; t=1597196072;
+        bh=wnPMbSG0caMVBJ6q3vTMMTN89+MjMxPvdJRJWBQDxBM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=FDXauKdYbndztCxrzvOrb80z4p+jFEzdSW0t5MUGRXl7OuadNV3U+1mJ7BeLJU+jL
-         Goq3RinOPckOc8EH6qQFLtZqDDWM4/ZXDhW/9G0y9yG9y0xS+G3SEqNtqcTwunobPt
-         bJK+oxrldcpmnsQmuDk2jd2p+Llz869G+b7EHoEM=
-Date:   Tue, 11 Aug 2020 18:34:29 -0700
+        b=SiNgRQ5d5gN80u28uDfJEP143B8xZRJ0HD+KYCVtmVRXywk62RHU3hF/PnXu/hz28
+         WOTv9FS+aItv5kpZZJI+DBILu8Wba4SjtBwxgFQe17OKyYJsEpRlN9cUP6aMURp0qJ
+         murHLAfl+8TLm7Y4GP6hKP7Qw3MKWiwdZumRCGQk=
+Date:   Tue, 11 Aug 2020 18:34:32 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
         linux-mm@kvack.org, linux@rasmusvillemoes.dk,
         mm-commits@vger.kernel.org, pablo@netfilter.org,
         sbrivio@redhat.com, torvalds@linux-foundation.org,
         yury.norov@gmail.com
-Subject:  [patch 080/165] lib/bitmap.c: fix bitmap_cut() for
- partial overlapping case
-Message-ID: <20200812013429.C42K7Ccjw%akpm@linux-foundation.org>
+Subject:  [patch 081/165] lib/test_bitmap.c: add test for
+ bitmap_cut()
+Message-ID: <20200812013432.VpkOGljuF%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,56 +57,96 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Stefano Brivio <sbrivio@redhat.com>
-Subject: lib/bitmap.c: fix bitmap_cut() for partial overlapping case
+Subject: lib/test_bitmap.c: add test for bitmap_cut()
 
-Patch series "lib: Fix bitmap_cut() for overlaps, add test"
+Inspired by an original patch from Yury Norov: introduce a test for
+bitmap_cut() that also makes sure functionality is as described for
+partially overlapping src and dst.
 
-
-This patch (of 2):
-
-Yury Norov reports that bitmap_cut() will not produce the right outcome if
-src and dst partially overlap, with src pointing at some location after
-dst, because the memmove() affects src before we store the bits that we
-need to keep, that is, the bits preceding the cut -- as long as we the
-beginning of the cut is not aligned to a long.
-
-Fix this by storing those bits before the memmove().
-
-Note that this is just a theoretical concern so far, as the only user of
-this function, pipapo_drop() from the nftables set back-end implemented in
-net/netfilter/nft_set_pipapo.c, always supplies entirely overlapping src
-and dst.
-
-Link: http://lkml.kernel.org/r/cover.1592155364.git.sbrivio@redhat.com
-Link: http://lkml.kernel.org/r/003e38d4428cd6091ef00b5b03354f1bd7d9091e.1592155364.git.sbrivio@redhat.com
-Fixes: 2092767168f0 ("bitmap: Introduce bitmap_cut(): cut bits and shift remaining")
+Link: http://lkml.kernel.org/r/5fc45e6bbd4fa837cd9577f8a0c1d639df90a4ce.1592155364.git.sbrivio@redhat.com
 Signed-off-by: Stefano Brivio <sbrivio@redhat.com>
-Reported-by: Yury Norov <yury.norov@gmail.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Yury Norov <yury.norov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/test_bitmap.c |   58 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
 
---- a/lib/bitmap.c~bitmap-fix-bitmap_cut-for-partial-overlapping-case
-+++ a/lib/bitmap.c
-@@ -212,13 +212,13 @@ void bitmap_cut(unsigned long *dst, cons
- 	unsigned long keep = 0, carry;
- 	int i;
+--- a/lib/test_bitmap.c~bitmap-add-test-for-bitmap_cut
++++ a/lib/test_bitmap.c
+@@ -610,6 +610,63 @@ static void __init test_for_each_set_clu
+ 		expect_eq_clump8(start, CLUMP_EXP_NUMBITS, clump_exp, &clump);
+ }
  
--	memmove(dst, src, len * sizeof(*dst));
--
- 	if (first % BITS_PER_LONG) {
- 		keep = src[first / BITS_PER_LONG] &
- 		       (~0UL >> (BITS_PER_LONG - first % BITS_PER_LONG));
- 	}
- 
-+	memmove(dst, src, len * sizeof(*dst));
++struct test_bitmap_cut {
++	unsigned int first;
++	unsigned int cut;
++	unsigned int nbits;
++	unsigned long in[4];
++	unsigned long expected[4];
++};
 +
- 	while (cut--) {
- 		for (i = first / BITS_PER_LONG; i < len; i++) {
- 			if (i < len - 1)
++static struct test_bitmap_cut test_cut[] = {
++	{  0,  0,  8, { 0x0000000aUL, }, { 0x0000000aUL, }, },
++	{  0,  0, 32, { 0xdadadeadUL, }, { 0xdadadeadUL, }, },
++	{  0,  3,  8, { 0x000000aaUL, }, { 0x00000015UL, }, },
++	{  3,  3,  8, { 0x000000aaUL, }, { 0x00000012UL, }, },
++	{  0,  1, 32, { 0xa5a5a5a5UL, }, { 0x52d2d2d2UL, }, },
++	{  0,  8, 32, { 0xdeadc0deUL, }, { 0x00deadc0UL, }, },
++	{  1,  1, 32, { 0x5a5a5a5aUL, }, { 0x2d2d2d2cUL, }, },
++	{  0, 15, 32, { 0xa5a5a5a5UL, }, { 0x00014b4bUL, }, },
++	{  0, 16, 32, { 0xa5a5a5a5UL, }, { 0x0000a5a5UL, }, },
++	{ 15, 15, 32, { 0xa5a5a5a5UL, }, { 0x000125a5UL, }, },
++	{ 15, 16, 32, { 0xa5a5a5a5UL, }, { 0x0000a5a5UL, }, },
++	{ 16, 15, 32, { 0xa5a5a5a5UL, }, { 0x0001a5a5UL, }, },
++
++	{ BITS_PER_LONG, BITS_PER_LONG, BITS_PER_LONG,
++		{ 0xa5a5a5a5UL, 0xa5a5a5a5UL, },
++		{ 0xa5a5a5a5UL, 0xa5a5a5a5UL, },
++	},
++	{ 1, BITS_PER_LONG - 1, BITS_PER_LONG,
++		{ 0xa5a5a5a5UL, 0xa5a5a5a5UL, },
++		{ 0x00000001UL, 0x00000001UL, },
++	},
++
++	{ 0, BITS_PER_LONG * 2, BITS_PER_LONG * 2 + 1,
++		{ 0xa5a5a5a5UL, 0x00000001UL, 0x00000001UL, 0x00000001UL },
++		{ 0x00000001UL, },
++	},
++	{ 16, BITS_PER_LONG * 2 + 1, BITS_PER_LONG * 2 + 1 + 16,
++		{ 0x0000ffffUL, 0x5a5a5a5aUL, 0x5a5a5a5aUL, 0x5a5a5a5aUL },
++		{ 0x2d2dffffUL, },
++	},
++};
++
++static void __init test_bitmap_cut(void)
++{
++	unsigned long b[5], *in = &b[1], *out = &b[0];	/* Partial overlap */
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(test_cut); i++) {
++		struct test_bitmap_cut *t = &test_cut[i];
++
++		memcpy(in, t->in, sizeof(t->in));
++
++		bitmap_cut(out, in, t->first, t->cut, t->nbits);
++
++		expect_eq_bitmap(t->expected, out, t->nbits);
++	}
++}
++
+ static void __init selftest(void)
+ {
+ 	test_zero_clear();
+@@ -623,6 +680,7 @@ static void __init selftest(void)
+ 	test_bitmap_parselist_user();
+ 	test_mem_optimisations();
+ 	test_for_each_set_clump8();
++	test_bitmap_cut();
+ }
+ 
+ KSTM_MODULE_LOADERS(test_bitmap);
 _
