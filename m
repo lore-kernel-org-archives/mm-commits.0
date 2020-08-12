@@ -2,51 +2,49 @@ Return-Path: <SRS0=McLq=BW=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 912C2C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50E63C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C4462080C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2847120838
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266254;
-	bh=DBUlGQD7tf9W/pzopaUOkzCnHG7WK1fwBMvD6+pjA2c=;
+	s=default; t=1597266256;
+	bh=k1HyAVWe/e91elbFX+6NAEgo4vUbP7D4cnBDNtaaD/4=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Hm12I2/d/ECF/2a9Tdk6+De2m+myjVOQJrvgJhIWY8ID/+HPBcWFlhPfii39oLwMN
-	 gy5PEOtPX6txHYxi41OdV4bOIuS59hDX+gGF5fK+Cieogqnp3MgK/+QdjVqJ8w2srA
-	 OpbHpZ+TvNqxgurjDvEGqqPMIKmKdcrzhGH89ZHo=
+	b=LY2krdA4zJk84cbRROtE+GUL2AowzokrSdD7vVGCnI1xNh14DhVvsr9MmMWhLA5E5
+	 tkfAjZGgclSttW9hPFFjzyOMDoay2isUZzL8yelfB5TIVdG5r6PgaAsvLKI/UYveRU
+	 z69h+jPsDQVXhGqsWQ+2+L0q4SB+x0ypd9vcnxhk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726030AbgHLVEO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:04:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55820 "EHLO mail.kernel.org"
+        id S1726576AbgHLVEP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:04:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55970 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726574AbgHLVEM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:04:12 -0400
+        id S1726574AbgHLVEP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:04:15 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9E830207F7;
-        Wed, 12 Aug 2020 21:04:10 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 5C62420774;
+        Wed, 12 Aug 2020 21:04:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266250;
-        bh=DBUlGQD7tf9W/pzopaUOkzCnHG7WK1fwBMvD6+pjA2c=;
+        s=default; t=1597266253;
+        bh=k1HyAVWe/e91elbFX+6NAEgo4vUbP7D4cnBDNtaaD/4=;
         h=Date:From:To:Subject:From;
-        b=qW3E41Z7cyUcoGr0+LuPxSWUk8NUeeifqun9t80tbD1BlYTDgpK5GK9Ch+84JpmhG
-         DPtnWQ7J+AC8Yrxb2xtD8lYt56IOx67bizCoJOXJrmdIamPDM2GTgZbOHORJTmfenh
-         ks4Gvz/kdSxNSTlZ2H4XLLJ5OkqCt3buTtnuUQL8=
-Date:   Wed, 12 Aug 2020 14:04:10 -0700
+        b=GPQ0wHyrMvZV608leTa5yyeEkc5obYbZ9F/EKZhdholOJYU6Fc+UI32t1VJamdtC7
+         ErQawgOpUolKlQ0JLY7hshMBGmIhfzzb3lKHQh7pSjfuGyNUlaW65JOIuH7CS5MGn3
+         gUKh7WKZzqIoTH8Fs+4F1IrIZCqRoSJK6eo5anzQ=
+Date:   Wed, 12 Aug 2020 14:04:13 -0700
 From:   akpm@linux-foundation.org
-To:     keescook@chromium.org, khlebnikov@yandex-team.ru,
-        linux@roeck-us.net, mm-commits@vger.kernel.org,
-        yangtiezhu@loongson.cn
-Subject:  [merged]
- lib-test_lockupc-fix-return-value-of-test_lockup_init.patch removed from
- -mm tree
-Message-ID: <20200812210410.OMcIRy873%akpm@linux-foundation.org>
+To:     colyli@suse.de, grandmaster@al2klimov.de,
+        mm-commits@vger.kernel.org
+Subject:  [merged] lib-replace-http-links-with-https-ones.patch
+ removed from -mm tree
+Message-ID: <20200812210413.b7AjLzfEK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,65 +54,204 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_lockup.c: fix return value of test_lockup_init()
+     Subject: lib/: replace HTTP links with HTTPS ones
 has been removed from the -mm tree.  Its filename was
-     lib-test_lockupc-fix-return-value-of-test_lockup_init.patch
+     lib-replace-http-links-with-https-ones.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: lib/test_lockup.c: fix return value of test_lockup_init()
+From: "Alexander A. Klimov" <grandmaster@al2klimov.de>
+Subject: lib/: replace HTTP links with HTTPS ones
 
-Since filp_open() returns an error pointer, we should use IS_ERR() to
-check the return value and then return PTR_ERR() if failed to get the
-actual return value instead of always -EINVAL.
+Rationale:
+Reduces attack surface on kernel devs opening the links for MITM
+as HTTPS traffic is much harder to manipulate.
 
-E.g. without this patch:
-
-[root@localhost loongson]# ls no_such_file
-ls: cannot access no_such_file: No such file or directory
-[root@localhost loongson]# modprobe test_lockup file_path=no_such_file lock_sb_umount time_secs=60 state=S
-modprobe: ERROR: could not insert 'test_lockup': Invalid argument
-[root@localhost loongson]# dmesg | tail -1
-[  126.100596] test_lockup: cannot find file_path
-
-With this patch:
-
-[root@localhost loongson]# ls no_such_file
-ls: cannot access no_such_file: No such file or directory
-[root@localhost loongson]# modprobe test_lockup file_path=no_such_file lock_sb_umount time_secs=60 state=S
-modprobe: ERROR: could not insert 'test_lockup': Unknown symbol in module, or unknown parameter (see dmesg)
-[root@localhost loongson]# dmesg | tail -1
-[   95.134362] test_lockup: failed to open no_such_file: -2
-
-Link: http://lkml.kernel.org/r/1595555407-29875-2-git-send-email-yangtiezhu@loongson.cn
-Fixes: aecd42df6d39 ("lib/test_lockup.c: add parameters for locking generic vfs locks")
-Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/20200726112154.16510-1-grandmaster@al2klimov.de
+Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
+Acked-by: Coly Li <colyli@suse.de>	[crc64.c]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_lockup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/Kconfig.debug        |    2 +-
+ lib/crc64.c              |    2 +-
+ lib/decompress_bunzip2.c |    2 +-
+ lib/decompress_unlzma.c  |    6 +++---
+ lib/math/rational.c      |    2 +-
+ lib/rbtree.c             |    2 +-
+ lib/ts_bm.c              |    2 +-
+ lib/xxhash.c             |    2 +-
+ lib/xz/xz_crc32.c        |    2 +-
+ lib/xz/xz_dec_bcj.c      |    2 +-
+ lib/xz/xz_dec_lzma2.c    |    2 +-
+ lib/xz/xz_lzma2.h        |    2 +-
+ lib/xz/xz_stream.h       |    2 +-
+ 13 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/lib/test_lockup.c~lib-test_lockupc-fix-return-value-of-test_lockup_init
-+++ a/lib/test_lockup.c
-@@ -512,8 +512,8 @@ static int __init test_lockup_init(void)
- 	if (test_file_path[0]) {
- 		test_file = filp_open(test_file_path, O_RDONLY, 0);
- 		if (IS_ERR(test_file)) {
--			pr_err("cannot find file_path\n");
--			return -EINVAL;
-+			pr_err("failed to open %s: %ld\n", test_file_path, PTR_ERR(test_file));
-+			return PTR_ERR(test_file);
- 		}
- 		test_inode = file_inode(test_file);
- 	} else if (test_lock_inode ||
+--- a/lib/crc64.c~lib-replace-http-links-with-https-ones
++++ a/lib/crc64.c
+@@ -4,7 +4,7 @@
+  *
+  * This is a basic crc64 implementation following ECMA-182 specification,
+  * which can be found from,
+- * http://www.ecma-international.org/publications/standards/Ecma-182.htm
++ * https://www.ecma-international.org/publications/standards/Ecma-182.htm
+  *
+  * Dr. Ross N. Williams has a great document to introduce the idea of CRC
+  * algorithm, here the CRC64 code is also inspired by the table-driven
+--- a/lib/decompress_bunzip2.c~lib-replace-http-links-with-https-ones
++++ a/lib/decompress_bunzip2.c
+@@ -34,7 +34,7 @@
+ 		Phone (337) 232-1234 or 1-800-738-2226
+ 		Fax   (337) 232-1297
+ 
+-		http://www.hospiceacadiana.com/
++		https://www.hospiceacadiana.com/
+ 
+ 	Manuel
+  */
+--- a/lib/decompress_unlzma.c~lib-replace-http-links-with-https-ones
++++ a/lib/decompress_unlzma.c
+@@ -8,7 +8,7 @@
+  *implementation for lzma.
+  *Copyright (C) 2006  Aurelien Jacobs < aurel@gnuage.org >
+  *
+- *Based on LzmaDecode.c from the LZMA SDK 4.22 (http://www.7-zip.org/)
++ *Based on LzmaDecode.c from the LZMA SDK 4.22 (https://www.7-zip.org/)
+  *Copyright (C) 1999-2005  Igor Pavlov
+  *
+  *Copyrights of the parts, see headers below.
+@@ -56,7 +56,7 @@ static long long INIT read_int(unsigned
+ /* Small range coder implementation for lzma.
+  *Copyright (C) 2006  Aurelien Jacobs < aurel@gnuage.org >
+  *
+- *Based on LzmaDecode.c from the LZMA SDK 4.22 (http://www.7-zip.org/)
++ *Based on LzmaDecode.c from the LZMA SDK 4.22 (https://www.7-zip.org/)
+  *Copyright (c) 1999-2005  Igor Pavlov
+  */
+ 
+@@ -213,7 +213,7 @@ rc_bit_tree_decode(struct rc *rc, uint16
+  * Small lzma deflate implementation.
+  * Copyright (C) 2006  Aurelien Jacobs < aurel@gnuage.org >
+  *
+- * Based on LzmaDecode.c from the LZMA SDK 4.22 (http://www.7-zip.org/)
++ * Based on LzmaDecode.c from the LZMA SDK 4.22 (https://www.7-zip.org/)
+  * Copyright (C) 1999-2005  Igor Pavlov
+  */
+ 
+--- a/lib/Kconfig.debug~lib-replace-http-links-with-https-ones
++++ a/lib/Kconfig.debug
+@@ -2215,7 +2215,7 @@ config LIST_KUNIT_TEST
+ 	  and associated macros.
+ 
+ 	  KUnit tests run during boot and output the results to the debug log
+-	  in TAP format (http://testanything.org/). Only useful for kernel devs
++	  in TAP format (https://testanything.org/). Only useful for kernel devs
+ 	  running the KUnit test harness, and not intended for inclusion into a
+ 	  production build.
+ 
+--- a/lib/math/rational.c~lib-replace-http-links-with-https-ones
++++ a/lib/math/rational.c
+@@ -27,7 +27,7 @@
+  * with the fractional part size described in given_denominator.
+  *
+  * for theoretical background, see:
+- * http://en.wikipedia.org/wiki/Continued_fraction
++ * https://en.wikipedia.org/wiki/Continued_fraction
+  */
+ 
+ void rational_best_approximation(
+--- a/lib/rbtree.c~lib-replace-http-links-with-https-ones
++++ a/lib/rbtree.c
+@@ -13,7 +13,7 @@
+ #include <linux/export.h>
+ 
+ /*
+- * red-black trees properties:  http://en.wikipedia.org/wiki/Rbtree
++ * red-black trees properties:  https://en.wikipedia.org/wiki/Rbtree
+  *
+  *  1) A node is either red or black
+  *  2) The root is black
+--- a/lib/ts_bm.c~lib-replace-http-links-with-https-ones
++++ a/lib/ts_bm.c
+@@ -11,7 +11,7 @@
+  *   [1] A Fast String Searching Algorithm, R.S. Boyer and Moore.
+  *       Communications of the Association for Computing Machinery, 
+  *       20(10), 1977, pp. 762-772.
+- *       http://www.cs.utexas.edu/users/moore/publications/fstrpos.pdf
++ *       https://www.cs.utexas.edu/users/moore/publications/fstrpos.pdf
+  *
+  *   [2] Handbook of Exact String Matching Algorithms, Thierry Lecroq, 2004
+  *       http://www-igm.univ-mlv.fr/~lecroq/string/string.pdf
+--- a/lib/xxhash.c~lib-replace-http-links-with-https-ones
++++ a/lib/xxhash.c
+@@ -34,7 +34,7 @@
+  * ("BSD").
+  *
+  * You can contact the author at:
+- * - xxHash homepage: http://cyan4973.github.io/xxHash/
++ * - xxHash homepage: https://cyan4973.github.io/xxHash/
+  * - xxHash source repository: https://github.com/Cyan4973/xxHash
+  */
+ 
+--- a/lib/xz/xz_crc32.c~lib-replace-http-links-with-https-ones
++++ a/lib/xz/xz_crc32.c
+@@ -2,7 +2,7 @@
+  * CRC32 using the polynomial from IEEE-802.3
+  *
+  * Authors: Lasse Collin <lasse.collin@tukaani.org>
+- *          Igor Pavlov <http://7-zip.org/>
++ *          Igor Pavlov <https://7-zip.org/>
+  *
+  * This file has been put into the public domain.
+  * You can do whatever you want with this file.
+--- a/lib/xz/xz_dec_bcj.c~lib-replace-http-links-with-https-ones
++++ a/lib/xz/xz_dec_bcj.c
+@@ -2,7 +2,7 @@
+  * Branch/Call/Jump (BCJ) filter decoders
+  *
+  * Authors: Lasse Collin <lasse.collin@tukaani.org>
+- *          Igor Pavlov <http://7-zip.org/>
++ *          Igor Pavlov <https://7-zip.org/>
+  *
+  * This file has been put into the public domain.
+  * You can do whatever you want with this file.
+--- a/lib/xz/xz_dec_lzma2.c~lib-replace-http-links-with-https-ones
++++ a/lib/xz/xz_dec_lzma2.c
+@@ -2,7 +2,7 @@
+  * LZMA2 decoder
+  *
+  * Authors: Lasse Collin <lasse.collin@tukaani.org>
+- *          Igor Pavlov <http://7-zip.org/>
++ *          Igor Pavlov <https://7-zip.org/>
+  *
+  * This file has been put into the public domain.
+  * You can do whatever you want with this file.
+--- a/lib/xz/xz_lzma2.h~lib-replace-http-links-with-https-ones
++++ a/lib/xz/xz_lzma2.h
+@@ -2,7 +2,7 @@
+  * LZMA2 definitions
+  *
+  * Authors: Lasse Collin <lasse.collin@tukaani.org>
+- *          Igor Pavlov <http://7-zip.org/>
++ *          Igor Pavlov <https://7-zip.org/>
+  *
+  * This file has been put into the public domain.
+  * You can do whatever you want with this file.
+--- a/lib/xz/xz_stream.h~lib-replace-http-links-with-https-ones
++++ a/lib/xz/xz_stream.h
+@@ -19,7 +19,7 @@
+ 
+ /*
+  * See the .xz file format specification at
+- * http://tukaani.org/xz/xz-file-format.txt
++ * https://tukaani.org/xz/xz-file-format.txt
+  * to understand the container format.
+  */
+ 
 _
 
-Patches currently in -mm which might be from yangtiezhu@loongson.cn are
+Patches currently in -mm which might be from grandmaster@al2klimov.de are
 
 
