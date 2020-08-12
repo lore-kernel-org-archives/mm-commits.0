@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81F1EC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1F5BC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 525B32080C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D24AF207DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196049;
-	bh=XxYbZ55CofPhj+4154ViwMyzPUAGKC6bC15H1R16Jm8=;
+	s=default; t=1597196053;
+	bh=+EpEEOg6vBU2FyYY07c2pWGivdTlnuq9ebDrmeavXX8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=kRmjwXZQmydjgS24r6yL6O91/WxTdtzda4gy76EfFZXbcXE1hFyABnRg/vsZXk4Fz
-	 XONd5JL/4GOXlHqqflOs3hBGI8kWVZ1B3Dd+D0CxMRq1N2JjHi6sbOThhVF/AYO2Ji
-	 v61SsEaWn5g1G+WDzq95/R/Vju0GTyuwy8gICMbQ=
+	b=ohdUYnwT1CNyU2Mc9zSHNAetN84BpYqk8Itp7+5RCZh9cmsgShCKAOqvNstK1ajRB
+	 RosxMH9ufZ8HWNOeJHHrhrhu9V4Pa5r/YjnVYdYnC4l6AuR35BC5p7ja8X8qJ+Cg2q
+	 2Iycyi/zBpEoFeDpZPjA4//aXjI1hIrDM+uSIgTI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726472AbgHLBeJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:34:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34890 "EHLO mail.kernel.org"
+        id S1726469AbgHLBeM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:34:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726422AbgHLBeI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:34:08 -0400
+        id S1726422AbgHLBeM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:34:12 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 954D220829;
-        Wed, 12 Aug 2020 01:34:07 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 05F5C20855;
+        Wed, 12 Aug 2020 01:34:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196047;
-        bh=XxYbZ55CofPhj+4154ViwMyzPUAGKC6bC15H1R16Jm8=;
+        s=default; t=1597196051;
+        bh=+EpEEOg6vBU2FyYY07c2pWGivdTlnuq9ebDrmeavXX8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ZYxuvEz3GhtW66KHOS5H6rzkLJBiJsyrV1gocjMIXDC7XoFSvRf3igoyrlZt07TBr
-         xSQ+bTVqSkADIkXFLt7UbzWKN2zMtoGtxZBhObjhCB1vJV1AwD1aUaj1XuPmxlHpos
-         pCghuT+hewp7BsWClRC7XWVuBkoHaJ2Ly16sD/Ms=
-Date:   Tue, 11 Aug 2020 18:34:07 -0700
+        b=S4Q3b2VMMOPMlPJEhNp5jVtgjhefK7tEnl6QUplck0b5zIRflGGe8rgnI9yGBQxqw
+         ENmfWznDAaksoIIEpN+xiMPlLkyrhKbBCzYIfRev0KpRkBil6e+xHa8TyPv4amO+QA
+         piosHyGBLLXJwm5sNln2BPFLNIdI3ppkAdVVqfNs=
+Date:   Tue, 11 Aug 2020 18:34:10 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, lasse.collin@tukaani.org,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, torvalds@linux-foundation.org
-Subject:  [patch 073/165] include/linux/xz.h: drop duplicated word
-Message-ID: <20200812013407.5O1twL7qX%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, ebiederm@xmission.com, hch@lst.de,
+        linux-mm@kvack.org, mcgrof@kernel.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 074/165] kernel: add a kernel_wait helper
+Message-ID: <20200812013410.5LqweYVEQ%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -53,29 +53,104 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: include/linux/xz.h: drop duplicated word
+From: Christoph Hellwig <hch@lst.de>
+Subject: kernel: add a kernel_wait helper
 
-Drop the doubled word "than" in a comment.
+Add a helper that waits for a pid and stores the status in the passed in
+kernel pointer.  Use it to fix the usage of kernel_wait4 in
+call_usermodehelper_exec_sync that only happens to work due to the
+implicit set_fs(KERNEL_DS) for kernel threads.
 
-Link: http://lkml.kernel.org/r/05ebba7a-c1e4-01ae-fc7b-15c081b33f3e@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Lasse Collin <lasse.collin@tukaani.org>
+Link: http://lkml.kernel.org/r/20200721130449.5008-1-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/xz.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched/task.h |    1 +
+ kernel/exit.c              |   16 ++++++++++++++++
+ kernel/umh.c               |   29 ++++-------------------------
+ 3 files changed, 21 insertions(+), 25 deletions(-)
 
---- a/include/linux/xz.h~xz-drop-duplicated-word-in-linux-xzh
-+++ a/include/linux/xz.h
-@@ -28,7 +28,7 @@
-  * enum xz_mode - Operation mode
-  *
-  * @XZ_SINGLE:              Single-call mode. This uses less RAM than
-- *                          than multi-call modes, because the LZMA2
-+ *                          multi-call modes, because the LZMA2
-  *                          dictionary doesn't need to be allocated as
-  *                          part of the decoder state. All required data
-  *                          structures are allocated at initialization,
+--- a/include/linux/sched/task.h~kernel-add-a-kernel_wait-helper
++++ a/include/linux/sched/task.h
+@@ -88,6 +88,7 @@ struct task_struct *fork_idle(int);
+ struct mm_struct *copy_init_mm(void);
+ extern pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags);
+ extern long kernel_wait4(pid_t, int __user *, int, struct rusage *);
++int kernel_wait(pid_t pid, int *stat);
+ 
+ extern void free_task(struct task_struct *tsk);
+ 
+--- a/kernel/exit.c~kernel-add-a-kernel_wait-helper
++++ a/kernel/exit.c
+@@ -1626,6 +1626,22 @@ long kernel_wait4(pid_t upid, int __user
+ 	return ret;
+ }
+ 
++int kernel_wait(pid_t pid, int *stat)
++{
++	struct wait_opts wo = {
++		.wo_type	= PIDTYPE_PID,
++		.wo_pid		= find_get_pid(pid),
++		.wo_flags	= WEXITED,
++	};
++	int ret;
++
++	ret = do_wait(&wo);
++	if (ret > 0 && wo.wo_stat)
++		*stat = wo.wo_stat;
++	put_pid(wo.wo_pid);
++	return ret;
++}
++
+ SYSCALL_DEFINE4(wait4, pid_t, upid, int __user *, stat_addr,
+ 		int, options, struct rusage __user *, ru)
+ {
+--- a/kernel/umh.c~kernel-add-a-kernel_wait-helper
++++ a/kernel/umh.c
+@@ -119,37 +119,16 @@ static void call_usermodehelper_exec_syn
+ {
+ 	pid_t pid;
+ 
+-	/* If SIGCLD is ignored kernel_wait4 won't populate the status. */
++	/* If SIGCLD is ignored do_wait won't populate the status. */
+ 	kernel_sigaction(SIGCHLD, SIG_DFL);
+ 	pid = kernel_thread(call_usermodehelper_exec_async, sub_info, SIGCHLD);
+-	if (pid < 0) {
++	if (pid < 0)
+ 		sub_info->retval = pid;
+-	} else {
+-		int ret = -ECHILD;
+-		/*
+-		 * Normally it is bogus to call wait4() from in-kernel because
+-		 * wait4() wants to write the exit code to a userspace address.
+-		 * But call_usermodehelper_exec_sync() always runs as kernel
+-		 * thread (workqueue) and put_user() to a kernel address works
+-		 * OK for kernel threads, due to their having an mm_segment_t
+-		 * which spans the entire address space.
+-		 *
+-		 * Thus the __user pointer cast is valid here.
+-		 */
+-		kernel_wait4(pid, (int __user *)&ret, 0, NULL);
+-
+-		/*
+-		 * If ret is 0, either call_usermodehelper_exec_async failed and
+-		 * the real error code is already in sub_info->retval or
+-		 * sub_info->retval is 0 anyway, so don't mess with it then.
+-		 */
+-		if (ret)
+-			sub_info->retval = ret;
+-	}
++	else
++		kernel_wait(pid, &sub_info->retval);
+ 
+ 	/* Restore default kernel sig handler */
+ 	kernel_sigaction(SIGCHLD, SIG_IGN);
+-
+ 	umh_complete(sub_info);
+ }
+ 
 _
