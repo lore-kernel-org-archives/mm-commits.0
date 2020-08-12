@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54A1FC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B0C1C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2FD4A2087C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5024C20838
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266154;
-	bh=gU2hckw2E/Msr5xY7cm4kTHSasSJsX5W1FFsm3wNKis=;
+	s=default; t=1597266156;
+	bh=00eEvFLozIiQqP/LxbejGawx17W168cFE2dAlayYgh0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Hd14+VW14rLflUfEMSoyenRRO2D4xnXmTc7vYOWqhzgig02LTnMQb96CThBdnX0Ep
-	 0UbDh5pW6sbQCaOS7mVTUdmkt0LOiMdQq3B/wQ2TU1pnmqV75+fVIvBEIRxESfJRQq
-	 5DJHmh9Ch7apkFtblg3n2YDNNkUdSVT7SceN33h4=
+	b=MlAidWA/bSA74sfZJ9SfgcMEf4jYPQYoKvtfgLPuPsmLkBJG0iD3TyDqKOLYwIWhb
+	 61H5dWfBd+M/A4GJNtz4jmDZAdgxPdiB83Qu3pI1Y6kSS8EPWl/5xgHy6swB/cnYqj
+	 OCjKPusov0Cj3AiQg+HcjWs/4j8NB4QkWN8ZVsPY=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726609AbgHLVCd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:02:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49990 "EHLO mail.kernel.org"
+        id S1726564AbgHLVCg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:02:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50116 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726564AbgHLVCd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:02:33 -0400
+        id S1726526AbgHLVCf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:02:35 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 6CECB20838;
-        Wed, 12 Aug 2020 21:02:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 74CBF207F7;
+        Wed, 12 Aug 2020 21:02:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266153;
-        bh=gU2hckw2E/Msr5xY7cm4kTHSasSJsX5W1FFsm3wNKis=;
+        s=default; t=1597266155;
+        bh=00eEvFLozIiQqP/LxbejGawx17W168cFE2dAlayYgh0=;
         h=Date:From:To:Subject:From;
-        b=pHCRGSIkfor4knfn9Lq9Y9NuQ6+ZxwEgxrqVcK9b+YOcy/KTdiv8xkeCPJga6qOrX
-         5XUJzb1lq7BNX7B95xbeL/rMCxNQKW+Phhs+8tj86fg8F2g+k+SkNVoAOrWL/uxO3C
-         FVhsoUMujf+SkIinRWngPZd/8U+VbV7bp0Tc8GYA=
-Date:   Wed, 12 Aug 2020 14:02:33 -0700
+        b=I8lC7HEQLwsozMJsfD9ZpwoX72RjJMyVyEh3/OkRv7Jh4xeXcdDGaWDgbmNBebhwB
+         8IOwpXiQbKAGkawqMg+cbQOpiL8PzMofS/BZmCUGh18hP2tmvIj6FbofZrTAA7Ty3U
+         IXixMZ9uaGRm2yJd3PGN5vj/sBtHJ6tOEwEd/J+E=
+Date:   Wed, 12 Aug 2020 14:02:35 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, rdunlap@infradead.org, sjpark@amazon.de
-Subject:  [merged] mm-drop-duplicated-words-in-linux-pgtableh.patch
+Subject:  [merged] mm-drop-duplicated-words-in-linux-mmh.patch
  removed from -mm tree
-Message-ID: <20200812210233.ESy4-ubs_%akpm@linux-foundation.org>
+Message-ID: <20200812210235.Z9oPzalUn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -53,65 +53,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop duplicated words in <linux/pgtable.h>
+     Subject: mm: drop duplicated words in <linux/mm.h>
 has been removed from the -mm tree.  Its filename was
-     mm-drop-duplicated-words-in-linux-pgtableh.patch
+     mm-drop-duplicated-words-in-linux-mmh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: drop duplicated words in <linux/pgtable.h>
+Subject: mm: drop duplicated words in <linux/mm.h>
 
-Drop the doubled words "used" and "by".
+Drop the doubled words "to" and "the".
 
-Drop the repeated acronym "TLB" and make several other fixes around it.
-(capital letters, spellos)
-
-Link: http://lkml.kernel.org/r/2bb6e13e-44df-4920-52d9-4d3539945f73@infradead.org
+Link: http://lkml.kernel.org/r/d9fae8d6-0d60-4d52-9385-3199ee98de49@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: SeongJae Park <sjpark@amazon.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/mm.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/pgtable.h~mm-drop-duplicated-words-in-linux-pgtableh
-+++ a/include/linux/pgtable.h
-@@ -804,7 +804,7 @@ static inline void ptep_modify_prot_comm
+--- a/include/linux/mm.h~mm-drop-duplicated-words-in-linux-mmh
++++ a/include/linux/mm.h
+@@ -479,7 +479,7 @@ static inline bool fault_flag_allow_retr
+ 	{ FAULT_FLAG_INTERRUPTIBLE,	"INTERRUPTIBLE" }
  
  /*
-  * No-op macros that just return the current protection value. Defined here
-- * because these macros can be used used even if CONFIG_MMU is not defined.
-+ * because these macros can be used even if CONFIG_MMU is not defined.
-  */
+- * vm_fault is filled by the the pagefault handler and passed to the vma's
++ * vm_fault is filled by the pagefault handler and passed to the vma's
+  * ->fault function. The vma's ->fault is responsible for returning a bitmask
+  * of VM_FAULT_xxx flags that give details about how the fault was handled.
+  *
+@@ -2599,7 +2599,7 @@ extern unsigned long stack_guard_gap;
+ /* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
+ extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
  
- #ifndef pgprot_nx
-@@ -1234,7 +1234,7 @@ static inline int pmd_trans_unstable(pmd
-  * Technically a PTE can be PROTNONE even when not doing NUMA balancing but
-  * the only case the kernel cares is for NUMA balancing and is only ever set
-  * when the VMA is accessible. For PROT_NONE VMAs, the PTEs are not marked
-- * _PAGE_PROTNONE so by by default, implement the helper as "always no". It
-+ * _PAGE_PROTNONE so by default, implement the helper as "always no". It
-  * is the responsibility of the caller to distinguish between PROT_NONE
-  * protections and NUMA hinting fault protections.
-  */
-@@ -1318,10 +1318,10 @@ static inline int pmd_free_pte_page(pmd_
- /*
-  * ARCHes with special requirements for evicting THP backing TLB entries can
-  * implement this. Otherwise also, it can help optimize normal TLB flush in
-- * THP regime. stock flush_tlb_range() typically has optimization to nuke the
-- * entire TLB TLB if flush span is greater than a threshold, which will
-- * likely be true for a single huge page. Thus a single thp flush will
-- * invalidate the entire TLB which is not desitable.
-+ * THP regime. Stock flush_tlb_range() typically has optimization to nuke the
-+ * entire TLB if flush span is greater than a threshold, which will
-+ * likely be true for a single huge page. Thus a single THP flush will
-+ * invalidate the entire TLB which is not desirable.
-  * e.g. see arch/arc: flush_pmd_tlb_range
-  */
- #define flush_pmd_tlb_range(vma, addr, end)	flush_tlb_range(vma, addr, end)
+-/* CONFIG_STACK_GROWSUP still needs to to grow downwards at some places */
++/* CONFIG_STACK_GROWSUP still needs to grow downwards at some places */
+ extern int expand_downwards(struct vm_area_struct *vma,
+ 		unsigned long address);
+ #if VM_GROWSUP
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
