@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 462C9C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28B0BC433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 19ABB2076C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F124D207DA
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597195872;
-	bh=MCq44S2ZvMhwVwuloi9AKcj2f0XwMhqAwrLK7qLYs0o=;
+	s=default; t=1597195875;
+	bh=gNoXGryWPF0iLXtXvVeizJyJL+IqwrJGt/4GwCXJ3Jo=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=HKQcBi/UP+ccsS6FuqIxSoFlC+zxTigpo0gweaurhQkzhD8Fk3wlr2gNi39rEAIFi
-	 WLGsu/bSWQtIWyDjZYbjtSFiQWOF0WkM2rFxPivrFQywIHZ/LRDREx2dCF9k1PTYRr
-	 rjLItOBBxFkLdfRESUQt3kJYip+bLM00r8mokrCI=
+	b=2Qpa5/HYOt07MYXIGfKxD+7c4uPtpDxyhlGOd7A9yWvzrHZKn2wlGvHx0+B03ypSi
+	 0xX2Yabr75MW9Do6/gbQM4m8emcUtEFNaQp+xDEkp5jEIO7NG7YUjA6+lwBirv8LCB
+	 dfpS8Mqtb5uGLw50eHUldr8RS70nwEENC7xofRjI=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726518AbgHLBbL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:31:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58402 "EHLO mail.kernel.org"
+        id S1726422AbgHLBbO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:31:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58474 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBbL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:31:11 -0400
+        id S1726235AbgHLBbO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:31:14 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1588D206B2;
-        Wed, 12 Aug 2020 01:31:11 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 19E342076C;
+        Wed, 12 Aug 2020 01:31:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195871;
-        bh=MCq44S2ZvMhwVwuloi9AKcj2f0XwMhqAwrLK7qLYs0o=;
+        s=default; t=1597195874;
+        bh=gNoXGryWPF0iLXtXvVeizJyJL+IqwrJGt/4GwCXJ3Jo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=HMm50+gtYSoLxfUrDtncPoOs4qbeYENbVSjZb5YiOoBPiuHuMd9nIUAhSCz7KB6+8
-         g0FFjDfSbl4ku+7IsxGAHYk5PtyEG20P5hSb/0ZARnDfBSrgS08ERdWkbM2d8E0Rj+
-         2SrwHgNgfxACDwpSwoEPHGiyLcj7jKLIon9SKACI=
-Date:   Tue, 11 Aug 2020 18:31:10 -0700
+        b=byyR1kIAk7s+jEPpKN7/OG7nKwm1BFXg+jG5aFBLTA/Kp81EIGbyjXaToPpT40kOo
+         PorzEHseXzoKmpBoYnPkKeXsn7sbe7v131hnIX24e1WxF82kGG2vvEF3XZ4jv3L8wX
+         x0vyzuAFmrdR+x3+vQqZqTIAt2uYBnGdT+y8XSBw=
+Date:   Tue, 11 Aug 2020 18:31:13 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alex.shi@linux.alibaba.com,
-        alexander.h.duyck@linux.intel.com, linux-mm@kvack.org,
+To:     akpm@linux-foundation.org, krzk@kernel.org, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 017/165] mm/compaction: correct the comments of
- compact_defer_shift
-Message-ID: <20200812013110.FCYEcuM_r%akpm@linux-foundation.org>
+Subject:  [patch 018/165] mm: mempolicy: fix kerneldoc of
+ numa_map_to_online_node()
+Message-ID: <20200812013113.DvUDQYR-9%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -54,41 +53,32 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alex Shi <alex.shi@linux.alibaba.com>
-Subject: mm/compaction: correct the comments of compact_defer_shift
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Subject: mm: mempolicy: fix kerneldoc of numa_map_to_online_node()
 
-There is no compact_defer_limit. It should be compact_defer_shift in
-use. and add compact_order_failed explanation.
+Fix W=1 compile warnings (invalid kerneldoc):
 
-Link: http://lkml.kernel.org/r/3bd60e1b-a74e-050d-ade4-6e8f54e00b92@linux.alibaba.com
-Signed-off-by: Alex Shi <alex.shi@linux.alibaba.com>
-Reviewed-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+    mm/mempolicy.c:137: warning: Function parameter or member 'node' not described in 'numa_map_to_online_node'
+    mm/mempolicy.c:137: warning: Excess function parameter 'nid' description in 'numa_map_to_online_node'
+
+Link: http://lkml.kernel.org/r/20200728171109.28687-3-krzk@kernel.org
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 +
- mm/compaction.c        |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-compaction-correct-the-comments-of-compact_defer_shift
-+++ a/include/linux/mmzone.h
-@@ -536,6 +536,7 @@ struct zone {
- 	 * On compaction failure, 1<<compact_defer_shift compactions
- 	 * are skipped before trying again. The number attempted since
- 	 * last failure is tracked with compact_considered.
-+	 * compact_order_failed is the minimum compaction failed order.
- 	 */
- 	unsigned int		compact_considered;
- 	unsigned int		compact_defer_shift;
---- a/mm/compaction.c~mm-compaction-correct-the-comments-of-compact_defer_shift
-+++ a/mm/compaction.c
-@@ -154,7 +154,7 @@ EXPORT_SYMBOL(__ClearPageMovable);
+--- a/mm/mempolicy.c~mm-mempolicy-fix-kerneldoc-of-numa_map_to_online_node
++++ a/mm/mempolicy.c
+@@ -129,7 +129,7 @@ static struct mempolicy preferred_node_p
  
- /*
-  * Compaction is deferred when compaction fails to result in a page
-- * allocation success. 1 << compact_defer_limit compactions are skipped up
-+ * allocation success. 1 << compact_defer_shift, compactions are skipped up
-  * to a limit of 1 << COMPACT_MAX_DEFER_SHIFT
+ /**
+  * numa_map_to_online_node - Find closest online node
+- * @nid: Node id to start the search
++ * @node: Node id to start the search
+  *
+  * Lookup the next closest node by distance if @nid is not online.
   */
- void defer_compaction(struct zone *zone, int order)
 _
