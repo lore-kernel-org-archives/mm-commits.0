@@ -7,44 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80A2FC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4222CC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50738207F7
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1DCE820774
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266137;
-	bh=nBwrs1GbHvWUQxAQgLYTCY0i/QXv62ZV2VkBguQwA5U=;
+	s=default; t=1597266141;
+	bh=91WhLQqXQB4/3dEqcVgcqRmOGGlZ5yB7vF2MFJ3jiaU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=ZfqRI/NEo2JpZYTDbIJWvGboSxCdTWeL6F4D6kX4MvKfZQ5ewMKBofz+dOyesjfan
-	 n2QrYUBDl/F1cpCPrqwAaOkLZA/5jPo3wFJxJwGaflLvpZ8QvmE8cRFBxJ7wpTz5b2
-	 6AjbGtdbsKKX+Op1D2mb/kfL7cx1Zpj6pxGbxjA0=
+	b=NXa9z5QjAIBFUGTJOqFpNGqyQu5tt43eIbOl5/sJU/zCLxe8uEUetp6L1kvPFE9Pz
+	 AOIh3B3Q7kd4qBy4agrkSZI2Yp4RBHt7Tp3VOShwyR4I1hn7aCQqzP/ucmrMxmMvOV
+	 aTI0KNB3kmaVNnXnHSuKbO96rcBj/8lcRnQzMmww=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726554AbgHLVCR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:02:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49148 "EHLO mail.kernel.org"
+        id S1726557AbgHLVCU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:02:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49208 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726528AbgHLVCQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:02:16 -0400
+        id S1726528AbgHLVCU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:02:20 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 76B8020774;
-        Wed, 12 Aug 2020 21:02:16 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id B2FF7207F7;
+        Wed, 12 Aug 2020 21:02:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266136;
-        bh=nBwrs1GbHvWUQxAQgLYTCY0i/QXv62ZV2VkBguQwA5U=;
+        s=default; t=1597266139;
+        bh=91WhLQqXQB4/3dEqcVgcqRmOGGlZ5yB7vF2MFJ3jiaU=;
         h=Date:From:To:Subject:From;
-        b=DEQuNm/ArZd3s0WqigVXjkNFESUK6JU68LYBF+voig1yWYYvZJwcWgt4WjpYlcDr9
-         8jhL2YC20Qg7g4evzp58XenvVKQHoY3c/d9e7X59KYShLo9sB5bX3d/InSyJkb0OY8
-         KMaliUKWTDp79QUl/R6d9XrPzeTwePUOLxew2CRw=
-Date:   Wed, 12 Aug 2020 14:02:16 -0700
+        b=e45d7y0SNNgg+fXYy1le7YAZ2r0/Ldn4b3XYrEaFMo30exs/gRoO3fj3RPXkJQFx6
+         K6TsU1VaUsWnsaGmVpaL8SBvATXU+RM3skMzo/S+Dq3oG6NXOMxu/+jFJrvSDHGliI
+         xOhk0CXnLt2gR+tpwI4qwscIimLoiMiFJ1An3hts=
+Date:   Wed, 12 Aug 2020 14:02:18 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        song.bao.hua@hisilicon.com
-Subject:  [merged] mm-hugetlb-fix-the-name-of-hugetlb-cma.patch
- removed from -mm tree
-Message-ID: <20200812210216.OgIUSC2ZG%akpm@linux-foundation.org>
+To:     guro@fb.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com,
+        m.szyprowski@samsung.com, mike.kravetz@oracle.com,
+        mina86@mina86.com, mm-commits@vger.kernel.org,
+        song.bao.hua@hisilicon.com, stable@vger.kernel.org
+Subject:  [merged]
+ cma-dont-quit-at-first-error-when-activating-reserved-areas.patch removed
+ from -mm tree
+Message-ID: <20200812210218.Bei0iztuR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,51 +57,137 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: fix the name of hugetlb CMA
+     Subject: cma: don't quit at first error when activating reserved areas
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-the-name-of-hugetlb-cma.patch
+     cma-dont-quit-at-first-error-when-activating-reserved-areas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Barry Song <song.bao.hua@hisilicon.com>
-Subject: mm: hugetlb: fix the name of hugetlb CMA
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: cma: don't quit at first error when activating reserved areas
 
-Once we enable CMA_DEBUGFS, we will get the below errors: directory
-'cma-hugetlb' with parent 'cma' already present.
+The routine cma_init_reserved_areas is designed to activate all
+reserved cma areas.  It quits when it first encounters an error.
+This can leave some areas in a state where they are reserved but
+not activated.  There is no feedback to code which performed the
+reservation.  Attempting to allocate memory from areas in such a
+state will result in a BUG.
 
-We should have different names for different CMA areas.
+Modify cma_init_reserved_areas to always attempt to activate all
+areas.  The called routine, cma_activate_area is responsible for
+leaving the area in a valid state.  No one is making active use
+of returned error codes, so change the routine to void.
 
-Link: http://lkml.kernel.org/r/20200616223131.33828-3-song.bao.hua@hisilicon.com
-Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+How to reproduce:  This example uses kernelcore, hugetlb and cma
+as an easy way to reproduce.  However, this is a more general cma
+issue.
+
+Two node x86 VM 16GB total, 8GB per node
+Kernel command line parameters, kernelcore=4G hugetlb_cma=8G
+Related boot time messages,
+  hugetlb_cma: reserve 8192 MiB, up to 4096 MiB per node
+  cma: Reserved 4096 MiB at 0x0000000100000000
+  hugetlb_cma: reserved 4096 MiB on node 0
+  cma: Reserved 4096 MiB at 0x0000000300000000
+  hugetlb_cma: reserved 4096 MiB on node 1
+  cma: CMA area hugetlb could not be activated
+
+ # echo 8 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
+
+  BUG: kernel NULL pointer dereference, address: 0000000000000000
+  #PF: supervisor read access in kernel mode
+  #PF: error_code(0x0000) - not-present page
+  PGD 0 P4D 0
+  Oops: 0000 [#1] SMP PTI
+  ...
+  Call Trace:
+    bitmap_find_next_zero_area_off+0x51/0x90
+    cma_alloc+0x1a5/0x310
+    alloc_fresh_huge_page+0x78/0x1a0
+    alloc_pool_huge_page+0x6f/0xf0
+    set_max_huge_pages+0x10c/0x250
+    nr_hugepages_store_common+0x92/0x120
+    ? __kmalloc+0x171/0x270
+    kernfs_fop_write+0xc1/0x1a0
+    vfs_write+0xc7/0x1f0
+    ksys_write+0x5f/0xe0
+    do_syscall_64+0x4d/0x90
+    entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Link: http://lkml.kernel.org/r/20200730163123.6451-1-mike.kravetz@oracle.com
+Fixes: c64be2bb1c6e ("drivers: add Contiguous Memory Allocator")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Acked-by: Barry Song <song.bao.hua@hisilicon.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/cma.c |   23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-the-name-of-hugetlb-cma
-+++ a/mm/hugetlb.c
-@@ -5707,12 +5707,14 @@ void __init hugetlb_cma_reserve(int orde
- 	reserved = 0;
- 	for_each_node_state(nid, N_ONLINE) {
- 		int res;
-+		char name[20];
+--- a/mm/cma.c~cma-dont-quit-at-first-error-when-activating-reserved-areas
++++ a/mm/cma.c
+@@ -93,17 +93,15 @@ static void cma_clear_bitmap(struct cma
+ 	mutex_unlock(&cma->lock);
+ }
  
- 		size = min(per_node, hugetlb_cma_size - reserved);
- 		size = round_up(size, PAGE_SIZE << order);
+-static int __init cma_activate_area(struct cma *cma)
++static void __init cma_activate_area(struct cma *cma)
+ {
+ 	unsigned long base_pfn = cma->base_pfn, pfn = base_pfn;
+ 	unsigned i = cma->count >> pageblock_order;
+ 	struct zone *zone;
  
-+		snprintf(name, 20, "hugetlb%d", nid);
- 		res = cma_declare_contiguous_nid(0, size, 0, PAGE_SIZE << order,
--						 0, false, "hugetlb",
-+						 0, false, name,
- 						 &hugetlb_cma[nid], nid);
- 		if (res) {
- 			pr_warn("hugetlb_cma: reservation failed: err %d, node %d",
+ 	cma->bitmap = bitmap_zalloc(cma_bitmap_maxno(cma), GFP_KERNEL);
+-	if (!cma->bitmap) {
+-		cma->count = 0;
+-		return -ENOMEM;
+-	}
++	if (!cma->bitmap)
++		goto out_error;
+ 
+ 	WARN_ON_ONCE(!pfn_valid(pfn));
+ 	zone = page_zone(pfn_to_page(pfn));
+@@ -133,25 +131,22 @@ static int __init cma_activate_area(stru
+ 	spin_lock_init(&cma->mem_head_lock);
+ #endif
+ 
+-	return 0;
++	return;
+ 
+ not_in_zone:
+-	pr_err("CMA area %s could not be activated\n", cma->name);
+ 	bitmap_free(cma->bitmap);
++out_error:
+ 	cma->count = 0;
+-	return -EINVAL;
++	pr_err("CMA area %s could not be activated\n", cma->name);
++	return;
+ }
+ 
+ static int __init cma_init_reserved_areas(void)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < cma_area_count; i++) {
+-		int ret = cma_activate_area(&cma_areas[i]);
+-
+-		if (ret)
+-			return ret;
+-	}
++	for (i = 0; i < cma_area_count; i++)
++		cma_activate_area(&cma_areas[i]);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from song.bao.hua@hisilicon.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
