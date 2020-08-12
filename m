@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E035CC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98A04C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B380A20838
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7193A207F7
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:07:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266440;
-	bh=yJFkCVbimPPr4FV/paVywpqfBXZhpX4Xzw08kr0idWo=;
+	s=default; t=1597266444;
+	bh=bW7XJuaZ8T8Tgl+7cV5bbFecl7e2uUK/AIS1gVplSSE=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=TdweLlbXxHrdJSGpC0OIYdB7OCET5rF/OgobB1KZPs1GNKktJIB5Ni3TyJ6l3JYwu
-	 tbIU3hE2sZBXm+0ILzEOV9eEq+NpfFK7jjH+fXTHrpvDV1sD+tc8nof6rKq76UDPBo
-	 WGuR9lKTl8sFAb0cUP8yV7HSKZc4Blkvx3Vat+A4=
+	b=jsIlvI0QhACELX3yFuOwrXhrL/8OOddhmRHDWcVVhrpAKo+HgU7PCBrdNNH8ETbP5
+	 vM4x7OE/saad8ZWTMICHrnsebJglhEuTCzAgZSpxnp0yVU7wmqgjSxzbNd+I+HXm2U
+	 +w/KR5jTf64WQZlsCKYkdvp6qi1zqqH2Ymoq2x9E=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726030AbgHLVHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:07:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35386 "EHLO mail.kernel.org"
+        id S1726567AbgHLVHY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:07:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35500 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726557AbgHLVHU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:07:20 -0400
+        id S1726557AbgHLVHX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:07:23 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 852DA2078B;
-        Wed, 12 Aug 2020 21:07:19 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9D1B820774;
+        Wed, 12 Aug 2020 21:07:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266439;
-        bh=yJFkCVbimPPr4FV/paVywpqfBXZhpX4Xzw08kr0idWo=;
+        s=default; t=1597266443;
+        bh=bW7XJuaZ8T8Tgl+7cV5bbFecl7e2uUK/AIS1gVplSSE=;
         h=Date:From:To:Subject:From;
-        b=v3OSDmmiRDgMh7AYJuY1dLNujL+Gzu42Uoz5JIaiSa5qkfWmvlO0ey+XeIJduAV9w
-         KBDMPQHEJTeXQ0taMu/ye6+7NsRBKvtknxU80hSdNdmTH5TJlrhNT1SFg9EmkuyV4k
-         yEk/y37o3HO5PFvHTVHQa36HAVAdS55mjJWShmrc=
-Date:   Wed, 12 Aug 2020 14:07:19 -0700
+        b=g5O9zYCB9rqYwlWFTwehxSV1gCLGRUTgzCJoruoiH7bkCmvWA6c9ch8RquikJtira
+         rQnEyXG7iuH0AZ9v5Fiy+Y7e6cRFixF8AUQq/WWzAlihhm3Ql4jyu3JcemsjgUCiSQ
+         RX0WZrZy+zZ7Rd7PPH9pffWTT9fBzUoLu2aZczaQ=
+Date:   Wed, 12 Aug 2020 14:07:22 -0700
 From:   akpm@linux-foundation.org
-To:     bharata@linux.ibm.com, hch@lst.de, jgg@mellanox.com,
-        jglisse@redhat.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
+To:     daniel.m.jordan@oracle.com, dave.hansen@linux.intel.com,
+        david@redhat.com, hpa@zytor.com, luto@kernel.org,
+        mhocko@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org,
+        pasha.tatashin@soleen.com, peterz@infradead.org,
+        steven.sistare@oracle.com, tglx@linutronix.de
 Subject:  [merged]
- mm-migrate-add-migrate-shared-test-for-migrate_vma_.patch removed from -mm
- tree
-Message-ID: <20200812210719.o9zIDwrgv%akpm@linux-foundation.org>
+ x86-mm-use-max-memory-block-size-on-bare-metal.patch removed from -mm tree
+Message-ID: <20200812210722.LXpwN_CW_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,80 +57,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: add migrate-shared test for migrate_vma_*()
+     Subject: x86/mm: use max memory block size on bare metal
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-add-migrate-shared-test-for-migrate_vma_.patch
+     x86-mm-use-max-memory-block-size-on-bare-metal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm/migrate: add migrate-shared test for migrate_vma_*()
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: x86/mm: use max memory block size on bare metal
 
-Add a migrate_vma_*() self test for mmap(MAP_SHARED) to verify that
-!vma_anonymous() ranges won't be migrated.
+Some of our servers spend significant time at kernel boot initializing
+memory block sysfs directories and then creating symlinks between them and
+the corresponding nodes.  The slowness happens because the machines get
+stuck with the smallest supported memory block size on x86 (128M), which
+results in 16,288 directories to cover the 2T of installed RAM.  The
+search for each memory block is noticeable even with commit 4fb6eabf1037
+("drivers/base/memory.c: cache memory blocks in xarray to accelerate
+lookup").
 
-Link: http://lkml.kernel.org/r/20200710194840.7602-3-rcampbell@nvidia.com
-Link: http://lkml.kernel.org/r/20200709165711.26584-3-rcampbell@nvidia.com
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: "Bharata B Rao" <bharata@linux.ibm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Commit 078eb6aa50dc ("x86/mm/memory_hotplug: determine block size based on
+the end of boot memory") chooses the block size based on alignment with
+memory end.  That addresses hotplug failures in qemu guests, but for bare
+metal systems whose memory end isn't aligned to even the smallest size, it
+leaves them at 128M.
+
+Make kernels that aren't running on a hypervisor use the largest supported
+size (2G) to minimize overhead on big machines.  Kernel boot goes 7%
+faster on the aforementioned servers, shaving off half a second.
+
+[daniel.m.jordan@oracle.com: v3]
+  Link: http://lkml.kernel.org/r/20200714205450.945834-1-daniel.m.jordan@oracle.com
+Link: http://lkml.kernel.org/r/20200609225451.3542648-1-daniel.m.jordan@oracle.com
+Signed-off-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Sistare <steven.sistare@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hmm-tests.c |   35 +++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ arch/x86/mm/init_64.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/tools/testing/selftests/vm/hmm-tests.c~mm-migrate-add-migrate-shared-test-for-migrate_vma_
-+++ a/tools/testing/selftests/vm/hmm-tests.c
-@@ -942,6 +942,41 @@ TEST_F(hmm, migrate_fault)
- }
+--- a/arch/x86/mm/init_64.c~x86-mm-use-max-memory-block-size-on-bare-metal
++++ a/arch/x86/mm/init_64.c
+@@ -1452,6 +1452,15 @@ static unsigned long probe_memory_block_
+ 		goto done;
+ 	}
  
- /*
-+ * Migrate anonymous shared memory to device private memory.
-+ */
-+TEST_F(hmm, migrate_shared)
-+{
-+	struct hmm_buffer *buffer;
-+	unsigned long npages;
-+	unsigned long size;
-+	int ret;
++	/*
++	 * Use max block size to minimize overhead on bare metal, where
++	 * alignment for memory hotplug isn't a concern.
++	 */
++	if (!boot_cpu_has(X86_FEATURE_HYPERVISOR)) {
++		bz = MAX_BLOCK_SIZE;
++		goto done;
++	}
 +
-+	npages = ALIGN(HMM_BUFFER_SIZE, self->page_size) >> self->page_shift;
-+	ASSERT_NE(npages, 0);
-+	size = npages << self->page_shift;
-+
-+	buffer = malloc(sizeof(*buffer));
-+	ASSERT_NE(buffer, NULL);
-+
-+	buffer->fd = -1;
-+	buffer->size = size;
-+	buffer->mirror = malloc(size);
-+	ASSERT_NE(buffer->mirror, NULL);
-+
-+	buffer->ptr = mmap(NULL, size,
-+			   PROT_READ | PROT_WRITE,
-+			   MAP_SHARED | MAP_ANONYMOUS,
-+			   buffer->fd, 0);
-+	ASSERT_NE(buffer->ptr, MAP_FAILED);
-+
-+	/* Migrate memory to device. */
-+	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_MIGRATE, buffer, npages);
-+	ASSERT_EQ(ret, -ENOENT);
-+
-+	hmm_buffer_free(buffer);
-+}
-+
-+/*
-  * Try to migrate various memory types to device private memory.
-  */
- TEST_F(hmm2, migrate_mixed)
+ 	/* Find the largest allowed block size that aligns to memory end */
+ 	for (bz = MAX_BLOCK_SIZE; bz > MIN_MEMORY_BLOCK_SIZE; bz >>= 1) {
+ 		if (IS_ALIGNED(boot_mem_end, bz))
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from daniel.m.jordan@oracle.com are
 
 
