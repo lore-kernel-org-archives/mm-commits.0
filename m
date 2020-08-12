@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89749C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:03:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0240C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:03:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53E162078B
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:03:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A0CBB20774
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:03:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266205;
-	bh=hi7scl+ahoa85xMGcTAfm1eDwSGNxHQcuaee57sQNR4=;
+	s=default; t=1597266209;
+	bh=CeX4ZIrX2lLrcAiLb6APrDt2aU9el796M+Cck1R/ukY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=IW+miOwm3cClE9giUeH+eio9bCaX1mwtA0ajXMqOmwrEMlfgcwgZ0V0SKQFVKAIri
-	 FCltuD3sEMnK2FOpKFgnTqgxXPgSAPYOo6b+jOkwTMUpdjRmneR/H3H97K+JmKQQqO
-	 9JEKf05AG9geUIzghVG0NvCtzaYcumlMQnFyl+3E=
+	b=dfKcDaoREdZcsW7eRdV7U9P2ApiKpQmljsDEyEfOKwii/3pzDK0hvgki0wqEE6B3O
+	 0BOJAQhweQOH1BxtcjrSD8HfCgTIyfD2YVQMNXWX/JW/Xu3rUfpTX2QOwRR5uQc8wC
+	 5HHwc6Qk79bLEGkagV81t9zcCfJIskgvLrMPmVjA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726664AbgHLVDZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:03:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53168 "EHLO mail.kernel.org"
+        id S1726670AbgHLVD3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:03:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726557AbgHLVDY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:03:24 -0400
+        id S1726557AbgHLVD3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:03:29 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 830BD2080C;
-        Wed, 12 Aug 2020 21:03:23 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 60DC22078B;
+        Wed, 12 Aug 2020 21:03:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266203;
-        bh=hi7scl+ahoa85xMGcTAfm1eDwSGNxHQcuaee57sQNR4=;
+        s=default; t=1597266208;
+        bh=CeX4ZIrX2lLrcAiLb6APrDt2aU9el796M+Cck1R/ukY=;
         h=Date:From:To:Subject:From;
-        b=WAKPkrBDbpQMffR/v5q9NThkIK2SQWS2xaLWscv/4jzbN3j1NiFKtsJwqdP2kBu9H
-         HjsRRW6UMEvTdA1Cb2hh1yZDmwhIn7TfoaiW0kT4knA11PgkGbn7vyBFZKOFIt3fbv
-         spGIXANyScrn9ig5Euz/qRLa8wewlmEFYfN0zkBM=
-Date:   Wed, 12 Aug 2020 14:03:23 -0700
+        b=ECZvwAaG5M1badkhvpJ93bo+5bTExhorzezi0qRTIoE73KNb5YMWpp65gkgEcYwYZ
+         qdg7KMtdnkSdzRRPMkFvel7wW4K3T/KHSpEVdHfdb+ppe3t9z/S054IZO6/EJ7UrVh
+         4Rn14pJuEGeB/yzV7CVqtpao2GpywPz60UVi/Z9M=
+Date:   Wed, 12 Aug 2020 14:03:28 -0700
 From:   akpm@linux-foundation.org
 To:     deanbo422@gmail.com, geert@linux-m68k.org, green.hu@gmail.com,
         hch@lst.de, mm-commits@vger.kernel.org, nickhu@andestech.com,
         palmer@dabbelt.com, paul.walmsley@sifive.com,
         torvalds@linux-foundation.org
-Subject:  [merged] uaccess-remove-segment_eq.patch removed from -mm
+Subject:  [merged]
+ exec-use-force_uaccess_begin-during-exec-and-exit.patch removed from -mm
  tree
-Message-ID: <20200812210323.bCsYFVi4-%akpm@linux-foundation.org>
+Message-ID: <20200812210328.iKo-4sbJh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,339 +57,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uaccess: remove segment_eq
+     Subject: exec: use force_uaccess_begin during exec and exit
 has been removed from the -mm tree.  Its filename was
-     uaccess-remove-segment_eq.patch
+     exec-use-force_uaccess_begin-during-exec-and-exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: uaccess: remove segment_eq
+Subject: exec: use force_uaccess_begin during exec and exit
 
-segment_eq is only used to implement uaccess_kernel.  Just open code
-uaccess_kernel in the arch uaccess headers and remove one layer of
-indirection.
+Both exec and exit want to ensure that the uaccess routines actually do
+access user pointers.  Use the newly added force_uaccess_begin helper
+instead of an open coded set_fs for that to prepare for kernel builds
+where set_fs() does not exist.
 
-Link: http://lkml.kernel.org/r/20200710135706.537715-5-hch@lst.de
+Link: http://lkml.kernel.org/r/20200710135706.537715-7-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Acked-by: Greentime Hu <green.hu@gmail.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Nick Hu <nickhu@andestech.com>
+Cc: Greentime Hu <green.hu@gmail.com>
 Cc: Vincent Chen <deanbo422@gmail.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/uaccess.h      |    2 +-
- arch/arc/include/asm/segment.h        |    3 +--
- arch/arm/include/asm/uaccess.h        |    4 ++--
- arch/arm64/include/asm/uaccess.h      |    2 +-
- arch/csky/include/asm/segment.h       |    2 +-
- arch/h8300/include/asm/segment.h      |    2 +-
- arch/ia64/include/asm/uaccess.h       |    2 +-
- arch/m68k/include/asm/segment.h       |    2 +-
- arch/microblaze/include/asm/uaccess.h |    2 +-
- arch/mips/include/asm/uaccess.h       |    2 +-
- arch/nds32/include/asm/uaccess.h      |    2 +-
- arch/nios2/include/asm/uaccess.h      |    2 +-
- arch/openrisc/include/asm/uaccess.h   |    2 +-
- arch/parisc/include/asm/uaccess.h     |    2 +-
- arch/powerpc/include/asm/uaccess.h    |    3 +--
- arch/riscv/include/asm/uaccess.h      |    4 +---
- arch/s390/include/asm/uaccess.h       |    2 +-
- arch/sh/include/asm/segment.h         |    3 +--
- arch/sparc/include/asm/uaccess_32.h   |    2 +-
- arch/sparc/include/asm/uaccess_64.h   |    2 +-
- arch/x86/include/asm/uaccess.h        |    2 +-
- arch/xtensa/include/asm/uaccess.h     |    2 +-
- include/asm-generic/uaccess.h         |    4 ++--
- include/linux/uaccess.h               |    2 --
- 24 files changed, 25 insertions(+), 32 deletions(-)
+ fs/exec.c     |    7 ++++++-
+ kernel/exit.c |    2 +-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
---- a/arch/alpha/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/alpha/include/asm/uaccess.h
-@@ -20,7 +20,7 @@
- #define get_fs()  (current_thread_info()->addr_limit)
- #define set_fs(x) (current_thread_info()->addr_limit = (x))
+--- a/fs/exec.c~exec-use-force_uaccess_begin-during-exec-and-exit
++++ a/fs/exec.c
+@@ -1402,7 +1402,12 @@ int begin_new_exec(struct linux_binprm *
+ 	if (retval)
+ 		goto out_unlock;
  
--#define segment_eq(a, b)	((a).seg == (b).seg)
-+#define uaccess_kernel()	(get_fs().seg == KERNEL_DS.seg)
+-	set_fs(USER_DS);
++	/*
++	 * Ensure that the uaccess routines can actually operate on userspace
++	 * pointers:
++	 */
++	force_uaccess_begin();
++
+ 	me->flags &= ~(PF_RANDOMIZE | PF_FORKNOEXEC | PF_KTHREAD |
+ 					PF_NOFREEZE | PF_NO_SETAFFINITY);
+ 	flush_thread();
+--- a/kernel/exit.c~exec-use-force_uaccess_begin-during-exec-and-exit
++++ a/kernel/exit.c
+@@ -732,7 +732,7 @@ void __noreturn do_exit(long code)
+ 	 * mm_release()->clear_child_tid() from writing to a user-controlled
+ 	 * kernel address.
+ 	 */
+-	set_fs(USER_DS);
++	force_uaccess_begin();
  
- /*
-  * Is a address valid? This does a straightforward calculation rather
---- a/arch/arc/include/asm/segment.h~uaccess-remove-segment_eq
-+++ a/arch/arc/include/asm/segment.h
-@@ -14,8 +14,7 @@ typedef unsigned long mm_segment_t;
- 
- #define KERNEL_DS		MAKE_MM_SEG(0)
- #define USER_DS			MAKE_MM_SEG(TASK_SIZE)
--
--#define segment_eq(a, b)	((a) == (b))
-+#define uaccess_kernel()	(get_fs() == KERNEL_DS)
- 
- #endif /* __ASSEMBLY__ */
- #endif /* __ASMARC_SEGMENT_H */
---- a/arch/arm64/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/arm64/include/asm/uaccess.h
-@@ -50,7 +50,7 @@ static inline void set_fs(mm_segment_t f
- 				CONFIG_ARM64_UAO));
- }
- 
--#define segment_eq(a, b)	((a) == (b))
-+#define uaccess_kernel()	(get_fs() == KERNEL_DS)
- 
- /*
-  * Test whether a block of memory is a valid user space address.
---- a/arch/arm/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/arm/include/asm/uaccess.h
-@@ -76,7 +76,7 @@ static inline void set_fs(mm_segment_t f
- 	modify_domain(DOMAIN_KERNEL, fs ? DOMAIN_CLIENT : DOMAIN_MANAGER);
- }
- 
--#define segment_eq(a, b)	((a) == (b))
-+#define uaccess_kernel()	(get_fs() == KERNEL_DS)
- 
- /*
-  * We use 33-bit arithmetic here.  Success returns zero, failure returns
-@@ -267,7 +267,7 @@ extern int __put_user_8(void *, unsigned
-  */
- #define USER_DS			KERNEL_DS
- 
--#define segment_eq(a, b)		(1)
-+#define uaccess_kernel()	(true)
- #define __addr_ok(addr)		((void)(addr), 1)
- #define __range_ok(addr, size)	((void)(addr), 0)
- #define get_fs()		(KERNEL_DS)
---- a/arch/csky/include/asm/segment.h~uaccess-remove-segment_eq
-+++ a/arch/csky/include/asm/segment.h
-@@ -13,6 +13,6 @@ typedef struct {
- #define USER_DS			((mm_segment_t) { 0x80000000UL })
- #define get_fs()		(current_thread_info()->addr_limit)
- #define set_fs(x)		(current_thread_info()->addr_limit = (x))
--#define segment_eq(a, b)	((a).seg == (b).seg)
-+#define uaccess_kernel()	(get_fs().seg == KERNEL_DS.seg)
- 
- #endif /* __ASM_CSKY_SEGMENT_H */
---- a/arch/h8300/include/asm/segment.h~uaccess-remove-segment_eq
-+++ a/arch/h8300/include/asm/segment.h
-@@ -33,7 +33,7 @@ static inline mm_segment_t get_fs(void)
- 	return USER_DS;
- }
- 
--#define segment_eq(a, b)	((a).seg == (b).seg)
-+#define uaccess_kernel()	(get_fs().seg == KERNEL_DS.seg)
- 
- #endif /* __ASSEMBLY__ */
- 
---- a/arch/ia64/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/ia64/include/asm/uaccess.h
-@@ -50,7 +50,7 @@
- #define get_fs()  (current_thread_info()->addr_limit)
- #define set_fs(x) (current_thread_info()->addr_limit = (x))
- 
--#define segment_eq(a, b)	((a).seg == (b).seg)
-+#define uaccess_kernel()	(get_fs().seg == KERNEL_DS.seg)
- 
- /*
-  * When accessing user memory, we need to make sure the entire area really is in
---- a/arch/m68k/include/asm/segment.h~uaccess-remove-segment_eq
-+++ a/arch/m68k/include/asm/segment.h
-@@ -52,7 +52,7 @@ static inline void set_fs(mm_segment_t v
- #define set_fs(x)	(current_thread_info()->addr_limit = (x))
- #endif
- 
--#define segment_eq(a, b) ((a).seg == (b).seg)
-+#define uaccess_kernel()	(get_fs().seg == KERNEL_DS.seg)
- 
- #endif /* __ASSEMBLY__ */
- 
---- a/arch/microblaze/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/microblaze/include/asm/uaccess.h
-@@ -41,7 +41,7 @@
- # define get_fs()	(current_thread_info()->addr_limit)
- # define set_fs(val)	(current_thread_info()->addr_limit = (val))
- 
--# define segment_eq(a, b)	((a).seg == (b).seg)
-+# define uaccess_kernel()	(get_fs().seg == KERNEL_DS.seg)
- 
- #ifndef CONFIG_MMU
- 
---- a/arch/mips/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/mips/include/asm/uaccess.h
-@@ -72,7 +72,7 @@ extern u64 __ua_limit;
- #define get_fs()	(current_thread_info()->addr_limit)
- #define set_fs(x)	(current_thread_info()->addr_limit = (x))
- 
--#define segment_eq(a, b)	((a).seg == (b).seg)
-+#define uaccess_kernel()	(get_fs().seg == KERNEL_DS.seg)
- 
- /*
-  * eva_kernel_access() - determine whether kernel memory access on an EVA system
---- a/arch/nds32/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/nds32/include/asm/uaccess.h
-@@ -44,7 +44,7 @@ static inline void set_fs(mm_segment_t f
- 	current_thread_info()->addr_limit = fs;
- }
- 
--#define segment_eq(a, b)	((a) == (b))
-+#define uaccess_kernel()	(get_fs() == KERNEL_DS)
- 
- #define __range_ok(addr, size) (size <= get_fs() && addr <= (get_fs() -size))
- 
---- a/arch/nios2/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/nios2/include/asm/uaccess.h
-@@ -30,7 +30,7 @@
- #define get_fs()		(current_thread_info()->addr_limit)
- #define set_fs(seg)		(current_thread_info()->addr_limit = (seg))
- 
--#define segment_eq(a, b)	((a).seg == (b).seg)
-+#define uaccess_kernel() (get_fs().seg == KERNEL_DS.seg)
- 
- #define __access_ok(addr, len)			\
- 	(((signed long)(((long)get_fs().seg) &	\
---- a/arch/openrisc/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/openrisc/include/asm/uaccess.h
-@@ -43,7 +43,7 @@
- #define get_fs()	(current_thread_info()->addr_limit)
- #define set_fs(x)	(current_thread_info()->addr_limit = (x))
- 
--#define segment_eq(a, b)	((a) == (b))
-+#define uaccess_kernel()	(get_fs() == KERNEL_DS)
- 
- /* Ensure that the range from addr to addr+size is all within the process'
-  * address space
---- a/arch/parisc/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/parisc/include/asm/uaccess.h
-@@ -14,7 +14,7 @@
- #define KERNEL_DS	((mm_segment_t){0})
- #define USER_DS 	((mm_segment_t){1})
- 
--#define segment_eq(a, b) ((a).seg == (b).seg)
-+#define uaccess_kernel() (get_fs().seg == KERNEL_DS.seg)
- 
- #define get_fs()	(current_thread_info()->addr_limit)
- #define set_fs(x)	(current_thread_info()->addr_limit = (x))
---- a/arch/powerpc/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/powerpc/include/asm/uaccess.h
-@@ -38,8 +38,7 @@ static inline void set_fs(mm_segment_t f
- 	set_thread_flag(TIF_FSCHECK);
- }
- 
--#define segment_eq(a, b)	((a).seg == (b).seg)
--
-+#define uaccess_kernel() (get_fs().seg == KERNEL_DS.seg)
- #define user_addr_max()	(get_fs().seg)
- 
- #ifdef __powerpc64__
---- a/arch/riscv/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/riscv/include/asm/uaccess.h
-@@ -64,11 +64,9 @@ static inline void set_fs(mm_segment_t f
- 	current_thread_info()->addr_limit = fs;
- }
- 
--#define segment_eq(a, b) ((a).seg == (b).seg)
--
-+#define uaccess_kernel() (get_fs().seg == KERNEL_DS.seg)
- #define user_addr_max()	(get_fs().seg)
- 
--
- /**
-  * access_ok: - Checks if a user space pointer is valid
-  * @addr: User space pointer to start of block to check
---- a/arch/s390/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/s390/include/asm/uaccess.h
-@@ -32,7 +32,7 @@
- #define USER_DS_SACF	(3)
- 
- #define get_fs()        (current->thread.mm_segment)
--#define segment_eq(a,b) (((a) & 2) == ((b) & 2))
-+#define uaccess_kernel() ((get_fs() & 2) == KERNEL_DS)
- 
- void set_fs(mm_segment_t fs);
- 
---- a/arch/sh/include/asm/segment.h~uaccess-remove-segment_eq
-+++ a/arch/sh/include/asm/segment.h
-@@ -24,8 +24,7 @@ typedef struct {
- #define USER_DS		KERNEL_DS
- #endif
- 
--#define segment_eq(a, b) ((a).seg == (b).seg)
--
-+#define uaccess_kernel() (get_fs().seg == KERNEL_DS.seg)
- 
- #define get_fs()	(current_thread_info()->addr_limit)
- #define set_fs(x)	(current_thread_info()->addr_limit = (x))
---- a/arch/sparc/include/asm/uaccess_32.h~uaccess-remove-segment_eq
-+++ a/arch/sparc/include/asm/uaccess_32.h
-@@ -28,7 +28,7 @@
- #define get_fs()	(current->thread.current_ds)
- #define set_fs(val)	((current->thread.current_ds) = (val))
- 
--#define segment_eq(a, b) ((a).seg == (b).seg)
-+#define uaccess_kernel() (get_fs().seg == KERNEL_DS.seg)
- 
- /* We have there a nice not-mapped page at PAGE_OFFSET - PAGE_SIZE, so that this test
-  * can be fairly lightweight.
---- a/arch/sparc/include/asm/uaccess_64.h~uaccess-remove-segment_eq
-+++ a/arch/sparc/include/asm/uaccess_64.h
-@@ -32,7 +32,7 @@
- 
- #define get_fs() ((mm_segment_t){(current_thread_info()->current_ds)})
- 
--#define segment_eq(a, b)  ((a).seg == (b).seg)
-+#define uaccess_kernel() (get_fs().seg == KERNEL_DS.seg)
- 
- #define set_fs(val)								\
- do {										\
---- a/arch/x86/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/x86/include/asm/uaccess.h
-@@ -33,7 +33,7 @@ static inline void set_fs(mm_segment_t f
- 	set_thread_flag(TIF_FSCHECK);
- }
- 
--#define segment_eq(a, b)	((a).seg == (b).seg)
-+#define uaccess_kernel() (get_fs().seg == KERNEL_DS.seg)
- #define user_addr_max() (current->thread.addr_limit.seg)
- 
- /*
---- a/arch/xtensa/include/asm/uaccess.h~uaccess-remove-segment_eq
-+++ a/arch/xtensa/include/asm/uaccess.h
-@@ -35,7 +35,7 @@
- #define get_fs()	(current->thread.current_ds)
- #define set_fs(val)	(current->thread.current_ds = (val))
- 
--#define segment_eq(a, b)	((a).seg == (b).seg)
-+#define uaccess_kernel() (get_fs().seg == KERNEL_DS.seg)
- 
- #define __kernel_ok (uaccess_kernel())
- #define __user_ok(addr, size) \
---- a/include/asm-generic/uaccess.h~uaccess-remove-segment_eq
-+++ a/include/asm-generic/uaccess.h
-@@ -86,8 +86,8 @@ static inline void set_fs(mm_segment_t f
- }
- #endif
- 
--#ifndef segment_eq
--#define segment_eq(a, b) ((a).seg == (b).seg)
-+#ifndef uaccess_kernel
-+#define uaccess_kernel() (get_fs().seg == KERNEL_DS.seg)
- #endif
- 
- #define access_ok(addr, size) __access_ok((unsigned long)(addr),(size))
---- a/include/linux/uaccess.h~uaccess-remove-segment_eq
-+++ a/include/linux/uaccess.h
-@@ -6,8 +6,6 @@
- #include <linux/sched.h>
- #include <linux/thread_info.h>
- 
--#define uaccess_kernel() segment_eq(get_fs(), KERNEL_DS)
--
- #include <asm/uaccess.h>
- 
- /*
+ 	if (unlikely(in_atomic())) {
+ 		pr_info("note: %s[%d] exited with preempt_count %d\n",
 _
 
 Patches currently in -mm which might be from hch@lst.de are
