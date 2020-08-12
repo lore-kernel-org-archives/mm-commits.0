@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC89FC433E1
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:01:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1530C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:01:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9415B20768
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:01:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 91F7620768
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:01:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266114;
-	bh=v7w1qkfJQ8g8teAmR9EJ3JiE8smEFfFRoTZvusIEfyI=;
+	s=default; t=1597266116;
+	bh=ujpZ9gxyCo+RcgStPMHJLNnNInwAsrNK3NbuJIMrOiY=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=BBlLrOkhyW/YB9i21+LvPRsOLIzt02dZ5tF/9hfkZHTD/qL8tPvjOcblJd0arPYzL
-	 FlYWps2AWgYoZmFE9I8Oe47jx8rDr+X/xV2KCwsiuwwSr0ES+P1mcVX+1om8JVDrjX
-	 ehKFftVBR1aHzGLsQXkslQb5UGn6r0kAWfwOvBQw=
+	b=R7LU2Ol6aUeWExe/pIupyuI2sOO1lKHULpcz5V1zkTHhbLMzO2KvJs+Fc5q/ZafEK
+	 0/4t+MiybOk23Q59ufttNd23TwsygUVTZEi66wZnEl8lSrvaomSpZIdcmohpGjjHxw
+	 o/C2RuT4seCVMTFgx5gbc0a01MLotxCNbDMNXPBo=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726632AbgHLVBy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:01:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47718 "EHLO mail.kernel.org"
+        id S1726635AbgHLVB4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:01:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726611AbgHLVBy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:01:54 -0400
+        id S1726611AbgHLVBz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:01:55 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 76FB020774;
-        Wed, 12 Aug 2020 21:01:53 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7AF162080C;
+        Wed, 12 Aug 2020 21:01:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266113;
-        bh=v7w1qkfJQ8g8teAmR9EJ3JiE8smEFfFRoTZvusIEfyI=;
+        s=default; t=1597266115;
+        bh=ujpZ9gxyCo+RcgStPMHJLNnNInwAsrNK3NbuJIMrOiY=;
         h=Date:From:To:Subject:From;
-        b=jphv7BpDGdY8xT1aSS7c1G3ifTVteXI4LjZjBBvRnpT6JG/bC/AxjW85HflZR03WF
-         lqSNLcF11l3gV94FYr3ptjfqa1uJD36Dz89u+VnFP1CPTJf3qn2sXspRg+TMNfluM7
-         puIA92s4aXGQYWvOXD0+GTDuWJVe+CQJNzt81/1k=
-Date:   Wed, 12 Aug 2020 14:01:53 -0700
+        b=X8pAEQ56ezltDEH3aO0wwBPJTTsWkSZZoRWoKeZL9sDooG32yVoYJTwp/Bmhatn69
+         tfQqpOd/X/hvcrTVILO8ueyMCOr8xK5YaxbLqbO09uE5ZtDCFBU8RB1qzZAg5F4y1b
+         Zv+QRIXD8btvZpa5TX8EDw8+tCt5UJvcxAWWVazM=
+Date:   Wed, 12 Aug 2020 14:01:55 -0700
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, laoar.shao@gmail.com, mhocko@suse.com,
         mm-commits@vger.kernel.org, rientjes@google.com
-Subject:  [merged] doc-mm-sync-up-oom_score_adj-documentation.patch
- removed from -mm tree
-Message-ID: <20200812210153.bapedPLZt%akpm@linux-foundation.org>
+Subject:  [merged]
+ doc-mm-clarify-proc-pid-oom_score-value-range.patch removed from -mm tree
+Message-ID: <20200812210155.hGpymPaqS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -54,26 +54,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: doc, mm: sync up oom_score_adj documentation
+     Subject: doc, mm: clarify /proc/<pid>/oom_score value range
 has been removed from the -mm tree.  Its filename was
-     doc-mm-sync-up-oom_score_adj-documentation.patch
+     doc-mm-clarify-proc-pid-oom_score-value-range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: doc, mm: sync up oom_score_adj documentation
+Subject: doc, mm: clarify /proc/<pid>/oom_score value range
 
-There are at least two notes in the oom section.  The 3% discount for root
-processes is gone since d46078b28889 ("mm, oom: remove 3% bonus for
-CAP_SYS_ADMIN processes").
+The exported value includes oom_score_adj so the range is no [0, 1000] as
+described in the previous section but rather [0, 2000].  Mention that fact
+explicitly.
 
-Likewise children of the selected oom victim are not sacrificed since
-bbbe48029720 ("mm, oom: remove 'prefer children over parent' heuristic")
-
-Drop both of them.
-
-Link: http://lkml.kernel.org/r/20200709062603.18480-1-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/20200709062603.18480-2-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: David Rientjes <rientjes@google.com>
@@ -81,33 +76,21 @@ Cc: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    8 --------
- 1 file changed, 8 deletions(-)
+ Documentation/filesystems/proc.rst |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/Documentation/filesystems/proc.rst~doc-mm-sync-up-oom_score_adj-documentation
+--- a/Documentation/filesystems/proc.rst~doc-mm-clarify-proc-pid-oom_score-value-range
 +++ a/Documentation/filesystems/proc.rst
-@@ -1633,9 +1633,6 @@ may allocate from based on an estimation
- For example, if a task is using all allowed memory, its badness score will be
- 1000.  If it is using half of its allowed memory, its score will be 500.
+@@ -1676,6 +1676,9 @@ This file can be used to check the curre
+ any given <pid>. Use it together with /proc/<pid>/oom_score_adj to tune which
+ process should be killed in an out-of-memory situation.
  
--There is an additional factor included in the badness score: the current memory
--and swap usage is discounted by 3% for root processes.
--
- The amount of "allowed" memory depends on the context in which the oom killer
- was called.  If it is due to the memory assigned to the allocating task's cpuset
- being exhausted, the allowed memory represents the set of mems assigned to that
-@@ -1671,11 +1668,6 @@ The value of /proc/<pid>/oom_score_adj m
- value set by a CAP_SYS_RESOURCE process. To reduce the value any lower
- requires CAP_SYS_RESOURCE.
++Please note that the exported value includes oom_score_adj so it is
++effectively in range [0,2000].
++
  
--Caveat: when a parent task is selected, the oom killer will sacrifice any first
--generation children with separate address spaces instead, if possible.  This
--avoids servers and important system daemons from being killed and loses the
--minimal amount of work.
--
- 
- 3.2 /proc/<pid>/oom_score - Display current oom-killer score
- -------------------------------------------------------------
+ 3.3  /proc/<pid>/io - Display the IO accounting fields
+ -------------------------------------------------------
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
