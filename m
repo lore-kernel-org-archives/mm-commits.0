@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B7B9C433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 684F5C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3B2B20774
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CE022080C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:02:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266167;
-	bh=Q3kx6fk4nq/hzvl+0bvwowpykaBhhpD+tkPXeD7y+gk=;
+	s=default; t=1597266168;
+	bh=VYElj3uKVcQxVwfzX0HWPZthhIwpyI9ZhvRVzBYhotk=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=xU5zYNjfd0xCKTJeo66N0CIjuPio9picaTKcoBpYpTLU0t3j1ydnUgHbi4LUyXU4R
-	 R6QCoz5Oh7C9WQjL2q6FndefkZZDUl3MRaeIhge5ezI9sPGJTkhvVj5EAwyG/uk9ye
-	 KjTCs12F6Wx1opIeH+MHq9P5WowWB1RUew9n+R8A=
+	b=t9+RBVGYfqRzh+TbfDQ95EZyin6R0yz4ORWz63fvNfPKNUU8U5nmxuK9qV3tEGPsr
+	 7R2jdFaUP8AGVPlsnu9JW23lZXEMWwuFL8VXZmQIQ7Vec4QPUZSZu8VELJWsZO/1WG
+	 rtrKNN6bT7UgJ/gT7cDwsJ7evaXZxDG5llsKj2ss=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726528AbgHLVCq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:02:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50810 "EHLO mail.kernel.org"
+        id S1726531AbgHLVCs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:02:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50920 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726282AbgHLVCq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:02:46 -0400
+        id S1726282AbgHLVCr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:02:47 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7FE5F207F7;
-        Wed, 12 Aug 2020 21:02:45 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 7152520774;
+        Wed, 12 Aug 2020 21:02:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266165;
-        bh=Q3kx6fk4nq/hzvl+0bvwowpykaBhhpD+tkPXeD7y+gk=;
+        s=default; t=1597266167;
+        bh=VYElj3uKVcQxVwfzX0HWPZthhIwpyI9ZhvRVzBYhotk=;
         h=Date:From:To:Subject:From;
-        b=bh+U4chv18DMVZPmJaFG6HSc/vBBCopTA+haR232a/MzOXP/DXOk6h53CInYTnMsq
-         sVtnDzdd5lhCJwH2APqSPpJAP1SvDTLlaWWNefAgPxbjfdyc70cNOCb/6sbHEw7iii
-         PT/pwTxXR6Y81mAUjB2FvxRcVyyUkkISIr56zxBM=
-Date:   Wed, 12 Aug 2020 14:02:45 -0700
+        b=CHyKBuos/DogRpBSveVo5RsV2QnAWq8eQPjg9OF/MkbaJLE5LBJ6oEIghj6EyWxSF
+         EQb1hmzd63lz6wHQ5ecvFTs14m0X77IVxxEYcaelCTHbZirjASA7nG25Gv1lhAXFAb
+         QI5IFX4XUTq0ydM8DpOrXnvYLO0c75d/IskGIYYo=
+Date:   Wed, 12 Aug 2020 14:02:47 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, dave.hansen@linux.intel.com,
-        davem@davemloft.net, david@redhat.com, mm-commits@vger.kernel.org,
-        nivedita@alum.mit.edu, rppt@linux.ibm.com
-Subject:  [merged] sparc-drop-unused-max_physaddr_bits.patch
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, ziy@nvidia.com
+Subject:  [merged] mm-compactionc-delete-duplicated-word.patch
  removed from -mm tree
-Message-ID: <20200812210245.oLVhqT-1Q%akpm@linux-foundation.org>
+Message-ID: <20200812210247.jsdXWF0zT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,43 +54,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: drop unused MAX_PHYSADDR_BITS
+     Subject: mm/compaction.c: delete duplicated word
 has been removed from the -mm tree.  Its filename was
-     sparc-drop-unused-max_physaddr_bits.patch
+     mm-compactionc-delete-duplicated-word.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arvind Sankar <nivedita@alum.mit.edu>
-Subject: sparc: drop unused MAX_PHYSADDR_BITS
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm/compaction.c: delete duplicated word
 
-The macro is not used anywhere, so remove the definition.
+Drop the repeated word "a".
 
-Link: http://lkml.kernel.org/r/20200723231544.17274-4-nivedita@alum.mit.edu
-Signed-off-by: Arvind Sankar <nivedita@alum.mit.edu>
+Link: http://lkml.kernel.org/r/20200801173822.14973-2-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/sparsemem.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sparc/include/asm/sparsemem.h~sparc-drop-unused-max_physaddr_bits
-+++ a/arch/sparc/include/asm/sparsemem.h
-@@ -7,7 +7,6 @@
- #include <asm/page.h>
- 
- #define SECTION_SIZE_BITS       30
--#define MAX_PHYSADDR_BITS       MAX_PHYS_ADDRESS_BITS
- #define MAX_PHYSMEM_BITS        MAX_PHYS_ADDRESS_BITS
- 
- #endif /* !(__KERNEL__) */
+--- a/mm/compaction.c~mm-compactionc-delete-duplicated-word
++++ a/mm/compaction.c
+@@ -1477,7 +1477,7 @@ static void isolate_freepages(struct com
+ 	 * this pfn aligned down to the pageblock boundary, because we do
+ 	 * block_start_pfn -= pageblock_nr_pages in the for loop.
+ 	 * For ending point, take care when isolating in last pageblock of a
+-	 * a zone which ends in the middle of a pageblock.
++	 * zone which ends in the middle of a pageblock.
+ 	 * The low boundary is the end of the pageblock the migration scanner
+ 	 * is using.
+ 	 */
 _
 
-Patches currently in -mm which might be from nivedita@alum.mit.edu are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 
