@@ -7,45 +7,44 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D0F1C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9A4EC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F2CF2078B
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7903D207F7
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:05:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266349;
-	bh=P3+dqO6ZRXHvo+xOT1q25xS2p2qfrGZpRGGbBPnqXlE=;
+	s=default; t=1597266353;
+	bh=LkeCr8OMHppb5Q9hbMryB/c6xkob4HwW22rYznTrmf0=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=UTcEapOCdjOv48Jqh+CNZw+D5yasTrX6IIBdcAlRIDG6KdXoQVJwFYC5WyO/R42zY
-	 NNIpnLHcZF9uQi6qluG+KTZ/kUWOYPjp2LL9J8PZBw75E41TX04neDrdenM9zZWEF5
-	 jjfr8rkOAEhE1sJ1uyo90JJJ0wFdAdGn/lUmR+nU=
+	b=vH8aIDxUL6K7f3cxcEzM10Xe4cbPGpZ4ctNP4T77gymnSfmsuQHr7sx5vIEiqbQv8
+	 74JS2A5RKhFo9V0lZ5fkLOBsFUASxK82dq6Yl+y6eCdwz/DE/VRvN/eTrCAL4z2v7U
+	 14Irf2ifXHWP6THuaoMNzkHKta2Vl+TdeB8KPyJA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726542AbgHLVFs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:05:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59806 "EHLO mail.kernel.org"
+        id S1726531AbgHLVFx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:05:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59964 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726030AbgHLVFs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:05:48 -0400
+        id S1726528AbgHLVFw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:05:52 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8C0D0207F7;
-        Wed, 12 Aug 2020 21:05:46 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 803312080C;
+        Wed, 12 Aug 2020 21:05:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266346;
-        bh=P3+dqO6ZRXHvo+xOT1q25xS2p2qfrGZpRGGbBPnqXlE=;
+        s=default; t=1597266350;
+        bh=LkeCr8OMHppb5Q9hbMryB/c6xkob4HwW22rYznTrmf0=;
         h=Date:From:To:Subject:From;
-        b=HPmQkSP3abIobgjNs6K7v71xx6Q4odw2ROyD/6tLFabRfomAa4lAtK1T21tREWQh6
-         WAdmCp1fTXx9dhNYdK6S7HEHGpnK75dXroaSxtSapchgDKHyeM11esGhXy3J9rBRw3
-         OISg66qXvFpae60FXdpyuKUYLL7dr7P9JdWNTZGc=
-Date:   Wed, 12 Aug 2020 14:05:46 -0700
+        b=h41RJ5uArqqylruRNHhTdHVjxBAYxzUkA0883XDr6+ni9zI2b3tZHYu8kX6726sxr
+         MdUguW/Q6pUGqCbZoV+xoM35c+UJaEPWMWHHufOfhCJq+ju1ajcx0+rcWQkzQZbE85
+         g/GelFmai3z6ywXTv9Yv0IO6sIg5yyTW4kfu/lSY=
+Date:   Wed, 12 Aug 2020 14:05:50 -0700
 From:   akpm@linux-foundation.org
-To:     aymeric.agon@yandex.com, jan.kiszka@siemens.com,
-        kbingham@kernel.org, mm-commits@vger.kernel.org,
-        ndesaulniers@google.com, swboyd@chromium.org
-Subject:  [merged] scripts-gdb-fix-python-38-syntaxwarning.patch
+To:     akpm@linux-foundation.org, liao.pingfang@zte.com.cn,
+        mm-commits@vger.kernel.org, wang.yi59@zte.com.cn
+Subject:  [merged] ipc-shmc-remove-the-superfluous-break.patch
  removed from -mm tree
-Message-ID: <20200812210546.VF2imsZbL%akpm@linux-foundation.org>
+Message-ID: <20200812210550.EIVVtO2IU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,64 +54,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: fix python 3.8 SyntaxWarning
+     Subject: ipc/shm.c: remove the superfluous break
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-fix-python-38-syntaxwarning.patch
+     ipc-shmc-remove-the-superfluous-break.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: scripts/gdb: fix python 3.8 SyntaxWarning
+From: Liao Pingfang <liao.pingfang@zte.com.cn>
+Subject: ipc/shm.c: remove the superfluous break
 
-Fixes the observed warnings:
-scripts/gdb/linux/rbtree.py:20: SyntaxWarning: "is" with a literal. Did
-you mean "=="?
-  if node is 0:
-scripts/gdb/linux/rbtree.py:36: SyntaxWarning: "is" with a literal. Did
-you mean "=="?
-  if node is 0:
+Remove the superfuous break, as there is a 'return' before it.
 
-It looks like this is a new warning added in Python 3.8. I've only seen
-this once after adding the add-auto-load-safe-path rule to my ~/.gdbinit
-for a new tree.
-
-Link: http://lkml.kernel.org/r/20200805225015.2847624-1-ndesaulniers@google.com
-Link: https://adamj.eu/tech/2020/01/21/why-does-python-3-8-syntaxwarning-for-is-literal/
-Fixes: commit 449ca0c95ea2 ("scripts/gdb: add rb tree iterating utilities")
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Reviewed-by: Stephen Boyd <swboyd@chromium.org>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Aymeric Agon-Rambosson <aymeric.agon@yandex.com>
+Link: http://lkml.kernel.org/r/1594724361-11525-1-git-send-email-wang.yi59@zte.com.cn
+Signed-off-by: Liao Pingfang <liao.pingfang@zte.com.cn>
+Signed-off-by: Yi Wang <wang.yi59@zte.com.cn>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/rbtree.py |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/shm.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/scripts/gdb/linux/rbtree.py~scripts-gdb-fix-python-38-syntaxwarning
-+++ a/scripts/gdb/linux/rbtree.py
-@@ -17,7 +17,7 @@ def rb_first(root):
-         raise gdb.GdbError("Must be struct rb_root not {}".format(root.type))
- 
-     node = root['rb_node']
--    if node is 0:
-+    if node == 0:
-         return None
- 
-     while node['rb_left']:
-@@ -33,7 +33,7 @@ def rb_last(root):
-         raise gdb.GdbError("Must be struct rb_root not {}".format(root.type))
- 
-     node = root['rb_node']
--    if node is 0:
-+    if node == 0:
-         return None
- 
-     while node['rb_right']:
+--- a/ipc/shm.c~ipc-shmc-remove-the-superfluous-break
++++ a/ipc/shm.c
+@@ -1380,7 +1380,6 @@ static long compat_ksys_shmctl(int shmid
+ 	case SHM_LOCK:
+ 	case SHM_UNLOCK:
+ 		return shmctl_do_lock(ns, shmid, cmd);
+-		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
 _
 
-Patches currently in -mm which might be from ndesaulniers@google.com are
+Patches currently in -mm which might be from liao.pingfang@zte.com.cn are
 
 
