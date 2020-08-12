@@ -7,48 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF9FFC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24FF1C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC5012080C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EED21206B2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:30:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597195834;
-	bh=sQXGZRR5FxDM/6k3qfIGp/MrdAoAt7nXh7Py9Ecp2zc=;
+	s=default; t=1597195840;
+	bh=E7iKYQnLy9X8SvpNcw5oEImWkO9xMWocinGyYqtMCf8=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=fJySeQX58c/VT6YsXEOv7ZAkHSUk2izxtl8JAhSGUu4wDUWwq0viURLowmsL5t4Lh
-	 cAVJT7feF1VM/81SenNTPrjdMa7L2Ib7/ctw3dfxdgN+cM2xmBhrLS+7XWoheWd7zu
-	 1Vcd6qYclmIhxdHS3/vaXowMyFmTX1WUyBVlll7M=
+	b=PXmQ0td95OUiaWXgqYQRsnF3H7hmNd9JTSGmrAr4k+U31SjpTHgOMt37B/TVra8dQ
+	 zq0akeZdP8DNn3/cnxyqrrFP65rfHlSlXRTEf5Aj0JjnnNMop5ZqNSXIhV0WTO9XZX
+	 t1MJtVeaoi+UsAVfAGqZSJzi11HpOW+MAA0oHpF0=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726422AbgHLBae (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:30:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57426 "EHLO mail.kernel.org"
+        id S1726368AbgHLBaj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:30:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57522 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726235AbgHLBae (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:30:34 -0400
+        id S1726235AbgHLBaj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:30:39 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5087E206B2;
-        Wed, 12 Aug 2020 01:30:33 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 29436207DA;
+        Wed, 12 Aug 2020 01:30:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195833;
-        bh=sQXGZRR5FxDM/6k3qfIGp/MrdAoAt7nXh7Py9Ecp2zc=;
+        s=default; t=1597195837;
+        bh=E7iKYQnLy9X8SvpNcw5oEImWkO9xMWocinGyYqtMCf8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=PuEA7EApzS3lXFTIn5Wz+PmHeI8Cyn4A0vCDM7MivYr1GiadE+EDeURuepUlNFjEW
-         aUNPpH0m+NQP8ARYBoJZKZN6j1mNWrbbJJu+enF0Bzd2R88NhaEluz1pycilPzquGm
-         URyOx8hx0cjLhLUM07j1BnAhDQPquqNge6+7NuRI=
-Date:   Tue, 11 Aug 2020 18:30:32 -0700
+        b=DRnxUjizby2I4/OKjKK+H8HnWegEyzGS49auW2j5N6D07YIkaiPCsePFWJMxXZP9z
+         An8E54AZa5g4o4HzVh+goSIHwxWvvdKOQtv3JwKZkdGbTcCicxsRzcsNJB1I2lZ+/I
+         H7D2CGTu/6z9XPTudEo02EWk8nvHdajHytMa94KM=
+Date:   Tue, 11 Aug 2020 18:30:36 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bhe@redhat.com,
-        guojianchao@bytedance.com, linux-mm@kvack.org, mgorman@suse.de,
-        mhocko@kernel.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, rientjes@google.com,
-        songmuchun@bytedance.com, torvalds@linux-foundation.org,
-        walken@google.com
-Subject:  [patch 006/165] mm/hugetlb: add mempolicy check in the
- reservation routine
-Message-ID: <20200812013032.yKTDCXQ06%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com,
+        iamjoonsoo.kim@lge.com, linux-mm@kvack.org,
+        mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        vbabka@suse.cz, willy@infradead.org
+Subject:  [patch 007/165] mm/vmscan: make active/inactive ratio as
+ 1:1 for anon lru
+Message-ID: <20200812013036.0amRBkZOD%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -57,142 +56,310 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/hugetlb: add mempolicy check in the reservation routine
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/vmscan: make active/inactive ratio as 1:1 for anon lru
 
-In the reservation routine, we only check whether the cpuset meets the
-memory allocation requirements.  But we ignore the mempolicy of MPOL_BIND
-case.  If someone mmap hugetlb succeeds, but the subsequent memory
-allocation may fail due to mempolicy restrictions and receives the SIGBUS
-signal.  This can be reproduced by the follow steps.
+Patch series "workingset protection/detection on the anonymous LRU list", v7.
 
- 1) Compile the test case.
-    cd tools/testing/selftests/vm/
-    gcc map_hugetlb.c -o map_hugetlb
 
- 2) Pre-allocate huge pages. Suppose there are 2 numa nodes in the
-    system. Each node will pre-allocate one huge page.
-    echo 2 > /proc/sys/vm/nr_hugepages
+* PROBLEM
+In current implementation, newly created or swap-in anonymous page is
+started on the active list.  Growing the active list results in
+rebalancing active/inactive list so old pages on the active list are
+demoted to the inactive list.  Hence, hot page on the active list isn't
+protected at all.
 
- 3) Run test case(mmap 4MB). We receive the SIGBUS signal.
-    numactl --membind=3D0 ./map_hugetlb 4
+Following is an example of this situation.
 
-With this patch applied, the mmap will fail in the step 3) and throw
-"mmap: Cannot allocate memory".
+Assume that 50 hot pages on active list and system can contain total 100
+pages.  Numbers denote the number of pages on active/inactive list (active
+| inactive).  (h) stands for hot pages and (uo) stands for used-once
+pages.
 
-[akpm@linux-foundation.org: include sched.h for `current']
-Link: http://lkml.kernel.org/r/20200728034938.14993-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: Jianchao Guo <guojianchao@bytedance.com>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Baoquan He <bhe@redhat.com>
+1. 50 hot pages on active list
+50(h) | 0
+
+2. workload: 50 newly created (used-once) pages
+50(uo) | 50(h)
+
+3. workload: another 50 newly created (used-once) pages
+50(uo) | 50(uo), swap-out 50(h)
+
+As we can see, hot pages are swapped-out and it would cause swap-in later.
+
+* SOLUTION
+Since this is what we want to avoid, this patchset implements workingset
+protection.  Like as the file LRU list, newly created or swap-in anonymous
+page is started on the inactive list.  Also, like as the file LRU list, if
+enough reference happens, the page will be promoted.  This simple
+modification changes the above example as following.
+
+1. 50 hot pages on active list
+50(h) | 0
+
+2. workload: 50 newly created (used-once) pages
+50(h) | 50(uo)
+
+3. workload: another 50 newly created (used-once) pages
+50(h) | 50(uo), swap-out 50(uo)
+
+hot pages remains in the active list. :)
+
+* EXPERIMENT
+I tested this scenario on my test bed and confirmed that this problem
+happens on current implementation. I also checked that it is fixed by
+this patchset.
+
+
+* SUBJECT
+workingset detection
+
+* PROBLEM
+Later part of the patchset implements the workingset detection for the
+anonymous LRU list.  There is a corner case that workingset protection
+could cause thrashing.  If we can avoid thrashing by workingset detection,
+we can get the better performance.
+
+Following is an example of thrashing due to the workingset protection.
+
+1. 50 hot pages on active list
+50(h) | 0
+
+2. workload: 50 newly created (will be hot) pages
+50(h) | 50(wh)
+
+3. workload: another 50 newly created (used-once) pages
+50(h) | 50(uo), swap-out 50(wh)
+
+4. workload: 50 (will be hot) pages
+50(h) | 50(wh), swap-in 50(wh)
+
+5. workload: another 50 newly created (used-once) pages
+50(h) | 50(uo), swap-out 50(wh)
+
+6. repeat 4, 5
+
+Without workingset detection, this kind of workload cannot be promoted and
+thrashing happens forever.
+
+* SOLUTION
+Therefore, this patchset implements workingset detection.  All the
+infrastructure for workingset detecion is already implemented, so there is
+not much work to do.  First, extend workingset detection code to deal with
+the anonymous LRU list.  Then, make swap cache handles the exceptional
+value for the shadow entry.  Lastly, install/retrieve the shadow value
+into/from the swap cache and check the refault distance.
+
+* EXPERIMENT
+I made a test program to imitates above scenario and confirmed that
+problem exists.  Then, I checked that this patchset fixes it.
+
+My test setup is a virtual machine with 8 cpus and 6100MB memory.  But,
+the amount of the memory that the test program can use is about 280 MB. 
+This is because the system uses large ram-backed swap and large ramdisk to
+capture the trace.
+
+Test scenario is like as below.
+
+1. allocate cold memory (512MB)
+2. allocate hot-1 memory (96MB)
+3. activate hot-1 memory (96MB)
+4. allocate another hot-2 memory (96MB)
+5. access cold memory (128MB)
+6. access hot-2 memory (96MB)
+7. repeat 5, 6
+
+Since hot-1 memory (96MB) is on the active list, the inactive list can
+contains roughly 190MB pages.  hot-2 memory's re-access interval (96+128
+MB) is more 190MB, so it cannot be promoted without workingset detection
+and swap-in/out happens repeatedly.  With this patchset, workingset
+detection works and promotion happens.  Therefore, swap-in/out occurs
+less.
+
+Here is the result. (average of 5 runs)
+
+type swap-in swap-out
+base 863240 989945
+patch 681565 809273
+
+As we can see, patched kernel do less swap-in/out.
+
+* OVERALL TEST (ebizzy using modified random function)
+ebizzy is the test program that main thread allocates lots of memory and
+child threads access them randomly during the given times.  Swap-in will
+happen if allocated memory is larger than the system memory.
+
+The random function that represents the zipf distribution is used to make
+hot/cold memory.  Hot/cold ratio is controlled by the parameter.  If the
+parameter is high, hot memory is accessed much larger than cold one.  If
+the parameter is low, the number of access on each memory would be
+similar.  I uses various parameters in order to show the effect of
+patchset on various hot/cold ratio workload.
+
+My test setup is a virtual machine with 8 cpus, 1024 MB memory and 5120 MB
+ram swap.
+
+Result format is as following.
+
+param: 1-1024-0.1
+- 1 (number of thread)
+- 1024 (allocated memory size, MB)
+- 0.1 (zipf distribution alpha,
+0.1 works like as roughly uniform random,
+1.3 works like as small portion of memory is hot and the others are cold)
+
+pswpin: smaller is better
+std: standard deviation
+improvement: negative is better
+
+* single thread
+           param        pswpin       std       improvement
+      base 1-1024.0-0.1 14101983.40   79441.19
+      prot 1-1024.0-0.1 14065875.80  136413.01  (   -0.26 )
+    detect 1-1024.0-0.1 13910435.60  100804.82  (   -1.36 )
+      base 1-1024.0-0.7 7998368.80   43469.32
+      prot 1-1024.0-0.7 7622245.80   88318.74  (   -4.70 )
+    detect 1-1024.0-0.7 7618515.20   59742.07  (   -4.75 )
+      base 1-1024.0-1.3 1017400.80   38756.30
+      prot 1-1024.0-1.3  940464.60   29310.69  (   -7.56 )
+    detect 1-1024.0-1.3  945511.40   24579.52  (   -7.07 )
+      base 1-1280.0-0.1 22895541.40   50016.08
+      prot 1-1280.0-0.1 22860305.40   51952.37  (   -0.15 )
+    detect 1-1280.0-0.1 22705565.20   93380.35  (   -0.83 )
+      base 1-1280.0-0.7 13717645.60   46250.65
+      prot 1-1280.0-0.7 12935355.80   64754.43  (   -5.70 )
+    detect 1-1280.0-0.7 13040232.00   63304.00  (   -4.94 )
+      base 1-1280.0-1.3 1654251.40    4159.68
+      prot 1-1280.0-1.3 1522680.60   33673.50  (   -7.95 )
+    detect 1-1280.0-1.3 1599207.00   70327.89  (   -3.33 )
+      base 1-1536.0-0.1 31621775.40   31156.28
+      prot 1-1536.0-0.1 31540355.20   62241.36  (   -0.26 )
+    detect 1-1536.0-0.1 31420056.00  123831.27  (   -0.64 )
+      base 1-1536.0-0.7 19620760.60   60937.60
+      prot 1-1536.0-0.7 18337839.60   56102.58  (   -6.54 )
+    detect 1-1536.0-0.7 18599128.00   75289.48  (   -5.21 )
+      base 1-1536.0-1.3 2378142.40   20994.43
+      prot 1-1536.0-1.3 2166260.60   48455.46  (   -8.91 )
+    detect 1-1536.0-1.3 2183762.20   16883.24  (   -8.17 )
+      base 1-1792.0-0.1 40259714.80   90750.70
+      prot 1-1792.0-0.1 40053917.20   64509.47  (   -0.51 )
+    detect 1-1792.0-0.1 39949736.40  104989.64  (   -0.77 )
+      base 1-1792.0-0.7 25704884.40   69429.68
+      prot 1-1792.0-0.7 23937389.00   79945.60  (   -6.88 )
+    detect 1-1792.0-0.7 24271902.00   35044.30  (   -5.57 )
+      base 1-1792.0-1.3 3129497.00   32731.86
+      prot 1-1792.0-1.3 2796994.40   19017.26  (  -10.62 )
+    detect 1-1792.0-1.3 2886840.40   33938.82  (   -7.75 )
+      base 1-2048.0-0.1 48746924.40   50863.88
+      prot 1-2048.0-0.1 48631954.40   24537.30  (   -0.24 )
+    detect 1-2048.0-0.1 48509419.80   27085.34  (   -0.49 )
+      base 1-2048.0-0.7 32046424.40   78624.22
+      prot 1-2048.0-0.7 29764182.20   86002.26  (   -7.12 )
+    detect 1-2048.0-0.7 30250315.80  101282.14  (   -5.60 )
+      base 1-2048.0-1.3 3916723.60   24048.55
+      prot 1-2048.0-1.3 3490781.60   33292.61  (  -10.87 )
+    detect 1-2048.0-1.3 3585002.20   44942.04  (   -8.47 )
+
+* multi thread
+           param        pswpin       std       improvement
+      base 8-1024.0-0.1 16219822.60  329474.01
+      prot 8-1024.0-0.1 15959494.00  654597.45  (   -1.61 )
+    detect 8-1024.0-0.1 15773790.80  502275.25  (   -2.75 )
+      base 8-1024.0-0.7 9174107.80  537619.33
+      prot 8-1024.0-0.7 8571915.00  385230.08  (   -6.56 )
+    detect 8-1024.0-0.7 8489484.20  364683.00  (   -7.46 )
+      base 8-1024.0-1.3 1108495.60   83555.98
+      prot 8-1024.0-1.3 1038906.20   63465.20  (   -6.28 )
+    detect 8-1024.0-1.3  941817.80   32648.80  (  -15.04 )
+      base 8-1280.0-0.1 25776114.20  450480.45
+      prot 8-1280.0-0.1 25430847.00  465627.07  (   -1.34 )
+    detect 8-1280.0-0.1 25282555.00  465666.55  (   -1.91 )
+      base 8-1280.0-0.7 15218968.00  702007.69
+      prot 8-1280.0-0.7 13957947.80  492643.86  (   -8.29 )
+    detect 8-1280.0-0.7 14158331.20  238656.02  (   -6.97 )
+      base 8-1280.0-1.3 1792482.80   30512.90
+      prot 8-1280.0-1.3 1577686.40   34002.62  (  -11.98 )
+    detect 8-1280.0-1.3 1556133.00   22944.79  (  -13.19 )
+      base 8-1536.0-0.1 33923761.40  575455.85
+      prot 8-1536.0-0.1 32715766.20  300633.51  (   -3.56 )
+    detect 8-1536.0-0.1 33158477.40  117764.51  (   -2.26 )
+      base 8-1536.0-0.7 20628907.80  303851.34
+      prot 8-1536.0-0.7 19329511.20  341719.31  (   -6.30 )
+    detect 8-1536.0-0.7 20013934.00  385358.66  (   -2.98 )
+      base 8-1536.0-1.3 2588106.40  130769.20
+      prot 8-1536.0-1.3 2275222.40   89637.06  (  -12.09 )
+    detect 8-1536.0-1.3 2365008.40  124412.55  (   -8.62 )
+      base 8-1792.0-0.1 43328279.20  946469.12
+      prot 8-1792.0-0.1 41481980.80  525690.89  (   -4.26 )
+    detect 8-1792.0-0.1 41713944.60  406798.93  (   -3.73 )
+      base 8-1792.0-0.7 27155647.40  536253.57
+      prot 8-1792.0-0.7 24989406.80  502734.52  (   -7.98 )
+    detect 8-1792.0-0.7 25524806.40  263237.87  (   -6.01 )
+      base 8-1792.0-1.3 3260372.80  137907.92
+      prot 8-1792.0-1.3 2879187.80   63597.26  (  -11.69 )
+    detect 8-1792.0-1.3 2892962.20   33229.13  (  -11.27 )
+      base 8-2048.0-0.1 50583989.80  710121.48
+      prot 8-2048.0-0.1 49599984.40  228782.42  (   -1.95 )
+    detect 8-2048.0-0.1 50578596.00  660971.66  (   -0.01 )
+      base 8-2048.0-0.7 33765479.60  812659.55
+      prot 8-2048.0-0.7 30767021.20  462907.24  (   -8.88 )
+    detect 8-2048.0-0.7 32213068.80  211884.24  (   -4.60 )
+      base 8-2048.0-1.3 3941675.80   28436.45
+      prot 8-2048.0-1.3 3538742.40   76856.08  (  -10.22 )
+    detect 8-2048.0-1.3 3579397.80   58630.95  (   -9.19 )
+
+As we can see, all the cases show improvement.  Especially, test case with
+zipf distribution 1.3 show more improvements.  It means that if there is a
+hot/cold tendency in anon pages, this patchset works better.
+
+
+This patch (of 6):
+
+Current implementation of LRU management for anonymous page has some
+problems.  Most important one is that it doesn't protect the workingset,
+that is, pages on the active LRU list.  Although, this problem will be
+fixed in the following patchset, the preparation is required and this
+patch does it.
+
+What following patch does is to implement workingset protection.  After
+the following patchset, newly created or swap-in pages will start their
+lifetime on the inactive list.  If inactive list is too small, there is
+not enough chance to be referenced and the page cannot become the
+workingset.
+
+In order to provide the newly anonymous or swap-in pages enough chance to
+be referenced again, this patch makes active/inactive LRU ratio as 1:1.
+
+This is just a temporary measure.  Later patch in the series introduces
+workingset detection for anonymous LRU that will be used to better decide
+if pages should start on the active and inactive list.  Afterwards this
+patch is effectively reverted.
+
+Link: http://lkml.kernel.org/r/1595490560-15117-1-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1595490560-15117-2-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   16 +++++++++++++++-
- mm/hugetlb.c              |   24 +++++++++++++++++++-----
- mm/mempolicy.c            |    2 +-
- 3 files changed, 35 insertions(+), 7 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mempolicy.h~mm-hugetlb-add-mempolicy-check-in-the-reservation-routine
-+++ a/include/linux/mempolicy.h
-@@ -6,7 +6,7 @@
- #ifndef _LINUX_MEMPOLICY_H
- #define _LINUX_MEMPOLICY_H 1
+--- a/mm/vmscan.c~mm-vmscan-make-active-inactive-ratio-as-1-1-for-anon-lru
++++ a/mm/vmscan.c
+@@ -2208,7 +2208,7 @@ static bool inactive_is_low(struct lruve
+ 	active = lruvec_page_state(lruvec, NR_LRU_BASE + active_lru);
  
--
-+#include <linux/sched.h>
- #include <linux/mmzone.h>
- #include <linux/dax.h>
- #include <linux/slab.h>
-@@ -152,6 +152,15 @@ extern int huge_node(struct vm_area_stru
- extern bool init_nodemask_of_mempolicy(nodemask_t *mask);
- extern bool mempolicy_nodemask_intersects(struct task_struct *tsk,
- 				const nodemask_t *mask);
-+extern nodemask_t *policy_nodemask(gfp_t gfp, struct mempolicy *policy);
-+
-+static inline nodemask_t *policy_nodemask_current(gfp_t gfp)
-+{
-+	struct mempolicy *mpol = get_task_policy(current);
-+
-+	return policy_nodemask(gfp, mpol);
-+}
-+
- extern unsigned int mempolicy_slab_node(void);
- 
- extern enum zone_type policy_zone;
-@@ -281,5 +290,10 @@ static inline int mpol_misplaced(struct
- static inline void mpol_put_task_policy(struct task_struct *task)
- {
- }
-+
-+static inline nodemask_t *policy_nodemask_current(gfp_t gfp)
-+{
-+	return NULL;
-+}
- #endif /* CONFIG_NUMA */
- #endif
---- a/mm/hugetlb.c~mm-hugetlb-add-mempolicy-check-in-the-reservation-routine
-+++ a/mm/hugetlb.c
-@@ -3458,13 +3458,21 @@ static int __init default_hugepagesz_set
- }
- __setup("default_hugepagesz=", default_hugepagesz_setup);
- 
--static unsigned int cpuset_mems_nr(unsigned int *array)
-+static unsigned int allowed_mems_nr(struct hstate *h)
- {
- 	int node;
- 	unsigned int nr = 0;
--
--	for_each_node_mask(node, cpuset_current_mems_allowed)
--		nr += array[node];
-+	nodemask_t *mpol_allowed;
-+	unsigned int *array = h->free_huge_pages_node;
-+	gfp_t gfp_mask = htlb_alloc_mask(h);
-+
-+	mpol_allowed = policy_nodemask_current(gfp_mask);
-+
-+	for_each_node_mask(node, cpuset_current_mems_allowed) {
-+		if (!mpol_allowed ||
-+		    (mpol_allowed && node_isset(node, *mpol_allowed)))
-+			nr += array[node];
-+	}
- 
- 	return nr;
- }
-@@ -3643,12 +3651,18 @@ static int hugetlb_acct_memory(struct hs
- 	 * we fall back to check against current free page availability as
- 	 * a best attempt and hopefully to minimize the impact of changing
- 	 * semantics that cpuset has.
-+	 *
-+	 * Apart from cpuset, we also have memory policy mechanism that
-+	 * also determines from which node the kernel will allocate memory
-+	 * in a NUMA system. So similar to cpuset, we also should consider
-+	 * the memory policy of the current task. Similar to the description
-+	 * above.
- 	 */
- 	if (delta > 0) {
- 		if (gather_surplus_pages(h, delta) < 0)
- 			goto out;
- 
--		if (delta > cpuset_mems_nr(h->free_huge_pages_node)) {
-+		if (delta > allowed_mems_nr(h)) {
- 			return_unused_surplus_pages(h, delta);
- 			goto out;
- 		}
---- a/mm/mempolicy.c~mm-hugetlb-add-mempolicy-check-in-the-reservation-routine
-+++ a/mm/mempolicy.c
-@@ -1890,7 +1890,7 @@ static int apply_policy_zone(struct memp
-  * Return a nodemask representing a mempolicy for filtering nodes for
-  * page allocation
-  */
--static nodemask_t *policy_nodemask(gfp_t gfp, struct mempolicy *policy)
-+nodemask_t *policy_nodemask(gfp_t gfp, struct mempolicy *policy)
- {
- 	/* Lower zones don't get a nodemask applied for MPOL_BIND */
- 	if (unlikely(policy->mode == MPOL_BIND) &&
+ 	gb = (inactive + active) >> (30 - PAGE_SHIFT);
+-	if (gb)
++	if (gb && is_file_lru(inactive_lru))
+ 		inactive_ratio = int_sqrt(10 * gb);
+ 	else
+ 		inactive_ratio = 1;
 _
