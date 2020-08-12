@@ -7,46 +7,47 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0935FC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 00:59:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F5A8C433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:00:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D03E620829
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 00:59:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3196720829
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:00:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597193968;
-	bh=DzjmM77l+KFaqUFjLnyyzGqJ4/p20LPJnTJzQJ1xgr4=;
+	s=default; t=1597194007;
+	bh=KPQa57okO8ZK+EnxdWSjJ++KwOIZwd0OJEPdxINkkD8=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=gnfIE5bVjXZ0bLubD1/Eer2NuvIdlxysFVtsmxNBPafTTA0yx5qgE7bIVHH68JaO3
-	 EnBld5SaqWpGWH2X7eagu8fzBp9SQts2oEwwn/3qVn67HUwu1fp9nPKIi5gPEo+J9K
-	 WZoK+o5zwGnExD59bEcaAjjaiJ4NJGNs4FeQ8tPc=
+	b=Y4VxIEup9Q6zXonJ09mVZEihe5wKj/l58TaezZBlWeTR1TUmLafVa+0QJJBjAIlqa
+	 rVq25DXr5hNUVSjTq7ceb2ngct3veUWDxbpJWXB/rvk9MnSJlBLyeXw4qUxMlNM421
+	 +LZe707tqdtprqg2iUqhUagp6bQ4whcAEaf1RfnA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726420AbgHLA72 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 20:59:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44574 "EHLO mail.kernel.org"
+        id S1726355AbgHLBAG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:00:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44662 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726333AbgHLA72 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 20:59:28 -0400
+        id S1726333AbgHLBAG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:00:06 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5616C207DA;
-        Wed, 12 Aug 2020 00:59:27 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9543C207DA;
+        Wed, 12 Aug 2020 01:00:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597193967;
-        bh=DzjmM77l+KFaqUFjLnyyzGqJ4/p20LPJnTJzQJ1xgr4=;
+        s=default; t=1597194006;
+        bh=KPQa57okO8ZK+EnxdWSjJ++KwOIZwd0OJEPdxINkkD8=;
         h=Date:From:To:Subject:From;
-        b=qVJsnVZfi3xBcK3Kp9bkmWvpCizZXv2talxe7I8KQ44mhRE0qe8Zwq4AbVN0QWyTl
-         UYHG+n3bPgNFuDKO+jwTN5SXlFV3reRX2HGuV2yJyhvDWt42PzmrLEZnZQCnr+bBVE
-         E9XtZ6hkFkPZ4K5AuKwTFw0OZjKBA9I544AiVWqg=
-Date:   Tue, 11 Aug 2020 17:59:26 -0700
+        b=Sviy9xK/7XeYZQq4O2Ddf48OIO+GLNEWuyoi/N9ad6IQMhy8bC4SfQSAYUDP54bNJ
+         WSwA4SKHYeKGGHqeqa2T2mU8zh77x3vkeJPBjw8zapyDiszj8PfzVw1iu/vscHgXs+
+         cQGtKvGARucdUc+5rjDNF8gYPtdMkZyufzlH0WNo=
+Date:   Tue, 11 Aug 2020 18:00:05 -0700
 From:   akpm@linux-foundation.org
-To:     bharata@linux.ibm.com, hch@lst.de, jgg@mellanox.com,
-        jglisse@redhat.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, shuah@kernel.org
+To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
+        daniel.m.jordan@oracle.com, hughd@google.com, jhubbard@nvidia.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        willy@infradead.org, ziy@nvidia.com
 Subject:  [folded-merged]
- mm-migrate-optimize-migrate_vma_setup-for-holes-v2.patch removed from -mm
- tree
-Message-ID: <20200812005926.Jz8jwge8X%akpm@linux-foundation.org>
+ mm-vmstat-add-events-for-thp-migration-without-split-fix.patch removed from
+ -mm tree
+Message-ID: <20200812010005.xQwm_wnWI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -56,75 +57,88 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-migrate-optimize-migrate_vma_setup-for-holes-v2
+     Subject: mm-vmstat-add-events-for-thp-migration-without-split-fix
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-optimize-migrate_vma_setup-for-holes-v2.patch
+     mm-vmstat-add-events-for-thp-migration-without-split-fix.patch
 
-This patch was dropped because it was folded into mm-migrate-optimize-migrate_vma_setup-for-holes.patch
+This patch was dropped because it was folded into mm-vmstat-add-events-for-thp-migration-without-split.patch
 
 ------------------------------------------------------
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: mm-migrate-optimize-migrate_vma_setup-for-holes-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmstat-add-events-for-thp-migration-without-split-fix
 
-Do the same check for vma_is_anonymous() for pte_none().
-Don't increment cpages if the page isn't migrating.
+s/hpage_nr_pages/thp_nr_pages/ due to "mm: replace hpage_nr_pages with
+thp_nr_pages".
 
-Link: http://lkml.kernel.org/r/20200710194840.7602-2-rcampbell@nvidia.com
-Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: "Bharata B Rao" <bharata@linux.ibm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ mm/migrate.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-optimize-migrate_vma_setup-for-holes-v2
+--- a/mm/migrate.c~mm-vmstat-add-events-for-thp-migration-without-split-fix
 +++ a/mm/migrate.c
-@@ -2167,13 +2167,19 @@ static int migrate_vma_collect_hole(unsi
- {
- 	struct migrate_vma *migrate = walk->private;
- 	unsigned long addr;
--	unsigned long flags;
+@@ -1429,7 +1429,7 @@ int migrate_pages(struct list_head *from
+ 	struct page *page;
+ 	struct page *page2;
+ 	int swapwrite = current->flags & PF_SWAPWRITE;
+-	int rc, thp_nr_pages;
++	int rc, thp_n_pages;
  
- 	/* Only allow populating anonymous memory. */
--	flags = vma_is_anonymous(walk->vma) ? MIGRATE_PFN_MIGRATE : 0;
-+	if (!vma_is_anonymous(walk->vma)) {
-+		for (addr = start; addr < end; addr += PAGE_SIZE) {
-+			migrate->src[migrate->npages] = 0;
-+			migrate->dst[migrate->npages] = 0;
-+			migrate->npages++;
-+		}
-+		return 0;
-+	}
+ 	if (!swapwrite)
+ 		current->flags |= PF_SWAPWRITE;
+@@ -1446,7 +1446,7 @@ retry:
+ 			 * during migration.
+ 			 */
+ 			is_thp = PageTransHuge(page);
+-			thp_nr_pages = hpage_nr_pages(page);
++			thp_n_pages = thp_nr_pages(page);
+ 			cond_resched();
  
- 	for (addr = start; addr < end; addr += PAGE_SIZE) {
--		migrate->src[migrate->npages] = flags;
-+		migrate->src[migrate->npages] = MIGRATE_PFN_MIGRATE;
- 		migrate->dst[migrate->npages] = 0;
- 		migrate->npages++;
- 		migrate->cpages++;
-@@ -2264,8 +2270,10 @@ again:
- 		pte = *ptep;
- 
- 		if (pte_none(pte)) {
--			mpfn = MIGRATE_PFN_MIGRATE;
--			migrate->cpages++;
-+			if (vma_is_anonymous(vma)) {
-+				mpfn = MIGRATE_PFN_MIGRATE;
-+				migrate->cpages++;
-+			}
- 			goto next;
- 		}
- 
+ 			if (PageHuge(page))
+@@ -1483,7 +1483,7 @@ retry:
+ 				}
+ 				if (is_thp) {
+ 					nr_thp_failed++;
+-					nr_failed += thp_nr_pages;
++					nr_failed += thp_n_pages;
+ 					goto out;
+ 				}
+ 				nr_failed++;
+@@ -1498,7 +1498,7 @@ retry:
+ 			case MIGRATEPAGE_SUCCESS:
+ 				if (is_thp) {
+ 					nr_thp_succeeded++;
+-					nr_succeeded += thp_nr_pages;
++					nr_succeeded += thp_n_pages;
+ 					break;
+ 				}
+ 				nr_succeeded++;
+@@ -1512,7 +1512,7 @@ retry:
+ 				 */
+ 				if (is_thp) {
+ 					nr_thp_failed++;
+-					nr_failed += thp_nr_pages;
++					nr_failed += thp_n_pages;
+ 					break;
+ 				}
+ 				nr_failed++;
 _
 
-Patches currently in -mm which might be from rcampbell@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-migrate-optimize-migrate_vma_setup-for-holes.patch
-mm-migrate-add-migrate-shared-test-for-migrate_vma_.patch
+mm-vmstat-add-events-for-thp-migration-without-split.patch
+mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
+mm-migrate-make-a-standard-migration-target-allocation-function-fix.patch
+mm.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
