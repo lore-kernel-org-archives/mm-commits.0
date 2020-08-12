@@ -7,47 +7,46 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25CFBC433EC
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D09AC433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 061652076C
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 704472080C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:33:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196034;
-	bh=iuaLi2FypdCjQV79tqe21ngZf2j5qAR+pxnP+dvjgrQ=;
+	s=default; t=1597196036;
+	bh=EKEA4pwdWZ5hpTSKkqIaHBuLjcJF511h/S+3ne8ycBY=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=G1QK65fkhsk4BSJEaHGsNICmw+lV9EEFyr4f+uugpT5xmzJIlw0qbNju7lnIbXHTx
-	 9TXQauCEG9hgV92ybPxsaWz6E0mtKi7AhgVeV8IcS6OBhsHRyYITWGSMSfESCxRc1X
-	 xvqn1Ok79gx2LTtWLKvCpmmILPksd3g2tTIxOeKo=
+	b=xMvAqjXA6nlsu92avkrJD+HIDchuz9tRWvRIQNxFbrp4yvz4JDpuzf4bzzQtv2tuJ
+	 KuPwLLB1zeUoiWnHihDwO3790VGkpc+aJzPSnhyT0qCWwvtC8yws93nn1dPMkRQR7E
+	 TVovnXG9sRm+DxuaCjEarN+ip5UM4M7f21nMfdkA=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726634AbgHLBdx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:33:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34514 "EHLO mail.kernel.org"
+        id S1726564AbgHLBd4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:33:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34662 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726492AbgHLBdw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:33:52 -0400
+        id S1726492AbgHLBdz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:33:55 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 44CC72087C;
-        Wed, 12 Aug 2020 01:33:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 9919B2076C;
+        Wed, 12 Aug 2020 01:33:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196031;
-        bh=iuaLi2FypdCjQV79tqe21ngZf2j5qAR+pxnP+dvjgrQ=;
+        s=default; t=1597196035;
+        bh=EKEA4pwdWZ5hpTSKkqIaHBuLjcJF511h/S+3ne8ycBY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=JY9HwEL7ZtmVdt6v6dV6cnyD4XdZ1kpbi8tBYvGL+LWiWFFJRPLLo84l994L8Ze1i
-         OzRxpiqkLJaNZr4oWtQxXHgWXDsria+4UqrtgSjKETG6UHpI9GbiNRDiBkquYlbJcP
-         Id4ANqVvn/fNGwUFF2fhLHSQ/rVAZO/tczwI2Xks=
-Date:   Tue, 11 Aug 2020 18:33:50 -0700
+        b=J0roobCiWgKfasg4BV995+IgJgKvSyvK4HXpRvvZGCRktUHGCI8uSWKIYYdQE/nhN
+         sfGbq8H9w0iKrg77IthZmLHRobQo4k7rPoxdT+OJireAd/QW3fuEdBnB2qppXnNpKo
+         pzAp2+OYsDXJ694Ymqw1qX+QxdzFbnbKCdU3UIe8=
+Date:   Tue, 11 Aug 2020 18:33:54 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, deanbo422@gmail.com,
-        geert@linux-m68k.org, green.hu@gmail.com, hch@lst.de,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        nickhu@andestech.com, palmer@dabbelt.com, paul.walmsley@sifive.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 068/165] exec: use force_uaccess_begin during exec
- and exit
-Message-ID: <20200812013350.pxHVIskxW%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, arnd@arndb.de, ink@jurassic.park.msu.ru,
+        linux-mm@kvack.org, lkp@intel.com, luc.vanoostenryck@gmail.com,
+        mattst88@gmail.com, mm-commits@vger.kernel.org, rth@twiddle.net,
+        sboyd@kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 069/165] alpha: fix annotation of
+ io{read,write}{16,32}be()
+Message-ID: <20200812013354.U9pSdlJwk%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,55 +55,49 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Christoph Hellwig <hch@lst.de>
-Subject: exec: use force_uaccess_begin during exec and exit
+From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Subject: alpha: fix annotation of io{read,write}{16,32}be()
 
-Both exec and exit want to ensure that the uaccess routines actually do
-access user pointers.  Use the newly added force_uaccess_begin helper
-instead of an open coded set_fs for that to prepare for kernel builds
-where set_fs() does not exist.
+These accessors must be used to read/write a big-endian bus.  The value
+returned or written is native-endian.
 
-Link: http://lkml.kernel.org/r/20200710135706.537715-7-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Vincent Chen <deanbo422@gmail.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+However, these accessors are defined using be{16,32}_to_cpu() or
+cpu_to_be{16,32}() to make the endian conversion but these expect a
+__be{16,32} when none is present.  Keeping them would need a force cast
+that would solve nothing at all.
+
+So, do the conversion using swab{16,32}, like done in asm-generic for
+similar situations.
+
+Link: http://lkml.kernel.org/r/20200622114232.80039-1-luc.vanoostenryck@gmail.com
+Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Stephen Boyd <sboyd@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c     |    7 ++++++-
- kernel/exit.c |    2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ arch/alpha/include/asm/io.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/exec.c~exec-use-force_uaccess_begin-during-exec-and-exit
-+++ a/fs/exec.c
-@@ -1402,7 +1402,12 @@ int begin_new_exec(struct linux_binprm *
- 	if (retval)
- 		goto out_unlock;
+--- a/arch/alpha/include/asm/io.h~fix-annotation-of-ioreadwrite1632be
++++ a/arch/alpha/include/asm/io.h
+@@ -489,10 +489,10 @@ extern inline void writeq(u64 b, volatil
+ }
+ #endif
  
--	set_fs(USER_DS);
-+	/*
-+	 * Ensure that the uaccess routines can actually operate on userspace
-+	 * pointers:
-+	 */
-+	force_uaccess_begin();
-+
- 	me->flags &= ~(PF_RANDOMIZE | PF_FORKNOEXEC | PF_KTHREAD |
- 					PF_NOFREEZE | PF_NO_SETAFFINITY);
- 	flush_thread();
---- a/kernel/exit.c~exec-use-force_uaccess_begin-during-exec-and-exit
-+++ a/kernel/exit.c
-@@ -732,7 +732,7 @@ void __noreturn do_exit(long code)
- 	 * mm_release()->clear_child_tid() from writing to a user-controlled
- 	 * kernel address.
- 	 */
--	set_fs(USER_DS);
-+	force_uaccess_begin();
+-#define ioread16be(p) be16_to_cpu(ioread16(p))
+-#define ioread32be(p) be32_to_cpu(ioread32(p))
+-#define iowrite16be(v,p) iowrite16(cpu_to_be16(v), (p))
+-#define iowrite32be(v,p) iowrite32(cpu_to_be32(v), (p))
++#define ioread16be(p) swab16(ioread16(p))
++#define ioread32be(p) swab32(ioread32(p))
++#define iowrite16be(v,p) iowrite16(swab16(v), (p))
++#define iowrite32be(v,p) iowrite32(swab32(v), (p))
  
- 	if (unlikely(in_atomic())) {
- 		pr_info("note: %s[%d] exited with preempt_count %d\n",
+ #define inb_p		inb
+ #define inw_p		inw
 _
