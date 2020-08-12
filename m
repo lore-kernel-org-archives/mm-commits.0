@@ -7,45 +7,49 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56AADC433DF
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:04:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CABFC433DF
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:05:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D90D206F2
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:04:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67FF4206F2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:05:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597194279;
-	bh=60pY5s6Luvd+ddBx1peDJBQgn4lPlFDZ3v8URK/op3M=;
+	s=default; t=1597194354;
+	bh=Zf/5Hq9ffHWCpzyBNmFOSYX3ARWJzOLcFVU93Ol/UGA=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=X9T5dO/TyM2IXsVnJJhYaQ+uCMOUm0Of51F7U5HfsTFRH7zLDysHikMLeqT815y+S
-	 /RCiPIR7n97jwgQTmCnysxFlaKQbs8vrqPXoJhmLqWncqbH+J2AWRZ9TjP0agtqPbM
-	 H96oEVXyTL4fHizHmXw4H3ChHhi4W5M+E2M9BHqE=
+	b=oI7coGMADT1N1CH51P8HPmNaGa0ItfB99ECIahlpSafTmo3HqV/Odgn8b8PVADXU0
+	 0TPAoqRBZIL/vz86ixQfTfv8Ig/LeIvsZuI4wtdhIxxZqbNcOYy00SsSrLxwBNpzr2
+	 3IJad8EpyuXklb0qeJLxhKDOTGnsUMHJYbxjIXoc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726235AbgHLBEi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:04:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45812 "EHLO mail.kernel.org"
+        id S1726368AbgHLBFy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:05:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46238 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726143AbgHLBEi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:04:38 -0400
+        id S1726143AbgHLBFx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:05:53 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 9CF2B206B5;
-        Wed, 12 Aug 2020 01:04:36 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 313F2206B5;
+        Wed, 12 Aug 2020 01:05:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597194276;
-        bh=60pY5s6Luvd+ddBx1peDJBQgn4lPlFDZ3v8URK/op3M=;
+        s=default; t=1597194353;
+        bh=Zf/5Hq9ffHWCpzyBNmFOSYX3ARWJzOLcFVU93Ol/UGA=;
         h=Date:From:To:Subject:From;
-        b=YWoA43mtQgJYhoyh+ydFUSNyl8ks1YYdgfw09BiZhlGewCeAvEk1FGZfIL64jbf9k
-         eH8m1NGxzxVw1nHbrmO7sNdQ4WJViYH7fIikT+iOdy6zIGVWiFaMp8Oh85En9Nv/IW
-         UZtz2HFSmjeWmbSgzW6Lb8uylJsjpnFDdJJLVS0o=
-Date:   Tue, 11 Aug 2020 18:04:36 -0700
+        b=cX0jCNKWwzRzZBgkmR87LJgXDThsbMHKxXo8QfNMbG+fEQOqOQ9bzBRozXyUE8lrv
+         IpoxvK56oRVbXOhu8JvjzstL9+V653qjwkovPwuROg3lKp3f5wGTmOaOgcWB0B89LL
+         pW4ls1DzE3pTo+t01vhX0fX4n7g6oLiDY7PlHyyg=
+Date:   Tue, 11 Aug 2020 18:05:52 -0700
 From:   akpm@linux-foundation.org
-To:     hulkci@huawei.com, mm-commits@vger.kernel.org,
-        rikard.falkeborn@gmail.com, weiyongjun1@huawei.com
-Subject:  [folded-merged] bits-add-tests-of-genmask-fix-2.patch
- removed from -mm tree
-Message-ID: <20200812010436.d4sIxUgfh%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, vbabka@suse.cz
+Subject:  [folded-merged]
+ =?US-ASCII?Q?mm-migrate-clear-=5F=5Fgfp=5Freclaim-to-make-the-migratio?=
+ =?US-ASCII?Q?n-callback-consistent-with-regular-thp-allocations-fix.p?=
+ =?US-ASCII?Q?atch?= removed from -mm tree
+Message-ID: <20200812010552.kDR0XIegX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,69 +58,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_bits: make some functions static
+     Subject: mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix
 has been removed from the -mm tree.  Its filename was
-     bits-add-tests-of-genmask-fix-2.patch
+     mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix.patch
 
-This patch was dropped because it was folded into bits-add-tests-of-genmask.patch
+This patch was dropped because it was folded into mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations.patch
 
 ------------------------------------------------------
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Subject: lib/test_bits: make some functions static
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix
 
-Fix sparse build warnings:
+fix comment typo, per Vlastimil
 
-lib/test_bits.c:10:6: warning:
- symbol 'genmask_test' was not declared. Should it be static?
-lib/test_bits.c:27:6: warning:
- symbol 'genmask_ull_test' was not declared. Should it be static?
-lib/test_bits.c:42:6: warning:
- symbol 'genmask_input_check_test' was not declared. Should it be static?
-
-Link: http://lkml.kernel.org/r/20200702150336.4756-1-weiyongjun1@huawei.com
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Cc: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bits.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/test_bits.c~bits-add-tests-of-genmask-fix-2
-+++ a/lib/test_bits.c
-@@ -7,7 +7,7 @@
- #include <linux/bits.h>
+--- a/mm/migrate.c~mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations-fix
++++ a/mm/migrate.c
+@@ -1550,7 +1550,7 @@ struct page *new_page_nodemask(struct pa
  
- 
--void genmask_test(struct kunit *test)
-+static void genmask_test(struct kunit *test)
- {
- 	KUNIT_EXPECT_EQ(test, 1ul, GENMASK(0, 0));
- 	KUNIT_EXPECT_EQ(test, 3ul, GENMASK(1, 0));
-@@ -24,7 +24,7 @@ void genmask_test(struct kunit *test)
- 
- }
- 
--void genmask_ull_test(struct kunit *test)
-+static void genmask_ull_test(struct kunit *test)
- {
- 	KUNIT_EXPECT_EQ(test, 1ull, GENMASK_ULL(0, 0));
- 	KUNIT_EXPECT_EQ(test, 3ull, GENMASK_ULL(1, 0));
-@@ -39,7 +39,7 @@ void genmask_ull_test(struct kunit *test
- #endif
- }
- 
--void genmask_input_check_test(struct kunit *test)
-+static void genmask_input_check_test(struct kunit *test)
- {
- 	unsigned int x, y;
- 	int z, w;
+ 	if (PageTransHuge(page)) {
+ 		/*
+-		 * clear __GFP_RECALIM to make the migration callback
++		 * clear __GFP_RECLAIM to make the migration callback
+ 		 * consistent with regular THP allocations.
+ 		 */
+ 		gfp_mask &= ~__GFP_RECLAIM;
 _
 
-Patches currently in -mm which might be from weiyongjun1@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-test_lockupc-make-symbol-test_works-static.patch
-bits-add-tests-of-genmask.patch
-kcov-make-some-symbols-static.patch
+mm-migrate-clear-__gfp_reclaim-to-make-the-migration-callback-consistent-with-regular-thp-allocations.patch
+mm-migrate-make-a-standard-migration-target-allocation-function-fix.patch
+mm.patch
+mm-vmstat-fix-proc-sys-vm-stat_refresh-generating-false-warnings-fix-2.patch
+mm-madvise-introduce-process_madvise-syscall-an-external-memory-hinting-api-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
