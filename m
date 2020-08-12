@@ -2,49 +2,52 @@ Return-Path: <SRS0=McLq=BW=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A49CC433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56E76C433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 26367207DA
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36A3C2076C
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:34:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597196092;
-	bh=ENeqg2wXvbsFB4KMz+LKUdtu8L7LWXGatRmfpJiJL2g=;
+	s=default; t=1597196095;
+	bh=j6ZEIeWrbIgKIFXNJraz3kaCQlEUOk4n/4tEkuH13fQ=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=vaXi66uD2L+DSZEaivb3EM/jVJEpDZIXWwS4l18YRV7OA+kgDhtYGKbcRcjOvc8j4
-	 Q914N38qMqoZI9K6uQx8sxR9IN7/H6SJpXKH12VrryKsiJpMYl1FmzvxZFwanIJOej
-	 n6Cay1qgw/CGt69qNhjMyqhkwuttkYI92Xfm+RYI=
+	b=SVsgzo2HEv9R1/uKKErceZfd7PNpTpIB0QiIuIaJ/pjuSUQxIBEWV0CCrItpgLWMi
+	 HRwN+Z641Sb/j4XxIGNH8w8RYsjiILh2Cco6I9FGk3L7ltkb3IBXwt1uRjuIAExcHg
+	 bgh8ZMFr0Vem4J3PAI+2I44pTTKYhBH7WL0XhKwk=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726483AbgHLBev (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:34:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35704 "EHLO mail.kernel.org"
+        id S1726402AbgHLBez (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:34:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35756 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726402AbgHLBev (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:34:51 -0400
+        id S1726143AbgHLBey (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:34:54 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id AA1682076C;
-        Wed, 12 Aug 2020 01:34:50 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A8B7A207DA;
+        Wed, 12 Aug 2020 01:34:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597196090;
-        bh=ENeqg2wXvbsFB4KMz+LKUdtu8L7LWXGatRmfpJiJL2g=;
+        s=default; t=1597196094;
+        bh=j6ZEIeWrbIgKIFXNJraz3kaCQlEUOk4n/4tEkuH13fQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wrEtMu9+2vVYsfZb9OoEkZEZ0E8OUOPFNlYnrTXS+eFq2UQApMjigzXfaBott/qVN
-         BJLgnXXCzr6tPacK8fSEz8pD3ZmP+jDa1irNOE6KlIQz08UeFBB9mGUSC/XObPD0fT
-         WfG5PAthCkctx46rjRm7EPGt1EpSxiuuOLjhFwIQ=
-Date:   Tue, 11 Aug 2020 18:34:50 -0700
+        b=ubOsADVVld4cZsLGJWWFA9PUtG9cmISHEwSpnyGw96sLVGZIfkQ6Ai5hHAXqtCEy/
+         MSDkKnFmsBoKQcWU/0cYB6ZxS1EdItciXQkrtnQcLcezb70Ijtb5bZ1Qm4BRp4B2PL
+         Z0hoSJTHt+BiHByrOlhawUqm4dCwd5ul1FsijKpY=
+Date:   Tue, 11 Aug 2020 18:34:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, colyli@suse.de,
-        grandmaster@al2klimov.de, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 087/165] lib/: replace HTTP links with HTTPS ones
-Message-ID: <20200812013450.E5pcrSMlt%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
+        eldad@fogrefinery.com, geert+renesas@glider.be,
+        kerneldev@karsmulder.nl, linux-mm@kvack.org, mans@mansr.com,
+        miguel.ojeda.sandonis@gmail.com, mm-commits@vger.kernel.org,
+        pmladek@suse.com, torvalds@linux-foundation.org
+Subject:  [patch 088/165] kstrto*: correct documentation references
+ to simple_strto*()
+Message-ID: <20200812013453.nvffuciLN%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -53,193 +56,95 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Alexander A. Klimov" <grandmaster@al2klimov.de>
-Subject: lib/: replace HTTP links with HTTPS ones
+From: "Kars Mulder" <kerneldev@karsmulder.nl>
+Subject: kstrto*: correct documentation references to simple_strto*()
 
-Rationale:
-Reduces attack surface on kernel devs opening the links for MITM
-as HTTPS traffic is much harder to manipulate.
+The documentation of the kstrto*() functions reference the simple_strtoull
+function by "used as a replacement for [the obsolete] simple_strtoull". 
+All these functions describes themselves as replacements for the function
+simple_strtoull, even though a function like kstrtol() would be more aptly
+described as a replacement of simple_strtol().
 
-Link: http://lkml.kernel.org/r/20200726112154.16510-1-grandmaster@al2klimov.de
-Signed-off-by: Alexander A. Klimov <grandmaster@al2klimov.de>
-Acked-by: Coly Li <colyli@suse.de>	[crc64.c]
+Fix these references by making the documentation of kstrto*() reference
+the closest simple_strto*() equivalent available.  The functions
+kstrto[u]int() do not have direct simple_strto[u]int() equivalences, so
+these are made to refer to simple_strto[u]l() instead.
+
+Furthermore, add parentheses after function names, as is standard in
+kernel documentation.
+
+Link: http://lkml.kernel.org/r/1ee1-5f234c00-f3-165a6440@234394593
+Fixes: 4c925d6031f71 ("kstrto*: add documentation")
+Signed-off-by: Kars Mulder <kerneldev@karsmulder.nl>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Eldad Zack <eldad@fogrefinery.com>
+Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Mans Rullgard <mans@mansr.com>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug        |    2 +-
- lib/crc64.c              |    2 +-
- lib/decompress_bunzip2.c |    2 +-
- lib/decompress_unlzma.c  |    6 +++---
- lib/math/rational.c      |    2 +-
- lib/rbtree.c             |    2 +-
- lib/ts_bm.c              |    2 +-
- lib/xxhash.c             |    2 +-
- lib/xz/xz_crc32.c        |    2 +-
- lib/xz/xz_dec_bcj.c      |    2 +-
- lib/xz/xz_dec_lzma2.c    |    2 +-
- lib/xz/xz_lzma2.h        |    2 +-
- lib/xz/xz_stream.h       |    2 +-
- 13 files changed, 15 insertions(+), 15 deletions(-)
+ include/linux/kernel.h |    4 ++--
+ lib/kstrtox.c          |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/lib/crc64.c~lib-replace-http-links-with-https-ones
-+++ a/lib/crc64.c
-@@ -4,7 +4,7 @@
+--- a/include/linux/kernel.h~kstrto-correct-documentation-references-to-simple_strto
++++ a/include/linux/kernel.h
+@@ -346,7 +346,7 @@ int __must_check kstrtoll(const char *s,
+  * @res: Where to write the result of the conversion on success.
   *
-  * This is a basic crc64 implementation following ECMA-182 specification,
-  * which can be found from,
-- * http://www.ecma-international.org/publications/standards/Ecma-182.htm
-+ * https://www.ecma-international.org/publications/standards/Ecma-182.htm
+  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+- * Used as a replacement for the simple_strtoull. Return code must be checked.
++ * Used as a replacement for the simple_strtoul(). Return code must be checked.
+ */
+ static inline int __must_check kstrtoul(const char *s, unsigned int base, unsigned long *res)
+ {
+@@ -374,7 +374,7 @@ static inline int __must_check kstrtoul(
+  * @res: Where to write the result of the conversion on success.
   *
-  * Dr. Ross N. Williams has a great document to introduce the idea of CRC
-  * algorithm, here the CRC64 code is also inspired by the table-driven
---- a/lib/decompress_bunzip2.c~lib-replace-http-links-with-https-ones
-+++ a/lib/decompress_bunzip2.c
-@@ -34,7 +34,7 @@
- 		Phone (337) 232-1234 or 1-800-738-2226
- 		Fax   (337) 232-1297
- 
--		http://www.hospiceacadiana.com/
-+		https://www.hospiceacadiana.com/
- 
- 	Manuel
+  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+- * Used as a replacement for the simple_strtoull. Return code must be checked.
++ * Used as a replacement for the simple_strtol(). Return code must be checked.
   */
---- a/lib/decompress_unlzma.c~lib-replace-http-links-with-https-ones
-+++ a/lib/decompress_unlzma.c
-@@ -8,7 +8,7 @@
-  *implementation for lzma.
-  *Copyright (C) 2006  Aurelien Jacobs < aurel@gnuage.org >
+ static inline int __must_check kstrtol(const char *s, unsigned int base, long *res)
+ {
+--- a/lib/kstrtox.c~kstrto-correct-documentation-references-to-simple_strto
++++ a/lib/kstrtox.c
+@@ -115,7 +115,7 @@ static int _kstrtoull(const char *s, uns
+  * @res: Where to write the result of the conversion on success.
   *
-- *Based on LzmaDecode.c from the LZMA SDK 4.22 (http://www.7-zip.org/)
-+ *Based on LzmaDecode.c from the LZMA SDK 4.22 (https://www.7-zip.org/)
-  *Copyright (C) 1999-2005  Igor Pavlov
-  *
-  *Copyrights of the parts, see headers below.
-@@ -56,7 +56,7 @@ static long long INIT read_int(unsigned
- /* Small range coder implementation for lzma.
-  *Copyright (C) 2006  Aurelien Jacobs < aurel@gnuage.org >
-  *
-- *Based on LzmaDecode.c from the LZMA SDK 4.22 (http://www.7-zip.org/)
-+ *Based on LzmaDecode.c from the LZMA SDK 4.22 (https://www.7-zip.org/)
-  *Copyright (c) 1999-2005  Igor Pavlov
+  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+- * Used as a replacement for the obsolete simple_strtoull. Return code must
++ * Used as a replacement for the obsolete simple_strtoull(). Return code must
+  * be checked.
   */
- 
-@@ -213,7 +213,7 @@ rc_bit_tree_decode(struct rc *rc, uint16
-  * Small lzma deflate implementation.
-  * Copyright (C) 2006  Aurelien Jacobs < aurel@gnuage.org >
+ int kstrtoull(const char *s, unsigned int base, unsigned long long *res)
+@@ -139,7 +139,7 @@ EXPORT_SYMBOL(kstrtoull);
+  * @res: Where to write the result of the conversion on success.
   *
-- * Based on LzmaDecode.c from the LZMA SDK 4.22 (http://www.7-zip.org/)
-+ * Based on LzmaDecode.c from the LZMA SDK 4.22 (https://www.7-zip.org/)
-  * Copyright (C) 1999-2005  Igor Pavlov
+  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+- * Used as a replacement for the obsolete simple_strtoull. Return code must
++ * Used as a replacement for the obsolete simple_strtoll(). Return code must
+  * be checked.
   */
- 
---- a/lib/Kconfig.debug~lib-replace-http-links-with-https-ones
-+++ a/lib/Kconfig.debug
-@@ -2215,7 +2215,7 @@ config LIST_KUNIT_TEST
- 	  and associated macros.
- 
- 	  KUnit tests run during boot and output the results to the debug log
--	  in TAP format (http://testanything.org/). Only useful for kernel devs
-+	  in TAP format (https://testanything.org/). Only useful for kernel devs
- 	  running the KUnit test harness, and not intended for inclusion into a
- 	  production build.
- 
---- a/lib/math/rational.c~lib-replace-http-links-with-https-ones
-+++ a/lib/math/rational.c
-@@ -27,7 +27,7 @@
-  * with the fractional part size described in given_denominator.
+ int kstrtoll(const char *s, unsigned int base, long long *res)
+@@ -211,7 +211,7 @@ EXPORT_SYMBOL(_kstrtol);
+  * @res: Where to write the result of the conversion on success.
   *
-  * for theoretical background, see:
-- * http://en.wikipedia.org/wiki/Continued_fraction
-+ * https://en.wikipedia.org/wiki/Continued_fraction
+  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+- * Used as a replacement for the obsolete simple_strtoull. Return code must
++ * Used as a replacement for the obsolete simple_strtoul(). Return code must
+  * be checked.
   */
- 
- void rational_best_approximation(
---- a/lib/rbtree.c~lib-replace-http-links-with-https-ones
-+++ a/lib/rbtree.c
-@@ -13,7 +13,7 @@
- #include <linux/export.h>
- 
- /*
-- * red-black trees properties:  http://en.wikipedia.org/wiki/Rbtree
-+ * red-black trees properties:  https://en.wikipedia.org/wiki/Rbtree
+ int kstrtouint(const char *s, unsigned int base, unsigned int *res)
+@@ -242,7 +242,7 @@ EXPORT_SYMBOL(kstrtouint);
+  * @res: Where to write the result of the conversion on success.
   *
-  *  1) A node is either red or black
-  *  2) The root is black
---- a/lib/ts_bm.c~lib-replace-http-links-with-https-ones
-+++ a/lib/ts_bm.c
-@@ -11,7 +11,7 @@
-  *   [1] A Fast String Searching Algorithm, R.S. Boyer and Moore.
-  *       Communications of the Association for Computing Machinery, 
-  *       20(10), 1977, pp. 762-772.
-- *       http://www.cs.utexas.edu/users/moore/publications/fstrpos.pdf
-+ *       https://www.cs.utexas.edu/users/moore/publications/fstrpos.pdf
-  *
-  *   [2] Handbook of Exact String Matching Algorithms, Thierry Lecroq, 2004
-  *       http://www-igm.univ-mlv.fr/~lecroq/string/string.pdf
---- a/lib/xxhash.c~lib-replace-http-links-with-https-ones
-+++ a/lib/xxhash.c
-@@ -34,7 +34,7 @@
-  * ("BSD").
-  *
-  * You can contact the author at:
-- * - xxHash homepage: http://cyan4973.github.io/xxHash/
-+ * - xxHash homepage: https://cyan4973.github.io/xxHash/
-  * - xxHash source repository: https://github.com/Cyan4973/xxHash
+  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+- * Used as a replacement for the obsolete simple_strtoull. Return code must
++ * Used as a replacement for the obsolete simple_strtol(). Return code must
+  * be checked.
   */
- 
---- a/lib/xz/xz_crc32.c~lib-replace-http-links-with-https-ones
-+++ a/lib/xz/xz_crc32.c
-@@ -2,7 +2,7 @@
-  * CRC32 using the polynomial from IEEE-802.3
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-- *          Igor Pavlov <http://7-zip.org/>
-+ *          Igor Pavlov <https://7-zip.org/>
-  *
-  * This file has been put into the public domain.
-  * You can do whatever you want with this file.
---- a/lib/xz/xz_dec_bcj.c~lib-replace-http-links-with-https-ones
-+++ a/lib/xz/xz_dec_bcj.c
-@@ -2,7 +2,7 @@
-  * Branch/Call/Jump (BCJ) filter decoders
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-- *          Igor Pavlov <http://7-zip.org/>
-+ *          Igor Pavlov <https://7-zip.org/>
-  *
-  * This file has been put into the public domain.
-  * You can do whatever you want with this file.
---- a/lib/xz/xz_dec_lzma2.c~lib-replace-http-links-with-https-ones
-+++ a/lib/xz/xz_dec_lzma2.c
-@@ -2,7 +2,7 @@
-  * LZMA2 decoder
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-- *          Igor Pavlov <http://7-zip.org/>
-+ *          Igor Pavlov <https://7-zip.org/>
-  *
-  * This file has been put into the public domain.
-  * You can do whatever you want with this file.
---- a/lib/xz/xz_lzma2.h~lib-replace-http-links-with-https-ones
-+++ a/lib/xz/xz_lzma2.h
-@@ -2,7 +2,7 @@
-  * LZMA2 definitions
-  *
-  * Authors: Lasse Collin <lasse.collin@tukaani.org>
-- *          Igor Pavlov <http://7-zip.org/>
-+ *          Igor Pavlov <https://7-zip.org/>
-  *
-  * This file has been put into the public domain.
-  * You can do whatever you want with this file.
---- a/lib/xz/xz_stream.h~lib-replace-http-links-with-https-ones
-+++ a/lib/xz/xz_stream.h
-@@ -19,7 +19,7 @@
- 
- /*
-  * See the .xz file format specification at
-- * http://tukaani.org/xz/xz-file-format.txt
-+ * https://tukaani.org/xz/xz-file-format.txt
-  * to understand the container format.
-  */
- 
+ int kstrtoint(const char *s, unsigned int base, int *res)
 _
