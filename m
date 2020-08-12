@@ -2,52 +2,50 @@ Return-Path: <SRS0=McLq=BW=vger.kernel.org=mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 420C5C433E0
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EB48C433E1
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1823621744
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:31:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E2CC206B2
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 01:32:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597195918;
-	bh=mZnBrHNwKwgqnLWU4d4BJEl4iH/p981n9giI86GnK98=;
+	s=default; t=1597195920;
+	bh=DOlQuN3MBpcieoHqPbvVQHLTa9MQMT8htktr790psHc=;
 	h=Date:From:To:Subject:In-Reply-To:Reply-To:List-ID:From;
-	b=fhBDiak3isYSP2VYatXCpvzG6PN3RabK+5oECHK+RiRdtkMqVD+CznuLTbLdz1xX6
-	 dkwXoDX9FASTih49E944gX8Qv0mX+aNKFcEmQqimlYNVskg0RMhVcxrew6ce80qVsf
-	 b7/hAVuUJOX/ZGjq439iSFZfRU6wjYvdNaumVllE=
+	b=ASXb+AZsFqxtR26lwcwjaVho53DT1YsBVwiLknpx7K2pzGGEItRIw0odhzlqnQeAl
+	 hL1nhKiejRTnlcI0G7yPHwoH2Oj7mkzn4SGNM45XedJRS/OsHVsUgJ0jv2rxmRg6io
+	 CE4x7ml/YL/aJ6MN5plNe4+qAzUJy/+lwhlwkcfc=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726457AbgHLBby (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 11 Aug 2020 21:31:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59770 "EHLO mail.kernel.org"
+        id S1726483AbgHLBb7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 11 Aug 2020 21:31:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726422AbgHLBbx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 11 Aug 2020 21:31:53 -0400
+        id S1726489AbgHLBb6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 11 Aug 2020 21:31:58 -0400
 Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 7656A206B2;
-        Wed, 12 Aug 2020 01:31:51 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id A60F9207DA;
+        Wed, 12 Aug 2020 01:31:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597195911;
-        bh=mZnBrHNwKwgqnLWU4d4BJEl4iH/p981n9giI86GnK98=;
+        s=default; t=1597195918;
+        bh=DOlQuN3MBpcieoHqPbvVQHLTa9MQMT8htktr790psHc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=A03GjlsGYPkHzCf821Irz/HKkx8BzV0//XxXH+/aMIFk0krNCE+9QYYVr0Q35l2Jq
-         gN75ZKyS/g/NumBR0bmZIk0EKXMYNQ+qO+KMXzEG2IH4tl6bIVu4g1siH4JQa3ZlGT
-         FYP/YgjZcB5btexgqdLKXxetOESqOdRb3WwaUqFc=
-Date:   Tue, 11 Aug 2020 18:31:51 -0700
+        b=BhvqcVojRC6TzZFL9Re1gh91T/vi78uk4IrFHO7Sc0X/urrHn5SbfZHBsaOE6CdBX
+         h305GjjxJz1sKGPTy+jD0HqBlGlv1lNPGVjq/DAzPjwhlg1hXXPdAAHd/k77ZCBHkv
+         pzZix5F2sSqSJqOgkcrD9OPb1XoN7LpxAfkSrdcg=
+Date:   Tue, 11 Aug 2020 18:31:57 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
-        daniel.m.jordan@oracle.com, hughd@google.com, jhubbard@nvidia.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        n-horiguchi@ah.jp.nec.com, torvalds@linux-foundation.org,
-        willy@infradead.org, ziy@nvidia.com
-Subject:  [patch 030/165] mm/vmstat: add events for THP migration
- without split
-Message-ID: <20200812013151.3h69xz2rX%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, guro@fb.com, linux-mm@kvack.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        natechancellor@gmail.com, song.bao.hua@hisilicon.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 032/165] mm: cma: fix the name of CMA areas
+Message-ID: <20200812013157.V_PQIH6TB%akpm@linux-foundation.org>
 In-Reply-To: <20200811182949.e12ae9a472e3b5e27e16ad6c@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
@@ -56,252 +54,88 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/vmstat: add events for THP migration without split
+From: Barry Song <song.bao.hua@hisilicon.com>
+Subject: mm: cma: fix the name of CMA areas
 
-Add following new vmstat events which will help in validating THP
-migration without split.  Statistics reported through these new VM events
-will help in performance debugging.
+Patch series "mm: fix the names of general cma and hugetlb cma", v2.
 
-1. THP_MIGRATION_SUCCESS
-2. THP_MIGRATION_FAILURE
-3. THP_MIGRATION_SPLIT
+The current code of CMA can only work when users pass a const string as
+name parameter.  we need to fix the way to handle names in CMA.  On the
+other hand, to avoid name conflicts after enabling CMA_DEBUGFS, each
+hugetlb should get a different CMA name.
 
-In addition, these new events also update normal page migration statistics
-appropriately via PGMIGRATE_SUCCESS and PGMIGRATE_FAILURE.  While here,
-this updates current trace event 'mm_migrate_pages' to accommodate now
-available THP statistics.
 
-[akpm@linux-foundation.org: s/hpage_nr_pages/thp_nr_pages/]
-[ziy@nvidia.com: v2]
-  Link: http://lkml.kernel.org/r/C5E3C65C-8253-4638-9D3C-71A61858BB8B@nvidia.com
-[anshuman.khandual@arm.com: s/thp_nr_pages/hpage_nr_pages/]
-  Link: http://lkml.kernel.org/r/1594287583-16568-1-git-send-email-anshuman.khandual@arm.com
-Link: http://lkml.kernel.org/r/1594080415-27924-1-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+This patch (of 2):
+
+If users give a name saved in stack, the current code will generate magic
+pointer.  if users don't give a name(NULL), kasprintf() will always return
+NULL as we are at the early stage.  that means cma_init_reserved_mem()
+will return -ENOMEM if users set name parameter as NULL.
+
+[natechancellor@gmail.com: return cma->name directly in cma_get_name]
+  Link: https://github.com/ClangBuiltLinux/linux/issues/1063
+  Link: http://lkml.kernel.org/r/20200623015840.621964-1-natechancellor@gmail.com
+Link: http://lkml.kernel.org/r/20200616223131.33828-2-song.bao.hua@hisilicon.com
+Signed-off-by: Barry Song <song.bao.hua@hisilicon.com>
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_migration.rst |   27 +++++++++++++
- include/linux/vm_event_item.h       |    3 +
- include/trace/events/migrate.h      |   17 +++++++-
- mm/migrate.c                        |   52 ++++++++++++++++++++++----
- mm/vmstat.c                         |    3 +
- 5 files changed, 91 insertions(+), 11 deletions(-)
+ mm/cma.c |   15 +++++++--------
+ mm/cma.h |    4 +++-
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
---- a/Documentation/vm/page_migration.rst~mm-vmstat-add-events-for-thp-migration-without-split
-+++ a/Documentation/vm/page_migration.rst
-@@ -253,5 +253,32 @@ which are function pointers of struct ad
-      PG_isolated is alias with PG_reclaim flag so driver shouldn't use the flag
-      for own purpose.
+--- a/mm/cma.c~mm-cma-fix-the-name-of-cma-areas
++++ a/mm/cma.c
+@@ -52,7 +52,7 @@ unsigned long cma_get_size(const struct
  
-+Monitoring Migration
-+=====================
-+
-+The following events (counters) can be used to monitor page migration.
-+
-+1. PGMIGRATE_SUCCESS: Normal page migration success. Each count means that a
-+   page was migrated. If the page was a non-THP page, then this counter is
-+   increased by one. If the page was a THP, then this counter is increased by
-+   the number of THP subpages. For example, migration of a single 2MB THP that
-+   has 4KB-size base pages (subpages) will cause this counter to increase by
-+   512.
-+
-+2. PGMIGRATE_FAIL: Normal page migration failure. Same counting rules as for
-+   _SUCCESS, above: this will be increased by the number of subpages, if it was
-+   a THP.
-+
-+3. THP_MIGRATION_SUCCESS: A THP was migrated without being split.
-+
-+4. THP_MIGRATION_FAIL: A THP could not be migrated nor it could be split.
-+
-+5. THP_MIGRATION_SPLIT: A THP was migrated, but not as such: first, the THP had
-+   to be split. After splitting, a migration retry was used for it's sub-pages.
-+
-+THP_MIGRATION_* events also update the appropriate PGMIGRATE_SUCCESS or
-+PGMIGRATE_FAIL events. For example, a THP migration failure will cause both
-+THP_MIGRATION_FAIL and PGMIGRATE_FAIL to increase.
-+
- Christoph Lameter, May 8, 2006.
- Minchan Kim, Mar 28, 2016.
---- a/include/linux/vm_event_item.h~mm-vmstat-add-events-for-thp-migration-without-split
-+++ a/include/linux/vm_event_item.h
-@@ -56,6 +56,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- #endif
- #ifdef CONFIG_MIGRATION
- 		PGMIGRATE_SUCCESS, PGMIGRATE_FAIL,
-+		THP_MIGRATION_SUCCESS,
-+		THP_MIGRATION_FAIL,
-+		THP_MIGRATION_SPLIT,
- #endif
- #ifdef CONFIG_COMPACTION
- 		COMPACTMIGRATE_SCANNED, COMPACTFREE_SCANNED,
---- a/include/trace/events/migrate.h~mm-vmstat-add-events-for-thp-migration-without-split
-+++ a/include/trace/events/migrate.h
-@@ -46,13 +46,18 @@ MIGRATE_REASON
- TRACE_EVENT(mm_migrate_pages,
- 
- 	TP_PROTO(unsigned long succeeded, unsigned long failed,
--		 enum migrate_mode mode, int reason),
-+		 unsigned long thp_succeeded, unsigned long thp_failed,
-+		 unsigned long thp_split, enum migrate_mode mode, int reason),
- 
--	TP_ARGS(succeeded, failed, mode, reason),
-+	TP_ARGS(succeeded, failed, thp_succeeded, thp_failed,
-+		thp_split, mode, reason),
- 
- 	TP_STRUCT__entry(
- 		__field(	unsigned long,		succeeded)
- 		__field(	unsigned long,		failed)
-+		__field(	unsigned long,		thp_succeeded)
-+		__field(	unsigned long,		thp_failed)
-+		__field(	unsigned long,		thp_split)
- 		__field(	enum migrate_mode,	mode)
- 		__field(	int,			reason)
- 	),
-@@ -60,13 +65,19 @@ TRACE_EVENT(mm_migrate_pages,
- 	TP_fast_assign(
- 		__entry->succeeded	= succeeded;
- 		__entry->failed		= failed;
-+		__entry->thp_succeeded	= thp_succeeded;
-+		__entry->thp_failed	= thp_failed;
-+		__entry->thp_split	= thp_split;
- 		__entry->mode		= mode;
- 		__entry->reason		= reason;
- 	),
- 
--	TP_printk("nr_succeeded=%lu nr_failed=%lu mode=%s reason=%s",
-+	TP_printk("nr_succeeded=%lu nr_failed=%lu nr_thp_succeeded=%lu nr_thp_failed=%lu nr_thp_split=%lu mode=%s reason=%s",
- 		__entry->succeeded,
- 		__entry->failed,
-+		__entry->thp_succeeded,
-+		__entry->thp_failed,
-+		__entry->thp_split,
- 		__print_symbolic(__entry->mode, MIGRATE_MODE),
- 		__print_symbolic(__entry->reason, MIGRATE_REASON))
- );
---- a/mm/migrate.c~mm-vmstat-add-events-for-thp-migration-without-split
-+++ a/mm/migrate.c
-@@ -1418,22 +1418,35 @@ int migrate_pages(struct list_head *from
- 		enum migrate_mode mode, int reason)
+ const char *cma_get_name(const struct cma *cma)
  {
- 	int retry = 1;
-+	int thp_retry = 1;
- 	int nr_failed = 0;
- 	int nr_succeeded = 0;
-+	int nr_thp_succeeded = 0;
-+	int nr_thp_failed = 0;
-+	int nr_thp_split = 0;
- 	int pass = 0;
-+	bool is_thp = false;
- 	struct page *page;
- 	struct page *page2;
- 	int swapwrite = current->flags & PF_SWAPWRITE;
--	int rc;
-+	int rc, nr_subpages;
+-	return cma->name ? cma->name : "(undefined)";
++	return cma->name;
+ }
  
- 	if (!swapwrite)
- 		current->flags |= PF_SWAPWRITE;
+ static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
+@@ -202,13 +202,12 @@ int __init cma_init_reserved_mem(phys_ad
+ 	 * subsystems (like slab allocator) are available.
+ 	 */
+ 	cma = &cma_areas[cma_area_count];
+-	if (name) {
+-		cma->name = name;
+-	} else {
+-		cma->name = kasprintf(GFP_KERNEL, "cma%d\n", cma_area_count);
+-		if (!cma->name)
+-			return -ENOMEM;
+-	}
++
++	if (name)
++		snprintf(cma->name, CMA_MAX_NAME, name);
++	else
++		snprintf(cma->name, CMA_MAX_NAME,  "cma%d\n", cma_area_count);
++
+ 	cma->base_pfn = PFN_DOWN(base);
+ 	cma->count = size >> PAGE_SHIFT;
+ 	cma->order_per_bit = order_per_bit;
+--- a/mm/cma.h~mm-cma-fix-the-name-of-cma-areas
++++ a/mm/cma.h
+@@ -4,6 +4,8 @@
  
--	for(pass = 0; pass < 10 && retry; pass++) {
-+	for (pass = 0; pass < 10 && (retry || thp_retry); pass++) {
- 		retry = 0;
-+		thp_retry = 0;
+ #include <linux/debugfs.h>
  
- 		list_for_each_entry_safe(page, page2, from, lru) {
- retry:
-+			/*
-+			 * THP statistics is based on the source huge page.
-+			 * Capture required information that might get lost
-+			 * during migration.
-+			 */
-+			is_thp = PageTransHuge(page);
-+			nr_subpages = hpage_nr_pages(page);
- 			cond_resched();
- 
- 			if (PageHuge(page))
-@@ -1464,15 +1477,30 @@ retry:
- 					unlock_page(page);
- 					if (!rc) {
- 						list_safe_reset_next(page, page2, lru);
-+						nr_thp_split++;
- 						goto retry;
- 					}
- 				}
-+				if (is_thp) {
-+					nr_thp_failed++;
-+					nr_failed += nr_subpages;
-+					goto out;
-+				}
- 				nr_failed++;
- 				goto out;
- 			case -EAGAIN:
-+				if (is_thp) {
-+					thp_retry++;
-+					break;
-+				}
- 				retry++;
- 				break;
- 			case MIGRATEPAGE_SUCCESS:
-+				if (is_thp) {
-+					nr_thp_succeeded++;
-+					nr_succeeded += nr_subpages;
-+					break;
-+				}
- 				nr_succeeded++;
- 				break;
- 			default:
-@@ -1482,19 +1510,27 @@ retry:
- 				 * removed from migration page list and not
- 				 * retried in the next outer loop.
- 				 */
-+				if (is_thp) {
-+					nr_thp_failed++;
-+					nr_failed += nr_subpages;
-+					break;
-+				}
- 				nr_failed++;
- 				break;
- 			}
- 		}
- 	}
--	nr_failed += retry;
-+	nr_failed += retry + thp_retry;
-+	nr_thp_failed += thp_retry;
- 	rc = nr_failed;
- out:
--	if (nr_succeeded)
--		count_vm_events(PGMIGRATE_SUCCESS, nr_succeeded);
--	if (nr_failed)
--		count_vm_events(PGMIGRATE_FAIL, nr_failed);
--	trace_mm_migrate_pages(nr_succeeded, nr_failed, mode, reason);
-+	count_vm_events(PGMIGRATE_SUCCESS, nr_succeeded);
-+	count_vm_events(PGMIGRATE_FAIL, nr_failed);
-+	count_vm_events(THP_MIGRATION_SUCCESS, nr_thp_succeeded);
-+	count_vm_events(THP_MIGRATION_FAIL, nr_thp_failed);
-+	count_vm_events(THP_MIGRATION_SPLIT, nr_thp_split);
-+	trace_mm_migrate_pages(nr_succeeded, nr_failed, nr_thp_succeeded,
-+			       nr_thp_failed, nr_thp_split, mode, reason);
- 
- 	if (!swapwrite)
- 		current->flags &= ~PF_SWAPWRITE;
---- a/mm/vmstat.c~mm-vmstat-add-events-for-thp-migration-without-split
-+++ a/mm/vmstat.c
-@@ -1277,6 +1277,9 @@ const char * const vmstat_text[] = {
- #ifdef CONFIG_MIGRATION
- 	"pgmigrate_success",
- 	"pgmigrate_fail",
-+	"thp_migration_success",
-+	"thp_migration_fail",
-+	"thp_migration_split",
++#define CMA_MAX_NAME 64
++
+ struct cma {
+ 	unsigned long   base_pfn;
+ 	unsigned long   count;
+@@ -15,7 +17,7 @@ struct cma {
+ 	spinlock_t mem_head_lock;
+ 	struct debugfs_u32_array dfs_bitmap;
  #endif
- #ifdef CONFIG_COMPACTION
- 	"compact_migrate_scanned",
+-	const char *name;
++	char name[CMA_MAX_NAME];
+ };
+ 
+ extern struct cma cma_areas[MAX_CMA_AREAS];
 _
