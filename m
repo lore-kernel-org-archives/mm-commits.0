@@ -7,45 +7,43 @@ X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFBD6C433E3
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DFBCC433E0
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9229C2078B
-	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6397320774
+	for <mm-commits@archiver.kernel.org>; Wed, 12 Aug 2020 21:04:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597266272;
-	bh=PB4H2qrXt7IfzzuAsEJ5Zmfa3L73cpogTDnGUH55PcA=;
+	s=default; t=1597266275;
+	bh=iB8oNnS/WEwex2RZqqb9iUdpK+mUPv7gJK+OkTsz7eU=;
 	h=Date:From:To:Subject:Reply-To:List-ID:From;
-	b=Y4iwIE9keOIDOviwXE3plxEo6WN5BSXNm4NQmy8LyGoUuUxIjW2ohEofd5cFXxB8h
-	 Mh+tjB3q2R7mwlP0X6XLAov1U/iuC7nPReWdd+I8CchALHVreMIoMm4PvnGXKt62+A
-	 MKs4iqhd18MzyZE6lS0GhG11xC3zHLcUmCn4VDl0=
+	b=Jh/ucjBcIcESCbtLfw1vSzEHLjjYXkD86hUGibJ1TpmwIWb5g7w47LEaskZLwQZ0S
+	 7venhZw+azD+s3TjoSvAgc8ObbTjF+W7A42WAtnYZt1ib0Mah7kTHlCbrfYs8GuUpu
+	 oCLuVi6TqojKqwyqqjgiLypJ+CnPIDy7Y+f/7TQM=
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726542AbgHLVEc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Aug 2020 17:04:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57070 "EHLO mail.kernel.org"
+        id S1726578AbgHLVEf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Aug 2020 17:04:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726531AbgHLVEc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 12 Aug 2020 17:04:32 -0400
+        id S1726531AbgHLVEd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 12 Aug 2020 17:04:33 -0400
 Received: from localhost.localdomain (c-71-198-47-131.hsd1.ca.comcast.net [71.198.47.131])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 5E2B520838;
-        Wed, 12 Aug 2020 21:04:31 +0000 (UTC)
+        by mail.kernel.org (Postfix) with ESMTPSA id 625CC2078B;
+        Wed, 12 Aug 2020 21:04:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1597266271;
-        bh=PB4H2qrXt7IfzzuAsEJ5Zmfa3L73cpogTDnGUH55PcA=;
+        s=default; t=1597266273;
+        bh=iB8oNnS/WEwex2RZqqb9iUdpK+mUPv7gJK+OkTsz7eU=;
         h=Date:From:To:Subject:From;
-        b=f42GKTwDUucrb2zoOnzsNK/BXZKFXCO2NMxg0lj8lv7FJ/MvQPbpHb3wtlYJZSM4k
-         y6Q0kIU6tDYgPFC/5JK+Bsv1H9Ff3zgr3uiXSvsiHihrpFgl7BsRhrJjyFAqPUA433
-         deAREA+ZBnma8aFd5PGCaxwm7leT59/qt54ijAT0=
-Date:   Wed, 12 Aug 2020 14:04:31 -0700
+        b=0ZZwafpS802rIunnyI0l+i3yPmWfcbqdItZC6igaP0EazS2EXC1ufhnrK9vaPJVP6
+         /19m0p24gPAdDhy2QV37BJOKB/LQkVi09QeieFINTiGqMUhpPzqMq+te+NLh4L7dAX
+         KcGCJ0YWcM9fa/vt9rZQjYTPVF8dpF2Y0400D+Ig=
+Date:   Wed, 12 Aug 2020 14:04:33 -0700
 From:   akpm@linux-foundation.org
-To:     cambda@linux.alibaba.com, joe@perches.com,
-        mm-commits@vger.kernel.org
-Subject:  [merged]
- checkpatch-remove-missing-switch-case-break-test.patch removed from -mm
+To:     mm-commits@vger.kernel.org, raven@themaw.net, rdunlap@infradead.org
+Subject:  [merged] autofs-fix-doubled-word.patch removed from -mm
  tree
-Message-ID: <20200812210431.smIV6xV-M%akpm@linux-foundation.org>
+Message-ID: <20200812210433.osbp6ZFfJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Sender: mm-commits-owner@vger.kernel.org
 Precedence: bulk
@@ -55,65 +53,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: remove missing switch/case break test
+     Subject: autofs: fix doubled word
 has been removed from the -mm tree.  Its filename was
-     checkpatch-remove-missing-switch-case-break-test.patch
+     autofs-fix-doubled-word.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: remove missing switch/case break test
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: autofs: fix doubled word
 
-This test doesn't work well and newer compilers are much better
-at emitting this warning.
+Change doubled word "is" to "it is".
 
-Link: http://lkml.kernel.org/r/7e25090c79f6a69d502ab8219863300790192fe2.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Cambda Zhu <cambda@linux.alibaba.com>
+Link: http://lkml.kernel.org/r/5a82befd-40f8-8dc0-3498-cbc0436cad9b@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ include/uapi/linux/auto_dev-ioctl.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-remove-missing-switch-case-break-test
-+++ a/scripts/checkpatch.pl
-@@ -6543,31 +6543,6 @@ sub process {
- 			}
- 		}
+--- a/include/uapi/linux/auto_dev-ioctl.h~autofs-fix-doubled-word
++++ a/include/uapi/linux/auto_dev-ioctl.h
+@@ -82,7 +82,7 @@ struct args_ismountpoint {
+ /*
+  * All the ioctls use this structure.
+  * When sending a path size must account for the total length
+- * of the chunk of memory otherwise is is the size of the
++ * of the chunk of memory otherwise it is the size of the
+  * structure.
+  */
  
--# check for case / default statements not preceded by break/fallthrough/switch
--		if ($line =~ /^.\s*(?:case\s+(?:$Ident|$Constant)\s*|default):/) {
--			my $has_break = 0;
--			my $has_statement = 0;
--			my $count = 0;
--			my $prevline = $linenr;
--			while ($prevline > 1 && ($file || $count < 3) && !$has_break) {
--				$prevline--;
--				my $rline = $rawlines[$prevline - 1];
--				my $fline = $lines[$prevline - 1];
--				last if ($fline =~ /^\@\@/);
--				next if ($fline =~ /^\-/);
--				next if ($fline =~ /^.(?:\s*(?:case\s+(?:$Ident|$Constant)[\s$;]*|default):[\s$;]*)*$/);
--				$has_break = 1 if ($rline =~ /fall[\s_-]*(through|thru)/i);
--				next if ($fline =~ /^.[\s$;]*$/);
--				$has_statement = 1;
--				$count++;
--				$has_break = 1 if ($fline =~ /\bswitch\b|\b(?:break\s*;[\s$;]*$|exit\s*\(\b|return\b|goto\b|continue\b)/);
--			}
--			if (!$has_break && $has_statement) {
--				WARN("MISSING_BREAK",
--				     "Possible switch case/default not preceded by break or fallthrough comment\n" . $herecurr);
--			}
--		}
--
- # check for /* fallthrough */ like comment, prefer fallthrough;
- 		my @fallthroughs = (
- 			'fallthrough',
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-checkpatch-test-git_dir-changes.patch
 
